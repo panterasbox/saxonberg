@@ -293,6 +293,15 @@ cooper build instead of the assembly build.
   person can occupy one**, at a cost the host decides. (A fridge charges
   nothing; a boat under way charges plenty.)
 
+- ⭐⭐⭐ **A standard gets an enforcer, because somebody profits from
+  enforcing it.** The cask is the realm's first standard — *tonnage* comes
+  from *tuns* — and the office that made it stick was **the gauger**, an
+  excise officer who measured your casks to tax their contents. ⭐ A seat
+  whose whole function is **verifying an agreement about a slot
+  dimension**, which is the logistics slate's definition of a standard
+  wearing a uniform. He measures and records; what the polity does with
+  the number is the polity's.
+
 ### And close the silent gates while we are in here
 
 - **The craft mint follows custody**, with a **census-then-ratchet** on
@@ -364,6 +373,8 @@ cooper build instead of the assembly build.
 | **coopering** | ⭐ a new pack, **`trade-coopering`**, root `/trade/coopering` | it is a distinct trade with its own Discipline, its own tools and nine waiting consumers |
 | **riving + seasoning** | **`trade-forestry`** — the bole on the wood floor is the named attach point | riving is forestry's act by the slate's own argument; seasoning starts where the wood is cut |
 | the **compartment** | **kernel** substrate, consumed by `fridge-design-pack`'s first composer | a space with its own air is spatial substrate, not a trade's |
+| the **gauger's seat** | ⭐ a **row** — a seat on a locality's government chart (`civics.md`), resolved by `holdsSeat`. No Office code, no kernel edit |
+| the **gauger's act** | ⭐ a **`Reading` row** at `/trade/coopering/idea/reading/capacity`, warmed by `ReadingCatalogue`. `measure` is already flat over the channel |
 | the **part rows** | each in the pack whose trade makes them — hoops to smithing, panes to glass, soles to tanning, staves to coopering | ⭐ a part belongs to its producer, not to its consumer |
 
 ⭐ **The test the placement must pass: a second cooperage, a second
@@ -453,33 +464,192 @@ a finding and nothing is built to counter it.
 `coopering` enter the catalogue; `pick-haft` and `pick-head` leave
 `discipline: mining`.
 
+**D14 — The gauger is IN, and he costs no kernel code.** The cask is the
+realm's first standard and lens 7 lands nowhere else in this build, so the
+office ships with the trade that creates the thing worth certifying. ⭐⭐
+And both halves are already data:
+
+- **his authority is a SEAT** — `civics.md` makes a seat
+  `{ key, label, department, positionKey }` on an organization's chart,
+  with `holdsSeat(character, govKey, seatKey)` as the authority predicate
+  **as data**, not a second Office apparatus;
+- ⭐⭐⭐ **his act is a `Reading` ROW** — `measure capacity`. There is no
+  `capacity` among the 37 shipped reading channels, and `measure` is
+  already a flat verb over a channel any pack can add. **So the gauger
+  adds one row and one seat, no verb and no kernel file.**
+
+⚠ What he must NOT become: a tax mechanism. He **measures and records**;
+what a polity does with the number is the polity's, and the entrenchment
+tier question belongs to `measurement.md` layer 3, not here.
+
 ---
 
 ## Lens pass
 
-⚠ **OWED — and deliberately not drafted here.** The slate carries a
-strong seven-lens pass over *assembly as a mechanism*
-([assembly-slate](../slates/builds/assembly-slate.md) § 12), and it still
-holds. What has no pass yet is **the new scope this document added**, and
-by the owner's instruction it gets one before the plan:
+⭐ The slate carries the pass over **assembly as a mechanism**
+([assembly-slate](../slates/builds/assembly-slate.md) § 12) and it still
+holds. What follows is the pass over **the new scope this document
+added**: the three trades, their Disciplines, and the wood economy.
 
-1. ⭐⭐ **The three new trades** — `carpentry`, `sawing` as its station,
-   and `coopering` — each against all seven, and against
-   `vocations.md`'s **five criteria for a real vocation** and the demand
-   test. A trade that cannot answer *what does it consume and who pays*
-   is a procedure wearing an apron.
-2. ⭐ **The two new Disciplines**, against lens 1: what is actually being
-   taught and is the world derivable from it. ⚠ Note `coopering` has no
-   Discipline today and the register flags it.
-3. ⭐ **The wood column as an economy** — four rungs deep — against lens
-   6, including whether each rung has a decision in it or is procedure.
-4. **Seasoning** against lens 4: waiting as a priced choice.
-5. ⭐ **The gauger** against lens 7 — *who certifies a standard?* The
-   cask is the realm's first standard and the historical office is an
-   excise officer whose whole job was measuring casks to tax their
-   contents. Either it is in this build or it leaves with a destination.
+### ⭐⭐⭐ The keystone: this build is what makes carpentry a vocation
 
----
+`pick-haft` is *"one stick of wood, by hand, no heat and no station"* at
+`difficulty: easy`. **Anybody can shave a stick** — so by criterion 2
+(*if anyone can do it, it is a chore, not a job*) shaving is a chore, and
+carpentry has no forge to gate it the way smithing does.
+
+> **The gate is the JOINT.** Anybody can shave a stick; **a
+> mortise-and-tenon that doesn't rack is competence.** An amateur's chair
+> wobbles and a joiner's does not, and that difference has no
+> representation in the engine today because `DurableMixin` is one scalar
+> and joints do not exist.
+
+⭐⭐ So **carpentry fails criterion 2 without the assembly substrate, and
+the assembly substrate supplies its gate.** The two cannot be separated
+— a design argument for keeping this scope together, not an economic one.
+
+### Carpenter · joiner
+
+| # | | |
+|---|---|---|
+| 1 | **unmet demand** | ✓ the strongest form in the register: **the consumers are already shipped and already buying.** 412 makerless goods, the store at par 1–3 on furnishings, eleven recipes faking wooden parts into existence. Nothing fabricated |
+| 2 | **gated capability** | ⭐⭐ **the joint** (above). Secondary gate for boards: **the mill is premises you do not own** |
+| 3 | **repeatable loop** | ✓ the register's preferred shape — *maintenance*. Joints rack, hafts break, furniture is re-wedged forever |
+| 4 | **paid, not minted** | ✓ ⭐⭐ **and the market is structurally beyond floor stock's reach: CAPITAL GOODS.** The store stocks a bed. **It does not stock a loom.** The hand-loom, broad-loom, spinning wheel, cutting table, shaving horse, hive, super, frame, sap pan, extractor and keepnet are all makerless, none are shop goods, and every one is carpentry's. ⭐ No intervention needed to protect this market — see non-goal *no market control* |
+| 5 | **failure mode** | ✓ three, all **derivable**: a racking joint, a stave sawn instead of riven, wood worked green that warps |
+| ⚠ | **the ladder** | honest: shave a haft (chore, wages) → saw boards (station) → joint a frame (competence) → cabinetmaking and coopering (specialist). ⭐ So `pick-haft` at `difficulty: easy` is **correct**; it was only ever in the wrong Discipline |
+
+- **1 Pedagogy** — ⭐⭐ carpentry teaches what nothing else in the game
+  does: **grain, and the cost of working across it.** Why a riven stave
+  holds and a sawn one weeps, why a mortise beats a nail, why a chair
+  racks *at the joint*. That is structural reasoning — behaviour from
+  connection rather than material — which is lens 1's claim for the whole
+  build, taught by its cheapest trade. ⭐ And **seasoning teaches time as
+  a material input**: it cannot be hurried, and the only lever is having
+  started earlier.
+- **2 Expression** — ⭐⭐⭐ the build's strongest hit. Ten woods × joint
+  methods × a bill means **a chair is rows**, and an author who ships a
+  *part* has contributed to every assembly whose joint accepts it.
+- **3a Immersion** — the object carries its history without prose: a
+  chair with one replaced leg in a different wood.
+- **3b Participation** — ⭐ a player supplies an industry they do not
+  practise. Hafts for miners they never meet.
+- **4 Values** — ⭐⭐ **season or hurry.** A joiner who sells green
+  furniture earns now and ruins his name later; renown already ships to
+  carry it. Sharper than repair-versus-replace because **the victim is a
+  stranger.**
+- **5 Continuity** — ✓ `fit` answers the same command for a peg and a
+  bolt; the water mill becomes a steam mill; the joint becomes a screw.
+  The epoch axis runs straight through this trade.
+- **6 Economy** — ⭐⭐⭐ **carpentry is the first trade whose product is
+  the MEANS OF PRODUCTION.** Every other trade makes consumables or goods
+  people use; the carpenter makes the loom the weaver works at, the bench
+  the cooper raises on, the hive the beekeeper keeps. The industrial
+  argument in miniature, two epochs early — and it means **carpentry's
+  demand grows with every other trade the game ships.**
+- **7 Governance** — ⛔ **a GAP, recorded as one.** Timber rights are
+  forestry's (the deed is written by the ground) and the standard is the
+  cooper's. Do not invent one.
+
+### Sawyer
+
+⭐⭐ **The multure is shipped and it is the sawyer's answer to criterion
+4.** `trade-milling`'s toll bin: *"A tenth of everything ground here stays
+in this bin… no coin changes hands at the grinding, the premises are paid
+for out of the flour, and a miller's honesty is famously a question about
+this bin"* — deliberately **not** a `Tariff` service, because payment in
+kind *"needs no banking code at all."*
+
+> ⭐⭐ **And a sawyer's tenth is more interesting than a miller's, because
+> boards are capital rather than food.** A miller's toll gets eaten; a
+> sawyer's **accumulates into a timber yard, seasoning while it sits** —
+> so the sawyer is the first trade whose pay is an appreciating inventory
+> he can speculate with. Same mechanism, a different economy.
+
+| # | | |
+|---|---|---|
+| 1 | **unmet demand** | ✓ the whole column above it is blocked on boards; nothing else converts a bole |
+| 2 | **gated capability** | ✓✓ **premises on a fall of water** — harder than competence: you cannot carry a sawmill, and the river sets your throughput |
+| 3 | **repeatable loop** | ✓ every bole, forever, and the saw dulls |
+| 4 | **paid, not minted** | ✓ the multure, in boards |
+| 5 | **failure mode** | ⭐ **how you cut it**: quarter-sawn is stable and wastes a third of the log; through-and-through is efficient and **cups** as it dries. The grain argument one rung up, **a real decision per log with no right answer** |
+
+⭐ **`GristMill` already proves the shape** — *"one class, two rungs, both
+rows"*: a quern authoring a throughput and no power coefficient, a mill
+authoring a coefficient and no throughput, and `availablePowerW()` reading
+a **room sibling that answers it** rather than importing the water pack.
+⭐⭐ **The two rungs map exactly onto sawing: the pit saw (two men, by
+hand) and the sawmill (powered)** — the portability ladder appearing
+*inside the station*, which is the `Joint` row's portability axis as a
+third consumer of the same axis.
+
+⚠ **One correction for the plan:** the mill composes `ComminutingMixin` —
+reducing to particles — and **sawing is not comminution.** The timber
+trade's own word is **conversion**: a log becomes boards, not flour. The
+sawmill reuses `GristMill`'s shape and power read and needs its own act.
+
+⭐ **Vocation or rung?** **A real vocation and not a real pack** — and the
+two questions are genuinely different; conflating them is how a tree grows
+a pack per rung. Different gate (premises, not competence), different
+product (stock, not goods), historically different guilds. The register
+already lists it as its own row; **D11** puts its code in
+`trade-carpentry`.
+
+- **1 Pedagogy** — ⭐ the yield question: a round log into square boards is
+  a geometry problem **with waste in it**, and quarter-sawn versus
+  through-and-through is that geometry having a consequence.
+- **4 Values** — the miller's-honesty question, now about a bin of boards
+  nobody counts.
+- **5 Continuity** — ✓ water → steam → electric, the same station.
+- **6 Economy** — ⭐⭐ the appreciating toll, and **the river as a seasonal
+  throughput cap that is already simulated**: *"a mill that grinds ten
+  sacks in spring grinds fewer in autumn."*
+- **7 Governance** — ⭐ **water rights get a second claimant.** The sawmill
+  is the first *new* industrial abstraction on a watercourse since the
+  grist mill, so prior appropriation finally has somebody to argue with.
+
+### Cooper
+
+| # | | |
+|---|---|---|
+| 1 | **unmet demand** | ✓✓✓ **the strongest in the register, and it grew during this document's drafting.** TEN consumers: distilling, brewing, winemaking, trade-fuel's lamp-oil cask **and the `oil-cask` the drilling build added 2026-10-09**, milling, salt and fish, ship's water, tanning, whaling. One is a shipped subsystem whose whole mechanism — `MaturingMixin` — lives **on the cask** |
+| 2 | **gated capability** | ✓✓✓ ⭐⭐ **the best in the build, because the gate decides WHAT YOU CAN MAKE AT ALL**: slack (nails, apples — leaks freely, nobody cares) · dry-tight (flour, powder) · wet (beer, wine, spirits, oil). **A slack cask is not a bad wet cask, it is a different product** — a shape `Grade` cannot express because it is not a quality axis |
+| 3 | **repeatable loop** | ✓✓✓ ⭐ **most of coopering is maintenance** — re-hooping, replacing a stave, re-heading, and **re-charring a spent cask**, which is recharging a depleted reservoir. The cooper earns recurring revenue from casks he already sold, which almost no trade here does |
+| 4 | **paid, not minted** | ✓ ⭐⭐ **and structurally immune to the floor-stock problem in a way furniture is not.** What a distiller buys is the cask's *character*, and character **depletes**; a spawned cask arrives with no history and runs out like any other. **The service is the market, not the vessel**, and no amount of floor stock satisfies a cask that needs shaving |
+| 5 | **failure mode** | ✓✓✓ **the strongest in the game, and it is not close:** a leaking cask **loses somebody else's contents for three years**, and nobody knows whose fault it was until the accounts are read. Delayed, attributable, and the loss is **a stranger's** — every other trade's failure hurts the practitioner |
+
+- **1 Pedagogy** — ⭐⭐ **compression as a structural principle.** A cask
+  has **no fasteners at all**: staves forced into a ring by driven hoops,
+  held by nothing but their own thrust. The best teaching object for
+  *connection over material* in the whole census, and why the cask was
+  always the right exemplar even when it was the only one.
+- **2 Expression** — ✓ a second cooperage is rows; the charred cask made
+  this argument and won it.
+- **3a Immersion** — ⭐ this barrel's own history, the char line, what it
+  smells of.
+- **3b Participation** — ⭐⭐ the cooper is the trade that **can work on a
+  pitching deck** — the portability ladder's whole point, and the reason a
+  ship carries one.
+- **4 Values** — ⭐⭐ two, both sharp. **The rejuvenated cask is cheaper
+  and makes worse whisky**, and the engine prices both and cannot say
+  which. And the ladder's own: sell a slack cask honestly, or call it
+  dry-tight and let the flour find out?
+- **5 Continuity** — ✓ cask → keg → steel drum → IBC, the joint going
+  hooped → welded, `fit` answering throughout.
+- **6 Economy** — ⭐⭐⭐ two findings. The cask is **a manufactured good
+  that behaves like an RGO** — a depleting reservoir with a recharge
+  service, the resource law's shape applied to something somebody made.
+  And ⭐ **the cask is the realm's first standard**: *tonnage* comes from
+  *tuns*, and a hold of identical casks stows without waste while a hold
+  of assorted ones does not — the benefit **arithmetic**, exactly as the
+  logistics slate's D11 requires.
+- **7 Governance** — ⭐⭐⭐ **THE GAUGER, and this is the only place lens 7
+  lands across all three trades.** The historical office is an **excise
+  officer whose entire job was measuring your casks to tax their
+  contents**: a seat whose whole function is **verifying an agreement
+  about a slot dimension**, with a revenue motive — which is the answer to
+  *who certifies a standard?* ⭐ **A standard nobody profits from
+  enforcing does not get enforced.** In scope; see **D14**.
 
 ## The drive
 
@@ -524,7 +694,11 @@ by the owner's instruction it gets one before the plan:
 18. **Read who made a cask**, and after a repair, **read both names.**
 19. ⭐ **Make a froe by hand** — a forged blade on a riven handle — and
     then use it to rive. The tool tree's root, walked.
-20. ⭐ **Put something in a compartment with its own air** and have it
+20. ⭐⭐ **Have the gauger measure your cask** — `measure capacity` — and
+    get a number; then **try it without the seat** and be refused for a
+    stated reason. Then **present an off-standard cask** and have the
+    reading say so.
+21. ⭐ **Put something in a compartment with its own air** and have it
     read that air rather than the room's — and **stand in one.**
 
 ---
@@ -577,14 +751,19 @@ by the owner's instruction it gets one before the plan:
     which.
 19. A cask's **fill history exists**, reduces what it imparts, and is
     **restorable** by a service.
-20. ⭐ A **compartment** has its own air, holds gear, and **admits a
+20. ⭐⭐ **The gauger exists as a seat and a reading, and neither is
+    code**: `measure capacity` answers on a cask, the seat gates who may
+    do it officially, and ⭐ **a second polity appoints a gauger with no
+    pack code at all.**
+21. ⭐ A **compartment** has its own air, holds gear, and **admits a
     person** at a cost its host declares.
-21. ⛔ **A crafted cask and a found cask are the same kind** — same
+22. ⛔ **A crafted cask and a found cask are the same kind** — same
     composition, same bill, same behaviour — differing only in recorded
     history.
-22. **Nine shipped consumers of casks keep working unchanged**, and so do
-    `fell`, the bole and the coppice.
-23. ⛔ **A recipe naming a row that does not exist fails a gate**, and
+23. ⭐ **TEN shipped consumers of casks keep working unchanged** — the
+    `oil-cask` the drilling build added included — and so do `fell`, the
+    bole and the coppice.
+24. ⛔ **A recipe naming a row that does not exist fails a gate**, and
     `spirit-bottle` is fixed.
 
 ---
@@ -615,5 +794,9 @@ by the owner's instruction it gets one before the plan:
   *`Chamber`* — the compartment's specification and first composer
 - ⚠ [chambered-vessels-slate](../slates/tails/chambered-vessels-slate.md)
   — the compartment's **other** design doc; reconcile before building
+- [civics.md](../subsystems/civics.md) — seats as positions, and
+  `holdsSeat` as the gauger's authority predicate in data
+- [instrumentation.md](../subsystems/instrumentation.md) — `measure` as a
+  flat verb over a `Reading` row, which is the gauger's whole act
 - [logistics-slate](../slates/builds/logistics-slate.md) — **D11**, the
   standard as an agreement about a slot dimension
