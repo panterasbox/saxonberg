@@ -27,6 +27,33 @@ data:
   surfaceWorkings:
     - path: /world/terminus/rejection/quarry/pit
       keywords: [pit, quarry, face, "hill quarry", stone]
+    # ⭐⭐ **A bore site is one more entry, and that is the falsifiable
+    # line.** The drilling build added no second mechanism and no second
+    # counter: a hole in the ground is surface ground somebody staked,
+    # so `stake spring` and `stake flat` take the same fork the quarry
+    # takes — one `subdivide`, no warren, no block arithmetic.
+    #
+    # ⚠ BOTH are stakeable, and the cheap one is a real choice rather
+    # than a trap. The spring is the rim of the trap and a hole there
+    # finds a metre of brine; the flat is over the crest and finds forty.
+    # The survey says so before a penny is spent, which is what makes
+    # staking the wrong one a decision somebody made.
+    - path: /world/terminus/rejection/location/salt-spring
+      keywords: [spring, "salt spring", seep, hollow]
+    - path: /world/terminus/rejection/location/salt-flat
+      keywords: [flat, "salt flat", "the flat", bare]
+    # ⭐ Gas country, and the fourth entry is still zero code. The
+    # falsifiable line holds: a second kind of well is a row.
+    - path: /world/terminus/rejection/location/gas-flat
+      keywords: [burnt, "burnt ground", blow]
+    # ⭐⭐ Oil country: the whaleback over the charged trap, and the cairn
+    # over the one that reads just as well and holds nothing. BOTH are
+    # stakeable, and that is the point — the register cannot tell them
+    # apart either.
+    - path: /world/terminus/rejection/location/oil-rise
+      keywords: [whaleback, rise, back]
+    - path: /world/terminus/rejection/location/dry-rise
+      keywords: [cairn, "cairn rise", stones]
   details:
     marks:
       keywords: [marks, mark, crosses, signature]

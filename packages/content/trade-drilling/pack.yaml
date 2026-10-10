@@ -1,0 +1,33 @@
+id: trade-drilling
+version: 0.1.0
+root: /trade/drilling
+description: >-
+  The drilling trade — everything that answers "how does a BORE work",
+  and nothing that answers "what is under this particular hill". The
+  hole itself: the derrick that affords the acts, the wellhead that IS
+  the hole (its depth, its liner, its banked swings, and the four bulk
+  seams that make `fill <vessel> from <wellhead>` shipped behaviour),
+  the bailer that lifts what is standing, the liner that holds the walls,
+  the bore log nobody holds the pen on, and the outfit whose payroll is
+  the cost of depth. Two reading channels — `structure`, which says
+  there is a closed trap under here and roughly how deep, and `head`,
+  which says how hard it is still flowing.
+
+  ⭐ The trade's premise, and the one thing it refuses to do: the survey
+  has TWO factors and only one of them has a channel. Structure is
+  readable with a bracket that narrows with the instrument and the band;
+  CHARGE is seeded, decided before anybody looked, and no instrument in
+  the game will ever read it. That is why a dry hole survives every
+  improvement to the instruments, and why the payroll is a bet.
+
+  A venue supplies the fluid bodies, the sites and the prose — the
+  column is the ground system's and the bodies on it are a claim
+  somebody makes about a place. That is the falsifiable line: a second
+  well town needs ZERO pack code.
+requires:
+  # Placeless like every other trade (economic bootstrap D6/D7): the
+  # mechanism is held by the Ministry of Trade — a seat, never a
+  # committee. Its premises, if any, sit in the world under a
+  # locality's committee.
+  title:
+    - { extent: /trade/drilling, holder: { organization: /compact/trade } }

@@ -1025,3 +1025,38 @@ import "../../../test-bootstrap";
 If you get `X is not a function` at collection time with no obvious
 cause, you have found another import cycle — the same import fixes it,
 and it is worth saying so at the site.
+
+## ⚠⚠ A fresh DB needs a bigger boot budget than the default (2026-10)
+
+`bootOwnedWorld`'s budget is `WIRE_BOOT_TIMEOUT ?? 420_000`. A **fresh**
+database does not make it: installing the full pack set from the
+checkout took the drilling drive past seven minutes, and the harness
+gave up with
+
+    wire: the owned server did not answer on http://localhost:2013
+    within 420s
+
+while the server log's last line was `AppBootstrap: world open — the
+cast may act`. **The world was fine; the probe had stopped asking.**
+
+⭐ So a run immediately after `reset:db` wants
+`WIRE_BOOT_TIMEOUT=900000`, and a run on a warm DB does not. Worth
+knowing before concluding anything about a boot that appears to hang —
+and worth reading the server log's own last line first, which says
+plainly whether the world is up.
+
+### ⭐⭐ And three mint shapes, so the next drive starts from the answer
+
+Every drive that needs kit in a player's hands has reinvented this, and
+all four shapes have now been tried in one file:
+
+| shape | what happens |
+|---|---|
+| `eval --parcel` | ⛔ **took the server down** — `sandbox boundary denied fromStored()` as an unhandled rejection inside `runSandboxed`; the drive reported it as a frame timeout |
+| `clone … --here` (second session) | lands on the FLOOR, so it needs a `get` — and a `get` resolves by keyword against everything in reach, so it can bind a shop's stock (held goods are not gettable) or an ambiguous instrument |
+| `clone …` (the player itself) | ⚠ **`access-denied`** — cloning a row is an authoring act gated on HELD EXTENTS, and `wizard: true` is the code-trust axis and confers no title. A fresh test character has no extents and never will |
+| ⭐ `clone … --into <handle>` (the founder) | permitted, lands in the hands that need it, and no `get` is involved |
+
+⚠ The third row is the one that costs the most time, because the failure
+surfaces far away: no instrument in hand reads as *the instrument is not
+in reach*, which looks like a defect in the reading ladder.

@@ -316,3 +316,44 @@ could not travel with them. `Field` now declares its own
 `commandContributions` naming `plough.yaml` — mixins **union** with a class's
 own static, so it sits beside the mixin's three platform views. **Every
 controller test would still have passed.**
+
+## ⭐⭐ The column's second thing: fluid bodies (the drilling build, 2026-10)
+
+A `Deposit` holds `fluids: FluidBody[]` beside its lode — and the two
+share no field, which is the point. A lode is a **plane you cut**; a
+fluid body is a **volume you tap**.
+
+Modelling a reservoir as a flat-lying lode was considered and refused on
+the geometry alone: `surfaceReadingAt` returns `null` for a flat plane (a
+horizontal lode has no horizontal normal, so there is no surface trace to
+stand beside), so a `dip: 0` slab would have had **no surface read at
+all** — the one read drilling needs.
+
+A body is a **fold**: a crest, an axis, two half-extents, and the
+vertical closure under the crest. ⭐⭐ **The fluid leg is derived from
+that and not authored** — `legAt(body, x, y)` runs from the structure
+surface down to the spill depth, which is the full `closureM` directly
+over the crest and **nothing at the rim**. That is what makes a
+structural survey worth paying for rather than decorative: a bore at the
+rim of a charged trap finds a metre of it and the same money at the crest
+finds forty. Capacity derives from the same shape (`π·a·b·closure / 3`).
+
+⭐ Three reads, all pure, all seeded off `seedFor(address)`:
+`structureReadingAt` (the readable factor, with the bracket as a
+FRACTION of the reading — see drilling.md for why it may not scale off
+the truth), `isCharged` (⚠ **no channel reads this, ever**) and
+`fluidAt` (the charged body where its leg spans the depth, else the
+water table, else nothing).
+
+`BodyRegister` (`/system/ground/idea/BodyRegister`, the `body` document
+kind) holds each body's withdrawal **per straw**, because a reservoir
+spans holdings and two bores into one are two straws in one glass.
+Capacity is never stored; recharge is **zero**.
+
+⭐ `GroundQueryMixin` (`src/lib/GroundQuery.ts`) is the place-based
+position trio — resolve the deposit, convert the cell, derive the seed —
+promoted here after being written three times privately.
+`GroundPointMixin` composes it and supplies the place from its container,
+which is what lets a **fixture** ask about the ground under the room it
+stands in without being a room. See
+[drilling.md](./drilling.md).

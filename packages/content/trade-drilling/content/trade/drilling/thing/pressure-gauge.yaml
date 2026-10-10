@@ -1,0 +1,24 @@
+# A pressure gauge — a Bourdon tube and a brass dial, screwed into the
+# wellhead's collar.
+#
+# ⭐ The one instrument this trade actually adds, and it is worth noticing
+# WHY the structural read needed none: a trap is read with a dial and a
+# level, which mining already ships. A reservoir's drive is a different
+# measurement and there was nothing in the realm that made it.
+#
+# ⚠ Keywords authored defensively: a wellhead is dense in near-identical
+# nouns (gauge/gauging, dial/dial, collar/cellar) and matching is
+# substring. `gauge` is the primary; `manometer` is the compound nobody
+# else answers to.
+class: /platform/thing/Tool
+data:
+  keywords: [gauge, "pressure gauge", manometer, bourdon]
+  shortDescription: pressure gauge
+  register: indefinite
+  longDescription: >-
+    A flattened brass tube coiled into most of a circle, with a needle
+    geared off the end of it and a dial behind that. Put pressure in the
+    tube and it tries to straighten; the needle is only reporting how
+    hard it is trying.
+  mass: 1.4
+  capabilities: ["gauging"]

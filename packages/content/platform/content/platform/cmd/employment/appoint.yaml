@@ -1,8 +1,8 @@
-verbs: [appoint]
+verbs: [appoint, hire]
 controller: /platform/idea/cmd/employment/AppointController
-description: "Fill a position in an organization you have the authority over"
+description: "Put somebody in a job — on a chart, or on the beam in front of you"
 help: |
-  Put somebody in a job. `appoint <player> to <position> at
+  Put somebody in a job. `appoint <person> to <position> at
   <organization>` fills a position on an organization's chart —
   the Communications Director of a press office, the registrar at
   a city registry, a bartender at a bar.
@@ -18,9 +18,19 @@ help: |
   let you do the position's work: a president appoints a press
   secretary, they do not become one.
 
+  ⭐ **At a house you run, say just `hire <person>`.** Leave the
+  position and the organization off and both are worked out: the
+  organization is the one you are the proprietor of, and the
+  position is its only one. A bore crew is hired at the bore, out
+  of whoever has walked up to it, and this is that — `hire` is the
+  same verb under the word the work uses.
+
+  ⚠ `appoint` reaches anybody standing in front of you, online or
+  not. Somebody who wants the job themselves does not need you at
+  all: `apply for <position> at <organization>` and `clock on`.
+
   Name the organization by its path, e.g. `/compact/press`. To
-  appoint yourself, say `me` — the player argument resolves
-  against who is online, and `me` is how you name yourself there.
+  appoint yourself, say `me`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -29,24 +39,39 @@ examples:
     note: Appoint yourself — the founder's first act on a fresh world
   - cmd: appoint alice to communications-director at /compact/press
     note: Fill the Compact press office's one position
+  - cmd: hire the roustabout
+    note: Sign on whoever is standing here, at the house you run
 args:
+  # ⭐⭐ **`reachable` as well as `online`, and that is the whole of what
+  # the drilling build needed.** The verb used to be `online`-only, which
+  # meant it could not reach an NPC standing in front of you — so a trade
+  # shipped `hire`/`dismiss` of its own to employ a roustabout, which is
+  # a second word for an act this verb already performed. ⭐ The ladder's
+  # first rung is unify behind an interface: `hire` is an ALIAS here now
+  # (`grind` rides `mill`, `melt` rides `dip`), and the trade ships no
+  # employment verbs at all.
   - name: target
     type: object
     required: true
-    scope: "online"
+    scope: ["reachable", "online"]
     requires: class:Agent
     onExcess: prompt
+  # ⚠ OPTIONAL, and absent is meaningful: no position named means *this
+  # house has one position and you mean that one*. A house with several
+  # refuses and names them, because guessing which job somebody was given
+  # is not a thing to guess.
   - name: position
     type: string
-    required: true
+    required: false
     prepositions: [to]
+  # ⚠ OPTIONAL. Absent means *the house I am the proprietor of*, derived
+  # in the controller — see the note in `mustHoldAppointingAuthority`:
+  # that derivation can only ever reach your own house, so the authority
+  # is satisfied by construction. The field validator still gates every
+  # organization that IS named, and still fails closed.
   - name: organization
     type: string
-    required: true
+    required: false
     prepositions: [at]
-    # ⚠ The authority gate is a FIELD validator, not a verb-level one: the
-    # authority belongs to the organization this argument names, and a
-    # verb-level validator cannot see the bound model. Same gate, homed
-    # where it can see the thing it gates on.
     validators:
       - /lib/command/validators/mustHoldAppointingAuthority

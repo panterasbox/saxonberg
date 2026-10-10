@@ -171,6 +171,66 @@ export const DOCUMENT_KINDS = {
    */
   fishery: { kind: 'fishery', naturalKey: null, contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
   /**
+   * A **fluid body's withdrawal** — how many litres have come out of one
+   * reservoir, and by whose straw (drilling D2).
+   *
+   * ⭐⭐ **It is keyed on the BODY and not on the hole, and that is the
+   * whole point of it.** A reservoir spans whatever holdings happen to
+   * lie over it, so two bores into one body are *two straws in one
+   * glass*; if withdrawal lived on each wellhead, each would think the
+   * glass full. Remaining is the body's capacity less the **sum** of
+   * every straw, which is why two owners who have never met watch the
+   * same gauge fall — the fact a polity has to be able to argue about.
+   *
+   * Everything that can derive does: capacity is the body's authored pin
+   * or its geometry and is **never stored**, so no copy of a record can
+   * outlive an edit to the row. ⚠ Recharge is **zero** — not a missing
+   * leg but depletion, the degenerate case of a recharge law, and the
+   * reason an oil country is a boom with an end in it.
+   *
+   * ⚠ Runtime-written, on the `fishery` pattern and for its reasons: no
+   * pack ships one; the ground pack's register get-or-creates it on the
+   * first draw. Path-keyed
+   * (`/system/ground/bodies/<locality address>/<body key>`) because a
+   * country's book is `list(prefix)`. `onVanish: 'keep'` — it is a
+   * record of what was taken out of the ground, and no absent pack file
+   * may refill a reservoir.
+   *
+   * The KIND is the platform's; what a legitimate record looks like is
+   * the ground pack's (`BodyRegister`).
+   */
+  body: { kind: 'body', naturalKey: null, contentDir: 'bodies', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **bore log** — what one hole went through, metre by metre, and
+   * what was found at the bottom of it (drilling D4).
+   *
+   * ⭐⭐ **You file; you do not hold the pen.** The log is the TRADE's,
+   * not the driller's: every metre is appended by the swing that cut it,
+   * nothing in the game rewrites an entry, and a driller who dislikes
+   * what the ground said cannot unsay it. That is what makes a second
+   * owner's survey worth reading — the herdbook's rule
+   * ([ranching.md](../../../../../docs/subsystems/ranching.md)) applied
+   * to the ground.
+   *
+   * ⭐ **`fluid: null` is a FINDING, not a missing value.** A dry metre
+   * is the single most valuable row in the book, because the one thing
+   * no instrument in this game reports is whether a trap is CHARGED — so
+   * the only evidence a dry trap is dry is somebody's wasted payroll,
+   * written down. A log that recorded only successes would delete the
+   * trade's whole epistemics.
+   *
+   * ⚠ Runtime-written, on the `body` pattern and for its reasons: no
+   * pack ships one; the drilling pack's register get-or-creates it at
+   * the siting. Path-keyed (`/trade/drilling/bores/<...>`) because a
+   * country's drilling history is `list(prefix)`. `onVanish: 'keep'` —
+   * a plugged well's log is still a record of what is under that ground,
+   * and the hole being gone is exactly when the log matters most.
+   *
+   * The KIND is the platform's; what a legitimate entry looks like is
+   * the drilling pack's (`BoreRegistry`).
+   */
+  bore: { kind: 'bore', naturalKey: null, contentDir: 'bores', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **bill of lading** — what, how much, from where, to where, whose,
    * and at what declared value, filed by a completed carriage.
    *

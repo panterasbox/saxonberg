@@ -1,0 +1,32 @@
+# ⭐⭐⭐ The wellhead — the hole in the ground, and the SEED ROW only.
+#
+# ⚠ Nothing stands this row up as itself. A wellhead is MINTED by the
+# siting act, one per staked claim, keyed `(this row, the claim path)`
+# and persisted against its own `holder_snapshots` record — the stall
+# counter's shape. A bare one standing anywhere would be a hole with no
+# ground under it and no outfit paying for it.
+#
+# ⭐ **A bore is a POINT, not a PLACE.** This mints no room, adds no node
+# to the location graph, and has no inside. It is a fixture in an
+# ordinary surface room, and it asks the column through that room. The
+# whole build was written against the alternative.
+#
+# The `interior` slot is the trough at the wellhead — what a flowing well
+# delivers to the surface, and what a bailer tips into. It is small on
+# purpose: the thing that holds a day's production is a cask, and
+# carrying casks is somebody's job.
+class: /trade/drilling/thing/Wellhead
+data:
+  keywords: [wellhead, well, hole, bore, borehole, collar]
+  shortDescription: wellhead
+  register: definite
+  longDescription: >-
+    A collar of iron set in a ring of trodden clay, with the rope going
+    down out of sight through the middle of it and a plank trough off to
+    one side. There is no telling anything about it from up here except
+    that somebody has spent money.
+  mass: 90
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 60
+  closure: liquidTight

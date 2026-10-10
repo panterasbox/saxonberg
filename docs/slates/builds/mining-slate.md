@@ -3,6 +3,12 @@
 > **Status: PARTIAL** — Stage A shipped 2026-09-01 (the metal chain:
 > the `Deposit` field, `MineWarren`, the five acts, air/support/grade,
 > the survey channels, Rejection) → [mining.md](../../subsystems/mining.md)
+> ⭐ **The PUMP was promoted out of this Left into its own slate**
+> ([pump-slate](./pump-slate.md), 2026-10-08) — four customers (this mine's
+> water table, the village well, the oil lift, the brine line) and four
+> lenses at ⭐⭐⭐. Dewatering stays this slate's demand; the machine is
+> that one's. ⚠ And the mine remains its natural HOST — dewatering is the
+> oldest demand and this slate already funds it out of the hoist toll.
 > **Left:** everything below the water table — shaft/hoist/pump (`LiftMixin`,
 > the called cage) · the drainage commons + hoist toll · sulfides and roasting ·
 > collapse entrapment + the rescue clock + the timberman + sounding/convergence ·

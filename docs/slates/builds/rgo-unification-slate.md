@@ -1,14 +1,19 @@
 # RGO unification slate — promote at the third consumer, not at the end
 
-> **Status: UNBUILT** — the RGO roster is nearly closed (mining · farming ·
-> ranching · fishing · forestry · water shipped; extraction added
-> quarrying/salt/coal-peat in MR !291; **apiculture is the last family**), and
-> every one of them rolled its own version of the same few shapes.
+> **Status: UNBUILT** — the RGO roster is closed in **SHAPE** (mining ·
+> farming · ranching · fishing · forestry · water shipped; extraction added
+> quarrying/salt/coal-peat in MR !291; apiculture shipped), and every one of
+> them rolled its own version of the same few shapes.
+> ⚠ **Drilling is the last FAMILY** (seeded-field), and the roster stays
+> open in **CONTENT** — ice, whaling and guano are rows on shipped shapes.
+> ⭐⭐⭐ **And foraging is not a family at all — it is a MODE over the whole
+> roster, the prehistoric rung every trade is missing** (user, 2026-10-08;
+> § below, which also reconciles the 09-25 priority with it).
 > **Left:** ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s
 > pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`,
 > copied 3×) · the **sweetener vocabulary** decided once across sugar, honey
 > and maple · and — **held deliberately** — the derived-field interface, which
-> waits for foraging
+> waits for foraging to be **DESIGNED** (not built — § below)
 > **Size:** several waves, landed **between** builds rather than as one build
 
 > **Captured 2026-09-25.** User direction, and it reorders the RGO path:
@@ -189,6 +194,19 @@ it, is the same move.
 6. **hunting**
 
 **The standing rule is unchanged: all RGOs before foraging/hunting.**
+
+> ⚠ **Superseded in part, 2026-10-08** — steps 5 and 6 are **one build**,
+> and foraging is a MODE over the roster rather than family #11. Drilling
+> is a **seeded**-field RGO, so it is not gated on foraging. See
+> § *Foraging is a MODE, not a family* and § *The 09-25 priority vs. the
+> 10-08 direction* at the end of this slate.
+>
+> ⚠⚠ **And drilling is NOT "the last family"**, which is what this note
+> said when it was written. The roster correction immediately below —
+> from the ice/whaling session, same week — adds three more. ⭐ Two
+> sessions each closing the roster on their own last family, a week
+> apart, is the closure claim failing for the fourth and fifth time;
+> read the correction, not this note, for what is left.
 
 ### ⚠⚠ Roster correction 2026-10-08 — the closure claim has failed twice
 
@@ -387,6 +405,12 @@ excludable end. Already named; no work.
 > **Medieval RGOs before foraging. Late-stage RGOs gated ON foraging** — not
 > the other way around.
 
+> ⚠⚠ **Scoped, 2026-10-08:** *"late-stage"* over-generalised. The rule
+> holds for a late-stage RGO whose stock is **derived**; **drilling's is
+> seeded**, which is the dry hole's own honesty argument, so drilling was
+> never in this rule's scope. See § *The 09-25 priority vs. the 10-08
+> direction* at the end of this slate.
+
 So the industrial families do **not** gate foraging, and foraging's completion
 of the derived-field interface is what the later ones build on. ⚠ *Unless* a
 modern RGO's design turns out to really affect how the medieval ones are
@@ -574,3 +598,129 @@ directly:
    `sweetener` category on the recipe side only?
 4. Does the pin walk's home want to be the same module as the field
    interface, or is it independent substrate that ships earlier?
+
+---
+
+## ⭐⭐⭐ Foraging is a MODE, not a family (2026-10-08)
+
+Captured in conversation after the fire/DD merge, and it corrects this
+slate's own framing. Everywhere above, foraging is **item 5 in a list of
+families** — one more RGO to ship before the roster closes. User:
+
+> *"foraging is how you get any of these resources **without
+> cultivation**. every RGO in the game wants a foraging counterpart —
+> after all the G in RGO is 'gathering'. foraging isn't just foraging
+> it's also hunting. basically it's the **prehistoric epoch
+> implementation that every trade is missing** to round out the epoch
+> lens."*
+
+That is a different object than a family, and three consequences follow
+that the list framing hides.
+
+### ⭐⭐ Every trade has a three-rung epoch ladder, and we ship only the middle
+
+| rung | the act | what it costs | state |
+|---|---|---|---|
+| **prehistoric** | gather · hunt · fish-by-hand | ⭐ nothing — no title, no tool, no land, no season | ⛔ **absent from every trade** |
+| **medieval** | cultivate · extract · keep | a tool, a title, a season | ✅ the whole shipped roster |
+| **industrial** | lift the medieval limit | a works, and theory | ⏳ drilling · plastics · fertilizer |
+
+The industrial half of this was already on the record — § *The
+through-line: an industrial RGO exists to LIFT a medieval limit*. **The
+prehistoric half is the same observation turned around and nobody had
+written it down.** `lib/craft/Epoch.ts` declares `prehistory` as the
+first of five eras; **8 rows in the tree stamp `medieval`, zero stamp
+anything else, and nothing reads the field.**
+
+⭐ So foraging and drilling are the **two ENDS of one ladder**, which is
+the real argument for designing them together — not scheduling
+convenience. Each defines a boundary rung, and neither's shape is honest
+without the other's.
+
+### It is a platform pass, and must not be smuggled into a trade build
+
+A mode over the whole roster is cross-cutting by construction, so the
+standing rule applies with full force: ⛔⛔ *never solve a cross-cutting
+capability inside a trade build.* Its size is **one rung × N trades**,
+not one family — materially larger than the list framing implies, and the
+reason it should be the last thing built rather than the next thing.
+
+### ⭐ It is also the participation floor
+
+The prehistoric rung is the only mode that needs **no capital** — which
+makes it every trade's on-ramp for a player with nothing, and the first
+answer this backlog has to lens 3b's *can the polity do something we did
+not want*. Nothing else in the deck provides it.
+
+## ⚠⚠ The 09-25 priority vs. the 10-08 direction — and the resolution
+
+Two recorded user decisions point opposite ways, so they are reconciled
+here rather than left for the next reader to trip over.
+
+| when | the decision |
+|---|---|
+| **2026-09-25** (§ *The priority, settled*) | *"Medieval RGOs before foraging. **Late-stage RGOs gated ON foraging** — not the other way around."* |
+| **2026-10-08** (this section) | *"RGO unification obviously depends on drilling, it's our last RGO in the deck… I would think **foraging would get more out of unification** than the other way around."* |
+
+**Both are right, about different fields, and the seeded/derived split is
+what separates them.**
+
+> ⭐⭐⭐ **Drilling is a SEEDED-field RGO.** That is not incidental — it is
+> the dry hole's entire honesty argument (*the oil either is or is not
+> there, deterministically, before anybody looks; your uncertainty is
+> epistemic, never resolutional*). So **drilling does not consume the
+> derived-field interface at all**, and is not gated on the thing
+> foraging completes.
+
+The 09-25 rule holds for any late-stage RGO whose stock is **derived**.
+Drilling isn't one, so it is not an exception to the rule — it was never
+in the rule's scope, and the word "late-stage" over-generalised.
+
+And item 4 above (⏸ the derived-field interface · HELD) needs foraging
+**designed**, not **built**. Once its shape is on paper the interface can
+be fixed, and the promotion lands on schedule with foraging's stock as
+its declared second consumer. ⭐ **That single distinction is what makes
+build order free**, which is the point of designing the pair together.
+
+### The sequencing, as it now stands
+
+1. **the design pass** — the shared RGO/epoch spine, then drilling, then
+   foraging+hunting (one build). The spine fixes the derived-field
+   interface, so nothing downstream waits on a build.
+2. **drilling** — closes the roster in SHAPE, so the promotions become
+   final rather than provisional. It is also the build most likely to add
+   parallel structure (a new extraction shape, a fourth gas source) against
+   a slate already warning about two parallel gas economies, so it wants
+   unification live while it lands.
+3. **the promotion increments** — the tap and the sweetener vocabulary are
+   READY now and independent of all of this; they land between builds
+   whenever, per § *The operational form*.
+4. **foraging + hunting**, as one build, at the prehistoric rung across the
+   roster.
+
+## ⚠ The roster is closed in SHAPE, open in CONTENT
+
+Asked directly whether any RGO had been forgotten. Not space (out of epoch,
+nothing demands it); underwater is covered (fishing ships, the deep is a
+tail). Three real gaps, none of which blocks unification, because each is
+rows-on-a-shipped-shape or a variant of a designed act:
+
+- ⭐⭐ **ICE — and it is an RGO nobody had classified as one.** A seasonal
+  harvested natural resource with a reservoir, a recharge, an act and a
+  credit. ⭐ The **first RGO whose reservoir is the CLIMATE itself**, and
+  therefore the first whose recharge window is a season rather than a
+  rate — which lands on `TapWindowSpec`'s `photoperiod` / `rising`
+  machinery. Promoted in priority by user decision the same day; see
+  [cold-chain-slate](./cold-chain-slate.md) for the demand case and the
+  one thing blocking it.
+- ⭐ **WHALING** — hunting at sea, and it has shipped demand in front of
+  it: lamp oil's consumer landed with the energy build (street lighting,
+  the civic bill, `FuelStore` burning a street-night at a time) while its
+  producer is *"an oil works"* whose crafted route does not exist. Lamp
+  oil before kerosene **is whale oil**, which also makes it drilling's
+  direct historical antagonist — kerosene is what ended the whale
+  fishery. → [hunting-slate](./hunting-slate.md).
+- **GUANO / NITRATES / PHOSPHATE** — named as absent by this slate's own
+  census (§ *The roster is EPOCH-BOUNDED*) and still absent. Fertilizer
+  is farming's industrial limit-lifter, the same shape as coke for the
+  furnace.

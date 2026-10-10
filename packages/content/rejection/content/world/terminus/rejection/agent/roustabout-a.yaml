@@ -1,0 +1,35 @@
+# ⭐⭐ A roustabout — **and the point of him is that drilling is
+# EMPLOYING, not collaborative.**
+#
+# A bore needs several pairs of hands on a beam for weeks. Designed as a
+# cooperation mechanic — *find three friends* — the trade would be
+# unplayable alone and tedious with company. What the design actually
+# wants from a crew is not conversation: it is **a wage bill that accrues
+# while the hole gets deeper.** So he satisfies it completely, and that
+# is not a concession, it is the right answer.
+#
+# ⚠⚠ **He has NO BRAIN on purpose.** He does not seek work, wander, or
+# do anything at all until somebody `hire`s him — and once hired, what
+# he contributes is PRESENCE: he is rostered, on shift, standing at the
+# rig with his hands free, and the rig counts him. *The engine measures
+# presence, not virtue.* A brain would be a second mechanism doing the
+# same job worse.
+#
+# ⭐ A player on a crew is the identical case: `apply for roustabout` and
+# `clock on`, same wage, same swings, because the rig reads the room and
+# never asks who is behind the eyes.
+class: /platform/agent/Extra
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  keywords: [roustabout, hand, driller, tall]
+  shortDescription: tall roustabout
+  register: indefinite
+  longDescription: >-
+    Too tall for the doorway and used to it, with forearms like a man who
+    has spent years pulling on something. He is not doing anything and
+    does not seem bothered about it. When you look at him he looks back
+    and waits to see whether you are about to offer him a day's work.

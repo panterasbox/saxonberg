@@ -4,8 +4,13 @@
 > hazards and butchery ship as its substrate.
 > **Left:** the wild population as a record materialized on encounter ·
 > `track` + the method ladder · *ferae naturae* + game law + close
-> seasons · poaching enforcement · taming as the other outcome
-> **Size:** a build
+> seasons · poaching enforcement · taming as the other outcome · ⭐⭐
+> **whaling** — hunting at sea, and the missing feedstock under a shipped
+> utility (lamp oil before kerosene IS whale oil), which also makes it
+> drilling's historical antagonist
+> **Size:** a build — and **one build with foraging**
+> ([discovery-slate](./discovery-slate.md)): same rung, same ladder, a
+> **platform pass** and never a trade build (2026-10-08)
 
 See also: [discovery-slate](./discovery-slate.md) (**foraging — the sibling,
 and the pattern this borrows**) · [guild-slate](./guild-slate.md) (the Wardens)
@@ -222,3 +227,42 @@ model; a timer would be a distribution pretending to be a population.
   cut the method ladder before cutting *ferae naturae* — the property question
   is the thing no other system in the game can teach.
 - **No new Mongo collections.**
+
+---
+
+## ⭐⭐ One build with foraging, and whaling belongs in it (2026-10-08)
+
+Two notes from the RGO-track pass.
+
+**1 · Hunting and foraging are one build, at one rung.** Not siblings that
+happen to overlap — the **same rung of the same ladder**: the prehistoric
+mode every trade is missing, below cultivation, costing no title, no tool
+and no land. The reclassification and what it does to scope are at
+[discovery-slate § *Foraging is the PREHISTORIC RUNG*](./discovery-slate.md)
+and [rgo-unification-slate § *Foraging is a MODE, not a family*](./rgo-unification-slate.md).
+⛔⛔ It is therefore a **platform pass**, never a trade build.
+
+**2 · ⭐⭐ WHALING — hunting at sea, with shipped demand already in front of
+it.** Named as a roster gap on 2026-10-08 and it is the sharpest of the
+three, because the consumer landed first:
+
+- **Lamp oil ships with its whole consumption chain wired** — the energy
+  build's street lighting, the civic bill, `FuelStore` burning a
+  street-night at a time — while `lamp-oil.yaml`'s producer is *"an oil
+  works, a Terminus goods-yards outfit"* whose crafted route the row's own
+  comment still calls pending. The retort shipped (fire build) and makes
+  tar and gas, **not lamp oil**.
+- ⭐ **Lamp oil before kerosene IS whale oil.** So the feedstock hole in
+  front of a shipped utility is historically whale-shaped, and filling it
+  that way costs no new mechanism: the hunt is this slate's, the rendering
+  is `trade-cooking`'s shipped `render-tallow` shape with a different
+  input, and the cask and the burn already exist.
+- ⭐⭐ **And it is drilling's historical antagonist** —
+  [drilling-slate](./drilling-slate.md). Kerosene is what ended the whale
+  fishery, which means the two builds are the **two ends of one market**
+  rather than unrelated verticals: ship whaling and the street lamp has a
+  supply; ship drilling and it has a cheaper one, and a vocation collapses
+  for a reason the world can show rather than assert. ⚠ Worth pricing
+  deliberately at requirements — a trade the platform ships and then
+  *obsoletes* is strong pedagogy (lens 1) and a real risk to anyone who
+  invested in it (lens 6), and that tension is the content.

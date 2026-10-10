@@ -1,0 +1,52 @@
+verbs: [dismiss]
+controller: /platform/idea/cmd/employment/DismissController
+description: "Take somebody off a house's books"
+help: |
+  `dismiss <person>` takes somebody off the books of a house you
+  have the appointing authority over, and settles what they are
+  owed up to the moment they go.
+
+  ⭐ **The employer's half of `quit`.** `quit` is the worker's
+  word and has always shipped; this is the other side of it, and
+  until now nothing in the game could let anybody go — not a bar,
+  not a smithy, not a ranch. The capability was always there on
+  the house (`dismiss` has been a method on every organization);
+  what was missing was a way to say it.
+
+  At a house you run, `dismiss <person>` is enough. Name the house
+  with `at <path>` when you hold the authority over more than one.
+
+  ⚠ **Nothing will tell you when to.** A well declines along a
+  curve, a season turns, trade falls off — and no notice fires for
+  any of it. You read the figures, you do the arithmetic, and you
+  decide. That decision is the content.
+
+  Their history is kept. A dismissal is a record, not an erasure.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: dismiss the roustabout
+    note: Settle up and let a hand go at the house you run
+  - cmd: dismiss alice at /compact/press
+    note: Name the house when you hold authority over several
+args:
+  # ⚠ THE PERSON FIRST — a required arg may not follow an optional one,
+  # which is boot-FATAL (`CommandApi.preloadAll: N command(s) failed`)
+  # rather than a lint finding.
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable", "online"]
+    requires: class:Agent
+    onExcess: prompt
+  # ⚠ OPTIONAL, and absent means *the house I am the proprietor of* —
+  # the same derivation `appoint` makes, gated the same way: the
+  # validator passes an absent value because the derivation can only
+  # reach your own house, and fails closed for every house NAMED.
+  - name: organization
+    type: string
+    required: false
+    prepositions: [at]
+    validators:
+      - /lib/command/validators/mustHoldAppointingAuthority

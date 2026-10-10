@@ -1233,7 +1233,7 @@ defined who reviews packs would review itself.
 | **tpa** (CAPABILITY — the teleport network's WORKS, TPA reform) | platform, arcana | default | `/system/tpa` → group `tpa` (PM-owned): `src/lib/` ships `FastTravelMixin` (the node — routes, board, timetable) and the pack's paths; `src/thing/` the `TpaTerminal` that composes it over arcana's `ManaPoweredMixin`, plus the `TravelCard`; `src/idea/cmd/movement/` the `teleport` + `register` controllers and `src/idea/cmd/tpa/` the card clerk's; rows: the three views + controller templates, `settings/fasttravel.yaml`, the travel card, and the **self-governing Teleport Authority** (`{kind: committee, parcel: /system/tpa}` — it names no realm, which is what lets it ship here). ⭐ The classes are the MECHANISM and are the pack's; a **terminal** is the realm's, so every gate keeps its `/world/**` row in the locality it stands in | `tpa` | — |
 | **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; ⭐ the catalogue finds the works by the **content rows naming them** (`WATERWORK_CLASSES`), not by walking the world and not by a mixin they compose — two composers in one pack do not earn an interface; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Thirty-eight rows over **fifty-six** packs (`arcane-descriptors` folded into
+Thirty-eight rows over **fifty-eight** packs (`arcane-descriptors` folded into
 `arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack; the TPA reform added **tpa**, the first pack
@@ -1265,15 +1265,19 @@ three different geological columns — a quarry, a saltern and a peat moss —
 name those classes with no code of their own, which is the second-instance
 claim holding. See [ground.md](./ground.md) § The worked-act protocol.
 
-⚠ **Two of the fifty-six have no row in the table above**: the carcass
+⚠ **Several packs have no row in the table above**: the carcass
 chain's `trade-tanning` and `trade-chandlery` were added by the sweep
 that wrote this sentence, and **`trade-malting`** (the whiskey build,
-2026-10-05) still has none — its pack is shipped and discovered, and the
+2026-10-05), **`trade-glass`** (2026-10-08) and **`trade-drilling`**
+(2026-10-09) still have none — its pack is shipped and discovered, and the
 table simply did not learn about it. ⭐ That is the enumeration-rots
 failure this file is otherwise full of warnings about: a hand-maintained
 table beside a derived roster drifts quietly, and two branches merging
 cleanly is exactly when it happens. Offered as a finding rather than
-guessed at here — the pack's own author should write its row.
+guessed at here — the pack's own author should write its row. ⚠ The
+sentence used to say *"two of the fifty-six"*, and the count was wrong
+within a week of being written, which is the same lesson one line
+further down the page.
 
 ⚠ **The roster is a partial one by design** (rows < packs) and the gap has
 widened: `trade-mining`, `trade-fuel`, `trade-smelting`, `rejection`,
@@ -1641,3 +1645,53 @@ rooted tree. Rosters that ship from two roots (Locality, Government)
 scan `TemplatePathRosters`. Not applied inside `/world/<locality>` rows
 (a place's rooms stay `/world/<locality>/<room>`) — only their
 controllers moved to `<locality>/idea/cmd/`.
+
+## ⭐ `trade-drilling` (2026-10)
+
+⚠ **No ordinal in this heading, deliberately.** It said *"Pack
+fifty-seven"* until the pre-merge sweep, and by then it was wrong: the
+glass build landed `trade-glass` on master in the same week, so two
+branches each counted themselves fifty-seventh off fifty-six and only
+the sum (**fifty-eight**) was right. ⭐ That is the fifth or sixth time
+this exact collision has been paid for — see
+`PackLogic.discover.test.ts`, whose own comment block records the
+others, and which is the **one place the count belongs** because it is
+asserted rather than written down. ⚠ `trade-glass` has no section in
+this doc at all; writing it is that build's, not this one's.
+
+
+A capability pack over `/trade/drilling`, and it is the cleanest
+second-instance claim in the tree so far: four bore sites, three fluid
+bodies, three surface showings and four `surfaceWorkings` entries live in
+**`rejection`**, which still ships **no TypeScript at all.** A second well
+town is rows and a place.
+
+Its `src/` is six things and nothing else: two things (`Wellhead`,
+`Derrick`) plus `Bailer`, two Ideas (`DrillingOutfit`, `BoreRegistry`),
+two readings, five controllers over a shared base, and one `lib/` file
+holding the trade's own channel base. No Api, no logic singleton, no free
+helper, no brain.
+
+⚠ **It depends on `ground` and deliberately NOT on `trade-mining`** —
+the two trades meet in the ground SYSTEM and nowhere else, and the only
+things crossing between them are a Discipline name and a tool capability
+string, both of which are rows. A bore site is one more entry on the
+mine's own claims counter and the brine meets the quarry's pan by TAG.
+
+⚠⚠ **`trade-fuel` became a SECOND namer of
+`/trade/distilling/thing/Still`** and takes the dependency line. By this
+file's own rule that is the signal to promote the class to the kernel;
+recorded rather than done, because a refinery and a pot still are the
+same machine in every respect the engine models and the difference
+belongs in the SCHEDULE (`separation: fractions`), which is where it
+went. Promotion is a review question about where a `Still` belongs, not
+about whether this row is honest.
+
+⚠ And a boot-fatal lesson for any new pack, found twice by driving in one
+afternoon: **a bad value in a CLOSED VOCABULARY makes the whole pack skip
+install with one log line** — `PackApi: pack '<id>' FAILED at step 'read'
+— booting without it` — and everything downstream reads as *I don't
+understand that verb*. Both were words a reasonable author would guess:
+`difficulty: straightforward` (the words are trivial · easy · standard ·
+hard · formidable) and `gradeBand: good` (poor · fair · fine ·
+exceptional · masterful).

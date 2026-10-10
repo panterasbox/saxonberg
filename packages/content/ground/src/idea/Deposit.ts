@@ -160,6 +160,174 @@ export interface Lode {
 }
 
 /**
+ * ⭐⭐ **A fluid body — the second thing a column can hold, and the one
+ * whose answer was decided before anybody looked.**
+ *
+ * A lode is a PLANE you cut; a fluid body is a VOLUME you tap, and the
+ * two share no field. Modelling it as a flat-lying lode was considered
+ * and refused on the geometry alone: {@link Deposit.surfaceReadingAt}
+ * returns `null` for a flat plane (a horizontal lode has no horizontal
+ * normal, so there is no surface trace to stand beside) — so the slab
+ * would have had **no surface read at all**, which is the one read
+ * drilling needs.
+ *
+ * ⭐ **Two factors, and only one of them is readable.** A trap's
+ * STRUCTURE is a fact about the shape of the rock, and an instrument
+ * reads it with a bracket that narrows with the instrument and the
+ * band ({@link Deposit.structureReadingAt}). Whether the trap is
+ * CHARGED is {@link Deposit.isCharged}, which has **no channel, no
+ * reading row and no bracket anywhere in the game**. That is not a
+ * withheld secret; it is the dry hole, and it is why the payroll a bore
+ * spends is a bet rather than an expense. No improvement to any
+ * instrument will ever make it an expense.
+ */
+export interface FluidBody {
+  /** The body's durable name within its column (`'salt-leg'`). */
+  key: string;
+  /** The `Material` path of what comes up. */
+  fluid: string;
+  /**
+   * The trap — an anticline or a dome, described the way a structural
+   * geologist describes one: a crest, an axis, and how far the closure
+   * runs along and across it.
+   */
+  trap: {
+    /** The structure's high point, in zone metres (z negative down). */
+    crest: readonly [number, number, number];
+    /** Azimuth of the fold axis, degrees clockwise from +y. */
+    strike: number;
+    /** Half-extent along the axis from the crest, metres. */
+    alongExtent: number;
+    /** Half-extent across it, metres. */
+    acrossExtent: number;
+    /**
+     * ⭐⭐ Vertical closure under the crest, metres — how deep the
+     * structure holds before it **spills**, and therefore the whole of
+     * how much and where.
+     *
+     * The fluid leg is **derived from this and from where you are
+     * standing**, not authored: the beds arch, so the structure surface
+     * is deepest at the trap's rim and shallowest at the crest, and
+     * anything buoyant that got in floats up against the arch. So the
+     * leg runs from the structure surface at `(x, y)` down to the spill
+     * depth (`crest.z − closureM`), which is **`closureM` thick under
+     * the crest and nothing at all at the rim.**
+     *
+     * ⚠ That is why a structural survey is worth paying for rather than
+     * decorative. A bore at the rim of a charged trap finds a metre of
+     * it; the same money spent at the crest finds the whole column. The
+     * bracket on the crest's position is therefore a bracket on **how
+     * much of your payroll was wasted**, which is what makes a narrower
+     * instrument worth buying and a deep bet different in kind from a
+     * shallow one.
+     */
+    closureM: number;
+  };
+  /**
+   * The **lean** on the unreadable factor: the per-body chance the trap
+   * is charged, 0–1. Defaults to {@link DEFAULT_CHARGE_CHANCE}. Seeded,
+   * never drawn — the answer was the same before anybody asked, and
+   * asking twice asks the same question.
+   */
+  chargeChance?: number;
+  /**
+   * The **pin**: the author decides outright. `true` for the body the
+   * first bore in a new country must not be a bet on; `false` for the
+   * dry structure a surveyor can read perfectly and still waste a
+   * payroll on. The spine's fold order — pin over lean over procedural —
+   * exactly as every other read of this class keeps it.
+   */
+  charge?: boolean;
+  /**
+   * The pin on capacity, in litres. Absent, it derives from the
+   * geometry ({@link Deposit.capacityOf}).
+   */
+  capacityL?: number;
+  /** Pore fraction of the reservoir rock, 0–1. Defaults to 0.2. */
+  porosity?: number;
+  /**
+   * Initial head at the wellhead, atmospheres. ⭐ `0` is the honest and
+   * ordinary case — **most things in the ground do not come up by
+   * themselves**, and a body at zero head must be lifted. A gas cap or
+   * a young oil leg has drive, spends it, and then needs lifting too.
+   */
+  headAtm0?: number;
+}
+
+/**
+ * What a surveyor reads standing on the ground over a trap.
+ *
+ * ⚠ **It says nothing about charge, and that absence is the design.**
+ * A dry structure and a charged one produce an identical reading — same
+ * fields, same bracket, same confidence. There is no field here that a
+ * better instrument would fill in.
+ */
+export interface StructureReading {
+  /** Which body of the column this reading is of. */
+  key: string;
+  /**
+   * The TRUE depth to the crest, metres below the collar (positive).
+   * ⭐ Identical for every observer regardless of competence —
+   * competence buys resolution, never outcome. ⚠ **Never shown to a
+   * player**: it is here so a test can assert the two readers got the
+   * identical truth at different resolutions.
+   */
+  crestDepthM: number;
+  /**
+   * The depth this observation point actually yields — a SEEDED
+   * per-point error on the truth, as a fraction of the reading. Two
+   * observers at one point read the same wrong number, and coming back
+   * does not re-roll it.
+   */
+  readingDepthM: number;
+  /**
+   * ⭐⭐ **The observation's half-width, metres — a fraction of the
+   * READING and never of the truth.**
+   *
+   * ⚠ This is not a presentation detail; a bracket scaled off the truth
+   * would **leak the truth exactly.** Quote `± 55 m` on a half-fraction
+   * and the reader knows the crest is at 110 m to the metre, which is a
+   * better answer than the bracket claims and makes an untrained eye
+   * the sharpest instrument in the game. So the reading is solved as
+   * `R = T / (1 − u·f)` with `|u| ≤ 1`, and the quoted half-width is
+   * `f·R` — which contains the truth for every `u`, by construction,
+   * and is computable by the player from what they were told. A real
+   * instrument's accuracy is quoted as a percentage of reading for the
+   * same reason.
+   */
+  errorM: number;
+  /** Horizontal distance from the observer to the crest, metres. */
+  distanceM: number;
+  /** Azimuth from the observer toward the crest, degrees. */
+  bearingDeg: number;
+  /** Azimuth of the fold axis, degrees. */
+  axisDeg: number;
+  /** Vertical closure under the crest, metres. */
+  closureM: number;
+  /**
+   * ⭐⭐ **How thick the closure is HERE** — the structure surface at
+   * this point down to the spill depth, in metres. The number that
+   * actually prices the bore: it is `closureM` directly over the crest
+   * and nothing at the rim.
+   *
+   * ⚠ Still says nothing about charge. It is how much the trap *could*
+   * hold under your feet, which is a fact about the shape of the rock; a
+   * dry trap reports the identical figure.
+   */
+  thicknessHereM: number;
+}
+
+/** What is in the pore space at a point: the body, or the water, or nothing. */
+export interface FluidSample {
+  /** The body's key, or `null` where the answer is the water table. */
+  bodyKey: string | null;
+  /** The `Material` path of the fluid here. */
+  materialPath: string;
+  /** The body's initial head at the wellhead, atmospheres. */
+  headAtm0: number;
+}
+
+/**
  * An authored lean over a region: everything inside the box has its
  * COMPUTED grade scaled. The old men worked the shallow ground first, so
  * what is left there is what they would not stoop for — and this says so
@@ -313,6 +481,24 @@ export default class Deposit extends GroundSourceMixin(Idea) {
   protected gas: { material: string; belowZ: number; strength: number } | null =
     null;
 
+  /**
+   * ⭐⭐ The fluid bodies this column holds, or `[]` — the shipped case
+   * and the default.
+   *
+   * ⚠ Every column MAY hold fluid bodies; a column with none answers
+   * `null` from {@link Deposit.fluidAt} above the water table and `[]`
+   * from {@link Deposit.structureReadingAt}, which is what every
+   * consumer of `lode: null` already handles. **No reader of `fluids`
+   * reads a lode field and no reader of the lode reads this** — a column
+   * with `lode: null` and one fluid body (barren of ore, charged with
+   * brine) is a legal row with no guard anywhere.
+   *
+   * Authored per DEPOSIT and therefore per place: the mechanism is this
+   * class's and the bodies are a claim somebody makes about a country.
+   * A second well town is rows.
+   */
+  protected fluids: FluidBody[] = [];
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },
     // ⭐ Level-1 spoiler, `spoilerName: 0` — the `Biome` cut, and for the
@@ -327,6 +513,11 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     depletion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     features: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ Same level-1 spoiler as the lode, and for a sharper reason: that
+    // a column HAS fluid bodies to be surveyed for is public (a reader
+    // should know there is structure to measure); where they are, and
+    // above all whether they are charged, is the thing the payroll buys.
+    fluids: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
   };
 
   // ---------- authored surface ----------
@@ -351,6 +542,14 @@ export default class Deposit extends GroundSourceMixin(Idea) {
 
   public getFeatures(): DepositFeatures { return this.features; }
   public setFeatures(value: DepositFeatures): void { this.features = value ?? {}; }
+
+  public getFluids(): readonly FluidBody[] { return this.fluids; }
+  public setFluids(value: FluidBody[]): void { this.fluids = value ?? []; }
+
+  /** One body by key, or `null`. */
+  public fluidBody(key: string): FluidBody | null {
+    return this.fluids.find((b) => b.key === key) ?? null;
+  }
 
   // ---------- the seed ----------
 
@@ -536,6 +735,176 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     return { dipDeg, readingDeg: clampDip(dipDeg + offset), errorDeg };
   }
 
+  // ---------- ⭐⭐ the fluid reads: structure is readable, charge is not ----------
+
+  /**
+   * The structural half: every body whose trap lies under `(x, y)`,
+   * read at `errorFraction` resolution.
+   *
+   * ⭐ **The error is a FRACTION, not an absolute, and that is the one
+   * law the design asked for.** Structure a hundred metres down is read
+   * much better than structure two hundred metres down with the same
+   * instrument, because what the instrument measures is a ratio and the
+   * error compounds over the distance it is projected through. The
+   * caller supplies the fraction off the reader's band; this method is
+   * pure projection.
+   *
+   * ⚠ `errorFraction` is clamped to {@link MAX_ERROR_FRACTION} — past a
+   * half the solved reading runs away, and anything that vague should be
+   * answering in words rather than in a figure anyway.
+   *
+   * ⚠ Returns `[]` where no trap covers the point — **a barren survey is
+   * a legitimate and informative outcome**, and the caller reports the
+   * negative rather than swallowing it.
+   *
+   * ⚠⚠ A charged body and a dry one read **identically**. There is no
+   * field in {@link StructureReading} that charge touches, and that is
+   * the trade's premise rather than an omission.
+   */
+  public structureReadingAt(x: number, y: number, errorFraction: number, seed: number): StructureReading[] {
+    const f = Math.min(Math.max(errorFraction, 0), MAX_ERROR_FRACTION);
+    const out: StructureReading[] = [];
+    for (const body of this.fluids) {
+      if (radiusIn(body, x, y) === null) continue;
+      const crest = body.trap.crest;
+      // Depth is reported positive-down, because that is how a driller
+      // says it and how the bore log records it.
+      const crestDepthM = -crest[2];
+      // ⭐ Seeded per observation POINT, which is what makes averaging
+      // repeat readings from different places narrow anything.
+      const u = 2 * Seeded.unit(seed, hashString(`structure:${body.key}:${x},${y}`)) - 1;
+      // R = T / (1 − u·f): the quoted half-width f·R then contains T for
+      // every u, and is computable from what the player was told. See
+      // {@link StructureReading.errorM} for why it may not scale off T.
+      const readingDepthM = crestDepthM / (1 - u * f);
+      const dx = crest[0] - x;
+      const dy = crest[1] - y;
+      const leg = this.legAt(body, x, y);
+      out.push({
+        key: body.key,
+        crestDepthM,
+        readingDepthM,
+        errorM: Math.abs(readingDepthM) * f,
+        distanceM: Math.hypot(dx, dy),
+        bearingDeg: norm360(Math.atan2(dx, dy) / RAD),
+        axisDeg: norm360(body.trap.strike),
+        closureM: body.trap.closureM,
+        thicknessHereM: leg?.thicknessM ?? 0,
+      });
+    }
+    return out;
+  }
+
+  /**
+   * ⭐⭐⭐ **Is this body charged?** The pin over the lean over the
+   * seeded answer — the same fold order as every other read of this
+   * class, applied to the one question no instrument may ask.
+   *
+   * ⚠ **Nothing in the game reads this before the bore reaches the
+   * leg.** There is no `Reading` row for it, no channel token, no
+   * bracket, and no band that narrows it; the only way to learn it is to
+   * spend the payroll and get to the depth. `uncertainty.md`'s epistemic
+   * provenance, at its purest: the ground was always this way, the seed
+   * is the body's name under the locality's address, and two worlds from
+   * one seed give one answer.
+   */
+  public isCharged(body: FluidBody, seed: number): boolean {
+    if (body.charge !== undefined) return body.charge;
+    const chance = body.chargeChance ?? DEFAULT_CHARGE_CHANCE;
+    return Seeded.unit(seed, hashString(`charge:${body.key}`)) < chance;
+  }
+
+  /**
+   * What is in the pore space at a point: the charged body whose leg
+   * spans this depth, or the water table, or nothing.
+   *
+   * The ordering is the physics. A charged body sits in the structure it
+   * is trapped in, so it wins where it is; failing that, anything at or
+   * below the water table is saturated, which is why an unlined hole
+   * below the table fills with water and why lining it is what lets you
+   * get past the water to the thing you came for. Above the table, a
+   * hole holds nothing but cuttings.
+   *
+   * ⚠ An UNCHARGED body is invisible here — it is a structure with
+   * nothing in it, and a hole through it brings up exactly the water the
+   * depth would have given anyway.
+   */
+  public fluidAt(at: Point, seed: number): FluidSample | null {
+    const z = at[2];
+    if (z > 0) return null;
+    for (const body of this.fluids) {
+      const leg = this.legAt(body, at[0], at[1]);
+      if (leg === null) continue;
+      if (z > leg.topZ || z < leg.spillZ) continue;
+      if (!this.isCharged(body, seed)) continue;
+      return {
+        bodyKey: body.key,
+        materialPath: body.fluid,
+        headAtm0: body.headAtm0 ?? 0,
+      };
+    }
+    if (z <= this.waterTable) {
+      return { bodyKey: null, materialPath: GROUNDWATER, headAtm0: 0 };
+    }
+    return null;
+  }
+
+  /**
+   * ⭐⭐ **The fluid leg at a point on the surface** — where the
+   * structure's top is here, where it spills, and how thick that leaves
+   * the leg. `null` where the trap does not reach this point at all.
+   *
+   * This is the geometry that makes the survey worth paying for. The
+   * beds arch over the crest, so the structure surface rises from the
+   * spill depth at the rim to the crest; anything buoyant that got in
+   * floats up against the arch and fills from the top down to the spill
+   * point. So the leg is **the full closure under the crest and nothing
+   * at the rim**, tapering between.
+   *
+   * ⚠ Nothing here consults charge. A dry trap has exactly this shape
+   * and exactly this leg, holding nothing — which is why
+   * {@link Deposit.structureReadingAt} can report the shape honestly to
+   * anybody and still tell them nothing about whether to bore.
+   */
+  public legAt(
+    body: FluidBody,
+    x: number,
+    y: number,
+  ): { topZ: number; spillZ: number; thicknessM: number } | null {
+    const r = radiusIn(body, x, y);
+    if (r === null) return null;
+    const closure = Math.max(0, body.trap.closureM);
+    const crestZ = body.trap.crest[2];
+    const spillZ = crestZ - closure;
+    // The arch: the surface is at the crest directly over it and at the
+    // spill depth by the time it reaches the rim.
+    const topZ = crestZ - closure * r;
+    return { topZ, spillZ, thicknessM: Math.max(0, topZ - spillZ) };
+  }
+
+  /**
+   * How much the body holds, in litres — the pin, or derived from the
+   * geometry it was authored with.
+   *
+   * The derivation is the ordinary reservoir estimate over the shape
+   * {@link Deposit.legAt} describes: the leg is `closureM × (1 − r)`
+   * through an ellipse, and `∫(1 − r) dA` over an ellipse is
+   * `π·a·b / 3` — so the closed volume is a third of the bounding
+   * prism's, times the pore fraction. ⭐ An author who wants a specific
+   * well life pins `capacityL` and this never runs; the derivation
+   * exists so that a body described purely as geometry still has an
+   * honest number.
+   */
+  public capacityOf(body: FluidBody): number {
+    if (body.capacityL !== undefined) return Math.max(0, body.capacityL);
+    const { alongExtent, acrossExtent, closureM } = body.trap;
+    const porosity = body.porosity ?? DEFAULT_POROSITY;
+    const cubicM =
+      (Math.PI * alongExtent * acrossExtent * Math.max(0, closureM)) / 3 *
+      porosity;
+    return cubicM * LITRES_PER_CUBIC_METRE;
+  }
+
   // ---------- the structural reads the fold is built from ----------
 
   /** The country rock at depth `z`. The deepest authored band continues down. */
@@ -699,6 +1068,36 @@ export default class Deposit extends GroundSourceMixin(Idea) {
   }
 }
 
+/**
+ * ⚠ The widest honest fraction a structural read may be quoted at. Past
+ * a half the solved reading runs away (the denominator approaches zero),
+ * and a reader that vague should be answering in words rather than in a
+ * figure — which is what the eye rung is for.
+ */
+const MAX_ERROR_FRACTION = 0.5;
+
+/**
+ * The per-body default chance a trap is charged, when the author states
+ * neither a pin nor a lean. ⭐ Just under even: the honest base rate for
+ * a structure that looks right is *worse than a coin*, which is what
+ * makes a surveyor's judgment worth paying for without ever making it
+ * decisive.
+ */
+const DEFAULT_CHARGE_CHANCE = 0.45;
+
+/** Pore fraction when a body authors none — a fair sandstone. */
+const DEFAULT_POROSITY = 0.2;
+
+const LITRES_PER_CUBIC_METRE = 1000;
+
+/**
+ * What an unlined hole below the water table brings up. ⚠ The plain
+ * water of the commons, not the body's fluid — the water table is the
+ * reason a hole needs lining, and the reason the first thing most bores
+ * produce is a nuisance.
+ */
+const GROUNDWATER = '/stuff/idea/material/bulk/water';
+
 /** The fallback country rock when a deposit authors no stratigraphy. */
 const DEFAULT_HOST = '/stuff/idea/material/rock/granite';
 
@@ -746,6 +1145,30 @@ function admitsAlong(band: GradeBand, along: number): boolean {
   if (band.alongFrom !== undefined && d < band.alongFrom) return false;
   if (band.alongTo !== undefined && d > band.alongTo) return false;
   return true;
+}
+
+/**
+ * ⭐ How far out in the trap `(x, y)` is: `0` at the crest, `1` at the
+ * rim, `null` outside it altogether.
+ *
+ * The same two orthogonal dot products the lode's test uses, read in the
+ * trap's own axes — along the fold axis and across it — and then as an
+ * elliptical radius rather than as a box, because a fold closes in a
+ * curve. One number, and both *is the trap here* and *how far from the
+ * crest* come out of it.
+ */
+function radiusIn(body: FluidBody, x: number, y: number): number | null {
+  const t = body.trap;
+  const f = t.strike * RAD;
+  const dx = x - t.crest[0];
+  const dy = y - t.crest[1];
+  // The axis vector (horizontal, along the fold) and its perpendicular.
+  const along = dx * Math.sin(f) + dy * Math.cos(f);
+  const across = dx * Math.cos(f) - dy * Math.sin(f);
+  const a = t.alongExtent > 0 ? along / t.alongExtent : 0;
+  const b = t.acrossExtent > 0 ? across / t.acrossExtent : 0;
+  const r = Math.hypot(a, b);
+  return r > 1 ? null : r;
 }
 
 /** The unit vector along the strike line: horizontal, in the plane. */

@@ -1,0 +1,38 @@
+# structure — the shape of the rock under this ground: whether the beds
+# close over anything, how deep the crest is, and which way the fold
+# runs.
+#
+# ⭐⭐ **A pack's channel, and the platform names it nowhere.** This row
+# and `StructureReading` are the entire registration: install
+# `trade-drilling` and `measure structure` works; remove it and there is
+# no such channel, and `readings` does not advertise one.
+#
+# ⚠⚠ **It reports no charge, and there is no row that does.** The survey
+# has two factors. This is the readable one. Whether the trap holds
+# anything was decided before anybody looked, has no channel, no
+# bracket and no band that narrows it, and the only way to learn it is
+# to spend the payroll and get to the depth. That is why a dry hole
+# survives every improvement to the instruments.
+#
+# ⭐ The instrument is `surveying` — the SAME capability the miner's dial
+# and the surveyor's compass already afford. This trade adds no
+# instrument for its structural read, which is what *a second reading is
+# a row* means in practice.
+class: /trade/drilling/idea/reading/StructureReading
+data:
+  channel: structure
+  kind: fact
+  scope: [here]
+  discipline: geology
+  instrument: surveying
+  instrumentNoun: "a surveyor's compass or a miner's dial"
+  # The eye rung is real here — a trained eye reads the country, and
+  # reads its own field book — so the ceiling is the floor: everybody
+  # may try, and what they get back depends on what they know.
+  eyeCeiling: untrained
+  improves: >-
+    where the rock closes over something, and therefore where a hole is
+    worth sinking at all
+  stakes: >-
+    a payroll spent sinking into flat beds; a structure somebody else
+    bores first

@@ -22,6 +22,8 @@ data:
     One room, one counter, and a stove that has not been lit this month. Behind the counter the whole of the wall is a map: the diggings in plan, claims inked in and numbered, the untitled ground left white. More of it is white than is not.
 
     The register itself is a ledger the size of a paving slab, and it is chained to the counter.
+
+    Against the end wall there is a rack of hire tools going rusty at the tips — a bailer, lengths of tube, a brass gauge, somebody's dial in a leather case — and a jar of glowcap on the shelf above it. Nobody has written anything down about any of it.
   coords: { x: 0, y: 1, z: 0 }
   exits:
     south:
@@ -33,6 +35,40 @@ data:
       destination: /world/terminus/rejection/location/hillside
   props:
     - /world/terminus/rejection/thing/claims-counter
+    # ⭐⭐⭐ **A rack of hire tools, and it is the honest answer to a
+    # problem four other shapes could not solve.**
+    #
+    # The drilling kit has to reach a prospector's hands, and in this
+    # valley it cannot be bought: ⚠⚠ Rejection's provisioning till
+    # **cannot take money** — `settleSale` returns null and the player is
+    # told `insufficient-funds`, which is a shop that cannot trade rather
+    # than a buyer who is broke. That is a pre-existing venue defect (the
+    # taps build hit it first) and not drilling's to fix.
+    #
+    # ⛔ And it must NOT be fixed by putting a trade's goods on the
+    # CITY's shelf — that was tried, and the terminus pack's own suite
+    # refused it: *`/trade/drilling/thing/bailer`: no pack owns this
+    # prefix.* Pushing a trade's rows into a locality makes the locality
+    # depend on the trade, which is the line this repo keeps.
+    #
+    # ⭐ So: a rack at the claims office, which is where a prospector
+    # already goes to stake, and which is exactly what a claims office in
+    # a boom valley would have. Free hand-tools break nothing the design
+    # cares about — the trade's own thesis is that **the derrick is cheap
+    # and the payroll is the cost.**
+    - /trade/drilling/thing/bailer
+    # ⚠ ONE length, not three. `lint:census` clause (e) refused the
+    # repeat: *the same path twice in one list with no `as` is
+    # `count: N` written longhand — and a repeat with no identity is an
+    # entry no child row can ever replace.* One is what a rack would
+    # hold anyway, and `make liner` takes two of timber.
+    - /trade/drilling/thing/liner
+    - /trade/drilling/thing/pressure-gauge
+    # The surveying instrument is MINING's — this trade adds none for its
+    # structural read, which is the whole of *a second reading is a row*.
+    - /trade/mining/thing/miners-dial
+    # A light, because the sites are outdoor rooms and the sun sets.
+    - /world/terminus/rejection/thing/glowcap-jar
   cast:
     - /world/terminus/rejection/agent/registrar
   details:

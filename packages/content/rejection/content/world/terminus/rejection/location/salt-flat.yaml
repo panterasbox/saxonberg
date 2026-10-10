@@ -1,0 +1,67 @@
+# ⭐⭐ The Flat — **the ground over the crest, and it says nothing.**
+#
+# This is the room the trade is actually about. There is no spring here,
+# no crust, no stain, nothing to taste and nothing in the prose that
+# would tell a player to stop: the free evidence is all back at the
+# hollow. What is here is forty metres of closure under the beds, and the
+# only thing in the game that will say so is an instrument in the hands
+# of somebody who knows what to do with it.
+#
+# ⚠ The prose names the bare ground and the thin grass, which are real
+# consequences of brine near the surface at the trap's high point — a
+# reader who has learned what salt does to grass can read them. It does
+# NOT name the structure, because the structure is what the survey is
+# for.
+class: /platform/location/SingletonCartesianLocation
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: bare flat
+  keywords: [flat, "bare flat", "salt flat", ground, bare]
+  register: definite
+  longDescription: |
+    Twenty acres of nothing in particular. The hill gives up climbing here and lies down, and the grass comes up thin and goes brown early, and in the low places it does not come up at all.
+
+    No water. No stain. Nothing anybody has ever bothered to stake — except that somebody has dragged a hearth and an iron pan up here and left them, which is either optimism or knowledge.
+
+    Two men are sitting on the lip of the hollow beside the hearth with their boots off, not doing anything in particular, and they look up when you come over the rise.
+
+    The hollow with the spring is back up the slope to the northwest. Further out to the northeast the hill shoulders up again, and there is a bald patch on it you can see from here.
+  coords: { x: 6, y: 1, z: 0 }
+  # ⭐⭐ The hearth and the pan stand AT THE FLAT, and the reason is
+  # haulage rather than convenience: brine is ninety-odd per cent water
+  # and salt is light, so you boil it where it comes out of the ground
+  # and carry the salt. It is the same fact about freight that puts a
+  # limekiln at a quarry, and it is why a saltern is a place rather than
+  # a shop.
+  #
+  # ⚠ Both rows are QUARRYING's and neither needed a line of code for
+  # this build: the brine meets the pan by TAG. One good, three cost
+  # structures — a face you cut, pans the sun works, brine you boil —
+  # and where you live decides which one you use.
+  props:
+    - /trade/quarrying/thing/brine-hearth
+    - /trade/quarrying/thing/salt-pan
+  # ⭐⭐⭐ **The labour pool stands AT THE WORK**, and the requirement's
+  # own words are the reason: *a bore crew is hired at the bore, out of
+  # whoever has walked up to it.* They were in the Dry for one revision
+  # — which is the MINE's changing shack, a different business's
+  # building, and a room a brainless hand can never leave, because a
+  # roustabout has no brain on purpose. Hiring there meant the trade
+  # depended on relocating somebody who cannot walk.
+  #
+  # ⭐ Here they are two men sitting on the edge of a flat where
+  # somebody has already dragged a hearth and a pan up and given up,
+  # waiting to see whether the next outfit does better. No relocation,
+  # no brain, and the fiction is better than the mechanism it replaced.
+  cast:
+    - /world/terminus/rejection/agent/roustabout-a
+    - /world/terminus/rejection/agent/roustabout-b
+  exits:
+    northwest:
+      destination: /world/terminus/rejection/location/salt-spring
+      edgeMinutes: 3
+    # ⭐ Further out along the same fold axis: the gas country, which is
+    # the same episode of folding holding something lighter.
+    northeast:
+      destination: /world/terminus/rejection/location/gas-flat
+      edgeMinutes: 6
