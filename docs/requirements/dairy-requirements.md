@@ -50,6 +50,13 @@ kitchen recipes that take what the creamery makes. Seeded by
   come in jars; you pitch by pouring. ⭐ `maturation.md` already names the
   lees split as the curd/whey split — and names its own gap: **a solid
   thing cannot ripen**, so aged cheese has no mechanism.
+- **Casting** — a liquid pool that freezes in any vessel becomes its
+  MATERIAL's cast shape (water → an ice block, a metal → a lump; the
+  smelt's ingot arrives this way). The ice pan is a mould in all but name,
+  and the vessel has no say in the shape. ⭐ The glass slate §8 extracted
+  moulds as a common system — *"molds → the dairy build"* — and named its
+  consumers: the cheese hoop, metal casting, baking tins, bricks, candles,
+  soap, press-moulded ceramics.
 - **The kill curve** — a recipe can hold food at a heat for a time, and
   heat kills spoilage flora, pathogens and cultures by their own
   parameters. Low-and-slow pasteurization (63 °C, 30 min) is expressible
@@ -77,7 +84,9 @@ kitchen recipes that take what the creamery makes. Seeded by
 ⭐ **Therefore what is genuinely new here is:** milk that spoils; a
 `trade-dairying` pack whose products are rows over shipped substrate; a
 dairy farm and a co-op creamery at Heart's Delight; milking goats in
-Rejection; ewe's and goat's milk; a second source of contamination; and
+Rejection; ewe's and goat's milk; a second source of contamination;
+**moulds**, a common system where the vessel decides the shape of
+whatever sets in it, with three consumers; and
 four seams — a fermenting batch that holds off rot, a wheel that ripens on
 a shelf, a herd that comes back into milk, and a byproduct poured off a
 solid.
@@ -101,6 +110,11 @@ solid.
   pathogens, flora and culture alike — and overheating it ruins the set;
   raw milk keeps its character and its risk. Harm from contaminated milk
   sold to a stranger is recorded against the producer.
+- **A mould decides the shape of what sets in it.** One act for every
+  moulded good — fill the mould, let the contents set by their own
+  process, take the thing out — and the cheese hoop, the ingot mould and
+  the ice pan all work it. A new moulded good is a mould and a material,
+  not a verb.
 - **A herd survives its own neglect.** A cow that dries off and goes back
   to the herd comes back into milk after a rest.
 - **A second venue is rows.** Rejection's goats and their cheese need no
@@ -130,6 +144,13 @@ solid.
   next epoch rung.
 - **Rind care** — turning, washing, waxing, bloomy and blue moulds →
   dairy-slate Left.
+- **The other moulded goods** — candles and soap →
+  [rendering-slate](../slates/builds/rendering-slate.md); bricks, baking
+  tins, press-moulded ceramics, glass press- and blow-moulding → their
+  trades' slates, each as a mould row over this build's system.
+- **A consumed mould** (sand, lost wax — broken to get the casting out) →
+  the property ships, no consumed mould does; the first casting trade
+  that needs one ships it.
 - **Malted milk** → [malting-and-extract-slate](../slates/builds/malting-and-extract-slate.md).
 - **A regulated inspection regime** (licensing, a health inspector) →
   dairy-slate Left; this build ships the harm record and the co-op's
@@ -148,6 +169,10 @@ solid.
 - **The goat** is a species row alongside the cow and sheep.
 - **The venues are their communities'** — the dairy farm and the creamery
   in the `hearts-delight` pack, the goats in `rejection`.
+- ⭐ **Moulds are the kernel's.** Their consumers — dairying, smelting,
+  the commons' ice pan — share no pack, which is the kernel test. This
+  build ships the system with the hoop as its first consumer; the ingot
+  mould is smelting's row and the ice pan stays in the commons.
 - **The kitchen recipes** are cooking's and baking's (`trade-cooking`,
   `trade-baking`), taking dairy goods by category.
 - ⭐ **The test — does a second venue need code?** No: Rejection's goat
@@ -170,9 +195,15 @@ solid.
   stand where a drive (drilling, pump, mining) already runs, and they take
   nothing from the pithead yard.
 - **The university herd** — untouched. Its cows stay a teaching herd.
-- **The verb `press`** is the news ticker's; pressing a wheel is a recipe
-  step, not a new `press`. **`cut`** is tailoring's; a wheel is `split`.
+- **The verb `press`** is the news ticker's; pressing a wheel is a weight
+  set on the hoop, not a new `press`. **`cut`** is tailoring's; a wheel is `split`.
 - **`shake`** today records a cocktail's mix method; `churn` rides it.
+- **The smelt** — its ingot comes from the metal's own cast shape today;
+  with an ingot mould at the furnace, the mould decides. A pool that
+  freezes in a plain crucible still leaves a lump.
+- **The ice pan** — today water freezes in it into an ice block because
+  WATER says so; after this build the pan says so. Same block, honest
+  reason.
 - **Cooking's fried recipes** take "a fat"; butter joining that category
   changes what a cook may use, not what they must.
 
@@ -235,8 +266,35 @@ Butchering a young head yields its stomach, which dries into rennet. The
 creamery opens with one jar as seed stock (the brewery's barm is the
 precedent); there is a maker from the first day.
 
-### The wheel — pressed, then ripened on a shelf
-Curd + salt in a hoop makes a wheel. A wheel on a shelf ripens by its
+### Moulds — the vessel decides the shape of what sets in it
+A mould is a vessel that answers one question: *when what is in me sets,
+what shape comes out?* How the contents set is the **material's**
+business — metal, wax and water **freeze**; curd **drains**; clay and soap
+dry or cure; dough bakes — and the mould does not care which. Wherever
+something sets, the container is asked first; only a plain vessel falls
+back to the material's own default (a lump).
+
+- **No verb.** `pour curd into hoop`, wait, `look hoop` (*the curd has
+  drawn down and firmed*), `get wheel from hoop`. Molten copper into an
+  ingot mould and water into an ice pan are the same acts.
+- **It stays in the mould** until you take it out. Unmoulding is an act.
+- **The fill decides the size** — a half-filled hoop is a small wheel; an
+  over-full mould spills by the existing pour rule.
+- **Reusable or consumed** is the mould's own property. A hoop and an
+  ingot mould wear with use. A consumed mould is broken to get the
+  casting out — the property ships; no consumed mould does yet.
+- **Three ship:** the cheese hoop (draining), the ingot mould at the smelt
+  (freezing), and the ice pan made a true mould (freezing).
+
+### Pressing — a weight on the hoop
+`put stone on hoop` loads the curd. The load sets how fast and how far the
+whey drains: soft curd left unweighted is a moist soft cheese that keeps
+briefly; firm curd under a weight is a dry hard wheel that keeps for
+months. ⭐ Pressing drives out water, and the dryness is what keeps a hard
+cheese — the shipped water-activity model, made into a choice.
+
+### The wheel — salted, moulded, then ripened on a shelf
+Salted curd set in a hoop makes a wheel. A wheel on a shelf ripens by its
 room's temperature: **soft** cheese is ripe in about a game week and then
 goes over; **hard** cheese takes game months and keeps improving; too
 warm, and it spoils. Read in words on `look` and `taste`, never a number.
@@ -356,8 +414,10 @@ character** is needed for steps 22–23.
 13. `pour vat into pail` — the whey comes off; curd is left.
 14. The whey becomes starter: `pour pail into crock` — next time's
     culture.
-15. Press: curd + salt in a hoop → a **wheel** (the recipe's verb, as
-    the plan decides; the first faithful press earns the deed).
+15. Salt the curd; `pour vat into hoop` (the curd); `put stone on hoop`;
+    advance; `look hoop` — it has drawn down and firmed; `get wheel from
+    hoop` — a **wheel**, sized by the fill. A soft curd left unweighted in a
+    second hoop gives a soft wheel.
 
 **The cheese room**
 16. `go down`; put the wheel on the shelf. `look wheel` — *young*.
@@ -365,6 +425,13 @@ character** is needed for steps 22–23.
     `taste wheel` — its ripeness in words; the soft one goes over if left.
 18. Move a wheel somewhere warm and advance: it spoils.
 19. `split wheel` — wedges. `consign wedge --ask 12` on a shelf.
+
+**The other moulds**
+19a. At the smelt: run molten copper into the **ingot mould**; let it
+     cool; `look mould` — set; `get ingot from mould`. A pool left to
+     freeze in a plain crucible is still a lump.
+19b. Fill the **ice pan** with water and leave it in the cold; `get block
+     from pan` — the block is the pan's shape.
 
 **The kitchen**
 20. Fry roots in butter (an existing recipe, taking butter as its fat).
@@ -398,7 +465,13 @@ character** is needed for steps 22–23.
    said in words.
 5. Starter sets a soft curd, starter and rennet a firm one; draining the
    whey leaves curd, and the whey starts the next batch.
-6. A pressed wheel on a cool shelf ripens over game time, reads its
+6. Curd set in a hoop comes out as a wheel the hoop's shape and the fill's
+   size; weighted firm curd makes a drier, longer-keeping wheel than
+   unweighted soft curd.
+6a. Molten metal set in an ingot mould comes out as an ingot, and water
+   in an ice pan as a block — by the same acts as the hoop, with no verb
+   of their own; a pool frozen in a plain vessel is still a lump.
+6b. A ripened wheel on a cool shelf ripens over game time, reads its
    ripeness in words, and is worth more ripe; a soft wheel goes over; a
    warm wheel spoils.
 7. A wheel can be split into wedges, and a wedge sold on consignment.
@@ -425,7 +498,7 @@ character** is needed for steps 22–23.
   [malting-and-extract-slate](../slates/builds/malting-and-extract-slate.md) ·
   [rgo-unification-slate](../slates/builds/rgo-unification-slate.md) ·
   [cooking-slate](../slates/builds/cooking-slate.md) ·
-  [glass-slate](../slates/tails/glass-slate.md) (the cheese hoop as a mould)
+  [glass-slate](../slates/tails/glass-slate.md) (§8 — moulds extracted to this build)
 - Subsystems: [ranching.md](../subsystems/ranching.md) ·
   [taps.md](../subsystems/taps.md) · [maturation.md](../subsystems/maturation.md) ·
   [spoilage.md](../subsystems/spoilage.md) · [crafting.md](../subsystems/crafting.md) ·

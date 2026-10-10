@@ -334,8 +334,7 @@ for instruments and `Placement` rows for containment.
 
 Consumers already past the promote-at-the-third threshold: **the cheese
 hoop (dairy, shipping next)** · brick (`burn-lime` names "a brick
-clamp") · metal casting (`Casting` + `world-seed`'s `casting-yard` both
-exist) · baking tins · ceramic press-molding · candles · soap · rubber
+clamp") · metal casting (`Casting` ships; ⚠ `world-seed`'s `casting-yard` is the SPELL practice yard, not a foundry — corrected 2026-10-10) · baking tins · ceramic press-molding · candles · soap · rubber
 vulcanizing.
 
 ⚠ **Decide early, awkward to retrofit: reusable vs consumed.** A cheese
