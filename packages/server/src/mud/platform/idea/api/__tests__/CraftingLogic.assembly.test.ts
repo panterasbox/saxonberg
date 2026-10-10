@@ -29,6 +29,7 @@ import Material from '../../../../lib/material/Material';
 import Scrap from '../../../thing/Scrap';
 import Casting from '../../../thing/Casting';
 import Tool from '../../../thing/Tool';
+import Timber from '../../../thing/Timber';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
@@ -206,6 +207,24 @@ describe('CraftingLogic — assembly', () => {
     expect(pick.getJoints()).toMatchObject([{ key: 'hafting', method: 'wedged', tension: 1 }]);
     // One material and one mass, as before — the flatten still holds for the WHOLE.
     expect(pick.getMass().rawValue()).toBeCloseTo(2.6, 6);
+  });
+
+  it('⭐ a pick on a TIMBER haft (riven, seasoned) still reads what it is made of', async () => {
+    ContainmentApi.move(part(IRON, ['pick-head', 'head'], 1.8), smith);
+    const haft = makeStuff(() => new Timber());
+    haft.setMaterial(mat(ASH));
+    haft.setMass(Quantity.of(0.8, 'kg'));
+    haft.setKeywords(['pick-haft', 'haft']);
+    haft.setConstructionForm('riven');
+    haft.setSeasonedFraction(1);
+    ContainmentApi.move(haft, smith);
+    const out = await as<CraftOutcome>(() =>
+      CraftingApi.craft({ recipeRef: 'pick', makerMode: 'self' }),
+    );
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    const pick = (out as unknown as { output: Tool }).output;
+    expect(pick.getParts().map((l) => l.part)).toEqual(['head', 'haft']);
+    expect(pick.getMarkupLong(smith)).toMatch(/made of/);
   });
 
   it('⭐⭐ a jar splits the HAFT; repair refuses naming it; fit replaces just it', async () => {

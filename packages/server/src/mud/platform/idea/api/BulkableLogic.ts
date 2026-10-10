@@ -745,8 +745,12 @@ function computeApplied(
   const sourceAvail = from.available();
   const destRoom = to === null ? Infinity : to.remaining();
   if (amount.kind === 'all') {
-    // Take the whole source, bounded by the destination's room.
-    return Math.max(0, Math.min(sourceAvail, destRoom));
+    // Take the whole source, bounded by the destination's room. ⚠ An
+    // inexhaustible source into a bottomless place (a spring spilled on
+    // the ground) has no "all": nothing moves, rather than a litre count
+    // of infinity (it threw — the assembly drive's `spill` on a butt).
+    const all = Math.max(0, Math.min(sourceAvail, destRoom));
+    return Number.isFinite(all) ? all : 0;
   }
   const requested = amount.litres;
   const fittable = Math.min(sourceAvail, destRoom);

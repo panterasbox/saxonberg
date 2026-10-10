@@ -720,10 +720,15 @@ async function gatherMatter(
     // bystander's inventory is theirs) — only inanimate room containers.
     // A glass is a container too (its garnish) — never descended: the
     // olive in a served martini is not the next martini's garnish.
+    // ⚠ Nor a COUNTER: goods for sale are the shop's until they are
+    // bought. The timber yard's seasoned blanks were carved in place of
+    // the smith's own green one — and taken unpaid (the assembly drive).
     if (
       MixinApi.isContainer(c) &&
       !MixinApi.isOrganism(c) &&
       !MixinApi.isCrafted(c) &&
+      !MixinApi.isPricedOffer(c) &&
+      !MixinApi.isHeldGoodsShelf(c) &&
       (!MixinApi.isSealable(c) || c.isOpen())
     ) {
       for (const inner of c.getContents()) {

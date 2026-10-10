@@ -362,8 +362,22 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
      * reaches every host without naming one.
      */
     static commandContributions: CommandContributions = {
-      self: ['platform/cmd/crafting/fit.yaml'],
-      peers: ['platform/cmd/crafting/fit.yaml'],
+      // ⭐ …and `repair` and `salvage` by the same argument: the rungs are
+      // the assembly's (tighten a slack joint, refuse naming a failed part,
+      // re-fire a spent cask; take it apart by its joints), and the refusal
+      // is the lesson — so the verb must exist wherever the thing does. An
+      // instrument-only affordance left a cooper with a driver and a cask
+      // unable to say `repair cask` at all (the assembly drive).
+      self: [
+        'platform/cmd/crafting/fit.yaml',
+        'platform/cmd/crafting/repair.yaml',
+        'platform/cmd/crafting/salvage.yaml',
+      ],
+      peers: [
+        'platform/cmd/crafting/fit.yaml',
+        'platform/cmd/crafting/repair.yaml',
+        'platform/cmd/crafting/salvage.yaml',
+      ],
     };
 
     static __validateComposition__(ctor: AnyConstructor): void {

@@ -98,7 +98,6 @@ const T = {
   brewCask: '/trade/brewing/thing/cask',
   frame: '/trade/carpentry/thing/frame',
   plough: '/trade/farming/thing/plough',
-  bow: '/stuff/thing/arms/hunting-bow',
 };
 
 /** The verb was understood — not the parser's "I don't understand". */
@@ -193,6 +192,20 @@ async function buy(s: Session, item: string, n = 1): Promise<void> {
 
 async function practise(s: Session, discipline: string, n: number): Promise<void> {
   for (let i = 0; i < n; i++) await s.cmd(`practice ${discipline} hard success`);
+}
+
+/**
+ * ⭐ Work by daylight. A long drive runs into the night (a game day is
+ * about two real hours), and in an unlit interior every object reads
+ * "something" — the cooper's casks and the joiner's chair did. World-time
+ * zero is midnight; this jumps to noon unless it is already mid-day.
+ */
+async function toDaylight(): Promise<void> {
+  const { after } = await advanceWorldClock('0 seconds');
+  const tod = ((after % 86_400) + 86_400) % 86_400;
+  if (tod >= 9 * 3600 && tod <= 15 * 3600) return;
+  const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
+  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
 }
 
 let smith: Session;
@@ -315,6 +328,7 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
   let mender: Session;
   beforeAll(async () => {
     await advanceWorldClock('40 days');
+    await toDaylight();
   }, 300_000);
   afterAll(() => mender?.close());
 
@@ -354,6 +368,7 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
 });
 
 suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24)', () => {
+  beforeAll(toDaylight, 120_000);
   it('⭐⭐ drive 6 — a proficient cooper raises a cask, and it holds liquid', async () => {
     const handle = cooper.handle;
     cooper.close();
@@ -381,6 +396,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     await say(cooper, 'spill cask');
     await examine(cooper, 'cask'); // the first empty read starts the drying
     await advanceWorldClock('10 days');
+    await toDaylight();
     const dry = await examine(cooper, 'cask');
     expect(dry, `dried-out cask: ${dry}`).toMatch(/slack/i);
     expect(dry).not.toMatch(/sprung|split|broken/i);
@@ -436,12 +452,14 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
 suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
   let joiner: Session;
   beforeAll(async () => {
+    await toDaylight();
     const j = await newPlayer('joiner', STORE);
     await buy(j, 'cushion', 2);
     await buy(j, 'plough share', 2);
     await buy(j, 'bowstring');
     await buy(j, 'spindle shaft');
     await buy(j, 'whorl');
+    await buy(j, 'bow');
     const handle = j.handle;
     j.close();
     joiner = await goTo(handle, SMITHY);
@@ -468,7 +486,6 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
     }
     const plough = await examine(joiner, 'plough');
     expect(plough, `plough: ${plough}`).toMatch(/beam/i);
-    await cloneHere(SMITHY, T.bow);
     const strung = await say(joiner, 'fit bowstring to bow');
     expect(strung, `restring: ${strung}`).toMatch(/fit a new bowstring/i);
   }, 300_000);

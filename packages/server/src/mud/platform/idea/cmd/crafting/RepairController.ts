@@ -19,6 +19,7 @@ import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../../api/mixin';
 import { CraftingApi } from '../../../../api/crafting';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { MessageApi } from '../../../../api/message';
@@ -34,7 +35,7 @@ interface RepairModel extends CommandModel {
 }
 
 export default class RepairController extends ManualBuildController<RepairModel> {
-  execute(model: RepairModel, context: CommandContext): void {
+  async execute(model: RepairModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const item: Stuff | null = model.item?.stuff ?? null;
     if (!item) {
@@ -45,6 +46,30 @@ export default class RepairController extends ManualBuildController<RepairModel>
         .send();
       context.note({ kind: 'empty-result', field: 'item', query: raw });
       return;
+    }
+
+    // ⭐ A FAILED PART is answered now, not after a spell of work: no
+    // repair mends a split haft, and the refusal naming it is the lesson
+    // (assembly D6). The check mutates nothing when that is the answer.
+    if (
+      MixinApi.isAssembled(item) &&
+      item.isAssembly() &&
+      item.slackJoints().length === 0 &&
+      item.failedLines().length > 0
+    ) {
+      const author0 = ExecutionContextApi.getActingAuthor() as Stuff | null;
+      const outcome = await CraftingApi.repair({
+        item,
+        makerPath: author0?.getIdentityPath() ?? '',
+      });
+      if (!outcome.ok) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: outcome.reason, detail: outcome.detail ?? '' });
+        return;
+      }
     }
 
     // The pacer: the reachable instrument of a kind whose family
