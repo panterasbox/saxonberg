@@ -506,6 +506,10 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           return;
         }
         const locality = await AddressApi.resolveLocalityFor(scope);
+        // ⭐ Warm the place's climate-site memo in the same act, so the
+        // integral below decides rain-or-snow at THIS place's temperature
+        // rather than the realm default (the climate build).
+        if (MixinApi.isAtmospheric(scope)) await scope.resolveClimateSite();
         this._rainLocalityPath = locality?.getTemplatePath() ?? null;
         this._rainSkyExposed = BiomeApi.isSkyExposed(scope);
         this._rainResolved = true;
@@ -607,13 +611,21 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
             this._rainLocalityPath,
           ) as Locality | null);
 
+      const scope = this.watershedScope();
+      const site =
+        scope !== null && MixinApi.isAtmospheric(scope)
+          ? scope.climateSite()
+          : null;
       const fell = WeatherApi.precipitationBetween(
         Quantity.of(from, "s"),
         Quantity.of(nowS, "s"),
         locality,
+        site,
       );
-      // Liquid only. Snow banks at altitude and releases on melt — that
-      // is the watershed's integral, not the soil's.
+      // Liquid only. What fell as snow — decided by the temperature at
+      // this place, since the climate build — lies on the ground (the
+      // floor's snow) and melts into the watershed's integral, not the
+      // soil's (soil.md § winter).
       const litres = fell.liquid.rawValue() * areaM2;
       if (litres <= 0) return;
       this._rainAbsorbedLitres += this.creditReserve(

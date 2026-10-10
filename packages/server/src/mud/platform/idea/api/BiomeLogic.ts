@@ -627,10 +627,13 @@ export class BiomeLogic extends ApiLogic {
       ];
     }
 
+    const site = climateSiteSyncOf(scope);
     const segments = WeatherApi.segmentsBetween(
       Quantity.of(t0S, 's'),
       Quantity.of(t1S, 's'),
       locality,
+      undefined,
+      site,
     );
     if (segments.length === 0) {
       return [{ air: this.airFor(scope), durationS: windowS, rainMmPerH: 0 }];
@@ -659,6 +662,7 @@ export class BiomeLogic extends ApiLogic {
           Quantity.of(seg.startsAtS, 's'),
           Quantity.of(seg.startsAtS + seg.overlapS, 's'),
           locality,
+          site,
         );
         rainMmPerH = fell.liquid.rawValue() / hours;
       }

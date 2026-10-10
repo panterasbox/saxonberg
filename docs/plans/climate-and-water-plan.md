@@ -1253,6 +1253,10 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   climate needs only the site, so a sky place under no Locality still
   has a season on the sync path (the weather deviation still waits for
   the Locality).
+- **B7 (W3) — phase re-derivation is for the SKY.** An indoor pin
+  (the weeping chamber's rain) is not falling from this sky and keeps
+  its descriptor; the integral (keyed by Locality) always takes the
+  phase when the caller hands a site.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1513,6 +1517,20 @@ annual pin re-asserted at the default site.
 **Acceptance.** `analyze weather` at a cold site under a `snow` pin says
 snow; at a warm site under the same pin says rain.
 **Commit.** `build(climate W3): precipitation falls as the phase its place is cold enough for; a Locality has an amount`
+
+> ✅ **Done.** `WeatherSegment.phase` (B3) decided at the segment's
+> midpoint (so a segment reads one phase from any window);
+> `precipitationIntensityOf` (authored, else 1 → 0.4 between 55° and
+> 80°); `computeResolved` re-derives `precipitationHere` under the sky
+> only (an indoor pin keeps its descriptor — B7). Soil warms the
+> place's site memo in its watershed resolve and passes it; the
+> evaporation segments pass it too. `analyze weather` gains the month
+> line (words always; millimetres at `competent`+). ⚠ **Surprise:** six
+> shipped tests asserted rain at the reset clock (day 0, midnight) —
+> an equinox night at 42° that is now cold enough to snow. Each was
+> moved to a summer afternoon and kept its claim; one new test pins the
+> cold case (a storm pin snows at the solstice dawn). The wire clock
+> seam anchors at `setScale`, so the provider must read 0 then.
 
 ### W4 — The catchment unified; the main agrees with the street
 

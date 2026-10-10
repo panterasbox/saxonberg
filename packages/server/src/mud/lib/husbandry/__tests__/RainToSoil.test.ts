@@ -39,6 +39,7 @@ import { Quantity } from '../../quantity';
 import { WeatherApi } from '../../../api/weather';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
+import { DEFAULT_CLIMATE_SITE } from '../../weather/WeatherType';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -62,13 +63,21 @@ const setNow = (gameSeconds: number): void => {
 /** Game-seconds now, read from the clock rather than assumed. */
 const clock = (): number => WorldClockApi.getNow().rawValue();
 
-/** The liquid millimetres the sky delivered between two game-times. */
-const fellMm = (t0: number, t1: number): number =>
+/**
+ * The liquid millimetres the sky delivered between two game-times, at
+ * the realm's default site (these rooms stand in no zone). ⚠ Since the
+ * climate build the PHASE is the temperature's: a `rain` segment on a
+ * cold night falls as snow and waters nothing, so the expectation is
+ * read through the same site the soil reads, never the bare descriptor.
+ */
+const fell = (t0: number, t1: number) =>
   WeatherApi.precipitationBetween(
     Quantity.of(t0, 's'),
     Quantity.of(t1, 's'),
     null,
-  ).liquid.rawValue();
+    DEFAULT_CLIMATE_SITE,
+  );
+const fellMm = (t0: number, t1: number): number => fell(t0, t1).liquid.rawValue();
 
 let seq = 0;
 
@@ -250,10 +259,17 @@ describe('the rain edge — a bed fills from the sky', () => {
     await ContainmentApi.move(bed, makeRoom(true));
     await bed.restampWatershed();
     bed.reconcileSoil();
+    const opened = clock();
 
     setNow(4 * DAY);
+    const closed = clock();
     bed.reconcileSoil();
-    expect(litres(bed)).toBe(0);
+    // What fell as snow is not in the soil; only what the air was warm
+    // enough to make rain is (a `snow` segment over a mild noon rains).
+    const f = fell(opened, closed);
+    expect(f.frozen.rawValue()).toBeGreaterThan(0);
+    expect(litres(bed)).toBeCloseTo(f.liquid.rawValue() * 4, 6);
+    expect(litres(bed)).toBeLessThan((f.liquid.rawValue() + f.frozen.rawValue()) * 4);
   });
 
   it('rain never overfills — it is capped by the reserve headroom', async () => {

@@ -129,6 +129,14 @@ export class WeatherApi {
    * pre-resolves the `Locality | null` — the `deviationFor` contract,
    * for the same reason: no I/O inside a sync read.
    *
+   * ⭐ **`site` makes it a place, not just a Locality** (the climate
+   * build): with one, each segment's phase is decided by the temperature
+   * there (a `snow` segment over a warm valley is liquid, a `rain`
+   * segment on a cold peak is frozen), and an unauthored Locality's
+   * amount takes the latitude default. Without one the type's descriptor
+   * decides, exactly as before. The Locality's authored
+   * `_precipitationIntensity` multiplies either way.
+   *
    * ⚠ **Sky exposure is the CALLER's gate.** This answers what fell on
    * the locality; whether it reached a particular bed is that bed's
    * business, and a mixin under a roof must not credit it.
@@ -137,8 +145,9 @@ export class WeatherApi {
     t0: Quantity<'s'>,
     t1: Quantity<'s'>,
     locality: Locality | null,
+    site?: ClimateSite | null,
   ): PrecipitationIntegral {
-    return logic().precipitationBetween(t0, t1, locality);
+    return logic().precipitationBetween(t0, t1, locality, site);
   }
 
   /**
@@ -165,8 +174,9 @@ export class WeatherApi {
     t1: Quantity<'s'>,
     locality: Locality | null,
     maxSegments?: number,
+    site?: ClimateSite | null,
   ): WeatherSegment[] {
-    return logic().segmentsBetween(t0, t1, locality, maxSegments);
+    return logic().segmentsBetween(t0, t1, locality, maxSegments, site);
   }
 
   /* ──────────────── the climate (pure, SYNC) ──────────────── */

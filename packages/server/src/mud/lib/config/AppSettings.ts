@@ -1639,6 +1639,16 @@ export const AppSettingKeys = {
    * pulled toward its annual mean: the DAMPING that makes a coast's
    * winter mild and its summer cool. Scaled by `1 − continentality`. */
   climateMaritimeMixing: "climate.maritimeMixing",
+  /** Climate — the air temperature (K) at or below which precipitation
+   * falls as SNOW, whatever the weather type is called. A degree and a
+   * half above freezing: wet snow falls through air a little above 0 °C. */
+  climateSnowThresholdK: "climate.snowThresholdK",
+  /** Climate — the latitude (°) up to which an unauthored Locality's
+   * precipitation intensity is 1; poleward of it the default falls. */
+  climatePrecipDryAboveDeg: "climate.precipDryAboveDeg",
+  /** Climate — the unauthored precipitation intensity at 80° and beyond:
+   * polar air holds little water, so the high Arctic is a desert. */
+  climatePrecipPolarFactor: "climate.precipPolarFactor",
 
   /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
   /** Thermal — how strongly a wet body loses heat faster: at full

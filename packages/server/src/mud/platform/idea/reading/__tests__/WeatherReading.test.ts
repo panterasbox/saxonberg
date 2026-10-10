@@ -184,6 +184,14 @@ describe('WeatherReading', () => {
     const room = skyRoom();
     room.setAddress('narnia/castle');
     WeatherApi._forceTypeForTesting('storm');
+    // A summer afternoon: what falls is the temperature's call since the
+    // climate build, and the pinned clock's day-0 midnight snows.
+    // (The seam anchors at `setScale`, so the provider reads 0 then and
+    // the instant after — game-seconds == the provider's value.)
+    let t = 0;
+    WorldClockApi._setNowProviderForTesting(() => t);
+    WorldClockApi.setScale(1000);
+    t = 100 * 86_400 + 15 * 3600;
 
     const { body } = await runVerb(room);
     expect(body).toContain('provenance: modelled');

@@ -292,6 +292,16 @@ export interface WeatherSegment {
   startsAtS: number;
   /** Game-seconds of it that lie inside the requested window. */
   overlapS: number;
+  /**
+   * ⭐ **What actually fell**, which is not always what the grammar called
+   * the segment. With a climate site in hand the phase is decided by the
+   * TEMPERATURE at the segment's midpoint (at or below
+   * `climate.snowThresholdK` it is snow, whatever the type word says), so
+   * one storm snows on the peak and rains in the valley, and it cannot
+   * snow at 290 K. With no site it is the type's descriptor, as it was.
+   * `'none'` for a type that does not precipitate.
+   */
+  phase: 'none' | 'rain' | 'snow';
 }
 
 export interface PrecipitationIntegral {

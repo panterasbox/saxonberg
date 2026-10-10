@@ -33,3 +33,21 @@ settings:
   # damping that keeps a coast's winter mild. Scaled by 1 − continentality.
   - key: climate.maritimeMixing
     value: "0.6"
+
+  # Precipitation PHASE: at or below this air temperature (K) it falls as
+  # snow, whatever the weather type is called — a degree and a half above
+  # freezing, because wet snow falls through air a little above 0 °C. One
+  # storm snows on the peak and rains in the valley.
+  - key: climate.snowThresholdK
+    value: "274.5"
+
+  # Precipitation AMOUNT, unauthored: a Locality that says nothing gets 1
+  # up to this latitude…
+  - key: climate.precipDryAboveDeg
+    value: "55"
+
+  # …falling to this factor at 80° and beyond (polar air holds little
+  # water — the high Arctic is a desert). A Locality's own
+  # `_precipitationIntensity` overrides it.
+  - key: climate.precipPolarFactor
+    value: "0.4"

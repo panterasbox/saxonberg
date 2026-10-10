@@ -442,20 +442,29 @@ function integratePrecipitation(
   t0S: number,
   t1S: number,
   locality: Locality | null,
+  site: ClimateSite | null = null,
 ): PrecipitationIntegral {
   let liquidMm = 0;
   let frozenMm = 0;
-  const coveredS = walkSegments(t0S, t1S, locality, (seg) => {
-    const rate = precipitationRateOf(seg.type);
-    if (rate <= 0) return;
-    const mm = rate * (seg.overlapS / 3600);
-    // Where it goes is the DESCRIPTOR's call: `snow` banks, everything
-    // else runs off. The temperature gate lives in the weather grammar
-    // (snow is zeroed in summer, heavy in winter), so the integral does
-    // not need a second, disagreeing one.
-    if (WEATHER_PROFILES[seg.type].precipitation === 'snow') frozenMm += mm;
-    else liquidMm += mm;
-  });
+  const intensity = precipitationIntensityOf(locality, site);
+  const coveredS = walkSegments(
+    t0S,
+    t1S,
+    locality,
+    (seg) => {
+      const rate = precipitationRateOf(seg.type);
+      if (rate <= 0) return;
+      const mm = rate * intensity * (seg.overlapS / 3600);
+      // ⭐ Where it goes is the PHASE's call: snow banks, rain runs off.
+      // With a site the phase is the temperature's (a `snow` segment over
+      // a 290 K valley rains); with none it is the type's descriptor, as
+      // it always was, so a caller that names no place is byte-identical.
+      if (seg.phase === 'snow') frozenMm += mm;
+      else liquidMm += mm;
+    },
+    WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS,
+    site,
+  );
   return {
     liquid: Quantity.of(liquidMm, 'mm'),
     frozen: Quantity.of(frozenMm, 'mm'),
@@ -512,20 +521,72 @@ function walkSegments(
   const seed = localitySeed(locality);
   const lean = leanOf(locality);
   const south = isSouthern(site);
+  const dials = site !== null ? climateDials() : null;
+  const snowK =
+    site !== null ? dial(AppSettingKeys.climateSnowThresholdK, 274.5) : 0;
 
   for (let seg = firstSeg; seg <= lastSeg; seg++) {
     const segStart = seg * L;
     const overlapS = Math.min(t1S, segStart + L) - Math.max(from, segStart);
     if (overlapS <= 0) continue;
+    const type = pin !== null ? pin.type : typeForSegment(seg, seed, lean, south);
     visit({
       segmentIndex: seg,
-      type: pin !== null ? pin.type : typeForSegment(seg, seed, lean, south),
+      type,
       season: seasonAtSegment(seg, south),
       startsAtS: segStart,
       overlapS,
+      // The phase at the segment's MIDPOINT — a property of the segment,
+      // so the same segment reads the same phase from any window.
+      phase:
+        site !== null && dials !== null
+          ? phaseAt(type, site, segStart + L / 2, dials, snowK)
+          : WEATHER_PROFILES[type].precipitation,
     });
   }
   return t1S - from;
+}
+
+/**
+ * ⭐ **Rain or snow, by temperature.** A type that precipitates falls as
+ * snow when the air at the site — the climate plus the type's own
+ * deviation — is at or below `climate.snowThresholdK`, else as rain. The
+ * grammar's type word (`snow` vs `rain`) still shapes the sky, the cloud
+ * form and the deviation; it no longer decides what reaches the ground.
+ */
+function phaseAt(
+  type: WeatherType,
+  site: ClimateSite,
+  atS: number,
+  d: ClimateDials,
+  snowK: number,
+): 'none' | 'rain' | 'snow' {
+  if (WEATHER_PROFILES[type].precipitation === 'none') return 'none';
+  const k = climateK(site, atS, d) + WEATHER_PROFILES[type].deviation.temperature.rawValue();
+  return k <= snowK ? 'snow' : 'rain';
+}
+
+/**
+ * ⭐ **How hard it rains here** — the Locality's authored multiplier, else
+ * the light latitude default: 1 up to `climate.precipDryAboveDeg` (55°),
+ * falling linearly to `climate.precipPolarFactor` (0.4) at 80°, because
+ * polar air holds little water. Grain, not law: an author's number wins.
+ * With neither a Locality figure nor a site it is 1, which is every
+ * caller before the climate build.
+ */
+function precipitationIntensityOf(
+  locality: Locality | null,
+  site: ClimateSite | null,
+): number {
+  const authored = locality?.getPrecipitationIntensity() ?? null;
+  if (authored !== null) return authored;
+  if (site === null) return 1;
+  const lat = Math.abs(site.latitudeDeg);
+  const dryAbove = dial(AppSettingKeys.climatePrecipDryAboveDeg, 55);
+  const polar = dial(AppSettingKeys.climatePrecipPolarFactor, 0.4);
+  if (lat <= dryAbove) return 1;
+  const f = Math.min(1, (lat - dryAbove) / Math.max(1e-6, 80 - dryAbove));
+  return 1 + (polar - 1) * f;
 }
 
 /**
@@ -643,7 +704,9 @@ function computeResolved(
     return {
       sample,
       provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
-      precipitationHere: sample.precipitation,
+      precipitationHere: skyExposed
+        ? phaseHere(sample, site, nowS)
+        : sample.precipitation,
       cloudForm: cloudFormFor(sample.type, []),
     };
   }
@@ -663,9 +726,26 @@ function computeResolved(
   return {
     sample,
     provenance: leaned ? 'climate-leaned' : 'procgen',
-    precipitationHere: sample.precipitation,
+    precipitationHere: phaseHere(sample, site, nowS),
     cloudForm: cloudFormFor(sample.type, []),
   };
+}
+
+/**
+ * What is falling here NOW, under the sky: the sample's descriptor
+ * re-decided by the temperature at the site (the air the sample's own
+ * deviation sits on), so `analyze weather`, the puddle and the wetness
+ * push all agree with the integral. An indoor pin (the weeping chamber's
+ * rain) keeps its descriptor — it does not fall from this sky.
+ */
+function phaseHere(
+  sample: WeatherSample,
+  site: ClimateSite | null,
+  nowS: number,
+): 'none' | 'rain' | 'snow' {
+  if (sample.precipitation === 'none' || site === null) return sample.precipitation;
+  const k = climateK(site, nowS, climateDials()) + sample.deviation.temperature.rawValue();
+  return k <= dial(AppSettingKeys.climateSnowThresholdK, 274.5) ? 'snow' : 'rain';
 }
 
 /**
@@ -1420,8 +1500,9 @@ export class WeatherLogic extends ApiLogic {
     t0: Quantity<'s'>,
     t1: Quantity<'s'>,
     locality: Locality | null,
+    site?: ClimateSite | null,
   ): PrecipitationIntegral {
-    return integratePrecipitation(t0.rawValue(), t1.rawValue(), locality);
+    return integratePrecipitation(t0.rawValue(), t1.rawValue(), locality, site ?? null);
   }
 
   /** See {@link WeatherApi.segmentsBetween}. */
@@ -1431,6 +1512,7 @@ export class WeatherLogic extends ApiLogic {
     t1: Quantity<'s'>,
     locality: Locality | null,
     maxSegments?: number,
+    site?: ClimateSite | null,
   ): WeatherSegment[] {
     const out: WeatherSegment[] = [];
     walkSegments(
@@ -1439,6 +1521,7 @@ export class WeatherLogic extends ApiLogic {
       locality,
       (seg) => out.push(seg),
       maxSegments,
+      site ?? null,
     );
     return out;
   }
