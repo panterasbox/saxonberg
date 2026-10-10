@@ -18,16 +18,14 @@
  * water, the lane compile drops the edge, and a `Journey` mid-route
  * aborts `route-blocked` at the leg boundary.
  *
- * Two things refresh it, and between them nobody ever reads a stale
- * ford:
- *
- *   - **`applyTraversal`**, which `Mobile.traverse` awaits before
- *     anything else — so a person walking up to the water always gets
- *     today's answer. It never *handles* the traversal; it refreshes and
- *     falls through, letting the ordinary `blocked` gate do the refusing.
- *   - **`refreshCrossing()`**, which the `LaneCatalogue`'s induced walk
- *     calls by SHAPE on any exit that has one — so a compiled road is
- *     as current as the river.
+ * **`applyTraversal`** refreshes it, and `Mobile.traverse` awaits that
+ * before anything else — so a person walking up to the water always
+ * gets today's answer. It never *handles* the traversal; it refreshes
+ * and falls through, letting the ordinary `blocked` gate do the
+ * refusing. ⚠ The `LaneCatalogue` no longer calls `refreshCrossing` by
+ * shape (`LaneCatalogue.ts` records why): a compiled road finds the
+ * closure at the leg, by this same `applyTraversal`. `SnowboundExit` and
+ * `IceCrossingExit` (the climate build) are this class's two siblings.
  *
  * ## ⚠ It reads the water pack by SHAPE, never by import
  *

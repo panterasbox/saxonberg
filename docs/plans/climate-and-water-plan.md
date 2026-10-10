@@ -1713,6 +1713,16 @@ adds (`conditional: true`); a stub mover at a shut pass gets
 `controller-rejected` with the snow prose and does not move.
 **Commit.** `build(climate W8): a route can close under snow and open over ice — the ford's seam, twice`
 
+> ✅ **Done.** `SnowboundExit` (`_closesAboveM`, default 0.5; reads the
+> SOURCE room's floor by shape after awaiting its site + locality walks;
+> per-segment memo) and `IceCrossingExit` (`_crossesReach`,
+> `_bearsMarginKg`; reads `iceAt` by shape; per-MOVER, so it is not
+> segment-memoised — a sheet that bears a person refuses a horse;
+> refusals: open · running · thin · rotten · no-water). Both
+> `applyTraversal` → refresh → `false`, `private static` resolvers only.
+> FordExit's stale LaneCatalogue header corrected. 11 tests. Kind rows
+> land with the places (W10).
+
 ### W9 — The maple opens on a freeze-thaw
 
 **Goal.** `TapWindowSpec` has a `freeze-thaw` kind and the maple uses it.
