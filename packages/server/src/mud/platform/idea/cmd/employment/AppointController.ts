@@ -91,7 +91,8 @@ export default class AppointController extends CommandController<AppointModel> {
     const organization =
       asked.length === 0
         ? await this.houseIRun(context)
-        : StuffApi.findByTemplatePath(asked);
+        : StuffApi.findByTemplatePath(asked) ??
+          (await EmploymentApi.ensureOrganization(asked));
     if (!organization || !MixinApi.isOrganization(organization)) {
       return this.fail(
         context,

@@ -53,7 +53,8 @@ const preload: NonNullable<FieldValidator<boolean>['preload']> = async (
   //
   // ⚠ Fail-closed is untouched for every NAMED organization below.
   if (path.length === 0) return true;
-  const organization = StuffApi.findByTemplatePath(path);
+  const organization =
+    StuffApi.findByTemplatePath(path) ?? (await EmploymentApi.ensureOrganization(path));
   if (!organization || !MixinApi.isOrganization(organization)) return false;
   return EmploymentApi.holdsAuthority(
     context.commandGiver,

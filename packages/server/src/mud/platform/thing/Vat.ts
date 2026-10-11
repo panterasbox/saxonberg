@@ -35,7 +35,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
-import { AssembledMixin } from '../../lib/craft/Assembled';
+import { AssembledMixin, type JointState } from '../../lib/craft/Assembled';
 
 // Merge of two independent changes: master wrapped the vat in
 // `VesselKindMixin`; this branch renamed `FermentingMixin` to
@@ -119,7 +119,30 @@ export default class Vat extends VatBase {
    * `cask.dryOutDays` empty, every joint slackens once — by its row's
    * looseness, so a slack barrel's hoops go further than a tight cask's.
    */
+  /** Re-entry guard: `reconcileDrying` reads the joints it may slacken. */
+  private drying = false;
+
+  /**
+   * ⚠ The joints are read by `look` (the slack line) before anything asks
+   * the closure, so the drying reconciles here too — a cask left empty
+   * read "tight-hooped" until something tried to fill it (the drive).
+   */
+  public override getJoints(): JointState[] {
+    if (!this.drying) this.reconcileDrying();
+    return super.getJoints();
+  }
+
   public reconcileDrying(): void {
+    if (this.drying) return;
+    this.drying = true;
+    try {
+      this.reconcileDryingOnce();
+    } finally {
+      this.drying = false;
+    }
+  }
+
+  private reconcileDryingOnce(): void {
     if (!this.isAssembly() || this.getJoints().length === 0) return;
     const now = WorldClockApi.getNow().rawValue();
     if (!this.isBulkEmpty('interior')) {

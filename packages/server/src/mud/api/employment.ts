@@ -223,6 +223,17 @@ export class EmploymentApi {
     return logic().ensureOperatorAt(locationPath);
   }
 
+  /**
+   * ⭐ The organization at `path` — standing an authored Business up
+   * **lazily** if it is not live yet, as {@link ensureOperatorAt} does by
+   * location. A business that nothing had woken (the city registry, until
+   * somebody buys there) could not be appointed into by naming it — the
+   * assembly drive's gauger. Null when no authored Business has that path.
+   */
+  public static async ensureOrganization(path: string): Promise<Stuff | null> {
+    return logic().ensureOrganization(path);
+  }
+
   /** The Business `subject` proprietors, or null. */
   public static businessOfProprietor(subject: Stuff): BusinessStuff | null {
     return logic().businessOfProprietor(subject);

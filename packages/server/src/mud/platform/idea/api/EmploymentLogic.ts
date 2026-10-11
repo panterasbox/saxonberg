@@ -1555,6 +1555,25 @@ export class EmploymentLogic extends ApiLogic {
     }
   }
 
+  /** See {@link EmploymentApi.ensureOrganization}. */
+  @CallSecurity(EmploymentApiCallers)
+  public async ensureOrganization(path: string): Promise<Stuff | null> {
+    const live = StuffApi.findByTemplatePath(path);
+    if (live) return live;
+    // Fails closed: no store, no row, no organization.
+    let inst: Stuff;
+    try {
+      const idx = await this.buildOperatorIndex();
+      if (![...idx.values()].includes(path)) return null;
+      inst = await StuffApi.singletonOrClone<Stuff>(path);
+    } catch {
+      return null;
+    }
+    this.invalidateBusinessCache();
+    if (MixinApi.isBusiness(inst)) this.runTick();
+    return inst;
+  }
+
   /** See {@link EmploymentApi.findOrganization}. */
   @CallSecurity(EmploymentApiCallers)
   public findOrganization(asked: string): Stuff | null {
