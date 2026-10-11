@@ -2,11 +2,31 @@
 
 > **Status: UNBUILT** — raised in the climate build's review (2026-10-11),
 > handed to the maritime build (`maritime-space`, build-1) to do in its MR.
-> **Left:** the citation on the room · the faces · the room's own prose
-> carrying the water read · the verbs and brains that bind a `Shore` ·
+> **Left:** the citation on the room · the faces · the cited water as a
+> target (`look kestrel`) · the verbs and brains that bind a `Shore` ·
 > `Gunwale` as a deck's derived citation · the five shipped rows · the
 > `Shore` class's retirement
 > **Size:** a wave
+
+## ⚠ Two rulings since this slate was written (maritime's review)
+
+The maritime build (`maritime-space`) took this slate, sequenced after
+MR !360 merges and after its own revision 2. Two of the proposals below
+are **overruled** by the user in maritime's review, and the build follows
+the rulings, not this text:
+
+1. **No room-level contribution hook — the engine never appends to a
+   room's prose.** The water read is reached by LOOKING AT the cited
+   water by name (`look kestrel`), so the binder resolves a cited water
+   as a target. Proposal 2 and the "who renders the read" question below
+   are superseded; proposal 3 (the binder) carries the whole read.
+2. **The vantage needs nothing here.** Maritime revision 1 already made
+   the vantage a zone with its own `elevation` plus `horizon`. Proposal 6
+   is answered.
+
+The `fishing.md` defect (*"a prop contributes nothing to its room's
+prose"*) therefore does not close by the room's `look` — the read is the
+water's own `look`, which the cited water carries wherever it is named.
 
 ## The question
 
@@ -79,9 +99,8 @@ moor's `heath-mere` (`holloway:head`), and the climate build's `blackmere`,
 1. **A room cites the water it is beside**, as a list (a confluence bank
    is beside two): each entry a reach plus its faces — `shore` (act on),
    `dive` (enter), `launch` (put a craft on). Authored on the room's row.
-2. **The room's `look` carries the water read** for each cited reach, at
-   the viewer's band, with the ice line — the reads the Shore makes today,
-   in the room's own prose.
+2. ~~**The room's `look` carries the water read**~~ — ⛔ overruled (see
+   the rulings above): the read is `look <the water>`, by name.
 3. **Verbs bind the water by name or by default.** `fish` with no water
    named fishes the room's single cited reach (else the Locality's — the
    existing fallback); with two, the water's name picks one (`fish
@@ -95,8 +114,8 @@ moor's `heath-mere` (`holloway:head`), and the climate build's `blackmere`,
 5. **A deck derives its citation** from where the craft is (today's
    `Gunwale` cell, `"<expanse>@<lat>,<lon>"`), so `fish` from a deck still
    needs no fishing-pack change.
-6. **The vantage** (§ 3's headland) is the same citation family — the plan
-   should say whether it rides this field or a sibling.
+6. ~~**The vantage**~~ — answered by maritime revision 1 (a zone with
+   its own `elevation` plus `horizon`).
 
 ## Engineering questions the plan must answer (not decided here)
 
@@ -109,10 +128,8 @@ moor's `heath-mere` (`holloway:head`), and the climate build's `blackmere`,
   citation + a seam the water pack implements is the likely shape —
   *not* a water-pack Location subclass, because a waterside room is also a
   shop, a wharf, a cottage, and a room picks one class.
-- **Who renders the read** without the kernel knowing water: an augmenter
-  the water pack contributes to rooms that cite a reach (the room-level
-  contribution hook navigable-water asked for — this may be its first
-  real implementation).
+- ~~**Who renders the read**~~ — ⛔ no room-level hook (ruling 1). The
+  read rides the cited water as a `look` target.
 - **The memo's lifecycle** (refresh at create + per weather segment) moves
   from a Thing's `onCreate` to the room or the seam.
 - **No migrations** — the five rows are rewritten, the dev DB dropped.
