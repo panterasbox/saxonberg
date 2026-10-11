@@ -454,7 +454,7 @@ describe('dispatching the smelt', () => {
     mould.reconcilePhase();
     for (let i = 0; i < 4; i++) await new Promise<void>((r) => setTimeout(r, 0));
 
-    const inMould = mould.getContents() as Stuff[];
+    const inMould = [...mould.getContents()] as Stuff[];
     expect(inMould).toHaveLength(1);
     const ingot = inMould[0] as Massed;
     expect(ingot.getTemplatePath()).toBe(MOULD_INGOT_ROW);

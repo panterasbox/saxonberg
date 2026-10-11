@@ -1932,4 +1932,62 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+*(appended at build time)* — `packages/wire/tests/dairy.dirty.wire.test.ts`,
+run attached to an owned world on `WIRE_PORT=2013` (`AUTH_MODE=test`,
+`SAXONBERG_TEST_WORLD=1`) after a `reset:db`.
+
+### What driving found (runs 1–3), and what was done
+
+Every one of these passed the unit suite; the drive was the first thing to
+USE them.
+
+1. ⭐⭐ **The `UnboundedReceptacle` row had no interior** — the transient
+   source every take pours through (`Producing.pourTake`, the smelt's run).
+   `slotFor(source)` found no slot, so **every milking into a pail kept
+   nothing**: *"it all goes on the floor"* with a washed pail in hand. The
+   unit tests stubbed the source WITH an interior. Fixed in the row.
+2. ⭐⭐ **A thermometer could not read a vessel.** The `temperature` reading
+   row was `scope: [here]`, and `Reading.resolveSubject` sends a named
+   subject on a here-only channel back to the PLACE — so `measure
+   temperature vat` silently read the creamery's air (the plan's Grounding
+   assumed otherwise). Now `scope: [subject, here]` with `subjectRequires:
+   [ThermalMixin]`, and `BiomeReading.subjectValue` is a hook
+   `TemperatureReading` overrides to read a Thermal thing's own
+   temperature.
+3. `draft <n> from <herd>` never bound — the view's help promised `from`
+   and the arg declared no preposition; a room with TWO books (the byre)
+   is where it showed. Added, and a herd answers to a unique word of its
+   name (`from calves`).
+4. A drafted head's production clock started at its first READ: a cow
+   drafted and left six game hours had nothing in her. The draft now
+   starts it.
+5. The churn was not afforded `churn` (the stir view is conferred by
+   `ManualBuildMixin`); `Churn` confers it itself.
+6. The creamery's lit `Hearth` warmed the room to 301 K (space heating) —
+   too warm for butter. Its fire is an `Oven`-class firebox now (heats
+   what is on it, not the room). ⚠ The envelope still reads the creamery
+   and byre warm on a summer day (≈ 298–302 K against ≈ 285 K outdoors);
+   the drive carries the churn down to the cheese room to churn, which is
+   what a dairy does and teaches the band.
+7. The byre's `cowshed` keyword caught `look cow` (substring match); `get
+   pail` takes EVERY pail, so the byre props one and the creamery none;
+   two-object commands do not parse an ordinal (`milk first cow into first
+   pail` → shape fall-through — an engine finding, recorded).
+8. The goat pen had no vat — a crock feeds on milk rather than setting it —
+   so no goat's cheese was possible; a small cheese vat added.
+9. Sky-lit interiors are dark after about 17:00, so names read
+   *something*; the setting rest is 0.15 game days (cream up by the
+   afternoon) and the drive's waits end at noon.
+10. The boot union refuses ONE template listed by TWO packs (the goat
+    species in both venues) — it failed the boot, not a build-time gate
+    (finding).
+11. Findings recorded, not fixed (not this build's): a drafted head gets
+    EVERY species common name as a keyword, so a bull calf reads *"a cow"*
+    and answers to `cow`; the eval sandbox has no `AccountabilityApi` and
+    no in-world read of a person's meal-harm ledger exists, so the harm
+    checkpoint reads the producer stamp the ledger keys on and the illness
+    (the row write is the shipped `Metabolic.mealblame.test.ts`);
+    `PumpReading.test`'s bracket assertion failed by the CALENDAR (the
+    seed hashes the game day; the printed figures are rounded) — given the
+    rounding slack; a `setSex` throw from the Delight's dogs during a
+    fast-travel route load at boot (their species not yet warm).

@@ -32,6 +32,7 @@ import {
   type ModelData,
 } from '../../../../api/command';
 import type Interactive from '../../Interactive';
+import Receptacle from '../../../thing/Receptacle';
 
 class TestLocation extends Location {}
 
@@ -159,5 +160,25 @@ describe('TemperatureReading', () => {
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('(scorching)');
     expect(frame.body).toMatch(/±/);
+  });
+
+  it('⭐ reads a THING’s own temperature — a thermometer in a vat reads the milk', async () => {
+    // (dairy, found by the drive) The row declared `scope: [here]`, so a
+    // named subject fell back to the room and `measure temperature vat`
+    // silently read the creamery's air.
+    const room = makeStuff(() => new TestLocation());
+    room.setTemperature(Quantity.of(295, 'K'));
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Alice');
+    ContainmentApi.move(avatar, room);
+    const vat = makeStuff(() => new Receptacle());
+    vat.setStampedTemperatureK(340);
+    vat.setLastAmbientK(340);
+    ContainmentApi.move(vat, room);
+
+    const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
+    expect(reading.getScope()).toContain('subject');
+    expect(await reading.truth(vat as unknown as never)).toBeCloseTo(340, 0);
+    expect(await reading.truth(room as unknown as never)).toBe(295);
   });
 });

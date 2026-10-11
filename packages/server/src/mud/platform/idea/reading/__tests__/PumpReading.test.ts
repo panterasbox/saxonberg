@@ -131,8 +131,13 @@ describe('analyze pump', () => {
     expect(m).not.toBeNull();
     const centre = Number(m![1]);
     const half = Number(m![2] ?? 0);
-    expect(centre - half).toBeLessThanOrEqual(10.34);
-    expect(centre + half).toBeGreaterThanOrEqual(10.32);
+    // ⚠ Both figures are printed ROUNDED to the bracket's own decade, so
+    // each edge may sit up to one rounding step off the truth. The seed
+    // includes the game DAY, so without this slack the test passed or
+    // failed by the calendar (found by the dairy build, 2026-10-10).
+    const slack = 0.1;
+    expect(centre - half).toBeLessThanOrEqual(10.34 + slack);
+    expect(centre + half).toBeGreaterThanOrEqual(10.32 - slack);
     expect(body).not.toMatch(/air|atmospher|pressure|vacuum/i);
   });
 
