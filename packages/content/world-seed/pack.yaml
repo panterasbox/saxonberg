@@ -12,3 +12,9 @@ description: >-
   decision, not the tpa mechanism's), and the commons stuff/ tree (the
   Locality and Government reference rows). All of it rides the
   platform's /world and /stuff claims, so this pack declares nothing.
+
+boot:
+  # ⭐ The sea is RESIDENT from boot (maritime R4; `lint:structures`): the
+  # horizon resolves a craft's sea and a height's view over it
+  # synchronously, so a sea nothing stood up reads as no sea at all.
+  - { template: /stuff/idea/WaterExpanse/greywater, role: sync-read, reason: "the Greywater — the horizon reads the sea under a craft synchronously" }

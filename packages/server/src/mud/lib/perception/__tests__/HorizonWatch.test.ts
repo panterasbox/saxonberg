@@ -23,7 +23,7 @@ let views: HorizonView[] = [];
 beforeEach(() => {
   told = [];
   views = [];
-  vi.spyOn(PerceptionApi, 'horizonFor').mockImplementation(async () => views.shift()!);
+  vi.spyOn(PerceptionApi, 'horizonFor').mockImplementation(() => views.shift()!);
   vi.spyOn(MixinApi, 'isSensor').mockReturnValue(true);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};

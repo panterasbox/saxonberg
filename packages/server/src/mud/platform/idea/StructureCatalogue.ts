@@ -8,24 +8,18 @@
  * state to get wrong (`WatercourseCatalogue`'s shape — a roster nothing
  * warms reading empty forever has bitten this codebase three times).
  *
- * It reads ROWS for membership (a prefix test over authored extents), and
- * it STANDS UP every Structure once loaded, because the horizon is read
- * synchronously (the MQL `horizon` seed) and a tower nothing has stood up
- * can never be seen. `structuresIn` answers that warm set (maritime R4).
- *
- * ⭐ Warmed LAZILY, with no `onCreate` — the `LocationGraphRegistry`
- * argument: nothing reads the horizon at boot. Its one reader,
- * `PerceptionApi.horizonFor`, awaits `all()` before it reads, and the MQL
- * seed only ever reads what `horizonFor` left behind. The live Structure (a ship's moving position) is
- * `StuffApi.singleton(path)`.
+ * It reads ROWS, not live instances: membership is a prefix test over
+ * authored extents, and it answers before any member is resident. The
+ * live Structure is `StuffApi.singleton(path)`. (The horizon does not read
+ * this catalogue: it needs the structures synchronously, and they are
+ * booted and never culled, so it reads them resident — maritime R4.)
  */
 
 import { Idea } from '../../lib/stuff/Idea';
 import { Template } from '../../lib/stuff/Template';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
-import { StuffApi } from '../../api/stuff';
-import Structure, { STRUCTURE_CLASS_PATH } from './Structure';
+import { STRUCTURE_CLASS_PATH } from './Structure';
 
 /** What the catalogue knows of one Structure row. */
 export interface StructureRow {
@@ -41,9 +35,6 @@ export default class StructureCatalogue extends Idea {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<StructureRow[]> | null = null;
 
-  /** The Structures stood up from the rows — the warm set. */
-  private standing: Structure[] = [];
-
   /** A process-lifetime singleton; never culled. */
   public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
@@ -53,34 +44,6 @@ export default class StructureCatalogue extends Idea {
   public async all(): Promise<StructureRow[]> {
     if (this.loading === null) this.loading = this.load();
     return this.loading;
-  }
-
-  /**
-   * ⭐ The Structures standing in the zone at `zonePath` — whose `extent`
-   * is that zone or under it. Synchronous over the warm set; empty until
-   * the first `all()` has stood them up.
-   */
-  public structuresIn(zonePath: string): Structure[] {
-    const z = zonePath.replace(/\/+$/, '');
-    return this.standing.filter((s) => {
-      if (s.isDestroyed()) return false;
-      const ext = s.getExtent();
-      return ext !== '' && (ext === z || ext.startsWith(`${z}/`));
-    });
-  }
-
-  /**
-   * The standing Structure a place belongs to (longest extent) —
-   * SYNCHRONOUS over the warm set, `null` before the first `all()`. What
-   * the weather's positional lean reads.
-   */
-  public peekStructureOf(locationPath: string): Structure | null {
-    let best: Structure | null = null;
-    for (const s of this.standing) {
-      if (s.isDestroyed() || !s.hasMember(locationPath)) continue;
-      if (best === null || s.getExtent().length > best.getExtent().length) best = s;
-    }
-    return best;
   }
 
   /** The row at `path`, or `null`. */
@@ -119,16 +82,6 @@ export default class StructureCatalogue extends Idea {
         heightM: typeof d.heightM === 'number' ? d.heightM : 0,
       });
     }
-    const standing: Structure[] = [];
-    for (const row of out) {
-      try {
-        const s = await StuffApi.singleton<Structure>(row.path);
-        if (s instanceof Structure) standing.push(s);
-      } catch (err) {
-        console.warn(`StructureCatalogue: '${row.path}' failed to stand up:`, err);
-      }
-    }
-    this.standing = standing;
     return out;
   }
 }

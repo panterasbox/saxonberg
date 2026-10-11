@@ -112,17 +112,6 @@ export class MqlApi {
   }
 
   /**
-   * Make the synchronous resolver's warm reads current for `query`
-   * resolved over `scopes`: when either names the `horizon` seed, the
-   * giver's horizon is recomputed first (`PerceptionApi.horizonFor`).
-   * Everything else is a no-op. The command binder awaits this before
-   * resolving an object field.
-   */
-  static prepare(query: string, giver: Stuff | null, scopes: readonly string[] = []): Promise<void> {
-    return logic().prepare(query, giver, scopes);
-  }
-
-  /**
    * Does `query` name a whole scope — the bare `horizon` — rather than a
    * thing? A verb asked about a scope surveys it instead of picking from
    * it (`look horizon`).

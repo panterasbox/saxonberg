@@ -117,7 +117,7 @@ export class HorizonWatch implements SustainedEngagement {
     if (this.ended || this.beating || this.actor.isDestroyed()) return;
     this.beating = true;
     try {
-      const view = await PerceptionApi.horizonFor(this.actor);
+      const view = PerceptionApi.horizonFor(this.actor);
       if (this.ended || this.actor.isDestroyed()) return;
       this.report(this.diff(view));
     } catch (err) {

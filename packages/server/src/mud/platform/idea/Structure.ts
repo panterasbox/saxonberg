@@ -55,7 +55,8 @@ import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
-import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
+import type { VetoResult } from '../../lib/errors';
 import { MixinApi } from '../../api/mixin';
 
 /** The position key of the seat that sees further (maritime D13). */
@@ -154,6 +155,17 @@ export default class Structure extends PersistableMixin(
       return this.mastheadHeightM;
     }
     return deck;
+  }
+
+  /**
+   * ⭐ A structure stands: never culled (maritime R4). The horizon reads
+   * the RESIDENT structures synchronously — the MQL `horizon` seed cannot
+   * wait — so a tower that residency put away would silently drop off
+   * every horizon it stands on. Structures are few (a building, a light,
+   * a ship), and each is booted by its pack (`lint:structures`).
+   */
+  public override canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'a structure stands; the horizon reads it resident' };
   }
 
   /** Runtime cache of the member room rows (the extent's descendants). */

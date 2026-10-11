@@ -1325,9 +1325,6 @@ export class CommandLogic extends ApiLogic {
       const tries: string[] = yamlScopes.map((s) =>
         ShellApi.expandVariables(s, giver)
       );
-      // ⭐ A seed the synchronous resolver reads warm (the `horizon`,
-      // maritime R4) is recomputed before a query or a scope names it.
-      await MqlApi.prepare(raw, giver, tries);
 
       const focusMode: 'extend' | 'replace' | 'none' =
         def.updates_focus ?? 'none';

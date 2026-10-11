@@ -6,12 +6,10 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
-import { PerceptionApi } from '../../../api/perception';
 
 /** The scopes a verb SURVEYS when named bare (maritime R5). */
 const SURVEY_SEEDS: ReadonlySet<string> = new Set(['horizon']);
-/** A query that mentions the `horizon` seed anywhere in it. */
-const SURVEY_SEED_TOKEN = /(^|[^a-z0-9_-])horizon($|[^a-z0-9_-])/i;
+
 import type { Container } from '../../../lib/spatial/Container';
 import type {
   MqlContext,
@@ -108,18 +106,6 @@ function consensusVia(
  */
 @Unshadowable
 export class MqlLogic extends ApiLogic {
-  /** See {@link MqlApi.prepare}. */
-  @CallSecurity(MqlApiCallers)
-  public async prepare(
-    query: string,
-    giver: Stuff | null,
-    scopes: readonly string[] = [],
-  ): Promise<void> {
-    if (giver === null) return;
-    if (!SURVEY_SEED_TOKEN.test(query) && !scopes.some((s) => SURVEY_SEED_TOKEN.test(s))) return;
-    await PerceptionApi.horizonFor(giver);
-  }
-
   /** See {@link MqlApi.namesWholeScope}. */
   @CallSecurity(MqlApiCallers)
   public namesWholeScope(query: string): boolean {

@@ -120,7 +120,7 @@ export default class LookController extends CommandController<LookModel> {
    */
   private async lookAtHorizon(context: CommandContext): Promise<void> {
     const viewer = context.commandGiver;
-    const view: HorizonView = await PerceptionApi.horizonFor(viewer);
+    const view: HorizonView = PerceptionApi.horizonFor(viewer);
     const room = context.location;
     const featuredPaths = room instanceof Location ? room.getFeatured() : [];
     const where = (b: number | null, r: number | null): string =>

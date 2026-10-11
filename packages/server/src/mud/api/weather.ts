@@ -232,6 +232,19 @@ export class WeatherApi {
   /* ──────────────── cloud forms (Wave 2, Phase H) ──────────────── */
 
   /**
+   * ⭐ The weather type over `scope` NOW, SYNCHRONOUSLY — for a reader that
+   * cannot wait (how far the horizon reaches through fog). It computes from
+   * the scope's cached Locality (every async weather read of a scope
+   * caches it; the segment-boundary fan-out reads every occupied room), the
+   * positional lean included. `null` when this scope's weather has never
+   * been read: it starts that read and answers "not known" once, never a
+   * guess.
+   */
+  public static peekSkyType(scope: Stuff & Container): WeatherType | null {
+    return logic().peekSkyType(scope);
+  }
+
+  /**
    * A derived sky reading for `look up` / `analyze weather` (Phase H) — the
    * resolved type, its visible cloud form, and whether that form presages a
    * front (a hedged, deterministic forecast tell). Presage-aware only for a

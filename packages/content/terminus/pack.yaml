@@ -108,6 +108,10 @@ boot:
   # is NOT listed: it is a prop on her deck (a singleton row), and booting
   # it too would clone it twice.
   - { template: /world/terminus/hesper/structure, role: producer, reason: "the Hesper — a ship under way advances and re-arms her voyage with nobody aboard" }
+  # ⭐ The horizon reads structures RESIDENT (maritime R4; `lint:structures`):
+  # a tower nothing stands up is missing from every horizon it stands on.
+  - { template: /world/terminus/terminal/structure, role: sync-read, reason: "the terminal clock tower — the horizon reads resident structures synchronously" }
+  - { template: /world/terminus/gannet-rock/structure, role: sync-read, reason: "the light on Gannet Rock — the horizon reads resident structures synchronously" }
   - { template: /world/terminus/hesper/idea/outfit, role: producer, reason: "the Hesper's company — the lookout seat is read off its live roster, and an advertised opening needs a live house" }
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   - { template: /world/terminus/mayfield-row/idea/agency, role: producer, reason: "Mayfield Holdings — the letting agency; lease/unlease ask whether the actor holds its agent position, read off the authored roster" }

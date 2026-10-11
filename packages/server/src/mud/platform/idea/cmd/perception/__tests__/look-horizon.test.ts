@@ -65,7 +65,7 @@ function ctx(): CommandContext {
 }
 
 async function lookHorizon(view: HorizonView): Promise<string[]> {
-  vi.spyOn(PerceptionApi, 'horizonFor').mockResolvedValue(view);
+  vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue(view);
   const bodies: string[] = [];
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};

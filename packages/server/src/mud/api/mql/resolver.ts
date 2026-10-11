@@ -801,14 +801,13 @@ function candidatesForScopePart(
 
 /**
  * ⭐ The `horizon` scope (maritime R4): what the giver can see from where
- * they stand that is NOT in their room — a fixed pool, like `here`. The
- * resolver is synchronous and the horizon is not, so this reads the
- * giver's last computed horizon; `MqlApi.prepare` recomputes it before a
- * query naming the seed is resolved.
+ * they stand that is NOT in their room — a fixed pool, like `here`,
+ * computed synchronously over warm state (`PerceptionApi.horizonFor`).
  */
 function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
   const giver = requireGiver(ctx, "the 'horizon' scope");
-  return candidatesForFlat(PerceptionApi.peekHorizon(giver), giver, ctx.attention);
+  const view = PerceptionApi.horizonFor(giver);
+  return candidatesForFlat(view.things.map((t) => t.stuff), giver, ctx.attention);
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {

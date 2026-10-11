@@ -38,9 +38,15 @@ import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
 import type { HorizonView, HorizonSighting, HorizonTraffic } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
-import { TemplatePaths } from '../../../lib/paths';
-import type StructureCatalogue from '../StructureCatalogue';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
+import type Location from '../../../lib/stuff/Location';
+import type Structure from '../Structure';
+import type { Positioned } from '../../../lib/expanse/Positioned';
+import type { Voyaging } from '../../../lib/expanse/Voyaging';
+import { Expanse, type Contact, type Sighted } from '../../../lib/expanse/Expanse';
+import { BiomeApi } from '../../../api/biome';
+import { WeatherApi } from '../../../api/weather';
+import { Mixins } from '../../../lib/mixin';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
@@ -517,15 +523,16 @@ export class PerceptionLogic extends ApiLogic {
     return hideLevelForImpl(actor, stealthBand);
   }
 
-  /** Each viewer's last horizon (runtime), keyed by stuffId. */
-  private readonly horizons = new Map<string, Stuff[]>();
-
   /** See {@link PerceptionApi.horizonFor}. */
   @CallSecurity(PerceptionApiCallers)
-  public async horizonFor(viewer: Stuff): Promise<HorizonView> {
-    const view = (await horizonAtSea(viewer)) ?? (await horizonAshore(viewer));
-    this.horizons.set(viewer.stuffId, view.things.map((t) => t.stuff));
-    return view;
+  public horizonFor(viewer: Stuff): HorizonView {
+    // ⭐ One registry read (by mixin, gated by name): every resident craft
+    // and structure. Structures are booted and never culled, so a tower is
+    // resident whether or not anybody has walked into it.
+    const voyaging = StuffApi.findByMixin(Mixins.Voyaging).filter(
+      (s): s is Stuff & Positioned & Voyaging => MixinApi.isVoyaging(s) && !s.isDestroyed(),
+    );
+    return horizonAtSea(viewer, voyaging) ?? horizonAshore(viewer, voyaging);
   }
 
   /** See {@link PerceptionApi.glance}. */
@@ -538,11 +545,6 @@ export class PerceptionLogic extends ApiLogic {
     return `${point}, some ${Math.round(rangeNm)} miles off`;
   }
 
-  /** See {@link PerceptionApi.peekHorizon}. */
-  @CallSecurity(PerceptionApiCallers)
-  public peekHorizon(viewer: Stuff): Stuff[] {
-    return (this.horizons.get(viewer.stuffId) ?? []).filter((s) => !s.isDestroyed());
-  }
 
   /** See {@link PerceptionApi.resolveSearch}. */
   @CallSecurity(PerceptionApiCallers)
@@ -1132,104 +1134,148 @@ const SHORE_EYE_M = 2;
 
 const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 
+type Craft = Stuff & Positioned & Voyaging;
+
+/** A resident craft that is a Structure — an Idea; a boat is a Thing. */
+function asStructure(c: Craft): (Craft & Structure) | null {
+  return c.isIdea() ? (c as unknown as Craft & Structure) : null;
+}
+
+/**
+ * The weather's factor on sight from `room`: the cached sky
+ * (`WeatherApi.peekSkyType`, maritime R10). A sky never read yet counts as
+ * clear this once — the read it starts lands for the next look.
+ */
+function seeingFrom(room: Stuff & Container): number {
+  const type = WeatherApi.peekSkyType(room);
+  if (type === null) return 1;
+  return dialNumber(`expanse.visibility.${type}`, VISIBILITY[type] ?? 1);
+}
+
+const VISIBILITY: Record<string, number> = {
+  clear: 1, overcast: 1, rain: 0.6, snow: 0.4, storm: 0.3, fog: 0.1,
+};
+
+/** The resident expanse at `path`, or `null`. */
+function expanseAt(path: string | null): Expanse | null {
+  const e = path ? StuffApi.findByTemplatePath<Stuff>(path) : null;
+  return e instanceof Expanse ? e : null;
+}
+
+/** Contacts as horizon sightings and traffic. */
+function toView(contacts: readonly Contact[], atSea: boolean, seen = new Set<string>()): HorizonView {
+  const things: HorizonSighting[] = [];
+  const traffic: HorizonTraffic[] = [];
+  for (const c of contacts) {
+    if (c.craft) {
+      if (seen.has(c.craft.stuffId)) continue;
+      seen.add(c.craft.stuffId);
+      things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+    } else {
+      traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+    }
+  }
+  return { things, traffic, atSea };
+}
+
+/** Every resident craft on the sea at `seaPath`, a structure with no deck being FIXED. */
+function candidatesOn(seaPath: string, voyaging: readonly Craft[]): Sighted[] {
+  return voyaging
+    .filter((c) => c.getExpanse() === seaPath && c.getExpansePosition() !== null)
+    .map((c) => {
+      const s = asStructure(c);
+      return { craft: c, fixed: s !== null && s.getDeckHeightM() === null };
+    });
+}
+
 /**
  * At sea: the viewer's root is a craft on an expanse, and the range is
  * COMPUTED from two heights — the viewer's eye (a lookout seat is the
  * masthead) and each target's. `null` when the viewer is not afloat.
  */
-async function horizonAtSea(viewer: Stuff): Promise<HorizonView | null> {
-  // ⚠ Deferred, the WeatherLogic way: the MQL pipeline reaches this module
-  // eagerly (its predicates and the `horizon` seed), and the expanse's
-  // catalogue → Structure → Visible chain would close a load-time cycle.
-  const { ExpanseApi } = await import('../../../api/expanse');
+function horizonAtSea(viewer: Stuff, voyaging: readonly Craft[]): HorizonView | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
-  const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
-  if (craft === null || craft.getExpansePosition() === null) return null;
-  const expanse = MixinApi.isVoyaging(craft) ? await craft.liveExpanse() : null;
-  if (expanse === null) return null;
+  const rootPath = root.getTemplatePath() ?? '';
+  const craft = voyaging.find((c) => c.stuffId === root.stuffId) ??
+    voyaging.find((c) => asStructure(c)?.hasMember(rootPath) === true) ?? null;
+  const here = craft?.getExpansePosition() ?? null;
+  const sea = expanseAt(craft?.getExpanse() ?? null);
+  if (craft === null || here === null || sea === null) return null;
   // Below decks there is no horizon: the watch is kept where the sky is.
-  const { BiomeApi } = await import('../../../api/biome');
   const room = roomOf(viewer);
   if (room === null || !BiomeApi.isSkyExposed(room)) return { things: [], traffic: [], atSea: true };
   const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
-  const things: HorizonSighting[] = [];
-  const traffic: HorizonTraffic[] = [];
-  for (const c of await expanse.contactsFrom(craft, viewer, 'visual', hour)) {
-    if (c.craft) things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
-    else traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
-  }
-  return { things, traffic, atSea: true };
+  const contacts = sea.sightingsAmong(
+    here, craft.sightHeightFor(viewer), 'visual', hour,
+    candidatesOn(sea.getTemplatePath() ?? '', voyaging), seeingFrom(room), craft,
+  );
+  return toView(contacts, true);
 }
 
 /**
  * Ashore: the nearest `horizon` declaration names ZONES; a Structure in
  * one is in view when the room is open to the sky and its height — plus
  * the elevation between — clears the distance the zones' size implies.
+ * A named EXPANSE is read like a deck from the nearest landing, at the
+ * zone's elevation (maritime R11: the headland).
  *
  * ⭐ Distance is approximated from the zones' extents in metres (cell size
  * × the grid's span): from inside a named zone, half its span; from
  * another zone, half of each. Crude by design — a grain, tuned by
  * `perception.horizonRatio`, which optics widen later.
  */
-async function horizonAshore(viewer: Stuff): Promise<HorizonView> {
-  // ⚠ Deferred for the same cycle as `horizonAtSea`.
-  const { BiomeApi } = await import('../../../api/biome');
-  const { default: Location } = await import('../../../lib/stuff/Location');
+function horizonAshore(viewer: Stuff, voyaging: readonly Craft[]): HorizonView {
   const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
-  // `instanceof Location` is the shipped narrowing (CombatLogic's extent read).
-  if (!(room instanceof Location) || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
+  if (room === null || !room.isLocation() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
   if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
+  // The branch predicate is the narrowing (no value import of Location —
+  // it closes a load cycle through the MQL pipeline).
+  const place = room as unknown as Location;
   const zone = room.getZone() as SpatialZone | null;
-  const own = room.getHorizon();
-  const named = own ?? (zone ? await zone.lookupField<string[]>('horizon') : null);
+  const named = place.getHorizon() ?? zone?.peekField<string[]>('horizon') ?? null;
   if (!Array.isArray(named) || named.length === 0) return EMPTY_HORIZON;
 
-  const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-  await cat.all();
   const here = room.getTemplatePath() ?? '';
   const ratio = dialNumber('perception.horizonRatio', 20);
   const myExtent = zone?.getExtentM() ?? 0;
-  const myElev = zone ? (await zone.lookupField<number>('elevation')) ?? 0 : 0;
+  const myElev = zone?.peekField<number>('elevation') ?? 0;
+  const structures = voyaging
+    .map(asStructure)
+    .filter((s): s is Craft & Structure => s !== null);
 
-  const things: HorizonSighting[] = [];
-  const traffic: HorizonTraffic[] = [];
+  const view: HorizonView = { things: [], traffic: [], atSea: false };
   const seen = new Set<string>();
-  const { ExpanseApi } = await import('../../../api/expanse');
   for (const zonePath of named) {
-    // ⭐ A height ashore that names a SEA (maritime R11: the headland)
-    // looks out over it from the nearest landing, its eye at the zone's
-    // elevation — curvature binds out there, exactly as aboard.
-    const sea = await ExpanseApi.expanse(zonePath);
+    const sea = expanseAt(zonePath);
     if (sea !== null) {
-      const from = await sea.shorePositionFor(here);
+      const from = sea.peekShorePositionFor(here);
       if (from === null) continue;
       const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
-      const eye = Math.max(0, myElev) + SHORE_EYE_M;
-      for (const c of await sea.sightingsFrom(from, eye, viewer, 'visual', hour)) {
-        if (c.craft) {
-          if (seen.has(c.craft.stuffId)) continue;
-          seen.add(c.craft.stuffId);
-          things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
-        } else {
-          traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
-        }
-      }
+      const contacts = sea.sightingsAmong(
+        from, Math.max(0, myElev) + SHORE_EYE_M, 'visual', hour,
+        candidatesOn(zonePath, voyaging), seeingFrom(room),
+      );
+      const v = toView(contacts, false, seen);
+      view.things.push(...v.things);
+      view.traffic.push(...v.traffic);
       continue;
     }
     const target = StuffApi.findByTemplatePath<SpatialZone>(zonePath);
     const theirExtent = target?.getExtentM() ?? 0;
-    const theirElev = target ? (await target.lookupField<number>('elevation')) ?? 0 : 0;
+    const theirElev = target?.peekField<number>('elevation') ?? 0;
     const within = here === zonePath || here.startsWith(`${zonePath}/`);
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
-    for (const s of cat.structuresIn(zonePath)) {
-      if (seen.has(s.stuffId) || s.hasMember(here)) continue;
+    for (const s of structures) {
+      const ext = s.getExtent();
+      const inZone = ext !== '' && (ext === zonePath || ext.startsWith(`${zonePath}/`));
+      if (!inZone || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;
       seen.add(s.stuffId);
-      things.push({ stuff: s, bearingDeg: null, rangeNm: null });
+      view.things.push({ stuff: s, bearingDeg: null, rangeNm: null });
     }
   }
-  return { things, traffic, atSea: false };
+  return view;
 }
 
 /** The room `who` stands in — through any vessel (a boat) to the Location. */

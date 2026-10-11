@@ -242,9 +242,29 @@ function leanOf(locality: Locality | null): ClimateLean | null {
  * loaded it, a scope leans by its Locality alone (cold → no lean).
  */
 let expanseApi: typeof import('../../../api/expanse').ExpanseApi | null = null;
+/** `BiomeApi`, loaded the same way (WeatherLogic keeps its static graph biome-free). */
+let biomeApi: typeof import('../../../api/biome').BiomeApi | null = null;
 
 async function loadExpanseApi(): Promise<void> {
   if (expanseApi === null) expanseApi = (await import('../../../api/expanse')).ExpanseApi;
+  if (biomeApi === null) biomeApi = (await import('../../../api/biome')).BiomeApi;
+}
+
+/**
+ * ⭐ The covering Locality of every scope an async weather read has
+ * resolved, by stuffId — what makes {@link WeatherLogic.peekSkyType}
+ * synchronous. A room's Locality is its ADDRESS's, which does not move
+ * (a ship's deck keeps its address; the positional lean is what moves,
+ * and that is read live). Every async read below goes through
+ * {@link localityOf}, so a room anybody's weather has been asked about is
+ * cached; the boundary fan-out asks for every occupied room each segment.
+ */
+const localityByScope = new Map<string, Locality | null>();
+
+async function localityOf(scope: Stuff & Container): Promise<Locality | null> {
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  localityByScope.set(scope.stuffId, locality);
+  return locality;
 }
 
 /**
@@ -791,7 +811,7 @@ async function runBoundaryFanout(): Promise<void> {
     }
 
     if (nowS === null) continue;
-    const locality = await AddressApi.resolveLocalityFor(room);
+    const locality = await localityOf(room);
     const resolved = computeResolved(room, locality, nowS, sky);
 
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
@@ -1033,7 +1053,7 @@ async function runStormFanout(): Promise<void> {
     if (visited.has(room.stuffId)) continue;
     visited.add(room.stuffId);
     if (!BiomeApi.isSkyExposed(room)) continue;
-    const locality = await AddressApi.resolveLocalityFor(room);
+    const locality = await localityOf(room);
     const resolved = computeResolved(room, locality, nowS, true);
     if (resolved.sample.type !== 'storm') continue;
     // ⭐ D13: every occupant that answers to a storm is called — an overhead
@@ -1214,13 +1234,28 @@ export class WeatherLogic extends ApiLogic {
         cloudForm: cloudFormFor(sample.type, []),
       };
     }
-    const locality = await AddressApi.resolveLocalityFor(scope);
+    const locality = await localityOf(scope);
     // BiomeApi via dynamic import — keep WeatherLogic's static graph
     // biome-free (the runBoundaryFanout precedent). Module cache makes
     // this ~free after the first call.
     const { BiomeApi } = await import('../../../api/biome');
     const sky = BiomeApi.isSkyExposed(scope);
     return computeResolved(scope, locality, nowS, sky);
+  }
+
+  /** See {@link WeatherApi.peekSkyType}. SYNC over the cached Locality. */
+  @CallSecurity(WeatherApiCallers)
+  public peekSkyType(scope: Stuff & Container): WeatherType | null {
+    const nowS = nowSecondsOrNull();
+    if (nowS === null) return null;
+    if (biomeApi === null || !localityByScope.has(scope.stuffId)) {
+      // Never asked about: resolve it now (cached for the next read) and
+      // say "not known" this once rather than guess.
+      void this.resolveWeatherFor(scope).catch(() => undefined);
+      return null;
+    }
+    const locality = localityByScope.get(scope.stuffId) ?? null;
+    return computeResolved(scope, locality, nowS, biomeApi.isSkyExposed(scope)).sample.type;
   }
 
   /** See {@link WeatherApi.skyReadFor}. Async — resolves locality + forecast. */
@@ -1235,7 +1270,7 @@ export class WeatherLogic extends ApiLogic {
         presageFront: false,
       };
     }
-    const locality = await AddressApi.resolveLocalityFor(scope);
+    const locality = await localityOf(scope);
     return computeSkyRead(resolved, locality, nowS, effectiveLean(scope, locality));
   }
 
@@ -1255,7 +1290,7 @@ export class WeatherLogic extends ApiLogic {
     segments?: number,
   ): Promise<WeatherForecast> {
     await loadExpanseApi();
-    const locality = await AddressApi.resolveLocalityFor(scope);
+    const locality = await localityOf(scope);
     const nowS = WorldClockApi.getNow().rawValue();
     const seed = localitySeed(locality);
     const lean = effectiveLean(scope, locality);
@@ -1278,7 +1313,7 @@ export class WeatherLogic extends ApiLogic {
   @CallSecurity(WeatherApiCallers)
   public async sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
     await loadExpanseApi();
-    const locality = await AddressApi.resolveLocalityFor(scope);
+    const locality = await localityOf(scope);
     return computeSample(WorldClockApi.getNow().rawValue(), locality, effectiveLean(scope, locality));
   }
 

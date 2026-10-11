@@ -11,6 +11,8 @@ import { StuffApi } from '../../../api/stuff';
 import { TemplatePaths } from '../../../lib/paths';
 import type StructureCatalogue from '../StructureCatalogue';
 import type { ClimateLean } from '../../../lib/weather/WeatherType';
+import { Mixins } from '../../../lib/mixin';
+import type Structure from '../Structure';
 
 const ExpanseApiCallers = SecurityPolicies.FromModule('/api/expanse#ExpanseApi');
 
@@ -46,8 +48,12 @@ export class ExpanseLogic extends ApiLogic {
     if (!placePath) return null;
     let craft: Stuff | null = StuffApi.findByTemplatePath<Stuff>(placePath) ?? null;
     if (!craft || !MixinApi.isPositioned(craft) || craft.getExpansePosition() === null) {
-      const cat = StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      craft = cat?.peekStructureOf(placePath) ?? null;
+      // The resident structure this place is a member of (structures are
+      // booted and never culled; an Idea that voyages is a Structure).
+      craft = StuffApi.findByMixin(Mixins.Voyaging).find(
+        (s) => s.isIdea() && !s.isDestroyed() &&
+          (s as unknown as Structure).hasMember(placePath),
+      ) ?? null;
     }
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const pos = craft.getExpansePosition();

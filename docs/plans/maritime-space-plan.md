@@ -1758,6 +1758,32 @@ keyword `horizon` renamed (the seed would shadow it).
   `PerceiverMixin`'s now, which the Avatar composes) and the wiki spoiler
   snapshot gained/lost exactly the revision's fields. Both fixed and
   re-run green.
+- **Review round 1 — the horizon is synchronous (supersedes B-40, B-42).**
+  The user: *"I don't want every MQL caller in the game having to make two
+  calls."* The `MqlApi.prepare` + per-viewer memo meant only the command
+  binder got a current horizon; the other ~42 direct MQL call sites would
+  have read a stale or empty one, silently. Now `PerceptionApi.horizonFor`
+  is SYNC over warm state and `prepare` and the memo are deleted:
+  **B-59** resident craft and structures by ONE `StuffApi.findByMixin
+  (Voyaging)` read (perception's `horizonFor` and expanse's `leanAtSync`
+  admitted by name to the registry-wide allowlist); an Idea that voyages
+  is a Structure (`isIdea()` — a value import of `Structure` or
+  `Location` closes the MQL load cycle; `ExpanseApi`/`BiomeApi`/
+  `WeatherApi` do not, probed). **B-60** Structures never culled
+  (`Structure.canEvict`) and every Structure and expanse row BOOTED by its
+  pack — the new **`lint:structures`** gate refuses one that is not (the
+  terminal, the light and the Greywater gained boot entries; world-seed
+  its first `boot:`). **B-61** `Zone.peekField` — the sync sibling of
+  `lookupField` over resident zones (`peekAncestorField` the override
+  point). **B-62** the cached sky read the user chose: WeatherLogic caches
+  every scope's Locality on each async read, and `WeatherApi.peekSkyType`
+  computes the type from it (the positional lean live); never-read → `null`
+  once (counted clear) and the read starts. **B-63** the Expanse has ONE
+  sync sighting core, `sightingsAmong(here, eye, channel, hour, candidates,
+  seeing, exclude)`, fed by `contactsFrom` (the sea's registry, async) and
+  by the horizon (resident craft); `peekShorePositionFor` reads the
+  compiled nodes (a sea nobody compiled answers `null` once and starts
+  compiling). `StructureCatalogue` is rows-only again.
 
 ## Build log
 

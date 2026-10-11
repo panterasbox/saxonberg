@@ -442,7 +442,12 @@ cloudForm }`.
    synchronously over warm state (`ExpanseApi.leanAtSync`); `ExpanseApi`
    is loaded on the first async weather read (a static import closes a
    cycle), so a sync read before any async one leans by the Locality
-   alone — cold leans nothing. Downstream with no special case: the sky
+   alone — cold leans nothing.
+   ⭐ **`WeatherApi.peekSkyType(scope)`** is the SYNC sky read (the
+   horizon's visibility): every async read caches the scope's Locality
+   (a room's Locality is its address's, which does not move), and the
+   peek computes the type from it, the positional lean included. A scope
+   never read answers `null` once and starts the read. Downstream with no special case: the sky
    read, the voyage's crossing report, and visual range at sea.
 3. **Biome baseline** — an indoor / no-sky scope with no pin reads the
    static biome baseline (a `clear` sample, provenance `biome`) — weather

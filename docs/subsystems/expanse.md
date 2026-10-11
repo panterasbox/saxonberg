@@ -200,18 +200,28 @@ horizon`, `HorizonWatch` — an engagement on the watcher's attention that
 says only what came into or dropped out of view). Push comes only from
 emitters that announce themselves (a bell, a gun, a signal).
 
-- **What is in view** is `PerceptionApi.horizonFor(viewer)` (the MQL
-  `horizon` seed reads it; `MqlApi.prepare` refreshes it before a query or
-  a scope names the seed). Afloat: the expanse's contacts from the
-  viewer's own eye (`Structure.sightHeightFor` — the lookout seat is the
+- **What is in view** is `PerceptionApi.horizonFor(viewer)`, and it is
+  ⭐⭐ **SYNCHRONOUS** — it is the MQL `horizon` seed's pool and the
+  resolver cannot wait, so every MQL caller gets the truth with one call.
+  It reads only warm state: the RESIDENT craft and structures (one
+  `StuffApi.findByMixin(Voyaging)` read, admitted by name in the
+  registry-wide allowlist; Structures are booted and never culled —
+  `Structure.canEvict`, `lint:structures`), the resident zones' fields
+  (`Zone.peekField`, the sync sibling of `lookupField`), the compiled sea,
+  and the cached sky (`WeatherApi.peekSkyType`). A sky nobody has read yet
+  counts as clear once and starts its read; a sea nobody has compiled
+  shows a height ashore nothing once and starts compiling. Afloat: the
+  resident craft on her sea from the viewer's own eye (`Structure.sightHeightFor` — the lookout seat is the
   masthead), nothing below decks. Ashore: the nearest `horizon`
   declaration (a room's, then the zone walk) names ZONES; a Structure in
   one is in view from a sky-exposed room when `(heightM + |Δelevation|) ×
   perception.horizonRatio ≥` the distance the zones' spans imply
   (`CartesianZone.getExtentM`). A zone naming an EXPANSE is read like a
-  deck: from the nearest landing (`Expanse.shorePositionFor`) at the
-  zone's elevation (`Expanse.sightingsFrom`) — the headland raises the
-  light, the strand below it does not.
+  deck: from the nearest landing (`Expanse.peekShorePositionFor`) at the
+  zone's elevation, through the one sync sighting core
+  (`Expanse.sightingsAmong`, which `contactsFrom` also uses over the sea's
+  own registry) — the headland raises the light, the strand below it does
+  not.
 - **A Structure is Visible** (+ Detailed + Perceptible — `Species`'s and
   `Material`'s precedent): described once, the ordinary way; its inside is
   its member rooms. `landmark: true` FEATURES it in the summary; a room's

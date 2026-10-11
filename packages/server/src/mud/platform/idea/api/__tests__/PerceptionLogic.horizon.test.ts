@@ -4,24 +4,28 @@ import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import Thing from '../../../thing/Thing';
 import Structure from '../../Structure';
-import StructureCatalogue from '../../StructureCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../api/stuff';
 import { BiomeApi } from '../../../../api/biome';
-import { ZoneApi } from '../../../../api/zone';
-import { ExpanseApi } from '../../../../api/expanse';
+import { WeatherApi } from '../../../../api/weather';
+import ExpanseNode from '../../ExpanseNode';
+import { Expanse } from '../../../../lib/expanse/Expanse';
+import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
 import { MqlApi } from '../../../../api/mql';
 import { PerceptionApi } from '../../../../api/perception';
 import { ContainmentApi } from '../../../../api/containment';
-import { TemplatePaths } from '../../../../lib/paths';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /**
- * The horizon (maritime R4): ashore, zones name zones and the rest is
- * derived — open sky, a structure's height against the zones' size in
- * metres; afloat, the expanse's contacts. The MQL seed reads the result.
+ * The horizon (maritime R4), SYNCHRONOUS over resident state: ashore,
+ * zones name zones and the rest is derived — open sky, a structure's
+ * height against the zones' size in metres; afloat (or from a height
+ * naming a sea), the resident craft from the viewer's eye, through the
+ * cached sky. The MQL seed reads it directly — nothing to call first.
  */
+
+class TestExpanse extends Expanse {}
 
 let sky = true;
 const live = new Map<string, Stuff>();
@@ -61,19 +65,12 @@ beforeEach(() => {
   live.clear();
   sky = true;
   vi.spyOn(BiomeApi, 'isSkyExposed').mockImplementation(() => sky);
-  vi.spyOn(ZoneApi, 'getEnclosingZone').mockResolvedValue(null);
-  vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(null);
+  vi.spyOn(WeatherApi, 'peekSkyType').mockReturnValue('clear');
   // A 30 m avenue and a 30 m town: from the avenue the town is ~30 m off.
   avenue = zoneAt('/t/avenue', [[0, 0], [9, 0]]);
   zoneAt('/t/town', [[0, 0], [9, 0]]);
   structureAt('/t/town/tower', '/t/town/keep', 25, ['tower', 'clock']);
   structureAt('/t/town/shed', '/t/town/room-1', 1, ['shed']);
-  const cat = makeStuffAtPath(() => new StructureCatalogue(), TemplatePaths.structureCatalogue);
-  live.set(TemplatePaths.structureCatalogue, cat);
-  vi.spyOn(Template, 'findByClass').mockResolvedValue([
-    { path: '/t/town/tower', data: { extent: '/t/town/keep', landmark: true } },
-    { path: '/t/town/shed', data: { extent: '/t/town/room-1' } },
-  ] as unknown as Template[]);
   vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {
     const s = live.get(p);
     if (!s) throw new Error(`no fixture ${p}`);
@@ -90,7 +87,7 @@ const names = (v: { things: { stuff: Stuff }[] }): string[] =>
 describe('the horizon ashore', () => {
   it('⭐ a named zone\'s structure is in view when its height clears the distance; a low one is not', async () => {
     const v = viewerIn('/t/avenue/room-0');
-    const view = await PerceptionApi.horizonFor(v);
+    const view = PerceptionApi.horizonFor(v);
     expect(view.atSea).toBe(false);
     // 25 m × 20 clears 30 m; a 1 m shed × 20 = 20 m does not.
     expect(names(view)).toEqual(['/t/town/tower']);
@@ -98,25 +95,25 @@ describe('the horizon ashore', () => {
 
   it('an interior (no sky) sees nothing beyond its walls', async () => {
     sky = false;
-    const view = await PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0'));
+    const view = PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0'));
     expect(view.things).toEqual([]);
   });
 
   it('an authored [] is an answer — the room overrides its zone', async () => {
     const room = live.get('/t/avenue/room-1') as CartesianLocation;
     room.setHorizon([]);
-    expect((await PerceptionApi.horizonFor(viewerIn('/t/avenue/room-1'))).things).toEqual([]);
-    expect(names(await PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0')))).toEqual(['/t/town/tower']);
+    expect((PerceptionApi.horizonFor(viewerIn('/t/avenue/room-1'))).things).toEqual([]);
+    expect(names(PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0')))).toEqual(['/t/town/tower']);
   });
 
   it('nothing named, nothing scanned', async () => {
     avenue.setHorizon(null);
-    expect((await PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0'))).things).toEqual([]);
+    expect((PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0'))).things).toEqual([]);
   });
 
   it('⛔ you never see the structure you are standing in', async () => {
     (live.get('/t/town') as CartesianZone).setHorizon(['/t/town']);
-    const view = await PerceptionApi.horizonFor(viewerIn('/t/town/room-1'));
+    const view = PerceptionApi.horizonFor(viewerIn('/t/town/room-1'));
     // Inside the shed's extent: the tower (half the town off) only — the
     // shed, low as it is, would clear 15 m from anywhere else in town.
     expect(names(view)).toEqual(['/t/town/tower']);
@@ -124,7 +121,6 @@ describe('the horizon ashore', () => {
 
   it('⭐ the MQL seed reads it — `horizon` and `horizon:tower` — and a bare `horizon` names a whole scope', async () => {
     const v = viewerIn('/t/avenue/room-0');
-    await MqlApi.prepare('horizon:tower', v);
     const all = MqlApi.resolveMany('horizon', { commandGiver: v as never, scope: '' });
     expect(all.stuff.map((s) => s.getTemplatePath())).toEqual(['/t/town/tower']);
     const one = MqlApi.resolveOne('horizon:clock', { commandGiver: v as never, scope: '' });
@@ -134,44 +130,78 @@ describe('the horizon ashore', () => {
   });
 });
 
+/** A sea at `/t/sea` with one landing node, compiled. */
+async function seaWithLanding(dest: string): Promise<TestExpanse> {
+  const sea = makeStuffAtPath(() => new TestExpanse(), '/t/sea');
+  sea.setTrafficDefault(0);
+  live.set('/t/sea', sea);
+  const node = makeStuffAtPath(() => new ExpanseNode(), '/t/sea/landing');
+  node.setKind('place');
+  node.setDestination(dest);
+  node.setExpansePosition({ latDeg: 42, lonDeg: -8.4 });
+  live.set('/t/sea/landing', node);
+  vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+    { path: '/t/sea/landing', data: {} },
+  ] as unknown as Template[]);
+  vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([]);
+  await sea.nodes();
+  return sea;
+}
+
+/** A positioned structure on `/t/sea`. */
+function afloat(path: string, extent: string, heightM: number, at: GeoPosition, deck: number | null): Structure {
+  const s = structureAt(path, extent, heightM, [path.split('/').pop()!]);
+  s.setExpanse('/t/sea');
+  s.setExpansePosition(at);
+  s.setDeckHeightM(deck);
+  return s;
+}
+
 describe('a height ashore that names a sea (R11)', () => {
-  it('⭐ looks out over it from the nearest landing, its eye at the zone\'s elevation', async () => {
+  it('⭐ looks out over it from the nearest landing — the height decides what it raises', async () => {
+    await seaWithLanding('/t/head/room-0');
     const head = zoneAt('/t/head', [[0, 0]], 20);
-    head.setElevation(40);
     head.setHorizon(['/t/sea']);
-    const light = structureAt('/t/rock/structure', '/t/rock', 30, ['light']);
-    const sightingsFrom = vi.fn().mockResolvedValue([
-      { craft: light, name: 'the light', bearingDeg: 50, rangeNm: 18, channel: 'visual', fixed: true },
-    ]);
-    const shorePositionFor = vi.fn().mockResolvedValue({ latDeg: 42, lonDeg: -8.4 });
-    vi.spyOn(ExpanseApi, 'expanse').mockImplementation(async (p: string) =>
-      (p === '/t/sea' ? { shorePositionFor, sightingsFrom } : null) as never,
-    );
-    const view = await PerceptionApi.horizonFor(viewerIn('/t/head/room-0'));
+    // 18 nm out: a 30 m light needs an eye of ~9 m to raise it.
+    afloat('/t/rock/structure', '/t/rock', 30, new GeoPosition(42, -8.4).destination(45, 18), null);
+    head.setElevation(2);
+    expect(names(PerceptionApi.horizonFor(viewerIn('/t/head/room-0')))).toEqual([]);
+    head.setElevation(45);
+    const view = PerceptionApi.horizonFor(viewerIn('/t/head/room-0'));
     expect(names(view)).toEqual(['/t/rock/structure']);
-    expect(view.things[0]!.rangeNm).toBe(18);
-    expect(shorePositionFor).toHaveBeenCalledWith('/t/head/room-0');
-    expect(sightingsFrom.mock.calls[0]![1]).toBe(42); // 40 m of headland + a 2 m eye
+    expect(view.things[0]!.rangeNm).toBeCloseTo(18, 0);
   });
 });
 
 describe('the horizon afloat', () => {
-  it('reports the expanse\'s contacts from the viewer\'s eye — craft as things, traffic in words', async () => {
-    const other = structureAt('/t/sea/brig', '/t/brig', 18, ['brig']);
-    const contactsFrom = vi.fn().mockResolvedValue([
-      { craft: other, name: 'the brig', bearingDeg: 45, rangeNm: 3, channel: 'visual', fixed: false },
-      { craft: null, name: 'a fishing boat', bearingDeg: 180, rangeNm: 5, channel: 'visual', fixed: false },
-    ]);
-    const craft = structureAt('/t/sea/ship', '/t/ship', 18, ['ship']);
-    craft.setExpansePosition({ latDeg: 42, lonDeg: -8 });
-    vi.spyOn(craft, 'liveExpanse').mockResolvedValue({ contactsFrom } as never);
-    vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(craft as never);
-    const v = viewerIn('/t/avenue/room-0');
-    const view = await PerceptionApi.horizonFor(v);
+  it('⭐ from the viewer\'s eye over the resident craft on her sea — and fog cuts it to a tenth', async () => {
+    await seaWithLanding('/t/elsewhere/landing');
+    zoneAt('/t/ship', [[0, 0]]);
+    const ship = afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
+    const brig = afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
+    void ship;
+    let type: string | null = 'clear';
+    vi.spyOn(WeatherApi, 'peekSkyType').mockImplementation(() => type as never);
+    const v = viewerIn('/t/ship/room-0');
+    const view = PerceptionApi.horizonFor(v);
     expect(view.atSea).toBe(true);
-    expect(names(view)).toEqual(['/t/sea/brig']);
-    expect(view.things[0]!.bearingDeg).toBe(45);
-    expect(view.traffic).toEqual([{ name: 'a fishing boat', bearingDeg: 180, rangeNm: 5 }]);
-    expect(contactsFrom.mock.calls[0]![1]).toBe(v);
+    expect(names(view)).toEqual(['/t/brig/structure']); // never her own structure
+    expect(view.things[0]!.bearingDeg).toBeCloseTo(90, 0);
+    type = 'fog';
+    expect(PerceptionApi.horizonFor(v).things).toEqual([]);
+    type = null; // never read: counted clear this once
+    expect(names(PerceptionApi.horizonFor(v))).toEqual(['/t/brig/structure']);
+    void brig;
+  });
+
+  it('below decks there is no horizon', async () => {
+    await seaWithLanding('/t/elsewhere/landing');
+    zoneAt('/t/ship', [[0, 0]]);
+    afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
+    afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
+    sky = false;
+    const view = PerceptionApi.horizonFor(viewerIn('/t/ship/room-0'));
+    expect(view.atSea).toBe(true);
+    expect(view.things).toEqual([]);
   });
 });

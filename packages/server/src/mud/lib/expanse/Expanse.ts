@@ -62,6 +62,13 @@ export interface ExpanseField {
 }
 
 /** Something sighted — a real craft or a seeded passer-by. */
+/** A candidate for sight: the craft or structure, and whether it never moves. */
+export interface Sighted {
+  craft: Stuff & Positioned;
+  /** A landmark that never moves (a light) — what a bearing fixes by. */
+  fixed: boolean;
+}
+
 export interface Contact {
   /** The live craft, or `null` for seeded traffic. */
   craft: (Stuff & Positioned) | null;
@@ -362,38 +369,50 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   ): Promise<Contact[]> {
     const here = from.getExpansePosition();
     if (here === null) return [];
-    return this.sightingsFrom(here, from.sightHeightFor(observer), observer, channel, hourIndex, from);
-  }
-
-  /**
-   * ⭐ What can be perceived from a POSITION at an eye height — the core of
-   * {@link contactsFrom}, and what a height ashore reads when its horizon
-   * names this sea (maritime R11: the headland). `exclude` is the
-   * observer's own craft.
-   */
-  public async sightingsFrom(
-    here: GeoPosition,
-    eye: number,
-    observer: Stuff,
-    channel: SightingChannel,
-    hourIndex: number,
-    exclude: Stuff | null = null,
-  ): Promise<Contact[]> {
-    const signalNm = numSetting('expanse.signalRangeNm', 12);
+    await this.compile();
     // ⭐ The weather shortens sight (maritime R10): fog to a tenth, rain
     // to a little over half. A signal is a gun or a lamp — unaffected.
     const seeing = channel === 'visual' ? await visibilityFor(observer) : 1;
+    // Landmarks first: a light is a light, whatever else has it listed.
+    const candidates: Sighted[] = [
+      ...this.landmarks.map((craft) => ({ craft, fixed: true })),
+      ...this.craft().map((craft) => ({ craft, fixed: false })),
+    ];
+    return this.sightingsAmong(
+      here, from.sightHeightFor(observer), channel, hourIndex, candidates, seeing, from,
+    );
+  }
+
+  /**
+   * ⭐ The sighting core, SYNCHRONOUS: which of `candidates` an eye at
+   * `eye` metres over `here` perceives on `channel` — curvature for sight
+   * (scaled by `seeing`, the weather's factor), a flat range for a signal —
+   * plus this hour's seeded traffic. {@link contactsFrom} feeds it this
+   * sea's registry; the horizon (`PerceptionApi.horizonFor`, which cannot
+   * wait) feeds it the resident craft, from a deck or from a height ashore.
+   * `exclude` is the observer's own craft.
+   */
+  public sightingsAmong(
+    here: GeoPosition,
+    eye: number,
+    channel: SightingChannel,
+    hourIndex: number,
+    candidates: readonly Sighted[],
+    seeing: number,
+    exclude: Stuff | null = null,
+  ): Contact[] {
+    const signalNm = numSetting('expanse.signalRangeNm', 12);
     const rangeFor = (targetM: number): number =>
       channel === 'signal' ? signalNm : this.sightRangeNm(eye, targetM) * seeing;
 
     const out: Contact[] = [];
     const seen = new Set<string>();
-    const consider = (c: Stuff & Positioned, fixed: boolean): void => {
-      if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId)) return;
+    for (const { craft: c, fixed } of candidates) {
+      if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId) || c.isDestroyed()) continue;
       const at = c.getExpansePosition();
-      if (at === null) return;
+      if (at === null) continue;
       const d = here.distanceNm(at);
-      if (d > rangeFor(c.getTargetHeightM())) return;
+      if (d > rangeFor(c.getTargetHeightM())) continue;
       seen.add(c.stuffId);
       out.push({
         craft: c,
@@ -403,14 +422,10 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
         channel,
         fixed,
       });
-    };
-    await this.compile();
-    // Landmarks first: a light is a light, whatever else has it listed.
-    for (const lm of this.landmarks) consider(lm, true);
-    for (const c of this.craft()) consider(c, false);
+    }
 
-    const field = await this.fieldAt(here);
-    const passer = this.trafficAt(here, hourIndex, field.traffic);
+    const weight = this.peekNarrowestAt(here)?.getTraffic() ?? this.trafficDefault;
+    const passer = this.trafficAt(here, hourIndex, weight);
     if (passer !== null && passer.rangeNm <= rangeFor(SEEDED_TARGET_HEIGHT_M)) {
       out.push({
         craft: null,
@@ -425,12 +440,15 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   }
 
   /**
-   * Where a place ashore looks out over this sea from: the position of
-   * the node whose landing shares the longest path with `placePath` (the
-   * estuary's mouth for a height above the estuary), or `null` when no
-   * node lands anywhere near it.
+   * Where a place ashore looks out over this sea from — SYNCHRONOUS: the
+   * position of the node whose landing shares the longest path with
+   * `placePath` (the estuary's mouth for a height above the estuary), or
+   * `null` when no node lands anywhere near it. Reads the compiled nodes;
+   * a sea nothing has compiled yet starts compiling and answers `null`
+   * this once.
    */
-  public async shorePositionFor(placePath: string): Promise<GeoPosition | null> {
+  public peekShorePositionFor(placePath: string): GeoPosition | null {
+    if (this.compiled === null) void this.compile().catch(() => undefined);
     const shared = (a: string, b: string): number => {
       const x = a.split('/');
       const y = b.split('/');
@@ -439,7 +457,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
       return n;
     };
     let best: { n: number; at: GeoPosition } | null = null;
-    for (const node of await this.nodes()) {
+    for (const node of this.loadedNodes) {
       const dest = node.getDestination();
       const at = node.getExpansePosition();
       if (!dest || !at) continue;

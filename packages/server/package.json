@@ -79,6 +79,7 @@
     "lint:no-authored-faucet": "tsx scripts/check-no-authored-faucet.ts --lint",
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:openings": "tsx scripts/check-openings.ts",
+    "lint:structures": "tsx scripts/check-structures-booted.ts",
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:mass": "tsx scripts/check-mass.ts",
     "lint:anatomy": "tsx scripts/check-anatomy.ts",

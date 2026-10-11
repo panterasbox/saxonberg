@@ -465,11 +465,14 @@ export class PerceptionApi {
    *   elevation between — clears the distance the zones' size in metres
    *   implies over `perception.horizonRatio`.
    *
-   * ⛔ The viewer's own structure is never on its own horizon. Also keeps
-   * the result for {@link peekHorizon}, which the synchronous MQL seed
-   * reads.
+   * ⛔ The viewer's own structure is never on its own horizon.
+   *
+   * ⭐ SYNCHRONOUS — it is the MQL `horizon` seed's pool, and the resolver
+   * cannot wait. It reads warm state only: the resident structures and
+   * craft (structures are booted and never culled), the resident zones'
+   * fields, the compiled sea, and the cached sky. Nothing to call first.
    */
-  public static horizonFor(viewer: Stuff): Promise<HorizonView> {
+  public static horizonFor(viewer: Stuff): HorizonView {
     return logic().horizonFor(viewer);
   }
 
@@ -481,15 +484,6 @@ export class PerceptionApi {
    */
   public static glance(bearingDeg: number, rangeNm: number): string {
     return logic().glance(bearingDeg, rangeNm);
-  }
-
-  /**
-   * The things `viewer`'s last {@link horizonFor} found — synchronous, for
-   * the MQL `horizon` seed (`MqlApi.prepare` refreshes it before a query
-   * that names the seed is resolved). Empty when never computed.
-   */
-  public static peekHorizon(viewer: Stuff): Stuff[] {
-    return logic().peekHorizon(viewer);
   }
 
   /**
