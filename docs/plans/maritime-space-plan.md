@@ -1793,6 +1793,112 @@ keyword `horizon` renamed (the seed would shadow it).
     probed with the sextant's refusal). `horizonUntil` gives a cold read a
     moment of real time before spending game time.
 
+## ⭐⭐⭐ Revision 2 — looking at many things (2026-10-11, review round 1)
+
+Decided in conversation with the user during review. The product half is
+the requirements' *Looking at many things* section, drive steps 27–30 and
+ACs 43–48. **Supersedes:** B-41 and `MqlApi.namesWholeScope` (a side
+protocol on MqlApi — the user: *"if you're adding anything to mqlapi other
+than the two mqlone and mqlmany functions you're probably doing something
+wrong"*), and `look horizon`'s bespoke survey render (it becomes the
+general list). Same MR, by the user's decision.
+
+### Decisions
+
+**S1 — The result says how it resolved.** `MqlMany` (and `MqlOne`) gain
+ONE field set by the resolver from the parsed query: whether the head was
+a NAME (a keyword search — fuzzy, can be ambiguous) or a SET (a seed:
+`horizon`, `peers`, `inventory`, a pronoun, a path). Nothing else is added
+to `MqlApi`; the binder and controllers read the field. No list of
+"survey seeds" anywhere — every seed is a set by what it is.
+
+**S2 — The binder's how-many rule** (`CommandLogic`, the object/objects
+branches):
+1. the player's own quantity wins — the query's existing `MqlQuantity`
+   (`all`, a count, `:{N}`, `:{*}`) and ordinals (already applied by the
+   resolver) override the view's `cardinality`/`onExcess` default;
+2. a view's HARD limit (a declared `max` the player exceeds) refuses in
+   words (`controller-rejected`, reason `too-many`) — never a prompt;
+3. `onExcess: prompt` fires ONLY for a NAME that matched more than the
+   slot takes with no player quantity — a SET is never prompted;
+4. the prompt and the display are independent: a view may show the
+   candidates and ask (the prompt widget's own candidate list is the
+   display unless the build finds it absent — then the binder sends one
+   uncarded list line before asking).
+
+**S3 — `look` is plural.** Its `target` becomes `type: objects`,
+`onExcess: prompt` (names only, by S2). One bound thing → today's
+single-target look, unchanged. Several → the list render (S5). A bare
+`look` is still the room.
+
+**S4 — One visibility rule**, a viewer-relative read on `PerceptionApi`
+(already exempt from `lint:object-verbs` as viewer-relative):
+`visibleContentsOf(viewer, target)` → `{ worn, held, carried }` filtered
+by what this viewer may see:
+- a PERSON (an agent with slots): occupants of slots that ACCEPT a
+  wearable → `worn`; that accept a wieldable (the hands) → `held`; every
+  other slot (an implant) and every pocket/pack content → hidden, unless
+  `viewer === target` (your own: everything, pockets as `carried`);
+- a CONTAINER: everything if open, nothing if sealed shut, concealed
+  stays concealed (the shipped concealment filter);
+- derived from what the slot `accepts`, never a list of slot names.
+Both `look` and `inventory` call it, so they cannot disagree.
+
+**S5 — One list render** (a LookController/InventoryController shared
+shape — a module-private helper in each would be two copies of one
+sentence, so it lives where both can reach it without a new module
+category: the decision for the build is `Mml.list` + per-item relation
+from `via`, rendered by a method on the perception logic the two verbs
+call). Each entry: the thing's presentation + its relation to the viewer,
+from the match's `via`: placement (*on the table*), worn/held, or the
+horizon's glance — `MqlMatchVia` gains an optional `glance`
+(bearing/range) that the `horizon` seed attaches per match, so the list
+never calls `horizonFor` twice. Owned set → the owner's own description
+heads it; unowned set → no header. Featured (landmark / room `featured`)
+sorts first.
+
+**S6 — The summary.** `look` at a container or person lists inline up to
+FOUR things (the shipped `Mml.list` block threshold), else the first four
+and *"and N more things — `inventory <it>`"*.
+
+**S7 — `inventory` is the ledger for anything.** Optional `target`
+(`type: object`, scope `reachable`); none → yourself. Grouped *worn /
+held / carried* for a person (S4), the contents for an open container, a
+shut one refuses in words (*"the chest is shut"*). `look in <thing>` (the
+`in`/`inside` prepositions `look` already declares) routes to the same
+ledger. The help text's worn/wielded promise becomes true.
+
+**S8 — Cards.** A set has no single subject, so a plural `look` opens no
+card this build (prose only); a single target opens one as today. The
+list card is a deferred seam → card-surface slate.
+
+**S9 — Deletions.** `MqlApi.namesWholeScope` / `MqlLogic.namesWholeScope`,
+the binder's raw `horizon` special case, `LookController.lookAtHorizon`'s
+bespoke render (the horizon becomes a SET rendered by S5, the empty case
+still *"Nothing beyond where you stand catches the eye."* when the set is
+the horizon and empty).
+
+### Waves
+
+- **D1 — the result and the binder.** S1, S2, S9's MQL half. Tests: a
+  name vs a set on the result; player quantity overrides the default; a
+  hard limit refuses in words; a set never prompts; a name prompts.
+- **D2 — the visibility rule and the list.** S4, S5 (+ `via.glance` on
+  the horizon seed). Tests: a person's worn/held only, never pockets or an
+  implant; your own everything; shut container nothing; the list's
+  relation per kind; owned vs unowned header.
+- **D3 — plural look.** S3, S6, S8, S9's look half. Tests: `look horizon`
+  lists with glances, `look all brass` lists, `look 2nd brass` one,
+  `look brass` prompts; the person branch shows worn/held only (the leak
+  closed); summary past four.
+- **D4 — inventory.** S7. Tests: self grouped; container; person;
+  shut refuses; `look in` routes to it.
+- **D5 — content, drive, docs.** A container with more than four things
+  and two same-keyword things where the drive stands (rows), drive steps
+  27–30 appended and steps 19/23/24 re-asserted against the list render,
+  docs (perceiver, command-spec § cardinality, mql-grammar § how many,
+  inventory/look help), `pnpm test`, cold re-drive, push.
+
 ## Build log
 
 *(appended wave by wave at build time — what changed, what was decided,

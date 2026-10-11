@@ -457,7 +457,7 @@ own terms with nothing added.
 
 | surface | shape |
 |---|---|
-| **`look horizon`** | ⭐ what you can see from here that is **not in your room**. `horizon` is a **scope** (in the `here` / `reachable` family), so it composes and drills: `look horizon:tower` reads the tower like any visible thing, even when the summary did not name it. The summary reads like a room: the **featured** things first, then *"you can also make out…"* |
+| **`look horizon`** | ⭐ what you can see from here that is **not in your room**. `horizon` is a **scope** (in the `here` / `reachable` family), so it composes and drills: `look horizon:tower` reads the tower like any visible thing, even when the summary did not name it. ⭐ *(revised 2026-10-11)* It is simply `look` given a SET — the plural look below — and the set is the whole content: the **featured** things first, then the rest, each with where it lies |
 | **`watch horizon`** | ⭐⭐ **keeping watch** — a held engagement that tells the watcher when what is in view changes. ⭐ It unifies with the livestream `watch` (the collision ladder's first rung): both are *attending to something over time and being told when it changes*, and the target decides which |
 | **`measure bearing`** | ⭐ a **fix is an act**: a bearing on something in view, read off the compass (a `Reading` row, the instrument ladder). Laid against the chart, it corrects the reckoning |
 
@@ -466,6 +466,15 @@ announces itself: a sail, a light, a coast are SEEN by somebody looking,
 and a lookout who sees one SAYS so. Only an emitter that announces itself
 — a bell, a gun, a signal — pushes, and it is routed to whoever can
 perceive it, as sound already is.
+
+### ⭐⭐ Looking at many things: `look` and `inventory` *(revised 2026-10-11)*
+
+| surface | shape |
+|---|---|
+| **`look <many>`** | ⭐ `look` may be given **more than one thing**: a set named on purpose (`look horizon`, `look peers`), or the player's own *how many* (`look all brass`, `look 2nd brass`). It lists them |
+| **`inventory [<thing>]`** | ⭐ the itemised **ledger** of what something holds — you (no argument), an open container, a person. `look in <thing>` is the same ledger |
+
+The full design is *Looking at many things* below.
 
 ### Five honest extensions
 
@@ -627,6 +636,51 @@ is **later**.
 getting up, a current taking her, fog closing in — derived from the band
 and never authored. A crossing that changes nothing perceptible says
 nothing.
+
+## ⭐⭐⭐ Looking at many things *(revised 2026-10-11)*
+
+**Why it is here.** `look horizon` names a SET — everything in view — and
+`look` could only be given one thing: a query that matched several asked
+*"which one?"*, which is the wrong question for a set nobody was
+ambiguous about. Fixing that properly is a general change to how every
+verb is told *how many*, and to what looking at a list means — so it is
+designed here, for the whole game, and ships in this build.
+
+**How many — two different jobs, never confused.**
+
+| | |
+|---|---|
+| ⭐ **a prompt asks a question** | it is INTERACTIVE, and it exists to resolve an AMBIGUITY: the player named something (`look brass`), more matched than the verb takes, and they did not say how many. Only then does the game ask |
+| ⭐ **a display shows something** | it is PASSIVE. Showing the candidates and asking which can both happen at once; neither replaces the other |
+| ⭐ **the player may say how many** | `all brass`, `2nd brass`, `brass:{2}` — the quantity and ordinal forms the query language already has. **The player's word overrides the verb's default.** A verb may still set a hard limit (you give to ONE person), and exceeding it is refused in words, never asked about |
+| ⭐ **a set is not an ambiguity** | `horizon`, `peers`, `inventory` NAME a set; nothing about them is unclear, so nothing is asked |
+
+**Two verbs, two questions.**
+
+| verb | the question | what it shows |
+|---|---|---|
+| **`look`** | *what is this like?* | its appearance, including what you would NOTICE there: a room's contents, a crate's two limes, what a person wears and holds. ⭐ Past **four** things it summarises — *"a canvas bag, stuffed: a coil of rope, a lantern, a tinderbox, a knife, and 38 more things"* — and tells you how to see the rest |
+| **`inventory`** | *what exactly does this hold?* | the complete, itemised ledger, grouped: your own things as **worn / held / carried**; an open container's contents; a person's worn and held things. `look in <thing>` is the same ledger, so the old idiom works |
+
+⭐⭐ **One rule for what you can see inside something** — both verbs obey
+it, so they can never disagree:
+- **on a person: what they WEAR and what they HOLD.** ⛔ Never what is in
+  their pockets or packs, and never what is inside their body (an
+  implant). You learn someone's pockets by an act — searching them, being
+  shown — never by looking. *(Today `look` at a person lists everything
+  they contain; that is a leak this build closes.)*
+- **in a container: everything, if it is open;** nothing if it is shut
+  (*"the chest is shut"*). Concealed things stay concealed.
+- **your own things: everything** — `inventory` is how you know your own
+  pockets.
+
+**A list is the content.** Each entry is the thing as you would name it,
+plus **how it stands to you** — where it is placed in a room, worn or held
+on a person, a compass point and a rough range on the horizon. A set that
+BELONGS to something (a crate's contents, a person's things) is headed by
+that thing; a set that belongs to nothing (the horizon, the people here,
+several matches) has no header, because any header would be invented
+prose. ⛔ Nobody authors list prose.
 
 ## Non-goals
 
@@ -1109,6 +1163,18 @@ Against the running game, before the MR opens.
 26. **Sail into the haar** and have the fog close in — the crossing
     report says so, `measure latitude` is refused by the fog, and the
     horizon shrinks.
+27. ⭐ **`inventory`** and see your own things grouped **worn / held /
+    carried**.
+28. ⭐⭐ **`look` at another person** and see what they wear and hold —
+    ⛔ not what is in their pockets and not their implant. **`inventory`
+    them** and see the same things as a ledger.
+29. ⭐ **`look` at a container with a few things in it** and see them in
+    its description; **`look` at one with more than four** and see a
+    summary that says how to see the rest; **`inventory` it** (or **`look
+    in` it**) and get the full ledger. A shut container refuses in words.
+30. ⭐ **`look brass` where two things match** and be ASKED which;
+    **`look all brass`** and see both listed, asked nothing; **`look 2nd
+    brass`** and see the second.
 
 ---
 
@@ -1233,6 +1299,26 @@ Against the running game, before the MR opens.
 42. ⭐ **A fog band is fog**: inside it the sky reads as fog — a sight is
     refused — and visual range shrinks, from the band's weather lean,
     with no special case.
+43. ⭐⭐ **A prompt asks only about an ambiguity**: the player named
+    something, more matched than the verb takes, and they did not say how
+    many. A set named on purpose (`horizon`, `peers`) is never asked
+    about.
+44. ⭐ **The player may say how many** (`all`, an ordinal, a count) and it
+    overrides the verb's default; a verb's hard limit is refused in
+    words, never prompted.
+45. **`look` takes many things** and lists them; past four it summarises
+    and says how to see the rest.
+46. ⭐ **`inventory` lists anything you may see into** — yourself
+    (grouped worn / held / carried), an open container, a person — and
+    `look in <thing>` is the same ledger. A shut container refuses in
+    words.
+47. ⭐⭐ **On a person, only what is worn and held is visible** — to
+    `look` and to `inventory` alike. ⛔ Never pockets, packs' insides, or
+    anything inside the body.
+48. **A list entry says how it stands to you** (placement, worn/held,
+    bearing and range); a set that belongs to something is headed by it;
+    a set that belongs to nothing has no header. ⛔ No authored list
+    prose.
 
 ---
 
