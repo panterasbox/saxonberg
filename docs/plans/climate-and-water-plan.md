@@ -2334,6 +2334,54 @@ world on port 2019, starting on day-of-year 0 at noon). The readings:
 | 13 | the Circle pass is open on day 0 and shut on day 2 with the mover still at its foot, refusing in the snow's own words; the snowfield pass is shut; the plateau gap is open; a channel post goes out from behind the shut pass (AC 19) |
 | 15 | the wet coast: *"a very wet month — more than the ground can take"*; the dry basin: *"a dry month — almost nothing has fallen"*; the plateau has a dusting beside the snowfield's deep snow |
 
+**The browser walk (2026-10-11, review round 1, before `/finalize`).**
+A live dev stack: the server on 2019 with test auth and a fresh DB, my own
+Vite on 5179, and Chrome DevTools driving the real client as a wizard
+character. It visited the north station → the snowfield camp → the pass,
+the Circle camp → circlemere → the Circle pass → the bare shore, and the
+south station.
+
+Confirmed in the renderer:
+- the snow overlay on `look ground` (deep masks the ground; ankle-deep
+  shows it);
+- the snowbound refusal in the exit's own words in the shell (B21);
+- thin ice refused on day 0 in its own words;
+- `analyze weather` (the thirty-day line, snow lying) and `analyze water`
+  (the ice line);
+- the south station lit to *"enough to work by"* at the polar equinox;
+- "You're shivering." on arrival in the cold.
+
+It found four things the wire could not:
+
+1. **The pinned forecast lied.** The snowfield's frozen snow pin read
+   *"never changes here"* beside *"forecast: fog → clear → fog → clear"*:
+   `forecastFor` drew from the procedural field and ignored pins. It now
+   takes each upcoming type from the same `pinnedSample` that
+   `resolveWeatherFor` uses (a frozen pin forecasts its one type; an
+   alive one its own course). `WeatherReading.test.ts` pins it, proven to
+   fail without the fix. The defect predates this build; this build's pin
+   content exposed it.
+2. **The salt pan read "drawn well down" on day 0.** A prop is born at the
+   thermal default and only drifts toward its room, so B17's pan arrived
+   warm into a camp that froze days ago. The row now authors
+   `stampedTemperatureK: 268` (the ice block's precedent), and it reads
+   *"It sits frozen over"* on first sight. The engine-wide answer (a prop
+   is born at its room's air) is R16's thermal tail, not done here.
+3. **`trace atmosphere` printed `252.75114232180974 K`.** Derived values
+   printed raw. Temperature is rounded to 0.1 K and pressure to 1 Pa in
+   the controller; the tag reads the unrounded value. (`analyze sky`'s raw
+   sun altitude predates the build and is left for a tail.)
+4. **The first water read after boot stalled about 25 s** (circlemere,
+   the first `look`/`analyze water` in the world); every later one, and a
+   second mere, answered in milliseconds. `iceAt` cold is about 52 ms in
+   isolation, so this is the water catalogue's first compile and world
+   scan warming. It predates the build and is recorded, not fixed.
+
+Judged and left: the north station's banked brazier gives only *"barely
+enough to move by"* at a 71° midnight, so objects read "something". It is
+the same row as the south's, which twilight tops up. A banked camp
+brazier at night is honest, and `stoke` raises it.
+
 **Not driven over the wire, and where each is proven instead:** step 5
 (a vessel freezing and thawing — `Thermal` phase-reconcile tests, W6);
 D18's greatcoat (no wire path admits a dorm unit — `DormHouseplant.test.ts`

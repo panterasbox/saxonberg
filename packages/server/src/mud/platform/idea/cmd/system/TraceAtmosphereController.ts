@@ -18,6 +18,7 @@ import { MessageApi } from '../../../../api/message';
 import { BiomeApi } from '../../../../api/biome';
 import type { AtmosphericTrace } from '../../../../api/biome';
 import { Mml } from '../../../../api/mml';
+import { Quantity } from '../../../../lib/quantity';
 
 interface AnalyzeAtmosphereModel extends CommandModel {
   detail?: string;
@@ -113,11 +114,23 @@ export default class TraceAtmosphereController extends CommandController<Analyze
     lines.push(
       Mml.compose`  zone:  ${zonePath ?? '(none)'}`,
     );
-    lines.push(
-      Mml.compose`  temperature: ${traces.temperature.value.formatMml(undefined, 'thermal', { channel: 'thermal' })} (${traces.temperature.value.tag('thermal')}) — ${describeSource(traces.temperature)}`,
+    // ⚠ Rounded for the reader (the climate build's browser walk): both are
+    // DERIVED now — temperature from the climate, pressure from elevation —
+    // and a derived value printed raw read `252.75114232180974 K`. The tag
+    // reads the unrounded value; only the figure shown is rounded.
+    const tempShown = Quantity.of(
+      Math.round(traces.temperature.value.rawValue() * 10) / 10,
+      'K',
+    );
+    const pressureShown = Quantity.of(
+      Math.round(traces.pressure.value.rawValue()),
+      'Pa',
     );
     lines.push(
-      Mml.compose`  pressure:    ${traces.pressure.value.formatMml(undefined, undefined, { channel: 'atmosphere' })} (${traces.pressure.value.tag()}) — ${describeSource(traces.pressure)}`,
+      Mml.compose`  temperature: ${tempShown.formatMml(undefined, 'thermal', { channel: 'thermal' })} (${traces.temperature.value.tag('thermal')}) — ${describeSource(traces.temperature)}`,
+    );
+    lines.push(
+      Mml.compose`  pressure:    ${pressureShown.formatMml(undefined, undefined, { channel: 'atmosphere' })} (${traces.pressure.value.tag()}) — ${describeSource(traces.pressure)}`,
     );
     lines.push(
       Mml.compose`  humidity:    ${traces.humidity.value.formatMml(undefined, undefined, { channel: 'atmosphere' })} (${traces.humidity.value.tag()}) — ${describeSource(traces.humidity)}`,

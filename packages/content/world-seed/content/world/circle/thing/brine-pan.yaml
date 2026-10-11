@@ -17,3 +17,9 @@ data:
     end of the summer with a few inches of brine still in it.
   interiorMaterial: /stuff/idea/material/bulk/salt-water
   interiorAmount: 20
+  # ⭐ At the camp's air, not room temperature (the climate build's browser
+  # walk). A prop is born at the thermal default and only drifts toward its
+  # room, so this pan arrived warm into a camp that froze days ago and read
+  # "drawn well down" on the first `look`. A pan left out at the end of the
+  # summer IS the camp's temperature — the ice block's precedent.
+  stampedTemperatureK: 268

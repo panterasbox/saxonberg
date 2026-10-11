@@ -1582,13 +1582,23 @@ export class WeatherLogic extends ApiLogic {
     const current = computeSample(nowS, locality, site);
     const n = Math.max(0, segments ?? WEATHER_DEFAULTS.FORECAST_SEGMENTS);
     const seg = current.segmentIndex;
+    // ⚠ A pin covers the forecast too (found by the climate build's browser
+    // walk): the snowfield's frozen snow pin read "never changes here"
+    // beside a forecast of fog and clear sky drawn from the procgen field.
+    // A pinned place forecasts what its pin will be — one type forever for
+    // a frozen pin, the pin's own course for an alive one.
+    const pin = resolveWeatherPin(scope, locality);
+    const L = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
     const upcoming: WeatherForecastEntry[] = [];
     for (let i = 1; i <= n; i++) {
       const s = seg + i;
       upcoming.push({
         segmentIndex: s,
-        type: typeForSegment(s, seed, lean, south),
-        startsAt: Quantity.of(s * WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
+        type:
+          pin !== null
+            ? pinnedSample(pin, locality, s * L + L / 2, site).type
+            : typeForSegment(s, seed, lean, south),
+        startsAt: Quantity.of(s * L, 's'),
       });
     }
     return { current, upcoming };

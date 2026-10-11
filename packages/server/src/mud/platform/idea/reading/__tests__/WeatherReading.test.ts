@@ -213,6 +213,11 @@ describe('WeatherReading', () => {
     expect(body).toContain('type: rain');
     expect(body).toContain('provenance: authored');
     expect(body).toContain('nimbostratus'); // rain cloud form
+    // ⭐ The forecast follows the pin (the climate build's browser walk:
+    // "never changes here" beside a procgen forecast of clear sky).
+    const forecastLine = body.split('\n').find((l) => l.includes('forecast:')) ?? '';
+    expect(forecastLine).toMatch(/forecast: rain( → rain)+/);
+    expect(forecastLine).not.toContain('clear');
   });
 
   it('rejects a non-place target', async () => {
