@@ -213,6 +213,8 @@ export interface Assembled {
   /** Restore every line's wear (not its failures) and every joint. */
   restoreAll(maker: string): void;
   getGauge(): GaugeRecord | null;
+  /** The name a hand is shown by: as the world names it now, else as it was when it did the work. */
+  handName(path: string): string | null;
   setGauge(record: GaugeRecord | null): void;
 }
 
@@ -315,13 +317,11 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     sentences.push(GrammarApi.cap(`The ${j.key} has gone slack.`));
   }
   // ⭐ Whose hands are in it (drive 18): everyone who made or fitted a
-  // part, or made a joint — so a mended cask reads two names. Only the
-  // people the world can still name; a maker long gone is not invented.
+  // part, or made a joint — so a mended cask reads two names: as the world
+  // names them now, else as they were named when they did the work.
   const hands: string[] = [];
   const name = (path: string): void => {
-    if (!path) return;
-    const who = StuffApi.findByTemplatePath<Stuff>(path);
-    const shown = who ? who.getPresentation() : null;
+    const shown = host.handName(path);
     if (shown && !hands.includes(shown)) hands.push(shown);
   };
   for (const l of lines) for (const m of l.makers) name(m);
@@ -397,12 +397,34 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       parts: { persistent: true, runtimeState: true },
       joints: { persistent: true, runtimeState: true },
       gauge: { persistent: true, runtimeState: true },
+      hands: { persistent: true, runtimeState: true },
     };
 
     public bill: Bill | null = null;
     public parts: PartLine[] = [];
     public joints: JointState[] = [];
     public gauge: GaugeRecord | null = null;
+    /**
+     * ⭐ The name each hand went by when it did its work, by identity path —
+     * a maker's mark. Recorded while the maker is live (they are acting),
+     * so the work still says whose it is when they are not in the world.
+     */
+    public hands: Record<string, string> = {};
+
+    /** Remember the name a hand goes by, while it can be read. */
+    private noteHand(path: string | undefined): void {
+      if (!path || this.hands[path]) return;
+      const who = StuffApi.findByTemplatePath<Stuff>(path);
+      const shown = who ? who.getPresentation() : null;
+      if (shown) this.hands = { ...this.hands, [path]: shown };
+    }
+
+    /** The name a hand is shown by: as it is now, else as it was. */
+    handName(path: string): string | null {
+      if (!path) return null;
+      const who = StuffApi.findByTemplatePath<Stuff>(path);
+      return (who ? who.getPresentation() : null) ?? this.hands[path] ?? null;
+    }
 
     /** Validating setter — the applier's phase 1 prefers `set<Field>`. */
     setBill(value: unknown): void {
@@ -491,6 +513,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     recordAssembly(parts: PartLine[], joints: JointState[]): void {
       this.parts = parts.map((l) => ({ ...l }));
       this.joints = joints.map((j) => ({ ...j, members: [...j.members] }));
+      for (const l of this.parts) for (const m of l.makers) this.noteHand(m);
+      for (const j of this.joints) this.noteHand(j.maker);
     }
 
     ensureParts(): void {
@@ -626,6 +650,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!j) return;
       j.tension = 1;
       if (maker) j.maker = maker;
+      this.noteHand(maker);
     }
 
     replaceMembers(
@@ -687,6 +712,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (fitted.maker && !line.makers.includes(fitted.maker)) {
         line.makers.push(fitted.maker);
       }
+      this.noteHand(fitted.maker);
       // ⭐ Re-make every joint the new member sits in — under THIS hand.
       for (const j of this.joints) {
         if (j.members.includes(part) || j.fastener === part) {
@@ -703,6 +729,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         j.tension = 1;
         if (maker) j.maker = maker;
       }
+      this.noteHand(maker);
     }
 
     getGauge(): GaugeRecord | null {

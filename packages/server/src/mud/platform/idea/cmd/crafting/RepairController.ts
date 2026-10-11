@@ -54,7 +54,6 @@ export default class RepairController extends ManualBuildController<RepairModel>
     if (
       MixinApi.isAssembled(item) &&
       item.isAssembly() &&
-      item.slackJoints().length === 0 &&
       item.failedLines().length > 0
     ) {
       const author0 = ExecutionContextApi.getActingAuthor() as Stuff | null;

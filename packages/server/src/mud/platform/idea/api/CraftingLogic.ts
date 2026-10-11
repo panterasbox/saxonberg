@@ -3563,6 +3563,28 @@ async function repairAssemblyRungs(
   item.ensureParts();
   const cat = await jointCatalogue();
   const conditionBefore = item.getCondition();
+  // ⭐ A FAILED part first: tightening the joints round a split haft is
+  // no repair — a warped member slackens its joint, and the old order
+  // tightened it and called the pick mended (the assembly drive).
+  const failed = item.failedLines()[0];
+  if (failed) {
+    // ⭐ The diagnosis rung (grain): below the joint's band you can tell
+    // something is wrong with the SET, not which member.
+    let named = failed.part;
+    if (failed.count > 1) {
+      named = lineNoun(failed, failed.count);
+      for (const j of jointsOf(item, failed.part)) {
+        const row = await cat.warmed(j.method);
+        if (row?.competence) {
+          const band = await bandIn(maker, row.competence.discipline);
+          if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
+            named = `something about the ${lineNoun(failed, failed.count)}`;
+          }
+        }
+      }
+    }
+    return { ok: false, reason: 'part-failed', detail: named };
+  }
   const slack = item.slackJoints();
   if (slack.length > 0) {
     const tightened: string[] = [];
@@ -3584,25 +3606,6 @@ async function repairAssemblyRungs(
         named: GrammarApi.joinList(tightened),
       };
     }
-  }
-  const failed = item.failedLines()[0];
-  if (failed) {
-    // ⭐ The diagnosis rung (grain): below the joint's band you can tell
-    // something is wrong with the SET, not which member.
-    let named = failed.part;
-    if (failed.count > 1) {
-      named = lineNoun(failed, failed.count);
-      for (const j of jointsOf(item, failed.part)) {
-        const row = await cat.warmed(j.method);
-        if (row?.competence) {
-          const band = await bandIn(maker, row.competence.discipline);
-          if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
-            named = `something about the ${lineNoun(failed, failed.count)}`;
-          }
-        }
-      }
-    }
-    return { ok: false, reason: 'part-failed', detail: named };
   }
   // ⭐⭐ Rung 3 — a SPENT character (assembly D6, D9, AC 23): a cask that
   // has given everything is shaved back to clean wood and charred. It wants
