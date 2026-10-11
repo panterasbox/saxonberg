@@ -264,6 +264,17 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
   }
 }
 
+/**
+ * Make sure it is light: advance to noon only if the clock is outside the
+ * working day. A dark room binds the wrong thing — `can` found the
+ * character's canvas shoes when the milk can could not be seen (run 13).
+ */
+async function daylight(): Promise<void> {
+  const now = await worldClockNow();
+  const hour = (((now % 86_400) + 86_400) % 86_400) / 3_600;
+  if (hour < 9 || hour > 15.5) await untilHour(12);
+}
+
 /** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
 async function founderEval(where: string, parcel: string, code: string): Promise<void> {
   const gov = await Session.open('founder', { startLocation: where, wizard: true });
@@ -467,7 +478,8 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     await say(k, 'up');
     await k.drainProse();
     await doing(k, 'drop churn');
-    const drawn = await doing(k, 'pour churn into can');
+    await daylight();
+    const drawn = await doing(k, 'pour churn into milk-can');
     note(`buttermilk: ${drawn}`);
     const churn = await read(k, 'look churn');
     note(`look churn (drawn) → ${churn}`);
@@ -480,7 +492,7 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
 suite('12–15. the curd has set; the whey starts the next batch; the hoop makes a wheel', () => {
   it('⭐ `look vat` — the curd has set', async () => {
     await goTo(CREAMERY);
-    await untilHour(12);
+    await daylight();
     const vat = await read(k, 'look vat');
     note(`look vat (next noon) → ${vat}`);
     expect(vat).toMatch(/still|done|whey|thin|green/i);
