@@ -22,6 +22,9 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import CookPot from '../../../../thing/CookPot';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
+import Provision from '@saxonberg/server/mud/platform/thing/Provision';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
 import { BlendIdentity } from '@saxonberg/server/mud/lib/craft/BlendIdentity';
@@ -111,6 +114,19 @@ describe('the by-hand cooking path', () => {
     expect(c).toHaveLength(1);
     expect(c[0]).toMatchObject({ kind: 'item', count: 1, gradeBand: 'fair' });
     expect(c[0]!.tags).toContain('vegetable');
+  });
+
+  it('⭐ a PROVISION is an ingredient — food carries a maker and is still food (dairy, found by the drive)', async () => {
+    // `Provision` composes Crafted, and the guard against adding a
+    // finished good refused every food item until it asked whether the
+    // thing was edible. The cookhouse's roots ARE provisions.
+    const veg = makeStuff(() => new Provision());
+    veg.setMass(Quantity.of(0.6, 'kg'));
+    veg.setMaterial(StuffApi.findByTemplatePath<Material>(VEG) as unknown as Material);
+    ContainmentApi.move(veg, room);
+    await addIngredient(veg);
+    expect(veg.isDestroyed()).toBe(true);
+    expect(pot.getContributions()).toHaveLength(1);
   });
 
   it('add/stir/heat/plate mints the stew at the authored portion', async () => {

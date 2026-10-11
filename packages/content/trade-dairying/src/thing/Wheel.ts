@@ -6,7 +6,7 @@
  * `becomes` (`soft-cheese` or `hard-cheese`), so one hoop and one wheel
  * row give every cheese the milk, the curd and the press can make. What
  * the cheese was made FROM rides in from the vat (`madeFrom`) and the
- * taste names it — *a ewe's milk cheese* — because the species reaches the
+ * taste names it — *made from ewe's milk* — because the species reaches the
  * cheese through the milk, not through a list of cheeses.
  *
  * It ripens (`RipeningMixin` — the kernel's discrete twin of maturation):
@@ -57,16 +57,23 @@ function madeFromAugmenter(
   if (!from) return text;
   const milk = StuffApi.findByTemplatePath<Material>(from);
   if (!milk) return text;
-  const line = `It is a ${milk.getName()} cheese, and tastes of it.`;
+  // "made from goat's milk" reads right for every milk, including the cow's,
+  // whose material is plain "milk" ("a milk cheese" did not — the drive).
+  const line = `It is made from ${milk.getName()}, and tastes of it.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
 const WheelBase = RipeningMixin(Provision);
 
 export default class Wheel extends WheelBase implements Splittable, MadeFromHolding {
-  /** `split` — a wheel in the hand or on the shelf. */
+  /**
+   * `split` — a wheel in the hand (`environment`: what you hold confers on
+   * you) or on the shelf beside you (`peers`). ⚠ Not `self`, which is a
+   * GIVER's own innate verbs — the drive found *"I don't understand
+   * 'split'"* with the wheel in hand.
+   */
   static commandContributions: CommandContributions = {
-    self: ['platform/cmd/ground/split.yaml'],
+    environment: ['platform/cmd/ground/split.yaml'],
     peers: ['platform/cmd/ground/split.yaml'],
   };
 

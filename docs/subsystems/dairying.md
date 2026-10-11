@@ -24,8 +24,8 @@ no controller, no Api**.
 | `pour rennet into vat` | the batch **rekeys** to renneted milk — a firm curd — whatever the order of rennet and starter | profile `soft-curd`'s `transforms` (`maturation.md`) |
 | (wait) | the batch sets: the vat holds whey over a curd whose share derives from the milk's fat and protein | profiles `soft-curd` / `firm-curd`, `leesShare` |
 | `pour vat into pail` | the whey comes off down to the curd; poured into the crock it is next time's starter | the lees split |
-| `pour vat into hoop`, `put stone on hoop`, wait, `get wheel from hoop` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
-| `cure wheel` | salt binds water — the hard wheel's second hurdle | trade-cooking's `cure` |
+| `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
+| `cure wheel` | salt binds water — the hard wheel's second hurdle; the same wheel comes back, still what it was made from | trade-cooking's `cure`, which finds dairying's `salt-wheel` recipe by its item slot |
 | `put wheel on rack` (the cheese room) | the wheel **ripens** by its own temperature: young · coming on · ripe · (soft) over · (too warm) dead | `Wheel` = `RipeningMixin(Provision)` (`maturation.md` § the discrete twin) |
 | `split wheel`, `consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
 
@@ -55,7 +55,7 @@ one profile serve them all. Cream and curd shares are
 `CompositionShare`s evaluated against each milk's own fat and protein —
 ewe's milk gives about twice the cow's curd with nothing authored per
 species. A batch remembers what it was made from (`madeFrom`) and the
-wheel's taste names it. **A fourth dairy animal is a material row and a
+wheel's taste names it (*made from goat's milk*). **A fourth dairy animal is a material row and a
 tap line.**
 
 ## The herd

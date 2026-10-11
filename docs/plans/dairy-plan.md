@@ -2025,3 +2025,24 @@ USE them.
     left a fortnight unfed is DEAD (correctly), so the boiled batch runs
     before the fortnight; warm milk taints in 0.75–1.5 days at 294 K, so
     the spoilage check reads at two days.
+19. ⭐⭐⭐ **Every drafted cow was born bleeding to death** (run 9). Vitals
+    stocks are constructed at the universe defaults (5 L of blood) before
+    a species is known and nothing re-seeded them, so a cow (40 L
+    baseline, 30 L floor) entered the dying window at her first read and
+    was a body within a game day — the "body of a cow" that kept making
+    `look cow` ask *which?* in runs 5–7. Every horse shipped with it too.
+    Fixed in the kernel: `Vitals.vitalsSeededFor`, and a body takes its
+    species' resting values at its next read. A bloodless body can no
+    longer bleed out of the 0 L it is seeded at.
+20. ⚠ **A venue's whey starter is dead six days after boot** if nobody
+    feeds it — correct (a culture starves), and recoverable by the
+    craft's own remedy (raw milk left open sours wild; its whey restarts
+    the crock), which the goat checkpoint now walks. Finding for
+    `dairy-slate`: a co-op that sells starter, or an NPC who backslops.
+21. The infirmary freezer's own ice pan is a prop of a prop of a prop and
+    `get pan from freezer` took hold of the compartment; the drive brings
+    its own pan and records what the freezer holds (finding for
+    `cold-chain-slate`).
+22. `trade-mining`'s exemplar test pins the classes Rejection's venue may
+    name; the goat pen added ranching's and dairying's (W4 missed it — the
+    pack suite would have caught it pre-MR).

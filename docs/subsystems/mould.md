@@ -30,8 +30,9 @@ destination = mould ?? the vessel's own scope
 
 A plain vessel keeps the old behaviour exactly — the lump drops *beside*
 it. A mould keeps what set in it, in its own shape, **inside it**, until
-somebody takes it out (`get wheel from hoop`, `get ingot from mould`,
-`get block from pan`).
+somebody takes it out (`get wheel`, `get ingot`, `get block` — a plain
+`get` reaches into an open mould; ⚠ `get X from Y` has no `from` and
+takes the mould as well).
 
 ⭐ **How a thing sets is the MATTER's business, never the mould's.** Two
 set processes ship:
@@ -63,7 +64,7 @@ narrowing on the clone:
 - a drain set's moisture → `WaterActive.setWaterState`;
 - `madeFrom` (the material a maturing batch was made from — maturation's
   own payload field) → the duck-probed `MadeFromHolding.setMadeFrom`, so a
-  wheel can say *a ewe's milk cheese*.
+  wheel can say it is *made from ewe's milk*.
 
 ⚠ An ingot composes none of these and is told nothing.
 

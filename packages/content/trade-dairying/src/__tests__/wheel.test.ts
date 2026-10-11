@@ -118,7 +118,7 @@ describe('the wheel', () => {
     const aug = (Wheel as unknown as {
       markupAugmenters: Array<(t: string, h: Stuff, v: Stuff, o?: { filter?: string[] }) => string>;
     }).markupAugmenters[0]!;
-    expect(aug('', w, w, { filter: ['taste'] })).toMatch(/ewe's milk cheese/);
+    expect(aug('', w, w, { filter: ['taste'] })).toMatch(/made from ewe's milk/);
     expect(aug('', w, w)).toBe('');
     expect(aug('', w, w, { filter: ['smell'] })).toBe('');
   });
