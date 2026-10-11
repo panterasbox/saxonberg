@@ -1769,6 +1769,60 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time — the output of running
-`packages/wire/tests/assembly.dirty.wire.test.ts` against the running
-game: the count, each checkpoint, what each failure was.)*
+**Run 17 (2026-10-11), a world of its own (`WIRE_BOOT=1`), fresh DB:
+21 / 21 green**, the restart included.
+
+| # | checkpoint | drive steps |
+|---|---|---|
+| 1 | buy a haft; the shipped pick recipe makes a pick that knows it has one | 16, 2 |
+| 2 | a part cannot be inspected in place | 10 |
+| 3 | at the yard, rive a bought billet, carve a GREEN haft, fit it | 5 (setup) |
+| 4 | rive a bole into billets; set the mill sawing another | 4 |
+| 5 | green billets go up into the drying loft | 23 (setup) |
+| 6 | buy thirty staves from the yard | 16 |
+| 7 | refused a tight cask naming the band; a novice makes a slack barrel, which takes pegs and refuses water | 9 |
+| 8 | forty days on: the green haft has WARPED in place; repair refuses naming the haft | 5, 3 |
+| 9 | a second pair of hands fits a new haft; the pick names both | 3, 18 |
+| 10 | the mill has sawn the bole into boards with nobody there | 4 |
+| 11 | the billets in the loft have begun to dry | 23 |
+| 12 | a proficient cooper raises a cask, and it holds water | 6 |
+| 13 | left empty ten days its hoops ride loose, every stave sound; repair tightens, consuming nothing | 8, 7 |
+| 14 | four fills spend its character; re-fired at a lit forge it is charred and gives again | 17 |
+| 15 | in the city anybody measures (not of record); the appointed gauger's figure is of record | 22 |
+| 16 | taken apart by its joints, fewer staves come back than went in | 11 |
+| 17 | an off-standard cask says so, to anyone | 22 |
+| 18 | a nested chair: a pegged frame and a stitched cushion; the cushion is replaced alone | 13 |
+| 19 | the plough's share replaced alone, twice; a bow re-strung | 20 |
+| 20 | the drop spindle: shaft through whorl, no fastener; pulled apart whole | 21 |
+| 21 | restart the world; the mended pick, carried, still names both hands | 1 |
+
+**What sixteen earlier runs found** (each fixed in a `fix(assembly):
+drive run N` commit — see the W8 note for the decisions):
+
+- **Commerce.** Six shipped counters could not sell (their house did not
+  list them); `buy` handed over a whole stocked heap for the price of
+  one; a craft could gather a shop's shelf goods unpaid; a stocked heap
+  restocked without bound (it counted one heap as one item).
+- **Time.** A 40-day `advance` queued ~960 async passes per hourly
+  schedule and the server stopped answering — `coalesce` on
+  `WorldClockApi.every`; the reset/spawn sweeps single-flight.
+- **Wood.** Carved hafts were `Tool` rows and dropped their greenness; a
+  merge read a destroyed stack's fraction (NaN); a sawn board crashed the
+  armour/weapon pips; a stock form crashed `look`.
+- **Assembly.** `fit cask` bound the cask HEAD; `fit share to plough`
+  bound a share; bills whose parts outweighed the whole refused every
+  salvage; repair tightened the joint round a warped haft and called it
+  mended; `repair`/`salvage` were not sayable without an instrument; the
+  makers line forgot a maker who was offline.
+- **Casks.** The water butt answered to "cask", and spilling it threw on
+  an infinite litre count; an emptied cask kept its batch, so refills did
+  not count; an empty cask's dry-out was reconciled only by a fill.
+- **Civics.** A business nothing had woken could not be appointed into;
+  the gauger reading looked for a polity at the room's own address (the
+  Hearthworks has none and stands outside the city — honestly "the
+  realm's standard" there).
+- **Scenes.** `rive` and `get` named things the act had just destroyed.
+
+⚠ **Environmental, not code:** runs 11, 12, 14 and one boot of 17 were
+starved or reaped by memory pressure from sibling worktrees' servers
+(15 GB box, ~3 GB per world). A green run needs the box mostly to itself.
