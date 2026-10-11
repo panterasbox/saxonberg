@@ -537,13 +537,19 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     // by the session that needs code trust** — asserting it there would
     // have been a checkpoint that could only ever pass.
     //
-    // A plain player, at the spring, which nobody has staked: the
+    // A plain player, on the HILLSIDE, which nobody has staked: the
     // refusal is the one `stake` exists to lift.
+    //
+    // ⚠ Not the spring any more (the pump build): the spring hollow now
+    // holds an OLD BRINE BORE somebody sank and walked away from, and
+    // `bore` at a hole is a SWING — deliberately not title-gated, because
+    // whoever stands at the beam may turn it (a hired hand holds no
+    // title). So "ground nothing stands on" moved one room back.
     const plainHand = await Session.open(uniqueHandle('trespasser'), {
       startLocation: PROVISIONING,
     });
     try {
-      await walk(plainHand, TO_THE_SPRING);
+      await walk(plainHand, TO_THE_SPRING.slice(0, 3));
       const tried = await say(plainHand, 'bore');
       // ⚠ Either refusal proves the gate: with no bailer in hand the
       // verb is not afforded at all, which is itself the honest answer.

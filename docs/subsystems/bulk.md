@@ -736,3 +736,14 @@ recipes for ONE honey material whose whole difference is how the honey
 looks; `flatbread` and `lean-loaf` likewise for bread); the other fifteen
 were duplicates or weaker restatements of the material's own line and
 their keys were **deleted**, so no shipped prose regressed.
+
+## The pump build (2026-10-09)
+
+- A tap can be plumbed to a main (`WaterFixture.suppliedBy`): its
+  `isBulkEmpty` / `getBulkAvailable` policy seams answer empty while the
+  main reports a state. See [pump.md](./pump.md).
+- ⚠⚠ **`closure: open` means NOT LIQUID-TIGHT**, not *no lid*: every liquid
+  requires `liquidTight` (`requiredClosureFor`), and the lid question is
+  `sealed`'s. The pail shipped `open` and drained every fill to the floor
+  (found by the pump drive; fixed). `salt-pan` and `sap-pan` still say
+  `open` — their trades' question.

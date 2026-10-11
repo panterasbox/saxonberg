@@ -275,3 +275,10 @@ floor guard (D22), farming's felt cost converted through the body
 orange on the general store and the barbell on the smithy's slate
 because the distributor may not point at a spoke (D25/D26), the gym
 without its `pace` slot (D26).
+
+## The pump build (2026-10-09)
+
+A spell at a pump handle is a `ManualBuildStep` whose `effortW` is derived
+from the work done — `ρ·g·h·Q/η_pump` over `exertion.efficiency`, floored
+by `pump.handFloorW` — so deeper water is harder pumping with no table.
+The `pace` slot stays vacant. See [pump.md](./pump.md).

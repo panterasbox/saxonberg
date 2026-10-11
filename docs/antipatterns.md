@@ -5651,6 +5651,34 @@ Check for an unanswered prompt before you go looking for a cycle, and
 reproduce in a unit test early: a unit test that *passes* is the fastest
 way to be told you are chasing the wrong subsystem.
 
+## A holder's prose describing an occupant that can be REMOVED
+
+**Wrong** — the well's authored prose describes the pump set in it:
+
+```yaml
+# village-well.yaml — and the pump is a thing in `props:`
+longDescription: >-
+  A ring of dressed slate … and a cast-iron pump bolted to a post over
+  the hole. Its handle is worn bright where the hands go.
+```
+
+`get pump from well`, and the well still describes a pump with a bright
+handle, over a contents list that is empty. The deep well did the mirror
+image: *"the iron of it is gone"* printed directly above *"In it: a force
+pump"* once a player set one there.
+
+**Right** — the holder's prose says only what stays true whatever is in
+it (*"a stout post over the hole, bolted for a pump"*), the occupant
+describes itself, and `look` lists the contents. ⭐ The test: **if a
+player can `get` it, the container's prose may not mention it.** A
+fixture that cannot be removed (the intake pump: 1,200 kg, fixed in
+place) may be described freely.
+
+⚠ No suite can see it — every assertion passes, because each sentence is
+individually true at boot. A browser walk found it (the pump build,
+2026-10-10). The same build's rooms had it too: the pithead yard said *"a
+pump stands over the village well."*
+
 ## Sampling an INSTANT of a field to answer a question about a PLACE
 
 **Wrong** — a growth model asking how good a spot is, by reading what

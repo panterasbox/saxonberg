@@ -170,6 +170,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
+    // ⭐ The pump citations (the pump build). `mechanism` names the
+    // `PumpMechanism` row a pump is built on — resolved live on every
+    // spell at the handle, and a rowless one is a pump with no law: it
+    // would lift from any depth, which is the one thing it must not do.
+    // `suppliedBy` names the main a tap is plumbed to; a rowless one fails
+    // OPEN (the tap runs as its own source), so the census is what says
+    // the plumbing was never connected.
+    'mechanism', 'suppliedBy',
     // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
     // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
     // the solidify edge of `reconcileBulkPhase`, and a rowless one is a

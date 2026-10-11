@@ -185,8 +185,13 @@ async function completeBail(
       Mml.compose`It will not stay in that — gas wants a sealed vessel, shut. It goes up into the air around you and is gone.`,
     );
   } else {
+    // ⚠ Under a litre reads as a CUPFUL, not "0 litres": a hole at a trap's
+    // rim seeps a trickle, and a live browser walk (the pump build) printed
+    // "0 litres out of the hole … You taste it off your knuckle".
+    const amount =
+      moved < 1 ? 'A cupful' : `${String(Math.round(moved))} litres`;
     scene.toSelf(
-      Mml.compose`${String(Math.round(moved))} litres out of the hole and into it. ${describe(what)}`,
+      Mml.compose`${amount} out of the hole and into it. ${describe(what)}`,
     );
   }
   scene.send();

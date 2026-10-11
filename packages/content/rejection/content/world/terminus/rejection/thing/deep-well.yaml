@@ -1,0 +1,29 @@
+# The deep well — sunk on the hillside above the yard, where the water
+# stands a long way down, and given up on.
+#
+# ⭐⭐ The suction limit's classroom. Fourteen metres to the water — more
+# than any pump that DRAWS will lift, at this valley's pressure, and
+# nothing here or anywhere says why. Set the village's hand pump in it and
+# the handle works and nothing comes; the refusal names the depth and
+# stops. Set a force pump in it and the water comes up. The well tells
+# the story without explaining it: *somebody dug this, set a pump on it,
+# and walked away.*
+#
+# Born with NO pump — whoever gave up took it with them. ⚠ The prose says
+# only that a pump HAS stood here, which stays true when a player sets one
+# in it (it said "the iron of it is gone" over "In it: a force pump").
+class: /platform/thing/Well
+data:
+  keywords: [well, "deep well", "old well", shaft, trough]
+  shortDescription: deep well
+  register: definite
+  longDescription: >-
+    A shaft lined with slate, sunk into the slope with a trough beside it
+    gone green with standing rain. There are bolt holes in the capstone,
+    worn smooth, where a pump has stood. A stone dropped down takes a
+    long while to answer.
+  mass: 2000
+  _materialPath: /stuff/idea/material/rock/slate
+  depthM: 14
+  interiorBulk: true
+  interiorCapacity: 20

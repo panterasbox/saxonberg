@@ -427,7 +427,10 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
   const POLAR_ZONE: Row = {
     path: '/world/polar',
     class: '/platform/idea/location/CartesianZone',
-    data: { latitude: -89, continentality: 1, elevation: 1500 },
+    // Cold by LATITUDE, not height: below the falls (400 m), so the main
+    // is gravity-fed. Since the pump build a main that would need a pump
+    // and has none reads `off`, which outranks `frozen`.
+    data: { latitude: -89, continentality: 1, elevation: 0 },
   };
 
   it('a warm intake serving a frozen extent is frozen', async () => {

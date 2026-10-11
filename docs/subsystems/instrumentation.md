@@ -209,3 +209,10 @@ closed `Unit` vocabulary for one pack's preferred scale.
 driller can tell flowing from slackened from dead by standing there, and
 cannot tell 2.4 atm from 1.9. What the gauge buys is the figure, which is
 what lets somebody do the arithmetic a week ahead instead of a day.
+
+## The pump build (2026-10-09)
+
+The `pump` channel (`PumpReading`, eye rung only): the mechanism in words,
+the packing in five words and no digit, and — for a pump that pulls —
+about how deep it will draw from where it stands, bracketed. It never
+names the air. See [pump.md](./pump.md).

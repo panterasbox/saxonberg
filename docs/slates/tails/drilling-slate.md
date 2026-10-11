@@ -751,62 +751,15 @@ roster tick that relocates and covers.
   risk of a dry hole is why oil produced corporate forms, and Business
   Ideas + corpos ship.
 
-## ⭐⭐ The pump — its own history, and three corrections
+## ⭐⭐ The pump — its own history (moved)
 
-The pump was under-treated above and it is its own object (user). The
-ladder: shadoof and screw → bucket chain and noria → the **suction pump**.
+This section duplicated [pump-slate](../builds/pump-slate.md) nearly
+verbatim and is cut to a pointer. The pump SHIPPED (the pump build,
+2026-10-09): the wellhead's `liftL()` attach point was consumed exactly as
+this slate said it would be — the bailer is still the rung below, and a
+pump extends a well's economic life rather than unblocking drilling. See
+[pump.md](../../subsystems/pump.md).
 
-> ⭐⭐⭐ **A suction pump cannot lift water more than ~10 m.** It works by
-> atmospheric pressure pushing water into a vacuum, and a 10.3 m water
-> column is one atmosphere. Miners knew it empirically for centuries and it
-> was a **hard ceiling on mine depth.**
-
-That ceiling is why Torricelli and Pascal went after the vacuum in the
-1640s, which ran through Boyle to **Newcomen's 1712 atmospheric engine — a
-steam engine invented specifically to pump mines dry.** The thing that
-could not be pumped produced the science that produced the engine that
-pumped it. The mechanical answer is the **force pump**: piston at the
-bottom, pushing rather than sucking, limited only by the cylinder and the
-power — for oil, sucker rods to a plunger.
-
-⭐⭐ **Candidate: the suction limit is a better first case for the discovery
-loop than vulcanization.** The limit is *felt* before it is understood
-(the pump simply stops working at depth), it is a number you can measure,
-and understanding it unlocks **a different machine** rather than a recipe.
-⚠ Not free: **atmospheric pressure is modelled nowhere** — it needs one
-constant introduced. Cheap, honest physics, but not zero. → [inquiry-slate](./inquiry-slate.md).
-
-### Three corrections
-
-1. ⛔⛔ **The gasket is LEATHER, not rubber, so drilling is NOT gated on
-   rubber.** Leather packing is what every pre-industrial pump used, and
-   `trade-tanning` ships `tanpit`, `tan` and `leatherwork`. ⚠ This slate
-   asserted the rubber dependency in **three** places, all now fixed: the
-   header, the oil-vs-gas table's *machine* row, and § *The loop that
-   closes*, which was built on it end to end. ⭐ The loop survives as a
-   loop of **degree, not dependency** — rubber *improves* the pump (a
-   leather gland weeps and wants repacking) rather than enabling it.
-   **Tanning is in the supply chain; rubber is the upgrade path.**
-2. ⚠⚠ **`pump` the verb is already taken** —
-   `platform/cmd/device/pump.yaml` is **bellows only** (*"Work a furnace's
-   bellows"*, `requires: BurnerMixin`). A fluid pump is therefore a **verb
-   collision**, and first-come is not one of the seven answers. ⭐ Lean:
-   the ladder's **first rung — unify behind an interface.** A bellows and a
-   lift pump are the same object (a piston moving a fluid, and air *is* a
-   fluid), so one verb over two devices is likely the honest answer rather
-   than a second word.
-3. **The pump is not this build's to write** — and it is **not a
-   prerequisite either.** It has been promoted to its own slate
-   ([pump-slate](./pump-slate.md), four customers and four lenses at
-   ⭐⭐⭐). ⭐⭐⭐ **The rung below it is the BAILER, which this build already
-   needs**: a tube with a leather foot valve on a windlass, used to clear
-   cuttings from the hole — and the same tool lifts the product. Sichuan
-   lifted brine from 300 m that way and early oil wells were produced by
-   bailing before anyone fitted a pump. So the decline curve is **flowing
-   → bailed → pumped → stripper → abandoned**, drilling ships complete
-   without a pump, and the pump is a **throughput upgrade** that extends a
-   well's economic life. ⚠ A pump-before-drilling recommendation was made
-   and withdrawn inside one exchange on exactly this point.
 
 ---
 

@@ -98,7 +98,11 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           // face is the platform's `dig`. So the trade added to this list is
           // a LOCATION class and a mixin, which is the shape the claim wants
           // every new trade to have.
-          cls.startsWith('/trade/quarrying/'),
+          cls.startsWith('/trade/quarrying/') ||
+          // ⭐ the old brine bore at the spring hollow (the pump build) —
+          // drilling's `Wellhead`, authored rather than sited: somebody sank
+          // it and walked away. Still no venue code; one more trade composed.
+          cls.startsWith('/trade/drilling/'),
         // ⚠ Name the offender. This assertion failed on a class move and
         // said only `expected false to be true`, which is a sentence
         // nobody can act on.

@@ -211,6 +211,32 @@ export default class PutController extends CommandController<PutModel> {
         });
         return;
       }
+      // ⭐ A container that says what it is FOR refuses here, in its own
+      // words — *"Only a pump goes in a well."*, *"A hive is not a
+      // cupboard."* The same hook `ContainmentApi.move` asserts, asked
+      // FIRST: unasked, a veto surfaced as a thrown ContainmentError and
+      // `put bucket in well` — the most natural thing to type at a well —
+      // answered with an error instead of a sentence.
+      const holder = target as Stuff & Container;
+      if (typeof holder.canAddContainable === 'function') {
+        const veto = holder.canAddContainable(item as Stuff & Containable);
+        if (!veto.ok) {
+          MessageApi.scene(giver)
+            .topic('sense.survey')
+            .toSelf(
+              veto.reason
+                ? Mml.fromMarkup(veto.reason)
+                : Mml.compose`${Mml.thing(item)} won't go in ${Mml.thing(target)}.`,
+            )
+            .send();
+          context.note({
+            kind: 'controller-rejected',
+            reason: 'refused-by-container',
+            detail: `host rejected item (${veto.reason ?? ''})`,
+          });
+          return;
+        }
+      }
     } else {
       const veto = (target as Stuff & Placing).canPlace(
         item as Stuff & Containable,
