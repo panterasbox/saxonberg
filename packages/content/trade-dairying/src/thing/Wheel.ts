@@ -122,12 +122,16 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
     if (this.getWedgesLeft() <= 0) {
       return { kind: 'refusal', reason: 'wheel-spent', prose: 'There is nothing left of it to cut.' };
     }
-    // ⭐ An EDGE, by construction, never by class: a clasp knife does it
-    // as well as a cheese wire (the butcher's rule).
+    // ⭐ An EDGE, never a class: a tool that CUTS (a cheese knife, a wire)
+    // or anything bladed by construction (the butcher's rule).
+    // ⚠ The `split` view's tool arg requires `ToolMixin`, and every knife
+    // in the game is a `Weapon` — so the bladed arm cannot be reached
+    // through the verb today, and the cheese room's knife is a cutting
+    // Tool (found by the drive; a finding for the worked-act family).
     const edged =
       tool !== null &&
-      MixinApi.isConstructed(tool) &&
-      tool.getConstructionForm() === 'bladed';
+      (tool.hasCapability('cutting') ||
+        (MixinApi.isConstructed(tool) && tool.getConstructionForm() === 'bladed'));
     if (!edged) {
       return {
         kind: 'refusal',

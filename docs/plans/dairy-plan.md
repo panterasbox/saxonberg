@@ -2046,3 +2046,54 @@ USE them.
 22. `trade-mining`'s exemplar test pins the classes Rejection's venue may
     name; the goat pen added ranching's and dairying's (W4 missed it — the
     pack suite would have caught it pre-MR).
+23. Run 10–11: `split wheel` was unknown with the wheel in hand (Wheel
+    conferred `split` on `self`, a giver's innate verbs — `environment` is
+    what a held thing confers; trade-quarrying's `Block` carries the same
+    `self`, a finding); with it afforded, the view's default tool is the
+    FIRST tool carried (the thermometer), so the drive names the knife.
+    ⭐⭐ `add <food> to pot` refused every `Provision` — the by-hand
+    ingredient guard refuses a Crafted thing and was written before
+    provisions composed Crafted; farming A4's rule (*matter, not mark*)
+    now applies there too. `get X from Y` has no `from` (every word binds,
+    so it takes the mould as well, or only the mould when nothing set) —
+    the docs and the drive say `get wheel`/`get ingot`. The `stoke` view's
+    help shows `stoke forge with charcoal`, which binds the charcoal as the
+    fire; fuel first is `stoke charcoal into furnace` (finding).
+
+### Build decisions (not in the plan above)
+
+Decided during the build; each says which rule decided it.
+
+- **B1 — Vitals take their species' resting values** (`vitalsSeededFor`).
+  A kernel defect that killed every drafted cow; fixed at its source rather
+  than by seeding in the draft, because rows that author `_speciesPath`
+  (horses, rats, canaries) reach the same fields by bracket assignment and
+  never call `setSpecies`. *Decided by:* nearest pattern (reconcile-on-read
+  is how every Vitals stock already catches up).
+- **B2 — An edible Crafted thing is an ingredient** (`PourController`).
+  *Decided by:* farming A4's shipped rule, *matter, not mark*.
+- **B3 — `salt-wheel` is a dairy recipe found by `cure`'s item-slot
+  match, and `CraftingLogic` carries `madeFrom` across a transform**
+  (duck-probed both ends, the mould's own shape). *Decided by:* the
+  requirements' "no verb" + the `salt-hide` precedent.
+- **B4 — Milk's gauge is seeded at the TAKE; a vessel speaks its
+  contents' band** (`Freshness.senseLine` + a `CraftVessel` augmenter).
+  *Decided by:* lens 1 — the requirements' own sentence (*milk left warm
+  turns*) is unteachable if nothing says so.
+- **B5 — A thermometer reads a named Thermal subject** (`temperature`
+  reading `scope: [subject, here]`, `BiomeReading.subjectValue` hook).
+  *Decided by:* lens 1 — the scald is the curriculum, and the instrument
+  read the room.
+- **B6 — One of each vessel at the creamery; a milk can; a cheese knife;
+  a water butt at the goat pen; the creamery fire is an `Oven`-class
+  firebox.** *Decided by:* the drive (a second pan makes every `pour pan`
+  ask *which?*; a fire that heats the room spoils the butter).
+- **B7 — Step 19b (the ice pan's block) is not driven.** The only freezer
+  nests its pan two open containers deep and `get` reaches one; reach
+  depth is spatial's, so it goes to `cold-chain-slate` rather than being
+  solved in a trade build. The freeze into the pan's shape is pinned by
+  the W2b mould tests.
+- **B8 — A venue's starter dies unfed in six days, and stays dead.** Not
+  softened: the craft's remedy (raw milk soured wild, its whey
+  backslopped) is real and the drive walks it. A co-op that sells starter
+  → `dairy-slate`.

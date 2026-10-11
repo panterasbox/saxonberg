@@ -84,6 +84,11 @@ describe('the wheel', () => {
     expect(blunt.kind === 'refusal' && blunt.reason).toBe('no-edge');
     const knife = await w.planWork(w, tool('bladed'), null);
     expect(knife.kind).toBe('plan');
+    // ⭐ A tool that CUTS is an edge too — the cheese room's knife is a
+    // cutting Tool, because the `split` view only binds a ToolMixin.
+    const cutter = tool('hafted');
+    cutter.setCapabilities(['cutting']);
+    expect((await w.planWork(w, cutter, null)).kind).toBe('plan');
   });
 
   it('a wedge is the wheel, smaller', async () => {

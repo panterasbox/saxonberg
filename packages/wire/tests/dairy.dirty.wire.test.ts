@@ -214,6 +214,19 @@ async function doing(s: Session, text: string): Promise<string> {
   return said;
 }
 
+/**
+ * Empty the pail. ⚠ A spill onto a floor already holding a puddle of
+ * something else is refused (`material-mismatch` — a bulk finding), and a
+ * yard's puddle may be RAIN, so the spill alone is weather-dependent;
+ * whatever it leaves is drunk.
+ */
+async function emptyPail(): Promise<void> {
+  await act(k, 'spill pail');
+  for (let i = 0; i < 8 && /It holds/.test(await read(k, 'look pail')); i++) {
+    await act(k, 'drink pail');
+  }
+}
+
 /** Move the character by reopening the session where it needs to be. */
 async function goTo(where: string): Promise<void> {
   k?.close();
@@ -412,10 +425,15 @@ suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
 
 suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool', () => {
   it('⭐ a few hours on, `look pan` — it has stood, and separated', async () => {
-    await untilHour(16);
-    const pan = await read(k, 'look pan');
+    // Wait on the STATE, not the clock: the pan stands `restDays` from its
+    // fill, and the fill's hour moves with how long the scald took.
+    let pan = await read(k, 'look pan');
+    for (let i = 0; i < 16 && !/has stood/i.test(pan); i++) {
+      await advance('30 minutes');
+      pan = await read(k, 'look pan');
+    }
     note(`look pan (afternoon) → ${pan}`);
-    expect(pan).toMatch(/separated/i);
+    expect(pan).toMatch(/has stood, and separated/i);
   });
 
   it('⭐⭐ `pour pan into pail` — the skim comes off and STOPS; the cream is left', async () => {
@@ -561,7 +579,9 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
 
   it('⭐⭐ boiled on the fire, cooled, pitched — and the curd sets BADLY', async () => {
     await goTo(CREAMERY);
-    await doing(k, 'pour pail into vat --amount 4L');
+    // The whole pail: the vat takes 25 L, and a pail left half full is a
+    // pail that cannot be emptied on a wet floor.
+    await doing(k, 'pour pail into vat');
     await doing(k, 'heat vat');
     let t = await kelvinOf(k, 'vat');
     for (let i = 0; i < 40 && t < 362; i++) {
@@ -618,6 +638,7 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     expect(split).toMatch(/wedge/i);
     // The wedge comes away into the hand; the rest goes back on the rack.
     await doing(k, 'put wheel on rack');
+    await doing(k, 'drop knife');
     await say(k, 'up');
     await k.drainProse();
     const listed = await doing(k, 'consign wedge --ask 12');
@@ -729,7 +750,7 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     // ⚠ The ewe's milk is spilled in the yard: a floor already holding a
     // puddle of another milk refuses a second (a bulk finding).
     await goTo(YARD);
-    await act(k, 'spill pail');
+    await emptyPail();
     await goTo(BYRE);
     await doing(k, 'draft 3 from dairy');
     await advance('9 hours');
