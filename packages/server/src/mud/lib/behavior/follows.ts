@@ -56,7 +56,7 @@ export const brain = class {
 
     for (const exit of room.getExits().values()) {
       if (exit.getDestination() !== wherever) continue;
-      if (!exit.canTraverse(host, 'walk').ok) return;
+      if (!(await exit.canTraverse(host, 'walk')).ok) return;
 
       // ⚠ It looks at where it is GOING, and reacts. It is not told
       // anything, and it tells you nothing.

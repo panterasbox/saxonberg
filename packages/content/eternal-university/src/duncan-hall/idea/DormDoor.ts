@@ -80,10 +80,10 @@ export default class DormDoor extends LockableMixin(DeferredDestinationExit) {
     return new Lock(keyway, DormWarren.DORM_LOCK_TECH);
   }
 
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     // ⭐⭐ The bolt refuses, the key excuses — and a student can now
     // `unlock` their own door and leave it open for a friend, which the
     // keyway-only model had no way to say.
@@ -96,6 +96,6 @@ export default class DormDoor extends LockableMixin(DeferredDestinationExit) {
           : 'The door is locked.',
       };
     }
-    return super.canTraverse(mover, mode);
+    return await super.canTraverse(mover, mode);
   }
 }

@@ -685,7 +685,8 @@ thing that cannot be contained is nonsensical.
 **`traverse(exit, mode, opts?)`** — ⭐ **the one authoritative
 crossing** under a named locomotion mode (short name: `'walk'`,
 `'climb'`, …). It RETURNS a `TraversalGuard`; a refusal is never thrown.
-The full sequence — prepare → the gate cascade → the mover's
+The full sequence — the gate cascade (the exit's async `canTraverse`
+included) → the mover's
 `beforeTraverse` → passthrough → engagement → apply → the places' vetoes
 → the move — is tabled in
 [locomotion.md § The one crossing](./locomotion.md). The move itself:

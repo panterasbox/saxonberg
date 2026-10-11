@@ -342,10 +342,10 @@ describe('the wardrobe door (Wave 4)', () => {
       guest as unknown as Stuff & Containable,
       room as unknown as Stuff & Container
     );
-    const guard = wardrobeExitOf(room).canTraverse(
+    const guard = (await wardrobeExitOf(room).canTraverse(
       guest as unknown as Stuff & Containable,
       'walk'
-    );
+    ));
     expect(guard.ok).toBe(false);
   });
 });

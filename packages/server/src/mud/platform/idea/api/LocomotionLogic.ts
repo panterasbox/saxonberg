@@ -213,12 +213,12 @@ export class LocomotionLogic extends ApiLogic {
 
   /** See {@link LocomotionApi.canTraverseExit}. */
   @CallSecurity(LocomotionApiCallers)
-  public canTraverseExit(
+  public async canTraverseExit(
     actor: Stuff & Containable,
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     if (!this.bodyPlanAllows(actor, mode)) {
       return {
         ok: false,
@@ -235,7 +235,7 @@ export class LocomotionLogic extends ApiLogic {
         reason: `You can't ${mode.getName()} from this posture.`,
       };
     }
-    const exitGuard = exit.canTraverse(actor, mode.getName());
+    const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
     const enablement = this.checkEnablement(actor, mode, direction);
     if (!enablement.ok) return enablement;

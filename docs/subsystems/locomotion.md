@@ -152,21 +152,28 @@ decides whether, and does it. A refusal is **returned** as a
 
 | step | what | who can hook it |
 |---|---|---|
-| 1 prepare | `exit.prepareTraversal(mover)` — a conditional exit reads the river, the snow, the ice | the exit (`@hook`) |
-| 2 gate | `LocomotionApi.canTraverseExit` — the cascade below | the exit's `canTraverse`; the rows (modes, body plans, enablement hosts) |
-| 3 the mover's say | `beforeTraverse(via)` → `TraversalGuard` — may act and refuse | any mover mixin; **combat's flee** is the first (a parting shot, a pin that holds you, gate `breakaway`) |
-| 4 passthrough | a ride/drive mode hands the crossing to the conveyance host, which runs 1–8 under its own mode | — |
-| 5 engage | `engageAround`: engaged mode, then exertion + limp **only if the crossing happened** | — |
-| 6 apply | `exit.applyTraversal(mover)` — an exit that handles the crossing itself (the wardrobe) | the exit (`@hook`) |
-| 7 the places' say | `canExit` on the source, `canEnter` on the destination (`VetoResult` → gate `veto`) | the rooms |
-| 8 the move | announce, `ContainmentApi.move`, the conveyance ripple + the tow, `onExited`/`onEntered`/`onTraversed`, hazards, concealment, the arrival sense | the rooms + the mover (`on*`) |
+| 1 gate | `LocomotionApi.canTraverseExit` — the cascade below; the exit's own `canTraverse` is **async**, so a ford reads its river, a pass its snow and an ice crossing its sheet *as it is asked* | the exit's `canTraverse` (`@hook`); the rows (modes, body plans, enablement hosts) |
+| 2 the mover's say | `beforeTraverse(via)` → `TraversalGuard` — may act and refuse | any mover mixin; **combat's flee** is the first (a parting shot, a pin that holds you, gate `breakaway`) |
+| 3 passthrough | a ride/drive mode hands the crossing to the conveyance host, which runs 1–7 under its own mode | — |
+| 4 engage | `engageAround`: engaged mode, then exertion + limp **only if the crossing happened** | — |
+| 5 apply | `exit.applyTraversal(mover)` — an exit that handles the crossing itself (the wardrobe) | the exit (`@hook`) |
+| 6 the places' say | `canExit` on the source, `canEnter` on the destination (`VetoResult` → gate `veto`) | the rooms |
+| 7 the move | announce, `ContainmentApi.move`, the conveyance ripple + the tow, `onExited`/`onEntered`/`onTraversed`, hazards, concealment, the arrival sense | the rooms + the mover (`on*`) |
 
-**A carried rider** (`opts.carriedBy`, the ripple's) skips 2–5: it is
+⭐ **One question, one hook.** *May this mover pass, now?* is
+`Exit.canTraverse`, and it is async so it can read whatever moves. A
+reader with no mover in hand — fire spread, the scope walk, inverse
+wiring at load — asks `isBlocked()`, which stays sync and is the exit's
+last-known summary (a ford's last read of its river). (A separate
+`prepareTraversal` step lived here briefly while `canTraverse` was sync;
+it was the same question asked in two halves, and it is gone.)
+
+**A carried rider** (`opts.carriedBy`, the ripple's) skips 1–4: it is
 carried, not walking — only the exit's own `canTraverse` under the
 host's mode, and it never exerts.
 
 ⚠ **Why one place (the climate build, 2026-10-10).** The controller
-used to run steps 1–3 itself and then call `traverse`, which re-ran the
+used to run the gate and the flee itself and then call `traverse`, which re-ran the
 exit's gate as a backstop — two layers each deciding, and an NPC brain
 or a `Journey` leg skipped the controller's half entirely (no body-plan,
 enablement or haulage gate, and no flee: an NPC walked out of a fight

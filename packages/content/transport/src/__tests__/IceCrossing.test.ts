@@ -71,8 +71,8 @@ function body(kg: number): Stuff & Containable {
   return s as unknown as Stuff & Containable;
 }
 
-const reasonOf = (x: IceCrossingExit): string => {
-  const g = x.canTraverse({} as Stuff & Containable, 'walk');
+const reasonOf = async (x: IceCrossingExit, kg = 80): Promise<string> => {
+  const g = await x.canTraverse(body(kg), 'walk');
   return g.ok ? '' : (g.reason ?? '');
 };
 
@@ -92,12 +92,11 @@ describe('an ice crossing reads the sheet', () => {
   it('⭐ open water refuses; a bearing sheet lets a person across', async () => {
     const w = installWater();
     const x = crossing();
-    await x.prepareTraversal(body(80));
+    expect(await reasonOf(x)).toMatch(/water is open/);
     expect(x.isBlocked()).toBe(true);
-    expect(reasonOf(x)).toMatch(/water is open/);
 
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    await x.prepareTraversal(body(80));
+    expect((await x.canTraverse(body(80), 'walk')).ok).toBe(true);
     expect(x.isBlocked()).toBe(false);
   });
 
@@ -105,13 +104,8 @@ describe('an ice crossing reads the sheet', () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    const person = body(80);
-    const horse = body(500);
-    await x.prepareTraversal(person);
-    expect(x.canTraverse(person, 'walk').ok).toBe(true);
-    const refused = x.canTraverse(horse, 'walk');
-    expect(refused.ok).toBe(false);
-    expect(refused.reason).toMatch(/would not bear you/);
+    expect((await x.canTraverse(body(80), 'walk')).ok).toBe(true);
+    expect(await reasonOf(x, 500)).toMatch(/would not bear you/);
     // The on-foot summary (fire, routing, the scope walk) is a person's.
     expect(x.isBlocked()).toBe(false);
   });
@@ -120,34 +114,28 @@ describe('an ice crossing reads the sheet', () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    const person = body(80);
-    const horse = body(500);
-    // Both prepares in flight together, the horse's landing last — the
-    // interleaving that used to leave the HORSE's verdict on the shared
-    // `blocked` bit when the person reached the gate.
-    await Promise.all([x.prepareTraversal(person), x.prepareTraversal(horse)]);
-    expect(x.canTraverse(person, 'walk').ok).toBe(true);
-    expect(x.canTraverse(horse, 'walk').ok).toBe(false);
+    // Both asks in flight together — the interleaving that used to leave
+    // one mover's verdict on the shared `blocked` bit for the other.
+    const [person, horse] = await Promise.all([
+      x.canTraverse(body(80), 'walk'),
+      x.canTraverse(body(500), 'walk'),
+    ]);
+    expect(person.ok).toBe(true);
+    expect(horse.ok).toBe(false);
   });
 
-  it('never read is never crossed — the gate fails closed', () => {
-    installWater().ice = { thicknessM: 0.3, bearsKg: 2250, rotting: false, reason: null };
-    const x = crossing();
-    expect(x.canTraverse(body(80), 'walk').ok).toBe(false);
-    // …while the summary stays the authored bit, so `Exitable` still
-    // wires the crossing's inverse at birth.
-    expect(x.isBlocked()).toBe(false);
+  it('before anything asks, the summary is the authored bit — so the inverse still wires at birth', () => {
+    installWater().ice = { thicknessM: 0, bearsKg: 0, rotting: false, reason: 'warm' };
+    expect(crossing().isBlocked()).toBe(false);
   });
 
   it('rotten ice and running water refuse in their own words', async () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.3, bearsKg: 2250, rotting: true, reason: null };
-    await x.prepareTraversal(body(80));
-    expect(reasonOf(x)).toMatch(/rotten/);
+    expect(await reasonOf(x)).toMatch(/rotten/);
     w.ice = { thicknessM: 0, bearsKg: 0, rotting: false, reason: 'running' };
-    await x.prepareTraversal(body(80));
-    expect(reasonOf(x)).toMatch(/moving/);
+    expect(await reasonOf(x)).toMatch(/moving/);
   });
 
   it('the margin is added to the mover', async () => {
@@ -155,18 +143,17 @@ describe('an ice crossing reads the sheet', () => {
     const x = crossing();
     x.setBearsMarginKg(100);
     w.ice = { thicknessM: 0.08, bearsKg: 160, rotting: false, reason: null };
-    await x.prepareTraversal(body(80));
+    expect((await x.canTraverse(body(80), 'walk')).ok).toBe(false);
     expect(x.isBlocked()).toBe(true);
   });
 
   it('⚠ with no water pack, the crossing is a wall', async () => {
     const x = crossing();
-    await x.refreshCrossing();
+    expect(await reasonOf(x)).toMatch(/no crossing here/);
     expect(x.isBlocked()).toBe(true);
-    expect(reasonOf(x)).toMatch(/no crossing here/);
   });
 
-  it('applyTraversal never handles the traversal itself — the refresh is prepareTraversal\'s', async () => {
+  it('applyTraversal never handles the traversal itself — reading the ice is canTraverse\'s', async () => {
     installWater().ice = { thicknessM: 0.2, bearsKg: 1000, rotting: false, reason: null };
     expect(await crossing().applyTraversal(body(80))).toBe(false);
   });

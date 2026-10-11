@@ -347,7 +347,7 @@ describe('the residential programme (D16)', () => {
     iris.setPlayerId('iris');
 
     // No keyway on the lot → locked to everyone.
-    expect(door.canTraverse(iris as never).ok).toBe(false);
+    expect((await door.canTraverse(iris as never)).ok).toBe(false);
 
     await ParcelApi.setKeyway(LOT1, 'kw-77');
     await w.refreshProvisioned();
@@ -355,8 +355,8 @@ describe('the residential programme (D16)', () => {
     const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
     bob.setPlayerId('bob');
     await new Lock('kw-77', 'pin-tumbler').issueKeyTo(iris);
-    expect(door.canTraverse(iris as never).ok).toBe(true);
-    expect(door.canTraverse(bob as never).ok).toBe(false);
+    expect((await door.canTraverse(iris as never)).ok).toBe(true);
+    expect((await door.canTraverse(bob as never)).ok).toBe(false);
 
     // Traversal materializes the holding and lands in the ENTRY room.
     const dest = await door.resolveDestination();
@@ -627,7 +627,7 @@ describe('the maintenance act (D4/D5)', () => {
     clock.mockRestore();
   });
 
-  it('the kit confers the verb — outward, to whoever holds it', () => {
+  it('the kit confers the verb — outward, to whoever holds it', async () => {
     const verbs = CommandApi.collectContributions(HouseholdersKit, 'environment')
       .map((d) => d.verbs)
       .flat();

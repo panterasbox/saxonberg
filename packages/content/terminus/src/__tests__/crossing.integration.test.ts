@@ -230,12 +230,12 @@ describe("University Avenue crossing standup (real seeds)", () => {
       canTraverse(
         mover: Stuff & Containable,
         mode?: string,
-      ): { ok: boolean; gate?: string };
+      ): Promise<{ ok: boolean; gate?: string }>;
     };
     expect(north).toBeTruthy();
     expect(north.getDoor()?.isLocked()).toBe(true);
     const mover = {} as unknown as Stuff & Containable;
-    const guard = north.canTraverse(mover);
+    const guard = await north.canTraverse(mover);
     expect(guard.ok).toBe(false);
     expect(guard.gate).toBe("locked");
   });

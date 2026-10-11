@@ -593,11 +593,10 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   destination and no departure — the body stays put). ⚠ It only
   CROSSES; it decides nothing (see locomotion.md § The one crossing).
 - **`SandboxCrossingExit`**: `enter` direction runs the full door gate
-  — the async authority half (own circle always yours, else title
-  holder or `ParcelApi.hasUseGrant`) in `prepareTraversal`, recorded
-  PER MOVER; the sync half (person-shape checks + that verdict,
-  fail-closed when absent) in `canTraverse`, refusing in the door's own
-  words — then `applyTraversal` → `SandboxApi.enter`. (Until the
+  in its async `canTraverse` — person-shape checks, then the authority
+  read for this mover (own circle always yours, else title holder or
+  `ParcelApi.hasUseGrant`), refusing in the door's own words — then
+  `applyTraversal` → `SandboxApi.enter`. (Until the
   traversal refactor the authority check ran inside `applyTraversal`
   and THREW, after every gate had passed.) `return` direction is always
   open and runs `SandboxApi.exit`.

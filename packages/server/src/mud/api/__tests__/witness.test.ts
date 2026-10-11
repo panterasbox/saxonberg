@@ -183,12 +183,12 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     }
   }
 
-  /** An exit that logs its two hooks and its gate. */
+  /** An exit that logs its gate and its apply hook. */
   class LoggingExit extends Exit {
-    public override async prepareTraversal(): Promise<void> {
-      log.push('prepare');
-    }
-    public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
+    public override async canTraverse(
+      mover: Stuff & Containable,
+      mode?: string,
+    ): Promise<TraversalGuard> {
       log.push('gate');
       return super.canTraverse(mover, mode);
     }
@@ -224,12 +224,11 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     log = [];
   });
 
-  it('⭐ runs ONE sequence, in order: prepare → gate → the mover → apply → the places → the move → the witnesses', async () => {
+  it('⭐ runs ONE sequence, in order: gate → the mover → apply → the places → the move → the witnesses', async () => {
     const { source, dest, mover, exit } = scene();
     const guard = await mover.traverse(exit, 'walk');
     expect(guard).toEqual({ ok: true });
     expect(log).toEqual([
-      'prepare',
       'gate',
       'beforeTraverse',
       'apply',
@@ -259,7 +258,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     mover.refusal = { ok: false, gate: 'breakaway', reason: 'held' };
     const guard = await mover.traverse(exit, 'walk');
     expect(guard).toEqual({ ok: false, gate: 'breakaway', mode: 'walk', reason: 'held' });
-    expect(log).toEqual(['prepare', 'gate', 'beforeTraverse']);
+    expect(log).toEqual(['gate', 'beforeTraverse']);
     expect(mover.getContainer()).toBe(source);
   });
 

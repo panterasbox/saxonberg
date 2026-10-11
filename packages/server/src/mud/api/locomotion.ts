@@ -202,12 +202,12 @@ export class LocomotionApi {
    *   3. exit-allowed-modes (`Exit.canTraverse`)
    *   4. enablement (per-mode, field-driven via `getEnablementMixin`)
    */
-  public static canTraverseExit(
+  public static async canTraverseExit(
     actor: Stuff & Containable,
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     return logic().canTraverseExit(actor, exit, mode, direction);
   }
 

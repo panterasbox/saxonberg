@@ -11,12 +11,11 @@
  * ## How it answers
  *
  * Unlike the ford, the answer depends on WHO is crossing: a sheet that
- * bears a person refuses a horse. So the two halves are split by what is
- * shared: `prepareTraversal` reads the SHEET (the same for everyone) and
- * the sync gate weighs THIS mover against it. Nothing per-mover is ever
- * stored — an earlier version wrote each mover's verdict into the shared
- * `blocked` bit, and two people at the shore across the read's await
- * could get each other's answer. `isBlocked()` answers for a person on
+ * bears a person refuses a horse. `canTraverse` (async) reads the SHEET
+ * (the same for everyone — the one thing stored) and weighs THIS mover
+ * against it. Nothing per-mover is ever stored — an earlier version wrote
+ * each mover's verdict into the shared `blocked` bit, and two people at
+ * the shore across the read's await could get each other's answer. `isBlocked()` answers for a person on
  * foot, for the readers with no mover in hand (fire, the scope walk,
  * routing). The refusal names what is wrong with the ice: open water,
  * thin ice, rotten ice, or water that moves.
@@ -120,17 +119,12 @@ export default class IceCrossingExit extends Exit {
     this.ice = await IceCrossingExit.readIce(this._crossesReach);
   }
 
-  /** Read the sheet BEFORE the gate (`Exit.prepareTraversal`). */
-  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
-    await this.refreshCrossing();
-  }
-
   /**
    * The way as a person on foot would find it — the answer for every
    * reader that has no mover in hand (fire spread, the scope walk,
    * routing). The authored `blocked` bit still closes it outright.
    *
-   * ⚠ Before the sheet has ever been read this is the AUTHORED bit alone:
+   * ⚠ Before any crossing has read the sheet this is the AUTHORED bit alone:
    * `Exitable` asks `isBlocked()` at `addExit` to decide whether an exit
    * is "settled at birth", and an unread crossing must still get its
    * inverse wired. The gate is what fails closed (see `refusalFor`).
@@ -141,13 +135,20 @@ export default class IceCrossingExit extends Exit {
     return this.refusalFor(DEFAULT_MOVER_KG) !== null;
   }
 
-  /** Bears THIS mover? Refusals name what is wrong with the ice. */
-  public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
+  /**
+   * Read the sheet at the moment of asking, then weigh THIS mover against
+   * it. Refusals name what is wrong with the ice.
+   */
+  public override async canTraverse(
+    mover: Stuff & Containable,
+    mode?: string,
+  ): Promise<TraversalGuard> {
+    await this.refreshCrossing();
     const refusal = this.refusalFor(IceCrossingExit.massOf(mover));
     if (refusal !== null) {
       return { ok: false, gate: 'blocked', reason: IceCrossingExit.prose(refusal) };
     }
-    return super.canTraverse(mover, mode);
+    return await super.canTraverse(mover, mode);
   }
 
   /** What is wrong with the ice for a body of `moverKg`, or `null`. */

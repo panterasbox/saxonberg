@@ -12,8 +12,8 @@
  * ## How it answers
  *
  * One cached answer per weather segment (the snow's own memo period),
- * written to the shipped `blocked` bit. `prepareTraversal` refreshes it
- * before every crossing's gate, so the ordinary `blocked` gate refuses —
+ * written to the shipped `blocked` bit. `canTraverse` (async) refreshes
+ * it at the moment of asking, so the ordinary `blocked` gate refuses —
  * with the reason below — and the lane compile and a `Journey` mid-route
  * see the same bit.
  *
@@ -95,16 +95,15 @@ export default class SnowboundExit extends Exit {
   }
 
   /**
-   * Refresh BEFORE the gate (`Exit.prepareTraversal`, awaited ahead of
-   * `canTraverse`); the `blocked` gate then refuses with the reason below.
+   * Read the snow at the moment of asking, then let the ordinary
+   * `blocked` gate decide. The refusal names the snow, not "the way".
    */
-  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
+  public override async canTraverse(
+    mover: Stuff & Containable,
+    mode?: string,
+  ): Promise<TraversalGuard> {
     await this.refreshCrossing();
-  }
-
-  /** The refusal names the snow, not "the way". */
-  public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode);
     if (base.ok || base.gate !== 'blocked') return base;
     return {
       ok: false,

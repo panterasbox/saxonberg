@@ -960,10 +960,10 @@ export default class Exit extends ConcealableMixin(Idea) {
    * choreography, and nothing material ever traverses. Default `false`.
    *
    * ⚠ ONE job: *I handle this crossing myself.* It is not a place to
-   * refresh state — it runs after every gate has decided. That is
-   * {@link prepareTraversal}'s job.
+   * read state or refuse — it runs after the gate has decided; reading
+   * and refusing are {@link canTraverse}'s.
    *
-   * @hook Invoked by `Mobile.traverse` after the gates and the mover's
+   * @hook Invoked by `Mobile.traverse` after the gate and the mover's
    *   `beforeTraverse`, BEFORE destination resolution, the source and
    *   destination vetoes and the departure announcement. Return `true`
    *   when this exit has fully handled the traversal; `false` to continue
@@ -976,27 +976,6 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
-   * ⭐ Bring the exit's own state up to date for `mover` BEFORE any gate
-   * reads it — the async half of a conditional exit.
-   *
-   * A ford, a snowbound pass and an ice crossing each derive `blocked`
-   * from something that moves (the river, the snow, the ice) and can only
-   * read it asynchronously, while the gate ({@link canTraverse}) is sync.
-   * This is where the read happens.
-   *
-   * @hook Awaited FIRST by `Mobile.traverse`, before any gate. The
-   *   sequence a crossing runs, in order: **prepare** (this) → **gate**
-   *   (`canTraverse` + the locomotion cascade) → the mover's
-   *   `beforeTraverse` → **apply** ({@link applyTraversal}) → the
-   *   `canExit`/`canEnter` vetoes → the move → the `on*` witnesses.
-   *   **Override** to refresh derived state; never move the mover here.
-   *   The base is a no-op.
-   */
-  public async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
-    return;
-  }
-
-  /**
    * Can `mover` traverse this exit right now?
    *
    * Returns `{ ok: false, reason, gate }` on the first failing gate
@@ -1006,11 +985,21 @@ export default class Exit extends ConcealableMixin(Idea) {
    * (e.g. `'walk'`, `'climb'`). When supplied, this method consults
    * `allowsMode(mode)`. When omitted (pre-locomotion callers, admin
    * tools), the mode gate is skipped — backcompat-additive.
+   *
+   * @hook ⭐ ASYNC, so an exit whose passability depends on something
+   *   that moves reads it HERE, at the moment of asking: a ford reads the
+   *   river, a pass its snow, an ice crossing the sheet against this
+   *   mover's mass, the wardrobe whose circle it opens onto. One hook,
+   *   one question — *may this mover pass, now?* (A separate
+   *   `prepareTraversal` step existed while this was sync; it is gone.)
+   *   Readers with no mover in hand ask {@link isBlocked}, which stays
+   *   sync and is the exit's last-known summary. **Override** and
+   *   `await super.canTraverse(...)` for the ordinary gates.
    */
-  public canTraverse(
+  public async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     if (this.blocked) {
       return {
         ok: false,

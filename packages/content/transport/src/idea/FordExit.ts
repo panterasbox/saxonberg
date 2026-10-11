@@ -18,15 +18,14 @@
  * water, the lane compile drops the edge, and a `Journey` mid-route
  * aborts `route-blocked` at the leg boundary.
  *
- * **`prepareTraversal`** refreshes it — `Mobile.traverse` awaits it
- * before any gate, for a person's `go`, an NPC's step and a `Journey`
- * leg alike — so whoever walks up to the water gets today's answer, and
- * the ordinary `blocked` gate does the refusing. (Until the climate build
- * it refreshed in `applyTraversal`, which runs AFTER the gate: the first
- * crossing after the water rose went through.) ⚠ The `LaneCatalogue` no
- * longer calls `refreshCrossing` by shape (`LaneCatalogue.ts` records
- * why): a compiled road finds the closure at the leg, when the leg's
- * traverse prepares. `SnowboundExit` and `IceCrossingExit` (the climate
+ * **`canTraverse`** — async — refreshes it at the moment of asking, for a
+ * person's `go`, an NPC's step and a `Journey` leg alike, so whoever
+ * walks up to the water gets today's answer and the ordinary `blocked`
+ * gate does the refusing. (Until the climate build it refreshed in
+ * `applyTraversal`, which runs AFTER the gate: the first crossing after
+ * the water rose went through.) ⚠ The `LaneCatalogue` no longer calls
+ * `refreshCrossing` by shape (`LaneCatalogue.ts` records why): a compiled
+ * road finds the closure at the leg, when the leg's traverse asks. `SnowboundExit` and `IceCrossingExit` (the climate
  * build) are this class's two siblings.
  *
  * ## ⚠ It reads the water pack by SHAPE, never by import
@@ -116,7 +115,9 @@ export default class FordExit extends Exit {
    *
    * Idempotent within a weather segment: the catalogue memoises flow on
    * the same period, so asking twice in six game hours cannot produce
-   * two answers. Called by {@link prepareTraversal}.
+   * two answers. Called by {@link canTraverse}; the `blocked` bit it
+   * leaves is the summary `isBlocked()` readers (fire, the scope walk)
+   * see between crossings.
    */
   public async refreshCrossing(force = false): Promise<void> {
     if (this._crossesReach === '' || this._floodThresholdM3S <= 0) return;
@@ -138,17 +139,16 @@ export default class FordExit extends Exit {
     );
   }
 
-  /** Read the river before the gate looks (`Exit.prepareTraversal`). */
-  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
-    await this.refreshCrossing();
-  }
-
-  /** The refusal names the water, not "the way". */
-  public override canTraverse(
+  /**
+   * Read the river at the moment of asking, then let the ordinary
+   * `blocked` gate decide. The refusal names the water, not "the way".
+   */
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+  ): Promise<TraversalGuard> {
+    await this.refreshCrossing();
+    const base = await super.canTraverse(mover, mode);
     if (base.ok || base.gate !== 'blocked') return base;
     return {
       ok: false,

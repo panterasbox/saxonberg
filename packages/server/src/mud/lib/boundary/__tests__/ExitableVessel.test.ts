@@ -43,14 +43,14 @@ describe('ExitableVessel', () => {
     wardrobe.setShortDescription('wardrobe');
   });
 
-  it('is flagged as Exitable by MixinApi', () => {
+  it('is flagged as Exitable by MixinApi', async () => {
     expect(MixinApi.isExitable(wardrobe)).toBe(true);
     expect(MixinApi.isContainer(wardrobe)).toBe(true);
     expect(MixinApi.isContainable(wardrobe)).toBe(true);
     expect(MixinApi.isDoorBearing(wardrobe)).toBe(true);
   });
 
-  it("getExit('out') synthesizes an exit to the environment", () => {
+  it("getExit('out') synthesizes an exit to the environment", async () => {
     ContainmentApi.move(wardrobe, park);
     const out = wardrobe.getExit('out');
     expect(out).toBeDefined();
@@ -59,18 +59,18 @@ describe('ExitableVessel', () => {
     expect(out!.getDestination()).toBe(park);
   });
 
-  it("getExit('out') returns undefined when the vessel has no environment", () => {
+  it("getExit('out') returns undefined when the vessel has no environment", async () => {
     expect(wardrobe.getExit('out')).toBeUndefined();
   });
 
-  it("caches the synthesized 'out' exit across calls", () => {
+  it("caches the synthesized 'out' exit across calls", async () => {
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getExit('out');
     const second = wardrobe.getExit('out');
     expect(first).toBe(second);
   });
 
-  it("⭐ REBINDS the 'out' exit when the environment changes", () => {
+  it("⭐ REBINDS the 'out' exit when the environment changes", async () => {
     // A vessel is a room that goes places, so it keeps ONE `out` exit
     // and re-points it. (It used to build a fresh `new Exit` per
     // environment; now the exit is a clone of a row, minted once at
@@ -98,7 +98,7 @@ describe('ExitableVessel', () => {
     expect(got!.getDestination()).toBe(other);
   });
 
-  it('getEntryExit() synthesizes an exit from the environment into the vessel', () => {
+  it('getEntryExit() synthesizes an exit from the environment into the vessel', async () => {
     ContainmentApi.move(wardrobe, park);
     const entry = wardrobe.getEntryExit();
     expect(entry).toBeDefined();
@@ -106,18 +106,18 @@ describe('ExitableVessel', () => {
     expect(entry!.getDestination()).toBe(wardrobe);
   });
 
-  it('getEntryExit() returns undefined when the vessel has no environment', () => {
+  it('getEntryExit() returns undefined when the vessel has no environment', async () => {
     expect(wardrobe.getEntryExit()).toBeUndefined();
   });
 
-  it('caches the synthesized entry exit across calls', () => {
+  it('caches the synthesized entry exit across calls', async () => {
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getEntryExit();
     const second = wardrobe.getEntryExit();
     expect(first).toBe(second);
   });
 
-  it('⭐ REBINDS the entry exit when the environment changes', () => {
+  it('⭐ REBINDS the entry exit when the environment changes', async () => {
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getEntryExit();
     ContainmentApi.move(wardrobe, park2);
@@ -127,7 +127,7 @@ describe('ExitableVessel', () => {
     expect(second!.getSource()).toBe(park2);
   });
 
-  it('includes the out exit in getObviousExits', () => {
+  it('includes the out exit in getObviousExits', async () => {
     ContainmentApi.move(wardrobe, park);
     const obvious = wardrobe.getObviousExits();
     const directions = obvious.map((e) => e.getDirection());
@@ -135,12 +135,12 @@ describe('ExitableVessel', () => {
   });
 
   describe('containment constraint (ContainmentApi)', () => {
-    it('cannot be placed in a non-Exitable container', () => {
+    it('cannot be placed in a non-Exitable container', async () => {
       const box = makeStuff(() => new PlainContainer());
       expect(() => ContainmentApi.move(wardrobe, box)).toThrow(ContainmentError);
     });
 
-    it('can move between Exitables when zones agree', () => {
+    it('can move between Exitables when zones agree', async () => {
       // Pre-stamp the wardrobe (clone-time would do this); move
       // does not back-fill or restamp.
       Stuff._stampZone(wardrobe, zone);
@@ -150,7 +150,7 @@ describe('ExitableVessel', () => {
       expect(wardrobe.getZone()).toBe(zone);
     });
 
-    it('cannot move between Exitables in different zones', () => {
+    it('cannot move between Exitables in different zones', async () => {
       const otherZone = makeStuff(() => new CartesianZone());
       const otherPark = makeStuff(() => new CartesianLocation());
       otherZone.addLocation(otherPark, 0, 0, 0);
@@ -160,7 +160,7 @@ describe('ExitableVessel', () => {
       expect(() => ContainmentApi.move(wardrobe, otherPark)).toThrow(ContainmentError);
     });
 
-    it('move does not back-fill zone on a Exitable that was never stamped', () => {
+    it('move does not back-fill zone on a Exitable that was never stamped', async () => {
       // Without a zone stamp, the cross-zone invariant is silent
       // (the `item.zone && item.zone !== to.zone` guard short-
       // circuits on null), and the move does NOT pick up the
@@ -201,12 +201,12 @@ describe('ExitableVessel', () => {
       ContainmentApi.move(wardrobe, park);
 
       const out = wardrobe.getExit('out')!;
-      const guard = out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable);
+      const guard = (await out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable));
       expect(guard.ok).toBe(false);
       expect(guard.reason).toMatch(/closed/);
 
       door.open();
-      const guardOpen = out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable);
+      const guardOpen = (await out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable));
       expect(guardOpen.ok).toBe(true);
     });
 

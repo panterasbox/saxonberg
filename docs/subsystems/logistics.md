@@ -741,7 +741,7 @@ catalogue's own **six-game-hour weather segment**, so a ford and
 ### ⭐ The ford's two siblings — a pass under snow, a crossing over ice (the climate build)
 
 Both are `transport` classes that copy the ford exactly
-(`prepareTraversal` refreshes ahead of the gate; the shipped `blocked`
+(the async `canTraverse` re-reads as it is asked; the shipped `blocked`
 gate refuses, in the exit's own words; `conditional: true` on the kind row; physical only — a
 `tell` from behind a shut pass goes through):
 
@@ -756,9 +756,9 @@ gate refuses, in the exit's own words; `conditional: true` on the kind row; phys
   It refuses open water, running water, thin ice and rotten ice in their
   own words, and with no water pack installed it is a WALL (a ford with
   no river is a road; a crossing with no ice is nothing). ⚠ Because the
-  answer is per mover, nothing per-mover is STORED: `prepareTraversal`
-  reads the sheet (shared — the same for everyone) and the sync gate
-  weighs each mover against it, so two people at the shore at once
+  answer is per mover, nothing per-mover is STORED: `canTraverse` reads
+  the sheet (shared — the same for everyone) and weighs this mover
+  against it, so two people at the shore at once
   cannot read each other's verdict. `isBlocked()` is the on-foot summary
   for readers with no mover (fire, the scope walk, routing).
 

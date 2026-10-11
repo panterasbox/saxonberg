@@ -676,8 +676,8 @@ any caller with no mode of its own.
 
 **The authoritative move.** Every self-powered crossing goes through it
 — a player's `go`, an NPC brain, a `Journey` leg — and it owns the whole
-sequence: prepare (`Exit.prepareTraversal`) → the gate cascade
-(`LocomotionApi.canTraverseExit`) → the mover's `beforeTraverse` (combat's
+sequence: the gate cascade (`LocomotionApi.canTraverseExit`, whose
+exit step — the async `Exit.canTraverse` — reads whatever moves) → the mover's `beforeTraverse` (combat's
 flee) → passthrough to the conveyance host → engagement + exertion
 (`engageAround`, called from inside) → apply (`Exit.applyTraversal`) → the
 places' `canExit`/`canEnter` → the move. It **returns** a

@@ -118,7 +118,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const actor = makeStuff(() => new Mover());
     ContainmentApi.move(actor, locA);
 
-    const guard = LocomotionApi.canTraverseExit(actor, exit, climb, 'up');
+    const guard = (await LocomotionApi.canTraverseExit(actor, exit, climb, 'up'));
     expect(guard.ok).toBe(true);
 
     await LocomotionApi.engageAround(actor, climb, exit, () =>
@@ -129,7 +129,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(actor.getEngagedMode()).toBeNull();
   });
 
-  it('walk fails through climb-only exit (gate=exitMode)', () => {
+  it('walk fails through climb-only exit (gate=exitMode)', async () => {
     const walk = buildMode('walk');
     const locA = makeStuff(() => new CartesianLocation());
     const locB = makeStuff(() => new CartesianLocation());
@@ -140,7 +140,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const actor = makeStuff(() => new Mover());
     ContainmentApi.move(actor, locA);
 
-    const guard = LocomotionApi.canTraverseExit(actor, exit, walk, 'up');
+    const guard = (await LocomotionApi.canTraverseExit(actor, exit, walk, 'up'));
     expect(guard.ok).toBe(false);
     expect(guard.gate).toBe('exitMode');
   });
@@ -161,7 +161,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const swimmer = makeStuff(() => new Mover());
     ContainmentApi.move(swimmer, pond);
 
-    const guard = LocomotionApi.canTraverseExit(swimmer, exit, swim, 'north');
+    const guard = (await LocomotionApi.canTraverseExit(swimmer, exit, swim, 'north'));
     expect(guard.ok).toBe(true);
 
     await LocomotionApi.engageAround(swimmer, swim, exit, () =>
@@ -229,7 +229,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(rider.getEngagedMode()).toBe(ride);
   });
 
-  it('rider dismount: vacate clears engagedMode via onSlotReleased witness', () => {
+  it('rider dismount: vacate clears engagedMode via onSlotReleased witness', async () => {
     const ride = buildMode('ride');
     const horse = makeStuff(() => new TestMount());
     horse.setStaticSlots([{ name: 'mount:1', accepts: 'SlottableMixin' }]);
@@ -274,7 +274,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(driver.getContainer()).toBe(locB);
   });
 
-  it('mountain face too hard for novice (capability < difficulty)', () => {
+  it('mountain face too hard for novice (capability < difficulty)', async () => {
     const climb = buildMode('climb');
     const mountain = makeStuff(() => new ClimbZoneLocation());
     mountain.setAxes(['up']);
@@ -300,7 +300,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(guard.ok).toBe(true);
   });
 
-  it('fly mode finds a SYNTHETIC Flyable host — the realm has none, by declaration (see the note above)', () => {
+  it('fly mode finds a SYNTHETIC Flyable host — the realm has none, by declaration (see the note above)', async () => {
     const fly = buildMode('fly');
     const sky = makeStuff(() => new FlyZoneLocation());
     sky.setAxes(['*']);
@@ -325,7 +325,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(emission?.resolvedHostChain).toContain(rider);
   });
 
-  it('emissionAt returns null when nothing is engaged', () => {
+  it('emissionAt returns null when nothing is engaged', async () => {
     const actor = makeStuff(() => new Mover());
     expect(LocomotionApi.emissionAt(actor)).toBeNull();
   });

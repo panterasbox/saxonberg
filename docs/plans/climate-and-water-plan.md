@@ -1362,6 +1362,35 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   `Exitable` asks at `addExit` whether an exit is "settled at birth" and
   an unread crossing must still get its inverse wired. The gate fails
   closed. A test pins two concurrent prepares.
+- **B28 (review round 1) — `canTraverse` is async; `prepareTraversal`
+  is gone.** The user asked why the extra hook existed at all. The only
+  reason was mechanical: the gate was sync, and the river, the snow, the
+  ice and the wardrobe's authority can only be read async. So the gate
+  became async: the base `Exit` plus ten overrides (the three
+  conditional exits, the wardrobe, the residence and dorm doors, the
+  Duncan Hall stair). Each conditional exit now reads what moves inside
+  its own `canTraverse`, and the wardrobe's per-mover authority map is
+  gone. Six callers await it: the cascade, the carried branch, three
+  brains and `call`. `isBlocked()` stays sync as the last-known summary
+  for readers with no mover. `lint:location-graph` now keys on a class
+  that defines `async refreshCrossing` (the conditional exits' shared
+  protocol), and it was proven to fire on a row stripped of
+  `_conditional`. This supersedes B18's hook and B27's
+  prepare-then-weigh split. B27's substance stands: only the sheet is
+  stored, and each mover is weighed against it as it asks.
+- **B29 (review round 1) — W6's phase pass recursed on a moving
+  clock.** Drive runs 15–16 hung the server at the bare shore: a stack
+  overflow in a blood unit's `restamp`, and then a stalled event loop.
+  `reconcileThermal` calls the phase pass after releasing its own guard.
+  The bulk phase pass reads `getTemperature()`, and on a scaled
+  real-time clock that inner read sees a little elapsed time, integrates
+  again and calls the phase pass again, recursing without bound. It only
+  shows under load, which is why runs 12–14 passed. W6 widened the phase
+  pass to every `Bulkable+Thermal` host, so this is the build's own
+  defect. Fixed with a `_phaseReconciling` reentry guard. A regression
+  test ticks the clock on every read; it was proven to throw without the
+  guard (its first draft passed vacuously, because a cleared world-clock
+  registry left thermal idle).
 - **R16 corollary — a room's ambient is restamped at a weather boundary
   only where somebody is.** The drive advances its days standing at the
   Circle camp so the pan sees the cold; a pan nobody visits cools late.

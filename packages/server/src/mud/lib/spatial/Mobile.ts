@@ -398,28 +398,27 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * The sequence, in order (each step's refusal is RETURNED, never
      * thrown — a refused crossing is an answer, not an error):
      *
-     *   1. **prepare** — `exit.prepareTraversal(mover)`: a conditional
-     *      exit reads the river, the snow, the ice.
-     *   2. **gate** — the locomotion cascade (`LocomotionApi
+     *   1. **gate** — the locomotion cascade (`LocomotionApi
      *      .canTraverseExit`: body plan, posture, the exit's own
-     *      `canTraverse`, enablement, haulage).
-     *   3. **the mover's say** — `beforeTraverse(via)`, a witness that may
+     *      `canTraverse` — async, so a ford reads its river and an ice
+     *      crossing its sheet right here — enablement, haulage).
+     *   2. **the mover's say** — `beforeTraverse(via)`, a witness that may
      *      act and refuse: combat's flee (a parting shot, a pin that
      *      holds you) is the first implementer.
-     *   4. **passthrough** — a ride/drive mode hands the crossing to the
-     *      conveyance host, which runs its own steps 1–8 under its mode.
-     *   5. **engage** — a self-powered crossing runs inside
+     *   3. **passthrough** — a ride/drive mode hands the crossing to the
+     *      conveyance host, which runs its own steps 1–7 under its mode.
+     *   4. **engage** — a self-powered crossing runs inside
      *      `LocomotionApi.engageAround` (engaged mode, exertion, limp).
-     *   6. **apply** — `exit.applyTraversal`: an exit that handles the
+     *   5. **apply** — `exit.applyTraversal`: an exit that handles the
      *      crossing itself (the wardrobe) takes it here.
-     *   7. **the places' say** — `canExit` on the source, `canEnter` on
+     *   6. **the places' say** — `canExit` on the source, `canEnter` on
      *      the destination.
-     *   8. **the move** — announce, `ContainmentApi.move`, the conveyance
+     *   7. **the move** — announce, `ContainmentApi.move`, the conveyance
      *      ripple and the tow, then the `on*` witnesses, hazards,
      *      concealment and the arrival sense.
      *
      * `carriedBy` is the conveyance ripple's: a rider moved by its mount
-     * skips 2–5 (it is carried, not walking), keeping only the exit's own
+     * skips the cascade and 2–4 (it is carried, not walking), keeping only the exit's own
      * `canTraverse` under the host's mode.
      */
     async traverse(
@@ -428,17 +427,15 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       mode: string,
       opts?: TraverseOptions,
     ): Promise<TraversalGuard> {
-      await exit.prepareTraversal(this);
-
       if (opts?.carriedBy) {
-        const guard = exit.canTraverse(this, mode);
+        const guard = await exit.canTraverse(this, mode);
         if (!guard.ok) return guard;
         return crossExit(this, exit, mode);
       }
 
       await LocomotionApi.preloadActorAnatomy(this);
       const engaged = await LocomotionApi.loadMode(mode);
-      const guard = LocomotionApi.canTraverseExit(
+      const guard = await LocomotionApi.canTraverseExit(
         this,
         exit,
         engaged,
@@ -883,7 +880,7 @@ function arriveDirection(exit: Exit): string | undefined {
  * already in this file.
  */
 /**
- * Steps 6–8 of {@link Mobile.traverse} — apply, the places' vetoes, the
+ * Steps 5–7 of {@link Mobile.traverse} — apply, the places' vetoes, the
  * move. Module-private so nothing can reach the move without the gates:
  * the only callers are `traverse` itself (inside its engagement) and the
  * carried branch.

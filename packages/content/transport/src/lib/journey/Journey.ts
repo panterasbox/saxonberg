@@ -277,7 +277,7 @@ export class Journey implements SustainedEngagement {
 
     // ⭐ The same call a player's `go` makes, and the crossing decides —
     // a ford risen since the lane compiled, a pass snowed shut, refuse
-    // HERE (`prepareTraversal` reads them first). Nothing in a Journey
+    // HERE (`canTraverse` reads them as it asks). Nothing in a Journey
     // moves anything itself, and nothing pre-reads `isBlocked()` stale.
     const crossed = await mover
       .traverse(exit, this.mode ?? LocomotionApi.defaultModeFor(mover))

@@ -9,7 +9,7 @@
  *     `canTraverse` performs the DOOR GATE (the mover's own circle is
  *     always theirs — the self-home rule; a fixture linked to someone
  *     else's circle admits its host; guest grants ride the parcel grant
- *     surface) — the async half in `prepareTraversal`, ahead of the gate;
+ *     surface), the async authority read included;
  *     `applyTraversal` → `SandboxApi.enter`.
  *   - **`return`** (the in-circle way out, minted by `SandboxLogic`
  *     beside the entry room): `applyTraversal` → `SandboxApi.exit` —
@@ -36,14 +36,6 @@ export default class SandboxCrossingExit extends Exit {
 
   /** The carrying fixture (enter direction only; live within-session). */
   private crossing: SandboxCrossing | null = null;
-
-  /**
-   * The async authority verdict per mover (stuffId → refusal prose, or
-   * `null` = admitted), written by {@link prepareTraversal} and read by the
-   * sync gate. Per MOVER, never on the shared `blocked` bit: two people at
-   * one door get two answers. Runtime-only.
-   */
-  private authority = new Map<string, string | null>();
 
   /**
    * A crossing has NO spatial destination — that is Decision H's whole
@@ -88,16 +80,14 @@ export default class SandboxCrossingExit extends Exit {
 
   /**
    * The door gate: person-shape checks (an implant-less thing or a
-   * throwaway guest cannot cross), then the authority verdict
-   * {@link prepareTraversal} computed for THIS mover. ⚠ Fail-closed: an
-   * `enter` with no verdict (a caller that gated without preparing)
-   * refuses — `Mobile.traverse` always prepares first.
+   * throwaway guest cannot cross), then the authority read for THIS
+   * mover — asked at the moment of crossing, so nothing is stored.
    */
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string
-  ): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+  ): Promise<TraversalGuard> {
+    const base = await super.canTraverse(mover, mode);
     if (!base.ok) return base;
     if (this.crossingDirection === 'return') return { ok: true };
     if (!PlayerApi.isAvatarStuff(mover)) {
@@ -131,27 +121,16 @@ export default class SandboxCrossingExit extends Exit {
         reason: 'You are already on the wire; this door goes nowhere new.',
       };
     }
-    const moverId = (mover as unknown as Stuff).stuffId;
-    if (!this.authority.has(moverId)) {
-      return { ok: false, gate: 'blocked', reason: 'The door has not opened for you.' };
-    }
-    const refusal = this.authority.get(moverId) ?? null;
+    const refusal = await this.authorityRefusal(mover);
     if (refusal !== null) return { ok: false, gate: 'blocked', reason: refusal };
     return { ok: true };
   }
 
   /**
-   * The async half of the door gate, ahead of the sync one: your own
-   * circle is always yours (an unlinked fixture opens onto whoever
-   * enters); someone else's circle admits its title holder and use-grant
-   * holders (`ParcelApi.hasUseGrant`, the shipped lease surface).
+   * Your own circle is always yours (an unlinked fixture opens onto
+   * whoever enters); someone else's circle admits its title holder and
+   * use-grant holders (`ParcelApi.hasUseGrant`, the shipped lease surface).
    */
-  public override async prepareTraversal(mover: Stuff & Containable): Promise<void> {
-    if (this.crossingDirection === 'return') return;
-    const moverId = (mover as unknown as Stuff).stuffId;
-    this.authority.set(moverId, await this.authorityRefusal(mover));
-  }
-
   private async authorityRefusal(mover: Stuff & Containable): Promise<string | null> {
     if (!PlayerApi.isAvatarStuff(mover)) return null; // the sync gate refuses it
     const playerId = (mover as unknown as Avatar).getPlayerId();
@@ -181,7 +160,6 @@ export default class SandboxCrossingExit extends Exit {
       await SandboxApi.exit(avatar);
       return true;
     }
-    this.authority.delete((mover as unknown as Stuff).stuffId);
     const scope = this.crossing
       ? await this.crossing.linkForEnterer(avatar)
       : `/home/${avatar.getPlayerId()}`;

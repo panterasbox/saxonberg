@@ -54,14 +54,14 @@ export default class FloorStairExit extends DeferredDestinationExit {
   /**
    * A floor with no provisioned units is impassable — you can't climb to a
    * floor that doesn't exist. Read the warren's sync reachability cache
-   * (maintained at warm + on provision), so the standard sync `canTraverse`
+   * (maintained at warm + on provision), so the `canTraverse`
    * gate (which fires before `resolveDestination`) rejects cleanly.
    */
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+  ): Promise<TraversalGuard> {
+    const base = await super.canTraverse(mover, mode);
     if (!base.ok) return base;
     const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren && !warren.floorReachable(this.targetFloor)) {

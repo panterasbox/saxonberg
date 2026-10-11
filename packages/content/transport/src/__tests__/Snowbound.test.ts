@@ -80,9 +80,8 @@ describe('a snowbound way reads the snow', () => {
   it('the refusal names the snow, and the mover stays put', async () => {
     const p = pass(0.2);
     depthM = 0.4;
-    await p.prepareTraversal({} as Stuff & Containable);
+    const guard = await p.canTraverse({} as Stuff & Containable, 'walk');
     expect(await p.applyTraversal({} as Stuff & Containable)).toBe(false);
-    const guard = p.canTraverse({} as Stuff & Containable, 'walk');
     expect(guard.ok).toBe(false);
     if (guard.ok) return;
     expect(guard.gate).toBe('blocked');

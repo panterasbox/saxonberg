@@ -121,7 +121,7 @@ export const brain = class {
       const dest = exit.getDestination();
       if (!dest) continue;
       if (!wanted.includes(PersistableApi.placeIdOf(dest))) continue;
-      if (!exit.canTraverse(host, 'walk').ok) continue;
+      if (!(await exit.canTraverse(host, 'walk')).ok) continue;
       // Shut between the check and the step: the crossing refuses, and
       // it tries again next beat.
       await LocomotionApi.traverseWithDefault(host, exit);

@@ -132,8 +132,7 @@ describe('a ford reads the river', () => {
     const w = installWater();
     const f = ford();
     w.m3s = 30;
-    await f.refreshCrossing();
-    const guard = f.canTraverse({} as Stuff & Containable, 'walk');
+    const guard = await f.canTraverse({} as Stuff & Containable, 'walk');
     expect(guard.ok).toBe(false);
     if (guard.ok) return;
     expect(guard.reason).toMatch(/ford is up/);
@@ -167,7 +166,7 @@ describe('a ford reads the river', () => {
     const f = ford();
     await f.refreshCrossing();
     expect(f.isBlocked()).toBe(false);
-    expect(f.canTraverse({} as Stuff & Containable, 'walk').ok).toBe(true);
+    expect((await f.canTraverse({} as Stuff & Containable, 'walk')).ok).toBe(true);
   });
 
   it('a ford that names no reach never closes', async () => {
@@ -177,23 +176,23 @@ describe('a ford reads the river', () => {
     expect(f.isBlocked()).toBe(false);
   });
 
-  it('⭐ prepareTraversal refreshes BEFORE the gate (the climate build found the order)', async () => {
+  it('⭐ the gate reads the river AS IT ASKS — the first crossing after it rose is refused', async () => {
     const w = installWater();
     const f = ford();
     w.m3s = 30;
     expect(f.isBlocked()).toBe(false); // stale until something asks
-    await f.prepareTraversal({} as Stuff & Containable);
+    expect((await f.canTraverse({} as Stuff & Containable, 'walk')).ok).toBe(false);
+    // …and the summary readers with no mover now see it too.
     expect(f.isBlocked()).toBe(true);
-    expect(f.canTraverse({} as Stuff & Containable, 'walk').ok).toBe(false);
   });
 
-  it('applyTraversal NEVER handles the traversal (the ford refreshes in prepareTraversal only)', async () => {
+  it('applyTraversal NEVER handles the traversal (the ford reads the river in canTraverse only)', async () => {
     const w = installWater();
     const f = ford();
     w.m3s = 30;
     // Returning true would mean "I moved them" — the ford never does. It
-    // no longer reads the river here either: that is prepareTraversal's
-    // job, ahead of the gate, and a read after it is one crossing late.
+    // no longer reads the river here either: that is canTraverse's job,
+    // and a read after the gate is one crossing late.
     expect(await f.applyTraversal({} as Stuff & Containable)).toBe(false);
     expect(f.isBlocked()).toBe(false);
   });
