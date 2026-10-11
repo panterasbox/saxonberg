@@ -104,6 +104,12 @@ async function horizonUntil(s: Session, want: RegExp, tries = 10): Promise<strin
   for (let i = 0; i < tries; i++) {
     said = await look(s, 'look horizon');
     if (want.test(said)) return said;
+    // A sea or a sky nobody had read yet answers "not yet" once and starts
+    // its read — give that a moment of real time before spending game time.
+    if (i === 0) {
+      await s.listen(1_500);
+      continue;
+    }
     await advanceWorldClock('1 hour');
   }
   return said;
@@ -215,20 +221,29 @@ suite('23 · 24 · the horizon ashore', () => {
 });
 
 suite('2 · 3 · the wade, the small water', () => {
+  // ⭐ Somebody else wades. The founder sails the rest of the drive, and a
+  // body left wet on a cold night was put on the ground by the weather in
+  // one run (the 12× clock moves the hour with the machine's load).
+  let wader: Session;
+  beforeAll(async () => {
+    wader = await Session.open(LANDSMAN, { startLocation: MOUTH });
+  });
+  afterAll(() => wader?.close());
+
   it('2 · wading is refused where no still water stands, in words; admitted where it does', async () => {
-    const r = await me.cmd('swim west');
+    const r = await wader.cmd('swim west');
     expectRefused(r);
     expect(squash(await r.said())).not.toMatch(/don't understand/i);
-    expectOk(await me.cmd('east'));
-    expect(await look(me)).toMatch(/strand/i);
-    const swim = await me.cmd('swim east');
+    expectOk(await wader.cmd('east'));
+    expect(await look(wader)).toMatch(/strand/i);
+    const swim = await wader.cmd('swim east');
     expectOk(swim);
   });
 
   it('3 · a water you can see across is a PLACE: you are in the pool, by an ordinary exit', async () => {
-    expect(await look(me)).toMatch(/You are in the water/);
-    expectOk(await me.cmd('swim west'));
-    expect(await look(me)).toMatch(/strand/i);
+    expect(await look(wader)).toMatch(/You are in the water/);
+    expectOk(await wader.cmd('swim west'));
+    expect(await look(wader)).toMatch(/strand/i);
   });
 });
 
@@ -378,6 +393,14 @@ suite('19 · 20 · 25 · sight at sea', () => {
     const w = await me.cmd('watch horizon');
     expectOk(w);
     expect(squash(await w.said())).toMatch(/You settle to watching the horizon/);
+    // At anchor, wait out weather that would hide the light from anybody
+    // (fog, rain, snow and storm all shorten sight): the sextant's sky
+    // refusal names it in the sky's own words.
+    for (let i = 0; i < 8; i++) {
+      const sky = squash(await (await me.cmd('measure latitude')).said());
+      if (!/The sky is (fog|rain|storm|snow)/.test(sky)) break;
+      await advanceWorldClock('3 hours');
+    }
     // ⛔ Nobody in the seat: nobody calls anything.
     const quiet = squash(await me.listen(35_000));
     expect(quiet).not.toMatch(LIGHT);
@@ -392,7 +415,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     }
     expect(called).toMatch(/deckhand[^]*light on Gannet Rock[^]*!/i);
     expectOk(await me.cmd('watch off'));
-  }, 600_000);
+  }, 900_000);
 
   it('25 · close the coast, raise the light, and `measure bearing` on it to fix your position', async () => {
     expectOk(await me.cmd('get compass'));

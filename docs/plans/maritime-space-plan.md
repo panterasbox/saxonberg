@@ -1784,6 +1784,14 @@ keyword `horizon` renamed (the seed would shadow it).
   by the horizon (resident craft); `peekShorePositionFor` reads the
   compiled nodes (a sea nobody compiled answers `null` once and starts
   compiling). `StructureCatalogue` is rows-only again.
+  - Re-driven after the sync horizon: **26/26 cold**. Two drive-only
+    findings, both the weather moving with the 12× clock under machine
+    load: the founder, wet from the wade, was put on the ground by a cold
+    night before boarding (the wade is now somebody else's — the sailor
+    stays dry), and rain hid the light from the masthead past step 20's
+    timeout (at anchor, the drive now waits for a sky that permits sight,
+    probed with the sextant's refusal). `horizonUntil` gives a cold read a
+    moment of real time before spending game time.
 
 ## Build log
 
