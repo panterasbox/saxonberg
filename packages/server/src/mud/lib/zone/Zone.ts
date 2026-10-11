@@ -33,10 +33,6 @@ import { ZoneApi } from '../../api/zone';
 import type { FieldMeta } from '../mixin';
 
 import type { BoundaryRole } from '../security/BoundaryRole';
-import {
-  DEFAULT_CLIMATE_SITE,
-  type ClimateSite,
-} from '../weather/WeatherType';
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
 // delegates to. The api side breaks its end of the would-be cycle by
@@ -62,20 +58,24 @@ export abstract class Zone extends Idea {
    */
   static boundaryRole: BoundaryRole = 'commons';
 
-  /** The two fields Zone itself owns (subclasses declare their own on
-   *  top). `wire` HAS to be here: it's a declared field with an
-   *  accessor pair, so the applier only reaches it by name — and a
-   *  `wire: true` seed row that silently doesn't apply reads as "not
-   *  wire", which routes quarantined code down the governed path
-   *  (found live: `eval` inside a circle ran GOVERNED). See the
-   *  ownership-removal note below. */
+  /**
+   * The one field every Zone owns: its name. ⭐ Nothing else lives here,
+   * because EVERY zone flavour inherits it — a `FolderZone` (`/wiki`), a
+   * `Clade` (Animalia), a `HomeZone` — and a field on this class is
+   * offered in the studio for all of them. A field belongs on the
+   * narrowest zone that means it:
+   *
+   * - **a region in space** — geography (`elevation`, `latitude`,
+   *   `continentality`, `climateOffsetK`) beside the region economy and
+   *   ground (`stocks`, `address`, `deposit`, …) → `SpatialZone`;
+   * - **`wire`** → `WireZone`, the sandbox's namespace roots.
+   *
+   * The inheritance walk ({@link lookupField}) is unaffected: it reads a
+   * field by NAME on each ancestor, whatever its class, so a room under a
+   * `FolderZone` under a spatial region still inherits the region's height.
+   */
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
-    wire: { persistent: true },
-    elevation: { persistent: true, authorable: true },
-    latitude: { persistent: true, authorable: true },
-    continentality: { persistent: true, authorable: true },
-    climateOffsetK: { persistent: true, authorable: true },
   };
 
   // ⚠ Region/spawn fields (`stocks` / `favours` / `blessingOdds`) are NOT
@@ -104,153 +104,6 @@ export abstract class Zone extends Idea {
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
-
-  /**
-   * Wire-classification field (sandbox build, Decision O): `true` on a
-   * *wire namespace root* (`/home`, `/studio`) and inherited by every
-   * descendant through the ordinary `lookupField` walk — so "is this
-   * path wire?" is `await zone.lookupField<boolean>('wire')`, data
-   * resolved by a mechanism that already exists, never a hardcoded
-   * prefix list and never an `instanceof`. A third wire root is a seed
-   * row with this field, not an edit to the containment layers.
-   * `null` = not declared here (walk further); field zones never set it.
-   */
-  protected wire: boolean | null = null;
-
-  /**
-   * **Height above sea level, in metres** — the watershed's organising
-   * input, and the one field water's whole behaviour is derived from.
-   *
-   * Inherited through the ordinary `lookupField` walk, so a district
-   * declares its own and a room inside it needs say nothing; an authored
-   * value anywhere in the chain wins over anything above it. `null` =
-   * not declared here (walk further).
-   *
-   * ## Why the ZONE, and not the biome
-   *
-   * The zone already owns spatial geometry (`cellSize` drives volume,
-   * light-scale and extent) and already does field inheritance. Biome
-   * owns properties of the **air**; elevation is a property of the
-   * **ground**.
-   *
-   * ⭐ But the decisive reason is a **circularity**. `measure altitude`
-   * computes `(P_sea − P_local) / (ρ·g)` from the biome chain's authored
-   * `_pressure` — so before this field, altitude was back-computed from
-   * a number an author typed, and putting elevation on the biome too
-   * would have given one physical fact two sources of truth. Elevation
-   * on the zone makes pressure the *consequence* (see
-   * `BiomeLogic`'s derive-from-elevation fallback) and the altimeter an
-   * honest instrument: it reads a cause rather than its own input.
-   *
-   * ## ⚠ `coords.z` is NOT elevation
-   *
-   * `z` is local, and measured in zone **cells** — which floor of a
-   * building you are on. A place's height above the ground is
-   * `zone elevation + z × cellSize`; **hydrology reads the zone**, so a
-   * third-floor flat and the lobby are the same point on the watershed.
-   * A stairwell is not a waterfall. Terrain variation *within* a
-   * district is obtained by zoning finer, which is what zones are for.
-   *
-   * See [docs/subsystems/watershed.md].
-   */
-  protected elevation: number | null = null;
-
-  /** Metres above sea level declared HERE (no ancestor walk). */
-  public getElevation(): number | null { return this.elevation; }
-
-  public setElevation(value: number | null): void {
-    this.elevation = value === null || Number.isFinite(value) ? value : null;
-  }
-
-  /**
-   * **Where on the world this place is: degrees from the equator,
-   * signed** — negative is the southern hemisphere. With elevation,
-   * continentality and the offset it is one of the four levers the
-   * climate derives a place's temperature from
-   * (`WeatherApi.temperatureAt`); the sun's path, the day's length and
-   * the local season all read it too.
-   *
-   * Inherited like `elevation` — a realm authors it once on its region
-   * root and every room beneath agrees. `null` = not declared here; a
-   * chain that declares it nowhere resolves the realm default (42°,
-   * `DEFAULT_CLIMATE_SITE`). On `Zone`, not `SpatialZone`, because the
-   * region root that authors it is a FolderZone.
-   *
-   * See [docs/subsystems/weather.md § the climate].
-   */
-  protected latitude: number | null = null;
-
-  /** Degrees of latitude declared HERE (no ancestor walk). */
-  public getLatitude(): number | null { return this.latitude; }
-
-  public setLatitude(value: number | null): void {
-    this.latitude =
-      value === null || !Number.isFinite(value)
-        ? null
-        : Math.max(-90, Math.min(90, value));
-  }
-
-  /**
-   * **How far the place is from the sea's influence**, 0 (maritime) …
-   * 1 (continental). A coast's winters are mild and late; a continent's
-   * are hard and early — the Seattle-versus-Minneapolis lever, at one
-   * latitude. `null` = not declared here (walk further; the realm default
-   * is 0.5).
-   */
-  protected continentality: number | null = null;
-
-  /** Continentality declared HERE (no ancestor walk). */
-  public getContinentality(): number | null { return this.continentality; }
-
-  public setContinentality(value: number | null): void {
-    this.continentality =
-      value === null || !Number.isFinite(value)
-        ? null
-        : Math.max(0, Math.min(1, value));
-  }
-
-  /**
-   * **The anomaly no local term derives**, in kelvin — a warm current, a
-   * cold upwelling, a frost hollow. The honest tool for *this place is
-   * warmer than its latitude says*; authoring a flat temperature on an
-   * outdoor biome is not (`lint:biome` refuses it). `null` = not declared
-   * here (walk further; default 0).
-   */
-  protected climateOffsetK: number | null = null;
-
-  /** The climate offset declared HERE (no ancestor walk). */
-  public getClimateOffsetK(): number | null { return this.climateOffsetK; }
-
-  public setClimateOffsetK(value: number | null): void {
-    this.climateOffsetK =
-      value === null || Number.isFinite(value) ? value : null;
-  }
-
-  /**
-   * ⭐ **Where on the world this zone is, as the climate reads it** — the
-   * four levers, each resolved through this zone's own inheritance walk
-   * ({@link lookupField}), with the realm default for any the chain does
-   * not declare. The one place the levers are folded into a
-   * `ClimateSite`; `ZoneApi.climateSiteFor` asks the zone a thing stands
-   * in, and a conduit asks the zone it serves.
-   */
-  public async climateSite(): Promise<ClimateSite> {
-    const [lat, elev, cont, off] = await Promise.all([
-      this.lookupField<number>('latitude'),
-      this.lookupField<number>('elevation'),
-      this.lookupField<number>('continentality'),
-      this.lookupField<number>('climateOffsetK'),
-    ]);
-    return {
-      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
-      elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
-      continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
-      offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,
-    };
-  }
-
-  public getWire(): boolean | null { return this.wire; }
-  public setWire(value: boolean): void { this.wire = value; }
 
   /**
    * Effective value of `fieldName` for this zone. Reads own value

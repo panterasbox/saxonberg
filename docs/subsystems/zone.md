@@ -40,20 +40,30 @@ like any other instanceable Idea.
 
 ## ⚠ What belongs on `Zone` itself
 
-`Zone` declares exactly three fields — `name`, `wire` and `elevation` —
-and all three are about what a zone *is*. Subsystem concerns go on the
-subclass that can mean something by them.
+⭐⭐ **`Zone` declares exactly one field — `name` — and the inheritance
+walk.** Every zone flavour inherits it: a `FolderZone` (`/wiki`), a
+`Clade` (Animalia), the `HomeZone`, every spatial region. So a field on
+`Zone` is offered, in the studio, for all of them.
 
-⭐ **`elevation` (metres, signed, optional) is on the base deliberately**,
-and it is the one case that cuts the other way from the spawn fields
-below. Height above datum is a fact about a **region of the map**, and the
-regions that carry it are often namespace roots rather than rooms —
-`/world/terminus` is a `FolderZone` at 35 m, and every location under it
-inherits that unless a narrower zone says otherwise. Putting it on
-`SpatialZone` would have made the outermost, cheapest place to state it
-the one place unable to.
+| field | lives on | because |
+|---|---|---|
+| `elevation`, `latitude`, `continentality`, `climateOffsetK` (+ `climateSite()`) | `SpatialZone` | geography is a fact about a **region in space**; a folder, a clade and a namespace root have no height and no latitude |
+| `wire` | `WireZone` (`/studio`; `HomeZone` → `/home`) | only the wire's namespace roots classify a path as wire |
+| `stocks`, `address`, `deposit`, … | `SpatialZone` | as below |
 
-Two precedents, one old and one recent. Ownership/access fields
+⚠ **Reversed in the climate build's review (2026-10-11).** `elevation`
+sat on `Zone` "deliberately", because `/world/terminus` — the city's
+ground, at 35 m — was a `FolderZone`, and the climate build added its
+three levers beside it on the same argument. That made every folder,
+clade and wiki namespace a thing with a latitude. Terminus is now a
+spatial zone holding **no rooms** (every room lives in a district below
+it), which is what it always was: a region in space. The walk is
+unchanged — it reads a field by NAME on each ancestor, whatever its
+class — so a room under a `FolderZone` under a region still inherits the
+region's height (`Elevation.test.ts` pins that, and pins that a
+`FolderZone` declares none of the four).
+
+Two more precedents, one old and one recent. Ownership/access fields
 (`ownerGroup` / `accessGroups`) were **removed** from `Zone` in property
 phase 0a, because title belongs in the gated `parcels` collection rather
 than on an editable zone template. And the spawn sweep's region fields
@@ -78,10 +88,10 @@ class that can mean something by it.**
                 /    |    \
                /     |     \
    SpatialZone    FolderZone   non-spatial Zone subclasses:
-   (lib/zone/)    (platform/     - HomeZone  (platform/idea/)
-   /     \         idea/)        - Clade     (platform/idea/species/)
-  /       \                      - WikiNamespaceZone (platform/idea/)
-CartesianZone  SphericalZone
+   (lib/zone/)    (platform/     - WireZone  (platform/idea/)
+   /     \         idea/)          └ HomeZone  (platform/idea/)
+  /       \         │            - Clade     (platform/idea/species/)
+CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
 (platform/idea/location/, both)
 ```
 
@@ -97,16 +107,24 @@ CartesianZone  SphericalZone
   coordinate grid + its invariants, never an exit source.
   ⭐ Also the home of the **region fields** the spawn sweep reads —
   `stocks`, `favours`, `blessingOdds` ([residency.md](./residency.md)) —
-  because only a region *in space* can stock goods.
+  because only a region *in space* can stock goods; and of the region's
+  **geography** (`elevation`, `latitude`, `continentality`,
+  `climateOffsetK`, folded by `climateSite()`). A region that only
+  carries geography for the districts below it (Terminus) is a spatial
+  zone holding no rooms.
 - **`FolderZone`** — generic organizational scope, no spatial
   topology. Use for templatePath folders like `/world/narnia/`
   or `/stuff/idea/biome/outdoor/` that organize a content team's tree
   without anchoring a coordinate grid. Sub-folders that DO need
   a coordinate frame extend `CartesianZone` / `SphericalZone`
   instead.
-- **`HomeZone`** / **`Clade`** — domain-specific non-spatial
-  Zone subclasses. They extend `Zone` directly, satisfy the
-  folder/leaf invariant, but never stamp `Stuff.zone`.
+- **`WireZone`** — a namespace root of the wire (`/studio`), and its
+  subclass **`HomeZone`** (`/home`). Declares `wire`, which every
+  descendant inherits through the walk — "is this path wire?" is
+  `lookupField('wire')`, never a prefix list.
+- **`Clade`** — taxonomic scope. Extends `Zone` directly.
+- All of these satisfy the folder/leaf invariant but never stamp
+  `Stuff.zone`.
 
 ## ZoneApi
 
@@ -178,8 +196,10 @@ below is untouched — it carries celestial/biome defaults, not ownership.
 **Every Zone subclass participates as an inheritance node** —
 FolderZones, HomeZones, Clades, and spatial zones alike — because
 zone-carried defaults flow through folder ancestry too (e.g., a
-`celestialProfile` set on the universe-root FolderZone is inherited
-by every spatial zone beneath). Callers layer a settings-style
+region's `elevation` reaches a room whose zone sits under a FolderZone
+under that region). ⚠ A FolderZone can PASS a field along but cannot
+DECLARE one it does not own — the hydrator discards an undeclared key,
+which is what the authored-fields gate below exists to catch. Callers layer a settings-style
 default on top:
 
 ```ts

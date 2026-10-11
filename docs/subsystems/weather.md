@@ -149,8 +149,9 @@ temperature, and the sky over a room, the air over a river, the night a
 maple waits out and a puddle's freeze all read it.
 
 **The site** (`ClimateSite`, `lib/weather/WeatherType.ts`) is four
-levers, each a `Zone` field resolved through the zone chain
-(`Zone.climateSite()`, `ZoneApi.climateSiteFor`): `latitude` (signed;
+levers, each a `SpatialZone` field (the region in space) resolved
+through the zone chain (`SpatialZone.climateSite()`,
+`ZoneApi.climateSiteFor`): `latitude` (signed;
 the hemisphere), `elevation`, `continentality` (0 coast … 1 continent)
 and `climateOffsetK` (the anomaly nothing local derives). An unauthored
 chain is `DEFAULT_CLIMATE_SITE` — 42°, sea level, 0.5, 0 — so every

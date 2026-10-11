@@ -42,6 +42,7 @@ import {
   EXIT_KIND_TEST_ROWS,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { SpatialZone } from '../../../../lib/zone/SpatialZone';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -104,7 +105,7 @@ async function zoneAt(
   installInMemoryStore([
     { path, class: '/platform/idea/location/CartesianZone', data: {} },
   ]);
-  const zone = await StuffApi.singleton<Zone>(path);
+  const zone = await StuffApi.singleton<SpatialZone>(path);
   if (levers.latitude !== undefined) zone.setLatitude(levers.latitude);
   if (levers.elevation !== undefined) zone.setElevation(levers.elevation);
   if (levers.continentality !== undefined) zone.setContinentality(levers.continentality);

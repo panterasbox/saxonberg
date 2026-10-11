@@ -1147,7 +1147,8 @@ loosened.
 
 ### D-L — Where the four levers live (Locality vs Zone, resolved)
 
-- **`latitude`, `continentality`, `climateOffsetK`** are **`Zone`
+- ⚠ **Superseded by B30** (geography moved to `SpatialZone`; `wire` to
+  `WireZone`). As planned: **`latitude`, `continentality`, `climateOffsetK`** are **`Zone`
   fields** (`lib/zone/Zone.ts`, beside `elevation`, same `fieldMeta`
   shape `{persistent, authorable}`, `number | null`, `get/set`
   finite-or-null), inherited by `lookupField`. On `Zone` not
@@ -1391,6 +1392,36 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   test ticks the clock on every read; it was proven to throw without the
   guard (its first draft passed vacuously, because a cleared world-clock
   registry left thermal idle).
+- **B30 (review round 1) — geography and `wire` come off `Zone`.** The
+  user's review: *"a lot of this stuff modelled on Zone, yours and prior
+  commits, should be on a subclass… FolderZone inherits Zone, so all that
+  applies to folders? I don't think so."* `Zone` now declares only
+  `name`.
+  - `elevation` (water build), plus this build's `latitude`,
+    `continentality`, `climateOffsetK` and `climateSite()`, go to
+    **`SpatialZone`**, the region in space. On build-1's unmerged
+    `maritime-space` branch (checked first, at the user's direction),
+    `SpatialZone` already means exactly that: rooms moved to
+    `LocationZoneMixin`, and an `Expanse` is a `SpatialZone` with none.
+    So no new `RegionZone` class was minted to duplicate it. The edit to
+    `SpatialZone.ts` is additive, so the second branch to merge meets a
+    small conflict.
+  - **Terminus** (`elevation: 35`) was a `FolderZone`. It becomes a
+    `CartesianZone` holding no rooms: it was always a region in space,
+    with districts below it and two ideas but no rooms directly under
+    it.
+  - **`wire`** (sandbox build) goes to a new **`WireZone`**
+    (`/studio`), and `HomeZone` (`/home`) extends it.
+  - `Conduit` reads a site only from a spatial region.
+  - Tests:
+    - `Elevation.test.ts`'s folder-as-ancestor fixtures are now regions;
+    - new tests pin that the walk passes *through* a folder, and that a
+      `FolderZone` declares none of the four fields;
+    - W0's test pinning the levers on `Zone` now pins the opposite.
+  - The spoiler snapshot moves five fields.
+  - `zone.md`'s "elevation is on the base deliberately" section is
+    rewritten as the reversal. A false example (a `celestialProfile` on
+    a FolderZone, which the hydrator would discard) is corrected.
 - **R16 corollary — a room's ambient is restamped at a weather boundary
   only where somebody is.** The drive advances its days standing at the
   Circle camp so the pan sees the cold; a pan nobody visits cools late.
@@ -1404,7 +1435,7 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
 
 | thing | host | what composing it claims | the narrowing test |
 |---|---|---|---|
-| `latitude`, `continentality`, `climateOffsetK` | `Zone` (kernel, beside `elevation`) | every zone — a FolderZone region root included — may say where on the world it is; `null` means *walk further* | none; an unauthored chain resolves the default, no guard |
+| `latitude`, `continentality`, `climateOffsetK` (+ `elevation`) | ~~`Zone`~~ → **`SpatialZone`** (B30) | a region in space may say where on the world it is; `null` means *walk further*. ⚠ As planned it was `Zone`, which made every FolderZone, Clade and wiki namespace a thing with a latitude | none; an unauthored chain resolves the default, no guard |
 | `_precipitationIntensity` | `Locality` | a place that has weather may say how hard it rains; `null` = the latitude default | none |
 | `ClimateSite` + `DEFAULT_CLIMATE_SITE` | `lib/weather/WeatherType.ts` (vocabulary/value) | a plain shape; no statics | n/a |
 | the expression, `seasonAt`, `dailyRangeAt`, `snowCoverAt` | `WeatherLogic` (+ thin `WeatherApi` forwards) | weather owns *what the sky does at a site*; hydrology still owns what that does to a river | n/a |

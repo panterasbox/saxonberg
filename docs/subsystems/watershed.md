@@ -207,7 +207,8 @@ that fails.
 
 ## Elevation (W2)
 
-**`Zone.elevation`** — metres above sea level, inherited through the
+**`SpatialZone.elevation`** (on `Zone` until the climate build's
+review moved geography to the region in space) — metres above sea level, inherited through the
 ordinary `lookupField` ancestor walk, an authored value anywhere in the
 chain winning over anything above it. `ZoneApi.elevationFor(scope)`
 resolves it for a place.

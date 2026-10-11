@@ -12,8 +12,9 @@
  * future home-tier behaviour has a class to layer onto without a
  * second taxonomy decision later.
  *
- * Sister of `Clade` and `SpatialZone`: a non-spatial Zone
- * subclass. `Stuff.zone` (the nearest spatial zone) doesn't stamp
+ * A `WireZone` — `/home` is a wire namespace root (`wire: true` on its
+ * row), the per-player sibling of `/studio`. A non-spatial Zone
+ * subclass, like `Clade`. `Stuff.zone` (the nearest spatial zone) doesn't stamp
  * onto Stuff cloned under `/home/...` — `ZoneApi.isSpatialZoneClass`
  * returns false for HomeZone, same shape as Clade.
  *
@@ -24,8 +25,8 @@
  *   - eviction / archival of stale per-player content.
  */
 
-import { Zone } from '../../lib/zone/Zone';
+import WireZone from './WireZone';
 
-export default class HomeZone extends Zone {
+export default class HomeZone extends WireZone {
   // No fields, no methods v1. Future home-tier state lands here.
 }

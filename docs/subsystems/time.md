@@ -378,7 +378,7 @@ It answers *how good is this place* where `skyFactorNow()` answers
 perception reads the instant, a growth model reads the peak. See
 [light.md § Two questions](./light.md).
 
-⭐ **Latitude is a place's** (the climate build, 2026-10): a `Zone` field
+⭐ **Latitude is a place's** (the climate build, 2026-10): a `SpatialZone` field
 resolved through the zone chain (`ZoneApi.climateSiteFor`), with
 `CAMPUS_LATITUDE` (42) surviving as the DEFAULT for a chain that authors
 none. The location-taking calls (`isDayAt`, `sunAltitude`,

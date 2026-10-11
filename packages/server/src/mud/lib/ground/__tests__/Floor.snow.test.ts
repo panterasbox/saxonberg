@@ -11,7 +11,6 @@ import CartesianLocation from '../../location/CartesianLocation';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
-import { Zone } from '../../zone/Zone';
 import { Stuff } from '../../stuff/Stuff';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -30,6 +29,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { MarkupAugmenter } from '../../../api/mml';
 import '../../../platform/idea/WorldClockRegistry';
+import { SpatialZone } from '../../zone/SpatialZone';
 
 const DAY = 86_400;
 type Doc = Record<string, unknown> & { path: string; class: string; data: Record<string, unknown> };
@@ -74,7 +74,7 @@ async function floorAt(
   const zonePath = `/test/zone-${seq}`;
   rows.push({ path: zonePath, class: '/platform/idea/location/CartesianZone', data: {} });
   installStore();
-  const zone = await StuffApi.singleton<Zone>(zonePath);
+  const zone = await StuffApi.singleton<SpatialZone>(zonePath);
   zone.setLatitude(levers.latitude);
   zone.setContinentality(levers.continentality ?? 0.5);
   zone.setElevation(levers.elevation ?? 0);

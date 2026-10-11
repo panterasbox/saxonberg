@@ -57,6 +57,7 @@ import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { SpatialZone } from '@saxonberg/server/mud/lib/zone/SpatialZone';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -348,7 +349,9 @@ export default class Conduit extends ConduitBase {
   public async extentAirK(nowS: number): Promise<number | null> {
     if (this.extent === '') return null;
     const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
-    if (zone === null) return null;
+    // Only a region in space has a site (geography is `SpatialZone`'s); an
+    // extent naming a folder or nothing has no air of its own to read.
+    if (!(zone instanceof SpatialZone)) return null;
     const site = await zone.climateSite();
     const self = this as unknown as Stuff;
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
