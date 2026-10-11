@@ -72,9 +72,11 @@ export default class CapacityReading extends Reading {
 
     // The jurisdiction: the innermost polity over this place that seats a
     // gauger — the one whose measure counts here.
+    // ⚠ The full resolve walk (containment outward, then the zone), not
+    // the room's own address: a cookhouse carries none, and the gauger
+    // seated over the whole city read as "the realm" there (the drive).
     const place = this.placeOf(actor);
-    const address = place && MixinApi.isAddressable(place) ? place.getAddress() : null;
-    const chain = address ? GovernmentApi.governmentChainAt(address) : [];
+    const chain = place && MixinApi.isContainer(place) ? await GovernmentApi.subjectTo(place) : [];
     const gov = chain.find((g) => g.seats.some((s) => s.key === GAUGER_SEAT)) ?? null;
     const category = MixinApi.isVesselKind(subject) ? subject.getCategory() : '';
     const declared =

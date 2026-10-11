@@ -572,8 +572,12 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         const amount = bulk ? bulk.getBulkAmount('interior').rawValue() : 0;
 
         // An emptied vessel is an ended batch.
+        // ⚠ ANY batch, idle or not: a fill with no profile (water) stays
+        // idle, and keeping its material meant the next fill of the same
+        // thing was no fill at all — a cask rinsed four times spent none
+        // of its character (the assembly drive).
         if (currentPath === null || amount <= 0) {
-          if (this.maturationPhase !== 'idle') this.resetBatch();
+          if (this.maturationPhase !== 'idle' || this.batchMaterialPath !== null) this.resetBatch();
           this.maturationClockStamp = nowS;
           return;
         }

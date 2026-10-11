@@ -59,7 +59,7 @@ async function gauge(litres: number, seated: boolean, polity = gov()): Promise<{
   const cask = makeStuff(() => new Vat());
   cask.setInteriorCapacity(Quantity.of(litres, 'L'));
   ContainmentApi.move(cask, cellar);
-  vi.spyOn(GovernmentApi, 'governmentChainAt').mockReturnValue([polity]);
+  vi.spyOn(GovernmentApi, 'subjectTo').mockResolvedValue([polity]);
   vi.spyOn(GovernmentApi, 'holdsSeat').mockResolvedValue(seated);
   vi.spyOn(PersistableApi, 'captureHostOf').mockResolvedValue(undefined as never);
   said = [];
