@@ -80,6 +80,7 @@ const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const REGISTRY = '/world/terminus/registry/business';
+const REGISTRY_OFFICE = '/world/terminus/registry/office';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
 const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 
@@ -407,7 +408,6 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
   }, 300_000);
 
   it('⭐⭐ drive 17 — fill it until it gives nothing; re-fire it and it gives again', async () => {
-    await cloneHere(COOKHOUSE, T.inshave);
     for (let i = 0; i < 4; i++) {
       await say(cooper, 'fill cask from butt');
       await examine(cooper, 'cask');
@@ -415,19 +415,39 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     }
     const spent = await examine(cooper, 'cask');
     expect(spent, `spent cask: ${spent}`).toMatch(/given its contents everything/i);
-    await say(cooper, 'repair cask');
-    await new Promise((r) => setTimeout(r, 10_000));
+    // ⭐ Re-firing wants a FIRE: the cask goes to the smithy, where the
+    // forge is stoked and lit, and the inshave shaves it back first.
+    await say(cooper, 'get cask');
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, SMITHY);
+    await cloneHere(SMITHY, T.inshave);
+    await say(cooper, 'stoke charcoal into forge');
+    await say(cooper, 'light forge');
+    const r = await cooper.cmd('repair cask');
+    await new Promise((res) => setTimeout(res, 15_000)); // the repair's engagement
+    const told = (await r.said()).trim();
+    await cooper.drainProse();
     const refired = await examine(cooper, 'cask');
-    expect(refired, `re-fired cask: ${refired}`).toMatch(/charred/i);
+    expect(refired, `re-fired cask (repair said: ${told}): ${refired}`).toMatch(/charred/i);
     expect(refired).not.toMatch(/given its contents everything/i);
   }, 300_000);
 
   it('⭐⭐ drive 22 — anybody measures; the gauger’s figure is of record', async () => {
-    await cloneHere(COOKHOUSE, T.rod);
+    // ⭐ To the CITY: the gauger's seat is the city's, and the Hearthworks
+    // stands outside it (the realm keeps no gauger). You bring a cask to
+    // the gauger; the registry is where the city keeps its records.
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, REGISTRY_OFFICE);
+    await cloneHere(REGISTRY_OFFICE, T.rod);
+    expectOk(await cooper.cmd('drop cask'));
     const mine = await say(cooper, 'measure capacity cask');
     expect(mine, `cooper gauges: ${mine}`).toMatch(/not of record/i);
-    const gauger = await Session.open('founder', { startLocation: COOKHOUSE, wizard: true });
+    await cloneHere(REGISTRY_OFFICE, GLOWCAP);
+    const gauger = await Session.open('founder', { startLocation: REGISTRY_OFFICE, wizard: true });
     try {
+      await gauger.cmd('get glowcap');
       expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
       const record = await say(gauger, 'measure capacity cask');
       expect(record, `gauger gauges: ${record}`).toMatch(/of record/i);
@@ -443,7 +463,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
   }, 300_000);
 
   it('⭐ drive 22 — an off-standard cask says so, to anyone', async () => {
-    await cloneHere(COOKHOUSE, T.brewCask);
+    await cloneHere(REGISTRY_OFFICE, T.brewCask);
     const off = await say(cooper, 'measure capacity cask');
     expect(off, `off-standard: ${off}`).toMatch(/off standard/i);
   }, 300_000);

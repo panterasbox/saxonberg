@@ -1511,6 +1511,27 @@ temperature through `look`'s body line; drive 23.
 
 ### W8 — the drive, the record, the MR
 
+> ✅ **Done — the drive is `packages/wire/tests/assembly.dirty.wire.test.ts`
+> (21 checkpoints, a restart included); the record is below.** It took
+> sixteen runs, and every one found something no unit test had: the
+> fixes are commits `e9ca0a2b8`…HEAD, each titled `fix(assembly): drive
+> run N`. **Build decisions** made by the drive (lens 1/2 or the nearest
+> pattern, as noted): (1) a counter that names its house must be one of
+> that house's `operatingLocations` — new gate `lint:shopfronts` (six
+> shipped counters could not sell); (2) `WorldClockApi.every` takes
+> `coalesce` (a backlog of missed periods fires once) and the roster tick
+> and the residency sweeps use it — a 40-day `advance` had queued ~960
+> async passes per hourly schedule; (3) a bill's parts weigh no more than
+> its whole — `lint:bills` arm 6 (salvage conserves mass); (4) an
+> assembly affords `repair` and `salvage` itself, as it does `fit` (D5),
+> and a failed part is refused at once, before any slack is tightened;
+> (5) carved wooden parts are `Timber` (nearest pattern: `leg`, `rail`),
+> so green carving warps; (6) a craft never gathers from a shop counter;
+> (7) an assembly records the name each hand went by (`hands`), so the
+> makers line survives the maker being offline;
+> (8) `EmploymentApi.ensureOrganization(path)` — the by-path sibling of
+> `ensureOperatorAt` — so a sleeping business can be appointed into.
+
 `packages/wire/tests/assembly.dirty.wire.test.ts` — the 23 steps, each
 a checkpoint that asserts a **state change** and can fail
 (`refusedFor` is blind to `command-rejected`; assert the verb was
