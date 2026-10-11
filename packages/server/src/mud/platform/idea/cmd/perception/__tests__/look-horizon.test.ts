@@ -13,6 +13,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
 import { PerceptionApi, type HorizonView } from '../../../../../api/perception';
 import type { Mml } from '../../../../../api/mml';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
@@ -64,7 +65,8 @@ function ctx(): CommandContext {
   });
 }
 
-async function lookHorizon(view: HorizonView): Promise<string[]> {
+/** `look horizon`: the binder hands over the SET the seed named (maritime revision 2). */
+async function lookHorizon(view: HorizonView, set: Stuff[] = view.things.map((t) => t.stuff)): Promise<string[]> {
   vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue(view);
   const bodies: string[] = [];
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -78,7 +80,7 @@ async function lookHorizon(view: HorizonView): Promise<string[]> {
   });
   await withRootContext(null, 'horizon.test', () =>
     makeStuff(() => new LookController()).execute(
-      { target: { stuff: null, raw: 'horizon' } } as never,
+      { target: { stuff: set, raw: 'horizon', isSet: true } } as never,
       ctx(),
     ),
   );
@@ -128,8 +130,18 @@ describe('look horizon', () => {
     expect(out.join('\n')).not.toMatch(/°|\b044\b/);
   });
 
-  it('nothing beyond: says so', async () => {
+  it('an empty set: says so, neutrally', async () => {
     const out = await lookHorizon({ things: [], traffic: [], atSea: false });
-    expect(out).toEqual(['Nothing beyond where you stand catches the eye.']);
+    expect(out).toEqual(['You see nothing there.']);
+  });
+});
+
+describe('look at many things (maritime revision 2)', () => {
+  it('⭐ several things the player asked for are a plain list — "You see …"', async () => {
+    const a = structure('/t/a', 'brass lamp', false);
+    const b = structure('/t/b', 'brass bell', false);
+    const out = await lookHorizon({ things: [], traffic: [], atSea: false }, [a, b]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatch(/^You see [^\n]*brass lamp[^\n]*brass bell/);
   });
 });

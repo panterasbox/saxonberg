@@ -745,7 +745,7 @@ function validateArgOrdering(
  * field. Throws at YAML-load time on invalid combos.
  */
 function validateCardinality(
-  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string; onFiltered?: string },
+  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number; named?: number }; onExcess?: string; onShortage?: string; onFiltered?: string },
   filePath: string,
   scope: string,
 ): void {
@@ -777,6 +777,17 @@ function validateCardinality(
   ) {
     throw new Error(
       `${filePath} (${scope}.${fname}): cardinality.min (${field.cardinality.min}) cannot exceed cardinality.max (${field.cardinality.max})`
+    );
+  }
+
+  // `named` (how many a plain name takes) cannot exceed what the slot holds.
+  if (
+    field.cardinality?.named !== undefined &&
+    field.cardinality?.max !== undefined &&
+    field.cardinality.named > field.cardinality.max
+  ) {
+    throw new Error(
+      `${filePath} (${scope}.${fname}): cardinality.named (${field.cardinality.named}) cannot exceed cardinality.max (${field.cardinality.max})`
     );
   }
 

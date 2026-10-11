@@ -36,7 +36,9 @@ import { LIGHT_BANDS } from '../../../lib/perception/Light';
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
-import type { HorizonView, HorizonSighting, HorizonTraffic } from '../../../api/perception';
+import type {
+  HorizonView, HorizonSighting, HorizonTraffic, VisibleContents,
+} from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Location from '../../../lib/stuff/Location';
@@ -533,6 +535,43 @@ export class PerceptionLogic extends ApiLogic {
       (s): s is Stuff & Positioned & Voyaging => MixinApi.isVoyaging(s) && !s.isDestroyed(),
     );
     return horizonAtSea(viewer, voyaging) ?? horizonAshore(viewer, voyaging);
+  }
+
+  /** See {@link PerceptionApi.visibleContentsOf}. */
+  @CallSecurity(PerceptionApiCallers)
+  public visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
+    const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
+    if (!MixinApi.isContainer(target)) return out;
+    if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
+    const seen = (s: Stuff): boolean => !MixinApi.isConcealable(s) || !s.isConcealed();
+    const own = viewer.stuffId === target.stuffId;
+    // A PERSON is an agent with slots; a rack is slotted and wears
+    // nothing, so it lists like any container.
+    const person = target.isAgent() && MixinApi.isSlotted(target);
+    const slotted = new Set<string>();
+    if (person && MixinApi.isSlotted(target)) {
+      for (const [slot, occupants] of target.getAllOccupants()) {
+        const spec = target.getSlotSpec(slot);
+        const accepts = spec?.accepts ?? '';
+        const kind = accepts.includes('Wieldable')
+          ? 'held'
+          : accepts.includes('Wearable') || spec?.userFacingDetail
+            ? 'worn'
+            : 'inside';
+        for (const o of occupants) {
+          slotted.add(o.stuffId);
+          if (!seen(o)) continue;
+          if (kind === 'held') out.held.push(o);
+          else if (kind === 'worn') out.worn.push(o);
+          else if (own) out.carried.push(o);
+        }
+      }
+    }
+    const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
+    // A person's pockets are theirs to know; a container's contents are
+    // in view of anybody who can see into it.
+    if (own || !person) out.carried.push(...loose);
+    return out;
   }
 
   /** See {@link PerceptionApi.glance}. */

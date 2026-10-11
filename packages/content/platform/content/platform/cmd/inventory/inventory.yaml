@@ -1,12 +1,30 @@
 verbs: [inventory, inv, i]
 controller: /platform/idea/cmd/inventory/InventoryController
-description: "List items you are carrying"
+description: "List what you — or a person, or an open container — hold"
 help: |
-  Take stock of everything you're carrying. `inventory` lists what's
-  in your hands and packs, including anything you've got worn or
-  wielded.
+  Take stock of what something holds — a complete, itemised list.
 
-  Reach for it whenever you've lost track of what you've picked up.
-  Short on typing? `inv` and plain `i` do the same thing.
+  With no target, it is you: what you are WEARING, what you are
+  HOLDING, and what you are CARRYING. Name a person and you see what
+  they wear and hold (never what is in their pockets); name an open
+  container and you see everything in it. A shut one is shut.
+
+  `look` tells you what a thing is like, and mentions what you would
+  notice there; `inventory` is the full list. `look in <thing>` is the
+  same as `inventory <thing>`. Short on typing? `inv` and plain `i`.
+examples:
+  - cmd: inventory
+    note: What you wear, hold and carry
+  - cmd: i crate
+    note: Everything in the open crate
 validators:
   - /lib/command/validators/requiresAnimate
+args:
+  # The thing whose holdings to list; none is yourself. ⭐ Optional with
+  # no default, so a bare `inventory` binds nothing and means you.
+  - name: target
+    type: object
+    required: false
+    greedy: true
+    scope: ["$focus", "reachable"]
+    requires: any

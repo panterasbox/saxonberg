@@ -181,6 +181,14 @@ export interface MqlOne {
   quantity?: MqlQuantity;
   /** Present only when the run walked the registry — see {@link RegistryScan}. */
   scan?: RegistryScan;
+  /**
+   * ⭐ Present (`true`) when the query named a SET — a seed (`horizon`,
+   * `peers`, `inventory`…), a pronoun, a path, an id — with no keyword
+   * search anywhere in it. Absent when it NAMED things (`brass`,
+   * `horizon:tower`), which is what can be ambiguous. The binder prompts
+   * only about a name: a set was asked for whole (maritime revision 2).
+   */
+  isSet?: true;
 }
 
 /**
@@ -198,6 +206,14 @@ export interface MqlMany {
   quantity?: MqlQuantity;
   /** Present only when the run walked the registry — see {@link RegistryScan}. */
   scan?: RegistryScan;
+  /**
+   * ⭐ Present (`true`) when the query named a SET — a seed (`horizon`,
+   * `peers`, `inventory`…), a pronoun, a path, an id — with no keyword
+   * search anywhere in it. Absent when it NAMED things (`brass`,
+   * `horizon:tower`), which is what can be ambiguous. The binder prompts
+   * only about a name: a set was asked for whole (maritime revision 2).
+   */
+  isSet?: true;
 }
 
 /**

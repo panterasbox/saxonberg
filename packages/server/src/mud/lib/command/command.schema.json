@@ -307,9 +307,13 @@
         "exactly": {
           "type": "integer",
           "minimum": 0
+        },
+        "named": {
+          "type": "integer",
+          "minimum": 1
         }
       },
-      "description": "Authorial cardinality constraint on an `objects` field. Defaults to { min: 0, max: Infinity }. `exactly: N` is sugar for { min: N, max: N }."
+      "description": "Authorial cardinality constraint on an `objects` field. Defaults to { min: 0, max: Infinity }. `exactly: N` is sugar for { min: N, max: N }. `named: N` — how many a plain NAME takes: a name matching more is asked about (onExcess), while a SET (`horizon`) or the player's own quantity (`all brass`) is bounded only by `max` (maritime revision 2)."
     },
     "option": {
       "type": "object",

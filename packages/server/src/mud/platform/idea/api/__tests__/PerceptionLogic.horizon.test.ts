@@ -119,14 +119,15 @@ describe('the horizon ashore', () => {
     expect(names(view)).toEqual(['/t/town/tower']);
   });
 
-  it('⭐ the MQL seed reads it — `horizon` and `horizon:tower` — and a bare `horizon` names a whole scope', async () => {
+  it('⭐ the MQL seed reads it — `horizon` and `horizon:tower` — a bare `horizon` is a SET, `horizon:clock` a name', async () => {
     const v = viewerIn('/t/avenue/room-0');
     const all = MqlApi.resolveMany('horizon', { commandGiver: v as never, scope: '' });
     expect(all.stuff.map((s) => s.getTemplatePath())).toEqual(['/t/town/tower']);
     const one = MqlApi.resolveOne('horizon:clock', { commandGiver: v as never, scope: '' });
     expect(one.stuff?.getTemplatePath()).toBe('/t/town/tower');
-    expect(MqlApi.namesWholeScope(' Horizon ')).toBe(true);
-    expect(MqlApi.namesWholeScope('horizon:tower')).toBe(false);
+    // A bare `horizon` names a SET; `horizon:clock` a name (maritime revision 2).
+    expect(all.isSet).toBe(true);
+    expect(one.isSet).toBeUndefined();
   });
 });
 

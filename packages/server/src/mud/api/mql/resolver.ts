@@ -126,7 +126,7 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
 export function resolveWithQuantity(
   query: string,
   ctx: MqlContext,
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
   // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
   // read, so whoever was entitled to read it can be told. It lives for
   // exactly one synchronous run; save/restore rather than assign/clear,
@@ -144,7 +144,7 @@ export function resolveWithQuantity(
 function resolveInner(
   query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -155,11 +155,48 @@ function resolveInner(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } =
+  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } =
     { matches: finalized };
   if (quantity) out.quantity = quantity;
   if (registryScan) out.scan = registryScan;
+  if (namesASet(ast)) out.isSet = true;
   return out;
+}
+
+/** Single words a keyword head promotes to a seed (see {@link resolveKeywordSeed}). */
+const SEED_WORDS: ReadonlySet<string> = new Set([
+  'inventory', 'online', 'world', 'peers', 'reachable', 'person', 'horizon',
+]);
+
+/**
+ * ⭐ Did this query name a SET rather than search by NAME? True when no
+ * chain anywhere in it searches or filters by keyword or literal: its
+ * heads are seeds, pronouns, paths, ids, groups or `$$`, and its steps
+ * are seeds, transforms, predicates and ordinals. `brass` and
+ * `horizon:tower` are names (and can be ambiguous); `horizon`, `peers`,
+ * `me:i`, `reachable:[mixin.ToolMixin]` are sets.
+ */
+function namesASet(ast: QueryNode): boolean {
+  const isSetStep = (el: ChainElement, atHead: boolean): boolean => {
+    if (el.kind === 'literal') return false;
+    // One referent is not a set: `here`, `me`, `it` and an id each name
+    // ONE thing (a bare `look` is the room, not a list of it). `them` is.
+    if (el.kind === 'pronoun') return el.name === 'them';
+    if (el.kind === 'stuffId') return false;
+    if (el.kind !== 'keywords') return true;
+    if (el.words.length !== 1) return false;
+    const w = el.words[0]!.toLowerCase();
+    return atHead
+      ? SEED_WORDS.has(w)
+      : w === 'members' || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+  };
+  // One referent stepped through a set (`me:i` — your contents) is a set.
+  const oneReferent = (el: ChainElement): boolean =>
+    (el.kind === 'pronoun' && el.name !== 'them') || el.kind === 'stuffId';
+  const chainIsSet = (c: ChainNode): boolean =>
+    (isSetStep(c.head, true) || (oneReferent(c.head) && c.rest.length > 0)) &&
+    c.rest.every((op) => isSetStep(op.element, false));
+  return ast.sublists.every((sub) => chainIsSet(sub.base) && sub.subtract.every(chainIsSet));
 }
 
 /**

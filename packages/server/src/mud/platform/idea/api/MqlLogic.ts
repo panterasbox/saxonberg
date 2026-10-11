@@ -7,9 +7,6 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
 
-/** The scopes a verb SURVEYS when named bare (maritime R5). */
-const SURVEY_SEEDS: ReadonlySet<string> = new Set(['horizon']);
-
 import type { Container } from '../../../lib/spatial/Container';
 import type {
   MqlContext,
@@ -106,24 +103,20 @@ function consensusVia(
  */
 @Unshadowable
 export class MqlLogic extends ApiLogic {
-  /** See {@link MqlApi.namesWholeScope}. */
-  @CallSecurity(MqlApiCallers)
-  public namesWholeScope(query: string): boolean {
-    return SURVEY_SEEDS.has(query.trim().toLowerCase());
-  }
-
   /** See {@link MqlApi.resolveOne}. */
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {
-    const { matches, quantity, scan } = resolveWithQuantity(query, ctx);
+    const { matches, quantity, scan, isSet } = resolveWithQuantity(query, ctx);
     if (matches.length === 0) {
       const empty: MqlOne = { stuff: null };
+      if (isSet) empty.isSet = true;
       if (quantity) empty.quantity = quantity;
       if (scan) empty.scan = scan;
       return empty;
     }
     const top = matches[0]!;
     const out: MqlOne = { stuff: top.stuff };
+    if (isSet) out.isSet = true;
     if (top.via) out.via = top.via;
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
@@ -133,10 +126,11 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveMany}. */
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
-    const { matches, quantity, scan } = resolveWithQuantity(query, ctx);
+    const { matches, quantity, scan, isSet } = resolveWithQuantity(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
+    if (isSet) out.isSet = true;
     if (via) out.via = via;
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;

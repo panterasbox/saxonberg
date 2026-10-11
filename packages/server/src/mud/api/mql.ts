@@ -111,14 +111,6 @@ export class MqlApi {
     return logic().resolveMany(query, ctx);
   }
 
-  /**
-   * Does `query` name a whole scope — the bare `horizon` — rather than a
-   * thing? A verb asked about a scope surveys it instead of picking from
-   * it (`look horizon`).
-   */
-  static namesWholeScope(query: string): boolean {
-    return logic().namesWholeScope(query);
-  }
 
   // ⭐ There is no third resolve method. `world` is refused for
   // everybody here and permitted by the ENVIRONMENT — see

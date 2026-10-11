@@ -67,6 +67,22 @@ export interface HorizonTraffic {
   rangeNm: number;
 }
 
+/**
+ * ⭐ What `viewer` may see of what `target` holds (maritime revision 2) —
+ * ONE rule, read by `look` and `inventory` alike so they can never
+ * disagree.
+ */
+export interface VisibleContents {
+  /** On a person: what they wear (a worn slot, or an outward one — a pack on the back). */
+  worn: Stuff[];
+  /** On a person: what is in their hands. */
+  held: Stuff[];
+  /** Everything else — a container's contents, or (your own only) your pockets. */
+  carried: Stuff[];
+  /** A sealed container that is shut: nothing inside is in view. */
+  shut: boolean;
+}
+
 /** What `viewer` can see from where they stand that is not in their room. */
 export interface HorizonView {
   things: HorizonSighting[];
@@ -474,6 +490,23 @@ export class PerceptionApi {
    */
   public static horizonFor(viewer: Stuff): HorizonView {
     return logic().horizonFor(viewer);
+  }
+
+  /**
+   * ⭐ What `viewer` may see of what `target` holds — the one rule `look`
+   * and `inventory` share:
+   * - a PERSON (an agent with slots): what they WEAR and what they HOLD;
+   *   ⛔ never their pockets, packs' insides, or what is inside their body
+   *   (an implant's slot names only a body part). Your OWN: everything,
+   *   pockets as `carried`.
+   * - a CONTAINER: everything if open, nothing if a sealable one is shut
+   *   (`shut`).
+   * Concealed things stay concealed. Which slot is which is read off what
+   * the slot ACCEPTS (a wearable, a wieldable) and whether it has an
+   * outward face — never a list of slot names.
+   */
+  public static visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
+    return logic().visibleContentsOf(viewer, target);
   }
 
   /**

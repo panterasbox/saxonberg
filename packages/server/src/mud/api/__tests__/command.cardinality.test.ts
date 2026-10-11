@@ -389,3 +389,79 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     ).toEqual([a, b]);
   });
 });
+
+describe('how many — a prompt asks only about a NAME (maritime revision 2)', () => {
+  const three = [makeStuffStub('a'), makeStuffStub('b'), makeStuffStub('c')];
+  const all = { value: { kind: 'all' as const }, mode: 'lenient' as const };
+
+  it('⭐ a SET in a one-thing slot is refused in words, never prompted', async () => {
+    const ctx = makeContextStub();
+    const out = await CommandApi.applyCardinalityPolicy(
+      { type: 'object', onExcess: 'prompt' }, three, 'target', ctx, { isSet: true },
+    );
+    expect(out).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ kind: 'controller-rejected', reason: 'too-many' });
+    expect(String(ctx.notes[0]!.detail)).toMatch(/names 3 things, and this takes one/);
+  });
+
+  it('⭐ the player said how many: a one-thing slot takes the top (units off it), never asks', async () => {
+    const ctx = makeContextStub();
+    const out = await CommandApi.applyCardinalityPolicy(
+      { type: 'object', onExcess: 'prompt' }, three, 'target', ctx, { quantity: all },
+    );
+    expect(out).toEqual([three[0]]);
+    expect(ctx.notes).toEqual([]);
+  });
+
+  it('a set or a player quantity past a plural slot\'s hard limit is refused, never prompted', async () => {
+    const ctx = makeContextStub();
+    const spec = { type: 'objects', cardinality: { max: 2 }, onExcess: 'prompt' as const };
+    expect(await CommandApi.applyCardinalityPolicy(spec, three, 'targets', ctx, { isSet: true })).toBeNull();
+    expect(await CommandApi.applyCardinalityPolicy(spec, three, 'targets', ctx, { quantity: all })).toBeNull();
+    expect(ctx.notes.map((n) => n.reason)).toEqual(['too-many', 'too-many']);
+  });
+
+  it('a set within an unbounded plural slot is simply taken', async () => {
+    const ctx = makeContextStub();
+    expect(
+      await CommandApi.applyCardinalityPolicy({ type: 'objects', onExcess: 'prompt' }, three, 'targets', ctx, { isSet: true }),
+    ).toEqual(three);
+  });
+
+  it('a NAME keeps the view\'s own policy (here: error on ambiguity)', async () => {
+    const ctx = makeContextStub();
+    expect(await CommandApi.applyCardinalityPolicy({ type: 'object', onExcess: 'error' }, three, 'target', ctx)).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ reason: 'ambiguous' });
+  });
+});
+
+describe('cardinality.named — how many a plain NAME takes (look: one)', () => {
+  const two = [makeStuffStub('a'), makeStuffStub('b')];
+  const spec = { type: 'objects', cardinality: { named: 1 }, onExcess: 'error' as const };
+
+  it('⭐ a NAME matching more than `named` is an ambiguity (here: error; `look` prompts)', async () => {
+    const ctx = makeContextStub();
+    expect(await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx)).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ reason: 'ambiguous' });
+  });
+
+  it('⭐ a SET or the player\'s own quantity fills the slot past `named` — nothing asked', async () => {
+    const ctx = makeContextStub();
+    expect(await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx, { isSet: true })).toEqual(two);
+    expect(
+      await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx, {
+        quantity: { value: { kind: 'all' }, mode: 'lenient' },
+      }),
+    ).toEqual(two);
+    expect(ctx.notes).toEqual([]);
+  });
+
+  it('`named` above `max` is refused at load', () => {
+    expect(() =>
+      CommandDefinition.fromYaml(
+        `verbs: [foo]\ncontroller: FooController\ndescription: stub\nargs:\n  - name: targets\n    type: objects\n    cardinality:\n      max: 1\n      named: 2\n`,
+        '<test>',
+      ),
+    ).toThrow(/named \(2\) cannot exceed cardinality.max/);
+  });
+});

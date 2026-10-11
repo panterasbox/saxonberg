@@ -28,8 +28,14 @@ examples:
   - cmd: look --peek sign
     note: Read the sign without changing focus
 args:
+  # ⭐⭐ PLURAL (maritime revision 2): `look` may be given more than one
+  # thing — a SET named on purpose (`look horizon`, `look peers`) or the
+  # player's own how-many (`look all brass`) — and lists them. A plain
+  # NAME takes one (`named: 1`): `look brass` matching two ASKS which.
   - name: target
-    type: object
+    type: objects
+    cardinality:
+      named: 1
     required: false
     scope: ["$focus", "reachable"]
     updates_focus: extend
