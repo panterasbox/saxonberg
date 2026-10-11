@@ -14,7 +14,8 @@ data:
   separation: fractions
   discipline: dairying
   requiresHeatK: 0
-  restDays: 0.25
+  # A few game hours: in a shallow pan the cream is up by the afternoon.
+  restDays: 0.15
   productMaterial: ''
   residueMaterial: /trade/dairying/idea/material/cream
   residueShare: { nutrients: { fat: 2.5 } }

@@ -16,6 +16,7 @@ import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { ContaminableMixin, Contamination } from '../../material/Contaminable';
 import UnboundedReceptacle from '../../../platform/thing/UnboundedReceptacle';
+import CraftVessel from '../../../platform/thing/CraftVessel';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -163,5 +164,21 @@ describe('the hand on the milk', () => {
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBeGreaterThan(0);
+  });
+
+  it('⭐ a CraftVessel pail (the shipped pail since the dairy build) takes the milk', async () => {
+    const c = cow();
+    const who = milker();
+    who.scrub();
+    advance(0.5 * DAY);
+    const p = makeStuff(() => {
+      const v = new CraftVessel();
+      (v as unknown as { interiorBulk: boolean }).interiorBulk = true;
+      v.setInteriorCapacity(Quantity.of(10, 'L'));
+      return v;
+    });
+    const r = await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    expect(r.self).not.toMatch(/on the floor/);
+    expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
   });
 });

@@ -156,6 +156,11 @@ export default class DraftController extends CommandController<DraftModel> {
         Quantity.of(sample.flesh - flesh.current.rawValue(), '%'),
       );
     }
+    // ⭐ (dairy, found by the drive) The head exists from the draft, so its
+    // production clock starts NOW. It used to start at the first READ —
+    // a cow drafted and left for six game hours before anybody looked at
+    // her had nothing in her, because her clock had never begun.
+    animal.reconcileProduction();
     this.restoreDryPeriods(animal, species, herd.overlay[String(index)]);
 
     const where = (giver as unknown as { getContainer(): Stuff | null }).getContainer();

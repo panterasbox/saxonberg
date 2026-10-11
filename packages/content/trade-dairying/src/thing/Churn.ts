@@ -28,6 +28,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /** What a worked charge of cream becomes — the churning schedule's input. */
 export const CHURNED_CREAM = '/trade/dairying/idea/material/churned-cream';
@@ -42,6 +43,18 @@ const ChurnBase = FractionatingMixin(
 );
 
 export default class Churn extends ChurnBase implements HandWorked {
+  /**
+   * ⭐ `churn churn` — the kitchen's stir view, which a BUILD vessel
+   * confers through `ManualBuildMixin`. The churn is not a build (see the
+   * header), so it confers the view itself: an affordance is a static on a
+   * class (a row's `commandContributions:` is dead silently). Found by the
+   * drive: *"I don't understand 'churn'"* with a churn in the room.
+   */
+  static commandContributions: CommandContributions = {
+    environment: ['platform/cmd/crafting/stir.yaml'],
+    peers: ['platform/cmd/crafting/stir.yaml'],
+  };
+
   /**
    * Work the charge. The churn reads ITS OWN temperature — which is the
    * cream's — and the cream either breaks or it does not. Nothing is

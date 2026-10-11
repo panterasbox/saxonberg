@@ -20,7 +20,7 @@ data:
   longDescription: |
     A rough fold of hurdles and spoil-stone against the outside of the yard wall, with a lean-to roof of corrugated iron at one end. The ground inside is bare and trodden and smells of goat. Whatever grew here has been eaten, and so has most of the hurdle nearest the gate.
 
-    A milking bench stands under the lean-to beside a shelf with a pan and a crock on it. The book of the herd hangs on a nail.
+    A milking bench stands under the lean-to beside a shelf with a pan, a crock and a small copper vat on it. The book of the herd hangs on a nail.
   coords:
     x: -5
     y: 0
@@ -36,6 +36,10 @@ data:
     - /trade/dairying/thing/setting-pan
     - /trade/dairying/thing/starter-crock
     - /trade/dairying/thing/hoop
+    # ⭐ The vat a soft goat's cheese is set in — a starter crock feeds on
+    # milk rather than setting it, so without a vat the pen could make
+    # cream and no cheese (found by writing the drive).
+    - /trade/dairying/thing/cheese-vat
     - /trade/cooking/thing/salt-sack
   details:
     bench:

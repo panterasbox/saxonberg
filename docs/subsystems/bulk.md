@@ -747,3 +747,16 @@ their keys were **deleted**, so no shipped prose regressed.
   `sealed`'s. The pail shipped `open` and drained every fill to the floor
   (found by the pump drive; fixed). `salt-pan` and `sap-pan` still say
   `open` — their trades' question.
+
+## The dairy build (2026-10)
+
+- ⚠ **Finding, recorded not fixed:** `transfer` checks closure and blends
+  heat, and never asks whether the RECEIVING vessel can take what is
+  poured — molten copper into a wooden pail is accepted and the pail just
+  gets hot. The first build that melts a vessel owns it.
+- ⚠ **Fixed: the `UnboundedReceptacle` row had no interior.** It is the
+  transient source a take pours N litres out of (`Producing.pourTake`, the
+  smelt's crucible run); with no `interiorBulk`, `slotFor` found no slot
+  and every milking into a pail kept nothing. Unit tests stubbed the
+  source with an interior, which is how it hid; the row authors
+  `interiorBulk: true` now.

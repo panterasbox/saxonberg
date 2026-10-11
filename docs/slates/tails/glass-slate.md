@@ -320,6 +320,12 @@ only thing in this slate the platform does not already have.
 
 ## 8. ⛔ Molds are not glass's — extracted
 
+> **✅ BUILT (the dairy build, 2026-10)** — the kernel mould system:
+> [mould.md](../../subsystems/mould.md). The set site asks the container
+> first; three consumers (cheese hoop, ingot mould, ice pan); `reusable`
+> ships, no consumed mould yet. Glass's press- and blow-moulding remain
+> this slate's industrial rung, as a `Mould` row plus a set process.
+
 ⭐⭐⭐ **The hook exists and reads the wrong host.**
 `Material.castTemplate` (`lib/material/Material.ts:468`, authorable,
 persistent, default `/stuff/thing/Casting`) is consumed at the solidify

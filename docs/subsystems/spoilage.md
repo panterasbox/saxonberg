@@ -984,3 +984,31 @@ after one act performed on it — not the act.
 ⚠ Two persistent names changed (`waterClockStamp`, `BulkPayload.water`),
 so a dev DB that holds the old keys wants dropping; there is no migration
 and there is not going to be one.
+
+## ⭐⭐ The collision, decided: a live ferment HOLDS the gauge (the dairy build, 2026-10)
+
+The fermentation collision above is decided, the way it predicted.
+`Freshness` declares `interface SpoilageHolding { holdsSpoilage(): boolean }`
+and asks it of the holder (a bulk slot) or the host (a discrete good),
+duck-probed. **While held, the stamp moves and the load does not**, so a
+release never bills the held span. Two implementers:
+
+- `MaturingMixin` — an `active` batch with a strain, or a culture with
+  viability: *a working culture IS the flora*. A sterile fill, a stuck
+  batch, a finished product and a dead starter are not held.
+- `RipeningMixin` — a wheel while it is `active` (the rind's flora).
+
+⚠ **Contamination is NEVER held.** A raw-milk cheese keeps its pathogens,
+which is the point of pasteurizing — `Contaminable` asks nothing.
+
+Milk is the first fermentable to tabulate an `Ea`: **60 kJ/mol at a_w
+0.99**, which puts the tainted band at ≈ 31 game-hours at 294 K and ≈ 80 at
+283 K (pinned by `Freshness.hold.test.ts` to `[0.75, 1.5]` and `≥ 3` game
+days). The cream, whey, curds and cheeses carry their own constants
+(`trade-dairying`'s rows).
+
+⚠ **Finding, recorded not fixed:** the kill curve is about half as
+temperature-sensitive as real milk pathogens, so a flash pasteurization
+(72 °C for seconds) under-kills here; a batch hold at ~63 °C behaves
+honestly. A retune of the kill's activation energy is this subsystem's,
+not dairy's.

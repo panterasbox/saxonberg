@@ -6,3 +6,10 @@ data:
   shortDescription: formless vessel
   register: indefinite
   keywords: [vessel, receptacle]
+  # ⚠⚠ AN INTERIOR, and the row shipped without one (found by the dairy
+  # drive). This is the transient SOURCE a take pours N litres out of
+  # (`Producing.pourTake`, the smelt's run): `slotFor(source)` finds no
+  # slot on a holder with no interior, so every milking into a pail kept
+  # nothing — *"it all goes on the floor"* — with a pail in hand. Unit
+  # tests stubbed the source with an interior, which is how it hid.
+  interiorBulk: true

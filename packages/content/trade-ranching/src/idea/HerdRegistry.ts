@@ -304,11 +304,18 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   public async named(needle: string): Promise<HerdRecord | null> {
     const want = needle.trim().toLowerCase();
     if (!want) return null;
-    for (const herd of await this.all()) {
+    const herds = await this.all();
+    for (const herd of herds) {
       if (herd.herdId.toLowerCase() === want) return herd;
       if (herd.name.toLowerCase() === want) return herd;
     }
-    return null;
+    // ⭐ A keeper says *draft 1 from calves*, not *from "the Delight
+    // calves"*: a WORD of the name answers when exactly one herd has it —
+    // two herds sharing the word is ambiguous, and ambiguity is a miss.
+    const byWord = herds.filter((h) =>
+      h.name.toLowerCase().split(/\s+/).includes(want),
+    );
+    return byWord.length === 1 ? (byWord[0] as HerdRecord) : null;
   }
 
   /**

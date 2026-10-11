@@ -532,3 +532,53 @@ honest form of the same fact rather than a weaker one. A humidity term on
 ⚠ Tag hygiene against the double-match rule: `honey` carries `honey`;
 `honey-must` carries `honey-must` and **not** `honey`, or a bucket of must
 would match both profiles and the resolver would pick one with a warning.
+
+## ⭐⭐ The dairy build (2026-10): a pour may change what a batch IS, and a solid ripens
+
+**`transforms`** (`MaturationProfile`, `{category, becomes}[]`) — a pour of
+matter carrying `category` into an **active** batch REKEYS it in place
+(`rekeyBatch`): the interior becomes `becomes`, the profile is re-matched,
+and the strain, days, worst stretch, input band, mark and scald are KEPT.
+`classifyForeignPour` returns a third kind, `'transform'`, checked before
+pitch and feed. Rennet (`coagulant`) into milk makes renneted milk — a
+firm curd — whatever the order of rennet and starter.
+
+**The scald mark** — `batchPeakK` (persistent, the peak over every
+reconcile's samples since the fill) against the profile's `scaldAboveK`:
+past it the band is capped `poor`, a **fourth weakest link** in
+`applyBatchGrade`. Vacuous for every profile that authors none.
+
+**`leesShare`** — a `CompositionShare` (`lib/material/`) evaluated against
+the material the batch was MADE from, overriding the literal
+`leesFraction`: curd is the fat and protein the milk had, so ewe's milk
+gives about twice the cow's curd from one row.
+
+**`madeFrom`** — maturation's own `BulkPayload` field: the input material,
+written once at a batch's first fill and kept across the lees split and a
+rekey; carried onto a set wheel so it can say what milk it was.
+
+⚠ **Found by the dairy tests: a vat poured its whey labelled MILK.**
+`BulkableApi.transfer` reads the source's material before anything
+advances the batch, so a vat nobody had looked at since its curd set still
+answered *milk*. `getBulkMaterialPath` now reconciles first (re-entry
+guarded) — the guard `Fractionating` already had.
+
+`rateAt` / `damageSat` are now the **profile's own methods**, shared by
+the discrete twin.
+
+### ⭐ The discrete twin — `RipeningMixin` (`lib/maturation/Ripening.ts`)
+
+A SOLID that converts by its own temperature: a wheel of cheese. It keeps
+the time-and-temperature half of the shape (the same `MaturationProfile`
+rows, matched by the host's material TAGS — `soft-cheese`, `hard-cheese`,
+which only a set wheel carries) and drops the bulk half (no strain, no
+lees, no pour). Phases `idle · active · finished · turned · killed` —
+`killed` stored, because a wheel cannot be re-pitched; `turned` only when
+the profile authors a `turnedMaterial` (a soft cheese goes over, a hard one
+keeps). The grade is the weakest of the worst stretch, the band it was MADE
+at (recorded by a `setGrade` witness while idle — reading the face at start
+capped every wheel at the default `fair`), and how far along it is
+(`productAtFraction`); `getGrade()` reconciles first, so a buyer reads the
+ripened grade. It holds spoilage while `active`. The augmenter speaks on
+`look` and `taste`, never `smell`, and carries no digit. Composed by
+`trade-dairying`'s `Wheel` only; a cured ham is the named second consumer.

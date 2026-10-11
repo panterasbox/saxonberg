@@ -110,7 +110,7 @@ boot:
   # afforded by the book.
   - { template: /world/terminus/hearts-delight/dairy/thing/dairy-book, role: producer, reason: "the herd book affords draft/return on the six cows — the only way to a cow to milk" }
   - { template: /world/terminus/hearts-delight/dairy/thing/calf-register, role: producer, reason: "the calf register is the only young stock in the realm, and a calf's vell is the creamery's rennet" }
-  # ⚠ And the GOAT, synchronously, though the goats are Rejection's: the
-  # valley's creamery takes goat's milk, and a species row is read sync.
-  - { template: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus, role: sync-read, reason: "a goat's milk tap and butchery yield are synchronous species reads" }
+  # ⚠ NOT the goat: the boot union refuses one template from two packs, and
+  # the goats are Rejection's (its pack warms the species). The creamery
+  # takes goat's MILK, which is a material and needs no species row.
 

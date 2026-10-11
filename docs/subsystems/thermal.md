@@ -687,9 +687,12 @@ to be pointed at a thing before its phase was ever reconciled.
 
 `reconcileThermal()` drives it now, **immediately after the drift
 that makes a body warm**, and narrowed to `Meltable` hosts: the
-`Bulkable` freeze/boil rung has its own callers (a `CraftVessel`
-drives it from its own reconcile) and widening it would double-run
-them. The call sits outside the reentry guard so the plateau's own
+`Bulkable` freeze/boil rung has its own callers (a cold store's
+envelope, a lit burner's heat pass, two spell endpoints) and widening it
+would double-run them. ⚠ This paragraph used to say *"a `CraftVessel`
+drives it from its own reconcile"* — false: no vessel calls
+`reconcilePhase()`, which is why molten metal in a mould would never have
+set. The dairy build added the freeze-side driver below. The call sits outside the reentry guard so the plateau's own
 `setContentsTemperature` is not swallowed.
 
 ⭐ It is one line on the lazy read path, and it is the reason an
@@ -820,3 +823,24 @@ the entire mechanism. See [apiculture.md](./apiculture.md).
 
 The deferred half is a `feel hive` reading, which wants the exposure rule
 for a Vessel outdoors — a thermal-slate item.
+
+## ⭐⭐ The set site asks the container first (the dairy build, 2026-10)
+
+The solidify edge of `reconcileBulkPhase` no longer always clones the
+material's `castTemplate` beside the vessel. It asks `MixinApi.isMould(v)`
+first: a **mould** keeps what set in it, in its own shape, inside it
+(`castInto`); any other vessel falls back to the material's fallback shape
+dropped beside it, exactly as before. Water's fallback is now
+`/stuff/thing/ice-lump` (*a lump of ice*); the ice pan is a mould and gives
+the squared `ice-block`. See [mould.md](./mould.md).
+
+⭐ **A molten pool sets because it has cooled** — `freezesWhereItStands`,
+the mirror of the melt driver: after the drift, a bulk holder whose pool is
+at or below its melting point runs the phase on the same lazy read. ⚠
+**Freeze side only** (nothing boils on a warm read) and ⚠⚠ **only for a
+pool that is NOT `liquid`-tagged**: tallow (320 K), pitch, paraffin and
+asphalt sit in crocks and barrels as `liquid` bulk below their own melting
+points, and freezing them on every read would set a tallow crock into a
+lump and break the chandlery. Those keep their old drivers; molten metal —
+which has no other way to exist as bulk — sets by itself, so a crucible
+left to cool holds a lump and a filled ingot mould holds an ingot.

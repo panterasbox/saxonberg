@@ -14,7 +14,7 @@ data:
   ambientIntensity: 12000
   ambientColorTemperature: 4800
   longDescription: |
-    A cool whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. Wide shallow pans stand on the shelves; a tall churn stands by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. Hoops of beech staves are stacked by a pressing table, with two squared stones beside them.
+    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. Wide shallow pans stand on the shelves; a tall churn stands by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. Hoops of beech staves are stacked by a pressing table, with two squared stones beside them.
 
     Everything smells of milk and of being scrubbed. A trap in the floor opens on steps going down to the cheese room.
   coords: { x: -4, y: -4, z: 0 }
@@ -44,7 +44,6 @@ data:
     - /stuff/thing/fixture/water-butt
     - /stuff/thing/fixture/table
     - /world/terminus/hearts-delight/creamery/thing/shelf
-    - /stuff/thing/vessel/pail
   cast:
     - /world/terminus/hearts-delight/agent/creamery-keeper
   details:
