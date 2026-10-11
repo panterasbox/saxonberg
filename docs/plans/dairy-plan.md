@@ -1991,3 +1991,37 @@ USE them.
     seed hashes the game day; the printed figures are rounded) — given the
     rounding slack; a `setSex` throw from the Delight's dogs during a
     fast-travel route load at boot (their species not yet warm).
+
+### What driving found (runs 4–8), and what was done
+
+12. ⭐⭐ **Milk's spoilage clock started at the first SNIFF.** An unseeded
+    gauge seeds at its first read, so a jug of milk a day in the warm read
+    fresh to the first nose. `Producing` now seeds the take's gauge on the
+    transient source, and the pour carries and blends it.
+13. ⭐ **A vessel said nothing of what its contents had become.** Only
+    discrete food spoke its spoilage band; `Freshness.senseLine` + a
+    `CraftVessel` augmenter make a jug's contents speak to `look`/`smell`
+    (pinned by `CraftVessel.freshness.test.ts`).
+14. **The scald mark was a number only** — the vat now says the curd set
+    badly when the batch peak passed its profile's `scaldAboveK`.
+15. **`cure wheel` resolved the meat recipe** (`insufficient-input(meat)`):
+    a `salt-wheel` recipe in the dairy pack, found by
+    `PreserveController.recipeFor`'s item-slot match; `CraftingLogic` now
+    carries `madeFrom` across a transform that keeps the thing
+    (`MadeFromHolding` gained its getter).
+16. Rows: a **milk can** at the creamery (a floor holding a puddle of one
+    milk refuses a spill of another — a bulk finding; the drive spills in
+    distinct rooms), a **water butt** at the goat pen (`wash pail` had no
+    water there), a **cheese knife** in the cheese room (nothing to split a
+    wheel with).
+17. The founder `eval` clone of setup ore died at the sandbox boundary
+    (`fromStored` denied) and the dispatch never answered — the drive
+    mints with `clone … --here`.
+18. Drive-shape lessons: an answered *which one?* prompt leaves the
+    original dispatch's reply to land on the NEXT command (every later
+    checkpoint read the wrong answer) — cows are named `peers:living:cow`,
+    which a body never matches; a day advanced in a busy world takes
+    minutes, so the file sets a 30-minute test timeout; a whey starter
+    left a fortnight unfed is DEAD (correctly), so the boiled batch runs
+    before the fortnight; warm milk taints in 0.75–1.5 days at 294 K, so
+    the spoilage check reads at two days.

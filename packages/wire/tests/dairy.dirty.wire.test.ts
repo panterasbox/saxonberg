@@ -133,27 +133,46 @@ async function untilHour(hour: number): Promise<void> {
 }
 
 /**
- * Type a command; if the binder asks *which one?*, answer it — preferring
- * a LIVING thing over a body (a slaughtered calf reads "the body of a
- * cow" and answers to `cow`), then the first.
+ * Type a command; if the binder asks *which one?*, answer it WHILE the
+ * command is still in flight — preferring a LIVING thing over a body (a
+ * slaughtered calf reads "the body of a cow" and answers to `cow`), then
+ * the first.
+ *
+ * ⚠ Answer in flight, never after: the harness only reports a prompt when
+ * the dispatch times out, and the original command's reply then lands
+ * after nothing is waiting for it — re-sending the command after answering
+ * prompted again and handed every later checkpoint the wrong reply.
  */
 async function say(s: Session, text: string): Promise<CommandResult> {
-  try {
-    return await s.cmd(text);
-  } catch (err) {
-    if (!/raised a PROMPT/.test(String(err))) throw err;
-    type Match = { stuffId?: string; displayName?: string };
-    type P = { promptId?: string; outcome?: { notes?: Array<{ matches?: Match[] }> } };
-    const pending = (await s.awaitPrompt(5_000)) as unknown as P & { payload?: P };
+  type Match = { stuffId?: string; displayName?: string };
+  type P = { promptId?: string; outcome?: { notes?: Array<{ matches?: Match[] }> } };
+  let settled = false;
+  const reply = s.cmd(text).finally(() => {
+    settled = true;
+  });
+  while (!settled) {
+    let pending: P & { payload?: P };
+    try {
+      pending = (await Promise.race([
+        s.awaitPrompt(1_000),
+        reply.then(
+          () => null,
+          () => null,
+        ),
+      ])) as unknown as P & { payload?: P };
+    } catch {
+      continue;
+    }
+    if (!pending) break;
     const payload = pending.payload?.promptId ? pending.payload : pending;
     const matches = payload.outcome?.notes?.flatMap((n) => n.matches ?? []) ?? [];
-    const pick = matches.find((m) => m.stuffId && !/body/i.test(m.displayName ?? '')) ??
+    const pick =
+      matches.find((m) => m.stuffId && !/body/i.test(m.displayName ?? '')) ??
       matches.find((m) => m.stuffId);
     note(`(asked which, for '${text}': ${matches.map((m) => m.displayName).join(' / ')} → ${pick?.displayName})`);
     if (payload.promptId && pick?.stuffId) s.answerPrompt(payload.promptId, pick.stuffId);
-    await new Promise((r) => setTimeout(r, 1_500));
-    return await s.cmd(text);
   }
+  return reply;
 }
 
 async function read(s: Session, text: string): Promise<string> {
@@ -279,7 +298,7 @@ suite('1–3. the dairy farm, and a cow into a washed pail', () => {
   });
 
   it('⭐ `look cow` — her condition, and that she is in milk', async () => {
-    const cow = await read(k, 'look peers:living:cow');
+    const cow = await read(k, 'look cow');
     note(`look cow → ${cow}`);
     expect(cow).toMatch(/in full milk|wants milking|heavy/i);
   });
@@ -288,13 +307,13 @@ suite('1–3. the dairy farm, and a cow into a washed pail', () => {
     await doing(k, 'get pail');
     const washed = await doing(k, 'wash pail');
     expect(washed).toMatch(/wash/i);
-    const milked = await doing(k, 'milk peers:living:cow into pail');
+    const milked = await doing(k, 'milk cow into pail');
     expect(milked).toMatch(/litre|pail|milk/i);
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     const pail = await read(k, 'look pail');
     note(`look pail → ${pail}`);
     expect(pail).toMatch(/white|milk/i);
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
   });
 });
 
@@ -524,9 +543,9 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     await doing(k, 'draft 4 from dairy');
     await untilHour(12);
     await act(k, 'spill pail');
-    const milked = await doing(k, 'milk peers:living:cow into pail');
+    const milked = await doing(k, 'milk cow into pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
   });
 
   it('⭐⭐ boiled on the fire, cooled, pitched — and the curd sets BADLY', async () => {
@@ -648,34 +667,34 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
     await untilHour(0);
     await doing(k, 'draft 2 from dairy');
     await untilHour(12);
-    const full = await read(k, 'look peers:living:cow');
+    const full = await read(k, 'look cow');
     note(`look cow (drafted, noon) → ${full}`);
     expect(full).not.toMatch(/dried off/i);
     await advance('1 day');
-    const cow = await read(k, 'look peers:living:cow');
+    const cow = await read(k, 'look cow');
     note(`look cow (a day unmilked) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
   });
 
   it('⭐⭐ `return cow`; `draft 2` at once — still dry', async () => {
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
     await doing(k, 'draft 2 from dairy');
-    const cow = await read(k, 'look peers:living:cow');
+    const cow = await read(k, 'look cow');
     note(`look cow (redrafted at once) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
   });
 
   it('⭐⭐ after the rest, drafted again, she is back in milk', async () => {
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
     await advance('4 days');
     await untilHour(0);
     await doing(k, 'draft 2 from dairy');
     await untilHour(12);
-    const cow = await read(k, 'look peers:living:cow');
+    const cow = await read(k, 'look cow');
     note(`look cow (after the rest) → ${cow}`);
     expect(cow).not.toMatch(/dried off/i);
     expect(cow).toMatch(/milk/i);
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
   });
 });
 
@@ -692,9 +711,9 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     await goTo(BYRE);
     await doing(k, 'draft 3 from dairy');
     await advance('9 hours');
-    const milked = await doing(k, 'milk peers:living:cow into pail');
+    const milked = await doing(k, 'milk cow into pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    await doing(k, 'return peers:living:cow');
+    await doing(k, 'return cow');
   });
 
   it('⭐⭐ the stranger drinks it raw, and falls ill', async () => {
