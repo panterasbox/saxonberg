@@ -154,4 +154,36 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
       WorldClockApi._resetForTesting();
     }
   });
+
+  it('⚠ a clock that moves BETWEEN reads does not recurse (the drive\'s stack overflow)', async () => {
+    // On a loaded box the scaled real-time clock advances a little between
+    // the outer read and the phase pass's own temperature read. That inner
+    // read used to integrate again and call the phase pass again — sync
+    // recursion until the stack blew (a blood unit in the Circle's cold
+    // camp, under load). Here the clock ticks on EVERY read.
+    const { WorldClockApi } = await import('../../../api/worldclock');
+    const { default: WorldClockRegistry } = await import(
+      '../../../platform/idea/WorldClockRegistry'
+    );
+    // ⚠ `beforeEach` cleared the registry, and with no registry thermal is
+    // IDLE — the first draft of this test passed without the fix.
+    if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
+      makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    }
+    let now = 100;
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => (now += 1));
+    WorldClockApi.setScale(1000);
+    try {
+      const blood = liquid({ mp: 272.6, latent: 334_000, ruined: true });
+      const bag = pan(blood, 0.45, 276);
+      bag.setLastAmbientK(266);
+      expect(() => {
+        for (let i = 0; i < 50; i++) bag.getTemperature();
+      }).not.toThrow();
+      expect(bag.getTemperature().rawValue()).toBeGreaterThan(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
 });

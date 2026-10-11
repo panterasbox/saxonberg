@@ -702,6 +702,15 @@ so one long unread gap banks one cooling's worth (≈ 96 of the 334 kJ a
 litre needs); a watched jug freezes over a few reads. Pre-existing, and
 the melt shares it → thermal-slate.
 
+⚠⚠ **The phase pass has its own reentry guard (`_phaseReconciling`).**
+It runs after `_thermalReconciling` is released, and it READS the
+temperature, which reconciles again. On the scaled real-time clock a few
+game-milliseconds pass between those two reads, so without the guard
+every nested read integrated again and called the phase pass again,
+recursing until the stack blew. It hung the server under load, on a
+blood unit in a cold camp. `Thermal.freeze.test.ts` pins this with a
+clock that ticks on every read.
+
 ⭐ It is one line on the lazy read path, and it is the reason an
 icebox has a clock at all.
 
