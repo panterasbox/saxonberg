@@ -32,6 +32,7 @@ import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { ThermalDose } from '../../../lib/thermal/ThermalDose';
 import { WaterActivity } from '../../../lib/material/WaterActivity';
+import type { MadeFromHolding } from '../../../lib/mould/Mould';
 import {
   Contamination,
   type PathogenLoads,
@@ -1804,6 +1805,18 @@ async function applyTangibleOutput(
     output.setWaterState(
       treatment ? WaterActivity.applyTreatment(inherited, treatment) : inherited,
     );
+  }
+  // ⭐ What it was made FROM rides a transform that keeps the thing (a
+  // wheel salted is the same wheel — dairy, found by the drive). Duck-
+  // probed both ends, as the mould's cast does.
+  const fromProbe = primary?.stuff as unknown as Partial<MadeFromHolding> | undefined;
+  const toProbe = output as unknown as Partial<MadeFromHolding>;
+  if (
+    typeof fromProbe?.getMadeFrom === 'function' &&
+    typeof toProbe.setMadeFrom === 'function'
+  ) {
+    const from = fromProbe.getMadeFrom();
+    if (from) toProbe.setMadeFrom(from);
   }
   // ⭐ And the doneness the working put on it — the discrete twin of
   // `applyDoneness`. A roast comes out of its working done; what happens

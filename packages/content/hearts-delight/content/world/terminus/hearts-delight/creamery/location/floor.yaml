@@ -14,7 +14,7 @@ data:
   ambientIntensity: 12000
   ambientColorTemperature: 4800
   longDescription: |
-    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. Wide shallow pans stand on the shelves; a tall churn stands by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. Hoops of beech staves are stacked by a pressing table, with two squared stones beside them.
+    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it.
 
     Everything smells of milk and of being scrubbed. A trap in the floor opens on steps going down to the cheese room.
   coords: { x: -4, y: -4, z: 0 }
@@ -28,17 +28,19 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
-    - { template: /trade/dairying/thing/setting-pan, count: 2 }
+    # One pan: a second makes every `pour pan into …` ask which (the drive).
+    - /trade/dairying/thing/setting-pan
     - /trade/dairying/thing/churn
     - /trade/dairying/thing/cheese-vat
-    - { template: /trade/dairying/thing/hoop, count: 2 }
+    - /trade/dairying/thing/hoop
     - /trade/dairying/thing/starter-crock
     - /trade/dairying/thing/rennet-jar
     - /trade/dairying/thing/butter-crock
     - /trade/dairying/thing/jug
+    - /trade/dairying/thing/milk-can
     - /world/terminus/hearts-delight/creamery/thing/hearth
     - /stuff/thing/instrument/thermometer
-    - { template: /stuff/thing/gear/press-stone, count: 2 }
+    - /stuff/thing/gear/press-stone
     - /trade/cooking/thing/salt-sack
     - /trade/cooking/thing/salting-trough
     - /stuff/thing/fixture/water-butt

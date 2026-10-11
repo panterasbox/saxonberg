@@ -20,7 +20,7 @@ data:
   longDescription: |
     A rough fold of hurdles and spoil-stone against the outside of the yard wall, with a lean-to roof of corrugated iron at one end. The ground inside is bare and trodden and smells of goat. Whatever grew here has been eaten, and so has most of the hurdle nearest the gate.
 
-    A milking bench stands under the lean-to beside a shelf with a pan, a crock and a small copper vat on it. The book of the herd hangs on a nail.
+    A milking bench stands under the lean-to beside a shelf with a pan, a crock and a small copper vat on it. The book of the herd hangs on a nail, and a butt under the downpipe catches what the roof sheds.
   coords:
     x: -5
     y: 0
@@ -41,6 +41,9 @@ data:
     # cream and no cheese (found by writing the drive).
     - /trade/dairying/thing/cheese-vat
     - /trade/cooking/thing/salt-sack
+    # ⭐ Water to wash the pail in — `wash` wants a source, and without
+    # one the milker cannot keep a clean pail here (found by the drive).
+    - /stuff/thing/fixture/water-butt
   details:
     bench:
       keywords: [bench, "milking bench", stand]

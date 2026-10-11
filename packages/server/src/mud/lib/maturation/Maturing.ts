@@ -382,6 +382,13 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
     }
   } else if (phase === 'finished') {
     line = lines.finished;
+    // ⭐ The scald mark, in words (dairy D6): a batch taken past its
+    // profile's `scaldAboveK` before it set sets BADLY, and the vat says
+    // so — the grade is the number, this is what a cheesemaker sees.
+    const scald = profile?.getScaldAboveK() ?? null;
+    if (scald !== null && host.getBatchPeakK() > scald) {
+      line = `${line} The curd has set badly, though — slack and grainy; it was taken too hot before it set.`;
+    }
   } else if (phase === 'turned') {
     line = lines.turned;
   }

@@ -1,0 +1,14 @@
+# A milk can — the tall lidded can a dairy carries skim, buttermilk and
+# whey in by the gallon. A different vessel from the pail by name, so a
+# creamery can keep milk in one and what came off it in the other.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: milk can
+  keywords: [can, "milk can", milk-can]
+  register: indefinite
+  longDescription: A tall tinned-iron can with a shoulder, a neck and a lid that seats with a twist.
+  category: milk-can
+  interiorBulk: true
+  interiorCapacity: 10
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 4

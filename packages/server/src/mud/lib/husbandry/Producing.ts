@@ -78,6 +78,7 @@ import type Material from '../../platform/idea/material/Material';
 import type { Tooled } from '../craft/Tooled';
 import type { Bulkable, BulkSlot } from '../bulk/Bulkable';
 import { Contamination } from '../material/Contaminable';
+import { Freshness } from '../material/Freshness';
 import { HARM_DEFAULTS } from '../../platform/idea/Condition';
 import type { Tappable } from './Tappable';
 import type {
@@ -850,6 +851,11 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         source.setBulkMaterial('interior', material);
         const from = BulkableApi.slotFor(source, undefined);
         if (!from) return 0;
+        // ⭐ The milk's spoilage clock starts at the TAKE (dairy, found by
+        // the drive): an unseeded gauge seeds at its first read, so a jug
+        // a day in the warm read fresh to the first nose that tried it.
+        // Seeded on the source, the pour carries it and blends it.
+        new Freshness(from).load();
         const result = BulkableApi.transfer(from, to, {
           kind: 'measure',
           litres: units,

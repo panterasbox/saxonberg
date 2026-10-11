@@ -23,7 +23,7 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
-    - { template: /world/terminus/hearts-delight/creamery/thing/cheese-rack, count: 2 }
+    - /world/terminus/hearts-delight/creamery/thing/cheese-rack
   details:
     grating:
       keywords: [grating, light, vent]

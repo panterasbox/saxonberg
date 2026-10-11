@@ -79,6 +79,7 @@ export interface SetPool {
  * and a lump of copper simply does not answer.
  */
 export interface MadeFromHolding {
+  getMadeFrom(): string;
   setMadeFrom(materialPath: string): void;
 }
 

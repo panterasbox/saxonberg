@@ -716,6 +716,21 @@ export class Freshness {
   }
 
   /**
+   * ⭐ What this slot's matter tells a NOSE or an EYE about its spoilage —
+   * the band phrase the discrete gauge speaks, or `null` (fresh, inert,
+   * or a sense spoilage does not answer to). Found by the dairy drive: a
+   * jug of milk a day in the warm said nothing to `smell`, because the
+   * band line was spoken only by discrete food, never by what a vessel
+   * holds.
+   */
+  senseLine(filter?: readonly string[]): string | null {
+    if (filter && !filter.some((c) => FRESHNESS_CHANNELS.includes(c))) return null;
+    if (this.slot.isEmpty()) return null;
+    const band = Freshness.bandFor(this.load());
+    return band === 'fresh' ? null : FRESHNESS_PHRASE[band];
+  }
+
+  /**
    * Stamp a blend's microbial load outright — the cook's kill step and
    * the pour's blend. Writes the shadow payload if the slot had none, so
    * a fill can say "this came out of the pot sterile" in one call. A slot
