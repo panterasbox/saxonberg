@@ -213,7 +213,7 @@ suite('23 · 24 · the horizon ashore', () => {
     }
     const inside = await Session.open(LANDSMAN, { startLocation: MILL });
     try {
-      expect(await look(inside, 'look horizon')).toMatch(/Nothing beyond where you stand/);
+      expect(await look(inside, 'look horizon')).toMatch(/You see nothing there/);
     } finally {
       inside.close();
     }
@@ -271,6 +271,65 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
   it('the bar is crossed and she comes up to the roads', async () => {
     const said = await sail(me, '1 hour');
     expect(said).toMatch(/You raise the roads/);
+  });
+});
+
+suite('27 · 28 · 29 · 30 · looking at many things', () => {
+  const DECK = '/world/terminus/hesper/deck';
+
+  it('27 · `inventory` groups your own things: wearing, holding, carrying', async () => {
+    const said = squash(await me.prose('inventory'));
+    expect(said).toMatch(/You are wearing: /);
+  });
+
+  it('28 · ⭐⭐ `look` at another person: what they wear and hold — never their implant; `inventory` them the same', async () => {
+    const other = await Session.open(LANDSMAN, { startLocation: DECK });
+    try {
+      const id = (await other.queryOne('me'))?.stuffId;
+      expect(id).toBeTruthy();
+      const looked = await look(me, `look #${id}`);
+      expect(looked).toMatch(/Wearing: /);
+      expect(looked).not.toMatch(/implant/i);
+      const ledger = squash(await me.prose(`inventory #${id}`));
+      expect(ledger).toMatch(/Wearing: /);
+      expect(ledger).not.toMatch(/implant/i);
+    } finally {
+      other.close();
+    }
+  });
+
+  it('29 · `look` at a chest of six names four and says how to see the rest; the ledger lists all; shut, it refuses', async () => {
+    const looked = await look(me, 'look chest');
+    expect(looked).toMatch(/In it: .*, and 2 more things — `inventory chest`/);
+    for (const verb of ['inventory chest', 'look in chest']) {
+      const ledger = squash(await me.prose(verb));
+      expect(ledger, verb).toMatch(/bowl/);
+      expect(ledger, verb).toMatch(/hood/);
+    }
+    expectOk(await me.cmd('close chest'));
+    expect(squash(await me.prose('inventory chest'))).toMatch(/is shut/);
+    expectOk(await me.cmd('open chest'));
+  });
+
+  it('30 · ⭐ `look greywater` with two charts below ASKS which; `look all greywater` lists both; `look 2nd greywater` reads one', async () => {
+    expectOk(await me.cmd('down'));
+    await me.drainProse();
+    // The prompt arrives on its own frame; the command answers once it is answered.
+    const pending = me.cmd('look greywater');
+    const prompt = await me.awaitPrompt(10_000);
+    const payload = (prompt as unknown as {
+      payload?: { promptId?: string; outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> } };
+    }).payload;
+    const pick = payload?.outcome?.notes?.map((n) => n.matches?.[0]?.stuffId).find((x): x is string => !!x);
+    expect(payload?.promptId && pick).toBeTruthy();
+    me.answerPrompt(payload!.promptId!, pick!);
+    expectOk(await pending);
+    const all = await look(me, 'look all greywater');
+    expect(all).toMatch(/You see .*chart.*chart/);
+    const second = await look(me, 'look 2nd greywater');
+    expect(second).toMatch(/chart of the Greywater/);
+    expect(second).not.toMatch(/You see .*chart.*chart/);
+    expectOk(await me.cmd('up'));
   });
 });
 
@@ -378,7 +437,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
   it('19 · ⭐ somebody below decks sees nothing of it', async () => {
     const s = await Session.open(LANDSMAN, { startLocation: HOLD });
     try {
-      expect(await look(s, 'look horizon')).toMatch(/Nothing beyond where you stand/);
+      expect(await look(s, 'look horizon')).toMatch(/You see nothing there/);
     } finally {
       s.close();
     }

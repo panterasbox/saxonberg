@@ -227,6 +227,17 @@ tool, not an author's privilege.
 `#abc123` looks up a Stuff by its exact stuffId. Useful for
 debugging.
 
+### ⭐ A SET or a NAME
+
+Every result says how the query asked (`isSet` on `MqlOne`/`MqlMany`):
+a query that **names a set** — a seed (`horizon`, `peers`, `inventory`),
+`them`, a path, `me:i` — is a set; a query that **searches by keyword**
+anywhere in it (`brass`, `horizon:tower`) names things, and only that can
+be ambiguous. A single referent (`here`, `me`, `it`, `#id`) is one thing.
+A verb asks *which?* only about a name; a set, or your own `all` / count,
+is taken as you said it. See [command-spec.md § Who decides how
+many](./subsystems/command-spec.md).
+
 ## Chain operator `:`
 
 The chain operator feeds the result of the left into the right. What

@@ -29,6 +29,7 @@ data:
     - /trade/fishing/thing/rod
     - /trade/fishing/thing/worm
     - /world/terminus/hesper/thing/dinghy
+    - /world/terminus/hesper/thing/sea-chest
   cast:
     # ⭐ A deckhand who keeps the watch once appointed (maritime R7).
     - /world/terminus/hesper/agent/lookout

@@ -59,7 +59,7 @@ Containable → Container → Engaged → Mobile → CommandGiver
 
 | Verb | Bucket | Lives where | Gated by |
 |---|---|---|---|
-| `look` | `self` | PerceiverMixin | — |
+| `look` | `self` | PerceiverMixin | — (plural: a set or several things is a list) |
 | `watch` | `self` | PerceiverMixin | — (the stream form refuses a non-player; `watch horizon` is any perceiver's) |
 | `scry` | `self` | PerceiverMixin | — |
 | `locate` | `self` | PerceiverMixin | — |
@@ -71,12 +71,25 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | `sense` | `self` | PerceiverMixin | — (gestalt) |
 
 ⭐ **Beyond the room** (the maritime build's revision 1): `look horizon`
-surveys what can be seen from here that is not in the room — the
-`horizon` MQL scope, `PerceptionApi.horizonFor` — featured structures
-first, then *"You can also make out …"*; `look horizon:<it>` reads one
-like any visible thing. `watch horizon` keeps a watch (an engagement told
-only what changes). Nothing beyond the room is ever appended to a room's
-own `look`. See [expanse.md § Perception at range](./expanse.md).
+lists what can be seen from here that is not in the room — the `horizon`
+MQL scope, `PerceptionApi.horizonFor`; `look horizon:<it>` reads one like
+any visible thing. `watch horizon` keeps a watch (an engagement told only
+what changes). Nothing beyond the room is ever appended to a room's own
+`look`. See [expanse.md § Perception at range](./expanse.md).
+
+⭐⭐ **Looking at many things** (revision 2). `look` is PLURAL: a set
+named on purpose (`look horizon`, `look peers`) or several things the
+player asked for (`look all brass`) is a LIST, and the list is the
+content — no header, featured things first, each entry saying how it
+stands to you (a horizon thing's compass point and range). A plain name
+matching several ASKS which. `look` at a person or container shows what
+you would notice it holding — through **`PerceptionApi.visibleContentsOf`,
+the one rule `inventory` reads too**: on a person what they WEAR and
+HOLD (never pockets, never an implant), your own everything, a container
+if open — summarised past four (*"and 2 more things — `inventory
+chest`"*). **`inventory [<thing>]`** is the complete, grouped ledger for
+yourself, a person or an open container; `look in <thing>` is the same
+ledger.
 
 All nine are actor-side only. The five sense verbs are each gated by
 a `requires*` sensorium validator (see

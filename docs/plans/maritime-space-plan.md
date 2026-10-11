@@ -1898,6 +1898,54 @@ the horizon and empty).
   27–30 appended and steps 19/23/24 re-asserted against the list render,
   docs (perceiver, command-spec § cardinality, mql-grammar § how many,
   inventory/look help), `pnpm test`, cold re-drive, push.
+### Revision 2 — build log
+
+- ✅ **D1–D4, one commit** (`11a2458a1`) — D1 alone would have left `look
+  horizon` refused as *too many* (a set in a one-thing slot) until D3 made
+  `look` plural, so they land together.
+  - **B-64 (S1 as built):** the result field is `isSet?: true` — present
+    only for a set, so every existing caller (absent = a name) is
+    unchanged. A single referent (`here`, `me`, `it`, `#id`) is NOT a set
+    (a bare `look` is the room, not a list of it); a single referent
+    stepped through set steps (`me:i`) is.
+  - **B-65:** the binder needed a third number beside min/max:
+    **`cardinality.named`** — how many a plain NAME takes. A plural slot
+    with no limit never prompts, yet `look brass` (two) must ask. `look`
+    is `type: objects, cardinality: { named: 1 }`. Schema, load-time check
+    (`named ≤ max`) and `CardinalitySpec` carry it.
+  - **B-66:** a player COUNT on a one-thing slot stays what it always was —
+    units off the top stack (`drop 5 coins`) — so the player's word means
+    *take the top, never ask*; only `all`/a count past a plural slot's hard
+    `max` refuses in words.
+  - **B-67 (S5 corrected):** `MqlMany` keeps `via` only when every match
+    shares it, so per-item glances cannot ride the binder's result. `look`'s
+    list asks `horizonFor` once and annotates whatever listed thing is in
+    view; no list helper module — the shared piece is the visibility rule
+    plus `Mml.list`, and each verb's grouping heading is the relation.
+    Passers-by are told when the set IS what is in view (derivable, no
+    raw-text check); the empty-set line is neutral (*"You see nothing
+    there."*).
+  - **B-68:** `look` unwraps its binding with `MqlApi.extractStuffs`, so
+    the one-thing shape still reads (39 shipped test models untouched).
+  - **B-69:** the person rule applies to an AGENT with slots — a rack is
+    slotted and wears nothing. Which slot is which is read off `accepts`
+    (wearable → worn, wieldable → held) plus an outward face
+    (`userFacingDetail`: a pack on the back is worn); a slot naming only a
+    body part (the implant) is hidden.
+  - **B-70:** `InventoryController.ledger` is a public static for exactly
+    two callers (`inventory`, `look in`); class `@internal` per
+    `lint:lib-statics`' caller audit, no ceiling rise.
+- **D5:** a sea chest on the Hesper's deck (six things); drive steps
+  27–30 (the prompt answered over the wire by starting the command and
+  awaiting the prompt); the interiors' empty horizon now reads *"You see
+  nothing there."*; docs — command-spec (who decides how many, `named`),
+  mql-grammar (a set or a name), perceiver.
+- **Next (sequenced with the user):** after !360 lands — catch up,
+  port `AboardExit`/`AshoreExit` to build-4's async `canTraverse`
+  (dropping `Exit.prepareTraversal`), take !360's Zone→SpatialZone
+  fields; then the *shore as a place* slate (the water read reached by
+  looking at the cited water BY NAME — no room hook; the vantage is
+  already the zone `horizon`).
 
 ## Build log
 
