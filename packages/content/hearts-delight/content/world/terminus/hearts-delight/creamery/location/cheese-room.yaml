@@ -15,7 +15,7 @@ data:
   ambientColorTemperature: 4800
   _temperature: 284
   longDescription: |
-    A low vaulted cellar cut into the bank, its walls sweating faintly, the air cold and still and smelling of rind. Slatted racks run the length of both walls at shoulder height, and on them the wheels sit in rows, each one turned a little differently from its neighbour.
+    A low vaulted cellar cut into the bank, its walls sweating faintly, the air cold and still and smelling of rind. Slatted racks run the length of both walls at shoulder height, and on them the wheels sit in rows, each one turned a little differently from its neighbour. A long cheese knife hangs on a peg by the steps.
   coords: { x: -4, y: -4, z: -1 }
   exits:
     up:
@@ -24,6 +24,7 @@ data:
       edgeMinutes: 1
   props:
     - /world/terminus/hearts-delight/creamery/thing/cheese-rack
+    - /world/terminus/hearts-delight/creamery/thing/cheese-knife
   details:
     grating:
       keywords: [grating, light, vent]

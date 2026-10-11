@@ -279,7 +279,7 @@ suite('1–3. the dairy farm, and a cow into a washed pail', () => {
   });
 
   it('⭐ `look cow` — her condition, and that she is in milk', async () => {
-    const cow = await read(k, 'look cow');
+    const cow = await read(k, 'look peers:living:cow');
     note(`look cow → ${cow}`);
     expect(cow).toMatch(/in full milk|wants milking|heavy/i);
   });
@@ -288,13 +288,13 @@ suite('1–3. the dairy farm, and a cow into a washed pail', () => {
     await doing(k, 'get pail');
     const washed = await doing(k, 'wash pail');
     expect(washed).toMatch(/wash/i);
-    const milked = await doing(k, 'milk cow into pail');
+    const milked = await doing(k, 'milk peers:living:cow into pail');
     expect(milked).toMatch(/litre|pail|milk/i);
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     const pail = await read(k, 'look pail');
     note(`look pail → ${pail}`);
     expect(pail).toMatch(/white|milk/i);
-    await doing(k, 'return cow');
+    await doing(k, 'return peers:living:cow');
   });
 });
 
@@ -427,39 +427,12 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
   });
 });
 
-/* ───────────── 5. milk that spoils ───────────── */
-
-suite('5. milk left warm turns; milk in the cheese room keeps', () => {
-  it('⭐⭐ a day on, the warm jug has turned and the cellar crock has not', async () => {
-    await goTo(CREAMERY);
-    await untilHour(12);
-    const warm = await read(k, 'smell jug');
-    note(`smell jug (a day in the warm) → ${warm}`);
-    await say(k, 'down');
-    await k.drainProse();
-    const cool = await read(k, 'smell butter-crock');
-    note(`smell crock (a day in the cheese room) → ${cool}`);
-    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank/i);
-    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank/i);
-    await doing(k, 'get butter-crock');
-    await doing(k, 'spill butter-crock');
-    await say(k, 'up');
-    await k.drainProse();
-  });
-
-  it('⭐ the butter left in the churn goes into the crock', async () => {
-    await doing(k, 'pour churn into butter-crock');
-    const crock = await read(k, 'look butter-crock');
-    note(`look butter-crock → ${crock}`);
-    expect(crock).toMatch(/gold|butter|grain/i);
-  });
-});
-
 /* ───────────── 12–15. curd, whey, starter, hoop, wheel ───────────── */
 
 suite('12–15. the curd has set; the whey starts the next batch; the hoop makes a wheel', () => {
   it('⭐ `look vat` — the curd has set', async () => {
     await goTo(CREAMERY);
+    await untilHour(12);
     const vat = await read(k, 'look vat');
     note(`look vat (next noon) → ${vat}`);
     expect(vat).toMatch(/still|done|whey|thin|green/i);
@@ -511,12 +484,82 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
   });
 });
 
+/* ───────────── 5. milk that spoils ───────────── */
+
+suite('5. milk left warm turns; milk in the cheese room keeps', () => {
+  it('⭐⭐ two days on, the warm jug has turned and the cellar crock has not', async () => {
+    await goTo(CREAMERY);
+    const warm = await read(k, 'smell jug');
+    note(`smell jug (two days in the warm) → ${warm}`);
+    await say(k, 'down');
+    await k.drainProse();
+    const cool = await read(k, 'smell butter-crock');
+    note(`smell crock (two days in the cheese room) → ${cool}`);
+    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank/i);
+    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank/i);
+    // The new wheel goes on the rack while we are down here.
+    await doing(k, 'put wheel on rack');
+    await doing(k, 'get butter-crock');
+    await doing(k, 'spill butter-crock');
+    await say(k, 'up');
+    await k.drainProse();
+  });
+
+  it('⭐ the butter left in the churn goes into the crock', async () => {
+    await doing(k, 'pour churn into butter-crock');
+    const crock = await read(k, 'look butter-crock');
+    note(`look butter-crock → ${crock}`);
+    expect(crock).toMatch(/gold|butter|grain/i);
+    // Left on the creamery floor for the cook to collect.
+    await doing(k, 'drop butter-crock');
+  });
+});
+
+/* ───────────── 11. a batch taken to the boil sets badly ───────────── */
+
+suite('11. a second batch taken to the boil: its curd sets badly, said in words', () => {
+  it('⭐ a fresh pail from the herd', async () => {
+    await goTo(BYRE);
+    await untilHour(0);
+    await doing(k, 'draft 4 from dairy');
+    await untilHour(12);
+    await act(k, 'spill pail');
+    const milked = await doing(k, 'milk peers:living:cow into pail');
+    expect(milked).not.toMatch(/on the floor|nothing to catch/i);
+    await doing(k, 'return peers:living:cow');
+  });
+
+  it('⭐⭐ boiled on the fire, cooled, pitched — and the curd sets BADLY', async () => {
+    await goTo(CREAMERY);
+    await doing(k, 'pour pail into vat --amount 4L');
+    await doing(k, 'heat vat');
+    let t = await kelvinOf(k, 'vat');
+    for (let i = 0; i < 40 && t < 362; i++) {
+      await advance('5 minutes');
+      t = await kelvinOf(k, 'vat');
+    }
+    note(`the second batch reached ${t} K`);
+    expect(t).toBeGreaterThanOrEqual(356);
+    await doing(k, 'get vat');
+    await doing(k, 'drop vat');
+    for (let i = 0; i < 30 && t > 312; i++) {
+      await advance('10 minutes');
+      t = await kelvinOf(k, 'vat');
+    }
+    await doing(k, 'pour starter into vat --amount 0.5L');
+    await advance('10 hours');
+    await untilHour(12);
+    const vat = await read(k, 'look vat');
+    note(`look vat (boiled batch, set) → ${vat}`);
+    expect(vat).toMatch(/set badly|slack and grainy/i);
+  });
+});
+
 /* ───────────── 16–19. the cheese room: ripening, splitting, selling ───────────── */
 
 suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sells', () => {
-  it('⭐ down to the cheese room; on the rack; `look wheel` — young', async () => {
+  it('⭐ down to the cheese room; `look wheel` on the rack — young', async () => {
     await goTo(CHEESE_ROOM);
-    await doing(k, 'put wheel on rack');
     const young = await read(k, 'look wheel');
     note(`look wheel (new) → ${young}`);
     expect(young).toMatch(/young/i);
@@ -546,46 +589,6 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     note(`consign wedge → ${listed}`);
     const shelf = await read(k, 'look shelf');
     expect(shelf).toMatch(/wedge|cheese/i);
-  });
-});
-
-/* ───────────── 11. a batch taken to the boil sets badly ───────────── */
-
-suite('11. a second batch taken to the boil: its curd sets badly, said in words', () => {
-  it('⭐ a fresh pail from the herd', async () => {
-    await goTo(BYRE);
-    await untilHour(0);
-    await doing(k, 'draft 4 from dairy');
-    await untilHour(12);
-    await act(k, 'spill pail');
-    const milked = await doing(k, 'milk cow into pail');
-    expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    await doing(k, 'return cow');
-  });
-
-  it('⭐⭐ boiled on the fire, cooled, pitched — and the curd sets BADLY', async () => {
-    await goTo(CREAMERY);
-    await doing(k, 'pour pail into vat --amount 4L');
-    await doing(k, 'heat vat');
-    let t = await kelvinOf(k, 'vat');
-    for (let i = 0; i < 40 && t < 362; i++) {
-      await advance('5 minutes');
-      t = await kelvinOf(k, 'vat');
-    }
-    note(`the second batch reached ${t} K`);
-    expect(t).toBeGreaterThanOrEqual(356);
-    await doing(k, 'get vat');
-    await doing(k, 'drop vat');
-    for (let i = 0; i < 30 && t > 312; i++) {
-      await advance('10 minutes');
-      t = await kelvinOf(k, 'vat');
-    }
-    await doing(k, 'pour starter into vat --amount 0.5L');
-    await advance('10 hours');
-    await untilHour(12);
-    const vat = await read(k, 'look vat');
-    note(`look vat (boiled batch, set) → ${vat}`);
-    expect(vat).toMatch(/set badly|slack and grainy/i);
   });
 });
 
@@ -645,34 +648,34 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
     await untilHour(0);
     await doing(k, 'draft 2 from dairy');
     await untilHour(12);
-    const full = await read(k, 'look cow');
+    const full = await read(k, 'look peers:living:cow');
     note(`look cow (drafted, noon) → ${full}`);
     expect(full).not.toMatch(/dried off/i);
     await advance('1 day');
-    const cow = await read(k, 'look cow');
+    const cow = await read(k, 'look peers:living:cow');
     note(`look cow (a day unmilked) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
   });
 
   it('⭐⭐ `return cow`; `draft 2` at once — still dry', async () => {
-    await doing(k, 'return cow');
+    await doing(k, 'return peers:living:cow');
     await doing(k, 'draft 2 from dairy');
-    const cow = await read(k, 'look cow');
+    const cow = await read(k, 'look peers:living:cow');
     note(`look cow (redrafted at once) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
   });
 
   it('⭐⭐ after the rest, drafted again, she is back in milk', async () => {
-    await doing(k, 'return cow');
+    await doing(k, 'return peers:living:cow');
     await advance('4 days');
     await untilHour(0);
     await doing(k, 'draft 2 from dairy');
     await untilHour(12);
-    const cow = await read(k, 'look cow');
+    const cow = await read(k, 'look peers:living:cow');
     note(`look cow (after the rest) → ${cow}`);
     expect(cow).not.toMatch(/dried off/i);
     expect(cow).toMatch(/milk/i);
-    await doing(k, 'return cow');
+    await doing(k, 'return peers:living:cow');
   });
 });
 
@@ -689,9 +692,9 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     await goTo(BYRE);
     await doing(k, 'draft 3 from dairy');
     await advance('9 hours');
-    const milked = await doing(k, 'milk cow into pail');
+    const milked = await doing(k, 'milk peers:living:cow into pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    await doing(k, 'return cow');
+    await doing(k, 'return peers:living:cow');
   });
 
   it('⭐⭐ the stranger drinks it raw, and falls ill', async () => {
