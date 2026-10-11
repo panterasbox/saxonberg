@@ -36,6 +36,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin, type JointState } from '../../lib/craft/Assembled';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 
 // Merge of two independent changes: master wrapped the vat in
 // `VesselKindMixin`; this branch renamed `FermentingMixin` to
@@ -119,6 +120,19 @@ export default class Vat extends VatBase {
    * `cask.dryOutDays` empty, every joint slackens once — by its row's
    * looseness, so a slack barrel's hoops go further than a tight cask's.
    */
+  /**
+   * ⭐ Emptied is an ended batch NOW, not at the next read: a cask filled,
+   * spilled and filled again with nothing reading it between kept its
+   * batch, so the second fill was not a fill and spent none of the
+   * cask's character (the assembly drive, drive 17).
+   */
+  public override debitBulk(affordance: BulkAffordance, litres: number): void {
+    super.debitBulk(affordance, litres);
+    if (affordance === 'interior' && this.isBulkEmpty('interior')) {
+      this.reconcileFerment();
+    }
+  }
+
   /** Re-entry guard: `reconcileDrying` reads the joints it may slacken. */
   private drying = false;
 
