@@ -612,7 +612,9 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
   it('⭐⭐ `split wheel` — a wedge; `consign wedge` on the co-op shelf', async () => {
     await doing(k, 'get wheel');
     await doing(k, 'get knife');
-    const split = await doing(k, 'split wheel');
+    // Name the edge: the view's default tool is the FIRST tool carried, and
+    // the drive has had the creamery's thermometer since day one.
+    const split = await doing(k, 'split wheel with knife');
     expect(split).toMatch(/wedge/i);
     // The wedge comes away into the hand; the rest goes back on the rack.
     await doing(k, 'put wheel on rack');
@@ -635,7 +637,9 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     await untilHour(12);
     // The cookhouse oven is cold until somebody feeds it.
     await act(k, 'get log');
-    await act(k, 'put log in oven');
+    // ⚠ Fuel first: `stoke log into oven` (the view's own help says
+    // `stoke hearth with charcoal`, which binds the charcoal as the fire).
+    await doing(k, 'stoke log into oven');
     await act(k, 'ignite oven');
     const fat = await doing(k, 'pour butter-crock into pot');
     note(`butter into the pot → ${fat}`);
@@ -850,9 +854,12 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await doing(k, 'get ore');
     await doing(k, 'put ore in furnace');
     await doing(k, 'get charcoal');
-    await doing(k, 'put charcoal in furnace');
-    await doing(k, 'put charcoal in furnace');
-    await act(k, 'ignite furnace');
+    // The bed is fuel and reductant at once: both baskets are stoked in,
+    // lit, and blown.
+    await doing(k, 'stoke charcoal into furnace');
+    await doing(k, 'stoke charcoal into furnace');
+    await doing(k, 'ignite furnace');
+    await act(k, 'pump bellows');
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
