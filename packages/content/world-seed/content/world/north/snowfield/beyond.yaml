@@ -1,0 +1,18 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: beyond the pass
+  keywords: [beyond, slope]
+  register: definite
+  longDescription: |
+    The far side of the notch, falling away north toward country nobody has mapped.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 2
+    z: 0
+  exits:
+    south:
+      kind: /world/north/exits/snowbound-pass
+      destination: /world/north/snowfield/pass
+      media: [ground]
+      edgeMinutes: 30

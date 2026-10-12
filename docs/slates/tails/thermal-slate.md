@@ -285,3 +285,17 @@ Left as a line here rather than in a retired plan.
 
 - **Boil-down that reduces volume** (the fire build's D11), and `purifiedByBoiling` wants renaming — boil-as-a-plateau is already here.
 - **Mixture density and conductivity, and the thermal restamp on an atmosphere change.** The fire build gave a medium CONTENTS; a scope whose air is a quarter smoke still conducts and stores heat as though it were air.
+
+## From the climate build (2026-10-11)
+
+- **A prop is born at the thermal default, not its room's air.** Thermal
+  seeds only the AMBIENT at first placement, so an authored prop starts at
+  room temperature and drifts. The climate build authored its salt pan's
+  `stampedTemperatureK` to dodge it (the ice block's precedent); the
+  engine answer is a prop born at its room's air unless it authors one.
+- **The phase engine under-banks a long unread gap**: latent heat is
+  banked from the undershoot found at a read, not integrated over the gap,
+  and a room's ambient is restamped at a weather boundary only where
+  somebody is.
+- **A frozen puddle / a frozen `Bulkable` surface slot** that conducts
+  differently.

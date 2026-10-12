@@ -1,0 +1,22 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: foot of the pass
+  keywords: [pass, saddle]
+  register: definite
+  longDescription: |
+    The slope steepens into a notch between two shoulders of rock. On through the notch, north, the land drops away on the far side.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/north/snowfield/camp
+      media: [ground]
+      edgeMinutes: 15
+    north:
+      kind: /world/north/exits/snowbound-pass
+      destination: /world/north/snowfield/beyond
+      media: [ground]
+      edgeMinutes: 30

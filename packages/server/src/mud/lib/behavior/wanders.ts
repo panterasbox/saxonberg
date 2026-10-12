@@ -43,10 +43,8 @@ export const brain = class {
     const pool = candidates.length ? candidates : exits;
     const exit = pool[Math.floor(Math.random() * pool.length)];
     if (!exit) return;
-    try {
-      await LocomotionApi.traverseWithDefault(mob, exit);
-    } catch {
-      // Exit blocked / mode-gated — hold position, try again next tick.
-    }
+    // A refused step (blocked, mode-gated) holds position; next tick
+    // tries again.
+    await LocomotionApi.traverseWithDefault(mob, exit);
   }
 } satisfies BrainStatics;

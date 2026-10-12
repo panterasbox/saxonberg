@@ -356,9 +356,20 @@ export class CelestialApi {
     return logic().nextSolarEvent(profile, latitudeDegrees, t, which);
   }
 
-  /** Season from day-of-year quarter (vernal equinox = day 0 = spring). */
-  public static seasonFor(profile: CelestialProfile, t: number): Season {
-    return logic().seasonFor(profile, t);
+  /**
+   * Season from day-of-year quarter (the northern vernal equinox = day 0
+   * = spring), **at a latitude**: the southern hemisphere's seasons run
+   * half a year out of step, so day 0 is its autumn. The hemisphere is
+   * the SIGN of the latitude; `latitudeDeg` defaults to
+   * {@link CelestialApi.CAMPUS_LATITUDE}, so a caller that names none
+   * gets the northern answer it always got.
+   */
+  public static seasonFor(
+    profile: CelestialProfile,
+    t: number,
+    latitudeDeg?: number
+  ): Season {
+    return logic().seasonFor(profile, t, latitudeDeg);
   }
 
   /** Moon phase in `[0, 1)`: 0 = new, 0.5 = full. */
@@ -452,15 +463,15 @@ export class CelestialApi {
    * minute. Synchronous, because the light walk is synchronous and runs
    * for every room in every `look`.
    *
-   * ⚠ One sky for one world: this reads `EARTH_LIKE` at the campus
-   * latitude and asks no location, so Terminus and Rejection share a
-   * sun. {@link profileFor} throws if a zone ever authors a second
-   * celestial profile, rather than letting half the realm read the
-   * wrong sky (envelope D1). Per-zone profiles are a named deferred
-   * seam.
+   * `latitudeDeg` (default {@link CAMPUS_LATITUDE}) is the place's: the
+   * vision walk passes the room's memoized climate site, so a polar
+   * station sits in its polar night while the campus has a dawn. The
+   * memo is keyed by latitude (½°) within the minute. ⚠ Still ONE
+   * celestial PROFILE for the world — {@link profileFor} throws on a
+   * second (envelope D1); latitude varies, the sun does not.
    */
-  public static skyFactorNow(): number {
-    return logic().skyFactorNow();
+  public static skyFactorNow(latitudeDeg?: number): number {
+    return logic().skyFactorNow(latitudeDeg);
   }
 
   /**
@@ -481,8 +492,8 @@ export class CelestialApi {
    * would mean a lily on a sunny windowsill starved of light because
    * its owner waters it in the evening.
    */
-  public static skyFactorDailyPeak(): number {
-    return logic().skyFactorDailyPeak();
+  public static skyFactorDailyPeak(latitudeDeg?: number): number {
+    return logic().skyFactorDailyPeak(latitudeDeg);
   }
 
   /**

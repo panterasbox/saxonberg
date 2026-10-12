@@ -36,11 +36,12 @@ import type { Container } from './Container';
 import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
+import type { TraversalGuard } from '../boundary/Exit';
 import type { Slotted } from '../slot/Slotted';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
-import { ContainmentApi, ContainmentError } from '../../api/containment';
+import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import type { Soul } from '../social/Soul';
 import { Mml } from '../../api/mml';
@@ -64,8 +65,19 @@ import { ShellApi } from '../../api/shell';
  * hooks fire from inside that move; the traversal hooks here add the
  * exit-aware layer on top.
  */
+/** Options for {@link Mobile.traverse}. */
+export interface TraverseOptions {
+  /**
+   * The conveyance ripple's: this mover is being carried by `carriedBy`
+   * (a rider on its mount), so it is not walking — no gate cascade, no
+   * `beforeTraverse`, no exertion.
+   */
+  carriedBy?: Stuff;
+}
+
 export interface Mobile {
-  traverse(exit: Exit, mode: string): Promise<void>;
+  /** The one authoritative crossing; a refusal is returned, never thrown. */
+  traverse(exit: Exit, mode: string, opts?: TraverseOptions): Promise<TraversalGuard>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
@@ -88,8 +100,13 @@ export interface Mobile {
   autoSenseOnArrival(): Promise<void>;
   autoIntroduceOnArrival(): void;
 
-  /** Optional pre-traversal veto on the mover. */
-  canTraverse?(via: Exit): VetoResult;
+  /**
+   * The mover's own say, after the gates pass and before anything moves
+   * — a witness that may ACT and refuse (combat's flee takes its parting
+   * shot here). A mixin implementing it chains the inner one first.
+   * Not called for a carried rider.
+   */
+  beforeTraverse?(via: Exit): TraversalGuard;
   /** Fired after the mover has crossed `via`. */
   onTraversed?(via: Exit): void;
 
@@ -373,220 +390,73 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     ];
 
     /**
-     * Traverse an `Exit`. Two-layer hook dispatch:
+     * ⭐⭐ Traverse an `Exit` — **the one authoritative crossing.** Every
+     * mover goes through here: a player's `go`, an NPC brain, a
+     * `Journey` leg, a rider carried by its mount. Callers decide WHICH
+     * exit and WHICH mode; this decides WHETHER, and does it.
      *
-     *   - Traversal layer (this method): `canTraverse` on the mover,
-     *     `canExit` on the source location, `canEnter` on the
-     *     destination location — all fire before announcement and the
-     *     containment move. After the move: `onTraversed` (mover),
-     *     `onExited` (source), `onEntered` (destination).
-     *   - Containment layer: fires from inside `ContainmentApi.move`.
-     *     `canMove` / `onMoved` on the item; `canRemove*` /
-     *     `canAdd*` / `on*` on the source/destination.
+     * The sequence, in order (each step's refusal is RETURNED, never
+     * thrown — a refused crossing is an answer, not an error):
      *
-     * The Phase 7 contract stands: the caller has already validated
-     * traversal via `exit.canTraverse(this)` — that's the door's
-     * "is this passable?" gate. The new Witness hooks layer
-     * additional pre-move vetos, not a replacement.
+     *   1. **gate** — the locomotion cascade (`LocomotionApi
+     *      .canTraverseExit`: body plan, posture, the exit's own
+     *      `canTraverse` — async, so a ford reads its river and an ice
+     *      crossing its sheet right here — enablement, haulage).
+     *   2. **the mover's say** — `beforeTraverse(via)`, a witness that may
+     *      act and refuse: combat's flee (a parting shot, a pin that
+     *      holds you) is the first implementer.
+     *   3. **passthrough** — a ride/drive mode hands the crossing to the
+     *      conveyance host, which runs its own steps 1–7 under its mode.
+     *   4. **engage** — a self-powered crossing runs inside
+     *      `LocomotionApi.engageAround` (engaged mode, exertion, limp).
+     *   5. **apply** — `exit.applyTraversal`: an exit that handles the
+     *      crossing itself (the wardrobe) takes it here.
+     *   6. **the places' say** — `canExit` on the source, `canEnter` on
+     *      the destination.
+     *   7. **the move** — announce, `ContainmentApi.move`, the conveyance
+     *      ripple and the tow, then the `on*` witnesses, hazards,
+     *      concealment and the arrival sense.
+     *
+     * `carriedBy` is the conveyance ripple's: a rider moved by its mount
+     * skips the cascade and 2–4 (it is carried, not walking), keeping only the exit's own
+     * `canTraverse` under the host's mode.
      */
     async traverse(
       this: Stuff & Containable & Mobile,
       exit: Exit,
-      mode: string
-    ): Promise<void> {
-      // Mode-gate: enforce Exit.media (via mode-medium lookup) against
-      // the caller's mode.
-      // Programmatic-violation policy (Q12.4): throws on rejection.
-      // Player-input paths short-circuit upstream via LocomotionApi.
-      // canTraverseExit before this method is reached, so this throw is
-      // reached only by misbehaving callers or test code that walks
-      // through a mode-gated exit.
-      const guard = exit.canTraverse(this, mode);
-      if (!guard.ok) {
-        throw new ContainmentError(
-          `Mobile.traverse: ${guard.reason ?? "can't go that way"}`,
-          { cause: { traversalGuard: guard } }
-        );
-      }
-      // `mover` is the domain name this actor goes by throughout the
-      // traversal (it's what the messaging templates bind as `{{ mover }}`),
-      // and aliasing to a local lets `MixinApi.isSlotted(mover)` narrow it
-      // below — control-flow narrowing on `this` inside a mixin is unreliable.
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      const mover = this;
-
-      // Traversal-application seam (sandbox Decision H): an exit
-      // subclass may fully handle the traversal (the wardrobe passage
-      // runs the wire-body crossing — nothing material traverses).
-      // Consulted BEFORE destination resolution / announcements: a
-      // handled traversal has no destination to resolve and no
-      // departure to announce (the body stays where it is).
-      if (await exit.applyTraversal(mover)) return;
-
-      const source = exit.getSource();
-      // Lazy-resolve the destination via the singleton cache. For Exits
-      // authored with a live ref this is a no-op; for path-only exits
-      // it routes through `StuffApi.singleton(path)` which clones if
-      // needed.
-      const destination = await exit.resolveDestination();
-
-      // Traversal-time fallback for the mutual-exit invariant. Fires
-      // only when the source has at least one exit still awaiting
-      // verification — typically a neighbor that hadn't loaded when
-      // the source's onCreate verifier ran. Settled exits are
-      // tracked individually and don't trigger this re-check.
-      if (MixinApi.isExitable(source) && source.hasPendingVerification()) {
-        source.verifyOutboundExits();
+      mode: string,
+      opts?: TraverseOptions,
+    ): Promise<TraversalGuard> {
+      if (opts?.carriedBy) {
+        const guard = await exit.canTraverse(this, mode);
+        if (!guard.ok) return guard;
+        return crossExit(this, exit, mode);
       }
 
-      // Pre-move traversal vetoes.
-      assertVeto(callTraverseHook(this, 'canTraverse', [exit]), 'canTraverse');
-      if (MixinApi.isExitable(source)) {
-        assertVeto(
-          callTraverseHook(source, 'canExit', [mover, exit]),
-          'canExit'
-        );
-      }
-      if (MixinApi.isExitable(destination)) {
-        assertVeto(
-          callTraverseHook(destination, 'canEnter', [mover, exit]),
-          'canEnter'
-        );
-      }
+      await LocomotionApi.preloadActorAnatomy(this);
+      const engaged = await LocomotionApi.loadMode(mode);
+      const guard = await LocomotionApi.canTraverseExit(
+        this,
+        exit,
+        engaged,
+        exit.getDirection(),
+      );
+      if (!guard.ok) return guard;
 
-      this.announceDeparture(source, exit);
-      ContainmentApi.move(mover, destination);
-      this.announceArrival(destination, exit);
+      const before = callTraverseHook<TraversalGuard>(this, 'beforeTraverse', [exit]);
+      if (before && !before.ok) return { mode, ...before };
 
-      // Conveyance ripple: anything occupying a slot on the mover
-      // (rider in mount:1, saddle on horse with rider, etc.) moves
-      // with the host.
-      //
-      // Mobile occupants `traverse(exit, mode)` so they announce their
-      // own arrival ("Joe arrives from the west") and run their normal
-      // traversal hooks — and recursively ripple THEIR own slot
-      // occupants. The ride/walk message distinction lives in the
-      // future locomotion-plurality slate; for v1 the rider produces
-      // the same exit message as a normal traverser. A veto on the
-      // rider's canTraverse leaves them behind silently rather than
-      // tanking the host's traverse.
-      //
-      // Non-Mobile occupants (a saddlebag fixture, an immobile crash
-      // test dummy on a bicycle) fall back to ContainmentApi.move,
-      // which carries them silently — the container model.
-      //
-      // Walk only the immediate level of the mover's slots; nested
-      // ripple lives inside the occupant's own traverse() call.
-      //
-      // ⚠⚠ Only an occupant that stands OUTSIDE the mover rides the
-      // ripple. Worn and wielded gear — a cranial implant, a coat, a
-      // sword — is in the mover's own contents AND its slot (the
-      // worn/wielded contract), and came along with the move itself;
-      // rippling it too moved it out of the wearer and into the
-      // destination ROOM. Found live: every character left its aether
-      // implant on the floor of every room it walked into.
-      if (MixinApi.isSlotted(mover)) {
-        const seen = new Set<Stuff>();
-        for (const [, occupants] of mover.getAllOccupants().entries()) {
-          for (const occupant of occupants) {
-            if (seen.has(occupant)) continue;
-            seen.add(occupant);
-            if (
-              MixinApi.isContainable(occupant) &&
-              occupant.getContainer() === (mover as unknown as Stuff)
-            ) {
-              continue; // carried, not ridden
-            }
-            if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
-              try {
-                await occupant.traverse(exit, mode);
-              } catch (err) {
-                console.warn(
-                  `conveyance ripple: rider ${occupant.stuffId} ` +
-                  `failed to traverse with host ${mover.stuffId}: ${(err as Error).message}`
-                );
-              }
-            } else if (MixinApi.isContainable(occupant)) {
-              ContainmentApi.move(occupant, destination);
-            }
-          }
+      if (engaged.getPassthrough()) {
+        const host = LocomotionApi.findConveyanceHost(this, engaged);
+        if (!host || !MixinApi.isMobile(host) || !MixinApi.isContainable(host)) {
+          return { ok: false, gate: 'noConveyance', mode };
         }
+        return host.traverse(exit, LocomotionApi.resolveHostMode(host).getName());
       }
 
-      // Tow a hitched cart along. The hauler is the mover that actually
-      // traverses — for a ridden move that's the conveyance host (the
-      // horse), so the cart follows the horse, not the rider. The cart is
-      // a room object (not a slot occupant), so this is its own seam, not
-      // the slot ripple above; its cargo rides inside it as a unit. No
-      // encumbrance is read here — the draft term lives in LoadBearing and
-      // the breakaway/terrain gates in LocomotionApi; the raw move stays
-      // encumbrance-free.
-      if (MixinApi.isHauling(mover)) {
-        const hauledCart = mover.getHauledCart();
-        if (hauledCart && MixinApi.isContainable(hauledCart)) {
-          ContainmentApi.move(hauledCart, destination);
-        }
-      }
-
-      // Post-move traversal notifications.
-      if (MixinApi.isExitable(source)) {
-        callTraverseHook(source, 'onExited', [mover, exit]);
-      }
-      if (MixinApi.isExitable(destination)) {
-        callTraverseHook(destination, 'onEntered', [mover, exit]);
-      }
-      callTraverseHook(this, 'onTraversed', [exit]);
-
-      // Hazard trigger — the generalization of the lounge glass alley's
-      // `onEntered` (that class is retired; this is what replaced it). A trap is
-      // self-resolving: each armed traversal-hazard the mover just met
-      // (the destination if it's a hazard host, its deployable hazard
-      // contents, or the traversed exit itself) decides for itself whether
-      // to spring (`resolveTraversal` avoids it when the mover discovered
-      // or perceives it, or flies/swims over a ground hazard). Reaching the
-      // trap through its `resolveTraversal` *method* honors the inter-Stuff
-      // methods-only contract. Fires on walked/ridden/conveyed entry only —
-      // teleport arrival uses `autoSenseOnArrival`, a different path.
-      const hazardSeen = new Set<Stuff>();
-      const considerHazard = (cand: Stuff): void => {
-        if (hazardSeen.has(cand)) return;
-        hazardSeen.add(cand);
-        if (MixinApi.isHazard(cand)) cand.resolveTraversal(mover, mode);
-      };
-      considerHazard(destination as unknown as Stuff);
-      if (MixinApi.isContainer(destination)) {
-        for (const item of destination.getContents()) {
-          considerHazard(item as unknown as Stuff);
-        }
-      }
-      considerHazard(exit as unknown as Stuff);
-
-      // Motion degrades concealment — the observer-side of the care↔speed
-      // axis (the shipped `movement.attention.*` self-side's sibling). A
-      // hiding mover who crosses gives themselves away by their pace:
-      // `sneak` holds, `walk` degrades a band, `run` breaks hiding outright
-      // (`movement.concealment.*` → `PerceptionApi.motionExposure`). Applied
-      // to the mover's own hidden state (persistent until they re-hide), so
-      // the shipped perceive gate resolves the newly-exposed mover
-      // per-observer for free.
-      if (MixinApi.isHiding(mover) && mover.isHiding()) {
-        mover.degradeHide(PerceptionApi.motionExposure(mode));
-      }
-
-      // Auto-sense on arrival. Fired through the dispatcher so the
-      // resulting Command frame is tagged `forced: true` and `sense`'s
-      // `updates_focus: extend` re-anchors the mover's focus chain
-      // for the new room (the `clearFocus()` call inside
-      // `autoSenseOnArrival` resets the chain to "here" first, so
-      // extend simply produces "here" again — focus is well-defined
-      // on arrival).
-      await this.autoSenseOnArrival();
-      this.autoIntroduceOnArrival();
-      // The display you can see shows X — and the one you left, no
-      // longer. One hook, both directions; the viewer owns its own
-      // client state, so the viewer is who re-syncs it (display.md).
-      const self = this as unknown as Stuff;
-      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+      return LocomotionApi.engageAround(this, engaged, exit, () =>
+        crossExit(this, exit, mode),
+      );
     }
 
     /**
@@ -1009,6 +879,191 @@ function arriveDirection(exit: Exit): string | undefined {
  * pre-check on the host. Mirrors the `MovementHookProvider` precedent
  * already in this file.
  */
+/**
+ * Steps 5–7 of {@link Mobile.traverse} — apply, the places' vetoes, the
+ * move. Module-private so nothing can reach the move without the gates:
+ * the only callers are `traverse` itself (inside its engagement) and the
+ * carried branch.
+ */
+async function crossExit(
+  mover: Stuff & Containable & Mobile,
+  exit: Exit,
+  mode: string,
+): Promise<TraversalGuard> {
+  // Traversal-application seam (sandbox Decision H): an exit
+  // subclass may fully handle the traversal (the wardrobe passage
+  // runs the wire-body crossing — nothing material traverses).
+  // Consulted BEFORE destination resolution / announcements: a
+  // handled traversal has no destination to resolve and no
+  // departure to announce (the body stays where it is).
+  if (await exit.applyTraversal(mover)) return { ok: true };
+
+  const source = exit.getSource();
+  // Lazy-resolve the destination via the singleton cache. For Exits
+  // authored with a live ref this is a no-op; for path-only exits
+  // it routes through `StuffApi.singleton(path)` which clones if
+  // needed.
+  const destination = await exit.resolveDestination();
+
+  // Traversal-time fallback for the mutual-exit invariant. Fires
+  // only when the source has at least one exit still awaiting
+  // verification — typically a neighbor that hadn't loaded when
+  // the source's onCreate verifier ran. Settled exits are
+  // tracked individually and don't trigger this re-check.
+  if (MixinApi.isExitable(source) && source.hasPendingVerification()) {
+    source.verifyOutboundExits();
+  }
+
+  // The place-side vetoes: may this mover leave the source, enter the
+  // destination? (The mover's own say was `beforeTraverse`, earlier.)
+  if (MixinApi.isExitable(source)) {
+    const out = vetoGuard(callTraverseHook(source, 'canExit', [mover, exit]), mode);
+    if (!out.ok) return out;
+  }
+  if (MixinApi.isExitable(destination)) {
+    const into = vetoGuard(callTraverseHook(destination, 'canEnter', [mover, exit]), mode);
+    if (!into.ok) return into;
+  }
+
+  mover.announceDeparture(source, exit);
+  ContainmentApi.move(mover, destination);
+  mover.announceArrival(destination, exit);
+
+  // Conveyance ripple: anything occupying a slot on the mover
+  // (rider in mount:1, saddle on horse with rider, etc.) moves
+  // with the host.
+  //
+  // Mobile occupants `traverse(exit, mode)` so they announce their
+  // own arrival ("Joe arrives from the west") and run their normal
+  // traversal hooks — and recursively ripple THEIR own slot
+  // occupants. The ride/walk message distinction lives in the
+  // future locomotion-plurality slate; for v1 the rider produces
+  // the same exit message as a normal traverser. A veto on the
+  // rider's canTraverse leaves them behind silently rather than
+  // tanking the host's traverse.
+  //
+  // Non-Mobile occupants (a saddlebag fixture, an immobile crash
+  // test dummy on a bicycle) fall back to ContainmentApi.move,
+  // which carries them silently — the container model.
+  //
+  // Walk only the immediate level of the mover's slots; nested
+  // ripple lives inside the occupant's own traverse() call.
+  //
+  // ⚠⚠ Only an occupant that stands OUTSIDE the mover rides the
+  // ripple. Worn and wielded gear — a cranial implant, a coat, a
+  // sword — is in the mover's own contents AND its slot (the
+  // worn/wielded contract), and came along with the move itself;
+  // rippling it too moved it out of the wearer and into the
+  // destination ROOM. Found live: every character left its aether
+  // implant on the floor of every room it walked into.
+  if (MixinApi.isSlotted(mover)) {
+    const seen = new Set<Stuff>();
+    for (const [, occupants] of mover.getAllOccupants().entries()) {
+      for (const occupant of occupants) {
+        if (seen.has(occupant)) continue;
+        seen.add(occupant);
+        if (
+          MixinApi.isContainable(occupant) &&
+          occupant.getContainer() === (mover as unknown as Stuff)
+        ) {
+          continue; // carried, not ridden
+        }
+        if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
+          // Carried, not self-powered: no gate cascade, no flee, no
+          // exertion — the host already passed all three.
+          const rode = await occupant
+            .traverse(exit, mode, { carriedBy: mover })
+            .catch((err: Error) => ({ ok: false, reason: err.message }));
+          if (!rode.ok) {
+            console.warn(
+              `conveyance ripple: rider ${occupant.stuffId} ` +
+              `failed to traverse with host ${mover.stuffId}: ${rode.reason ?? '?'}`
+            );
+          }
+        } else if (MixinApi.isContainable(occupant)) {
+          ContainmentApi.move(occupant, destination);
+        }
+      }
+    }
+  }
+
+  // Tow a hitched cart along. The hauler is the mover that actually
+  // traverses — for a ridden move that's the conveyance host (the
+  // horse), so the cart follows the horse, not the rider. The cart is
+  // a room object (not a slot occupant), so this is its own seam, not
+  // the slot ripple above; its cargo rides inside it as a unit. No
+  // encumbrance is read here — the draft term lives in LoadBearing and
+  // the breakaway/terrain gates in LocomotionApi; the raw move stays
+  // encumbrance-free.
+  if (MixinApi.isHauling(mover)) {
+    const hauledCart = mover.getHauledCart();
+    if (hauledCart && MixinApi.isContainable(hauledCart)) {
+      ContainmentApi.move(hauledCart, destination);
+    }
+  }
+
+  // Post-move traversal notifications.
+  if (MixinApi.isExitable(source)) {
+    callTraverseHook(source, 'onExited', [mover, exit]);
+  }
+  if (MixinApi.isExitable(destination)) {
+    callTraverseHook(destination, 'onEntered', [mover, exit]);
+  }
+  callTraverseHook(mover, 'onTraversed', [exit]);
+
+  // Hazard trigger — the generalization of the lounge glass alley's
+  // `onEntered` (that class is retired; this is what replaced it). A trap is
+  // self-resolving: each armed traversal-hazard the mover just met
+  // (the destination if it's a hazard host, its deployable hazard
+  // contents, or the traversed exit itself) decides for itself whether
+  // to spring (`resolveTraversal` avoids it when the mover discovered
+  // or perceives it, or flies/swims over a ground hazard). Reaching the
+  // trap through its `resolveTraversal` *method* honors the inter-Stuff
+  // methods-only contract. Fires on walked/ridden/conveyed entry only —
+  // teleport arrival uses `autoSenseOnArrival`, a different path.
+  const hazardSeen = new Set<Stuff>();
+  const considerHazard = (cand: Stuff): void => {
+    if (hazardSeen.has(cand)) return;
+    hazardSeen.add(cand);
+    if (MixinApi.isHazard(cand)) cand.resolveTraversal(mover, mode);
+  };
+  considerHazard(destination as unknown as Stuff);
+  if (MixinApi.isContainer(destination)) {
+    for (const item of destination.getContents()) {
+      considerHazard(item as unknown as Stuff);
+    }
+  }
+  considerHazard(exit as unknown as Stuff);
+
+  // Motion degrades concealment — the observer-side of the care↔speed
+  // axis (the shipped `movement.attention.*` self-side's sibling). A
+  // hiding mover who crosses gives themselves away by their pace:
+  // `sneak` holds, `walk` degrades a band, `run` breaks hiding outright
+  // (`movement.concealment.*` → `PerceptionApi.motionExposure`). Applied
+  // to the mover's own hidden state (persistent until they re-hide), so
+  // the shipped perceive gate resolves the newly-exposed mover
+  // per-observer for free.
+  if (MixinApi.isHiding(mover) && mover.isHiding()) {
+    mover.degradeHide(PerceptionApi.motionExposure(mode));
+  }
+
+  // Auto-sense on arrival. Fired through the dispatcher so the
+  // resulting Command frame is tagged `forced: true` and `sense`'s
+  // `updates_focus: extend` re-anchors the mover's focus chain
+  // for the new room (the `clearFocus()` call inside
+  // `autoSenseOnArrival` resets the chain to "here" first, so
+  // extend simply produces "here" again — focus is well-defined
+  // on arrival).
+  await mover.autoSenseOnArrival();
+  mover.autoIntroduceOnArrival();
+  // The display you can see shows X — and the one you left, no
+  // longer. One hook, both directions; the viewer owns its own
+  // client state, so the viewer is who re-syncs it (display.md).
+  const self: Stuff = mover;
+  if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+  return { ok: true };
+}
+
 function callTraverseHook<T>(
   obj: object,
   name: string,
@@ -1019,12 +1074,10 @@ function callTraverseHook<T>(
   return (fn as (...a: unknown[]) => T).apply(obj, args);
 }
 
-function assertVeto(result: VetoResult | undefined, hookName: string): void {
-  if (!result || result.ok) return;
-  throw new ContainmentError(
-    `${hookName} veto: ${result.reason}`,
-    { cause: { hookVeto: result, hookName } }
-  );
+/** A witness's `VetoResult` as the crossing's refusal; `ok` when it said nothing. */
+function vetoGuard(result: VetoResult | undefined, mode: string): TraversalGuard {
+  if (!result || result.ok) return { ok: true };
+  return { ok: false, gate: 'veto', mode, reason: result.reason };
 }
 
 

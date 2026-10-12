@@ -14,9 +14,12 @@
  */
 
 import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const FootlockerBase = Vessel;
+// ⭐ Staged (the climate build, D18): a footlocker is born with what its
+// row's `props:` names — the winter greatcoat — the `Chest` shape.
+const FootlockerBase = StagedMixin(Vessel);
 
 export default class Footlocker extends FootlockerBase {
   static fieldMeta: FieldMeta = {};

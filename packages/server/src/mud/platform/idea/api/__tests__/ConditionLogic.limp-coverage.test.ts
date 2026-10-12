@@ -121,7 +121,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
       a,
       walk,
       exitBetween(here, there),
-      async () => {}
+      async () => ({ ok: true })
     );
     return before - endurance(a);
   }

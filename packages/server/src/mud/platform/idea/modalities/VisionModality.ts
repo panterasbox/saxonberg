@@ -86,7 +86,7 @@ export class VisionModality extends Modality {
    * pre-migration contract.
    */
   public override signalAt(loc: Stuff & Container): Light {
-    return this.walkLight(loc, CelestialApi.skyFactorNow());
+    return this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
   }
 
   /**
@@ -100,7 +100,7 @@ export class VisionModality extends Modality {
    * either way, which is right: a lamp does not have a day.
    */
   public override peakSignalAt(loc: Stuff & Container): Light {
-    return this.walkLight(loc, CelestialApi.skyFactorDailyPeak());
+    return this.walkLight(loc, CelestialApi.skyFactorDailyPeak(latitudeOf(loc)));
   }
 
   /** The shared body of {@link signalAt} / {@link meanSignalAt}. */
@@ -654,6 +654,16 @@ function mergeCapped(
 }
 
 /** Locations carry a topology-derived size scale; other containers default to 1.0 (m²). */
+/**
+ * The latitude the sky over `loc` is read at — its memoized climate site
+ * (SYNC: the walk runs for every room in every `look`). A place with no
+ * air of its own, or one whose memo has not landed, reads the realm
+ * default for that one walk and heals on the next.
+ */
+function latitudeOf(loc: Stuff & Container): number | undefined {
+  return MixinApi.isAtmospheric(loc) ? loc.climateSite().latitudeDeg : undefined;
+}
+
 function readSizeScale(loc: Stuff & Container): number {
   return loc instanceof Location ? loc.getSizeScale() : 1.0;
 }

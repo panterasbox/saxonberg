@@ -347,6 +347,14 @@ failing. The both-directions property therefore rests on unit tests
 never been observed end to end. ⭐ **This is now the highest-value thing
 to fix in governance**: two builds have had to route around it.
 
+⚠⚠ **It is not governance's alone (2026-10-10, the climate drive).**
+`tell <name>` against a second connected session is refused the same
+way — `controller-rejected: insufficient`, zero candidates from the
+`online` scope — by the founder's display name as well as the handle.
+`dm`/`tell`, `contacts` and `wizard` all bind through `scope: "online"`,
+so direct messages to another player do not work over the wire. The
+climate drive routes its comms check through a channel post instead.
+
 **Live consequence today.** The e2e suite needs the
 `central-bank-governor` seat to exercise `reserve issue`, cannot obtain
 it, and therefore runs as the **founder** instead — which holds every

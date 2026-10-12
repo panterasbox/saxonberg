@@ -23,6 +23,13 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { WeatherApi } from '../../../api/weather';
 import { AddressApi } from '../../../api/address';
+import { ZoneApi } from '../../../api/zone';
+import { WorldClockApi } from '../../../api/worldclock';
+import { Quantity } from '../../../lib/quantity';
+import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
+import { BiomeApi } from '../../../api/biome';
+import { Mixins } from '../../../lib/mixin';
+import type { Floor } from '../../../lib/ground/Floor';
 import {
   WEATHER_DEFAULTS,
   type WeatherField,
@@ -79,11 +86,30 @@ const CLOUD_FORM_LABELS: Record<CloudForm, string> = {
   cumulonimbus: 'a towering anvil (cumulonimbus)',
 };
 
+/** Thirty game-days, the integral's own cap. */
+const MONTH_S = 30 * 86_400;
+
+/**
+ * A month's precipitation in words — the read for a body with no gauge.
+ * Bands, never a digit (the instrumentation doctrine: competence
+ * resolves detail, not access).
+ */
+function monthWords(totalMm: number, frozenMm: number): string {
+  const snowy = totalMm > 0 && frozenMm >= totalMm * 0.6;
+  if (totalMm < 10) return 'a dry month — almost nothing has fallen';
+  if (totalMm < 40) return snowy ? 'a dry month, what fell of it snow' : 'a dry month';
+  if (totalMm < 110) return snowy ? 'an ordinary month, most of it snow' : "an ordinary month's rain";
+  if (totalMm < 220) return snowy ? 'a heavy month of snow' : 'a wet month';
+  return snowy
+    ? 'a month of deep snow'
+    : 'a very wet month — more than the ground can take';
+}
+
 export default class WeatherReading extends Reading {
   protected override async analyze(
     ctx: CommandContext,
     subject: Stuff | null,
-    _band: CompetenceBandName,
+    band: CompetenceBandName,
     _handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
@@ -110,6 +136,7 @@ export default class WeatherReading extends Reading {
     }
 
     const scope = target.stuff as Stuff & Container;
+    const bandOfReader = band;
     // The Wave-2 resolved state (authored pin → procgen(lean) → biome) — the
     // ONE read every consumer sees. `forecastFor` still supplies the upcoming
     // types; `skyReadFor` the cloud form + hedged tell.
@@ -154,6 +181,57 @@ export default class WeatherReading extends Reading {
     if (forecast.upcoming.length > 0) {
       const types = forecast.upcoming.map((e) => e.type).join(' → ');
       lines.push(Mml.compose`  forecast: ${types}`);
+    }
+
+    // ⭐ The month behind you (the climate build): how much fell here, and
+    // how much of it as snow — the integral the soil and the river share,
+    // at THIS place's temperature and the Locality's intensity. The words
+    // are for anyone; the millimetres need a trained eye for a rain gauge's
+    // worth of judgement (competent and up).
+    const site = await ZoneApi.climateSiteFor(scope);
+    const now = WorldClockApi.getNow().rawValue();
+    const month = WeatherApi.precipitationBetween(
+      Quantity.of(now - MONTH_S, 's'),
+      Quantity.of(now, 's'),
+      locality,
+      site,
+    );
+    const liquidMm = month.liquid.rawValue();
+    const frozenMm = month.frozen.rawValue();
+    const totalMm = liquidMm + frozenMm;
+    const words = monthWords(totalMm, frozenMm);
+    if (CompetenceBand.atOrAbove(band, 'competent')) {
+      const ofSnow =
+        frozenMm > 0.5 ? `, ${frozenMm.toFixed(0)} mm of it as snow` : '';
+      lines.push(
+        Mml.compose`  the last thirty days: ${words} — ${totalMm.toFixed(0)} mm${ofSnow}`,
+      );
+    } else {
+      lines.push(Mml.compose`  the last thirty days: ${words}`);
+    }
+
+    // ⭐ The snow lying here (the climate build), read through the room's
+    // own FLOOR — the one source `look` reads too. The walks it depends on
+    // are awaited first, so a verb never reads the unresolved zero.
+    if (MixinApi.isAtmospheric(scope)) {
+      await scope.resolveClimateSite();
+      await scope.resolveWeatherLocality();
+    }
+    const floor = MixinApi.isAdornable(scope) ? scope.getFloor() : null;
+    if (floor !== null && MixinApi.isActive(floor, Mixins.Floor)) {
+      const f = floor as unknown as Floor;
+      const snow = f.getSnowBand();
+      if (snow !== 'none') {
+        const age = f.isSnowPerennial() ? ', and it has not gone in years' : '';
+        if (CompetenceBand.atOrAbove(bandOfReader, 'proficient')) {
+          const cm = Math.round(f.getSnowDepthM() * 100);
+          lines.push(Mml.compose`  snow lying: ${snow} — ${cm} cm${age}`);
+        } else {
+          lines.push(Mml.compose`  snow lying: ${snow}${age}`);
+        }
+      } else if (MixinApi.isAtmospheric(scope) && BiomeApi.isSkyExposed(scope)) {
+        lines.push(Mml.compose`  snow lying: none`);
+      }
     }
 
     let body = Mml.compose`\n`;

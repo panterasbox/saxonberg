@@ -26,6 +26,8 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
+import type Exit from "../boundary/Exit";
+import type { TraversalGuard } from "../boundary/Exit";
 import type { Channel } from "../material/Channel";
 import type { CombatHookContext } from "./CombatHookContext";
 import { CHANNELS } from "../material/Channel";
@@ -494,9 +496,34 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return combatLogic().defendAlly(this as unknown as Stuff, ally);
     }
 
-    /** Leave the fight (the traverse gate calls this first). */
+    /** Leave the fight — an opposed-lite break with a parting shot. */
     public disengage(): { ok: boolean; message?: string } {
       return combatLogic().disengage(this as unknown as Stuff);
+    }
+
+    /**
+     * @hook `Mobile.traverse`'s mover witness: walking out of a fight IS
+     * fleeing it. Runs after the crossing's gates have passed — you do
+     * not take a parting shot for a wall — and before anything moves; a
+     * pin that holds you refuses the crossing. A no-op when not
+     * fighting. Chains any inner `beforeTraverse` first.
+     */
+    public beforeTraverse(via: Exit): TraversalGuard {
+      const inner = (Base.prototype as {
+        beforeTraverse?: (v: Exit) => TraversalGuard;
+      }).beforeTraverse;
+      if (typeof inner === "function") {
+        const said = inner.call(this, via);
+        if (!said.ok) return said;
+      }
+      const broke = this.disengage();
+      return broke.ok
+        ? { ok: true }
+        : {
+            ok: false,
+            gate: "breakaway",
+            reason: broke.message ?? "You can't break away!",
+          };
     }
 
     /** `fight rush <direction>` — throw a grappled foe through an exit. */

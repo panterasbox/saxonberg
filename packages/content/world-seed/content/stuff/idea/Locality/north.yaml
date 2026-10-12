@@ -1,0 +1,13 @@
+# The North (the climate build) — a clear-sky pin, so the cold here is the
+# climate's own and nothing the weather is doing: the honest reading of 71° N
+# on the equinox. Its mere is blackmere; the small catchment makes this
+# Locality the mere's weather, so the ice grows under this same clear sky.
+class: /platform/idea/Locality
+data:
+  name: The North
+  _address: north
+  _reach: blackmere:mere
+  _catchmentKm2: 2
+  _weatherPin:
+    type: clear
+    mode: frozen

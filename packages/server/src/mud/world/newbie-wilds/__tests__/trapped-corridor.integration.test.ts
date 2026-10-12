@@ -26,6 +26,7 @@ import "../../../../test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { AdvancementMixin } from '../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
+import { buildAllModes } from '../../../lib/locomotion/__tests__/test-helpers';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
@@ -188,6 +189,9 @@ let sharedSpecies: Species;
 
 function footedBodyPlan(): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
+  // A biped walks: `Mobile.traverse` runs the body-plan gate for every
+  // mover, so the plan must say so.
+  plan.setLocomotionModes(['walk']);
   plan.setName('demo-biped');
   plan.setSlots([
     {
@@ -299,6 +303,7 @@ function targetOf(giver: Delver, raw: string): MqlOneResult {
 
 beforeEach(async () => {
   StuffApi.clearAll();
+  buildAllModes();
   installV1QuantityMarshallers();
   installStore(trapsStore());
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {

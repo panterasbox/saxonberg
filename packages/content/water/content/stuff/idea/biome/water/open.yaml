@@ -1,0 +1,22 @@
+# /stuff/idea/biome/water/open — the open water: a sky-exposed biome for a
+# place that IS a water's surface (a deck, a boat in a bay, the middle of
+# a mere). A STUB the climate build hands to maritime (its collision
+# table names it): nothing cites it yet, and `lint:biome` checks that
+# whatever does cite it resolves.
+#
+# ⚠ It authors NO temperature — under the sky the temperature is the
+# climate's, derived from the place's latitude, elevation,
+# continentality and offset (`lint:biome` (d) refuses a flat one). What
+# it does say is what is true of open water everywhere: the air over it
+# is saturated.
+#
+# ⚠ The ATMOSPHERE is the universe's air, not `water`: the atmosphere tag
+# is the medium a body is IN (a `water` scope drowns an air-breather —
+# respiration's medium trigger), and a person on open water is in the air
+# above it. Under the surface is a different biome, and maritime's.
+class: /platform/idea/SkyExposedBiome
+extends: /stuff/idea/biome/universe
+data:
+  name: open-water
+  _defaultHumidity: { value: 100, unit: "%" }
+  _ambientSoundMml: "<markup>water moving against itself, and nothing else</markup>"

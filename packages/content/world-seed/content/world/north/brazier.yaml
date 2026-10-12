@@ -1,0 +1,11 @@
+# The north brazier — the practicum's banked brazier (a lit Campfire)
+# with its own words: authored light, so the place is never pitch dark
+# whatever the sky is doing.
+extends: /world/practicum/brazier
+data:
+  shortDescription: iron brazier
+  keywords: [brazier, fire, coals]
+  longDescription: >
+    An iron brazier on a stone footing, its coals banked to burn all day — the one warm thing for a long way.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 30

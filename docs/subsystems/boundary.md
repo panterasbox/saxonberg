@@ -391,7 +391,8 @@ causeway — then needs no kernel edit**. Every exit can answer *am I the
 kind that closes*; the honest answer for almost all of them is no.
 
 ⚠ `lint:location-graph` enforces it **by shape**: a kind row whose
-class overrides `applyTraversal` *and* names `blocked` must declare it.
+class defines `refreshCrossing` (the conditional exits' shared protocol,
+called from their async `canTraverse`) must declare it.
 Deliberately not *"extends `FordExit`"* — a kernel gate must not
 enumerate a pack's classes. The honest residue: a conditional class
 that closes by some other means plans with no caveat until the shape

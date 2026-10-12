@@ -358,7 +358,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     await w.ensureFloor(1);
     const door = w.doorFor(k1)!;
     expect(door).not.toBeNull();
-    expect(door.canTraverse(iris as unknown as never).ok).toBe(false);
+    expect((await door.canTraverse(iris as unknown as never)).ok).toBe(false);
 
     // Key the lock + issue iris a (physical) key → she presents it and passes;
     // bob holds no key and is blocked. Possession, not identity.
@@ -366,13 +366,13 @@ describe('DormWarren — the DormDoor key gate', () => {
     await w.refreshProvisioned();
     await new Lock('kw-1', 'pin-tumbler').issueKeyTo(iris);
     expect(w.keywayOf(k1)).toBe('kw-1');
-    expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
-    expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
+    expect((await door.canTraverse(iris as unknown as never)).ok).toBe(true);
+    expect((await door.canTraverse(bob as unknown as never)).ok).toBe(false);
 
     // Re-key (a new keyway) → iris's old key is dead metal until she's re-issued.
     await ParcelApi.setKeyway(k1, 'kw-2');
     await w.refreshProvisioned();
-    expect(door.canTraverse(iris as unknown as never).ok).toBe(false);
+    expect((await door.canTraverse(iris as unknown as never)).ok).toBe(false);
   });
 
   it("a master key (the super's ring) opens any dorm door", async () => {
@@ -388,6 +388,6 @@ describe('DormWarren — the DormDoor key gate', () => {
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
     await new Lock('', 'pin-tumbler').issueMasterKeyTo(sam);
-    expect(door.canTraverse(sam as unknown as never).ok).toBe(true);
+    expect((await door.canTraverse(sam as unknown as never)).ok).toBe(true);
   });
 });

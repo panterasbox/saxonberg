@@ -25,7 +25,7 @@ data:
   _weatherPin:
     type: rain
     mode: frozen
-  address: moor/chamber
+  _address: moor/chamber
   coords:
     x: 1
     y: 0

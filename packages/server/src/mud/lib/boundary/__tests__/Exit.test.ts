@@ -46,6 +46,7 @@ describe('Exit', () => {
   let peerInB: PeerSensor;
 
   beforeEach(() => {
+    buildAllModes();
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
@@ -75,19 +76,19 @@ describe('Exit', () => {
   }
 
   describe('canTraverse', () => {
-    it('returns ok in the normal case', () => {
+    it('returns ok in the normal case', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      expect(exit.canTraverse(mover)).toEqual({ ok: true });
+      expect((await exit.canTraverse(mover))).toEqual({ ok: true });
     });
 
-    it('returns not ok when blocked', () => {
+    it('returns not ok when blocked', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'north',
         source: locA,
         destination: locB,
         blocked: true,
       }));
-      const result = exit.canTraverse(mover);
+      const result = (await exit.canTraverse(mover));
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/blocked/i);
     });
@@ -96,7 +97,7 @@ describe('Exit', () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
-      const result = exit.canTraverse(mover);
+      const result = (await exit.canTraverse(mover));
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/closed/i);
       // Sentence-start: the presentation is capitalized, no re-prefixed
@@ -109,7 +110,7 @@ describe('Exit', () => {
       door.setShortDescription('oak door');
       door.open();
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
-      expect(exit.canTraverse(mover)).toEqual({ ok: true });
+      expect((await exit.canTraverse(mover))).toEqual({ ok: true });
     });
   });
 
@@ -184,7 +185,7 @@ describe('Exit', () => {
   });
 
   describe('inverse back-pointer', () => {
-    it('is undefined on a freshly-constructed Exit', () => {
+    it('is undefined on a freshly-constructed Exit', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       expect(exit.getInverse()).toBeUndefined();
     });
@@ -218,7 +219,7 @@ describe('Exit lazy destination resolution', () => {
     StuffApi.clearAll();
   });
 
-  it('throws on sync destination access when path not loaded', () => {
+  it('throws on sync destination access when path not loaded', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const exit = makeStuff(() => new Exit({
       direction: 'east',
@@ -229,7 +230,7 @@ describe('Exit lazy destination resolution', () => {
     expect(() => exit.getDestination()).toThrow(/not yet loaded/);
   });
 
-  it('resolves the path-form destination via findByTemplatePath each call', () => {
+  it('resolves the path-form destination via findByTemplatePath each call', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
 
@@ -243,7 +244,7 @@ describe('Exit lazy destination resolution', () => {
     expect(exit.getDestination()).toBe(b);
   });
 
-  it('resolves on every read — hot-swap of the registered singleton is observed on the next call', () => {
+  it('resolves on every read — hot-swap of the registered singleton is observed on the next call', async () => {
     // Pre-cache-drop, the Exit would have cached the first resolved
     // ref and returned it forever, even if the singleton was
     // re-registered (hot-reload, admin swap, etc.). After the
@@ -267,7 +268,7 @@ describe('Exit lazy destination resolution', () => {
     expect(exit.getDestination()).not.toBe(b1);
   });
 
-  it('getDestinationTemplatePath returns the path regardless of resolution', () => {
+  it('getDestinationTemplatePath returns the path regardless of resolution', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
 
@@ -309,12 +310,12 @@ describe('Exit.media', () => {
   });
 
   describe('default behavior (empty media → ground pace family)', () => {
-    it('allowsMode("walk") returns true on a fresh Exit', () => {
+    it('allowsMode("walk") returns true on a fresh Exit', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
       expect(exit.allowsMode('walk')).toBe(true);
     });
 
-    it('allowsMode("sneak"/"run") returns true on a fresh Exit — the care↔speed pace siblings', () => {
+    it('allowsMode("sneak"/"run") returns true on a fresh Exit — the care↔speed pace siblings', async () => {
       // Regression: an empty-media exit used to admit ONLY 'walk', so the
       // new sneak/run modes were rejected on every un-authored exit ("You
       // can't sneak that way") — the care↔speed axis was non-functional
@@ -324,19 +325,19 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('run')).toBe(true);
     });
 
-    it('allowsMode("climb") returns false on a fresh Exit', () => {
+    it('allowsMode("climb") returns false on a fresh Exit', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
       expect(exit.allowsMode('climb')).toBe(false);
     });
 
-    it('allowsMode("fly") returns false on a fresh Exit', () => {
+    it('allowsMode("fly") returns false on a fresh Exit', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
       expect(exit.allowsMode('fly')).toBe(false);
     });
   });
 
   describe('medium-grouped behavior', () => {
-    it('ground media admits walk and wheeled', () => {
+    it('ground media admits walk and wheeled', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'east', source: locA, destination: locB,
         media: ['ground'],
@@ -347,7 +348,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('swim')).toBe(false);
     });
 
-    it('vertical media admits climb but not walk', () => {
+    it('vertical media admits climb but not walk', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'up', source: locA, destination: locB,
         media: ['vertical'],
@@ -356,7 +357,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('walk')).toBe(false);
     });
 
-    it('water media admits swim and sailed', () => {
+    it('water media admits swim and sailed', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'south', source: locA, destination: locB,
         media: ['water'],
@@ -366,7 +367,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('walk')).toBe(false);
     });
 
-    it('air media admits fly and aerial', () => {
+    it('air media admits fly and aerial', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'up', source: locA, destination: locB,
         media: ['air'],
@@ -375,7 +376,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('aerial')).toBe(true);
     });
 
-    it('mixed media admits modes from each listed medium', () => {
+    it('mixed media admits modes from each listed medium', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'east', source: locA, destination: locB,
         media: ['ground', 'water'],
@@ -396,7 +397,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('drive')).toBe(false);
     });
 
-    it('unknown mode names reject when media is non-empty', () => {
+    it('unknown mode names reject when media is non-empty', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'east', source: locA, destination: locB,
         media: ['ground'],
@@ -411,16 +412,16 @@ describe('Exit.media', () => {
       exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
     });
 
-    it('accepts unique non-empty strings', () => {
+    it('accepts unique non-empty strings', async () => {
       exit.setMedia(['ground', 'water']);
       expect(exit.getMedia()).toEqual(['ground', 'water']);
     });
 
-    it('throws on duplicates', () => {
+    it('throws on duplicates', async () => {
       expect(() => exit.setMedia(['ground', 'ground'])).toThrow(/duplicate/);
     });
 
-    it('throws on empty-string entries', () => {
+    it('throws on empty-string entries', async () => {
       expect(() => exit.setMedia([''])).toThrow(/non-empty/);
     });
   });
@@ -443,44 +444,44 @@ describe('Exit.canTraverse with mode', () => {
     ContainmentApi.move(mover, locA);
   });
 
-  it('returns ok when mode is admitted by media', () => {
+  it('returns ok when mode is admitted by media', async () => {
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
       media: ['vertical'],
     }));
-    expect(exit.canTraverse(mover, 'climb')).toEqual({ ok: true });
+    expect((await exit.canTraverse(mover, 'climb'))).toEqual({ ok: true });
   });
 
-  it('returns gate=exitMode when mode is not admitted by media', () => {
+  it('returns gate=exitMode when mode is not admitted by media', async () => {
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
       media: ['vertical'],
     }));
-    const result = exit.canTraverse(mover, 'walk');
+    const result = (await exit.canTraverse(mover, 'walk'));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('exitMode');
     expect(result.mode).toBe('walk');
     expect(result.reason).toMatch(/walk/);
   });
 
-  it('returns ok for mode="walk" when media is empty', () => {
+  it('returns ok for mode="walk" when media is empty', async () => {
     const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
-    expect(exit.canTraverse(mover, 'walk')).toEqual({ ok: true });
+    expect((await exit.canTraverse(mover, 'walk'))).toEqual({ ok: true });
   });
 
-  it('returns gate=exitMode for mode="climb" when media is empty', () => {
+  it('returns gate=exitMode for mode="climb" when media is empty', async () => {
     const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
-    const result = exit.canTraverse(mover, 'climb');
+    const result = (await exit.canTraverse(mover, 'climb'));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('exitMode');
   });
 
-  it('returns gate=blocked when blocked, even with matching media', () => {
+  it('returns gate=blocked when blocked, even with matching media', async () => {
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
       blocked: true, media: ['vertical'],
     }));
-    const result = exit.canTraverse(mover, 'climb');
+    const result = (await exit.canTraverse(mover, 'climb'));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('blocked');
   });
@@ -491,14 +492,14 @@ describe('Exit.canTraverse with mode', () => {
     const exit = makeStuff(() => new Exit({
       direction: 'n', source: locA, destination: locB, door,
     }));
-    const result = exit.canTraverse(mover, 'walk');
+    const result = (await exit.canTraverse(mover, 'walk'));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('door');
   });
 
-  it('omits gate when ok=true', () => {
+  it('omits gate when ok=true', async () => {
     const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
-    const result = exit.canTraverse(mover, 'walk');
+    const result = (await exit.canTraverse(mover, 'walk'));
     expect(result).toEqual({ ok: true });
   });
 });

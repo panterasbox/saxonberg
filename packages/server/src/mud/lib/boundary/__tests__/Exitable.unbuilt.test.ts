@@ -77,7 +77,7 @@ describe('an exit onto nothing', () => {
     const here = await room(HERE);
     await here.applyExits({ north: { destination: MISSING } });
     const exit = here.getExits().get('north')!;
-    const guard = exit.canTraverse({} as never);
+    const guard = (await exit.canTraverse({} as never));
     expect(guard.ok).toBe(false);
     expect(guard.gate).toBe('unbuilt');
     expect(guard.reason).toBe('Nothing lies that way yet.');
@@ -100,7 +100,7 @@ describe('an exit onto nothing', () => {
     await here.applyExits({ east: { destination: THERE } });
     const exit = here.getExits().get('east')!;
     expect(exit.isUnbuilt()).toBe(false);
-    expect(exit.canTraverse({} as never).ok).toBe(true);
+    expect((await exit.canTraverse({} as never)).ok).toBe(true);
     expect(recorded).toEqual([]);
   });
 
@@ -127,7 +127,7 @@ describe('an exit onto nothing', () => {
 
     const healed = here.getExits().get('north')!;
     expect(healed.isUnbuilt()).toBe(false);
-    expect(healed.canTraverse({} as never).ok).toBe(true);
+    expect((await healed.canTraverse({} as never)).ok).toBe(true);
   });
 
   it('⚠ a WORKING exit is never replaced by a stub', async () => {

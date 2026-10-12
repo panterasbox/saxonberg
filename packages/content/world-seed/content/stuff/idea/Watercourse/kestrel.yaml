@@ -28,6 +28,10 @@ data:
   # little fed by the city. The join to the catchment's GroundCharacter
   # is the RGO unification pass's; this is the authored stance.
   water: { pH: 7.8, hardnessDgh: 12, nitrateMgL: 2 }
+  # Where on the world it runs (the climate build): the realm's latitude,
+  # authored here because a reach is not a place a zone chain reaches.
+  # Elevation is each node's own.
+  site: { latitudeDeg: 42 }
   nodes:
     # Rejection's ground. High, cold, and where the ore is — so this is
     # simultaneously the realm's snowpack and its worst pollution risk.

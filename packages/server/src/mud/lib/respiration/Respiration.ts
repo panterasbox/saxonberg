@@ -503,7 +503,10 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public onTraversed(via: Exit): void {
-      void via;
+      const inner = (Base.prototype as {
+        onTraversed?: (v: Exit) => void;
+      }).onTraversed;
+      if (typeof inner === 'function') inner.call(this, via);
       // Fire-and-forget — the move reassess seam (#7, Risk #1).
       void this.reassess().catch(() => {});
     }

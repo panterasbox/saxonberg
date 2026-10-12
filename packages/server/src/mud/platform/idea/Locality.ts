@@ -165,6 +165,9 @@ export default class Locality extends Idea {
    */
   protected _climateLean: ClimateLean | null = null;
 
+  /** See {@link getPrecipitationIntensity}. `null` = the latitude default. */
+  protected _precipitationIntensity: number | null = null;
+
   /**
    * The third realized tier-level field (weather pin / climate lean
    * siblings): the durable `key` of the diegetic `Government` claiming
@@ -255,6 +258,7 @@ export default class Locality extends Idea {
     _address: { persistent: true },
     _weatherPin: { persistent: true },
     _climateLean: { persistent: true },
+    _precipitationIntensity: { persistent: true, authorable: true },
     _governmentKey: { persistent: true },
     _reach: { persistent: true, authorable: true },
     _catchmentKm2: { persistent: true, authorable: true },
@@ -533,6 +537,23 @@ export default class Locality extends Idea {
   }
 
   // ---------- climate lean (Locality tier) ----------
+
+  /**
+   * ⭐ **How hard it rains here** — a multiplier on every millimetre the
+   * precipitation integral sums for this Locality (rain and snow alike).
+   * The lean decides how OFTEN it is wet; this decides how MUCH falls
+   * when it is: a wet coast at 2, a dry basin at 0.3. `null` is the light
+   * latitude default (1 below 55°, falling to 0.4 at 80° — polar air
+   * holds little water). Read by `WeatherLogic`'s integral.
+   */
+  public getPrecipitationIntensity(): number | null {
+    return this._precipitationIntensity;
+  }
+
+  public setPrecipitationIntensity(value: number | null): void {
+    this._precipitationIntensity =
+      value === null || !Number.isFinite(value) ? null : Math.max(0, value);
+  }
 
   public getClimateLean(): ClimateLean | null {
     return this._climateLean;

@@ -10,6 +10,7 @@
 import "../../../test-bootstrap";
 import { seedKernelContentStore } from '../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
+import { buildAllModes } from '../../lib/locomotion/__tests__/test-helpers';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -90,6 +91,7 @@ describe('go wardrobe (the real command path)', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
+    buildAllModes();
     ExecutionContextApi._clearForTesting();
     await bootRegistry();
     await CommandApi.preloadAll();

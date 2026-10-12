@@ -540,6 +540,18 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _thermalReconciling = false;
 
     /**
+     * Reentry guard for the PHASE pass that ends a reconcile. ⚠ The phase
+     * pass reads the temperature (`getTemperature` → `reconcileThermal`)
+     * after `_thermalReconciling` has been released, and on a scaled
+     * real-time clock a few game-milliseconds pass between the outer read
+     * and the inner one — so without this every nested read integrated
+     * again and called the phase pass again, recursing until the stack
+     * blew (the climate drive, under load, on a blood unit in a cold
+     * camp). Same constraint as above: TypeScript `private`. Transient.
+     */
+    private _phaseReconciling = false;
+
+    /**
      * This host, typed for the sibling-mixin members the call-security
      * proxy resolves at runtime. The cast is **load-bearing, not
      * cosmetic**: siblings like `Containable` are composed *outer* of
@@ -975,18 +987,32 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // complete and had no ambient driver.
       //
       // The drift above is what makes a body warm, so the phase check
-      // belongs immediately after it, on the same lazy read. It is
-      // narrowed to `Meltable` hosts: the `Bulkable` freeze/boil rung
-      // has its own callers (a `CraftVessel` drives it from its own
-      // reconcile) and widening it here would double-run them.
+      // belongs immediately after it, on the same lazy read.
+      //
+      // ⭐⭐ **And a pool freezes because it is COLD** (the climate build,
+      // D7). The `Bulkable` freeze rung had no ambient driver either —
+      // only a cooler's contents pass and two spells — so a jug of water
+      // left in a winter street never froze. It is the melt's exact
+      // mirror: a plateau at the melting point while the latent heat is
+      // banked, then the material's cast. Widening is safe twice over: a
+      // second pass at `T == mp` banks nothing (the undershoot is zero),
+      // and the slot is emptied before the cast mints, so it cannot mint
+      // twice. (`CraftVessel` never called `reconcilePhase` — it drives
+      // `absorbIntoIce` — so there is nothing here to double-run.)
       //
       // Outside the `try`, so the plateau's own `setContentsTemperature`
       // is not swallowed by the reentry guard.
       if (
-        MixinApi.isMeltable(self) ||
-        freezesWhereItStands(self, this.stampedTemperatureK)
+        !this._phaseReconciling &&
+        (MixinApi.isMeltable(self) ||
+          (MixinApi.isBulkable(self) && MixinApi.isThermal(self)))
       ) {
-        this.reconcilePhase();
+        this._phaseReconciling = true;
+        try {
+          this.reconcilePhase();
+        } finally {
+          this._phaseReconciling = false;
+        }
       }
     }
 
@@ -1401,36 +1427,6 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
       // booted world the template is present (water → ice-block).
     });
   }
-}
-
-/**
- * ⭐ **A molten pool sets because it has cooled** — the mirror of the melt
- * driver above (a solid melts because it is warm). A bulk holder whose
- * pool stands at or below its melting point runs the phase on the same
- * lazy read, so molten copper in a crucible or a mould sets as it cools
- * without a fire or a cold store having to drive it (dairy D19).
- *
- * ⚠⚠ **Only matter the world does NOT handle as a liquid** — and the
- * reason is measured. Tallow (320 K), pitch, paraffin and asphalt sit in
- * crocks and barrels as `liquid`-tagged bulk at room temperature, below
- * their own melting points: the shipped model treats a soft solid in a
- * crock as pourable stock. Driving their phase on every read would set a
- * tallow crock into a lump on the floor beside it and break the chandlery.
- * So a `liquid`-tagged pool keeps exactly the drivers it always had (a
- * cold store, a fire, a spell — water freezes in a freezer, not on a
- * glance), and only a pool that is NOT a liquid at ambient — molten metal,
- * which has no other way to exist as bulk — sets by itself.
- * ⚠ Freeze side only: the boil edge keeps its own drivers.
- */
-function freezesWhereItStands(self: Stuff, tempK: number): boolean {
-  if (!MixinApi.isBulkable(self) || !MixinApi.isThermal(self)) return false;
-  const aff: BulkAffordance = self.hasInteriorBulk() ? 'interior' : 'surface';
-  if (!(self.getBulkAmount(aff).rawValue() > 0)) return false;
-  const mat = self.getBulkMaterial(aff);
-  if (!mat || mat.hasTag('liquid')) return false;
-  const mp = mat.getMeltingPoint().rawValue();
-  if (!(mp > 0)) return false;
-  return tempK <= mp;
 }
 
 /** Game-seconds for a freeze-ruin freshness stamp, or 0 before boot. */

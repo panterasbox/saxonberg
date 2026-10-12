@@ -1,0 +1,12 @@
+# The wet coast — it leans hard to rain and storm and rains twice as much
+# when it does (intensity 2). The climate lean shapes how OFTEN; the
+# intensity, how MUCH.
+class: /platform/idea/Locality
+data:
+  name: The Wet Coast
+  _address: pair/wet
+  _climateLean:
+    rain: 3
+    storm: 2
+    clear: 0.3
+  _precipitationIntensity: 2

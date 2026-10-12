@@ -25,7 +25,7 @@ data:
   register: definite
   alternateNames: [face, wall, floor]
   # Under the Weeping Moor Locality's `moor` prefix, like the heath.
-  address: moor/turf-bank
+  _address: moor/turf-bank
   _biomePath: /stuff/idea/biome/outdoor/baseline
   # ⚠ The moor's cells are 3 m, so the lux figure is far lower than the
   # quarry's for the same brightness: lumens over the cell's AREA.

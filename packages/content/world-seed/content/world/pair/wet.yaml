@@ -1,0 +1,10 @@
+# The wet coast — 42°, on the sea (continentality 0.1), 10 m: a mild late
+# winter, rain most days, and a lot of it.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Wet Coast
+  cellSize: 10.0
+  address: pair/wet
+  latitude: 42
+  continentality: 0.1
+  elevation: 10

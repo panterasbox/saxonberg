@@ -70,7 +70,13 @@ import type {
   TapWindowSpec,
 } from '../../platform/idea/species/Species';
 import { CelestialApi } from '../../api/celestial';
+import { WeatherApi } from '../../api/weather';
+import type { Atmospheric } from '../biome/Atmospheric';
 import { EARTH_LIKE } from '../time/CelestialProfile';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../weather/WeatherType';
 import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { Quantity } from '../quantity';
@@ -348,14 +354,14 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             ? OPEN
             : { open: false, reason: 'no-forage' };
         case 'photoperiod': {
-          const day = daylightFraction();
+          const day = daylightFraction(this as unknown as Stuff);
           if (day === null) return OPEN;
           return inBand(day, spec.daylightFrom, spec.daylightTo)
             ? OPEN
             : { open: false, reason: seasonSide(day, spec.daylightFrom) };
         }
         case 'weather': {
-          const day = daylightFraction();
+          const day = daylightFraction(this as unknown as Stuff);
           if (day !== null) {
             if (!inBand(day, spec.daylightFrom, spec.daylightTo)) {
               return {
@@ -367,7 +373,10 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             // not the same season for a tree. `rising` discriminates
             // them by the sign of the change over one game day.
             if (spec.rising !== undefined) {
-              const yesterday = daylightFraction(-SECONDS_PER_GAME_DAY);
+              const yesterday = daylightFraction(
+                this as unknown as Stuff,
+                -SECONDS_PER_GAME_DAY,
+              );
               if (yesterday !== null) {
                 const isRising = day > yesterday;
                 if (isRising !== spec.rising) {
@@ -389,6 +398,41 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
               if (k > spec.maxK) return { open: false, reason: 'warm' };
             }
           }
+          return OPEN;
+        }
+        case 'freeze-thaw': {
+          const self = this as unknown as Stuff;
+          const day = daylightFraction(self);
+          if (
+            day !== null &&
+            spec.daylightFrom !== undefined &&
+            spec.daylightTo !== undefined &&
+            !inBand(day, spec.daylightFrom, spec.daylightTo)
+          ) {
+            return { open: false, reason: seasonSide(day, spec.daylightFrom) };
+          }
+          if (day !== null && spec.rising !== undefined) {
+            const yesterday = daylightFraction(self, -SECONDS_PER_GAME_DAY);
+            if (yesterday !== null && day > yesterday !== spec.rising) {
+              return {
+                open: false,
+                reason: spec.rising ? 'after-season' : 'before-season',
+              };
+            }
+          }
+          // The air's last game day at the tree's place. Weather inactive
+          // (no world, a unit test) is unmodelled, which is open.
+          const now = nowSeconds();
+          if (now === null || !WeatherApi.isActive()) return OPEN;
+          const place = airPlaceOf(self);
+          const range = WeatherApi.dailyRangeAt(
+            place?.climateSite() ?? DEFAULT_CLIMATE_SITE,
+            place?.weatherLocality() ?? null,
+            Quantity.of(now - SECONDS_PER_GAME_DAY, 's'),
+          );
+          const freezeK = spec.freezeK ?? 273.15;
+          if (range.maxK <= freezeK) return { open: false, reason: 'cold' };
+          if (range.minK >= freezeK) return { open: false, reason: 'warm' };
           return OPEN;
         }
       }
@@ -1055,22 +1099,46 @@ function clamp01(v: number): number {
 }
 
 /**
- * Daylength as a fraction of the rotation, or null pre-boot.
+ * Daylength at the host's place as a fraction of the rotation, or null
+ * pre-boot.
  *
- * ⚠ The SYNC twin: `CelestialApi.daylightFractionAt` is async only
- * because it awaits a zone field guarded to `EARTH_LIKE` anyway, and a
- * reconcile-on-read cannot await. The shipped readers (`Field`, the
- * breeding window) take the same shortcut for the same reason.
+ * ⚠ The SYNC twin of `CelestialApi.daylightFractionAt`: a
+ * reconcile-on-read cannot await, so the latitude comes from the host's
+ * air scope's memoized climate site ({@link siteOfHost}) — the realm
+ * default until the memo lands, the place's own latitude after.
  */
-function daylightFraction(offsetS = 0): number | null {
+function daylightFraction(host: Stuff, offsetS = 0): number | null {
   const now = nowSeconds();
   if (now === null) return null;
   const seconds = CelestialApi.daylightSecondsFor(
     EARTH_LIKE,
-    CelestialApi.CAMPUS_LATITUDE,
+    siteOfHost(host).latitudeDeg,
     now + offsetS,
   );
   return seconds / EARTH_LIKE.dayLengthSeconds;
+}
+
+/** Containment-walk depth cap for {@link siteOfHost}. */
+const SITE_WALK_DEPTH_CAP = 16;
+
+/**
+ * Where on the world a producer stands: the memoized climate site of the
+ * nearest air-bearing place around it (a tree's wood, a cow's field).
+ * A host standing nowhere reads the realm default.
+ */
+function siteOfHost(host: Stuff): ClimateSite {
+  return airPlaceOf(host)?.climateSite() ?? DEFAULT_CLIMATE_SITE;
+}
+
+/** The nearest air-bearing place around a producer, or `null`. */
+function airPlaceOf(host: Stuff): (Stuff & Atmospheric) | null {
+  let cursor: Stuff | null = host;
+  for (let depth = 0; cursor !== null && depth < SITE_WALK_DEPTH_CAP; depth++) {
+    if (MixinApi.isAtmospheric(cursor)) return cursor;
+    if (!MixinApi.isContainable(cursor)) break;
+    cursor = cursor.getContainer() as Stuff | null;
+  }
+  return null;
 }
 
 /**
