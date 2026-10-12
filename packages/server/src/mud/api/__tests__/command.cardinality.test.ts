@@ -435,33 +435,27 @@ describe('how many — a prompt asks only about a NAME (maritime revision 2)', (
   });
 });
 
-describe('cardinality.named — how many a plain NAME takes (look: one)', () => {
+describe('a set in a one-thing slot (maritime revision 2′)', () => {
   const two = [makeStuffStub('a'), makeStuffStub('b')];
-  const spec = { type: 'objects', cardinality: { named: 1 }, onExcess: 'error' as const };
 
-  it('⭐ a NAME matching more than `named` is an ambiguity (here: error; `look` prompts)', async () => {
+  it('⭐ is refused as too many — and pointed at `query`, which lists a set', async () => {
     const ctx = makeContextStub();
-    expect(await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx)).toBeNull();
-    expect(ctx.notes[0]).toMatchObject({ reason: 'ambiguous' });
-  });
-
-  it('⭐ a SET or the player\'s own quantity fills the slot past `named` — nothing asked', async () => {
-    const ctx = makeContextStub();
-    expect(await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx, { isSet: true })).toEqual(two);
     expect(
-      await CommandApi.applyCardinalityPolicy(spec, two, 'target', ctx, {
-        quantity: { value: { kind: 'all' }, mode: 'lenient' },
+      await CommandApi.applyCardinalityPolicy({ type: 'object', onExcess: 'prompt' }, two, 'target', ctx, {
+        isSet: true,
+        raw: 'horizon',
       }),
-    ).toEqual(two);
-    expect(ctx.notes).toEqual([]);
+    ).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ reason: 'too-many' });
+    expect((ctx.notes[0] as unknown as { detail: string }).detail).toMatch(/`query horizon` lists them/);
   });
 
-  it('`named` above `max` is refused at load', () => {
+  it('`named` is gone: the schema refuses it at load', () => {
     expect(() =>
       CommandDefinition.fromYaml(
-        `verbs: [foo]\ncontroller: FooController\ndescription: stub\nargs:\n  - name: targets\n    type: objects\n    cardinality:\n      max: 1\n      named: 2\n`,
+        `verbs: [foo]\ncontroller: FooController\ndescription: stub\nargs:\n  - name: targets\n    type: objects\n    cardinality:\n      named: 1\n`,
         '<test>',
       ),
-    ).toThrow(/named \(2\) cannot exceed cardinality.max/);
+    ).toThrow();
   });
 });

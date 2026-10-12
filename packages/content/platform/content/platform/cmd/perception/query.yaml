@@ -1,0 +1,43 @@
+verbs: [query, scan]
+controller: /platform/idea/cmd/perception/QueryController
+description: "List whatever a query names — the horizon, the people here, all the brass"
+help: |
+  `look` tells you what ONE thing is like. `query` lists a SET: whatever
+  the query names, each thing as it stands to you.
+
+    query horizon      what you can see from here, beyond your room —
+                       landmarks first, then what you can make out
+    query peers        who and what is here with you
+    query all brass    every brass thing in reach
+    query bob:i        what Bob wears and holds (never his pockets)
+    query me:i         everything you have
+
+  `scan` is the same act in the world's own words: `scan horizon`,
+  `scan peers`. `inventory` is the same list of what something holds,
+  grouped as a ledger: worn, held, carried.
+
+  Options change how the list is SHOWN, never what is in it — narrowing
+  is the query's own: `brass:{2}`, `all coins`, `me:i:[keyword.knife]`.
+examples:
+  - cmd: scan horizon
+    note: What is in view beyond your room
+  - cmd: query all brass
+    note: Every brass thing in reach, listed
+  - cmd: query --ledger bob:i
+    note: What Bob wears and holds, grouped
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  # ⭐ A SET (maritime revision 2′): any query — a seed (`horizon`,
+  # `peers`), the player's own how-many (`all brass`), a holder's things
+  # (`bob:i`). Everything it names is listed; nothing is asked.
+  - name: set
+    type: objects
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: any
+options:
+  ledger:
+    type: boolean
+    description: "Group the list under its holder: worn, held, carried"

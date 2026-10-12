@@ -2801,12 +2801,17 @@ that guess). Three verbs, one question each.
   its own view (its argument is a holder, not a set, and it defaults to
   you), rendering through the same ledger as `query --ledger`.
   `look in <thing>` stays the same ledger.
-- **Q5 — the shore drive's findings**: the city outfall's load 0.6 →
-  **4.0** (T16 — at the drive's spring flood, 10.4 m³/s, 0.6 read 0.06;
-  4.0 keeps the wharf fouled through a freshet and the estuary fouled
-  only in a dry month); the revision-3 drive steps run as the founder
-  (the waterman held no extent to `clone` under); step 1 waits for the
-  read to land.
+- **Q5 — the shore drive's findings.** ⭐ **T16 needs no change**: the
+  drive's first read was in the spring melt (10.36 m³/s, 10.04 of it
+  snowmelt), and the confluence without it carries ~0.3 m³/s — so the
+  shipped 0.6 load already reads ~2, fouled, in a dry month. Raising it
+  (tried: 4.0) would have fouled the city INTAKE (same reach, shipped
+  untreated on purpose — *treatment is what a town decides to buy*) and
+  dried every tap year-round; reverted. The drive waits out the melt.
+  `analyze water` gains the contamination line (the gauge AC 53 names:
+  *fouled — an outfall above here*). The revision-3 drive steps run as
+  the founder (the waterman held no extent to `clone` under); step 1
+  waits for the read to land; bare-hook `fish` (a second worm prompts).
 
 ### Waves
 

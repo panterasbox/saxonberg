@@ -541,12 +541,6 @@ export interface CardinalitySpec {
   min?: number;
   max?: number;
   exactly?: number;
-  /**
-   * How many a plain NAME takes (maritime revision 2): a name that matched
-   * more is asked about per `onExcess`. A SET or the player's own quantity
-   * is bounded only by `max`. Absent: a name is bounded by `max` too.
-   */
-  named?: number;
 }
 
 /**
@@ -558,6 +552,8 @@ export interface CardinalitySpec {
 export interface CardinalityHow {
   isSet?: boolean;
   quantity?: MqlQuantity;
+  /** What the player typed — so a refused set can be pointed at `query`. */
+  raw?: string;
 }
 
 /**

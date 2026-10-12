@@ -1179,6 +1179,41 @@ function candidatesForElementDerivable(
  * operators, polymorphic on whether the candidate is in a detail
  * tree or a Stuff-containment context.
  */
+/**
+ * ⭐⭐ **What a viewer may see inside a holder** — the one visibility rule
+ * (maritime revision 2′), applied where every way of naming a holder's
+ * things passes: the `:i` step. On a person, what they wear and hold —
+ * never their pockets or what is inside their body; in an open container,
+ * everything; in a shut one, nothing; your own things, everything
+ * (`PerceptionApi.visibleContentsOf`). With no viewer (system mode —
+ * engine bookkeeping) the raw contents, as before.
+ */
+function visibleInside(holder: Stuff, viewer: Stuff | null): readonly Stuff[] {
+  if (!MixinApi.isContainer(holder)) return [];
+  // No viewer (system mode), or your own things: everything — what you
+  // concealed on yourself you still know is there.
+  if (viewer === null || viewer.stuffId === holder.stuffId) return holder.getContents();
+  const v = PerceptionApi.visibleContentsOf(viewer, holder);
+  return [...v.worn, ...v.held, ...v.carried];
+}
+
+/** `:I` — the rule applied at every level of the descent. */
+function visibleInsideDeep(holder: Stuff, viewer: Stuff | null): Stuff[] {
+  if (viewer === null) {
+    return MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
+  }
+  const out: Stuff[] = [];
+  const walk = (h: Stuff, depth: number): void => {
+    if (depth > 32) return;
+    for (const item of visibleInside(h, viewer)) {
+      out.push(item);
+      if (MixinApi.isContainer(item)) walk(item, depth + 1);
+    }
+  };
+  walk(holder, 0);
+  return out;
+}
+
 function applyTransform(
   input: MqlMatch[],
   transform: 'i' | 'I' | 'e' | 'E' | 'b',
@@ -1216,7 +1251,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of m.stuff.getContents()) {
+        for (const item of visibleInside(m.stuff, viewer)) {
           out.push({ stuff: item, score: m.score });
         }
       }
@@ -1238,7 +1273,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of m.stuff.getDeepContents()) {
+        for (const item of visibleInsideDeep(m.stuff, viewer)) {
           out.push({ stuff: item, score: m.score });
         }
       }

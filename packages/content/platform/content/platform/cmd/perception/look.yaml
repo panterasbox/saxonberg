@@ -28,14 +28,13 @@ examples:
   - cmd: look --peek sign
     note: Read the sign without changing focus
 args:
-  # ⭐⭐ PLURAL (maritime revision 2): `look` may be given more than one
-  # thing — a SET named on purpose (`look horizon`, `look peers`) or the
-  # player's own how-many (`look all brass`) — and lists them. A plain
-  # NAME takes one (`named: 1`): `look brass` matching two ASKS which.
+  # ⭐ ONE thing (maritime revision 2′): *what is this like?* A name that
+  # matches several asks which (`onExcess: prompt`); a SET (`look horizon`,
+  # `look all brass`) is refused in words that point at `query` — listing
+  # a set is `query`'s (alias `scan`). Revision 2 made this plural, and
+  # the engine had to guess which job you meant.
   - name: target
-    type: objects
-    cardinality:
-      named: 1
+    type: object
     required: false
     scope: ["$focus", "reachable"]
     updates_focus: extend

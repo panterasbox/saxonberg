@@ -65,7 +65,7 @@ const HEATH = '/world/moor/stormy-heath';
 const NORTH_SHORE = '/world/north/shore';
 const BROW = '/world/terminus/estuary/headland/brow';
 const PAIL = '/stuff/thing/vessel/pail';
-/** The tower as `look horizon` features it, and its own description. */
+/** The tower as `scan horizon` features it, and its own description. */
 const FEATURED_TOWER = /You can see the terminal clock tower/;
 const TOWER_SAYS = /square brick shaft/;
 const LIGHT = /light on Gannet Rock/;
@@ -77,8 +77,6 @@ const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 let me: Session;
 /** A second person for the look-from-elsewhere checks — never the founder, whose body sails. */
 const LANDSMAN = uniqueHandle('landsman');
-/** Revision 3's walker — the shore as a place, and drawing water. */
-const WATERMAN = uniqueHandle('waterman');
 /** The pilot's customer, who carries the coin. */
 const MATE = uniqueHandle('mate');
 
@@ -101,14 +99,14 @@ async function sail(s: Session, hours: string): Promise<string> {
 }
 
 /**
- * `look horizon` until `want` is in view, waiting out the weather between
+ * `scan horizon` until `want` is in view, waiting out the weather between
  * looks (fog and rain shorten sight). The craft must be at anchor or
  * ashore — waiting moves nothing else.
  */
 async function horizonUntil(s: Session, want: RegExp, tries = 10): Promise<string> {
   let said = '';
   for (let i = 0; i < tries; i++) {
-    said = await look(s, 'look horizon');
+    said = await look(s, 'scan horizon');
     if (want.test(said)) return said;
     // A sea or a sky nobody had read yet answers "not yet" once and starts
     // its read — give that a moment of real time before spending game time.
@@ -179,7 +177,12 @@ suite('1 · the shore', () => {
       // ⭐ Revision 1: the room's own look no longer appends the river; you
       // look at the water and read it there. Revision 3: by the bank's own
       // name for it — the river is a feature of the place, not an object.
-      const said = await look(s, 'look river');
+      // The water's read lands a moment after the first look asks for it.
+      let said = await look(s, 'look river');
+      for (let i = 0; i < 5 && !/This is the Kestrel/.test(said); i++) {
+        await s.listen(1_500);
+        said = await look(s, 'look river');
+      }
       expect(said).toMatch(/This is the Kestrel/);
     } finally {
       s.close();
@@ -220,7 +223,7 @@ suite('23 · 24 · the horizon ashore', () => {
     }
     const inside = await Session.open(LANDSMAN, { startLocation: MILL });
     try {
-      expect(await look(inside, 'look horizon')).toMatch(/You see nothing there/);
+      expect(await look(inside, 'scan horizon')).toMatch(/You see nothing there/);
     } finally {
       inside.close();
     }
@@ -318,7 +321,7 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
     expectOk(await me.cmd('open chest'));
   });
 
-  it('30 · ⭐ `look greywater` with two charts below ASKS which; `look all greywater` lists both; `look 2nd greywater` reads one', async () => {
+  it('30 · ⭐ `look greywater` with two charts below ASKS which; `query all greywater` lists both; `look 2nd greywater` reads one', async () => {
     expectOk(await me.cmd('down'));
     await me.drainProse();
     // The prompt arrives on its own frame; the command answers once it is answered.
@@ -333,11 +336,16 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
     expect(promptId && pick, prompt.slice(0, 600)).toBeTruthy();
     me.answerPrompt(promptId!, /prompt-mql-many/.test(prompt) ? JSON.stringify([pick]) : pick!);
     expectOk(await pending);
-    const all = await look(me, 'look all greywater');
+    // ⭐ Revision 2′: a set is `query`'s (alias `scan`); `look` takes one.
+    const all = await look(me, 'query all greywater');
     expect(all).toMatch(/You see .*chart.*chart/);
     const second = await look(me, 'look 2nd greywater');
     expect(second).toMatch(/chart of the Greywater/);
     expect(second).not.toMatch(/You see .*chart.*chart/);
+    // `scan` is the same act in the world's words, and `query --ledger`
+    // groups a holder's things as `inventory` does.
+    expect(await look(me, 'scan all greywater')).toMatch(/You see .*chart.*chart/);
+    expect(squash(await me.prose('query --ledger me:i'))).toMatch(/You are (wearing|holding|carrying): /);
     expectOk(await me.cmd('up'));
   });
 });
@@ -434,8 +442,8 @@ suite('6 · 7 · 8 · finding out where you are', () => {
 });
 
 suite('19 · 20 · 25 · sight at sea', () => {
-  it('19 · `look horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
-    const said = await look(me, 'look horizon');
+  it('19 · `scan horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
+    const said = await look(me, 'scan horizon');
     expect(said).toMatch(/You can see the light on Gannet Rock/);
     expect(await look(me, 'look horizon:light')).toMatch(/white tower on a black rock/);
     const r = await me.cmd('hail light');
@@ -446,7 +454,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
   it('19 · ⭐ somebody below decks sees nothing of it', async () => {
     const s = await Session.open(LANDSMAN, { startLocation: HOLD });
     try {
-      expect(await look(s, 'look horizon')).toMatch(/You see nothing there/);
+      expect(await look(s, 'scan horizon')).toMatch(/You see nothing there/);
     } finally {
       s.close();
     }
@@ -491,7 +499,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     let seen = '';
     for (let i = 0; i < 24 && !LIGHT.test(seen); i++) {
       await sail(me, '10 minutes');
-      seen = await look(me, 'look horizon');
+      seen = await look(me, 'scan horizon');
     }
     expect(seen).toMatch(LIGHT);
     // `horizon:light`, explicitly: `measure` tries `$focus` first, and the focus
@@ -567,10 +575,14 @@ suite('16 · 21 · roads refuse honestly; the pilot', () => {
  * outfall, salt at sea, nothing through ice.
  */
 suite('31 – 39 · the shore as a place, and drawing water', () => {
+  // ⭐ As the founder: `clone` is gated on held extents, and a wizard
+  // flag confers none (the drive's first run, 2026-10-12). The founder's
+  // body walks off the Hesper here — this suite runs last.
   let w: Session;
   async function at(where: string): Promise<void> {
-    w?.close();
-    w = await Session.open(WATERMAN, { startLocation: where, wizard: true });
+    me.close();
+    me = await Session.open('founder', { startLocation: where, wizard: true });
+    w = me;
     await daylight(w);
   }
   /** `look --peek <x>` until the water's read has landed. */
@@ -583,8 +595,6 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     }
     return said;
   }
-
-  afterAll(() => w?.close());
 
   it('31 · on the bank, `look river` gives the bank\'s words then the Kestrel\'s read; `look water` asks nothing; no edge', async () => {
     await at(BANK);
@@ -604,17 +614,17 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
 
   it('33 · `fish` binds the place: unnamed, by the water\'s name; the lamps are refused in words', async () => {
     await at(BANK);
+    // A bare hook: the fisher fishes with none, and a second worm would ask which.
     expectOk(await w.cmd('clone /trade/fishing/thing/rod'));
-    expectOk(await w.cmd('clone /trade/fishing/thing/worm'));
     await readOf('river', /This is the Kestrel/);
-    const lamps = await w.cmd('fish at lamps with worm');
+    const lamps = await w.cmd('fish at lamps');
     expectRefused(lamps);
     expect(squash(await lamps.said())).toMatch(/no water in the lamps/i);
-    const named = await w.cmd('fish kestrel with worm');
+    const named = await w.cmd('fish kestrel');
     expectOk(named);
     expectNote(named, 'engagement-started');
     await w.cmd('cancel fishing');
-    const bare = await w.cmd('fish with worm');
+    const bare = await w.cmd('fish');
     expectOk(bare);
     expectNote(bare, 'engagement-started');
     await w.cmd('cancel fishing');
@@ -622,15 +632,21 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
 
   it('34 · `analyze water`, then fill a pail from the river: the water below the outfall is fouled; a mere\'s is clean', async () => {
     await at(BANK);
-    const read = await w.cmd('analyze water');
-    expectOk(read);
-    expect(squash(await read.said())).toMatch(/reach: kestrel:confluence/);
-    // ⭐ The gauge, not the eye: the city's intake draws from this same
-    // reach with no treatment, so its report says whether the water here
-    // is fouled. Nothing about the water itself announces it (AC 53).
-    const gauge = squash(await (await w.cmd('analyze water intake')).said());
-    expect(gauge).toMatch(/draws from kestrel:confluence/);
-    expect(gauge, 'T16: the wharf below the sewer must read fouled').toMatch(/\(fouled\)/);
+    // ⭐ The gauge, not the eye: `analyze water` says what is IN the reach
+    // (AC 53 — nothing about the water itself announces it).
+    // ⚠ A concentration: the spring melt dilutes the sewer to nothing
+    // (10 m³/s, all but 0.3 of it snowmelt); in a dry month the same
+    // outfall fouls the wharf. Wait out the melt, a month at a time.
+    let gauge = '';
+    for (let i = 0; i < 12; i++) {
+      const read = await w.cmd('analyze water');
+      expectOk(read);
+      gauge = squash(await read.said());
+      if (/fouled — an outfall above here/.test(gauge)) break;
+      await advanceWorldClock('720 hours');
+    }
+    expect(gauge).toMatch(/reach: kestrel:confluence/);
+    expect(gauge, 'T16: the wharf below the sewer reads fouled in a dry month').toMatch(/fouled — an outfall above here/);
     expectOk(await w.cmd(`clone ${PAIL}`));
     const fill = await w.cmd('fill pail from river');
     expectOk(fill);
@@ -658,11 +674,8 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
   }, 300_000);
 
   it('37 · aboard the Hesper: `look sea` reads where she lies; a bucket over the side is salt and slakes nothing; fish', async () => {
-    await at(BANK);
     // Wherever she is now, the deck is a shore of the sea under her.
-    w.close();
-    w = await Session.open(WATERMAN, { startLocation: '/world/terminus/hesper/deck', wizard: true });
-    await daylight(w);
+    await at('/world/terminus/hesper/deck');
     expect(await readOf('sea', /The sea is /)).toMatch(/Below the rail, the water[^]*The sea is /);
     expectOk(await w.cmd('spill pail'));
     const fill = await w.cmd('fill pail from sea');

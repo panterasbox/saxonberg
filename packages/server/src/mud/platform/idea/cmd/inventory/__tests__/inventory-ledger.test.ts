@@ -8,6 +8,9 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import InventoryController from '../InventoryController';
 import LookController from '../../perception/LookController';
+import QueryController from '../../perception/QueryController';
+import { MqlApi } from '../../../../../api/mql';
+import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
 import { PerceptionApi, type VisibleContents } from '../../../../../api/perception';
@@ -107,7 +110,7 @@ describe('look and the ledger', () => {
 
   it('⭐ `look in <thing>` is the same ledger', async () => {
     visible = { worn: [], held: [], carried: [named('lime')], shut: false };
-    await look({ target: { stuff: [other], raw: 'crate', prep: 'in' } });
+    await look({ target: { stuff: other, raw: 'crate', prep: 'in' } });
     expect(said.join('\n')).toMatch(/In it: [^\n]*lime/);
   });
 
@@ -119,10 +122,42 @@ describe('look and the ledger', () => {
       carried: [],
       shut: false,
     };
-    await look({ target: { stuff: [other], raw: 'ruth' } });
+    await look({ target: { stuff: other, raw: 'ruth' } });
     const out = said.join('\n');
     expect(out).toMatch(/Wearing: [^\n]*ring a[^\n]*ring d[^\n]*and 2 more things — `inventory ruth`/);
     expect(out).not.toMatch(/ring e/);
     expect(out).toMatch(/Holding: [^\n]*lantern/);
+  });
+});
+
+describe('`query --ledger` and a shut holder (maritime revision 2′)', () => {
+  const query = (model: unknown): Promise<void> =>
+    withRootContext(null, 'ledger.test', async () => {
+      await makeStuff(() => new QueryController()).execute(model as never, ctx('query'));
+    });
+
+  it('⭐ `query --ledger bob:i` is the same grouped ledger `inventory bob` gives — of just what the query named', async () => {
+    const ring = named('ring');
+    const lantern = named('lantern');
+    const hat = named('hat');
+    for (const x of [ring, lantern, hat]) ContainmentApi.move(x as never, other as never);
+    visible = { worn: [ring, hat], held: [lantern], carried: [], shut: false };
+    await query({ set: { stuff: [ring, lantern], raw: 'ruth:i:[keyword.ring],ruth:i:[keyword.lantern]' }, ledger: true });
+    const out = said.join('\n');
+    expect(out).toMatch(/Wearing: [^\n]*ring/);
+    expect(out).toMatch(/Holding: [^\n]*lantern/);
+    expect(out).not.toMatch(/hat/);
+  });
+
+  it('⭐ an empty query into something shut says it is shut — not "nothing there"', async () => {
+    visible = { worn: [], held: [], carried: [], shut: true };
+    vi.spyOn(MqlApi, 'resolveOne').mockReturnValue({ stuff: other } as never);
+    await query({ set: { stuff: [], raw: 'chest:i' } });
+    expect(said.join("\n")).toMatch(/ is shut\./);
+  });
+
+  it('an empty set otherwise: nothing there', async () => {
+    await query({ set: { stuff: [], raw: 'all brass' } });
+    expect(said.join('\n')).toMatch(/You see nothing there/);
   });
 });

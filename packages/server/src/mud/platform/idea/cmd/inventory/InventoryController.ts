@@ -27,9 +27,12 @@ interface InventoryModel extends CommandModel {
 }
 
 /**
- * The ledger controller. `ledger` is a public static for exactly two
- * callers — this controller and `LookController` (`look in`) — neither of
- * them author surface (`lint:lib-statics`' caller audit).
+ * The ledger controller. `ledger` is a public static for exactly three
+ * callers — this controller, `LookController` (`look in`) and
+ * `QueryController` (`query --ledger`) — none of them author surface
+ * (`lint:lib-statics`' caller audit). ⭐ `inventory <thing>` is `query
+ * --ledger <thing>:i` (maritime revision 2′), kept as its own view
+ * because its argument is a HOLDER and it defaults to you.
  *
  * @internal
  */
@@ -71,9 +74,12 @@ export default class InventoryController extends CommandController<InventoryMode
    * complete (no summary). `null` when `target` is a container that is
    * shut. Shared by `inventory` and `look in <thing>`.
    */
-  public static ledger(viewer: Stuff, target: Stuff): Mml | null {
-    const v = PerceptionApi.visibleContentsOf(viewer, target);
-    if (v.shut) return null;
+  public static ledger(viewer: Stuff, target: Stuff, only?: ReadonlySet<string>): Mml | null {
+    const all = PerceptionApi.visibleContentsOf(viewer, target);
+    if (all.shut) return null;
+    // `query --ledger <a narrowed set>` groups just what the query named.
+    const keep = (xs: Stuff[]): Stuff[] => (only ? xs.filter((x) => only.has(x.stuffId)) : xs);
+    const v = { worn: keep(all.worn), held: keep(all.held), carried: keep(all.carried) };
     const list = (xs: Stuff[]): Mml => Mml.list(xs.map((x) => Mml.thing(x)));
     const lines: Mml[] = [];
     if (viewer === target) {

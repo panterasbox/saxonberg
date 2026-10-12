@@ -1,5 +1,6 @@
 /**
- * ⭐ `look horizon` (maritime R5) — the horizon surveyed like a room:
+ * ⭐ `scan horizon` / `query horizon` (maritime R5; revision 2′ — a set is
+ * `query`'s, `look` takes one thing) — the horizon surveyed like a room:
  * what is FEATURED first (a landmark, or what this room's author
  * features), then *"You can also make out …"*, and at sea the passers-by
  * in words. ⛔ And a plain `look` appends nothing from outside the room.
@@ -7,7 +8,7 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import LookController from '../LookController';
+import QueryController from '../QueryController';
 import Structure from '../../../Structure';
 import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
@@ -54,18 +55,18 @@ function ctx(): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: viewer as never,
     location: room as never,
-    commandText: 'look horizon',
+    commandText: 'scan horizon',
     executionId: 't',
     commandId: 't',
-    verb: 'look',
+    verb: 'scan',
     command: CommandDefinition.fromYaml(
-      'verbs: [look]\ncontroller: NoopController\ndescription: stub\n',
+      'verbs: [query, scan]\ncontroller: NoopController\ndescription: stub\n',
       '<test>',
     ),
   });
 }
 
-/** `look horizon`: the binder hands over the SET the seed named (maritime revision 2). */
+/** `scan horizon`: the binder hands over the SET the seed named. */
 async function lookHorizon(view: HorizonView, set: Stuff[] = view.things.map((t) => t.stuff)): Promise<string[]> {
   vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue(view);
   const bodies: string[] = [];
@@ -79,8 +80,8 @@ async function lookHorizon(view: HorizonView, set: Stuff[] = view.things.map((t)
     return b as never;
   });
   await withRootContext(null, 'horizon.test', () =>
-    makeStuff(() => new LookController()).execute(
-      { target: { stuff: set, raw: 'horizon', isSet: true } } as never,
+    makeStuff(() => new QueryController()).execute(
+      { set: { stuff: set, raw: 'horizon', isSet: true } } as never,
       ctx(),
     ),
   );
@@ -94,7 +95,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe('look horizon', () => {
+describe('scan horizon', () => {
   it('⭐ features the landmark first, then makes out the rest', async () => {
     const tower = structure('/t/tower', 'clock tower', true);
     const mill = structure('/t/mill', 'windmill', false);
@@ -136,7 +137,7 @@ describe('look horizon', () => {
   });
 });
 
-describe('look at many things (maritime revision 2)', () => {
+describe('a set the player asked for (`query all brass`)', () => {
   it('⭐ several things the player asked for are a plain list — "You see …"', async () => {
     const a = structure('/t/a', 'brass lamp', false);
     const b = structure('/t/b', 'brass bell', false);

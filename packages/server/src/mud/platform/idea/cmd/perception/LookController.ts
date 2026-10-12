@@ -29,11 +29,8 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import { MqlApi, type MqlManyResult } from '../../../../api/mql';
+import type { MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
-import type { HorizonView } from '../../../../api/perception';
-import Location from '../../../../lib/stuff/Location';
-import Structure from '../../Structure';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
@@ -60,8 +57,8 @@ import type { Perception } from '../../../../lib/perception/Perception';
 import type { Container } from '../../../../lib/spatial/Container';
 
 interface LookModel extends CommandModel {
-  /** ⭐ Plural since maritime revision 2: a SET, several matches, or one. */
-  target?: MqlManyResult;
+  /** ONE thing (maritime revision 2′) — a set is `query`'s. */
+  target?: MqlOneResult;
 }
 
 /** `look` names this many things inline before it summarises (the `Mml.list` block threshold). */
@@ -70,24 +67,14 @@ const LOOK_INLINE = 4;
 export default class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): void | Promise<void> {
     const target = model.target;
-    // The canonical unwrap: a binding is a list now, and the one-thing
-    // shape (`MqlOneResult`) still reads correctly.
-    const items = MqlApi.extractStuffs(target) ?? [];
     const raw = target?.raw ?? '';
+    const one = target?.stuff ?? null;
     // `look in <thing>` is the LEDGER — the same as `inventory <thing>`.
-    if (items.length === 1 && (target?.prep === 'in' || target?.prep === 'inside')) {
-      return this.lookInto(items[0]!, context);
-    }
-    // ⭐ A SET named on purpose (`look horizon`, `look peers`) or several
-    // things the player asked for (`look all brass`) is a LIST — the list
-    // is the content. (Several matches for a plain NAME never reach here:
-    // the binder asked which — maritime revision 2.)
-    if (target?.isSet || items.length > 1) {
-      return this.lookAtList(items, context, target?.isSet === true);
+    if (one && (target?.prep === 'in' || target?.prep === 'inside')) {
+      return this.lookInto(one, context);
     }
     // `look.yaml` declares `default: "$focus"`, so the dispatcher always
     // hands us a wrapper; nothing in it is the only "no match" signal.
-    const one = items[0];
     if (!one) {
       MessageApi.scene(context.commandGiver)
         .topic('sense.survey')
@@ -118,59 +105,6 @@ export default class LookController extends CommandController<LookModel> {
       ? Mml.compose`${Mml.actor(thing)} is shut.`
       : Mml.compose`There is nothing inside ${Mml.thing(thing)}.`);
     MessageApi.scene(viewer).topic('sense.survey').toSelf(line).send();
-  }
-
-  /**
-   * ⭐ A LIST — a set named on purpose, or several things the player asked
-   * for (maritime revision 2). The list IS the content: no header, since a
-   * set that belongs to nothing has nobody to describe.
-   *
-   * Each entry says how it stands to you. A thing on your horizon carries
-   * where it lies, as a glance gives it (*to the north-east, some 3 miles
-   * off*) — read once from `PerceptionApi.horizonFor`; FEATURED things (a
-   * landmark, or what this room's author features) come first, each its
-   * own sentence. When the set IS what is in view, the passers-by at sea
-   * are told in words too (they have no object to be in a set).
-   */
-  private lookAtList(items: readonly Stuff[], context: CommandContext, isSet: boolean): void {
-    const viewer = context.commandGiver;
-    const view: HorizonView = PerceptionApi.horizonFor(viewer);
-    const onHorizon = new Map(view.things.map((t) => [t.stuff.stuffId, t]));
-    const room = context.location;
-    const featuredPaths = room instanceof Location ? room.getFeatured() : [];
-    const where = (b: number | null, r: number | null): string =>
-      b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
-    const featured: Mml[] = [];
-    const rest: Mml[] = [];
-    for (const item of items) {
-      const seen = onHorizon.get(item.stuffId);
-      const isFeatured = seen !== undefined && (
-        (item instanceof Structure && item.isLandmark()) ||
-        featuredPaths.includes(item.getTemplatePath() ?? ''));
-      const line = Mml.compose`${Mml.thing(item, { form: 'presence' })}${seen ? where(seen.bearingDeg, seen.rangeNm) : ''}`;
-      (isFeatured ? featured : rest).push(line);
-    }
-    const isTheHorizon = isSet && items.length === view.things.length &&
-      items.every((i) => onHorizon.has(i.stuffId));
-    if (isTheHorizon) {
-      for (const p of view.traffic) rest.push(Mml.compose`${p.name}${where(p.bearingDeg, p.rangeNm)}`);
-    }
-    if (featured.length === 0 && rest.length === 0) {
-      MessageApi.scene(viewer).topic('sense.survey').toSelf(Mml.compose`You see nothing there.`).send();
-      context.note({ kind: 'empty-result', field: 'target', query: 'set' });
-      return;
-    }
-    const lines: Mml[] = featured.map((f) => Mml.compose`You can see ${f}.`);
-    if (rest.length > 0) {
-      const anyAfar = items.some((i) => onHorizon.has(i.stuffId)) || isTheHorizon;
-      const lead = featured.length > 0
-        ? 'You can also make out'
-        : anyAfar ? 'You can make out' : 'You see';
-      lines.push(Mml.compose`${lead} ${Mml.list(rest, { style: 'inline' })}.`);
-    }
-    // ⭐ ONE scene, like a room's body: the list is one reading.
-    const body = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
-    MessageApi.scene(viewer).topic('sense.survey').toSelf(body).send();
   }
 
   /**

@@ -471,7 +471,7 @@ perceive it, as sound already is.
 
 | surface | shape |
 |---|---|
-| **`look <thing>`** | ⭐ ONE thing: *what is this like?* A name that matches several asks which. A set (`look horizon`, `look all brass`) is refused in words, pointing at `query` |
+| **`look <thing>`** | ⭐ ONE thing: *what is this like?* A name that matches several asks which. A set (`look horizon`) is refused in words, pointing at `query`; `look all brass` looks at the first (listing is `query`'s) |
 | **`query <set>`** | ⭐⭐ lists whatever the query names — `query horizon`, `query peers`, `query all brass`, `query bob:i` — each entry saying how it stands to you. Options change only how it is SHOWN (`--ledger`); what is in it is the query's |
 | **`scan <set>`** | the same act in the world's own words: `scan horizon`, `scan peers` |
 | **`inventory [<thing>]`** | the **ledger** rendering of a holder's contents: `inventory` = `query --ledger me:i`, `inventory bob` = `query --ledger bob:i`. `look in <thing>` is the same ledger |

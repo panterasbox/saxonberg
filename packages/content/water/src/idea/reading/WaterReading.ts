@@ -50,6 +50,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { SupplyReporting } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import WatercourseCatalogue, { type IceRecord } from '../WatercourseCatalogue';
@@ -226,6 +227,23 @@ export default class WaterReading extends Reading {
         : `no snow left on the catchment`,
       flow.navigable ? `a boat would get through` : `too little for a boat`,
     ];
+    // ⭐⭐ What is IN it — the gauge (maritime shore revision, AC 53).
+    // Fouling announces itself to no sense; the instrument is how anybody
+    // learns it, which is what turns *the free river or the paid tap* into
+    // a calculation instead of a guess. Words, by the same threshold the
+    // waterworks and a pail drawn here use.
+    const dirt =
+      drainage?.contaminationAt === undefined
+        ? null
+        : await drainage.contaminationAt(reach, WorldClockApi.getNow().rawValue()).catch(() => null);
+    if (dirt !== null && dirt.level > 0) {
+      const fouledAt = Number.parseFloat(String(AppApi.setting('water.fouledAt') ?? '')) || 0.35;
+      lines.push(
+        dirt.level > fouledAt
+          ? 'fouled — an outfall above here; unfit to drink unboiled'
+          : 'traces of an outfall above here, thinned out',
+      );
+    }
     // ⭐ The ice (the climate build, D8): read by PHYSICS — Stefan's law
     // and what a sheet bears are physics, and the Discipline already
     // claims the head on a water course. Anyone sees whether ice lies;

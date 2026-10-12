@@ -245,6 +245,9 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [
         'platform/cmd/perception/look.yaml',
+        // ⭐ `query` (alias `scan`): listing a SET is its own verb — `look`
+        // takes one thing (maritime revision 2′).
+        'platform/cmd/perception/query.yaml',
         // ⭐ `watch`: keeping a watch on the horizon is a perceiver's act
         // (maritime R6), so a hired lookout — an NPC — can take it up;
         // the stream form refuses anybody without a client, in words.

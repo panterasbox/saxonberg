@@ -1190,10 +1190,13 @@ export class CommandLogic extends ApiLogic {
     //     many for the slot is refused in words, not prompted;
     //   - a name: the view's own policy, prompt included.
     const tooMany = (n: number, max: number): null => {
+      // ⭐ A set refused is pointed at the verb that lists one (maritime
+      // revision 2′): `look horizon` → `query horizon`.
+      const listIt = how.raw ? ` — \`query ${how.raw}\` lists them` : '';
       context.note({
         kind: 'controller-rejected',
         reason: 'too-many',
-        detail: `${fname}: that names ${n} things, and this takes ${max === 1 ? 'one' : `at most ${max}`}`,
+        detail: `${fname}: that names ${n} things, and this takes ${max === 1 ? 'one' : `at most ${max}`}${listIt}`,
       });
       return null;
     };
@@ -1251,30 +1254,6 @@ export class CommandLogic extends ApiLogic {
           detail: `${fname}: expected at least ${min}, got ${stuff.length}`,
         });
         return null;
-      }
-      // ⭐ A plain NAME is held to `named` when the view declares it —
-      // `look brass` matching two asks which — while a set or the
-      // player's own quantity may fill the slot up to `max`.
-      const named = card.named;
-      if (
-        named !== undefined && !how.isSet && !how.quantity &&
-        stuff.length > named && stuff.length <= max
-      ) {
-        const namePolicy = spec.onExcess ?? 'prompt';
-        if (namePolicy === 'take-all') return stuff;
-        if (namePolicy === 'truncate') return stuff.slice(0, named);
-        if (namePolicy === 'error' || !context.interactive) {
-          context.note({
-            kind: 'controller-rejected',
-            reason: 'ambiguous',
-            detail: `${fname}: ambiguous (${stuff.length} matches)`,
-          });
-          return null;
-        }
-        return context.interactive.promptMqlMany(`which ${fname}?`, stuff, {
-          min: Math.min(min, named),
-          max: named,
-        });
       }
       if (stuff.length <= max) return stuff;
 
@@ -1419,6 +1398,7 @@ export class CommandLogic extends ApiLogic {
         const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context, {
           ...(r.isSet ? { isSet: true } : {}),
           ...(r.quantity ? { quantity: r.quantity } : {}),
+          ...(raw ? { raw } : {}),
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
@@ -1502,6 +1482,7 @@ export class CommandLogic extends ApiLogic {
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
           ...(isSet ? { isSet: true } : {}),
           ...(quantity ? { quantity } : {}),
+          ...(raw ? { raw } : {}),
         });
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
@@ -1602,6 +1583,7 @@ export class CommandLogic extends ApiLogic {
         const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context, {
           ...(r.isSet ? { isSet: true } : {}),
           ...(r.quantity ? { quantity: r.quantity } : {}),
+          ...(raw ? { raw } : {}),
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
@@ -1678,6 +1660,7 @@ export class CommandLogic extends ApiLogic {
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
           ...(isSet ? { isSet: true } : {}),
           ...(quantity ? { quantity } : {}),
+          ...(raw ? { raw } : {}),
         });
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
