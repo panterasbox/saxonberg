@@ -103,16 +103,15 @@ crucible are not, and a pool left in one sets as a lump.
 | `platform/thing/Mould` | `Mould(Durable(Crafted(Thermal(Bulkable(Container(Good))))))` | `ice-pan` (commons), `ingot-mould` (smelting) |
 | `trade-dairying` `Hoop` | `Placing(Mould(Durable(CraftVessel)))` | `hoop` — food equipment that takes a press |
 
-## ⭐ A pool sets because it has cooled — for matter that is not a liquid
+## ⭐ A pool sets because it has cooled
 
-`Thermal`'s post-drift driver runs the phase for a bulk holder whose pool
-is at or below its melting point (`freezesWhereItStands`) — the mirror of
-*a solid melts because it is warm*. ⚠⚠ **Only for a pool that is NOT
-`liquid`-tagged**: tallow (320 K), pitch, paraffin and asphalt sit in
-crocks and barrels as `liquid` bulk below their own melting points, and a
-freeze on every read would set a tallow crock into a lump and break the
-chandlery. Those keep their old drivers (a cold store, a fire, a spell);
-molten metal, which has no other way to exist as bulk, sets by itself.
+`Thermal`'s post-drift driver runs the phase for every thermal bulk holder
+(the climate build's D7 — *a pool freezes because it is cold*, the mirror
+of *a solid melts because it is warm*). So molten metal sets by itself in
+a crucible or a mould, and water freezes in an ice pan wherever it is cold
+enough — a freezer, or a winter street. ⓘ The dairy build first shipped a
+narrower driver for non-`liquid` pools only; the climate build's general
+rule superseded it at the merge.
 
 ## The smelt and the crucible (the second consumer)
 

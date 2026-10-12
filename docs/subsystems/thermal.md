@@ -853,13 +853,10 @@ dropped beside it, exactly as before. Water's fallback is now
 `/stuff/thing/ice-lump` (*a lump of ice*); the ice pan is a mould and gives
 the squared `ice-block`. See [mould.md](./mould.md).
 
-⭐ **A molten pool sets because it has cooled** — `freezesWhereItStands`,
-the mirror of the melt driver: after the drift, a bulk holder whose pool is
-at or below its melting point runs the phase on the same lazy read. ⚠
-**Freeze side only** (nothing boils on a warm read) and ⚠⚠ **only for a
-pool that is NOT `liquid`-tagged**: tallow (320 K), pitch, paraffin and
-asphalt sit in crocks and barrels as `liquid` bulk below their own melting
-points, and freezing them on every read would set a tallow crock into a
-lump and break the chandlery. Those keep their old drivers; molten metal —
-which has no other way to exist as bulk — sets by itself, so a crucible
-left to cool holds a lump and a filled ingot mould holds an ingot.
+⭐ **A molten pool sets because it has cooled** — the same post-drift
+driver that freezes a winter jug (climate D7, above) sets molten metal, so
+a crucible left to cool holds a lump and a filled ingot mould holds an
+ingot. ⓘ The dairy build first shipped a narrower driver for
+non-`liquid` pools only (to spare tallow crocks); the climate build's
+general rule superseded it at the merge, and the chandlery's own suite
+passes under it.
