@@ -25,3 +25,8 @@ data:
   exits:
     southeast:
       destination: /world/terminus/rejection/location/pithead-yard
+  props:
+    # ⭐ The stove the prose has always claimed (the dairy drive found it
+    # was never there): the one warm room on the hill, where a goat's
+    # cheese is set in the cold months.
+    - /world/terminus/rejection/thing/dry-stove

@@ -88,6 +88,7 @@ const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
 const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
 const CHEESE_ROOM = '/world/terminus/hearts-delight/creamery/location/cheese-room';
 const GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen';
+const DRY = '/world/terminus/rejection/location/the-dry';
 const SMELTER = '/world/terminus/rejection/location/smelter';
 const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -641,6 +642,17 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     const pail = await read(k, 'look pail');
     note(`goat's milk → ${pail}`);
+    // ⚠ The pen is open air on a hill, and the world boots in winter (the
+    // climate build: 268 K at a clear dawn) — milk will not sour below
+    // 283 K. The cheese is set where a stove is kept in: the vat, the
+    // starter and the hoop go to the Dry.
+    await doing(k, 'get vat');
+    await doing(k, 'get starter');
+    await doing(k, 'get hoop');
+    await goTo(DRY);
+    await doing(k, 'drop vat');
+    await doing(k, 'drop starter');
+    await doing(k, 'drop hoop');
     await doing(k, 'pour pail into vat');
     // ⚠ The pen's crock was last fed at boot and a whey culture starves in
     // six days — it is dead, correctly. The craft's own remedy: raw milk
@@ -648,8 +660,7 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     // lag), and its whey starts the crock again.
     const crock = await read(k, 'look starter');
     note(`look crock (the pen's, a month unfed) → ${crock}`);
-    // Wait on the STATE: the pen is open air, so the souring runs by day
-    // and stalls on a cold night (the climate build's real nights).
+    // Wait on the STATE: how fast it sours is the room's to say.
     let vat = await read(k, 'look vat');
     for (let i = 0; i < 8 && !/still|done/i.test(vat); i++) {
       await advance('12 hours');
