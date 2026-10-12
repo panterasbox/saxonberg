@@ -17,6 +17,10 @@ import { Zone } from './Zone';
 import type Location from '../stuff/Location';
 import type { VetoResult } from '../errors';
 import type { FieldMeta } from '../mixin';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../weather/WeatherType';
 import type { BlessingOdds } from '../magic/Blessing';
 import type { CelestialProfile } from '../time/CelestialProfile';
 import { Suppressions } from '../magic/Suppression';
@@ -59,6 +63,14 @@ export abstract class SpatialZone extends Zone {
     groundCharacter: { persistent: true, authorable: true },
     celestialProfile: { persistent: true, authorable: true },
     suppressesMagic: { persistent: true, authorable: true },
+    // ⭐ The region's GEOGRAPHY (the water and climate builds): where on
+    // the world it is. On `Zone` until the climate build's review, which
+    // offered a latitude to `/wiki` and to Animalia — see the block at
+    // the end of this class.
+    elevation: { persistent: true, authorable: true },
+    latitude: { persistent: true, authorable: true },
+    continentality: { persistent: true, authorable: true },
+    climateOffsetK: { persistent: true, authorable: true },
   };
 
   /**
@@ -302,5 +314,147 @@ export abstract class SpatialZone extends Zone {
       };
     }
     return { ok: true };
+  }
+
+  // ─────────────────────────── geography ────────────────────────────
+  //
+  // ⭐ Where on the world this region is. Declared HERE, the region in
+  // space, and not on `Zone` — every zone flavour inherits `Zone`, so a
+  // field there is offered for a `FolderZone`, a `Clade` and the
+  // `HomeZone`, none of which has a height or a latitude. A region with
+  // no rooms of its own that only carries geography for the districts
+  // below it (Terminus, the city's ground) is a spatial zone holding no
+  // rooms. The inheritance walk reads a field by NAME on each ancestor,
+  // so a room under a `FolderZone` under a region still inherits it.
+
+  /**
+   * **Height above sea level, in metres** — the watershed's organising
+   * input, and the one field water's whole behaviour is derived from.
+   *
+   * Inherited through the ordinary `lookupField` walk, so a district
+   * declares its own and a room inside it needs say nothing; an authored
+   * value anywhere in the chain wins over anything above it. `null` =
+   * not declared here (walk further).
+   *
+   * ## Why the ZONE, and not the biome
+   *
+   * The zone already owns spatial geometry (`cellSize` drives volume,
+   * light-scale and extent) and already does field inheritance. Biome
+   * owns properties of the **air**; elevation is a property of the
+   * **ground**.
+   *
+   * ⭐ But the decisive reason is a **circularity**. `measure altitude`
+   * computes `(P_sea − P_local) / (ρ·g)` from the biome chain's authored
+   * `_pressure` — so before this field, altitude was back-computed from
+   * a number an author typed, and putting elevation on the biome too
+   * would have given one physical fact two sources of truth. Elevation
+   * on the zone makes pressure the *consequence* (see
+   * `BiomeLogic`'s derive-from-elevation fallback) and the altimeter an
+   * honest instrument: it reads a cause rather than its own input.
+   *
+   * ## ⚠ `coords.z` is NOT elevation
+   *
+   * `z` is local, and measured in zone **cells** — which floor of a
+   * building you are on. A place's height above the ground is
+   * `zone elevation + z × cellSize`; **hydrology reads the zone**, so a
+   * third-floor flat and the lobby are the same point on the watershed.
+   * A stairwell is not a waterfall. Terrain variation *within* a
+   * district is obtained by zoning finer, which is what zones are for.
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  protected elevation: number | null = null;
+
+  /** Metres above sea level declared HERE (no ancestor walk). */
+  public getElevation(): number | null { return this.elevation; }
+
+  public setElevation(value: number | null): void {
+    this.elevation = value === null || Number.isFinite(value) ? value : null;
+  }
+
+  /**
+   * **Where on the world this place is: degrees from the equator,
+   * signed** — negative is the southern hemisphere. With elevation,
+   * continentality and the offset it is one of the four levers the
+   * climate derives a place's temperature from
+   * (`WeatherApi.temperatureAt`); the sun's path, the day's length and
+   * the local season all read it too.
+   *
+   * Inherited like `elevation` — a realm authors it once on its region
+   * root and every room beneath agrees. `null` = not declared here; a
+   * chain that declares it nowhere resolves the realm default (42°,
+   * `DEFAULT_CLIMATE_SITE`).
+   *
+   * See [docs/subsystems/weather.md § the climate].
+   */
+  protected latitude: number | null = null;
+
+  /** Degrees of latitude declared HERE (no ancestor walk). */
+  public getLatitude(): number | null { return this.latitude; }
+
+  public setLatitude(value: number | null): void {
+    this.latitude =
+      value === null || !Number.isFinite(value)
+        ? null
+        : Math.max(-90, Math.min(90, value));
+  }
+
+  /**
+   * **How far the place is from the sea's influence**, 0 (maritime) …
+   * 1 (continental). A coast's winters are mild and late; a continent's
+   * are hard and early — the Seattle-versus-Minneapolis lever, at one
+   * latitude. `null` = not declared here (walk further; the realm default
+   * is 0.5).
+   */
+  protected continentality: number | null = null;
+
+  /** Continentality declared HERE (no ancestor walk). */
+  public getContinentality(): number | null { return this.continentality; }
+
+  public setContinentality(value: number | null): void {
+    this.continentality =
+      value === null || !Number.isFinite(value)
+        ? null
+        : Math.max(0, Math.min(1, value));
+  }
+
+  /**
+   * **The anomaly no local term derives**, in kelvin — a warm current, a
+   * cold upwelling, a frost hollow. The honest tool for *this place is
+   * warmer than its latitude says*; authoring a flat temperature on an
+   * outdoor biome is not (`lint:biome` refuses it). `null` = not declared
+   * here (walk further; default 0).
+   */
+  protected climateOffsetK: number | null = null;
+
+  /** The climate offset declared HERE (no ancestor walk). */
+  public getClimateOffsetK(): number | null { return this.climateOffsetK; }
+
+  public setClimateOffsetK(value: number | null): void {
+    this.climateOffsetK =
+      value === null || Number.isFinite(value) ? value : null;
+  }
+
+  /**
+   * ⭐ **Where on the world this zone is, as the climate reads it** — the
+   * four levers, each resolved through this zone's own inheritance walk
+   * ({@link lookupField}), with the realm default for any the chain does
+   * not declare. The one place the levers are folded into a
+   * `ClimateSite`; `ZoneApi.climateSiteFor` asks the zone a thing stands
+   * in, and a conduit asks the zone it serves.
+   */
+  public async climateSite(): Promise<ClimateSite> {
+    const [lat, elev, cont, off] = await Promise.all([
+      this.lookupField<number>('latitude'),
+      this.lookupField<number>('elevation'),
+      this.lookupField<number>('continentality'),
+      this.lookupField<number>('climateOffsetK'),
+    ]);
+    return {
+      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+      elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
+      continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
+      offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,
+    };
   }
 }

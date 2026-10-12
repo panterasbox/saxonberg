@@ -152,7 +152,7 @@ describe('haulage integration — self-haul', () => {
     const cart = await handcart(25, 0.04);
     ContainmentApi.move(cart, locA);
     giver.hitch(cart);
-    const guard = LocomotionApi.canTraverseExit(giver, stairs, walk(), 'up');
+    const guard = (await LocomotionApi.canTraverseExit(giver, stairs, walk(), 'up'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('terrain');
   });
@@ -165,7 +165,7 @@ describe('haulage integration — self-haul', () => {
     ContainmentApi.move(sledge, locA);
     ContainmentApi.move(massThing(200), sledge); // draft (225)*0.5 = 112.5 > 70
     giver.hitch(sledge);
-    const guard = LocomotionApi.canTraverseExit(giver, north, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(giver, north, walk(), 'north'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('breakaway');
   });
@@ -215,7 +215,7 @@ describe('haulage integration — ridden (animal-hauled)', () => {
     steed.hitch(cart);
     // The gate that fires for a ridden move is the host's own traverse
     // (the horse is the hauler/traverser).
-    const guard = LocomotionApi.canTraverseExit(steed, stairs, walk(), 'up');
+    const guard = (await LocomotionApi.canTraverseExit(steed, stairs, walk(), 'up'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('terrain');
   });

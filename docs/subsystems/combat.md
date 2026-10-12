@@ -863,8 +863,12 @@ seam (see [party.md](./party.md)).
   <ally>` (interpose — `interposer.defendAlly` joins if needed and
   `CombatGraph.redirect`s a foe's edge off the ally onto the interposer).
 - **Fleeing** — combat's resolution of a **locomotion attempt made while
-  engaged** (not a verb, not a mode). `actor.disengage()`, called at the
-  movement controller's pre-traverse gate, is a no-op when not fighting
+  engaged** (not a verb, not a mode). `actor.disengage()`, called from
+  `CombatantMixin.beforeTraverse` — the mover's witness inside
+  `Mobile.traverse`, after the gates pass and before anything moves (so
+  every mover flees the same way, an NPC brain and a `Journey` leg as
+  much as a player's `go`; it used to be controller code that only a
+  player reached) — is a no-op when not fighting
   else an **opposed-lite** break: a focus-fire pin vetoes it, foes still
   locked on get a **parting shot** (same materials-response inflict, at
   `combat.flee.partingShotEnergy`), success removes the actor and the

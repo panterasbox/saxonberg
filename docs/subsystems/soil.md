@@ -129,6 +129,14 @@ carries nitrate past the roots, scaled by texture.
 ⚠ Where the nitrate **goes** is a civics build's (D18). The loss leg
 ships; the commons dilemma does not.
 
+⭐ **Only RAIN waters the ground** — and since the climate build, what is
+rain is decided by the temperature at the soil's own place (the
+integral's phase at the watershed scope's climate site, warmed in the
+same resolve as its Locality). What fell as SNOW lies on the floor
+(ground.md) and melts into the watershed's integral, not the soil's: a
+winter's snow does not water a bed until a melt model routes it there
+(field-substrate-slate's coverings seam).
+
 ---
 
 ## Ground character — the third seeded field

@@ -349,6 +349,7 @@ export default class ExitableVessel extends ExitableVesselBase {
     // reporting the weather of the one it correctly resolved at a stop
     // it is no longer at, and nothing ever looks again.
     this.resetWeatherLocality();
+    this.resetClimateSite();
     this.invalidateSynthesizedExits();
     const door = this.getDoor();
     if (door) {

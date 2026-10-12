@@ -1,0 +1,26 @@
+# The blackmere shore. West across the mere is a crossing that exists only
+# while the ice bears you — it has borne a cart since the autumn.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: mere shore
+  keywords: [shore, bank, mere]
+  register: definite
+  longDescription: |
+    A low shore of frost-split stones above a wide flat mere. Across it, a quarter-mile off, the far bank is a dark line of rock. Somebody has stuck a row of birch poles out across the water, the way people mark a road.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: -1
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/north/station
+      media: [ground]
+      edgeMinutes: 3
+    west:
+      kind: /world/north/exits/ice-crossing
+      destination: /world/north/far-bank
+      media: [ground]
+      edgeMinutes: 10
+  props:
+    - /world/north/blackmere

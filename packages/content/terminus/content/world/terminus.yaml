@@ -1,9 +1,11 @@
 # Terminus — the city's own zone, and the inheritance node its districts
 # hang off.
 #
-# A FolderZone rather than a spatial one: it holds no rooms of its own
-# (every room is in a district below it) and exists to carry the fields
-# the whole city shares. Today that is exactly one — its **elevation**.
+# A spatial zone holding NO rooms of its own (every room is in a
+# district below it): it exists to carry the geography the whole city
+# shares. Today that is exactly one field — its **elevation**. (It was a
+# FolderZone until the climate build moved geography off `Zone` onto
+# `SpatialZone`, the region in space: a folder has no height.)
 #
 # ⭐ 35 metres, and the number is load-bearing. Terminus is FLAT by
 # construction, which is why:
@@ -19,7 +21,7 @@
 # slope — declares its own and the walk stops there. That is the
 # inheritance rule doing its job: say it once, override where it is
 # false.
-class: /platform/idea/FolderZone
+class: /platform/idea/location/CartesianZone
 data:
   name: Terminus
   elevation: 35

@@ -150,6 +150,19 @@ describe('Address roster — slim demonstrative inventory', () => {
       // room in the valley, and the ground seed, the reach and the
       // address walk all quietly read from nothing.
       'hearts-delight.yaml',
+      // ⭐ The climate build's places (W10): each one is a Locality
+      // because a Locality is where a place's weather pin and its
+      // precipitation AMOUNT live — the north and its snowfield (wet
+      // cold) and plateau (dry cold), the Circle and its snow-free twin,
+      // the south station, and the wet coast / dry basin pair.
+      'north.yaml',
+      'north-snowfield.yaml',
+      'north-plateau.yaml',
+      'circle.yaml',
+      'circle-bare.yaml',
+      'south.yaml',
+      'pair-wet.yaml',
+      'pair-arid.yaml',
     ]);
     const actual = new Set(ROOTS.flatMap((r) => listYamlsRelative(r)));
     expect(actual).toEqual(expected);

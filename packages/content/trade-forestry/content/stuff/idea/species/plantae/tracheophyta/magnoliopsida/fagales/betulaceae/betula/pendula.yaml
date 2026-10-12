@@ -53,10 +53,14 @@ data:
     # birch would run twice a year, which is the kind of wrongness
     # nothing in the game would ever have reported.
     #
-    # ⚠ The temperature band barely gates in this climate (spring here
-    # sits near 291–299 K) — the daylength does the work, and the band is
-    # there so that a realm with a real winter needs no code change. It
-    # is the honest shape, under-exercised rather than wrong.
+    # ⭐ The climate build made the winter real, and this row moved
+    # rather than any code: the band was 0.40–0.50 — LATE WINTER at 42°,
+    # which now averages under 278 K, so the birch would never have run
+    # at all. A birch runs AFTER the maple, from the thaw into April, so
+    # the band is the weeks either side of the equinox (0.49–0.57 rising,
+    # days ≈ 355–40) and the 278 K floor does real work: a valley birch
+    # opens near the equinox, one up at Rejection's 450 m a fortnight
+    # later, and a cold year holds them all back.
     - key: sap
       yieldRow: /stuff/idea/material/food/birch-sap
       perGameDay: 3
@@ -65,8 +69,8 @@ data:
       yieldShape: volume
       window:
         kind: weather
-        daylightFrom: 0.40
-        daylightTo: 0.50
+        daylightFrom: 0.49
+        daylightTo: 0.57
         rising: true
         minK: 278
         maxK: 300

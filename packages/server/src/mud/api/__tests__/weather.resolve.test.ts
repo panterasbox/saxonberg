@@ -85,6 +85,15 @@ function installRegistry(): AddressRegistry {
   return makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry');
 }
 
+/**
+ * A summer afternoon at the realm's default site. ⚠ Since the climate
+ * build what falls is the TEMPERATURE's call (rain at or below 274.5 K
+ * falls as snow), and day 0 at midnight is an equinox night at 42° —
+ * cold enough that a storm snows. The assertions about rain are asserted
+ * where it is unambiguously warm; the cold case has its own test.
+ */
+const SUMMER = 100 * 86_400 + 15 * 3600;
+
 describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -110,9 +119,9 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
     const room = skyRoom();
     room.setWeatherPin({ type: 'storm', mode: 'frozen' });
 
-    setNow(1);
+    setNow(SUMMER + 1);
     const a = await WeatherApi.resolveWeatherFor(room);
-    setNow(SEG * 5 + 1);
+    setNow(SUMMER + SEG * 5 + 1);
     const b = await WeatherApi.resolveWeatherFor(room);
 
     expect(a.provenance).toBe('pin-frozen');
@@ -189,9 +198,19 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
     expect(r.sample.type).toBe('clear');
   });
 
+  it('⭐ the same storm pin SNOWS on a cold night — the phase is the temperature\'s', async () => {
+    const room = skyRoom();
+    room.setWeatherPin({ type: 'storm', mode: 'frozen' });
+    setNow(270 * 86_400 + 3 * 3600); // the winter solstice, before dawn
+    const r = await WeatherApi.resolveWeatherFor(room);
+    expect(r.sample.type).toBe('storm');
+    expect(r.precipitationHere).toBe('snow');
+  });
+
   it('an outdoor no-pin scope reads the procgen field, sky-gated precip', async () => {
     const room = skyRoom();
     WeatherApi._forceTypeForTesting('rain');
+    setNow(SUMMER);
 
     const r = await WeatherApi.resolveWeatherFor(room);
     expect(r.provenance).toBe('procgen');

@@ -119,6 +119,20 @@ const wetness = (t: Good): number =>
   (t as unknown as { getWetness(): number }).getWetness();
 const surfaceL = (f: Floor): number => f.getBulkAmount('surface').rawValue();
 
+/**
+ * Move the clock to a summer afternoon. ⚠ Since the climate build what
+ * falls under a sky is the temperature's call, and the reset clock's
+ * day-0 midnight at the default site is cold enough that the heath's rain
+ * falls as snow — while the indoor pin keeps its rain (an indoor pin is not falling from the sky). The
+ * spine invariant is about RAIN, so it is read on a day that rains.
+ */
+function summerAfternoon(): void {
+  let t = 0;
+  WorldClockApi._setNowProviderForTesting(() => t);
+  WorldClockApi.setScale(1000);
+  t = 100 * 86_400 + 15 * 3600;
+}
+
 describe('The Weeping Moor — the spine invariant', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -137,6 +151,7 @@ describe('The Weeping Moor — the spine invariant', () => {
   });
 
   it('authored rain ≡ procgen rain: same wetness, same puddle', async () => {
+    summerAfternoon();
     // Authored: an indoor weeping chamber, scope-pinned to a frozen rain.
     const chamber = indoorRoom();
     (chamber as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin({

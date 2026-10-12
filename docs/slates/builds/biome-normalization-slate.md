@@ -188,3 +188,11 @@ inheritance is for.
 - [settlement-model.md](../../settlement-model.md) — the type taxonomy a catalogue pass should answer to
 - [soil.md](../../subsystems/soil.md) · [watershed.md](../../subsystems/watershed.md) — two consumers of sky exposure that would feel a job-2 change
 - `docs/requirements/envelope-requirements.md` — the build that made this urgent, and the line it drew
+
+## From the climate build (2026-10-11)
+
+- **A Locality that knows its zone** would retire `Watercourse.site`
+  (each river authors its own latitude today because a reach has no zone
+  to resolve one from) — § one latitude, one climate.
+- Shipped by that build, for this slate's record: `lint:biome` (a biome
+  that does not resolve fails loud) and the open-water biome stub.

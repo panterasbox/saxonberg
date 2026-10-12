@@ -1,0 +1,30 @@
+# The north station — the cold northern place's yard. Nothing here says how
+# cold it is; the zone's latitude says it, and `measure temperature` reads it.
+# Reached by teleport (the moor precedent).
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: north station
+  keywords: [station, yard]
+  register: definite
+  longDescription: |
+    A huddle of timber huts round a cleared yard, roofs weighted with stones against the wind. The sun, when it shows, goes round low along the horizon rather than over it. A brazier burns in the middle of the yard. Down the slope, west, the mere; north, the way up to the snowfield; east, a long day out to the plateau.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/north/plateau/flat
+      media: [ground]
+      edgeMinutes: 240
+    west:
+      destination: /world/north/shore
+      media: [ground]
+      edgeMinutes: 3
+    north:
+      destination: /world/north/snowfield/camp
+      media: [ground]
+      edgeMinutes: 20
+  props:
+    - /world/north/brazier

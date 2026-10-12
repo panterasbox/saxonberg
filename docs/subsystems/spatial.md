@@ -682,29 +682,29 @@ thing that cannot be contained is nonsensical.
 
 ### Two modes: `traverse` and `teleport`
 
-**`traverse(exit, mode)`** — exit-driven movement under a named
-locomotion mode (short name: `'walk'`, `'climb'`, `'swim'`, …). `mode`
-is required at the API. Pipeline:
+**`traverse(exit, mode, opts?)`** — ⭐ **the one authoritative
+crossing** under a named locomotion mode (short name: `'walk'`,
+`'climb'`, …). It RETURNS a `TraversalGuard`; a refusal is never thrown.
+The full sequence — the gate cascade (the exit's async `canTraverse`
+included) → the mover's
+`beforeTraverse` → passthrough → engagement → apply → the places' vetoes
+→ the move — is tabled in
+[locomotion.md § The one crossing](./locomotion.md). The move itself:
 
-1. **Mode-gate:** `exit.canTraverse(this, mode)` — checks blocked /
-   door / `Exit.allowsMode(mode)` (mode's medium ∈ exit's `media`).
-   Throws `ContainmentError` on rejection (programmatic-violation
-   policy; player-input paths pre-check via
-   `LocomotionApi.canTraverseExit`).
-2. **Traversal vetoes:** `canTraverse` on the mover, `canExit` on the
-   source room, `canEnter` on the destination room. First veto throws
-   `ContainmentError`.
-3. **Departure narration:** `announceDeparture(source, exit)`.
-4. **State change:** `ContainmentApi.move(mover, destination)` —
+1. **Departure narration:** `announceDeparture(source, exit)`.
+2. **State change:** `ContainmentApi.move(mover, destination)` —
    which fires its own containment-layer hooks (`canMove` /
    `canRemoveContainable` / `canAddContainable` / etc.).
-5. **Arrival narration:** `announceArrival(destination, exit)`.
-6. **Conveyance ripple:** for each occupant of the mover's slots,
-   recursively `traverse(exit, mode)` if Mobile+Containable, else
+3. **Arrival narration:** `announceArrival(destination, exit)`.
+4. **Conveyance ripple:** for each occupant of the mover's slots,
+   `traverse(exit, mode, { carriedBy: mover })` if Mobile+Containable
+   (carried: no cascade, no flee, no exertion), else
    `ContainmentApi.move(occupant, destination)`. See
    [conveyance.md § Conveyance ripple](./conveyance.md#conveyance-ripple).
-7. **Traversal post-hooks:** `onExited` (source), `onEntered`
-   (destination), `onTraversed` (mover).
+5. **Traversal post-hooks:** `onExited` (source), `onEntered`
+   (destination), `onTraversed` (mover). ⚠ A mixin implementing one
+   CHAINS the inner implementer (`Cartographer` used to shadow
+   `Respiration`'s `onTraversed` on every Avatar).
 
 The `go` verb routes through `LocomotionApi.defaultModeFor(actor)` —
 a three-tier chain (explicit setting → bodyplan default → `'walk'`)
@@ -844,7 +844,8 @@ unengaged). `getEngagedMode()` resolves it via the singleton cache;
 singleton or a short-name / full-path string.
 
 `LocomotionApi.engageAround(actor, mode, exit, action)` is the
-canonical engagement scope: it sets engagedMode, runs the inner
+engagement scope `Mobile.traverse` runs a self-powered crossing inside
+(callers never call it): it sets engagedMode, runs the inner
 traversal, then conditionally clears engagedMode based on
 `isTransientEngagement(mode, exit)` — passthrough modes (ride / drive)
 stay set; walk / vehicular modes clear; climb / swim / fly clear if

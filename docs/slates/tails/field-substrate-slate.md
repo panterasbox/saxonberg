@@ -655,3 +655,10 @@ Drilling is merely the first place where the assumption is **impossible**.
 > So the act/credit legs belong to **this spine**, not to the drilling
 > build — and whoever implements them should expect existing RGOs to want
 > the same read the moment employment touches them.
+
+## From the climate build (2026-10-11)
+
+- **Meltwater into soil and the floor puddle.** Soil still discards a
+  `frozen` segment's precipitation, and the floor's snowmelt is dropped
+  rather than flowing to the surface slot. The coverings seam is where a
+  thaw should wet the ground.

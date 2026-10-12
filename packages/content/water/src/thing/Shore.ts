@@ -51,7 +51,7 @@ import {
 import type Discipline from '@saxonberg/server/mud/platform/idea/Discipline';
 import { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 import type WatercourseCatalogue from '../idea/WatercourseCatalogue';
-import type { CompiledReach } from '../idea/WatercourseCatalogue';
+import type { CompiledReach, IceRecord } from '../idea/WatercourseCatalogue';
 import { FISHERY_REGISTRY_PATH } from '../idea/FisheryRegistry';
 import type FisheryRegistry from '../idea/FisheryRegistry';
 import type { FisheryStanding } from '../idea/FisheryRegistry';
@@ -68,6 +68,8 @@ interface ShoreMemo {
   standing: FisheryStanding | null;
   /** The key of the Discipline the read is gated on, or `null` when its row is not installed. */
   disciplineKey: string | null;
+  /** The ice on the reach (the climate build), or `null` unread. */
+  ice: IceRecord | null;
   atS: number;
 }
 
@@ -138,7 +140,7 @@ export default class Shore extends ShoreBase {
   private async readWater(nowS: number): Promise<void> {
     const ref = this.reachRef;
     if (!ref) {
-      this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS };
+      this._memo = { reach: null, standing: null, disciplineKey: null, ice: null, atS: nowS };
       return;
     }
     try {
@@ -146,10 +148,14 @@ export default class Shore extends ShoreBase {
       const registry = (await StuffApi.singleton<Stuff>(FISHERY_REGISTRY_PATH)) as unknown as FisheryRegistry;
       const reach = await cat.reachOf(ref);
       const standing = reach === null ? null : await registry.standingAt(ref, nowS);
-      this._memo = { reach, standing, disciplineKey: await readDisciplineKey(), atS: nowS };
+      // The ice is a read beside the water, not a condition of it: a
+      // catalogue that cannot answer it leaves the rest of the read intact.
+      const ice =
+        reach === null ? null : await cat.iceAt(ref, nowS).catch(() => null);
+      this._memo = { reach, standing, disciplineKey: await readDisciplineKey(), ice, atS: nowS };
     } catch {
       // No catalogue, no registry, no reading — a bank, not a read.
-      this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS };
+      this._memo = { reach: null, standing: null, disciplineKey: null, ice: null, atS: nowS };
     }
   }
 }
@@ -214,6 +220,19 @@ function physicalRead(memo: ShoreMemo): string[] {
   }
   if ((memo.standing?.contamination?.level ?? 0) > 0) {
     out.push('An outfall discharges into this water.');
+  }
+  // ⭐ The ice, for everyone and with no number in it (the climate build).
+  // Whether it would bear you is a judgement, and `analyze water` is where
+  // a trained eye makes it.
+  const ice = memo.ice;
+  if (ice !== null && ice.thicknessM > 0) {
+    out.push(
+      ice.rotting
+        ? 'Ice lies on it from bank to bank, grey and rotten.'
+        : 'Ice lies on it from bank to bank.',
+    );
+  } else if (ice !== null && ice.reason === 'warm') {
+    out.push('It is open water.');
   }
   return out;
 }

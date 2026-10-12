@@ -20,6 +20,10 @@ data:
   # The farming valley: neutral, moderately hard, and the highest
   # nitrate of the four — the fields feed it (the leaching seam).
   water: { pH: 7.4, hardnessDgh: 9, nitrateMgL: 8 }
+  # Where on the world it runs (the climate build): the realm's latitude,
+  # authored here because a reach is not a place a zone chain reaches.
+  # Elevation is each node's own.
+  site: { latitudeDeg: 42 }
   nodes:
     - { name: spring, elevation: 720, catchmentKm2: 190 }
     # The alluvial flats — the diversion fight, when it comes, is here.

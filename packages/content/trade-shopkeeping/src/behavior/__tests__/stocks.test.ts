@@ -70,12 +70,13 @@ let walked: string[] = [];
 async function step(
   mover: unknown,
   exit: { getDestinationTemplatePath: () => string },
-): Promise<void> {
+): Promise<{ ok: boolean }> {
   const path = exit.getDestinationTemplatePath();
   const dest = StuffApi.findByTemplatePath(path);
   if (!dest) throw new Error(`no room at ${path}`);
   ContainmentApi.move(mover as never, dest as never);
   walked.push(path);
+  return { ok: true };
 }
 let shop: CartesianLocation;
 let market: CartesianLocation;
@@ -336,10 +337,11 @@ describe('⭐ the keeper stocks the counter — buys the shortfall as the house,
       mover: unknown,
       exit: { getDestinationTemplatePath: () => string },
     ) => {
+      // A shut door is a RETURNED refusal since the traversal refactor.
       if (shut && exit.getDestinationTemplatePath() === SHOP && walked.includes(MARKET)) {
-        throw new Error('the door is shut');
+        return { ok: false, gate: 'blocked', reason: 'the door is shut' };
       }
-      await step(mover, exit);
+      return step(mover, exit);
     }) as never);
     await stocks.act(ctxFor());
     expect(keeper.getContainer()).toBe(market); // stranded, holding the goods

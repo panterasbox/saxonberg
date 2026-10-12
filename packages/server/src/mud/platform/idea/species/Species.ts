@@ -520,6 +520,23 @@ export type TapWindowSpec =
       rising?: boolean;
       minK: number;
       maxK: number;
+    }
+  /**
+   * ⭐ **The sugar maple's opener** (the climate build): open iff the AIR
+   * at the host's place crossed `freezeK` (default 273.15) both ways over
+   * the last game day — frozen at night, thawed by day. That cycle is
+   * what drives sap in a real maple: ice forming and melting in the
+   * xylem. Read from the climate's daily range at the host's site, never
+   * the host's own cached temperature (a tree's xylem follows the air).
+   * The daylength band and `rising` are optional and behave as in
+   * `weather`. Shut: `cold` (it never thawed), `warm` (it never froze).
+   */
+  | {
+      kind: 'freeze-thaw';
+      freezeK?: number;
+      daylightFrom?: number;
+      daylightTo?: number;
+      rising?: boolean;
     };
 
 /**

@@ -106,3 +106,84 @@ describe('the honest freeze', () => {
     expect(payload?.latentRemovedJ ?? 0).toBe(0);
   });
 });
+
+describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the climate build, D7)', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('a jug of water left in freezing air plateaus, banks its latent heat, then empties into ice', async () => {
+    const { WorldClockApi } = await import('../../../api/worldclock');
+    await import('../../../platform/idea/WorldClockRegistry');
+    let now = 0;
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    now = 100; // ⚠ a thermal stamp of 0 means "never touched"
+    try {
+      const water = liquid({ mp: 273.15, latent: 334_000 });
+      const jug = pan(water, 1, 280);
+      jug.setLastAmbientK(250); // a winter street at dawn
+      jug.getTemperature(); // opens the thermal clock
+
+      // An hour in: below the melting point is impossible — it holds at
+      // mp while the latent bank fills. Nothing pointed a cooler at it;
+      // the weather's ambient is the whole driver.
+      now = 100 + 3600;
+      expect(jug.getTemperature().rawValue()).toBeCloseTo(273.15, 1);
+      const banked = jug.getBulkPayload('interior')?.latentRemovedJ ?? 0;
+      expect(banked).toBeGreaterThan(0);
+      expect(jug.getBulkAmount('interior').rawValue()).toBe(1);
+
+      // A second read at the same instant banks nothing more.
+      jug.getTemperature();
+      expect(jug.getBulkPayload('interior')?.latentRemovedJ ?? 0).toBeCloseTo(banked, 6);
+
+      // Read through the day (a watched world reads; ⚠ the phase engine
+      // banks the undershoot it FINDS at a read, so one long unread gap
+      // banks one cooling's worth — a thermal-tail limit, see thermal-slate), and
+      // the bank reaches m·L: the pool is gone. The cast
+      // (/stuff/thing/ice-block) mints into the jug's container, which the
+      // drive proves; here the slot emptying is the claim.
+      for (let h = 2; h <= 24 && jug.getBulkAmount('interior').rawValue() > 0; h++) {
+        now = 100 + h * 3600;
+        jug.getTemperature();
+      }
+      expect(jug.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+
+  it('⚠ a clock that moves BETWEEN reads does not recurse (the drive\'s stack overflow)', async () => {
+    // On a loaded box the scaled real-time clock advances a little between
+    // the outer read and the phase pass's own temperature read. That inner
+    // read used to integrate again and call the phase pass again — sync
+    // recursion until the stack blew (a blood unit in the Circle's cold
+    // camp, under load). Here the clock ticks on EVERY read.
+    const { WorldClockApi } = await import('../../../api/worldclock');
+    const { default: WorldClockRegistry } = await import(
+      '../../../platform/idea/WorldClockRegistry'
+    );
+    // ⚠ `beforeEach` cleared the registry, and with no registry thermal is
+    // IDLE — the first draft of this test passed without the fix.
+    if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
+      makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    }
+    let now = 100;
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => (now += 1));
+    WorldClockApi.setScale(1000);
+    try {
+      const blood = liquid({ mp: 272.6, latent: 334_000, ruined: true });
+      const bag = pan(blood, 0.45, 276);
+      bag.setLastAmbientK(266);
+      expect(() => {
+        for (let i = 0; i < 50; i++) bag.getTemperature();
+      }).not.toThrow();
+      expect(bag.getTemperature().rawValue()).toBeGreaterThan(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+});

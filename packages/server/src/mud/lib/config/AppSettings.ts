@@ -1612,17 +1612,63 @@ export const AppSettingKeys = {
    * pick a presaging cloud form (the deterministic forecast tell). */
   weatherSkyForecastSegments: "weather.skyForecastSegments",
   /**
-   * ⭐⭐ Weather — the ANNUAL temperature swing, in K either side of the
-   * universe baseline (envelope D3a). The realm's winter: before this
-   * the season biased only how often it SNOWED, and mid-winter at 3 a.m.
-   * read 17 °C.
-   */
-  weatherSolarAnnualSwingK: "weather.solarAnnualSwingK",
-  /**
    * Weather — the DIURNAL temperature swing, in K either side of the
    * day's mean. Lagged three hours, so the coldest hour is near dawn.
+   * (Its annual sibling, `weather.solarAnnualSwingK`, retired with the
+   * climate build: the season is DERIVED from latitude now — see the
+   * `climate.*` keys.)
    */
   weatherSolarDiurnalSwingK: "weather.solarDiurnalSwingK",
+
+  /* ────────────────────────── climate (one temperature from four levers) ────────────────────────── */
+  /** Climate — the equilibrium temperature (K) of a place that gets NO
+   * sun: the polar night's floor, and the low end of the insolation
+   * scale. Read by `WeatherLogic`'s climate expression. */
+  climatePoleMeanK: "climate.poleMeanK",
+  /** Climate — the equilibrium temperature (K) under the equator's
+   * equinox sun: the high end of the insolation scale. */
+  climateEquatorMeanK: "climate.equatorMeanK",
+  /** Climate — the land's thermal memory (game-days) at continentality
+   * 1. The season LAGS the sun by about this much; a continent's coldest
+   * month comes about four weeks after the solstice. */
+  climateTauContinentalDays: "climate.tauContinentalDays",
+  /** Climate — the same memory at continentality 0: the sea remembers
+   * longer, so a coast's winter comes later. */
+  climateTauMaritimeDays: "climate.tauMaritimeDays",
+  /** Climate — how strongly a fully maritime place (continentality 0) is
+   * pulled toward its annual mean: the DAMPING that makes a coast's
+   * winter mild and its summer cool. Scaled by `1 − continentality`. */
+  climateMaritimeMixing: "climate.maritimeMixing",
+  /** Climate — the air temperature (K) at or below which precipitation
+   * falls as SNOW, whatever the weather type is called. A degree and a
+   * half above freezing: wet snow falls through air a little above 0 °C. */
+  climateSnowThresholdK: "climate.snowThresholdK",
+  /** Climate — the latitude (°) up to which an unauthored Locality's
+   * precipitation intensity is 1; poleward of it the default falls. */
+  climatePrecipDryAboveDeg: "climate.precipDryAboveDeg",
+  /** Climate — the unauthored precipitation intensity at 80° and beyond:
+   * polar air holds little water, so the high Arctic is a desert. */
+  climatePrecipPolarFactor: "climate.precipPolarFactor",
+  /** Climate — fresh snow's depth per depth of water it holds: 10 cm of
+   * snow is about a centimetre of rain. */
+  climateSnowDensityRatio: "climate.snowDensityRatio",
+  /** Climate — the snow depths (m) at which a floor's snow reads a
+   * dusting, ankle-deep, knee-deep and deep. Knee-deep and over masks
+   * the ground's own sentence. */
+  climateSnowBandDustingM: "climate.snow.bandM.dusting",
+  climateSnowBandAnkleM: "climate.snow.bandM.ankle",
+  climateSnowBandKneeM: "climate.snow.bandM.knee",
+  climateSnowBandDeepM: "climate.snow.bandM.deep",
+  /** Climate — the most water-equivalent (mm) a pack holds: the cap a
+   * snow walk starts from and reports as PERENNIAL. Older than that is
+   * a glacier's business. */
+  climateSnowPerennialMaxMm: "climate.snow.perennialMaxMm",
+  /** Climate — how far back (game-days) a snow or ice walk first looks
+   * for the last melt-out. Doubled until it finds one, up to the max. */
+  climateWalkbackWindowDays: "climate.walkback.windowDays",
+  /** Climate — the walk-back's bound (game-days). No melt-out inside it
+   * and the pack, or the sheet, is perennial. */
+  climateWalkbackMaxDays: "climate.walkback.maxDays",
 
   /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
   /** Thermal — how strongly a wet body loses heat faster: at full
@@ -1973,24 +2019,12 @@ export const AppSettingKeys = {
    * damped hydrograph instead of a channel that empties in a dry week. */
   waterBaseflowWindowDays: "water.baseflowWindowDays",
 
-  /** Water — how far back the snowpack integral looks, in game-days. It
-   * has to see a whole winter to know what is sitting on the mountain,
-   * so this is deliberately far longer than the flow window. */
-  waterSnowWindowDays: "water.snow.windowDays",
   /** Water — atmospheric lapse rate (K per kilometre of altitude). What
    * makes ALTITUDE the thing that banks snow. */
   waterSnowLapseRateKPerKm: "water.snow.lapseRateKPerKm",
   /** Water — degree-day melt factor: mm of water-equivalent released
    * per Kelvin above freezing per game-day. */
   waterSnowMeltMmPerKPerDay: "water.snow.meltMmPerKPerDay",
-  /** Water — mean sea-level air temperature (K) in spring. */
-  waterSeasonMeanKSpring: "water.season.meanK.spring",
-  /** Water — mean sea-level air temperature (K) in summer. */
-  waterSeasonMeanKSummer: "water.season.meanK.summer",
-  /** Water — mean sea-level air temperature (K) in fall. */
-  waterSeasonMeanKFall: "water.season.meanK.fall",
-  /** Water — mean sea-level air temperature (K) in winter. */
-  waterSeasonMeanKWinter: "water.season.meanK.winter",
 
   /** Water — flow (m³/s) at or above which a reach carries a boat. */
   waterNavigableMinFlowM3S: "water.navigable.minFlowM3S",

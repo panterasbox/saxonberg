@@ -205,4 +205,22 @@ describe('a zone row cannot author a field the hydrator will discard', () => {
     expect(base.deposit).toBeUndefined();
     expect(base.groundCharacter).toBeUndefined();
   });
+
+  it('⭐ geography sits on SpatialZone — the region in space — and not on Zone', () => {
+    // Every zone flavour inherits `Zone`, so a field there is offered for a
+    // FolderZone (`/wiki`), a Clade (Animalia) and the HomeZone: none has a
+    // height or a latitude. A region authors them once and every room
+    // beneath agrees through the walk; a city with no rooms of its own
+    // (Terminus) is a spatial zone holding none.
+    const base = (Zone as unknown as { fieldMeta: Record<string, unknown> }).fieldMeta;
+    const spatial = (SpatialZone as unknown as {
+      fieldMeta: Record<string, { authorable?: boolean }>;
+    }).fieldMeta;
+    for (const key of ['elevation', 'latitude', 'continentality', 'climateOffsetK']) {
+      expect(base[key], `${key} on Zone`).toBeUndefined();
+      expect(spatial[key]?.authorable, `${key} on SpatialZone`).toBe(true);
+    }
+    // …and `wire` is the wire roots' alone.
+    expect(base.wire).toBeUndefined();
+  });
 });

@@ -44,6 +44,7 @@ import {
   EXIT_KIND_TEST_ROWS,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { SpatialZone } from '../../zone/SpatialZone';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -108,7 +109,7 @@ function material(path: string, name: string, densityKgM3: number): Material {
 async function room(elevationM: number | null = null): Promise<CartesianLocation> {
   const r = makeStuff(() => new CartesianLocation());
   if (elevationM !== null) {
-    const zone = await StuffApi.singleton<Zone>('/hill');
+    const zone = await StuffApi.singleton<SpatialZone>('/hill');
     zone.setElevation(elevationM);
     Stuff._stampZone(r, zone as never);
   }

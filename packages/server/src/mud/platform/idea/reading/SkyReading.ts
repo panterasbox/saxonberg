@@ -16,6 +16,10 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { CelestialApi } from '../../../api/celestial';
 import { DefaultCalendar } from '../../../lib/time/DefaultCalendar';
+import { ZoneApi } from '../../../api/zone';
+import { WorldClockApi } from '../../../api/worldclock';
+import { EARTH_LIKE } from '../../../lib/time/CelestialProfile';
+import type { Container } from '../../../lib/spatial/Container';
 
 interface AnalyzeSkyModel extends CommandModel {
   location?: MqlOneResult;
@@ -74,10 +78,28 @@ export default class SkyReading extends Reading {
     const nextFull = CelestialApi.nextFullMoon();
     const nextFullDate = DefaultCalendar.singleton().formatDate(nextFull);
 
+    // ⭐ The sky SAYS so at a pole (the climate build's AC 5): where the
+    // sunrise hour angle has no solution, the sun does not rise, or does
+    // not set, today — read at THIS place's latitude.
+    const latitude = (
+      await ZoneApi.climateSiteFor(loc as Stuff & Container)
+    ).latitudeDeg;
+    const h0 = CelestialApi.sunriseHourAngleDeg(
+      EARTH_LIKE,
+      latitude,
+      WorldClockApi.getNow().rawValue()
+    );
+    const polar =
+      h0 === 'polar-night'
+        ? ' It is the polar night: the sun will not rise today.'
+        : h0 === 'polar-day'
+          ? ' It is the polar day: the sun will not set today.'
+          : '';
+
     const sky = isDay ? 'Daylight' : 'Night';
     const body = Mml.compose`${sky} over ${Mml.location(
       loc
-    )}; the season is ${season}. The moon is ${phaseName(phase)}.
+    )}; the season is ${season}.${polar} The moon is ${phaseName(phase)}.
 sun altitude: ${altitude.formatMml(undefined, undefined, { channel: 'celestial' })} · azimuth: ${azimuth.formatMml(undefined, undefined, { channel: 'celestial' })}
 next full moon: ${nextFullDate}
 `;
