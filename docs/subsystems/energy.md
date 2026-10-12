@@ -126,6 +126,11 @@ sources from a locality's own treasury when it has one.
 - **Durable cuts + the lineman work-order market**, **gas as a second piped
   commodity**, **the retort** (crafted lamp oil), **overdrawn brownout**. →
   power-utility-slate / destructive-distillation-slate.
+- **Polar-night civic lighting at the Locality's own dusk** (the climate
+  build, 2026-10): the lamp schedule still arms at the DEFAULT latitude's
+  dusk, so a far-north or far-south street lights on the realm's clock
+  rather than its own sky. `PublicLighting` already reads the place's
+  latitude for daylight; the schedule is the piece left.
 
 ## The pump build (2026-10-09) — the first mechanical consumer
 

@@ -124,7 +124,7 @@ describe('ice grows on still water by freezing degree-days', () => {
     expect(bare.quality).toBe('black');
     // ⚠ No claim on which is THICKER: the `snow` weather type runs 6 K
     // colder than `clear`, which outweighs the snow's insulation over a
-    // few days (plan B11). The kind of ice is the read.
+    // few days. The kind of ice is the read.
     expect(snowy.thicknessM).toBeGreaterThan(0);
     expect(bare.thicknessM).toBeGreaterThan(0);
   });

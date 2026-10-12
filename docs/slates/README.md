@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**290 slates.** 70 greenfield · 98 continuations · 61 waves · 61 tails.
+**292 slates.** 70 greenfield · 99 continuations · 62 waves · 61 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (70)
 
@@ -115,7 +115,7 @@ respect.
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (98)
+## ⭐ Continuations — substrate shipped, a build's worth remains (99)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -136,6 +136,7 @@ are the named remainders.
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries; the ten temperaments + `counter`/`venue-staff`) · the lens-vs-seed dual compilation · the `requires` config gate + its lint (with `temperament: opaque` and the ungateable role) · standing as pointers (Change 2) … |
+| [climate](./builds/climate-slate.md) | rain-on-snow melt (open question 6) · the ice-albedo term · firn, névé and the glacier (the perennial cap is the attach point) · the content register below — the August crisis, winter defers, the ice core, the station as a vocation … |
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | the blood-BANK economy → blood-slate; cold storage → cold-chain-slate; the full surgery build → surgery-specialty-slate; the diagnostic |
 | [cms](./builds/cms-slate.md) | `domain_history` op-log versioning · the draft/changeset overlay + atomic publish · the law==code review gate (the forums `mature` consumer) · the per-type content editors (room … |
 | [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` · read-only WebDAV over `content` … |
@@ -221,7 +222,7 @@ are the named remainders.
 | [whiskey-styles](./builds/whiskey-styles-slate.md) | nothing in this slate's own scope. Two tails went elsewhere — the aroma vocabulary wanting rows → non-visual-senses-slate, and a fuel-aware burner (so smoke is DERIVED from the fire rather than declared by the recipe) → the fire/energy slate. |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (61)
+## Waves — rides another build (62)
 
 | slate | left |
 |---|---|
@@ -237,7 +238,6 @@ are the named remainders.
 | [client](./tails/client-slate.md) | output logging / clips / attestation (owned by attestation-slate) · the lounge's content half (owned by lounge-slate) · the open MML vocabulary questions (what `msg` is for · `communicative` on the wire … |
 | [client-cockpit](./tails/client-cockpit-slate.md) | the `study` and `classroom` modes + their diegetic `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule; this is the *Educational* row of client-shell-slate's use-case matrix, tracked only here since the cluster pass) · the content surface (video + transcript payloads, diegetic triggers, completion events) · the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still inert by design … |
 | [client-shell](./tails/client-shell-slate.md) | search as a frame primitive (Q3 — the CLI half shipped as `recall`; help is not yet a scope) · the public read-only surface (metrics · overlays · public docs) + a read-only session … |
-| [climate](./builds/climate-slate.md) | the **unification** (two climates, nine Kelvin apart) |
 | [comms](./tails/comms-slate.md) | speech on the acoustic reach walk at all (today every speech verb reaches the room and only the room — `acousticDb` is a stamp nothing reads for speech; a shout does not leave the room) · dynamic-reach shout (the voice-projection attribute + the vitals tie) · whisper's redacted overhear form · language gating on acoustic + encoded-cognition implant … |
 | [concealment-detection](./tails/concealment-detection-slate.md) | the knowledge economy (sharing / selling / transferring found secrets, maps as currency) · `frisk` and searching a downed body · player-placed concealment beyond pick-up-your-own · ranged / remote / linked traps … |
 | [console-filtering](./tails/console-filtering-slate.md) | transcript search · sender filter · family mute (collapse a topic family to a count badge) · author/admin frames toggle … |
@@ -259,6 +259,7 @@ are the named remainders.
 | [language](./tails/language-slate.md) | the `Language` Idea + catalogue (today `MARK_SCRIPTS` is a bare vocabulary; ⚠ the slate's `/lib/language/<name>` rows must move — nothing instances `/lib/`) · `BodyPlan.nativeLanguages` defaults · `Character.languages` proficiency (binary in v1) · the `decode` literacy gate … |
 | [lifecycle-signals](./tails/lifecycle-signals-slate.md) | the `quiesce`/`persist`/`flush`/`close` phase vocabulary · the subsystem-only subscription seam (Q3: never Stuff — a predicate serves those) · per-subscriber failure isolation + what is logged (Q1) · a per-phase deadline + its budget (Q2) … |
 | [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | the durative `TraverseActivity` promotion (mode-name as engagement type) · the sync/async split (`Mobile.traverseSync` + `TraverseActivity.beginFor`) · the `engagedMode` storage migration onto `EngagedMixin` · the three retirements (`engageAround` … |
+| [locomotion-on-snow](./builds/locomotion-on-snow-slate.md) | the movement economy on snow · snowshoes and skis · trail-breaking · trodden and shovelled snow … |
 | [magic-items](./tails/magic-items-slate.md) | the item-by-item catalog walk, shipped as CONTENT packs — and ⚠ the cut is undecided (horizontal "twenty wands" vs a vertical "everything one shop stocks") · substrate gaps still open: the transient perception override ("perceive-as-if" — the gate itself shipped with concealment) · the push/shadow realization for owner-less behaviour (invisibility — every shipped modifier went by pull) · capacity reprofiling on polymorph … |
 | [materials-response](./tails/materials-response-slate.md) | the `Recipe` craft-stamp of {material, construction, grade} · the `crush` channel (structural destructibility) · tissue as a construction axis · armor weight→fatigue→poise + armor-protects- affordances wiring … |
 | [mql-predicate-parity](./tails/mql-predicate-parity-slate.md) | three predicates + one filter atom, each delegating to a method that already exists or needs to · the census of hand-rolled listing filters (3 verbatim copies of one 4-clause rule) · the orphan-guard question against the perception pass |
@@ -276,6 +277,7 @@ are the named remainders.
 | [scoped-authoring](./tails/scoped-authoring-slate.md) | ⭐ the `describe` verb (the prose rung — no such verb exists; blocked on a moderation validator) · the per-field (access policy, value validator) gate on `write`, default-deny · the vetted-catalog membership validator behind `make` · authoring quotas … |
 | [script-interaction](./tails/script-interaction-slate.md) | the fail-closed guard when a controller would prompt with no `interactive`, naming the missing input · the sweep of existing fallbacks, one commit per subsystem · scripts declaring their inputs up front (and pre-resolving an MQL disambiguation — a language change) · the NPC variant, routed to `DiagnosticApi` |
 | [search](./tails/search-slate.md) | the equipment term on `effectivePerception` (lens, loupe, ocular augment) · terrain-matched camouflage over the `Biome` chain · concealment stamped at mint so found things were hidden · the standing search posture + hint aggregation |
+| [shore-as-place](./builds/shore-as-place-slate.md) | the citation on the room · the faces · the cited water as a target (`look kestrel`) · the verbs and brains that bind a `Shore` … |
 | [species-expansion](./tails/species-expansion-slate.md) | the personhood casts (flesh golem · doppelganger · zombie · synth … |
 | [spoiler](./tails/spoiler-slate.md) | the secret tag + reveal-condition content model (Q2) · progress / integrity reveal conditions on percepts · server-side fact-gating in the Scene/percept projection · role-conditioned reveals (Q4) … |
 | [tenancy-design-pack](./tails/tenancy-design-pack.md) | the term-bounded attribution query over room-condition's attributed `(actor, target, extent)` events (the constraint itself is that pack's) · the check-in condition snapshot at `grantedAt` · the deposit as a contract escrow leg · the habitability claim … |
@@ -361,14 +363,15 @@ tail in `tails/`. These need moving or re-stamping.
 | slate | size | folder |
 |---|---|---|
 | [automata](./builds/automata-slate.md) | a tail | `builds/` |
-| [climate](./builds/climate-slate.md) | a wave | `builds/` |
 | [contribution](./builds/contribution-slate.md) | a tail | `builds/` |
 | [cooperative-effort](./builds/cooperative-effort-slate.md) | a tail | `builds/` |
 | [credit](./tails/credit-slate.md) | a build | `tails/` |
 | [laundry](./builds/laundry-slate.md) | a tail | `builds/` |
+| [locomotion-on-snow](./builds/locomotion-on-snow-slate.md) | a wave | `builds/` |
 | [object-taxonomy](./builds/object-taxonomy-slate.md) | a tail | `builds/` |
 | [pack-boundary](./builds/pack-boundary-slate.md) | a tail | `builds/` |
 | [rendering](./builds/rendering-slate.md) | a wave | `builds/` |
+| [shore-as-place](./builds/shore-as-place-slate.md) | a wave | `builds/` |
 | [tourism-and-sport](./builds/tourism-and-sport-slate.md) | a tail | `builds/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |
 

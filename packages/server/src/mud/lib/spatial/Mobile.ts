@@ -972,7 +972,7 @@ async function crossExit(
           // Carried, not self-powered: no gate cascade, no flee, no
           // exertion — the host already passed all three.
           const rode = await occupant
-            .traverse(exit, mode, { carriedBy: mover as unknown as Stuff })
+            .traverse(exit, mode, { carriedBy: mover })
             .catch((err: Error) => ({ ok: false, reason: err.message }));
           if (!rode.ok) {
             console.warn(
@@ -1059,7 +1059,7 @@ async function crossExit(
   // The display you can see shows X — and the one you left, no
   // longer. One hook, both directions; the viewer owns its own
   // client state, so the viewer is who re-syncs it (display.md).
-  const self = mover as unknown as Stuff;
+  const self: Stuff = mover;
   if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
   return { ok: true };
 }

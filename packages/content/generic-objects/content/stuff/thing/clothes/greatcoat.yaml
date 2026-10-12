@@ -5,7 +5,7 @@
 #
 # Felted (boiled) wool is the highest-loft shipped form, so this is the
 # warmest honest garment the commons has. ⚠ Its insulation is DERIVED
-# (`Wearable.getClo`) and reads lower than a real greatcoat's (plan R13 —
+# (`Wearable.getClo`) and reads lower than a real greatcoat's (the textiles slate's clo note —
 # the derivation models no air trapped between layers); the figure is
 # pinned in `Slotted.covering.test.ts` and the under-read is the textiles
 # trade's to correct, not this coat's to inflate.

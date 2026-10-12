@@ -278,3 +278,11 @@ vocation, WHO SELLS ICE) · [thermal-slate](../tails/thermal-slate.md)
 frozen lake inverting from passage to corridor) ·
 [base-class-narrowing-slate](./base-class-narrowing-slate.md) (the
 `AlloyedMixin` promotion).
+
+## From the climate build (2026-10-11) — now unblocked
+
+Ice exists and reads: `WatercourseCatalogue.iceAt` grows it by freezing
+degree-days (Stefan) and says what it bears (Gold); `analyze water` and the
+`Shore` read it by competence; `IceCrossingExit` crosses it. Left here: the
+thin place over the current, pressure ridges, and the **harvest** (cutting
+ice as a trade good).

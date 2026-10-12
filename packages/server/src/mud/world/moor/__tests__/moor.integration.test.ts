@@ -123,7 +123,7 @@ const surfaceL = (f: Floor): number => f.getBulkAmount('surface').rawValue();
  * Move the clock to a summer afternoon. ⚠ Since the climate build what
  * falls under a sky is the temperature's call, and the reset clock's
  * day-0 midnight at the default site is cold enough that the heath's rain
- * falls as snow — while the indoor pin keeps its rain (plan B7). The
+ * falls as snow — while the indoor pin keeps its rain (an indoor pin is not falling from the sky). The
  * spine invariant is about RAIN, so it is read on a day that rains.
  */
 function summerAfternoon(): void {

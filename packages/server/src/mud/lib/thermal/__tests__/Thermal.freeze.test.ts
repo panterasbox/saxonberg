@@ -141,7 +141,7 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
 
       // Read through the day (a watched world reads; ⚠ the phase engine
       // banks the undershoot it FINDS at a read, so one long unread gap
-      // banks one cooling's worth — a thermal-tail limit, plan R16), and
+      // banks one cooling's worth — a thermal-tail limit, see thermal-slate), and
       // the bank reaches m·L: the pool is gone. The cast
       // (/stuff/thing/ice-block) mints into the jug's container, which the
       // drive proves; here the slot emptying is the claim.
