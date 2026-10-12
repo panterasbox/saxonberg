@@ -54,11 +54,25 @@
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
+import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import type { SupplyServing } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { SpatialZone } from '@saxonberg/server/mud/lib/zone/SpatialZone';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
+import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import {
   type SupplyState,
@@ -92,9 +106,16 @@ export interface ConduitReading {
   pumpWatts: number;
 }
 
-const ConduitBase = SwitchableMixin(Thing);
+// ⭐ Staged + Container since the pump build: a pumped main HOLDS its pump
+// (`props: [intake-pump]`), and vetoes everything else. The claim is true —
+// a conduit's pump is part of the conduit — and the water pack still ships
+// no mover and no verb: the pump is the energy pack's appliance.
+const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(Thing)));
 
-export default class Conduit extends ConduitBase {
+export default class Conduit
+  extends ConduitBase
+  implements PumpSource, SupplyServing
+{
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
@@ -333,6 +354,28 @@ export default class Conduit extends ConduitBase {
     return head;
   }
 
+  /**
+   * The air (K) over the extent this conduit serves — the zone the extent
+   * names, at its own latitude, elevation, continentality and offset,
+   * under the weather of the place the conduit stands in. `null` when the
+   * extent resolves no zone.
+   */
+  public async extentAirK(nowS: number): Promise<number | null> {
+    if (this.extent === '') return null;
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    // Only a region in space has a site (geography is `SpatialZone`'s); an
+    // extent naming a folder or nothing has no air of its own to read.
+    if (!(zone instanceof SpatialZone)) return null;
+    const site = await zone.climateSite();
+    const self = this as unknown as Stuff;
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+    const locality =
+      room !== null && MixinApi.isContainer(room)
+        ? await AddressApi.resolveLocalityFor(room as Stuff & Container)
+        : null;
+    return WeatherApi.temperatureAt(site, locality, Quantity.of(nowS, 's')).rawValue();
+  }
+
   /** Whether it runs on gravity. `false` while the head is unresolved. */
   public isGravityFed(): boolean {
     return this.headM !== null && this.headM >= 0;
@@ -359,6 +402,11 @@ export default class Conduit extends ConduitBase {
    */
   public pumpWattsFor(m3s: number): number {
     if (!this.requiresPump() || m3s <= 0) return 0;
+    // ⭐ The equation lives on the thing that does the work now: a fitted
+    // pump answers for its own efficiency. With none fitted the conduit
+    // still knows what a pump WOULD draw, which is what a survey reports.
+    const pump = this.pump();
+    if (pump !== null) return pump.powerForDuty(Math.abs(this.headM!), m3s);
     // ρ and g are READS, not constants. Gravity ships as an authorable
     // atmospheric trace and water's density as a tabulated medium, so a
     // world with different physics gets a different pump bill without
@@ -367,6 +415,64 @@ export default class Conduit extends ConduitBase {
     const g = BiomeApi.getRootBiome().getDefaultGravity()?.rawValue() ?? 9.81;
     const eta = Math.max(0.05, dial(AppSettingKeys.waterPumpEfficiency, 0.6));
     return (rho * g * Math.abs(this.headM!) * m3s) / eta;
+  }
+
+  // ---------- ⭐ the pump it holds (the pump build) ----------
+
+  /** The pump set in this conduit, or `null`. */
+  public pumpFitted(): Stuff | null {
+    for (const c of this.getContents()) {
+      if (MixinApi.isPumping(c)) return c;
+    }
+    return null;
+  }
+
+  private pump(): (Stuff & Pumping) | null {
+    const p = this.pumpFitted();
+    return p && MixinApi.isPumping(p) ? p : null;
+  }
+
+  /** ⭐ Only a pump goes in a main, and only one. */
+  public canAddContainable(thing: Stuff & Containable): VetoResult {
+    if (!MixinApi.isPumping(thing)) {
+      return { ok: false, reason: 'Only a pump goes in a main.' };
+    }
+    if (this.pumpFitted() !== null) {
+      return { ok: false, reason: 'There is a pump in it already.' };
+    }
+    return { ok: true };
+  }
+
+  /**
+   * Is the lift this main needs actually being done right now? `true` for a
+   * gravity main (nothing to do); for a pumped one, only while a pump is
+   * fitted and running.
+   */
+  public isLifting(): boolean {
+    // A head known to be in its favour runs on gravity, pump or no pump.
+    if (this.headM !== null && this.headM >= 0) return true;
+    const pump = this.pump();
+    // ⚠ An UNKNOWN head with a pump fitted is a pumped main: somebody set a
+    // pump in it, and the sync tap read cannot await a survey. Only an
+    // unknown head with no pump at all is given the benefit of the doubt.
+    if (pump !== null) return pump.isRunning();
+    return this.headM === null;
+  }
+
+  /**
+   * ⭐ The SYNCHRONOUS subset of the six words — what a tap asks on every
+   * draw. A cut line, a closed valve, and a pumped main whose pump is not
+   * running: all `off` but the cut, which is the vocabulary's word for
+   * *somebody closed it, and somebody can open it again*. ⚠ A power cut at
+   * the pump reads `off` too; the six words have no *unpowered*, and a
+   * seventh is a design conversation. `dry` / `frozen` / `fouled` need the
+   * river and stay in the async report.
+   */
+  public supplyStateNow(): SupplyState | null {
+    if (this.cut) return 'cut';
+    if (!this.isOn()) return 'off';
+    if (!this.isLifting()) return 'off';
+    return null;
   }
 
   // ---------- state ----------
@@ -392,9 +498,19 @@ export default class Conduit extends ConduitBase {
   ): Promise<ConduitReading> {
     const demand = Math.max(0, demandM3S);
     const troubles = new Set<SupplyState>();
+    // ⚠⚠ Resolve the head ON READ. `resolveHead` had no caller outside its
+    // tests, so in a live world every conduit's head was "never surveyed":
+    // the aqueduct could not say it runs on gravity and the intake could
+    // not say it needs a pump — the pump build's drive found it. This is
+    // the async read with the catalogue in hand, and the result persists.
+    if (this.headM === null) await this.resolveHead(catalogue);
 
     if (this.cut) troubles.add('cut');
     if (!this.isOn()) troubles.add('off');
+    // ⭐ A pumped main whose pump is not running is shut, as surely as a
+    // closed valve. Its wear is reconciled first — integrated, not sampled.
+    this.pump()?.reconcileRunning(nowS);
+    if (!this.isLifting()) troubles.add('off');
     if (demand > this.capacityM3S) troubles.add('overdrawn');
 
     const flow = await catalogue.flowAt(this.reachRef, nowS, draws);
@@ -404,8 +520,18 @@ export default class Conduit extends ConduitBase {
       troubles.add('dry');
     }
 
-    const airK = await catalogue.airTemperatureKAt(this.reachRef, nowS);
-    if (airK !== null && airK <= dial(AppSettingKeys.waterFreezeK, 273.15)) {
+    // ⭐ A line is frozen if ANY part of it is (the climate build, D7): the
+    // intake's air at the reach, or the delivered extent's air where the
+    // pipes run. Both are the realm's one temperature, so the main and the
+    // street it serves agree — and an aqueduct whose intake sits high on a
+    // fell freezes before the town below it does, which is true of one.
+    const freezeK = dial(AppSettingKeys.waterFreezeK, 273.15);
+    const intakeK = await catalogue.airTemperatureKAt(this.reachRef, nowS);
+    const extentK = await this.extentAirK(nowS);
+    if (
+      (intakeK !== null && intakeK <= freezeK) ||
+      (extentK !== null && extentK <= freezeK)
+    ) {
       troubles.add('frozen');
     }
 
@@ -423,8 +549,17 @@ export default class Conduit extends ConduitBase {
 
     const state =
       SUPPLY_STATE_PRECEDENCE.find((s) => troubles.has(s)) ?? null;
-    const delivered =
-      state === null ? Math.min(demand, this.capacityM3S) : 0;
+    // ⭐⭐ A pump delivers what its power lifts. The city intake asks more
+    // of its premises' band than the band carries, and the answer is
+    // physics, printed — never a silent shortfall (see supplyReport).
+    const pump = this.pump();
+    const lifted =
+      this.requiresPump() && pump !== null
+        ? pump.deliverableM3S(this.headM ?? 0, Math.min(demand, this.capacityM3S))
+        : this.requiresPump()
+          ? 0
+          : Math.min(demand, this.capacityM3S);
+    const delivered = state === null ? lifted : 0;
     return {
       state,
       deliveredM3S: delivered,
@@ -485,10 +620,7 @@ export default class Conduit extends ConduitBase {
         `${this.headM.toFixed(0)} m of head in its favour — it runs on gravity, and costs nothing to run`,
       );
     } else {
-      lines.push(
-        `${Math.abs(this.headM).toFixed(0)} m of lift against it — it needs a pump, ` +
-          `and that pump draws ${(reading.pumpWatts / 1000).toFixed(1)} kW for as long as it runs`,
-      );
+      lines.push(...this.pumpLines(reading));
     }
     if (this.treatmentFactor > 0) {
       lines.push(
@@ -501,6 +633,38 @@ export default class Conduit extends ConduitBase {
         : `NOT delivering: ${SUPPLY_STATE_GLOSS[reading.state]} (${reading.state})`,
     );
     return { label, state: reading.state, lines };
+  }
+
+  /**
+   * ⭐⭐ What the pump is doing, legibly. The intake's own numbers ask more
+   * of its premises than the band carries, and that must never read as a
+   * main quietly delivering less: the report says what the pump wants,
+   * what the line gives it, and what it lifts.
+   */
+  private pumpLines(reading: ConduitReading): string[] {
+    const lift = Math.abs(this.headM ?? 0);
+    const head = `${lift.toFixed(0)} m of lift against it`;
+    const pump = this.pump();
+    if (pump === null) {
+      return [`${head} — it needs a pump, and none is fitted`];
+    }
+    if (!pump.isRunning()) {
+      return [`${head} — its pump is not running, so nothing is lifted`];
+    }
+    const askedM3S = Math.min(reading.demandM3S, this.capacityM3S);
+    const wantW = pump.powerForDuty(lift, askedM3S);
+    const haveW = pump.moverPowerW();
+    if (wantW > haveW + 1) {
+      return [
+        `${head} — its pump would draw ${(wantW / 1000).toFixed(1)} kW to lift ` +
+          `${askedM3S.toFixed(2)} m³/s, and the line gives it ${(haveW / 1000).toFixed(1)} kW`,
+        `so it draws all the line gives it and lifts ${reading.deliveredM3S.toFixed(2)} m³/s — ` +
+          `less than is asked of it`,
+      ];
+    }
+    return [
+      `${head} — its pump draws ${(reading.pumpWatts / 1000).toFixed(1)} kW for as long as it runs`,
+    ];
   }
 
   /**

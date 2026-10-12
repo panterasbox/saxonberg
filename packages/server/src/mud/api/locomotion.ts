@@ -202,12 +202,12 @@ export class LocomotionApi {
    *   3. exit-allowed-modes (`Exit.canTraverse`)
    *   4. enablement (per-mode, field-driven via `getEnablementMixin`)
    */
-  public static canTraverseExit(
+  public static async canTraverseExit(
     actor: Stuff & Containable,
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     return logic().canTraverseExit(actor, exit, mode, direction);
   }
 
@@ -283,21 +283,20 @@ export class LocomotionApi {
   // ── engagement lifecycle ─────────────────────────────────────────
 
   /**
-   * Run `action` with `actor.engagedMode` set to `mode`. After the
-   * action resolves, clear engagedMode when the mode is transient
-   * (per `isTransientEngagement`) — leave it set when persistent (the
-   * actor is still in the engaged scope at the destination).
+   * Run a self-powered crossing with `actor.engagedMode` set to `mode`,
+   * then exert the body for it — only when the crossing HAPPENED (the
+   * action's guard is `ok`). Clears engagedMode afterwards when the mode
+   * is transient (per `isTransientEngagement`).
    *
-   * Errors from `action` propagate; the finally clause clears
-   * engagement for transient modes regardless, ensuring no stale
-   * engagedMode survives a failed traversal.
+   * ⚠ Called by `Mobile.traverse` itself (step 5 of its sequence); a
+   * caller that wants to move something calls `traverse`, never this.
    */
-  public static async engageAround<T>(
+  public static async engageAround(
     actor: Stuff & Mobile,
     mode: LocomotionMode,
     exit: Exit,
-    action: () => Promise<T>,
-  ): Promise<T> {
+    action: () => Promise<TraversalGuard>,
+  ): Promise<TraversalGuard> {
     return logic().engageAround(actor, mode, exit, action);
   }
 
@@ -345,19 +344,14 @@ export class LocomotionApi {
   // ── default-mode convenience ─────────────────────────────────────
 
   /**
-   * Resolve the actor's default mode (see `defaultModeFor` for the
-   * chain) into the corresponding `LocomotionMode` singleton, then
-   * traverse `exit` with full engagement bookkeeping via
-   * `engageAround`. Convenience for programmatic callers that want
-   * "use the actor's preferred mode" without resolving the singleton
-   * themselves.
-   *
-   * Throws on mode-gate failure (mirrors `Mobile.traverse`'s contract).
+   * Traverse `exit` under the actor's default mode (see `defaultModeFor`
+   * for the chain) — `actor.traverse(exit, defaultModeFor(actor))`.
+   * Returns the crossing's guard: a refusal is an answer, not a throw.
    */
   public static async traverseWithDefault(
     actor: Stuff & Mobile & Containable,
     exit: Exit,
-  ): Promise<void> {
+  ): Promise<TraversalGuard> {
     return logic().traverseWithDefault(actor, exit);
   }
 }

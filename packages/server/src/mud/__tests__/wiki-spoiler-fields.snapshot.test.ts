@@ -64,6 +64,24 @@
  *     point: *that a working has a ceiling* is public, and *what the
  *     number is* is recipe knowledge you earn.
  *
+ * **The pump (11 fields).** Every one level 0 except one:
+ *
+ *   - `PumpMechanism.pulls` — tagged `spoiler: 1, spoilerName: 0`. It is
+ *     the single fact the suction ceiling follows from, and AC 2 says a
+ *     player can find NO explanation anywhere for the depth a suction pump
+ *     stops at. The mechanism's `description` already says *it draws* in
+ *     the words a looker would use; the boolean is the model's statement
+ *     of the law's input, and it collapses by default.
+ *   - `PumpMechanism.name` / `.description`, `PumpingMixin.mechanism`
+ *     (a path) / `.liftM` / `.throughputLps` / `.strokeS` / `.runStamp` —
+ *     the build of a machine you can stand at and work; `liftM` is the
+ *     PUMP's own push, not the atmospheric ceiling (that is computed from
+ *     the place and stored nowhere).
+ *   - `Well.depthM` / `.standing` — how far down the water is, and what
+ *     it is: the pump's own refusal says the depth, and a dropped stone
+ *     would. `WaterFixture.suppliedBy` — which main a tap is on, which
+ *     `analyze water` at the tap prints anyway.
+ *
  * **Fishing (3 fields).** All level 0:
  *
  *   - `Species.habitat` — what a species needs of a water and where in

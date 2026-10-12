@@ -33,12 +33,12 @@ describe('LockableMixin', () => {
     seedKernelContentStore();
   });
 
-  it('defaults to unlocked', () => {
+  it('defaults to unlocked', async () => {
     const s = makeStuff(() => new TestLockable());
     expect(s.isLocked()).toBe(false);
   });
 
-  it('lock() and unlock() flip state idempotently', () => {
+  it('lock() and unlock() flip state idempotently', async () => {
     const s = makeStuff(() => new TestLockable());
     s.lock();
     expect(s.isLocked()).toBe(true);
@@ -50,7 +50,7 @@ describe('LockableMixin', () => {
     expect(s.isLocked()).toBe(false);
   });
 
-  it('setLocked flips state and rejects non-boolean', () => {
+  it('setLocked flips state and rejects non-boolean', async () => {
     const s = makeStuff(() => new TestLockable());
     s.setLocked(true);
     expect(s.isLocked()).toBe(true);
@@ -59,12 +59,12 @@ describe('LockableMixin', () => {
     expect(() => s.setLocked(1 as unknown as boolean)).toThrow(TypeError);
   });
 
-  it('MixinApi.isLockable narrows correctly', () => {
+  it('MixinApi.isLockable narrows correctly', async () => {
     const s = makeStuff(() => new TestLockable());
     expect(MixinApi.isLockable(s)).toBe(true);
   });
 
-  it('declares persistent field "locked" (noun form)', () => {
+  it('declares persistent field "locked" (noun form)', async () => {
     expect(
       MixinApi.getAllPersistentFields(TestLockable)
     ).toContain('locked');
@@ -105,7 +105,7 @@ describe('Exit.canTraverse — locked gate', () => {
           door,
         })
     );
-    const result = exit.canTraverse(mover);
+    const result = (await exit.canTraverse(mover));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
     expect(result.reason).toMatch(/locked/i);
@@ -129,7 +129,7 @@ describe('Exit.canTraverse — locked gate', () => {
           door,
         })
     );
-    const result = exit.canTraverse(mover);
+    const result = (await exit.canTraverse(mover));
     expect(result.gate).toBe('locked');
   });
 
@@ -156,10 +156,8 @@ describe('Exit.canTraverse — locked gate', () => {
       return original();
     };
 
-    let result: ReturnType<Exit['canTraverse']> | undefined;
-    expect(() => {
-      result = exit.canTraverse(mover);
-    }).not.toThrow();
+    // The veto RESOLVES (it does not throw) without touching the far side.
+    const result = await exit.canTraverse(mover);
     expect(resolved).toBe(false);
     expect(result?.ok).toBe(false);
     expect(result?.gate).toBe('locked');
@@ -178,7 +176,7 @@ describe('Exit.canTraverse — locked gate', () => {
           door,
         })
     );
-    expect(exit.canTraverse(mover)).toEqual({ ok: true });
+    expect((await exit.canTraverse(mover))).toEqual({ ok: true });
   });
 });
 
@@ -232,14 +230,14 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   it('⭐⭐ a key-holder walks through a LOCKED door without unlocking it', async () => {
     const door = await keyedDoor();
     mover.ensureCredential('key').addKey(KEYWAY, 'pin-tumbler');
-    const result = exitWith(door).canTraverse(mover);
+    const result = (await exitWith(door).canTraverse(mover));
     expect(result.ok, `refused: ${result.reason ?? ''}`).toBe(true);
     // ⚠ And the bolt is untouched — passage is not an unlock.
     expect(door.isLocked()).toBe(true);
   });
 
   it('⛔ a stranger is still refused at the same door', async () => {
-    const result = exitWith(await keyedDoor()).canTraverse(mover);
+    const result = (await exitWith(await keyedDoor()).canTraverse(mover));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
   });
@@ -247,7 +245,7 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   it('⛔ a key for a DIFFERENT keyway does not open it', async () => {
     const door = await keyedDoor();
     mover.ensureCredential('key').addKey('kw-somewhere-else', 'pin-tumbler');
-    const result = exitWith(door).canTraverse(mover);
+    const result = (await exitWith(door).canTraverse(mover));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
   });
@@ -255,7 +253,7 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   it('⛔ the right keyway in the WRONG technology does not open it', async () => {
     const door = await keyedDoor();
     mover.ensureCredential('key').addKey(KEYWAY, 'keycard');
-    expect(exitWith(door).canTraverse(mover).ok).toBe(false);
+    expect((await exitWith(door).canTraverse(mover)).ok).toBe(false);
   });
 
   it('⭐⭐ once UNLOCKED, a stranger with no key walks through', async () => {
@@ -263,14 +261,14 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
     // leaving your own door open for everybody else.
     const door = await keyedDoor();
     door.unlock();
-    expect(exitWith(door).canTraverse(mover).ok).toBe(true);
+    expect((await exitWith(door).canTraverse(mover)).ok).toBe(true);
   });
 
   it('⚠ an EMPTY keyway opens for nobody, key or no key', async () => {
     const door = await keyedDoor();
     door.setKeyway('');
     mover.ensureCredential('key').addKey(KEYWAY, 'pin-tumbler');
-    const result = exitWith(door).canTraverse(mover);
+    const result = (await exitWith(door).canTraverse(mover));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
   });
@@ -278,10 +276,10 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   it('a master key for the technology opens it', async () => {
     const door = await keyedDoor();
     mover.ensureCredential('key').addMaster('pin-tumbler');
-    expect(exitWith(door).canTraverse(mover).ok).toBe(true);
+    expect((await exitWith(door).canTraverse(mover)).ok).toBe(true);
   });
 
-  it('declares the keyway and technology as persistent authorable fields', () => {
+  it('declares the keyway and technology as persistent authorable fields', async () => {
     const meta = (TestLockable as unknown as { fieldMeta: Record<string, unknown> })
       .fieldMeta;
     for (const field of ['locked', 'keyway', 'lockTechnology']) {

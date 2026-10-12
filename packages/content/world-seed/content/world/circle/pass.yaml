@@ -1,0 +1,22 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: foot of the Circle pass
+  keywords: [pass, foot]
+  register: definite
+  longDescription: |
+    The upland narrows into a pass between two snow-streaked hills. East, through the pass; west, back to the camp.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/circle/camp
+      media: [ground]
+      edgeMinutes: 10
+    east:
+      kind: /world/circle/exits/circle-pass
+      destination: /world/circle/beyond
+      media: [ground]
+      edgeMinutes: 30

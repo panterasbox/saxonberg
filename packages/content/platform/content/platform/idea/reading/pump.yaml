@@ -1,0 +1,28 @@
+# pump — what a person can tell about a pump by looking at it and working
+# its handle once.
+#
+# ⭐ An eye rung only (`instrument: ""`, `eyeCeiling: expert`): the
+# mechanism in words, the packing's condition in five words and no digit,
+# and — for a pump that pulls — about how deep it will draw from where it
+# stands, bracketed by the reader's band.
+#
+# ⚠⚠ It explains NOTHING. Neither this row's prose nor the class names the
+# air as the reason a suction pump stops at the depth it does. That is a
+# law for somebody to discover, not a tooltip (see inquiry-slate).
+#
+# `scope: [subject]` with `subjectRequires` EMPTY, so `analyze pump well`
+# binds the well and the channel hops to the pump set in it.
+class: /platform/idea/reading/PumpReading
+data:
+  channel: pump
+  kind: fact
+  scope: [subject]
+  discipline: physics
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether the leather wants mending before it goes, and whether this pump
+    will lift from the source you mean to set it in
+  stakes: >-
+    a day at a handle that draws nothing; a town's water stopping on the
+    morning the packing finally goes

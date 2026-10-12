@@ -1,0 +1,21 @@
+# The south station — 89° S, entering the polar night. Lit by its brazier
+# so it is never pitch dark; `analyze sky` says when the sun stops rising.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: south station
+  keywords: [station, hut]
+  register: definite
+  longDescription: |
+    A cluster of low huts on a white plain that runs flat to every horizon. A brazier burns in the open between them, and its light is most of the light there is. North, days off across the ice, the Circle.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    north:
+      destination: /world/circle/camp
+      media: [ground]
+      edgeMinutes: 4320
+  props:
+    - /world/south/brazier

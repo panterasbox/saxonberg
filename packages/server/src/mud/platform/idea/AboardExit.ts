@@ -8,8 +8,8 @@
  * has sailed. The authored destination is only the usual berth-holder.
  *
  * The node is found by the landing it names (an `ExpanseNode` row whose
- * `destination` is this room), looked up in `prepareTraversal`, so the
- * traverse gate stays synchronous. The berth (owned, rented, fought
+ * `destination` is this room), looked up (once, then cached) when the
+ * gate is asked — `canTraverse` is async. The berth (owned, rented, fought
  * over) is not modelled.
  */
 
@@ -32,11 +32,6 @@ interface NodeAt {
 
 export default class AboardExit extends DeferredDestinationExit {
   private node: NodeAt | null = null;
-
-  /** The lookup the sync gate answers from (cached after the first). */
-  public override async prepareTraversal(): Promise<void> {
-    await this.warm();
-  }
 
   /** Find the node whose landing this room is. */
   private async warm(): Promise<void> {
@@ -79,7 +74,12 @@ export default class AboardExit extends DeferredDestinationExit {
     return null;
   }
 
-  public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
+  /** ⭐ The far side is read HERE, at the moment of asking (the lookup is cached after the first). */
+  public override async canTraverse(
+    mover: Stuff & Containable,
+    mode?: string,
+  ): Promise<TraversalGuard> {
+    await this.warm();
     if (this.alongside() === null) {
       return { ok: false, gate: 'blocked', reason: 'Nothing is alongside.' };
     }
@@ -92,6 +92,7 @@ export default class AboardExit extends DeferredDestinationExit {
   }
 
   protected override async computeDestination(): Promise<Stuff & Container> {
+    await this.warm();
     const craft = this.alongside();
     const entrance = craft?.getEntrance();
     if (!entrance) throw new Error('AboardExit: nothing is alongside');

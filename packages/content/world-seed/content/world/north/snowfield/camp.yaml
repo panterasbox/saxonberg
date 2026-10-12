@@ -1,0 +1,23 @@
+# The snowfield camp — the wet cold peak. The snow lying here has lain since
+# the autumn (the standing case: constant through a drive, and exact).
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: snowfield camp
+  keywords: [camp, snowfield]
+  register: definite
+  longDescription: |
+    A ring of stones and a windbreak of piled blocks at the foot of a long white slope. Up the slope, north, the pass. South, the way back down to the station.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    south:
+      destination: /world/north/station
+      media: [ground]
+      edgeMinutes: 20
+    north:
+      destination: /world/north/snowfield/pass
+      media: [ground]
+      edgeMinutes: 15

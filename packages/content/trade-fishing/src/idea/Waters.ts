@@ -29,6 +29,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   CompetenceBand,
   type CompetenceBandName,
@@ -93,8 +94,11 @@ export default class Waters extends Idea {
     let twilight = 1;
     let weather = 1;
     try {
-      const profile = await CelestialApi.profileFor(room);
-      const altitude = CelestialApi.solarAltitudeDeg(profile, CelestialApi.CAMPUS_LATITUDE, nowS);
+      // The sun at THIS water's latitude (the room's zone chain) — a
+      // polar mere's twilight lasts for weeks.
+      const altitude = (
+        await CelestialApi.sunAltitude(room, Quantity.of(nowS, 's'))
+      ).rawValue();
       if (Math.abs(altitude) <= 10) twilight = dial('fishing.bite.twilight', 1.8);
     } catch {
       /* no sky: no twilight */

@@ -1,0 +1,13 @@
+# The Circle — always snowing, heavily (intensity 1.5), at the end of a
+# southern summer: the snow deepens and circlemere's snow-ice thickens day on
+# day through a drive. The mere's weather, by its small catchment.
+class: /platform/idea/Locality
+data:
+  name: The Circle
+  _address: circle
+  _reach: circlemere:mere
+  _catchmentKm2: 2
+  _weatherPin:
+    type: snow
+    mode: frozen
+  _precipitationIntensity: 1.5

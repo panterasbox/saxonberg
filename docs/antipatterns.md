@@ -665,50 +665,43 @@ ask-first protocol.
 Four levels of movement abstraction, listed from highest to lowest.
 NEVER skip levels.
 
-### Level 0: `LocomotionApi.traverseWithDefault(actor, exit)` — top level
+### Level 0: `LocomotionApi.traverseWithDefault(actor, exit)` — default mode
 
-The most ergonomic entry point. Resolves the actor's default mode via
-`LocomotionApi.defaultModeFor` (explicit `movement.defaultMode`
-setting → bodyplan `defaultLocomotionMode` → universe `'walk'`), then
-threads engagement bookkeeping (`engageAround`) around an inner
-`traverse`. Use from scripted NPC AI, activity-driven movement, or
-any caller that wants "this actor moves under whatever its preferred
-mode is" without resolving the singleton themselves.
+`actor.traverse(exit, LocomotionApi.defaultModeFor(actor))` and nothing
+more: the default-mode chain (explicit `movement.defaultMode` setting →
+bodyplan `defaultLocomotionMode` → `'walk'`). Use from NPC brains and
+any caller with no mode of its own.
 
-### Level 1: `LocomotionApi.engageAround(actor, mode, exit, action)` — engagement scope
+### Level 1: `Mobile.traverse(exit, mode, opts?)` — ⭐ the one crossing
 
-For callers that know the mode but want the engagement lifecycle
-managed (set `engagedMode`, run the action, conditionally clear
-based on `isTransientEngagement`). The verb controllers all route
-through this:
+**The authoritative move.** Every self-powered crossing goes through it
+— a player's `go`, an NPC brain, a `Journey` leg — and it owns the whole
+sequence: the gate cascade (`LocomotionApi.canTraverseExit`, whose
+exit step — the async `Exit.canTraverse` — reads whatever moves) → the mover's `beforeTraverse` (combat's
+flee) → passthrough to the conveyance host → engagement + exertion
+(`engageAround`, called from inside) → apply (`Exit.applyTraversal`) → the
+places' `canExit`/`canEnter` → the move. It **returns** a
+`TraversalGuard`; a refusal is an answer, never a throw.
 
 ```typescript
-await LocomotionApi.engageAround(actor, mode, exit, () =>
-  actor.traverse(exit, mode.getName()),
-);
+const guard = await actor.traverse(exit, mode.getName());
+if (!guard.ok) { /* render guard.reason, or hold position */ }
 ```
 
-**When to use**: any traversal where engaged-mode state should be
-established for the duration. Don't manually `setEngagedMode` /
-`setEngagedMode(null)` around a traversal — use `engageAround` so the
-transient/persistent decision and the error-path cleanup happen for
-you.
+⛔ **Don't** gate before it (`canTraverseExit` then `traverse` is the
+double-gate this hierarchy removed), **don't** wrap it in `engageAround`
+(it engages itself; wrapping would make a rider exert), and **don't**
+resolve the conveyance host yourself. A controller picks the exit and
+the mode and renders the guard — nothing else.
 
-### Level 2: `Mobile.traverse(exit, mode)` — raw locomotion
+`opts.carriedBy` is the conveyance ripple's alone: a rider moved by its
+mount skips the cascade, the flee and the exertion.
 
-For creatures and vehicles crossing an Exit under a locomotion mode.
-The signature takes the **short name** (`'walk'`, `'climb'`) to
-match `Exit.canTraverse`'s vocabulary; controllers pass
-`mode.getName()` from a resolved `LocomotionMode` singleton. The body
-enforces the mode-gate (throws `ContainmentError` on rejection), then
-runs the traversal-hook pipeline + the conveyance ripple.
+### Level 2: `LocomotionApi.engageAround(...)` — internal to Level 1
 
-Skip the engagement layer (Level 1) only when you're inside the
-ripple's recursive `occupant.traverse(exit, mode)` call — the host's
-engageAround already wraps the whole thing.
-
-**When to use**: very rarely directly. Usually go through Level 0 or
-Level 1.
+Sets `engagedMode`, runs the crossing, exerts the body only when the
+guard is `ok`, and clears a transient mode. `Mobile.traverse` calls it;
+nothing else should.
 
 ### Level 3: `ContainmentApi.move()` — mid level (the correct layer)
 
@@ -920,12 +913,11 @@ status-light tint.
 ### Rule of thumb
 
 - **Movement operations** (pick up, drop, teleport): use `ContainmentApi.move()`
-- **Locomotion** (walk, climb, swim, fly, ride, drive): use
-  `LocomotionApi.traverseWithDefault(actor, exit)` for default-mode
-  dispatch, or `LocomotionApi.engageAround(actor, mode, exit, action)`
-  when the mode is known. Don't manually
-  `setEngagedMode` around a `Mobile.traverse` call — `engageAround`
-  handles the transient/persistent decision + error-path cleanup.
+- **Locomotion** (walk, climb, swim, fly, ride, drive): call
+  `actor.traverse(exit, mode)` when the mode is known, or
+  `LocomotionApi.traverseWithDefault(actor, exit)` for the default; read
+  the returned guard. Don't pre-gate it, wrap it in `engageAround`, or
+  `setEngagedMode` around it — the crossing does all three.
 - **Container access** (get contents): narrow with
   `MixinApi.isContainer(obj)` and call `obj.getContents()` directly
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
@@ -5658,6 +5650,34 @@ that stops answering is not evidence of a deadlock — it is evidence that
 Check for an unanswered prompt before you go looking for a cycle, and
 reproduce in a unit test early: a unit test that *passes* is the fastest
 way to be told you are chasing the wrong subsystem.
+
+## A holder's prose describing an occupant that can be REMOVED
+
+**Wrong** — the well's authored prose describes the pump set in it:
+
+```yaml
+# village-well.yaml — and the pump is a thing in `props:`
+longDescription: >-
+  A ring of dressed slate … and a cast-iron pump bolted to a post over
+  the hole. Its handle is worn bright where the hands go.
+```
+
+`get pump from well`, and the well still describes a pump with a bright
+handle, over a contents list that is empty. The deep well did the mirror
+image: *"the iron of it is gone"* printed directly above *"In it: a force
+pump"* once a player set one there.
+
+**Right** — the holder's prose says only what stays true whatever is in
+it (*"a stout post over the hole, bolted for a pump"*), the occupant
+describes itself, and `look` lists the contents. ⭐ The test: **if a
+player can `get` it, the container's prose may not mention it.** A
+fixture that cannot be removed (the intake pump: 1,200 kg, fixed in
+place) may be described freely.
+
+⚠ No suite can see it — every assertion passes, because each sentence is
+individually true at boot. A browser walk found it (the pump build,
+2026-10-10). The same build's rooms had it too: the pithead yard said *"a
+pump stands over the village well."*
 
 ## Sampling an INSTANT of a field to answer a question about a PLACE
 

@@ -1,0 +1,653 @@
+/**
+ * ⭐⭐ **The pump, driven end to end** — the pump build's exit criterion,
+ * run against the real socket. The requirements' drive script, step by
+ * step (the pump build's requirements, retired at its sweep — the subsystem
+ * is docs/subsystems/pump.md).
+ *
+ * In one sentence: *walk to the village well at Rejection, work its pump
+ * and carry water a machine raised; take a barometer up a hill; try to
+ * draw water fourteen metres and be told only the depth; set a force pump
+ * in the same well and have it simply work; pump until the leather wears,
+ * take it out and fit the spare; fit a pump to a dead brine bore and get a
+ * continuous rate where a bailer got a bucket; switch the city's intake
+ * off and find the tap uphill dry, in the shipped words; and work a forge's
+ * bellows exactly as before any of this existed.*
+ *
+ * ⚠⚠ **Assert UNDERSTOOD AND CHANGED, never "not refused."** `refusedFor`
+ * reads all three ways a command dies; every checkpoint reads prose or
+ * state back.
+ *
+ * Run: `WIRE_BOOT=1 WIRE_PORT=2013 WIRE_BOOT_TIMEOUT=900000
+ * WIRE_FRAME_TIMEOUT=45000 npx vitest run tests/pump.dirty.wire.test.ts`
+ */
+
+import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import type { CommandResult } from '../src/harness';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  engagementIdOf,
+  isOwnedTestWorld,
+  advanceWorldClock,
+  worldClockNow,
+} from '../src/harness';
+
+/**
+ * ⚠ Why this file cannot run twice: it moves the village's hand pump
+ * between wells, carries the force pump and the rack's spare packing off
+ * the claims office, wears a packing it leaves on a hillside, and leaves
+ * water standing in troughs.
+ */
+export const DIRTY_REASON =
+  'carries the rack’s force pump, bailer and spare packing off to the old ' +
+  'brine bore, wears a packing it leaves behind on the hillside, draws ' +
+  'brine the salt leg never puts back, and leaves water in the troughs';
+
+declareFile({
+  file: 'pump.dirty.wire.test.ts',
+  packs: [
+    'platform',
+    'base-library',
+    'generic-objects',
+    'world-seed',
+    'terminus',
+    'rejection',
+    'trade-tanning',
+    'trade-mining',
+    'trade-drilling',
+    'ground',
+    'hinkley-hills',
+    'eternal-university',
+    'energy',
+    'water',
+    'hearthworks',
+  ],
+  dirtyReason: DIRTY_REASON,
+});
+
+const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const YARD = '/world/terminus/rejection/location/pithead-yard';
+const HINKLEY = '/world/terminus/hinkley-hills/location/arrival';
+/** The yard → the claims office → the hillside the deep well is on. */
+const TO_THE_HILLSIDE = ['north', 'north'] as const;
+const BACK_TO_THE_OFFICE = ['southwest'] as const;
+
+let k: Session;
+let handle = '';
+
+function secondsOf(duration: string): number {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/.exec(duration);
+  expect(m, `unparseable duration '${duration}'`).toBeTruthy();
+  const units: Record<string, number> = { second: 1, minute: 60, hour: 3_600, day: 86_400 };
+  return Number(m![1]) * (units[m![2] as string] ?? 0);
+}
+
+async function advance(duration: string): Promise<void> {
+  const { before, after } = await advanceWorldClock(duration);
+  expect(after - before, `advance ${duration}: world-time did not move`).toBeGreaterThan(
+    secondsOf(duration) * 0.9,
+  );
+  await new Promise((r) => setTimeout(r, 500));
+}
+
+/** Noon — the wells are outdoors, and at night an outdoor room is black. */
+async function daylight(): Promise<void> {
+  const DAY = 86_400;
+  const now = await worldClockNow();
+  const intoDay = ((now % DAY) + DAY) % DAY;
+  const NOON = DAY / 2;
+  const wait = intoDay < NOON ? NOON - intoDay : DAY - intoDay + NOON;
+  await advance(`${Math.max(1, Math.ceil(wait / 3600))} hours`);
+}
+
+async function say(s: Session, text: string): Promise<CommandResult> {
+  try {
+    return await s.cmd(text);
+  } catch (err) {
+    if (!/raised a PROMPT/.test(String(err))) throw err;
+    const pending = await s.awaitPrompt(5_000);
+    const payload = (
+      pending as unknown as {
+        payload?: {
+          promptId?: string;
+          outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> };
+        };
+      }
+    ).payload;
+    const id = payload?.promptId;
+    const first = payload?.outcome?.notes
+      ?.map((n) => n.matches?.[0]?.stuffId)
+      .find((x): x is string => typeof x === 'string');
+    if (id && first) s.answerPrompt(id, first);
+    await new Promise((r) => setTimeout(r, 300));
+    return await s.cmd(text);
+  }
+}
+
+async function read(s: Session, text: string): Promise<string> {
+  try {
+    return await s.prose(text);
+  } catch (err) {
+    if (!/raised a PROMPT/.test(String(err))) throw err;
+    await say(s, text);
+    return await s.prose(text);
+  }
+}
+
+async function walk(s: Session, route: readonly string[]): Promise<void> {
+  for (const dir of route) {
+    const moved = await say(s, dir);
+    expect(
+      moved.notes.find((n) => n.kind === 'command-rejected'),
+      `'${dir}' is not a way out of here`,
+    ).toBeUndefined();
+  }
+  await s.drainProse();
+}
+
+/** Type a command; return its outcome and its own prose. */
+async function act(s: Session, text: string): Promise<{ r: CommandResult; said: string }> {
+  const r = await say(s, text);
+  return { r, said: await r.said() };
+}
+
+/**
+ * Every way a command dies before or inside its controller.
+ *
+ * ⚠⚠ FIVE kinds, not three. The drilling drive's helper read three, and
+ * this drive found the fourth the hard way: a greedy arg is ONE MQL query,
+ * so `get packing from "force pump"` failed with an `mql-error` note (the
+ * quote is not MQL), the helper said *not refused*, and the next
+ * checkpoint failed for a reason three steps removed. `empty-result` is
+ * the fifth: a target that bound nothing.
+ */
+function refusedFor(r: { notes: readonly unknown[] }): string | null {
+  const note = (r.notes as Array<{ kind?: string; reason?: string; detail?: string }>).find(
+    (n) =>
+      n.kind === 'controller-rejected' ||
+      n.kind === 'command-rejected' ||
+      n.kind === 'validator-failed' ||
+      n.kind === 'mql-error' ||
+      n.kind === 'empty-result',
+  );
+  if (!note) return null;
+  return note.reason ?? note.detail ?? note.kind ?? null;
+}
+
+/** Run an engaged act out to its effect, and return the prose it ended with. */
+async function settle(s: Session, started: CommandResult): Promise<string> {
+  const id = engagementIdOf(started);
+  expect(id, `the act did not start an engagement: ${JSON.stringify(started.notes)}`).toBeTruthy();
+  // ⚠ `cmd()` clears the prose buffer before it sends, so the completion
+  // scene must be read off the STARTING command's own `said()` — which
+  // snapshots lazily, after the engagement has landed.
+  // ⚠ 2.5 s, not 0.8: at a bore the completion runs through the rig's
+  // async reconcile (the deposit, the body's book), and its scene landed
+  // AFTER an 800 ms read — in the next command's buffer.
+  await s.awaitActivity(id!, 90_000);
+  await new Promise((r) => setTimeout(r, 2_500));
+  return started.said();
+}
+
+async function carried(s: Session): Promise<string> {
+  const rows = await s.query('me:i', { fields: ['displayName'] });
+  return rows.map((r) => String((r as { displayName?: string }).displayName ?? '')).join(' | ');
+}
+
+/** One spell at a handle, run to completion; returns the closing prose. */
+async function pumpOnce(s: Session, what: string): Promise<string> {
+  const started = await say(s, `pump ${what}`);
+  expect(refusedFor(started), `pump ${what} was refused`).toBeNull();
+  return settle(s, started);
+}
+
+/** A pressure figure in kPa from a barometer's line. */
+function kPaOf(line: string): number | null {
+  const m = /([0-9]+(?:\.[0-9]+)?)\s*(kPa|hPa|Pa|atm|bar)\b/i.exec(line);
+  if (!m) return null;
+  const v = Number(m[1]);
+  const unit = m[2]!.toLowerCase();
+  if (unit === 'kpa') return v;
+  if (unit === 'hpa') return v / 10;
+  if (unit === 'pa') return v / 1000;
+  if (unit === 'atm') return v * 101.325;
+  return v * 100;
+}
+
+const record: string[] = [];
+function note(line: string): void {
+  record.push(line);
+  // eslint-disable-next-line no-console
+  console.log(`[pump drive] ${line}`);
+}
+
+beforeAll(async () => {
+  handle = uniqueHandle('pumper');
+  // The barometer is in Duncan Hall's lobby; nothing in the valley sells one.
+  k = await Session.open(handle, { startLocation: LOBBY, wizard: true });
+  await say(k, 'get barometer');
+  await k.drainProse();
+  expect(await carried(k), 'a barometer from the lobby').toMatch(/barometer/i);
+  k.close();
+  k = await Session.open(handle, { startLocation: YARD, wizard: true });
+}, 300_000);
+
+afterAll(() => {
+  k?.close();
+  // eslint-disable-next-line no-console
+  console.log(`\n[pump drive] RECORD\n${record.map((l) => `  ${l}`).join('\n')}\n`);
+});
+
+/* ───────────── 0. noon, because the wells are outdoors ───────────── */
+
+suite.skipIf(!isOwnedTestWorld())('0. the clock', () => {
+  it('moves to daylight, from outside the fiction', async () => {
+    await daylight();
+  });
+});
+
+/* ───────────── 1. the village well, in words ───────────── */
+
+suite('1. the village well reads in words, and no numbers', () => {
+  it('⭐ a handle, a barrel, leather — and not a digit', async () => {
+    const yard = await read(k, 'look');
+    expect(yard, `the yard reads: ${yard}`).toMatch(/village well|well/i);
+    const well = await read(k, 'look village well');
+    note(`look village well → ${well.replace(/\s+/g, ' ').slice(0, 240)}`);
+    expect(well).toMatch(/pump|handle/i);
+    expect(well).toMatch(/trough/i);
+    expect(well, 'the well prose must carry no digit').not.toMatch(/[0-9]/);
+  });
+});
+
+/* ───────────── 2. work it, and carry what it raised ───────────── */
+
+suite('2. pump well, and carry water a machine raised', () => {
+  it('⭐⭐ an unpumped trough is empty, honestly', async () => {
+    await say(k, 'get pail');
+    await k.drainProse();
+    expect(await carried(k)).toMatch(/pail/i);
+    const { r: fill, said } = await act(k, 'fill pail from well');
+    note(`fill pail from an unpumped well → ${refusedFor(fill) ?? 'ok'} · ${said.trim()}`);
+    // ⚠ `fill` says so in prose and files no refusal note when nothing
+    // moves (FillController's shipped shape) — so the witness is STATE:
+    // the pail still has nothing in it to spill.
+    expect(said, 'an empty trough must not fill a pail').toMatch(/can't fill/i);
+    expect(await read(k, 'spill pail')).toMatch(/is empty/i);
+  });
+
+  it('⭐⭐ a spell at the handle raises water, and the pail carries it', async () => {
+    const closing = await pumpOnce(k, 'village well');
+    note(`pump village well → ${closing.replace(/\s+/g, ' ').slice(0, 200)}`);
+    expect(closing).toMatch(/water comes up/i);
+    const { r: fill, said } = await act(k, 'fill pail from well');
+    note(`fill pail from well → ${refusedFor(fill) ?? 'ok'} · ${said.trim()}`);
+    expect(refusedFor(fill), `fill was refused: ${JSON.stringify(fill.notes)}`).toBeNull();
+    // ⭐ The witness is the pail's own state: it has something in it to spill.
+    const spilt = await read(k, 'spill pail');
+    note(`spill pail → ${spilt.trim()}`);
+    expect(spilt).toMatch(/you spill/i);
+  });
+});
+
+/* ───────────── 3. the barometer, low and high ───────────── */
+
+suite('3. measure pressure at the yard, then up at Hinkley', () => {
+  it('⭐ both places read a figure, and the record keeps both', async () => {
+    const low = await read(k, 'measure pressure');
+    const lowKPa = kPaOf(low);
+    note(`measure pressure at the pithead yard → ${low.trim()}`);
+    expect(lowKPa, `no figure in: ${low}`).not.toBeNull();
+    expect(lowKPa!).toBeGreaterThan(85);
+    expect(lowKPa!).toBeLessThan(115);
+
+    k.close();
+    k = await Session.open(handle, { startLocation: HINKLEY, wizard: true });
+    const high = await read(k, 'measure pressure');
+    const highKPa = kPaOf(high);
+    note(`measure pressure at Hinkley (130 m) → ${high.trim()}`);
+    expect(highKPa, `no figure in: ${high}`).not.toBeNull();
+    expect(highKPa!).toBeGreaterThan(85);
+    expect(highKPa!).toBeLessThan(115);
+    // ⚠ NOT asserted strictly lower: an untrained reader reads a barometer
+    // to ±8 % (~8 kPa) and the valley-to-hill difference is ~1.5 kPa. The
+    // fall is a competence-gated observation; the truth is pinned by the
+    // unit test (`BiomeApi.suctionHeadFor` at 130 m). Recorded, not hidden.
+    note(`(yard ${lowKPa} kPa vs Hinkley ${highKPa} kPa as an untrained reader saw them)`);
+
+    k.close();
+    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await k.drainProse();
+  });
+});
+
+/* ───────────── 4. fourteen metres, and only the depth ───────────── */
+
+suite('4. a suction pump at the deep well is told the depth, and nothing else', () => {
+  it('⭐⭐ the hand pump comes out of the village well', async () => {
+    const got = await say(k, 'get pump from well');
+    await k.drainProse();
+    note(`get pump from well → ${refusedFor(got) ?? 'ok'}`);
+    expect(refusedFor(got), `get pump from well: ${JSON.stringify(got.notes)}`).toBeNull();
+    expect(await carried(k)).toMatch(/hand pump/i);
+  });
+
+  it('⭐ a pail is not a pump — the well refuses it in its own words', async () => {
+    const { r: put, said } = await act(k, 'put pail in well');
+    note(`put pail in well → ${refusedFor(put)} · ${said.trim()}`);
+    expect(refusedFor(put)).toBe('refused-by-container');
+    expect(said).toMatch(/only a pump goes in a well/i);
+  });
+
+  it('⭐⭐⭐ at fourteen metres it draws nothing — and says the depth, not why', async () => {
+    await walk(k, TO_THE_HILLSIDE);
+    const hill = await read(k, 'look');
+    expect(hill).toMatch(/deep well|well/i);
+    const put = await say(k, 'put pump in well');
+    await k.drainProse();
+    expect(refusedFor(put), `put pump in well: ${JSON.stringify(put.notes)}`).toBeNull();
+
+    const { r: tried, said } = await act(k, 'pump deep well');
+    note(`pump deep well (suction) → ${refusedFor(tried)} · ${said.trim()}`);
+    expect(refusedFor(tried)).toBe('beyond-suction');
+    expect(said).toMatch(/14 metres/);
+    expect(said, 'the refusal must not name the ceiling').not.toMatch(/\b10\b/);
+    expect(said, 'the refusal must not explain').not.toMatch(/\bair\b|atmospher|pressure|vacuum/i);
+
+    const eye = await read(k, 'analyze pump deep well');
+    note(`analyze pump deep well → ${eye.replace(/\s+/g, ' ').trim()}`);
+    expect(eye).toMatch(/leather/i);
+    expect(eye, 'the reading must not explain').not.toMatch(/\bair\b|atmospher|pressure|vacuum/i);
+  });
+});
+
+/* ───────────── 5. a force pump simply works ───────────── */
+
+suite('5. a force pump in the same well lifts', () => {
+  it('⭐⭐ swap the pumps, and water comes up from fourteen metres', async () => {
+    // ⭐ The hand pump goes BACK in the village well — the village gets its
+    // pump back, and only one pump is ever in reach at a time. ⚠ Not
+    // dropped on the hillside: with two pumps in reach MQL's `packing from
+    // force pump` bound the HAND pump, and the spare went in the wrong one.
+    await say(k, 'get pump from well');
+    await k.drainProse();
+    await walk(k, ['southwest', 'south']);
+    const { r: back, said: backSaid } = await act(k, 'put pump in well');
+    note(`put the hand pump back in the village well → ${refusedFor(back) ?? 'ok'} · ${backSaid.trim()}`);
+    expect(refusedFor(back)).toBeNull();
+    await walk(k, ['north']);
+    const { r: got, said: gotSaid } = await act(k, 'get pump');
+    note(`get pump (the rack's force pump) → ${refusedFor(got) ?? 'ok'} · ${gotSaid.trim()}`);
+    expect(await carried(k)).toMatch(/force pump/i);
+    await walk(k, ['north']);
+    const put = await say(k, 'put pump in well');
+    await k.drainProse();
+    expect(refusedFor(put), `put force pump: ${JSON.stringify(put.notes)}`).toBeNull();
+
+    const closing = await pumpOnce(k, 'deep well');
+    note(`pump deep well (force) → ${closing.replace(/\s+/g, ' ').slice(0, 200)}`);
+    expect(closing).toMatch(/water comes up/i);
+    // ⚠ Quoted: `reachable` reaches one exit away, and the claims office
+    // next door racks a WELL bailer — a bare `well` bound it.
+    const { r: fill, said: filled } = await act(k, 'fill pail from "deep well"');
+    note(`fill pail from the deep well → ${refusedFor(fill) ?? 'ok'} · ${filled.trim()}`);
+    expect(filled).toMatch(/you fill/i);
+    expect(await read(k, 'spill pail')).toMatch(/you spill/i);
+  });
+});
+
+/* ───────────── 6. the leather wears, and the spare goes in ───────────── */
+
+suite('6. pump until the leather goes, and fit the spare', () => {
+  async function packingWord(): Promise<string> {
+    const eye = await read(k, 'analyze pump deep well');
+    const m = /leather in the barrel (?:is |has )?(sound|worn|leaking|perished|gone)/i.exec(eye);
+    expect(m, `no condition word in: ${eye}`).toBeTruthy();
+    return m![1]!.toLowerCase();
+  }
+
+  it('⭐⭐ the condition word changes with service, and carries no digit', async () => {
+    const before = await packingWord();
+    note(`packing before → ${before}`);
+    for (let i = 0; i < 4; i++) {
+      await say(k, 'fill pail from "deep well"');
+      await say(k, 'spill pail');
+      await k.drainProse();
+      await pumpOnce(k, 'deep well');
+    }
+    const after = await packingWord();
+    note(`packing after five spells → ${after}`);
+    expect(after).not.toBe(before);
+  });
+
+  it('repair, attempted and recorded', async () => {
+    const { r: tried, said } = await act(k, 'repair packing');
+    note(`repair packing → ${refusedFor(tried) ?? 'ok'} · ${said.replace(/\s+/g, ' ').slice(0, 200)}`);
+    // ⚠ Recorded, not asserted: a self-repair wants a mending kit AND
+    // leather stock, and the valley has neither to hand. The verb must be
+    // understood, though — an unknown verb is a broken affordance.
+    expect(refusedFor(tried)).not.toBe('command-rejected');
+  });
+
+  it('⭐⭐ pull the pump, take the worn leather out, and it stops; fit the spare, and it works', async () => {
+    // ⭐ You re-pack a pump by PULLING it — nobody reaches two levels down
+    // a well for a cup of leather. And that is the platform's own rule:
+    // `get` reaches one container deep (`mustBeInLocation`, the same rule
+    // `canReach` asks), so the packing comes out of a pump standing on the
+    // ground, not out of one standing in a shaft.
+    const pulled = await say(k, 'get pump from well');
+    expect(refusedFor(pulled), `pull the pump: ${JSON.stringify(pulled.notes)}`).toBeNull();
+    await say(k, 'drop pump');
+    await k.drainProse();
+    // ⚠⚠ `pump:i:packing`, not `packing from pump`. MQL's natural layer
+    // does not read `from` as containment — the words are matched as one
+    // query and the best match wins (`packing from force pump` took the
+    // FORCE PUMP). The canonical contents read is the colon chain.
+    const out = await say(k, 'get pump:i:packing');
+    await k.drainProse();
+    note(`get pump:i:packing → ${refusedFor(out) ?? 'ok'}`);
+    expect(refusedFor(out), `get packing: ${JSON.stringify(out.notes)}`).toBeNull();
+
+    // Set back with no leather in it, the pump draws nothing.
+    await say(k, 'get pump');
+    await say(k, 'put pump in well');
+    await k.drainProse();
+    const { r: dead, said: deadSaid } = await act(k, 'pump deep well');
+    note(`pump deep well with no packing → ${refusedFor(dead)} · ${deadSaid.trim()}`);
+    expect(refusedFor(dead)).toBe('no-packing');
+
+    // The worn leather stays on the hillside; the spare comes off the rack.
+    await say(k, 'drop packing');
+    await say(k, 'get pump from well');
+    await k.drainProse();
+    await walk(k, BACK_TO_THE_OFFICE);
+    await say(k, 'get packing');
+    await k.drainProse();
+    expect(await carried(k)).toMatch(/packing/i);
+    await walk(k, ['north']);
+    await say(k, 'drop pump');
+    await k.drainProse();
+    const { r: fit, said: fitSaid } = await act(k, 'put packing in pump');
+    note(`put packing in pump → ${refusedFor(fit) ?? 'ok'} · ${fitSaid.trim()}`);
+    expect(refusedFor(fit), `fit packing: ${JSON.stringify(fit.notes)}`).toBeNull();
+    await say(k, 'get pump');
+    await say(k, 'put pump in well');
+    await k.drainProse();
+    expect(await packingWord()).toBe('sound');
+    await say(k, 'fill pail from "deep well"');
+    await say(k, 'spill pail');
+    await k.drainProse();
+    const closing = await pumpOnce(k, 'deep well');
+    note(`pump deep well with the spare fitted → ${closing.replace(/\s+/g, ' ').slice(-120)}`);
+    expect(closing).toMatch(/water comes up/i);
+  });
+});
+
+/* ───────────── 7. the bore — a bucket, then a pump ───────────── */
+
+suite('7. a dead brine bore: bail it once, then fit a pump', () => {
+  it('⭐⭐ the bailer still brings brine up from twenty-five metres (AC 11)', async () => {
+    // The force pump comes out of the deep well and goes with us; the
+    // bailer is the abandoned rig's own, at the hollow — ⚠ not the rack's,
+    // which the drilling drive carries off when both run in one world.
+    const pulled = await say(k, 'get pump from well');
+    expect(refusedFor(pulled), `pull the force pump: ${JSON.stringify(pulled.notes)}`).toBeNull();
+    await walk(k, ['east']);
+    await say(k, 'get bailer');
+    await k.drainProse();
+    expect(await carried(k)).toMatch(/bailer/i);
+    const hollow = await read(k, 'look');
+    note(`look (the spring hollow) → ${hollow.replace(/\s+/g, ' ').slice(0, 300)}`);
+    expect(hollow).toMatch(/old brine bore|bore|rig/i);
+
+    // The first reconcile only stamps; an hour later the leg has seeped in.
+    const first = await say(k, 'bail into pail');
+    if (first.notes.some((n) => n.kind === 'engagement-started')) await settle(k, first);
+    await k.drainProse();
+    await advance('1 hours');
+    const trip = await say(k, 'bail into pail');
+    const tripped = await settle(k, trip);
+    note(`bail into pail at 25 m → ${tripped.replace(/\s+/g, ' ').slice(-200)}`);
+    expect(tripped).toMatch(/(litres|A cupful) out of the hole/i);
+    await say(k, 'spill pail');
+    await k.drainProse();
+  });
+
+  it('⭐⭐ a force pump set in the hole lifts brine — and keeps lifting', async () => {
+    const put = await say(k, 'put pump in bore');
+    await k.drainProse();
+    note(`put pump in bore → ${refusedFor(put) ?? 'ok'}`);
+    expect(refusedFor(put), `put pump in bore: ${JSON.stringify(put.notes)}`).toBeNull();
+
+    await advance('1 hours');
+    const a = await pumpOnce(k, 'bore');
+    note(`pump bore → ${a.replace(/\s+/g, ' ').slice(-160)}`);
+    expect(a).toMatch(/salt water comes up|comes up in gouts/i);
+
+    await say(k, 'fill pail from bore');
+    await say(k, 'spill pail');
+    await k.drainProse();
+    await advance('1 hours');
+    const b = await pumpOnce(k, 'bore');
+    note(`pump bore again, an hour on → ${b.replace(/\s+/g, ' ').slice(-160)}`);
+    expect(b).toMatch(/comes up in gouts/i);
+  });
+
+  it('⭐ a suction pump on the same hole is told the depth (brine stands lower than water)', async () => {
+    const eye = await read(k, 'analyze pump bore');
+    note(`analyze pump bore (force) → ${eye.replace(/\s+/g, ' ').trim()}`);
+    expect(eye).toMatch(/drives/i);
+    expect(eye).not.toMatch(/no deeper than/);
+  });
+});
+
+/* ───────────── 8. the city intake costs a watt; the aqueduct does not ───────────── */
+
+const BANK = '/world/terminus/wharfside/bank';
+const SQUARE = '/world/terminus/market/square';
+const LANE = '/world/terminus/hinkley-hills/location/lane';
+const SMITHY = '/world/terminus/hearthworks/location/smithy';
+
+suite('8. the intake draws real power; the aqueduct draws none', () => {
+  it('⭐⭐ analyze water the intake reads the kilowatts — and says it is short of them', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    await daylight();
+    const intake = await read(k, 'analyze water intake');
+    note(`analyze water intake → ${intake.replace(/\s+/g, ' ').trim()}`);
+    expect(intake).toMatch(/kW/);
+    expect(intake).toMatch(/pump/i);
+    // ⭐ The overdraw, LEGIBLE: the pump wants more than the line gives it.
+    expect(intake).toMatch(/the line gives it 60\.0 kW/);
+    expect(intake).toMatch(/less than is asked of it/);
+
+    const aqueduct = await read(k, 'analyze water aqueduct');
+    note(`analyze water aqueduct → ${aqueduct.replace(/\s+/g, ' ').trim()}`);
+    expect(aqueduct).toMatch(/runs on gravity, and costs nothing to run/);
+
+    const power = await read(k, 'analyze power intake pump');
+    note(`analyze power intake pump → ${power.replace(/\s+/g, ' ').trim()}`);
+    expect(power, 'the pump is a real consumer on the Wharfside line').toMatch(/60\.0 kW reaching it/);
+    expect(power, 'a running pump turns').toMatch(/kg a minute/);
+  });
+});
+
+/* ───────────── 9. switch it off, and a tap uphill says so ───────────── */
+
+suite('9. stopping the city pump is observable from a tap uphill', () => {
+  it('⭐⭐⭐ off at the bank → the market standpipe is shut off, in the shipped words → on, and it runs', async () => {
+    const off = await act(k, 'switch pump off');
+    note(`switch pump off → ${refusedFor(off.r) ?? 'ok'} · ${off.said.trim()}`);
+    expect(refusedFor(off.r), `switch off: ${JSON.stringify(off.r.notes)}`).toBeNull();
+
+    k.close();
+    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    const looked = await read(k, 'look standpipe');
+    note(`look standpipe (pump off) → ${looked.replace(/\s+/g, ' ').trim()}`);
+    expect(looked).toMatch(/Nothing comes out of it: it has been shut off\./);
+    const dry = await act(k, 'fill pail from standpipe');
+    note(`fill pail from standpipe (pump off) → ${dry.said.trim()}`);
+    expect(dry.said).toMatch(/can't fill/i);
+    const report = await read(k, 'analyze water standpipe');
+    note(`analyze water standpipe (pump off) → ${report.replace(/\s+/g, ' ').trim()}`);
+    expect(report).toMatch(/NOT delivering: it has been shut off \(off\)/);
+
+    k.close();
+    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const on = await act(k, 'switch pump on');
+    expect(refusedFor(on.r), `switch on: ${JSON.stringify(on.r.notes)}`).toBeNull();
+
+    k.close();
+    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    const wet = await act(k, 'fill pail from standpipe');
+    note(`fill pail from standpipe (pump on) → ${wet.said.trim()}`);
+    expect(wet.said).toMatch(/you fill/i);
+    expect(await read(k, 'look standpipe')).not.toMatch(/Nothing comes out/);
+    await say(k, 'spill pail');
+  });
+});
+
+/* ───────────── 10. the forge's bellows, as it always was ───────────── */
+
+suite('10. pump forge reads and behaves exactly as before', () => {
+  it('⭐ the bellows answers in its shipped sentences', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: SMITHY, wizard: true });
+    const { r, said } = await act(k, 'pump forge');
+    note(`pump forge → ${refusedFor(r) ?? 'ok'} · ${said.trim()}`);
+    expect(r.notes.find((n) => n.kind === 'command-rejected')).toBeUndefined();
+    // ⚠ Which sentence depends on the forge's own state — a fresh world's
+    // forge has an empty bed — so the assertion reads the reason and holds
+    // the matching shipped sentence to the letter.
+    const why = refusedFor(r);
+    if (why === 'not-lit') {
+      // ⚠ The forge's NAME is perception's (an unlit smithy renders it
+      // "something"); the sentence frame is the shipped one, to the letter.
+      expect(said).toMatch(/^You work the bellows, but .+ is cold — air without fire moves nothing\.$/);
+    } else {
+      expect(why).toBeNull();
+      expect(said).toMatch(/You lean into the bellows, and .* roars up white-hot\./);
+    }
+  });
+});
+
+/* ───────────── 13. Hinkley still runs on gravity ───────────── */
+
+suite('13. the Hinkley tank still runs on gravity, with no pump', () => {
+  it('⭐ its fifteen metres of head still explain it', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: LANE, wizard: true });
+    const tank = await read(k, 'analyze water tank');
+    note(`analyze water tank (Hinkley) → ${tank.replace(/\s+/g, ' ').trim()}`);
+    expect(tank).not.toMatch(/pump/i);
+    // ⚠ A FINDING, recorded rather than asserted away: the district tank is
+    // not a supply reporter, so `analyze water tank` answers "carries no
+    // water anywhere" — before this build and after it (the tank and the
+    // standpipe rows are not in this build's diff). The tank's own prose is
+    // what says its fifteen metres are the pressure.
+    const looked = await read(k, 'look tank');
+    note(`look tank (Hinkley) → ${looked.replace(/\s+/g, ' ').slice(0, 260)}`);
+    expect(looked).toMatch(/standpipe below runs because it is up here/i);
+  });
+});

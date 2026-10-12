@@ -61,7 +61,7 @@ export default class Gunwale extends Shore {
     if (!ref || !at || !(sea instanceof WaterExpanse)) {
       // No `lines`: the read says "hard to read yet" rather than nothing
       // (an empty list rendered the gunwale with no water at all).
-      this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS, ref };
+      this._memo = { reach: null, standing: null, disciplineKey: null, ice: null, atS: nowS, ref };
       return;
     }
     const room = this.getContainer();
@@ -72,6 +72,7 @@ export default class Gunwale extends Shore {
       reach: null,
       standing,
       disciplineKey: await this.disciplineKeyNow(),
+      ice: null, // no sea ice is modelled; a frozen reach is the river's
       atS: nowS,
       lines,
       ref,

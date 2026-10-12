@@ -55,12 +55,10 @@ settings:
     value: "30"
 
   # ── snowpack ──────────────────────────────────────────────────────
-  # How far back the snowpack integral looks. It has to see a whole
-  # winter to know what is sitting on the mountain, so it is deliberately
-  # far longer than the flow window — and it is the most expensive read
-  # in the build, which is why flow is memoised per weather segment.
-  - key: water.snow.windowDays
-    value: "180"
+  # ⭐ The snowpack is the KERNEL's since the climate build
+  # (`WeatherApi.snowCoverAt` — the same pack a floor reports lying on
+  # it), walked back to the last melt-out (`climate.walkback.*` in the
+  # platform's climate settings). The old fixed window is retired.
 
   # The atmospheric lapse rate. This one number is what makes ALTITUDE
   # the thing that banks snow: the same storm rains on the city and
@@ -75,18 +73,48 @@ settings:
   - key: water.snow.meltMmPerKPerDay
     value: "4"
 
-  # ⚠ Mean SEA-LEVEL air temperature by season. This table exists
-  # because a REACH has no room to resolve a biome from — it is a
-  # position on a river, not a place you stand — so the catchment needs
-  # a temperature model of its own. The lapse rate above does the rest.
-  - key: water.season.meanK.spring
-    value: "285"
-  - key: water.season.meanK.summer
-    value: "295"
-  - key: water.season.meanK.fall
-    value: "283"
-  - key: water.season.meanK.winter
-    value: "272"
+  # The seasonal temperature table that used to live here is RETIRED
+  # (the climate build): a reach reads the realm's one temperature at its
+  # course's authored site (`site:` on the Watercourse row) and its node's
+  # elevation, so the river and the street beside it agree.
+
+  # ── ice on a still reach (the climate build) ─────────────────────
+  # Running water does not freeze over here: at or above this current
+  # (m/s) a reach reads `running` (the thin place over the current is the
+  # ice trade's to model).
+  - key: water.ice.stillWaterMps
+    value: "0.1"
+
+  # Stefan's law: a sheet thickens as α·√(freezing degree-days), because
+  # its own thickness insulates the water beneath. α for clear (black)
+  # ice grown on open water…
+  - key: water.ice.growthClear
+    value: "0.027"
+
+  # …and for ice grown under snow, which insulates it: slower, white,
+  # weaker (the sheet reads `snow-ice` once 30 % of its cold came so).
+  - key: water.ice.growthUnderSnow
+    value: "0.017"
+
+  # Thaw: metres of sheet lost per kelvin above freezing per day.
+  - key: water.ice.meltMPerKd
+    value: "0.005"
+
+  # Thawing degree-days over the last five days above which a sheet reads
+  # ROTTEN — honeycombed and dark, whatever its thickness.
+  - key: water.ice.rotTddK
+    value: "10"
+
+  # Gold's formula: a sheet bears σ·h² (kg, h in metres) — a person at
+  # 6 cm, a horse at 14, a loaded cart at 20. The ice trade's margins are
+  # its own.
+  - key: water.ice.bearingKgPerM2
+    value: "25000"
+
+  # The walk-back's cap: a sheet that never opened inside the bound
+  # (climate.walkback.maxDays) is perennial at this thickness.
+  - key: water.ice.perennialMaxM
+    value: "2.0"
 
   # ── navigability ──────────────────────────────────────────────────
   # BOTH conditions hold. A torrent through a gorge is not navigable and

@@ -197,9 +197,9 @@ beforeEach(() => {
   vi.spyOn(MixinApi, 'isBeliefStore').mockReturnValue(true as never);
   vi.spyOn(MixinApi, 'isFeeder').mockReturnValue(false);
   vi.spyOn(MixinApi, 'isTangible').mockReturnValue(false);
-  vi.spyOn(LocomotionApi, 'traverseWithDefault').mockResolvedValue(
-    undefined as never,
-  );
+  vi.spyOn(LocomotionApi, 'traverseWithDefault').mockResolvedValue({
+    ok: true,
+  });
   vi.spyOn(PersistableApi, 'placeIdOf').mockImplementation(
     (s: Stuff) => (s as unknown as { stuffId: string }).stuffId,
   );

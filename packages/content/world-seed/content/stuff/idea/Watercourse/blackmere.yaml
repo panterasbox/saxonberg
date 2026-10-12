@@ -1,0 +1,14 @@
+# blackmere — the north station's mere (the climate build). Black ice since
+# the autumn, more than a metre of it: the standing case.
+class: /system/water/idea/Watercourse
+data:
+  key: blackmere
+  name: blackmere
+  basin: blackmere
+  branchesFrom: null
+  water: { pH: 6.8, hardnessDgh: 2, nitrateMgL: 0.3 }
+  # Where on the world it lies (the climate build). Wide and deep, so the
+  # water is still and a sheet can form on it.
+  site: { latitudeDeg: 71, continentality: 0.7 }
+  nodes:
+    - { name: mere, elevation: 50, channelWidthM: 200, meanDepthM: 4 }

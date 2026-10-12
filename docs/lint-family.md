@@ -1770,6 +1770,28 @@ and both were given coverage in the same wave rather than left
 vacuous — a gate that answers "no" to every question is the failure
 class this family exists to prevent.
 
+### `lint:biome` — every biome a room names exists, as one tree (2026-10)
+
+The climate build's resolve-gate. A biome is reference data a room cites
+by path and the chain resolver walks by `extends:`, and **every link
+fails silent**: a citation to no row reads the universe default and
+looks fine, a row whose class does not load is skipped by the
+catalogue's warm, and a chain that stops short answers whatever its last
+link had. `lint:census` (b) checks that a cited path EXISTS; this gate
+checks that it is a **biome** (a room citing the `outdoor` FolderZone
+passes census and has no air), that the roster is **one tree rooted at
+the universe**, that the root answers all six mandatory fields, and
+that every biome class **loads**.
+
+⭐⭐ Clause (d) is the climate rule as a gate: **no sky-exposed biome
+authors `_defaultTemperature`.** Under the sky the temperature is
+derived — latitude, elevation, continentality, offset — and a flat
+number on an outdoor biome would override the climate for every room
+that cites it, in every season. The honest tool for *this place is warm
+for its latitude* is the zone's `climateOffsetK`. (The runtime half:
+`BiomeCatalogue.warm()` now COUNTS a row that fails to stand up and
+files an author diagnostic for it, rather than a `console.warn`.)
+
 ## Where the family runs
 
 | moment | what runs |

@@ -9,7 +9,8 @@
  *     `canTraverse` performs the DOOR GATE (the mover's own circle is
  *     always theirs — the self-home rule; a fixture linked to someone
  *     else's circle admits its host; guest grants ride the parcel grant
- *     surface); `applyTraversal` → `SandboxApi.enter`.
+ *     surface), the async authority read included;
+ *     `applyTraversal` → `SandboxApi.enter`.
  *   - **`return`** (the in-circle way out, minted by `SandboxLogic`
  *     beside the entry room): `applyTraversal` → `SandboxApi.exit` —
  *     the parked field body never moved, so there is no destination to
@@ -23,7 +24,6 @@
 import Exit, { type TraversalGuard } from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
-import { ContainmentError } from '../../api/containment';
 import { SandboxApi } from '../../api/sandbox';
 import { ParcelApi } from '../../api/parcel';
 import { PlayerApi } from '../../api/player';
@@ -79,17 +79,15 @@ export default class SandboxCrossingExit extends Exit {
   }
 
   /**
-   * The sync half of the door gate: person-shape checks (an
-   * implant-less thing or a throwaway guest cannot cross). The
-   * async authority gate (owner / use-grant) runs in
-   * `applyTraversal`, where awaiting the registry is possible;
-   * refusals there ride the ordinary ContainmentError prose path.
+   * The door gate: person-shape checks (an implant-less thing or a
+   * throwaway guest cannot cross), then the authority read for THIS
+   * mover — asked at the moment of crossing, so nothing is stored.
    */
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string
-  ): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+  ): Promise<TraversalGuard> {
+    const base = await super.canTraverse(mover, mode);
     if (!base.ok) return base;
     if (this.crossingDirection === 'return') return { ok: true };
     if (!PlayerApi.isAvatarStuff(mover)) {
@@ -123,49 +121,48 @@ export default class SandboxCrossingExit extends Exit {
         reason: 'You are already on the wire; this door goes nowhere new.',
       };
     }
+    const refusal = await this.authorityRefusal(mover);
+    if (refusal !== null) return { ok: false, gate: 'blocked', reason: refusal };
     return { ok: true };
   }
 
   /**
-   * The crossing itself — Decision H's whole point — plus the async
-   * authority gate: your own circle is always yours (unlinked fixtures
-   * link on first enter — `SandboxCrossing.linkForEnterer`); someone else's
-   * circle admits its title holder and use-grant holders
-   * (`ParcelApi.hasUseGrant`, the shipped lease surface).
+   * Your own circle is always yours (an unlinked fixture opens onto
+   * whoever enters); someone else's circle admits its title holder and
+   * use-grant holders (`ParcelApi.hasUseGrant`, the shipped lease surface).
    */
-  public override async applyTraversal(
-    mover: Stuff & Containable
-  ): Promise<boolean> {
-    if (this.crossingDirection === 'return') {
-      await SandboxApi.exit(mover as unknown as Avatar);
-      return true;
-    }
-    const avatar = mover as unknown as Avatar;
-    const playerId = avatar.getPlayerId();
-    // An UNOWNED fixture never links (a public booth opens onto each
-    // enterer's own circle); an owned one is gated below.
+  private async authorityRefusal(mover: Stuff & Containable): Promise<string | null> {
+    if (!PlayerApi.isAvatarStuff(mover)) return null; // the sync gate refuses it
+    const playerId = (mover as unknown as Avatar).getPlayerId();
     const linked = this.crossing
       ? (await this.crossing.ownerPlayerId()) === null
         ? ''
         : this.crossing.getLinkedSandboxPath()
       : '';
-    const own = linked === '' || linked === `/home/${playerId}`;
-    if (!own) {
-      const moverPath = mover.getTemplatePath() ?? '';
-      const owner = ParcelApi.selfHomeOwnerOf(linked);
-      const isOwner =
-        owner?.kind === 'player' && owner.templatePath === moverPath;
-      const hasGrant =
-        !isOwner && (await ParcelApi.hasUseGrant(linked, moverPath));
-      if (!isOwner && !hasGrant) {
-        throw new ContainmentError(
-          'This door opens onto a circle that is not yours.'
-        );
-      }
+    if (linked === '' || linked === `/home/${playerId}`) return null;
+    const moverPath = mover.getTemplatePath() ?? '';
+    const owner = ParcelApi.selfHomeOwnerOf(linked);
+    if (owner?.kind === 'player' && owner.templatePath === moverPath) return null;
+    if (await ParcelApi.hasUseGrant(linked, moverPath)) return null;
+    return 'This door opens onto a circle that is not yours.';
+  }
+
+  /**
+   * The crossing itself — Decision H's whole point. Every gate has
+   * already decided by the time this runs; it only crosses (unlinked
+   * fixtures link on first enter — `SandboxCrossing.linkForEnterer`).
+   */
+  public override async applyTraversal(
+    mover: Stuff & Containable
+  ): Promise<boolean> {
+    const avatar = mover as unknown as Avatar;
+    if (this.crossingDirection === 'return') {
+      await SandboxApi.exit(avatar);
+      return true;
     }
     const scope = this.crossing
       ? await this.crossing.linkForEnterer(avatar)
-      : `/home/${playerId}`;
+      : `/home/${avatar.getPlayerId()}`;
     await SandboxApi.enter(avatar, scope);
     return true;
   }

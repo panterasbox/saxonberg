@@ -121,6 +121,20 @@ let occSeq = 0;
 
 const surfaceL = (f: Floor): number => f.getBulkAmount('surface').rawValue();
 
+/**
+ * Move the clock to a summer afternoon. ⚠ Since the climate build what
+ * falls is the temperature's call, and the reset clock's day-0 midnight
+ * at the default site is cold enough that rain falls as snow — which
+ * fills no puddle. (The seam anchors at `setScale`, so the provider reads
+ * 0 then, and game-seconds equal its value after.)
+ */
+function summerAfternoon(): void {
+  let t = 0;
+  WorldClockApi._setNowProviderForTesting(() => t);
+  WorldClockApi.setScale(1000);
+  t = 100 * 86_400 + 15 * 3600;
+}
+
 describe('Weather → Floor puddle (Phase D)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -139,6 +153,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
   });
 
   it('procgen rain accrues an occupied SkyExposed Floor pool', async () => {
+    summerAfternoon();
     const room = skyRoom();
     const floor = dryFloor(room);
     await occupy(room);
@@ -197,6 +212,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
   });
 
   it('a live wire in the rain pool shocks a bridged body (weather→bulk→electricity)', async () => {
+    summerAfternoon();
     const room = skyRoom();
     const floor = dryFloor(room);
     await occupy(room);

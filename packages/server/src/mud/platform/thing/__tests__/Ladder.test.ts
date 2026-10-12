@@ -90,23 +90,23 @@ describe('Ladder — somebody can finally climb', () => {
     return l;
   };
 
-  it('⭐ AFFORDS `climb` from the room — the drive found the verb unknown at the winze head', () => {
+  it('⭐ AFFORDS `climb` from the room — the drive found the verb unknown at the winze head', async () => {
     expect(Ladder.commandContributions.environment).toContain('platform/cmd/movement/climb.yaml');
   });
 
-  it('is the first instanceable Climbable', () => {
+  it('is the first instanceable Climbable', async () => {
     const l = makeStuff(() => new Ladder());
     expect(MixinApi.hasMixin(l, Mixins.Climbable)).toBe(true);
     expect(l.getDifficulty()).toBeNull();
   });
 
-  it('⭐ a ladder in the room satisfies the climb enablement for its axes', () => {
+  it('⭐ a ladder in the room satisfies the climb enablement for its axes', async () => {
     const climb = LocomotionApi.modeOfOrThrow('climb');
-    const before = LocomotionApi.canTraverseExit(climber, down, climb, 'down');
+    const before = (await LocomotionApi.canTraverseExit(climber, down, climb, 'down'));
     expect(before.ok).toBe(false);
     if (!before.ok) expect(before.gate).toBe('enablement');
     ladderHere();
-    expect(LocomotionApi.canTraverseExit(climber, down, climb, 'down').ok).toBe(true);
+    expect((await LocomotionApi.canTraverseExit(climber, down, climb, 'down')).ok).toBe(true);
   });
 
   it('⭐⭐ `climb down` at the head lands at the foot — the first climb in the game', async () => {

@@ -1,0 +1,10 @@
+# The snowfield — always snowing, lightly (intensity 0.3): the wet cold
+# peak. Snow has lain since the autumn.
+class: /platform/idea/Locality
+data:
+  name: The Snowfield
+  _address: north/snowfield
+  _weatherPin:
+    type: snow
+    mode: frozen
+  _precipitationIntensity: 0.3

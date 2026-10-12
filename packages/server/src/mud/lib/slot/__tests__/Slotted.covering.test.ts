@@ -177,6 +177,30 @@ describe('derived `clo` — physics, never an authored number', () => {
     expect(Object.keys(TestGarment.fieldMeta ?? {})).not.toContain('clo');
   });
 
+  it('⭐ the arrival greatcoat (climate build D18) — and what the derivation makes of it (R13)', () => {
+    // The greatcoat a new player finds in the dorm footlocker: 3.5 kg of
+    // felted (boiled) wool, the highest-loft shipped form. ⚠ R13, recorded
+    // rather than hidden: this derivation reads a garment as one solid
+    // layer of its fibre and its own loft, with no air trapped BETWEEN
+    // layers, so a real greatcoat (≈ 1.5 clo on the torso) reads lower —
+    // the figure below is the derivation's, filed against textiles, and
+    // the coat still offers what it is worth. Pinned so a change to the
+    // derivation that moves it is seen.
+    Construction.registerFabric({
+      key: 'felted',
+      layerBand: 1,
+      loft: 0.6,
+      weaveDensity: 0.9,
+      drape: 0.3,
+    });
+    dressableBody();
+    const greatcoat = garment(wool(), ['torso'], 3.5, 'felted');
+    const tweed = garment(wool(), ['torso'], 1.1, 'woven');
+    const clo = greatcoat.getClo().rawValue();
+    expect(clo).toBeCloseTo(0.431, 2);
+    expect(clo).toBeGreaterThan(tweed.getClo().rawValue() * 3);
+  });
+
   it('⭐ wool out-insulates linen AT EQUAL MASS, from material properties alone', () => {
     // AC 2. Nothing about wool is special-cased: it conducts at 0.04
     // where linen conducts at 0.05, and it is less dense, so the same

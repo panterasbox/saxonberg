@@ -7,7 +7,8 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import Exit from '../Exit';
 import { MobileMixin } from '../../spatial/Mobile';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -33,6 +34,9 @@ function endpoints(): { locA: CartesianLocation; locB: CartesianLocation } {
 }
 
 describe('Exit.edgeMinutes', () => {
+  beforeEach(() => {
+    buildAllModes();
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('defaults to null — the corridor default answers instead', () => {

@@ -184,6 +184,14 @@ describe('WeatherReading', () => {
     const room = skyRoom();
     room.setAddress('narnia/castle');
     WeatherApi._forceTypeForTesting('storm');
+    // A summer afternoon: what falls is the temperature's call since the
+    // climate build, and the pinned clock's day-0 midnight snows.
+    // (The seam anchors at `setScale`, so the provider reads 0 then and
+    // the instant after — game-seconds == the provider's value.)
+    let t = 0;
+    WorldClockApi._setNowProviderForTesting(() => t);
+    WorldClockApi.setScale(1000);
+    t = 100 * 86_400 + 15 * 3600;
 
     const { body } = await runVerb(room);
     expect(body).toContain('provenance: modelled');
@@ -205,6 +213,11 @@ describe('WeatherReading', () => {
     expect(body).toContain('type: rain');
     expect(body).toContain('provenance: authored');
     expect(body).toContain('nimbostratus'); // rain cloud form
+    // ⭐ The forecast follows the pin (the climate build's browser walk:
+    // "never changes here" beside a procgen forecast of clear sky).
+    const forecastLine = body.split('\n').find((l) => l.includes('forecast:')) ?? '';
+    expect(forecastLine).toMatch(/forecast: rain( → rain)+/);
+    expect(forecastLine).not.toContain('clear');
   });
 
   it('rejects a non-place target', async () => {

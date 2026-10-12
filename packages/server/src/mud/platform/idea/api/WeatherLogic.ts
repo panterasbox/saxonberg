@@ -10,6 +10,7 @@ import type { Containable } from '../../../lib/spatial/Containable';
 import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { AddressApi } from '../../../api/address';
+import { ZoneApi } from '../../../api/zone';
 import { WorldClockApi } from '../../../api/worldclock';
 import { CelestialApi } from '../../../api/celestial';
 import { ConnectionApi } from '../../../api/connection';
@@ -48,6 +49,10 @@ import {
   type PrecipitationIntegral,
   type WeatherSegment,
   type StormExposed,
+  type ClimateSite,
+  type DailyRange,
+  type SnowCover,
+  type SnowStep,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
@@ -126,27 +131,41 @@ const SEGMENTS_PER_YEAR = Math.round(
 const seasonCache = new Map<number, Season>();
 
 /**
- * The season governing a segment, evaluated at the segment's start.
- * Wave 1 season is global (single `CAMPUS_LATITUDE`), so the pure
- * `CelestialApi.seasonFor(EARTH_LIKE, t)` is sufficient and keeps
- * `weatherAt` process-stable with no clock. Memoized per year-relative
- * segment to keep the per-read cost off the gated proxy. Season is
+ * Is this site in the southern hemisphere? The grammar's only question
+ * about where it is: `SEASON_BIAS` biases by the LOCAL season, so a
+ * southern place snows in July. `null`/absent = the realm default
+ * (northern), which keeps every caller that names no site byte-identical.
+ */
+function isSouthern(site: ClimateSite | null | undefined): boolean {
+  return site != null && site.latitudeDeg < 0;
+}
+
+/**
+ * The season governing a segment, evaluated at the segment's start, in
+ * one hemisphere (`south`: the site's latitude is negative). The pure
+ * `CelestialApi.seasonFor(EARTH_LIKE, t, ±1)` keeps `weatherAt`
+ * process-stable with no clock. Memoized per (hemisphere, year-relative
+ * segment) to keep the per-read cost off the gated proxy. Season is
  * exactly periodic with `SEGMENTS_PER_YEAR`, so we both key AND compute
  * from the normalized non-negative residue — the computed value always
  * matches its key, and negative segments (the `seg - 1` interpolation
  * lookback at segment 0) never depend on `dayOfYear`'s negative-time
  * handling.
  */
-function seasonAtSegment(seg: number): Season {
-  const key =
+function seasonAtSegment(seg: number, south = false): Season {
+  const residue =
     SEGMENTS_PER_YEAR > 0
       ? ((seg % SEGMENTS_PER_YEAR) + SEGMENTS_PER_YEAR) % SEGMENTS_PER_YEAR
       : seg;
+  // The hemisphere is part of the key: the same segment is spring in the
+  // north and autumn in the south.
+  const key = south ? -1 - residue : residue;
   const hit = seasonCache.get(key);
   if (hit !== undefined) return hit;
   const season = CelestialApi.seasonFor(
     EARTH_LIKE,
-    key * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    residue * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    south ? -1 : 1,
   );
   seasonCache.set(key, season);
   return season;
@@ -190,8 +209,9 @@ function anchorTypeFor(
   anchorSeg: number,
   seed: number,
   lean: ClimateLean | null,
+  south = false,
 ): WeatherType {
-  const season = seasonAtSegment(anchorSeg);
+  const season = seasonAtSegment(anchorSeg, south);
   const roll = Seeded.unit(anchorSeg, seed ^ 0x0000_a5a5);
   return pickWeighted(ANCHOR_CANDIDATES, season, roll, lean);
 }
@@ -218,13 +238,14 @@ function typeForSegment(
   seg: number,
   seed: number,
   lean: ClimateLean | null,
+  south = false,
 ): WeatherType {
   if (forcedType !== null) return forcedType;
   const warm = WEATHER_DEFAULTS.GRAMMAR_WARMUP;
   const anchorSeg = Math.floor(seg / warm) * warm;
-  let cur = anchorTypeFor(anchorSeg, seed, lean);
+  let cur = anchorTypeFor(anchorSeg, seed, lean, south);
   for (let i = anchorSeg; i < seg; i++) {
-    const season = seasonAtSegment(i + 1);
+    const season = seasonAtSegment(i + 1, south);
     cur = nextTypeFrom(cur, season, Seeded.unit(i + 1, seed), lean);
   }
   return cur;
@@ -260,6 +281,8 @@ async function loadExpanseApi(): Promise<void> {
  * cached; the boundary fan-out asks for every occupied room each segment.
  */
 const localityByScope = new Map<string, Locality | null>();
+/** The climate site beside it (the hemisphere decides the season's draw). */
+const siteByScope = new Map<string, ClimateSite | null>();
 
 async function localityOf(scope: Stuff & Container): Promise<Locality | null> {
   const locality = await AddressApi.resolveLocalityFor(scope);
@@ -328,20 +351,22 @@ function lerpDeviation(
 function computeSample(
   nowS: number,
   locality: Locality | null,
+  site?: ClimateSite | null,
   lean: ClimateLean | null = leanOf(locality),
 ): WeatherSample {
   const seed = localitySeed(locality);
+  const south = isSouthern(site);
   const seg = segmentIndexAt(nowS);
   const segStart = seg * WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
   const frac = (nowS - segStart) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
-  const curType = typeForSegment(seg, seed, lean);
+  const curType = typeForSegment(seg, seed, lean, south);
   const curProfile = WEATHER_PROFILES[curType];
 
   let deviation = curProfile.deviation;
   const band = WEATHER_DEFAULTS.INTERP_BAND;
   if (band > 0 && frac < band) {
-    const prevType = typeForSegment(seg - 1, seed, lean);
+    const prevType = typeForSegment(seg - 1, seed, lean, south);
     const prevDev = WEATHER_PROFILES[prevType].deviation;
     deviation = lerpDeviation(prevDev, curProfile.deviation, frac / band);
   }
@@ -352,7 +377,7 @@ function computeSample(
     deviation,
     cloud: curProfile.cloud,
     precipitation: curProfile.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, south),
   };
 }
 
@@ -485,20 +510,29 @@ function integratePrecipitation(
   t0S: number,
   t1S: number,
   locality: Locality | null,
+  site: ClimateSite | null = null,
 ): PrecipitationIntegral {
   let liquidMm = 0;
   let frozenMm = 0;
-  const coveredS = walkSegments(t0S, t1S, locality, (seg) => {
-    const rate = precipitationRateOf(seg.type);
-    if (rate <= 0) return;
-    const mm = rate * (seg.overlapS / 3600);
-    // Where it goes is the DESCRIPTOR's call: `snow` banks, everything
-    // else runs off. The temperature gate lives in the weather grammar
-    // (snow is zeroed in summer, heavy in winter), so the integral does
-    // not need a second, disagreeing one.
-    if (WEATHER_PROFILES[seg.type].precipitation === 'snow') frozenMm += mm;
-    else liquidMm += mm;
-  });
+  const intensity = precipitationIntensityOf(locality, site);
+  const coveredS = walkSegments(
+    t0S,
+    t1S,
+    locality,
+    (seg) => {
+      const rate = precipitationRateOf(seg.type);
+      if (rate <= 0) return;
+      const mm = rate * intensity * (seg.overlapS / 3600);
+      // ⭐ Where it goes is the PHASE's call: snow banks, rain runs off.
+      // With a site the phase is the temperature's (a `snow` segment over
+      // a 290 K valley rains); with none it is the type's descriptor, as
+      // it always was, so a caller that names no place is byte-identical.
+      if (seg.phase === 'snow') frozenMm += mm;
+      else liquidMm += mm;
+    },
+    WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS,
+    site,
+  );
   return {
     liquid: Quantity.of(liquidMm, 'mm'),
     frozen: Quantity.of(frozenMm, 'mm'),
@@ -525,6 +559,7 @@ function walkSegments(
   locality: Locality | null,
   visit: (segment: WeatherSegment) => void,
   maxSegments: number = WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS,
+  site: ClimateSite | null = null,
 ): number {
   if (!Number.isFinite(t0S) || !Number.isFinite(t1S) || t1S <= t0S) return 0;
 
@@ -553,20 +588,73 @@ function walkSegments(
   const pin = locality?.getWeatherPin() ?? null;
   const seed = localitySeed(locality);
   const lean = leanOf(locality);
+  const south = isSouthern(site);
+  const dials = site !== null ? climateDials() : null;
+  const snowK =
+    site !== null ? dial(AppSettingKeys.climateSnowThresholdK, 274.5) : 0;
 
   for (let seg = firstSeg; seg <= lastSeg; seg++) {
     const segStart = seg * L;
     const overlapS = Math.min(t1S, segStart + L) - Math.max(from, segStart);
     if (overlapS <= 0) continue;
+    const type = pin !== null ? pin.type : typeForSegment(seg, seed, lean, south);
     visit({
       segmentIndex: seg,
-      type: pin !== null ? pin.type : typeForSegment(seg, seed, lean),
-      season: seasonAtSegment(seg),
+      type,
+      season: seasonAtSegment(seg, south),
       startsAtS: segStart,
       overlapS,
+      // The phase at the segment's MIDPOINT — a property of the segment,
+      // so the same segment reads the same phase from any window.
+      phase:
+        site !== null && dials !== null
+          ? phaseAt(type, site, segStart + L / 2, dials, snowK)
+          : WEATHER_PROFILES[type].precipitation,
     });
   }
   return t1S - from;
+}
+
+/**
+ * ⭐ **Rain or snow, by temperature.** A type that precipitates falls as
+ * snow when the air at the site — the climate plus the type's own
+ * deviation — is at or below `climate.snowThresholdK`, else as rain. The
+ * grammar's type word (`snow` vs `rain`) still shapes the sky, the cloud
+ * form and the deviation; it no longer decides what reaches the ground.
+ */
+function phaseAt(
+  type: WeatherType,
+  site: ClimateSite,
+  atS: number,
+  d: ClimateDials,
+  snowK: number,
+): 'none' | 'rain' | 'snow' {
+  if (WEATHER_PROFILES[type].precipitation === 'none') return 'none';
+  const k = climateK(site, atS, d) + WEATHER_PROFILES[type].deviation.temperature.rawValue();
+  return k <= snowK ? 'snow' : 'rain';
+}
+
+/**
+ * ⭐ **How hard it rains here** — the Locality's authored multiplier, else
+ * the light latitude default: 1 up to `climate.precipDryAboveDeg` (55°),
+ * falling linearly to `climate.precipPolarFactor` (0.4) at 80°, because
+ * polar air holds little water. Grain, not law: an author's number wins.
+ * With neither a Locality figure nor a site it is 1, which is every
+ * caller before the climate build.
+ */
+function precipitationIntensityOf(
+  locality: Locality | null,
+  site: ClimateSite | null,
+): number {
+  const authored = locality?.getPrecipitationIntensity() ?? null;
+  if (authored !== null) return authored;
+  if (site === null) return 1;
+  const lat = Math.abs(site.latitudeDeg);
+  const dryAbove = dial(AppSettingKeys.climatePrecipDryAboveDeg, 55);
+  const polar = dial(AppSettingKeys.climatePrecipPolarFactor, 0.4);
+  if (lat <= dryAbove) return 1;
+  const f = Math.min(1, (lat - dryAbove) / Math.max(1e-6, 80 - dryAbove));
+  return 1 + (polar - 1) * f;
 }
 
 /**
@@ -615,6 +703,7 @@ function pinnedSample(
   pin: WeatherPin,
   locality: Locality | null,
   nowS: number,
+  site: ClimateSite | null = null,
 ): WeatherSample {
   const profile = WEATHER_PROFILES[pin.type];
   const seg = segmentIndexAt(nowS);
@@ -624,12 +713,12 @@ function pinnedSample(
     deviation: pinnedDeviation(pin, locality, nowS),
     cloud: profile.cloud,
     precipitation: profile.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, isSouthern(site)),
   };
 }
 
 /** The biome-baseline sample: `clear`, zero deviation (indoor / no-sky, no pin). */
-function baselineSample(nowS: number): WeatherSample {
+function baselineSample(nowS: number, site: ClimateSite | null = null): WeatherSample {
   const seg = segmentIndexAt(nowS);
   const p = WEATHER_PROFILES.clear;
   return {
@@ -638,7 +727,7 @@ function baselineSample(nowS: number): WeatherSample {
     deviation: p.deviation,
     cloud: p.cloud,
     precipitation: p.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, isSouthern(site)),
   };
 }
 
@@ -675,21 +764,24 @@ function computeResolved(
   locality: Locality | null,
   nowS: number,
   skyExposed: boolean,
+  site: ClimateSite | null = null,
 ): ResolvedWeather {
   const pin = resolveWeatherPin(scope, locality);
   if (pin !== null) {
-    const sample = pinnedSample(pin, locality, nowS);
+    const sample = pinnedSample(pin, locality, nowS, site);
     return {
       sample,
       provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
-      precipitationHere: sample.precipitation,
+      precipitationHere: skyExposed
+        ? phaseHere(sample, site, nowS)
+        : sample.precipitation,
       cloudForm: cloudFormFor(sample.type, []),
     };
   }
   // No pin: the procgen sky field only reaches SkyExposed scopes; an
   // indoor scope reads the biome baseline (weather = sky dynamics).
   if (!skyExposed) {
-    const sample = baselineSample(nowS);
+    const sample = baselineSample(nowS, site);
     return {
       sample,
       provenance: 'biome',
@@ -698,14 +790,31 @@ function computeResolved(
     };
   }
   const lean = effectiveLean(scope, locality);
-  const sample = computeSample(nowS, locality, lean);
+  const sample = computeSample(nowS, locality, site, lean);
   const leaned = hasLean(lean);
   return {
     sample,
     provenance: leaned ? 'climate-leaned' : 'procgen',
-    precipitationHere: sample.precipitation,
+    precipitationHere: phaseHere(sample, site, nowS),
     cloudForm: cloudFormFor(sample.type, []),
   };
+}
+
+/**
+ * What is falling here NOW, under the sky: the sample's descriptor
+ * re-decided by the temperature at the site (the air the sample's own
+ * deviation sits on), so `analyze weather`, the puddle and the wetness
+ * push all agree with the integral. An indoor pin (the weeping chamber's
+ * rain) keeps its descriptor — it does not fall from this sky.
+ */
+function phaseHere(
+  sample: WeatherSample,
+  site: ClimateSite | null,
+  nowS: number,
+): 'none' | 'rain' | 'snow' {
+  if (sample.precipitation === 'none' || site === null) return sample.precipitation;
+  const k = climateK(site, nowS, climateDials()) + sample.deviation.temperature.rawValue();
+  return k <= dial(AppSettingKeys.climateSnowThresholdK, 274.5) ? 'snow' : 'rain';
 }
 
 /**
@@ -740,6 +849,7 @@ function computeSkyRead(
   resolved: ResolvedWeather,
   locality: Locality | null,
   nowS: number,
+  site: ClimateSite | null = null,
   lean: ClimateLean | null = leanOf(locality),
 ): SkyRead {
   const modelled =
@@ -758,7 +868,7 @@ function computeSkyRead(
   const n = Math.max(0, Math.floor(dial(AppSettingKeys.weatherSkyForecastSegments, 2)));
   const upcoming: WeatherType[] = [];
   for (let i = 1; i <= n; i++) {
-    upcoming.push(typeForSegment(seg + i, seed, lean));
+    upcoming.push(typeForSegment(seg + i, seed, lean, isSouthern(site)));
   }
   const cloudForm = cloudFormFor(currentType, upcoming);
   return {
@@ -812,7 +922,8 @@ async function runBoundaryFanout(): Promise<void> {
 
     if (nowS === null) continue;
     const locality = await localityOf(room);
-    const resolved = computeResolved(room, locality, nowS, sky);
+    const site = await siteOfRoom(room);
+    const resolved = computeResolved(room, locality, nowS, sky, site);
 
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
@@ -844,7 +955,7 @@ async function runBoundaryFanout(): Promise<void> {
       // town, so the dim term asks for the exposed sample explicitly.
       const skySample = sky
         ? resolved.sample
-        : computeResolved(room, locality, nowS, true).sample;
+        : computeResolved(room, locality, nowS, true, site).sample;
       const dimFactor = dial(AppSettingKeys.weatherCloudDimFactor, 0.6);
       const dim = Math.max(0, 1 - dimFactor * skySample.cloud);
       (room as unknown as AmbientLit).setWeatherDimFactor(dim);
@@ -852,78 +963,334 @@ async function runBoundaryFanout(): Promise<void> {
   }
 }
 
+/**
+ * A room's climate site through its own memo (awaited, so a fan-out never
+ * folds the default), or `null` for a scope with no air of its own.
+ */
+async function siteOfRoom(room: Stuff & Container): Promise<ClimateSite | null> {
+  if (!MixinApi.isAtmospheric(room)) return null;
+  const host = room as unknown as Atmospheric;
+  await host.resolveClimateSite();
+  return host.climateSite();
+}
+
 /* ─────────────────────────── Wave-2 puddle sink ─────────────────────────── */
 
+/* ─────────────── the climate: one temperature from four levers ─────────────── */
+
 /**
- * ⭐⭐ **The sun's own contribution to the temperature**, in K, as a
- * deviation from the universe baseline.
- *
- * ```
- *   −A_year · cos(2π · doy / year)  −  A_day · cos(2π · (secOfDay − 3h) / day)
- * ```
- *
- * Two cosines: one turning once a year, one once a day, each at its
- * minimum where the sun is lowest. `A_year = 10 K` and `A_day = 4 K`
- * put a winter night near 281 K (8 °C), a winter noon near 289, a
- * summer noon near 309 and a summer night near 301. The diurnal term
- * lags three hours, so the coldest hour is about 3 a.m. rather than
- * midnight — heat keeps leaving after the sun stops arriving, which is
- * why dawn is the cold part of the night.
- *
- * ## ⚠⚠ Why this had to exist at all
- *
- * The requirements said *"outside, temperature is already alive — the
- * weather deviates it and the season biases it — so the realm already
- * has a winter"*. **It did not.** `WEATHER_PROFILES` deviate by weather
- * TYPE only (clear 0, overcast −1, rain −3, storm −5 K) over a 295 K
- * base, and `SEASON_BIAS` biases the type DISTRIBUTION — how often it
- * snows — and nothing else. So mid-winter at 3 a.m. read 290 K, which
- * is 17 °C, and *"an unheated room in winter is cold"* had nothing to
- * be cold FROM. The whole heat half of the build rested on a fact that
- * was true of snowfall and false of temperature.
- *
- * Same shape as the sky's illuminance factor and for the same reasons:
- * a pure function of game time, seeded-not-drawn, memoized per game
- * minute, with no state anywhere to go stale. ⚠ One latitude means one
- * climate — Terminus and Rejection get the same winter on the same day
- * — and widening that is the per-zone celestial profile, which stays a
- * named deferred seam.
+ * The climate's dials, read once per evaluation rather than per day of a
+ * walk. Seeded literals at every read (the water pack's rule): the
+ * kernel has a climate with no settings document at all.
  */
-function solarTemperatureDeviationK(nowS: number): number {
-  const minute = Math.floor(nowS / 60);
-  if (solarTempMemo.minute === minute) return solarTempMemo.value;
-  const annualSwing = dial(AppSettingKeys.weatherSolarAnnualSwingK, 10);
-  const diurnalSwing = dial(AppSettingKeys.weatherSolarDiurnalSwingK, 4);
-  const doy = CelestialApi.dayOfYear(EARTH_LIKE, nowS);
-  const secOfDay = CelestialApi.secondOfDay(EARTH_LIKE, nowS);
-  const year = EARTH_LIKE.yearLengthDays;
-  const day = EARTH_LIKE.dayLengthSeconds;
-  // Day 0 is the vernal EQUINOX, so the annual minimum sits three
-  // quarters of a year later — hence the quarter-turn offset, which is
-  // what makes `cos` bottom out in winter rather than in spring.
-  const annual =
-    -annualSwing * Math.cos((2 * Math.PI * (doy - year / 4)) / year);
-  const diurnal =
-    -diurnalSwing * Math.cos((2 * Math.PI * (secOfDay - 3 * 3600)) / day);
-  const value = annual + diurnal;
-  solarTempMemo.minute = minute;
-  solarTempMemo.value = value;
+interface ClimateDials {
+  poleK: number;
+  equatorK: number;
+  tauContinentalD: number;
+  tauMaritimeD: number;
+  mixing: number;
+  lapseKPerKm: number;
+  diurnalK: number;
+}
+
+function climateDials(): ClimateDials {
+  return {
+    poleK: dial(AppSettingKeys.climatePoleMeanK, 247),
+    equatorK: dial(AppSettingKeys.climateEquatorMeanK, 299),
+    tauContinentalD: dial(AppSettingKeys.climateTauContinentalDays, 30),
+    tauMaritimeD: dial(AppSettingKeys.climateTauMaritimeDays, 55),
+    mixing: dial(AppSettingKeys.climateMaritimeMixing, 0.6),
+    lapseKPerKm: dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5),
+    diurnalK: dial(AppSettingKeys.weatherSolarDiurnalSwingK, 4),
+  };
+}
+
+/**
+ * The seasonal memos. Pure-function memos (the `seasonCache`
+ * precedent), bounded by construction: latitude is quantised to half a
+ * degree (≤ 361 keys), continentality to a tenth (≤ 11), and the season
+ * repeats yearly, so every key is `(latitude, [continentality,] day of
+ * year)`. They depend on the dials, so a change of dial (an operator's
+ * `config`) clears them — the signature below.
+ */
+const equilibriumMemo = new Map<number, number>();
+const annualMeanMemo = new Map<number, number>();
+const seasonalMemo = new Map<number, number>();
+let climateMemoSignature = '';
+
+function syncClimateMemos(d: ClimateDials): void {
+  const sig = `${d.poleK}|${d.equatorK}|${d.tauContinentalD}|${d.tauMaritimeD}|${d.mixing}`;
+  if (sig === climateMemoSignature) return;
+  equilibriumMemo.clear();
+  annualMeanMemo.clear();
+  seasonalMemo.clear();
+  climateMemoSignature = sig;
+}
+
+/** Latitude quantised to half a degree — the memo's key and its value. */
+function latitudeKey(latitudeDeg: number): number {
+  return Math.round(Math.max(-90, Math.min(90, latitudeDeg)) * 2);
+}
+
+/** Continentality quantised to a tenth. */
+function continentalityKey(c: number): number {
+  return Math.round(Math.max(0, Math.min(1, c)) * 10);
+}
+
+function yearDays(): number {
+  return EARTH_LIKE.yearLengthDays;
+}
+
+function wrapDay(doy: number): number {
+  const Y = yearDays();
+  return ((doy % Y) + Y) % Y;
+}
+
+/**
+ * **The equilibrium temperature on a day** — what the place would sit at
+ * if it had no memory: the pole figure plus the insolation the day
+ * delivers, scaled so the equator's equinox sun reaches the equator
+ * figure.
+ *
+ * ```
+ *   π·Q = H0·sinφ·sinδ + cosφ·cosδ·sin H0        (H0 in radians)
+ *   T_eq = T_pole + (T_equator − T_pole) · π·Q
+ * ```
+ *
+ * `Q` is the day's top-of-atmosphere insolation as a fraction of the
+ * solar constant; `H0` is the sunrise hour angle (0 in polar night, π in
+ * polar day) and `δ` the declination — both CelestialApi's geometry, so
+ * the climate and the sky's path are one model.
+ */
+function equilibriumK(latKey: number, doy: number, d: ClimateDials): number {
+  const key = latKey * 400 + doy;
+  const hit = equilibriumMemo.get(key);
+  if (hit !== undefined) return hit;
+  const latDeg = latKey / 2;
+  const t = doy * EARTH_LIKE.dayLengthSeconds;
+  const decRad = (CelestialApi.declinationDeg(EARTH_LIKE, t) * Math.PI) / 180;
+  const h0 = CelestialApi.sunriseHourAngleDeg(EARTH_LIKE, latDeg, t);
+  const H0 =
+    h0 === 'polar-day' ? Math.PI : h0 === 'polar-night' ? 0 : (h0 * Math.PI) / 180;
+  const lat = (latDeg * Math.PI) / 180;
+  const piQ =
+    H0 * Math.sin(lat) * Math.sin(decRad) +
+    Math.cos(lat) * Math.cos(decRad) * Math.sin(H0);
+  const value = d.poleK + (d.equatorK - d.poleK) * piQ;
+  equilibriumMemo.set(key, value);
+  return value;
+}
+
+/** The year's mean equilibrium at a latitude — what damping pulls toward. */
+function annualMeanK(latKey: number, d: ClimateDials): number {
+  const hit = annualMeanMemo.get(latKey);
+  if (hit !== undefined) return hit;
+  const Y = yearDays();
+  let sum = 0;
+  for (let doy = 0; doy < Y; doy++) sum += equilibriumK(latKey, doy, d);
+  const value = sum / Y;
+  annualMeanMemo.set(latKey, value);
   return value;
 }
 
 /**
- * Per-game-minute memo for {@link solarTemperatureDeviationK}.
+ * **The season at a site, on a day of the year** — the lag and the
+ * damping, separately.
  *
- * ⚠ Module scope, and legitimately: `CLAUDE.md`'s rule permits
- * `const` declarations including pure value construction, and
- * `WeatherLogic` already carries `seasonCache` in exactly this shape —
- * the function is pure, so the cache holds no world state and nothing
- * needs to initialize or reset it.
+ * - The LAG is the land's memory: an exponentially weighted average of
+ *   the equilibrium over the preceding days, with time constant
+ *   `τ(c)` running from `tauContinentalDays` (c = 1) to
+ *   `tauMaritimeDays` (c = 0). A weighted sum, not a fitted sinusoid, so
+ *   it is exact for the polar night's flat floor.
+ * - The DAMPING pulls the lagged value toward the latitude's annual
+ *   mean by `m(c) = maritimeMixing · (1 − c)`: a coast's winter is mild
+ *   and its summer cool.
+ *
+ * Keeping them separate is what lets a coast be both milder AND later
+ * than an inland town at the same latitude — Seattle and Minneapolis.
  */
-const solarTempMemo: { minute: number; value: number } = {
-  minute: -1,
-  value: 0,
-};
+function seasonalK(latKey: number, cKey: number, doy: number, d: ClimateDials): number {
+  const key = (latKey + 200) * 10_000 + cKey * 400 + doy;
+  const hit = seasonalMemo.get(key);
+  if (hit !== undefined) return hit;
+  const c = cKey / 10;
+  const tau = d.tauContinentalD + (d.tauMaritimeD - d.tauContinentalD) * (1 - c);
+  const span = Math.ceil(4 * Math.max(1, tau));
+  let sum = 0;
+  let wsum = 0;
+  for (let k = 0; k <= span; k++) {
+    const w = Math.exp(-k / Math.max(1e-6, tau));
+    sum += w * equilibriumK(latKey, wrapDay(doy - k), d);
+    wsum += w;
+  }
+  const lagged = sum / wsum;
+  const m = Math.max(0, Math.min(1, d.mixing * (1 - c)));
+  const value = (1 - m) * lagged + m * annualMeanK(latKey, d);
+  seasonalMemo.set(key, value);
+  return value;
+}
+
+/**
+ * **The climate's own temperature at a site and an instant**, before
+ * the weather: the season (interpolated across the day, so the answer
+ * is continuous in time), lapsed by elevation, shifted by the offset,
+ * swung by the diurnal term (coldest three hours after midnight — heat
+ * keeps leaving after the sun stops arriving).
+ */
+function climateK(site: ClimateSite, nowS: number, d: ClimateDials): number {
+  syncClimateMemos(d);
+  const D = EARTH_LIKE.dayLengthSeconds;
+  const dayF = nowS / D;
+  const day0 = Math.floor(dayF);
+  const frac = dayF - day0;
+  const latKey = latitudeKey(site.latitudeDeg);
+  const cKey = continentalityKey(site.continentality);
+  const s0 = seasonalK(latKey, cKey, wrapDay(day0), d);
+  const s1 = seasonalK(latKey, cKey, wrapDay(day0 + 1), d);
+  const season = s0 + (s1 - s0) * frac;
+  const secOfDay = ((nowS % D) + D) % D;
+  const diurnal = -d.diurnalK * Math.cos((2 * Math.PI * (secOfDay - 3 * 3600)) / D);
+  return (
+    season -
+    (d.lapseKPerKm * site.elevationM) / 1000 +
+    site.offsetK +
+    diurnal
+  );
+}
+
+/**
+ * The weather's temperature deviation at an instant over a Locality:
+ * the pinned type's when the Locality is pinned, else the procgen
+ * grammar's (both shipped; this only composes them).
+ */
+function weatherTemperatureDeviationK(
+  locality: Locality | null,
+  nowS: number,
+  site: ClimateSite | null = null,
+): number {
+  const pin = locality?.getWeatherPin() ?? null;
+  const dev =
+    pin !== null
+      ? pinnedDeviation(pin, locality, nowS)
+      : computeSample(nowS, locality, site).deviation;
+  return dev.temperature.rawValue();
+}
+
+/** The full air temperature at a site: the climate plus the weather. */
+function temperatureAtSite(
+  site: ClimateSite,
+  locality: Locality | null,
+  nowS: number,
+  d: ClimateDials = climateDials(),
+): number {
+  return climateK(site, nowS, d) + weatherTemperatureDeviationK(locality, nowS, site);
+}
+
+/* ─────────────── snow on the ground: the walk back to the last melt-out ─────────────── */
+
+/**
+ * ⭐⭐ **The snow lying at a site, from the weather it has had** — the
+ * climate build's D6 + D15, and the ONE function the floor's snow and the
+ * catchment's snowpack both read (so the two never disagree: AC 9 holds by
+ * identity of function).
+ *
+ * Accumulate what fell as SNOW (phase by temperature, amount by the
+ * Locality's intensity), melt it on a degree-day model above freezing,
+ * and report what is lying now and what came off over the melt window.
+ *
+ * ## Why it walks back to the last melt-out (D15)
+ *
+ * A pinned Locality forces its type across the whole walk, history and
+ * all, so a fixed-window sum at a snow-pinned site where nothing melts is
+ * a SLIDING sum — each day adds a day and drops the oldest — and reads
+ * constant: a snowfield that never deepens. The state is monotone in its
+ * starting value, so the walk starts at the CAP a window back and
+ * integrates forward: once the capped pack melts to zero, every smaller
+ * start would have too, and the history after is exact. No zero before
+ * the melt window opens → double the window (180 → 360 → 720 days); none
+ * at the bound → the pack is PERENNIAL, reported at the cap. Snow older
+ * than two winters is a glacier's business, not a floor's.
+ */
+function snowWalk(
+  site: ClimateSite,
+  locality: Locality | null,
+  nowS: number,
+  meltWindowS: number,
+  onStep?: (step: SnowStep) => void,
+): SnowCover {
+  const d = climateDials();
+  const meltFactor = dial(AppSettingKeys.waterSnowMeltMmPerKPerDay, 4);
+  const capMm = dial(AppSettingKeys.climateSnowPerennialMaxMm, 1500);
+  const firstDays = Math.max(1, dial(AppSettingKeys.climateWalkbackWindowDays, 180));
+  const maxDays = Math.max(firstDays, dial(AppSettingKeys.climateWalkbackMaxDays, 720));
+  const densityRatio = Math.max(1, dial(AppSettingKeys.climateSnowDensityRatio, 10));
+  const snowK = dial(AppSettingKeys.climateSnowThresholdK, 274.5);
+  const intensity = precipitationIntensityOf(locality, site);
+  const meltFrom = nowS - meltWindowS;
+  const DAY_S = EARTH_LIKE.dayLengthSeconds;
+
+  for (let days = firstDays; ; days *= 2) {
+    const windowDays = Math.min(days, maxDays);
+    const t0 = nowS - windowDays * DAY_S;
+    let pack = capMm;
+    let zeroedBeforeMelt = false;
+    let meltMm = 0;
+    const steps: SnowStep[] = [];
+    walkSegments(
+      t0,
+      nowS,
+      locality,
+      (seg) => {
+        const mid = seg.startsAtS + WEATHER_DEFAULTS.SEGMENT_LENGTH_S / 2;
+        const airK =
+          climateK(site, mid, d) +
+          WEATHER_PROFILES[seg.type].deviation.temperature.rawValue();
+        const hours = seg.overlapS / 3600;
+        if (seg.phase === 'snow') {
+          pack = Math.min(capMm, pack + precipitationRateOf(seg.type) * intensity * hours);
+        }
+        if (airK > FREEZING_K && pack > 0) {
+          const released = Math.min(
+            pack,
+            meltFactor * (airK - FREEZING_K) * (seg.overlapS / DAY_S),
+          );
+          pack -= released;
+          if (seg.startsAtS >= meltFrom) meltMm += released;
+        }
+        if (pack <= 0 && seg.startsAtS + seg.overlapS <= meltFrom) {
+          zeroedBeforeMelt = true;
+        }
+        if (onStep) {
+          steps.push({
+            startsAtS: seg.startsAtS,
+            overlapS: seg.overlapS,
+            airK,
+            phase: seg.phase,
+            packMm: pack,
+          });
+        }
+      },
+      Math.ceil((windowDays * DAY_S) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S) + 1,
+      site,
+    );
+    const atBound = windowDays >= maxDays;
+    if (zeroedBeforeMelt || atBound) {
+      const perennial = !zeroedBeforeMelt && pack > 0;
+      if (onStep) for (const step of steps) onStep(step);
+      const packMm = perennial ? capMm : pack;
+      return {
+        packMm,
+        meltMm,
+        depthM: (packMm * densityRatio) / 1000,
+        perennial,
+        overS: meltWindowS,
+      };
+    }
+  }
+}
+
+/** Water freezes here; the degree-day melt counts kelvin above it. */
+const FREEZING_K = 273.15;
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
 function dial(key: string, fallback: number): number {
@@ -1054,7 +1421,7 @@ async function runStormFanout(): Promise<void> {
     visited.add(room.stuffId);
     if (!BiomeApi.isSkyExposed(room)) continue;
     const locality = await localityOf(room);
-    const resolved = computeResolved(room, locality, nowS, true);
+    const resolved = computeResolved(room, locality, nowS, true, await siteOfRoom(room));
     if (resolved.sample.type !== 'storm') continue;
     // ⭐ D13: every occupant that answers to a storm is called — an overhead
     // LineAccess pole faults here (presence-gated, like every weather
@@ -1200,22 +1567,20 @@ export class WeatherLogic extends ApiLogic {
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,
+    site?: ClimateSite | null,
   ): Quantity<WeatherFieldUnit> {
     const nowS = timeS.rawValue();
     const pin = resolveWeatherPin(scope, locality);
     const dev =
       pin !== null
         ? pinnedDeviation(pin, locality, nowS)
-        : computeSample(nowS, locality, effectiveLean(scope, locality)).deviation;
-    const base = dev[field] as Quantity<WeatherFieldUnit>;
-    if (field !== 'temperature') return base;
-    // ⭐⭐ The SOLAR term (envelope D3a) rides beside the type deviation,
-    // and it is why the realm has a winter at all — see
-    // {@link solarTemperatureDeviationK}.
-    return Quantity.of(
-      base.rawValue() + solarTemperatureDeviationK(nowS),
-      base.unit,
-    ) as Quantity<WeatherFieldUnit>;
+        : computeSample(nowS, locality, site, effectiveLean(scope, locality)).deviation;
+    // ⚠ The weather TYPE's deviation only. The season and the day's swing
+    // are the CLIMATE's (`climateAt`), which the biome chain substitutes
+    // for the universe baseline under the sky — before the climate build
+    // a solar cosine rode here, on top of whatever the chain answered,
+    // authored or not.
+    return dev[field] as Quantity<WeatherFieldUnit>;
   }
 
   /** See {@link WeatherApi.resolveWeatherFor}. Async — resolves locality + sky. */
@@ -1240,7 +1605,9 @@ export class WeatherLogic extends ApiLogic {
     // this ~free after the first call.
     const { BiomeApi } = await import('../../../api/biome');
     const sky = BiomeApi.isSkyExposed(scope);
-    return computeResolved(scope, locality, nowS, sky);
+    const site = await ZoneApi.climateSiteFor(scope);
+    siteByScope.set(scope.stuffId, site);
+    return computeResolved(scope, locality, nowS, sky, site);
   }
 
   /** See {@link WeatherApi.peekSkyType}. SYNC over the cached Locality. */
@@ -1248,14 +1615,19 @@ export class WeatherLogic extends ApiLogic {
   public peekSkyType(scope: Stuff & Container): WeatherType | null {
     const nowS = nowSecondsOrNull();
     if (nowS === null) return null;
-    if (biomeApi === null || !localityByScope.has(scope.stuffId)) {
+    if (
+      biomeApi === null ||
+      !localityByScope.has(scope.stuffId) ||
+      !siteByScope.has(scope.stuffId)
+    ) {
       // Never asked about: resolve it now (cached for the next read) and
       // say "not known" this once rather than guess.
       void this.resolveWeatherFor(scope).catch(() => undefined);
       return null;
     }
     const locality = localityByScope.get(scope.stuffId) ?? null;
-    return computeResolved(scope, locality, nowS, biomeApi.isSkyExposed(scope)).sample.type;
+    const site = siteByScope.get(scope.stuffId) ?? null;
+    return computeResolved(scope, locality, nowS, biomeApi.isSkyExposed(scope), site).sample.type;
   }
 
   /** See {@link WeatherApi.skyReadFor}. Async — resolves locality + forecast. */
@@ -1271,7 +1643,8 @@ export class WeatherLogic extends ApiLogic {
       };
     }
     const locality = await localityOf(scope);
-    return computeSkyRead(resolved, locality, nowS, effectiveLean(scope, locality));
+    const site = await ZoneApi.climateSiteFor(scope);
+    return computeSkyRead(resolved, locality, nowS, site, effectiveLean(scope, locality));
   }
 
   /** See {@link WeatherApi.cloudFormFor}. Pure. */
@@ -1291,19 +1664,31 @@ export class WeatherLogic extends ApiLogic {
   ): Promise<WeatherForecast> {
     await loadExpanseApi();
     const locality = await localityOf(scope);
+    const site = await ZoneApi.climateSiteFor(scope);
+    const south = isSouthern(site);
     const nowS = WorldClockApi.getNow().rawValue();
     const seed = localitySeed(locality);
     const lean = effectiveLean(scope, locality);
-    const current = computeSample(nowS, locality, lean);
+    const current = computeSample(nowS, locality, site, lean);
     const n = Math.max(0, segments ?? WEATHER_DEFAULTS.FORECAST_SEGMENTS);
     const seg = current.segmentIndex;
+    // ⚠ A pin covers the forecast too (found by the climate build's browser
+    // walk): the snowfield's frozen snow pin read "never changes here"
+    // beside a forecast of fog and clear sky drawn from the procgen field.
+    // A pinned place forecasts what its pin will be — one type forever for
+    // a frozen pin, the pin's own course for an alive one.
+    const pin = resolveWeatherPin(scope, locality);
+    const L = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
     const upcoming: WeatherForecastEntry[] = [];
     for (let i = 1; i <= n; i++) {
       const s = seg + i;
       upcoming.push({
         segmentIndex: s,
-        type: typeForSegment(s, seed, lean),
-        startsAt: Quantity.of(s * WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
+        type:
+          pin !== null
+            ? pinnedSample(pin, locality, s * L + L / 2, site).type
+            : typeForSegment(s, seed, lean, south),
+        startsAt: Quantity.of(s * L, 's'),
       });
     }
     return { current, upcoming };
@@ -1314,7 +1699,8 @@ export class WeatherLogic extends ApiLogic {
   public async sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
     await loadExpanseApi();
     const locality = await localityOf(scope);
-    return computeSample(WorldClockApi.getNow().rawValue(), locality, effectiveLean(scope, locality));
+    const site = await ZoneApi.climateSiteFor(scope);
+    return computeSample(WorldClockApi.getNow().rawValue(), locality, site, effectiveLean(scope, locality));
   }
 
   /** See {@link WeatherApi.precipitationBetween}. */
@@ -1323,8 +1709,9 @@ export class WeatherLogic extends ApiLogic {
     t0: Quantity<'s'>,
     t1: Quantity<'s'>,
     locality: Locality | null,
+    site?: ClimateSite | null,
   ): PrecipitationIntegral {
-    return integratePrecipitation(t0.rawValue(), t1.rawValue(), locality);
+    return integratePrecipitation(t0.rawValue(), t1.rawValue(), locality, site ?? null);
   }
 
   /** See {@link WeatherApi.segmentsBetween}. */
@@ -1334,6 +1721,7 @@ export class WeatherLogic extends ApiLogic {
     t1: Quantity<'s'>,
     locality: Locality | null,
     maxSegments?: number,
+    site?: ClimateSite | null,
   ): WeatherSegment[] {
     const out: WeatherSegment[] = [];
     walkSegments(
@@ -1342,8 +1730,67 @@ export class WeatherLogic extends ApiLogic {
       locality,
       (seg) => out.push(seg),
       maxSegments,
+      site ?? null,
     );
     return out;
+  }
+
+  /** See {@link WeatherApi.climateAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public climateAt(site: ClimateSite, timeS: Quantity<'s'>): Quantity<'K'> {
+    return Quantity.of(climateK(site, timeS.rawValue(), climateDials()), 'K');
+  }
+
+  /** See {@link WeatherApi.temperatureAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public temperatureAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+  ): Quantity<'K'> {
+    return Quantity.of(temperatureAtSite(site, locality, timeS.rawValue()), 'K');
+  }
+
+  /** See {@link WeatherApi.seasonAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public seasonAt(site: ClimateSite, timeS: Quantity<'s'>): Season {
+    return CelestialApi.seasonFor(EARTH_LIKE, timeS.rawValue(), site.latitudeDeg);
+  }
+
+  /** See {@link WeatherApi.dailyRangeAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public dailyRangeAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    dayStartS: Quantity<'s'>,
+  ): DailyRange {
+    const d = climateDials();
+    const t0 = dayStartS.rawValue();
+    let minK = Number.POSITIVE_INFINITY;
+    let maxK = Number.NEGATIVE_INFINITY;
+    // Hourly: the diurnal term and a segment change both resolve at an
+    // hour, and 24 samples of a memoised expression cost nothing.
+    for (let h = 0; h < 24; h++) {
+      const k = temperatureAtSite(site, locality, t0 + h * 3600, d);
+      if (k < minK) minK = k;
+      if (k > maxK) maxK = k;
+    }
+    return { minK, maxK };
+  }
+
+  /** See {@link WeatherApi.snowCoverAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public snowCoverAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+    opts?: { meltWindowS?: number; onStep?: (step: SnowStep) => void },
+  ): SnowCover {
+    const meltWindowS =
+      opts?.meltWindowS ??
+      Math.max(1, dial(AppSettingKeys.waterBaseflowWindowDays, 30)) *
+        EARTH_LIKE.dayLengthSeconds;
+    return snowWalk(site, locality, timeS.rawValue(), meltWindowS, opts?.onStep);
   }
 
   /** See {@link WeatherApi.nextBoundaryAfter}. */

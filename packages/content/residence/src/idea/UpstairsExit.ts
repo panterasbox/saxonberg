@@ -47,11 +47,11 @@ export default class UpstairsExit extends DeferredDestinationExit {
     return room;
   }
 
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
+  ): Promise<TraversalGuard> {
+    const base = await super.canTraverse(mover, mode);
     if (!base.ok) return base;
     const warren = this.warren();
     if (warren && !warren.nodeReachable(this.targetNode)) {

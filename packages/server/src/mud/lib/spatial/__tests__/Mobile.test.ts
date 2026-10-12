@@ -270,7 +270,7 @@ describe('Mobile.onSlotReleased witness', () => {
 });
 
 describe('Mobile.traverse mode-gate', () => {
-  it('throws when exit.canTraverse returns ok=false (mode rejected)', async () => {
+  it('returns the refusal when exit.canTraverse says no (mode rejected) — never throws', async () => {
     // allowsMode resolves the LocomotionMode singleton to look up
     // its medium; the rejection still works without walk loaded
     // (since walk would have medium ground, not vertical), but
@@ -287,10 +287,14 @@ describe('Mobile.traverse mode-gate', () => {
     }));
     const mover = makeStuff(() => new MobileObject());
     ContainmentApi.move(mover, locA);
-    await expect(mover.traverse(exit, 'walk')).rejects.toThrow(/walk that way/);
+    const guard = await mover.traverse(exit, 'walk');
+    expect(guard.ok).toBe(false);
+    expect(guard.gate).toBe('exitMode');
+    expect(mover.getContainer()).toBe(locA);
   });
 
   it('admits walk through a default exit', async () => {
+    buildMode('walk');
     const zone = makeStuff(() => new CartesianZone());
     const locA = makeStuff(() => new CartesianLocation());
     const locB = makeStuff(() => new CartesianLocation());
@@ -301,7 +305,7 @@ describe('Mobile.traverse mode-gate', () => {
     }));
     const mover = makeStuff(() => new MobileObject());
     ContainmentApi.move(mover, locA);
-    await expect(mover.traverse(exit, 'walk')).resolves.toBeUndefined();
+    await expect(mover.traverse(exit, 'walk')).resolves.toEqual({ ok: true });
     expect(mover.getContainer()).toBe(locB);
   });
 });

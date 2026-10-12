@@ -87,7 +87,13 @@ export type TraversalGate =
    * and so creating the row heals it, but nothing lies that way yet.
    * Before this the same situation was a BOOT CRASH.
    */
-  | 'unbuilt';
+  | 'unbuilt'
+  /**
+   * A traversal witness said no — the mover's `beforeTraverse`, the
+   * source's `canExit`, or the destination's `canEnter`. The hook's own
+   * `reason` is the prose.
+   */
+  | 'veto';
 
 /**
  * Result of `Exit.canTraverse()`.
@@ -386,17 +392,6 @@ export default class Exit extends ConcealableMixin(Idea) {
    */
   public hasSpatialDestination(): boolean { return true; }
 
-  /**
-   * Get ready to be traversed — the async half of a gate that is
-   * synchronous. An exit whose far side depends on something it has to
-   * look up (which craft lies alongside, which node a ship is at) does
-   * the lookup here, so `canTraverse` can answer from what it found.
-   *
-   * @hook Invoked (awaited) by the movement verbs after the exit is
-   *   resolved and before `canTraverse`. Default: nothing. Never throw —
-   *   a lookup that fails should leave `canTraverse` to refuse in words.
-   */
-  public async prepareTraversal(): Promise<void> {}
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
   /** Backing storage for `door`; the accessor pair mediates
@@ -963,16 +958,17 @@ export default class Exit extends ConcealableMixin(Idea) {
    * handled — `Mobile.traverse` then returns without resolving a
    * destination, announcing, or moving anything. The wardrobe passage
    * is the first override: crossing into a circle runs the wire-body
-   * choreography, and nothing material ever traverses. Default `false`
-   * (a virtual call + branch on the hot path; every ordinary exit
-   * takes the normal road).
+   * choreography, and nothing material ever traverses. Default `false`.
    *
-   * @hook Invoked by `Mobile.traverse` after the door gate
-   *   (`canTraverse`) and the mover's own veto, BEFORE departure
-   *   announcement and destination resolution. Return `true` when this
-   *   exit has fully handled the traversal (nothing more happens);
-   *   `false` to continue the ordinary move. **Override** — chain is
-   *   unnecessary (the base is a constant `false`).
+   * ⚠ ONE job: *I handle this crossing myself.* It is not a place to
+   * read state or refuse — it runs after the gate has decided; reading
+   * and refusing are {@link canTraverse}'s.
+   *
+   * @hook Invoked by `Mobile.traverse` after the gate and the mover's
+   *   `beforeTraverse`, BEFORE destination resolution, the source and
+   *   destination vetoes and the departure announcement. Return `true`
+   *   when this exit has fully handled the traversal; `false` to continue
+   *   the ordinary move. **Override** — the base is a constant `false`.
    */
   public async applyTraversal(
     _mover: Stuff & Containable
@@ -990,11 +986,21 @@ export default class Exit extends ConcealableMixin(Idea) {
    * (e.g. `'walk'`, `'climb'`). When supplied, this method consults
    * `allowsMode(mode)`. When omitted (pre-locomotion callers, admin
    * tools), the mode gate is skipped — backcompat-additive.
+   *
+   * @hook ⭐ ASYNC, so an exit whose passability depends on something
+   *   that moves reads it HERE, at the moment of asking: a ford reads the
+   *   river, a pass its snow, an ice crossing the sheet against this
+   *   mover's mass, the wardrobe whose circle it opens onto. One hook,
+   *   one question — *may this mover pass, now?* (A separate
+   *   `prepareTraversal` step existed while this was sync; it is gone.)
+   *   Readers with no mover in hand ask {@link isBlocked}, which stays
+   *   sync and is the exit's last-known summary. **Override** and
+   *   `await super.canTraverse(...)` for the ordinary gates.
    */
-  public canTraverse(
+  public async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     if (this.blocked) {
       return {
         ok: false,

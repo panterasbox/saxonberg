@@ -8,8 +8,8 @@
  * refuses in words: *there is nothing to step onto.* You leave a craft
  * only at a node; between nodes you move only between craft.
  *
- * The craft is the Structure whose entrance this room is, looked up in
- * `prepareTraversal`, so the traverse gate stays synchronous.
+ * The craft is the Structure whose entrance this room is, looked up
+ * (once, then cached) when the async gate is asked.
  */
 
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
@@ -26,11 +26,6 @@ import type StructureCatalogue from './StructureCatalogue';
 
 export default class AshoreExit extends DeferredDestinationExit {
   private craftPath: string | null = null;
-
-  /** The lookup the sync gate answers from (cached after the first). */
-  public override async prepareTraversal(): Promise<void> {
-    await this.warm();
-  }
 
   private async warm(): Promise<void> {
     if (this.craftPath !== null) return;
@@ -69,7 +64,12 @@ export default class AshoreExit extends DeferredDestinationExit {
     return null;
   }
 
-  public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
+  /** ⭐ The far side is read HERE, at the moment of asking (the lookup is cached after the first). */
+  public override async canTraverse(
+    mover: Stuff & Containable,
+    mode?: string,
+  ): Promise<TraversalGuard> {
+    await this.warm();
     if (this.landing() === null) {
       return { ok: false, gate: 'blocked', reason: 'There is nothing to step onto.' };
     }
@@ -81,6 +81,7 @@ export default class AshoreExit extends DeferredDestinationExit {
   }
 
   protected override async computeDestination(): Promise<Stuff & Container> {
+    await this.warm();
     const dest = this.landing();
     if (dest === null) throw new Error('AshoreExit: there is nothing to step onto');
     return StuffApi.singleton<Stuff & Container>(dest);

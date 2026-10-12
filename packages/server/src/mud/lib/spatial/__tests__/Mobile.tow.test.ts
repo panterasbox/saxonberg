@@ -7,6 +7,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
 import { HaulerMixin } from '../../slot/Hauler';
@@ -33,13 +34,19 @@ function tworoom(): { locA: CartesianLocation; locB: CartesianLocation; exit: Ex
   zone.addLocation(locA, 0, 0, 0);
   zone.addLocation(locB, 0, 1, 0);
   const exit = makeStuff(
-    () => new Exit({ direction: 'north', source: locA, destination: locB }),
+    // A cart only follows over a GROUND way (an exit with no `media` is
+    // walk-only): the haulage gate, which `Mobile.traverse` now runs for
+    // every mover, refuses it otherwise.
+    () => new Exit({ direction: 'north', source: locA, destination: locB, media: ['ground'] }),
   );
   return { locA, locB, exit };
 }
 
 describe('Mobile.traverse — the tow', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    buildAllModes();
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('a hitched cart and its cargo follow the hauler as a unit', async () => {

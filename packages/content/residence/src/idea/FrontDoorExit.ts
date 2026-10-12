@@ -90,10 +90,10 @@ export default class FrontDoorExit extends LockableMixin(DeferredDestinationExit
     );
   }
 
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     // ⭐⭐ The bolt refuses, the key excuses; the bolt is a separate fact
     // now, so a holder can leave their own front door open.
     if (this.isLocked() && !this.opensFor(mover)) {
@@ -105,6 +105,6 @@ export default class FrontDoorExit extends LockableMixin(DeferredDestinationExit
           : 'The door is locked.',
       };
     }
-    return super.canTraverse(mover, mode);
+    return await super.canTraverse(mover, mode);
   }
 }

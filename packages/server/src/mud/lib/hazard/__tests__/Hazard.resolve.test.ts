@@ -19,6 +19,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import Trap from '../../../platform/thing/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
 import DisarmController from '../../../platform/idea/cmd/device/DisarmController';
@@ -97,6 +98,9 @@ function demoSteel(): Material {
 
 function footedBodyPlan(): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
+  // A biped walks: `Mobile.traverse` runs the body-plan gate for every
+  // mover, so the plan must say so.
+  plan.setLocomotionModes(['walk']);
   plan.setName('demo-biped');
   plan.setSlots([
     {
@@ -181,6 +185,7 @@ function ctx(m: unknown, loc: unknown): CommandContext {
 
 beforeEach(() => {
   installV1QuantityMarshallers();
+  buildAllModes();
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);

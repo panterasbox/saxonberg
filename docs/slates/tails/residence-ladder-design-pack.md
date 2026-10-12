@@ -321,3 +321,9 @@ possession registry, `BuildingWarren` / `HoldingWarren` / `FrontDoorExit`
 for the apartment classes, the `residence` capability pack for the lot →
 [holding.md § The four roles](../../subsystems/holding.md#the-four-roles)
 + [§ The packaging](../../subsystems/holding.md#the-packaging).*
+
+## From the climate build (2026-10-11)
+
+- **A clothes press as a real store surface.** The dorm footlocker stages
+  the arrival greatcoat (`StagedMixin`); the dorm's "wardrobe" is the
+  holodeck door, so there is no clothes store a resident uses.

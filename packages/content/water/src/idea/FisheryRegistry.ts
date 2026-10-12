@@ -47,9 +47,9 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
-import { EARTH_LIKE } from '@saxonberg/server/mud/lib/time/CelestialProfile';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   RegistrarMixin,
   type Registrar,
@@ -175,7 +175,9 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     if (water === null) return null;
     const flow = await cat.flowAt(reachRef, nowS, await cat.liveDraws(nowS));
     const contamination = await cat.contaminationAt(reachRef, nowS);
-    const season = CelestialApi.seasonFor(EARTH_LIKE, nowS);
+    // The LOCAL season at the reach's latitude: a southern mere's spawning
+    // run comes in the northern autumn.
+    const season = WeatherApi.seasonAt(reach.site, Quantity.of(nowS, 's'));
     const lengthKm = dial('water.fishery.reachLengthKm', 1);
     const record = await this.read(reachRef);
     const drawn = record === null ? {} : recovered(record, nowS).drawn;
@@ -234,7 +236,12 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     const pos = new GeoPosition(cell.latDeg, cell.lonDeg);
     const water = await sea.waterStateAt(pos);
     const placed = { ...sea.getStock(), ...(await sea.fieldAt(pos)).stock };
-    const season = CelestialApi.seasonFor(EARTH_LIKE, nowS);
+    // The open sea's local season: the cell's own latitude, at sea level,
+    // wholly maritime (the climate build's site, read as a reach reads it).
+    const season = WeatherApi.seasonAt(
+      { latitudeDeg: cell.latDeg, elevationM: 0, continentality: 0, offsetK: 0 },
+      Quantity.of(nowS, 's'),
+    );
     const cellCapacity = dial('water.fishery.seaCellCapacity', 40);
     const lengthKm = dial('water.fishery.reachLengthKm', 1);
     const record = await this.read(ref);

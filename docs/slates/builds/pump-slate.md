@@ -1,11 +1,25 @@
 # Pump slate — the machine that produces no good, and the limit that made the engine
 
-> **Status: UNBUILT**, and **promoted out of
+> **Status: PARTLY BUILT** (the pump build, 2026-10-09 — see
+> [pump.md](../../subsystems/pump.md)): the substrate, the two families,
+> the suction limit as arithmetic over the place, the force pump, the
+> village well, the seal as recurring demand, the bellows verb unified,
+> and the city intake as a pumped main that a tap uphill can feel. ⚠ The
+> ledger below wants compacting (`/compact-slate`).
+> **Left:** dewatering the mine · the power ladder past men and the
+> grid (animal → water → steam — the steam-engine slate) · the
+> **shared-pump public-goods problem** and the hoist toll · ⭐⭐ **stopping a
+> pump as an act against someone else** (the city pump is stoppable now and
+> nobody's job keeps it) · the suction limit as a DISCOVERED law (inquiry)
+> · ⭐ **the hand bellows** — a carried one (§ below) · ⚠ **nobody makes
+> or sells a pump or a packing** — the drive's dirty reason (§ below)
+>
+> Originally **promoted out of
 > [mining-slate](./mining-slate.md)'s Left** (2026-10-08), where it was one
 > clause — *"everything below the water table — shaft/hoist/pump
 > (`LiftMixin`…)"*. It has **four customers** and scores four lenses at
 > ⭐⭐⭐, which is what earns it a file rather than a line.
-> **Left:** the pump as substrate (lift · throughput · power · seal) · ⭐⭐⭐
+> *Left before the pump build (kept for the record):* the pump as substrate (lift · throughput · power · seal) · ⭐⭐⭐
 > **the ~10 m suction limit** and the atmospheric-pressure constant it
 > needs · the force pump as the second rung · the power ladder (men →
 > animal → water → steam) · dewatering the mine · the village well · the
@@ -214,6 +228,48 @@ not the code's. Derivative of 3b and 4 rather than its own argument.
 - **Fluid movement:** `bulk.md`'s transfer and drain-through;
   `watershed.md`'s `Conduit` conveyance ladder. ⚠ Three unrelated things
   are already called `Conduit` — name with care.
+
+## ⭐ The hand bellows — a bellows you carry
+
+Raised in review of the pump build (2026-10-10). The user expected a
+bellows to be a **thing**, the fireplace-kit kind, and the game has none:
+every bellows is a FIELD on its furnace (`Burner.bellowsMultiplier` +
+`bellowsActive`) — forge, smelting furnace, kilns, range, retort — so a
+hearth or campfire with no built-in bellows can never be blown hotter.
+*"We don't need it now but we should support it."*
+
+**The shape it fits, already shipped:**
+
+- It is a family-B machine — literally a small displacement pump for air —
+  so working it is the `Pumpable` protocol (`lib/pump/Pumpable.ts`):
+  `pump fire with bellows`, a spell at a time, costing the arm watts.
+- It would be a carried **tool** (`capabilities: [bellows]` or similar),
+  and the FIRE asks whether one is reached — the instrument affords the
+  verb, not the furniture.
+- It is the first bellows that **wears**: leather and a flap valve — the
+  packing's story again, and the same tanner's demand.
+
+**The open question it carries:** how a burner reads draught from a tool
+rather than a field. Today a built-in bellows multiplies the held
+temperature by `bellowsMultiplier`; a hand bellows would want that
+multiplier to come from the instrument and to lapse when nobody is
+working it (a sustained effort, not a toggle — which is the pump build's
+engagement shape, not the forge's instant one). ⚠ That touches every
+`BurnerMixin` host, so it is a fire-subsystem decision with this slate's
+protocol under it — not a pump-build change.
+
+## ⚠ The drive's dirty reason — a producer that should be producing
+
+The pump drive (`packages/wire/tests/pump.dirty.wire.test.ts`) is dirty
+because it **takes the claims office's force pump and spare packing off a
+hire rack** and leaves a worn packing on a hillside. That is a finding for
+the trades, not a test hygiene note: in the shipped realm **nobody makes a
+pump** (a pump is a stocked row — the cylinder is a smith's, the valves a
+pump-maker's, and assembly makes it a recipe output) and **nobody sells a
+packing** (the tanning recipe ships and is deed-gated; Rejection's till
+cannot take money; no tannery has a counter). When a pump-maker and a
+tanner's counter exist, the drive takes its kit from them and stops being
+dirty on that count.
 
 ## Open
 
