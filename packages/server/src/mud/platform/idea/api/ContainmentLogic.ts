@@ -24,6 +24,7 @@ import type { MergeOnArrivalHook } from '../../../api/containment';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
+type PlacingStuff = Stuff & Placing;
 
 /**
  * Late-bound merge-on-arrival hook slot. `StackableApi` registers a
@@ -78,8 +79,25 @@ export class ContainmentLogic extends ApiLogic {
 
   /** See {@link ContainmentApi.move}. */
   @CallSecurity(ContainmentApiCallers)
-  public move(item: ContainableStuff, to: ContainerStuff | null): void {
-    moveCore(item, to, false);
+  public move(
+    item: ContainableStuff,
+    to: ContainerStuff | PlacingStuff | null,
+    placement?: string,
+  ): void {
+    // ⭐ A destination that offers placements and holds nothing — a desk,
+    // a drying loft, a rack — is a PLACE ON something: the thing goes into
+    // the host's own environment and takes the placement pair. A word
+    // names which placement when the host offers more than one; with none,
+    // the host's own default. One primitive; the relation is derived.
+    if (
+      to !== null &&
+      MixinApi.isPlacing(to) &&
+      (placement !== undefined || !MixinApi.isContainer(to))
+    ) {
+      placeOn(item, to, placement);
+      return;
+    }
+    moveCore(item, to as ContainerStuff | null, false);
   }
 
   /** See {@link ContainmentApi.forceMove}. */
@@ -110,56 +128,6 @@ export class ContainmentLogic extends ApiLogic {
     item.setContainer(env);
   }
 
-  /** See {@link ContainmentApi.place}. */
-  @CallSecurity(ContainmentApiCallers)
-  public place(
-    item: ContainableStuff,
-    name: string,
-    host: Stuff & Placing,
-  ): void {
-    // Resolve target environment: the host's container.
-    const hostAsContainable = host as unknown as Containable;
-    const targetEnv = hostAsContainable.getContainer();
-    if (!targetEnv) {
-      throw new ContainmentError(
-        `place: host ${(host as Stuff).stuffId} has no ` +
-          `environment to place items into`,
-      );
-    }
-    const veto = host.canPlace(item, name);
-    if (!veto.ok) {
-      throw new ContainmentError(
-        `place: host ${(host as Stuff).stuffId} rejects ` +
-          `${item.stuffId} (${veto.reason})`,
-      );
-    }
-    // Move item into the host's environment first (fires existing
-    // containment hooks); then set the placement pair. move() clears the
-    // pair as part of its container-change invariant when the container
-    // differs; setting it AFTER move ensures the new pair survives. When
-    // the container is unchanged (apple already in the room, just moving
-    // from one desk to another in the same room), move is a no-op and we
-    // go straight to the placement update.
-    this.move(item, targetEnv);
-    item._setPlacement(host, name);
-    // ⭐ Rung 1: the placement member just changed. Name-keyed on the
-    // bus, so this one fire wakes every open container card showing this
-    // item (its `contents` dependsOn `placement`) and the host's `placed`
-    // detail — including the within-same-container case where `move` was
-    // a no-op and fired nothing.
-    MqlSubscriptionApi.fireFieldChange(
-      item as unknown as Stuff,
-      'placement',
-      '',
-      name,
-    );
-    // ⭐ `move` is a NO-OP when the container is unchanged (a mug moving
-    // from one desk to another in the same room), so nothing would
-    // restamp — and a member that encloses means the thing's ambient
-    // scope just changed. Restamp here, where the placement did.
-    if (MixinApi.isThermal(item)) void item.restamp();
-  }
-
   /** See {@link ContainmentApi.placement}. */
   @CallSecurity(ContainmentApiCallers)
   public placement(name: string): Placement | null {
@@ -182,32 +150,6 @@ export class ContainmentLogic extends ApiLogic {
   // walk now lives in MQL's `reachable` seed (api/mql/scope-walk.ts
   // `candidatesForReachable`).
 
-  /** See {@link ContainmentApi.land}. */
-  @CallSecurity(ContainmentApiCallers)
-  public async land(
-    item: ContainableStuff,
-    to: ContainerStuff,
-    owner: Stuff | null,
-  ): Promise<void> {
-    moveCore(item, to, false);
-    if (MixinApi.isChattel(item)) {
-      try {
-        if (owner && !item.getChattelId()) await item.stampChattel(owner);
-        await item.followCustody();
-      } catch (err) {
-        console.warn('ContainmentApi.land: custody record failed:', err);
-      }
-    }
-    const { PersistableApi } = await import('../../../api/persistable');
-    for (const host of owner ? [item, owner] : [item]) {
-      try {
-        await PersistableApi.captureHostOf(host);
-      } catch (err) {
-        console.warn('ContainmentApi.land: capture failed:', err);
-      }
-    }
-  }
-
   /** See {@link ContainmentApi.resolveLanding}. */
   @CallSecurity(ContainmentApiCallers)
   public async resolveLanding(
@@ -224,6 +166,47 @@ export class ContainmentLogic extends ApiLogic {
       warren: null,
     };
   }
+}
+
+/**
+ * Put `item` ON (or IN) a placing host: into the host's environment, then
+ * the placement pair. `move` is a no-op when the container is unchanged
+ * (a mug from one desk to another in the same room), so the placement
+ * update, its card wake and the ambient restamp happen here regardless.
+ */
+function placeOn(
+  item: ContainableStuff,
+  host: PlacingStuff,
+  word: string | undefined,
+): void {
+  const name =
+    word !== undefined && host.getPlacements().includes(word)
+      ? word
+      : host.resolvePlacement(word);
+  if (name === null) {
+    throw new ContainmentError(
+      `move: ${(host as Stuff).stuffId} offers no placement '${word ?? ''}'`,
+    );
+  }
+  const targetEnv = (host as unknown as Containable).getContainer();
+  if (!targetEnv) {
+    throw new ContainmentError(
+      `move: host ${(host as Stuff).stuffId} has no environment to place items into`,
+    );
+  }
+  const veto = host.canPlace(item, name);
+  if (!veto.ok) {
+    throw new ContainmentError(
+      `move: host ${(host as Stuff).stuffId} rejects ${item.stuffId} (${veto.reason})`,
+    );
+  }
+  moveCore(item, targetEnv as ContainerStuff, false);
+  item._setPlacement(host, name);
+  // Rung 1: the placement member just changed — wake every card showing it.
+  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
+  // A member that encloses changes the thing's ambient scope even when the
+  // container did not change.
+  if (MixinApi.isThermal(item)) void item.restamp();
 }
 
 /**
@@ -326,6 +309,17 @@ function moveCore(
   // own `isStackable` skip path.
   if (to !== null && _mergeOnArrivalHook !== null) {
     _mergeOnArrivalHook(item, to);
+  }
+
+  // ⭐⭐ CUSTODY is derived here, for every move by anyone: where an owned
+  // good now is gets recorded (so it is where it was left after a
+  // restart), and a fresh good — arriving from nowhere — is titled to
+  // whoever it is derived to be (ChattelLogic's `derivedMinter`). Async
+  // and never thrown: the move already happened.
+  if (MixinApi.isChattel(item) && !item.isDestroyed()) {
+    void item
+      .followCustody({ fresh: from === null, to })
+      .catch((err: unknown) => console.warn('ContainmentApi.move: custody record failed:', err));
   }
 }
 

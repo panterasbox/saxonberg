@@ -261,10 +261,7 @@ export default class Plant extends PlantBase {
         // ⭐ LANDED — placed and its host captured in one call. A seed a
         // flowering set has no actor, so it carries no title.
         if (MixinApi.isContainable(seed)) {
-          await ContainmentApi.land(
-            seed as Stuff & Containable,
-            target as Stuff & Container,
-          );
+          ContainmentApi.move(seed as Stuff & Containable, target as Stuff & Container);
         } else {
           await PersistableApi.captureHostOf(this);
         }

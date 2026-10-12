@@ -78,11 +78,7 @@ export default class PrescribeController extends CommandController<PrescribeMode
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
       writtenAtS: WorldClockApi.getNow().rawValue(),
     });
-    await ContainmentApi.land(
-      slip as unknown as Stuff & Containable,
-      giver as unknown as Stuff & Container,
-      giver,
-    );
+    ContainmentApi.move(slip as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

@@ -116,28 +116,40 @@ export class ContainmentApi {
   }
 
   /**
-   * Move an item to `to`, or detach it (when `to === null`).
+   * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
+   * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
+   * a placing host (into the host's environment, with the placement pair);
+   * `move(item, loft, 'in')` names the placement when a host offers more
+   * than one. `null` detaches it.
    *
-   * Pipeline:
-   *   1. Pre-flight invariants (Exitable layering, zone crossing).
-   *   2. `can*` Witness hooks — short-circuit on the first veto.
-   *   3. `item.setContainer(to)` — atomic state mutation.
-   *   4. `on*` Witness hooks (post-mutation, never veto).
+   * Everything a move implies beyond geometry is DERIVED here, so no
+   * caller has to remember it:
+   *   - **custody** — an owned good records where it now is, so it is
+   *     where it was left after a restart;
+   *   - **title** — a FRESH good (arriving from nowhere: just made) is
+   *     titled to whoever it is derived to belong to: the person whose
+   *     hands it lands in, else the acting person if it lands where they
+   *     stand, else its recorded maker. A good that already exists is
+   *     never retitled by being moved — taking one is theft.
    *
-   * Zone is NOT restamped on move — it should reflect whichever
-   * zone created the item, not whichever container it currently
-   * sits in. Cross-zone movement rules are enforced by the
-   * pre-flight invariants (Exitables can't cross zones via
-   * containment) but the `zone` field itself is set at clone time
-   * and stays put.
+   * The other layer is a thing moving ITSELF ({@link MobileMixin}'s
+   * `traverse`), which crosses exits and arrives through this primitive.
    *
-   * @throws ContainmentError on invariant violations or hook vetoes.
+   * Pipeline: pre-flight invariants (Exitable layering, zone crossing,
+   * attached adornments) → `can*` witnesses (first veto throws) →
+   * `setContainer` → `on*` witnesses → stack merge-on-arrival → custody.
+   * A move within the same container is a no-op (a placement change is
+   * not). Zone is never restamped on move.
+   *
+   * @throws ContainmentError on invariant violations, hook vetoes, or a
+   *   placement the host does not offer or refuses.
    */
   public static move(
     item: ContainableStuff,
-    to: ContainerStuff | null
+    to: ContainerStuff | (Stuff & Placing) | null,
+    placement?: string,
   ): void {
-    logic().move(item, to);
+    logic().move(item, to, placement);
   }
 
   /**
@@ -210,6 +222,9 @@ export class ContainmentApi {
    *   - Recency-stack bookkeeping (no command-contribution delta —
    *     the matter is treated as already-present).
    *
+   * @internal — framework bookkeeping (a stack's split-off, a hot
+   * reload), never an author's call: an author has `move`.
+   *
    * Security: gated by `SecurityPolicies.ApiOnly` because the
    * skipped checks make this primitive more powerful than `move`.
    * The fresh-placement precondition rules out the obvious abuse
@@ -231,36 +246,6 @@ export class ContainmentApi {
   // `Container.getLooseContents()`: it read one container's own list and
   // had no business being a free Api function.
 
-  /**
-   * Place `item` under the placement `name` on `host` — the placement
-   * analogue of {@link move}. Containment stays hierarchical and
-   * exclusive; where inside its container a thing sits is an orthogonal
-   * auxiliary pair (the host, and the member's name).
-   *
-   * Pipeline:
-   *   1. Resolve the target environment as the host's container.
-   *      Placement hosts are themselves Containable; their environment
-   *      is where the placed items live (the desk lives in the room;
-   *      apples on the desk are also in the room).
-   *   2. Run the host's `canPlace(item, name)` veto. Throws on
-   *      programmatic-contract failure (validators upstream produce
-   *      friendly user-input messages).
-   *   3. `move(item, targetEnv)` — fires the usual container change
-   *      hooks AND clears any prior placement as part of the
-   *      change-of-container invariant.
-   *   4. Set the placement pair. Order matters: move() in step 3 clears
-   *      it; the `_setPlacement` after restamps to the new host.
-   *
-   * @throws ContainmentError when the host has no environment to place
-   *   the item into, OR when `host.canPlace(item, name)` vetoes.
-   */
-  public static place(
-    item: ContainableStuff,
-    name: string,
-    host: Stuff & Placing,
-  ): void {
-    logic().place(item, name, host);
-  }
 
   /**
    * ⭐ The one **synchronous** door onto the ways-of-sitting vocabulary
@@ -381,31 +366,6 @@ export class ContainmentApi {
    * `Warren` value is loaded dynamically so the static import graph stays
    * acyclic (`Warren` imports `ContainmentApi`).
    */
-  /**
-   * ⭐⭐ **Land a NEWLY MINTED good** — `move` it, then do the two things a
-   * minted good needs and a moved one already has: stamp its title to
-   * `owner` (when it has none yet) and record where it is
-   * (`followCustody`), then capture the hosts that now hold it.
-   *
-   * ⚠ Why this is not just `move`. A good minted onto a floor was moved by
-   * NOBODY — `get`/`drop`/`put` call `followCustody` after their moves,
-   * and a verb that clones a thing into the world does not. The room's
-   * estate slice then skips a player's good with no recorded `place`, the
-   * overlay never finds it, and the good is gone at the next restart. The
-   * craft mint, `fell`, and every trade verb that clones its output land
-   * through here, and `lint:mint-custody` holds the rest to a ratchet.
-   *
-   * `owner` defaults to nobody: the thing is placed and captured, and its
-   * title is whatever it already had. Persistence failures are warned,
-   * never thrown — the act that made the thing is not unmade by them.
-   */
-  public static async land(
-    item: ContainableStuff,
-    to: ContainerStuff,
-    owner: Stuff | null = null,
-  ): Promise<void> {
-    return logic().land(item, to, owner);
-  }
 
   public static async resolveLanding(
     ref: string

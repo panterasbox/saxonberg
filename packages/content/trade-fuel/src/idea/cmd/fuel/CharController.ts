@@ -177,11 +177,7 @@ async function openClamp(
         const item = await StuffApi.clone<Stuff>(row);
         // ⭐ Titled to the collier when they are still here to hold it; a
         // departed collier's charcoal is still placed and captured.
-        await ContainmentApi.land(
-          item as unknown as Stuff & Containable,
-          pit as unknown as Stuff & Container,
-          watching ? giver : null,
-        );
+        ContainmentApi.move(item as unknown as Stuff & Containable, pit as unknown as Stuff & Container);
         made.push(item);
       }
     }

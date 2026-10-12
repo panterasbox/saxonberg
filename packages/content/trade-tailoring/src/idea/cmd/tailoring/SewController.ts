@@ -143,11 +143,7 @@ async function finish(
     }
 
     if (MixinApi.isContainable(garment) && MixinApi.isContainer(giver)) {
-      await ContainmentApi.land(
-        garment as Stuff & Containable,
-        giver as Stuff & Container,
-        watching ? giver : null,
-      );
+      ContainmentApi.move(garment as Stuff & Containable, giver as Stuff & Container);
     }
     StuffApi.destruct(pieces);
 

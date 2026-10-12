@@ -241,16 +241,17 @@ async function winOre(
     const giver = context.commandGiver;
   const lump = (await StuffApi.clone(oreRow)) as unknown as Ore;
     lump.setGrade(grade);
-    ContainmentApi.move(lump as unknown as Stuff & Containable, room as never);
-    working.recordWinning(face.direction, HEW_LUMPS);
-  await maybeRun(context, working, face);
-
     // ⭐ Who owns it. On tutwork the business keeps the ore; on your own
-    // claim it is yours. Title is the parcel's answer, never the ledger's.
-  const owner = await ownerFor(giver, working);
+    // claim it is yours. Title is the parcel's answer, never the ledger's —
+    // so it is stamped BEFORE it arrives: a titled good is not fresh, and
+    // the movement primitive does not derive a title for it.
+    const owner = await ownerFor(giver, working);
     if (owner && MixinApi.isChattel(lump as unknown as Stuff)) {
       await (lump as unknown as Stuff & Chattel).stampChattel(owner);
     }
+    ContainmentApi.move(lump as unknown as Stuff & Containable, room as never);
+    working.recordWinning(face.direction, HEW_LUMPS);
+  await maybeRun(context, working, face);
 
     MessageApi.scene(giver)
       .topic(MINING_TOPIC)

@@ -159,13 +159,9 @@ export default class Bloom extends BloomBase {
  * `by` (the smith at the anvil, when the caller names one) and captured,
  * so the bar survives a restart.
  */
-async function place(item: Stuff, where: Stuff | null, by: Stuff | null): Promise<void> {
+async function place(item: Stuff, where: Stuff | null, _by: Stuff | null): Promise<void> {
   if (!where || !MixinApi.isContainer(where)) return;
-  await ContainmentApi.land(
-    item as unknown as Stuff & Containable,
-    where as unknown as Stuff & Container,
-    by,
-  );
+  ContainmentApi.move(item as unknown as Stuff & Containable, where as unknown as Stuff & Container);
 }
 
 function round3(kg: number): number {

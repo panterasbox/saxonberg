@@ -127,7 +127,7 @@ export function ConsumableMixin<TBase extends MixinConstructor<Stuff>>(
         ) {
           // ⭐ LANDED, so the flask left behind is captured where it lies;
           // the consume names no actor, so it carries no new title.
-          await ContainmentApi.land(residue, where);
+          ContainmentApi.move(residue, where);
         }
       }
       StuffApi.destruct(self);

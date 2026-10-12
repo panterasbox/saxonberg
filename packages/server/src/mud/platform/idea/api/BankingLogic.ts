@@ -2051,11 +2051,7 @@ async function issueCardImpl(
   if (principal && MixinApi.isContainer(principal)) {
     // ⭐ LANDED: a card is a held good — titled to whoever it is issued
     // to and recorded where it is, or it is gone at the next restart.
-    await ContainmentApi.land(
-      card as unknown as Stuff & Containable,
-      principal,
-      principal,
-    );
+    ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
   return card as Stuff & CredentialWallet;
 }

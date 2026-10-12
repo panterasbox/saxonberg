@@ -148,7 +148,7 @@ export function ChamberedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this._chambers.set(key, chamber);
         const env = this.hostEnvironment();
         // Fixture infrastructure: placed and captured, owned by nobody.
-        if (env !== null) await ContainmentApi.land(chamber, env, null);
+        if (env !== null) ContainmentApi.move(chamber, env);
       }
     }
 

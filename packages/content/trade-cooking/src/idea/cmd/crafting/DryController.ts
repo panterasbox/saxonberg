@@ -141,7 +141,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.place(target, member!, rack);
+      ContainmentApi.move(target, rack, member!);
     }
 
     const scope = this.scopeOf(target);

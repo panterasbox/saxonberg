@@ -232,9 +232,5 @@ async function mintPhysical(
   // ⭐ LANDED: the physical key is the durable form, so it is titled to
   // the holder and its place recorded — a bare move left it unrecorded,
   // and it vanished at the next restart.
-  await ContainmentApi.land(
-    key as unknown as Stuff & Containable,
-    holder as Stuff & Container,
-    holder,
-  );
+  ContainmentApi.move(key as unknown as Stuff & Containable, holder as Stuff & Container);
 }

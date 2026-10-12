@@ -1179,6 +1179,18 @@ exactly twice: before the MR opens, and at `/finalize`.
 
 ### W0 — the mint lands, stamps and captures its output
 
+> ⚠⚠ **Superseded in review (2026-10-12):** `land`, `place` and
+> `lint:mint-custody` are GONE. The owner's ruling: *there are exactly two
+> layers to moving an object — `ContainmentApi.move(ob, dest)` and a thing
+> moving itself (`MobileMixin`) — and everything else is derived.* Custody
+> is recorded by `move` on every move (and by `Adornable.addFixture`); a
+> FRESH good is titled by derivation (the hands it lands in; else the
+> acting person — present, in a live command; anywhere, for a deferred
+> consequence, since an engagement's completion and a one-shot clock
+> timer now run AS the person whose act set them; else its recorded
+> maker); a good that already exists is never retitled. `move(item, host,
+> word?)` absorbs placement. The notes below are the history.
+>
 > ✅ **Done — `0ac87f240`** (one commit with W1–W2: they share
 > `CraftingLogic.ts`, and W1's `fit` affordance names W2's view).
 > **Build decisions.** (1) The chokepoint is PUBLIC, not module-private:

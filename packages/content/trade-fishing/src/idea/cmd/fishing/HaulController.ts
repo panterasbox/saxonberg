@@ -71,7 +71,7 @@ export default class HaulController extends FishingController<HaulModel> {
         }
         const fish = await this.mint(species, organic);
         if (fish === null) continue;
-        await ContainmentApi.land(fish as Stuff & Containable, giver as Stuff & Container, giver);
+        ContainmentApi.move(fish as Stuff & Containable, giver as Stuff & Container);
         took.push(species.name);
       }
     }

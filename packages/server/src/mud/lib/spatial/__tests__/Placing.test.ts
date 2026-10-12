@@ -179,7 +179,7 @@ describe('PlacingMixin', () => {
     });
 
     it('returns items whose placement names this host', () => {
-      ContainmentApi.place(restingItem, 'on', surface);
+      ContainmentApi.move(restingItem, surface, 'on');
       ContainmentApi.move(floatingItem, room);
       const resting = surface.getPlaced();
       expect(resting).toHaveLength(1);
@@ -227,8 +227,8 @@ describe('PlacingMixin', () => {
       host.setPlacements(['on', 'from']);
       const onIt = makeStuff(() => new TestThing());
       const fromIt = makeStuff(() => new TestThing());
-      ContainmentApi.place(onIt, 'on', host);
-      ContainmentApi.place(fromIt, 'from', host);
+      ContainmentApi.move(onIt, host, 'on');
+      ContainmentApi.move(fromIt, host, 'from');
       expect(host.getPlaced()).toHaveLength(2);
       expect(host.getPlaced('on')).toEqual([onIt]);
       expect(host.getPlaced('from')).toEqual([fromIt]);

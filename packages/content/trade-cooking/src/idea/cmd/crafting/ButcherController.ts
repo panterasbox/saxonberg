@@ -428,7 +428,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
         // still hands you a gut full of what a gut is full of.
         this.spillGut(cut, rowPath.endsWith('/gut') ? 1 : mess);
         if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {
-          await ContainmentApi.land(cut, here, giver);
+          ContainmentApi.move(cut, here);
         }
         cuts.push(cut);
       }

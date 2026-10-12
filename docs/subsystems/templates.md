@@ -591,7 +591,7 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     non-singletons cloned via `StuffApi.clone`. A bare entry is
     moved into self (`ContainmentApi.move`); an `{template, onto}`
     entry is placed on an already-populated sibling surface
-    (`ContainmentApi.place`), keyed by the placement key's source path —
+    (a placing `ContainmentApi.move`), keyed by the placement key's source path —
     so the surface fixture must be listed before its resting
     items (the back-bar before its bottles). See
     [crafting.md](./crafting.md).

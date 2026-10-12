@@ -1153,7 +1153,7 @@ orchestration cases:
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
-| `ContainmentApi.move(item, room); item._setPlacement(desk, 'on')` (manual placement) | `ContainmentApi.place(item, 'on', desk)` — single primitive; resolves the host's environment, runs `canPlace`, moves, restamps the pair, and re-`restamp()`s a Thermal item (⚠ `move` is a NO-OP inside one container, so nothing else would). `_setPlacement` is `FromContainmentApi`-gated; direct calls throw. ⭐ The member name is a `Placement` ROW, not an enum. |
+| `ContainmentApi.move(item, room); item._setPlacement(desk, 'on')` (manual placement) | `ContainmentApi.move(item, desk[, 'on'])` — the ONE movement primitive: a placing destination resolves its environment, runs `canPlace`, moves, stamps the pair and restamps a Thermal item; custody and a fresh good's title are DERIVED in it (no `place`, no `land`, no hand-called `followCustody`). The other layer is `MobileMixin`'s `traverse`. `_setPlacement` is `FromContainmentApi`-gated. See [spatial.md](./docs/subsystems/spatial.md). |
 | `ContainmentApi.looseContents(items)` | `container.getLooseContents(items?)` — it reads one container's own list, so it is a method. ⭐ And MQL may not own it: [architecture.md § MQL is a VIEW over the model](./docs/architecture.md) — anything expressible in MQL must also be expressible by function call. |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `obj.getPresentation()` |

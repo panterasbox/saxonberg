@@ -454,10 +454,9 @@ export default class GetController extends CommandController<GetModel> {
     const named = operand.getPresentation();
     ContainmentApi.move(operand, giver);
     const merged = operand.isDestroyed();
-    // Custody returns to a pair of hands; `place` follows to `inventory`.
+    // Custody returns to a pair of hands; `move` records it (`inventory`).
     // Picking up a good you do not hold title to is theft — permitted and
-    // recoverable — so this records, it does not refuse. (D8)
-    if (!merged && MixinApi.isChattel(operand)) await operand.followCustody();
+    // recoverable — so the record follows, it does not refuse. (D8)
     const what = merged ? Mml.text(named) : Mml.thing(operand);
     MessageApi.scene(giver)
       .topic('sense.survey')

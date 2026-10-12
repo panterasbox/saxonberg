@@ -735,7 +735,7 @@ async function pour(
   const massed = item as unknown as { setMass?(q: Quantity<'kg'>): void };
   massed.setMass?.(Quantity.of(Number(kg.toFixed(3)), 'kg'));
   shape?.(item);
-  await ContainmentApi.land(item as unknown as Stuff & Containable, furnace, owner);
+  ContainmentApi.move(item as unknown as Stuff & Containable, furnace);
   return item;
 }
 

@@ -317,7 +317,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const cookhouse = room(40, 2);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(cookhouse);
-    ContainmentApi.place(cut as never, 'on', rack as never);
+    ContainmentApi.move(cut as never, rack as never, 'on');
     setNow(0);
     void cut.getWaterState(); // starts the clock
     expect(cut.waterClockStamp).toBeGreaterThan(0);
@@ -334,7 +334,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const steamy = room(100, 3, 300);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(steamy);
-    ContainmentApi.place(cut as never, 'on', rack as never);
+    ContainmentApi.move(cut as never, rack as never, 'on');
     setNow(0);
     void cut.getWaterState();
     expect(cut.waterClockStamp).toBe(0);
@@ -353,7 +353,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     racked.setWaterState({ moisture: 0.4, solute: 0 });
     sacked.setWaterState({ moisture: 0.4, solute: 0 });
     const rack = rackIn(cellar);
-    ContainmentApi.place(racked as never, 'on', rack as never);
+    ContainmentApi.move(racked as never, rack as never, 'on');
     setNow(0);
     void racked.getWaterState();
     void sacked.getWaterState();
@@ -376,8 +376,8 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const cellarMat = material(MEAT_EA, AW);
     const inLoft = food(loftMat);
     const inCellar = food(cellarMat);
-    ContainmentApi.place(inLoft as never, 'on', rackIn(dryLoft) as never);
-    ContainmentApi.place(inCellar as never, 'on', rackIn(dampCellar) as never);
+    ContainmentApi.move(inLoft as never, rackIn(dryLoft) as never, 'on');
+    ContainmentApi.move(inCellar as never, rackIn(dampCellar) as never, 'on');
     setNow(0);
     void inLoft.getWaterState();
     void inCellar.getWaterState();
@@ -400,7 +400,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const yard = room(35, 4);
     const racked = food(material(MEAT_EA));
     const dropped = food(material(MEAT_EA));
-    ContainmentApi.place(racked as never, 'on', rackIn(yard) as never);
+    ContainmentApi.move(racked as never, rackIn(yard) as never, 'on');
     ContainmentApi.move(dropped as never, yard as never);
     setNow(0);
     void racked.getWaterState();
@@ -424,8 +424,8 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const shed = room(35, 4);
     const airy = food(material(MEAT_EA));
     const stifled = food(material(MEAT_EA));
-    ContainmentApi.place(airy as never, 'on', rackIn(shed, 1) as never);
-    ContainmentApi.place(stifled as never, 'on', rackIn(shed, 0.2) as never);
+    ContainmentApi.move(airy as never, rackIn(shed, 1) as never, 'on');
+    ContainmentApi.move(stifled as never, rackIn(shed, 0.2) as never, 'on');
     setNow(0);
     void airy.getWaterState();
     void stifled.getWaterState();

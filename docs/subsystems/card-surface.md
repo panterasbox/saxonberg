@@ -867,7 +867,7 @@ nesting view, no expand/collapse tree, no "compartments spoken as parts"
 `Container.contents` now `dependsOnFields: ['contents', 'placement']` so
 a placement change inside an unchanged container still wakes the open
 card, which re-projects children with their fresh placement (the fire is
-in `ContainmentApi.place`).
+in a placing `ContainmentApi.move`).
 
 ### The impression line — the card enumerates, the prose summarizes
 

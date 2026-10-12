@@ -139,11 +139,7 @@ async function finish(
     if (MixinApi.isConstructed(bolt)) bolt.setConstructionForm(form);
     if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
     if (MixinApi.isContainable(bolt) && MixinApi.isContainer(giver)) {
-      await ContainmentApi.land(
-        bolt as Stuff & Containable,
-        giver as Stuff & Container,
-        watching ? giver : null,
-      );
+      ContainmentApi.move(bolt as Stuff & Containable, giver as Stuff & Container);
     }
     if (!watching) return;
     MessageApi.scene(giver)

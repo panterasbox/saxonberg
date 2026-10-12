@@ -93,8 +93,13 @@ export interface Chattel {
   isOwnerPersisted(): boolean;
   /** Record where the owner keeps this good (the single write path). */
   setChattelPlace(place: string): Promise<void>;
-  /** Re-derive placement from where the good now IS (custody verbs). */
-  followCustody(): Promise<void>;
+  /**
+   * Re-derive placement from where the good now IS. Called by the
+   * movement primitive itself on every move (`ContainmentApi.move`) —
+   * nobody calls it by hand. A FRESH arrival (a good from nowhere) also
+   * derives its title (see ChattelLogic's `derivedMinter`).
+   */
+  followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void>;
   /** Establish ownership — mint the durable id and title it to `owner`. */
   stampChattel(owner: Stuff): Promise<ChattelStampResult>;
   /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
@@ -254,8 +259,8 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     /** See {@link Chattel.followCustody} — records, never judges. */
     @Final
     @Unshadowable
-    public followCustody(): Promise<void> {
-      return chattelLogic().followCustody(this as unknown as Stuff);
+    public followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void> {
+      return chattelLogic().followCustody(this as unknown as Stuff, arrival);
     }
 
     /**

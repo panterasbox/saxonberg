@@ -82,7 +82,6 @@ export interface RiveModel extends CommandModel {
 
 export default class RiveController extends ManualBuildController<RiveModel> {
   async execute(model: RiveModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver;
 
     const target = model.target?.stuff ?? null;
     if (target === null) {
@@ -313,7 +312,7 @@ async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
   if (MixinApi.isStackable(billets)) billets.setQuantity(count);
   const maker = giver.getIdentityPath() ?? '';
   if (maker && MixinApi.isCrafted(billets)) billets.setMaker(maker);
-  await ContainmentApi.land(billets, room as Stuff & Container, giver);
+  ContainmentApi.move(billets, room as Stuff & Container);
 
   if (left <= 0) {
     MessageApi.scene(giver)

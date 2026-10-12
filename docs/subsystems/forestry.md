@@ -216,14 +216,13 @@ tree (8/30 kg — the Christmas-tree case, the honest inverse of the
 bole); `seedling` → `not-yet-a-tree`; a stool → `not-a-standard` (*cut
 it with a billhook*).
 
-**Every product is stamped to the feller AND placed** — `stampChattel`
-then `followCustody`. ⚠ A stamp alone records no place: `drop`/`put`/
-`get` call `followCustody` after every move, and a good minted onto a
-floor has been moved by nobody. Without it a bole on the ride was
-skipped by the room's capture (a player's good is the owner's to
-persist) and never found by the room's overlay (`placedIn` had no row).
-Found by restarting the server; with it a bole and its logs survive a
-cold restart on the floor where they fell.
+**Every product is the feller's AND placed** — derived by the movement
+primitive (`ContainmentApi.move`: a fresh good landing where the feller
+stands is titled to them, and its place is recorded). Before that a bole
+on the ride was skipped by the room's capture until `fell` stamped and
+placed by hand — found by restarting the server; a bole and its logs now
+survive a cold restart on the floor where they fell with no call in
+`fell` at all (assembly build, MR !361).
 
 ### ⭐⭐ Bark — the fourth yield, and it is PER-SPECIES (2026-10-05)
 

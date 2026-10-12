@@ -265,7 +265,7 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(box, here as unknown as never);
       const steak = makeStuff(() => new Good());
       ContainmentApi.move(steak, here as unknown as never);
-      ContainmentApi.place(steak, 'in', box);
+      ContainmentApi.move(steak, box, 'in');
 
       // Open: right there, and reachable.
       expect(steak.getContainer()).toBe(here as unknown as never);
@@ -291,7 +291,7 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(box, here as unknown as never);
       const ham = makeStuff(() => new Good());
       ContainmentApi.move(ham, here as unknown as never);
-      ContainmentApi.place(ham, 'from', box);
+      ContainmentApi.move(ham, box, 'from');
       // The hook is on the OUTSIDE of the shut box.
       expect(PerceptionApi.canReach(s(actor), s(ham))).toBe(true);
     });
@@ -302,7 +302,7 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(shelf, here as unknown as never);
       const mug = makeStuff(() => new Good());
       ContainmentApi.move(mug, here as unknown as never);
-      ContainmentApi.place(mug, 'on', shelf);
+      ContainmentApi.move(mug, shelf, 'on');
       expect(PerceptionApi.canReach(s(actor), s(mug))).toBe(true);
     });
   });

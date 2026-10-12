@@ -119,7 +119,8 @@ path, and it writes three things in one call:
 > than hidden.
 
 `item.followCustody()` re-derives the placement from where a good
-now *is* — the one call a custody verb makes after moving something.
+now *is* — called by the movement primitive on every move (nobody calls
+it by hand).
 
 ## The skip rule
 
@@ -170,26 +171,12 @@ owner is live, read-modify-write of their stored record when not.
 > that matters and is enforced by test: **the host's own record never
 > carries somebody else's goods.**
 
-> ⛔⛔ **AND CRAFTING IS THE OUTSTANDING CASE (found 2026-10-09, fix
-> deferred to the next build).** `followCustody` is called by `hang` ·
-> `get` · `put` · `drop` · `buy` · and **`fell`** — and **crafting calls it
-> zero times.** So every crafted good minted onto a floor is skipped by
-> the room's capture. ⭐ It is invisible for goods you carry away and
-> **fatal for a `Vat`**, whose whole purpose is to sit still: its
-> `maturationClockStamp` reverts to `0` and the whisky un-ages. The fix is
-> `fell`'s two lines at the craft mint —
-> [crafting.md § DEFECT](./crafting.md).
-
-⚠ **And a good MINTED onto a floor has no `place` until something says
-so.** Only the custody verbs (`drop`/`put`/`get`) call `followCustody`;
-a verb's completion that clones a good into a persistable room and
-stamps it has placed it nowhere — the room's capture skips it and the
-overlay never finds it. Forestry's `fell` was the first such verb (a
-bole on the wood floor) and calls `followCustody` at the mint; it also
-captures the OWNER, because a live owner's estate is otherwise written
-only on the residency cadence or at logout, and a hard stop inside the
-window loses what they dropped. See
-[antipatterns.md § A good minted onto the floor](../antipatterns.md).
+> ✅ **Resolved (assembly build, MR !361): custody is DERIVED in the
+> movement primitive.** `ContainmentApi.move` (and `Adornable.addFixture`)
+> re-derive an owned good's place on every move, and title a FRESH good by
+> derivation — so a good minted onto a floor, a crafted cask left to
+> age, a bole on the wood floor are all placed with nobody calling
+> anything. See [spatial.md § Two layers of movement](./spatial.md).
 
 ## The room overlay
 

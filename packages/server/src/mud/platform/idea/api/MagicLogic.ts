@@ -1704,7 +1704,7 @@ async function execConjure(
     if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(conjured)) {
       // ⭐ LANDED, titled to whoever acted: a conjured thing is a good in
       // the world, and a bare move left it with no recorded place.
-      await ContainmentApi.land(conjured, scene, ctx.actor);
+      ContainmentApi.move(conjured, scene);
     }
     return `${conjured.getPresentation()} takes shape out of nothing.`;
   }

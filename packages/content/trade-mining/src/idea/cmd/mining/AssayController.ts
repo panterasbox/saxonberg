@@ -34,6 +34,7 @@ import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql'
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type Reading from '@saxonberg/server/mud/lib/instrument/Reading';
@@ -365,12 +366,13 @@ async function finishAssay(
         });
         // ⭐ Landed, titled to the customer when they are still in the
         // world — a batch can finish long after they walked off.
+        // ⚠ Stamped BEFORE it arrives: the paper is the CUSTOMER's, not
+        // whoever happens to be acting when the batch finishes.
         const live = StuffApi.findByTemplatePath<Stuff>(batch.customer) ?? null;
-        await ContainmentApi.land(
-          paper as unknown as Stuff & Containable,
-          room,
-          live && live.getIdentityPath() === batch.customer ? live : null,
-        );
+        if (live && MixinApi.isChattel(paper as unknown as Stuff)) {
+          await (paper as unknown as Stuff & Chattel).stampChattel(live);
+        }
+        ContainmentApi.move(paper as unknown as Stuff & Containable, room);
         // ⭐ The sample is CONSUMED. An assay is destructive — that is
         // why it costs a sample and why salting is worth doing.
         await StuffApi.destruct(sample);

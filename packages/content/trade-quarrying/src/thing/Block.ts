@@ -41,7 +41,6 @@ import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { Final } from '@saxonberg/server/mud/lib/security/decorators';
 
 /** Cubic metres of stone a block is — what its mass is derived from. */
@@ -171,7 +170,7 @@ export default class Block extends BlockBase implements Splittable {
   }
 
   public async completeWork(
-    by: Stuff,
+    _by: Stuff,
     _tool: (Stuff & Tooled) | null,
     _token: unknown,
   ): Promise<WorkResult> {
@@ -195,13 +194,6 @@ export default class Block extends BlockBase implements Splittable {
         : null;
       if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(piece)) {
         ContainmentApi.move(piece as Stuff & Containable, where as Stuff & Container);
-      }
-      if (MixinApi.isChattel(piece)) {
-        try {
-          await (piece as Stuff & Chattel).stampChattel(by);
-        } catch {
-          /* nobody's stone: honest */
-        }
       }
     }
     const tail =

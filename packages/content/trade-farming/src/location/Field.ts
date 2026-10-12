@@ -764,10 +764,7 @@ export default class Field extends FieldBase {
       const thing = await StuffApi.clone<Stuff>(row);
       // ⭐ LANDED, not moved: the hook names no actor, so the spoil
       // carries no title — but the field is captured with it in it.
-      await ContainmentApi.land(
-        thing as Stuff & Containable,
-        this as unknown as Stuff & Container,
-      );
+      ContainmentApi.move(thing as Stuff & Containable, this as unknown as Stuff & Container);
       return thing;
     } catch {
       // ⚠ A missing spoil row is a content gap, not a reason to lose the

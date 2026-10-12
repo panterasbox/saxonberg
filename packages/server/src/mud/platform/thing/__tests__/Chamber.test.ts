@@ -150,7 +150,7 @@ describe('Chamber', () => {
     const inside = cheese(281);
     const beside = cheese(295);
     ContainmentApi.move(beside, room);
-    ContainmentApi.place(inside, 'in', loft);
+    ContainmentApi.move(inside, loft, 'in');
 
     expect(loft.probeOccupants()).toEqual([inside]);
     // The placed thing stands in the ROOM, under the chamber.
@@ -172,8 +172,8 @@ describe('Chamber', () => {
 
     const cold = cheese(300);
     const warm = cheese(300);
-    ContainmentApi.place(cold, 'in', loft);
-    ContainmentApi.place(warm, 'on', shelf);
+    ContainmentApi.move(cold, loft, 'in');
+    ContainmentApi.move(warm, shelf, 'on');
     await cold.restamp();
     await warm.restamp();
 
@@ -194,7 +194,7 @@ describe('Chamber', () => {
     const loft = chamber(null);
     ContainmentApi.move(loft, room);
     const c = cheese(300);
-    ContainmentApi.place(c, 'in', loft);
+    ContainmentApi.move(c, loft, 'in');
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(290, 0);
   });
@@ -208,7 +208,7 @@ describe('Chamber', () => {
     const loft = chamber(281);
     ContainmentApi.move(loft, room);
     const c = cheese(281);
-    ContainmentApi.place(c, 'in', loft);
+    ContainmentApi.move(c, loft, 'in');
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(281, 0);
 

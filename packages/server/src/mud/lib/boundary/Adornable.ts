@@ -246,6 +246,14 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       }
       this.fixtureSlots.set(name, f);
       f.setAdornedTo(this as unknown as Stuff & Adornable);
+      // ⭐ Mounting is the other way a thing comes to be somewhere, so it
+      // derives custody as `ContainmentApi.move` does: an owned good hung
+      // here records where it hangs. Nobody calls this by hand.
+      if (MixinApi.isChattel(f)) {
+        void f.followCustody().catch((err: unknown) =>
+          console.warn('Adornable.addFixture: custody record failed:', err),
+        );
+      }
       return true;
     }
 

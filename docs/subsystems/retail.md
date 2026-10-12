@@ -210,10 +210,12 @@ leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
 `par: 1` line hits this the moment somebody buys the last one.
 
-⭐ **`buy` calls `item.followCustody()` after the stamp** (fishing B7,
-2026-09) — every other custody verb did; `buy` never had, and a bought rod
-vanished at the next restart. Both branches (a stock buy and a consignment
-buy). The fish stall (`market/thing/fish-stall.yaml`) is a second
+⭐ **A bought good is placed in the buyer's estate** (fishing B7,
+2026-09: a bought rod vanished at the next restart). Since the assembly
+build the movement primitive records it — `buy` stamps the title (a sale
+is a title act) BEFORE handing over, and `move` does the rest. ⚠ `buy`
+sells ONE piece off a stocked heap at the piece price, and a counter must
+be one of its house's `operatingLocations` (`lint:shopfronts`). The fish stall (`market/thing/fish-stall.yaml`) is a second
 consignment counter with no lines of its own — self-service, capacity 40.
 
 ## Consignment — custody-vs-ownership (`consign` / `reclaim`)

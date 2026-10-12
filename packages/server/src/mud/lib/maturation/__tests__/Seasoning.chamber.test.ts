@@ -120,7 +120,7 @@ afterEach(() => {
 describe('⭐ seasoning in a chamber', () => {
   it("a stack placed IN the loft reads the loft's air — the scope IS the chamber", () => {
     const t = stack();
-    ContainmentApi.place(t, 'in', loft);
+    ContainmentApi.move(t, loft, 'in');
     expect(t.getContainer()).toBe(yard);
     expect(t.getEnclosingScope()).toBe(loft);
 

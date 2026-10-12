@@ -344,7 +344,7 @@ async function finishSaw(job: SawJob): Promise<void> {
     if (MixinApi.isStackable(board)) board.setQuantity(boards);
     const maker = giver.isDestroyed() ? '' : (giver.getIdentityPath() ?? '');
     if (maker && MixinApi.isCrafted(board)) board.setMaker(maker);
-    await ContainmentApi.land(board, landing, giver.isDestroyed() ? null : giver);
+    ContainmentApi.move(board, landing);
 
     if (!saw.isDestroyed()) {
       MessageApi.scene(saw as unknown as Stuff)

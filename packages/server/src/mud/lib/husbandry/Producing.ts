@@ -907,7 +907,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           }
         }
         if (MixinApi.isContainer(by) && MixinApi.isContainable(thing)) {
-          await ContainmentApi.land(thing, by, by);
+          ContainmentApi.move(thing, by);
         }
         made.push(thing);
       }

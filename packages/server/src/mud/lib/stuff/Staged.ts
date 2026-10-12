@@ -406,7 +406,7 @@ export function StagedMixin<
                   `'${placement.host}' is not a Placing host`
               );
             }
-            ContainmentApi.place(inst, placement.name, host);
+            ContainmentApi.move(inst, host, placement.name);
           } else {
             ContainmentApi.move(inst, this as unknown as Stuff & Container);
           }

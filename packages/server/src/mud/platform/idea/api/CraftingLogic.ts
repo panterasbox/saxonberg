@@ -2358,13 +2358,10 @@ function applyAssembledOutput(
 }
 
 /**
- * ⭐⭐ **Land a minted output** — move it, stamp it to its maker, record
- * where it is, and capture the hosts. The ONE place the mint does this, so
- * that no trade verb can forget (see {@link Landing}).
- *
- * The mechanism is {@link ContainmentApi.land} (move, stamp-if-untitled,
- * `followCustody`, capture); this resolves WHERE from the request's
- * {@link Landing}.
+ * Put a minted output where the request's {@link Landing} says — the
+ * maker's hands, where they stand, or a named container. Only WHERE is
+ * decided here: the movement primitive derives the rest (its title, from
+ * the maker; its recorded place).
  */
 async function landOutput(
   output: Stuff,
@@ -2384,7 +2381,7 @@ async function landOutput(
   ) {
     return;
   }
-  await ContainmentApi.land(output, into, maker);
+  ContainmentApi.move(output, into);
 }
 
 /**
@@ -3754,7 +3751,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     whole.setGrade(worst);
   }
   if (returned && MixinApi.isContainable(returned) && MixinApi.isContainer(maker)) {
-    await ContainmentApi.land(returned, maker, maker);
+    ContainmentApi.move(returned, maker);
   }
   try {
     await PersistableApi.captureHostOf(whole);

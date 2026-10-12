@@ -62,7 +62,7 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       p.setForm("pane");
       if (MixinApi.isAlloyed(p) && alloying.length > 0) p.setAlloying(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
-        await ContainmentApi.land(p as unknown as Stuff & Containable, where as Stuff & Container, giver);
+        ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
       }
     }
     MessageApi.scene(giver)

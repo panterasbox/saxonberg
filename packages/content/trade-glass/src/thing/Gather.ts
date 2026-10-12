@@ -145,11 +145,7 @@ export default class Gather extends GatherBase {
             ? (actor as unknown as Stuff & Container)
             : null;
       if (dest && MixinApi.isContainable(cullet)) {
-        await ContainmentApi.land(
-          cullet as Stuff & Containable,
-          dest,
-          actor.isDestroyed() ? null : actor,
-        );
+        ContainmentApi.move(cullet as Stuff & Containable, dest);
       }
     } catch {
       /* a missing cullet row is a content gap; the gather still goes */

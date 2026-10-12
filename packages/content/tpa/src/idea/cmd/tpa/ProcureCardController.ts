@@ -32,7 +32,7 @@ export default class ProcureCardController extends CommandController<CommandMode
     }
     const clerk = context.commandSource;
     const card = await StuffApi.clone<Stuff & Containable>(TpaPaths.travelCard);
-    await ContainmentApi.land(card, giver, giver);
+    ContainmentApi.move(card, giver);
 
     const who = clerk ? Mml.actor(clerk) : Mml.fromMarkup("the clerk");
     MessageApi.scene(giver)

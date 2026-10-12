@@ -748,11 +748,7 @@ async function restoreState(
       const item = restored[i];
       const host = restored[idx];
       if (item && host && MixinApi.isPlacing(host)) {
-        ContainmentApi.place(
-          item as Stuff & Containable,
-          entry.placement.placement ?? "on",
-          host as Stuff & Placing,
-        );
+        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, entry.placement.placement ?? "on");
       }
     });
   }

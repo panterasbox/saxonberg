@@ -132,13 +132,13 @@ describe('ContainableMixin.placement', () => {
   });
 
   it('place sets the pair AND moves into the host\'s environment', () => {
-    ContainmentApi.place(item, 'on', surface);
+    ContainmentApi.move(item, surface, 'on');
     expect(item.getContainer()).toBe(room);
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
   });
 
   it('move() to a different container clears the placement', () => {
-    ContainmentApi.place(item, 'on', surface);
+    ContainmentApi.move(item, surface, 'on');
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     const elsewhere = makeStuff(() => new ConcreteStuff());
     ContainmentApi.move(item, elsewhere);
@@ -152,16 +152,16 @@ describe('ContainableMixin.placement', () => {
       '/test/other-surface',
     );
     ContainmentApi.move(otherSurface, room);
-    ContainmentApi.place(item, 'on', surface);
+    ContainmentApi.move(item, surface, 'on');
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     expect(item.getContainer()).toBe(room);
-    ContainmentApi.place(item, 'on', otherSurface);
+    ContainmentApi.move(item, otherSurface, 'on');
     expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     expect(item.getContainer()).toBe(room);
   });
 
   it('_setPlacement(null) clears the pair', () => {
-    ContainmentApi.place(item, 'on', surface);
+    ContainmentApi.move(item, surface, 'on');
     expect((item.getPlacement()?.host ?? null)).toBe(surface);
     // Direct _setPlacement(null) is gated by ContainmentApi — invoke
     // through ContainmentApi.move(item, null) and check both fields
@@ -322,25 +322,25 @@ describe('ContainableMixin.getEnclosingScope', () => {
 
   it('a NON-enclosing member: still the container — a desk encloses nothing', () => {
     host.setPlacements(['on']);
-    ContainmentApi.place(item, 'on', host);
+    ContainmentApi.move(item, host, 'on');
     expect(item.getEnclosingScope()).toBe(room);
   });
 
   it('⭐ an ENCLOSING member: the HOST — a region with its own air', () => {
     host.setPlacements(['in']);
-    ContainmentApi.place(item, 'in', host);
+    ContainmentApi.move(item, host, 'in');
     expect(item.getEnclosingScope()).toBe(host);
   });
 
   it('a member with no live row reads as non-enclosing, not as broken', async () => {
     host.setPlacements(['sideways']);
-    ContainmentApi.place(item, 'sideways', host);
+    ContainmentApi.move(item, host, 'sideways');
     expect(item.getEnclosingScope()).toBe(room);
   });
 
   it('⚠ a destructed host heals to the container, whatever the name said', () => {
     host.setPlacements(['in']);
-    ContainmentApi.place(item, 'in', host);
+    ContainmentApi.move(item, host, 'in');
     expect(item.getEnclosingScope()).toBe(host);
     StuffApi.destruct(host);
     expect(item.getPlacement()).toBeNull();
