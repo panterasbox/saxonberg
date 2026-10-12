@@ -2748,6 +2748,22 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
   - The fouling probe (Risks 3 / T16) runs in the drive, against the
     drive's own world: `analyze water` on the bank prints the flow, and
     the draw shows which way it falls.
+- ✅ **T-W2 done** (drawing).
+  - **B-78 — `BulkSlot.settle()`**, base resolved at once: a source slot
+    reads its water (async) before a controller draws. Fill and Drink
+    await it on the source; Wash settles every bound source before its
+    (sync) paths run. Generic — *a slot may need a moment to say what it
+    holds* — so no controller learns what a shore is.
+  - **B-79 — a shore ALWAYS has a slot** (T9′): one that cannot give is
+    empty with `whyEmpty()` in the place's words, so `mustHaveBulkSlot`
+    is unchanged and no new Api static was needed.
+  - **B-80 — `getHolder()` widened to `Stuff`** with zero call-site
+    changes: every caller already narrowed. The transfer's thermal
+    coupling reads `from.getTemperatureK()` (the holder's when Thermal —
+    unchanged for every vessel — the water's for a source slot).
+  - **B-81 — the draught** (`bulk.draughtL`, 0.25 L) is a plain return,
+    no clamp note: drinking from a river takes a mouthful, which is the
+    act, not a shortfall. The shipped tap's `∞` hole closes with it.
 
 ## Build log
 
