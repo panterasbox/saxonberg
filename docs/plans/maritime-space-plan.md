@@ -1946,6 +1946,19 @@ the horizon and empty).
   fields; then the *shore as a place* slate (the water read reached by
   looking at the cited water BY NAME — no room hook; the vantage is
   already the zone `horizon`).
+- ✅ **Revision 2 drive — 30/30 cold** (run 3 of 3). Found:
+  | # | found | fixed |
+  |---|---|---|
+  | R2-1 | ⚠ the binder never copied `isSet` onto the BOUND result, so `look horizon` with one thing in view rendered that thing's own look | `isSet` rides the bound `MqlManyResult`/`MqlOneResult` |
+  | R2-2 | ⚠ an EMPTY set lost `isSet` in `walkScopes` (no scope found anything → a bare `{stuff: []}`) — an interior's `look horizon` said *"You don't see any 'horizon'"* | an empty set stays a set |
+  | R2-3 | drive: a pick-MANY prompt (`look`'s plural slot) answers with a JSON array of ids, and the envelope is read by what it carries | the step reads `promptId`/`stuffId` by pattern |
+  | R2-4 | ⚠ NOT FIXED (finding 11 again, the focus owner's): after going below, `$focus` still points into the hold, and `measure`'s scope tries `$focus` first — `measure bearing light` bound the hold LAMP | the drive says `measure bearing horizon:light` |
+  ⭐ Proven on the wire: your own ledger grouped; another player's look and
+  ledger show what they wear and hold and never the implant; a chest of six
+  names four and points at `inventory chest`, whose ledger (and `look in`)
+  lists all, and shut it refuses; `look greywater` ASKS which chart and the
+  answer reads one, `look all greywater` lists both, `look 2nd greywater`
+  reads one; every revision-1 step still green through the plural `look`.
 
 ## Build log
 

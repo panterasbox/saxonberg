@@ -448,16 +448,20 @@ async function walkScopes(
   admissible: (s: Stuff) => boolean,
 ): Promise<{ result: MqlMany; discarded: Stuff[] }> {
   let firstRaw: MqlMany | null = null;
+  let isSet = false;
   const discarded: Stuff[] = [];
   for (const scope of tries) {
     const got = await scopedMany(raw, giver, scope, field, context);
+    if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
     const kept = got.stuff.filter(admissible);
     for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
     if (kept.length > 0) return { result: { ...got, stuff: kept }, discarded };
   }
   if (firstRaw) return { result: firstRaw, discarded: [] };
-  return { result: { stuff: [] }, discarded };
+  // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
+  // "you see nothing there", not "you don't see any 'horizon'").
+  return { result: isSet ? { stuff: [], isSet: true } : { stuff: [] }, discarded };
 }
 
 /**
@@ -1418,6 +1422,9 @@ export class CommandLogic extends ApiLogic {
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
+        // ⭐ The controller needs to know it was handed a SET (`look
+        // horizon` of one thing is still a list, not that thing's look).
+        if (r.isSet) bound.isSet = true;
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
@@ -1499,6 +1506,7 @@ export class CommandLogic extends ApiLogic {
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
@@ -1597,6 +1605,9 @@ export class CommandLogic extends ApiLogic {
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
+        // ⭐ The controller needs to know it was handed a SET (`look
+        // horizon` of one thing is still a list, not that thing's look).
+        if (r.isSet) bound.isSet = true;
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
@@ -1671,6 +1682,7 @@ export class CommandLogic extends ApiLogic {
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;
         resolved[fname] = bound;

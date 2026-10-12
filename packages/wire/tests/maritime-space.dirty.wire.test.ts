@@ -316,13 +316,15 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
     await me.drainProse();
     // The prompt arrives on its own frame; the command answers once it is answered.
     const pending = me.cmd('look greywater');
-    const prompt = await me.awaitPrompt(10_000);
-    const payload = (prompt as unknown as {
-      payload?: { promptId?: string; outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> } };
-    }).payload;
-    const pick = payload?.outcome?.notes?.map((n) => n.matches?.[0]?.stuffId).find((x): x is string => !!x);
-    expect(payload?.promptId && pick).toBeTruthy();
-    me.answerPrompt(payload!.promptId!, pick!);
+    const prompt = JSON.stringify(await me.awaitPrompt(10_000));
+    // Read the envelope by what it carries, not by its nesting: the id to
+    // answer and the first candidate. A pick-MANY prompt (a plural slot)
+    // is answered with a JSON array of ids.
+    const promptId = /"promptId":"([^"]+)"/.exec(prompt)?.[1];
+    const pick = /"stuffId":"([^"]+)"/.exec(prompt)?.[1];
+    expect(prompt, prompt.slice(0, 600)).toMatch(/prompt-mql-(many|object)/);
+    expect(promptId && pick, prompt.slice(0, 600)).toBeTruthy();
+    me.answerPrompt(promptId!, /prompt-mql-many/.test(prompt) ? JSON.stringify([pick]) : pick!);
     expectOk(await pending);
     const all = await look(me, 'look all greywater');
     expect(all).toMatch(/You see .*chart.*chart/);
@@ -485,7 +487,9 @@ suite('19 · 20 · 25 · sight at sea', () => {
       seen = await look(me, 'look horizon');
     }
     expect(seen).toMatch(LIGHT);
-    const r = await me.cmd('measure bearing light');
+    // `horizon:light`, explicitly: `measure` tries `$focus` first, and the focus
+    // still points below decks after step 30 (the hold lamp answers to `light`).
+    const r = await me.cmd('measure bearing horizon:light');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/The light on Gannet Rock bears \d{3}° ± [\d.]+°\. .*fixes you to within/);
   }, 600_000);
