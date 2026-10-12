@@ -2765,6 +2765,62 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     no clamp note: drinking from a river takes a mouthful, which is the
     act, not a shortfall. The shipped tap's `∞` hole closes with it.
 
+## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
+
+Supersedes revision 2's *look is plural* (requirements § *Looking at many
+things*, the amendment box). The review's ruling: `look` had two jobs and
+the engine was guessing intent between them (`cardinality.named` was
+that guess). Three verbs, one question each.
+
+### Decisions
+
+- **Q1 — the visibility rule moves into MQL's `:i` / `:I` step.**
+  `applyTransform` (`api/mql/resolver.ts`) already carries the viewer;
+  descending a holder that is not the viewer yields
+  `PerceptionApi.visibleContentsOf(viewer, holder)` — on a person worn +
+  held, never pockets or implants; an open container everything; a shut
+  one nothing. The viewer's own things: everything. No viewer (system
+  mode, engine bookkeeping): everything, as before. ⭐ Closes the pocket
+  leak for every caller — `query bob:i`, `look bob:i:knife`, scripts.
+- **Q2 — `look` takes one thing again.** `look.yaml` back to `type:
+  object` + `onExcess: prompt`; `LookController` loses its list branch
+  (`lookAtList`, `extractStuffs`). ⛔ `cardinality.named` is DELETED
+  (`CardinalitySpec`, the schema, `CommandDefinition`, the binder branch)
+  — it had one consumer and existed only to rescue the plural look.
+  `isSet` on the result stays: a set in a one-thing slot is refused in
+  words, and the words point at `query <what you typed>`.
+- **Q3 — `query <set>` (alias `scan`)** — `platform/cmd/perception/
+  query.yaml`, `QueryController`: an `objects` slot (any MQL), each entry
+  saying how it stands to you; the horizon rendering (featured first,
+  *You can also make out…*, bearings, traffic) moves here from `look`.
+  `--ledger` renders a set as the grouped ledger under its holder(s)
+  (worn / held / carried). Options change rendering only. An empty
+  result whose query descended into a SHUT container says *X is shut*
+  (the query minus its trailing descent, resolved once).
+- **Q4 — `inventory [<thing>]` is `query --ledger <thing>:i`** — kept as
+  its own view (its argument is a holder, not a set, and it defaults to
+  you), rendering through the same ledger as `query --ledger`.
+  `look in <thing>` stays the same ledger.
+- **Q5 — the shore drive's findings**: the city outfall's load 0.6 →
+  **4.0** (T16 — at the drive's spring flood, 10.4 m³/s, 0.6 read 0.06;
+  4.0 keeps the wharf fouled through a freshet and the estuary fouled
+  only in a dry month); the revision-3 drive steps run as the founder
+  (the waterman held no extent to `clone` under); step 1 waits for the
+  read to land.
+
+### Waves
+
+- **Q-W1** — Q1 + Q2 (+ tests: the `:i` rule over a person, a shut chest,
+  your own pack, system mode; `look horizon` refused pointing at
+  `query`; `look brass` prompts).
+- **Q-W2** — Q3 + Q4 (+ tests: `query horizon` renders the horizon;
+  `query --ledger me:i` groups; `scan` alias; a shut chest says shut).
+- **Q-W3** — Q5, the drive (steps 19/23–25/27–30 to `scan`; 31–39 as
+  the founder), docs (perceiver, command-spec, mql-grammar, mql), lint
+  family, `pnpm test` once, cold drive.
+
+### Build log
+
 ## Build log
 
 *(appended wave by wave at build time — what changed, what was decided,

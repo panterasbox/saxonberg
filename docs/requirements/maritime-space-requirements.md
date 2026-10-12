@@ -457,7 +457,7 @@ own terms with nothing added.
 
 | surface | shape |
 |---|---|
-| **`look horizon`** | ⭐ what you can see from here that is **not in your room**. `horizon` is a **scope** (in the `here` / `reachable` family), so it composes and drills: `look horizon:tower` reads the tower like any visible thing, even when the summary did not name it. ⭐ *(revised 2026-10-11)* It is simply `look` given a SET — the plural look below — and the set is the whole content: the **featured** things first, then the rest, each with where it lies |
+| **`look horizon`** | ⭐ what you can see from here that is **not in your room**. `horizon` is a **scope** (in the `here` / `reachable` family), so it composes and drills: `look horizon:tower` reads the tower like any visible thing, even when the summary did not name it. ⭐ *(revised 2026-10-11)* ⭐⭐ *(amended 2026-10-12)* Listing it is **`scan horizon`** (`query horizon`) — a set is `query`'s, and `look` takes one thing — and the set is the whole content: the **featured** things first, then the rest, each with where it lies |
 | **`watch horizon`** | ⭐⭐ **keeping watch** — a held engagement that tells the watcher when what is in view changes. ⭐ It unifies with the livestream `watch` (the collision ladder's first rung): both are *attending to something over time and being told when it changes*, and the target decides which |
 | **`measure bearing`** | ⭐ a **fix is an act**: a bearing on something in view, read off the compass (a `Reading` row, the instrument ladder). Laid against the chart, it corrects the reckoning |
 
@@ -467,12 +467,14 @@ and a lookout who sees one SAYS so. Only an emitter that announces itself
 — a bell, a gun, a signal — pushes, and it is routed to whoever can
 perceive it, as sound already is.
 
-### ⭐⭐ Looking at many things: `look` and `inventory` *(revised 2026-10-11)*
+### ⭐⭐ Looking at many things: `look`, `query` and its aliases *(revised 2026-10-11; amended 2026-10-12)*
 
 | surface | shape |
 |---|---|
-| **`look <many>`** | ⭐ `look` may be given **more than one thing**: a set named on purpose (`look horizon`, `look peers`), or the player's own *how many* (`look all brass`, `look 2nd brass`). It lists them |
-| **`inventory [<thing>]`** | ⭐ the itemised **ledger** of what something holds — you (no argument), an open container, a person. `look in <thing>` is the same ledger |
+| **`look <thing>`** | ⭐ ONE thing: *what is this like?* A name that matches several asks which. A set (`look horizon`, `look all brass`) is refused in words, pointing at `query` |
+| **`query <set>`** | ⭐⭐ lists whatever the query names — `query horizon`, `query peers`, `query all brass`, `query bob:i` — each entry saying how it stands to you. Options change only how it is SHOWN (`--ledger`); what is in it is the query's |
+| **`scan <set>`** | the same act in the world's own words: `scan horizon`, `scan peers` |
+| **`inventory [<thing>]`** | the **ledger** rendering of a holder's contents: `inventory` = `query --ledger me:i`, `inventory bob` = `query --ledger bob:i`. `look in <thing>` is the same ledger |
 
 The full design is *Looking at many things* below.
 
@@ -603,7 +605,7 @@ of what matters is outside your room, nothing could be seen at all.
 **What this build designs is perception beyond the room, in two
 directions — and the lenses decided both:**
 
-1. **Pull — somebody looks.** `look horizon` once; `watch horizon` to
+1. **Pull — somebody looks.** `scan horizon` once; `watch horizon` to
    keep watch. ⭐ *Lens 3b:* the economy has a lookout-shaped hole, and
    the engine must not fill it — appointing a lookout means somebody is
    watching, and a ship with nobody watching is blind by its own choice.
@@ -645,6 +647,38 @@ nothing.
 ambiguous about. Fixing that properly is a general change to how every
 verb is told *how many*, and to what looking at a list means — so it is
 designed here, for the whole game, and ships in this build.
+
+> ⭐⭐⭐ **Amended 2026-10-12 — `look` is ONE thing again; a set is
+> `query`'s.** Revision 2 made `look` plural so `look horizon` could list
+> what is in view, and then needed machinery (*how many a plain name
+> takes*) to tell a set it was asked for from an ambiguous name — the
+> engine guessing intent because one verb had two jobs. The review's
+> ruling: **three verbs, one question each.**
+>
+> | verb | the question | takes |
+> |---|---|---|
+> | `look` | *what is this like?* | one thing; a name matching several asks which |
+> | `query` (aliases `scan`, `inventory`) | *what does this name?* | any set the query language can say |
+>
+> - ⭐ **`query` is the honest name** — it names the grammar, which is a
+>   skill worth learning; **the aliases carry the fiction** (`scan
+>   horizon`; `inventory` is its ledger rendering of a holder's things).
+> - **Options change the rendering, never the set** (`--ledger` groups a
+>   holder's things as worn / held / carried). Narrowing is the query
+>   language's — filters, counts, ordinals, `all` — so anything an option
+>   could say, a script could not; nothing narrows by option.
+> - ⭐⭐ **The one visibility rule lives in the QUERY LANGUAGE**, not in a
+>   verb: naming a person's things (`bob:i`) yields what they wear and
+>   hold — never their pockets or what is inside their body — for every
+>   way of asking, `query`, `look`, a script alike. Your own things are
+>   everything; an open container is everything in it; a shut one is
+>   shut, and `query` says so rather than *nothing there*.
+> - The horizon's summary (featured landmarks first, *"You can also make
+>   out…"*, bearings and ranges) is `query horizon`'s rendering; `look
+>   horizon:<it>` reads one of them.
+>
+> What follows below is revision 2's text; where it says `look` takes
+> many things, read `query`.
 
 **How many — two different jobs, never confused.**
 
@@ -1315,7 +1349,7 @@ Against the running game, before the MR opens.
     charted.**
 18. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-19. **`look horizon` at sea** and see the light on Gannet Rock; **`look
+19. **`scan horizon` at sea** and see the light on Gannet Rock; **`look
     horizon:light`** and read it. Then **`hail` it**. ⭐ Have a second
     observer lower down **not** see it.
 20. ⭐ **`watch horizon` from the deck, then `appoint` somebody lookout**
@@ -1325,13 +1359,13 @@ Against the running game, before the MR opens.
     meet the same traffic. **Re-enter and gain nothing.**
 22. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-23. **Stand on the headland** and `look horizon`: the sea, and the light
+23. **Stand on the headland** and `scan horizon`: the sea, and the light
     far out on it, at a range the headland's height decides.
-24. ⭐⭐ **`look horizon` from three different zones** and find the clock
+24. ⭐⭐ **`scan horizon` from three different zones** and find the clock
     tower featured in each; `look horizon:tower` reads the one
     description; from a fourth place (an interior) **nothing** is in view
     because an author said so. ⛔ No room's own `look` repeats the tower.
-25. **Approach a coast from open water**, `look horizon` until the light
+25. **Approach a coast from open water**, `scan horizon` until the light
     comes into view, and **`measure bearing`** on it to fix your position.
 26. **Sail into the haar** and have the fog close in — the crossing
     report says so, `measure latitude` is refused by the fog, and the
@@ -1346,8 +1380,11 @@ Against the running game, before the MR opens.
     summary that says how to see the rest; **`inventory` it** (or **`look
     in` it**) and get the full ledger. A shut container refuses in words.
 30. ⭐ **`look brass` where two things match** and be ASKED which;
-    **`look all brass`** and see both listed, asked nothing; **`look 2nd
-    brass`** and see the second.
+    **`scan all brass`** (or `query all brass`) and see both listed,
+    asked nothing; **`look 2nd brass`** and see the second. ⭐ **`look
+    horizon`** is refused in words that point at `scan horizon`; **`scan
+    horizon`** lists what is in view; **`query bob:i`** shows only what
+    Bob wears and holds.
 31. ⭐⭐ **On the wharfside bank, `look river`** (and `look kestrel`): the
     bank's own words for the river, then the water's read — what it is,
     how it runs, the fishery read at your band. **`look water` asks
@@ -1471,7 +1508,7 @@ Against the running game, before the MR opens.
 33. A **vantage** is a place with height — a zone with its own
     elevation — whose author names what is scanned from it, and it is
     believed.
-34. `look horizon` lists what can be seen from here that is not in the
+34. `scan horizon` lists what can be seen from here that is not in the
     room — **featured** things first — and **anything in view can be
     looked at** (`look horizon:<thing>`), described once, on itself. ⭐
     At sea the range is decided by **height**.
@@ -1505,14 +1542,19 @@ Against the running game, before the MR opens.
 44. ⭐ **The player may say how many** (`all`, an ordinal, a count) and it
     overrides the verb's default; a verb's hard limit is refused in
     words, never prompted.
-45. **`look` takes many things** and lists them; past four it summarises
+45. ⭐ *(amended 2026-10-12)* **`look` takes ONE thing**; a set is
+    refused in words that point at `query`. **`query` (aliases `scan`,
+    `inventory`) lists any set** the query language can name, options
+    changing only the rendering. Looking at a container, past four things
+    `look` summarises
     and says how to see the rest.
-46. ⭐ **`inventory` lists anything you may see into** — yourself
+46. ⭐ **`inventory` (the ledger rendering of `query`) lists anything you may see into** — yourself
     (grouped worn / held / carried), an open container, a person — and
     `look in <thing>` is the same ledger. A shut container refuses in
     words.
 47. ⭐⭐ **On a person, only what is worn and held is visible** — to
-    `look` and to `inventory` alike. ⛔ Never pockets, packs' insides, or
+    `look`, to `query`/`inventory`, and to any query (`bob:i`) alike: the
+    rule is the query language's. ⛔ Never pockets, packs' insides, or
     anything inside the body.
 48. **A list entry says how it stands to you** (placement, worn/held,
     bearing and range); a set that belongs to something is headed by it;
