@@ -98,6 +98,20 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   remains `FurnishableRoom`; the spherical twin is derived the same way
   when a spherical venue first needs one.
 
+- ⭐ **A place beside a named water** — `platform/location/Shore`
+  (`ShoreMixin` over `SingletonCartesianLocation`: a mere's shore, the
+  heath by its tarn, a ship's deck, the headland) and
+  `platform/location/Quay` (`ShoreMixin` over `Street`: a lit public
+  waterfront, the wharfside bank). Maritime revision 3. Like `Street`,
+  a class those rows PICK — never a field every room carries blank. The
+  place names its water as one of its own features (`waters: { river:
+  kestrel:confluence }`); `look river` reads it, the fishing verbs bind
+  the place, and `fill`/`drink`/`wash` draw from it. ⚠ A waterside place
+  of any OTHER class (a riverside dyehouse) needs its own composed class
+  — the recorded cost (`shore-as-place-slate`). See
+  [fishing.md](./fishing.md) § the shore and [bulk.md](./bulk.md)
+  § a slot held by a place.
+
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
 ("Town Square").

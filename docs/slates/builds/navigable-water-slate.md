@@ -910,6 +910,16 @@ possible.
 
 ## 5a. ⭐⭐⭐ The coast is the `Shore`, and it closes the model
 
+> ⭐ **The vehicle moved; the ruling stands** (maritime revision 3,
+> 2026-10-11). *Cited, never contained, never containing* is unchanged —
+> but the citation is now on the PLACE (a `/platform/location/Shore` or
+> `Quay`, `waters: { <feature>: <reach> }`), not on a `Shore` object in
+> it; the room's own feature is what you look at, fish and draw from.
+> The prop defect below closes because the read is the water's own look,
+> by the place's name for it — never appended to the room's prose. See
+> [shore-as-place-slate](./shore-as-place-slate.md) and
+> [fishing.md](../../subsystems/fishing.md) § the shore.
+
 The seam between this model and the land model — and **it already
 ships.**
 

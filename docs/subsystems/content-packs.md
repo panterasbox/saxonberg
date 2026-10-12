@@ -1699,7 +1699,7 @@ exceptional · masterful).
 ## ⭐ The maritime build (2026-10)
 
 The **water** pack gains the medium tier of the expanse —
-`WaterExpanse`, `WaterBand`, `Gunwale extends Shore`, `DepthReading`,
+`WaterExpanse` (a `WaterSourceMixin` — the sea a shore cites), `WaterBand`, `DepthReading`,
 the `Pilot` agent and its `pilot` verb — and ships the `open-water`
 biome stub at the commons path (a trade ships the biome it stands
 under). The **transport** pack gains `Boat` and its `launch`/`recover`

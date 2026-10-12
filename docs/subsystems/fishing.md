@@ -1,11 +1,12 @@
 # Fishing — every reach holds what belongs in it, unasked
 
-The fishery as a **derived record on a reach**, the water pack's `Shore`,
-and the `trade-fishing` capability pack: the tackle, the wait and the
+The fishery as a **derived record on a reach**, the shore (a waterside
+PLACE that names its water — maritime revision 3), and the `trade-fishing` capability pack: the tackle, the wait and the
 bite and the landing contest, the traps, bait, a fish you can keep in a
 bowl, six aquatic species, the fisher and the fishmonger. This doc is the
 source of truth for `packages/content/water/src/idea/FisheryRegistry.ts`,
-`packages/content/water/src/thing/Shore.ts`, `WatercourseCatalogue.
+the water pack's half of the shore seam (`WatercourseCatalogue.readWater`
+/ `waterLinesFor`, `FisheryRegistry.readForViewer`), `WatercourseCatalogue.
 waterStateAt`, `Species.habitat` / `fitIn`, and everything under
 `packages/content/trade-fishing/`. Built 2026-09-18 (`build/fishing`);
 the plan retires at the sweep and its decisions live here.
@@ -109,30 +110,51 @@ the Delight's flats hold trout and carp. **No table anywhere.**
 
 ## The shore, and the read
 
-`/system/water/thing/Shore` — a room-fixed feature (`fixedInPlace`)
-citing a `reachRef`, the water pack's, by the `/system/` test: a
-riverbank is there whether or not anyone fishes. Rows: the wharfside
-`river-edge` (`kestrel:confluence` — the city's Locality declares no
-reach, so this row is what makes the bank fishable) and the moor's
-`heath-mere` (`holloway:head`; the moor's Locality cites the vale, the
-feature wins). A verb that wants a reach takes a Shore as its declared
-argument (`default: "reachable:[class.Shore]"`) and falls back to the
-Locality's reach when none is bound — how Heart's Delight's millsite
-fishes the Delight's flats with no row and no code.
+⭐⭐ **The shore is a PLACE, not an object in it** (maritime revision 3,
+2026-10-11 — the water pack's `Shore` Thing and `Gunwale` retired). A
+waterside place is a `/platform/location/Shore` (or a `Quay`, the lit
+public waterfront: the wharfside bank) — the kernel's `ShoreMixin`, on
+those two classes only. It already describes its water as one of its own
+features (`details: { river: … }`), in its own words, and says which
+water that feature is: `waters: { river: kestrel:confluence }`. Rows: the
+bank (`river` → `kestrel:confluence` — the city's Locality declares no
+reach, so this is what makes the bank fishable), the stormy heath
+(`tarn` → `holloway:head`; the moor's Locality cites the vale, the place
+wins), the three mere shores, the *Hesper*'s deck and the headland brow
+(`sea` → the Greywater, its position derived — see below).
 
-`look <shore>` (⚠ by the shore's own keyword — `edge`, `tarn`; `water`
-and `mere` are room details too and prompt): the **physical read** for
-everyone (the water's name, breadth in words, still/slow/fast,
-fresh/brackish/salt, cold/cool/warm, soft/hard, *an outfall discharges
-into this water* as a fact about the map), then the **fishery read** at
-the viewer's band in the read Discipline — nothing untrained, presence
-at novice, the species in bands at competent (*plenty of eel, a few
-carp*, the apex *something large*), the apex named *a royal fish* and
-**the one factor that limits each species the water does not suit** at
-proficient. The band words read `level / full` (the capacity at a
-perfect fit), so a species the water barely suits reads *a few* and the
-limiter line says why. Never a number. The shore keeps a memo refreshed
-fire-and-forget (the `GristMill` shape); `settle()` awaits it.
+The kernel never parses the citation. It asks a **`WaterSourceMixin`**
+(`lib/location/WaterSource.ts`, the `GroundSource` shape): a cited path
+is its own source (a sea), anything else goes to the realm's default
+source, `water.sourcePath` → `WatercourseCatalogue`. Two implementers:
+the catalogue (a reach) and `WaterExpanse` (a sea).
+
+The fishing verbs (`fish` / `lay` / `release`) bind the PLACE
+(`default: "reachable:[mixin.ShoreMixin]"`): `fish` fishes its one water,
+`fish kestrel` names it (the binder's detail candidate — the place plus
+the feature named), *"There is no water in the lamps."* for a feature
+that is not water, *"Which water — …?"* where a place cites two and you
+named neither. No shore bound → the Locality's reach, as ever — how
+Heart's Delight's millsite fishes the Delight's flats with no row and no
+code. The fisher NPC's brains fish the place he stands in
+(`Waters.reachAt(room)`); nothing configures his water.
+
+`look <the water>` — by the place's own name for it (`look river`, `look
+tarn`, `look sea`; on the bank `look water` no longer prompts): the
+feature's own words, then the **physical read** for everyone (the
+water's name, breadth in words, still/slow/fast, fresh/brackish/salt,
+cold/cool/warm, soft/hard, *an outfall discharges into this water* as a
+fact about the map), then the **fishery read** at the viewer's band in
+the read Discipline — nothing untrained, presence at novice, the species
+in bands at competent (*plenty of eel, a few carp*, the apex *something
+large*), the apex named *a royal fish* and **the one factor that limits
+each species the water does not suit** at proficient. The band words
+read `level / full` (the capacity at a perfect fit), so a species the
+water barely suits reads *a few* and the limiter line says why. Never a
+number. ⛔ The room's own `look` adds nothing. The read is memoised per
+cited feature on the place (refreshed per 6 game hours, when the ref
+moves, or while pending); a look before it lands says *the water is hard
+to read yet*.
 
 ⭐ **The ice** (the climate build): the physical read ends *"Ice lies on
 it from bank to bank."* (or *grey and rotten*) when the reach carries a
@@ -346,10 +368,12 @@ carcass-load transfer is a unit test; the fishmonger's replacement through
 
 ## Fishing from a deck (the maritime build, 2026-10)
 
-`Gunwale extends Shore` is the deck's moving shore, citing the sea cell under its
-craft as `"<expanse>@<lat>,<lon>"`; `FisheryRegistry.standingAt` reads
-that cell from the bands' stock and keys `drawn` on it. `fish` reaches it
-through its shipped `reachable:[class.Shore]` default — no change here.
+A deck is a shore of whatever sea is under her: the *Hesper*'s deck cites
+the Greywater, and `WaterExpanse` derives the cell — the craft's position
+(through the structure catalogue), or for a beach the nearest landing —
+as `"<expanse>@<lat>,<lon>"`; `FisheryRegistry.standingAt` reads that
+cell from the bands' stock and keys `drawn` on it. Nothing is
+re-authored as she moves; the memo re-reads when the cell changes.
 
 ## Deferred
 

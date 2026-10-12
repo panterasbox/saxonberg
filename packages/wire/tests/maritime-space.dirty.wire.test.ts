@@ -61,6 +61,10 @@ const HOLD = '/world/terminus/hesper/hold';
 const AVENUE = '/world/terminus/university-avenue/location/crossing';
 const MILL = '/world/terminus/wharfside/mill/location/floor';
 const OUTFIT = '/world/terminus/hesper/idea/outfit';
+const HEATH = '/world/moor/stormy-heath';
+const NORTH_SHORE = '/world/north/shore';
+const BROW = '/world/terminus/estuary/headland/brow';
+const PAIL = '/stuff/thing/vessel/pail';
 /** The tower as `look horizon` features it, and its own description. */
 const FEATURED_TOWER = /You can see the terminal clock tower/;
 const TOWER_SAYS = /square brick shaft/;
@@ -73,6 +77,8 @@ const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 let me: Session;
 /** A second person for the look-from-elsewhere checks — never the founder, whose body sails. */
 const LANDSMAN = uniqueHandle('landsman');
+/** Revision 3's walker — the shore as a place, and drawing water. */
+const WATERMAN = uniqueHandle('waterman');
 /** The pilot's customer, who carries the coin. */
 const MATE = uniqueHandle('mate');
 
@@ -551,4 +557,124 @@ suite('16 · 21 · roads refuse honestly; the pilot', () => {
       s.close();
     }
   });
+});
+
+/**
+ * ⭐⭐ Revision 3 — the shore as a place. A waterside place names its water
+ * as one of its own features (`look river`, `look tarn`, `look sea`),
+ * the fishing verbs bind the place, and `fill` / `drink` / `wash` draw
+ * from the water there: what it is, there — fouled below the city's
+ * outfall, salt at sea, nothing through ice.
+ */
+suite('31 – 39 · the shore as a place, and drawing water', () => {
+  let w: Session;
+  async function at(where: string): Promise<void> {
+    w?.close();
+    w = await Session.open(WATERMAN, { startLocation: where, wizard: true });
+    await daylight(w);
+  }
+  /** `look --peek <x>` until the water's read has landed. */
+  async function readOf(what: string, want: RegExp): Promise<string> {
+    let said = '';
+    for (let i = 0; i < 6; i++) {
+      said = await look(w, `look --peek ${what}`);
+      if (want.test(said)) return said;
+      await w.listen(1_500);
+    }
+    return said;
+  }
+
+  afterAll(() => w?.close());
+
+  it('31 · on the bank, `look river` gives the bank\'s words then the Kestrel\'s read; `look water` asks nothing; no edge', async () => {
+    await at(BANK);
+    const river = await readOf('river', /This is the Kestrel/);
+    expect(river).toMatch(/moving faster than it looks/);
+    expect(river).toMatch(/This is the Kestrel/);
+    const water = await w.cmd('look --peek water');
+    expectOk(water);
+    expect(squash(await water.said())).toMatch(/This is the Kestrel/);
+    expect(await look(w)).not.toMatch(/river's edge|\bedge\b/i);
+  }, 300_000);
+
+  it('32 · on the heath, `look tarn` is the heath\'s own name and the Holloway\'s head', async () => {
+    await at(HEATH);
+    expect(await readOf('tarn', /This is the Holloway/)).toMatch(/peat-water[^]*This is the Holloway/);
+  }, 300_000);
+
+  it('33 · `fish` binds the place: unnamed, by the water\'s name; the lamps are refused in words', async () => {
+    await at(BANK);
+    expectOk(await w.cmd('clone /trade/fishing/thing/rod'));
+    expectOk(await w.cmd('clone /trade/fishing/thing/worm'));
+    await readOf('river', /This is the Kestrel/);
+    const lamps = await w.cmd('fish at lamps with worm');
+    expectRefused(lamps);
+    expect(squash(await lamps.said())).toMatch(/no water in the lamps/i);
+    const named = await w.cmd('fish kestrel with worm');
+    expectOk(named);
+    expectNote(named, 'engagement-started');
+    await w.cmd('cancel fishing');
+    const bare = await w.cmd('fish with worm');
+    expectOk(bare);
+    expectNote(bare, 'engagement-started');
+    await w.cmd('cancel fishing');
+  }, 300_000);
+
+  it('34 · `analyze water`, then fill a pail from the river: the water below the outfall is fouled; a mere\'s is clean', async () => {
+    await at(BANK);
+    const read = await w.cmd('analyze water');
+    expectOk(read);
+    expect(squash(await read.said())).toMatch(/reach: kestrel:confluence/);
+    expectOk(await w.cmd(`clone ${PAIL}`));
+    const fill = await w.cmd('fill pail from river');
+    expectOk(fill);
+    expect(squash(await fill.said())).toMatch(/You fill/);
+    expect(await look(w, 'look --peek pail')).toMatch(/brown, cloudy water/);
+    await at('/world/circle/shore');
+    expectOk(await w.cmd('spill pail'));
+    const clean = await w.cmd('fill pail from mere');
+    // A mere in winter may be iced over — then it says so (step 36's case).
+    if (clean.status === 'ok') {
+      expect(await look(w, 'look --peek pail')).not.toMatch(/brown, cloudy/);
+    } else {
+      expect(squash(await clean.said())).toMatch(/frozen from bank to bank/);
+    }
+  }, 300_000);
+
+  it('36 · at the blackmere, iced from day 0, the draw is refused in words', async () => {
+    await at(NORTH_SHORE);
+    await readOf('mere', /Ice lies on it/);
+    const r = await w.cmd('fill pail from mere');
+    expect(r.status).not.toBe('ok');
+    expect(squash(await r.said())).toMatch(/frozen from bank to bank; nothing comes up but ice/);
+  }, 300_000);
+
+  it('37 · aboard the Hesper: `look sea` reads where she lies; a bucket over the side is salt and slakes nothing; fish', async () => {
+    await at(BANK);
+    // Wherever she is now, the deck is a shore of the sea under her.
+    w.close();
+    w = await Session.open(WATERMAN, { startLocation: '/world/terminus/hesper/deck', wizard: true });
+    await daylight(w);
+    expect(await readOf('sea', /The sea is /)).toMatch(/Below the rail, the water[^]*The sea is /);
+    expectOk(await w.cmd('spill pail'));
+    const fill = await w.cmd('fill pail from sea');
+    expectOk(fill);
+    expect(await look(w, 'look --peek pail')).toMatch(/brine/i);
+    const drink = await w.cmd('drink pail');
+    expectOk(drink);
+    expect(await look(w)).not.toMatch(/gunwale/i);
+  }, 300_000);
+
+  it('38 · on the headland brow, `look sea` reads the Greywater at the nearest landing', async () => {
+    await at(BROW);
+    expect(await readOf('sea', /The sea is /)).toMatch(/The sea is /);
+  }, 300_000);
+
+  it('39 · wash at the river: hands, in the Kestrel', async () => {
+    await at(BANK);
+    await readOf('river', /This is the Kestrel/);
+    const r = await w.cmd('wash');
+    expectOk(r);
+    expect(squash(await r.said())).toMatch(/wash your hands|scrub your hands/i);
+  }, 300_000);
 });

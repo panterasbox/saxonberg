@@ -153,10 +153,15 @@ weather field plus the lean, fetch and depth from the band — `Hs ≈
 0.0016·U·√(F/g)`, capped at a developed sea, **steepened** where the
 water is shallower than eight wave heights. Rendered in words.
 
-`Gunwale extends Shore` is the deck's moving shore: it cites
-`"<expanse path>@<lat>,<lon>"` quantized to 0.1°, and the fishery reads
-that cell from its bands' stock — `fish` works from a deck with no
-fishing-pack change. Nothing is minted when a craft stops.
+A deck is a **shore of the sea under it** (maritime revision 3): the
+deck row is a `/platform/location/Shore` whose `sea` feature cites the
+expanse, and `WaterExpanse` — a `WaterSourceMixin` implementer — derives
+the cell from the craft's position (a beach's from its nearest landing,
+`peekShorePositionFor`) as `"<expanse path>@<lat>,<lon>"` quantized to
+0.1°. The fishery reads that cell from its bands' stock — `fish`, `look
+sea`, and a bucket over the side (salt water) all work from a deck.
+Nothing is minted when a craft stops. (Was `Gunwale extends Shore`, a
+prop; retired.)
 
 ## Knowledge: charts and pilots
 
