@@ -2060,6 +2060,19 @@ USE them.
     help shows `stoke forge with charcoal`, which binds the charcoal as the
     fire; fuel first is `stoke charcoal into furnace` (finding).
 
+24. Runs 12–14: the cheese knife became a cutting `Tool` (no Weapon can
+    bind `split`'s tool arg) and the wheel accepts a cutting tool; the
+    setting pan is waited on by its state (`/separated/` had matched
+    *nothing has separated yet*); in the dark `can` bound the character's
+    canvas shoes, so the buttermilk is drawn by daylight into `milk-can`;
+    `consign` wants an account (the drive opens one); ⭐ two views claim
+    `pour` and into a cook pot the BULK one wins, so poured butter never
+    reached the build and two roots matched ROASTED roots — `add` is the
+    build step's word (finding: the collision silently drops a
+    contribution); a smelt wants two baskets in the charge AND a lit bed
+    (four; the smelter props two, the fuel yard four); `get bar`, since
+    `ingot` names the mould too.
+
 ### Build decisions (not in the plan above)
 
 Decided during the build; each says which rule decided it.

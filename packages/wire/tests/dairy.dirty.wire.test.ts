@@ -899,7 +899,11 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     // next door props four (run 14).
     await goTo(FUEL_YARD);
     await untilHour(12);
-    await doing(k, 'get charcoal');
+    // ⚠ `charcoal` also names the turfed clamp, which will not lift — the
+    // act reports that refusal while the four baskets come up. Read the
+    // hands, not the refusal.
+    await act(k, 'get charcoal');
+    expect(await carried(k)).toMatch(/charcoal/i);
     await goTo(SMELTER);
     await doing(k, 'get crucible');
     await doing(k, 'put crucible in furnace');
