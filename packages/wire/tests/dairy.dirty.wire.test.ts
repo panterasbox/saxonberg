@@ -551,7 +551,13 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
 suite('5. milk left warm turns; milk in the cheese room keeps', () => {
   it('⭐⭐ two days on, the warm jug has turned and the cellar crock has not', async () => {
     await goTo(CREAMERY);
-    const warm = await read(k, 'smell jug');
+    // Wait on the TURN (bounded): how fast warm milk goes depends on how
+    // warm the room is, which is now the season's and the walls'.
+    let warm = await read(k, 'smell jug');
+    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|rotten|foul/i.test(warm); i++) {
+      await advance('6 hours');
+      warm = await read(k, 'smell jug');
+    }
     note(`smell jug (two days in the warm) → ${warm}`);
     await say(k, 'down');
     await k.drainProse();
@@ -616,6 +622,58 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     const vat = await read(k, 'look vat');
     note(`look vat (boiled batch, set) → ${vat}`);
     expect(vat).toMatch(/set badly|slack and grainy/i);
+  });
+});
+
+/* ───────────── 24. the second venue ───────────── */
+
+suite('24. Rejection’s goats: the same acts, a different milk, no new verb', () => {
+  it('⭐⭐ draft a nanny, milk her, set a soft goat’s cheese', async () => {
+    await goTo(GOAT_PEN);
+    await untilHour(6);
+    await doing(k, 'draft 0 from nannies');
+    await untilHour(12);
+    const pen = await read(k, 'look');
+    expect(pen).toMatch(/goat|pen/i);
+    await doing(k, 'get pail');
+    await doing(k, 'wash pail');
+    const milked = await doing(k, 'milk goat into pail');
+    expect(milked).not.toMatch(/on the floor|nothing to catch/i);
+    const pail = await read(k, 'look pail');
+    note(`goat's milk → ${pail}`);
+    await doing(k, 'pour pail into vat');
+    // ⚠ The pen's crock was last fed at boot and a whey culture starves in
+    // six days — it is dead, correctly. The craft's own remedy: raw milk
+    // left open sours on its own (the curd's wild lactic flora, a day's
+    // lag), and its whey starts the crock again.
+    const crock = await read(k, 'look starter');
+    note(`look crock (the pen's, a month unfed) → ${crock}`);
+    // Wait on the STATE: the pen is open air, so the souring runs by day
+    // and stalls on a cold night (the climate build's real nights).
+    let vat = await read(k, 'look vat');
+    for (let i = 0; i < 8 && !/still|done/i.test(vat); i++) {
+      await advance('12 hours');
+      vat = await read(k, 'look vat');
+    }
+    await daylight();
+    vat = await read(k, 'look vat');
+    note(`look vat (goat's curd) → ${vat}`);
+    expect(vat).toMatch(/still|done|whey|green|thin/i);
+    await act(k, 'spill starter');
+    await doing(k, 'pour vat into starter');
+    const started = await read(k, 'look starter');
+    note(`look crock (backslopped) → ${started}`);
+    await doing(k, 'pour vat into hoop');
+    await advance('1 day');
+    await untilHour(12);
+    note(`look hoop (the goats', a day) → ${await read(k, 'look hoop')}`);
+    // ⚠ `get X from Y` has no `from`: every word binds, so it takes the
+    // hoop too — or ONLY the hoop when nothing set (run 10). A plain `get`
+    // reaches into the open hoop.
+    await doing(k, 'get wheel');
+    const taste = await read(k, 'taste wheel');
+    note(`taste goat's wheel → ${taste}`);
+    expect(taste).toMatch(/goat/i);
   });
 });
 
@@ -833,52 +891,6 @@ suite('4. a bull calf will not milk — and gives the creamery its rennet', () =
 });
 
 
-
-/* ───────────── 24. the second venue ───────────── */
-
-suite('24. Rejection’s goats: the same acts, a different milk, no new verb', () => {
-  it('⭐⭐ draft a nanny, milk her, set a soft goat’s cheese', async () => {
-    await goTo(GOAT_PEN);
-    await untilHour(6);
-    await doing(k, 'draft 0 from nannies');
-    await untilHour(12);
-    const pen = await read(k, 'look');
-    expect(pen).toMatch(/goat|pen/i);
-    await doing(k, 'get pail');
-    await doing(k, 'wash pail');
-    const milked = await doing(k, 'milk goat into pail');
-    expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    const pail = await read(k, 'look pail');
-    note(`goat's milk → ${pail}`);
-    await doing(k, 'pour pail into vat');
-    // ⚠ The pen's crock was last fed at boot and a whey culture starves in
-    // six days — it is dead, correctly. The craft's own remedy: raw milk
-    // left open sours on its own (the curd's wild lactic flora, a day's
-    // lag), and its whey starts the crock again.
-    const crock = await read(k, 'look starter');
-    note(`look crock (the pen's, a month unfed) → ${crock}`);
-    await advance('2 days');
-    await untilHour(12);
-    const vat = await read(k, 'look vat');
-    note(`look vat (goat's curd) → ${vat}`);
-    expect(vat).toMatch(/still|done|whey|green|thin/i);
-    await act(k, 'spill starter');
-    await doing(k, 'pour vat into starter');
-    const started = await read(k, 'look starter');
-    note(`look crock (backslopped) → ${started}`);
-    await doing(k, 'pour vat into hoop');
-    await advance('1 day');
-    await untilHour(12);
-    note(`look hoop (the goats', a day) → ${await read(k, 'look hoop')}`);
-    // ⚠ `get X from Y` has no `from`: every word binds, so it takes the
-    // hoop too — or ONLY the hoop when nothing set (run 10). A plain `get`
-    // reaches into the open hoop.
-    await doing(k, 'get wheel');
-    const taste = await read(k, 'taste wheel');
-    note(`taste goat's wheel → ${taste}`);
-    expect(taste).toMatch(/goat/i);
-  });
-});
 
 /* ───────────── 19a. the ingot mould ───────────── */
 
