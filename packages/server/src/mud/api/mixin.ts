@@ -151,6 +151,8 @@ import type { Wieldable } from '../lib/slot/Wieldable';
 import type { Postured } from '../lib/slot/Postured';
 import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
+import type { Shore } from '../lib/location/Shore';
+import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
@@ -1702,6 +1704,16 @@ export class MixinApi {
   /** Can this Idea say what the ground is made of at a spot and depth? */
   public static isGroundSource(obj: Stuff): obj is Stuff & GroundSource {
     return this.hasMixin(obj, Mixins.GroundSource);
+  }
+
+  /** Is this place beside a named water (maritime revision 3)? */
+  public static isShore(obj: Stuff): obj is Stuff & Shore {
+    return this.hasMixin(obj, Mixins.Shore);
+  }
+
+  /** Can this Idea read a named water for a place? */
+  public static isWaterSource(obj: Stuff): obj is Stuff & WaterSource {
+    return this.hasMixin(obj, Mixins.WaterSource);
   }
 
   /**

@@ -41,7 +41,12 @@ export default class FishController extends FishingController<FishModel> {
       return;
     }
     const room = this.roomOf(giver);
-    const reach = await this.reachFor(giver, model.shore);
+    const pick = await this.reachFor(giver, model.shore);
+    if (pick !== null && 'refusal' in pick) {
+      this.decline(context, pick.refusal, pick.reason);
+      return;
+    }
+    const reach = pick?.reach ?? null;
     if (room === null || reach === null) {
       this.decline(context, 'There is no water here to fish.', 'no-water');
       return;

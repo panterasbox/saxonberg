@@ -1536,6 +1536,13 @@ export const AppSettingKeys = {
    * is the honest degradation rather than an error.
    */
   groundDefaultSourcePath: "ground.defaultSourcePath",
+  /**
+   * Water — the `WaterSource` a shore asks for a cited water that is not
+   * itself a path (a river reach, `kestrel:confluence`). ⚠ `null` until the
+   * water pack seeds it; with the pack absent a shore's water reads as
+   * nothing here can read it (maritime revision 3).
+   */
+  waterSourcePath: "water.sourcePath",
   /** Storm — per-storm-scope probability of a lightning strike per strike
    * tick (0..1). */
   stormStrikeRate: "storm.strikeRate",

@@ -47,12 +47,9 @@ data:
       trigger: arrival
     - brain: /trade/fishing/behavior/fishes
       trigger: candidate
-      config:
-        shore: /world/terminus/wharfside/thing/river-edge
     - brain: /trade/fishing/behavior/reads-water
       trigger: engage
       config:
-        shore: /world/terminus/wharfside/thing/river-edge
         lines:
           empty: "Nothing in it. Nothing. Somebody has had the lot, and it will be days."
           thin: "Thin today. {{read}} Give it a day or two."

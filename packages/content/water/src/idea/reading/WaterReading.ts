@@ -43,6 +43,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
+import type { WaterRead } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
@@ -117,6 +119,19 @@ export default class WaterReading extends Reading {
     const giver = this.actorOf(ctx);
     const target = model.target?.stuff ?? null;
 
+    // ⭐ A shore names its water (maritime revision 3): the place you
+    // stand in — or the water you named there — is read before the
+    // Locality's reach, and refuses in its own words when it cannot say.
+    if (target !== null && MixinApi.isShore(target)) {
+      let pick = await target.waterRefFor(param || undefined);
+      if ('refusal' in pick && pick.reason === 'not-water') pick = await target.waterRefFor();
+      if ('refusal' in pick) {
+        this.say(giver, pick.refusal);
+        return;
+      }
+      await this.reachReport(giver, pick.ref, pick.read);
+      return;
+    }
     if (target !== null) {
       await this.reportOn(target, ctx);
       return;
@@ -138,6 +153,18 @@ export default class WaterReading extends Reading {
       return;
     }
 
+    if (MixinApi.isShore(scope as Stuff)) {
+      const pick = await (scope as Stuff & Shore).waterRefFor();
+      if (!('refusal' in pick)) {
+        await this.reachReport(giver, pick.ref, pick.read);
+        return;
+      }
+      if (pick.reason !== 'no-water') {
+        this.say(giver, pick.refusal);
+        return;
+      }
+    }
+
     const locality = await AddressApi.resolveLocalityFor(scope as Stuff & Container);
     const reach = locality?.getReach() ?? null;
     if (reach === null) {
@@ -151,7 +178,28 @@ export default class WaterReading extends Reading {
         .send();
       return;
     }
+    await this.reachReport(giver, reach, null);
+  }
 
+  private say(giver: Stuff, line: string): void {
+    MessageApi.scene(giver).topic('sense.reading').toSelf(Mml.compose`${line}`).send();
+  }
+
+  /**
+   * The reach's report — flow, snow, whether a boat gets through, the ice
+   * by physics. A sea (an `@` ref) reports what the water is instead: a
+   * sea has no catchment to drain.
+   */
+  private async reachReport(giver: Stuff, reach: string, read: WaterRead | null): Promise<void> {
+    if (reach.includes('@')) {
+      const lines = [`water: ${read?.name ?? 'the sea'}`, 'salt'];
+      if (read?.draw) lines.push(`${(read.draw.temperatureK - 273.15).toFixed(0)} °C at the surface`);
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(Mml.compose`${lines.join('\n')}\n`)
+        .send();
+      return;
+    }
     const drainage = await this.drainage();
     const flow =
       drainage?.flowAt === undefined

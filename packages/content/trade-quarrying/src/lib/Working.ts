@@ -188,7 +188,7 @@ export interface OpenWorking extends Strata, Diggable {
  * *"a face of pale rock, with earth over it"* — appended on `look`, and
  * ⭐ **banded on the viewer's own `quarrying`**: an untrained eye gets the
  * colour, a quarryman gets the rock, the thickness and how far it has been
- * worked. The `Shore.readFor` shape, one trade over.
+ * worked. The fishery read's shape (`FisheryRegistry.readFor`), one trade over.
  *
  * ⚠ Synchronous, because `look` is: it renders the LAST resolved read and
  * kicks a refresh. A first look at a working nobody has read reports the

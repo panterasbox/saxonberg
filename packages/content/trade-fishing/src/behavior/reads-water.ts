@@ -11,7 +11,9 @@
  * reach is empty he says so, and nothing about who did it: the record
  * holds no names.
  *
- * config: `{ shore?: <Shore path>, lines: { empty, thin, holds, apex } }`.
+ * config: `{ lines: { empty, thin, holds, apex } }` — the water is the
+ * one the place he stands in names (maritime revision 3), else his
+ * room's Locality reach.
  */
 
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
@@ -102,7 +104,7 @@ export const brain = class {
     const lines: Required<Lines> = { ...DEFAULT_LINES, ...((config.lines as Lines | undefined) ?? {}) };
     const waters = await StuffApi.singleton<Waters>(WATERS_PATH);
     const room = MixinApi.isContainable(npc) ? npc.getContainer() : null;
-    const reach = (await shoreReach(config)) ?? (room ? await waters.reachAt(room) : null);
+    const reach = room ? await waters.reachAt(room) : null;
     if (reach === null) return null;
     const registry = await waters.registry();
     if (registry === null) return null;
@@ -126,17 +128,6 @@ function classify(standing: FisheryStanding): keyof Required<Lines> {
   return 'holds';
 }
 
-async function shoreReach(config: Record<string, unknown>): Promise<string | null> {
-  const path = typeof config.shore === 'string' ? config.shore : '';
-  if (!path) return null;
-  try {
-    const shore = (await StuffApi.singleton<Stuff>(path)) as unknown as { getReachRef?: () => string } | null;
-    const ref = shore?.getReachRef?.() ?? '';
-    return ref === '' ? null : ref;
-  } catch {
-    return null;
-  }
-}
 
 function dial(key: string, fallback: number): number {
   try {

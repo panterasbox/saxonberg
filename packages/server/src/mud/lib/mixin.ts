@@ -411,6 +411,12 @@ export const Mixins = {
   // `GroundCharacter` implement it, which is how a floor asks the column
   // a question the kernel cannot import the answer to.
   GroundSource: 'GroundSourceMixin',
+  // *This place is beside a named water* (maritime revision 3). Composed
+  // only by the waterside Location classes — never a base.
+  Shore: 'ShoreMixin',
+  // *This Idea can read a named water for a place* — the seam the water
+  // pack's reach catalogue and seas implement (the GroundSource shape).
+  WaterSource: 'WaterSourceMixin',
   // *This ground can be cleared, drained and limed — and it REVERTS.*
   // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
   // a road, a yard and a quarry, so improvement acts on GROUND and farming
@@ -802,6 +808,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // named is not the ground, which is what a player asked about.
   FloorMixin: "{} isn't the ground underfoot",
   GroundSourceMixin: "{} doesn't know what the ground is made of",
+  ShoreMixin: "{} isn't beside any water",
+  WaterSourceMixin: "{} can't read a water",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",

@@ -2426,6 +2426,25 @@ isShore`, `MixinApi.isWaterSource` (the `isGroundSource` shape).
 `AppSettingKeys.waterSourcePath` (`water.sourcePath`) and
 `AppSettingKeys.bulkDraughtL` (`bulk.draughtL`).
 
+**T9′ — (the user's ruling on the plan, 2026-10-11) the refusal rides the
+SLOT; no `whyNoSlot`.** ⛔ No new Api static whose first parameter is a
+world object (`lint:object-verbs` holds at zero; *"it saves three callers"*
+is not a reason). Instead `BulkSlot` gains `whyEmpty(): string | null`
+(base: `null`), and for a shore room `slotFor` ALWAYS returns a
+`SourceSlot` for the water as named — one that cannot deliver (frozen,
+unread, which-water, not-water, no draw) is EMPTY and carries the
+mixin's words in `whyEmpty()`. Fill / Drink / Wash's existing
+empty-source branch prints `slot.whyEmpty() ?? <today's line>`.
+`mustHaveBulkSlot` is unchanged (a shore always has a slot), so the
+"slot OR diegetic reason" broadening of T9 is dropped with it.
+
+**T16 — (the user's ruling) the outfall is honest.** If W1's probe finds
+`kestrel:confluence` reading clean under the shipped outfall, the
+outfall's authored load is raised to what an untreated city sewer at its
+own wharf actually does, so the confluence reads fouled in a dry month —
+⭐ lens 1's dominant lesson needs the wharf below the sewer to be foul.
+Not a second shore downstream; not a clean bank.
+
 ### ⭐⭐ Host placement
 
 | what | host | what composing it claims about everything else on that host |
@@ -2622,8 +2641,8 @@ the drive asserts a STATE CHANGE (the pail's material, the engagement's
    fouled draw has nowhere to stand. **User's eye:** author a shore on
    `kestrel:estuary` (the lower towpath / estuary mouth is already
    downstream content), or raise the outfall's load, or accept a clean
-   draw at the bank with `analyze water` naming the outfall. The plan
-   does not pick.
+   draw at the bank with `analyze water` naming the outfall. ✅ **Decided
+   (T16): raise the outfall's load — honest, the bank is foul.**
 4. **`BulkSlot.getHolder()` widening** touches ~10 bulk sites (BulkableLogic
    :319/:344/:355/:364/:396-397/:682-686, Freshness:558, WaterActivity:
    491, CraftingLogic:2811) — each already narrows or needs only a
@@ -2640,7 +2659,7 @@ the drive asserts a STATE CHANGE (the pail's material, the engagement's
 8. **A room's `look` must not change.** W1 asserts the bank's `look`
    text is byte-identical before and after (minus the edge in the
    contents list).
-9. **`lint:object-verbs`** may count `whyNoSlot(holder, …)`; its
+9. ~~**`lint:object-verbs`**~~ ✅ moot (T9′: no `whyNoSlot`). Was: may count `whyNoSlot(holder, …)`; its
    first parameter is a world object by the same necessity as
    `slotFor`'s (the validator has no `this`). If the census moves, the
    build files the caller audit (two controllers' null branch + one
@@ -2701,6 +2720,34 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
 ### Revision 3 — build log
 
 *(appended by the build: B-72 onward, then the revision-3 drive record.)*
+
+- ✅ **T-W1 done** (the place cites, the water answers).
+  - **B-72 — the strand is NOT a shore.** It faces the still pool, not
+    the sea; the estuary mouth already has the tide (a salt-water
+    fixture you fill from). The deck and the headland brow cite the
+    Greywater; the strand stays a plain place. (Lens 3a: a beach in the
+    lee of a pool reading the open sea would betray itself.)
+  - **B-73 — `waters` is `persistent + authorable`, a plain object** —
+    `PublicLightingMixin`'s exact declaration, not the plan's
+    instruction-field/applier: phase-1 dispatch prefers `setWaters`, and
+    the one shipped dynamic-detail precedent is the stronger pattern.
+  - **B-74 — `reachFor` returns the place's refusal**, not `null`:
+    `{ reach } | { refusal, reason } | null` — the three fishing
+    controllers render it (`not-water`, `which-water`, `unread`). A named
+    thing that is no shore at all is refused (`There is no water in the
+    chair.`), never answered with the Locality's reach.
+  - **B-75 — the source's shared reads moved onto the registry.**
+    `FisheryRegistry.readDisciplineKey()` / `readForViewer(standing, key,
+    viewer)` — both implementers call them; the physical-read words are
+    module-private in `WatercourseCatalogue.ts` (only a reach speaks
+    them).
+  - **B-76 — `analyze water` on a sea** reports *the water, salt, its
+    temperature*: a sea has no catchment to drain.
+  - **B-77 — `lint:mass` lowered 240 → 238**: two deleted prop rows had
+    stated neither mass nor material.
+  - The fouling probe (Risks 3 / T16) runs in the drive, against the
+    drive's own world: `analyze water` on the bank prints the flow, and
+    the draw shows which way it falls.
 
 ## Build log
 

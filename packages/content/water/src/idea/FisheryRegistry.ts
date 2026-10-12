@@ -46,6 +46,7 @@
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
@@ -89,6 +90,9 @@ const SPECIES_CLASS = '/platform/idea/species/Species';
 
 /** The singleton's own template path — its row ships with this pack. */
 export const FISHERY_REGISTRY_PATH = '/system/water/idea/FisheryRegistry';
+
+/** The Discipline whose band gates the species read, when the setting is silent. */
+const DEFAULT_READ_DISCIPLINE = '/trade/fishing/idea/Discipline/fishing';
 
 const SECONDS_PER_DAY = 86_400;
 
@@ -289,6 +293,46 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
    *   species the water does not suit, **the one factor that limits it**
    *   (*too warm for trout this month*).
    */
+  /**
+   * The KEY of the Discipline whose band reads what a water holds — the
+   * one `water.fishery.readDiscipline` names (the fishing trade's row by
+   * default) — or `null` when its row is not installed, which is the
+   * honest answer for a realm with water and no fishing trade.
+   */
+  public async readDisciplineKey(): Promise<string | null> {
+    let path = DEFAULT_READ_DISCIPLINE;
+    try {
+      const raw = AppApi.setting('water.fishery.readDiscipline');
+      if (typeof raw === 'string' && raw.trim() !== '') path = raw.trim();
+    } catch {
+      /* the default */
+    }
+    try {
+      const row = await StuffApi.singleton<Stuff>(path);
+      const key = (row as unknown as { getKey?: () => string })?.getKey?.() ?? '';
+      return key === '' ? null : key;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ The fishery read a viewer earns — `readFor` at their band in the
+   * read Discipline (sync, the floor when unknown).
+   */
+  public readForViewer(
+    standing: FisheryStanding,
+    disciplineKey: string | null,
+    viewer: Stuff,
+  ): string[] {
+    if (disciplineKey === null) return [];
+    let band: CompetenceBandName = CompetenceBand.FLOOR;
+    if (MixinApi.isAdvancing(viewer)) {
+      band = viewer.competenceDigestCached()?.find((b) => b.discipline === disciplineKey)?.band ?? band;
+    }
+    return this.readFor(standing, band);
+  }
+
   public readFor(standing: FisheryStanding, band: CompetenceBandName): string[] {
     const rank = CompetenceBand.rank(band);
     if (rank < CompetenceBand.rank('novice')) return [];

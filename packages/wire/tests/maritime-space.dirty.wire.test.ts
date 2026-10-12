@@ -171,8 +171,9 @@ suite('1 · the shore', () => {
     const s = await Session.open(LANDSMAN, { startLocation: BANK });
     try {
       // ⭐ Revision 1: the room's own look no longer appends the river; you
-      // look at the water's edge and read it there.
-      const said = await look(s, 'look edge');
+      // look at the water and read it there. Revision 3: by the bank's own
+      // name for it — the river is a feature of the place, not an object.
+      const said = await look(s, 'look river');
       expect(said).toMatch(/This is the Kestrel/);
     } finally {
       s.close();
@@ -502,11 +503,12 @@ suite('12 · 15 · anchored at sea; the boat', () => {
     await sail(me, '30 minutes');
     expectOk(await me.cmd('anchor'));
     await daylight(me);
-    // The gunwale reads the sea cell under her; a fresh cell's read lands
-    // a moment after she stops ("hard to read yet" until it does).
+    // The deck reads the sea cell under her (revision 3: the sea is a
+    // feature of the deck); a fresh cell's read lands a moment after she
+    // stops ("hard to read yet" until it does).
     let over = '';
     for (let i = 0; i < 5 && !/The sea is /.test(over); i++) {
-      over = squash(await me.prose('look --peek gunwale'));
+      over = squash(await me.prose('look --peek sea'));
       if (!/The sea is /.test(over)) await me.listen(1_500);
     }
     expect(over).toMatch(/The sea is /);

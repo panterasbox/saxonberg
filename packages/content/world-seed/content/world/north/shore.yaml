@@ -1,9 +1,9 @@
 # The blackmere shore. West across the mere is a crossing that exists only
 # while the ice bears you — it has borne a cart since the autumn.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: mere shore
-  keywords: [shore, bank, mere]
+  keywords: [shore, bank]
   register: definite
   longDescription: |
     A low shore of frost-split stones above a wide flat mere. Across it, a quarter-mile off, the far bank is a dark line of rock. Somebody has stuck a row of birch poles out across the water, the way people mark a road.
@@ -22,5 +22,12 @@ data:
       destination: /world/north/far-bank
       media: [ground]
       edgeMinutes: 10
-  props:
-    - /world/north/blackmere
+  # ⭐ The mere, in this shore's own words — and WHICH water it is
+  # (maritime revision 3): `look mere` reads the blackmere and its ice.
+  details:
+    mere:
+      keywords: [mere, water, ice, blackmere]
+      description: |
+        A wide flat mere, dark under its ice, ringed with frost-split stones.
+  waters:
+    mere: blackmere:mere

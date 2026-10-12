@@ -2,11 +2,11 @@
 #
 # ⭐ Everything that makes this a deck is a thing ON it: the HELM affords
 # `course`/`anchor`/`hail` (a building has none, so it is never offered
-# them); the GUNWALE is a shore that moves with her and reads whatever
-# water she is on (`fish` from here); the lead and the sextant are how you
+# them); the deck is a SHORE of whatever sea is under her (maritime
+# revision 3) — `look sea`, `fish`, a bucket over the side; the lead and the sextant are how you
 # find out where you are; the rigging and the pump are what an unwatched
 # deck wears out; the dinghy is what goes over the side.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: Hesper's deck
   keywords: [deck, hesper, ketch, ship]
@@ -20,7 +20,6 @@ data:
     z: 0
   props:
     - /world/terminus/hesper/thing/helm
-    - /world/terminus/hesper/thing/gunwale
     - /world/terminus/hesper/thing/rigging
     - /world/terminus/hesper/thing/pump
     - /system/water/thing/lead-line
@@ -39,3 +38,17 @@ data:
     ashore:
       kind: /platform/idea/exits/ashore
       destination: /world/terminus/estuary/estuary-mouth
+  # ⭐ The sea over the side, and which water it is — the Greywater, read
+  # wherever she has got to (the position comes from her, never from this
+  # row). The rail is a feature, not water.
+  details:
+    sea:
+      keywords: [sea, water, side, over]
+      description: |
+        Below the rail, the water.
+    gunwale:
+      keywords: [gunwale, rail, bulwark, bulwarks]
+      description: |
+        The low rail along the side, worn smooth where hands go over it.
+  waters:
+    sea: /stuff/idea/WaterExpanse/greywater

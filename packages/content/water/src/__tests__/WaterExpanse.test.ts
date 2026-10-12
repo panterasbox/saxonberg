@@ -1,7 +1,7 @@
 /**
  * The water tier (maritime B1): sea state DERIVED from wind, fetch and
- * depth with no row authoring it; the gunwale citing the sea cell under
- * its craft; the fishery reading that cell from the bands' stock; the
+ * depth with no row authoring it; a deck reading the sea cell under
+ * its craft (maritime revision 3: the sea is the water source); the fishery reading that cell from the bands' stock; the
  * sounding; and the pilot's `told` claims, signed.
  */
 
@@ -17,7 +17,6 @@ import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/te
 import WaterExpanse from '../idea/WaterExpanse';
 import WaterBand from '../idea/WaterBand';
 import FisheryRegistry from '../idea/FisheryRegistry';
-import Gunwale from '../thing/Gunwale';
 import Pilot from '../agent/Pilot';
 
 const SEA = '/test/sea/grey';
@@ -120,17 +119,39 @@ describe('sea state is derived', () => {
   });
 });
 
-describe('the gunwale and the sea fishery', () => {
-  it('a gunwale cites the 0.1° cell under its craft', () => {
-    const g = makeStuffAtPath(() => new Gunwale(), '/test/ship/thing/gunwale');
-    const craft = {
-      getExpansePosition: () => new GeoPosition(50.237, -4.461),
-      getExpanse: () => SEA,
-    } as unknown as Stuff;
-    (g as unknown as { craftPath: string }).craftPath = '/test/ship/structure';
+describe('the sea as a water a deck cites, and the sea fishery', () => {
+  const deck = { getTemplatePath: () => '/test/ship/deck' } as unknown as Stuff;
+  function onCraft(at: GeoPosition): void {
+    const craft = { getExpansePosition: () => at, getExpanse: () => SEA } as unknown as Stuff;
+    (sea as unknown as { craftOfPlace: Map<string, string> }).craftOfPlace.set('/test/ship/deck', '/test/ship/structure');
     vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(craft as never);
     vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
-    expect(g.getReachRef()).toBe(`${SEA}@50.2,-4.5`);
+  }
+
+  it('⭐ a deck reads the 0.1° cell under its craft — and the ref moves with her', () => {
+    onCraft(new GeoPosition(50.237, -4.461));
+    expect(sea.currentWaterRef(SEA, deck)).toBe(`${SEA}@50.2,-4.5`);
+    onCraft(new GeoPosition(50.61, -4.2));
+    expect(sea.currentWaterRef(SEA, deck)).toBe(`${SEA}@50.6,-4.2`);
+  });
+
+  it('⭐ a bucket over the side brings up salt water at the sea\'s temperature', async () => {
+    onCraft(new GeoPosition(50.237, -4.461));
+    const read = await sea.readWater(SEA, deck, 0);
+    expect(read?.ref).toBe(`${SEA}@50.2,-4.5`);
+    expect(read?.frozen).toBe(false);
+    expect(read?.draw).toEqual({
+      materialPath: '/stuff/idea/material/bulk/salt-water',
+      temperatureK: sea.getWaterTemperatureK(),
+    });
+  });
+
+  it('a place on no craft and no landing is not yet knowable — pending, never a wrong cell', async () => {
+    const strand = { getTemplatePath: () => '/elsewhere/strand' } as unknown as Stuff;
+    expect(sea.currentWaterRef(SEA, strand)).toBeNull();
+    const read = await sea.readWater(SEA, strand, 0);
+    expect(read?.pending).toBe(true);
+    expect(read?.draw).toBeNull();
   });
 
   it('⭐ the fishery reads a sea cell from the stock its bands place', async () => {

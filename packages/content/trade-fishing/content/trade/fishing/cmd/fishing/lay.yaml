@@ -32,6 +32,6 @@ args:
     type: object
     required: false
     prepositions: [at, in]
-    default: "reachable:[class.Shore]"
+    default: "reachable:[mixin.ShoreMixin]"
     scope: ["reachable"]
     requires: any

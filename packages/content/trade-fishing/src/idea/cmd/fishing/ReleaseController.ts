@@ -29,7 +29,12 @@ export default class ReleaseController extends FishingController<ReleaseModel> {
       this.decline(context, "That isn't a fish you can release.", 'not-a-fish');
       return;
     }
-    const reach = await this.reachFor(giver, model.shore);
+    const pick = await this.reachFor(giver, model.shore);
+    if (pick !== null && 'refusal' in pick) {
+      this.decline(context, pick.refusal, pick.reason);
+      return;
+    }
+    const reach = pick?.reach ?? null;
     if (reach === null) {
       this.decline(context, 'There is no water here to release it into.', 'no-water');
       return;

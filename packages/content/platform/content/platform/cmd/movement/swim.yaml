@@ -7,7 +7,7 @@
 # and at the wharf were the evidence somebody wanted this before either
 # design; they become swimmable wherever a `StillWater` stands.
 #
-# ⛔ Never conferred by a `Shore` or a deck: a shore cites a water you are
+# ⛔ Never conferred by a shore (a waterside place) or a deck: a shore cites a water you are
 # not in.
 verbs: [swim]
 controller: /platform/idea/cmd/movement/SwimController

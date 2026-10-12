@@ -146,6 +146,12 @@ settings:
   # `fouled`. Measured AFTER the conduit's own treatment factor, so
   # investing in treatment moves the threshold rather than the river —
   # which is the third rung of the counterplay ladder doing its job.
+  # ⭐ The `WaterSource` a shore asks for a cited water that is not itself
+  # a path — a river reach (maritime revision 3). The reach catalogue
+  # reads reaches; a sea is cited by its own path and reads itself.
+  - key: water.sourcePath
+    value: "/system/water/idea/WatercourseCatalogue"
+
   - key: water.fouledAt
     value: "0.35"
 

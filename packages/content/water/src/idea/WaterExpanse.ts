@@ -24,6 +24,15 @@
  */
 
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
+import {
+  WaterSourceMixin,
+  type WaterRead,
+} from '@saxonberg/server/mud/lib/location/WaterSource';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import type StructureCatalogue from '@saxonberg/server/mud/platform/idea/StructureCatalogue';
+import type FisheryRegistry from './FisheryRegistry';
+import type { FisheryStanding } from './FisheryRegistry';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -58,6 +67,18 @@ const SEA_WORDS: ReadonlyArray<[number, string]> = [
 ];
 
 /** What the sea is doing at a position. */
+/** The register a sea's fishery read comes from (a path, not an import — no cycle). */
+const FISHERY_PATH = '/system/water/idea/FisheryRegistry';
+/** What a bucket over the side brings up. */
+const SALT_WATER_PATH = '/stuff/idea/material/bulk/salt-water';
+
+/** The source's own half of a sea's read. */
+interface SeaReadState {
+  line: string;
+  standing: FisheryStanding | null;
+  disciplineKey: string | null;
+}
+
 export interface SeaState {
   /** Significant wave height, metres — internal, never shown. */
   heightM: number;
@@ -71,7 +92,7 @@ export interface SeaState {
   roughness: number;
 }
 
-export default class WaterExpanse extends Expanse {
+export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   static fieldMeta: FieldMeta = {
     depthM: { persistent: true, authorable: true },
     fetchKm: { persistent: true, authorable: true },
@@ -90,6 +111,102 @@ export default class WaterExpanse extends Expanse {
   protected stock: Record<string, number> = {};
   protected waterTemperatureK = 285;
   protected salinityPpt = 35;
+
+  /**
+   * Place path → the craft whose deck it is (`''` = none), resolved once
+   * per place through the structure catalogue. Transient.
+   */
+  private craftOfPlace = new Map<string, string>();
+
+  /* ───────────── the sea a shore cites (maritime revision 3) ───────────── */
+
+  /**
+   * ⭐ Where on this sea `place` stands, NOW: a deck is wherever its
+   * craft is; a beach is at its nearest landing. `null` until knowable
+   * (the craft not yet resolved, the landings not yet compiled).
+   */
+  public override currentWaterRef(citation: string, place: Stuff): string | null {
+    void citation;
+    const at = this.positionFor(place);
+    return at === null ? null : this.refAt(at);
+  }
+
+  public override async readWater(
+    citation: string,
+    place: Stuff,
+    nowS: number,
+  ): Promise<WaterRead | null> {
+    await this.resolveCraftOf(place);
+    await this.nodes().catch(() => undefined);
+    const at = this.positionFor(place);
+    const name = this.getName() || 'the sea';
+    if (at === null) {
+      return { ref: citation, atS: nowS, name, pending: true, frozen: false, draw: null };
+    }
+    const ref = this.refAt(at);
+    const line = await this.seaReadAt(at, place);
+    let standing: FisheryStanding | null = null;
+    let disciplineKey: string | null = null;
+    try {
+      const registry = (await StuffApi.singleton<Stuff>(FISHERY_PATH)) as unknown as FisheryRegistry;
+      standing = await registry.standingAt(ref, nowS).catch(() => null);
+      disciplineKey = await registry.readDisciplineKey();
+    } catch {
+      /* the sea, read physically */
+    }
+    const opaque: SeaReadState = { line, standing, disciplineKey };
+    return {
+      ref,
+      atS: nowS,
+      name,
+      // No sea ice is modelled; a frozen water is a reach's.
+      frozen: false,
+      draw: { materialPath: SALT_WATER_PATH, temperatureK: this.waterTemperatureK },
+      opaque,
+    };
+  }
+
+  public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
+    const state = read.opaque as SeaReadState | undefined;
+    if (!state) return [];
+    const lines = [state.line];
+    if (state.standing !== null) {
+      const registry = StuffApi.findByTemplatePath<Stuff>(FISHERY_PATH) as unknown as FisheryRegistry | null;
+      if (registry) lines.push(...registry.readForViewer(state.standing, state.disciplineKey, viewer));
+    }
+    return lines;
+  }
+
+  /** The 0.1° cell grammar the fishery keys a sea on. */
+  private refAt(at: GeoPosition): string {
+    return `${this.getTemplatePath()}@${at.latDeg.toFixed(1)},${at.lonDeg.toFixed(1)}`;
+  }
+
+  /** A deck's craft position on THIS sea, else the place's nearest landing. */
+  private positionFor(place: Stuff): GeoPosition | null {
+    const path = place.getTemplatePath() ?? '';
+    const craftPath = this.craftOfPlace.get(path);
+    if (craftPath) {
+      const craft = StuffApi.findByTemplatePath<Stuff>(craftPath);
+      if (craft && MixinApi.isPositioned(craft) && craft.getExpanse() === this.getTemplatePath()) {
+        return craft.getExpansePosition() ?? null;
+      }
+    }
+    return path ? this.peekShorePositionFor(path) : null;
+  }
+
+  private async resolveCraftOf(place: Stuff): Promise<void> {
+    const path = place.getTemplatePath() ?? '';
+    if (!path || this.craftOfPlace.has(path)) return;
+    try {
+      const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
+      const row = await cat.structureOf(path);
+      if (row !== null) await StuffApi.singleton<Stuff>(row.path);
+      this.craftOfPlace.set(path, row?.path ?? '');
+    } catch {
+      /* asked again on the next read */
+    }
+  }
 
   public getDepthM(): number { return this.depthM; }
   public setDepthM(v: number): void { this.depthM = Math.max(0, Number(v) || 0); }

@@ -3,7 +3,7 @@
 # ⭐ What can be seen from up here is not this room's to say: its zone
 # (`estuary/headland`) carries the HEIGHT and names what it overlooks,
 # and `look horizon` derives the rest (maritime R11).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: headland
   keywords: [headland, point, cliff, height]
@@ -20,3 +20,12 @@ data:
     south:
       destination: /world/terminus/estuary/strand
       media: [ground]
+  # ⭐ The sea below, and which water it is (maritime revision 3): `look
+  # sea` reads the Greywater at the headland's nearest landing.
+  details:
+    sea:
+      keywords: [sea, greywater, water]
+      description: |
+        The sea runs out grey from the foot of the rock until it meets the sky.
+  waters:
+    sea: /stuff/idea/WaterExpanse/greywater

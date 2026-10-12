@@ -13,7 +13,7 @@
  * (and on the strand you wade in from) is what makes the `media: [water]`
  * exits between them swimmable, and its absence is the stated refusal.
  *
- * ⛔ Never on a `Shore` or a deck's gunwale: a shore CITES a water you are
+ * ⛔ Never on a shore (a waterside place) or a deck: a shore CITES a water you are
  * not in, and making every riverbank and every deck swimmable is the
  * wrong host by construction. A fixture: authored `fixedInPlace: true`.
  */

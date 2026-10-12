@@ -3,7 +3,7 @@
 # Two objects stand here and the whole watershed argument is in the
 # distance between them: the city's INTAKE, upstream, and its OUTFALL,
 # downstream. Which is which is not a label — it is where they are.
-class: /platform/location/Street
+class: /platform/location/Quay
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
@@ -128,9 +128,6 @@ data:
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
-    # ⭐ The river's edge — the water pack's `Shore`, and what makes the
-    # bank fishable: the city's Locality declares no reach (fishing D15).
-    - /world/terminus/wharfside/thing/river-edge
     # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and
     # until the reachability sweep NEITHER STOOD ANYWHERE. Both rows
     # shipped with the water build, the `Feeder/terminus-main` row names
@@ -177,7 +174,7 @@ data:
       description: |
         The city main leaves the Wharfside generation here, feeder cables lifting off the works onto cross-arms and running east up the quay — the head of the line the whole grid hangs from.
     river:
-      keywords: [river, kestrel, water, confluence, delight]
+      keywords: [river, kestrel, water, confluence]
       description: |
         Brown, wide and moving faster than it looks. In spring it comes up the steps and over the third one; in August you can see the gravel out in the middle of it. Everything anybody upstream has done to it is in here somewhere, thinned out.
     steps:
@@ -188,3 +185,11 @@ data:
       keywords: [arch, brick, discharge]
       description: |
         A brick arch a man could stand up in, running steadily whatever the weather. Nobody built it to be looked at.
+  # ⭐ WHICH water the `river` feature is (maritime revision 3): `look
+  # river` gives the bank's own words, then the Kestrel's read; `fish`,
+  # `fill … from river`, `analyze water` act on it here. The city's
+  # Locality declares no reach, so this is what makes the bank fishable.
+  # ⚠ `delight` is not a keyword of the feature — the Delight is a second
+  # water at the confluence, and a bank citing it is a later decision.
+  waters:
+    river: kestrel:confluence
