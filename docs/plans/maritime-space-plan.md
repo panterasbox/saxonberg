@@ -1969,6 +1969,739 @@ the horizon and empty).
   answer reads one, `look all greywater` lists both, `look 2nd greywater`
   reads one; every revision-1 step still green through the plural `look`.
 
+## ⭐⭐⭐ Revision 3 — the shore as a place (2026-10-11, after the !360 merge)
+
+Decided in conversation with the user during review. The product half is
+the requirements' *The shore as a place (revision 3)* section, its
+Non-goals / Collisions / Lens-pass additions, drive steps 31–39 and
+ACs 49–55; the seed is `docs/slates/builds/shore-as-place-slate.md`
+(its two rulings at the top bind: no room-level prose hook, the vantage
+needs nothing). Same MR, by the user's decision. **Supersedes** the
+water pack's `Shore` Thing, `Gunwale`, the six prop rows that stand in
+for a water, and fishing's `reachable:[class.Shore]` binding.
+
+### Grounding (verified 2026-10-11; K = `packages/server/src/mud`, W = `packages/content/water/src`, F = `packages/content/trade-fishing/src`)
+
+- **Details.** `DetailedMixin` K/lib/description/Detailed.ts:212;
+  `Location` composes it (K/lib/stuff/Location.ts:160-170, the base of
+  every room). `details` is `{ instruction: true, authorable: true,
+  inherit: 'by-key' }` and ⛔ NOT persistent (:285, two drive-found
+  reasons in the comment). `applyDetails` (:557-603) reads `keywords`,
+  `description` and the five sense slots and **drops every other key
+  silently** — a citation cannot ride inside a detail entry.
+  `getDetail(id, senseOrParent?, parent?, viewer?)` (:367) is SYNC;
+  `getDetailFor(viewer, id, sense='vision')` (:399) is what `look
+  <detail>` calls; `getDetailEntry(key, viewer?)` (:647) returns the
+  alias-grouped entry — the way a typed alias (`kestrel`) is turned back
+  into its entry.
+- **The dynamic-detail precedent.** `PublicLightingMixin.getDetail`
+  (K/lib/perception/PublicLighting.ts:179-224): the MIXIN FIELD names the
+  detail key (`publicLighting.detail`, bank.yaml `detail: lamps`), the
+  override calls `Base.prototype.getDetail` then appends a live line when
+  `id === spec.detail` and `senseOrParent === undefined || === 'vision'`
+  (⚠ :197-205 records the `!== undefined` bug that hid the line for
+  months; `Crossing.getDetail` K/platform/location/Crossing.ts:49-71 is the
+  same shape). ⚠ It drops the 4th `viewer` argument when calling base;
+  the shore's read needs it (the fishery band is per viewer).
+- **`Street`** (K/platform/location/Street.ts): `class Street extends
+  PublicLightingMixin(SingletonCartesianLocation) {}` — the worked
+  precedent for *a mixin on the places that have the thing, never on the
+  base*; its header is the base-class-narrowing correction in full.
+- **MQL.** `candidatesForHere` K/api/mql/scope-walk.ts:60-97 yields the
+  room, then `pushDetails` (:344-371) one candidate PER ALIAS with
+  `stuff: host, via: { detailPath: [id] }`. A `[mixin.X]` filter
+  evaluates the candidate's stuff — the room — so every detail candidate
+  of a Shore room passes `[mixin.ShoreMixin]`; `finalize`
+  (resolver.ts:1800-1823) dedups by stuffId. Controllers read
+  `model.x.via?.detailPath`. `MqlOneResult.raw` is the typed text
+  (`Reading.resolveSubject` K/lib/instrument/Reading.ts:895-930 hands it to
+  `analyze()` as `param`, and hands a NAMED detail's stuff — the room —
+  as `target`).
+- **Bulk.** `BulkableApi.slotFor(holder, affordance)` K/api/bulk.ts:123 →
+  `BulkableLogic.slotFor` K/platform/idea/api/BulkableLogic.ts:76-86:
+  `null` unless `isBulkable`. 48 callers; the three this revision touches
+  pass `model.x.via?.bulk?.affordance` (FillController:49/:62,
+  DrinkController:45, WashController:232 passes `undefined`).
+  `mustHaveBulkSlot` (K/lib/command/validators/mustHaveBulkSlot.ts:33-43)
+  refuses `"<x> doesn't hold liquid"` when `slotFor(stuff, undefined) ===
+  null` — its header says it deliberately asks the BROADER question than
+  the controller. `BulkSlot` (K/lib/bulk/Bulkable.ts:242-340) is a handle
+  over `host: Stuff & Bulkable` delegating every read/write to the host's
+  slot-policy methods; `getHolder(): Stuff & Bulkable`. `transfer`'s
+  thermal step (BulkableLogic.ts:393-405, 579-595) blends ONLY when
+  `MixinApi.isThermal(from.getHolder())`. `computeApplied` (:735-760):
+  `kind: 'all'` → `min(sourceAvail, destRoom)`, and with `to === null`
+  (`drink`) and an unbounded source that is `min(∞, ∞)` — **a latent
+  hazard for the shipped tap, fatal for a river**. `UnboundedSourceMixin`
+  (K/lib/bulk/UnboundedSource.ts) overrides three policy seams
+  (`getBulkAvailable → ∞`, `isBulkEmpty`, `debitBulk → no-op`);
+  `WaterFixture` (K/platform/thing/WaterFixture.ts) is
+  `UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`, `suppliedBy`
+  → empty when the main's `supplyStateNow() !== null` (a TAP REFUSES
+  fouled; the river must DELIVER it), affords `wash` on `peers` (:170-185).
+  `BulkableMixin.commandContributions` (Bulkable.ts:460-475) grants
+  `fill`/`drink`/… on `peers` + `environment`, never `inventory`.
+  `drink` ingests via `Freshness(fromSlot).ingestPayload()` and
+  `BulkableApi.ingest(giver, material, applied, payload)`
+  (DrinkController:64, :115).
+- **Materials.** `/stuff/idea/material/bulk/fouled-water` (water pack;
+  `toxicity: [{dysentery, 12}]`, `purifiedByBoiling → water`, tags incl.
+  `water` — its comment names the tag/leaf split);
+  `/stuff/idea/material/bulk/salt-water` (base-library; tags `liquid,
+  brine, conductive`, NO `water` tag, `nutrients: []`, `edibility:
+  false`). `hasTag('water')` readers: WashController:236,
+  CoolController:120, RinseController:140 (+ the craft matcher by the
+  fouled-water comment).
+- **Fouling.** `Conduit` W/thing/Conduit.ts:539-547: `fouled` iff
+  `foulingOf(contaminationAt(reachRef).level) > dial(water.fouledAt)`
+  (0.35, W/../content/settings/water.yaml:149). `WatercourseCatalogue.
+  contaminationAt(ref, nowS)` :748-800 sums every discharge with
+  `hops === 0` when `at === ref`, divided by `flowAt`. The outfall row
+  (`city-outfall.yaml`: `direction: disposal`, `reachRef:
+  kestrel:confluence`, `dischargeLoadPerSecond: 0.6`, `on: true`) and the
+  intake both cite `kestrel:confluence` — so the bank's reach carries the
+  outfall's whole load at hops 0, diluted by the confluence's flow. ⚠
+  Whether that exceeds 0.35 is NOT grounded by any shipped-row test
+  (`Contamination.test.ts` uses synthetic `kestrel:town`/`kestrel:mill`
+  reaches); W3's drive step 34 grounds it, and W1 adds a probe test (see
+  Risks).
+- **The water pack's reads to move.** W/thing/Shore.ts — `ShoreMemo`,
+  `refresh()` per `SEGMENT_S = 6 h` gated on the world clock being
+  resident, `readWater` via `cat.reachOf` / `registry.standingAt` /
+  `cat.iceAt`, `bandOf(viewer)` from setting
+  `water.fishery.readDiscipline`, `physicalRead` (name · breadth ·
+  current/salinity/temperature/hardness · *an outfall discharges* · the
+  ice lines), fishery lines `registry.readFor(standing, band)` (the only
+  per-viewer piece). W/thing/Gunwale.ts — `getReachRef()` =
+  `"<expanse>@<lat.1>,<lon.1>"` off the craft (`StructureCatalogue.
+  structureOf(roomPath)` → `row.path`, `isPositioned`), `readWater` →
+  `WaterExpanse.seaReadAt(pos, room)` + `standingAt`, `ice: null`.
+  `FisheryRegistry.standingAt(ref, nowS)` :166 routes `@` refs to
+  `seaStandingAt` :226; `readFor(standing, band)` :292 sync.
+  `WatercourseCatalogue.iceAt` :427 → `IceRecord { thicknessM, kind,
+  rotting, reason }`; `reachOf` :460; `waterStateAt(ref, nowS)` gives
+  `temperatureK`. `WaterExpanse` (W/idea/WaterExpanse.ts:74) `extends
+  Expanse` (K/lib/expanse/Expanse.ts:122, `abstract class Expanse extends
+  SingletonMixin(SpatialZone)`); `waterStateAt(pos)` :185 →
+  `temperatureK`, `salinityPpt`; `seaReadAt(pos, scope)` :145.
+  `Expanse.peekShorePositionFor(placePath)` :450 is SYNC, kicks a compile
+  and answers `null` the first cold call (PerceptionLogic.ts:1304 already
+  consumes it this way for the headland horizon).
+- **Fishing.** fish.yaml:59-65 / lay.yaml:31-37 / release.yaml:16-22:
+  `shore` arg, `default: "reachable:[class.Shore]"`, `requires: any`.
+  `FishingController.reachFor` (F/idea/cmd/fishing/FishingController.ts:
+  33-40) duck-types `getReachRef`, else `Waters.reachAt(room)` (F/idea/
+  Waters.ts:65, the Locality's `getReach()`). Brains `fishes.ts:73-85`,
+  `reads-water.ts:129-140` read `config.shore` (a Shore path →
+  `getReachRef`); the fisher row (`terminus/…/wharfside/agent/fisher.yaml:
+  49-55`) carries it twice.
+- **`analyze water`.** W/idea/reading/WaterReading.ts: targeted (:119-122
+  → `reportOn` :210, duck-typed `supplyReport`), bare (:124-206, the
+  Locality's reach → flow/snow/navigability + the ice line by `physics`).
+- **The seam precedent.** `GroundSourceMixin` K/lib/ground/GroundSource.ts
+  (one `@hook` method, `null` = *I don't know*); `Floor.groundBeneath`
+  K/lib/ground/Floor.ts:512-536 finds implementers by **cited template
+  path** (`StuffApi.findByTemplatePath`, resident only) then by the dial
+  `AppSettingKeys.groundDefaultSourcePath` (K/lib/config/AppSettings.ts:
+  1538; set by `packages/content/ground/content/settings/ground.yaml:15`),
+  narrowing `MixinApi.isGroundSource` (K/api/mixin.ts:1703). `Mixins.
+  GroundSource` K/lib/mixin.ts:413 + its refusal phrase :804.
+  `MixinConstructor` (K/lib/mixin.ts:21) admits `abstract new`, so a
+  pack may compose a kernel mixin onto `Expanse`.
+- **Rows.** bank.yaml (`class: Street`; details `lamps` · `line` · `river`
+  [keywords river, kestrel, water, confluence, delight] · `steps` ·
+  `arch`; `props:` river-edge :133); world-seed `moor/stormy-heath.yaml`
+  (SCL, no details, prop `heath-mere`; ⚠ `mere` is the heath floor's pool
+  keyword); `north/shore.yaml`, `circle/shore.yaml`, `circle/bare/
+  shore.yaml` (SCL, no details, props blackmere/circlemere/clearmere; ⚠
+  the room keywords include `mere`); `hesper/deck.yaml` (SCL, prop
+  gunwale); `estuary/strand.yaml` (SCL, prop still-water — stays);
+  `estuary/headland/brow.yaml` (SCL, zone `headland.yaml` `horizon:
+  [/stuff/idea/WaterExpanse/greywater, …]`). The Hesper's
+  `structure.yaml`: `extent: /world/terminus/hesper`, `expanse:
+  /stuff/idea/WaterExpanse/greywater`. Prop rows to delete: wharfside/
+  thing/river-edge, moor/heath-mere, north/blackmere, circle/circlemere,
+  circle/bare/clearmere (the three set `_materialPath`), hesper/thing/
+  gunwale. The estuary `tide.yaml` is a `WaterFixture` of salt-water and
+  stays (it is a fixture at the mouth, not a shore).
+- **Tests and drives that bind the objects.** `terminus/src/__tests__/
+  fishing-content.test.ts:51-56,157-161`; W `__tests__/Shore.test.ts`,
+  `Ice.test.ts`, `WaterExpanse.test.ts:20,125` (a `Gunwale`); F
+  `Waters.test.ts:25`, `behavior/__tests__/brains.test.ts:90-94`,
+  `idea/cmd/fishing/__tests__/verbs.test.ts:101-115`; transport
+  `IceCrossing.test.ts`; wire `fishing.dirty` (`peek edge` :257, `peek
+  tarn` :551), `maritime-space.dirty` (`look edge` :175, `look --peek
+  gunwale` :509), `climate-and-water.dirty` (`analyze water` at the circle
+  shores :280, :367 — bare, unchanged by the move), `reachability.dirty`
+  :484 (a comment). Comments: swim.yaml:10, StillWater.ts:16,
+  trade-quarrying `Working.ts:191`, fish.yaml:56, `Waters.yaml:2`,
+  `Discipline/fishing.yaml:4`. ⚠ `trade-mining`'s `ShoreController` is the
+  `shore` TIMBERING verb — unrelated, untouched.
+- **Gates.** `lint:family --list` (2026-10-11): the roster includes
+  `lint:mixin-names`, `lint:instanceable`, `lint:lib-statics`,
+  `lint:on-create` (ceiling 82 / loading 35 — `check-on-create.ts:72,79`),
+  `lint:object-verbs`, `lint:unconsumed-seams` (⚠ an un-overridden `@hook`
+  counts; the ceiling may not rise — so a seam and its first implementer
+  land in ONE wave), `lint:reachability`, `lint:location-graph`,
+  `lint:locations` (an enumerated `FurnishableRoom` roster — a new
+  Location class that is not Furnishable is outside it),
+  `lint:verb-collisions`, `lint:instrument-args`, `check-field-meta
+  --lint` (a bare-persistent Map is refused; a plain object is fine).
+
+### Decisions
+
+**T1 — Two classes, one kernel mixin, no base-class claim.**
+`ShoreMixin` (K/lib/location/Shore.ts — `lib/location/` already exists;
+no new subsystem folder) composes onto exactly two new instanceable
+classes: `platform/location/Shore.ts` — `class Shore extends
+ShoreMixin(SingletonCartesianLocation) {}` (the five mere/heath/deck/
+strand/brow rows) and `platform/location/Quay.ts` — `class Quay extends
+ShoreMixin(Street) {}` (the lit public waterfront: the bank). Never on
+`Location`/`CartesianLocation` — `Street`'s header is the correction this
+follows. What composing it claims: *this place is beside a named water*
+and nothing else; seven rows in the realm say so, and nothing else pays
+a field, a memo or a verb. The mixin file and the class file share a
+basename in different directories (the `platform/thing/Thing` ↔
+`lib/stuff/Thing` precedent); the mixin exports `ShoreMixin`, marker
+`static _mixinName: string = 'ShoreMixin'` (⚠ widened to `string`).
+
+**T2 — The citation is a mixin field keyed by detail, never inside the
+detail.** `applyDetails` drops unknown keys, so (the PublicLighting
+shape) the mixin field names the detail:
+
+```yaml
+class: /platform/location/Quay
+data:
+  details:
+    river: { keywords: [river, kestrel, water, confluence], description: … }
+  waters:
+    river: kestrel:confluence
+```
+
+`waters: Record<string, string>` — a plain object (never a `Map`), each
+key a detail id or alias of THIS room, each value an **uninterpreted
+citation string** the kernel stores and never parses. Declared `{
+instruction: true, authorable: true, inherit: 'by-key' }` with a phase-2
+`applyWaters(data)` applier — ⛔ NOT persistent, for `details`' own two
+reasons (:285): a citation is authored content re-applied from the row on
+every hydrate, so an edited row reaches a booted world and nothing
+travels through `holder_snapshots`. `applyWaters` keeps the object;
+resolution of key → detail entry is lazy at first read (`getDetailEntry`
+over the alias group), because phase-2 appliers across two mixins have
+no guaranteed order. A key that names no detail of the room warns once
+at first read and is ignored (fail loud in the log, never silent).
+
+**T3 — The seam: `WaterSourceMixin`, two implementers, found by the
+ground ladder.** Kernel `K/lib/location/WaterSource.ts` declares the
+capability *this Idea can read a cited water for a place*, three `@hook`
+methods:
+
+- `currentWaterRef(citation, place): string | null` — SYNC; the concrete
+  ref to fish/analyze NOW (`kestrel:confluence` for a reach; the derived
+  `"<expanse>@<lat.1>,<lon.1>"` for a sea), `null` when not yet knowable;
+- `readWater(citation, place, nowS): Promise<WaterRead | null>` — ASYNC;
+  `null` = *this source does not know this water*;
+- `waterLinesFor(read, viewer): string[]` — SYNC, per viewer: the
+  physical read for everyone, then the fishery read at the viewer's band.
+
+`WaterRead` (a kernel value type beside the mixin): `{ ref: string; atS:
+number; name: string; pending?: true; frozen: boolean; draw: {
+materialPath: string; temperatureK: number } | null; opaque?: unknown }`
+— the kernel reads `ref`/`atS`/`name`/`pending`/`frozen`/`draw` and
+hands `opaque` back untouched. Implementers (both in the water pack,
+composing the kernel mixin by package specifier): **`WatercourseCatalogue`**
+(reach refs: `reachOf` · `waterStateAt` · `contaminationAt` · `iceAt` ·
+`standingAt`; `draw` is `fouled-water` when `contaminationAt(ref).level >
+dial(water.fouledAt)` — the Conduit rule WITHOUT a treatment factor, a
+river treats nothing — else `water`, at `waterStateAt(ref).temperatureK`;
+`frozen` when `iceAt(ref).thicknessM > 0`, `draw: null`) and
+**`WaterExpanse`** (`class WaterExpanse extends WaterSourceMixin(Expanse)`
+— `MixinConstructor` admits the abstract base; sea refs, T11). The finder
+ladder in the kernel mixin, mirroring `Floor.groundBeneath`: (1) a
+citation that is path-shaped (`startsWith('/')`) → `StuffApi.singleton
+(citation)` narrowed `MixinApi.isWaterSource` (the sea: the expanse row IS
+the source); (2) else the realm's default source, `AppSettingKeys.
+waterSourcePath` (`water.sourcePath`, a kernel key the water pack's
+`settings/water.yaml` sets to `/system/water/idea/WatercourseCatalogue`
+— the `ground.defaultSourcePath` shape exactly). No new collection, no
+new Api, no free helper; the two implementers satisfy *a hook needs more
+than one implementer*, and `lint:unconsumed-seams` is why the seam and
+both implementers land in the same wave. `Mixins.WaterSource`,
+`MixinApi.isWaterSource`, refusal `"{} can't read a water"`.
+
+**T4 — The memo lives on the room, per cited detail, and nothing warms
+it at birth.** `ShoreMixin` keeps a transient `Map<detailKey, { read:
+WaterRead | null; refreshing: Promise<void> | null }>` (not persistent,
+not a field). Refresh policy (`Shore.ts`'s, moved): kicked
+fire-and-forget from `getDetail` and awaited by `settleWater(key)`;
+refreshes when there is no memo, when `nowS − atS ≥ SEGMENT_S` (6 game
+hours, a module-private const), when `currentWaterRef(citation) !==
+memo.ref` (the deck moved a cell), or when the memo is `pending`; gated
+on `StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)` as
+today. ⛔ No `onCreate` — `lint:on-create`'s ceiling (82) does not move;
+lazy first use is the sanctioned initializer.
+
+**T5 — `getDetail` appends the read; the room's prose is untouched.**
+`ShoreMixin.getDetail(id, senseOrParent?, parent?, viewer?)` calls the
+base WITH all four arguments, and when `id` resolves (via the alias
+group) to a cited key and the sense is visual (`undefined || 'vision'`,
+the Crossing/PublicLighting bug avoided) returns `base + '\n\n' +
+lines`, where `lines` is `source.waterLinesFor(read, viewer)` for a
+landed read, *"The water is hard to read yet."* for none/pending, and
+*"Nothing here can read this water."* (+ one `console.warn`) when the
+source returned `null`. `look river` therefore renders the author's words
+then the water's; `look` on the room renders nothing new (AC 49).
+
+**T6 — The mixin resolves a name to a water and RETURNS refusals.**
+`waterFor(name?: string): WaterPick` where `WaterPick = { key: string;
+citation: string } | { refusal: string; reason: 'not-water' |
+'which-water' | 'no-water' }`. Named: `getDetailEntry(name)` → the entry
+whose ids intersect `waters` keys, else `not-water` (*"The lamps are not
+water."*). Unnamed: one cited water → it; two or more → `which-water`
+(*"Which water — the Kestrel or the Delight?"*, the names from each
+memo's `read.name` when landed, else the detail key); none → `no-water`.
+`async waterRefFor(name?)` = `waterFor` + `settleWater(key)` +
+`currentWaterRef` → `{ ref } | { refusal, reason }` (pending → `{ refusal:
+'The water is hard to read yet.', reason: 'unread' }`). Controllers
+render what they are handed and decide nothing (*mixin authoritative,
+controller dumb*). Both are methods ON the room; no `ShoreApi`.
+
+**T7 — Fishing binds the place.** fish/lay/release: `default:
+"reachable:[mixin.ShoreMixin]"`, `requires: any` unchanged. A bare verb
+binds the room with no via; `fish kestrel` binds the room with
+`via.detailPath: ['kestrel']`; `fish at lamps` binds the room with
+`['lamps']`. `FishingController.reachFor(giver, shore)`: when
+`MixinApi.isShore(shore.stuff)` → `await stuff.waterRefFor(shore.via?.
+detailPath?.[0])`, a refusal → `decline(ctx, line, reason)`; otherwise
+(no shore bound) `Waters.reachAt(room)`. The `getReachRef` duck-typing
+goes. The wharfside fisher keeps the bank's reach because the bank cites
+ONE water (T13).
+
+**T8 — Brains fish where they stand, through ONE place.** `Waters.reachAt
+(room, name?)` becomes *the reach a room fishes*: `isShore(room)` →
+`room.waterRefFor(name)` (a refusal → `null`), else the Locality's
+`getReach()`. `fishes.ts` and `reads-water.ts` drop `shoreReach` and
+`config.shore` and call `waters.reachAt(room)`; `fisher.yaml` loses both
+`shore:` lines. `Waters.test.ts` and `brains.test.ts:90-94` follow.
+
+**T9 — Drawing: a `SourceSlot` the room hands out, through `slotFor`.**
+- `K/lib/bulk/SourceSlot.ts` — a value-object class, `class SourceSlot
+  extends BulkSlot`: constructed with the room and a `WaterRead.draw`;
+  `getMaterialPath` → the drawn material, `getAmount` → `∞`,
+  `getCapacity` → `null`, `available()` → `∞`, `isEmpty()` → `false`,
+  `debit()` no-op (⭐ drawing never depletes), `getPayload()` → `null`,
+  `setPayload` no-op, `remaining()` → `∞` (a river takes what you pour
+  — recorded, not designed), `getTemperatureK()` → the water's.
+- `BulkSlot` gains `getTemperatureK(): number | null` (the host's
+  temperature when `isThermal`, else `null`) and `transfer`'s step 6
+  reads `from.getTemperatureK()` instead of narrowing the holder — the
+  same number for every existing slot, the water's for a `SourceSlot`.
+  `BulkSlot`'s host and `getHolder()` widen to `Stuff` (a `SourceSlot`'s
+  holder is a room); the base delegations narrow once internally, and the
+  ~10 bulk callers of `getHolder()` already narrow (`isThermal`,
+  `isGraded`, `isMaturing`) or only need a `Stuff`. Build audits each.
+- `BulkableLogic.slotFor(holder, affordance, named?)`: not Bulkable and
+  `MixinApi.isShore(holder)` → `holder.waterSlot(named)` (the mixin:
+  `waterFor(named)` → a landed, unfrozen read with `draw` → `new
+  SourceSlot(this, read.draw)`; else `null`, kicking a refresh). `named`
+  is `via?.detailPath?.[0]`. `BulkableApi.slotFor` gains the optional
+  third parameter; the 48 existing callers are unchanged.
+- `BulkableApi.whyNoSlot(holder, affordance, named?): string | null` —
+  one sibling static on the SAME per-subsystem Api: `isShore(holder) ?
+  holder.waterRefusal(named) : null`. The mixin owns the words: frozen
+  (*"The mere is frozen from bank to bank; nothing comes up but ice."*),
+  which-water, not-water, unread (*"You cannot tell what you would be
+  drawing yet."*), no draw. Fill (source), Drink (target) and Wash
+  (water) use it in the null-slot branch they already have: `whyNoSlot(…)
+  ?? <today's line>`. Nothing else in the controllers changes.
+- `mustHaveBulkSlot` passes when `slotFor(stuff, undefined) !== null ||
+  whyNoSlot(stuff, undefined) !== null` — *a slot, or a diegetic reason
+  there is none right now* — which is the header's own "broader question"
+  and the doctrine *afford statically, decline diegetically*. A frozen
+  mere offers `fill` and refuses in words; a room that is not a shore
+  still cannot be drunk from. `requires: VisibleMixin` on fill/drink's
+  args: a room is Visible, passes.
+- `drink` with no measure from an unbounded source: `computeApplied`
+  clamps `kind: 'all'` to `dial(bulk.draughtL)` (`AppSettingKeys.
+  bulkDraughtL`, default 0.25 L, set in the platform pack's settings)
+  when `to === null && !Number.isFinite(sourceAvail)`, with a
+  `quantity-clamped` note — a river has no "all", and the shipped tap had
+  the same hole.
+- `wash`: the `water` arg becomes `requires: any`, `default: "reachable:
+  [mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"` (`,` is MQL's
+  union, mql-grammar.md:66). This does not delete a check: the memory's
+  rule is about collapsing two ACTS; `wash` is one act with a second kind
+  of source, and the existing `findWater` narrowing (a slot whose material
+  is water) is the refusal (*no water in reach*). `findWater` calls
+  `slotFor(c, undefined, named)` so the shore path is the generic path.
+- **Salt water washes.** `findWater` accepts a material tagged `water` OR
+  `brine` (salt-water's own identity tag). ⛔ Not by giving salt-water the
+  `water` tag — the craft matcher reads it and seawater would brew ale.
+  `cool`/`rinse` stay fresh-only (unasked; recorded). Drinking salt water
+  needs nothing: `nutrients: []` means no hydration, and `DrinkController`
+  has no edibility gate (grounded).
+- No rights check anywhere on the draw path (`WaterRightRegistry` is never
+  consulted) — AC 52's *nobody's standing is asked*.
+
+**T10 — `analyze water` reads the room's water before the Locality's.**
+`WaterReading.analyze`: with a target that `isShore` (a named detail
+binds the ROOM as `target` with `param` the typed word, per
+`resolveSubject`) → `target.waterRefFor(param)`, a refusal rendered in
+its words; with no target and the giver's place a shore →
+`place.waterRefFor()` (one water → its ref; two → the which-water
+refusal; none → fall through to today's Locality read). The reach report
+(flow · snow · navigability · the ice by `physics`) is factored out of
+the bare branch into `reachReport(ref)` and both paths call it; an `@`
+ref (a sea) reports the sea's `waterStateAt` in the same shape (salt,
+temperature) instead of *"nothing here knows what is running through
+it"*. `reportOn(target)` (a conduit/tap's `supplyReport`) is unchanged.
+⭐ The read never says *fouled* (AC 53): `analyze water`'s lines are
+already the gauge, and the look read's *an outfall discharges into this
+water* is a fact about the map, kept.
+
+**T11 — A deck and a beach cite the sea; the position is derived by the
+implementer.** In `WaterExpanse`: `currentWaterRef(citation, place)` —
+the craft of `place` (resolved once per place path through
+`StructureCatalogue.structureOf(place.getTemplatePath())`, cached on the
+expanse; before the first async resolve → `null`) → `"<path>@<lat.1>,
+<lon.1>"` off `getExpansePosition()`; a place in no craft →
+`peekShorePositionFor(place.getTemplatePath())` (the headland's own
+mechanism, PerceptionLogic:1304) → the same grammar, or `null` on the
+cold first call. `readWater`: resolve the craft, derive the ref; `null`
+ref → `{ pending: true }` (*"hard to read yet"*, retried on the next
+look); else `seaReadAt(pos, place)` + `standingAt(ref)` → `name: this.
+getName()`, `frozen: false` (no sea ice is modelled), `draw: {
+salt-water, waterTemperatureK }`, `opaque: { standing }`;
+`waterLinesFor` → the sea line + `registry.readFor(standing, band)`.
+The `Gunwale`'s cell-change refresh is T4's `currentWaterRef !== memo.ref`
+rule. Nothing is re-authored as she moves (AC 54).
+
+**T12 — Retirement.** Delete W/thing/Shore.ts, W/thing/Gunwale.ts,
+W/__tests__/Shore.test.ts; rewrite the `Gunwale` case in
+`WaterExpanse.test.ts` against `currentWaterRef`/`readWater`; delete the
+six prop rows; remove the six `props:` lines; fix the comments listed in
+Grounding. No migration: the dev DB is dropped (the rows are content;
+the memo was never persisted).
+
+**T13 — The seven rows, and two keyword rules.**
+- bank → `class: /platform/location/Quay`, `waters: { river: kestrel:
+  confluence }`; ⚠ drop `delight` from the `river` detail's keywords —
+  `look delight` must not answer *This is the Kestrel*. ONE water, so the
+  fisher's bare `fish` and step 33 hold; a second (Delight) citation is a
+  deferred seam, not content.
+- stormy heath → `Shore`, detail `tarn: { keywords: [tarn, "black mere",
+  black-mere, peat-water], description: <the heath-mere prose> }`,
+  `waters: { tarn: holloway:head }`. ⛔ Not `mere` (the floor pool's
+  keyword) and not `water` (the pool's too) — the requirement's own
+  ruling: *the heath's water answers to black mere and tarn*.
+- the three mere shores → `Shore`, detail `mere: { keywords: [mere,
+  water, ice, <blackmere|circlemere|clearmere>], description: <the old
+  prop's prose> }`, `waters: { mere: <key>:mere }`; ⚠ remove `mere` from
+  each ROOM's `keywords` (`[shore, mere, …]` today) so `look mere` cannot
+  resolve to the room ahead of its detail (the dedup-by-stuffId risk —
+  see Risks). `_materialPath` lines die with the prop rows (a mere shore's
+  ground is the floor's).
+- deck → `Shore`, details `sea: { keywords: [sea, water, over, side],
+  description: "Below the rail, the water." }` and `gunwale: {…the rail's
+  old prose…}` (a rail is not water), `waters: { sea: /stuff/idea/
+  WaterExpanse/greywater }`.
+- strand → `Shore`, detail `sea: { keywords: [sea, greywater, bay] }`,
+  `waters: { sea: /stuff/idea/WaterExpanse/greywater }` (the pool stays a
+  place with `still-water` in it).
+- headland brow → `Shore`, detail `sea`, same citation (step 38).
+
+**T14 — Who affords the draw verbs at a shore.** `ShoreMixin.static
+commandContributions = { inventory: ['platform/cmd/bulk/fill.yaml',
+'platform/cmd/bulk/drink.yaml', 'platform/cmd/crafting/wash.yaml'] }` —
+the room is the player's CONTAINER, and a container grants inward on
+`inventory` (drive finding 10; `Boat`); `peers`/`environment` would reach
+nobody. Mixin statics union down the chain (Bulkable, Wearable do this).
+`lint:reachability` sees the three views conferred by a class a row
+names.
+
+**T15 — Registry + dials.** `Mixins.Shore: 'ShoreMixin'`, `Mixins.
+WaterSource: 'WaterSourceMixin'`; refusals `ShoreMixin: "{} isn't beside
+any water"`, `WaterSourceMixin: "{} can't read a water"`; `MixinApi.
+isShore`, `MixinApi.isWaterSource` (the `isGroundSource` shape).
+`AppSettingKeys.waterSourcePath` (`water.sourcePath`) and
+`AppSettingKeys.bulkDraughtL` (`bulk.draughtL`).
+
+### ⭐⭐ Host placement
+
+| what | host | what composing it claims about everything else on that host |
+|---|---|---|
+| `ShoreMixin` (`waters`, the memo, `getDetail`, `waterFor`/`waterRefFor`/`settleWater`/`waterSlot`/`waterRefusal`, `commandContributions`) | `platform/location/Shore` (over `SingletonCartesianLocation`) and `platform/location/Quay` (over `Street`) — **only** | seven rows are beside water; no cookhouse, cellar, field or deck-less room carries a `waters` field, a memo or `fill`/`drink`/`wash`. ⭐ The test: there is no `if (!this.waters) return` guard anywhere except the ordinary "this detail is not a cited one" branch of `getDetail`, which is a lookup, not a host re-narrowing |
+| `WaterSourceMixin` | `WatercourseCatalogue` (W/idea), `WaterExpanse` (W/idea) | the catalogue already answers every reach question; the expanse already answers every sea question. Composing the seam on them adds a vocabulary, not a responsibility |
+| `waters` field | `ShoreMixin` | an instruction field keyed by detail — a citation, like `SpatialZone.deposit`/`groundCharacter`, interpreted by the kernel nowhere |
+| `WaterRead` value type | `K/lib/location/WaterSource.ts` | the kernel's half of the read; the pack's half rides `opaque` |
+| `SourceSlot` | `K/lib/bulk/SourceSlot.ts` (a `BulkSlot` subclass) | bulk substrate learns *a slot whose holder is not a vessel*; it does not learn what a shore is. ⛔ The room is NOT `Bulkable`/`UnboundedSource`: that would put every shore room in `reachable:[mixin.BulkableMixin]`, leak liquid keywords into room scope through `pushBulk`, and say a bank *holds* water — the cited-never-contained ruling the whole revision keeps |
+| `getTemperatureK` | `BulkSlot` | one method; every existing slot answers what it answered |
+| `whyNoSlot`, `slotFor(…, named?)` | `BulkableApi`/`BulkableLogic` | the per-subsystem Api grows two members; no per-feature Api |
+| `bulk.draughtL`, `water.sourcePath` | `AppSettingKeys` (kernel); values in the platform pack's and the water pack's settings | the `ground.defaultSourcePath` shape |
+| `reachReport` | `WaterReading` (W) | a private method on the reading that owns the channel |
+| `reachAt(room, name?)` | `Waters` (F) | the fishing pack's one answer to *which reach does this room fish* |
+
+### Convention conformance (checked 2026-10-11)
+
+- `props:`/`cast:` — the move DELETES six `props:` entries; nothing new
+  is propped. `populates:` nowhere.
+- Locations, not rooms — the two classes are Locations over
+  `SingletonCartesianLocation`/`Street`; `FurnishableRoom` untouched
+  (`lint:locations`' roster is unchanged).
+- Namespace — kernel classes at `/platform/location/Shore` and
+  `/platform/location/Quay`; rows in content packs name them exactly as
+  they name `Street`. Mixins at `K/lib/location/`, substrate at
+  `K/lib/bulk/`. The water pack's implementers stay at `/system/water/
+  idea/…`; the `greywater` row stays at `/stuff/idea/WaterExpanse/…`.
+- Module scope declares — one `const SEGMENT_S`; the memo is instance
+  state, initialised lazily.
+- Import boundary — the water pack imports the kernel by specifier
+  (`@saxonberg/server/mud/lib/location/WaterSource`, `…/lib/bulk/…`;
+  `./mud/lib/*` and `./mud/platform/location/*` are in the server's
+  `exports` map). `FromModule` gates are absolute. No pack Api, no pack
+  logic singleton, no free helper in either tree.
+- Verbs on objects — `room.waterFor(…)`, `room.waterSlot(…)`,
+  `source.readWater(…)`; `BulkableApi.slotFor/whyNoSlot` are the one
+  existing orchestration surface the bulk family already routes through
+  (`lint:object-verbs`' census stays where it is — `slotFor` is a
+  pre-existing member and `whyNoSlot` is its sibling with the same
+  signature shape; if the gate counts it, the build files it as the
+  validator-and-controller surface it is, with the caller audit written
+  down, rather than a doctrine quotation).
+- Gates this build must satisfy: `lint:mixin-names` (two names
+  registered), `lint:instanceable` (two instanceable classes under
+  `platform/location/`, no `/lib/` row), `lint:lib-statics` (no new lib
+  static beyond `_mixinName`/`fieldMeta`/`commandContributions`),
+  `lint:on-create` (unchanged), `lint:unconsumed-seams` (three hooks,
+  two overrides each, in one wave), `lint:reachability` (fill/drink/wash
+  conferred by `ShoreMixin`; `fish`/`lay`/`release` as before),
+  `lint:location-graph` (no exit changes), `lint:verb-collisions` (no
+  new verb), `lint:instrument-args` (wash's `water` default stays
+  declared), `check-field-meta --lint` (a plain-object instruction
+  field), `lint:imports`, `lint:module-scope`, `lint:test-bootstrap`.
+
+### Waves
+
+Each lands green on `pnpm test:near` + every touched pack's vitest +
+`lint:family`, and ends at a commit. The full suite runs once, before
+review re-opens; the drive is the exit.
+
+- **T-W1 — the place cites the water, and the water answers** (T1–T8,
+  T11–T13, T15 minus the bulk dial). ⚠ One wave because
+  `lint:unconsumed-seams` refuses a seam with no implementer and the old
+  `Shore` cannot be deleted until `fish` binds the place. Internal order:
+  (a) `WaterSource.ts` + `WaterRead`, `Shore.ts` mixin (field, applier,
+  memo, `getDetail`, `waterFor`, `waterRefFor`, `settleWater`),
+  `platform/location/Shore.ts`, `Quay.ts`, `Mixins`/refusals/predicates,
+  `AppSettingKeys.waterSourcePath`; (b) the two implementers in the water
+  pack + `water.sourcePath` in `settings/water.yaml`; (c) the seven rows
+  re-classed with their detail + `waters:`, the six prop rows deleted,
+  `props:` lines removed; (d) fish/lay/release defaults, `FishingController.
+  reachFor`, `Waters.reachAt(room, name?)`, the two brains, `fisher.yaml`;
+  (e) `WaterReading` (T10); (f) delete `Shore.ts`/`Gunwale.ts`/`Shore.
+  test.ts`, rewrite `WaterExpanse.test.ts`'s gunwale case, fix
+  `fishing-content.test.ts`, `Waters.test.ts`, `brains.test.ts`,
+  `verbs.test.ts`, `Ice.test.ts`, `IceCrossing.test.ts`; the drive lines
+  `look edge`→`look river` (maritime :175), `look --peek gunwale`→`look
+  --peek sea` (:509), `peek edge`→`peek river` (fishing :257), `peek tarn`
+  stands (:551); the comments. Tests (kernel, a fake `WaterSource`
+  composed onto an `Idea` in the test, no pack import): `look river`
+  renders base + lines with the viewer threaded; pending → *hard to read
+  yet*; an unknown key warns once; `waterFor` named/unnamed/two/not-water;
+  `currentWaterRef` change → refresh; no `onCreate`. Tests (water pack):
+  the catalogue's `readWater` for a clean reach, a fouled reach (`draw`
+  = fouled-water) and a frozen one (`frozen`, `draw: null`); the
+  expanse's deck ref off a positioned craft and a beach ref off
+  `peekShorePositionFor`, `pending` on the cold call. Tests (fishing):
+  `fish` binds the room's water; `fish lamps` refused `not-water`; two
+  waters prompt `which-water`; the brains fish the room they stand in.
+  ⭐ A **fouling probe test** in the water pack against the SHIPPED rows
+  (the outfall + the kestrel course): assert whether
+  `contaminationAt('kestrel:confluence').level` is above or below
+  `water.fouledAt` and record the number in the test name — W3 needs to
+  know which shore draws fouled (Risks 3).
+- **T-W2 — drawing** (T9, T14, `bulk.draughtL`). `SourceSlot`,
+  `BulkSlot.getTemperatureK` + the holder widening, `BulkableLogic.
+  slotFor(named)`/`whyNoSlot`/the draught clamp/step-6 via the slot,
+  `BulkableApi`'s two members, `mustHaveBulkSlot`, Fill/Drink/Wash's null
+  branches, `wash.yaml`'s `water` arg, `findWater` (brine, `named`),
+  `ShoreMixin.waterSlot`/`waterRefusal`/`commandContributions`. Tests:
+  `fill pail from river` fills with the read's material at its
+  temperature; a fouled reach fills fouled-water; the sea fills salt-water
+  (and `wash` accepts it, `drink` hydrates nothing); a frozen mere refuses
+  with the ice line and the validator still admits the verb; `drink` from
+  a tap or a river with no measure takes a draught, not `∞`; a pail is
+  no lighter for the river (never depletes); a non-shore room still
+  *doesn't hold liquid*; the 48 `slotFor` callers compile unchanged.
+- **T-W3 — the drive, the docs, the sweep.** Steps 31–39 appended to
+  `packages/wire/tests/maritime-space.dirty.wire.test.ts` (step 34's
+  fouled draw at whichever shore W1's probe named; step 36 at the
+  blackmere shore, whose sheet is a metre thick from day 0; step 37's
+  *hard to read yet* loop as the gunwale step did it); re-run
+  `fishing.dirty`, `climate-and-water.dirty`, `reachability.dirty`. Docs:
+  `fishing.md § The shore, and the read` rewritten (the citation on the
+  place; the `fishing.md` prop-defect paragraph closed by *the read is the
+  water's own look*); `watershed.md` (+ *drawing at a shore*: the Conduit
+  rule without treatment; the draught); `bulk.md` (`SourceSlot`,
+  `getTemperatureK`, `whyNoSlot`, the draught clamp, a holder that is a
+  room); `expanse.md:156` (the deck as a `Shore` of the sea; `Gunwale`
+  gone); `location.md` (the two classes beside `Street`); `ground.md`
+  (the seam pattern's second instance); `content-packs.md` (the water
+  pack's class list); `navigable-water-slate § 5a` (the vehicle moved,
+  the ruling kept); `shore-as-place-slate` → status BUILT, its tail
+  kept. `pnpm test` once; cold drive; the drive record below.
+
+### Reachability wiring
+
+| link | fill / drink / wash at a shore | fish / lay / release | `look <water>` | `analyze water` |
+|---|---|---|---|---|
+| 1 · affordance | `ShoreMixin.commandContributions.inventory` (T14) | the fishing pack's rod/trap statics, as today | `look` is universal | `analyze` is universal; the `water` Reading row is the water pack's |
+| 2 · scope/default | `reachable` (the room is in reach); wash's `water` default unions `[mixin.ShoreMixin]` | `default: "reachable:[mixin.ShoreMixin]"` | the detail candidate via `pushDetails` | `subject` → the room with `raw` = the word |
+| 3 · arg gate | `requires: VisibleMixin` (a room passes); `mustHaveBulkSlot` admits a slot OR a diegetic refusal; wash `requires: any` | `requires: any` | — | the Reading's own `scope` |
+| 4 · controller → mixin | `slotFor(stuff, affordance, via.detailPath[0])`, `whyNoSlot(…)` | `reachFor` → `room.waterRefFor(via.detailPath[0])` | `getDetailFor(viewer, id)` → `ShoreMixin.getDetail` | `target.waterRefFor(param)` / `place.waterRefFor()` |
+| 5 · the seam | `ShoreMixin.waterSlot` → memo → `source.readWater` | `currentWaterRef` after `settleWater` | `source.waterLinesFor(read, viewer)` | `currentWaterRef` → `reachReport` |
+
+Each link fails closed and silent; W1 and W2's tests assert each, and
+the drive asserts a STATE CHANGE (the pail's material, the engagement's
+`reachRef`, the shirt's soiling) never *not refused*.
+
+### Acceptance-criteria coverage (49–55)
+
+| AC | decision | wave | proof |
+|---|---|---|---|
+| 49 a waterside place names its water; author's words then the live read; no object, no room prose | T2, T5, T12, T13 | W1 | kernel `getDetail` test; drive 31, 32 (`look river`, `look tarn`), 37/38 (`look sea`); `look` on the bank matches no *edge* |
+| 50 only waterside places are shores; elsewhere the Locality's water or words | T1, T7, T8, T10 | W1 | `verbs.test.ts` Locality fallback (delight:flats) kept; `fish` in a non-shore room with no Locality reach refuses as today |
+| 51 fishing at a shore acts on its water unnamed; naming picks; not-water refused; the NPC fishes where it stands | T6, T7, T8 | W1 | fishing tests; drive 33 (`fish`, `fish kestrel`, `fish at lamps` refused; the fisher's engagement reach) |
+| 52 fill/drink/wash at any shore; fouled where fouled, salt at sea, the water's temperature; ice refuses; never depletes; no standing asked | T9, T11, T14 | W2 | W2 tests; drive 34 (fouled + clean draws, `drink`), 35 (`boil`), 36 (ice), 37 (salt, drink), 39 (wash) |
+| 53 fouling announces itself to no sense | T5, T10 | W1 | the look lines are `Shore.ts`'s moved (no *fouled* word); test asserts the read of a fouled reach contains *outfall* and not *foul* |
+| 54 a deck is a shore of the sea under it; a beach reads the nearest landing | T11 | W1 | expanse tests (deck ref moves with the craft; beach ref = landing; cold → pending); drive 37, 38 |
+| 55 every shipped shore works; climate's `analyze water` + ice checks pass | T13, T10 | W1, W3 | `climate-and-water.dirty` :280/:367 re-run green; `Ice.test.ts`, `IceCrossing.test.ts` |
+
+### Test & gate strategy
+
+- Kernel unit tests beside the mixins (`lib/location/__tests__/Shore.
+  test.ts`, `WaterSource.test.ts`) with a test-local `WaterSourceMixin`
+  composer — the kernel suite never imports the water pack. Bulk tests
+  beside `Bulkable.ts` (`SourceSlot`, the draught clamp, `getTemperatureK`
+  through `transfer`). Validator test for the or-rule.
+- Water pack: `readWater` for the three reach states; the expanse's two
+  derivations; the fouling probe against shipped rows.
+- Fishing pack: `verbs.test.ts` rebuilt around a `Shore` room (not a
+  Shore Thing); `brains.test.ts` around a room; `Waters.test.ts`.
+- Terminus: `fishing-content.test.ts` asserts the bank is a `Quay` citing
+  `kestrel:confluence` under its `river` detail and props no edge.
+- Wire: steps 31–39; `look river` / `look tarn` / `look sea` by the
+  detail's own name (the `water` keyword is now unambiguous on the bank
+  — the drive may assert `look water` asks nothing, step 31).
+- Lint: the family, every wave. `pnpm test` ONCE before the MR re-opens
+  for review (`git status` filter first — a green run stands until a
+  source file changes).
+
+### Risks & opens
+
+1. **Typed keyword vs room keyword.** When the typed word matches both
+   the ROOM's own `keywords` and one of its details, `finalize` dedups by
+   stuffId and which `via` survives is unverified (grounding says a typed
+   detail keyword yields `via.detailPath`, but the same-stuff tie is
+   untested). Mitigation in content (T13: no room keyword is also its
+   water's name) and a W1 test that `look mere` on a mere shore renders
+   the DETAIL; if the room wins, the fix is in the resolver's dedup
+   (prefer the candidate with a via when the typed word matched it), a
+   small change the build records as B-nn.
+2. **Multi-word detail keywords** (`"black mere"`) — thing rows carry
+   them (`tide.yaml` `"salt water"`); whether `applyDetails` → MQL scoring
+   matches a two-word alias is unverified. `tarn` is the drive's handle
+   regardless; `black-mere` is the fallback spelling.
+3. ⚠⚠ **Which shore reads fouled.** The outfall and the bank share
+   `kestrel:confluence` at hops 0, so the bank reads
+   `0.6 × survival⁰ / flow(confluence)`; whether that clears 0.35
+   depends on the confluence's flow in the drive's month (the row's own
+   prose: *worst in a dry month*). W1's probe test answers it. If the
+   bank reads CLEAN, there is **no shipped shore below an outfall** —
+   the meres are isolated basins and the heath is a head — and step 34's
+   fouled draw has nowhere to stand. **User's eye:** author a shore on
+   `kestrel:estuary` (the lower towpath / estuary mouth is already
+   downstream content), or raise the outfall's load, or accept a clean
+   draw at the bank with `analyze water` naming the outfall. The plan
+   does not pick.
+4. **`BulkSlot.getHolder()` widening** touches ~10 bulk sites (BulkableLogic
+   :319/:344/:355/:364/:396-397/:682-686, Freshness:558, WaterActivity:
+   491, CraftingLogic:2811) — each already narrows or needs only a
+   `Stuff`; a site that calls a Bulkable method on the holder unguarded
+   is a latent bug this surfaces.
+5. **`requires: any` on wash's `water`** admits a non-vessel into the
+   bound list; `findWater`'s material test is the only gate. It was
+   already the only gate for the contents question.
+6. **`drink` offered at every shore** on the menu (the inventory bucket) —
+   intended; the refusal is diegetic when the water is frozen.
+7. **The cold first read** at a beach/deck (`peekShorePositionFor` →
+   `null`; the structure catalogue unresolved) — *hard to read yet*, the
+   drive loops as the gunwale step did (`:504-512`).
+8. **A room's `look` must not change.** W1 asserts the bank's `look`
+   text is byte-identical before and after (minus the edge in the
+   contents list).
+9. **`lint:object-verbs`** may count `whyNoSlot(holder, …)`; its
+   first parameter is a world object by the same necessity as
+   `slotFor`'s (the validator has no `this`). If the census moves, the
+   build files the caller audit (two controllers' null branch + one
+   validator) and asks, rather than quoting doctrine.
+10. The requirements' *"with one water, without naming it"* for drawing
+    leaves TWO unnamed waters undefined; T6's `which-water` refusal is
+    the engine's answer (no shipped row has two).
+
+### Deferred seams (slates, not plan sections)
+
+- A second water on the bank (the Delight at the confluence) →
+  `shore-as-place-slate` tail (needs `delight:<node>` at the confluence
+  and a decision about the fisher's default).
+- `launch`/`dive` as the two further faces on the citation →
+  `navigable-water-slate § 5a`, `underwater-slate` (already homed).
+- `sip`/`pour`/`spill` refusal words at a shore (they reach the generic
+  `slotFor` path and work; only the null-branch wording is generic);
+  pouring INTO a river as a contamination event (`SourceSlot.remaining()
+  = ∞` today) → `watershed`'s contamination tail.
+- `cool`/`rinse` in salt water; a `rinse`-worthy liquid vocabulary
+  beyond `water`|`brine` → the recovery slate.
+- A general *any place made waterside from its own description* →
+  `shore-as-place-slate` (kept, as its tail — the requirement's non-goal).
+- The place↔bulk line (a bath, a trough, a cistern) → requirements open
+  question 2, unchanged.
+
+### Critical files
+
+Kernel: `K/lib/location/Shore.ts` (new), `K/lib/location/WaterSource.ts`
+(new), `K/platform/location/Shore.ts` (new), `K/platform/location/Quay.ts`
+(new), `K/lib/mixin.ts` (two names + refusals), `K/api/mixin.ts` (two
+predicates), `K/lib/config/AppSettings.ts` (two keys), `K/lib/bulk/
+SourceSlot.ts` (new), `K/lib/bulk/Bulkable.ts` (`BulkSlot` host type,
+`getTemperatureK`), `K/platform/idea/api/BulkableLogic.ts` (`slotFor`,
+`whyNoSlot`, `computeApplied`, step 6), `K/api/bulk.ts`,
+`K/lib/command/validators/mustHaveBulkSlot.ts`, `K/platform/idea/cmd/bulk/
+FillController.ts`, `…/DrinkController.ts`, `K/platform/idea/cmd/crafting/
+WashController.ts`. Platform content: `cmd/crafting/wash.yaml`,
+`settings/<bulk>.yaml` (`bulk.draughtL`). Water pack: `W/idea/
+WatercourseCatalogue.ts`, `W/idea/WaterExpanse.ts`, `W/idea/reading/
+WaterReading.ts`, `content/settings/water.yaml`, delete `W/thing/Shore.ts`,
+`W/thing/Gunwale.ts`, `W/__tests__/Shore.test.ts`; `W/__tests__/
+WaterExpanse.test.ts`, `Ice.test.ts`. Fishing pack: `F/idea/cmd/fishing/
+FishingController.ts`, `F/idea/Waters.ts`, `F/behavior/fishes.ts`,
+`F/behavior/reads-water.ts`, `content/trade/fishing/cmd/fishing/{fish,lay,
+release}.yaml`, the three test files. Content rows: terminus
+`wharfside/bank.yaml`, `hesper/deck.yaml`, `estuary/strand.yaml`,
+`estuary/headland/brow.yaml`, `wharfside/agent/fisher.yaml`; world-seed
+`moor/stormy-heath.yaml`, `north/shore.yaml`, `circle/shore.yaml`,
+`circle/bare/shore.yaml`; delete `wharfside/thing/river-edge.yaml`,
+`moor/heath-mere.yaml`, `north/blackmere.yaml`, `circle/circlemere.yaml`,
+`circle/bare/clearmere.yaml`, `hesper/thing/gunwale.yaml`. Tests: terminus
+`fishing-content.test.ts`, transport `IceCrossing.test.ts`. Wire:
+`maritime-space.dirty`, `fishing.dirty`, `climate-and-water.dirty`,
+`reachability.dirty`. Docs: fishing, watershed, bulk, expanse, location,
+ground, content-packs, navigable-water-slate, shore-as-place-slate.
+
+### Revision 3 — build log
+
+*(appended by the build: B-72 onward, then the revision-3 drive record.)*
+
 ## Build log
 
 *(appended wave by wave at build time — what changed, what was decided,
