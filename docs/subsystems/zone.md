@@ -108,7 +108,7 @@ CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
   `Stuff.zone` (the `FromSpatialZone` gate reads the calling zone
   instance, so it passes unchanged). An `Expanse` is a `SpatialZone` that
   composes no Location half — see [expanse.md](./expanse.md).
-  ⭐ `horizon` names the ZONES scanned from here by `look horizon` /
+  ⭐ `horizon` names the ZONES scanned from here by `scan horizon` /
   `watch horizon` — an authorial partition, inherited down the tree (a
   room's own `horizon` wins, then the walk); an authored `[]` is *nothing
   from in here*. Whether anything in a named zone is in VIEW is derived

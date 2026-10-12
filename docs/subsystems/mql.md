@@ -803,6 +803,19 @@ The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
 CLAUDE.md § Member Privacy.)
 
+## ⭐⭐ Descending a holder is a view through the viewer's eyes (maritime revision 2′)
+
+The `:i` / `:I` step yields what the VIEWER may see inside a holder —
+`PerceptionApi.visibleContentsOf(viewer, holder)` (`resolver.ts`,
+`visibleInside`): on a person what they wear and hold, never their
+pockets or what is inside their body; an open container everything; a
+shut one nothing; concealed things stay concealed. Your own things —
+and system mode (`commandGiver: null`) — are everything, as before.
+⭐ The rule lives HERE, not in a verb, because MQL is a view over the
+model: `query bob:i`, `look bob:i:knife`, `inventory bob` and a script
+all ask the same question and must get the same answer. (It sat in two
+controllers for one revision, and `bob:i` listed Bob's pockets.)
+
 ## Resolving is not permission
 
 There are **no permission tiers** (content-packs wave 3 deleted them

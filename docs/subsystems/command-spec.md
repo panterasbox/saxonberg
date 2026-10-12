@@ -831,7 +831,6 @@ fields:
       min: 1        # default: 0
       max: 3        # default: Infinity
       # OR sugar: exactly: 3 (sets min == max == 3)
-      named: 1      # how many a plain NAME takes (see below)
 ```
 
 `object` fields have implicit `{ exactly: 1 }`; declaring
@@ -876,15 +875,15 @@ asking HOW the query asked, which rides on the MQL result
 | the query | example | what happens |
 |---|---|---|
 | a NAME, more than the slot takes, no quantity | `look brass` (two match) | the view's `onExcess` — `prompt` asks *which?* |
-| a SET named on purpose | `look horizon`, `look peers` | never asked; up to `max` it is taken whole, past `max` refused in words (`too-many`) |
-| the player's own how-many | `look all brass`, `get 3 coins` | never asked; it overrides the view's default, and a count on a one-thing slot stays units off the top stack, as before |
+| a SET named on purpose | `look horizon` (a one-thing slot), `query horizon` | never asked; in a slot that takes it, taken whole; past `max` (or in a one-thing slot) refused in words (`too-many`), pointed at `query <what you typed>` |
+| the player's own how-many | `query all brass`, `get 3 coins` | never asked; it overrides the view's default, and a count on a one-thing slot stays units off the top stack, as before |
 | an ordinal | `look 2nd brass` | already narrowed to one by the resolver |
 
-`cardinality.named` is how many a plain NAME takes in a plural slot:
-`look` is `type: objects, cardinality: { named: 1 }`, so a name matching
-two asks, while a set or `all` lists them. Without `named`, a name is
-bounded by `max` like everything else. `named` above `max` throws at
-load.
+⛔ **There is no `cardinality.named`** (maritime revision 2′). It existed
+for one revision to let a plural `look` tell an ambiguous name from a set
+it was asked for — the engine guessing which of two jobs one verb was
+doing. The fix was to give the jobs two verbs: `look` takes one thing,
+`query` (alias `scan`) lists a set.
 
 #### `onShortage` — when there are fewer matches than required
 

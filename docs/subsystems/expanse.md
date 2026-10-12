@@ -182,7 +182,7 @@ wrong chart is wrong in one row and never reconciled. See
 | `pilot` | `Pilot` (peers) | buy told claims |
 | `measure depth` / `measure latitude` | reading rows (`sounding` / `sighting`) | the sounding; the noon sight |
 | `measure bearing` | reading row (`bearing`; the hand-bearing compass, or the eye at ±10°) | the bearing of a thing in view; a fix on a fixed one |
-| `look horizon` | `look` (a bare `horizon` names a whole scope) | what is in view beyond the room |
+| `scan horizon` | `query` (alias `scan`; a bare `horizon` names a set) | what is in view beyond the room |
 | `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
 | `swim` | `StillWater` (environment, peers) | a small water is a place |
 | `go aboard` / `go ashore` | `AboardExit` / `AshoreExit` | the far side recomputed every traverse |
@@ -202,7 +202,7 @@ the first — the one gate every crossing goes through (see
 ## Perception at range (revision 1)
 
 ⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to
-anybody: somebody looks (`look horizon`) or keeps a watch (`watch
+anybody: somebody looks (`scan horizon`) or keeps a watch (`watch
 horizon`, `HorizonWatch` — an engagement on the watcher's attention that
 says only what came into or dropped out of view). Push comes only from
 emitters that announce themselves (a bell, a gun, a signal).
