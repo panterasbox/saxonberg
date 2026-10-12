@@ -625,17 +625,25 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     const read = await w.cmd('analyze water');
     expectOk(read);
     expect(squash(await read.said())).toMatch(/reach: kestrel:confluence/);
+    // ⭐ The gauge, not the eye: the city's intake draws from this same
+    // reach with no treatment, so its report says whether the water here
+    // is fouled. Nothing about the water itself announces it (AC 53).
+    const gauge = squash(await (await w.cmd('analyze water intake')).said());
+    expect(gauge).toMatch(/draws from kestrel:confluence/);
+    expect(gauge, 'T16: the wharf below the sewer must read fouled').toMatch(/\(fouled\)/);
     expectOk(await w.cmd(`clone ${PAIL}`));
     const fill = await w.cmd('fill pail from river');
     expectOk(fill);
     expect(squash(await fill.said())).toMatch(/You fill/);
-    expect(await look(w, 'look --peek pail')).toMatch(/brown, cloudy water/);
+    // It looks like any water — the pail is no tell.
+    expect(await look(w, 'look --peek pail')).toMatch(/clear water/);
+    expect(await look(w, 'look --peek pail')).not.toMatch(/foul|dirty|brown|cloudy/i);
     await at('/world/circle/shore');
     expectOk(await w.cmd('spill pail'));
     const clean = await w.cmd('fill pail from mere');
     // A mere in winter may be iced over — then it says so (step 36's case).
     if (clean.status === 'ok') {
-      expect(await look(w, 'look --peek pail')).not.toMatch(/brown, cloudy/);
+      expect(await look(w, 'look --peek pail')).toMatch(/clear water/);
     } else {
       expect(squash(await clean.said())).toMatch(/frozen from bank to bank/);
     }
