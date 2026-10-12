@@ -14,6 +14,7 @@ import { WaterSourceMixin, type WaterRead } from '../WaterSource';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
+import { BulkableApi } from '../../../api/bulk';
 import { WorldClockApi } from '../../../api/worldclock';
 import { TemplatePaths } from '../../paths';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -141,6 +142,22 @@ describe('which water you mean', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     bank.waterFor();
     expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('drawing from it', () => {
+  it('⭐ the place hands out its water as a source slot — through the ordinary slotFor', async () => {
+    const bank = shore('/test/bank', [[['river', 'kestrel'], 'Brown.']], { river: 'kestrel:confluence' });
+    const slot = BulkableApi.slotFor(bank, undefined, 'kestrel');
+    expect(slot).not.toBeNull();
+    await slot!.settle();
+    // The fake source's read has no draw: nothing comes up, and it says so.
+    expect(slot!.whyEmpty()).toBe('Nothing comes up.');
+  });
+
+  it('⭐ naming the wrong thing is a slot that says so — never a null nobody can explain', () => {
+    const bank = shore('/test/bank', [[['river'], 'Brown.'], [['lamps'], 'Iron.']], { river: 'kestrel:confluence' });
+    expect(BulkableApi.slotFor(bank, undefined, 'lamps')?.whyEmpty()).toBe('There is no water in the lamps.');
   });
 });
 

@@ -119,12 +119,19 @@ export class BulkableApi {
    * holder's single present slot is used. Returns `null` when the
    * holder isn't Bulkable or the slot can't be resolved (ambiguous /
    * missing) — the controller renders the player-facing decline.
+   *
+   * ⭐ A shore (a place beside a named water, maritime revision 3) is no
+   * vessel but answers too: the water `named` picks (the feature the
+   * player named — `model.field.via?.detailPath?.[0]`), or its one water,
+   * as a source slot that never runs dry and, when it cannot give, says
+   * why in `whyEmpty()`.
    */
   static slotFor(
     holder: Stuff,
     affordance: BulkAffordance | undefined,
+    named?: string,
   ): BulkSlot | null {
-    return logic().slotFor(holder, affordance);
+    return logic().slotFor(holder, affordance, named);
   }
 
   /**

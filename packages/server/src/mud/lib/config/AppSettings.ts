@@ -1543,6 +1543,12 @@ export const AppSettingKeys = {
    * nothing here can read it (maritime revision 3).
    */
   waterSourcePath: "water.sourcePath",
+  /**
+   * Bulk — one draught, L: what `drink` with no amount takes from a
+   * source that never runs dry (a river, a tap). Seeded literal 0.25 at
+   * the call site (maritime revision 3).
+   */
+  bulkDraughtL: "bulk.draughtL",
   /** Storm — per-storm-scope probability of a lightning strike per strike
    * tick (0..1). */
   stormStrikeRate: "storm.strikeRate",

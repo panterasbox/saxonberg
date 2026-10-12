@@ -76,8 +76,13 @@ export class BulkableLogic extends ApiLogic {
   public slotFor(
     holder: Stuff,
     affordance: BulkAffordance | undefined,
+    named?: string,
   ): BulkSlot | null {
-    if (!MixinApi.isBulkable(holder)) return null;
+    // ⭐ A shore is no vessel, but it draws (maritime revision 3): the
+    // water it is beside, as named — a slot that says why when it can't.
+    if (!MixinApi.isBulkable(holder)) {
+      return MixinApi.isShore(holder) ? holder.waterSlot(named) : null;
+    }
     try {
       return holder.getBulk(affordance);
     } catch {
@@ -396,10 +401,9 @@ export class BulkableLogic extends ApiLogic {
     const fromHolder = from.getHolder();
     const toHolder = to?.getHolder() ?? null;
     const toAmountBefore = to !== null ? to.getAmount().rawValue() : 0;
-    const blendFromK =
-      toHolder !== null && MixinApi.isThermal(fromHolder)
-        ? fromHolder.getTemperature().rawValue()
-        : null;
+    // The SLOT's temperature, not the holder's: every vessel slot answers
+    // its Thermal holder's, and a shore's source slot its water's.
+    const blendFromK = toHolder !== null ? from.getTemperatureK() : null;
     const blendToK =
       toHolder !== null && MixinApi.isThermal(toHolder)
         ? toHolder.getTemperature().rawValue()
@@ -740,6 +744,10 @@ function computeApplied(
   const sourceAvail = from.available();
   const destRoom = to === null ? Infinity : to.remaining();
   if (amount.kind === 'all') {
+    // ⭐ A river has no "all": drinking (no destination) from a source that
+    // never runs dry takes one draught — `bulk.draughtL` (the shipped tap
+    // had the same ∞ hole).
+    if (to === null && !Number.isFinite(sourceAvail)) return draughtL();
     // Take the whole source, bounded by the destination's room.
     return Math.max(0, Math.min(sourceAvail, destRoom));
   }
@@ -809,5 +817,16 @@ function emitEscapedGas(
       return;
     }
     at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+}
+
+/** One draught, L — what `drink` takes from a source that never runs dry. */
+function draughtL(): number {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.bulkDraughtL);
+    const n = Number.parseFloat(String(raw ?? ''));
+    return Number.isFinite(n) && n > 0 ? n : 0.25;
+  } catch {
+    return 0.25;
   }
 }

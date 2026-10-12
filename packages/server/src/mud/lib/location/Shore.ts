@@ -38,6 +38,8 @@ import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
+import { SourceSlot } from '../bulk/SourceSlot';
+import type { CommandContributions } from '../../api/command';
 
 /** The weather field is memoised per six-game-hour segment; reading more often buys nothing. */
 const SEGMENT_S = 6 * 3600;
@@ -68,7 +70,16 @@ export interface Shore {
   waterFor(name?: string): WaterPick;
   waterRefFor(name?: string): Promise<WaterRefPick>;
   settleWater(key: string): Promise<WaterRead | null>;
+  peekWaterRead(key: string): WaterRead | null;
+  waterSlot(name?: string): SourceSlot;
 }
+
+/** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
+const DRAW_VERBS = [
+  'platform/cmd/bulk/fill.yaml',
+  'platform/cmd/bulk/drink.yaml',
+  'platform/cmd/crafting/wash.yaml',
+];
 
 export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class ShoreMixin extends Base implements Shore {
@@ -76,6 +87,16 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       waters: { persistent: true, authorable: true },
+    };
+
+    /**
+     * ⭐ `fill` / `drink` / `wash` where you stand beside water — the place
+     * is the player's CONTAINER, and a container grants inward on
+     * `inventory` (the deck's `launch` precedent); the refusal is in
+     * words when the water cannot give (frozen, which water?).
+     */
+    static commandContributions: CommandContributions = {
+      inventory: DRAW_VERBS,
     };
 
     /**
@@ -195,6 +216,24 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async settleWater(key: string): Promise<WaterRead | null> {
       await this.refreshWater(key, true);
       return this.memoFor(key).read;
+    }
+
+    /** The current read of the water under `key`, kicking a refresh when stale. */
+    public peekWaterRead(key: string): WaterRead | null {
+      return this.peekWater(key).read;
+    }
+
+    /**
+     * ⭐ The water as a source to draw from (maritime revision 3, T9′):
+     * the water `name` picks, or the place's one water. ALWAYS a slot —
+     * one that cannot give is empty and says why in its own words.
+     */
+    public waterSlot(name?: string): SourceSlot {
+      const self = this as unknown as Stuff & ShoreMixin;
+      const pick = this.waterFor(name);
+      if ('refusal' in pick) return new SourceSlot(self, null, pick.refusal);
+      void this.refreshWater(pick.key, false);
+      return new SourceSlot(self, pick.key);
     }
 
     /** The read as it stands, kicking a refresh when it is stale. */

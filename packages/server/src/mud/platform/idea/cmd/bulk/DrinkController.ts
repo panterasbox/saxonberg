@@ -29,7 +29,7 @@ interface DrinkModel extends CommandModel {
 }
 
 export default class DrinkController extends CommandController<DrinkModel> {
-  execute(model: DrinkModel, context: CommandContext): void {
+  async execute(model: DrinkModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
 
@@ -42,11 +42,17 @@ export default class DrinkController extends CommandController<DrinkModel> {
       return;
     }
 
-    const fromSlot = BulkableApi.slotFor(target, model.target.via?.bulk?.affordance);
+    const fromSlot = BulkableApi.slotFor(
+      target,
+      model.target.via?.bulk?.affordance,
+      model.target.via?.detailPath?.[0],
+    );
+    await fromSlot?.settle();
     if (fromSlot === null || fromSlot.isEmpty()) {
+      const why = fromSlot?.whyEmpty() ?? null;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to drink in ${Mml.thing(target)}.`)
+        .toSelf(why !== null ? Mml.compose`${why}` : Mml.compose`There's nothing to drink in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',

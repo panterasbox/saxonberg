@@ -59,7 +59,12 @@ export default class FillController extends CommandController<FillModel> {
       });
       return;
     }
-    const fromSlot = BulkableApi.slotFor(source, model.source.via?.bulk?.affordance);
+    const fromSlot = BulkableApi.slotFor(
+      source,
+      model.source.via?.bulk?.affordance,
+      model.source.via?.detailPath?.[0],
+    );
+    await fromSlot?.settle();
     if (fromSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -117,9 +122,16 @@ export default class FillController extends CommandController<FillModel> {
     }
 
     if (result.applied <= 0) {
+      // ⭐ A source that cannot give says why (a frozen mere, which
+      // water?) — else today's line.
+      const why = fromSlot.whyEmpty();
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
+        .toSelf(
+          why !== null
+            ? Mml.compose`${why}`
+            : Mml.compose`You can't fill ${Mml.thing(target)} from ${Mml.thing(source)}.`,
+        )
         .send();
       return;
     }
