@@ -24,9 +24,10 @@ data:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    # ⚠ BOTH the counter and the room (the general store's precedent): a
+    # ⚠ BOTH the room and the counter, room FIRST (index 0 is where the
+    # house stands its people): a
     # sale settles to the house found at the COUNTER's path, so a yard
     # listing only its room refused every buyer as "can't cover" — found
     # by the assembly drive, where no stave or billet was ever sold.
-    - /world/terminus/hearts-delight/thing/timber-yard
     - /world/terminus/hearts-delight/location/sawmill
+    - /world/terminus/hearts-delight/thing/timber-yard

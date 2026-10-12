@@ -27,6 +27,7 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
   operatingLocations:
-    # The counter a sale settles at (lint:shopfronts).
-    - /trade/haulage/thing/depot-counter
     - /world/terminus/estuary/lower-towpath
+    # ⚠ AFTER the room: index 0 is where the house stands its people.
+    # The counter is the one a sale settles at (lint:shopfronts).
+    - /trade/haulage/thing/depot-counter
