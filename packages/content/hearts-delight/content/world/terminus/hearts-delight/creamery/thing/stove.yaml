@@ -7,8 +7,11 @@
 # In summer nobody needs it lit — and a lit stove in July makes greasy
 # butter, which is the player's call to make.
 #
-# ⚠ Lit with a week's charge (≈ 13 kg of oak a day at 2.5 kW), and it
-# goes out when the charge does: `stoke` it, as any fire.
+# ⚠ Laid with a week's charge (≈ 13 kg of oak a day at 2.5 kW) and NOT
+# lit: the creamer lights it when the weather turns (`ignite stove`).
+# ⓘ It warms a room this size by only a few kelvin under the climate
+# build's winter (probed: 267–276 K with it lit) — sizing room heating
+# against that climate is thermal's, a finding for `thermal-slate`.
 class: /platform/thing/Hearth
 data:
   shortDescription: tiled stove
@@ -18,7 +21,7 @@ data:
     A tall stove faced in green glazed tiles, standing against the north
     wall with its door shut on the fire. The tiles hold the heat and give
     it back slowly; the room is kept just warm enough for milk to work.
-  lit: true
+  lit: false
   heatOutputW: 2500
   emittedIntensity: 20
   emittedColorTemperature: 1900

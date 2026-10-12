@@ -9,14 +9,6 @@ data:
   register: definite
   _address: terminus/hearts-delight/creamery
   _biomePath: /stuff/idea/biome/indoor/baseline
-  # ⭐ What the creamery is BUILT OF — limestone, thick, the way a dairy is
-  # built so the room rides the day's MEAN and not its night (a cause,
-  # never an effect; the smithy's shape). Found when the climate build
-  # gave the Delight real nights: with no envelope the room followed the
-  # air down past the curd's 283 K stall and the batch sat cold overnight.
-  enclosure:
-    material: /stuff/idea/material/rock/limestone
-    thicknessM: 0.5
   ambientSource: sky
   ambientOpening: windows
   ambientIntensity: 12000

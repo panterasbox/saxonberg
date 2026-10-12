@@ -305,6 +305,16 @@ afterAll(() => {
 /* ───────────── 0. the clock ───────────── */
 
 suite.skipIf(!isOwnedTestWorld())('0. the clock', () => {
+  it('⭐ the dairy season: half a year on from the winter the world boots in', async () => {
+    // The climate build boots the world in deep winter (268 K at a clear
+    // dawn; "the winter reaches indoors"), and no room in the walk can be
+    // kept above a curd's 283 K stall (probed — room heating against that
+    // climate is thermal's finding). A dairy's year is the warm half
+    // anyway: jump a season at a time (time.md), twice, to midsummer.
+    await advance('90 days');
+    await advance('90 days');
+  });
+
   it('starts in the small hours, so the herd is full by noon', async () => {
     await untilHour(0);
   });
