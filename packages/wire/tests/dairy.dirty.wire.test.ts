@@ -89,6 +89,7 @@ const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
 const CHEESE_ROOM = '/world/terminus/hearts-delight/creamery/location/cheese-room';
 const GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen';
 const SMELTER = '/world/terminus/rejection/location/smelter';
+const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
 const DELIGHT = '/world/terminus/hearts-delight';
@@ -653,6 +654,11 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     await doing(k, 'drop knife');
     await say(k, 'up');
     await k.drainProse();
+    // A consignment pays into an account — the co-op shelf will not take
+    // a wedge from somebody with nowhere to be paid (correctly).
+    await goTo(BANK_HALL);
+    await doing(k, 'bank open');
+    await goTo(CREAMERY);
     const listed = await doing(k, 'consign wedge --ask 12');
     note(`consign wedge → ${listed}`);
     const shelf = await read(k, 'look shelf');
@@ -682,8 +688,11 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     await doing(k, 'heat pot');
     const plated = await doing(k, 'plate pot into dish');
     note(`plate → ${plated}`);
-    expect(plated).toMatch(/fried|crisp|roots/i);
-    expect(plated).not.toMatch(/pot luck/i);
+    // The plate line names the vessel; the DISH says what it holds.
+    const dish = await read(k, 'look dish');
+    note(`look dish → ${dish}`);
+    expect(dish).toMatch(/fried crisp|glossy/i);
+    expect(dish).not.toMatch(/pot luck/i);
   });
 });
 
