@@ -1,6 +1,6 @@
 # The shore as a place — the water citation moves onto the room
 
-> **Status: UNBUILT** — raised in the climate build's review (2026-10-11),
+> **Status: IN REQUIREMENTS** (maritime revision 3, `docs/requirements/maritime-space-requirements.md` § *The shore as a place*) — raised in the climate build's review (2026-10-11),
 > handed to the maritime build (`maritime-space`, build-1) to do in its MR.
 > **Left:** the citation on the room · the faces · the cited water as a
 > target (`look kestrel`) · the verbs and brains that bind a `Shore` ·

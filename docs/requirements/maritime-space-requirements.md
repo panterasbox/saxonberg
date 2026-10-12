@@ -682,6 +682,113 @@ that thing; a set that belongs to nothing (the horizon, the people here,
 several matches) has no header, because any header would be invented
 prose. ⛔ Nobody authors list prose.
 
+## ⭐⭐⭐ The shore as a place *(revised 2026-10-11 — revision 3)*
+
+**Why it is here.** The climate build's review asked why the shore is an
+object in the room rather than a property of the room, and handed the
+question to this build ([shore-as-place-slate](../slates/builds/shore-as-place-slate.md)).
+Today a riverbank is a room plus a second object (*"the edge"*) that
+names the water and reads it, and the room describes the river a second
+time in its own words. ⚠ And drawing water does not exist at all: the
+bank's own steps say *"people have drawn water from these steps for as
+long as there has been a city"*, and nobody can.
+
+**What we are talking about — and what we are not.** A **named body of
+water a place is beside**: a river, a mere, the sea. ⛔ Not water in a
+vessel or on a surface (a cup, a pail, a puddle — that is bulk), and not
+the small water you can see across and swim in (the estuary pool, which
+is already a place with water in it). ⭐ And the shipped ruling stands:
+*water is cited, never contained and never containing* — a bank is a
+land place BESIDE the Kestrel, not a place that holds it.
+
+**Extent — the name spans rooms, the state does not.** The Kestrel is one
+river through many places; the Greywater is a whole sea. But everything
+anybody acts on is **local**: flow, ice, the fishery's stock, what is in
+the water — per reach on a river, per position at sea. So naming a water
+names the whole of it, and acting on it acts on it **here**.
+
+### ⭐⭐ The room names its water, in its own words
+
+A waterside place already describes its water as one of its own named
+features (the bank's *"river"*, answering to *river, kestrel, water*).
+That feature now also **says which water it is**. Looking at it gives the
+author's words **and then the water's own read** — what it is, how it is
+running, the ice, the fishery read at your competence — so the author
+writes character and the water supplies state, and the two can no longer
+drift. ⛔ The room's own `look` still says nothing about the water (the
+standing rule: the engine never appends to a room's prose); you look AT
+the water, by whatever this place calls it.
+
+- ⭐ **Local names come free.** The heath calls its water *the black mere*
+  and *tarn*; the bank calls the Kestrel *the river*; each names the same
+  kind of thing differently, as people do.
+- **Two waters, two features.** A confluence names both, and each is
+  looked at, fished and drawn from by its own name.
+- ⛔ **No separate water object.** The `river-edge` and `heath-mere`
+  props, the three mere-shore props and the *Hesper*'s gunwale go away;
+  nothing in the room's contents is "the edge".
+- **No new way of naming things.** A water is reached exactly as any
+  feature of a room is reached today. ⛔ No query word for water.
+
+### ⭐ Only a waterside place is a shore
+
+Being beside water is a fact about **some** places, and only those places
+carry it. ⛔ Not every place in the game, with a blank where the water
+would be. The shipped waterside places — the wharfside bank (a lit public
+waterfront), the stormy heath, the three mere shores, the *Hesper*'s deck,
+the estuary strand and the headland — are shores. Anywhere else the water
+verbs fall back to the place's own water (its Locality's reach, how the
+Heart's Delight millsite fishes the Delight today) or refuse in words.
+
+### ⭐⭐ The sea is named by the water; the position is derived
+
+A river bank names a **reach**, because where along a river a bank sits
+cannot be derived. A deck and a beach name **the sea** — and the position
+the water is read at comes from where they are: the craft's position for
+a deck, the nearest landing for a beach. So a deck is a shore of whatever
+sea is under it, wherever the craft has got to, with nothing re-authored
+as she moves.
+
+### ⭐⭐⭐ Drawing water
+
+At any shore you can **fill a vessel from the water, drink from it, and
+wash in it**, by naming it (`fill pail from river`, `drink from mere`,
+`wash shirt in river`) or, with one water, without naming it.
+
+- ⭐⭐ **What you draw is what the water is, there.** Where the reach is
+  fouled (the watershed's contamination, a concentration by kind, worst
+  in a dry month) you draw **fouled water**, and drinking it doses you
+  exactly as the city's fouled supply does. At sea you draw **salt
+  water**, which washes a deck and does not slake thirst. It is as cold
+  as the water it came from.
+- ⛔ **Fouling announces itself to no sense** — the watershed's standing
+  rule. The look read does not say *fouled*; `analyze water` and the
+  consequence are how you learn it. The counterplay is the shipped
+  ladder: draw upstream, boil, or pay for a treated supply.
+- **Ice refuses in words.** A frozen mere cannot be drawn from; cutting
+  through is the ice trade's.
+- **Drawing never depletes.** A pail is nothing to a river and the model
+  says so. ⭐ Water at the shore is **free**; a piped supply sells
+  convenience and safety, never the water.
+- **Anyone who can stand on the shore may draw** — ordinary access to the
+  place, nothing more. Domestic use needs no water right, as in riparian
+  law; rights bind works and diversions, which the watershed already
+  records.
+
+### The verbs that act on a water
+
+| verb | with no water named | naming one |
+|---|---|---|
+| `look <the water>` | — | the author's words, then the water's read here |
+| `analyze water` | this place's water, else the Locality's | that water, here |
+| `fish` · `lay` · `release` | this place's one water, else the Locality's; at a confluence *"Which water — the Kestrel or the Delight?"* | that water; naming something that is not water is refused in words |
+| `fill … from` · `drink from` · `wash … in` | this place's one water | that water |
+
+⭐ **A fisher NPC fishes where it stands** — nothing names its water in
+its configuration any more.
+
+---
+
 ## Non-goals
 
 - ⛔ **No vessel CONTENT.** In: the thing that says *these rooms are one
@@ -722,6 +829,20 @@ prose. ⛔ Nobody authors list prose.
   water is in as a **fix**; a pilotage trade with seats, a licence and a
   rota is not. → `navigable-water-slate` § 3b, *"pilotage is two trades
   sharing a word."*
+- ⛔ **Shore revision — what stays out, and where it goes:**
+  - **launching a boat from a shore** (*The Wind in the Willows* is
+    unmakeable without it) → `navigable-water-slate` § 5a, the *launch*
+    face; today a boat goes in only over a ship's side;
+  - **diving in from a shore** → `underwater-slate`, the *dive* face;
+  - **cutting through ice to draw** → `ice-trade-slate`;
+  - **a spring on somebody's land** (*Jean de Florette*) → this doc's
+    open question 2, the place↔bulk line;
+  - **a waterside place of another kind** (a riverside dyehouse, a mill
+    race) is engineering per kind; a general way for any place to be made
+    waterside from its own description is a separate design →
+    `shore-as-place-slate` (kept, as its tail);
+  - ⛔ **the water read in a room's own `look`** → nowhere, deliberately
+    (the no-room-prose ruling).
 
 ---
 
@@ -738,6 +859,11 @@ prose. ⛔ Nobody authors list prose.
 | ⚠⚠ **the shipped claim store** | ⛔ **`told` and `bought` were CUT**, and the shipped vocabulary is `walked` · `seen` · `searched` · `published`. This build **adds two channels, each with its writer in the same change** — see *Surface decisions*. ⚠ `location-graph.md` still carries a **stale** four-channel section describing the cut vocabulary as live; fix it at the sweep |
 | ⚠ **the word "structure"** | ⭐ the drilling build shipped a `structure` **reading channel** — *"the shape of the rock under this ground"*. Unrelated to the building coordinator this build ships, and the two must not be conflated in prose: `measure structure` is geology |
 | ⭐ **four documents cite the vessel decision by section letter** | do not renumber it |
+| ⚠⚠ **the climate & water build's meres** *(revision 3)* | it shipped three of the five shore objects (`blackmere`, `circlemere`, `clearmere`) and the ice line; its drive reads `analyze water` and the ice at those shores and **must still pass** after the shore moves onto the place |
+| ⚠ **fishing** *(revision 3)* | `fish` / `lay` / `release` and the fisher's brain bind the shore object today; they bind the place now. The wharfside fisher keeps fishing the bank |
+| ⚠ **the wharfside bank** *(revision 3)* | the city's intake and its outfall both sit on the bank's reach. ⭐ Drawing at the bank is therefore a real question about which side of the outfall you stand — the drive grounds whether the bank's reach reads fouled under the shipped outfall, and if not, which shore does |
+| ⚠ **the stormy heath** *(revision 3)* | `mere` already matches the heath floor's pool, so the heath's water answers to *black mere* and *tarn*; its reach is the Holloway's **head**, finer than the moor's Locality (the vale), and the place's own naming wins |
+| ⚠ **the city's piped supply** *(revision 3)* | drawing at the shore is the free alternative to the tap, and the two answer the same commands (`fill pail from tap`, `fill pail from river`) |
 
 ---
 
@@ -1092,6 +1218,53 @@ is deferred whole. What this build does add is a **seller who can be
 wrong about a chart**, which is an accountability surface rather than a
 governance one. ⚠ Recorded as a gap rather than filled.
 
+
+### Revision 3 — the shore as a place
+
+1. **Pedagogy ⭐ — where you draw matters.** The watershed already knows
+   whether a reach is fouled (a concentration by kind, worst in a dry
+   month, cleanest above the outfall); drawing makes it a thing you
+   drink. *John Snow's lesson, learned by drinking.* Salt water from the
+   sea, the reach's own temperature, nothing through ice. Nothing rolled;
+   the water-read discipline grades what `look` and `analyze` tell you.
+2. **Expression ⭐ — named works.** *A River Runs Through It* (fish a named
+   reach from a bank) **passes**; *Captains Courageous* (fish and draw
+   over a deck's side) **passes**; *The Ghost Map* (the Broad Street
+   outbreak) **passes**, because the drawn water is the reach's;
+   *The Wind in the Willows* **fails** (no launching from a bank — a
+   non-goal with a home); *Jean de Florette* **fails** (a spring is not
+   this model). Constant: flow, ice, salinity, contamination, the
+   fishery. Variable: which places are shores, what each calls its water,
+   the prose. A waterside place costs one line, down from a second object
+   and a `props:` line. ⚠ Gap, recorded: a waterside place of another
+   kind needs engineering per kind.
+3a. **Immersion** — closes three betrayals: the steps nobody can draw
+   from, `look water` asking between two things that are both the river,
+   and the river described twice. Must not open new ones: the sea is
+   salt, a frozen mere refuses, a pail is as cold as the reach.
+3b. **Participation** — the **water carrier**: water is free at the
+   shore, so carrying it is worth something wherever a quarter is
+   unpiped or the supply fails, and the bank's own prose names the
+   arrangement the intake replaced. The polity can fund a public quay,
+   move an intake upstream, or leave the outfall where it is.
+4. **Values** — the free river or the paid tap: undecidable until you can
+   read the water, and `analyze water` is the gauge that makes it a
+   calculation; boiling is the third answer. *Grain:* the river is free
+   and honest, and warns nobody who has not looked.
+5. **Continuity** — `fill pail from river` and `fill pail from tap` are
+   the same command; the capability survives every epoch. ⭐ Who holds the
+   obsolete half: the water carrier, made obsolete by the intake, and
+   dated by it.
+6. **Economy** — produces water at no cost (no draw depletes a river);
+   consumes a vessel and carrying. The demand was there first: thirst,
+   `wash` (which needed water and found none at a river), brewing,
+   dyeing, the washhouse. It competes with paid supply, as it should.
+7. **Governance** — judges nobody: anyone who can stand on the shore may
+   draw, as riparian law treats domestic use. The gate is reaching the
+   shore (ordinary access; a private shore is a place behind a door —
+   *grain*). ⭐ Civic infrastructure: a **public quay** redistributes
+   access to the river away from whoever owns the private wharves.
+
 ---
 
 ## The drive
@@ -1175,6 +1348,32 @@ Against the running game, before the MR opens.
 30. ⭐ **`look brass` where two things match** and be ASKED which;
     **`look all brass`** and see both listed, asked nothing; **`look 2nd
     brass`** and see the second.
+31. ⭐⭐ **On the wharfside bank, `look river`** (and `look kestrel`): the
+    bank's own words for the river, then the water's read — what it is,
+    how it runs, the fishery read at your band. **`look water` asks
+    nothing** — only the river answers. ⛔ No "edge" among the room's
+    things.
+32. **On the stormy heath, `look tarn`** (or `look black mere`): the
+    heath's own name, and the read of the Holloway's head.
+33. ⭐ **`fish` on the bank with nothing named** and fish the Kestrel;
+    **`fish kestrel`** the same; **`fish at lamps`** is refused in words.
+    The wharfside fisher still fishes the bank.
+34. ⭐⭐⭐ **`analyze water` on the bank, then `fill pail from river`** and
+    hold what the reading said is there — **fouled water** where the reach
+    reads fouled. **Do the same at a mere** and draw clean water.
+    `drink` the clean pail. *(The drive grounds which shore reads fouled
+    under the shipped outfall; one fouled draw and one clean is the
+    check.)*
+35. **`boil` the fouled pail** at a fire and it is water.
+36. **At a frozen mere, `fill pail from mere`** and be refused in words —
+    the ice.
+37. ⭐⭐ **Aboard the *Hesper*, `look sea`**: the read of her own position.
+    **`fill bucket from sea`** — salt water; **`drink` it** and it does
+    not slake thirst. **`fish`** from the deck fishes where she lies.
+    ⛔ No gunwale among the deck's things.
+38. **On the headland, `look sea`**: the water read at the nearest
+    landing.
+39. **`wash shirt in river`** on the bank, and the shirt is washed.
 
 ---
 
@@ -1319,6 +1518,25 @@ Against the running game, before the MR opens.
     bearing and range); a set that belongs to something is headed by it;
     a set that belongs to nothing has no header. ⛔ No authored list
     prose.
+49. ⭐⭐ **A waterside place names its water in its own words**: looking
+    at it gives the author's description and then the water's live read.
+    ⛔ No separate water object, and the room's own `look` adds nothing.
+50. ⭐ **Only waterside places are shores.** Elsewhere the water verbs use
+    the Locality's water or refuse in words.
+51. **Fishing at a shore acts on its water** with nothing named; naming
+    the water picks it where there are two; naming something that is not
+    water is refused in words. A fisher NPC fishes where it stands.
+52. ⭐⭐⭐ **Fill, drink and wash work at any shore**, and what is drawn is
+    what the water is there — fouled where the reach reads fouled, salt
+    from the sea, the water's own temperature; ice refuses in words.
+    Drawing never depletes, and nobody's standing is asked.
+53. ⭐ **Fouling announces itself to no sense** — the read never says it;
+    only `analyze water` and its consequence do.
+54. ⭐ **A deck is a shore of the sea under it, wherever the craft is**;
+    a beach reads the sea at its nearest landing.
+55. **Every shipped shore works this way** — the bank, the heath, the
+    three meres, the *Hesper* — and the climate build's `analyze water`
+    and ice checks at the meres still pass.
 
 ---
 
@@ -1328,7 +1546,9 @@ Against the running game, before the MR opens.
    depletion."* A durable record rather than verb surface, and
    `chronicle` is append-only and already exists — but it is the one
    piece of the UX with no home yet.
-2. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+2. ⚑ **The place↔bulk line.** *(Revision 3 draws one edge of it: a named
+   water a place is beside is cited and drawn from, never held — the rest
+   stays open.)* Nothing says where water stops being a
    place and starts being a container's contents — a puddle, a bath, a
    trough, a cistern, a pond, a lake. ⚠ The *"can you be in it"* test
    **breaks cleanly on a bath.**
@@ -1340,6 +1560,7 @@ Against the running game, before the MR opens.
 ## Cross-references
 
 - [navigable-water-slate](../slates/builds/navigable-water-slate.md) — §§ 1–2 the one model and the frame · § 3 the horizon, the vantage and the landmark · § 3b navigation and the two positions · § 5a the shore · § 7a the vessel decision · § 7d the crew · § 9 the open questions, of which Q1 (the price of horizontal passage) is **closed by the edges**
+- [shore-as-place-slate](../slates/builds/shore-as-place-slate.md) — revision 3's seed: the citation on the place, not an object in it
 - [structures-slate](../slates/builds/structures-slate.md) — the thing that says these rooms are one building, its case against, and its open forks
 - [underwater-slate](../slates/builds/underwater-slate.md) — the column, the medium, the ascent
 - [standing-instructions-slate](../slates/builds/standing-instructions-slate.md) — ⛔ unopened, and the unattended passage depends on it
