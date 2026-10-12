@@ -1781,6 +1781,12 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 18 (2026-10-12), after the merge with master (climate & water,
+pumps) and the review refactor that folded `land`/`place` into
+`ContainmentApi.move` with custody derived: 21 / 21 green**, the restart
+included — the mended pick, carried, still names both hands with nothing
+in any verb recording custody by hand.
+
 **Run 17 (2026-10-11), a world of its own (`WIRE_BOOT=1`), fresh DB:
 21 / 21 green**, the restart included.
 
