@@ -310,9 +310,10 @@ suite.skipIf(!isOwnedTestWorld())('0. the clock', () => {
     // dawn; "the winter reaches indoors"), and no room in the walk can be
     // kept above a curd's 283 K stall (probed — room heating against that
     // climate is thermal's finding). A dairy's year is the warm half
-    // anyway: jump a season at a time (time.md), twice, to midsummer.
-    await advance('90 days');
-    await advance('90 days');
+    // anyway: jump to midsummer, a month at a time (time.md).
+    // ⚠ In 30-day steps: a 90-day jump drains every schedule in the
+    // interval and outruns the client's five-minute header timeout.
+    for (let i = 0; i < 6; i++) await advance('30 days');
   });
 
   it('starts in the small hours, so the herd is full by noon', async () => {
