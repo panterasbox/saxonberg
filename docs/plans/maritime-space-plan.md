@@ -1946,6 +1946,15 @@ the horizon and empty).
   fields; then the *shore as a place* slate (the water read reached by
   looking at the cited water BY NAME — no room hook; the vantage is
   already the zone `horizon`).
+- **B-71 — the !360 merge** (`462586b68`). `AboardExit`/`AshoreExit`
+  warm inside the async `canTraverse` (and in `computeDestination`, so
+  a resolve that skips the gate still finds the node);
+  `Exit.prepareTraversal` deleted. WeatherLogic takes master's
+  `ClimateSite` beside the positional lean; the site is cached with
+  the Locality so `peekSkyType` stays synchronous AND reads the right
+  hemisphere. The sea fishery's season is `WeatherApi.seasonAt` at the
+  cell's latitude (maritime, sea level); no sea ice (`Gunwale` memo
+  `ice: null`). SpatialZone keeps `horizon` beside the geography block.
 - ✅ **Revision 2 drive — 30/30 cold** (run 3 of 3). Found:
   | # | found | fixed |
   |---|---|---|
@@ -2046,7 +2055,9 @@ marked **B-n**.)*
   each controller has its own three-line `craftOf` (a public static
   helper would rise `lint:lib-statics`). **B-19:** `hail`'s arg is
   optional so a bare `hail` refuses in words (a required string fails
-  closed and silent at the binder). **B-20:** `Exit.bind` is `@Final`, so
+  closed and silent at the binder). ~~**B-20:**~~ *(superseded by the
+  !360 merge: `canTraverse` is async and the lookups moved into it;
+  `prepareTraversal` is deleted)* `Exit.bind` is `@Final`, so
   the aboard/ashore lookups (which node is this landing, which craft is
   this deck's) happen in a new `Exit.prepareTraversal()` `@hook`, awaited
   by `LocomotionControllerBase` before the synchronous `canTraverse`; two

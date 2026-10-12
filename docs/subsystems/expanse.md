@@ -189,8 +189,10 @@ wrong chart is wrong in one row and never reconciled. See
 `AboardExit` (on a node's landing) resolves to the entrance of whatever
 SHIP lies at that node now; `AshoreExit` (on a ship's entrance) to the
 landing of the node she lies at. Both refuse in words otherwise. Their
-lookups run in `Exit.prepareTraversal()` (awaited by the movement verbs
-before the synchronous gate) — `Exit.bind` is `@Final`.
+lookups (which node is this landing, which craft is this deck's) run
+inside the async `canTraverse` at the moment of asking, cached after
+the first — the one gate every crossing goes through (see
+[locomotion.md](./locomotion.md)).
 
 ## Perception at range (revision 1)
 
