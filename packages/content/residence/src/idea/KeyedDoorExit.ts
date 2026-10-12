@@ -64,10 +64,10 @@ export default class KeyedDoorExit extends LockableMixin(Exit) {
     return new Lock(keyway, this.lockTech);
   }
 
-  public override canTraverse(
+  public override async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
-  ): TraversalGuard {
+  ): Promise<TraversalGuard> {
     // ⭐⭐ The bolt refuses, the key excuses — and the bolt is now a
     // separate fact, so a resident can `unlock` this door and leave it
     // open for a guest who holds no key. That was unexpressible while
@@ -81,6 +81,6 @@ export default class KeyedDoorExit extends LockableMixin(Exit) {
           : 'The door is locked.',
       };
     }
-    return super.canTraverse(mover, mode);
+    return await super.canTraverse(mover, mode);
   }
 }

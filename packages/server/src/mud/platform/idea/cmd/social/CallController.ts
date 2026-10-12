@@ -151,7 +151,7 @@ export default class CallController extends CommandController<CallModel> {
     }
     for (const exit of there.getExits().values()) {
       if (exit.getDestination() !== here) continue;
-      if (!exit.canTraverse(animal, 'walk').ok) continue;
+      if (!(await exit.canTraverse(animal, 'walk')).ok) continue;
       await LocomotionApi.traverseWithDefault(animal, exit);
       return;
     }

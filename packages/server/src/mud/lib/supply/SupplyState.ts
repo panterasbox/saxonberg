@@ -113,6 +113,25 @@ export interface SupplyReporting {
 }
 
 /**
+ * ⭐ **The SYNCHRONOUS subset of a supply's state** — what a tap asks of the
+ * main it is plumbed to, on every draw and every `look`.
+ *
+ * The sync sibling of {@link SupplyReporting}, for the reason
+ * {@link StreetLightingSupply.isServingNow} is sync: the read sits on a hot
+ * path (a bulk policy seam, a markup augmenter) that cannot await. So it
+ * answers only what is sync-knowable — a cut line, a closed valve, a pump
+ * that is not running — and leaves the words that need the river (`dry`,
+ * `frozen`, `fouled`) to the async report. `null` means delivering.
+ *
+ * ⚠ Implemented by the water pack's `Conduit`; read by the kernel's
+ * `WaterFixture` by SHAPE, so the kernel never imports the pack.
+ */
+export interface SupplyServing {
+  /** Why this supply is not delivering right now, or `null` if it is. */
+  supplyStateNow(): SupplyState | null;
+}
+
+/**
  * ⭐⭐ **What can keep a town's streets lit tonight** — the goods leg the
  * street-lighting bill was missing.
  *

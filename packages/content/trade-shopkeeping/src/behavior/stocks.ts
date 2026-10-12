@@ -267,11 +267,8 @@ async function walkRoute(
     if (!room || !MixinApi.isExitable(room)) return false;
     const exit = (room as Stuff & Exitable).getExits().get(direction);
     if (!exit) return false;
-    try {
-      await LocomotionApi.traverseWithDefault(keeper, exit);
-    } catch {
-      return false;
-    }
+    const stepped = await LocomotionApi.traverseWithDefault(keeper, exit);
+    if (!stepped.ok) return false;
   }
   return true;
 }

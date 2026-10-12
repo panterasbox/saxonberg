@@ -71,25 +71,25 @@ function exitTo(source: CartesianLocation, path: string): Exit {
 }
 
 describe('an exit into draft content', () => {
-  it('⭐⭐ refuses, naming the GATE and a reason', () => {
+  it('⭐⭐ refuses, naming the GATE and a reason', async () => {
     dark.add('/test/pub/draftville');
     const exit = exitTo(here(), DRAFT);
-    const guard = exit.canTraverse({} as never);
+    const guard = (await exit.canTraverse({} as never));
     expect(guard.ok).toBe(false);
     expect(guard.gate).toBe('unpublished');
     expect(guard.reason).toMatch(/is not open\.$/);
   });
 
-  it('names the far side READABLY, from the path when it is not loaded', () => {
+  it('names the far side READABLY, from the path when it is not loaded', async () => {
     dark.add('/test/pub/draftville');
-    const guard = exitTo(here(), DRAFT).canTraverse({} as never);
+    const guard = (await exitTo(here(), DRAFT).canTraverse({} as never));
     // The leaf, read as words — never a raw path dumped at a player.
     expect(guard.reason).toContain('Hall');
   });
 
-  it('an exit into PUBLISHED content is admitted', () => {
+  it('an exit into PUBLISHED content is admitted', async () => {
     const exit = exitTo(here(), DRAFT);
-    expect(exit.canTraverse({} as never).ok).toBe(true);
+    expect((await exit.canTraverse({} as never)).ok).toBe(true);
   });
 
   it('⭐⭐ the wall runs BEFORE the lock gate — a wall is not a locked door', async () => {
@@ -110,29 +110,29 @@ describe('an exit into draft content', () => {
         }),
     );
 
-    const guard = exit.canTraverse({} as never);
+    const guard = (await exit.canTraverse({} as never));
     expect(guard.gate).toBe('unpublished');
   });
 
-  it('⚠ `blocked` still wins — it is a fact about the exit itself', () => {
+  it('⚠ `blocked` still wins — it is a fact about the exit itself', async () => {
     dark.add('/test/pub/draftville');
     const exit = exitTo(here(), DRAFT);
     exit.setBlocked(true);
-    expect(exit.canTraverse({} as never).gate).toBe('blocked');
+    expect((await exit.canTraverse({} as never)).gate).toBe('blocked');
   });
 
-  it('an exit with no destination path at all is not walled', () => {
+  it('an exit with no destination path at all is not walled', async () => {
     // An unbound kind clone — and the shape a `DeferredDestinationExit`
     // is a door onto: a space nobody has decided yet. Not draft
     // content, so not this gate's business.
     const exit = makeStuff(() => new Exit());
-    expect(exit.canTraverse({} as never).gate).not.toBe('unpublished');
+    expect((await exit.canTraverse({} as never)).gate).not.toBe('unpublished');
   });
 
-  it('⭐ the gate NEVER resolves the destination', () => {
+  it('⭐ the gate NEVER resolves the destination', async () => {
     dark.add('/test/pub/draftville');
     const spy = vi.spyOn(StuffApi, 'singleton');
-    exitTo(here(), DRAFT).canTraverse({} as never);
+    (await exitTo(here(), DRAFT).canTraverse({} as never));
     // Resolving would mint the very room the parcel says is not open.
     expect(spy).not.toHaveBeenCalled();
   });

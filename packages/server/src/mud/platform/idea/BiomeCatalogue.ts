@@ -63,6 +63,7 @@ import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
+import { DiagnosticApi } from '../../api/diagnostics';
 
 const BiomeCatalogueBase = Idea;
 
@@ -86,37 +87,79 @@ export default class BiomeCatalogue extends BiomeCatalogueBase {
   /**
    * Stand up every authored Biome row as a live singleton. Public so a pack
    * go-live can re-warm (idempotent — `singleton` no-ops rows already live).
-   * Returns the count stood.
+   *
+   * ⭐ **Loud, by the climate build's D11.** A row under `/idea/biome/`
+   * whose class does not LOAD, or that fails to stand up, is a biome the
+   * world silently does not have — every room citing it reads the
+   * universe default and nothing says why. Each failure logs at
+   * `console.error` and files an author diagnostic naming the row
+   * (`errors`); the count is in the boot line. A row whose class loads
+   * and is simply not a Biome (the `outdoor`/`indoor` FolderZones) is
+   * the folder it looks like, and is skipped quietly.
+   *
+   * Returns what stood and what failed, by path.
    */
-  public async warm(): Promise<number> {
+  public async warm(): Promise<{ stood: number; failed: string[] }> {
     const templates = await Template.findByPathInfix('/idea/biome/');
     let stood = 0;
-    const isBiome = new Map<string, boolean>();
+    const failed: string[] = [];
+    const kindOf = new Map<string, BiomeClassKind>();
     for (const tpl of templates) {
-      if (!isBiome.has(tpl.class)) {
-        isBiome.set(tpl.class, await isBiomeClass(tpl.class));
+      if (!kindOf.has(tpl.class)) {
+        kindOf.set(tpl.class, await biomeClassKind(tpl.class));
       }
-      if (!isBiome.get(tpl.class)) continue;
+      const kind = kindOf.get(tpl.class);
+      if (kind === 'other') continue;
+      if (kind === 'unloadable') {
+        this.reportFailure(tpl.path, `its class '${tpl.class}' does not load`);
+        failed.push(tpl.path);
+        continue;
+      }
       try {
         await StuffApi.singleton(tpl.path);
         stood++;
       } catch (err) {
-        console.warn(`BiomeCatalogue: '${tpl.path}' failed to stand up:`, err);
+        this.reportFailure(
+          tpl.path,
+          `it failed to stand up: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        failed.push(tpl.path);
       }
     }
-    console.info(`BiomeCatalogue: ${stood} biome singleton(s) live`);
-    return stood;
+    console.info(
+      `BiomeCatalogue: ${stood} biome singleton(s) live` +
+        (failed.length > 0 ? `, ${failed.length} FAILED` : ''),
+    );
+    return { stood, failed };
+  }
+
+  /** One failure, said twice: to the operator's console and to `errors`. */
+  private reportFailure(path: string, why: string): void {
+    const message =
+      `BiomeCatalogue: the biome row '${path}' is not live — ${why}. ` +
+      `Every room citing it reads the universe default instead.`;
+    console.error(message);
+    void DiagnosticApi.record({
+      path,
+      channel: 'biome.unresolved',
+      severity: 'error',
+      message,
+    });
   }
 }
 
-/** Does `classPath` resolve to a class whose prototype chain includes `Biome`? */
-async function isBiomeClass(classPath: string): Promise<boolean> {
+/** What a class path is, to the warm: a biome, something else, or nothing. */
+type BiomeClassKind = 'biome' | 'other' | 'unloadable';
+
+/** Does `classPath` resolve, and to a class whose prototype chain includes `Biome`? */
+async function biomeClassKind(classPath: string): Promise<BiomeClassKind> {
   try {
     const cls = (await StuffApi.loadClassByPath(classPath)) as {
       prototype?: unknown;
     };
-    return typeof cls === 'function' && cls.prototype instanceof Biome;
+    if (typeof cls !== 'function') return 'unloadable';
+    return cls.prototype instanceof Biome ? 'biome' : 'other';
   } catch {
-    return false;
+    return 'unloadable';
   }
 }

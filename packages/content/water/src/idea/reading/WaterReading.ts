@@ -37,7 +37,7 @@
  */
 
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
@@ -50,10 +50,44 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { SupplyReporting } from '@saxonberg/server/mud/lib/supply/SupplyState';
-import WatercourseCatalogue from '../WatercourseCatalogue';
+import WatercourseCatalogue, { type IceRecord } from '../WatercourseCatalogue';
 
 interface AnalyzeWaterModel extends CommandModel {
   target?: MqlOneResult;
+}
+
+/** The Discipline the ice read is banded and credited on. */
+const PHYSICS = 'physics';
+
+/** A person, a horse, a loaded cart — what a sheet bears, in words. */
+function bearsWords(kg: number): string {
+  if (kg >= 1000) return 'a loaded cart';
+  if (kg >= 500) return 'a horse';
+  if (kg >= 80) return 'a person';
+  return 'nothing heavier than a dog';
+}
+
+/** The ice line, banded: presence for anyone, judgement, then figures. */
+function iceLine(ice: IceRecord, band: CompetenceBandName): string {
+  if (ice.thicknessM <= 0) {
+    return ice.reason === 'running'
+      ? 'the water is moving; no ice holds on it'
+      : 'the water is open';
+  }
+  const lies = ice.perennial ? 'ice lies on the water, and has for years' : 'ice lies on the water';
+  if (!CompetenceBand.atOrAbove(band, 'competent')) return lies;
+  const bears = ice.bearsKg >= 80 && !ice.rotting;
+  const judgement = ice.rotting
+    ? 'it is rotten — honeycombed and dark'
+    : bears
+      ? 'it looks solid enough to walk on'
+      : 'it would not bear you';
+  if (!CompetenceBand.atOrAbove(band, 'proficient')) return `${lies}; ${judgement}`;
+  const kind = ice.quality === 'snow-ice' ? 'white snow-ice' : 'black ice';
+  return (
+    `${lies}: ${(ice.thicknessM * 100).toFixed(0)} cm of ${kind}` +
+    `${ice.rotting ? ', rotting' : ''} — it would bear ${bearsWords(ice.bearsKg)}`
+  );
 }
 
 /** The catalogue's identity path — the pack's own, in the pack. */
@@ -144,6 +178,28 @@ export default class WaterReading extends Reading {
         : `no snow left on the catchment`,
       flow.navigable ? `a boat would get through` : `too little for a boat`,
     ];
+    // ⭐ The ice (the climate build, D8): read by PHYSICS — Stefan's law
+    // and what a sheet bears are physics, and the Discipline already
+    // claims the head on a water course. Anyone sees whether ice lies;
+    // a competent eye judges whether it would bear you; a proficient one
+    // reads the thickness, the kind and the load.
+    const ice =
+      drainage?.iceAt === undefined
+        ? null
+        : await drainage.iceAt(reach, WorldClockApi.getNow().rawValue());
+    if (ice !== null) {
+      const band = MixinApi.isAdvancing(giver)
+        ? await giver.competenceBandFor(PHYSICS)
+        : CompetenceBand.FLOOR;
+      lines.push(iceLine(ice, band));
+      if (ice.thicknessM > 0 && MixinApi.isAdvancing(giver) && CompetenceBand.atOrAbove(band, 'competent')) {
+        await giver.creditDeed({
+          discipline: PHYSICS,
+          difficulty: ice.thicknessM < 0.1 ? 'hard' : 'standard',
+          outcome: 'success',
+        });
+      }
+    }
     MessageApi.scene(giver)
       .topic('sense.reading')
       .toSelf(Mml.compose`${lines.join('\n')}\n`)

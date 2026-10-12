@@ -27,7 +27,7 @@ data:
 
     It is the same seam. It has simply run out of hill to be under.
 
-    Above, to the north, the slope goes on up into trees.
+    Above, to the north, the slope goes on up into trees. Halfway up, somebody once sank a well, and the capstone is still there.
   coords: { x: 0, y: 2, z: 0 }
   exits:
     southwest:
@@ -46,3 +46,8 @@ data:
     east:
       destination: /world/terminus/rejection/location/salt-spring
       edgeMinutes: 4
+  props:
+    # ⭐⭐ The deep well (the pump build) — fourteen metres down, past what
+    # any pump that draws will lift. The suction limit's classroom, and
+    # nothing here says why.
+    - /world/terminus/rejection/thing/deep-well

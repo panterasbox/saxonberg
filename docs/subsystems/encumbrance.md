@@ -222,15 +222,15 @@ that own the actor experience:
   *modes* (movement-speed effects are a non-goal). **Open seam:** the veto
   could relocate to `ExitableMixin` / the boundary; the predicate moves
   unchanged.
-- **Traversal drain** → `LocomotionApi.engageAround`, after a *successful*
-  self-powered traverse — now as `actor.exertTraverse(mode)` on
-  `ExertingMixin` (the load raises the traverse's power; the body debits
-  the excess). `engageAround` is the universal self-powered
-  chokepoint, so a loaded body tires whatever initiated the step (player
-  command, NPC brain, follow/lead automation). Conveyance riders
-  (repositioned by the vehicle's ripple) and raw / dev / `forceMove`
-  traverses don't reach `engageAround`, so they never drain — the
-  walked-vs-rode exclusion is **structural, not a coded check**. Light
+- **Traversal drain** → `LocomotionApi.engageAround`, which
+  `Mobile.traverse` runs every self-powered crossing inside, after the
+  crossing *happened* — as `actor.exertTraverse(mode)` on `ExertingMixin`
+  (the load raises the traverse's power; the body debits the excess). A
+  loaded body tires whatever initiated the step (player command, NPC
+  brain, follow/lead automation, a `Journey` leg). A carried rider
+  (`carriedBy`, the vehicle's ripple), a passthrough rider (its mount
+  crosses instead) and `forceMove` never reach it — the walked-vs-rode
+  exclusion is **structural, not a coded check**. Light
   loads (ratio ≤ `LIGHT_LOAD_FLOOR`) cost nothing.
 
 `Mobile.traverse` and `LocomotionControllerBase` are **not** modified — any

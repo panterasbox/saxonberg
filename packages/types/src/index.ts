@@ -540,7 +540,8 @@ export interface LocomotionGateFailedNote {
     | 'blocked'
     | 'door'
     | 'terrain'
-    | 'breakaway';
+    | 'breakaway'
+    | 'veto';
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }

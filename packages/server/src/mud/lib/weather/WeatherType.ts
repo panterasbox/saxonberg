@@ -172,6 +172,93 @@ export const WEATHER_PROFILES: Record<WeatherType, WeatherTypeProfile> = {
   },
 };
 
+/* ─────────────────────────── the climate site ─────────────────────────── */
+
+/**
+ * **Where a place is on the world, as the climate reads it** — the four
+ * levers one temperature is derived from (`WeatherApi.temperatureAt`).
+ *
+ * `latitudeDeg` decides how much sun arrives and when (and, by its
+ * sign, the hemisphere); `elevationM` lapses the air colder with
+ * height; `continentality` decides how much the season swings and how
+ * late it lags (0 a sea-coast, 1 the middle of a continent); `offsetK`
+ * is the anomaly nothing local derives — a warm current, a frost
+ * hollow. A place resolves its site from its zone chain
+ * (`ZoneApi.climateSiteFor`); a river authors its own.
+ */
+export interface ClimateSite {
+  /** Signed degrees from the equator; negative is the southern hemisphere. */
+  latitudeDeg: number;
+  /** Metres above sea level. */
+  elevationM: number;
+  /** 0 = maritime … 1 = continental. */
+  continentality: number;
+  /** The anomaly no local term derives, in K. */
+  offsetK: number;
+}
+
+/**
+ * The site a place resolves when its chain authors nothing: the realm's
+ * historical latitude (`CAMPUS_LATITUDE`), at sea level, halfway between
+ * coast and continent, with no anomaly. Every reader of latitude answers
+ * exactly as it did before latitude was a field.
+ */
+export const DEFAULT_CLIMATE_SITE: ClimateSite = {
+  latitudeDeg: 42,
+  elevationM: 0,
+  continentality: 0.5,
+  offsetK: 0,
+};
+
+/**
+ * The coldest and warmest the air reaches over one game-day at a site —
+ * what a tree's sap answers to (a freeze-thaw day is one whose range
+ * straddles freezing).
+ */
+export interface DailyRange {
+  minK: number;
+  maxK: number;
+}
+
+/**
+ * ⭐ **The snow lying at a site** — `WeatherApi.snowCoverAt`'s answer, and
+ * the one the floor's snow and the catchment's snowpack share.
+ */
+export interface SnowCover {
+  /** Water-equivalent lying now, mm. */
+  packMm: number;
+  /** Water-equivalent that melted off over the melt window, mm. */
+  meltMm: number;
+  /** How deep it lies: `packMm × climate.snowDensityRatio`, in metres. */
+  depthM: number;
+  /**
+   * No melt-out within the walk-back bound: the pack is reported at the
+   * cap (`climate.snow.perennialMaxMm`) — firn and glaciers are not
+   * modelled, and a reading says *perennial* rather than a number.
+   */
+  perennial: boolean;
+  /** The melt window's length, s. */
+  overS: number;
+}
+
+/**
+ * One segment of an exact snow walk, handed to a caller that integrates
+ * something else alongside the pack — the ice on a still reach reads the
+ * snow lying on it, segment by segment.
+ */
+export interface SnowStep {
+  /** Game-second the segment starts at. */
+  startsAtS: number;
+  /** Seconds of it inside the walk. */
+  overlapS: number;
+  /** The air at the segment's midpoint — the climate plus the type's deviation. */
+  airK: number;
+  /** What fell in it. */
+  phase: 'none' | 'rain' | 'snow';
+  /** Water-equivalent lying at the END of the segment, mm. */
+  packMm: number;
+}
+
 /* ─────────────────────────── the precipitation integral ─────────────────────────── */
 
 /**
@@ -244,6 +331,16 @@ export interface WeatherSegment {
   startsAtS: number;
   /** Game-seconds of it that lie inside the requested window. */
   overlapS: number;
+  /**
+   * ⭐ **What actually fell**, which is not always what the grammar called
+   * the segment. With a climate site in hand the phase is decided by the
+   * TEMPERATURE at the segment's midpoint (at or below
+   * `climate.snowThresholdK` it is snow, whatever the type word says), so
+   * one storm snows on the peak and rains in the valley, and it cannot
+   * snow at 290 K. With no site it is the type's descriptor, as it was.
+   * `'none'` for a type that does not precipitate.
+   */
+  phase: 'none' | 'rain' | 'snow';
 }
 
 export interface PrecipitationIntegral {

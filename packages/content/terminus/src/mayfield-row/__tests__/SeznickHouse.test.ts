@@ -359,8 +359,10 @@ describe('Seznick House — the lease loop', () => {
     expect(door).not.toBeNull();
     const stranger = makeAvatar('bob');
     expect(
-      (door as unknown as { canTraverse(m: unknown): { ok: boolean } }).canTraverse(
-        stranger as never,
+      (
+        await (
+          door as unknown as { canTraverse(m: unknown): Promise<{ ok: boolean }> }
+        ).canTraverse(stranger as never)
       ).ok,
     ).toBe(false);
   });

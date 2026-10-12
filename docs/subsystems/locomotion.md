@@ -137,19 +137,60 @@ emissionAt(mover)            → EmissionData | null
 eligibleModes(actor)         → readonly LocomotionMode[]
 engagedMode(actor)           → LocomotionMode | null (non-Mobile-safe)
 isTransientEngagement(mode, exit) → boolean
-engageAround(actor, mode, exit, action) → Promise<T>
+engageAround(actor, mode, exit, action) → Promise<TraversalGuard>  (internal to Mobile.traverse)
 defaultModeFor(actor)        → string (chain: setting → bodyplan → 'walk')
-traverseWithDefault(actor, exit) → Promise<void>
+traverseWithDefault(actor, exit) → Promise<TraversalGuard>  (= actor.traverse(exit, defaultModeFor(actor)))
 ```
+
+## ⭐⭐ The one crossing — `Mobile.traverse`
+
+Every self-powered move — a player's `go`/`climb`/`ride`, an NPC brain,
+a `Journey` leg — is one call, `actor.traverse(exit, mode)`, and it owns
+the whole sequence. Callers choose the exit and the mode; the crossing
+decides whether, and does it. A refusal is **returned** as a
+`TraversalGuard`, never thrown.
+
+| step | what | who can hook it |
+|---|---|---|
+| 1 gate | `LocomotionApi.canTraverseExit` — the cascade below; the exit's own `canTraverse` is **async**, so a ford reads its river, a pass its snow and an ice crossing its sheet *as it is asked* | the exit's `canTraverse` (`@hook`); the rows (modes, body plans, enablement hosts) |
+| 2 the mover's say | `beforeTraverse(via)` → `TraversalGuard` — may act and refuse | any mover mixin; **combat's flee** is the first (a parting shot, a pin that holds you, gate `breakaway`) |
+| 3 passthrough | a ride/drive mode hands the crossing to the conveyance host, which runs 1–7 under its own mode | — |
+| 4 engage | `engageAround`: engaged mode, then exertion + limp **only if the crossing happened** | — |
+| 5 apply | `exit.applyTraversal(mover)` — an exit that handles the crossing itself (the wardrobe) | the exit (`@hook`) |
+| 6 the places' say | `canExit` on the source, `canEnter` on the destination (`VetoResult` → gate `veto`) | the rooms |
+| 7 the move | announce, `ContainmentApi.move`, the conveyance ripple + the tow, `onExited`/`onEntered`/`onTraversed`, hazards, concealment, the arrival sense | the rooms + the mover (`on*`) |
+
+⭐ **One question, one hook.** *May this mover pass, now?* is
+`Exit.canTraverse`, and it is async so it can read whatever moves. A
+reader with no mover in hand — fire spread, the scope walk, inverse
+wiring at load — asks `isBlocked()`, which stays sync and is the exit's
+last-known summary (a ford's last read of its river). (A separate
+`prepareTraversal` step lived here briefly while `canTraverse` was sync;
+it was the same question asked in two halves, and it is gone.)
+
+**A carried rider** (`opts.carriedBy`, the ripple's) skips 1–4: it is
+carried, not walking — only the exit's own `canTraverse` under the
+host's mode, and it never exerts.
+
+⚠ **Why one place (the climate build, 2026-10-10).** The controller
+used to run the gate and the flee itself and then call `traverse`, which re-ran the
+exit's gate as a backstop — two layers each deciding, and an NPC brain
+or a `Journey` leg skipped the controller's half entirely (no body-plan,
+enablement or haulage gate, and no flee: an NPC walked out of a fight
+free). The ford refreshed its state in `applyTraversal`, after the gate,
+so the first crossing after the river rose went through. Now the
+controller resolves, calls, and renders.
 
 ## Mode-gate cascade
 
-`canTraverseExit` runs four gates in order; first failure surfaces:
+`canTraverseExit` runs five gates in order; first failure surfaces:
 
 1. **body-plan** — `BodyPlan.locomotionModes` must include at least
-   one of the mode's `requiresBodyPlanMode`. Non-Organism actors pass
-   trivially (no anatomy constraint applies). Sessile plants ARE
-   organisms with empty `locomotionModes` — rejected here.
+   one of the mode's `requiresBodyPlanMode`. A body with no anatomy to
+   consult passes (a non-Organism, or an Organism with no body plan —
+   since every NPC now runs this gate, a species-less NPC would
+   otherwise stop walking). Sessile plants have a body plan with empty
+   `locomotionModes` — rejected here.
 2. **posture** — actor's `Posed.getPosture()` must be in the mode's
    `requiresPosture`. Empty set means no posture gate.
 3. **exit.canTraverse** — checks `blocked`, `door`, and `media` (mode
@@ -160,6 +201,12 @@ traverseWithDefault(actor, exit) → Promise<void>
    accepts the direction AND can be engaged (capability ≥ difficulty).
    For passthrough modes, walk slot occupancy for a host composing
    the mode's `conveyanceMixin`.
+5. **haulage** — a hitched cart must be able to follow: the cart's
+   passage mode must be admitted by the exit's `media` and the exit
+   wheel-passable (`terrain`), and the draft within the hauler's strain
+   ceiling (`breakaway`). For a ridden move the HOST hauls, and since the
+   host now runs its own crossing this gate reads the horse, not the
+   rider.
 
 Each rejection carries `gate` / `mode` / optional `context` so
 controllers can render verb-templated prose without re-parsing
@@ -177,8 +224,10 @@ refactored `go`. It does two things:
 2. Emits a `locomotion-gate-failed { gate, mode }` note onto the
    dispatch context.
 
-The note's `gate` vocabulary is the closed eight-value union
-`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door'`.
+The note's `gate` vocabulary is the closed union
+`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door' | 'terrain' | 'breakaway' | 'veto'`.
+A `blocked` refusal renders the exit's own `reason` when it has one (a
+ford, a snowbound pass), else *"The way is blocked."*
 The `mode` is the short LocomotionMode name (`'walk'`, `'climb'`, …).
 
 The gate names are kebab-case on the wire even though
@@ -211,9 +260,9 @@ runs the action, then conditionally clears engagedMode:
   uses to clear engagedMode on dismount. Or climb/swim/fly when the
   destination is also enabled (climbing from one face to another).
 
-Errors from `action` propagate; the `finally` clause still clears
-engagement for transient modes, so a failed traversal doesn't leave
-a stale `engagedMode` behind.
+A refused crossing (the guard `ok: false`) exerts nothing. A throw
+propagates; the `finally` clause still clears engagement for transient
+modes, so a failed traversal doesn't leave a stale `engagedMode` behind.
 
 ## Duration lives in the Journey, not the traverse
 
@@ -270,15 +319,13 @@ Passthrough modes (`ride`, `drive`) have `medium: null` and are never
 admitted directly — the controller substitutes the host's mode at
 the gate call site (see `LocomotionControllerBase.execute`).
 
-## Mobile.traverse mode-gate
+## Mobile.traverse returns its refusal
 
-`Mobile.traverse(exit, mode)` now enforces `exit.canTraverse(this, mode)`
-before announcement and throws `ContainmentError` on rejection.
-Programmatic-violation policy: player-input paths always pre-check via
-`LocomotionApi.canTraverseExit`, so the throw is reached only by
-misbehaving programmatic callers (admin tools, scripted NPC AI). The
-throw payload carries the structured `TraversalGuard` on
-`cause.traversalGuard` for debug surfaces.
+`Mobile.traverse` RETURNS the first failing step's `TraversalGuard`
+(see **The one crossing** above); it no longer throws `ContainmentError`
+on a gate, and a `canExit`/`canEnter` veto comes back as gate `veto`.
+Brains read `guard.ok` (`follows` remembers a leader only on a step that
+happened; `stocks` reports a stranded keeper).
 
 ## Drivable.vehicularMode — fail-loud
 

@@ -53,8 +53,13 @@ export type {
   ResolvedWeather,
   CloudForm,
   SkyRead,
+  ClimateSite,
+  DailyRange,
+  SnowCover,
+  SnowStep,
 } from '../lib/weather/WeatherType';
 
+import type { Season } from '../lib/time/CelestialProfile';
 import type {
   PrecipitationIntegral,
   WeatherSegment,
@@ -66,6 +71,10 @@ import type {
   ResolvedWeather,
   CloudForm,
   SkyRead,
+  ClimateSite,
+  DailyRange,
+  SnowCover,
+  SnowStep,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/platform/idea/api/weather';
@@ -124,6 +133,14 @@ export class WeatherApi {
    * pre-resolves the `Locality | null` — the `deviationFor` contract,
    * for the same reason: no I/O inside a sync read.
    *
+   * ⭐ **`site` makes it a place, not just a Locality** (the climate
+   * build): with one, each segment's phase is decided by the temperature
+   * there (a `snow` segment over a warm valley is liquid, a `rain`
+   * segment on a cold peak is frozen), and an unauthored Locality's
+   * amount takes the latitude default. Without one the type's descriptor
+   * decides, exactly as before. The Locality's authored
+   * `_precipitationIntensity` multiplies either way.
+   *
    * ⚠ **Sky exposure is the CALLER's gate.** This answers what fell on
    * the locality; whether it reached a particular bed is that bed's
    * business, and a mixin under a roof must not credit it.
@@ -132,8 +149,9 @@ export class WeatherApi {
     t0: Quantity<'s'>,
     t1: Quantity<'s'>,
     locality: Locality | null,
+    site?: ClimateSite | null,
   ): PrecipitationIntegral {
-    return logic().precipitationBetween(t0, t1, locality);
+    return logic().precipitationBetween(t0, t1, locality, site);
   }
 
   /**
@@ -160,8 +178,92 @@ export class WeatherApi {
     t1: Quantity<'s'>,
     locality: Locality | null,
     maxSegments?: number,
+    site?: ClimateSite | null,
   ): WeatherSegment[] {
-    return logic().segmentsBetween(t0, t1, locality, maxSegments);
+    return logic().segmentsBetween(t0, t1, locality, maxSegments, site);
+  }
+
+  /* ──────────────── the climate (pure, SYNC) ──────────────── */
+
+  /**
+   * ⭐⭐ **The air temperature at a site and an instant — the realm's one
+   * temperature.** Every outdoor reader asks this: the sky over a room,
+   * the air over a river, the night a maple waits out.
+   *
+   * Derived, never authored: the sun at the site's latitude (the day's
+   * insolation, from the same geometry that moves the sun across the
+   * sky), lagged by the land's memory and damped toward the annual mean
+   * by its continentality, lapsed by its elevation, shifted by its
+   * offset, swung through the day — plus the weather's own deviation
+   * (the Locality's pin, else the procgen type). See
+   * [docs/subsystems/weather.md § the climate].
+   *
+   * Sync and pure; the caller holds the site (`ZoneApi.climateSiteFor`,
+   * or a room's `climateSite()` memo) and the Locality.
+   */
+  public static temperatureAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+  ): Quantity<'K'> {
+    return logic().temperatureAt(site, locality, timeS);
+  }
+
+  /**
+   * **The climate alone at a site** — {@link temperatureAt} without the
+   * weather's deviation. The biome chain substitutes this for the
+   * universe baseline under the sky, then folds the (pin-aware, per-scope)
+   * weather deviation on top through {@link deviatedFieldFor}.
+   */
+  public static climateAt(site: ClimateSite, timeS: Quantity<'s'>): Quantity<'K'> {
+    return logic().climateAt(site, timeS);
+  }
+
+  /**
+   * The local season at a site — the day-of-year quarter, shifted half a
+   * year in the southern hemisphere. The same geometry as
+   * {@link temperatureAt}, so a place's season and its cold agree.
+   */
+  public static seasonAt(site: ClimateSite, timeS: Quantity<'s'>): Season {
+    return logic().seasonAt(site, timeS);
+  }
+
+  /**
+   * The coldest and warmest the air reaches over the game-day starting at
+   * `dayStartS` (24 hourly samples of {@link temperatureAt}) — the read a
+   * freeze-thaw opener needs.
+   */
+  public static dailyRangeAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    dayStartS: Quantity<'s'>,
+  ): DailyRange {
+    return logic().dailyRangeAt(site, locality, dayStartS);
+  }
+
+  /**
+   * ⭐⭐ **The snow lying at a site, from the weather it has had** — the
+   * ONE snow function: a floor reads its depth from it and a river reads
+   * its snowpack and melt from it, so the snow on the ground and the snow
+   * in the catchment can never disagree.
+   *
+   * Stateless: what fell as snow (phase by temperature, amount by the
+   * Locality's intensity), melted on a degree-day model, walked back to
+   * the last melt-out (180 → 360 → 720 days) so an old pack is counted
+   * whole; no melt-out at the bound is reported `perennial` at the cap.
+   * Correct after any absence, because nothing is stored.
+   *
+   * `meltWindowS` (default the catchment's flow window) bounds `meltMm`;
+   * `onStep` receives every segment of the exact walk (the ice on a still
+   * reach integrates alongside it).
+   */
+  public static snowCoverAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+    opts?: { meltWindowS?: number; onStep?: (step: SnowStep) => void },
+  ): SnowCover {
+    return logic().snowCoverAt(site, locality, timeS, opts);
   }
 
   /* ──────────────── the biome seam (cheap, SYNC) ──────────────── */
@@ -219,14 +321,19 @@ export class WeatherApi {
    * `Locality | null`; this folds the **pinned type's** deviation when a
    * pin governs the scope, else the procgen deviation — byte-identical to
    * `deviationFor` when no pin applies.
+   *
+   * ⚠ The weather TYPE's deviation only — the season and the diurnal
+   * swing are the climate's ({@link climateAt}). `site` decides the
+   * hemisphere the grammar's season bias reads (default northern).
    */
   public static deviatedFieldFor(
     scope: Stuff,
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,
+    site?: ClimateSite | null,
   ): Quantity<WeatherFieldUnit> {
-    return logic().deviatedFieldFor(scope, locality, field, timeS);
+    return logic().deviatedFieldFor(scope, locality, field, timeS, site);
   }
 
   /* ──────────────── cloud forms (Wave 2, Phase H) ──────────────── */

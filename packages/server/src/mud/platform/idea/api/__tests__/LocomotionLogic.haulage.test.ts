@@ -64,66 +64,66 @@ describe('LocomotionApi haulage gates', () => {
 
   const walk = () => LocomotionApi.modeOfOrThrow('walk');
 
-  it('terrain: a light cart rolls through a wheel-passable ground exit', () => {
+  it('terrain: a light cart rolls through a wheel-passable ground exit', async () => {
     const { locA, exit } = groundExit(true);
     const mover = makeStuff(() => new MobileHauler());
     ContainmentApi.move(mover, locA);
     mover.hitch(cart(10, 0.03));
-    const guard = LocomotionApi.canTraverseExit(mover, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(mover, exit, walk(), 'north'));
     expect(guard.ok).toBe(true);
   });
 
-  it('terrain: a cart is refused at a non-wheel-passable (stairs) exit', () => {
+  it('terrain: a cart is refused at a non-wheel-passable (stairs) exit', async () => {
     const { locA, exit } = groundExit(false);
     const mover = makeStuff(() => new MobileHauler());
     ContainmentApi.move(mover, locA);
     mover.hitch(cart(10, 0.03));
-    const guard = LocomotionApi.canTraverseExit(mover, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(mover, exit, walk(), 'north'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('terrain');
   });
 
-  it('a non-hauler walks the same stairs exit fine (gate only fires for carts)', () => {
+  it('a non-hauler walks the same stairs exit fine (gate only fires for carts)', async () => {
     const { locA, exit } = groundExit(false);
     const mover = makeStuff(() => new MobileHauler()); // not hitched
     ContainmentApi.move(mover, locA);
-    const guard = LocomotionApi.canTraverseExit(mover, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(mover, exit, walk(), 'north'));
     expect(guard.ok).toBe(true);
   });
 
-  it('breakaway: a cart over the strain ceiling won\'t budge', () => {
+  it('breakaway: a cart over the strain ceiling won\'t budge', async () => {
     const { locA, exit } = groundExit(true);
     const bearer = walkingHaulingBearer(70); // capacity 35, ceiling 70
     ContainmentApi.move(bearer, locA);
     bearer.hitch(cart(200, 0.5)); // draft 100 > 70
-    const guard = LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('breakaway');
   });
 
-  it('breakaway: a cart under the ceiling rolls', () => {
+  it('breakaway: a cart under the ceiling rolls', async () => {
     const { locA, exit } = groundExit(true);
     const bearer = walkingHaulingBearer(70); // ceiling 70
     ContainmentApi.move(bearer, locA);
     bearer.hitch(cart(20, 0.5)); // draft 10 < 70
-    const guard = LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north'));
     expect(guard.ok).toBe(true);
   });
 
-  it('exhaustion lowers the budge threshold (a fresh cart later won\'t budge)', () => {
+  it('exhaustion lowers the budge threshold (a fresh cart later won\'t budge)', async () => {
     const { locA, exit } = groundExit(true);
     const bearer = walkingHaulingBearer(70); // fresh ceiling 70
     ContainmentApi.move(bearer, locA);
     bearer.hitch(cart(100, 0.5)); // draft 50 — rolls when fresh
 
     expect(
-      LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north').ok,
+      (await LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north')).ok,
     ).toBe(true);
 
     // Drain endurance to the floor → the endurance margin shaves capacity,
     // so the strain ceiling drops below the cart's draft (no new code).
     bearer.adjustReserve('endurance', Quantity.of(-100, '%'));
-    const guard = LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north');
+    const guard = (await LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north'));
     expect(guard.ok).toBe(false);
     expect(guard.ok ? null : guard.gate).toBe('breakaway');
   });

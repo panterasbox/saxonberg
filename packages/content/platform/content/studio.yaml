@@ -3,7 +3,8 @@
 # folder/leaf invariant accepts descendants, carrying the inherited
 # `wire: true` classification field (sandbox Decision O — wire-ness is
 # a zone FIELD resolved by Zone.lookupField, never a class or a
-# hardcoded prefix list).
+# hardcoded prefix list). A WireZone: the field is declared there, on
+# the wire's namespace roots, rather than on every Zone in the game.
 #
 # Provisioning is a GOVERNANCE act with the shipped title verbs: the
 # /studio parcel is owned by `core` (see mud/config/parcels.yaml), so a
@@ -11,7 +12,7 @@
 # child title to the group. Personal space is a right (/home, the
 # self-home rule); group space is a grant. See
 # docs/subsystems/sandbox.md.
-class: /platform/idea/FolderZone
+class: /platform/idea/WireZone
 data:
   name: studio
   wire: true

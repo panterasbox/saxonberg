@@ -290,7 +290,11 @@ export function packBrainShapeOk(source: string): boolean {
  * `MaturationProfile`, `Reading` and the other catalogue Ideas are
  * over-represented here.
  */
-const ORPHAN_DATA_KEY_CEILING = 390;
+// 390 → 387 (the climate build, 2026-10-10): the Weeping Moor's three
+// rooms authored `address:`, which no composed field declares — so the
+// moor's storm pin never reached its own heath. They author `_address:`
+// (Addressable's field) now.
+const ORPHAN_DATA_KEY_CEILING = 387;
 
 
 function main(): void {

@@ -569,3 +569,9 @@ Same blocker as leatherwork above; same pack question (rendering's
 ⚠ Deliberately not here: a shoe as a *stat* (speed bonus, stealth
 bonus). Traction and wet-through are material facts the ground channel
 reads; anything a shoe "gives" derives from them or does not exist.
+
+## From the climate build (2026-10-11)
+
+- **The `clo` derivation under-reads real garments.** The arrival
+  greatcoat — 3.5 kg of felted wool — derives 0.43 clo; a real greatcoat
+  is near 2.

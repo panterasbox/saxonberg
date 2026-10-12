@@ -483,3 +483,11 @@ remedy is to take the vessel off, and the refusal says so.
 container, so moving a vessel from *on the oven* to *the floor of the
 same room* leaves its placement stamp and it is still coupled. Taking
 something off a hearth means taking it somewhere.
+
+## The pump build (2026-10-09)
+
+The bellows now speaks the `Pumpable` protocol (`lib/pump/Pumpable.ts`):
+`BurnerMixin.planPump` / `completePump`, an instant act that toggles, with
+the three refusals and two scenes `PumpController` printed before — moved
+verbatim and pinned by a controller test. A furnace implements the
+PROTOCOL; it is not a pump. See [pump.md](./pump.md).

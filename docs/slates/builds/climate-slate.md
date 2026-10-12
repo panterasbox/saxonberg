@@ -1,17 +1,19 @@
 # Climate — a realm with a real winter
 
-> **Status: UNBUILT** — and ⚠ this slate's status block was **bare bold
-> lines** rather than a blockquote until 2026-10-08, so `tools/slate-index`
-> could not read it and the slate was **absent from the index** for its
-> whole life.
-> **Left:** the **unification** (two climates, nine Kelvin apart) ·
-> **latitude as a resolved field** · temperature **derived from
-> insolation** with a maritime/continental damping · the lapse term
-> generalized off the watershed · **snow depth** · the ground-condition
-> locomotion axis · and ⚠ the **hemisphere** question (`seasonFor` takes
-> no latitude).
-> **Size:** a wave — it is the shared prerequisite for ice, whaling,
-> farming, husbandry, forestry and textiles.
+> **Status: PARTIAL** — the climate build (MR !360, 2026-10) shipped the
+> mechanism: ONE temperature from latitude, elevation, continentality and
+> an offset; the hemisphere; phase by temperature and amount by place;
+> snow lying, ice on still water, the freeze, routes that close under
+> snow and open over ice, the maple on freeze–thaw →
+> [weather.md](../../subsystems/weather.md) ·
+> [watershed.md](../../subsystems/watershed.md) ·
+> [ground.md](../../subsystems/ground.md)
+> **Left:** rain-on-snow melt (open question 6) · the ice-albedo term ·
+> firn, névé and the glacier (the perennial cap is the attach point) ·
+> the content register below — the August crisis, winter defers, the
+> ice core, the station as a vocation · the movement economy on snow is
+> [locomotion-on-snow](./locomotion-on-snow-slate.md)'s
+> **Size:** a build
 
 ⭐⭐ **This realm has no winter, and the taps build is where that
 stopped being invisible.** The weather field is a 295 K baseline with
@@ -820,3 +822,16 @@ Smaller, and each one a row or a place rather than a system.
   authorship
 - [design-lenses.md](../../design-lenses.md) — ⭐ the lenses are the
   instrument that **found** this content, not a scorecard applied after
+
+## From the climate build (2026-10-11)
+
+The mechanism shipped (see the status block). Three seams it left here:
+
+- **Rain-on-snow melt.** The snow walk (`WeatherApi.snowCoverAt`) has
+  both terms in hand per segment; a `climate.rainOnSnowMmPerMm` dial is
+  one line.
+- **The ice-albedo term.** Snow and ice lying do not yet feed back on
+  the temperature they lie in.
+- **Firn, névé and glaciers.** The walk's **perennial cap** (1500 mm, or
+  no melt-out within 720 days) is where a glacier model begins: a
+  `perennial` pack or sheet is the attach point.

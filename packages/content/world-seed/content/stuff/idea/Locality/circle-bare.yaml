@@ -1,0 +1,12 @@
+# The Circle's bare shore — a clear-sky pin (its zone is offset 6 K colder,
+# so its air matches the snowy shore's): clearmere grows black ice with no
+# snow on it.
+class: /platform/idea/Locality
+data:
+  name: The Bare Shore
+  _address: circle/bare
+  _reach: clearmere:mere
+  _catchmentKm2: 2
+  _weatherPin:
+    type: clear
+    mode: frozen

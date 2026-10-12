@@ -1,0 +1,24 @@
+# The plateau — the dry cold. Snow falls here as often as on the snowfield
+# and almost none of it lands: the Locality's amount, not its temperature.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: plateau
+  keywords: [plateau, flat]
+  register: definite
+  longDescription: |
+    A high stony flat under an enormous sky, swept by a wind that has nothing to stop it. North, a gap in a low ridge; west, the long way back down to the station.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/north/station
+      media: [ground]
+      edgeMinutes: 240
+    north:
+      kind: /world/north/exits/snowbound-pass
+      destination: /world/north/plateau/gap
+      media: [ground]
+      edgeMinutes: 15

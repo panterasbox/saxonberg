@@ -9,6 +9,8 @@
 import "../../../test-bootstrap";
 import { seedKernelContentStore } from '../../lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
+import { ParcelApi } from '../parcel';
+import { buildAllModes } from '../../lib/locomotion/__tests__/test-helpers';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -160,6 +162,7 @@ describe('the wardrobe door (Wave 4)', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
+    buildAllModes();
     ExecutionContextApi._clearForTesting();
     await bootRegistry();
   });
@@ -239,6 +242,46 @@ describe('the wardrobe door (Wave 4)', () => {
     expect(w2.getLinkedSandboxPath()).toBe(session!.scope);
   });
 
+  it("⭐ someone else's circle refuses at the door, in the door's words — and nothing crosses", async () => {
+    const { avatar, room } = await makeRig();
+    const wardrobe = await placeWardrobe(room);
+    // An OWNED door linked to another player's circle.
+    vi.spyOn(wardrobe, 'ownerPlayerId').mockResolvedValue('someone-else');
+    wardrobe.setLinkedSandboxPath('/home/someone-else');
+    vi.spyOn(ParcelApi, 'selfHomeOwnerOf').mockReturnValue({
+      kind: 'player',
+      templatePath: '/platform/agent/Avatar/someone-else',
+    } as never);
+    const grant = vi.spyOn(ParcelApi, 'hasUseGrant').mockResolvedValue(false);
+
+    const refused = await (avatar as unknown as Mobile).traverse(wardrobeExitOf(room), 'walk');
+    expect(refused).toMatchObject({
+      ok: false,
+      gate: 'blocked',
+      reason: 'This door opens onto a circle that is not yours.',
+    });
+    expect(avatar.isParked()).toBe(false);
+
+    // A use-grant opens it: the verdict is re-read on every crossing.
+    grant.mockResolvedValue(true);
+    const crossed = await (avatar as unknown as Mobile).traverse(wardrobeExitOf(room), 'walk');
+    expect(crossed.ok).toBe(true);
+    expect(avatar.isParked()).toBe(true);
+
+    // Walk back out, so the next test starts on the field.
+    const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
+    const scope = SandboxApi.liveSessionForPlayer(PLAYER)!.scope;
+    await asSystem(async () => {
+      const entry = SandboxApi.entryRoomForScope(scope)!;
+      const out = (entry as unknown as { getExit(d: string): unknown }).getExit(
+        'out'
+      ) as SandboxCrossingExit;
+      await (wireBody as unknown as Mobile).traverse(out, 'walk');
+    });
+    expect(avatar.isParked()).toBe(false);
+    vi.restoreAllMocks();
+  });
+
   it('destroying an occupied LINKED wardrobe reaps safely (the non-event eviction)', async () => {
     const { avatar, interactive, room } = await makeRig();
     const wardrobe = await placeWardrobe(room);
@@ -299,10 +342,10 @@ describe('the wardrobe door (Wave 4)', () => {
       guest as unknown as Stuff & Containable,
       room as unknown as Stuff & Container
     );
-    const guard = wardrobeExitOf(room).canTraverse(
+    const guard = (await wardrobeExitOf(room).canTraverse(
       guest as unknown as Stuff & Containable,
       'walk'
-    );
+    ));
     expect(guard.ok).toBe(false);
   });
 });
@@ -312,6 +355,7 @@ describe('the seeding aperture (Wave 4)', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
+    buildAllModes();
     ExecutionContextApi._clearForTesting();
     await bootRegistry();
   });

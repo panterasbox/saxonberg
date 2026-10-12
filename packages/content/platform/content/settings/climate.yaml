@@ -1,0 +1,83 @@
+# climate — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+#
+# ⭐⭐ One temperature from four levers. A place's air temperature is
+# derived from the sun at its LATITUDE (how much arrives, day by day),
+# lagged by the land's memory and damped toward the annual mean by its
+# CONTINENTALITY, lapsed by its ELEVATION and shifted by its authored
+# OFFSET. See docs/subsystems/weather.md § the climate.
+settings:
+  # The insolation scale's two ends. A place in polar night relaxes to the
+  # pole figure; the equator's equinox sun holds the equator figure. These
+  # two set every latitude's annual mean: at the realm default (42°, sea
+  # level, continentality 0.5) the year averages ≈ 285 K, the winter
+  # quarter ≈ 274 K, the summer ≈ 297 K and the coldest clear dawn
+  # ≈ 268.5 K — the old catchment table's numbers, which were the honest
+  # ones. Pinned by WeatherLogic.climate.test.ts.
+  - key: climate.poleMeanK
+    value: "247"
+
+  - key: climate.equatorMeanK
+    value: "299"
+
+  # The land's memory, in game-days: the season lags the sun by roughly
+  # this much. A continent (1) answers in a month, a coast (0) nearer two.
+  - key: climate.tauContinentalDays
+    value: "30"
+
+  - key: climate.tauMaritimeDays
+    value: "55"
+
+  # How hard a fully maritime place is held to its annual mean — the
+  # damping that keeps a coast's winter mild. Scaled by 1 − continentality.
+  - key: climate.maritimeMixing
+    value: "0.6"
+
+  # Precipitation PHASE: at or below this air temperature (K) it falls as
+  # snow, whatever the weather type is called — a degree and a half above
+  # freezing, because wet snow falls through air a little above 0 °C. One
+  # storm snows on the peak and rains in the valley.
+  - key: climate.snowThresholdK
+    value: "274.5"
+
+  # Precipitation AMOUNT, unauthored: a Locality that says nothing gets 1
+  # up to this latitude…
+  - key: climate.precipDryAboveDeg
+    value: "55"
+
+  # …falling to this factor at 80° and beyond (polar air holds little
+  # water — the high Arctic is a desert). A Locality's own
+  # `_precipitationIntensity` overrides it.
+  - key: climate.precipPolarFactor
+    value: "0.4"
+
+  # Snow on the ground. Fresh snow lies about ten times deeper than the
+  # water it holds.
+  - key: climate.snowDensityRatio
+    value: "10"
+
+  # A snow (or ice) walk looks back for the LAST MELT-OUT — the moment the
+  # ground was bare — so an old pack is counted whole: first this far…
+  - key: climate.walkback.windowDays
+    value: "180"
+
+  # …doubling to this bound. No melt-out inside it and the pack is
+  # PERENNIAL, reported at the cap below: snow older than two winters is a
+  # glacier's business, not a floor's.
+  - key: climate.walkback.maxDays
+    value: "720"
+
+  - key: climate.snow.perennialMaxMm
+    value: "1500"
+
+  # How a floor's snow reads, by depth in metres. Knee-deep and over masks
+  # the ground's own sentence — nobody can see what is under it.
+  - key: climate.snow.bandM.dusting
+    value: "0.02"
+  - key: climate.snow.bandM.ankle
+    value: "0.15"
+  - key: climate.snow.bandM.knee
+    value: "0.5"
+  - key: climate.snow.bandM.deep
+    value: "1.0"

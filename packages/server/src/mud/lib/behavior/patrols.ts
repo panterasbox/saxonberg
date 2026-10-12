@@ -48,10 +48,7 @@ export const brain = class {
 
     const exit = (room as Stuff & Exitable).getExits().get(dir);
     if (!exit) return;
-    try {
-      await LocomotionApi.traverseWithDefault(mob, exit);
-    } catch {
-      // Exit blocked — hold this step; advance index next tick.
-    }
+    // A refused step holds; the index advances next tick.
+    await LocomotionApi.traverseWithDefault(mob, exit);
   }
 } satisfies BrainStatics;

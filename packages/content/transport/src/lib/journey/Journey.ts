@@ -270,23 +270,19 @@ export class Journey implements SustainedEngagement {
       return;
     }
     const exit = await LaneCatalogue.exitBetween(from, to);
-    if (!exit || exit.isBlocked()) {
+    if (!exit) {
       SchedulerApi.cancel(this, 'route-blocked');
       return;
     }
 
-    try {
-      // ⭐ The same call a player's `go` makes. Nothing here moves
-      // anything itself.
-      if (this.mode) {
-        const mode = await LocomotionApi.loadMode(this.mode);
-        await LocomotionApi.engageAround(mover, mode, exit, () =>
-          mover.traverse(exit, mode.getName()),
-        );
-      } else {
-        await LocomotionApi.traverseWithDefault(mover, exit);
-      }
-    } catch {
+    // ⭐ The same call a player's `go` makes, and the crossing decides —
+    // a ford risen since the lane compiled, a pass snowed shut, refuse
+    // HERE (`canTraverse` reads them as it asks). Nothing in a Journey
+    // moves anything itself, and nothing pre-reads `isBlocked()` stale.
+    const crossed = await mover
+      .traverse(exit, this.mode ?? LocomotionApi.defaultModeFor(mover))
+      .catch(() => ({ ok: false }));
+    if (!crossed.ok) {
       // A gate refused mid-route. The vehicle stays where it is.
       SchedulerApi.cancel(this, 'route-blocked');
       return;

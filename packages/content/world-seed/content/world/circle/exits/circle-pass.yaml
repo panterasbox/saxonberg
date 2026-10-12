@@ -1,0 +1,10 @@
+# The Circle pass — shut when the snow lying at its foot passes 45 cm. On
+# the day the cold comes it is open; a few snowy days later it is not.
+class: /system/transport/idea/SnowboundExit
+data:
+  media: [ground]
+  wheelPassable: false
+  _conditional: true
+  _closesAboveM: 0.45
+  messageOut: "{{ mover }} goes on up into the pass."
+  messageIn: "{{ mover }} comes down out of the pass."

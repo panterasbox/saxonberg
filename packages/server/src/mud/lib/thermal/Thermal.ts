@@ -540,6 +540,18 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _thermalReconciling = false;
 
     /**
+     * Reentry guard for the PHASE pass that ends a reconcile. ⚠ The phase
+     * pass reads the temperature (`getTemperature` → `reconcileThermal`)
+     * after `_thermalReconciling` has been released, and on a scaled
+     * real-time clock a few game-milliseconds pass between the outer read
+     * and the inner one — so without this every nested read integrated
+     * again and called the phase pass again, recursing until the stack
+     * blew (the climate drive, under load, on a blood unit in a cold
+     * camp). Same constraint as above: TypeScript `private`. Transient.
+     */
+    private _phaseReconciling = false;
+
+    /**
      * This host, typed for the sibling-mixin members the call-security
      * proxy resolves at runtime. The cast is **load-bearing, not
      * cosmetic**: siblings like `Containable` are composed *outer* of
@@ -975,14 +987,33 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // complete and had no ambient driver.
       //
       // The drift above is what makes a body warm, so the phase check
-      // belongs immediately after it, on the same lazy read. It is
-      // narrowed to `Meltable` hosts: the `Bulkable` freeze/boil rung
-      // has its own callers (a `CraftVessel` drives it from its own
-      // reconcile) and widening it here would double-run them.
+      // belongs immediately after it, on the same lazy read.
+      //
+      // ⭐⭐ **And a pool freezes because it is COLD** (the climate build,
+      // D7). The `Bulkable` freeze rung had no ambient driver either —
+      // only a cooler's contents pass and two spells — so a jug of water
+      // left in a winter street never froze. It is the melt's exact
+      // mirror: a plateau at the melting point while the latent heat is
+      // banked, then the material's cast. Widening is safe twice over: a
+      // second pass at `T == mp` banks nothing (the undershoot is zero),
+      // and the slot is emptied before the cast mints, so it cannot mint
+      // twice. (`CraftVessel` never called `reconcilePhase` — it drives
+      // `absorbIntoIce` — so there is nothing here to double-run.)
       //
       // Outside the `try`, so the plateau's own `setContentsTemperature`
       // is not swallowed by the reentry guard.
-      if (MixinApi.isMeltable(self)) this.reconcilePhase();
+      if (
+        !this._phaseReconciling &&
+        (MixinApi.isMeltable(self) ||
+          (MixinApi.isBulkable(self) && MixinApi.isThermal(self)))
+      ) {
+        this._phaseReconciling = true;
+        try {
+          this.reconcilePhase();
+        } finally {
+          this._phaseReconciling = false;
+        }
+      }
     }
 
     /**

@@ -42,6 +42,8 @@ import {
   EXIT_KIND_TEST_ROWS,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { SpatialZone } from '../SpatialZone';
+import FolderZone from '../../../platform/idea/FolderZone';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -116,41 +118,62 @@ describe('elevation — a zone field that inherits', () => {
     installInMemoryStore([
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(420);
     expect(await zone.lookupField<number>('elevation')).toBe(420);
   });
 
   it('a child zone that declares nothing INHERITS its ancestor height', async () => {
     installInMemoryStore([
-      { path: '/hinkley', class: '/platform/idea/FolderZone', data: {} },
+      { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
       { path: '/hinkley/lane', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
-    const slope = await StuffApi.singleton<Zone>('/hinkley');
+    const slope = await StuffApi.singleton<SpatialZone>('/hinkley');
     slope.setElevation(420);
-    const lane = await StuffApi.singleton<Zone>('/hinkley/lane');
+    const lane = await StuffApi.singleton<SpatialZone>('/hinkley/lane');
     expect(await lane.lookupField<number>('elevation')).toBe(420);
   });
 
   it('an authored value on the child WINS over the ancestor', async () => {
     installInMemoryStore([
-      { path: '/hinkley', class: '/platform/idea/FolderZone', data: {} },
+      { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
       { path: '/hinkley/lane', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
-    const slope = await StuffApi.singleton<Zone>('/hinkley');
+    const slope = await StuffApi.singleton<SpatialZone>('/hinkley');
     slope.setElevation(420);
-    const lane = await StuffApi.singleton<Zone>('/hinkley/lane');
+    const lane = await StuffApi.singleton<SpatialZone>('/hinkley/lane');
     lane.setElevation(465);
     expect(await lane.lookupField<number>('elevation')).toBe(465);
     // …and the ancestor is unchanged: terrain varies by zoning FINER.
     expect(await slope.lookupField<number>('elevation')).toBe(420);
   });
 
+  it('⭐ the walk passes THROUGH a folder: region → folder → room zone still inherits', async () => {
+    installInMemoryStore([
+      { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
+      { path: '/hinkley/streets', class: '/platform/idea/FolderZone', data: {} },
+      { path: '/hinkley/streets/lane', class: '/platform/idea/location/CartesianZone', data: {} },
+    ]);
+    (await StuffApi.singleton<SpatialZone>('/hinkley')).setElevation(420);
+    const lane = await StuffApi.singleton<SpatialZone>('/hinkley/streets/lane');
+    expect(await lane.lookupField<number>('elevation')).toBe(420);
+  });
+
+  it('⭐ a folder has no height to declare — geography is the spatial region\'s', () => {
+    // The field lived on `Zone`, which offered a latitude to `/wiki` and to
+    // Animalia. A `FolderZone` declares none of the four, so a row that
+    // authored one would be discarded rather than silently honoured.
+    for (const field of ['elevation', 'latitude', 'continentality', 'climateOffsetK']) {
+      expect(FolderZone.fieldMeta[field], field).toBeUndefined();
+      expect(SpatialZone.fieldMeta[field], field).toBeDefined();
+    }
+  });
+
   it('nothing in the chain declaring one reads null, never zero', async () => {
     installInMemoryStore([
       { path: '/nowhere', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
-    const zone = await StuffApi.singleton<Zone>('/nowhere');
+    const zone = await StuffApi.singleton<SpatialZone>('/nowhere');
     expect(await zone.lookupField<number>('elevation')).toBeNull();
   });
 
@@ -158,7 +181,7 @@ describe('elevation — a zone field that inherits', () => {
     installInMemoryStore([
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(420);
     const room = makeStuff(() => new CartesianLocation());
     Stuff._stampZone(room, zone as never);
@@ -177,7 +200,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(400);
     const room = roomIn(zone);
 
@@ -194,7 +217,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(437);
     const room = roomIn(zone);
 
@@ -217,7 +240,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(400);
     const room = roomIn(zone);
     room._pressure = Quantity.of(90_000, 'Pa');
@@ -232,7 +255,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/hinkley', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/hinkley');
+    const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(400);
     const room = roomIn(zone);
     const deep = makeStuffAtPath(() => {
@@ -251,7 +274,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/flat', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/flat');
+    const zone = await StuffApi.singleton<SpatialZone>('/flat');
     const room = roomIn(zone);
     const p = await BiomeApi.resolvePressureFor(room);
     expect(p.rawValue()).toBe(SEA_LEVEL_PA);
@@ -265,7 +288,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/shore', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/shore');
+    const zone = await StuffApi.singleton<SpatialZone>('/shore');
     zone.setElevation(0);
     const room = roomIn(zone);
     expect((await BiomeApi.resolvePressureFor(room)).rawValue()).toBe(
@@ -278,7 +301,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
       { path: '/sink', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/sink');
+    const zone = await StuffApi.singleton<SpatialZone>('/sink');
     zone.setElevation(-80);
     const room = roomIn(zone);
     expect((await BiomeApi.resolvePressureFor(room)).rawValue()).toBeCloseTo(
@@ -294,7 +317,7 @@ describe('⚠ coords.z is NOT elevation — a stairwell is not a waterfall', () 
       { path: '/tower', class: '/platform/idea/location/CartesianZone', data: {} },
     ]);
     installRootBiome();
-    const zone = await StuffApi.singleton<Zone>('/tower');
+    const zone = await StuffApi.singleton<SpatialZone>('/tower');
     zone.setElevation(12);
 
     const lobby = roomIn(zone);

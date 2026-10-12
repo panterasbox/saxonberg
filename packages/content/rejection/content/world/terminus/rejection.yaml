@@ -43,3 +43,9 @@ data:
   cellSize: 10.0
   address: terminus/rejection
   deposit: /world/terminus/rejection/idea/deposit/ferrow
+  # ⭐ Height above sea level (the climate build): the headwaters town sits
+  # in its valley 450 m above the city, and the climate reads it — about
+  # three kelvin colder than the Wharfside, a hard frost most winter nights,
+  # and on the equinox a freeze-thaw day, which is why the Hanging Wood's
+  # maples run then. Inherited by every room in the zone that says nothing.
+  elevation: 450

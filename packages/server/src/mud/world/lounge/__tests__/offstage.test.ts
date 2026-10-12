@@ -76,8 +76,8 @@ describe('the lounge parks its cast through Offstage', () => {
     const biz = load('idea/business.yaml').data;
     // ⚠ Index 0 is the room; the bar COUNTER follows it (a sale settles at
     // the counter's path — lint:shopfronts) and is never a place to stand.
-    expect(biz.operatingLocations[0]).toBe('/world/lounge/location/bar');
-    expect(biz.operatingLocations.filter((p: string) => p.includes('/location/'))).toEqual([
+    expect(biz.operatingLocations![0]).toBe('/world/lounge/location/bar');
+    expect(biz.operatingLocations!.filter((p: string) => p.includes('/location/'))).toEqual([
       '/world/lounge/location/bar',
     ]);
     for (const slot of biz.rosterSlots ?? []) {

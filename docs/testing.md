@@ -1060,3 +1060,13 @@ all four shapes have now been tried in one file:
 ⚠ The third row is the one that costs the most time, because the failure
 surfaces far away: no instrument in hand reads as *the instrument is not
 in reach*, which looks like a defect in the reading ladder.
+
+## Open: test seams a drive would want
+
+- **A runtime weather pin for drives** (`/auth/test-weather`, the climate
+  build, 2026-10). The climate drive cannot set the weather, so every
+  place it reads is pinned in CONTENT (a frozen `snow` pin on the Circle
+  and the snowfield) and its day-indexed thresholds are computed against
+  those pins. A test-auth seam that pins a Locality's weather for the
+  length of a run would let a drive exercise a thaw without authoring a
+  place for it — the `advanceWorldClock` seam's sibling.

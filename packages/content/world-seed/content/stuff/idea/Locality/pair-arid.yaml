@@ -1,0 +1,11 @@
+# The dry basin — it leans to clear skies and, when it does rain, little
+# falls (intensity 0.3).
+class: /platform/idea/Locality
+data:
+  name: The Dry Basin
+  _address: pair/arid
+  _climateLean:
+    rain: 0.1
+    storm: 0.1
+    clear: 3
+  _precipitationIntensity: 0.3

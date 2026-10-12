@@ -12,6 +12,10 @@ import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { SecurityApi } from '../../../api/security';
 import { MixinApi } from '../../../api/mixin';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../../../lib/weather/WeatherType';
 
 /**
  * Cache of `classPath → prototype instanceof Zone` results. The check
@@ -153,6 +157,23 @@ export class ZoneLogic extends ApiLogic {
     const zone = outermost.getZone();
     if (zone === null) return null;
     return zone.lookupField<number>('elevation');
+  }
+
+  /** See {@link ZoneApi.climateSiteFor}. */
+  @CallSecurity(ZoneApiCallers)
+  public async climateSiteFor(scope: Stuff): Promise<ClimateSite> {
+    // The same outward walk as `elevationFor`, for the same reason: the
+    // zone that knows where a thing stands is its outermost container's.
+    let cursor: Stuff | null = scope;
+    let outermost: Stuff = scope;
+    let depth = CONTAINMENT_DEPTH_CAP;
+    while (cursor !== null && depth-- > 0) {
+      outermost = cursor;
+      cursor = stepOutward(cursor);
+    }
+    const zone = outermost.getZone();
+    if (zone === null) return { ...DEFAULT_CLIMATE_SITE };
+    return zone.climateSite();
   }
 
   /** See {@link ZoneApi._clearClassCaches}. */
