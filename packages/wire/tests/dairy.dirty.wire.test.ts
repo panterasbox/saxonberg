@@ -89,6 +89,7 @@ const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
 const CHEESE_ROOM = '/world/terminus/hearts-delight/creamery/location/cheese-room';
 const GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen';
 const SMELTER = '/world/terminus/rejection/location/smelter';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
@@ -680,7 +681,11 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     // `stoke hearth with charcoal`, which binds the charcoal as the fire).
     await doing(k, 'stoke log into oven');
     await act(k, 'ignite oven');
-    const fat = await doing(k, 'pour butter-crock into pot');
+    // ⚠ `add`, not `pour`: two views claim `pour`, and into a pot the BULK
+    // one wins — the butter went into the pot's interior, the build never
+    // saw it, and the two roots matched ROASTED roots (run 14). `add` is
+    // the build step's own word (a standard measure, 0.06 L).
+    const fat = await doing(k, 'add butter-crock to pot');
     note(`butter into the pot → ${fat}`);
     await doing(k, 'drop butter-crock');
     await doing(k, 'add roots to pot');
@@ -889,15 +894,20 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
         `.filter(o => o.getTemplatePath() === '/world/terminus/rejection/thing/copper-ore')` +
         `.map(o => { o.setGrade(0.07); return o.getGrade(); }))`,
     );
-    await goTo(SMELTER);
+    // A run wants two baskets IN THE CHARGE (the reductant) and a lit bed
+    // of its own — four baskets, and the smelter props two. The fuel yard
+    // next door props four (run 14).
+    await goTo(FUEL_YARD);
     await untilHour(12);
+    await doing(k, 'get charcoal');
+    await goTo(SMELTER);
     await doing(k, 'get crucible');
     await doing(k, 'put crucible in furnace');
     await doing(k, 'get ore');
     await doing(k, 'put ore in furnace');
     await doing(k, 'get charcoal');
-    // The bed is fuel and reductant at once: both baskets are stoked in,
-    // lit, and blown.
+    await doing(k, 'put charcoal in furnace');
+    await doing(k, 'put charcoal in furnace');
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'ignite furnace');
@@ -915,7 +925,8 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     const mould = await read(k, 'look mould');
     note(`look mould (cooled) → ${mould}`);
     expect(mould).toMatch(/set/i);
-    const got = await doing(k, 'get ingot');
+    // `bar`: `ingot` also names the ingot MOULD.
+    const got = await doing(k, 'get bar');
     expect(got).toMatch(/ingot/i);
   });
 });
