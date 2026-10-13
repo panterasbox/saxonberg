@@ -163,6 +163,27 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
       "profiles' happy band is 284 K, and a wheel carried up into the warm " +
       "goes over or dies.",
   },
+  {
+    path: "/world/terminus/hearts-delight/creamery/location/floor",
+    reason:
+      "293 K — a creamery workroom, held warm for the curd: renneted and " +
+      "soured milk is a maturation clock that stalls below 283 K, the " +
+      "brewery floor's case exactly. Found by the dairy drive when the " +
+      "climate build gave the Delight a winter: a 2.5 kW stove moved this " +
+      "room by a few kelvin (267–276 K lit), so the mechanism does not " +
+      "answer yet — sizing room heating is thermal's, and this entry is " +
+      "the first to pay down when it does.",
+  },
+  {
+    path: "/world/terminus/rejection/location/the-dry",
+    reason:
+      "293 K — the Dry, the drying room the miners keep warm by its stove " +
+      "(its prose: \"a stove in the middle that somebody keeps going\"); " +
+      "its warmth IS its trade, and it is the one room on the hill where " +
+      "a goat's milk can be set. The stove alone read 272–273 K under the " +
+      "climate build's winter (the dairy drive) — pay down with the " +
+      "creamery's.",
+  },
 ];
 
 /**

@@ -9,12 +9,14 @@ data:
   register: definite
   _address: terminus/hearts-delight/creamery
   _biomePath: /stuff/idea/biome/indoor/baseline
+  # Held warm (lint:envelope's authored list says why).
+  _temperature: 293
   ambientSource: sky
   ambientOpening: windows
   ambientIntensity: 12000
   ambientColorTemperature: 4800
   longDescription: |
-    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it, and a tall stove faced in green tiles keeps the north wall warm.
+    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it.
 
     Everything smells of milk and of being scrubbed. A trap in the floor opens on steps going down to the cheese room.
   coords: { x: -4, y: -4, z: 0 }
@@ -39,7 +41,6 @@ data:
     - /trade/dairying/thing/jug
     - /trade/dairying/thing/milk-can
     - /world/terminus/hearts-delight/creamery/thing/hearth
-    - /world/terminus/hearts-delight/creamery/thing/stove
     - /stuff/thing/instrument/thermometer
     - /stuff/thing/gear/press-stone
     - /trade/cooking/thing/salt-sack

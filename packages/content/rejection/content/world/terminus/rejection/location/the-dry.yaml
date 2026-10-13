@@ -7,6 +7,8 @@
 class: /platform/location/SingletonCartesianLocation
 data:
   shortDescription: dry
+  # Held warm (lint:envelope's authored list says why).
+  _temperature: 293
   keywords: [dry, "the dry", shack, canteen]
   register: definite
   # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,

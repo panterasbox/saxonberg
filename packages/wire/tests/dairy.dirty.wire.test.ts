@@ -305,17 +305,6 @@ afterAll(() => {
 /* ───────────── 0. the clock ───────────── */
 
 suite.skipIf(!isOwnedTestWorld())('0. the clock', () => {
-  it('⭐ the dairy season: half a year on from the winter the world boots in', async () => {
-    // The climate build boots the world in deep winter (268 K at a clear
-    // dawn; "the winter reaches indoors"), and no room in the walk can be
-    // kept above a curd's 283 K stall (probed — room heating against that
-    // climate is thermal's finding). A dairy's year is the warm half
-    // anyway: jump to midsummer, a month at a time (time.md).
-    // ⚠ In 30-day steps: a 90-day jump drains every schedule in the
-    // interval and outruns the client's five-minute header timeout.
-    for (let i = 0; i < 6; i++) await advance('30 days');
-  });
-
   it('starts in the small hours, so the herd is full by noon', async () => {
     await untilHour(0);
   });
@@ -501,13 +490,54 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
   });
 });
 
+/* ───────────── 5. milk that spoils ───────────── */
+
+suite('5. milk left warm turns; milk in the cheese room keeps', () => {
+  it('⭐⭐ a day or so on, the warm jug has turned and the cellar crock has not', async () => {
+    await goTo(CREAMERY);
+    // Wait on the TURN (bounded): how fast warm milk goes depends on how
+    // warm the room is, which is now the season's and the walls'.
+    let warm = await read(k, 'smell jug');
+    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|rotten|foul/i.test(warm); i++) {
+      await advance('6 hours');
+      warm = await read(k, 'smell jug');
+    }
+    note(`smell jug (warm) → ${warm}`);
+    await say(k, 'down');
+    await k.drainProse();
+    const cool = await read(k, 'smell butter-crock');
+    note(`smell crock (the cheese room) → ${cool}`);
+    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
+    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
+    await doing(k, 'get butter-crock');
+    await doing(k, 'spill butter-crock');
+    await say(k, 'up');
+    await k.drainProse();
+  });
+
+  it('⭐ the butter left in the churn goes into the crock', async () => {
+    await doing(k, 'pour churn into butter-crock');
+    const crock = await read(k, 'look butter-crock');
+    note(`look butter-crock → ${crock}`);
+    expect(crock).toMatch(/gold|butter|grain/i);
+    // Left on the creamery floor for the cook to collect.
+    await doing(k, 'drop butter-crock');
+  });
+});
+
 /* ───────────── 12–15. curd, whey, starter, hoop, wheel ───────────── */
 
 suite('12–15. the curd has set; the whey starts the next batch; the hoop makes a wheel', () => {
   it('⭐ `look vat` — the curd has set', async () => {
     await goTo(CREAMERY);
+    // Wait on the STATE: how fast a curd sets is the room's to say.
+    let vat = await read(k, 'look vat');
+    for (let i = 0; i < 12 && !/still|done/i.test(vat); i++) {
+      await advance('6 hours');
+      vat = await read(k, 'look vat');
+    }
     await daylight();
-    const vat = await read(k, 'look vat');
+    vat = await read(k, 'look vat');
     note(`look vat (next noon) → ${vat}`);
     expect(vat).toMatch(/still|done|whey|thin|green/i);
   });
@@ -555,43 +585,12 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
     const cured = await doing(k, 'cure wheel');
     note(`cure wheel → ${cured}`);
     expect(cured).toMatch(/salt/i);
-  });
-});
-
-/* ───────────── 5. milk that spoils ───────────── */
-
-suite('5. milk left warm turns; milk in the cheese room keeps', () => {
-  it('⭐⭐ two days on, the warm jug has turned and the cellar crock has not', async () => {
-    await goTo(CREAMERY);
-    // Wait on the TURN (bounded): how fast warm milk goes depends on how
-    // warm the room is, which is now the season's and the walls'.
-    let warm = await read(k, 'smell jug');
-    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|rotten|foul/i.test(warm); i++) {
-      await advance('6 hours');
-      warm = await read(k, 'smell jug');
-    }
-    note(`smell jug (two days in the warm) → ${warm}`);
+    // The new wheel goes down on the cheese-room rack.
     await say(k, 'down');
     await k.drainProse();
-    const cool = await read(k, 'smell butter-crock');
-    note(`smell crock (two days in the cheese room) → ${cool}`);
-    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
-    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
-    // The new wheel goes on the rack while we are down here.
     await doing(k, 'put wheel on rack');
-    await doing(k, 'get butter-crock');
-    await doing(k, 'spill butter-crock');
     await say(k, 'up');
     await k.drainProse();
-  });
-
-  it('⭐ the butter left in the churn goes into the crock', async () => {
-    await doing(k, 'pour churn into butter-crock');
-    const crock = await read(k, 'look butter-crock');
-    note(`look butter-crock → ${crock}`);
-    expect(crock).toMatch(/gold|butter|grain/i);
-    // Left on the creamery floor for the cook to collect.
-    await doing(k, 'drop butter-crock');
   });
 });
 
@@ -629,9 +628,13 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
       t = await kelvinOf(k, 'vat');
     }
     await doing(k, 'pour starter into vat --amount 0.5L');
-    await advance('10 hours');
-    await untilHour(12);
-    const vat = await read(k, 'look vat');
+    let vat = await read(k, 'look vat');
+    for (let i = 0; i < 12 && !/still|done/i.test(vat); i++) {
+      await advance('6 hours');
+      vat = await read(k, 'look vat');
+    }
+    await daylight();
+    vat = await read(k, 'look vat');
     note(`look vat (boiled batch, set) → ${vat}`);
     expect(vat).toMatch(/set badly|slack and grainy/i);
   });
