@@ -5,11 +5,11 @@
 class: /system/water/idea/WaterBand
 data:
   name: the Westerlies
+  # ⭐ Drawn between its endpoints, the roads and the Rock: move either
+  # and the current follows. Four miles wide.
   extent:
     kind: corridor
-    from: { latDeg: 42.020, lonDeg: -8.400 }
-    to: { latDeg: 42.180, lonDeg: -8.150 }
-    widthNm: 4
+    widthM: 7408
   direction: 50
   setKn: 1.5
   endpoints:

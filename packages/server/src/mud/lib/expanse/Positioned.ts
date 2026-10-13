@@ -1,10 +1,13 @@
 /**
- * PositionedMixin — a thing with a geographic position in an Expanse.
+ * PositionedMixin — a CRAFT's position on the chart (lat/lon) in an
+ * Expanse.
  *
- * Three composers with no common pack ancestor, which is why it is
- * kernel: an `ExpanseNode` (authored, still), a `Structure` (a building's
- * position does not change; a ship's does — *one field is the whole
- * difference*), and the transport pack's `Boat`.
+ * Two composers with no common pack ancestor, which is why it is kernel:
+ * a `Ship` and the transport pack's `Boat`. ⭐ NOT an `ExpanseNode` — a
+ * node is a point of the expanse's spherical GRAPH, relative to the
+ * expanse (`SphericalCoordinatesMixin`), and its chart position is
+ * derived through the expanse's origin (maritime review, 2026-10-13).
+ * A craft's position is the chart's own: it is where the sailor plots.
  *
  * ⚠ Composed on NEITHER `ExitableVessel` (a wardrobe would claim a
  * position at sea) NOR `Mobile` (so would a swimmer). A person's position

@@ -7,5 +7,5 @@ data:
   alternateNames: [pool, cove]
   kind: place
   destination: /world/terminus/estuary/pool
-  expansePosition: { latDeg: 42.006, lonDeg: -8.455 }
-  expanse: /stuff/idea/WaterExpanse/greywater
+  # Three-quarters of a mile up the mouth, small enough to see across.
+  focus: { rho: 1407, theta: 61.7, radius: 300 }

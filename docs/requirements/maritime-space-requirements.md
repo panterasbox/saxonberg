@@ -264,14 +264,24 @@ The prohibition saved one field and bought a retrofit. And it was
 unholdable anyway: **a sounding reports a depth**, and a sounding is one
 of the four fixes.
 
-### A node is a POINT, because the extent is a FIELD
+### A node has a SIZE, and the stock is still a FIELD
 
-⭐⭐ A node carries no radius. **Stock is a field over the extent and you
-work it where you are** — so a fishery is not a node with an area, it is
-a value the field answers at your position. Whaling the same. ⭐ That
-keeps *being at a node* an identity rather than a test, keeps the
-shore↔expanse boundary hard, and means a sea's resource needs no nodes
-at all.
+> ⚠ **Revised 2026-10-13 (review).** This section said *"⭐⭐ A node
+> carries no radius"*, which threw away the planning ruling of
+> 2026-10-10: the expanse uses **the same spherical coordinates as
+> locations** — a node has a position RELATIVE to its expanse and a
+> SIZE, its edges are named, and the sailor's lat/lon is a view of it.
+> The user's rulings: positions are origin-relative, the radius is
+> arrival, and bands are authored relative too.
+
+⭐⭐ A node is a point of the graph **with a radius** — a cove small
+enough to see across, an anchorage a mile wide — and the radius is *how
+close is there*: arriving is coming inside it, and once arrived, being
+at the node is an identity again. **Stock is still a field over the
+extent and you work it where you are** — a fishery is not a node with an
+area, it is a value the field answers at your position. Whaling the
+same. That keeps the shore↔expanse boundary hard and means a sea's
+resource needs no nodes at all.
 
 ### ⭐⭐⭐ The deck is a SHORE THAT MOVES — nothing is ever minted
 
@@ -368,7 +378,8 @@ build.
 
 | | |
 |---|---|
-| position | lat/long. ⭐ **Anywhere** — this is why the frame is geographic |
+| position | ⭐ *(revised 2026-10-13)* **a point of the expanse's spherical graph, relative to the expanse** — range, bearing, inclination — the way a room sits in a spherical zone; so **anywhere**, on no lattice. Where it lies on the sailor's chart (lat/long) is derived through the one point the sea pins to the chart, so moving that point moves the whole sea |
+| size | ⭐ *(revised 2026-10-13)* a radius — how big the node is, and so how close counts as **there** |
 | identity and character | a name, and prose for what being here is like. ⭐ The `a reach has no character` fix |
 | `place \| passage`, `linear \| areal` | the three authored facts |
 | the content behind it | a destination — ordinary locations in a zone — or **nothing.** ⭐ Most nodes have nothing |

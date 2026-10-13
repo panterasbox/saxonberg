@@ -20,16 +20,15 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import { Expanse } from '../../lib/expanse/Expanse';
-import type { GeoPosition } from '../../lib/expanse/GeoPosition';
 import { TemplatePaths } from '../../lib/paths';
 import type StructureCatalogue from './StructureCatalogue';
 import { StuffApi } from '../../api/stuff';
-import { AppApi } from '../../api/app';
+import type ExpanseNode from './ExpanseNode';
 import Ship from './Ship';
 
 interface NodeAt {
   expanse: string;
-  at: GeoPosition;
+  node: ExpanseNode;
 }
 
 export default class AboardExit extends DeferredDestinationExit {
@@ -54,9 +53,8 @@ export default class AboardExit extends DeferredDestinationExit {
       const e = sea ? await StuffApi.singleton<Stuff>(sea) : null;
       if (!(e instanceof Expanse)) return;
       for (const n of await e.nodes()) {
-        const at = n.getExpansePosition();
-        if (n.getDestination() !== here || at === null) continue;
-        this.node = { expanse: sea!, at };
+        if (n.getDestination() !== here || n.getExpansePosition() === null) continue;
+        this.node = { expanse: sea!, node: n };
         await e.bands();
         return;
       }
@@ -70,14 +68,14 @@ export default class AboardExit extends DeferredDestinationExit {
     if (this.node === null) return null;
     const e = StuffApi.findByTemplatePath<Stuff>(this.node.expanse);
     if (!(e instanceof Expanse)) return null;
-    const within = Number(AppApi.setting('expanse.arrivalNm')) || 1;
     for (const c of e.craft()) {
       // Only a SHIP has a deck to step onto; a boat is boarded by `enter`,
       // as any vessel is.
       if (!(c instanceof Ship) || c.getEntrance() === null) continue;
       const at = c.getExpansePosition();
       if (!at || c.getCourse() !== null) continue;
-      if (at.distanceNm(this.node.at) <= within) return c;
+      // ⭐ Alongside = inside the node's radius, the same test as arriving.
+      if (this.node.node.isAt(at)) return c;
     }
     return null;
   }

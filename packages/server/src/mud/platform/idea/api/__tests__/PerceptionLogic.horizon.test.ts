@@ -20,6 +20,15 @@ import StructureCatalogue, { type StructureRow } from '../../StructureCatalogue'
 import { TemplatePaths } from '../../../../lib/paths';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
+/** The sea's origin — what the graph's points are measured from. */
+const ORIGIN = new GeoPosition(42, -8.4);
+/** A chart point as the graph authors it: range (m) and bearing from the origin. */
+function focusAt(latDeg: number, lonDeg: number): { rho: number; theta: number } {
+  const p = new GeoPosition(latDeg, lonDeg);
+  return { rho: ORIGIN.distanceNm(p) * 1852, theta: ORIGIN.bearingTo(p) };
+}
+
+
 /**
  * The horizon (maritime R4), SYNCHRONOUS over resident state: ashore,
  * zones name zones and the rest is derived — open sky, a structure's
@@ -156,12 +165,13 @@ describe('the horizon ashore', () => {
 /** A sea at `/t/sea` with one landing node, compiled. */
 async function seaWithLanding(dest: string): Promise<TestExpanse> {
   const sea = makeStuffAtPath(() => new TestExpanse(), '/t/sea');
+  sea.setOrigin(ORIGIN);
   sea.setTrafficDefault(0);
   live.set('/t/sea', sea);
   const node = makeStuffAtPath(() => new ExpanseNode(), '/t/sea/landing');
   node.setKind('place');
   node.setDestination(dest);
-  node.setExpansePosition({ latDeg: 42, lonDeg: -8.4 });
+  node.setFocus({ rho: 0, theta: 0 });
   live.set('/t/sea/landing', node);
   vi.spyOn(Template, 'findDescendants').mockResolvedValue([
     { path: '/t/sea/landing', data: {} },

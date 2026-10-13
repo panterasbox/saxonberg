@@ -29,7 +29,8 @@
  *    position, never authored, and a crossing that changes nothing
  *    perceptible says nothing (maritime R9);
  * 2. **arrival** — a course set for a node arrives when the track passes
- *    within `expanse.arrivalNm` of it; a bare bearing never arrives;
+ *    within the node's radius (`ExpanseNode.getArrivalNm`); a bare bearing
+ *    never arrives;
  * 3. **neglect** — the gear on deck wears by the water's hardness and
  *    roughness, at a quarter of that when the watch is manned. Nothing
  *    new persists: the gear remembers.
@@ -185,7 +186,7 @@ export class Voyage implements SustainedEngagement {
     if (course?.node) {
       const node = await expanse.node(course.node);
       const at = node?.getExpansePosition() ?? null;
-      if (node && at && closestApproachNm(prev, pos, at) <= numSetting('expanse.arrivalNm', 1)) {
+      if (node && at && closestApproachNm(prev, pos, at) <= node.getArrivalNm()) {
         craft.placeAt(at, nowS);
         this.persist();
         tell(`You raise ${node.getName()} and come up to it.`, 'act.move');

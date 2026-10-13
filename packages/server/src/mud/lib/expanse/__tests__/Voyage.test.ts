@@ -18,6 +18,23 @@ import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
+/** The sea's origin — what the graph's points are measured from. */
+const ORIGIN = new GeoPosition(50, -5);
+/** A chart point as the graph authors it: range (m) and bearing from the origin. */
+function focusAt(latDeg: number, lonDeg: number): { rho: number; theta: number } {
+  const p = new GeoPosition(latDeg, lonDeg);
+  return { rho: ORIGIN.distanceNm(p) * 1852, theta: ORIGIN.bearingTo(p) };
+}
+/** A belt between two chart corners, authored relative to the origin. */
+function belt(latMin: number, latMax: number, lonMin = ORIGIN.lonDeg - 30, lonMax = ORIGIN.lonDeg + 30) {
+  return { kind: 'belt' as const, from: focusAt(latMin, lonMin), to: focusAt(latMax, lonMax) };
+}
+/** A corridor between two chart points, authored relative to the origin. */
+function corridor(from: [number, number], to: [number, number], widthNm: number) {
+  return { kind: 'corridor' as const, from: focusAt(...from), to: focusAt(...to), widthM: widthNm * 1852 };
+}
+
+
 /**
  * The voyage (maritime A3) over a synthetic sea with a hand-kept clock:
  * the position is derived from three fields, a boundary is reported once
@@ -58,6 +75,7 @@ beforeEach(() => {
   nowS = 1_000_000;
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(nowS, 's'));
   sea = makeStuffAtPath(() => new TestExpanse(), SEA);
+  sea.setOrigin(ORIGIN);
   live.set(SEA, sea);
   listener = { stuffId: 'listener', isAlive: () => true } as unknown as Stuff;
   vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === deck) as never);
@@ -117,7 +135,7 @@ describe('the position is derived from three fields', () => {
 
   it('⭐ a current sets you by its speed × the time you spend in it', async () => {
     addBand('set', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setSetKn(1.5);
       b.setDirection(0);
     });
@@ -133,7 +151,7 @@ describe('the position is derived from three fields', () => {
   it('⭐ removing every band leaves the sea crossable: a course still arrives', async () => {
     const node = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/rock`);
     node.setName('the Rock');
-    node.setExpansePosition(new GeoPosition(50, -5).destination(90, 10));
+    node.setFocus({ rho: 10 * 1852, theta: 90 });
     live.set(`${SEA}/rock`, node);
     await ship.steer({ bearingDeg: 90, speedKn: 6, node: `${SEA}/rock` });
     hours(2);
@@ -148,7 +166,7 @@ describe('the position is derived from three fields', () => {
 describe('the watch', () => {
   it('⭐ a boundary reports what CHANGED, once, in order — never a position', async () => {
     addBand('stream', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51, lonMinDeg: -4.9, lonMaxDeg: -4.8 });
+      b.setExtent(belt(49, 51, -4.9, -4.8));
       b.setDirection(45);
       b.setSetKn(2);
     });
@@ -168,7 +186,7 @@ describe('the watch', () => {
 
   it('a band that changes nothing perceptible says nothing', async () => {
     addBand('haar', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51, lonMinDeg: -4.9, lonMaxDeg: -4.8 });
+      b.setExtent(belt(49, 51, -4.9, -4.8));
     });
     await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
     hours(2);
@@ -185,7 +203,7 @@ describe('the watch', () => {
 
   it('an unmanned watch wears the gear by the formula; a manned one by a quarter', async () => {
     addBand('race', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setGearHardness(0.5);
     });
     await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });

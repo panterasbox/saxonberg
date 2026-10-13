@@ -7,9 +7,21 @@
  *
  * ## Two layers, and nothing is ever inside the frame
  *
- * An expanse holds **nodes** (`ExpanseNode` rows — places and passages at
- * geographic positions) and **bands** (`Band` rows — regions with a width
- * that confer cost and character, never connectivity). Both are Ideas, so
+ * An expanse holds **nodes** (`ExpanseNode` rows — places and passages,
+ * each a focus `[rho, theta, phi]` with a `radius`, relative to this
+ * expanse as a room is to its `SphericalZone`) and **bands** (`Band` rows
+ * — named edges and regions with a width that confer cost and character,
+ * never connectivity).
+ *
+ * ## ⭐⭐ The graph is spherical; the chart is lat/lon
+ *
+ * (maritime review, 2026-10-13.) Authors place things on the GRAPH,
+ * relative to this expanse; sailors navigate on the CHART, in latitude
+ * and longitude. The expanse authors the one bridge — its `origin`, where
+ * the graph's centre lies on the chart — and every node's and band's
+ * chart position is derived through it (`GeoPosition.atFocus`). Move the
+ * origin and the whole sea moves together; move a node and the edges
+ * drawn to it follow. Both are Ideas, so
  * nothing is a room here and nothing enters the location graph. Behind a
  * node may sit ordinary Cartesian content (a cove you can swim, a landing
  * with a lighthouse) authored by the same means as any other place.
@@ -44,7 +56,7 @@ import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import Band from '../../platform/idea/Band';
 import ExpanseNode from '../../platform/idea/ExpanseNode';
-import { GeoPosition } from './GeoPosition';
+import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
 
@@ -130,9 +142,17 @@ const FT_PER_M = 3.28084;
 
 export abstract class Expanse extends SingletonMixin(SpatialZone) {
   static fieldMeta: FieldMeta = {
+    origin: { persistent: true, authorable: true },
     prevailingDeg: { persistent: true, authorable: true },
     trafficDefault: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ Where this expanse's graph is centred on the chart — the bridge
+   * between the spherical graph and the sailor's lat/lon. `null` = an
+   * expanse not yet sited: none of its nodes has a chart position.
+   */
+  protected origin: GeoPositionRecord | null = null;
 
   /** The prevailing wind, degrees FROM — where no band leans. */
   protected prevailingDeg = 225;
@@ -151,6 +171,14 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    * position of its own; it is where its rock is).
    */
   private landmarks: { stuff: Stuff; at: GeoPosition }[] = [];
+
+  public getOrigin(): GeoPosition | null {
+    return this.origin === null ? null : new GeoPosition(this.origin);
+  }
+  public setOrigin(v: GeoPositionRecord | GeoPosition | null): void {
+    this.origin = v === null || v === undefined ? null : new GeoPosition(v).toJSON();
+    for (const b of this.loadedBands) b.setFrame(this);
+  }
 
   public getPrevailingDeg(): number { return this.prevailingDeg; }
   public setPrevailingDeg(v: number): void { this.prevailingDeg = Number(v) || 0; }
@@ -263,15 +291,18 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     return (await this.nodes()).find((n) => n.answersTo(word)) ?? null;
   }
 
-  /** The nearest node within `withinNm` of `pos`, or `null`. */
-  public async nodeNear(pos: GeoPosition, withinNm: number): Promise<ExpanseNode | null> {
+  /**
+   * The node `pos` is AT — within its radius — the nearest when radii
+   * overlap; `null` between nodes.
+   */
+  public async nodeAt(pos: GeoPosition): Promise<ExpanseNode | null> {
     let best: ExpanseNode | null = null;
     let bestNm = Infinity;
     for (const n of await this.nodes()) {
       const at = n.getExpansePosition();
-      if (at === null) continue;
+      if (at === null || !n.isAt(pos)) continue;
       const d = pos.distanceNm(at);
-      if (d <= withinNm && d < bestNm) {
+      if (d < bestNm) {
         best = n;
         bestNm = d;
       }
@@ -575,8 +606,11 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
         console.warn(`Expanse: '${tpl.path}' failed to stand up:`, err);
         continue;
       }
-      if (s instanceof Band) bands.push(s);
-      else if (s instanceof ExpanseNode) {
+      if (s instanceof Band) {
+        s.setFrame(this);
+        bands.push(s);
+      } else if (s instanceof ExpanseNode) {
+        s.setFrame(this);
         if (s.isLinear() && s.getAlong() === null) {
           console.warn(
             `Expanse: linear node '${tpl.path}' names no band to ride ` +

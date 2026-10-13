@@ -2,12 +2,21 @@
  * BandExtent — where a band IS: a closed, two-word vocabulary.
  *
  * - **corridor** — two points and a width: the Westerlies between the
- *   mouth and Gannet Rock, a channel over a bar. A rectangle on the local
- *   plane, `from` → `to`, `widthNm` across.
- * - **belt** — a span with no endpoints at all: a latitude of fog, a
- *   longitude of ice. Joins nothing and behaves exactly as a corridor does
- *   (requirements AC 17). `lonMinDeg` / `lonMaxDeg` are optional — a belt
- *   that names neither runs round the world.
+ *   roads and Gannet Rock, a channel over a bar. A rectangle on the local
+ *   plane, `from` → `to`, `widthM` across.
+ * - **belt** — a span with no endpoints at all: a stretch of fog, a
+ *   field of ice. Joins nothing and behaves exactly as a corridor does
+ *   (requirements AC 17): the box between two corners.
+ *
+ * ## ⭐⭐ Authored on the graph, answered on the chart
+ *
+ * (maritime review, 2026-10-13.) A band is AUTHORED as the nodes are —
+ * points relative to its expanse's origin ({@link FocusRecord}, metres and
+ * degrees) — and a corridor that names `endpoints` and no `from`/`to`
+ * takes its ends FROM those nodes, so an edge can never disagree with
+ * what it joins. the band turns the authored shape into
+ * the chart's ({@link BandExtentRecord}, lat/lon), which is what the
+ * containment and crossing arithmetic below runs on.
  *
  * ⭐ A band confers cost and character, NEVER connectivity: the only
  * question an extent answers is *is this point inside*, plus the exact
@@ -18,11 +27,29 @@
  * leaves at most once; `crossings` is a Liang–Barsky clip.
  */
 
-import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
+import { GeoPosition, type FocusRecord, type GeoPositionRecord } from './GeoPosition';
 
 export const BAND_EXTENT_KINDS = ['corridor', 'belt'] as const;
 export type BandExtentKind = (typeof BAND_EXTENT_KINDS)[number];
 
+/** What an author writes: points of the graph, relative to the origin. */
+export type BandExtentAuthored =
+  | {
+      kind: 'corridor';
+      /** Omitted: the first endpoint node. */
+      from?: FocusRecord;
+      /** Omitted: the second endpoint node. */
+      to?: FocusRecord;
+      widthM: number;
+    }
+  | {
+      kind: 'belt';
+      /** Two opposite corners of the box. */
+      from: FocusRecord;
+      to: FocusRecord;
+    };
+
+/** The extent on the chart — lat/lon, what the arithmetic runs on. */
 export type BandExtentRecord =
   | {
       kind: 'corridor';

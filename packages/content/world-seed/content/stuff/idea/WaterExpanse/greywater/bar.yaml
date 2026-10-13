@@ -13,5 +13,5 @@ data:
   passage: linear
   along: /stuff/idea/WaterExpanse/greywater/channel
   destination: /world/terminus/estuary/estuary-mouth
-  expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
-  expanse: /stuff/idea/WaterExpanse/greywater
+  # The origin: the bar is where the Greywater is measured from.
+  focus: { rho: 0, theta: 0, radius: 500 }

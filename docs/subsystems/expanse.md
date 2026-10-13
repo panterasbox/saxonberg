@@ -12,9 +12,9 @@ room grid:
 | a **field** | a coordinate | none — you steer |
 
 ⭐⭐ **Two layers, and nothing is ever inside the frame.** An expanse holds
-**nodes** (`ExpanseNode` — places and passages at geographic positions)
-and **bands** (`Band` — regions with a width that confer cost and
-character). Both are Ideas. Behind a node may sit ordinary rooms — a
+**nodes** (`ExpanseNode` — places and passages, each a point of a
+spherical graph relative to its expanse) and **bands** (`Band` — named
+edges and regions with a width that confer cost and character). Both are Ideas. Behind a node may sit ordinary rooms — a
 landing, a pool, a lighthouse's foot — authored exactly as any other
 place. Nothing about the sea enters the location graph.
 
@@ -30,18 +30,36 @@ The frame is a `SpatialZone` (it has an address, landmarks, stock) and
 composes **no** Location half — `LocationZoneMixin` (`lib/zone/LocationZone.ts`)
 is what holds rooms, and only `CartesianZone` / `SphericalZone` compose it.
 
-## Position: geographic frame, plane-sailing plot
+## Position: the graph is spherical, the chart is lat/lon
+
+⭐⭐ Two systems, and they never describe different things.
+
+| layer | system | who reads it |
+|---|---|---|
+| **the graph** — nodes and bands | ⭐ **spherical**, relative to the expanse: a node is a focus `[rho, theta, phi]` + `radius` (`SphericalCoordinatesMixin`, the shape and units a `SphericalLocation` uses in its `SphericalZone` — metres; `theta` the bearing from the origin, `phi` the inclination, `90` on the surface) | authors |
+| **the chart** — a craft's position, course, reckoning, sight, fix, the horizon's bearings | latitude and longitude (`GeoPosition`), plane sailing | sailors |
+| **the bridge** | the expanse's authored `origin` (where the graph's centre lies on the chart) and `GeoPosition.atFocus(focus)` — the surface run `rho·sin(phi)` along `theta`, the depth `−rho·cos(phi)` | one place |
+
+A node's chart position is **derived, never authored**
+(`ExpanseNode.getExpansePosition()` = origin + focus), so moving the
+origin moves the whole sea together. The node's **radius** is its size
+and so *how close is there*: a course for it arrives inside the radius
+(`getArrivalNm()`, `isAt(pos)`, `Expanse.nodeAt(pos)`), and once arrived
+being there is an identity again. A node that authors no radius falls
+back to `expanse.arrivalNm`. A node finds its expanse as its frame
+(stamped by the compile) or its zone; it authors no `expanse:`.
 
 `GeoPosition` (`lib/expanse/GeoPosition.ts`) is latitude, longitude and
-`depthM` (always `0` until the underwater build). The frame is
-geographic so a node sits anywhere on no lattice; the arithmetic is
+`depthM` (always `0` until the underwater build); the arithmetic is
 plane sailing (`cos(lat)` departure), which is what a navigator with a
 traverse table does. Persisted as its plain record.
 
-`PositionedMixin` (kernel) carries `expansePosition` and `expanse` (the
-row path). Composed by `ExpanseNode`, `Ship` and the transport pack's
-`Boat` — never by `ExitableVessel` or `Mobile`, and ⛔ never by a plain
-`Structure` (a building has no position of its own). Two height hooks
+`PositionedMixin` (kernel) carries a CRAFT's chart position —
+`expansePosition` and `expanse` (the row path). Composed by `Ship` and
+the transport pack's `Boat` — never by `ExitableVessel` or `Mobile`,
+⛔ never by a plain `Structure` (a building has no position of its own;
+a light is where its rock's node is), and not by `ExpanseNode`, whose
+position is the graph's. Two height hooks
 — `sightHeightFor(observer)` and `getTargetHeightM()` — are what the
 horizon reads.
 
@@ -54,8 +72,15 @@ only (`lint:object-verbs`).
 ## Bands: cost and character, never connectivity
 
 `BandExtent` is a closed two-word vocabulary: a **corridor** (two points
-and a width — a rectangle on the local plane) or a **belt** (a lat span,
-longitude optional — joins nothing). Inside or not is the one question;
+and a width — a rectangle on the local plane) or a **belt** (the box
+between two corners — joins nothing). ⭐ Both are **authored on the
+graph**, as foci relative to the origin (`widthM` in metres), and a
+corridor that names `endpoints` and no `from`/`to` is **drawn between
+those nodes** — an edge can never disagree with what it joins, and
+moving a node moves it. `Band.getExtent()` resolves the authored shape
+onto the chart (lat/lon), which is what the arithmetic runs on; a
+failed resolve (an endpoint not yet compiled) is not cached. Inside or
+not is the one question;
 `crossings(a, b)` is an exact Liang–Barsky clip, so a boundary crossing
 is a parameter along the track, orderable and deterministic.
 
@@ -69,9 +94,9 @@ from such a node only its two ends are a course.
 
 **Composition** (`Expanse.fieldAt`): a field value comes from the
 NARROWEST band containing the position (the zone walk's innermost rule);
-placed things union. ⚠ So a belt right round the world never wins
-anywhere a corridor runs through it — bound a belt's longitude if its
-weather must be felt.
+placed things union. ⚠ So a wide belt never wins anywhere a corridor
+runs through it — keep a belt as narrow as the weather it must make
+felt.
 
 ## The voyage — held by the craft
 
@@ -100,7 +125,8 @@ emission per watch (`expanse.watchGameHours`, default 4):
    last watch's (*Fog closes in.*). Never a position, never authored; a
    crossing that changes nothing perceptible says nothing;
 2. **arrival** — a course set for a node arrives when the track passes
-   within `expanse.arrivalNm`; a bare bearing never does;
+   within the node's radius (else `expanse.arrivalNm`); a bare bearing
+   never does;
 3. **neglect** — the deck's `Durable` gear wears by
    `gearHardness × roughness × expanse.neglectWearPerWatch`, a quarter of
    that when the watch is manned. Nothing new persists.
@@ -281,6 +307,19 @@ emitters that announce themselves (a bell, a gun, a signal).
 | cargo in a ship's hold | the rooms are singleton, non-persistable | the vessel build |
 
 ## History
+
+- **Maritime review — the graph is spherical (2026-10-13, before
+  merge).** The build had made lat/lon the ONLY system: every node
+  authored an absolute `expansePosition`, nodes had no size
+  (requirements: *"a node carries no radius"*), and a corridor restated
+  its endpoint nodes' coordinates by hand, with nothing to keep them
+  agreeing. That lost the planning ruling of 2026-10-10 — *the same
+  spherical coordinates as locations, so you can put nodes anywhere;
+  you plot in lat/lon, and one converts to the other*. Now nodes are
+  `SphericalCoordinatesMixin` foci with a radius relative to the
+  expanse, the expanse authors one `origin`, corridors are drawn from
+  their endpoints, belts are authored relative too, and arrival is the
+  radius. Every chart-side reader was unchanged.
 
 - **Maritime revision 1 — perception at range (2026-10, before merge).**
   The room hook (`RoomContributorMixin`), the `Vantage` object, every

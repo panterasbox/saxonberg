@@ -1,13 +1,20 @@
 /**
- * GeoPosition — a point in an Expanse's geographic frame.
+ * GeoPosition — a point on the CHART: latitude and longitude, the
+ * sailor's register.
  *
- * ⭐ The FRAME is geographic (latitude and longitude, so a node may sit
- * anywhere and never on a lattice) and the PLOT is plane sailing: over
- * the distances a watch covers, the sphere is flat enough that a course
- * and a distance convert to a change of latitude and a departure scaled
- * by `cos(latitude)`. The conversion is arithmetic and it is what a
- * navigator with a traverse table does, so it is also what the engine
- * does.
+ * ⭐⭐ Two systems, one place (maritime review, 2026-10-13). The expanse's
+ * GRAPH is spherical — a node is authored as a focus `[rho, theta, phi]`
+ * and a `radius` RELATIVE TO ITS EXPANSE, exactly as a `SphericalLocation`
+ * is relative to its zone — and the CHART is this: a craft's position,
+ * its course, its reckoning, a sight, a bearing. The expanse authors one
+ * `origin` on the chart and {@link GeoPosition.atFocus} is the bridge, so
+ * the two never describe different things.
+ *
+ * The PLOT is plane sailing: over the distances a watch covers, the
+ * sphere is flat enough that a course and a distance convert to a change
+ * of latitude and a departure scaled by `cos(latitude)`. The conversion
+ * is arithmetic and it is what a navigator with a traverse table does, so
+ * it is also what the engine does.
  *
  * `depthM` is the column's axis. It exists and is always `0` in the
  * maritime build — nothing writes a second value until the underwater
@@ -25,6 +32,22 @@ export interface GeoPositionRecord {
   latDeg: number;
   lonDeg: number;
   depthM?: number;
+}
+
+/** Metres in a nautical mile — the unit's definition. */
+export const M_PER_NM = 1852;
+
+/**
+ * A point of the expanse's spherical graph, relative to its origin — the
+ * shape `SphericalLocation.focus` authors, in the same units: `rho` the
+ * radial distance in metres, `theta` the bearing from the origin in
+ * degrees true, `phi` the inclination from the zenith in degrees (`90`,
+ * the default, is on the surface; past `90` is below it).
+ */
+export interface FocusRecord {
+  rho: number;
+  theta: number;
+  phi?: number;
 }
 
 const toRad = (deg: number): number => (deg * Math.PI) / 180;
@@ -97,6 +120,25 @@ export class GeoPosition {
     const cos = Math.max(1e-6, Math.cos(midLat));
     const dLon = (nm * Math.sin(b)) / (NM_PER_DEGREE * cos);
     return new GeoPosition(this.latDeg + dLat, this.lonDeg + dLon, this.depthM);
+  }
+
+  /**
+   * ⭐ The bridge: where the graph point `focus` (relative to THIS
+   * position, an expanse's origin) lies on the chart. The surface run is
+   * `rho·sin(phi)` along bearing `theta`; the depth is `−rho·cos(phi)`.
+   */
+  atFocus(focus: FocusRecord): GeoPosition {
+    const rho = Number(focus.rho);
+    const theta = Number(focus.theta);
+    const phi = focus.phi === undefined ? 90 : Number(focus.phi);
+    if (!Number.isFinite(rho) || !Number.isFinite(theta) || !Number.isFinite(phi) || rho < 0) {
+      throw new Error(`GeoPosition.atFocus: a focus needs finite rho ≥ 0, theta, phi; got ${JSON.stringify(focus)}`);
+    }
+    const run = rho * Math.sin(toRad(phi));
+    const depth = Math.max(0, -rho * Math.cos(toRad(phi)));
+    const p = this.destination(theta, run / M_PER_NM);
+    // ⚠ Rounded off the float noise: an authored surface point is depth 0.
+    return new GeoPosition(p.latDeg, p.lonDeg, Math.round(depth * 1000) / 1000);
   }
 
   /** Displace by north/east nautical miles (a current's set). */

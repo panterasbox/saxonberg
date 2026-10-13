@@ -7,14 +7,19 @@
 # sit ordinary rooms (the estuary mouth, the pool, the landing on the
 # rock), authored exactly as any other place.
 #
-# ⭐ Positions are GEOGRAPHIC — latitude and longitude, near the realm's
-# 42° — so a node sits wherever its author put it, on no lattice.
+# ⭐⭐ The GRAPH is spherical and the CHART is lat/lon. Every node and band
+# beneath this row is authored RELATIVE to this sea — a focus, range and
+# bearing from the bar, with a radius, exactly as a room is placed in a
+# SphericalZone — and `origin` is the one place the graph is pinned to
+# the chart (the bar, near the realm's 42°). A sailor plots in latitude
+# and longitude; every position they read is derived through the origin.
 #
 # ⚠ The name is a placeholder; whether this is a sea or an ocean is
 # undecided.
 class: /system/water/idea/WaterExpanse
 data:
   name: the Greywater
+  origin: { latDeg: 42.000, lonDeg: -8.470 }
   # The map a chart of it files under — `map greywater`.
   address: greywater
   prevailingDeg: 240

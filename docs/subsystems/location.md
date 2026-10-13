@@ -139,6 +139,10 @@ Persistent (auto via `persistentFields = ['coordinates']`).
 **`SphericalCoordinatesMixin`** (`SphericalCoordinates.ts:28-64`):
 `coordinates: [rho, theta, phi]` (focus) plus `radius`. Persistent.
 Default radius is `1.0`.
+⭐ Composed by `SphericalLocation` and by `ExpanseNode` — a point of an
+expanse's graph is placed relative to its expanse exactly as a room is
+relative to its `SphericalZone` (the node defaults its radius to `0`,
+*unsized*). See [expanse.md § Position](./expanse.md).
 
 The setters round-trip through tuple-replacement (`setX(x)` returns a
 new triple) so any reactive system watching `coordinates` sees a

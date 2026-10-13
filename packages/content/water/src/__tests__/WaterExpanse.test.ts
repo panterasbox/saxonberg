@@ -19,6 +19,23 @@ import WaterBand from '../idea/WaterBand';
 import FisheryRegistry from '../idea/FisheryRegistry';
 import Pilot from '../agent/Pilot';
 
+/** The sea's origin — what the graph's points are measured from. */
+const ORIGIN = new GeoPosition(50, 0);
+/** A chart point as the graph authors it: range (m) and bearing from the origin. */
+function focusAt(latDeg: number, lonDeg: number): { rho: number; theta: number } {
+  const p = new GeoPosition(latDeg, lonDeg);
+  return { rho: ORIGIN.distanceNm(p) * 1852, theta: ORIGIN.bearingTo(p) };
+}
+/** A belt between two chart corners, authored relative to the origin. */
+function belt(latMin: number, latMax: number, lonMin = ORIGIN.lonDeg - 30, lonMax = ORIGIN.lonDeg + 30) {
+  return { kind: 'belt' as const, from: focusAt(latMin, lonMin), to: focusAt(latMax, lonMax) };
+}
+/** A corridor between two chart points, authored relative to the origin. */
+function corridor(from: [number, number], to: [number, number], widthNm: number) {
+  return { kind: 'corridor' as const, from: focusAt(...from), to: focusAt(...to), widthM: widthNm * 1852 };
+}
+
+
 const SEA = '/test/sea/grey';
 let sea: WaterExpanse;
 const live = new Map<string, Stuff>();
@@ -35,6 +52,7 @@ beforeEach(() => {
   StuffApi.clearAll();
   live.clear();
   sea = makeStuffAtPath(() => new WaterExpanse(), SEA);
+  sea.setOrigin(ORIGIN);
   live.set(SEA, sea);
   vi.spyOn(Template, 'findDescendants').mockImplementation(async () =>
     [...live.keys()].filter((p) => p.startsWith(`${SEA}/`)).map((path) => ({ path, data: {} }) as unknown as Template),
@@ -52,12 +70,12 @@ afterEach(() => vi.restoreAllMocks());
 describe('sea state is derived', () => {
   it('⭐ a long fetch running onto a shoal is rougher than the same wind over deep water', async () => {
     band('deep', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 50 });
+      b.setExtent(belt(49, 50));
       b.setFetchKm(150);
       b.setDepthM(80);
     });
     band('bar', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 50, latMaxDeg: 51 });
+      b.setExtent(belt(50, 51));
       b.setFetchKm(150);
       b.setDepthM(4);
     });
@@ -71,17 +89,17 @@ describe('sea state is derived', () => {
 
   it('⭐ a crossing says what the SEA changed — and nothing when nothing did', async () => {
     band('deep', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 50 });
+      b.setExtent(belt(49, 50));
       b.setFetchKm(150);
       b.setDepthM(80);
     });
     band('bar', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 50, latMaxDeg: 51 });
+      b.setExtent(belt(50, 51));
       b.setFetchKm(150);
       b.setDepthM(4);
     });
     band('deep2', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 48, latMaxDeg: 49 });
+      b.setExtent(belt(48, 49));
       b.setFetchKm(150);
       b.setDepthM(80);
     });
@@ -95,11 +113,11 @@ describe('sea state is derived', () => {
 
   it('the narrow band\'s lean wins: the sea runs from its direction', async () => {
     band('belt', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setLean({ directionDeg: 0, strengthMps: 0 });
     });
     band('race', (b) => {
-      b.setExtent({ kind: 'corridor', from: { latDeg: 50, lonDeg: -1 }, to: { latDeg: 50, lonDeg: 1 }, widthNm: 2 });
+      b.setExtent(corridor([50, -1], [50, 1], 2));
       b.setLean({ directionDeg: 270, strengthMps: 8 });
     });
     const s = await sea.seaStateAt(new GeoPosition(50, 0), null);
@@ -109,7 +127,7 @@ describe('sea state is derived', () => {
 
   it('the sounding reads the narrowest band\'s depth, else the sea\'s own', async () => {
     band('bank', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 50, latMaxDeg: 51 });
+      b.setExtent(belt(50, 51));
       b.setDepthM(12);
       b.setBottom('coarse sand and shell');
     });
@@ -156,7 +174,7 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
 
   it('⭐ the fishery reads a sea cell from the stock its bands place', async () => {
     band('banks', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 50, latMaxDeg: 51 });
+      b.setExtent(belt(50, 51));
       b.setStock({ '/test/species/herring': 0.5 });
     });
     const reg = makeStuffAtPath(() => new FisheryRegistry(), '/test/fishery');

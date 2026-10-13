@@ -6,5 +6,5 @@ data:
   alternateNames: [roads, roadstead, anchorage]
   kind: passage
   passage: areal
-  expansePosition: { latDeg: 42.020, lonDeg: -8.400 }
-  expanse: /stuff/idea/WaterExpanse/greywater
+  # Three and a third miles out, bearing 069; an anchorage a mile across.
+  focus: { rho: 6192, theta: 69, radius: 1852 }

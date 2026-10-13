@@ -2855,6 +2855,30 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     expanse. The catalogue tags rows by class (`ship`), `lint:structures`
     knows a Ship is a Structure, and the *Hesper*'s row is `class:
     /platform/idea/Ship`.
+  - **B-92 — the graph is spherical; the chart is lat/lon** (review,
+    2026-10-13 — reverses D3's *a geographic position is the frame* and
+    the requirements' *a node carries no radius*). The planning ruling of
+    2026-10-10 was *the same spherical coordinates as locations*; my
+    reply translated it to "geographic", and D3 then made `GeoPosition`
+    the only system — nodes absolute, sizeless, and corridors restating
+    their endpoints' coordinates by hand. User rulings: origin-relative,
+    radius for arrival, belts relative too. `ExpanseNode` composes
+    `SphericalCoordinatesMixin` (authored `focus: {rho, theta, phi,
+    radius}`, metres and degrees, `radius` default 0 = unsized) in place
+    of `PositionedMixin`; `getExpansePosition()` is DERIVED — its frame's
+    `origin` (new `Expanse` field) `.atFocus(focus)` (new on
+    `GeoPosition`, with `M_PER_NM` and `FocusRecord`) — so every
+    chart-side reader is unchanged; the frame is stamped by the compile
+    (`setFrame`), else the node's zone. `getArrivalNm()` / `isAt(pos)`;
+    `Expanse.nodeNear(pos, nm)` → `nodeAt(pos)`; `Voyage`, `CourseController`,
+    `AboardExit` and `AshoreExit` arrive by the radius. A band authors
+    `BandExtentAuthored` (foci + `widthM`; a corridor with endpoints and
+    no `from`/`to` is drawn between them) and `Band.getExtent()` resolves
+    it onto the chart's `BandExtentRecord` — on `Band`, not as
+    `BandExtent` statics (`lint:lib-statics` refused two new ones). The
+    eight Greywater rows re-authored from the bar as origin. The
+    wiki-spoiler snapshot also carried three stale `Structure.*` lines
+    from B-91 — regenerated.
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 

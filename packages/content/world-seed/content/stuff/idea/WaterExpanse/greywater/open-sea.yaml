@@ -6,5 +6,5 @@ data:
   alternateNames: [offing, sea]
   kind: passage
   passage: areal
-  expansePosition: { latDeg: 41.900, lonDeg: -7.900 }
-  expanse: /stuff/idea/WaterExpanse/greywater
+  # Twenty-six miles out, bearing 103 — open water is wide.
+  focus: { rho: 48399, theta: 103.3, radius: 3704 }

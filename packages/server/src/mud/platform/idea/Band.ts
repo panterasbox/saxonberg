@@ -14,8 +14,12 @@
  * exact, deterministic and reportable — and drifting out of one is
  * detectable from the water alone.
  *
- * `endpoints` are optional and only a PLANNING affordance (*the
- * Westerlies join the mouth and Gannet Rock*); a belt has none. Where
+ * `endpoints` are optional and a PLANNING affordance (*the Westerlies
+ * join the roads and Gannet Rock*); a belt has none. ⭐ A corridor that
+ * names them and no `from`/`to` is DRAWN between them (maritime review,
+ * 2026-10-13) — the extent is authored on the graph, relative to the
+ * expanse's origin like a node, and answered on the chart
+ * (`BandExtent.resolve`), so moving a node moves the edges that join it. Where
  * bands overlap, a field value comes from the narrowest (smallest area)
  * and placed things (`hazards`, `stock`) union — `Expanse.fieldAt`.
  *
@@ -26,7 +30,9 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { NamedMixin } from '../../lib/description/Named';
-import { BandExtent, type BandExtentRecord, type BandCrossing } from '../../lib/expanse/BandExtent';
+import { BAND_EXTENT_KINDS, BandExtent, type BandExtentAuthored, type BandCrossing } from '../../lib/expanse/BandExtent';
+import { M_PER_NM } from '../../lib/expanse/GeoPosition';
+import { Expanse } from '../../lib/expanse/Expanse';
 import type { GeoPosition } from '../../lib/expanse/GeoPosition';
 import type { FieldMeta } from '../../lib/mixin';
 import type { ClimateLean, WeatherType } from '../../lib/weather/WeatherType';
@@ -59,7 +65,7 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
     confined: { persistent: true, authorable: true },
   };
 
-  protected extent: BandExtentRecord | null = null;
+  protected extent: BandExtentAuthored | null = null;
   /** The set / trend, degrees true — the way the water or wind goes. */
   protected direction = 0;
   protected endpoints: [string, string] | null = null;
@@ -88,17 +94,96 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
   protected confined = false;
 
   private cachedExtent: BandExtent | null = null;
+  /** Runtime only: the expanse that compiled this band (else its zone). */
+  private frame: Expanse | null = null;
 
-  public setExtent(value: BandExtentRecord | null): void {
+  public setExtent(value: BandExtentAuthored | null): void {
+    if (value) this.checkExtent(value);
     this.extent = value ?? null;
-    this.cachedExtent = value ? new BandExtent(value) : null;
+    this.cachedExtent = null;
   }
-  /** The extent as a value; `null` when the row authored none. */
+
+  /** The expanse that compiled this band names itself its frame. */
+  public setFrame(expanse: Expanse | null): void {
+    this.frame = expanse;
+    this.cachedExtent = null;
+  }
+
+  private getFrame(): Expanse | null {
+    if (this.frame !== null) return this.frame;
+    const zone = this.getZone();
+    return zone instanceof Expanse ? zone : null;
+  }
+
+  /**
+   * The extent on the chart; `null` when the row authored none, its
+   * expanse has no origin, or an endpoint it is drawn to has no position
+   * yet (a failed resolve is not cached, so the next read tries again).
+   */
   public getExtent(): BandExtent | null {
-    if (this.cachedExtent === null && this.extent !== null) {
-      this.cachedExtent = new BandExtent(this.extent);
-    }
+    if (this.cachedExtent !== null || this.extent === null) return this.cachedExtent;
+    const frame = this.getFrame();
+    const origin = frame?.getOrigin() ?? null;
+    if (frame === null || origin === null) return null;
+    const ends = this.endpoints;
+    const endpointAt = (i: 0 | 1) => {
+      const path = ends?.[i];
+      if (!path) return null;
+      return frame.peekNodes().find((n) => n.getTemplatePath() === path)?.getExpansePosition() ?? null;
+    };
+    this.cachedExtent = this.resolveExtent(this.extent, origin, endpointAt);
     return this.cachedExtent;
+  }
+
+  /** Is `authored` a well-formed authored extent? Throws when not. */
+  private checkExtent(authored: BandExtentAuthored): void {
+    if (!authored || !BAND_EXTENT_KINDS.includes(authored.kind)) {
+      throw new Error(
+        `Band: extent kind must be one of ${BAND_EXTENT_KINDS.join(', ')}; ` +
+          `got ${JSON.stringify(authored?.kind)}`,
+      );
+    }
+    if (authored.kind === 'corridor' && !(authored.widthM > 0)) {
+      throw new Error('Band: a corridor needs a positive widthM');
+    }
+    if (authored.kind === 'belt' && (!authored.from || !authored.to)) {
+      throw new Error('Band: a belt needs two corners, from and to');
+    }
+  }
+
+  /**
+   * ⭐ The authored extent on the chart: each point is `origin` + its
+   * focus; a corridor's missing end is its endpoint node's position.
+   * `null` while a needed endpoint has no position yet.
+   *
+   * ⚠ A belt's corners are taken as a box the short way round; a sea that
+   * straddles the antimeridian would need its belt split in two.
+   */
+  private resolveExtent(
+    authored: BandExtentAuthored,
+    origin: GeoPosition,
+    endpointAt: (i: 0 | 1) => GeoPosition | null,
+  ): BandExtent | null {
+    if (authored.kind === 'corridor') {
+      const from = authored.from ? origin.atFocus(authored.from) : endpointAt(0);
+      const to = authored.to ? origin.atFocus(authored.to) : endpointAt(1);
+      if (from === null || to === null) return null;
+      return new BandExtent({
+        kind: 'corridor',
+        from: from.toJSON(),
+        to: to.toJSON(),
+        widthNm: authored.widthM / M_PER_NM,
+      });
+    }
+    const a = origin.atFocus(authored.from);
+    const b = origin.atFocus(authored.to);
+    return new BandExtent({
+      kind: 'belt',
+      latMinDeg: Math.min(a.latDeg, b.latDeg),
+      latMaxDeg: Math.max(a.latDeg, b.latDeg),
+      lonMinDeg: Math.min(a.lonDeg, b.lonDeg),
+      lonMaxDeg: Math.max(a.lonDeg, b.lonDeg),
+    });
   }
 
   public getDirection(): number { return this.direction; }
@@ -107,6 +192,7 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
   public getEndpoints(): [string, string] | null { return this.endpoints; }
   public setEndpoints(v: [string, string] | null): void {
     this.endpoints = Array.isArray(v) && v.length === 2 ? [v[0], v[1]] : null;
+    this.cachedExtent = null;
   }
 
   public getCost(): BandCost { return { ...this.cost }; }

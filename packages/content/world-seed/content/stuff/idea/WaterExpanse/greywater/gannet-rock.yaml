@@ -7,5 +7,6 @@ data:
   kind: passage
   passage: areal
   destination: /world/terminus/gannet-rock/landing
-  expansePosition: { latDeg: 42.180, lonDeg: -8.150 }
-  expanse: /stuff/idea/WaterExpanse/greywater
+  # Eighteen miles out, bearing 053 — the stack, and the water you lie
+  # in off its landing.
+  focus: { rho: 33111, theta: 52.8, radius: 1852 }

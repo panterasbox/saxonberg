@@ -20,7 +20,6 @@ import type { Containable } from '../../lib/spatial/Containable';
 import { Expanse } from '../../lib/expanse/Expanse';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { AppApi } from '../../api/app';
 import { TemplatePaths } from '../../lib/paths';
 import type StructureCatalogue from './StructureCatalogue';
 
@@ -58,11 +57,9 @@ export default class AshoreExit extends DeferredDestinationExit {
     const path = craft.getExpanse();
     const e = path ? StuffApi.findByTemplatePath<Stuff>(path) : null;
     if (!at || !(e instanceof Expanse)) return null;
-    const within = Number(AppApi.setting('expanse.arrivalNm')) || 1;
     for (const n of e.peekNodes()) {
-      const p = n.getExpansePosition();
       const dest = n.getDestination();
-      if (p && dest && p.distanceNm(at) <= within) return dest;
+      if (dest && n.isAt(at)) return dest;
     }
     return null;
   }

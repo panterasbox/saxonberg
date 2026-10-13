@@ -13,6 +13,23 @@ import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
 
+/** The sea's origin — what the graph's points are measured from. */
+const ORIGIN = new GeoPosition(50, -4);
+/** A chart point as the graph authors it: range (m) and bearing from the origin. */
+function focusAt(latDeg: number, lonDeg: number): { rho: number; theta: number } {
+  const p = new GeoPosition(latDeg, lonDeg);
+  return { rho: ORIGIN.distanceNm(p) * 1852, theta: ORIGIN.bearingTo(p) };
+}
+/** A belt between two chart corners, authored relative to the origin. */
+function belt(latMin: number, latMax: number, lonMin = ORIGIN.lonDeg - 30, lonMax = ORIGIN.lonDeg + 30) {
+  return { kind: 'belt' as const, from: focusAt(latMin, lonMin), to: focusAt(latMax, lonMax) };
+}
+/** A corridor between two chart points, authored relative to the origin. */
+function corridor(from: [number, number], to: [number, number], widthNm: number) {
+  return { kind: 'corridor' as const, from: focusAt(...from), to: focusAt(...to), widthM: widthNm * 1852 };
+}
+
+
 /**
  * The frame (maritime A2) over synthetic rows: composition at a position,
  * nodes by keyword, the seeded traffic field, per-channel co-presence.
@@ -34,6 +51,7 @@ beforeEach(() => {
   StuffApi.clearAll();
   live.clear();
   sea = makeStuffAtPath(() => new TestExpanse(), SEA);
+  sea.setOrigin(ORIGIN);
   live.set(SEA, sea);
   vi.spyOn(Template, 'findDescendants').mockImplementation(async () =>
     [...live.keys()].filter((p) => p !== SEA).map((path) => ({ path, data: {} }) as unknown as Template),
@@ -51,18 +69,13 @@ afterEach(() => vi.restoreAllMocks());
 describe('Expanse.fieldAt — the narrowest wins, placed things union', () => {
   beforeEach(() => {
     band('the-haar', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setLean({ directionDeg: 200, strengthMps: 1 });
       b.setHazards(['/test/hazard/fog']);
       b.setStock({ herring: 0.4, mackerel: 0.2 });
     });
     band('the-race', (b) => {
-      b.setExtent({
-        kind: 'corridor',
-        from: { latDeg: 50, lonDeg: -5 },
-        to: { latDeg: 50, lonDeg: -4 },
-        widthNm: 2,
-      });
+      b.setExtent(corridor([50, -5], [50, -4], 2));
       b.setLean({ directionDeg: 270, strengthMps: 9 });
       b.setHazards(['/test/hazard/overfalls']);
       b.setStock({ herring: 0.9 });
@@ -93,14 +106,15 @@ describe('nodes', () => {
   it('a node resolves by a word of its own name, never through MQL', async () => {
     const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/gannet-rock`);
     n.setName('Gannet Rock');
-    n.setExpansePosition({ latDeg: 50.3, lonDeg: -4.2 });
+    n.setFocus(focusAt(50.3, -4.2));
     live.set(`${SEA}/gannet-rock`, n);
     sea.invalidate();
     expect((await sea.nodeByKeyword('gannet'))?.getTemplatePath()).toBe(`${SEA}/gannet-rock`);
     expect((await sea.nodeByKeyword('the gannet rock'))).not.toBeNull();
     expect(await sea.nodeByKeyword('lundy')).toBeNull();
-    expect((await sea.nodeNear(new GeoPosition(50.31, -4.2), 1))?.getName()).toBe('Gannet Rock');
-    expect(await sea.nodeNear(new GeoPosition(51, -4.2), 1)).toBeNull();
+    // Unsized, a node is reached within the `expanse.arrivalNm` fallback.
+    expect((await sea.nodeAt(new GeoPosition(50.31, -4.2)))?.getName()).toBe('Gannet Rock');
+    expect(await sea.nodeAt(new GeoPosition(51, -4.2))).toBeNull();
   });
 
   it('a place node carries no passage; a bad kind is refused', () => {
@@ -191,11 +205,11 @@ describe('the weather on the water (maritime R9/R10)', () => {
 
   it('⭐ a crossing reports what CHANGED: a current takes her, lets her go, or nothing', async () => {
     band('stream', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setDirection(45);
       b.setSetKn(2);
     });
-    band('slack', (b) => b.setExtent({ kind: 'belt', latMinDeg: 52, latMaxDeg: 53 }));
+    band('slack', (b) => b.setExtent(belt(52, 53)));
     const outside = new GeoPosition(48, 0);
     const inside = new GeoPosition(50, 0);
     const slack = new GeoPosition(52.5, 0);
@@ -211,7 +225,7 @@ describe('the weather on the water (maritime R9/R10)', () => {
     ship.setExpanse(SEA);
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     band('haar', (b) => {
-      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setExtent(belt(49, 51));
       b.setWeatherLean({ fog: 8 });
     });
     const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
@@ -230,5 +244,66 @@ describe('the weather on the water (maritime R9/R10)', () => {
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });
     expect(ExpanseApi.leanAtSync('/test/elsewhere')).toBeNull();
     expect(() => band('bad', (b) => b.setWeatherLean({ fog: -1 }))).toThrow(/non-negative/);
+  });
+});
+
+describe('⭐⭐ the graph is spherical, the chart is lat/lon (maritime review, 2026-10-13)', () => {
+  function node(key: string, focus: { rho: number; theta: number; phi?: number; radius?: number }): ExpanseNode {
+    const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/${key}`);
+    n.setName(key);
+    n.setFocus(focus);
+    live.set(`${SEA}/${key}`, n);
+    sea.invalidate();
+    return n;
+  }
+
+  it('a node is a focus RELATIVE to its expanse: moving the origin moves it', async () => {
+    const rock = node('rock', { rho: 15 * 1852, theta: 50 });
+    await sea.nodes();
+    const was = rock.getExpansePosition()!;
+    expect(ORIGIN.distanceNm(was)).toBeCloseTo(15, 6);
+    expect(ORIGIN.bearingTo(was)).toBeCloseTo(50, 6);
+    const moved = ORIGIN.destination(0, 60);
+    sea.setOrigin(moved);
+    expect(moved.distanceNm(rock.getExpansePosition()!)).toBeCloseTo(15, 6);
+    expect(rock.getExpanse()).toBe(SEA);
+  });
+
+  it('phi below the surface is a depth on the same three numbers', () => {
+    const at = ORIGIN.atFocus({ rho: 100, theta: 0, phi: 180 });
+    expect(at.depthM).toBe(100);
+    expect(at.distanceNm(ORIGIN)).toBeLessThan(1e-9);
+    expect(ORIGIN.atFocus({ rho: 1852, theta: 90 }).depthM).toBe(0);
+  });
+
+  it('⭐ an edge drawn between two nodes FOLLOWS them — it restates nothing', async () => {
+    const a = node('a', { rho: 0, theta: 0 });
+    const b = node('b', { rho: 20 * 1852, theta: 90 });
+    band('stream', (s) => {
+      s.setExtent({ kind: 'corridor', widthM: 2 * 1852 });
+      s.setEndpoints([`${SEA}/a`, `${SEA}/b`]);
+    });
+    await sea.bands();
+    const mid = ORIGIN.destination(90, 10);
+    expect((await sea.fieldAt(mid)).band?.getTemplatePath()).toBe(`${SEA}/stream`);
+    // Move b due north: the corridor swings with it.
+    b.setFocus({ rho: 20 * 1852, theta: 0 });
+    sea.invalidate();
+    await sea.bands();
+    expect((await sea.fieldAt(mid)).band).toBeNull();
+    expect((await sea.fieldAt(ORIGIN.destination(0, 10))).band?.getTemplatePath()).toBe(`${SEA}/stream`);
+    expect(a.getExpansePosition()!.distanceNm(ORIGIN)).toBeLessThan(1e-9);
+  });
+
+  it('⭐ the radius is how close is THERE', async () => {
+    const cove = node('cove', { rho: 5 * 1852, theta: 0, radius: 400 });
+    const bank = node('bank', { rho: 5 * 1852, theta: 180, radius: 3 * 1852 });
+    await sea.nodes();
+    const nearCove = ORIGIN.destination(0, 5).destination(90, 0.5);
+    expect(cove.isAt(nearCove)).toBe(false);
+    expect(await sea.nodeAt(nearCove)).toBeNull();
+    const nearBank = ORIGIN.destination(180, 5).destination(90, 2.5);
+    expect((await sea.nodeAt(nearBank))?.getName()).toBe('bank');
+    expect(bank.getArrivalNm()).toBeCloseTo(3, 6);
   });
 });

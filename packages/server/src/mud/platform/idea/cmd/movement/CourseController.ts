@@ -22,7 +22,6 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { ExpanseApi } from '../../../../api/expanse';
-import { AppApi } from '../../../../api/app';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../../lib/expanse/Voyaging';
@@ -77,8 +76,7 @@ export default class CourseController extends CommandController<CourseModel> {
 
     // Inside a confined linear passage, only its two ends are a course.
     const here = craft.getExpansePosition();
-    const arrivalNm = Number(AppApi.setting('expanse.arrivalNm')) || 1;
-    const at = here ? await expanse.nodeNear(here, arrivalNm) : null;
+    const at = here ? await expanse.nodeAt(here) : null;
     if (at?.isLinear() && at.getAlong()) {
       const band = await expanse.band(at.getAlong()!);
       const ends = band?.isConfined() ? band.getEndpoints() : null;
