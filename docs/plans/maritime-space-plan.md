@@ -2764,6 +2764,14 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
   - **B-81 — the draught** (`bulk.draughtL`, 0.25 L) is a plain return,
     no clamp note: drinking from a river takes a mouthful, which is the
     act, not a shortfall. The shipped tap's `∞` hole closes with it.
+  - **B-83 — the read warms at birth after all** (supersedes T4's *no
+    onCreate*). Driving it: a cold first read takes 5–9 s (the catalogue
+    compile, the fishery standing, the ice), so the first `look river`
+    after a boot said *hard to read yet* past the drive's patience. The
+    retired `Shore` prop warmed in `onCreate`; that warm moved onto
+    `ShoreMixin`, so `lint:on-create` is back at 82 — the same population,
+    not a rise. A read that fails, finds no source, or takes over 2 s now
+    logs (it was swallowed silently).
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 

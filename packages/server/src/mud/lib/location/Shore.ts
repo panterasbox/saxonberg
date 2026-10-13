@@ -110,6 +110,19 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /** Keys already warned about (naming no feature of this place). */
     private _warnedKeys: Set<string> | null = null;
 
+    /**
+     * ⭐ Warm the water's read at birth (maritime revision 3, B-83). A cold
+     * first read is slow — the reach catalogue's compile, the fishery's
+     * standing, the ice — and the first person to look at the river after
+     * a boot should not wait it out. The retired `Shore` prop warmed here
+     * too; this is that same `onCreate` moved onto the place, so
+     * `lint:on-create`'s count is where it was (82), not a rise.
+     */
+    public async onCreate(...args: unknown[]): Promise<void> {
+      await (Base.prototype as { onCreate?: (...a: unknown[]) => Promise<void> }).onCreate?.apply(this, args);
+      for (const key of Object.keys(this.waters)) void this.refreshWater(key, false);
+    }
+
     public getWaters(): Record<string, string> {
       return { ...this.waters };
     }
@@ -265,9 +278,16 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     private async readCited(memo: WaterMemo, citation: string, nowS: number): Promise<void> {
+      const startedMs = Date.now();
+      const where = (this as unknown as Stuff).getTemplatePath() ?? '?';
       try {
         memo.source ??= await findWaterSource(citation);
-        if (memo.source === null) return;
+        if (memo.source === null) {
+          // ⚠ Never silent: no source means a water nobody here can read.
+          memo.unknown = true;
+          console.warn(`ShoreMixin: ${where} cites '${citation}', and no water source answers for it`);
+          return;
+        }
         const read = await memo.source.readWater(citation, this as unknown as Stuff, nowS);
         if (read === null) {
           memo.unknown = true;
@@ -275,8 +295,13 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         memo.unknown = undefined;
         memo.read = read;
-      } catch {
-        /* the read stays as it was; a look says it is hard to read */
+      } catch (err) {
+        // The read stays as it was (a look says it is hard to read) — but
+        // a read that THROWS is a defect somebody must be able to see.
+        console.warn(`ShoreMixin: reading '${citation}' at ${where} failed:`, err);
+      } finally {
+        const tookMs = Date.now() - startedMs;
+        if (tookMs > 2_000) console.warn(`ShoreMixin: reading '${citation}' at ${where} took ${tookMs} ms`);
       }
     }
 

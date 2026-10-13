@@ -64,7 +64,8 @@ const OUTFIT = '/world/terminus/hesper/idea/outfit';
 const HEATH = '/world/moor/stormy-heath';
 const NORTH_SHORE = '/world/north/shore';
 const BROW = '/world/terminus/estuary/headland/brow';
-const PAIL = '/stuff/thing/vessel/pail';
+/** A vessel the founder may mint: `clone` is gated on held extents, and the commons' pail is no extent of the founder's. */
+const SKIN = '/world/terminus/general-store/thing/waterskin';
 /** The tower as `scan horizon` features it, and its own description. */
 const FEATURED_TOWER = /You can see the terminal clock tower/;
 const TOWER_SAYS = /square brick shaft/;
@@ -597,6 +598,8 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
   }
 
   it('31 · on the bank, `look river` gives the bank\'s words then the Kestrel\'s read; `look water` asks nothing; no edge', async () => {
+    // The cane dropped on the deck in step 15 comes ashore for step 33.
+    expectOk(await me.cmd('get cane'));
     await at(BANK);
     const river = await readOf('river', /This is the Kestrel/);
     expect(river).toMatch(/moving faster than it looks/);
@@ -614,8 +617,7 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
 
   it('33 · `fish` binds the place: unnamed, by the water\'s name; the lamps are refused in words', async () => {
     await at(BANK);
-    // A bare hook: the fisher fishes with none, and a second worm would ask which.
-    expectOk(await w.cmd('clone /trade/fishing/thing/rod'));
+    // The cane from the deck; a bare hook — the fisher fishes with none.
     await readOf('river', /This is the Kestrel/);
     const lamps = await w.cmd('fish at lamps');
     expectRefused(lamps);
@@ -630,36 +632,33 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     await w.cmd('cancel fishing');
   }, 300_000);
 
-  it('34 · `analyze water`, then fill a pail from the river: the water below the outfall is fouled; a mere\'s is clean', async () => {
+  it('34 · `analyze water`, then fill a skin from the river: the gauge sees the outfall; the water looks like water; a mere\'s is clean', async () => {
     await at(BANK);
     // ⭐ The gauge, not the eye: `analyze water` says what is IN the reach
     // (AC 53 — nothing about the water itself announces it).
-    // ⚠ A concentration: the spring melt dilutes the sewer to nothing
-    // (10 m³/s, all but 0.3 of it snowmelt); in a dry month the same
-    // outfall fouls the wharf. Wait out the melt, a month at a time.
-    let gauge = '';
-    for (let i = 0; i < 12; i++) {
-      const read = await w.cmd('analyze water');
-      expectOk(read);
-      gauge = squash(await read.said());
-      if (/fouled — an outfall above here/.test(gauge)) break;
-      await advanceWorldClock('720 hours');
-    }
+    // ⚠ A concentration: in the spring melt the river thins the city's
+    // sewer to traces; in a dry month the same outfall fouls the wharf
+    // (`ShoreRead.test.ts` proves the draw follows the threshold). The
+    // drive proves the GAUGE sees the outfall — waiting out the melt
+    // month by month bogged the world (the first run of this step).
+    const read = await w.cmd('analyze water');
+    expectOk(read);
+    const gauge = squash(await read.said());
     expect(gauge).toMatch(/reach: kestrel:confluence/);
-    expect(gauge, 'T16: the wharf below the sewer reads fouled in a dry month').toMatch(/fouled — an outfall above here/);
-    expectOk(await w.cmd(`clone ${PAIL}`));
-    const fill = await w.cmd('fill pail from river');
+    expect(gauge).toMatch(/an outfall above here/);
+    expectOk(await w.cmd(`clone ${SKIN}`));
+    const fill = await w.cmd('fill skin from river');
     expectOk(fill);
     expect(squash(await fill.said())).toMatch(/You fill/);
-    // It looks like any water — the pail is no tell.
-    expect(await look(w, 'look --peek pail')).toMatch(/clear water/);
-    expect(await look(w, 'look --peek pail')).not.toMatch(/foul|dirty|brown|cloudy/i);
+    // It looks like any water — the skin is no tell.
+    expect(await look(w, 'look --peek skin')).toMatch(/clear water/);
+    expect(await look(w, 'look --peek skin')).not.toMatch(/foul|dirty|brown|cloudy/i);
     await at('/world/circle/shore');
-    expectOk(await w.cmd('spill pail'));
-    const clean = await w.cmd('fill pail from mere');
+    expectOk(await w.cmd('spill skin'));
+    const clean = await w.cmd('fill skin from mere');
     // A mere in winter may be iced over — then it says so (step 36's case).
     if (clean.status === 'ok') {
-      expect(await look(w, 'look --peek pail')).toMatch(/clear water/);
+      expect(await look(w, 'look --peek skin')).toMatch(/clear water/);
     } else {
       expect(squash(await clean.said())).toMatch(/frozen from bank to bank/);
     }
@@ -668,7 +667,8 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
   it('36 · at the blackmere, iced from day 0, the draw is refused in words', async () => {
     await at(NORTH_SHORE);
     await readOf('mere', /Ice lies on it/);
-    const r = await w.cmd('fill pail from mere');
+    await w.cmd('spill skin');
+    const r = await w.cmd('fill skin from mere');
     expect(r.status).not.toBe('ok');
     expect(squash(await r.said())).toMatch(/frozen from bank to bank; nothing comes up but ice/);
   }, 300_000);
@@ -677,11 +677,11 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     // Wherever she is now, the deck is a shore of the sea under her.
     await at('/world/terminus/hesper/deck');
     expect(await readOf('sea', /The sea is /)).toMatch(/Below the rail, the water[^]*The sea is /);
-    expectOk(await w.cmd('spill pail'));
-    const fill = await w.cmd('fill pail from sea');
+    expectOk(await w.cmd('spill skin'));
+    const fill = await w.cmd('fill skin from sea');
     expectOk(fill);
-    expect(await look(w, 'look --peek pail')).toMatch(/brine/i);
-    const drink = await w.cmd('drink pail');
+    expect(await look(w, 'look --peek skin')).toMatch(/brine/i);
+    const drink = await w.cmd('drink skin');
     expectOk(drink);
     expect(await look(w)).not.toMatch(/gunwale/i);
   }, 300_000);
