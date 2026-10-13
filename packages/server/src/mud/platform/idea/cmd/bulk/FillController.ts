@@ -136,12 +136,14 @@ export default class FillController extends CommandController<FillModel> {
       return;
     }
 
+    // ⭐ Filled from a FEATURE of a place (the river at a shore — maritime
+    // revision 3): name the feature, not the place it belongs to.
+    const feature = model.source.via?.detailPath?.at(-1);
+    const from = feature ? Mml.compose`the ${feature}` : Mml.thing(source);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${Mml.thing(source)}.`,
-      )
+      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${from}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${from}.`)
       .send();
   }
 }

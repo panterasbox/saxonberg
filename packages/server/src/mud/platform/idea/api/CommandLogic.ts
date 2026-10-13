@@ -1189,17 +1189,39 @@ export class CommandLogic extends ApiLogic {
     //   - a SET named on purpose (`horizon`, `peers`): never asked — too
     //     many for the slot is refused in words, not prompted;
     //   - a name: the view's own policy, prompt included.
+    // ⭐⭐ A binder refusal SPEAKS (found in the maritime browser walk,
+    // 2026-10-13): these were `controller-rejected` notes, which the
+    // dispatcher deliberately does not prose — a controller speaks its own
+    // — but no controller ever runs when the binder refuses, so `look
+    // peers` answered with SILENCE. They are argument gates, like a
+    // validator, and ride `validator-failed`, whose detail IS the
+    // player's prose.
+    const verb = context.verb ?? 'that';
+    const refuse = (reason: string, words: string): null => {
+      context.note({
+        kind: 'validator-failed',
+        field: fname,
+        validator: `cardinality:${reason}`,
+        detail: words,
+      });
+      return null;
+    };
     const tooMany = (n: number, max: number): null => {
       // ⭐ A set refused is pointed at the verb that lists one (maritime
       // revision 2′): `look horizon` → `query horizon`.
       const listIt = how.raw ? ` — \`query ${how.raw}\` lists them` : '';
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'too-many',
-        detail: `${fname}: that names ${n} things, and this takes ${max === 1 ? 'one' : `at most ${max}`}${listIt}`,
-      });
-      return null;
+      return refuse(
+        'too-many',
+        `That is ${n} things, and \`${verb}\` takes ${max === 1 ? 'one' : `at most ${max}`}${listIt}.`,
+      );
     };
+    const ambiguous = (n: number): null =>
+      refuse(
+        'ambiguous',
+        how.raw
+          ? `'${how.raw}' could be any of ${n} things — say which (\`2nd ${how.raw}\`).`
+          : `That could be any of ${n} things — say which.`,
+      );
     if (spec.type === 'object') {
       const policy = spec.onExcess ?? 'top';
       if (stuff.length === 0) return [];
@@ -1211,25 +1233,11 @@ export class CommandLogic extends ApiLogic {
       // the top, never ask.
       if (how.quantity) return [stuff[0]!];
       if (policy === 'top') return [stuff[0]!];
-      if (policy === 'error') {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'ambiguous',
-          detail: `${fname}: ambiguous (${stuff.length} matches)`,
-        });
-        return null;
-      }
+      if (policy === 'error') return ambiguous(stuff.length);
       // 'prompt' — push mqlObject and await the player's pick. If
       // no Interactive is on the context (e.g. NPC dispatch path),
       // there's no way to disambiguate; degrade to top with a note.
-      if (!context.interactive) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'ambiguous',
-          detail: `${fname}: ambiguous (${stuff.length} matches) and no Interactive to disambiguate`,
-        });
-        return null;
-      }
+      if (!context.interactive) return ambiguous(stuff.length);
       const picked = await context.interactive.promptMqlObject(
         `which ${fname}?`,
         stuff,
@@ -1248,12 +1256,10 @@ export class CommandLogic extends ApiLogic {
       const max = card.exactly ?? card.max ?? Number.POSITIVE_INFINITY;
 
       if (stuff.length < min) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'insufficient',
-          detail: `${fname}: expected at least ${min}, got ${stuff.length}`,
-        });
-        return null;
+        return refuse(
+          'insufficient',
+          `\`${verb}\` needs at least ${min}, and that is ${stuff.length}.`,
+        );
       }
       if (stuff.length <= max) return stuff;
 
@@ -1263,21 +1269,11 @@ export class CommandLogic extends ApiLogic {
       if (policy === 'take-all') return stuff;
       if (policy === 'truncate') return stuff.slice(0, max);
       if (policy === 'error') {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'too-many',
-          detail: `${fname}: got ${stuff.length}, max ${max}`,
-        });
-        return null;
+        return tooMany(stuff.length, max);
       }
       // 'prompt' — push mqlMany with bounds and await.
       if (!context.interactive) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'too-many',
-          detail: `${fname}: got ${stuff.length}, max ${max}, no Interactive to narrow`,
-        });
-        return null;
+        return tooMany(stuff.length, max);
       }
       const picks = await context.interactive.promptMqlMany(
         `pick ${min}-${max} ${fname}`,
@@ -1455,6 +1451,20 @@ export class CommandLogic extends ApiLogic {
               via = got.via;
               quantity = got.quantity;
               isSet = got.isSet === true;
+              // ⭐ Taking the TOP of several: its own `via`, not the set's
+              // consensus (found in the maritime browser walk: `fill skin
+              // from sea` on the deck matched the deck's `sea` feature AND
+              // the sea chest, the consensus was nothing, and the deck lost
+              // the feature it was named by).
+              if (useTop && got.stuff.length > 1 && via === undefined) {
+                for (const scope of tries) {
+                  const one: MqlOne = await scopedOne(raw, giver, scope, fname, context);
+                  if (one.stuff === got.stuff[0]) {
+                    via = one.via;
+                    break;
+                  }
+                }
+              }
             }
             if (
               !applyFilteredPolicy(

@@ -42,6 +42,24 @@ export default class QueryController extends CommandController<QueryModel> {
     const raw = model.set?.raw ?? '';
     const items = MqlApi.extractStuffs(model.set) ?? [];
     if (items.length === 0) return this.nothing(raw, context);
+    // ⭐ A FEATURE of a place matched (`query all lamps` on the bank): the
+    // query names the feature, not the place that has it — say the
+    // feature, where it is (found in the maritime browser walk: it read
+    // "You see the bank at the confluence").
+    const detailPath = model.set?.via?.detailPath;
+    if (items.length === 1 && detailPath && detailPath.length > 0) {
+      const name = detailPath[detailPath.length - 1]!;
+      const host = items[0]!;
+      MessageApi.scene(context.commandGiver)
+        .topic('sense.survey')
+        .toSelf(
+          host === context.location
+            ? Mml.compose`You see the ${name} here — \`look ${name}\`.`
+            : Mml.compose`You see the ${name} on ${Mml.thing(host)} — \`look ${name}\`.`,
+        )
+        .send();
+      return;
+    }
     if (model.ledger === true) return this.ledger(items, context);
     this.list(items, context);
   }

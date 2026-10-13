@@ -2772,6 +2772,37 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     `ShoreMixin`, so `lint:on-create` is back at 82 — the same population,
     not a rise. A read that fails, finds no source, or takes over 2 s now
     logs (it was swallowed silently).
+- ✅ **The browser walk (2026-10-13)** — the live client (headless
+  Playwright on 5184 against a server on 2024; the DevTools profile was
+  held by another session). Every revision-2′ and revision-3 surface was
+  walked: the bank, the deck, the frozen blackmere, the heath. It found
+  four defects the 38/38 wire drive could not:
+  - **B-84 — a binder refusal was SILENT.** `look peers` printed
+    nothing: the binder's cardinality refusals (too many, too few,
+    ambiguous with nobody to ask) were `controller-rejected` notes, which
+    the dispatcher deliberately does not prose (a controller speaks its
+    own) — but no controller runs when the binder refuses. They ride
+    `validator-failed` now (an argument gate, like a validator), whose
+    detail IS the prose: *"That is 9 things, and `look` takes one —
+    `query peers` lists them."* ⚠ Ambiguity and shortage were already
+    silent on master.
+  - **B-85 — `query all lamps` said "You see the bank at the
+    confluence."** A feature of a place matched, and `query` listed the
+    place. It names the feature now (*"You see the lamps here — `look
+    lamps`."*).
+  - **B-86 — `fill skin from river` named the place** (*"from the bank at
+    the confluence"*). It names the feature it was filled from.
+  - **B-87 — taking the TOP of several lost the top's own `via`.** On the
+    deck `sea` matched the deck's `sea` feature AND the sea chest; the
+    binder kept the set's consensus via (none), so the feature was lost
+    (*"from the Hesper's deck"*). The top now keeps its own.
+  - Recorded, not changed: `look horizon` with ONE thing in view looks at
+    it (a set of one in a one-thing slot is taken, as every seed-default
+    is); the course row reads *"This is blackmere"* (no article, lower
+    case — content); `drink` from a finite vessel still takes the whole
+    vessel (only an endless source is capped at a draught); a pitch-dark
+    bank prompts `look water` between *something*s (the known
+    perception-gates-binding behaviour).
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 
