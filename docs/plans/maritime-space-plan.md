@@ -2839,6 +2839,22 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     catalogue's rule). The rest of the survey — employment, banking,
     press, journey, screens, residency — is other subsystems'; proposed to
     the user as its own sweep, not taken here.
+  - **B-91 — `Ship extends Structure`; a light is where its rock is**
+    (review, 2026-10-13 — reverses the structures slate's *"the whole
+    difference is ONE FIELD"*). Every Structure composed the whole voyage
+    (Positioned, Voyaging, Engaged, Persistable, deck, masthead, house,
+    the aboard hooks) and the code told a ship from a building by
+    guards — `deckHeightM === null` in the expanse compile, `sightables`,
+    `AboardExit`, and (this round) the catalogue row. `Structure` is now
+    membership, entrance, the look, `landmark`, `heightM`, the eviction
+    veto; `Ship` adds the rest, and *is it a ship* is `instanceof Ship`.
+    The light on Gannet Rock lost its authored position (which had
+    drifted from its own rock's node — 42.182/−8.148 vs 42.180/−8.150):
+    the expanse finds a BUILDING standing at one of its nodes and sights
+    it there. `Sighted` carries its position and height from the
+    expanse. The catalogue tags rows by class (`ship`), `lint:structures`
+    knows a Ship is a Structure, and the *Hesper*'s row is `class:
+    /platform/idea/Ship`.
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 

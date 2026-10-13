@@ -18,5 +18,6 @@ data:
     with birds.
   landmark: true
   heightM: 30
-  expanse: /stuff/idea/WaterExpanse/greywater
-  expansePosition: { latDeg: 42.182, lonDeg: -8.148 }
+  # ⭐ No position of its own (maritime review, 2026-10-13): a light on a
+  # rock is where its rock is — the Greywater's `gannet-rock` node, whose
+  # landing is in this extent. The sea finds it as a landmark there.

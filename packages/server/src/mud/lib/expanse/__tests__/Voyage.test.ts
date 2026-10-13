@@ -5,7 +5,7 @@ import { GeoPosition } from '../GeoPosition';
 import { Voyage, VOYAGE_TYPE } from '../Voyage';
 import Band from '../../../platform/idea/Band';
 import ExpanseNode from '../../../platform/idea/ExpanseNode';
-import Structure from '../../../platform/idea/Structure';
+import Ship from '../../../platform/idea/Ship';
 import { Template } from '../../stuff/Template';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
@@ -32,7 +32,7 @@ let told: string[] = [];
 let manned = false;
 const gear = { wear: vi.fn() };
 
-class TestShip extends Structure {
+class TestShip extends Ship {
   override async aboard(): Promise<Stuff[]> { return [listener]; }
   override async watchRoom(): Promise<(Stuff & Container) | null> {
     return deck;

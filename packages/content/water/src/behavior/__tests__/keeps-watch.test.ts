@@ -8,7 +8,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
-import Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { HorizonNews } from '@saxonberg/server/mud/lib/perception/HorizonWatch';
@@ -22,7 +22,7 @@ let news: HorizonNews[];
 let commands: string[];
 let said: string[];
 let host: Stuff;
-let craft: Structure;
+let craft: Ship;
 
 function ctx(): BrainContext {
   return {
@@ -53,7 +53,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, 'isEmployed').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isCommandGiver').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
-  craft = makeStuff(() => new Structure());
+  craft = makeStuff(() => new Ship());
   craft.setHouse(HOUSE);
   craft.setCourse({ bearingDeg: 0, speedKn: 6, node: null });
   vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(craft as never);

@@ -17,7 +17,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Boat from '../../../thing/Boat';
@@ -36,10 +36,10 @@ export default class RecoverController extends CommandController<CommandModel> {
     }
     const expanse = await ExpanseApi.expanse(path);
     const within = Number(AppApi.setting('expanse.recoverNm')) || 1;
-    let ship: Structure | null = null;
+    let ship: Ship | null = null;
     let best = Infinity;
     for (const c of expanse?.craft() ?? []) {
-      if (!(c instanceof Structure) || c.getEntrance() === null) continue;
+      if (!(c instanceof Ship) || c.getEntrance() === null) continue;
       const p = c.getExpansePosition();
       const d = p ? p.distanceNm(at) : Infinity;
       if (d <= within && d < best) {

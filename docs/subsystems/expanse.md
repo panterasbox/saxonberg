@@ -39,13 +39,14 @@ plane sailing (`cos(lat)` departure), which is what a navigator with a
 traverse table does. Persisted as its plain record.
 
 `PositionedMixin` (kernel) carries `expansePosition` and `expanse` (the
-row path). Composed by `ExpanseNode`, `Structure` and the transport
-pack's `Boat` — never by `ExitableVessel` or `Mobile`. Two height hooks
+row path). Composed by `ExpanseNode`, `Ship` and the transport pack's
+`Boat` — never by `ExitableVessel` or `Mobile`, and ⛔ never by a plain
+`Structure` (a building has no position of its own). Two height hooks
 — `sightHeightFor(observer)` and `getTargetHeightM()` — are what the
 horizon reads.
 
 ⭐ A person's position is never their own: `ExpanseApi.craftAt(placePath)`
-answers the craft a place IS (a launched boat) or is IN (the Structure
+answers the craft a place IS (a launched boat) or is IN (the Ship
 whose extent covers the room). Callers walk their own containment
 (`getRootContainer()`) and pass the root's path — the Api takes paths
 only (`lint:object-verbs`).
@@ -74,7 +75,7 @@ weather must be felt.
 
 ## The voyage — held by the craft
 
-`VoyagingMixin` (kernel; `Structure`, `Boat`): ⭐⭐ the voyage's whole state
+`VoyagingMixin` (kernel; `Ship`, `Boat`): ⭐⭐ the voyage's whole state
 is **three persisted fields** — the stored `expansePosition` IS the fix,
 plus `course` and `courseSetAtS`. `getExpansePosition()` answers the
 DERIVED position while a course is set:
@@ -129,11 +130,29 @@ being seen.
 
 ## What the frame registers
 
-The expanse's compile also stands up every Structure row sited on it: one
-with a **deck** (`deckHeightM`) is a SHIP and is registered as craft from
-the start (so it is alongside its landing before it ever sails); one
-without is FIXED — a light on a rock: in view from a craft's eye, never a
-sail, and the thing a bearing fixes by.
+⭐⭐ **A Ship is a Structure whose position is a variable** (maritime
+review, 2026-10-13). `Structure` is *these rooms are one building, seen
+from outside* — membership, entrance, the look, `landmark`, `heightM` —
+and nothing else; `Ship extends Structure` adds the position, the voyage
+(Positioned, Voyaging, Engaged, Persistable), the deck and masthead
+heights, the house, and the aboard hooks. *Is it a ship?* is `instanceof
+Ship`, never a guard on a field. (Every Structure once composed the
+whole voyage and told ships from buildings by `deckHeightM === null`.)
+
+The expanse's compile stands up, by the structure catalogue's keys and
+never a full-table query:
+- **its ships** (`StructureCatalogue.structuresOn(sea)`) — registered as
+  craft from the start, so a ship is alongside its landing before it
+  ever sails;
+- **its landmarks** — a BUILDING standing at one of its nodes (the node's
+  landing is in the building's extent): the light on Gannet Rock. ⭐ It has
+  no position of its own; it is where its rock's node is, so the
+  position is authored once. In view from a craft's eye, never a sail,
+  and the thing a bearing fixes by.
+
+A sighting candidate (`Sighted`) carries its position and target height
+from the expanse — a ship's own fix, a landmark's node — and
+`Expanse.sightables()` is the synchronous list the horizon reads.
 
 ## Sight and traffic
 
@@ -210,15 +229,20 @@ emitters that announce themselves (a bell, a gun, a signal).
 - **What is in view** is `PerceptionApi.horizonFor(viewer)`, and it is
   ⭐⭐ **SYNCHRONOUS** — it is the MQL `horizon` seed's pool and the
   resolver cannot wait, so every MQL caller gets the truth with one call.
-  It reads only warm state: the RESIDENT craft and structures (one
-  `StuffApi.findByMixin(Voyaging)` read, admitted by name in the
-  registry-wide allowlist; Structures are booted and never culled —
-  `Structure.canEvict`, `lint:structures`), the resident zones' fields
+  It reads only warm state, and ⭐⭐ **only through the scope that owns
+  each answer — never a registry-wide read** (maritime review,
+  2026-10-13): *which craft am I aboard* is the structure catalogue's
+  keyed answer (`peekStructureOf` — the room's own path walked up its
+  segments); *what can I see at sea* is that craft's expanse's
+  (`sightables()`); *what stands in a named zone* is the catalogue's
+  again (`peekStructuresWithin`). Structures are booted and never culled
+  (`Structure.canEvict`, `lint:structures`); the catalogue is booted
+  `sync-read` and warmed by the expanse's compile. Also read: the resident zones' fields
   (`Zone.peekField`, the sync sibling of `lookupField`), the compiled sea,
   and the cached sky (`WeatherApi.peekSkyType`). A sky nobody has read yet
   counts as clear once and starts its read; a sea nobody has compiled
   shows a height ashore nothing once and starts compiling. Afloat: the
-  resident craft on her sea from the viewer's own eye (`Structure.sightHeightFor` — the lookout seat is the
+  craft and landmarks on her sea from the viewer's own eye (`Ship.sightHeightFor` — the lookout seat is the
   masthead), nothing below decks. Ashore: the nearest `horizon`
   declaration (a room's, then the zone walk) names ZONES; a Structure in
   one is in view from a sky-exposed room when `(heightM + |Δelevation|) ×

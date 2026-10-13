@@ -4,7 +4,7 @@ import { Expanse } from '../Expanse';
 import { GeoPosition } from '../GeoPosition';
 import Band from '../../../platform/idea/Band';
 import ExpanseNode from '../../../platform/idea/ExpanseNode';
-import Structure from '../../../platform/idea/Structure';
+import Ship from '../../../platform/idea/Ship';
 import { Template } from '../../stuff/Template';
 import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
@@ -126,10 +126,10 @@ describe('sight and traffic', () => {
   });
 
   it('a masthead sees a craft the deck does not', async () => {
-    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
     ship.setDeckHeightM(3);
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
-    const other = makeStuffAtPath(() => new Structure(), '/test/other/structure');
+    const other = makeStuffAtPath(() => new Ship(), '/test/other/structure');
     other.setName('the Kittiwake');
     other.setHeightM(5);
     // 10 nm east: beyond a 3 m eye + 5 m hull (≈ 8.4), within a 20 m
@@ -149,14 +149,16 @@ describe('sight and traffic', () => {
 
 describe('ExpanseApi.craftAt', () => {
   it('a room answers the Structure covering it, when it has a position', async () => {
-    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
     live.set('/test/ship/structure', ship);
     const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
     const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
     live.set('/platform/idea/StructureCatalogue', cat);
-    vi.spyOn(Template, 'findByClass').mockResolvedValue([
-      { path: '/test/ship/structure', data: { extent: '/test/ship' } },
-    ] as unknown as Template[]);
+    // The ship is a SHIP row; no plain Structure rows here.
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      (cls === '/platform/idea/Ship'
+        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
+        : []) as unknown as Template[]);
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
@@ -166,10 +168,10 @@ describe('ExpanseApi.craftAt', () => {
 
 describe('the weather on the water (maritime R9/R10)', () => {
   it('⭐ fog shortens sight to a tenth — what a clear day shows, a haar hides', async () => {
-    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
     ship.setDeckHeightM(20);
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
-    const other = makeStuffAtPath(() => new Structure(), '/test/other/structure');
+    const other = makeStuffAtPath(() => new Ship(), '/test/other/structure');
     other.setHeightM(5);
     other.setExpansePosition(new GeoPosition(50, -4).destination(90, 10));
     sea.register(ship);
@@ -203,7 +205,7 @@ describe('the weather on the water (maritime R9/R10)', () => {
   });
 
   it('⭐ the lean under a craft is the narrowest band\'s — and a cold sea leans nothing', async () => {
-    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
     live.set('/test/ship/structure', ship);
     ship.setExtent('/test/ship');
     ship.setExpanse(SEA);
@@ -215,9 +217,11 @@ describe('the weather on the water (maritime R9/R10)', () => {
     const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
     const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
     live.set('/platform/idea/StructureCatalogue', cat);
-    vi.spyOn(Template, 'findByClass').mockResolvedValue([
-      { path: '/test/ship/structure', data: { extent: '/test/ship' } },
-    ] as unknown as Template[]);
+    // The ship is a SHIP row; no plain Structure rows here.
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      (cls === '/platform/idea/Ship'
+        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
+        : []) as unknown as Template[]);
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing stood up
     await cat.all();

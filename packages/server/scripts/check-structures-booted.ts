@@ -26,6 +26,8 @@ import YAML from 'yaml';
 import { CONTENT, effectiveDoc, inheritanceIndex } from './pack-roots';
 
 const STRUCTURE_CLASS = '/platform/idea/Structure';
+/** A Ship is a Structure whose position is a variable (maritime review). */
+const SHIP_CLASS = '/platform/idea/Ship';
 
 function walk(dir: string, out: string[] = []): string[] {
   let entries: string[];
@@ -65,7 +67,7 @@ for (const pack of packs) {
       continue; // a malformed row is another gate's finding
     }
     const cls = String(doc.class ?? '');
-    const isStructure = cls === STRUCTURE_CLASS;
+    const isStructure = cls === STRUCTURE_CLASS || cls === SHIP_CLASS;
     const isExpanse = /\/[A-Za-z]*Expanse$/.test(cls);
     if (!isStructure && !isExpanse) continue;
     checked++;

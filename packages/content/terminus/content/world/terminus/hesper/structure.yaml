@@ -7,7 +7,7 @@
 # nobody aboard and across a restart.
 #
 # She starts lying at the bar, off the estuary mouth.
-class: /platform/idea/Structure
+class: /platform/idea/Ship
 data:
   name: the Hesper
   extent: /world/terminus/hesper

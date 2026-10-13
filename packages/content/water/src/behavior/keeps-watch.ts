@@ -8,7 +8,7 @@
  * `watch horizon` (the same verb a player types) and SAYS each new
  * sighting to the deck — *"The light on Gannet Rock, on the starboard
  * bow!"*. The seat is what puts the lookout at the masthead
- * (`Structure.sightHeightFor`), so a hired lookout calls a light the deck
+ * (`Ship.sightHeightFor`), so a hired lookout calls a light the deck
  * cannot see yet.
  *
  * Off shift, out of the seat, or ashore: she stands down, and nobody is
@@ -29,9 +29,9 @@ import {
   HORIZON_WATCH_TYPE,
   type HorizonWatch,
 } from '@saxonberg/server/mud/lib/perception/HorizonWatch';
-import Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 
-/** The seat that keeps the watch (the Structure's own key). */
+/** The seat that keeps the watch (the Ship's own key). */
 const LOOKOUT = 'lookout';
 
 /** Where a thing lies relative to the ship's head, as a lookout calls it. */
@@ -86,10 +86,10 @@ export const brain = class {
   }
 
   /** The structure whose deck she stands on, if any. */
-  static async craftOf(host: Stuff): Promise<Structure | null> {
+  static async craftOf(host: Stuff): Promise<Ship | null> {
     const root = MixinApi.isContainable(host) ? host.getRootContainer() ?? host : host;
     const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
-    return craft instanceof Structure ? craft : null;
+    return craft instanceof Ship ? craft : null;
   }
 
   /** A sighting as a lookout calls it — off the ship's head, or by the compass at anchor. */

@@ -62,17 +62,25 @@ export interface ExpanseField {
   traffic: number;
 }
 
-/** Something sighted — a real craft or a seeded passer-by. */
-/** A candidate for sight: the craft or structure, and whether it never moves. */
+/**
+ * A candidate for sight: the craft or structure, WHERE it is and how tall
+ * it stands — supplied by the expanse (a craft's own fix; a landmark's is
+ * the node it stands at), never read off a building that has no position
+ * of its own.
+ */
 export interface Sighted {
-  craft: Stuff & Positioned;
+  craft: Stuff;
+  at: GeoPosition;
+  /** Its height as a target, metres. */
+  heightM: number;
   /** A landmark that never moves (a light) — what a bearing fixes by. */
   fixed: boolean;
 }
 
+/** Something sighted — a real craft, a landmark, or a seeded passer-by. */
 export interface Contact {
-  /** The live craft, or `null` for seeded traffic. */
-  craft: (Stuff & Positioned) | null;
+  /** The live craft or landmark, or `null` for seeded traffic. */
+  craft: Stuff | null;
   /** Words for it: *the Hesper*, *a collier*. */
   name: string;
   bearingDeg: number;
@@ -137,8 +145,12 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /** The compiled rows once loaded, for the synchronous reads. */
   private loadedBands: Band[] = [];
   private loadedNodes: ExpanseNode[] = [];
-  /** Positioned Structures on this sea with no deck — landmarks. */
-  private landmarks: (Stuff & Positioned)[] = [];
+  /**
+   * The buildings standing at this sea's nodes — a light on a rock —
+   * each where its node is (maritime review: a building on a rock has no
+   * position of its own; it is where its rock is).
+   */
+  private landmarks: { stuff: Stuff; at: GeoPosition }[] = [];
 
   public getPrevailingDeg(): number { return this.prevailingDeg; }
   public setPrevailingDeg(v: number): void { this.prevailingDeg = Number(v) || 0; }
@@ -326,10 +338,17 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    */
   public sightables(): Sighted[] {
     if (this.compiled === null) void this.compile().catch(() => undefined);
-    return [
-      ...this.landmarks.map((craft) => ({ craft, fixed: true })),
-      ...this.craft().map((craft) => ({ craft, fixed: false })),
-    ];
+    const out: Sighted[] = this.landmarks.map(({ stuff, at }) => ({
+      craft: stuff,
+      at,
+      heightM: (stuff as unknown as { getHeightM?: () => number }).getHeightM?.() ?? 0,
+      fixed: true,
+    }));
+    for (const c of this.craft()) {
+      const at = c.getExpansePosition();
+      if (at !== null) out.push({ craft: c, at, heightM: c.getTargetHeightM(), fixed: false });
+    }
+    return out;
   }
 
   /* ───────────────────────── sight ───────────────────────── */
@@ -420,12 +439,10 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
 
     const out: Contact[] = [];
     const seen = new Set<string>();
-    for (const { craft: c, fixed } of candidates) {
+    for (const { craft: c, at, heightM, fixed } of candidates) {
       if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId) || c.isDestroyed()) continue;
-      const at = c.getExpansePosition();
-      if (at === null) continue;
       const d = here.distanceNm(at);
-      if (d > rangeFor(c.getTargetHeightM())) continue;
+      if (d > rangeFor(heightM)) continue;
       seen.add(c.stuffId);
       out.push({
         craft: c,
@@ -493,28 +510,45 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    */
   private async loadStructures(): Promise<void> {
     const self = this.getTemplatePath() ?? '';
-    const landmarks: (Stuff & Positioned)[] = [];
-    // ⭐ The structure catalogue's rows for THIS sea, by key — not a
-    // full-table query over every positioned row in the world (maritime
-    // review, 2026-10-13). Reading it here also warms the catalogue at
+    const landmarks: { stuff: Stuff; at: GeoPosition }[] = [];
+    // ⭐ The structure catalogue, by key — never a full-table query
+    // (maritime review, 2026-10-13). Reading it here also warms it at
     // boot, which the horizon then reads synchronously.
-    const cat = await StuffApi.singleton<Stuff>(TemplatePaths.structureCatalogue).catch(() => null);
-    const rows = cat
-      ? await (cat as unknown as { structuresOn(p: string): Promise<readonly { path: string; deckHeightM: number | null }[]> })
-          .structuresOn(self)
-      : [];
-    for (const row of rows) {
+    const cat = (await StuffApi.singleton<Stuff>(TemplatePaths.structureCatalogue).catch(() => null)) as
+      | (Stuff & {
+          structuresOn(p: string): Promise<readonly { path: string; ship: boolean }[]>;
+          structureOf(p: string): Promise<{ path: string; ship: boolean } | null>;
+        })
+      | null;
+    if (cat === null) return;
+    // Ships sited on this sea are craft from the start, so one that has
+    // never sailed is still alongside its landing.
+    for (const row of await cat.structuresOn(self)) {
+      if (!row.ship) continue;
       try {
         const s = await StuffApi.singleton<Stuff>(row.path);
-        if (!MixinApi.isPositioned(s)) continue;
-        if (row.deckHeightM !== null) this.register(s);
-        else landmarks.push(s);
+        if (MixinApi.isPositioned(s)) this.register(s);
+      } catch {
+        /* a broken row contributes nothing */
+      }
+    }
+    // A BUILDING standing at one of this sea's nodes (the light on Gannet
+    // Rock: the node lands in its extent) is a landmark, where its node is.
+    for (const node of this.loadedNodes) {
+      const dest = node.getDestination();
+      const at = node.getExpansePosition();
+      if (!dest || at === null) continue;
+      const row = await cat.structureOf(dest);
+      if (row === null || row.ship || landmarks.some((l) => l.stuff.getTemplatePath() === row.path)) continue;
+      try {
+        landmarks.push({ stuff: await StuffApi.singleton<Stuff>(row.path), at });
       } catch {
         /* a broken row contributes nothing */
       }
     }
     this.landmarks = landmarks;
   }
+
 
 
   private compile(): Promise<{ nodes: ExpanseNode[]; bands: Band[] }> {

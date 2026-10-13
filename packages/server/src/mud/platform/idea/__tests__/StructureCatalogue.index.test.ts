@@ -22,7 +22,11 @@ const ROWS = [
 let cat: StructureCatalogue;
 beforeEach(() => {
   StuffApi.clearAll();
-  vi.spyOn(Template, 'findByClass').mockResolvedValue(ROWS as unknown as Template[]);
+  // The Hesper's row is a SHIP; the rest are plain Structures.
+  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+    (cls === '/platform/idea/Ship'
+      ? ROWS.filter((r) => r.path.includes('hesper'))
+      : ROWS.filter((r) => !r.path.includes('hesper'))) as unknown as Template[]);
   cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
 });
 afterEach(() => vi.restoreAllMocks());
@@ -59,5 +63,11 @@ describe('what stands in a zone', () => {
     ]);
     expect(paths('/w/t/terminal')).toEqual(['/w/t/terminal/annex/structure', '/w/t/terminal/structure']);
     expect(paths('/w/nowhere')).toEqual([]);
+  });
+
+  it('⭐ a ship is tagged by its CLASS, never by a field', async () => {
+    await cat.all();
+    expect(cat.peekStructureOf('/w/t/hesper/deck')?.ship).toBe(true);
+    expect(cat.peekStructureOf('/w/t/terminal/hall')?.ship).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
+import Ship from '../Ship';
 import StructureCatalogue from '../StructureCatalogue';
 import { Template } from '../../../lib/stuff/Template';
 import { MixinApi } from '../../../api/mixin';
@@ -8,8 +9,9 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 /**
- * The Structure (maritime D4): membership by extent prefix, sparse, and
- * a position that is simply a field — null for a building ashore.
+ * The Structure (maritime D4): membership by extent prefix, sparse. ⭐ A
+ * building carries no position and no voyage; a {@link Ship} — a
+ * Structure whose position is a variable — does (maritime review).
  */
 describe('Structure', () => {
   beforeEach(() => StuffApi.clearAll());
@@ -23,17 +25,23 @@ describe('Structure', () => {
     expect(s.hasMember('/test/shipyard/slip')).toBe(false);
   });
 
-  it('a building is a Structure whose position is null; a ship is one whose position is set', () => {
-    const s = makeStuff(() => new Structure());
-    expect(MixinApi.isPositioned(s)).toBe(true);
-    expect(MixinApi.isPersistable(s)).toBe(true);
-    expect(s.getExpansePosition()).toBeNull();
-    s.setExpansePosition({ latDeg: 50, lonDeg: -4 });
-    expect(s.getExpansePosition()!.latDeg).toBe(50);
+  it('⭐ a building has no position and does not voyage; a ship does — a subclass, not a blank field', () => {
+    const tower = makeStuff(() => new Structure());
+    expect(MixinApi.isPositioned(tower)).toBe(false);
+    expect(MixinApi.isVoyaging(tower)).toBe(false);
+    expect(MixinApi.isPersistable(tower)).toBe(false);
+    const ship = makeStuff(() => new Ship());
+    expect(ship).toBeInstanceOf(Structure);
+    expect(MixinApi.isPositioned(ship)).toBe(true);
+    expect(MixinApi.isVoyaging(ship)).toBe(true);
+    expect(MixinApi.isPersistable(ship)).toBe(true);
+    expect(ship.getExpansePosition()).toBeNull();
+    ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
+    expect(ship.getExpansePosition()!.latDeg).toBe(50);
   });
 
   it('⭐ the lookout seat sees from the masthead; everybody else from the deck', () => {
-    const s = makeStuff(() => new Structure());
+    const s = makeStuff(() => new Ship());
     s.setDeckHeightM(3);
     s.setMastheadHeightM(20);
     s.setHouse('/test/ship/idea/outfit');
@@ -59,20 +67,22 @@ describe('Structure', () => {
   });
 
   it('the catalogue reads the landmark flag off the row', async () => {
-    vi.spyOn(Template, 'findByClass').mockResolvedValue([
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      (cls === '/platform/idea/Structure' ? [
       { path: '/test/t/structure', data: { extent: '/test/t', landmark: true } },
       { path: '/test/u/structure', data: { extent: '/test/u' } },
-    ] as unknown as Template[]);
+    ] : []) as unknown as Template[]);
     const cat = makeStuff(() => new StructureCatalogue());
     expect((await cat.rowOf('/test/t/structure'))?.landmark).toBe(true);
     expect((await cat.rowOf('/test/u/structure'))?.landmark).toBe(false);
   });
 
   it('the catalogue answers the structure a place is in by the longest extent', async () => {
-    vi.spyOn(Template, 'findByClass').mockResolvedValue([
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      (cls === '/platform/idea/Structure' ? [
       { path: '/test/a/structure', data: { extent: '/test/a' } },
       { path: '/test/a/wing/structure', data: { extent: '/test/a/wing' } },
-    ] as unknown as Template[]);
+    ] : []) as unknown as Template[]);
     const cat = makeStuff(() => new StructureCatalogue());
     expect((await cat.structureOf('/test/a/wing/attic'))?.path).toBe('/test/a/wing/structure');
     expect((await cat.structureOf('/test/a/hall'))?.path).toBe('/test/a/structure');

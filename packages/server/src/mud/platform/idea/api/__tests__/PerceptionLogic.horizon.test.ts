@@ -4,6 +4,7 @@ import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import Thing from '../../../thing/Thing';
 import Structure from '../../Structure';
+import Ship from '../../Ship';
 import { Template } from '../../../../lib/stuff/Template';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../api/stuff';
@@ -48,7 +49,7 @@ function zoneAt(path: string, cells: Array<[number, number]>, cellSize = 3): Car
 const rows: StructureRow[] = [];
 
 function structureAt(path: string, extent: string, heightM: number, keywords: string[]): Structure {
-  rows.push({ path, name: keywords[0]!, extent, entrance: null, landmark: false, heightM, expanse: null, deckHeightM: null });
+  rows.push({ path, name: keywords[0]!, extent, entrance: null, landmark: false, heightM, ship: false, expanse: null });
   const s = makeStuffAtPath(() => new Structure(), path);
   s.setExtent(extent);
   s.setHeightM(heightM);
@@ -170,17 +171,30 @@ async function seaWithLanding(dest: string): Promise<TestExpanse> {
   return sea;
 }
 
-/** A positioned structure on `/t/sea`. */
+/**
+ * On `/t/sea`: a SHIP (a deck) is registered craft at its own position; a
+ * BUILDING (no deck — a light) stands at a node, and the sea finds it
+ * there as a landmark — what its compile does.
+ */
 function afloat(path: string, extent: string, heightM: number, at: GeoPosition, deck: number | null): Structure {
-  const s = structureAt(path, extent, heightM, [path.split('/').pop()!]);
+  const sea = live.get('/t/sea') as unknown as { register(c: unknown): void; landmarks: unknown[] };
+  const name = [path.split('/').pop()!];
+  if (deck === null) {
+    const light = structureAt(path, extent, heightM, name);
+    sea.landmarks.push({ stuff: light, at });
+    return light;
+  }
+  rows.push({ path, name: name[0]!, extent, entrance: null, landmark: false, heightM, ship: true, expanse: '/t/sea' });
+  const s = makeStuffAtPath(() => new Ship(), path);
+  s.setExtent(extent);
+  s.setHeightM(heightM);
+  s.setKeywords(name);
+  s.setShortDescription(name[0]!);
+  live.set(path, s);
   s.setExpanse('/t/sea');
   s.setExpansePosition(at);
   s.setDeckHeightM(deck);
-  // On the sea's own books: a ship is registered craft, a building with no
-  // deck (a light) is one of its landmarks — what its compile would do.
-  const sea = live.get('/t/sea') as unknown as { register(c: unknown): void; landmarks: unknown[] };
-  if (deck === null) sea.landmarks.push(s);
-  else sea.register(s);
+  sea.register(s);
   return s;
 }
 

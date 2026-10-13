@@ -20,6 +20,7 @@ import { Template } from '../../lib/stuff/Template';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import { STRUCTURE_CLASS_PATH } from './Structure';
+import { SHIP_CLASS_PATH } from './Ship';
 
 /** What the catalogue knows of one Structure row. */
 export interface StructureRow {
@@ -29,10 +30,10 @@ export interface StructureRow {
   entrance: string | null;
   landmark: boolean;
   heightM: number;
-  /** The expanse it is sited on (a ship, a light on a rock), or `null`. */
+  /** A {@link Ship} (a Structure whose position is a variable). */
+  ship: boolean;
+  /** The sea a SHIP is sited on, or `null` (a building has none). */
   expanse: string | null;
-  /** Its deck height — a ship has one; a building on a rock does not. */
-  deckHeightM: number | null;
 }
 
 export default class StructureCatalogue extends Idea {
@@ -112,8 +113,8 @@ export default class StructureCatalogue extends Idea {
   }
 
   /**
-   * ⭐ The Structures sited on a sea — what an expanse's compile stands up
-   * (ships registered as craft, deckless buildings kept as landmarks). By
+   * ⭐ The SHIPS sited on a sea — what an expanse's compile registers as
+   * craft (a building on its rock is found through the sea's nodes). By
    * key, from the rows this catalogue already holds; it replaced a
    * full-table `findWhereDataHas('expansePosition')` (maritime review).
    */
@@ -124,7 +125,12 @@ export default class StructureCatalogue extends Idea {
 
   private async load(): Promise<StructureRow[]> {
     const out: StructureRow[] = [];
-    for (const tpl of await Template.findByClass(STRUCTURE_CLASS_PATH)) {
+    const ships = new Set((await Template.findByClass(SHIP_CLASS_PATH)).map((t) => t.path));
+    const rows = [
+      ...(await Template.findByClass(STRUCTURE_CLASS_PATH)),
+      ...(await Template.findByClass(SHIP_CLASS_PATH)),
+    ];
+    for (const tpl of rows) {
       const d = (tpl.data ?? {}) as Record<string, unknown>;
       out.push({
         path: tpl.path,
@@ -133,8 +139,8 @@ export default class StructureCatalogue extends Idea {
         entrance: typeof d.entrance === 'string' ? d.entrance : null,
         landmark: d.landmark === true,
         heightM: typeof d.heightM === 'number' ? d.heightM : 0,
+        ship: ships.has(tpl.path),
         expanse: typeof d.expanse === 'string' && d.expanse !== '' ? d.expanse : null,
-        deckHeightM: typeof d.deckHeightM === 'number' ? d.deckHeightM : null,
       });
     }
     const byExtent = new Map<string, StructureRow>();

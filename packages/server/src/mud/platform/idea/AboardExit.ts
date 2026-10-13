@@ -25,7 +25,7 @@ import { TemplatePaths } from '../../lib/paths';
 import type StructureCatalogue from './StructureCatalogue';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
-import Structure from './Structure';
+import Ship from './Ship';
 
 interface NodeAt {
   expanse: string;
@@ -66,15 +66,15 @@ export default class AboardExit extends DeferredDestinationExit {
   }
 
   /** The craft lying at this exit's node now, if any. */
-  private alongside(): Structure | null {
+  private alongside(): Ship | null {
     if (this.node === null) return null;
     const e = StuffApi.findByTemplatePath<Stuff>(this.node.expanse);
     if (!(e instanceof Expanse)) return null;
     const within = Number(AppApi.setting('expanse.arrivalNm')) || 1;
     for (const c of e.craft()) {
-      // Only a Structure has a deck to step onto; a boat is boarded by
-      // `enter`, as any vessel is.
-      if (!(c instanceof Structure) || c.getEntrance() === null || c.getDeckHeightM() === null) continue;
+      // Only a SHIP has a deck to step onto; a boat is boarded by `enter`,
+      // as any vessel is.
+      if (!(c instanceof Ship) || c.getEntrance() === null) continue;
       const at = c.getExpansePosition();
       if (!at || c.getCourse() !== null) continue;
       if (at.distanceNm(this.node.at) <= within) return c;
