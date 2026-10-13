@@ -224,9 +224,11 @@ async function doing(s: Session, text: string): Promise<string> {
  * whatever it leaves is drunk.
  */
 async function emptyPail(): Promise<void> {
-  await act(k, 'spill pail');
-  for (let i = 0; i < 8 && /It holds/.test(await read(k, 'look pail')); i++) {
-    await act(k, 'drink pail');
+  // `me:i:pail` — the pail in hand, never a dairy hand's (run 20: `look
+  // pail` in the yard asked *which?* and was never answered).
+  await act(k, 'spill me:i:pail');
+  for (let i = 0; i < 8 && /It holds/.test(await read(k, 'look me:i:pail')); i++) {
+    await act(k, 'drink me:i:pail');
   }
 }
 
@@ -931,21 +933,24 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
         `.filter(o => o.getTemplatePath() === '/world/terminus/rejection/thing/copper-ore')` +
         `.map(o => { o.setGrade(0.07); return o.getGrade(); }))`,
     );
+    await goTo(SMELTER);
+    await untilHour(12);
+    await doing(k, 'get crucible');
+    await doing(k, 'put crucible in furnace');
+    await doing(k, 'get ore');
+    await doing(k, 'put ore in furnace');
     // A run wants two baskets IN THE CHARGE (the reductant) and a lit bed
     // of its own — four baskets, and the smelter props two. The fuel yard
-    // next door props four (run 14).
+    // next door props four (run 14). Fetched AFTER the crucible and ore
+    // are in: six baskets in the arms and the crucible will not lift
+    // (run 20).
     await goTo(FUEL_YARD);
-    await untilHour(12);
     // ⚠ `charcoal` also names the turfed clamp, which will not lift — the
     // act reports that refusal while the four baskets come up. Read the
     // hands, not the refusal.
     await act(k, 'get charcoal');
     expect(await carried(k)).toMatch(/charcoal/i);
     await goTo(SMELTER);
-    await doing(k, 'get crucible');
-    await doing(k, 'put crucible in furnace');
-    await doing(k, 'get ore');
-    await doing(k, 'put ore in furnace');
     await doing(k, 'get charcoal');
     await doing(k, 'put charcoal in furnace');
     await doing(k, 'put charcoal in furnace');
