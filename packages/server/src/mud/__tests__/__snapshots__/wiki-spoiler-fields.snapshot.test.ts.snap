@@ -944,6 +944,7 @@ SealableMixin.open = 0
 Seed._speciesPath = 0
 ServiceableMixin.soiled = 0
 ServiceableMixin.technique = 0
+ShoreMixin.waters = 0
 SlottedMixin.staticSlots = 0
 SmellSourceMixin.emittedConcentration = 0
 SmellSourceMixin.odorIdentity = 0
