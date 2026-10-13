@@ -326,9 +326,10 @@ solidifies to a cast Thing ([thermal.md](./thermal.md)).
 (a waterside place, `ShoreMixin`) is no vessel — water is cited, never
 contained, and making a bank `Bulkable` would put it in
 `reachable:[mixin.BulkableMixin]` and leak liquid keywords into room
-scope. So `BulkableApi.slotFor(holder, affordance, named?)` routes a
-shore to its `waterSlot(named)` — `named` is the feature the player
-named (`via.detailPath[0]`) — and the shore hands out a
+scope. So `BulkableApi.slotFor(holder, via?)` routes a shore to its
+`waterSlot(via)` — the shore reads the feature the player named from the
+same `via` (`detailPath`); bulk never learns what a feature is — and the
+shore hands out a
 **`SourceSlot`** (`lib/bulk/SourceSlot.ts`, a `BulkSlot` subclass):
 
 - what it gives is the water's read: **fresh, fouled (below an outfall
@@ -396,8 +397,11 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 
 Verb-facing helpers on the same Api:
 
-- `slotFor(holder, affordance)` — resolve a holder's slot from
-  `model.field.via?.bulk?.affordance`.
+- `slotFor(holder, via?)` — resolve a holder's slot from the bound
+  argument's `via` (`model.field.via`): HOW it was named. A vessel reads
+  `via.bulk.affordance` (which slot); a shore reads `via.detailPath`
+  (which water). One argument, so no caller passes a holder-specific
+  field.
 - `amountFromQuantity(quantity, fallback)` — translate an MQL measure
   hint to litres (via the converters).
 - `floorSurfaceNear(near)` — walk the containment chain to the

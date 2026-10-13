@@ -2803,6 +2803,42 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     vessel (only an endless source is capped at a draught); a pitch-dark
     bank prompts `look water` between *something*s (the known
     perception-gates-binding behaviour).
+  - **B-88 — `slotFor(holder, via?)`** (review, 2026-10-13). The shore's
+    named water rode a third `named` parameter on the BULK Api — a
+    shore-specific field on a vessel surface, and confusable with the
+    deleted `cardinality.named`. Callers already took one field off the
+    bound `via` (`bulk.affordance`); they now pass the `via` itself, and
+    the holder reads what it needs from it (a vessel the affordance, a
+    shore `detailPath`). The ~140 `slotFor(x, undefined)` callers are
+    unchanged.
+  - **B-89 — no registry-wide reads: the scope that holds the answer
+    answers** (review, 2026-10-13). `horizonFor` and `leanAtSync` read
+    EVERY resident `Voyaging` object (`StuffApi.findByMixin`, a
+    `RegistryWideReaders` pair each) and filtered — `leanAtSync` on every
+    weather read in the realm. Now:
+    - *which craft am I aboard* is the STRUCTURE CATALOGUE's keyed
+      answer (`peekStructureOf` — the room's own path walked up its
+      segments, O(depth));
+    - *what can I see at sea* is that craft's EXPANSE's (`sightables()`:
+      its landmarks and registered craft);
+    - *what stands in this zone* is the catalogue's again
+      (`peekStructuresWithin`, one lookup).
+    Both `RegistryWideReaders` entries are deleted. The catalogue is
+    booted `sync-read`, and the expanse's compile now reads its ships and
+    lights from the catalogue (`structuresOn(sea)`) instead of a
+    full-table `findWhereDataHas('expansePosition')` — which also warms
+    the catalogue at boot. ⚠ A catalogue `onCreate` warm was tried and
+    reverted: `lint:on-create`'s test pins the ceiling at the landing
+    census (82).
+  - **B-90 — the survey's other maritime-owned scans.** `AboardExit`
+    found its node with `findWhereDataHas('destination')` (every exit row)
+    and never cached a miss; it now goes berth → structure (catalogue) →
+    her sea → that sea's own nodes, once. `AshoreExit` caches a miss.
+    `FisheryRegistry.species()` re-read every species row on every
+    angler's minute; it is memoised per weather segment (the watercourse
+    catalogue's rule). The rest of the survey — employment, banking,
+    press, journey, screens, residency — is other subsystems'; proposed to
+    the user as its own sweep, not taken here.
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 

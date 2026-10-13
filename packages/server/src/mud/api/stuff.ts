@@ -122,11 +122,6 @@ const RegistryWideReaders = SecurityPolicies.AnyOf(
     '/platform/idea/api/address',
     'settleStreetLighting',
   ),
-  // ⭐ The horizon and the water's weather lean (maritime R4/R10): every
-  // resident craft and structure, read SYNCHRONOUSLY — the MQL `horizon`
-  // seed and the weather's sync reads cannot wait for a catalogue.
-  SecurityPolicies.FromTemplateMethod('/platform/idea/api/perception', 'horizonFor'),
-  SecurityPolicies.FromTemplateMethod('/platform/idea/api/expanse', 'leanAtSync'),
   // Whether a principal holds any publishing position anywhere.
   SecurityPolicies.FromTemplateMethod(
     '/platform/idea/api/press',

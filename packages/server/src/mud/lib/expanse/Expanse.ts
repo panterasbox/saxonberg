@@ -38,6 +38,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { Template } from '../stuff/Template';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
+import { TemplatePaths } from '../paths';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -316,6 +317,21 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     return [...this.craftSet].filter((c) => !c.isDestroyed());
   }
 
+  /**
+   * ⭐ Everything on this sea that can be SEEN, synchronously: its
+   * landmarks (fixed — a light is what a bearing fixes by) and the craft
+   * registered on it. The expanse is the scope that holds the answer; a
+   * horizon asks it, never the registry (maritime review). Before the
+   * first compile it starts one and answers with the craft alone.
+   */
+  public sightables(): Sighted[] {
+    if (this.compiled === null) void this.compile().catch(() => undefined);
+    return [
+      ...this.landmarks.map((craft) => ({ craft, fixed: true })),
+      ...this.craft().map((craft) => ({ craft, fixed: false })),
+    ];
+  }
+
   /* ───────────────────────── sight ───────────────────────── */
 
   /**
@@ -374,10 +390,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     // to a little over half. A signal is a gun or a lamp — unaffected.
     const seeing = channel === 'visual' ? await visibilityFor(observer) : 1;
     // Landmarks first: a light is a light, whatever else has it listed.
-    const candidates: Sighted[] = [
-      ...this.landmarks.map((craft) => ({ craft, fixed: true })),
-      ...this.craft().map((craft) => ({ craft, fixed: false })),
-    ];
+    const candidates = this.sightables();
     return this.sightingsAmong(
       here, from.sightHeightFor(observer), channel, hourIndex, candidates, seeing, from,
     );
@@ -479,15 +492,22 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    * but never sailing.
    */
   private async loadStructures(): Promise<void> {
-    const self = this.getTemplatePath();
+    const self = this.getTemplatePath() ?? '';
     const landmarks: (Stuff & Positioned)[] = [];
-    for (const tpl of await Template.findWhereDataHas('expansePosition')) {
-      const d = (tpl.data ?? {}) as Record<string, unknown>;
-      if (d.expanse !== self || !('extent' in d)) continue;
+    // ⭐ The structure catalogue's rows for THIS sea, by key — not a
+    // full-table query over every positioned row in the world (maritime
+    // review, 2026-10-13). Reading it here also warms the catalogue at
+    // boot, which the horizon then reads synchronously.
+    const cat = await StuffApi.singleton<Stuff>(TemplatePaths.structureCatalogue).catch(() => null);
+    const rows = cat
+      ? await (cat as unknown as { structuresOn(p: string): Promise<readonly { path: string; deckHeightM: number | null }[]> })
+          .structuresOn(self)
+      : [];
+    for (const row of rows) {
       try {
-        const s = await StuffApi.singleton<Stuff>(tpl.path);
+        const s = await StuffApi.singleton<Stuff>(row.path);
         if (!MixinApi.isPositioned(s)) continue;
-        if (d.deckHeightM !== undefined && d.deckHeightM !== null) this.register(s);
+        if (row.deckHeightM !== null) this.register(s);
         else landmarks.push(s);
       } catch {
         /* a broken row contributes nothing */
@@ -495,6 +515,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     }
     this.landmarks = landmarks;
   }
+
 
   private compile(): Promise<{ nodes: ExpanseNode[]; bands: Band[] }> {
     if (this.compiled === null) {

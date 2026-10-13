@@ -44,8 +44,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
 
     const fromSlot = BulkableApi.slotFor(
       target,
-      model.target.via?.bulk?.affordance,
-      model.target.via?.detailPath?.[0],
+      model.target.via
     );
     await fromSlot?.settle();
     if (fromSlot === null || fromSlot.isEmpty()) {

@@ -25,7 +25,7 @@ import { Blood } from '../../../lib/vitals/Blood';
 import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
 import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
 import { Concentration } from '../../../lib/bulk/Concentration';
-import type { MqlQuantity } from '../../../api/mql';
+import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
@@ -73,22 +73,20 @@ const BulkableApiCallers = SecurityPolicies.AnyOf(
 export class BulkableLogic extends ApiLogic {
   /** See {@link BulkableApi.slotFor}. */
   @CallSecurity(BulkableApiCallers)
-  public slotFor(
-    holder: Stuff,
-    affordance: BulkAffordance | undefined,
-    named?: string,
-  ): BulkSlot | null {
-    // ⭐ A shore is no vessel, but it draws (maritime revision 3): the
-    // water it is beside, as named — a slot that says why when it can't.
+  public slotFor(holder: Stuff, via?: MqlMatchVia): BulkSlot | null {
+    // ⭐ A shore is no vessel, but it draws (maritime revision 3): it reads
+    // the same `via` for the feature named — a slot that says why when it
+    // can't. Bulk hands the `via` on and never learns what a feature is.
     if (!MixinApi.isBulkable(holder)) {
-      return MixinApi.isShore(holder) ? holder.waterSlot(named) : null;
+      return MixinApi.isShore(holder) ? holder.waterSlot(via) : null;
     }
     try {
-      return holder.getBulk(affordance);
+      return holder.getBulk(via?.bulk?.affordance);
     } catch {
       return null;
     }
   }
+
 
   /** See {@link BulkableApi.compareClosure}. */
   @CallSecurity(BulkableApiCallers)

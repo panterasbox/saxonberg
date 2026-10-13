@@ -7,9 +7,10 @@
  * words (*nothing is alongside*) rather than taking you to a ship that
  * has sailed. The authored destination is only the usual berth-holder.
  *
- * The node is found by the landing it names (an `ExpanseNode` row whose
- * `destination` is this room), looked up (once, then cached) when the
- * gate is asked — `canTraverse` is async. The berth (owned, rented, fought
+ * The node is found through the usual berth: the catalogue names the
+ * ship whose deck it is, she names her sea, and that sea's own nodes say
+ * which one lands here — looked up once, when the gate is first asked
+ * (`canTraverse` is async). Never a full-table query. The berth (owned, rented, fought
  * over) is not modelled.
  */
 
@@ -18,9 +19,10 @@ import type { TraversalGuard } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
-import { Template } from '../../lib/stuff/Template';
 import { Expanse } from '../../lib/expanse/Expanse';
-import { GeoPosition, type GeoPositionRecord } from '../../lib/expanse/GeoPosition';
+import type { GeoPosition } from '../../lib/expanse/GeoPosition';
+import { TemplatePaths } from '../../lib/paths';
+import type StructureCatalogue from './StructureCatalogue';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import Structure from './Structure';
@@ -32,28 +34,34 @@ interface NodeAt {
 
 export default class AboardExit extends DeferredDestinationExit {
   private node: NodeAt | null = null;
+  /** The lookup ran (a landing with no node is answered once, not per traverse). */
+  private warmed = false;
 
   /** Find the node whose landing this room is. */
   private async warm(): Promise<void> {
-    if (this.node !== null) return;
+    if (this.node !== null || this.warmed) return;
+    this.warmed = true;
     const here = this.getSource().getTemplatePath();
-    if (!here) return;
-    for (const tpl of await Template.findWhereDataHas('destination')) {
-      const d = (tpl.data ?? {}) as Record<string, unknown>;
-      if (d.destination !== here || (d.kind !== 'place' && d.kind !== 'passage')) continue;
-      const pos = d.expansePosition as GeoPositionRecord | undefined;
-      if (!pos) continue;
-      this.node = {
-        expanse: tpl.path.slice(0, tpl.path.lastIndexOf('/')),
-        at: new GeoPosition(pos),
-      };
-      try {
-        const e = await StuffApi.singleton<Stuff>(this.node.expanse);
-        if (e instanceof Expanse) await e.bands();
-      } catch {
-        /* nothing alongside, then */
+    // ⭐ Scoped, never a full-table query (maritime review, 2026-10-13):
+    // the authored destination is the usual berth (a ship's deck); the
+    // structure catalogue says whose deck, the ship names her sea, and the
+    // sea's OWN nodes say which one lands here.
+    const berth = this.getDestinationTemplatePath();
+    if (!here || !berth) return;
+    try {
+      const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
+      const sea = (await cat.structureOf(berth))?.expanse ?? null;
+      const e = sea ? await StuffApi.singleton<Stuff>(sea) : null;
+      if (!(e instanceof Expanse)) return;
+      for (const n of await e.nodes()) {
+        const at = n.getExpansePosition();
+        if (n.getDestination() !== here || at === null) continue;
+        this.node = { expanse: sea!, at };
+        await e.bands();
+        return;
       }
-      return;
+    } catch {
+      /* nothing alongside, then — and the next traverse does not ask again */
     }
   }
 

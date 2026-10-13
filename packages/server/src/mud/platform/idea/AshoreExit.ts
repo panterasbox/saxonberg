@@ -26,9 +26,12 @@ import type StructureCatalogue from './StructureCatalogue';
 
 export default class AshoreExit extends DeferredDestinationExit {
   private craftPath: string | null = null;
+  /** The lookup ran (a deck with no craft is answered once, not per traverse). */
+  private warmed = false;
 
   private async warm(): Promise<void> {
-    if (this.craftPath !== null) return;
+    if (this.craftPath !== null || this.warmed) return;
+    this.warmed = true;
     const here = this.getSource().getTemplatePath();
     if (!here) return;
     try {

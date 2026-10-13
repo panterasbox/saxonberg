@@ -29,11 +29,24 @@ export interface StructureRow {
   entrance: string | null;
   landmark: boolean;
   heightM: number;
+  /** The expanse it is sited on (a ship, a light on a rock), or `null`. */
+  expanse: string | null;
+  /** Its deck height — a ship has one; a building on a rock does not. */
+  deckHeightM: number | null;
 }
 
 export default class StructureCatalogue extends Idea {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<StructureRow[]> | null = null;
+  /**
+   * The rows by key, built once with them: extent → row, and every
+   * ancestor zone of an extent → the rows standing in it. Transient.
+   */
+  private index: {
+    byExtent: Map<string, StructureRow>;
+    within: Map<string, StructureRow[]>;
+    onExpanse: Map<string, StructureRow[]>;
+  } | null = null;
 
   /** A process-lifetime singleton; never culled. */
   public canEvict(_context: EvictionContext): VetoResult {
@@ -57,16 +70,56 @@ export default class StructureCatalogue extends Idea {
    * Most places are in no structure, and never need to be.
    */
   public async structureOf(locationPath: string): Promise<StructureRow | null> {
-    let best: StructureRow | null = null;
-    for (const row of await this.all()) {
-      if (row.extent === '') continue;
-      const inside = locationPath === row.extent ||
-        locationPath.startsWith(`${row.extent}/`);
-      if (inside && (best === null || row.extent.length > best.extent.length)) {
-        best = row;
-      }
+    await this.all();
+    return this.peekStructureOf(locationPath);
+  }
+
+  /**
+   * ⭐ {@link structureOf}, SYNCHRONOUSLY, by key — walk the place's own
+   * path up its segments and look each one up as an extent (O(depth), no
+   * scan). `null` before the rows have loaded (the read it starts lands
+   * for the next ask). What the horizon and the water's weather lean ask
+   * — *which building is this room in* is this catalogue's question, not
+   * the registry's (maritime review: no registry-wide reads).
+   */
+  public peekStructureOf(locationPath: string): StructureRow | null {
+    if (this.index === null) {
+      void this.all();
+      return null;
     }
-    return best;
+    let p = locationPath.replace(/\/+$/, '');
+    while (p !== '') {
+      const row = this.index.byExtent.get(p);
+      if (row) return row;
+      const cut = p.lastIndexOf('/');
+      if (cut <= 0) break;
+      p = p.slice(0, cut);
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ The Structures standing in a ZONE (their extent is the zone or under
+   * it) — by key, synchronously; `[]` before the rows have loaded. What a
+   * horizon that names a zone scans.
+   */
+  public peekStructuresWithin(zonePath: string): readonly StructureRow[] {
+    if (this.index === null) {
+      void this.all();
+      return [];
+    }
+    return this.index.within.get(zonePath.replace(/\/+$/, '')) ?? [];
+  }
+
+  /**
+   * ⭐ The Structures sited on a sea — what an expanse's compile stands up
+   * (ships registered as craft, deckless buildings kept as landmarks). By
+   * key, from the rows this catalogue already holds; it replaced a
+   * full-table `findWhereDataHas('expansePosition')` (maritime review).
+   */
+  public async structuresOn(expansePath: string): Promise<readonly StructureRow[]> {
+    await this.all();
+    return this.index?.onExpanse.get(expansePath) ?? [];
   }
 
   private async load(): Promise<StructureRow[]> {
@@ -80,8 +133,34 @@ export default class StructureCatalogue extends Idea {
         entrance: typeof d.entrance === 'string' ? d.entrance : null,
         landmark: d.landmark === true,
         heightM: typeof d.heightM === 'number' ? d.heightM : 0,
+        expanse: typeof d.expanse === 'string' && d.expanse !== '' ? d.expanse : null,
+        deckHeightM: typeof d.deckHeightM === 'number' ? d.deckHeightM : null,
       });
     }
+    const byExtent = new Map<string, StructureRow>();
+    const within = new Map<string, StructureRow[]>();
+    const onExpanse = new Map<string, StructureRow[]>();
+    for (const row of out) {
+      if (row.expanse !== null) {
+        const list = onExpanse.get(row.expanse);
+        if (list) list.push(row);
+        else onExpanse.set(row.expanse, [row]);
+      }
+      if (row.extent === '') continue;
+      byExtent.set(row.extent, row);
+      // Every ancestor zone of the extent — `/world/terminus/terminal`
+      // stands in `/world/terminus` and in `/world` — and the extent itself.
+      let p = row.extent;
+      while (p !== '') {
+        const list = within.get(p);
+        if (list) list.push(row);
+        else within.set(p, [row]);
+        const cut = p.lastIndexOf('/');
+        if (cut <= 0) break;
+        p = p.slice(0, cut);
+      }
+    }
+    this.index = { byExtent, within, onExpanse };
     return out;
   }
 }

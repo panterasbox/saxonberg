@@ -18,7 +18,7 @@ import { StuffApi } from '../../../api/stuff';
 import { SpeciesApi } from '../../../api/species';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
-import { TemplatePathPrefixes } from '../../../lib/paths';
+import { TemplatePathPrefixes, TemplatePaths } from '../../../lib/paths';
 import { DISCOVERY } from '../../../lib/belief/BeliefStore';
 import {
   ConcealmentLevels,
@@ -43,12 +43,12 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Location from '../../../lib/stuff/Location';
 import type Structure from '../Structure';
+import type StructureCatalogue from '../StructureCatalogue';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
-import { Expanse, type Contact, type Sighted } from '../../../lib/expanse/Expanse';
+import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
 import { BiomeApi } from '../../../api/biome';
 import { WeatherApi } from '../../../api/weather';
-import { Mixins } from '../../../lib/mixin';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
@@ -542,13 +542,13 @@ export class PerceptionLogic extends ApiLogic {
   /** See {@link PerceptionApi.horizonFor}. */
   @CallSecurity(PerceptionApiCallers)
   public horizonFor(viewer: Stuff): HorizonView {
-    // ⭐ One registry read (by mixin, gated by name): every resident craft
-    // and structure. Structures are booted and never culled, so a tower is
-    // resident whether or not anybody has walked into it.
-    const voyaging = StuffApi.findByMixin(Mixins.Voyaging).filter(
-      (s): s is Stuff & Positioned & Voyaging => MixinApi.isVoyaging(s) && !s.isDestroyed(),
-    );
-    return horizonAtSea(viewer, voyaging) ?? horizonAshore(viewer, voyaging);
+    // ⭐ Scoped, never registry-wide (maritime review, 2026-10-13): the
+    // craft you stand on is the STRUCTURE CATALOGUE's answer (which
+    // building is this room in), what you can see at sea is THAT craft's
+    // EXPANSE's (its landmarks and registered craft), and ashore a named
+    // zone's structures are the catalogue's again. Nothing asks the
+    // registry for every craft in the world.
+    return horizonAtSea(viewer) ?? horizonAshore(viewer);
   }
 
   /** See {@link PerceptionApi.visibleContentsOf}. */
@@ -1189,9 +1189,24 @@ const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 
 type Craft = Stuff & Positioned & Voyaging;
 
-/** A resident craft that is a Structure — an Idea; a boat is a Thing. */
-function asStructure(c: Craft): (Craft & Structure) | null {
-  return c.isIdea() ? (c as unknown as Craft & Structure) : null;
+/** The structure catalogue, when it is resident (booted `sync-read`). */
+function structureCatalogue(): StructureCatalogue | null {
+  return StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue) ?? null;
+}
+
+/**
+ * ⭐ The craft `viewer` is aboard — the boat they sit in at sea, or the
+ * ship whose extent holds their room (the structure catalogue's keyed
+ * answer, O(depth)). `null` ashore.
+ */
+function craftAboard(viewer: Stuff): Craft | null {
+  const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
+  if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
+  const room = roomOf(viewer);
+  const path = room?.getTemplatePath() ?? '';
+  const row = path ? structureCatalogue()?.peekStructureOf(path) ?? null : null;
+  const s = row ? StuffApi.findByTemplatePath<Stuff>(row.path) : null;
+  return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as Craft) : null;
 }
 
 /**
@@ -1232,25 +1247,13 @@ function toView(contacts: readonly Contact[], atSea: boolean, seen = new Set<str
 }
 
 /** Every resident craft on the sea at `seaPath`, a structure with no deck being FIXED. */
-function candidatesOn(seaPath: string, voyaging: readonly Craft[]): Sighted[] {
-  return voyaging
-    .filter((c) => c.getExpanse() === seaPath && c.getExpansePosition() !== null)
-    .map((c) => {
-      const s = asStructure(c);
-      return { craft: c, fixed: s !== null && s.getDeckHeightM() === null };
-    });
-}
-
 /**
  * At sea: the viewer's root is a craft on an expanse, and the range is
  * COMPUTED from two heights — the viewer's eye (a lookout seat is the
  * masthead) and each target's. `null` when the viewer is not afloat.
  */
-function horizonAtSea(viewer: Stuff, voyaging: readonly Craft[]): HorizonView | null {
-  const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
-  const rootPath = root.getTemplatePath() ?? '';
-  const craft = voyaging.find((c) => c.stuffId === root.stuffId) ??
-    voyaging.find((c) => asStructure(c)?.hasMember(rootPath) === true) ?? null;
+function horizonAtSea(viewer: Stuff): HorizonView | null {
+  const craft = craftAboard(viewer);
   const here = craft?.getExpansePosition() ?? null;
   const sea = expanseAt(craft?.getExpanse() ?? null);
   if (craft === null || here === null || sea === null) return null;
@@ -1260,7 +1263,7 @@ function horizonAtSea(viewer: Stuff, voyaging: readonly Craft[]): HorizonView | 
   const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
   const contacts = sea.sightingsAmong(
     here, craft.sightHeightFor(viewer), 'visual', hour,
-    candidatesOn(sea.getTemplatePath() ?? '', voyaging), seeingFrom(room), craft,
+    sea.sightables(), seeingFrom(room), craft,
   );
   return toView(contacts, true);
 }
@@ -1277,7 +1280,7 @@ function horizonAtSea(viewer: Stuff, voyaging: readonly Craft[]): HorizonView | 
  * another zone, half of each. Crude by design — a grain, tuned by
  * `perception.horizonRatio`, which optics widen later.
  */
-function horizonAshore(viewer: Stuff, voyaging: readonly Craft[]): HorizonView {
+function horizonAshore(viewer: Stuff): HorizonView {
   const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
   if (room === null || !room.isLocation() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
   if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
@@ -1292,9 +1295,6 @@ function horizonAshore(viewer: Stuff, voyaging: readonly Craft[]): HorizonView {
   const ratio = dialNumber('perception.horizonRatio', 20);
   const myExtent = zone?.getExtentM() ?? 0;
   const myElev = zone?.peekField<number>('elevation') ?? 0;
-  const structures = voyaging
-    .map(asStructure)
-    .filter((s): s is Craft & Structure => s !== null);
 
   const view: HorizonView = { things: [], traffic: [], atSea: false };
   const seen = new Set<string>();
@@ -1306,7 +1306,7 @@ function horizonAshore(viewer: Stuff, voyaging: readonly Craft[]): HorizonView {
       const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
       const contacts = sea.sightingsAmong(
         from, Math.max(0, myElev) + SHORE_EYE_M, 'visual', hour,
-        candidatesOn(zonePath, voyaging), seeingFrom(room),
+        sea.sightables(), seeingFrom(room),
       );
       const v = toView(contacts, false, seen);
       view.things.push(...v.things);
@@ -1318,10 +1318,11 @@ function horizonAshore(viewer: Stuff, voyaging: readonly Craft[]): HorizonView {
     const theirElev = target?.peekField<number>('elevation') ?? 0;
     const within = here === zonePath || here.startsWith(`${zonePath}/`);
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
-    for (const s of structures) {
-      const ext = s.getExtent();
-      const inZone = ext !== '' && (ext === zonePath || ext.startsWith(`${zonePath}/`));
-      if (!inZone || seen.has(s.stuffId) || s.hasMember(here)) continue;
+    // The zone's own structures — the catalogue's keyed answer.
+    for (const row of structureCatalogue()?.peekStructuresWithin(zonePath) ?? []) {
+      const live = StuffApi.findByTemplatePath<Stuff>(row.path);
+      const s = live && live.isIdea() ? (live as unknown as Craft & Structure) : null;
+      if (s === null || s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;
       seen.add(s.stuffId);

@@ -148,7 +148,7 @@ describe('which water you mean', () => {
 describe('drawing from it', () => {
   it('⭐ the place hands out its water as a source slot — through the ordinary slotFor', async () => {
     const bank = shore('/test/bank', [[['river', 'kestrel'], 'Brown.']], { river: 'kestrel:confluence' });
-    const slot = BulkableApi.slotFor(bank, undefined, 'kestrel');
+    const slot = BulkableApi.slotFor(bank, { detailPath: ['kestrel'] });
     expect(slot).not.toBeNull();
     await slot!.settle();
     // The fake source's read has no draw: nothing comes up, and it says so.
@@ -157,7 +157,7 @@ describe('drawing from it', () => {
 
   it('⭐ naming the wrong thing is a slot that says so — never a null nobody can explain', () => {
     const bank = shore('/test/bank', [[['river'], 'Brown.'], [['lamps'], 'Iron.']], { river: 'kestrel:confluence' });
-    expect(BulkableApi.slotFor(bank, undefined, 'lamps')?.whyEmpty()).toBe('There is no water in the lamps.');
+    expect(BulkableApi.slotFor(bank, { detailPath: ['lamps'] })?.whyEmpty()).toBe('There is no water in the lamps.');
   });
 });
 

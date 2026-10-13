@@ -46,6 +46,7 @@
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
@@ -95,6 +96,8 @@ export const FISHERY_REGISTRY_PATH = '/system/water/idea/FisheryRegistry';
 const DEFAULT_READ_DISCIPLINE = '/trade/fishing/idea/Discipline/fishing';
 
 const SECONDS_PER_DAY = 86_400;
+/** The species roster is re-read once a weather segment (six game hours). */
+const SPECIES_SEGMENT_S = 6 * 3600;
 
 /** The record — only what cannot derive. */
 export interface FisheryRecord {
@@ -458,9 +461,24 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
   /**
    * Every species row, resolved live. Found by CLASS, the catalogue's
    * own pattern; a species with no `habitat` is skipped by the read.
-   * ⚠ Not memoised: a species row installed later must show up.
+   *
+   * ⭐ Memoised per six-game-hour segment — the watercourse catalogue's
+   * flow and ice rule (maritime review, 2026-10-13: this re-read every
+   * species row, plus every `extends` row, on each angler's minute). A
+   * species row installed later still shows up, within a segment.
    */
   private async species(): Promise<Species[]> {
+    const segment = Math.floor(WorldClockApi.getNow().rawValue() / SPECIES_SEGMENT_S);
+    if (this.speciesMemo === null || this.speciesMemo.segment !== segment) {
+      this.speciesMemo = { segment, list: this.readSpecies() };
+    }
+    return this.speciesMemo.list;
+  }
+
+  /** The per-segment species read — see {@link species}. Transient. */
+  private speciesMemo: { segment: number; list: Promise<Species[]> } | null = null;
+
+  private async readSpecies(): Promise<Species[]> {
     const out: Species[] = [];
     for (const tpl of await Template.findByClass(SPECIES_CLASS)) {
       const habitat = (tpl.data as { habitat?: unknown } | undefined)?.habitat;

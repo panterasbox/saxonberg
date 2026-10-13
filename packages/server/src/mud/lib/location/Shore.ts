@@ -40,6 +40,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { SourceSlot } from '../bulk/SourceSlot';
 import type { CommandContributions } from '../../api/command';
+import type { MqlMatchVia } from '../../api/mql';
 
 /** The weather field is memoised per six-game-hour segment; reading more often buys nothing. */
 const SEGMENT_S = 6 * 3600;
@@ -71,7 +72,7 @@ export interface Shore {
   waterRefFor(name?: string): Promise<WaterRefPick>;
   settleWater(key: string): Promise<WaterRead | null>;
   peekWaterRead(key: string): WaterRead | null;
-  waterSlot(name?: string): SourceSlot;
+  waterSlot(via?: MqlMatchVia): SourceSlot;
 }
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
@@ -238,12 +239,13 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /**
      * ⭐ The water as a source to draw from (maritime revision 3, T9′):
-     * the water `name` picks, or the place's one water. ALWAYS a slot —
-     * one that cannot give is empty and says why in its own words.
+     * the water the player named it by (`via.detailPath` — the feature
+     * they typed), or the place's one water. ALWAYS a slot — one that
+     * cannot give is empty and says why in its own words.
      */
-    public waterSlot(name?: string): SourceSlot {
+    public waterSlot(via?: MqlMatchVia): SourceSlot {
       const self = this as unknown as Stuff & ShoreMixin;
-      const pick = this.waterFor(name);
+      const pick = this.waterFor(via?.detailPath?.at(-1));
       if ('refusal' in pick) return new SourceSlot(self, null, pick.refusal);
       void this.refreshWater(pick.key, false);
       return new SourceSlot(self, pick.key);

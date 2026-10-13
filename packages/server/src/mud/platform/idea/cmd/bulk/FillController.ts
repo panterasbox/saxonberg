@@ -46,7 +46,7 @@ export default class FillController extends CommandController<FillModel> {
       return;
     }
 
-    const toSlot = BulkableApi.slotFor(target, model.target.via?.bulk?.affordance);
+    const toSlot = BulkableApi.slotFor(target, model.target.via);
     if (toSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -61,8 +61,7 @@ export default class FillController extends CommandController<FillModel> {
     }
     const fromSlot = BulkableApi.slotFor(
       source,
-      model.source.via?.bulk?.affordance,
-      model.source.via?.detailPath?.[0],
+      model.source.via
     );
     await fromSlot?.settle();
     if (fromSlot === null) {

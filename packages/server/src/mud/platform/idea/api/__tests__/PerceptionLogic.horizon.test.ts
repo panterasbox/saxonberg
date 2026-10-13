@@ -15,6 +15,8 @@ import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
 import { MqlApi } from '../../../../api/mql';
 import { PerceptionApi } from '../../../../api/perception';
 import { ContainmentApi } from '../../../../api/containment';
+import StructureCatalogue, { type StructureRow } from '../../StructureCatalogue';
+import { TemplatePaths } from '../../../../lib/paths';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /**
@@ -42,7 +44,11 @@ function zoneAt(path: string, cells: Array<[number, number]>, cellSize = 3): Car
   return z;
 }
 
+/** The structure catalogue's rows, as the fixture authors them. */
+const rows: StructureRow[] = [];
+
 function structureAt(path: string, extent: string, heightM: number, keywords: string[]): Structure {
+  rows.push({ path, name: keywords[0]!, extent, entrance: null, landmark: false, heightM, expanse: null, deckHeightM: null });
   const s = makeStuffAtPath(() => new Structure(), path);
   s.setExtent(extent);
   s.setHeightM(heightM);
@@ -63,6 +69,21 @@ let avenue: CartesianZone;
 beforeEach(() => {
   StuffApi.clearAll();
   live.clear();
+  rows.length = 0;
+  // ⭐ The scope that answers *which building is this room in* and *what
+  // stands in this zone* — the horizon asks it, never the registry.
+  const cat = makeStuffAtPath(() => new StructureCatalogue(), TemplatePaths.structureCatalogue);
+  vi.spyOn(cat, 'peekStructureOf').mockImplementation((place: string) => {
+    let best: StructureRow | null = null;
+    for (const r of rows) {
+      const inside = place === r.extent || place.startsWith(`${r.extent}/`);
+      if (inside && (best === null || r.extent.length > best.extent.length)) best = r;
+    }
+    return best;
+  });
+  vi.spyOn(cat, 'peekStructuresWithin').mockImplementation((zone: string) =>
+    rows.filter((r) => r.extent === zone || r.extent.startsWith(`${zone}/`)),
+  );
   sky = true;
   vi.spyOn(BiomeApi, 'isSkyExposed').mockImplementation(() => sky);
   vi.spyOn(WeatherApi, 'peekSkyType').mockReturnValue('clear');
@@ -155,6 +176,11 @@ function afloat(path: string, extent: string, heightM: number, at: GeoPosition, 
   s.setExpanse('/t/sea');
   s.setExpansePosition(at);
   s.setDeckHeightM(deck);
+  // On the sea's own books: a ship is registered craft, a building with no
+  // deck (a light) is one of its landmarks — what its compile would do.
+  const sea = live.get('/t/sea') as unknown as { register(c: unknown): void; landmarks: unknown[] };
+  if (deck === null) sea.landmarks.push(s);
+  else sea.register(s);
   return s;
 }
 
