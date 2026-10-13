@@ -598,8 +598,10 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
   }
 
   it('31 · on the bank, `look river` gives the bank\'s words then the Kestrel\'s read; `look water` asks nothing; no edge', async () => {
-    // The cane dropped on the deck in step 15 comes ashore for step 33.
-    expectOk(await me.cmd('get cane'));
+    // A rod for step 33 comes ashore from the deck: the cane dropped there
+    // in step 15, or (run on its own) the deck's own rod.
+    await at('/world/terminus/hesper/deck');
+    if ((await me.cmd('get cane')).status !== 'ok') expectOk(await me.cmd('get rod'));
     await at(BANK);
     const river = await readOf('river', /This is the Kestrel/);
     expect(river).toMatch(/moving faster than it looks/);
@@ -677,7 +679,7 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     // Wherever she is now, the deck is a shore of the sea under her.
     await at('/world/terminus/hesper/deck');
     expect(await readOf('sea', /The sea is /)).toMatch(/Below the rail, the water[^]*The sea is /);
-    expectOk(await w.cmd('spill skin'));
+    await w.cmd('spill skin'); // empty already, after the blackmere — or not
     const fill = await w.cmd('fill skin from sea');
     expectOk(fill);
     expect(await look(w, 'look --peek skin')).toMatch(/brine/i);
