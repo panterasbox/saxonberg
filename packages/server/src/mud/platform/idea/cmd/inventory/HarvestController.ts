@@ -218,7 +218,8 @@ export default class HarvestController extends CommandController<HarvestModel> {
     const crops: Stuff[] = [];
     try {
       for (let i = 0; i < count; i++) {
-        const crop = await StuffApi.clone<Stuff>(cropPath);
+        // Made FROM the plant: a gardener's crop is the gardener's.
+        const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
         if (MixinApi.isCrafted(crop)) {
           crop.stamp({
             maker: maker.getTemplatePath() ?? '',

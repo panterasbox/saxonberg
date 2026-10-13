@@ -305,7 +305,9 @@ async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
   const left = bole.takeLength();
 
   const count = Math.max(1, Math.floor(TIMBER_MASS_KG / BILLET_KG));
-  const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH);
+  const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH, undefined, {
+    madeFrom: bole,
+  });
   if (wood && MixinApi.isTangible(billets)) billets.setMaterial(wood);
   // ⭐ A bole is green wood, and riving dries nothing.
   if (MixinApi.isSeasoning(billets)) billets.setSeasonedFraction(0);

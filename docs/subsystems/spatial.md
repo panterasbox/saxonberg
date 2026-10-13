@@ -459,14 +459,18 @@ no caller remembers it:
   fired by `move` and by `Adornable.addFixture`), so it is where it was
   left after a restart;
 - **title** — a FRESH good (arriving from nowhere: just made) is titled
-  to: the person whose hands it lands in; else the acting person — where
-  they stand during a live command, wherever they are for a deferred
-  consequence of their act (an engagement's completion and a one-shot
-  clock timer both run AS the person whose act set them); else its
-  recorded maker. A good that already exists is never retitled by being
-  moved, so taking one is theft. A good made FOR somebody the moment
-  cannot name (an assay paper for a customer, ore on tutwork) is stamped
-  BEFORE it arrives — a titled good is not fresh.
+  by derivation, in order: to whoever owned what it was **made from**
+  (`StuffApi.clone(row, ctx, { madeFrom })` — the log's owner owns the
+  boards, the customer's sample makes the customer's paper, whoever is
+  acting and whenever it lands); else the person whose **hands** it lands
+  in; else the **acting person**, inside a live command, where they
+  stand (a room's `props:` laid down while somebody walks in are not
+  theirs); else its recorded **maker**. Untitled otherwise — a restock, a
+  prop. A good that already exists is never retitled by being moved, so
+  taking one is theft. Nothing rides a timer: ownership never depends on
+  how or when the act that made the thing was scheduled. (One trade rule
+  stays a hand-stamp before arrival: ore hewn on shift is the house's —
+  work for hire, not inheritance.)
 
 ⭐ **Step 5 is not optional.** `move` is a no-op when the container is
 unchanged (a mug moving from one desk to another in the same room), so

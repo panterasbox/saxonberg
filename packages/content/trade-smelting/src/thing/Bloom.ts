@@ -120,7 +120,7 @@ export default class Bloom extends BloomBase {
    * afterwards, so there is no second call to guard against. Hammering
    * twice cannot double the metal, and it cannot halve it either.
    */
-  public async consolidate(by: Stuff | null = null): Promise<Consolidation | null> {
+  public async consolidate(_by: Stuff | null = null): Promise<Consolidation | null> {
     const wholeKg = this.getMass().rawValue();
     if (wholeKg <= 0) return null;
     const slagKg = wholeKg * this.slagFraction;
@@ -131,8 +131,11 @@ export default class Bloom extends BloomBase {
     // ⭐ The bar's KIND is the bloom's own carbon, read at the anvil. A
     // lean bloom beats into wrought iron; a rich one beats into steel.
     const carbon = this.fractionOf(CARBON);
+    // Made FROM this bloom: the bar is the bloom's owner's.
     const bar = await StuffApi.clone<Stuff>(
       carbon >= C_STEEL_FLOOR ? STEEL_BAR : IRON_BAR,
+      undefined,
+      { madeFrom: this as unknown as Stuff },
     );
     if (MixinApi.isTangible(bar)) bar.setMass(Quantity.of(round3(barKg), 'kg'));
     // ⭐ The carbon survives the beating, because it is dissolved in the
@@ -141,12 +144,14 @@ export default class Bloom extends BloomBase {
       bar.setAlloying(this.getAlloying());
       bar.setTemper(this.getTemper());
     }
-    await place(bar, where, by);
+    await place(bar, where);
 
     if (slagKg > 0) {
-      const slag = await StuffApi.clone<Stuff>(SLAG_ROW);
+      const slag = await StuffApi.clone<Stuff>(SLAG_ROW, undefined, {
+        madeFrom: this as unknown as Stuff,
+      });
       if (MixinApi.isTangible(slag)) slag.setMass(Quantity.of(round3(slagKg), 'kg'));
-      await place(slag, where, by);
+      await place(slag, where);
     }
 
     StuffApi.destruct(this as unknown as Stuff);
@@ -154,12 +159,8 @@ export default class Bloom extends BloomBase {
   }
 }
 
-/**
- * LAND a freshly cloned thing where the bloom was standing — titled to
- * `by` (the smith at the anvil, when the caller names one) and captured,
- * so the bar survives a restart.
- */
-async function place(item: Stuff, where: Stuff | null, _by: Stuff | null): Promise<void> {
+/** Put a freshly made thing where the bloom was standing. */
+async function place(item: Stuff, where: Stuff | null): Promise<void> {
   if (!where || !MixinApi.isContainer(where)) return;
   ContainmentApi.move(item as unknown as Stuff & Containable, where as unknown as Stuff & Container);
 }

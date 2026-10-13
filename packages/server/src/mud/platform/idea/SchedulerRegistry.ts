@@ -470,11 +470,6 @@ export default class SchedulerRegistry extends Idea {
             SchedulerApi,
             'completion',
             () => {
-              // ⭐ A completion is still the actor's act: what it makes is
-              // made BY them (the movement primitive derives a fresh good's
-              // title from the acting person), though the command's own
-              // frame is long gone.
-              ExecutionContextApi.tagActingAuthor(e.actor);
               const live = this.engagementsById.get(id);
               if (!live || !isDurativeActivity(live)) return;
               this.completeFromTimer(live);

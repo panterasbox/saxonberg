@@ -4753,11 +4753,14 @@ call does a content developer make?
 ContainmentApi.move(bole, room);   // custody recorded; a fresh good titled by derivation
 ```
 
-⚠ The one legitimate hand-stamp is a good made FOR somebody the moment
-cannot name — a customer's assay paper, ore on tutwork the business
-keeps: stamp it BEFORE it arrives (a titled good is not fresh, so the
-derivation leaves it alone). Selling and naming are title acts, not
-custody, and stamp as before.
+⭐ And whose it is follows from what it was made FROM — mint it with
+`StuffApi.clone(row, undefined, { madeFrom: input })` (the board from the
+log, the paper from the customer's sample) and the title is the input's
+owner's, whoever is acting and whenever it lands. ⚠ The one hand-stamp
+left is a rule of a trade, not of inheritance — ore hewn on shift is the
+house's (work for hire) — and it stamps BEFORE the ore arrives (a titled
+good is not fresh). Selling and naming are title acts, not custody, and
+stamp as before.
 
 ---
 

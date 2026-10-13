@@ -92,7 +92,9 @@ export default class FlattenController extends ManualBuildController<FlattenMode
       : MixinApi.isContainer(giver)
         ? (giver as unknown as Stuff & Container)
         : null;
-    const pane = await StuffApi.clone<Sheet>(PANE_ROW);
+    const pane = await StuffApi.clone<Sheet>(PANE_ROW, undefined, {
+      madeFrom: cyl as unknown as Stuff,
+    });
     pane.setMass(Quantity.of(mass, "kg"));
     pane.setForm("pane");
     if (MixinApi.isAlloyed(pane) && alloying.length > 0) pane.setAlloying(alloying);

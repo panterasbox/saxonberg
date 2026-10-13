@@ -127,9 +127,10 @@ export class ContainmentApi {
    *   - **custody** — an owned good records where it now is, so it is
    *     where it was left after a restart;
    *   - **title** — a FRESH good (arriving from nowhere: just made) is
-   *     titled to whoever it is derived to belong to: the person whose
-   *     hands it lands in, else the acting person if it lands where they
-   *     stand, else its recorded maker. A good that already exists is
+   *     titled by derivation: to whoever owned what it was MADE FROM
+   *     (`StuffApi.clone`'s `madeFrom`); else the person whose hands it
+   *     lands in; else the acting person, in a live command, where they
+   *     stand; else its recorded maker. A good that already exists is
    *     never retitled by being moved — taking one is theft.
    *
    * The other layer is a thing moving ITSELF ({@link MobileMixin}'s

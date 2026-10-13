@@ -417,8 +417,19 @@ async function runCharge(
   // stop reducing because somebody left; only the telling of it needs a
   // listener.
   const watching = !giver.isDestroyed();
-  /** Who the tap is titled to — the smelterman, while they are here. */
-  const owner = watching ? giver : null;
+  /**
+   * What the tap is made FROM — the charge. Whoever owned the ore owns
+   * the bar, the smelterman here or not; so the charge is consumed only
+   * AFTER the pour reads it.
+   */
+  const owner = charge.map((lot) => lot.stuff);
+  const consume = (): void => {
+    for (const lot of charge) StuffApi.destruct(lot.stuff);
+    for (const basket of fuel) StuffApi.destruct(basket);
+    // ⭐ The flux goes with them. It is not a tool you get back: it leaves
+    // as part of the slag, which is the whole of what it was for.
+    for (const stone of flux) StuffApi.destruct(stone);
+  };
   const metalPath = metal?.getTemplatePath() ?? '';
 
   let chargeKg = 0;
@@ -436,14 +447,9 @@ async function runCharge(
       metalKg += lot.massKg * (lot.metals.find((m) => m.materialPath === metalPath)?.fraction ?? 0);
     }
   }
-  for (const lot of charge) StuffApi.destruct(lot.stuff);
-  for (const basket of fuel) StuffApi.destruct(basket);
-  // ⭐ The flux goes with them. It is not a tool you get back: it leaves as
-  // part of the slag, which is the whole of what it was for.
-  for (const stone of flux) StuffApi.destruct(stone);
-
   if (metal === null || metalKg <= 0) {
     await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1), owner);
+    consume();
     if (!watching) return;
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -477,6 +483,7 @@ async function runCharge(
         )
         .send();
     }
+    consume();
     context.note({ kind: 'controller-rejected', reason: 'no-product-row', detail: productMaterial });
     return;
   }
@@ -507,6 +514,7 @@ async function runCharge(
   // iron's problem. Copper is smelted FROM a sulfide.
   const soured = sour && ferrous;
   await pour(furnace, SLAG_ROW, Math.max(chargeKg - productKg, 0), owner);
+  consume();
 
   if (!watching) return;
   // ⭐ The tap names what the flux and the fuel did, because a player who is
@@ -719,19 +727,18 @@ async function productRowFor(materialPath: string): Promise<string | null> {
 }
 
 /**
- * Clone one product into the furnace, stamp its real mass, and LAND it —
- * titled to `owner` and captured where it lies, so a tap nobody has
- * emptied yet survives a restart.
+ * Clone one product into the furnace, made FROM the charge (so it is the
+ * charge's owner's), stamp its real mass, and put it there.
  */
 async function pour(
   furnace: Stuff & Container,
   row: string,
   kg: number,
-  owner: Stuff | null,
+  madeFrom: readonly Stuff[],
   shape?: (item: Stuff) => void,
 ): Promise<Stuff | null> {
   if (kg <= 0) return null;
-  const item = await StuffApi.clone<Stuff>(row);
+  const item = await StuffApi.clone<Stuff>(row, undefined, { madeFrom });
   const massed = item as unknown as { setMass?(q: Quantity<'kg'>): void };
   massed.setMass?.(Quantity.of(Number(kg.toFixed(3)), 'kg'));
   shape?.(item);

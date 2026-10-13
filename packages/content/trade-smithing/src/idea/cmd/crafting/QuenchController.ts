@@ -219,9 +219,13 @@ async function crack(giver: Stuff, piece: Stuff & Alloyed): Promise<void> {
   if (!row || wholeKg <= 0 || !where || !MixinApi.isContainer(where)) return;
 
   const carbon = piece.getAlloying();
-  StuffApi.destruct(piece);
+  // Minted before the piece goes: two halves of the owner's casting.
+  const halves: Stuff[] = [];
   for (let i = 0; i < 2; i++) {
-    const half = await StuffApi.clone<Stuff>(row);
+    halves.push(await StuffApi.clone<Stuff>(row, undefined, { madeFrom: piece }));
+  }
+  StuffApi.destruct(piece);
+  for (const half of halves) {
     if (MixinApi.isTangible(half)) {
       half.setMass(Quantity.of(Number((wholeKg / 2).toFixed(3)), 'kg'));
     }

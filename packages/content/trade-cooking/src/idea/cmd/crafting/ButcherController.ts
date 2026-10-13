@@ -301,7 +301,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
     /** Lines whose exemplar was kept as unit 1 rather than destructed. */
     const spent = new Set<string>();
     for (const line of species.getButcheryYield()) {
-      const exemplar = await StuffApi.clone<Stuff>(line.cut);
+      const exemplar = await StuffApi.clone<Stuff>(line.cut, undefined, { madeFrom: body });
       exemplars.push(exemplar);
       exemplarFor.set(line.cut, exemplar);
       if (MixinApi.isCut(exemplar)) {
@@ -406,7 +406,9 @@ export default class ButcherController extends CraftController<ButcherModel> {
       if (reuse) spent.add(line.cut);
       for (let i = 0; i < units; i++) {
         const cut =
-          i === 0 && reuse ? reuse : await StuffApi.clone<Stuff>(rowPath);
+          i === 0 && reuse
+            ? reuse
+            : await StuffApi.clone<Stuff>(rowPath, undefined, { madeFrom: body });
         if (kgEach !== null && MixinApi.isTangible(cut)) {
           cut.setMass(Quantity.of(Math.round(kgEach * 100) / 100, 'kg'));
         }

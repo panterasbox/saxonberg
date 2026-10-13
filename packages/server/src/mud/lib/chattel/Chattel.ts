@@ -100,6 +100,14 @@ export interface Chattel {
    * derives its title (see ChattelLogic's `derivedMinter`).
    */
   followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void>;
+  /**
+   * Note who owned what this good was made from (`StuffApi.clone`'s
+   * `madeFrom`) — the title its first arrival derives. Not persisted: it
+   * is read once, on arrival, and the title it yields is what persists.
+   */
+  recordMadeFrom(inputs: readonly Stuff[]): Promise<void>;
+  /** The owner of what this was made from, when they all agree; else null. */
+  getMadeFromOwner(): ChattelOwner | null;
   /** Establish ownership — mint the durable id and title it to `owner`. */
   stampChattel(owner: Stuff): Promise<ChattelStampResult>;
   /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
@@ -261,6 +269,19 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void> {
       return chattelLogic().followCustody(this as unknown as Stuff, arrival);
+    }
+
+    /** See {@link Chattel.recordMadeFrom}. */
+    public _madeFromOwner: ChattelOwner | null = null;
+
+    @Final
+    @Unshadowable
+    public async recordMadeFrom(inputs: readonly Stuff[]): Promise<void> {
+      this._madeFromOwner = await chattelLogic().ownerOfInputs(this as unknown as Stuff, inputs);
+    }
+
+    public getMadeFromOwner(): ChattelOwner | null {
+      return this._madeFromOwner;
     }
 
     /**

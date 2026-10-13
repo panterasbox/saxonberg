@@ -57,7 +57,9 @@ export default class SnapController extends ManualBuildController<SnapModel> {
         ? (giver as unknown as Stuff & Container)
         : null;
     for (let i = 0; i < 2; i += 1) {
-      const p = await StuffApi.clone<Sheet>(PANE_ROW);
+      const p = await StuffApi.clone<Sheet>(PANE_ROW, undefined, {
+        madeFrom: sheet as unknown as Stuff,
+      });
       p.setMass(Quantity.of(half, "kg"));
       p.setForm("pane");
       if (MixinApi.isAlloyed(p) && alloying.length > 0) p.setAlloying(alloying);

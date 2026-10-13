@@ -469,7 +469,19 @@ export class StuffApi {
   public static async clone<T extends Stuff>(
     templatePath: string,
     context?: unknown,
-    opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
+    opts?: {
+      dataOverlay?: Record<string, unknown>;
+      asIdentityPath?: string;
+      /**
+       * ⭐ What this is being MADE FROM — the log a board is sawn out of,
+       * the sample an assay paper reports on, the inputs a craft
+       * consumes. A made good belongs to whoever owned what it was made
+       * from (when they all agree), whoever is acting and whenever it
+       * lands: the movement primitive titles it so on arrival. Read
+       * before the inputs are consumed, so pass them as they are.
+       */
+      madeFrom?: Stuff | readonly Stuff[];
+    }
   ): Promise<T> {
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
     // template that re-enters its own clone before the recursion
@@ -501,7 +513,14 @@ export class StuffApi {
 
     // A top-level clone establishes the tree's store; nested clones
     // (triggered during hydrate / onCreate) inherit it via getStore().
-    return existing ? run() : this.#cloneStackALS.run(stack, run);
+    const made = await (existing ? run() : this.#cloneStackALS.run(stack, run));
+    if (opts?.madeFrom !== undefined && MixinApi.isChattel(made)) {
+      const inputs = Array.isArray(opts.madeFrom)
+        ? (opts.madeFrom as readonly Stuff[])
+        : [opts.madeFrom as Stuff];
+      await made.recordMadeFrom(inputs);
+    }
+    return made;
   }
 
   static async #cloneInner<T extends Stuff>(

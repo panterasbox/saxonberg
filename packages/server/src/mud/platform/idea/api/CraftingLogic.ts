@@ -2581,7 +2581,9 @@ async function mintWorkpiece(
   const massKg = workpiece.getMass().rawValue();
 
   if (recipe && recipe.getOutputApplication() === 'tangible') {
-    const output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
+    const output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate(), undefined, {
+      madeFrom: workpiece,
+    });
     if (!MixinApi.isTangible(output)) {
       throw new Error(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Tangible`,
@@ -2624,7 +2626,9 @@ async function mintWorkpiece(
   // The generic worked lump (an off-spec build still yields *a* thing):
   // a re-meltable Casting stamped with the workpiece's material + mass —
   // the ThermalLogic freeze-stamp surface. No recipe, no mark.
-  const lump = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
+  const lump = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE, undefined, {
+    madeFrom: workpiece,
+  });
   const l = lump as unknown as Stuff & {
     setShortDescription(s: string): void;
         setKeywords(k: string[]): void;
@@ -3019,7 +3023,9 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       output = pot;
     }
   } else {
-    output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
+    output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate(), undefined, {
+      madeFrom: matchedItems.map((m) => m.stuff),
+    });
   }
   if (application === 'tangible') {
     await applyTangibleOutput(
@@ -3121,7 +3127,9 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   if (residue && residue.template) {
     const count = Math.max(1, Math.floor(residue.count ?? 1));
     for (let i = 0; i < count; i++) {
-      const cake = await StuffApi.clone<Stuff>(residue.template);
+      const cake = await StuffApi.clone<Stuff>(residue.template, undefined, {
+        madeFrom: output,
+      });
       await landOutput(cake, maker, 'here');
     }
   }
@@ -3411,7 +3419,9 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
     const yieldKg = pieceKg * c.fraction * branchRate;
     if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
     if (metal || meltable) {
-      const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
+      const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE, undefined, {
+        madeFrom: item,
+      });
       const lump = cast as unknown as Stuff & {
         setShortDescription(s: string): void;
         setKeywords(k: string[]): void;
@@ -3436,7 +3446,9 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       // up would counterfeit matter).
       const units = Math.floor(yieldKg / Scrap.UNIT_KG);
       if (units < 1) continue; // sub-unit — dust
-      const scrap = await StuffApi.clone<Stuff>(SCRAP_TEMPLATE);
+      const scrap = await StuffApi.clone<Stuff>(SCRAP_TEMPLATE, undefined, {
+        madeFrom: item,
+      });
       const s = scrap as unknown as Stuff & {
         setShortDescription(s: string): void;
         setKeywords(k: string[]): void;
@@ -3715,7 +3727,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   // (split, sprung) is not worth minting: it is the irreversible branch's.
   let returned: Stuff | null = null;
   if (line.count === 1 && line.failed === 0) {
-    returned = await mintMember(line, 1);
+    returned = await mintMember(line, 1, whole);
   }
   const material = MixinApi.isTangible(part) ? (part.getMaterial()?.getTemplatePath() ?? '') : '';
   const grade = MixinApi.isGraded(part) ? part.getGrade().getBand() : ('fair' as GradeBand);
@@ -3766,11 +3778,17 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
  * carrying the line's material, grade, form, wear and nested record. A
  * stackable row comes back as one stack; anything else as `n` things.
  */
-async function mintMember(line: PartLine, n: number, gradeDown = false): Promise<Stuff | null> {
+async function mintMember(
+  line: PartLine,
+  n: number,
+  from: Stuff,
+  gradeDown = false,
+): Promise<Stuff | null> {
   if (n <= 0 || !line.template) return null;
   let out: Stuff;
   try {
-    out = await StuffApi.clone<Stuff>(line.template);
+    // A member taken out of a whole is the whole's owner's.
+    out = await StuffApi.clone<Stuff>(line.template, undefined, { madeFrom: from });
   } catch (err) {
     console.warn(`CraftingLogic: cannot mint a '${line.part}' from '${line.template}':`, err);
     return null;
@@ -3854,7 +3872,7 @@ async function salvageByJoints(
     if (back === 0) continue;
     // ⭐ Knocked apart is not as good as made: a member taken out of a set
     // by a hand short of the joint's craft comes back one band worse.
-    const minted = await mintMember(line, back, factor < 1);
+    const minted = await mintMember(line, back, item, factor < 1);
     if (!minted) continue;
     outputs.push(minted);
     if (MixinApi.isTangible(minted)) {
@@ -3864,7 +3882,7 @@ async function salvageByJoints(
     // A non-stackable row with more than one member back: the rest.
     if (!MixinApi.isStackable(minted)) {
       for (let i = 1; i < back; i++) {
-        const more = await mintMember(line, 1, factor < 1);
+        const more = await mintMember(line, 1, item, factor < 1);
         if (!more) continue;
         outputs.push(more);
         if (MixinApi.isTangible(more)) recoveredKg += more.getMass().rawValue();

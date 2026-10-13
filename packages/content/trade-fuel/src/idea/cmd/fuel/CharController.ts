@@ -159,9 +159,7 @@ async function openClamp(
   // rejection that takes the process down. ⭐ The clamp still OPENS,
   // because the fire did not need watching to finish; only the telling
   // of it needs somebody there.
-  const watching = !giver.isDestroyed();
   const outcome = pit.outcomeFor();
-    for (const wood of charge) StuffApi.destruct(wood);
 
     const row =
       outcome === 'charcoal'
@@ -174,13 +172,15 @@ async function openClamp(
     const made: Stuff[] = [];
     if (row) {
       for (let i = 0; i < Math.max(count, 0); i++) {
-        const item = await StuffApi.clone<Stuff>(row);
-        // ⭐ Titled to the collier when they are still here to hold it; a
-        // departed collier's charcoal is still placed and captured.
+        // ⭐ Made FROM the charge: the charcoal is whoever's the wood was,
+        // the collier gone or not — so it is minted before the wood burns
+        // away below.
+        const item = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: charge });
         ContainmentApi.move(item as unknown as Stuff & Containable, pit as unknown as Stuff & Container);
         made.push(item);
       }
     }
+    for (const wood of charge) StuffApi.destruct(wood);
 
     MessageApi.scene(giver)
       .topic(TOPIC)

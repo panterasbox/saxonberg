@@ -119,7 +119,9 @@ export function ConsumableMixin<TBase extends MixinConstructor<Stuff>>(
       const where = MixinApi.isContainable(self) ? self.getContainer() : null;
       let residue: Stuff | null = null;
       if (this.residueTemplatePath.length > 0) {
-        residue = await StuffApi.clone(this.residueTemplatePath);
+        residue = await StuffApi.clone(this.residueTemplatePath, undefined, {
+          madeFrom: self,
+        });
         if (
           where &&
           MixinApi.isContainer(where) &&

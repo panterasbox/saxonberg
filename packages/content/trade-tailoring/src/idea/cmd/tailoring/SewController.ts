@@ -101,7 +101,8 @@ async function finish(
   // ⚠⚠ A module function — the controller is destructed by now.
   const watching = !giver.isDestroyed();
   try {
-    const garment = await StuffApi.clone<Stuff>(row);
+    // Made FROM the pieces: the garment is whoever's the cut cloth was.
+    const garment = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: pieces });
 
     // Everything the pieces knew travels: the cloth's material and
     // form, its grade, and the measurements it was cut to.

@@ -1098,10 +1098,12 @@ restart); **resolved by the assembly build (MR !361)** — first as a
 in review, by deleting both: ⭐⭐ **custody is derived in the movement
 primitive itself.** `ContainmentApi.move` records an owned good's place
 on every move by anyone, and titles a FRESH good (arriving from nowhere)
-by derivation — the hands it lands in; else the acting person (an
-engaged act's completion and a one-shot clock timer run AS the person
-whose act set them); else its recorded maker. No verb stamps or follows
-custody by hand, so there is nothing for the next verb to forget. See
+by derivation — first from what it was **made from** (the craft mint
+passes its consumed inputs as `madeFrom`; a member salvaged out of a
+whole is the whole's owner's); else the hands it lands in; else the
+acting person in a live command; else its recorded maker. No verb stamps
+or follows custody by hand, so there is nothing for the next verb to
+forget. See
 [spatial.md § Two layers of movement](./spatial.md).
 
 ### The refusal names somebody

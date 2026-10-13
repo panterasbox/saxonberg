@@ -177,7 +177,9 @@ export default class Block extends BlockBase implements Splittable {
     const left = this.takePiece();
     let piece: Stuff | null = null;
     try {
-      piece = await StuffApi.clone<Stuff>(PIECE_ROW);
+      piece = await StuffApi.clone<Stuff>(PIECE_ROW, undefined, {
+        madeFrom: this as unknown as Stuff,
+      });
     } catch {
       // ⚠ A missing row is a content gap, not a reason to lose the work.
       console.error(`Block: piece row '${PIECE_ROW}' did not resolve`);

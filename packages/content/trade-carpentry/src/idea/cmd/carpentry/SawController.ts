@@ -322,7 +322,13 @@ async function finishSaw(job: SawJob): Promise<void> {
       room !== null && MixinApi.isContainer(room) ? room : null;
     if (landing === null) return;
 
-    // Consume first.
+    // Minted BEFORE the log is consumed: a board is the log's owner's, and
+    // the log is read for that while it is still there.
+    const board = await StuffApi.clone<Stuff & Containable>(boardPath, undefined, {
+      madeFrom: log,
+    });
+
+    // Then consume.
     if (log instanceof Bole) {
       const left = log.takeLength();
       if (left <= 0) await StuffApi.destruct(log);
@@ -334,7 +340,6 @@ async function finishSaw(job: SawJob): Promise<void> {
       await StuffApi.destruct(log);
     }
 
-    const board = await StuffApi.clone<Stuff & Containable>(boardPath);
     if (charge.material && MixinApi.isTangible(board)) {
       board.setMaterial(charge.material);
     }

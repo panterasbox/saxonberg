@@ -1,7 +1,8 @@
 /**
  * ⭐⭐ Custody is DERIVED by the movement primitive (assembly build,
- * MR !361): `ContainmentApi.move` titles a FRESH good by derivation and
- * never retitles one that already exists — so taking a thing stays theft.
+ * MR !361): `ContainmentApi.move` titles a FRESH good by derivation —
+ * first from what it was MADE FROM — and never retitles one that already
+ * exists, so taking a thing stays theft.
  */
 
 import "../../../../test-bootstrap";
@@ -39,10 +40,10 @@ const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 async function ownerOf(g: Thing1): Promise<string | null> {
   const o = await (g as unknown as Stuff & Chattel).chattelOwner();
-  return o?.templatePath ?? null;
+  return o && "templatePath" in o ? o.templatePath : null;
 }
 
-/** Run `fn` as Alice's act with no command frame — a deferred consequence. */
+/** Run `fn` with Alice as acting author but NO command frame — a deferred consequence. */
 function asAlice<T>(alice: Stuff, fn: () => T): Promise<T> {
   return withRootContext(null, "custody.test", async () => {
     ExecutionContextApi.tagActingAuthor(alice);
@@ -89,15 +90,45 @@ beforeEach(async () => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("custody derived by the movement primitive", () => {
-  it("⭐ a FRESH good made in the course of a person's act is theirs", async () => {
+  it("⭐⭐ a good is whoever's what it was MADE FROM was — whoever is acting", async () => {
+    const alice = makeStuffAtPath(() => new Person(), ALICE);
+    const bob = makeStuffAtPath(() => new Person(), "/platform/agent/Avatar/bob");
+    const yard = room("/test/Yard");
+    const log = good();
+    await (log as unknown as Stuff & Chattel).stampChattel(bob);
+    const board = good();
+    await (board as unknown as Stuff & Chattel).recordMadeFrom([log as unknown as Stuff]);
+    // Alice saws Bob's log: the board is Bob's.
+    await asAlice(alice, () =>
+      ContainmentApi.move(board as unknown as Stuff & Containable, yard as unknown as Stuff & Container),
+    );
+    await settle();
+    expect(await ownerOf(board)).toBe("/platform/agent/Avatar/bob");
+  });
+
+  it("inputs whose owners DISAGREE pass on no title", async () => {
+    const alice = makeStuffAtPath(() => new Person(), ALICE);
+    const bob = makeStuffAtPath(() => new Person(), "/platform/agent/Avatar/bob");
+    const a = good();
+    const b = good();
+    await (a as unknown as Stuff & Chattel).stampChattel(alice);
+    await (b as unknown as Stuff & Chattel).stampChattel(bob);
+    const made = good();
+    await (made as unknown as Stuff & Chattel).recordMadeFrom([a, b] as unknown as Stuff[]);
+    expect((made as unknown as Stuff & Chattel).getMadeFromOwner()).toBeNull();
+  });
+
+  it("⚠ a deferred act titles nothing by itself — no timer carries an owner", async () => {
     const alice = makeStuffAtPath(() => new Person(), ALICE);
     const yard = room("/test/Yard");
     const g = good();
+    // Alice is the acting author, but there is no live command (a clock
+    // callback, an engagement's completion): the good is untitled.
     await asAlice(alice, () =>
       ContainmentApi.move(g as unknown as Stuff & Containable, yard as unknown as Stuff & Container),
     );
     await settle();
-    expect(await ownerOf(g)).toBe(ALICE);
+    expect((g as unknown as Stuff & Chattel).getChattelId()).toBe("");
   });
 
   it("⚠ a good that already EXISTS is never retitled by being moved — taking it is theft", async () => {
@@ -115,7 +146,7 @@ describe("custody derived by the movement primitive", () => {
     expect((g as unknown as Stuff & Chattel).getChattelId()).toBe("");
   });
 
-  it("a good stamped before it arrives keeps that title (a customer's paper)", async () => {
+  it("a good stamped before it arrives keeps that title", async () => {
     const alice = makeStuffAtPath(() => new Person(), ALICE);
     const bob = makeStuffAtPath(() => new Person(), "/platform/agent/Avatar/bob");
     const yard = room("/test/Yard");

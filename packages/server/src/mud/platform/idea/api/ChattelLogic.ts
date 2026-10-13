@@ -249,10 +249,10 @@ export class ChattelLogic extends ApiLogic {
     // — a shop's stock, a room's props — is never retitled by being moved,
     // so taking it stays theft.
     if (arrival?.fresh && !good.getChattelId() && !isFungibleStack(item)) {
-      const owner = this.derivedMinter(item, arrival.to);
+      const owner = this.derivedTitle(item, arrival.to);
       if (owner) {
         const reg = lookupRegistry();
-        if (reg) await reg.stamp(this.ensureId(good, reg), ownerKeyOf(owner));
+        if (reg) await reg.stamp(this.ensureId(good, reg), owner);
       }
     }
     if (MixinApi.isStackable(item)) return;
@@ -273,31 +273,69 @@ export class ChattelLogic extends ApiLogic {
   }
 
   /**
-   * ⭐ Whose a freshly made good is, read off the moment it arrives — in
-   * order: arriving in a PERSON's hands, it is theirs (the fish you
-   * haul, the card you procure); made in the course of a person's act, it
-   * is the actor's — where they stand when the act is live (the billets
-   * you rive), wherever they are when it is a deferred consequence (the
-   * charcoal from the clamp you fired, the board the mill you loaded
-   * cut); else its recorded MAKER. Null leaves it
-   * untitled — a shop's restock, a room's props — as it always was.
+   * ⭐⭐ Whose a freshly made good is, derived the moment it arrives — in
+   * order:
+   *
+   * 1. **what it was made FROM**: the owner of its inputs, when the titled
+   *    ones agree (the log's owner owns the boards, the customer's sample
+   *    makes the customer's paper) — whoever is acting, whenever it lands;
+   * 2. **the hands it lands in**: a person's;
+   * 3. **the acting person**, inside a live command, where they stand (a
+   *    room's `props:` laid down while somebody walks in are not theirs);
+   * 4. **its recorded maker** (a crafted thing knows who made it).
+   *
+   * Null leaves it untitled — a shop's restock, a room's props, a thing
+   * made from nobody's materials with nobody there — as it always was.
    */
-  private derivedMinter(item: Stuff, to: Stuff | null): Stuff | null {
-    if (to !== null && to.isAgent()) return to;
-    // The acting person: inside a live command, only where they stand (a
-    // room's `props:` laid down while somebody walks in is not theirs);
-    // a DEFERRED consequence of their act — an engagement's completion, a
-    // clamp opening on the clock — is theirs wherever they have gone.
+  private derivedTitle(item: Stuff, to: Stuff | null): ChattelOwner | null {
+    const made = (item as Stuff & Chattel).getMadeFromOwner();
+    if (made) return made;
+    if (to !== null && to.isAgent()) return ownerKeyOf(to);
     const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
-    if (actor && to !== null) {
-      const deferred = ExecutionContextApi.getCommandStack().length === 0;
-      if (deferred || isWhere(actor, to)) return actor;
+    if (
+      actor &&
+      to !== null &&
+      ExecutionContextApi.getCommandStack().length > 0 &&
+      isWhere(actor, to)
+    ) {
+      return ownerKeyOf(actor);
     }
     if (MixinApi.isCrafted(item)) {
-      const maker = (item as Stuff & { getMaker(): string }).getMaker();
-      if (maker) return StuffApi.findByTemplatePath(maker) ?? null;
+      const maker = item.getMaker();
+      if (maker) return { kind: "player", templatePath: maker };
     }
     return null;
+  }
+
+  /**
+   * See {@link Chattel.recordMadeFrom}: the owner the TITLED inputs agree
+   * on, or null. Only a stamped title counts — an untitled input (a shelf
+   * good, a prop) owns nothing it could pass on, and the fallbacks
+   * `resolveOwner` reads (a parcel, a row's author) are not a title.
+   */
+  @CallSecurity(ChattelCallers)
+  public async ownerOfInputs(
+    _item: Stuff,
+    inputs: readonly Stuff[],
+  ): Promise<ChattelOwner | null> {
+    const reg = lookupRegistry();
+    if (!reg) return null;
+    let agreed: ChattelOwner | null = null;
+    for (const input of inputs) {
+      if (!MixinApi.isChattel(input)) continue;
+      const good = input as Stuff & Chattel;
+      const id = good.getChattelId();
+      // A good made a moment ago is not titled until it lands — what it
+      // was itself made from stands in for it (a press's residue cake is
+      // made from what its output was).
+      const owner = id ? reg.ownerOf(id) : good.getMadeFromOwner();
+      if (!owner || owner.kind === "group") continue;
+      if (agreed === null) agreed = owner;
+      else if (agreed.kind !== owner.kind || agreed.templatePath !== owner.templatePath) {
+        return null; // the inputs disagree: no single owner to inherit from
+      }
+    }
+    return agreed;
   }
 
   /**

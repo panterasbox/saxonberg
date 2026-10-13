@@ -114,14 +114,6 @@ interface Schedule {
   birthScope: string | null;
   /** Fire once for a backlog of missed periods (`ScheduleOpts.coalesce`). */
   coalesce: boolean;
-  /**
-   * ⭐ The person whose act set a ONE-SHOT (an `after`): when it fires it
-   * is still their act — the clamp you fired opening three days later,
-   * the board the mill you loaded cuts. Recurring schedules carry none: a
-   * system tick installed during somebody's command must never act as
-   * them for ever.
-   */
-  author: Stuff | null;
 }
 
 const WorldClockRegistryBase = Idea;
@@ -780,10 +772,6 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       birthScope:
         registrantScope === OMNI_SCOPE ? null : registrantScope,
       coalesce: spec.opts?.coalesce === true,
-      author:
-        spec.intervalS === null
-          ? ((ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null)
-          : null,
     };
     s.handle = {
       id,
@@ -935,19 +923,6 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   private invoke(s: Schedule): void {
     try {
-      const author = s.author !== null && !s.author.isDestroyed() ? s.author : null;
-      if (author !== null) {
-        ExecutionContextApi.runRoot(
-          WorldClockApi,
-          'fire',
-          () => {
-            ExecutionContextApi.tagActingAuthor(author);
-            s.cb(s.handle);
-          },
-          s.birthScope !== null ? { circleScope: s.birthScope } : undefined,
-        );
-        return;
-      }
       if (s.birthScope !== null) {
         // Circle-registered schedule: re-root the callback under its
         // birth scope so the heartbeat's omni root never launders a

@@ -417,7 +417,9 @@ async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
   if (giver.isDestroyed() || bole.isDestroyed()) return;
   const room = bole.getContainer();
   const wood = bole.getMaterial();
-  const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH);
+  const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH, undefined, {
+    madeFrom: bole,
+  });
   if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
   if (MixinApi.isContainer(giver)) ContainmentApi.move(timber, giver);
   else if (room) ContainmentApi.move(timber, room);

@@ -1184,12 +1184,15 @@ exactly twice: before the MR opens, and at `/finalize`.
 > layers to moving an object — `ContainmentApi.move(ob, dest)` and a thing
 > moving itself (`MobileMixin`) — and everything else is derived.* Custody
 > is recorded by `move` on every move (and by `Adornable.addFixture`); a
-> FRESH good is titled by derivation (the hands it lands in; else the
-> acting person — present, in a live command; anywhere, for a deferred
-> consequence, since an engagement's completion and a one-shot clock
-> timer now run AS the person whose act set them; else its recorded
-> maker); a good that already exists is never retitled. `move(item, host,
-> word?)` absorbs placement. The notes below are the history.
+> FRESH good is titled by derivation — **ownership follows the inputs**
+> (`StuffApi.clone(…, { madeFrom })`: the log's owner owns the boards);
+> else the hands it lands in; else the acting person in a live command;
+> else its recorded maker. A second review pass removed an interim rule
+> that carried the acting person through engagement completions and
+> one-shot clock timers: it made ownership depend on scheduling
+> mechanics, and gave the sawyer your boards. A good that already exists
+> is never retitled. `move(item, host, word?)` absorbs placement. The
+> notes below are the history.
 >
 > ✅ **Done — `0ac87f240`** (one commit with W1–W2: they share
 > `CraftingLogic.ts`, and W1's `fit` affordance names W2's view).
