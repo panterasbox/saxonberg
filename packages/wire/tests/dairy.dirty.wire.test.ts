@@ -294,6 +294,15 @@ async function founderEval(where: string, parcel: string, code: string): Promise
 
 beforeAll(async () => {
   handle = uniqueHandle('dairyman');
+  // A consignment pays into an account — the co-op shelf will not take a
+  // wedge from somebody with nowhere to be paid (correctly). Opened first:
+  // a wedge carried to the bank through a winter street froze and turned
+  // (run 21 — the climate build's freeze reaches what you carry).
+  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  await k.drainProse();
+  const opened = await k.cmd('bank open');
+  expect(refusedFor(opened)).toBeNull();
+  k.close();
   k = await Session.open(handle, { startLocation: BYRE, wizard: true });
   await k.drainProse();
 }, 300_000);
@@ -652,7 +661,8 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     await untilHour(12);
     const pen = await read(k, 'look');
     expect(pen).toMatch(/goat|pen/i);
-    await doing(k, 'get pail');
+    // The byre's pail, still in hand — taking the pen's too makes every
+    // later `pail` ask *which?* (run 21). Washed at the pen's butt.
     await doing(k, 'wash pail');
     const milked = await doing(k, 'milk goat into pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
@@ -735,15 +745,13 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     // the drive has had the creamery's thermometer since day one.
     const split = await doing(k, 'split wheel with knife');
     expect(split).toMatch(/wedge/i);
+    note(`smell wedge (just cut) → ${await read(k, 'smell wedge')}`);
+    note(`smell wheel (just cut) → ${await read(k, 'smell wheel')}`);
     // The wedge comes away into the hand; the rest goes back on the rack.
     await doing(k, 'put wheel on rack');
     await doing(k, 'drop knife');
     await say(k, 'up');
     await k.drainProse();
-    // A consignment pays into an account — the co-op shelf will not take
-    // a wedge from somebody with nowhere to be paid (correctly).
-    await goTo(BANK_HALL);
-    await doing(k, 'bank open');
     await goTo(CREAMERY);
     const listed = await doing(k, 'consign wedge --ask 12');
     note(`consign wedge → ${listed}`);
@@ -950,8 +958,10 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     // hands, not the refusal.
     await act(k, 'get charcoal');
     expect(await carried(k)).toMatch(/charcoal/i);
+    // Four baskets are the run: two in the charge, two for the bed. The
+    // smelter's own two stay where they are — a seventh and eighth basket
+    // will not lift (run 21).
     await goTo(SMELTER);
-    await doing(k, 'get charcoal');
     await doing(k, 'put charcoal in furnace');
     await doing(k, 'put charcoal in furnace');
     await doing(k, 'stoke charcoal into furnace');
