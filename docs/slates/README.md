@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**292 slates.** 68 greenfield · 101 continuations · 62 waves · 61 tails.
+**293 slates.** 69 greenfield · 101 continuations · 62 waves · 61 tails.
 
-## ⭐ Greenfield — nothing shipped yet (68)
+## ⭐ Greenfield — nothing shipped yet (69)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -103,6 +103,7 @@ respect.
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
+| [scan-sweep](./builds/scan-sweep-slate.md) | the ten defects in § *Build order* — three that run per command or per beat (the help-wanted sign on every `look`, `journey`'s sea names, the mind-driven screen) first — and the ratchet in § *The gate*. |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
