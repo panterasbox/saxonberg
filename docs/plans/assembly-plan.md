@@ -1786,7 +1786,8 @@ Read first, in this order:
 
 ## Drive record
 
-**Run 21 (2026-10-13), after `fit` moved to the person: _pending_.**
+**Run 21 (2026-10-14), after `fit` moved to the person: 21 / 21 green**,
+the restart included — every assembled row on its narrow class.
 
 **Run 20 (2026-10-13), after the narrowing review (`AssembledMixin` only
 on classes that ARE made of parts; `isAssembly()` and its guards gone;
