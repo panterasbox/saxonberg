@@ -542,14 +542,16 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
   it('⭐ `look vat` — the curd has set', async () => {
     await goTo(CREAMERY);
     // Wait on the STATE: how fast a curd sets is the room's to say.
+    // ⚠ Two-hour steps and no wait for daylight: a SET curd is no longer
+    // a working batch, so its spoilage gauge is not held — every hour it
+    // sits unworked is load the wheel carries (run 23: the wheel smelled
+    // "faintly off" when cut). A cheesemaker drains it when it is ready.
     let vat = await read(k, 'look vat');
-    for (let i = 0; i < 12 && !/still|done/i.test(vat); i++) {
-      await advance('6 hours');
+    for (let i = 0; i < 36 && !/still|done/i.test(vat); i++) {
+      await advance('2 hours');
       vat = await read(k, 'look vat');
     }
-    await daylight();
-    vat = await read(k, 'look vat');
-    note(`look vat (next noon) → ${vat}`);
+    note(`look vat (set) → ${vat}`);
     expect(vat).toMatch(/still|done|whey|thin|green/i);
   });
 
@@ -578,12 +580,12 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
     expect(stone).toMatch(/stone/i);
     const filled = await read(k, 'look hoop');
     note(`look hoop (filled) → ${filled}`);
-    await advance('8 hours');
-    const drawn = await read(k, 'look hoop');
-    note(`look hoop (eight hours pressed) → ${drawn}`);
-    expect(drawn).toMatch(/drawn down|firmed|set/i);
-    await untilHour(12);
-    const set = await read(k, 'look hoop');
+    // Out of the hoop the moment it has set — the same reason.
+    let set = await read(k, 'look hoop');
+    for (let i = 0; i < 12 && !/has set/i.test(set); i++) {
+      await advance('2 hours');
+      set = await read(k, 'look hoop');
+    }
     note(`look hoop (set) → ${set}`);
     expect(set).toMatch(/set|wheel/i);
     await doing(k, 'get stone');
