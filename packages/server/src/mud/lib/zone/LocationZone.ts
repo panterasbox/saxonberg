@@ -20,6 +20,8 @@ import type Location from '../stuff/Location';
 import type { VetoResult } from '../errors';
 import type { MixinConstructor } from '../mixin';
 import type { SpatialZone } from './SpatialZone';
+import type { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
 
 export interface LocationZone {
   getLocations(): ReadonlySet<Location>;
@@ -45,6 +47,9 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      */
     protected locations: Set<Location> = new Set();
 
+    /** Horizon targets already stood up from here (runtime only). */
+    private sightedTargets: Set<string> | null = null;
+
     public getLocations(): ReadonlySet<Location> { return this.locations; }
 
     /**
@@ -55,6 +60,34 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
     public addLocation(location: Location): void {
       this.locations.add(location);
       location.setZone(this as unknown as SpatialZone);
+      this.lookOutFrom(location);
+    }
+
+    /**
+     * ⭐ **What can be seen from a room loads with the room** (maritime
+     * review, 2026-10-14), as its props do: the zones and seas its
+     * `horizon` names are stood up — and with them the structures THEY
+     * name — when the first room looking out at them is. Nothing is
+     * loaded at boot and nothing is searched for.
+     *
+     * ⚠ It cannot cascade: a zone stood up only because somebody can SEE
+     * it has no room in it, so it never looks out itself. Kicked, not
+     * awaited — `addLocation` is a registration, and a horizon read made
+     * the instant a room appears sees whatever has stood up by then.
+     */
+    private lookOutFrom(location: Location): void {
+      const own = location.getHorizon();
+      const named = own ?? (this as unknown as SpatialZone).peekField<string[]>('horizon');
+      if (!Array.isArray(named)) return;
+      this.sightedTargets ??= new Set();
+      for (const target of named) {
+        if (this.sightedTargets.has(target)) continue;
+        this.sightedTargets.add(target);
+        void StuffApi.singleton<Stuff>(target).catch((err) => {
+          this.sightedTargets?.delete(target);
+          console.warn(`LocationZone: horizon target '${target}' did not stand up:`, err);
+        });
+      }
     }
 
     /** Remove a location from this zone. Clears the back-reference. */

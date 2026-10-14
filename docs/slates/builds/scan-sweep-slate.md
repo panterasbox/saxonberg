@@ -31,10 +31,16 @@ handed (`lint:world-scan`'s header says it plainly).
 
 ⭐ The maritime build is the worked precedent (MR !358, B-89/B-90): the
 horizon and the weather lean stopped reading every resident `Voyaging`
-object; `StructureCatalogue` grew a keyed index (`byExtent`, `within`,
-`onExpanse`); the expanse answers what is on it (`sightables()`); the
+object; the expanse answers what is on it (`sightables()`); the
 boarding exit walks berth → ship → sea → that sea's nodes, once; and
-two `RegistryWideReaders` entries were deleted.
+two `RegistryWideReaders` entries were deleted. ⚠ Its first fix — a
+`StructureCatalogue` with a keyed index — was itself a content index,
+and the 2026-10-14 review removed it: a zone NAMES its structures and
+loads them with itself, and what a place can see loads with the place.
+⭐ The stronger rule this sweep should hold every fix to: **content
+loads when a player's act forces it, by following authored references
+— never by search, and never at boot unless the reason is written
+down.**
 
 ## Build order — the ten defects
 

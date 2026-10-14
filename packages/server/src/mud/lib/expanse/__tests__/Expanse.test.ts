@@ -9,6 +9,8 @@ import { Template } from '../../stuff/Template';
 import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
+import { ZoneApi } from '../../../api/zone';
+import { SpatialZone } from '../../zone/SpatialZone';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
@@ -35,6 +37,7 @@ function corridor(from: [number, number], to: [number, number], widthNm: number)
  * nodes by keyword, the seeded traffic field, per-channel co-presence.
  */
 class TestExpanse extends Expanse {}
+class TestZone extends SpatialZone {}
 
 const SEA = '/test/sea';
 let sea: TestExpanse;
@@ -164,15 +167,13 @@ describe('sight and traffic', () => {
 describe('ExpanseApi.craftAt', () => {
   it('a room answers the Structure covering it, when it has a position', async () => {
     const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
+    ship.setExtent('/test/ship');
     live.set('/test/ship/structure', ship);
-    const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
-    const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
-    live.set('/platform/idea/StructureCatalogue', cat);
-    // The ship is a SHIP row; no plain Structure rows here.
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Ship'
-        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
-        : []) as unknown as Template[]);
+    // ⭐ The place's own ZONE names the ship — no catalogue, no search.
+    const zone = makeStuffAtPath(() => new TestZone(), '/test/ship');
+    await zone.applyStructures(['/test/ship/structure']);
+    vi.spyOn(ZoneApi, 'resolveZoneForPath').mockImplementation((async (p: string) =>
+      (p.startsWith('/test/ship/') ? zone : null)) as never);
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
@@ -228,17 +229,13 @@ describe('the weather on the water (maritime R9/R10)', () => {
       b.setExtent(belt(49, 51));
       b.setWeatherLean({ fog: 8 });
     });
-    const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
-    const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
-    live.set('/platform/idea/StructureCatalogue', cat);
-    // The ship is a SHIP row; no plain Structure rows here.
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Ship'
-        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
-        : []) as unknown as Template[]);
+    // The deck's own zone names the ship it is a member of.
+    const zone = makeStuffAtPath(() => new TestZone(), '/test/ship');
+    live.set('/test/ship/deck', { getZone: () => zone, isDestroyed: () => false } as unknown as Stuff);
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing stood up
-    await cat.all();
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: the zone names nothing yet
+    await zone.applyStructures(['/test/ship/structure']);
+    await zone.structuresLoaded();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
     await sea.bands();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });

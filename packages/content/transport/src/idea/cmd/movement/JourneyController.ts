@@ -34,7 +34,8 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
+import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
+import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import LaneCatalogue, {
   LANE_CATALOGUE_PATH,
   type CompiledLane,
@@ -44,7 +45,6 @@ import { Journey, JOURNEY_TYPE } from '../../../lib/journey/Journey';
 const TOPIC = 'act.move';
 
 /** The kernel's expanse node class — a sea's places, which no road reaches. */
-const EXPANSE_NODE_CLASS = '/platform/idea/ExpanseNode';
 
 interface JourneyModel extends CommandModel {
   /** `journey to <place>` — a place name, or a durable path. */
@@ -96,7 +96,7 @@ export default class JourneyController extends CommandController<JourneyModel> {
     if (there.length === 0) {
       // ⭐ A place across open water is not on any road (maritime D18):
       // say so, and name the verb that knows.
-      const sea = await this.seaNodeNamed(raw);
+      const sea = await this.seaNodeNamed(raw, context.location ?? null);
       if (sea !== null) {
         return this.fail(
           context,
@@ -357,16 +357,22 @@ export default class JourneyController extends CommandController<JourneyModel> {
     return raw.startsWith('/') ? raw : '';
   }
 
-  /** The name of an expanse node answering to `raw`, or `null`. */
-  private async seaNodeNamed(raw: string): Promise<string | null> {
-    const want = normalizePlace(raw);
-    if (want.length === 0) return null;
-    for (const tpl of await Template.findByClass(EXPANSE_NODE_CLASS)) {
-      const name = typeof tpl.data?.name === 'string' ? tpl.data.name : '';
-      if (normalizePlace(leafOf(tpl.path)) === want || normalizePlace(name) === want ||
-        normalizePlace(name.replace(/^the\s+/i, '')) === want) {
-        return name || leafOf(tpl.path);
-      }
+  /**
+   * The name of a place across open water answering to `raw`, or `null` —
+   * asked of the SEAS this place looks out over (its `horizon`), each by
+   * its own nodes (maritime review, 2026-10-14: never a scan of every
+   * node row). A sea you cannot see from here is not one you would name.
+   */
+  private async seaNodeNamed(raw: string, here: Stuff | null): Promise<string | null> {
+    if (!(here instanceof Location)) return null;
+    const zone = here.getZone();
+    const named = here.getHorizon()
+      ?? zone?.peekField<string[]>('horizon') ?? null;
+    for (const path of named ?? []) {
+      const sea = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (!(sea instanceof Expanse)) continue;
+      const node = await sea.nodeByKeyword(raw);
+      if (node !== null) return node.getName();
     }
     return null;
   }

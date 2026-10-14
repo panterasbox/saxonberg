@@ -20,6 +20,13 @@ class: /system/water/idea/WaterExpanse
 data:
   name: the Greywater
   origin: { latDeg: 42.000, lonDeg: -8.470 }
+  # ⭐ What this sea loads with it (maritime review, 2026-10-14 — no sea,
+  # ship or landmark is booted): the light on Gannet Rock, sighted where
+  # its node is, and the Hesper, the realm's own ship based here. A ship a
+  # player builds is loaded by its crew being aboard, not listed here.
+  structures:
+    - /world/terminus/gannet-rock/structure
+    - /world/terminus/hesper/structure
   # The map a chart of it files under — `map greywater`.
   address: greywater
   prevailingDeg: 240

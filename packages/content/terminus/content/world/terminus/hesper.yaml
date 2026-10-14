@@ -2,13 +2,17 @@
 # craft anybody can sail.
 #
 # ⭐ Her rooms are ordinary rooms in their own zone; what makes her a SHIP
-# is her Structure (`hesper/structure`), whose POSITION is a variable —
-# the one field that is the whole difference between a ship and a
-# building. Nothing about her is inside the sea.
+# is her Ship (`hesper/structure`) — a Structure whose position is a
+# variable. Nothing about her is inside the sea.
 #
 # ⚠ The name is a placeholder.
 class: /platform/idea/location/CartesianZone
 data:
+  # ⭐ What stands in this zone, loaded with it as a room's props are
+  # (maritime review, 2026-10-14): the Hesper loads when somebody comes
+  # aboard, or onto her sea. Nothing boots her.
+  structures:
+    - /world/terminus/hesper/structure
   name: The Hesper
   cellSize: 4.0
   # No `horizon`: afloat, what is in view is COMPUTED from two heights

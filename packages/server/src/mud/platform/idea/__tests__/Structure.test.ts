@@ -2,11 +2,12 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
 import Ship from '../Ship';
-import StructureCatalogue from '../StructureCatalogue';
-import { Template } from '../../../lib/stuff/Template';
+import { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+
+class TestZone extends SpatialZone {}
 
 /**
  * The Structure (maritime D4): membership by extent prefix, sparse. ⭐ A
@@ -66,26 +67,29 @@ describe('Structure', () => {
     expect(s.isLandmark()).toBe(true);
   });
 
-  it('the catalogue reads the landmark flag off the row', async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Structure' ? [
-      { path: '/test/t/structure', data: { extent: '/test/t', landmark: true } },
-      { path: '/test/u/structure', data: { extent: '/test/u' } },
-    ] : []) as unknown as Template[]);
-    const cat = makeStuff(() => new StructureCatalogue());
-    expect((await cat.rowOf('/test/t/structure'))?.landmark).toBe(true);
-    expect((await cat.rowOf('/test/u/structure'))?.landmark).toBe(false);
+  it('⭐ a zone NAMES its structures and loading it stands them up — nothing is searched for', async () => {
+    const tower = makeStuffAtPath(() => new Structure(), '/test/t/structure');
+    tower.setExtent('/test/t');
+    tower.setLandmark(true);
+    const zone = makeStuffAtPath(() => new TestZone(), '/test/t');
+    const singleton = vi.spyOn(StuffApi, 'singleton');
+    await zone.applyStructures(['/test/t/structure']);
+    await zone.structuresLoaded();
+    expect(singleton).toHaveBeenCalledWith('/test/t/structure');
+    expect(zone.getStructures()).toEqual([tower]);
+    expect(zone.getStructures()[0]!.isLandmark()).toBe(true);
   });
 
-  it('the catalogue answers the structure a place is in by the longest extent', async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Structure' ? [
-      { path: '/test/a/structure', data: { extent: '/test/a' } },
-      { path: '/test/a/wing/structure', data: { extent: '/test/a/wing' } },
-    ] : []) as unknown as Template[]);
-    const cat = makeStuff(() => new StructureCatalogue());
-    expect((await cat.structureOf('/test/a/wing/attic'))?.path).toBe('/test/a/wing/structure');
-    expect((await cat.structureOf('/test/a/hall'))?.path).toBe('/test/a/structure');
-    expect(await cat.structureOf('/test/elsewhere')).toBeNull();
+  it('the zone answers the structure a place is in — the innermost extent', async () => {
+    const hall = makeStuffAtPath(() => new Structure(), '/test/a/structure');
+    hall.setExtent('/test/a');
+    const wing = makeStuffAtPath(() => new Structure(), '/test/a/wing/structure');
+    wing.setExtent('/test/a/wing');
+    const zone = makeStuffAtPath(() => new TestZone(), '/test/a');
+    await zone.applyStructures(['/test/a/structure', '/test/a/wing/structure']);
+    await zone.structuresLoaded();
+    expect(zone.structureOf('/test/a/wing/attic')).toBe(wing);
+    expect(zone.structureOf('/test/a/hall')).toBe(hall);
+    expect(zone.structureOf('/test/elsewhere')).toBeNull();
   });
 });

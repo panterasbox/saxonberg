@@ -43,7 +43,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Location from '../../../lib/stuff/Location';
 import type Structure from '../Structure';
-import type StructureCatalogue from '../StructureCatalogue';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
 import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
@@ -1189,24 +1188,19 @@ const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 
 type Craft = Stuff & Positioned & Voyaging;
 
-/** The structure catalogue, when it is resident (booted `sync-read`). */
-function structureCatalogue(): StructureCatalogue | null {
-  return StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue) ?? null;
-}
-
 /**
  * ⭐ The craft `viewer` is aboard — the boat they sit in at sea, or the
- * ship whose extent holds their room (the structure catalogue's keyed
- * answer, O(depth)). `null` ashore.
+ * ship whose extent holds their room: the room's own ZONE names the
+ * structures standing in it (maritime review, 2026-10-14). `null` ashore.
  */
 function craftAboard(viewer: Stuff): Craft | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
   const path = room?.getTemplatePath() ?? '';
-  const row = path ? structureCatalogue()?.peekStructureOf(path) ?? null : null;
-  const s = row ? StuffApi.findByTemplatePath<Stuff>(row.path) : null;
-  return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as Craft) : null;
+  const zone = room ? (room.getZone() as SpatialZone | null) : null;
+  const s = path && zone ? zone.structureOf(path) : null;
+  return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }
 
 /**
@@ -1318,11 +1312,10 @@ function horizonAshore(viewer: Stuff): HorizonView {
     const theirElev = target?.peekField<number>('elevation') ?? 0;
     const within = here === zonePath || here.startsWith(`${zonePath}/`);
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
-    // The zone's own structures — the catalogue's keyed answer.
-    for (const row of structureCatalogue()?.peekStructuresWithin(zonePath) ?? []) {
-      // The catalogue's rows ARE structures — its own class query.
-      const s = StuffApi.findByTemplatePath<Structure>(row.path) ?? null;
-      if (s === null || s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
+    // The structures the named zone says stand in it — stood up when the
+    // first room looking out at it was (`LocationZone.lookOutFrom`).
+    for (const s of target?.getStructures() ?? []) {
+      if (s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;
       seen.add(s.stuffId);

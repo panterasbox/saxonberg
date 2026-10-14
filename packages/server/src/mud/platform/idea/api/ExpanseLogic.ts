@@ -7,9 +7,9 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import { Expanse } from '../../../lib/expanse/Expanse';
 import { MixinApi } from '../../../api/mixin';
+import { ZoneApi } from '../../../api/zone';
+import { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { StuffApi } from '../../../api/stuff';
-import { TemplatePaths } from '../../../lib/paths';
-import type StructureCatalogue from '../StructureCatalogue';
 import type { ClimateLean } from '../../../lib/weather/WeatherType';
 
 const ExpanseApiCallers = SecurityPolicies.FromModule('/api/expanse#ExpanseApi');
@@ -33,11 +33,13 @@ export class ExpanseLogic extends ApiLogic {
     if (here && MixinApi.isPositioned(here) && here.getExpansePosition() !== null) {
       return here;
     }
-    const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-    const row = await cat.structureOf(placePath);
-    if (row === null) return null;
-    const s = await StuffApi.singleton<Stuff>(row.path);
-    return MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
+    // The place's own zone names what stands in it (maritime review,
+    // 2026-10-14 — never a catalogue of every structure).
+    const zone = await ZoneApi.resolveZoneForPath(placePath);
+    if (!(zone instanceof SpatialZone)) return null;
+    await zone.structuresLoaded();
+    const s = zone.structureOf(placePath);
+    return s && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
   }
 
   /** See {@link ExpanseApi.leanAtSync}. */
@@ -46,12 +48,10 @@ export class ExpanseLogic extends ApiLogic {
     if (!placePath) return null;
     let craft: Stuff | null = StuffApi.findByTemplatePath<Stuff>(placePath) ?? null;
     if (!craft || !MixinApi.isPositioned(craft) || craft.getExpansePosition() === null) {
-      // The structure this place is a member of — the structure
-      // catalogue's keyed answer (O(depth)), never a registry-wide read
-      // (maritime review, 2026-10-13).
-      const cat = StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      const row = cat?.peekStructureOf(placePath) ?? null;
-      craft = row ? StuffApi.findByTemplatePath<Stuff>(row.path) ?? null : null;
+      // The structure this place is a member of — named by the place's
+      // own zone, and standing whenever the place is.
+      const zone = craft?.getZone() ?? null;
+      craft = zone?.structureOf(placePath) ?? null;
     }
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const pos = craft.getExpansePosition();
