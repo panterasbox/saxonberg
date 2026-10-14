@@ -161,6 +161,31 @@ describe('the position is derived from three fields', () => {
     expect(ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!)).toBeLessThan(1e-6);
     expect(told.join('\n')).toContain('You raise the Rock');
   });
+
+  it('⭐ between watches she never sails PAST the node: the drift stops inside its radius', async () => {
+    const node = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/rock`);
+    node.setName('the Rock');
+    node.setFocus({ rho: 10 * 1852, theta: 90, radius: 0.5 * 1852 });
+    live.set(`${SEA}/rock`, node);
+    sea.invalidate();
+    await ship.steer({ bearingDeg: 90, speedKn: 6, node: `${SEA}/rock` });
+    hours(1);
+    // An hour out she is six miles along, not yet there.
+    expect(ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!)).toBeCloseTo(4, 1);
+    hours(3);
+    // Four hours at six knots is twenty-four miles — she stopped at the edge.
+    const d = ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!);
+    expect(d).toBeLessThanOrEqual(0.5 + 1e-3);
+    expect(d).toBeGreaterThan(0.45);
+    // …and the watch records the arrival she has already made.
+    await started[0]!.watch();
+    expect(told.join('\n')).toContain('You raise the Rock');
+    expect(ship.getCourse()).toBeNull();
+    // A course set for nothing still runs on.
+    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    hours(1);
+    expect(ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!)).toBeGreaterThan(5);
+  });
 });
 
 describe('the watch', () => {

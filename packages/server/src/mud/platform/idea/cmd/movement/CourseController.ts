@@ -67,6 +67,12 @@ export default class CourseController extends CommandController<CourseModel> {
           'unknown-node',
         );
       }
+      // ⭐ Already there — inside its radius (maritime browser walk,
+      // 2026-10-14: `course gannet` at the rock laid 049 and sailed off).
+      const lying = craft.getExpansePosition();
+      if (lying !== null && target.isAt(lying)) {
+        return this.decline(context, `You are at ${target.getName()} already.`, 'already-there');
+      }
       const from = craft.reckonedNow();
       if (from === null) return this.decline(context, 'You cannot say where you are.', 'no-position');
       bearingDeg = from.bearingTo(at);

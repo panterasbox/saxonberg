@@ -186,7 +186,11 @@ export class Voyage implements SustainedEngagement {
     if (course?.node) {
       const node = await expanse.node(course.node);
       const at = node?.getExpansePosition() ?? null;
-      if (node && at && closestApproachNm(prev, pos, at) <= node.getArrivalNm()) {
+      // ⭐ `isAt(pos)` first: the drift STOPS on the radius's edge
+      // (`Voyaging.positionAtS`), measured by the node's own metric, and
+      // the segment's closest approach — scaled at a different mid-latitude
+      // — can read a hair over it there, missing the arrival for a watch.
+      if (node && at && (node.isAt(pos) || closestApproachNm(prev, pos, at) <= node.getArrivalNm())) {
         craft.placeAt(at, nowS);
         this.persist();
         tell(`You raise ${node.getName()} and come up to it.`, 'act.move');

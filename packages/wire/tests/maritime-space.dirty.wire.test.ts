@@ -412,6 +412,13 @@ suite('9 · 11 · 13 · 14 · 26 · the bands — the water says what changed', 
   it('she comes up to Gannet Rock', () => {
     expect(passage).toMatch(/You raise Gannet Rock/);
   });
+
+  it('⭐ lying at the Rock, a course for it is refused — she does not sail off on a bearing to herself', async () => {
+    // (browser walk, 2026-10-14: it laid 049 and got her under way.)
+    const r = await me.cmd('course gannet');
+    expectNote(r, 'controller-rejected', { reason: 'already-there' });
+    expect(squash(await r.said())).toMatch(/at Gannet Rock already/);
+  });
 });
 
 suite('6 · 7 · 8 · finding out where you are', () => {

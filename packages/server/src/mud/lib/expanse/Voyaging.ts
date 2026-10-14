@@ -36,6 +36,7 @@ import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
 import type { Positioned } from './Positioned';
 import type Band from '../../platform/idea/Band';
+import type ExpanseNode from '../../platform/idea/ExpanseNode';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
@@ -137,7 +138,82 @@ export function VoyagingMixin<
       return this.positionAtS(WorldClockApi.getNow().rawValue());
     }
 
+    /**
+     * ⭐ Where she is at `tS` — the drift, STOPPED where a course set for
+     * a node first comes inside its radius (maritime browser walk,
+     * 2026-10-14). Arrival is recorded at the watch beat, but the
+     * position never runs past the place she was making for: without the
+     * stop a craft sailed through Gannet Rock and twelve miles beyond,
+     * then snapped back to it at the beat.
+     */
     positionAtS(tS: number): GeoPosition | null {
+      const at = this.driftAtS(tS);
+      const node = this.courseNode();
+      if (at === null || node === null) return at;
+      const arrivedS = this.arrivalS(node, tS);
+      return arrivedS === null ? at : this.driftAtS(arrivedS);
+    }
+
+    /** The node the current course was set for, once its sea has compiled. */
+    private courseNode(): ExpanseNode | null {
+      const path = this.course?.node ?? null;
+      if (path === null) return null;
+      const sea = (this as unknown as Positioned).getExpanse();
+      const e = sea ? StuffApi.findByTemplatePath<Stuff>(sea) : null;
+      if (!(e instanceof ExpanseFrame)) return null;
+      return e.peekNodes().find((n) => n.getTemplatePath() === path) ?? null;
+    }
+
+    /** Runtime memo of {@link arrivalS} for the course it was computed for. */
+    private arrivalMemo: { key: string; arrivedS: number | null; clearUntilS: number } | null = null;
+
+    /**
+     * The first game-second at or before `tS` the drift comes inside
+     * `node`'s radius, or `null` when it has not. Sampled at a step well
+     * inside the radius, then bisected; remembered per course, so a later
+     * read only scans the time since the last one.
+     */
+    private arrivalS(node: ExpanseNode, tS: number): number | null {
+      const target = node.getExpansePosition();
+      const course = this.course;
+      if (target === null || course === null) return null;
+      const key = `${this.courseSetAtS}|${course.node}|${course.bearingDeg}|${course.speedKn}`;
+      if (this.arrivalMemo?.key !== key) {
+        this.arrivalMemo = { key, arrivedS: null, clearUntilS: this.courseSetAtS };
+      }
+      const memo = this.arrivalMemo;
+      if (memo.arrivedS !== null) return memo.arrivedS <= tS ? memo.arrivedS : null;
+      if (tS <= memo.clearUntilS) return null;
+      const within = node.getArrivalNm();
+      const inside = (t: number): boolean => {
+        const p = this.driftAtS(t);
+        return p !== null && p.distanceNm(target) <= within;
+      };
+      // Half the radius at the fastest she can be carried: no crossing of
+      // the circle is stepped over.
+      const knots = Math.max(0.1, course.speedKn + 5);
+      const stepS = Math.max(30, ((within / 2) / knots) * 3600);
+      let lo = memo.clearUntilS;
+      while (lo < tS) {
+        let hi = Math.min(lo + stepS, tS);
+        if (inside(hi)) {
+          // Bisect to the second she crosses into the radius.
+          for (let i = 0; i < 24 && hi - lo > 1; i++) {
+            const mid = (lo + hi) / 2;
+            if (inside(mid)) hi = mid;
+            else lo = mid;
+          }
+          memo.arrivedS = hi;
+          return hi;
+        }
+        lo = hi;
+      }
+      memo.clearUntilS = tS;
+      return null;
+    }
+
+    /** The drift: fix + course × time + the set of every band crossed. */
+    private driftAtS(tS: number): GeoPosition | null {
       const fix = this.storedFix();
       const course = this.course;
       if (fix === null || course === null || tS <= this.courseSetAtS) return fix;
