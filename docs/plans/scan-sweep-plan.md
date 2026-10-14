@@ -1195,6 +1195,14 @@ No AC is unmapped.
 
 ## Risks & opens
 
+> ✅ **User rulings, 2026-10-14 (before the build):** all three flags
+> accepted — (1) `TopicCatalogue`, `RecipeCatalogue` and
+> `ArchetypeCatalogue` stay booted with their synchronous-reader reason
+> written into the entry; (2) a `look` runs the one-house pass on a LIVE
+> house (it never stands one up); (3) the price index loading a basket
+> counter pulls in its room and what stands with it. The build runs W0–W6
+> to the MR without stopping.
+
 **For the user — decisions the plan makes that need an eye:**
 
 1. **Three catalogues are expected to stay booted** by D6's reader rule:
