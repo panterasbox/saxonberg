@@ -237,9 +237,43 @@ export class LocomotionLogic extends ApiLogic {
     }
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
-    const enablement = this.checkEnablement(actor, mode, direction);
+    let enablement = this.checkEnablement(actor, mode, direction);
+    // ⭐ The far side: an exit whose DESTINATION is the medium (the
+    // strand's east into the pool) admits the mode — you swim INTO the
+    // water, so the water is what you swim in. Only the place itself
+    // counts, never its contents: a ladder at the foot of a shaft does
+    // not make the top climbable.
+    if (!enablement.ok && enablement.gate === 'enablement') {
+      const far = await this.farSideEnablement(actor, exit, mode, direction);
+      if (far !== null) enablement = far;
+    }
     if (!enablement.ok) return enablement;
     return this.checkHaulage(actor, exit, mode);
+  }
+
+  /**
+   * The enablement gate answered by the exit's destination, when the
+   * destination itself composes the mode's enablement mixin; `null` when
+   * it does not (or cannot be resolved), so the near side's refusal
+   * stands.
+   */
+  private async farSideEnablement(
+    actor: Stuff & Containable,
+    exit: Exit,
+    mode: LocomotionMode,
+    direction: string,
+  ): Promise<TraversalGuard | null> {
+    const mixinName = mode.getEnablementMixin();
+    if (!mixinName || mode.getPassthrough()) return null;
+    let dest: Stuff;
+    try {
+      dest = await exit.resolveDestination();
+    } catch {
+      return null;
+    }
+    const host = asEnablement(dest, mixinName);
+    if (!host || !host.canEngageAxis(direction)) return null;
+    return engageHost(actor, mode, host);
   }
 
   /**
@@ -492,6 +526,15 @@ function checkEnablementScope(
       context: { missing: mixinName },
     };
   }
+  return engageHost(actor, mode, host);
+}
+
+/** Whether `actor` may engage `mode` on the enablement `host` it found. */
+function engageHost(
+  actor: Stuff & Containable,
+  mode: LocomotionMode,
+  host: Stuff & Enablement,
+): TraversalGuard {
   if (!host.canBeEngagedBy(actor)) {
     return {
       ok: false,

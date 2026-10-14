@@ -1,0 +1,16 @@
+# Hand-bearing compass — a card in a bowl of spirit with a prism over the
+# lubber line: hold it to the eye, put the thing on the line, read the
+# bearing off the card. The instrument `measure bearing` reads by
+# (maritime R8).
+class: /platform/thing/Tool
+data:
+  shortDescription: hand-bearing compass
+  keywords: [compass, hand-bearing, bearing compass]
+  register: indefinite
+  longDescription: >-
+    A palm-sized compass in a rubber-shod bowl, its card floating in
+    spirit under a sighting prism. Hold it to your eye, lay the thing on
+    the lubber line, and read the bearing off the card.
+  capabilities: [bearing]
+  mass: 0.3
+  _materialPath: /stuff/idea/material/alloy/bronze

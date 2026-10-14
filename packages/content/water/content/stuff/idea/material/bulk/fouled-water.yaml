@@ -26,8 +26,15 @@
 class: /platform/idea/material/Material
 data:
   name: fouled-water
-  keywords: [fouled-water, water, fouled, dirty]
-  appearance: brown, cloudy water
+  # ⭐ Nothing about fouled water announces itself (watershed.md § W8):
+  # it looks like water and answers to the word water. Cholera's whole
+  # history is that it could not be seen, smelled or tasted — the only way
+  # to find the source was to compare where the sick had drunk. A
+  # `brown, cloudy` appearance (and `fouled`/`dirty` keywords, which a
+  # pail would answer to by its contents) was a tell; removed with the
+  # shore build, where the river first delivers this water to a pail.
+  keywords: [water]
+  appearance: clear water
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186

@@ -59,9 +59,16 @@ edit.
 Whether a body exchanges gas turns on **`medium ∈
 getBreathableMedia()`** — the species default from
 `BodyPlan.getBreathableMedia()` (default `['air']`; a water-breather
-*inverts* by authoring `['water']`). The current medium is the
-engaged-mode `LocomotionMode.medium` while swimming (you are *in* the
-water you swim through), else the atmosphere resolved outward from the
+*inverts* by authoring `['water']`). ⭐ **Swimming is at the SURFACE**
+(maritime review, 2026-10-14): a swimmer is between the engaged-mode
+`LocomotionMode.medium` it moves through and the air over it, and breathes
+whichever its body can — a fish stays under and breathes the water, a
+person keeps their head up and breathes the atmosphere. Nothing models
+being BELOW the surface yet; going under is the underwater build's (the
+dive face), and drowning while swimming returns with it. ⚠ Until then the
+swim medium won outright, so a person swimming across the estuary pool
+blacked out in seconds and drowned. Otherwise the medium is the liquid
+the body is immersed in, else the atmosphere resolved outward from the
 body's containment chain via `BiomeApi.resolveAtmosphereFor`.
 
 The biome **`breathable` column** (`BiomeApi.breathableOf(tag)`, the

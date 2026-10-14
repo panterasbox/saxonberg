@@ -15,6 +15,7 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
@@ -108,11 +109,39 @@ describe('fish', () => {
     expect(sent.join(' ')).toMatch(/cast out/);
   });
 
-  it('a bound Shore\'s reach wins over the Locality\'s', async () => {
+  it('⭐ the place\'s own water wins over the Locality\'s, by the feature you named', async () => {
     localityWith('delight:flats');
-    const shore = { getReachRef: () => 'kestrel:confluence' } as unknown as Stuff;
-    await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'bank' } }, angler, room, 'fish at bank');
+    const shore = makeStuff(() => new Location());
+    const asked: Array<string | undefined> = [];
+    (shore as unknown as { waterRefFor: (n?: string) => Promise<unknown> }).waterRefFor = async (n?: string) => {
+      asked.push(n);
+      return { key: 'river', ref: 'kestrel:confluence', read: {} };
+    };
+    vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === shore) as never);
+    await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'kestrel', via: { detailPath: ['kestrel'] } } }, angler, room, 'fish kestrel');
     expect((angler.getEngagementByType(FISHING_TYPE) as unknown as { reachRef: string }).reachRef).toBe('kestrel:confluence');
+    expect(asked).toEqual(['kestrel']);
+  });
+
+  it('⭐ naming something that is not water is refused in the place\'s words', async () => {
+    localityWith('delight:flats');
+    const shore = makeStuff(() => new Location());
+    (shore as unknown as { waterRefFor: () => Promise<unknown> }).waterRefFor = async () => ({
+      refusal: 'There is no water in the lamps.',
+      reason: 'not-water',
+    });
+    vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === shore) as never);
+    const ctx = await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'lamps', via: { detailPath: ['lamps'] } } }, angler, room, 'fish at lamps');
+    expect(rejected(ctx)).toBe('not-water');
+    expect(sent.join(' ')).toMatch(/no water in the lamps/);
+    expect(angler.getEngagementByType(FISHING_TYPE)).toBeUndefined();
+  });
+
+  it('naming a thing that is no shore at all is refused, never the Locality guessed at', async () => {
+    localityWith('delight:flats');
+    const chair = makeStuff(() => new Location());
+    const ctx = await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: chair, raw: 'chair' } }, angler, room, 'fish at chair');
+    expect(rejected(ctx)).toBe('not-water');
   });
 
   it('⚠ no reach anywhere: "there is no water here", and nothing starts', async () => {

@@ -53,13 +53,15 @@ args:
     default: "me:i:[capability.angling]"
     scope: ["inventory"]
     requires: [ToolMixin]
-  # ⭐ WHICH WATER — a Shore in reach, or none: then the Locality's own
-  # reach is fished, which is how a valley nobody wrote fishing for has
-  # fish.
+  # ⭐ WHICH WATER — the place you stand in, when it is beside a named
+  # water (maritime revision 3: `fish` its one water, `fish kestrel` names
+  # it, the place refuses in words otherwise); or none: then the
+  # Locality's own reach is fished, which is how a valley nobody wrote
+  # fishing for has fish.
   - name: shore
     type: object
     required: false
     prepositions: [at, in, from]
-    default: "reachable:[class.Shore]"
+    default: "reachable:[mixin.ShoreMixin]"
     scope: ["reachable"]
     requires: any

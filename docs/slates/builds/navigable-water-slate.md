@@ -1,17 +1,24 @@
 # Navigable water — bodies of water as content
 
-> **Status: UNBUILT.** The hydrology ships
-> ([watershed.md](../../subsystems/watershed.md)); **nowhere on, in or
-> under the water is a place you can be**, and there is no water biome at
-> all.
-> **Left:** the place/passage distinction on a water node · the
-> `LocationZoneMixin` decomposition that lets an **`Expanse`** exist ·
-> a **water biome branch** (surface + submerged) · ⭐⭐⭐ **a reach's own
-> character** (gradient, bed, obstruction — the Deliverance gap) · craft
-> as something that occupies a passage · position-within-a-passage
-> (linear vs areal) · the horizon as co-presence · seeded traffic · the
-> two-tier ocean/venue title · the holder's duty · and the first water
-> anybody can stand in.
+> **Status: PARTLY BUILT — the frame, the estuary and the first sea
+> shipped in the maritime build (MR !358, 2026-10).** See
+> [expanse.md](../../subsystems/expanse.md): the `Expanse` frame (the
+> `LocationZoneMixin` split), nodes as `place | passage` and `linear |
+> areal` on a SPHERICAL graph relative to the expanse with the chart in
+> lat/lon, bands as cost and character, the voyage held by the craft,
+> the horizon as co-presence, seeded traffic, the `Structure` / `Ship`
+> split, the four fixes, the chart and the pilot's claims, the water tier
+> (`WaterExpanse`, derived sea state, the column at depth zero); and
+> ⭐ the coast — a place beside water is a `Shore`, a small water you are
+> in is a `Pool`, and the first water anybody can stand in is the
+> estuary pool.
+> **Left:** ⭐⭐⭐ **a reach's own character** (gradient, bed, obstruction —
+> the Deliverance gap) · craft occupying a river passage (the Kestrel is
+> still not sailable) · the two-tier ocean/venue title and the holder's
+> duty (§ 5) · the berth, stations and davits (§ 7a) · launching a boat
+> from a shore (§ 5a) · what a towed boat means and combat at sea (§ 7c)
+> · a pilotage trade (§ 3b) · and §§ 7b–7h, whaling — plus the three
+> open questions salvaged at the end of this slate.
 > ⭐⭐⭐ **Added 2026-10-09, the whaling session:** § **3b navigation**
 > (set a course, not choose a destination; reckoned vs true position;
 > disconnection is never topological; the chart is the per-player map and
@@ -910,6 +917,16 @@ possible.
 
 ## 5a. ⭐⭐⭐ The coast is the `Shore`, and it closes the model
 
+> ⭐ **The vehicle moved; the ruling stands** (maritime revision 3,
+> 2026-10-11). *Cited, never contained, never containing* is unchanged —
+> but the citation is now on the PLACE (a `/platform/location/Shore` or
+> `Quay`, `waters: { <feature>: <reach> }`), not on a `Shore` object in
+> it; the room's own feature is what you look at, fish and draw from.
+> The prop defect below closes because the read is the water's own look,
+> by the place's name for it — never appended to the room's prose. See
+> [shore-as-place-slate](./shore-as-place-slate.md) and
+> [fishing.md](../../subsystems/fishing.md) § the shore.
+
 The seam between this model and the land model — and **it already
 ships.**
 
@@ -1599,6 +1616,15 @@ held*, enforced by composition.
 ⭐⭐⭐ **The whole difference between a building and a ship is ONE FIELD:
 the Structure's position changes.** And § 7a's first draft split that onto
 a separate "hull" Thing for no reason — see the refusal below.
+
+> ⚠ **Reversed in the maritime build's review (2026-10-13).** One field
+> was not the whole difference: everything that follows from the
+> building MOVING (the voyage, the engagement, persistence, deck and
+> masthead heights, the house that mans her) landed on every Structure,
+> and the code told a ship from a building by guards. `Ship extends
+> Structure` now carries it; a building is a plain `Structure`, and a
+> light on a rock is where its rock's node is. The hull-as-Thing refusal
+> below still stands.
 
 ⭐⭐ **And the legibility is free, because English already draws the
 line:** *in the boat* versus *aboard the ship.* Nobody has to be taught
@@ -2349,3 +2375,24 @@ is charged for a craft that crosses boundaries) ·
 [content-craft § 8c](../../content-craft.md) (locating conflict rather than
 inventing it) · [rejection-slate](./rejection-slate.md) (the other RGO
 whose reservoir is a commons problem).
+
+---
+
+## ⬅ Salvaged from the maritime requirements (2026-10, at its sweep)
+
+Three questions the maritime build left open, kept here rather than in a
+retired requirements doc:
+
+1. ⚑ **The logbook.** § 7h: *"the logbook is what proves the depletion."*
+   A durable record rather than verb surface, and `chronicle` is
+   append-only and already exists — but it is the one piece of the
+   voyage's UX with no home yet.
+2. ⚑ **The place↔bulk line.** The maritime build drew two edges of it: a
+   named water a place is BESIDE is cited and drawn from, never held (a
+   `Shore`), and a small water you are IN is the place itself (a
+   `Pool`). The rest stays open — where water stops being a place and
+   starts being a container's contents: a puddle, a bath, a trough, a
+   cistern, a pond. ⚠ The *"can you be in it"* test **breaks cleanly on
+   a bath.** A spring on somebody's land (*Jean de Florette*) lands here.
+3. ⚑ **Reversing flow / the tidal bore** (§ 4's loss). In neither the
+   maritime nor the climate build's collision table.

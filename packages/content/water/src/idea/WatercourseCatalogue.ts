@@ -46,6 +46,13 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import {
+  WaterSourceMixin,
+  type WaterRead,
+} from '@saxonberg/server/mud/lib/location/WaterSource';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type FisheryRegistry from './FisheryRegistry';
+import type { FisheryStanding } from './FisheryRegistry';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -345,7 +352,7 @@ interface CompiledIndex {
   waterByCourse: Map<string, WatercourseWater>;
 }
 
-export default class WatercourseCatalogue extends Idea {
+export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<CompiledIndex> | null = null;
 
@@ -359,6 +366,76 @@ export default class WatercourseCatalogue extends Idea {
   /** Per-segment ice memo — the flow memo's sibling, same clearing rule. */
   private iceCache = new Map<ReachRef, IceRecord>();
   private iceCacheSegment = -1;
+
+  /* ───────────── the water a shore cites (maritime revision 3) ───────────── */
+
+  /** A reach's ref is its own citation: a bank does not move along a river. */
+  public override currentWaterRef(citation: string, place: Stuff): string | null {
+    void place;
+    return citation;
+  }
+
+  /**
+   * ⭐ A reach as a shore reads it: what it is, the fishery standing, the
+   * ice, and what a pail drawn from it holds — ⭐⭐ **fouled water where
+   * the reach reads fouled** (the Conduit's rule with no treatment: a
+   * river treats nothing), the water's own temperature, and nothing
+   * through ice. `null` for a ref this catalogue does not know.
+   */
+  public override async readWater(
+    citation: string,
+    place: Stuff,
+    nowS: number,
+  ): Promise<WaterRead | null> {
+    void place;
+    const reach = await this.reachOf(citation);
+    if (reach === null) return null;
+    let registry: FisheryRegistry | null = null;
+    try {
+      registry = await StuffApi.singleton<FisheryRegistry>(FISHERY_PATH);
+    } catch {
+      registry = null;
+    }
+    const standing = registry ? await registry.standingAt(citation, nowS).catch(() => null) : null;
+    const ice = await this.iceAt(citation, nowS).catch(() => null);
+    const contamination =
+      standing?.contamination ?? (await this.contaminationAt(citation, nowS).catch(() => null));
+    const water = standing?.water ?? (await this.waterStateAt(citation, nowS).catch(() => null));
+    const frozen = ice !== null && ice.thicknessM > 0;
+    const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
+    const opaque: ReachReadState = {
+      reach,
+      standing,
+      ice,
+      fouled,
+      disciplineKey: registry ? await registry.readDisciplineKey() : null,
+    };
+    return {
+      ref: citation,
+      atS: nowS,
+      name: reach.courseName || reach.courseKey,
+      frozen,
+      draw: frozen
+        ? null
+        : {
+            materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
+            temperatureK: water?.temperatureK ?? UNDER_ICE_K,
+          },
+      opaque,
+    };
+  }
+
+  /** Everyone's physical read, then the fishery read the viewer earns. Never *fouled*. */
+  public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
+    const state = read.opaque as ReachReadState | undefined;
+    if (!state) return [];
+    const lines = physicalRead(state);
+    if (state.standing !== null) {
+      const registry = StuffApi.findByTemplatePath<FisheryRegistry>(FISHERY_PATH);
+      if (registry) lines.push(...registry.readForViewer(state.standing, state.disciplineKey, viewer));
+    }
+    return lines;
+  }
 
 
   /**
@@ -1336,6 +1413,90 @@ function assignDepths(
 /* ─────────────────────── flow and snowpack ─────────────────────── */
 
 const SECONDS_PER_DAY = 86_400;
+
+/** The register a shore's fishery read comes from (a path, not an import — no cycle). */
+const FISHERY_PATH = '/system/water/idea/FisheryRegistry';
+/** What a pail drawn from clean fresh water holds. */
+const FRESH_WATER_PATH = '/stuff/idea/material/bulk/water';
+/** What a pail drawn below an outfall holds — no sense announces it. */
+const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
+
+/** The source's own half of a reach's read. */
+interface ReachReadState {
+  reach: CompiledReach;
+  standing: FisheryStanding | null;
+  ice: IceRecord | null;
+  fouled: boolean;
+  disciplineKey: string | null;
+}
+
+/**
+ * The physical read: for everyone, and never a number. ⛔ Never *fouled*
+ * — contamination announces itself to no sense; the outfall line is a
+ * fact about the map.
+ */
+function physicalRead(state: ReachReadState): string[] {
+  const reach = state.reach;
+  const out: string[] = [];
+  const name = reach.courseName || reach.courseKey;
+  out.push(`This is ${name}, ${breadthWords(reach.channelWidthM)}.`);
+  const water = state.standing?.water ?? null;
+  if (water !== null) {
+    const words = [
+      currentWords(water.currentMps),
+      salinityWords(water.salinityPpt),
+      temperatureWords(water.temperatureK),
+      hardnessWords(water.hardnessDgh),
+    ];
+    out.push(`The water is ${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}.`);
+  }
+  if ((state.standing?.contamination?.level ?? 0) > 0) {
+    out.push('An outfall discharges into this water.');
+  }
+  // ⭐ The ice, for everyone and with no number in it (the climate build).
+  // Whether it would bear you is a judgement, and `analyze water` is where
+  // a trained eye makes it.
+  const ice = state.ice;
+  if (ice !== null && ice.thicknessM > 0) {
+    out.push(
+      ice.rotting
+        ? 'Ice lies on it from bank to bank, grey and rotten.'
+        : 'Ice lies on it from bank to bank.',
+    );
+  } else if (ice !== null && ice.reason === 'warm') {
+    out.push('It is open water.');
+  }
+  return out;
+}
+
+function breadthWords(widthM: number | null): string {
+  if (widthM === null || widthM < 10) return 'a narrow water';
+  if (widthM < 30) return 'a stream you could throw a stone across';
+  if (widthM < 100) return 'a broad river';
+  return 'a great wide water';
+}
+
+function currentWords(mps: number): string {
+  if (mps < 0.05) return 'still';
+  if (mps < 0.3) return 'slow';
+  return 'fast';
+}
+
+function salinityWords(ppt: number): string {
+  if (ppt < 1) return 'fresh';
+  if (ppt < 25) return 'brackish';
+  return 'salt';
+}
+
+function temperatureWords(k: number): string {
+  if (k < 280) return 'cold';
+  if (k < 290) return 'cool';
+  return 'warm';
+}
+
+function hardnessWords(dgh: number): string {
+  return dgh < 6 ? 'soft' : 'hard';
+}
 /** Liquid water under a frozen surface — the floor a river's temperature reads. */
 const UNDER_ICE_K = 274;
 

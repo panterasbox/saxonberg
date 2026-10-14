@@ -46,6 +46,8 @@
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
@@ -56,6 +58,7 @@ import {
 } from '@saxonberg/server/mud/lib/document/Register';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Discipline from '@saxonberg/server/mud/platform/idea/Discipline';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type {
@@ -74,6 +77,8 @@ import {
   type ReachRef,
 } from './WatercourseCatalogue';
 import type WatercourseCatalogue from './WatercourseCatalogue';
+import WaterExpanse from './WaterExpanse';
+import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 
 /** Where the register lives in the document tree — titled to the water group. */
 export const FISHERY_PREFIX = '/system/water/fisheries';
@@ -88,7 +93,12 @@ const SPECIES_CLASS = '/platform/idea/species/Species';
 /** The singleton's own template path — its row ships with this pack. */
 export const FISHERY_REGISTRY_PATH = '/system/water/idea/FisheryRegistry';
 
+/** The Discipline whose band gates the species read, when the setting is silent. */
+const DEFAULT_READ_DISCIPLINE = '/trade/fishing/idea/Discipline/fishing';
+
 const SECONDS_PER_DAY = 86_400;
+/** The species roster is re-read once a weather segment (six game hours). */
+const SPECIES_SEGMENT_S = 6 * 3600;
 
 /** The record — only what cannot derive. */
 export interface FisheryRecord {
@@ -165,6 +175,7 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     reachRef: ReachRef,
     nowS: number,
   ): Promise<FisheryStanding | null> {
+    if (reachRef.includes('@')) return this.seaStandingAt(reachRef, nowS);
     const cat = await this.catalogue();
     const reach = await cat.reachOf(reachRef);
     if (reach === null) return null;
@@ -210,6 +221,69 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
   }
 
   /**
+   * ⭐ **What the open sea holds at one cell** — the `@` grammar a
+   * `Gunwale` cites (`"<expanse>@<lat>,<lon>"`, maritime D7).
+   *
+   * The same derive as a reach, from the sea's own inputs: the water state
+   * at the position (`WaterExpanse.waterStateAt`), and the stock the bands
+   * there place (their union over the expanse's own), so a species the
+   * author put in a band is stocked at the band's abundance and anything
+   * else at its habitat fit. Only `drawn` is state, keyed on the 0.1° cell,
+   * so the same spot depletes and recovers by the shipped half-life.
+   */
+  private async seaStandingAt(ref: string, nowS: number): Promise<FisheryStanding | null> {
+    const cell = parseSeaRef(ref);
+    if (cell === null) return null;
+    let sea: Stuff | null = null;
+    try {
+      sea = await StuffApi.singleton<Stuff>(cell.expanse);
+    } catch {
+      return null;
+    }
+    if (!(sea instanceof WaterExpanse)) return null;
+    const pos = new GeoPosition(cell.latDeg, cell.lonDeg);
+    const water = await sea.waterStateAt(pos);
+    const placed = { ...sea.getStock(), ...(await sea.fieldAt(pos)).stock };
+    // The open sea's local season: the cell's own latitude, at sea level,
+    // wholly maritime (the climate build's site, read as a reach reads it).
+    const season = WeatherApi.seasonAt(
+      { latitudeDeg: cell.latDeg, elevationM: 0, continentality: 0, offsetK: 0 },
+      Quantity.of(nowS, 's'),
+    );
+    const cellCapacity = dial('water.fishery.seaCellCapacity', 40);
+    const lengthKm = dial('water.fishery.reachLengthKm', 1);
+    const record = await this.read(ref);
+    const drawn = record === null ? {} : recovered(record, nowS).drawn;
+    const species: SpeciesStanding[] = [];
+    for (const sp of await this.species()) {
+      const habitat = sp.getHabitat();
+      if (habitat === null) continue;
+      const path = sp.getTemplatePath() ?? '';
+      const { fit, limiting } = sp.fitIn(water, season);
+      const abundance = placed[path];
+      const stocked = abundance !== undefined;
+      const capacity = stocked
+        ? Math.round(abundance * cellCapacity)
+        : Math.round(fit * habitat.abundance * lengthKm);
+      if (capacity <= 0 && !stocked) continue;
+      species.push({
+        speciesPath: path,
+        name: sp.getCommonNames()[0] ?? nameOf(path),
+        capacity,
+        full: Math.max(1, stocked ? Math.round(cellCapacity) : Math.round(habitat.abundance * lengthKm)),
+        level: Math.max(0, capacity - Math.round(drawn[path] ?? 0)),
+        fit: stocked ? 1 : fit,
+        limiting: stocked ? null : limiting,
+        stocked,
+        role: habitat.role,
+        fightRating: habitat.fightRating,
+        ...(habitat.feedsAt !== undefined ? { feedsAt: habitat.feedsAt } : {}),
+      });
+    }
+    return { reachRef: ref, species, water, flow: null, contamination: null };
+  }
+
+  /**
    * ⭐ **The banded prose** a shore renders and a fisher speaks: what
    * this water holds, at the reader's competence in the Discipline the
    * `water.fishery.readDiscipline` setting names. Never a number.
@@ -223,6 +297,46 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
    *   species the water does not suit, **the one factor that limits it**
    *   (*too warm for trout this month*).
    */
+  /**
+   * The KEY of the Discipline whose band reads what a water holds — the
+   * one `water.fishery.readDiscipline` names (the fishing trade's row by
+   * default) — or `null` when its row is not installed, which is the
+   * honest answer for a realm with water and no fishing trade.
+   */
+  public async readDisciplineKey(): Promise<string | null> {
+    let path = DEFAULT_READ_DISCIPLINE;
+    try {
+      const raw = AppApi.setting('water.fishery.readDiscipline');
+      if (typeof raw === 'string' && raw.trim() !== '') path = raw.trim();
+    } catch {
+      /* the default */
+    }
+    try {
+      const row = await StuffApi.singleton<Discipline>(path);
+      const key = row.getKey();
+      return key === '' ? null : key;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ The fishery read a viewer earns — `readFor` at their band in the
+   * read Discipline (sync, the floor when unknown).
+   */
+  public readForViewer(
+    standing: FisheryStanding,
+    disciplineKey: string | null,
+    viewer: Stuff,
+  ): string[] {
+    if (disciplineKey === null) return [];
+    let band: CompetenceBandName = CompetenceBand.FLOOR;
+    if (MixinApi.isAdvancing(viewer)) {
+      band = viewer.competenceDigestCached()?.find((b) => b.discipline === disciplineKey)?.band ?? band;
+    }
+    return this.readFor(standing, band);
+  }
+
   public readFor(standing: FisheryStanding, band: CompetenceBandName): string[] {
     const rank = CompetenceBand.rank(band);
     if (rank < CompetenceBand.rank('novice')) return [];
@@ -348,9 +462,24 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
   /**
    * Every species row, resolved live. Found by CLASS, the catalogue's
    * own pattern; a species with no `habitat` is skipped by the read.
-   * ⚠ Not memoised: a species row installed later must show up.
+   *
+   * ⭐ Memoised per six-game-hour segment — the watercourse catalogue's
+   * flow and ice rule (maritime review, 2026-10-13: this re-read every
+   * species row, plus every `extends` row, on each angler's minute). A
+   * species row installed later still shows up, within a segment.
    */
   private async species(): Promise<Species[]> {
+    const segment = Math.floor(WorldClockApi.getNow().rawValue() / SPECIES_SEGMENT_S);
+    if (this.speciesMemo === null || this.speciesMemo.segment !== segment) {
+      this.speciesMemo = { segment, list: this.readSpecies() };
+    }
+    return this.speciesMemo.list;
+  }
+
+  /** The per-segment species read — see {@link species}. Transient. */
+  private speciesMemo: { segment: number; list: Promise<Species[]> } | null = null;
+
+  private async readSpecies(): Promise<Species[]> {
     const out: Species[] = [];
     for (const tpl of await Template.findByClass(SPECIES_CLASS)) {
       const habitat = (tpl.data as { habitat?: unknown } | undefined)?.habitat;
@@ -365,7 +494,24 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
 /* ───────────────────────── module-private ───────────────────────── */
 
 /** `/system/water/fisheries/<course>/<node>`, or `null` for a malformed citation. */
+/** `"<expanse>@<lat>,<lon>"` → its parts, or `null`. */
+function parseSeaRef(ref: string): { expanse: string; latDeg: number; lonDeg: number } | null {
+  const m = /^(\/[^@]+)@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(ref);
+  if (!m) return null;
+  return { expanse: m[1]!, latDeg: Number(m[2]), lonDeg: Number(m[3]) };
+}
+
 function pathOf(reachRef: ReachRef): string | null {
+  // ⭐ A sea cell files under its expanse's key and the cell, with the
+  // signs spelled so no segment starts with a dash.
+  const sea = parseSeaRef(reachRef);
+  if (sea !== null) {
+    const key = sea.expanse.split('/').pop() ?? '';
+    if (!/^[a-z0-9-]+$/i.test(key)) return null;
+    const lat = `${sea.latDeg < 0 ? 's' : 'n'}${Math.abs(sea.latDeg).toFixed(1)}`;
+    const lon = `${sea.lonDeg < 0 ? 'w' : 'e'}${Math.abs(sea.lonDeg).toFixed(1)}`;
+    return `${FISHERY_PREFIX}/sea/${key}/${lat}${lon}`;
+  }
   const [course, node, ...rest] = reachRef.split(':');
   if (!course || !node || rest.length > 0) return null;
   if (course.includes('/') || node.includes('/')) return null;

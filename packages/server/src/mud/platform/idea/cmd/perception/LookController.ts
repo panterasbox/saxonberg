@@ -30,6 +30,7 @@ import type {
   CommandModel,
   } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
+import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
@@ -56,24 +57,25 @@ import type { Perception } from '../../../../lib/perception/Perception';
 import type { Container } from '../../../../lib/spatial/Container';
 
 interface LookModel extends CommandModel {
+  /** ONE thing (maritime revision 2′) — a set is `query`'s. */
   target?: MqlOneResult;
 }
+
+/** `look` names this many things inline before it summarises (the `Mml.list` block threshold). */
+const LOOK_INLINE = 4;
 
 export default class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): void | Promise<void> {
     const target = model.target;
-    // `look.yaml` declares `default: "$focus"` and the scope fallback
-    // chain `["$focus", "reachable"]`, so the dispatcher always
-    // hands us a wrapper. Empty (`null`) is the only honest "no
-    // match" signal; we don't fabricate another fallback here.
-    //
-    // The null-target path subsumes both "you tried to look at
-    // something that doesn't exist" (`look vase` when there's no
-    // vase) and "you tried to look at a referent that didn't
-    // resolve" (`look here` when you're placeless). MQL returns null
-    // in both cases; consistency is intentional.
-    if (!target || target.stuff === null) {
-      const raw = target?.raw ?? '';
+    const raw = target?.raw ?? '';
+    const one = target?.stuff ?? null;
+    // `look in <thing>` is the LEDGER — the same as `inventory <thing>`.
+    if (one && (target?.prep === 'in' || target?.prep === 'inside')) {
+      return this.lookInto(one, context);
+    }
+    // `look.yaml` declares `default: "$focus"`, so the dispatcher always
+    // hands us a wrapper; nothing in it is the only "no match" signal.
+    if (!one) {
       MessageApi.scene(context.commandGiver)
         .topic('sense.survey')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
@@ -83,21 +85,26 @@ export default class LookController extends CommandController<LookModel> {
     }
     // Detail-via dispatch: when MQL's chain narrowed into the host's
     // detail tree, render the detail rather than the host itself.
-    // Holds for `look bookcase` (host=location, via=['bookcase'])
-    // AND `look engraving` against an item in inventory
-    // (host=apple, via=['engraving']) — anywhere `via.detailPath`
-    // is set.
-    const detailPath = target.via?.detailPath;
+    const detailPath = target?.via?.detailPath;
     if (detailPath && detailPath.length > 0) {
-      return this.lookAtDetail(target.stuff, detailPath, context);
+      return this.lookAtDetail(one, detailPath, context);
     }
     // Render the room (with exits) when the resolved target IS the
-    // current location — bare `look` on arrival, `look here`, or
-    // any `$focus` that re-resolved to the location.
-    if (target.stuff === context.location) {
+    // current location — bare `look` on arrival, `look here`.
+    if (one === context.location) {
       return this.lookAtLocation(context);
     }
-    return this.lookAtTarget(target.stuff, context);
+    return this.lookAtTarget(one, context);
+  }
+
+  /** `look in <thing>`: the ledger, as `inventory <thing>` shows it. */
+  private lookInto(thing: Stuff, context: CommandContext): void {
+    const viewer = context.commandGiver;
+    const body = MixinApi.isContainer(thing) ? InventoryController.ledger(viewer, thing) : null;
+    const line = body ?? (MixinApi.isContainer(thing)
+      ? Mml.compose`${Mml.actor(thing)} is shut.`
+      : Mml.compose`There is nothing inside ${Mml.thing(thing)}.`);
+    MessageApi.scene(viewer).topic('sense.survey').toSelf(line).send();
   }
 
   /**
@@ -611,28 +618,29 @@ export default class LookController extends CommandController<LookModel> {
       const screen = await target.readScreen(actor);
       if (screen) body = Mml.compose`${body}── ${screen}`;
     }
-    // The same drill-in for an OPEN container: the glass rack's coupes,
-    // a crate's limes. A sealed one (a closed chest, a capped bottle)
-    // shows nothing — what is inside is not in view. Concealed contents
-    // stay with the glance below, which decides what a look turns up.
-    if (
-      MixinApi.isContainer(target) &&
-      !(MixinApi.isSealable(target) && !target.isOpen())
-    ) {
-      const inside = [...target.getContents()].filter(
-        (c) => !MixinApi.isConcealable(c) || !c.isConcealed(),
-      );
-      if (inside.length > 0) {
-        // Resolved now, for the same reason as the room's item list
-        // above — and here the second gate is even further off: vision
-        // walks up ONE level from the target, so the contents of an
-        // NPC's own inventory land on the NPC, which carries no light,
-        // and every one of them read `something`.
-        const list = Mml.fromMarkup(
-          Mml.list(inside.map((c) => Mml.actor(c))).toString(),
-        );
-        body = Mml.compose`${body}── In it: ${list}.`;
-      }
+    // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
+    // visibility rule `inventory` reads too: on a person what they wear
+    // and hold (never their pockets or what is inside their body); in an
+    // open container its contents; a shut one shows nothing. Past four it
+    // summarises and says how to see the rest — the ledger is `inventory`.
+    if (MixinApi.isContainer(target)) {
+      const v = PerceptionApi.visibleContentsOf(actor, target);
+      const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() ?? '' : '';
+      // Resolved now (`Mml.fromMarkup(…toString())`): vision walks up ONE
+      // level from the target, so a list left lazy would read every item
+      // in an NPC's hands as `something`.
+      const group = (heading: string, xs: Stuff[]): void => {
+        if (xs.length === 0) return;
+        const shown = xs.slice(0, LOOK_INLINE).map((c) => Mml.actor(c));
+        const more = xs.length - shown.length;
+        const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
+        body = more > 0
+          ? Mml.compose`${body}── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
+          : Mml.compose`${body}── ${heading}: ${list}.`;
+      };
+      group('Wearing', v.worn);
+      group('Holding', v.held);
+      group('In it', v.carried);
     }
 
     // Close look: attending to a container peers in for anything

@@ -152,7 +152,7 @@ export default class FeedController extends CommandController<FeedModel> {
 
     const fromSlot = BulkableApi.slotFor(
       source,
-      model.source?.via?.bulk?.affordance,
+      model.source?.via,
     );
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)

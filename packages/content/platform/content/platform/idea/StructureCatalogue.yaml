@@ -1,0 +1,8 @@
+# StructureCatalogue — the singleton answering *which structure is this
+# place in* and *what does that structure look like from outside*.
+#
+# Lazy and self-loading: `look` stands it up the first time a zone names a
+# landmark. No authored state — it reads the `Structure` rows wherever a
+# pack put them.
+class: /platform/idea/StructureCatalogue
+data: {}

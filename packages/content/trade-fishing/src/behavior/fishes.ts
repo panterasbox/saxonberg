@@ -10,8 +10,8 @@
  * net has emptied is a reach he sits at all day with nothing on the
  * line, which is exactly what he will tell you.
  *
- * config: `{ shore?: <template path of a Shore> }` — the water he fishes;
- * absent, his room's Locality reach.
+ * He fishes the water of the place he stands in (maritime revision 3:
+ * the place names it), else his room's Locality reach. No config.
  */
 
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
@@ -52,7 +52,7 @@ export const brain = class {
     if (!rod) return;
 
     const waters = await StuffApi.singleton<Waters>(WATERS_PATH);
-    const reach = (await shoreReach(ctx.config)) ?? (await waters.reachAt(room));
+    const reach = await waters.reachAt(room);
     if (reach === null) return;
     const registry = await waters.registry();
     if (registry === null) return;
@@ -70,15 +70,3 @@ export const brain = class {
   }
 } satisfies BrainStatics;
 
-/** The configured Shore's reach, when the row is resident. */
-async function shoreReach(config: Record<string, unknown>): Promise<string | null> {
-  const path = typeof config.shore === 'string' ? config.shore : '';
-  if (!path) return null;
-  try {
-    const shore = (await StuffApi.singleton<Stuff>(path)) as unknown as { getReachRef?: () => string } | null;
-    const ref = shore?.getReachRef?.() ?? '';
-    return ref === '' ? null : ref;
-  } catch {
-    return null;
-  }
-}

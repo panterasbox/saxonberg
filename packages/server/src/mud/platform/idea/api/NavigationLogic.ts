@@ -366,6 +366,8 @@ export class NavigationLogic extends ApiLogic {
     const claims: ClaimLike[] = [];
     for (const map of maps) {
       for (const claim of map.claims) {
+        // A band is water, not a way: it never enters a route plan.
+        if (claim.kind === 'band') continue;
         claims.push({
           kind: claim.kind,
           place: claim.place,
@@ -958,8 +960,12 @@ export class NavigationLogic extends ApiLogic {
     // honest reading — *north leads to a dorm room* did not change —
     // and `to` could not have distinguished them reliably anyway,
     // since whether it is populated at all depends on residency.
+    // ⭐ `where` and `toldBy` are in the key too: two charts drawing one
+    // band in two places are two claims (a wrong chart APPENDS beside a
+    // right one, it never overwrites it), and two pilots telling the same
+    // thing are two sources.
     const keyOf = (c: MapClaim): string =>
-      [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel].join('|');
+      [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel, c.where ?? '', c.toldBy ?? ''].join('|');
     // The LATEST claim per key — a later differing observation appends,
     // so a key can hold several and only the newest is bumpable.
     const latest = new Map<string, MapClaim>();

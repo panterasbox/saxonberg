@@ -27,7 +27,7 @@ import type {
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ShadowApi } from './shadow';
-import type { MqlManyResult, MqlOneResult } from './mql';
+import type { MqlManyResult, MqlOneResult, MqlQuantity } from './mql';
 import type { ParsedCommand } from './command-line';
 import type { Script } from '../lib/script/ast';
 import { CommandLogic } from '../platform/idea/api/CommandLogic';
@@ -541,6 +541,19 @@ export interface CardinalitySpec {
   min?: number;
   max?: number;
   exactly?: number;
+}
+
+/**
+ * HOW the query asked, as far as the cardinality policy cares (maritime
+ * revision 2): whether it named a SET (`MqlMany.isSet` — never prompted),
+ * and the player's own quantity (`all`, a count — overrides the view's
+ * default, never prompted). Absent = a plain name, today's policy.
+ */
+export interface CardinalityHow {
+  isSet?: boolean;
+  quantity?: MqlQuantity;
+  /** What the player typed — so a refused set can be pointed at `query`. */
+  raw?: string;
 }
 
 /**
@@ -1833,8 +1846,9 @@ export class CommandApi {
     stuff: Stuff[],
     fname: string,
     context: CommandContext,
+    how: CardinalityHow = {},
   ): Promise<Stuff[] | null> {
-    return logic().applyCardinalityPolicy(spec, stuff, fname, context);
+    return logic().applyCardinalityPolicy(spec, stuff, fname, context, how);
   }
 
   /**

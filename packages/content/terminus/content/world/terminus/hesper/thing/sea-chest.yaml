@@ -1,0 +1,22 @@
+# The sea chest — a hand's kit lashed under the rail, lid thrown back.
+#
+# ⭐ More than four things in it (maritime revision 2): `look chest`
+# names the first four and says how to see the rest, and `inventory
+# chest` (or `look in chest`) is the whole ledger.
+class: /platform/thing/Chest
+data:
+  shortDescription: sea chest
+  keywords: [chest, sea chest, kit]
+  register: indefinite
+  longDescription: |
+    A battered sea chest lashed under the rail, its lid thrown back, a hand's whole kit packed inside it.
+  open: true
+  # Lashed down: nobody walks off with it.
+  mass: 60
+  props:
+    - /stuff/thing/clothes/field-jacket
+    - /stuff/thing/clothes/work-gloves
+    - /stuff/thing/clothes/hood
+    - /stuff/thing/clothes/canvas-shoes
+    - /stuff/thing/items/ration-stock
+    - /stuff/thing/items/bowl

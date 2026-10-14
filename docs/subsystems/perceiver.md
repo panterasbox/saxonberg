@@ -59,7 +59,8 @@ Containable → Container → Engaged → Mobile → CommandGiver
 
 | Verb | Bucket | Lives where | Gated by |
 |---|---|---|---|
-| `look` | `self` | PerceiverMixin | — |
+| `look` | `self` | PerceiverMixin | — (plural: a set or several things is a list) |
+| `watch` | `self` | PerceiverMixin | — (the stream form refuses a non-player; `watch horizon` is any perceiver's) |
 | `scry` | `self` | PerceiverMixin | — |
 | `locate` | `self` | PerceiverMixin | — |
 | `find` | `self` | PerceiverMixin | — |
@@ -68,6 +69,32 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | `feel` | `self` | PerceiverMixin | `requiresTouch` |
 | `taste` | `self` | PerceiverMixin | `requiresTaste` |
 | `sense` | `self` | PerceiverMixin | — (gestalt) |
+
+⭐ **Beyond the room** (the maritime build's revision 1): `scan horizon`
+(`query horizon`) lists what can be seen from here that is not in the room — the `horizon`
+MQL scope, `PerceptionApi.horizonFor`; `look horizon:<it>` reads one like
+any visible thing. `watch horizon` keeps a watch (an engagement told only
+what changes). Nothing beyond the room is ever appended to a room's own
+`look`. See [expanse.md § Perception at range](./expanse.md).
+
+⭐⭐ **Looking at many things** (revision 2, amended 2′). Three verbs,
+one question each. **`look` takes ONE thing** — *what is this like?* — and
+a name matching several asks which; a set given to it (`look horizon`)
+is refused, pointed at `query`. **`query <set>`** (alias **`scan`**,
+`QueryController`) lists any set the query language can name — `query
+horizon`, `scan peers`, `query all brass`, `query bob:i` — the list is the
+content: no header, featured things first, each entry saying how it
+stands to you (a horizon thing's compass point and range). Options change
+only the rendering (`--ledger`); narrowing is the query's. **`inventory
+[<thing>]`** is `query --ledger <thing>:i`: the grouped ledger for
+yourself, a person or an open container; `look in <thing>` is the same
+ledger. ⭐⭐ **The one visibility rule lives in the query language** — MQL's
+`:i` step yields `PerceptionApi.visibleContentsOf(viewer, holder)`: on a
+person what they WEAR and HOLD (never pockets, never an implant), your own
+everything, a container if open, nothing if shut — so `look`, `query`,
+`inventory` and a script can never disagree. `look` at a person or
+container still shows what you would notice, summarised past four (*"and
+2 more things — `inventory chest`"*).
 
 All nine are actor-side only. The five sense verbs are each gated by
 a `requires*` sensorium validator (see

@@ -864,6 +864,27 @@ Semantics:
   dispatcher emits `controller-rejected { reason: 'cancelled' |
   'host-disconnected' }`.
 
+#### ⭐⭐ Who decides how many — a prompt asks only about a NAME (maritime revision 2)
+
+A prompt is INTERACTIVE: it exists to resolve an ambiguity. A display
+is passive. They are different jobs, and the binder keeps them apart by
+asking HOW the query asked, which rides on the MQL result
+(`MqlMany.isSet`, `MqlMany.quantity`) — never a side function on
+`MqlApi`:
+
+| the query | example | what happens |
+|---|---|---|
+| a NAME, more than the slot takes, no quantity | `look brass` (two match) | the view's `onExcess` — `prompt` asks *which?* |
+| a SET named on purpose | `look horizon` (a one-thing slot), `query horizon` | never asked; in a slot that takes it, taken whole; past `max` (or in a one-thing slot) refused in words (`too-many`), pointed at `query <what you typed>` |
+| the player's own how-many | `query all brass`, `get 3 coins` | never asked; it overrides the view's default, and a count on a one-thing slot stays units off the top stack, as before |
+| an ordinal | `look 2nd brass` | already narrowed to one by the resolver |
+
+⛔ **There is no `cardinality.named`** (maritime revision 2′). It existed
+for one revision to let a plural `look` tell an ambiguous name from a set
+it was asked for — the engine guessing which of two jobs one verb was
+doing. The fix was to give the jobs two verbs: `look` takes one thing,
+`query` (alias `scan`) lists a set.
+
 #### `onShortage` — when there are fewer matches than required
 
 v1 only value: `error`. Emits `controller-rejected { reason:

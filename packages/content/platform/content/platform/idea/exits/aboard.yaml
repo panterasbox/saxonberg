@@ -1,0 +1,7 @@
+# The way aboard whatever craft lies alongside — recomputed every time,
+# and refused in words when nothing is (maritime D19). Placed on a node's
+# landing room as `kind: /platform/idea/exits/aboard`.
+class: /platform/idea/AboardExit
+data:
+  messageOut: "{{ mover }} goes aboard."
+  messageIn: "{{ mover }} comes aboard."

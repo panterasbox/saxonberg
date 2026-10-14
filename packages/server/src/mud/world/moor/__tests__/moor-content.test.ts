@@ -42,7 +42,10 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the stormy heath is a SkyExposed CartesianLocation under `moor`', () => {
     const heath = seed('world/moor/stormy-heath');
-    expect(heath.class).toBe('/platform/location/SingletonCartesianLocation');
+    // A SHORE since the maritime build's revision 3: a SingletonCartesianLocation
+    // that names its tarn as the Holloway's head.
+    expect(heath.class).toBe('/platform/location/Shore');
+    expect(heath.data?.waters).toEqual({ tarn: 'holloway:head' });
     expect(heath.data?._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
     expect(heath.data?._address).toBe('moor/heath');
     expect(templateExists('/stuff/idea/biome/outdoor/baseline')).toBe(true);

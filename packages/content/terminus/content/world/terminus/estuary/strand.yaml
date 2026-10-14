@@ -1,0 +1,35 @@
+# The strand — a sandy shore on land, beside a water small enough to see
+# across. ⭐ You are ON LAND here: a `Shore` beside the pool, citing the
+# water it is beside (maritime review, 2026-10-13). `swim east` takes you
+# into it — admitted because the place that way IS the water (a `Pool`),
+# never because the strand is swimmable.
+class: /platform/location/Shore
+data:
+  shortDescription: strand
+  keywords: [strand, beach, sand, shore]
+  register: definite
+  _address: terminus/city/wharfside/strand
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A crescent of pale sand in the lee of the headland, with the pool lying green and still across from it. The far side is a short swim off; you could throw a stone onto it.
+  coords:
+    x: 4
+    y: 0
+    z: 0
+  details:
+    pool:
+      keywords: [pool, cove, water]
+      description: |
+        Green and still, and a short swim across.
+  waters:
+    pool: /stuff/idea/WaterExpanse/greywater
+  exits:
+    west:
+      destination: /world/terminus/estuary/estuary-mouth
+      media: [ground]
+    east:
+      destination: /world/terminus/estuary/pool
+      media: [water]
+    north:
+      destination: /world/terminus/estuary/headland/brow
+      media: [ground]

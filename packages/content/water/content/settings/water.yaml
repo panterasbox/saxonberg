@@ -146,6 +146,12 @@ settings:
   # `fouled`. Measured AFTER the conduit's own treatment factor, so
   # investing in treatment moves the threshold rather than the river —
   # which is the third rung of the counterplay ladder doing its job.
+  # ⭐ The `WaterSource` a shore asks for a cited water that is not itself
+  # a path — a river reach (maritime revision 3). The reach catalogue
+  # reads reaches; a sea is cited by its own path and reads itself.
+  - key: water.sourcePath
+    value: "/system/water/idea/WatercourseCatalogue"
+
   - key: water.fouledAt
     value: "0.35"
 
@@ -175,6 +181,12 @@ settings:
   # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
   # the whole reach between two nodes: at 3 the confluence held eight
   # hundred fish and no net could empty it in an afternoon (the drive).
+  # ⭐ How many fish a 0.1° cell of open sea holds at a band's full
+  # abundance (maritime D7) — the sea's counterpart to a reach's length.
+  # A cell is ~six miles across, so this is a shoal, not an ocean.
+  - key: water.fishery.seaCellCapacity
+    value: "40"
+
   - key: water.fishery.reachLengthKm
     value: "1"
 

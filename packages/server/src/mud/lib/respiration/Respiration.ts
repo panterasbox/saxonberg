@@ -218,8 +218,16 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     /* ──────────────────── medium / supply resolution ──────────────────── */
 
     /**
-     * The surrounding-medium tag. While swimming you are *in* the medium
-     * you swim through (the engaged-mode `medium` wins); then ⭐ **the
+     * The surrounding-medium tag. ⭐ **Swimming is at the SURFACE** (maritime
+     * review, 2026-10-14): a swimmer is between the water it moves through
+     * and the air over it, and breathes whichever its body can — a fish
+     * stays under and breathes the water, a person keeps their head up and
+     * breathes the air. Nothing in the game models being BELOW the surface
+     * yet; going under is the underwater build's (the dive face), and that
+     * is where drowning while swimming comes back. (Until then the swim
+     * medium won outright, and a person swimming across a still pool
+     * blacked out in seconds and drowned — found walking the estuary pool.)
+     * Then ⭐ **the
      * liquid you are immersed in** — the nearest containing vessel that
      * holds a bulk interior answers with its material's name (a carp in
      * a bowl of water breathes `water`; a man in a vat of ale breathes
@@ -241,7 +249,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isMobile(self)) {
         const m = self.getEngagedMode()?.getMedium();
-        if (m) return { medium: m, immersed: false };
+        if (m && this.getBreathableMedia().includes(m)) return { medium: m, immersed: false };
+        // Otherwise the surface: the air over the water, resolved below.
       }
       // Not placed in a container → no environment to threaten it. A body
       // is both Containable (it has a container) and a Container (the scope

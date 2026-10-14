@@ -251,11 +251,10 @@ suite('1 · the store', () => {
 suite('2 · the water read', () => {
   it("⭐ `look water` reads the confluence — the Kestrel, broad, brackish, hard, the outfall — and a novice's read says nothing of what it holds", async () => {
     await me.drainProse();
-    expect(squash(await me.prose('look'))).toMatch(/river's edge/);
-    // ⚠ `look water` is ambiguous here — the room's own `river` detail
-    // shares the keyword — and a disambiguation prompt hangs a wire
-    // session; the Shore's own keyword is unambiguous.
-    const said = await peek(me, 'edge');
+    // ⭐ Maritime revision 3: the river is the bank's own feature, cited —
+    // no "edge" object in the room, and `look water` asks nothing.
+    expect(squash(await me.prose('look'))).not.toMatch(/river's edge/);
+    const said = await peek(me, 'water');
     expect(said).toMatch(/This is the Kestrel, a broad river/);
     expect(said).toMatch(/brackish/);
     expect(said).toMatch(/hard/);
@@ -343,14 +342,14 @@ suite('5–6 · the contest', () => {
 
 suite('7 · release', () => {
   it('a released fish is gone from hand and the water reads the same', async () => {
-    const before = await peek(me, 'edge');
+    const before = await peek(me, 'river');
     const name = (await fishInHand(me))!;
     expect(name).toBeTruthy();
     const r = await me.cmd(`release ${name}`);
     expectOk(r);
     expect(squash(await r.said())).toMatch(/let the .* go/i);
     expect(await fishInHand(me)).toBeNull();
-    expect(await peek(me, 'edge')).toBe(before);
+    expect(await peek(me, 'river')).toBe(before);
   }, 60_000);
 });
 
@@ -547,8 +546,8 @@ suite('13 · the heath', () => {
     const m = await Session.open(handle, { startLocation: HEATH, wizard: true });
     try {
       await m.drainProse();
-      expect(squash(await m.prose('look'))).toMatch(/black mere/);
-      // ⚠ `mere` is also the heath floor's pool detail; `tarn` is the Shore's alone.
+      // ⚠ `mere` is also the heath floor's pool detail; `tarn` is the heath's
+      // own name for its water (maritime revision 3).
       const said = await peek(m, 'tarn');
       expect(said).toMatch(/This is the Holloway/);
       expect(said).toMatch(/soft/);

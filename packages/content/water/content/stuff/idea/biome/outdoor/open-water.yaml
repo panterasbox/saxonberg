@@ -1,0 +1,15 @@
+# Open water — the sky over the sea, and the wind across it.
+#
+# ⭐ A STUB the climate-and-water build replaces (it owns the biome chain
+# and the water's temperature). The maritime build needs only that a deck
+# at sea is sky-exposed, breezier than a meadow, and smells of the sea.
+# Shipped by the water pack at the commons path, as forestry ships the
+# woodland it stands under.
+class: /platform/idea/SkyExposedBiome
+extends: /stuff/idea/biome/outdoor/baseline
+data:
+  name: open water
+  _defaultHumidity: { value: 85, unit: "%" }
+  _defaultWind: { value: 7, unit: "m/s" }
+  _ambientSoundMml: "<markup>the wash along the side and the creak of the rigging</markup>"
+  _ambientSmellMml: "<markup>salt, tar and cold water</markup>"

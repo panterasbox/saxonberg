@@ -256,25 +256,30 @@ carries the elastic nodes the graph deliberately does not store (a
 holding's rooms, a corridor minted on approach). A map built from the
 graph could not record a dorm room at all.
 
-### Four channels, three of which can be wrong
+### Six channels, every one of which can be wrong
 
-| channel | revealed by | can be wrong |
-|---|---|---|
-| `perception` | you saw it, or walked it | yes, if it changed |
-| `publication` | a timetable is public | yes, if a station went dark |
-| `told` | somebody said so | ⚠ yes, and they may have **lied** |
-| `bought` | a transaction | yes, and that is the seller's reputation |
+| channel | revealed by | writer | can be wrong |
+|---|---|---|---|
+| `walked` | you went that way | `Cartographer.onTraversed` | yes, if it changed since |
+| `seen` | you made it out from where you stood | `Cartographer.recordSurroundings` | yes, and sooner |
+| `searched` | you went over the place deliberately | the `search` verb | yes — and its ABSENCES mean something |
+| `published` | a public timetable said so | `Cartographer.recordTimetableRead` | yes, if a station went dark |
+| `charted` | a chart you READ said so | `ChartedMixin.writeClaimsFor` (a `Chart`) | ⚠ yes — a wrong chart is authored wrong and never reconciled |
+| `told` | a person told you | `ChartedMixin.writeClaimsFor(reader, { by })` (a `Pilot`) | ⚠ yes, and they may have **lied** — `toldBy` names who |
 
-⚠ `told` and `bought` are **vocabulary with no writer**. They are in the
-shape from the start because retrofitting provenance onto a store that
-assumed one channel is the expensive version; `told`'s attribution
-(somebody lied to you, and the record should say who) belongs with
-[accountability.md](./accountability.md).
+⭐ `told` and `charted` came back with the maritime build, **each with a
+writer** — the vocabulary had cut `told` and `bought` for having none
+(*an axis value with no writer teaches the wrong shape*), and that rule
+stands: `bought` is still not a channel. A claim may also be of kind
+`band` — a current, a fog, the water BETWEEN places — carrying `where`
+in the chart's or the pilot's own words. Band claims render in `map`'s
+*The waters* section and never enter a route plan. See
+[expanse.md](./expanse.md).
 
 ### ⭐⭐ The growth rule, and why rot is the feature
 
-An observation identical in `(kind, place, dir, to, toLabel, channel)`
-to the **latest** claim for that key bumps its `lastSeen`. A differing
+An observation identical in `(kind, place, dir, toLabel, channel, where,
+toldBy)` to the **latest** claim for that key bumps its `lastSeen`. A differing
 one is **appended**. **Nothing is ever removed and nothing is ever
 corrected.**
 

@@ -515,7 +515,7 @@ enumerated.
 - **Bearing**: Gold's `σ·h²` (`water.ice.bearingKgPerM2` 2.5e4) — a person
   at 6 cm, a horse at 14, a loaded cart at 20.
 
-Read by `analyze water` (by `physics`), by the Shore's look, and by
+Read by `analyze water` (by `physics`), by a shore's look at its water, and by
 transport's `IceCrossingExit` (logistics.md). Memoised per weather
 segment beside the flow memo.
 
@@ -971,6 +971,18 @@ point, not a dial.
 Fouled water is a material carrying a `ToxinTag`; drinking it doses
 through the same route as everything else, and the water it boils into
 carries none. The build adds one field and no mechanism.
+
+### ⭐ Drawing at a shore (maritime revision 3, 2026-10-11)
+
+A pail filled at a shore (`fill pail from river`) holds what the reach
+is: **`fouled-water`** when `contaminationAt(reach).level` is above
+`water.fouledAt` — the Conduit's rule with no treatment factor, because a
+river treats nothing — else `water`; nothing through ice. Unlike a tap,
+which refuses to deliver a fouled supply, the river delivers it: the
+counterplay ladder is the player's (draw upstream, boil, pay for a
+treated supply), and nothing about the pail announces it except the
+water's own appearance and what drinking it does. See bulk.md
+§ *A slot held by a PLACE*.
 
 ## Verbs: the check ran, and the answer was mostly "no new verb"
 

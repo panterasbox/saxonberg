@@ -52,8 +52,8 @@ export default class PourController extends CommandController<PourModel> {
       return;
     }
 
-    const fromSlot = BulkableApi.slotFor(source, model.source.via?.bulk?.affordance);
-    const toSlot = BulkableApi.slotFor(target, model.target.via?.bulk?.affordance);
+    const fromSlot = BulkableApi.slotFor(source, model.source.via);
+    const toSlot = BulkableApi.slotFor(target, model.target.via);
     if (fromSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)

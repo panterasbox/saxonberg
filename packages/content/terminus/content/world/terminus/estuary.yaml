@@ -14,7 +14,26 @@
 # Below the confluence, so a barge gets up it. The gorge above Terminus
 # is *"steep enough that no boat has ever been up it"* — the water build
 # decided that, not this one.
+# ⚠ Its rooms author NO ambient light (maritime drive finding): an
+# authored `ambientIntensity` REPLACES the sky's noon flux rather than
+# calibrating it, and the 600–700 lumens these rows carried, spread over a
+# 20-metre cell, read under two lux — the estuary was too dark to describe
+# at noon. With nothing authored, each room follows the sky over its own
+# floor area, as an outdoor room should.
 class: /platform/idea/location/CartesianZone
 data:
   name: The Estuary
   cellSize: 20.0
+  # ⭐ At SEA LEVEL (the Kestrel's own `estuary` node says 0): without
+  # this the estuary inherited Terminus's 35 m, and the strand saw the
+  # light on Gannet Rock as though from a cliff (maritime drive finding).
+  elevation: 0
+  # ⭐ The horizon from here (maritime R3) names the ZONE the terminal
+  # stands in; whether its clock tower is in view is derived (open sky,
+  # its height against the zones' size). Described once, on the tower.
+  horizon:
+    - /world/terminus/terminal
+    # ⭐ And the sea, read from the estuary's landing at the estuary's
+    # height (sea level): the strand raises the Hesper at the bar and not
+    # the light eighteen miles off — the headland above it does.
+    - /stuff/idea/WaterExpanse/greywater

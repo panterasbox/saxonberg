@@ -4725,6 +4725,38 @@ settled in [forestry.md](./subsystems/forestry.md).
 
 ---
 
+## Water as a thing in a room
+
+**ANTIPATTERN**: propping a water object into a place so the place can be
+swum, fished or drawn from.
+
+```yaml
+# BAD — the estuary strand and pool, as maritime D27 shipped them
+props:
+  - /world/terminus/estuary/thing/still-water   # a SwimmableMixin(Good)
+```
+
+It was a static second copy of a water the world already models: fixed
+prose (*"cold to the touch"*), a hard-coded material, swum whether the
+water was frozen or not, nothing could draw from it, and it answered to
+`water` ahead of the place's own feature. ⚠ The shape came back THREE
+times — the reachability sweep's `OpenWater`, the water pack's `Shore`
+prop, D27's `StillWater` — because the ladder precedent looks like it
+applies. It does not: a ladder is an INSTRUMENT (bring it, take it away,
+knock it down), so *"no ladder, no climb"* is true of the world. Water is
+not something you set down.
+
+**INSTEAD**, water is a fact about the PLACE: the place IS a small water
+(`platform/location/Pool` — swimmable, and it cites the water it is) or
+the place is BESIDE one (`platform/location/Shore` / `Quay`, citing it
+under one of the place's own features). Both read the water through the
+water seam, so frozen, fouled, salt and fresh are derived. To swim INTO
+a pool from its shore, the locomotion gate reads the exit's far side —
+never the shore. See [location.md](./subsystems/location.md) and
+[locomotion.md](./subsystems/locomotion.md).
+
+---
+
 ## A good minted onto the floor, stamped but never PLACED
 
 **ANTIPATTERN**: a verb's completion clones a thing into a room and

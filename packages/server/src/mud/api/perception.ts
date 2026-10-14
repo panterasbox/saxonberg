@@ -47,6 +47,50 @@ import { fileURLToPath } from 'url';
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
 
+/** One thing in view beyond the room (maritime R4). */
+export interface HorizonSighting {
+  /** The structure or craft. */
+  stuff: Stuff;
+  /** Degrees true from the viewer, when it can be said (at sea). */
+  bearingDeg: number | null;
+  /** Nautical miles, at sea; `null` ashore (the zones give no number). */
+  rangeNm: number | null;
+}
+
+/**
+ * Seeded traffic in view at sea — a passer-by the world IS, with no object
+ * behind it, so it can be told in words and never looked at.
+ */
+export interface HorizonTraffic {
+  name: string;
+  bearingDeg: number;
+  rangeNm: number;
+}
+
+/**
+ * ⭐ What `viewer` may see of what `target` holds (maritime revision 2) —
+ * ONE rule, read by `look` and `inventory` alike so they can never
+ * disagree.
+ */
+export interface VisibleContents {
+  /** On a person: what they wear (a worn slot, or an outward one — a pack on the back). */
+  worn: Stuff[];
+  /** On a person: what is in their hands. */
+  held: Stuff[];
+  /** Everything else — a container's contents, or (your own only) your pockets. */
+  carried: Stuff[];
+  /** A sealed container that is shut: nothing inside is in view. */
+  shut: boolean;
+}
+
+/** What `viewer` can see from where they stand that is not in their room. */
+export interface HorizonView {
+  things: HorizonSighting[];
+  traffic: HorizonTraffic[];
+  /** `true` at sea (ranges computed), `false` ashore (zones named). */
+  atSea: boolean;
+}
+
 const LOGIC_PATH = '/platform/idea/api/perception';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/PerceptionLogic', import.meta.url)
@@ -421,6 +465,58 @@ export class PerceptionApi {
     depth: SearchDepth,
   ): Stuff[] {
     return logic().resolveSearch(viewer, scope, depth);
+  }
+
+  /**
+   * ⭐ **The horizon** (maritime R4) — what `viewer` can see from where
+   * they stand that is NOT in their room, recomputed now:
+   *
+   * - **at sea** (the viewer's root is a craft on an expanse): every craft
+   *   and fixed structure in range from the viewer's own eye height (the
+   *   lookout seat sees from the masthead), plus this hour's seeded
+   *   traffic in words;
+   * - **ashore**: the nearest `horizon` declaration (the room's, then the
+   *   zone walk) names ZONES; a Structure standing in one is in view when
+   *   the viewer's room is open to the sky and its height — plus the
+   *   elevation between — clears the distance the zones' size in metres
+   *   implies over `perception.horizonRatio`.
+   *
+   * ⛔ The viewer's own structure is never on its own horizon.
+   *
+   * ⭐ SYNCHRONOUS — it is the MQL `horizon` seed's pool, and the resolver
+   * cannot wait. It reads warm state only: the resident structures and
+   * craft (structures are booted and never culled), the resident zones'
+   * fields, the compiled sea, and the cached sky. Nothing to call first.
+   */
+  public static horizonFor(viewer: Stuff): HorizonView {
+    return logic().horizonFor(viewer);
+  }
+
+  /**
+   * ⭐ What `viewer` may see of what `target` holds — the one rule `look`
+   * and `inventory` share:
+   * - a PERSON (an agent with slots): what they WEAR and what they HOLD;
+   *   ⛔ never their pockets, packs' insides, or what is inside their body
+   *   (an implant's slot names only a body part). Your OWN: everything,
+   *   pockets as `carried`.
+   * - a CONTAINER: everything if open, nothing if a sealable one is shut
+   *   (`shut`).
+   * Concealed things stay concealed. Which slot is which is read off what
+   * the slot ACCEPTS (a wearable, a wieldable) and whether it has an
+   * outward face — never a list of slot names.
+   */
+  public static visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
+    return logic().visibleContentsOf(viewer, target);
+  }
+
+  /**
+   * Where something on the horizon lies, as a GLANCE gives it — one of
+   * eight compass points and a rough range (*to the north-east, some 3
+   * miles off*). `look horizon` and a kept watch both say it this way; a
+   * bearing worth fixing by is `measure bearing`'s, never a glance's.
+   */
+  public static glance(bearingDeg: number, rangeNm: number): string {
+    return logic().glance(bearingDeg, rangeNm);
   }
 
   /**
