@@ -14,10 +14,9 @@ help: |
   it — a river, a flooded passage, an open channel. Name the exit
   you want (`swim across`, `swim channel`).
 
-  Only exits marked as swimmable accept this. While you swim, the
-  water around you is the medium you're breathing — so an
-  air-breather who lingers underwater can run out of air. Surface
-  or reach the far side before that becomes a problem.
+  You swim where the water is: into a pool from its shore, and
+  about the pool once you are in it. You swim at the surface, with
+  your head up, so you breathe the air over the water.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
