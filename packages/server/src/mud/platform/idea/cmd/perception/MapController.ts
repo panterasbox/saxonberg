@@ -118,8 +118,15 @@ export default class MapController extends CommandController<MapModel> {
   ): void {
     const giver = context.commandGiver;
     const places = new Map<string, PlaceView>();
+    const bands: MapClaim[] = [];
     for (const doc of docs) {
       for (const claim of doc.claims) {
+        // ⭐ Water, not a place: a band is what you know of the sea
+        // BETWEEN places (maritime D9), rendered in its own section.
+        if (claim.kind === 'band') {
+          bands.push(claim);
+          continue;
+        }
         const view = places.get(claim.place) ?? {
           place: claim.place,
           name: '',
@@ -173,6 +180,20 @@ export default class MapController extends CommandController<MapModel> {
         const how = [...view.channels].sort().join(', ');
         lines.push(`${indent}${view.name || view.place} (${how})`);
         lines.push(...MapController.renderEdges(view, `${indent}  `));
+      }
+    }
+    if (bands.length > 0) {
+      lines.push('  The waters:');
+      // ⭐ Every claim renders, including two that disagree — a chart
+      // that drew a current ten miles south stays beside the one that
+      // drew it right. Nothing here picks a winner.
+      for (const b of [...bands].sort((x, y) =>
+        (x.name ?? x.place).localeCompare(y.name ?? y.place),
+      )) {
+        const how = b.channel === 'told' && b.toldBy
+          ? `told, by ${b.toldBy.split('/').pop()}`
+          : b.channel;
+        lines.push(`    ${b.name ?? b.place}${b.where ? ` — ${b.where}` : ''} (${how})`);
       }
     }
     MessageApi.scene(giver)

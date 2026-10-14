@@ -89,7 +89,7 @@ export default class PourController extends ManualBuildController<PourModel> {
       return;
     }
 
-    const slot = BulkableApi.slotFor(bottle, model.spirit.via?.bulk?.affordance);
+    const slot = BulkableApi.slotFor(bottle, model.spirit.via);
     if (!slot) {
       this.declineStep(
         context,

@@ -98,6 +98,29 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   remains `FurnishableRoom`; the spherical twin is derived the same way
   when a spherical venue first needs one.
 
+- ⭐ **A place beside a named water** — `platform/location/Shore`
+  (`ShoreMixin` over `SingletonCartesianLocation`: a mere's shore, the
+  heath by its tarn, a ship's deck, the headland) and
+  `platform/location/Quay` (`ShoreMixin` over `Street`: a lit public
+  waterfront, the wharfside bank). Maritime revision 3. Like `Street`,
+  a class those rows PICK — never a field every room carries blank. The
+  place names its water as one of its own features (`waters: { river:
+  kestrel:confluence }`); `look river` reads it, the fishing verbs bind
+  the place, and `fill`/`drink`/`wash` draw from it. ⚠ A waterside place
+  of any OTHER class (a riverside dyehouse) needs its own composed class
+  — the recorded cost (`shore-as-place-slate`).
+- ⭐ **A place that IS a small water** — `platform/location/Pool`
+  (`SwimmableMixin(ShoreMixin(SingletonCartesianLocation))`: the cove
+  off the estuary strand). The PLACE is the water: being in it makes its
+  ways swimmable, an exit whose destination is one is swimmable INTO it
+  (`LocomotionLogic`'s far-side rule), and it cites the water it is
+  (`waters: { pool: … }`) so `look pool` reads it and `fill` draws it.
+  A frozen pool is not swum (derived from the read). Review, 2026-10-13
+  — it retired the `StillWater` thing that stood in the pool and on the
+  strand. See
+  [fishing.md](./fishing.md) § the shore and [bulk.md](./bulk.md)
+  § a slot held by a place.
+
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
 ("Town Square").
@@ -125,6 +148,10 @@ Persistent (auto via `persistentFields = ['coordinates']`).
 **`SphericalCoordinatesMixin`** (`SphericalCoordinates.ts:28-64`):
 `coordinates: [rho, theta, phi]` (focus) plus `radius`. Persistent.
 Default radius is `1.0`.
+⭐ Composed by `SphericalLocation` and by `ExpanseNode` — a point of an
+expanse's graph is placed relative to its expanse exactly as a room is
+relative to its `SphericalZone` (the node defaults its radius to `0`,
+*unsized*). See [expanse.md § Position](./expanse.md).
 
 The setters round-trip through tuple-replacement (`setX(x)` returns a
 new triple) so any reactive system watching `coordinates` sees a

@@ -222,7 +222,7 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     );
     expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'ambiguous' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:ambiguous' }),
     );
   });
 
@@ -264,7 +264,7 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     );
     expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'ambiguous' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:ambiguous' }),
     );
   });
 });
@@ -309,7 +309,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     );
     expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'too-many' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:too-many' }),
     );
   });
 
@@ -323,7 +323,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     );
     expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'insufficient' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:insufficient' }),
     );
   });
 
@@ -357,7 +357,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
       ),
     ).toBeNull();
     expect(ctxOver.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'too-many' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:too-many' }),
     );
 
     // got 2 — under; insufficient error.
@@ -371,7 +371,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
       ),
     ).toBeNull();
     expect(ctx2.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'insufficient' }),
+      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:insufficient' }),
     );
   });
 
@@ -387,5 +387,75 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
         ctx,
       ),
     ).toEqual([a, b]);
+  });
+});
+
+describe('how many — a prompt asks only about a NAME (maritime revision 2)', () => {
+  const three = [makeStuffStub('a'), makeStuffStub('b'), makeStuffStub('c')];
+  const all = { value: { kind: 'all' as const }, mode: 'lenient' as const };
+
+  it('⭐ a SET in a one-thing slot is refused in words, never prompted', async () => {
+    const ctx = makeContextStub();
+    const out = await CommandApi.applyCardinalityPolicy(
+      { type: 'object', onExcess: 'prompt' }, three, 'target', ctx, { isSet: true },
+    );
+    expect(out).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ kind: 'validator-failed', validator: 'cardinality:too-many' });
+    expect(String(ctx.notes[0]!.detail)).toMatch(/That is 3 things, and `.*` takes one\./);
+  });
+
+  it('⭐ the player said how many: a one-thing slot takes the top (units off it), never asks', async () => {
+    const ctx = makeContextStub();
+    const out = await CommandApi.applyCardinalityPolicy(
+      { type: 'object', onExcess: 'prompt' }, three, 'target', ctx, { quantity: all },
+    );
+    expect(out).toEqual([three[0]]);
+    expect(ctx.notes).toEqual([]);
+  });
+
+  it('a set or a player quantity past a plural slot\'s hard limit is refused, never prompted', async () => {
+    const ctx = makeContextStub();
+    const spec = { type: 'objects', cardinality: { max: 2 }, onExcess: 'prompt' as const };
+    expect(await CommandApi.applyCardinalityPolicy(spec, three, 'targets', ctx, { isSet: true })).toBeNull();
+    expect(await CommandApi.applyCardinalityPolicy(spec, three, 'targets', ctx, { quantity: all })).toBeNull();
+    expect(ctx.notes.map((n) => (n as { validator?: string }).validator)).toEqual(['cardinality:too-many', 'cardinality:too-many']);
+  });
+
+  it('a set within an unbounded plural slot is simply taken', async () => {
+    const ctx = makeContextStub();
+    expect(
+      await CommandApi.applyCardinalityPolicy({ type: 'objects', onExcess: 'prompt' }, three, 'targets', ctx, { isSet: true }),
+    ).toEqual(three);
+  });
+
+  it('a NAME keeps the view\'s own policy (here: error on ambiguity)', async () => {
+    const ctx = makeContextStub();
+    expect(await CommandApi.applyCardinalityPolicy({ type: 'object', onExcess: 'error' }, three, 'target', ctx)).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ kind: 'validator-failed', validator: 'cardinality:ambiguous' });
+  });
+});
+
+describe('a set in a one-thing slot (maritime revision 2′)', () => {
+  const two = [makeStuffStub('a'), makeStuffStub('b')];
+
+  it('⭐ is refused as too many — and pointed at `query`, which lists a set', async () => {
+    const ctx = makeContextStub();
+    expect(
+      await CommandApi.applyCardinalityPolicy({ type: 'object', onExcess: 'prompt' }, two, 'target', ctx, {
+        isSet: true,
+        raw: 'horizon',
+      }),
+    ).toBeNull();
+    expect(ctx.notes[0]).toMatchObject({ kind: 'validator-failed', validator: 'cardinality:too-many' });
+    expect((ctx.notes[0] as unknown as { detail: string }).detail).toMatch(/`query horizon` lists them/);
+  });
+
+  it('`named` is gone: the schema refuses it at load', () => {
+    expect(() =>
+      CommandDefinition.fromYaml(
+        `verbs: [foo]\ncontroller: FooController\ndescription: stub\nargs:\n  - name: targets\n    type: objects\n    cardinality:\n      named: 1\n`,
+        '<test>',
+      ),
+    ).toThrow();
   });
 });

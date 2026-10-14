@@ -59,10 +59,18 @@ export default class Waters extends Idea {
   }
 
   /**
-   * The reach a room fishes when no Shore is bound: the covering
-   * Locality's, or `null` — no water here.
+   * ⭐ The reach a room fishes — the ONE answer to *which water is this*
+   * (maritime revision 3): a shore's own water (named, or its single
+   * one), else the covering Locality's, else `null` — no water here. A
+   * shore that cannot say (two waters and none named, not read yet)
+   * answers `null` too; a brain then simply does not fish.
    */
-  public async reachAt(room: Stuff): Promise<string | null> {
+  public async reachAt(room: Stuff, name?: string): Promise<string | null> {
+    if (MixinApi.isShore(room)) {
+      const pick = await room.waterRefFor(name);
+      if (!('refusal' in pick)) return pick.ref;
+      if (pick.reason !== 'no-water') return null;
+    }
     if (!MixinApi.isContainer(room)) return null;
     const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
     return locality?.getReach() ?? null;

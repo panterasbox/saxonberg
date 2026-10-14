@@ -1,0 +1,35 @@
+# Nell Abery — the bar pilot, and ⭐ a pilot is CLAIMS, not a Discipline.
+#
+# Pay her (`pilot`) and what she knows of the Greywater goes into your
+# map as `told`, signed with her name: you cannot study your way to
+# knowing a channel, you have to go there, and the channel keeps moving.
+# She is right about the Westerlies; the old chart in the Hesper's hold
+# is not.
+class: /system/water/agent/Pilot
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Nell Abery
+  keywords: [nell, abery, pilot]
+  shortDescription: pilot
+  register: definite
+  longDescription: >-
+    A broad weathered woman in an oilskin smock, sitting on a bollard with
+    her back to the warehouses and her eyes on the estuary, the way some
+    people watch a fire.
+  prologue:
+    - "Has taken ships over the bar since before the withies were renewed."
+    - "Charges for what she knows, and has never been wrong about the Westerlies."
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 80 }
+  fee: 5
+  of: /stuff/idea/WaterExpanse/greywater
+  entries:
+    - { kind: node, path: /stuff/idea/WaterExpanse/greywater/bar, name: the bar, where: "two fathoms over it at low water; keep to the withies" }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/channel, name: the channel, where: "over the bar, a cable wide, and it shifts" }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-westerlies, name: the Westerlies, where: "from the roads to the Rock, setting north-east" }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-race, name: the race, where: "across the haar, over the ledge — stand off it" }

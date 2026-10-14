@@ -85,6 +85,7 @@ import {
   type ValidatorPreloads,
   type MixinRequirement,
   type CardinalitySpec,
+  type CardinalityHow,
   type OnExcessPolicy,
   type OnShortagePolicy,
   type CommandPhase,
@@ -438,6 +439,22 @@ async function worldRetry(
  * pretending it saw nothing. That is the 0-of-N cell, and it was already
  * honest.
  */
+/**
+ * `r.vias` re-aligned to `kept` — a subset of `r.stuff`, in order, as the
+ * cardinality policy returns it. One object may appear twice with two
+ * vias (a room, and the room's feature), so each position is consumed
+ * once.
+ */
+function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefined)[] {
+  const used = new Set<number>();
+  return kept.map((s) => {
+    const i = r.stuff.findIndex((x, j) => x === s && !used.has(j));
+    if (i < 0) return undefined;
+    used.add(i);
+    return r.vias?.[i];
+  });
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -447,16 +464,26 @@ async function walkScopes(
   admissible: (s: Stuff) => boolean,
 ): Promise<{ result: MqlMany; discarded: Stuff[] }> {
   let firstRaw: MqlMany | null = null;
+  let isSet = false;
   const discarded: Stuff[] = [];
   for (const scope of tries) {
     const got = await scopedMany(raw, giver, scope, field, context);
+    if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
-    const kept = got.stuff.filter(admissible);
+    // Filter by INDEX so each kept match keeps its own `via`.
+    const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
+    const kept = keep.map((i) => got.stuff[i]!);
     for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
-    if (kept.length > 0) return { result: { ...got, stuff: kept }, discarded };
+    if (kept.length > 0) {
+      const result: MqlMany = { ...got, stuff: kept };
+      if (got.vias) result.vias = keep.map((i) => got.vias![i]);
+      return { result, discarded };
+    }
   }
   if (firstRaw) return { result: firstRaw, discarded: [] };
-  return { result: { stuff: [] }, discarded };
+  // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
+  // "you see nothing there", not "you don't see any 'horizon'").
+  return { result: isSet ? { stuff: [], isSet: true } : { stuff: [] }, discarded };
 }
 
 /**
@@ -1175,32 +1202,64 @@ export class CommandLogic extends ApiLogic {
     stuff: Stuff[],
     fname: string,
     context: CommandContext,
+    how: CardinalityHow = {},
   ): Promise<Stuff[] | null> {
+    // ⭐⭐ How many (maritime revision 2). A PROMPT asks a question, and
+    // the only question is an ambiguity: the player NAMED something, more
+    // matched than the slot takes, and they did not say how many.
+    //   - the player said how many (`all`, a count): never asked;
+    //   - a SET named on purpose (`horizon`, `peers`): never asked — too
+    //     many for the slot is refused in words, not prompted;
+    //   - a name: the view's own policy, prompt included.
+    // ⭐⭐ A binder refusal SPEAKS (found in the maritime browser walk,
+    // 2026-10-13): these were `controller-rejected` notes, which the
+    // dispatcher deliberately does not prose — a controller speaks its own
+    // — but no controller ever runs when the binder refuses, so `look
+    // peers` answered with SILENCE. They are argument gates, like a
+    // validator, and ride `validator-failed`, whose detail IS the
+    // player's prose.
+    const verb = context.verb ?? 'that';
+    const refuse = (reason: string, words: string): null => {
+      context.note({
+        kind: 'validator-failed',
+        field: fname,
+        validator: `cardinality:${reason}`,
+        detail: words,
+      });
+      return null;
+    };
+    const tooMany = (n: number, max: number): null => {
+      // ⭐ A set refused is pointed at the verb that lists one (maritime
+      // revision 2′): `look horizon` → `query horizon`.
+      const listIt = how.raw ? ` — \`query ${how.raw}\` lists them` : '';
+      return refuse(
+        'too-many',
+        `That is ${n} things, and \`${verb}\` takes ${max === 1 ? 'one' : `at most ${max}`}${listIt}.`,
+      );
+    };
+    const ambiguous = (n: number): null =>
+      refuse(
+        'ambiguous',
+        how.raw
+          ? `'${how.raw}' could be any of ${n} things — say which (\`2nd ${how.raw}\`).`
+          : `That could be any of ${n} things — say which.`,
+      );
     if (spec.type === 'object') {
       const policy = spec.onExcess ?? 'top';
       if (stuff.length === 0) return [];
       if (stuff.length === 1) return stuff;
       // stuff.length > 1
+      if (how.isSet) return tooMany(stuff.length, 1);
+      // A count on a one-thing slot stays what it always was — units off
+      // the top stack (`drop 5 coins`) — so the player's word means take
+      // the top, never ask.
+      if (how.quantity) return [stuff[0]!];
       if (policy === 'top') return [stuff[0]!];
-      if (policy === 'error') {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'ambiguous',
-          detail: `${fname}: ambiguous (${stuff.length} matches)`,
-        });
-        return null;
-      }
+      if (policy === 'error') return ambiguous(stuff.length);
       // 'prompt' — push mqlObject and await the player's pick. If
       // no Interactive is on the context (e.g. NPC dispatch path),
       // there's no way to disambiguate; degrade to top with a note.
-      if (!context.interactive) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'ambiguous',
-          detail: `${fname}: ambiguous (${stuff.length} matches) and no Interactive to disambiguate`,
-        });
-        return null;
-      }
+      if (!context.interactive) return ambiguous(stuff.length);
       const picked = await context.interactive.promptMqlObject(
         `which ${fname}?`,
         stuff,
@@ -1219,35 +1278,24 @@ export class CommandLogic extends ApiLogic {
       const max = card.exactly ?? card.max ?? Number.POSITIVE_INFINITY;
 
       if (stuff.length < min) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'insufficient',
-          detail: `${fname}: expected at least ${min}, got ${stuff.length}`,
-        });
-        return null;
+        return refuse(
+          'insufficient',
+          `\`${verb}\` needs at least ${min}, and that is ${stuff.length}.`,
+        );
       }
       if (stuff.length <= max) return stuff;
 
       // stuff.length > max
+      if (how.isSet || how.quantity) return tooMany(stuff.length, max);
       const policy = spec.onExcess ?? (max === Number.POSITIVE_INFINITY ? 'take-all' : 'prompt');
       if (policy === 'take-all') return stuff;
       if (policy === 'truncate') return stuff.slice(0, max);
       if (policy === 'error') {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'too-many',
-          detail: `${fname}: got ${stuff.length}, max ${max}`,
-        });
-        return null;
+        return tooMany(stuff.length, max);
       }
       // 'prompt' — push mqlMany with bounds and await.
       if (!context.interactive) {
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'too-many',
-          detail: `${fname}: got ${stuff.length}, max ${max}, no Interactive to narrow`,
-        });
-        return null;
+        return tooMany(stuff.length, max);
       }
       const picks = await context.interactive.promptMqlMany(
         `pick ${min}-${max} ${fname}`,
@@ -1296,6 +1344,7 @@ export class CommandLogic extends ApiLogic {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
+
 
       // Build the scope try-list. The YAML's `scope:` is authoritative
       // — it's the explicit ordered fallback chain. Each entry runs
@@ -1364,10 +1413,18 @@ export class CommandLogic extends ApiLogic {
         }
         // Apply cardinality / onExcess policy. Returns the
         // filtered stuff list or null on policy-driven failure.
-        const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context);
+        const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context, {
+          ...(r.isSet ? { isSet: true } : {}),
+          ...(r.quantity ? { quantity: r.quantity } : {}),
+          ...(raw ? { raw } : {}),
+        });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
+        // ⭐ The controller needs to know it was handed a SET (`look
+        // horizon` of one thing is still a list, not that thing's look).
+        if (r.isSet) bound.isSet = true;
         if (r.via) bound.via = r.via;
+        if (r.vias) bound.vias = viasAligned(r, filtered);
         if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
@@ -1384,6 +1441,7 @@ export class CommandLogic extends ApiLogic {
         let stuff: Stuff[] = [];
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
+        let isSet = false;
         try {
           if (useTop && terms.length === 0) {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
@@ -1394,6 +1452,7 @@ export class CommandLogic extends ApiLogic {
                 stuff = [r.stuff];
                 via = r.via;
                 quantity = r.quantity;
+                isSet = r.isSet === true;
                 break;
               }
             }
@@ -1412,8 +1471,15 @@ export class CommandLogic extends ApiLogic {
             const got = walked.result;
             if (got.stuff.length > 0) {
               stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
-              via = got.via;
+              // ⭐ Taking the TOP of several: its own `via`, not the set's
+              // consensus (found in the maritime browser walk: `fill skin
+              // from sea` on the deck matched the deck's `sea` feature AND
+              // the sea chest, the consensus was nothing, and the deck lost
+              // the feature it was named by). The result carries each
+              // match's own now, so nothing is resolved twice.
+              via = useTop && got.vias ? got.vias[0] : got.via;
               quantity = got.quantity;
+              isSet = got.isSet === true;
             }
             if (
               !applyFilteredPolicy(
@@ -1438,10 +1504,15 @@ export class CommandLogic extends ApiLogic {
           return { result: 'failed' };
         }
         // Apply cardinality / onExcess policy.
-        const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context);
+        const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
+          ...(isSet ? { isSet: true } : {}),
+          ...(quantity ? { quantity } : {}),
+          ...(raw ? { raw } : {}),
+        });
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
@@ -1534,9 +1605,16 @@ export class CommandLogic extends ApiLogic {
           });
           return { result: 'failed' };
         }
-        const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context);
+        const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context, {
+          ...(r.isSet ? { isSet: true } : {}),
+          ...(r.quantity ? { quantity: r.quantity } : {}),
+          ...(raw ? { raw } : {}),
+        });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
+        // ⭐ The controller needs to know it was handed a SET (`look
+        // horizon` of one thing is still a list, not that thing's look).
+        if (r.isSet) bound.isSet = true;
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
@@ -1548,6 +1626,7 @@ export class CommandLogic extends ApiLogic {
         let stuff: Stuff[] = [];
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
+        let isSet = false;
         try {
           if (useTop && terms.length === 0) {
             // ⭐ The cheap path, unchanged: with no `requires:` there is
@@ -1558,6 +1637,7 @@ export class CommandLogic extends ApiLogic {
                 stuff = [r.stuff];
                 via = r.via;
                 quantity = r.quantity;
+                isSet = r.isSet === true;
                 break;
               }
             }
@@ -1578,6 +1658,7 @@ export class CommandLogic extends ApiLogic {
               stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
               via = got.via;
               quantity = got.quantity;
+              isSet = got.isSet === true;
             }
             if (
               !applyFilteredPolicy(
@@ -1601,10 +1682,15 @@ export class CommandLogic extends ApiLogic {
           });
           return { result: 'failed' };
         }
-        const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context);
+        const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {
+          ...(isSet ? { isSet: true } : {}),
+          ...(quantity ? { quantity } : {}),
+          ...(raw ? { raw } : {}),
+        });
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;
         resolved[fname] = bound;

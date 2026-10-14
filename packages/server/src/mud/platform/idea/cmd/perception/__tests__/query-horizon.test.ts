@@ -1,0 +1,179 @@
+/**
+ * ⭐ `scan horizon` / `query horizon` (maritime R5; revision 2′ — a set is
+ * `query`'s, `look` takes one thing) — the horizon surveyed like a room:
+ * what is FEATURED first (a landmark, or what this room's author
+ * features), then *"You can also make out …"*, and at sea the passers-by
+ * in words. ⛔ And a plain `look` appends nothing from outside the room.
+ */
+
+import '../../../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import QueryController from '../QueryController';
+import Structure from '../../../Structure';
+import { StuffApi } from '../../../../../api/stuff';
+import { MessageApi } from '../../../../../api/message';
+import { PerceptionApi, type HorizonView } from '../../../../../api/perception';
+import type { Mml } from '../../../../../api/mml';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { CommandApi, type CommandContext } from '../../../../../api/command';
+import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { Idea } from '../../../../../lib/stuff/Idea';
+import Location from '../../../../../lib/stuff/Location';
+import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
+import { SensorMixin } from '../../../../../lib/message/Sensor';
+import { ContainerMixin } from '../../../../../lib/spatial/Container';
+import { ContainableMixin } from '../../../../../lib/spatial/Containable';
+import { NamedMixin } from '../../../../../lib/description/Named';
+import { VisibleMixin } from '../../../../../lib/description/Visible';
+import {
+  makeStuff,
+  makeStuffAtPath,
+  withRootContext,
+} from '../../../../../lib/security/__tests__/test-setup';
+
+class Room extends VisibleMixin(NamedMixin(ContainerMixin(Location))) {
+  static _mixinName = 'HorizonRoom';
+}
+class Viewer extends SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))) {
+  static _mixinName = 'HorizonViewer';
+}
+
+let room: Room;
+let viewer: Viewer;
+
+function structure(path: string, short: string, landmark: boolean): Structure {
+  return makeStuffAtPath(() => {
+    const s = new Structure();
+    s.setShortDescription(short);
+    s.setRegister('definite');
+    s.setLandmark(landmark);
+    return s;
+  }, path);
+}
+
+function ctx(): CommandContext {
+  return CommandApi.createCommandContext({
+    commandGiver: viewer as never,
+    location: room as never,
+    commandText: 'scan horizon',
+    executionId: 't',
+    commandId: 't',
+    verb: 'scan',
+    command: CommandDefinition.fromYaml(
+      'verbs: [query, scan]\ncontroller: NoopController\ndescription: stub\n',
+      '<test>',
+    ),
+  });
+}
+
+/** `scan horizon`: the binder hands over the SET the seed named. */
+async function lookHorizon(view: HorizonView, set: Stuff[] = view.things.map((t) => t.stuff)): Promise<string[]> {
+  vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue(view);
+  const bodies: string[] = [];
+  vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+    const b: Record<string, unknown> = {};
+    b.topic = () => b;
+    b.toSelf = (body: Mml) => { bodies.push(body.toString()); return b; };
+    b.toPeers = () => b;
+    b.meta = () => b;
+    b.send = () => {};
+    return b as never;
+  });
+  await withRootContext(null, 'horizon.test', () =>
+    makeStuff(() => new QueryController()).execute(
+      { set: { stuff: set, raw: 'horizon', isSet: true } } as never,
+      ctx(),
+    ),
+  );
+  return bodies;
+}
+
+beforeEach(() => {
+  StuffApi.clearAll();
+  room = makeStuffAtPath(() => new Room(), '/t/look/room');
+  viewer = makeStuff(() => new Viewer());
+});
+afterEach(() => vi.restoreAllMocks());
+
+describe('scan horizon', () => {
+  it('⭐ features the landmark first, then makes out the rest', async () => {
+    const tower = structure('/t/tower', 'clock tower', true);
+    const mill = structure('/t/mill', 'windmill', false);
+    const out = await lookHorizon({
+      things: [
+        { stuff: mill, bearingDeg: null, rangeNm: null },
+        { stuff: tower, bearingDeg: null, rangeNm: null },
+      ],
+      traffic: [],
+      atSea: false,
+    });
+    // One reading, one scene: featured first, then the rest.
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatch(/You can see [^\n]*clock tower[^\n]*\nYou can also make out [^\n]*windmill/);
+  });
+
+  it('a room may feature what is not a landmark', async () => {
+    const mill = structure('/t/mill', 'windmill', false);
+    room.setFeatured(['/t/mill']);
+    const out = await lookHorizon({ things: [{ stuff: mill, bearingDeg: null, rangeNm: null }], traffic: [], atSea: false });
+    expect(out[0]).toMatch(/You can see .*windmill/);
+  });
+
+  it('at sea: a compass point and a rough range, and the passers-by in words', async () => {
+    const brig = structure('/t/brig', 'brig', false);
+    const out = await lookHorizon({
+      things: [{ stuff: brig, bearingDeg: 44, rangeNm: 3.2 }],
+      traffic: [{ name: 'a fishing boat', bearingDeg: 181, rangeNm: 0.5 }],
+      atSea: true,
+    });
+    expect(out.join('\n')).toMatch(/brig.*to the north-east, some 3 miles off/);
+    expect(out.join('\n')).toMatch(/a fishing boat, to the south, close by/);
+    expect(out.join('\n')).not.toMatch(/°|\b044\b/);
+  });
+
+  it('an empty set: says so, neutrally', async () => {
+    const out = await lookHorizon({ things: [], traffic: [], atSea: false });
+    expect(out).toEqual(['You see nothing there.']);
+  });
+});
+
+describe('a set the player asked for (`query all brass`)', () => {
+  it('⭐ several things the player asked for are a plain list — "You see …"', async () => {
+    const a = structure('/t/a', 'brass lamp', false);
+    const b = structure('/t/b', 'brass bell', false);
+    const out = await lookHorizon({ things: [], traffic: [], atSea: false }, [a, b]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatch(/^You see [^\n]*brass lamp[^\n]*brass bell/);
+  });
+});
+
+describe('⭐ a set that came through a FEATURE names the feature (maritime browser walk, 2026-10-14)', () => {
+  it('`query all sea` on a deck: the sea and a sea chest — never the deck', async () => {
+    room.setShortDescription("the Hesper's deck");
+    const chest = structure('/t/chest', 'sea chest', false);
+    const bodies: string[] = [];
+    vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue({ things: [], traffic: [], atSea: false });
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (body: Mml) => { bodies.push(body.toString()); return b; };
+      b.send = () => {};
+      return b as never;
+    });
+    await withRootContext(null, 'query.test', () =>
+      makeStuff(() => new QueryController()).execute(
+        {
+          set: {
+            stuff: [room, chest],
+            vias: [{ detailPath: ['sea'] }, undefined],
+            raw: 'all sea',
+          },
+        } as never,
+        ctx(),
+      ),
+    );
+    expect(bodies.join('\n')).toMatch(/the sea/);
+    expect(bodies.join('\n')).toMatch(/sea chest/);
+    expect(bodies.join('\n')).not.toMatch(/Hesper's deck/);
+  });
+});

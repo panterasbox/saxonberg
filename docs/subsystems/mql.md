@@ -79,7 +79,7 @@ interface MqlContext {
 }
 
 interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; }
-interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; }
+interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; }
 ```
 
 Both methods route through the same internal `resolve()` in
@@ -755,13 +755,18 @@ one.
 
 `MqlApi.resolveMany` returns a single query-level `via` only when
 every match arrived through the same sub-feature path; mixed paths
-produce `via: undefined`. The cheap shallow-equal is in
-`mql.ts:consensusVia` — JSON.stringify each match's via and compare
-to the first.
+produce `via: undefined`. The shallow-equal is
+`MqlLogic.consensusVia`.
 
-For the mixed-path case (a comma-union like `north, sword`), the
-controller has to handle the absence: that's a documented limitation
-that bites only dev queries.
+⭐ **And each match keeps its own** (maritime browser walk, 2026-10-14):
+`MqlMany.vias` is index-aligned with `stuff`, present whenever any match
+came through a sub-feature. The mixed case was not dev-only after all —
+`query all sea` on a deck matched the deck's `sea` feature AND a sea
+chest, the consensus was nothing, and the deck was named instead of its
+sea. The binder keeps `vias` aligned through `requires:` filtering
+(`walkScopes`) and the cardinality policy (`viasAligned`), and a
+`type: object` slot taking the top of several reads the top's own via
+from it instead of resolving a second time.
 
 ## Pronoun memory (`mql/pronoun-memory.ts`)
 
@@ -802,6 +807,19 @@ lists. The dispatcher gates `update` on `MixinApi.isFocused(giver)`.
 The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
 CLAUDE.md § Member Privacy.)
+
+## ⭐⭐ Descending a holder is a view through the viewer's eyes (maritime revision 2′)
+
+The `:i` / `:I` step yields what the VIEWER may see inside a holder —
+`PerceptionApi.visibleContentsOf(viewer, holder)` (`resolver.ts`,
+`visibleInside`): on a person what they wear and hold, never their
+pockets or what is inside their body; an open container everything; a
+shut one nothing; concealed things stay concealed. Your own things —
+and system mode (`commandGiver: null`) — are everything, as before.
+⭐ The rule lives HERE, not in a verb, because MQL is a view over the
+model: `query bob:i`, `look bob:i:knife`, `inventory bob` and a script
+all ask the same question and must get the same answer. (It sat in two
+controllers for one revision, and `bob:i` listed Bob's pockets.)
 
 ## Resolving is not permission
 

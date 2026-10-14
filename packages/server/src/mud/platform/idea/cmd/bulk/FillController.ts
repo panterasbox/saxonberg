@@ -46,7 +46,7 @@ export default class FillController extends CommandController<FillModel> {
       return;
     }
 
-    const toSlot = BulkableApi.slotFor(target, model.target.via?.bulk?.affordance);
+    const toSlot = BulkableApi.slotFor(target, model.target.via);
     if (toSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -59,7 +59,11 @@ export default class FillController extends CommandController<FillModel> {
       });
       return;
     }
-    const fromSlot = BulkableApi.slotFor(source, model.source.via?.bulk?.affordance);
+    const fromSlot = BulkableApi.slotFor(
+      source,
+      model.source.via
+    );
+    await fromSlot?.settle();
     if (fromSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -117,19 +121,28 @@ export default class FillController extends CommandController<FillModel> {
     }
 
     if (result.applied <= 0) {
+      // ⭐ A source that cannot give says why (a frozen mere, which
+      // water?) — else today's line.
+      const why = fromSlot.whyEmpty();
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
+        .toSelf(
+          why !== null
+            ? Mml.compose`${why}`
+            : Mml.compose`You can't fill ${Mml.thing(target)} from ${Mml.thing(source)}.`,
+        )
         .send();
       return;
     }
 
+    // ⭐ Filled from a FEATURE of a place (the river at a shore — maritime
+    // revision 3): name the feature, not the place it belongs to.
+    const feature = model.source.via?.detailPath?.at(-1);
+    const from = feature ? Mml.compose`the ${feature}` : Mml.thing(source);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${Mml.thing(source)}.`,
-      )
+      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${from}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${from}.`)
       .send();
   }
 }

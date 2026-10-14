@@ -34,6 +34,7 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import LaneCatalogue, {
   LANE_CATALOGUE_PATH,
   type CompiledLane,
@@ -41,6 +42,9 @@ import LaneCatalogue, {
 import { Journey, JOURNEY_TYPE } from '../../../lib/journey/Journey';
 
 const TOPIC = 'act.move';
+
+/** The kernel's expanse node class — a sea's places, which no road reaches. */
+const EXPANSE_NODE_CLASS = '/platform/idea/ExpanseNode';
 
 interface JourneyModel extends CommandModel {
   /** `journey to <place>` — a place name, or a durable path. */
@@ -89,6 +93,18 @@ export default class JourneyController extends CommandController<JourneyModel> {
       return this.fail(context, 'you are nowhere a road reaches', 'nowhere');
     }
     const there = await this.resolvePlace(raw, context, catalogue, here);
+    if (there.length === 0) {
+      // ⭐ A place across open water is not on any road (maritime D18):
+      // say so, and name the verb that knows.
+      const sea = await this.seaNodeNamed(raw);
+      if (sea !== null) {
+        return this.fail(
+          context,
+          `there is no road to ${sea} — it lies across open water, and \`course\` from a helm is the verb that knows`,
+          'open-water',
+        );
+      }
+    }
     if (there.length === 0 || there === here) {
       // ⭐ A refusal that says what you MAY name. The roads from here
       // have a knowable, short stop list, so withholding it is just
@@ -339,6 +355,20 @@ export default class JourneyController extends CommandController<JourneyModel> {
       }
     }
     return raw.startsWith('/') ? raw : '';
+  }
+
+  /** The name of an expanse node answering to `raw`, or `null`. */
+  private async seaNodeNamed(raw: string): Promise<string | null> {
+    const want = normalizePlace(raw);
+    if (want.length === 0) return null;
+    for (const tpl of await Template.findByClass(EXPANSE_NODE_CLASS)) {
+      const name = typeof tpl.data?.name === 'string' ? tpl.data.name : '';
+      if (normalizePlace(leafOf(tpl.path)) === want || normalizePlace(name) === want ||
+        normalizePlace(name.replace(/^the\s+/i, '')) === want) {
+        return name || leafOf(tpl.path);
+      }
+    }
+    return null;
   }
 
   /** Every stop the roads from here can reach — what `journey` offers. */

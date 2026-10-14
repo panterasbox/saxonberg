@@ -7,7 +7,7 @@
 #
 # Its Floor pool is authored **empty** (`adornments:`); the rain fills it. No
 # exits wired (reachable by teleport — the substation precedent).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: storm-lashed heath
   keywords: [heath, storm-lashed]
@@ -26,10 +26,6 @@ data:
   # The (initially dry) Floor pool the rain fills — a fixture.
   adornments:
     - /world/moor/heath-floor
-  # ⭐ The mere — the water pack's `Shore` on the Holloway's head; what
-  # makes the heath fishable, and what `look` reads the water off.
-  props:
-    - /world/moor/heath-mere
   # ⭐⭐ East to the turf bank (extraction build). ⚠ The heath had no exits at
   # all — it was teleport-only, the substation precedent — and it needs one
   # now: the fuel-or-the-field choice is only a choice if you can walk to it.
@@ -39,3 +35,15 @@ data:
     east:
       destination: /world/moor/turf-bank
       edgeMinutes: 2
+  # ⭐ The tarn, in the heath's own words — and WHICH water it is
+  # (maritime revision 3): the Holloway's HEAD, 1100 m up, cold, fast,
+  # fresh, soft and acid. ⚠ The moor's Locality cites `holloway:vale`;
+  # the place's own citation wins. ⚠ Not `mere` or `water` — the heath
+  # floor's pool answers to both.
+  details:
+    tarn:
+      keywords: [tarn, black mere, black-mere, peat-water, holloway]
+      description: |
+        A mere of black peat-water lying in a fold of the heath, rain-pocked and wind-scoured, spilling at its lower lip into a beck that goes off white down the moor. Cold enough to ache. Something moves under the surface and is gone.
+  waters:
+    tarn: holloway:head

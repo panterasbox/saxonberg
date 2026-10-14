@@ -37,7 +37,17 @@ interface WashModel extends CommandModel {
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
-  execute(model: WashModel, context: CommandContext): void {
+  async execute(model: WashModel, context: CommandContext): Promise<void> {
+    // ⭐ A source that has to read itself first (a shore's water, maritime
+    // revision 3) settles before anything is looked for in it; a vessel
+    // is ready at once.
+    for (const c of model.water?.stuff ?? []) {
+      await BulkableApi.slotFor(c, undefined)?.settle();
+    }
+    this.run(model, context);
+  }
+
+  private run(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const glass = model.target?.stuff ?? null;
     // ⭐ Bare `wash` (no thing named) = wash your own HANDS. The medic's
@@ -228,12 +238,18 @@ export default class WashController extends ManualBuildController<WashModel> {
     // vessel and the only question left is what is IN it — contents,
     // which no predicate asks (`lint:instrument-args`).
     for (const c of bound?.stuff ?? []) {
-      if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
+      // A crafted vessel's contents are a product, not wash water; a
+      // shore (no vessel at all) offers the water it is beside.
+      if (MixinApi.isCrafted(c)) continue;
+      if (!MixinApi.isBulkable(c) && !MixinApi.isShore(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot || slot.isEmpty()) continue;
       const m = slot.getMaterial();
       if (!m) continue;
-      if (m.hasTag("water")) return c;
+      // ⭐ Salt water washes (a deck, a shirt at sea) — by its own `brine`
+      // tag, never by giving it the `water` tag the recipes read (seawater
+      // would brew ale).
+      if (m.hasTag("water") || m.hasTag("brine")) return c;
     }
     return null;
   }

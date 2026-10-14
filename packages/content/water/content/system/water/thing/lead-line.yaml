@@ -1,0 +1,15 @@
+# A lead line — the sounding instrument (`measure depth`).
+#
+# ⚠ `capabilities: [sounding]` IS the reachability: the depth reading
+# refuses any tool that does not declare it, silently enough to look
+# like a broken verb.
+class: /platform/thing/Tool
+data:
+  shortDescription: lead line
+  keywords: [lead, line, lead-line, sounding]
+  register: indefinite
+  longDescription: |
+    A seven-pound lead on a coil of tarred line, marked off in fathoms with leather, calico and bunting so a leadsman can read it by feel in the dark. There is a hollow in the base of the lead for a plug of tallow, to bring up whatever the bottom is.
+  capabilities: [sounding]
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 3.2

@@ -1,0 +1,28 @@
+# bearing — the direction of a thing in view, by a hand-bearing compass
+# (maritime R8).
+#
+# ⭐⭐ The fix is an ACT. Nothing mends the reckoning by being seen: a
+# bearing taken on a FIXED thing whose place is known (a light on a rock)
+# fixes you to within the bracket's width at that range; a bearing on a
+# sail tells you where she lies and mends nothing.
+#
+# The subject must be in sight from your own eye — name it from the
+# horizon (`measure bearing light`, or `measure bearing horizon:light`).
+# The eye can judge a bearing roughly; the compass narrows it.
+class: /platform/idea/reading/BearingReading
+data:
+  channel: bearing
+  kind: fact
+  scope: [subject]
+  discipline: navigation
+  instrument: bearing
+  instrumentNoun: "a hand-bearing compass"
+  # The eye rung is open, and coarse: a glance over the bow gives a
+  # bearing to ten degrees.
+  eyeCeiling: untrained
+  improves: >-
+    which way a thing in view lies, and — when it never moves — where you
+    are
+  stakes: >-
+    a light raised and never used; a landfall made from a reckoning a
+    bearing would have mended

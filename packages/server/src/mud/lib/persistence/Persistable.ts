@@ -190,6 +190,18 @@ export interface Persistable {
    * durabilities are read by two different predicates.
    */
   getDurableHandle(): string | null;
+
+  /**
+   * The host's record has just been restored onto it — every persistent
+   * field is back. Re-arm whatever ran on those fields before the process
+   * ended (a craft under way re-starts its voyage).
+   *
+   * @hook Invoked by `PersistableLogic` after a record restore, once,
+   *   after the fields, contents and placement are back. Not invoked on
+   *   the no-record (seed) branch — there was nothing running. Chain
+   *   `super.onRestored()`.
+   */
+  onRestored(): Promise<void>;
 }
 
 export function PersistableMixin<
@@ -364,6 +376,12 @@ export function PersistableMixin<
           );
         }
       }
+    }
+
+    /** See {@link Persistable.onRestored}; chains to a composed layer's own. */
+    async onRestored(): Promise<void> {
+      const inner = (super.onRestored as unknown as (() => Promise<void>) | undefined);
+      if (typeof inner === 'function') await inner.call(this);
     }
 
     /**

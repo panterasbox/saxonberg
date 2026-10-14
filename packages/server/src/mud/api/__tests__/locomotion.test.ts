@@ -292,6 +292,51 @@ describe('LocomotionApi', () => {
       });
     });
 
+    describe('swim — the far side (a Pool is swum INTO)', () => {
+      const exitTo = (src: Location, dest: Location): Exit =>
+        makeStuff(() => new Exit({ direction: 'east', source: src, destination: dest, media: ['water'] }));
+
+      it('⭐ an exit whose DESTINATION is the medium admits the mode from dry land', async () => {
+        const swim = buildMode('swim');
+        const strand = makeStuff(() => new Location());
+        const pool = makeStuff(() => new SwimLocation());
+        pool.setAxes(['*']);
+        const actor = makeStuff(() => new Actor());
+        ContainmentApi.move(actor, strand);
+        expect(LocomotionApi.checkEnablement(actor, swim, 'east').gate).toBe('enablement');
+        const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, pool), swim, 'east');
+        expect(guard.ok).toBe(true);
+      });
+
+      it('a dry far side leaves the refusal standing — and a swimmable THING over there is not the medium', async () => {
+        const swim = buildMode('swim');
+        const strand = makeStuff(() => new Location());
+        const dry = makeStuff(() => new Location());
+        const SwimThing = SwimmableMixin(ContainableMixin(Good));
+        const puddle = makeStuff(() => new SwimThing());
+        puddle.setAxes(['*']);
+        ContainmentApi.move(puddle, dry);
+        const actor = makeStuff(() => new Actor());
+        ContainmentApi.move(actor, strand);
+        const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, dry), swim, 'east');
+        expect(guard.ok).toBe(false);
+        expect(guard.gate).toBe('enablement');
+      });
+
+      it('the far side still gates capability', async () => {
+        const swim = buildMode('swim');
+        const strand = makeStuff(() => new Location());
+        const pool = makeStuff(() => new SwimLocation());
+        pool.setAxes(['*']);
+        pool.setDifficulty(4);
+        const actor = makeStuff(() => new Actor());
+        actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
+        ContainmentApi.move(actor, strand);
+        const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, pool), swim, 'east');
+        expect(guard.gate).toBe('capability');
+      });
+    });
+
     describe('fly', () => {
       it('finds a Flyable Location and admits', () => {
         const fly = buildMode('fly');

@@ -1,0 +1,23 @@
+# `pilot` — pay a pilot for what they know of the water.
+#
+# ⭐ A pilot is claims, not a Discipline: you are buying `told` entries in
+# your map, signed with the pilot's name — sellable, and sometimes wrong.
+# Afforded by a `Pilot` to whoever stands with them.
+verbs: [pilot]
+controller: /system/water/idea/cmd/social/PilotController
+description: "Pay a pilot for what they know of the water"
+help: |
+  Standing with a pilot, `pilot` pays their fee and they tell you the
+  water they know — the currents, the bars, the fogs — and it goes into
+  your map as told, with their name against it. `map` shows it.
+
+  A pilot can be wrong. What they told you stays in your map, signed,
+  whatever the water does.
+validators:
+  - /lib/command/validators/requiresConscious
+args:
+  - name: pilot
+    type: object
+    scope: ["$focus", "reachable"]
+    required: false
+    requires: ChartedMixin

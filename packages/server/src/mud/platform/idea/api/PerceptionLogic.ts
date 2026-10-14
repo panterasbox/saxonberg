@@ -18,7 +18,7 @@ import { StuffApi } from '../../../api/stuff';
 import { SpeciesApi } from '../../../api/species';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
-import { TemplatePathPrefixes } from '../../../lib/paths';
+import { TemplatePathPrefixes, TemplatePaths } from '../../../lib/paths';
 import { DISCOVERY } from '../../../lib/belief/BeliefStore';
 import {
   ConcealmentLevels,
@@ -36,6 +36,19 @@ import { LIGHT_BANDS } from '../../../lib/perception/Light';
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
+import type {
+  HorizonView, HorizonSighting, HorizonTraffic, VisibleContents,
+} from '../../../api/perception';
+import { WorldClockApi } from '../../../api/worldclock';
+import type { SpatialZone } from '../../../lib/zone/SpatialZone';
+import type Location from '../../../lib/stuff/Location';
+import type Structure from '../Structure';
+import type StructureCatalogue from '../StructureCatalogue';
+import type { Positioned } from '../../../lib/expanse/Positioned';
+import type { Voyaging } from '../../../lib/expanse/Voyaging';
+import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
+import { BiomeApi } from '../../../api/biome';
+import { WeatherApi } from '../../../api/weather';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
@@ -525,6 +538,66 @@ export class PerceptionLogic extends ApiLogic {
   ): ConcealmentLevel {
     return hideLevelForImpl(actor, stealthBand);
   }
+
+  /** See {@link PerceptionApi.horizonFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public horizonFor(viewer: Stuff): HorizonView {
+    // ⭐ Scoped, never registry-wide (maritime review, 2026-10-13): the
+    // craft you stand on is the STRUCTURE CATALOGUE's answer (which
+    // building is this room in), what you can see at sea is THAT craft's
+    // EXPANSE's (its landmarks and registered craft), and ashore a named
+    // zone's structures are the catalogue's again. Nothing asks the
+    // registry for every craft in the world.
+    return horizonAtSea(viewer) ?? horizonAshore(viewer);
+  }
+
+  /** See {@link PerceptionApi.visibleContentsOf}. */
+  @CallSecurity(PerceptionApiCallers)
+  public visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
+    const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
+    if (!MixinApi.isContainer(target)) return out;
+    if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
+    const seen = (s: Stuff): boolean => !MixinApi.isConcealable(s) || !s.isConcealed();
+    const own = viewer.stuffId === target.stuffId;
+    // A PERSON is an agent with slots; a rack is slotted and wears
+    // nothing, so it lists like any container.
+    const person = target.isAgent() && MixinApi.isSlotted(target);
+    const slotted = new Set<string>();
+    if (person && MixinApi.isSlotted(target)) {
+      for (const [slot, occupants] of target.getAllOccupants()) {
+        const spec = target.getSlotSpec(slot);
+        const accepts = spec?.accepts ?? '';
+        const kind = accepts.includes('Wieldable')
+          ? 'held'
+          : accepts.includes('Wearable') || spec?.userFacingDetail
+            ? 'worn'
+            : 'inside';
+        for (const o of occupants) {
+          slotted.add(o.stuffId);
+          if (!seen(o)) continue;
+          if (kind === 'held') out.held.push(o);
+          else if (kind === 'worn') out.worn.push(o);
+          else if (own) out.carried.push(o);
+        }
+      }
+    }
+    const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
+    // A person's pockets are theirs to know; a container's contents are
+    // in view of anybody who can see into it.
+    if (own || !person) out.carried.push(...loose);
+    return out;
+  }
+
+  /** See {@link PerceptionApi.glance}. */
+  @CallSecurity(PerceptionApiCallers)
+  public glance(bearingDeg: number, rangeNm: number): string {
+    const i = Math.round((((bearingDeg % 360) + 360) % 360) / 45) % 8;
+    const point = COMPASS_POINTS[i]!;
+    if (rangeNm < 1) return `${point}, close by`;
+    if (rangeNm < 2) return `${point}, about a mile off`;
+    return `${point}, some ${Math.round(rangeNm)} miles off`;
+  }
+
 
   /** See {@link PerceptionApi.resolveSearch}. */
   @CallSecurity(PerceptionApiCallers)
@@ -1100,4 +1173,171 @@ function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
     if (gap <= cutoff) out.push(cand);
   }
   return out;
+}
+
+/* ───────────────────────── the horizon (maritime R4) ───────────────────────── */
+
+const COMPASS_POINTS = [
+  'to the north', 'to the north-east', 'to the east', 'to the south-east',
+  'to the south', 'to the south-west', 'to the west', 'to the north-west',
+] as const;
+
+/** An observer's eye above the ground they stand on, metres. */
+const SHORE_EYE_M = 2;
+
+const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
+
+type Craft = Stuff & Positioned & Voyaging;
+
+/** The structure catalogue, when it is resident (booted `sync-read`). */
+function structureCatalogue(): StructureCatalogue | null {
+  return StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue) ?? null;
+}
+
+/**
+ * ⭐ The craft `viewer` is aboard — the boat they sit in at sea, or the
+ * ship whose extent holds their room (the structure catalogue's keyed
+ * answer, O(depth)). `null` ashore.
+ */
+function craftAboard(viewer: Stuff): Craft | null {
+  const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
+  if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
+  const room = roomOf(viewer);
+  const path = room?.getTemplatePath() ?? '';
+  const row = path ? structureCatalogue()?.peekStructureOf(path) ?? null : null;
+  const s = row ? StuffApi.findByTemplatePath<Stuff>(row.path) : null;
+  return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as Craft) : null;
+}
+
+/**
+ * The weather's factor on sight from `room`: the cached sky
+ * (`WeatherApi.peekSkyType`, maritime R10). A sky never read yet counts as
+ * clear this once — the read it starts lands for the next look.
+ */
+function seeingFrom(room: Stuff & Container): number {
+  const type = WeatherApi.peekSkyType(room);
+  if (type === null) return 1;
+  return dialNumber(`expanse.visibility.${type}`, VISIBILITY[type] ?? 1);
+}
+
+const VISIBILITY: Record<string, number> = {
+  clear: 1, overcast: 1, rain: 0.6, snow: 0.4, storm: 0.3, fog: 0.1,
+};
+
+/** The resident expanse at `path`, or `null`. */
+function expanseAt(path: string | null): Expanse | null {
+  const e = path ? StuffApi.findByTemplatePath<Stuff>(path) : null;
+  return e instanceof Expanse ? e : null;
+}
+
+/** Contacts as horizon sightings and traffic. */
+function toView(contacts: readonly Contact[], atSea: boolean, seen = new Set<string>()): HorizonView {
+  const things: HorizonSighting[] = [];
+  const traffic: HorizonTraffic[] = [];
+  for (const c of contacts) {
+    if (c.craft) {
+      if (seen.has(c.craft.stuffId)) continue;
+      seen.add(c.craft.stuffId);
+      things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+    } else {
+      traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+    }
+  }
+  return { things, traffic, atSea };
+}
+
+/** Every resident craft on the sea at `seaPath`, a structure with no deck being FIXED. */
+/**
+ * At sea: the viewer's root is a craft on an expanse, and the range is
+ * COMPUTED from two heights — the viewer's eye (a lookout seat is the
+ * masthead) and each target's. `null` when the viewer is not afloat.
+ */
+function horizonAtSea(viewer: Stuff): HorizonView | null {
+  const craft = craftAboard(viewer);
+  const here = craft?.getExpansePosition() ?? null;
+  const sea = expanseAt(craft?.getExpanse() ?? null);
+  if (craft === null || here === null || sea === null) return null;
+  // Below decks there is no horizon: the watch is kept where the sky is.
+  const room = roomOf(viewer);
+  if (room === null || !BiomeApi.isSkyExposed(room)) return { things: [], traffic: [], atSea: true };
+  const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
+  const contacts = sea.sightingsAmong(
+    here, craft.sightHeightFor(viewer), 'visual', hour,
+    sea.sightables(), seeingFrom(room), craft,
+  );
+  return toView(contacts, true);
+}
+
+/**
+ * Ashore: the nearest `horizon` declaration names ZONES; a Structure in
+ * one is in view when the room is open to the sky and its height — plus
+ * the elevation between — clears the distance the zones' size implies.
+ * A named EXPANSE is read like a deck from the nearest landing, at the
+ * zone's elevation (maritime R11: the headland).
+ *
+ * ⭐ Distance is approximated from the zones' extents in metres (cell size
+ * × the grid's span): from inside a named zone, half its span; from
+ * another zone, half of each. Crude by design — a grain, tuned by
+ * `perception.horizonRatio`, which optics widen later.
+ */
+function horizonAshore(viewer: Stuff): HorizonView {
+  const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+  if (room === null || !room.isLocation() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
+  if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
+  // The branch predicate is the narrowing (no value import of Location —
+  // it closes a load cycle through the MQL pipeline).
+  const place = room as unknown as Location;
+  const zone = room.getZone() as SpatialZone | null;
+  const named = place.getHorizon() ?? zone?.peekField<string[]>('horizon') ?? null;
+  if (!Array.isArray(named) || named.length === 0) return EMPTY_HORIZON;
+
+  const here = room.getTemplatePath() ?? '';
+  const ratio = dialNumber('perception.horizonRatio', 20);
+  const myExtent = zone?.getExtentM() ?? 0;
+  const myElev = zone?.peekField<number>('elevation') ?? 0;
+
+  const view: HorizonView = { things: [], traffic: [], atSea: false };
+  const seen = new Set<string>();
+  for (const zonePath of named) {
+    const sea = expanseAt(zonePath);
+    if (sea !== null) {
+      const from = sea.peekShorePositionFor(here);
+      if (from === null) continue;
+      const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
+      const contacts = sea.sightingsAmong(
+        from, Math.max(0, myElev) + SHORE_EYE_M, 'visual', hour,
+        sea.sightables(), seeingFrom(room),
+      );
+      const v = toView(contacts, false, seen);
+      view.things.push(...v.things);
+      view.traffic.push(...v.traffic);
+      continue;
+    }
+    const target = StuffApi.findByTemplatePath<SpatialZone>(zonePath);
+    const theirExtent = target?.getExtentM() ?? 0;
+    const theirElev = target?.peekField<number>('elevation') ?? 0;
+    const within = here === zonePath || here.startsWith(`${zonePath}/`);
+    const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
+    // The zone's own structures — the catalogue's keyed answer.
+    for (const row of structureCatalogue()?.peekStructuresWithin(zonePath) ?? []) {
+      // The catalogue's rows ARE structures — its own class query.
+      const s = StuffApi.findByTemplatePath<Structure>(row.path) ?? null;
+      if (s === null || s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
+      const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
+      if (clearanceM * ratio < distanceM) continue;
+      seen.add(s.stuffId);
+      view.things.push({ stuff: s, bearingDeg: null, rangeNm: null });
+    }
+  }
+  return view;
+}
+
+/** The room `who` stands in — through any vessel (a boat) to the Location. */
+function roomOf(who: Stuff): (Stuff & Container) | null {
+  let cur: Stuff | null = MixinApi.isContainable(who) ? who.getContainer() : null;
+  for (let i = 0; cur !== null && i < 8; i++) {
+    if (cur.isLocation() && MixinApi.isContainer(cur)) return cur;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return null;
 }

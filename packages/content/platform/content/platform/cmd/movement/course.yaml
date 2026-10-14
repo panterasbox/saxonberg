@@ -1,0 +1,31 @@
+# `course` — read the plot, or lay a course and get under way.
+#
+# ⭐ Zero-arg reads, an arg sets (the `cockpit <mode>` shape). A course is
+# a heading, not a destination: you sail until you stop, and a course for
+# a node is a bearing worked from where you THINK you are.
+#
+# ⛔ Not `plot` (farming's) and not `set course` (`set` is the settings
+# verb). Afforded by a `Helm`.
+verbs: [course]
+controller: /platform/idea/cmd/movement/CourseController
+description: "Read your course and reckoning, or lay a course"
+help: |
+  `course` tells you your course and where you are BY RECKONING — the
+  last fix carried along the courses you steered — with how uncertain
+  that is. It is never where you truly are; the water moves you, and the
+  reckoning does not know by how much.
+
+  `course 070` lays a course by bearing (degrees true) and gets under
+  way. `course <place>` lays one for a place you know on this water — a
+  bearing worked from your reckoning, so a stale reckoning misses.
+
+  A sight (`measure latitude`), a sounding (`measure depth`) or a
+  landmark coming into view tightens the reckoning. `anchor` stops.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: heading
+    type: string
+    required: false
+    greedy: true

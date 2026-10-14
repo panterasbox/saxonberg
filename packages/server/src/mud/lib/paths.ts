@@ -50,6 +50,7 @@ export const TemplatePaths = {
   addressRegistry: "/platform/idea/AddressRegistry",
   groupRegistry: "/platform/idea/GroupRegistry",
   schedulerRegistry: "/platform/idea/SchedulerRegistry",
+  structureCatalogue: "/platform/idea/StructureCatalogue",
   worldClockRegistry: "/platform/idea/WorldClockRegistry",
   mqlSubscriptionRegistry: "/platform/idea/MqlSubscriptionRegistry",
   forumSubscriptionRegistry: "/platform/idea/ForumSubscriptionRegistry",

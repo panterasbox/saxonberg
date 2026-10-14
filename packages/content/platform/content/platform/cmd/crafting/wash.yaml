@@ -34,6 +34,9 @@ args:
     type: objects
     required: false
     prepositions: [in, under, with]
-    default: "reachable:[mixin.BulkableMixin]"
+    # ⭐ A vessel of water, or the water a shore is beside (maritime
+    # revision 3) — `wash shirt in river`. The controller's narrowing (a
+    # slot whose matter is water or brine) is the check.
+    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
     scope: ["reachable"]
-    requires: [BulkableMixin]
+    requires: any

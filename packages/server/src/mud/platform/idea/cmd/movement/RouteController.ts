@@ -40,6 +40,7 @@ import { NavigationApi } from '../../../../api/navigation';
 import { AppApi } from '../../../../api/app';
 import { AddressApi } from '../../../../api/address';
 import { MixinApi } from '../../../../api/mixin';
+import { ExpanseApi } from '../../../../api/expanse';
 import { StuffApi } from '../../../../api/stuff';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -175,6 +176,21 @@ export default class RouteController extends CommandController<RouteModel> {
         'You could not say where you are standing.',
         'nowhere',
       );
+    }
+    // ⭐ A place on open water is not on any road (maritime D18) — asked
+    // BEFORE the claims, because a chart makes a sea node a place you
+    // know, and planning to it would end in "you do not know the way".
+    // Only for a craft's own expanse: the engine lends no knowledge of a
+    // sea the asker is not on.
+    {
+      const sea = await RouteController.seaNodeNamed(giver, asked);
+      if (sea !== null) {
+        return this.declineWith(
+          context,
+          `There is no road to ${sea}. On open water, \`course\` is the verb that knows.`,
+          'open-water',
+        );
+      }
     }
     const standingGroup = await RouteController.standingGroup(context);
     const pool = RouteController.candidates(asked, known, standingGroup);
@@ -809,6 +825,16 @@ export default class RouteController extends CommandController<RouteModel> {
       .topic(TOPIC)
       .toSelf(Mml.text(`\n${text}\n`))
       .send();
+  }
+
+  /** The name of a node on the asker's craft's expanse answering `asked`. */
+  private static async seaNodeNamed(giver: Stuff, asked: string): Promise<string | null> {
+    const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
+    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    if (!craft || !MixinApi.isVoyaging(craft)) return null;
+    const expanse = await craft.liveExpanse();
+    const node = expanse ? await expanse.nodeByKeyword(asked) : null;
+    return node ? node.getName() : null;
   }
 
   private declineWith(

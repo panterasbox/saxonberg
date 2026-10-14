@@ -26,6 +26,7 @@ import { MixinApi } from '../mixin';
 import { Warren } from '../../lib/location/Warren';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
+import { PerceptionApi } from '../perception';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
@@ -125,7 +126,7 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
 export function resolveWithQuantity(
   query: string,
   ctx: MqlContext,
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
   // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
   // read, so whoever was entitled to read it can be told. It lives for
   // exactly one synchronous run; save/restore rather than assign/clear,
@@ -143,7 +144,7 @@ export function resolveWithQuantity(
 function resolveInner(
   query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -154,11 +155,48 @@ function resolveInner(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } =
+  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true } =
     { matches: finalized };
   if (quantity) out.quantity = quantity;
   if (registryScan) out.scan = registryScan;
+  if (namesASet(ast)) out.isSet = true;
   return out;
+}
+
+/** Single words a keyword head promotes to a seed (see {@link resolveKeywordSeed}). */
+const SEED_WORDS: ReadonlySet<string> = new Set([
+  'inventory', 'online', 'world', 'peers', 'reachable', 'person', 'horizon',
+]);
+
+/**
+ * ⭐ Did this query name a SET rather than search by NAME? True when no
+ * chain anywhere in it searches or filters by keyword or literal: its
+ * heads are seeds, pronouns, paths, ids, groups or `$$`, and its steps
+ * are seeds, transforms, predicates and ordinals. `brass` and
+ * `horizon:tower` are names (and can be ambiguous); `horizon`, `peers`,
+ * `me:i`, `reachable:[mixin.ToolMixin]` are sets.
+ */
+function namesASet(ast: QueryNode): boolean {
+  const isSetStep = (el: ChainElement, atHead: boolean): boolean => {
+    if (el.kind === 'literal') return false;
+    // One referent is not a set: `here`, `me`, `it` and an id each name
+    // ONE thing (a bare `look` is the room, not a list of it). `them` is.
+    if (el.kind === 'pronoun') return el.name === 'them';
+    if (el.kind === 'stuffId') return false;
+    if (el.kind !== 'keywords') return true;
+    if (el.words.length !== 1) return false;
+    const w = el.words[0]!.toLowerCase();
+    return atHead
+      ? SEED_WORDS.has(w)
+      : w === 'members' || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+  };
+  // One referent stepped through a set (`me:i` — your contents) is a set.
+  const oneReferent = (el: ChainElement): boolean =>
+    (el.kind === 'pronoun' && el.name !== 'them') || el.kind === 'stuffId';
+  const chainIsSet = (c: ChainNode): boolean =>
+    (isSetStep(c.head, true) || (oneReferent(c.head) && c.rest.length > 0)) &&
+    c.rest.every((op) => isSetStep(op.element, false));
+  return ast.sublists.every((sub) => chainIsSet(sub.base) && sub.subtract.every(chainIsSet));
 }
 
 /**
@@ -468,6 +506,9 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
         candidatesForPerson(requireGiver(ctx, "'person'"), ctx.attention),
       );
     }
+    if (w === 'horizon') {
+      return candidatesToMatches(candidatesForHorizon(ctx));
+    }
   }
   // Otherwise: keyword search against the field's scope.
   return scopeKeywordSearch(node.words, ctx);
@@ -755,6 +796,7 @@ function candidatesForScopePart(
       ctx.attention,
     );
   }
+  if (lower === 'horizon') return candidatesForHorizon(ctx);
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
@@ -792,6 +834,17 @@ function candidatesForScopePart(
     return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
   }
   return null;
+}
+
+/**
+ * ⭐ The `horizon` scope (maritime R4): what the giver can see from where
+ * they stand that is NOT in their room — a fixed pool, like `here`,
+ * computed synchronously over warm state (`PerceptionApi.horizonFor`).
+ */
+function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
+  const giver = requireGiver(ctx, "the 'horizon' scope");
+  const view = PerceptionApi.horizonFor(giver);
+  return candidatesForFlat(view.things.map((t) => t.stuff), giver, ctx.attention);
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
@@ -836,6 +889,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
   'peers',
   'reachable',
   'person',
+  'horizon',
 ]);
 
 /**
@@ -1125,6 +1179,41 @@ function candidatesForElementDerivable(
  * operators, polymorphic on whether the candidate is in a detail
  * tree or a Stuff-containment context.
  */
+/**
+ * ⭐⭐ **What a viewer may see inside a holder** — the one visibility rule
+ * (maritime revision 2′), applied where every way of naming a holder's
+ * things passes: the `:i` step. On a person, what they wear and hold —
+ * never their pockets or what is inside their body; in an open container,
+ * everything; in a shut one, nothing; your own things, everything
+ * (`PerceptionApi.visibleContentsOf`). With no viewer (system mode —
+ * engine bookkeeping) the raw contents, as before.
+ */
+function visibleInside(holder: Stuff, viewer: Stuff | null): readonly Stuff[] {
+  if (!MixinApi.isContainer(holder)) return [];
+  // No viewer (system mode), or your own things: everything — what you
+  // concealed on yourself you still know is there.
+  if (viewer === null || viewer.stuffId === holder.stuffId) return holder.getContents();
+  const v = PerceptionApi.visibleContentsOf(viewer, holder);
+  return [...v.worn, ...v.held, ...v.carried];
+}
+
+/** `:I` — the rule applied at every level of the descent. */
+function visibleInsideDeep(holder: Stuff, viewer: Stuff | null): Stuff[] {
+  if (viewer === null) {
+    return MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
+  }
+  const out: Stuff[] = [];
+  const walk = (h: Stuff, depth: number): void => {
+    if (depth > 32) return;
+    for (const item of visibleInside(h, viewer)) {
+      out.push(item);
+      if (MixinApi.isContainer(item)) walk(item, depth + 1);
+    }
+  };
+  walk(holder, 0);
+  return out;
+}
+
 function applyTransform(
   input: MqlMatch[],
   transform: 'i' | 'I' | 'e' | 'E' | 'b',
@@ -1162,7 +1251,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of m.stuff.getContents()) {
+        for (const item of visibleInside(m.stuff, viewer)) {
           out.push({ stuff: item, score: m.score });
         }
       }
@@ -1184,7 +1273,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of m.stuff.getDeepContents()) {
+        for (const item of visibleInsideDeep(m.stuff, viewer)) {
           out.push({ stuff: item, score: m.score });
         }
       }

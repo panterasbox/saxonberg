@@ -780,6 +780,7 @@ function validateCardinality(
     );
   }
 
+
   // Cardinality / onExcess policies are only meaningful for MQL
   // fields; reject on non-MQL types.
   if (

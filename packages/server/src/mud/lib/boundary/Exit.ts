@@ -391,6 +391,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    *   it; the traversal path does not.
    */
   public hasSpatialDestination(): boolean { return true; }
+
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
   /** Backing storage for `door`; the accessor pair mediates

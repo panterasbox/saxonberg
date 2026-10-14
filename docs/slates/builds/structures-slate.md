@@ -1,10 +1,28 @@
 # Structures slate — the thing that says "these rooms are one building", and whether it is needed at all
 
+> **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
+> (`platform/idea/Structure`) is membership by extent prefix, the
+> entrance, the outside look, `landmark` and `heightM`;
+> `StructureCatalogue` answers which structure a room is in, by key. The
+> open questions below were closed by it: (1) **not a Parcel** — a
+> parcel is title in a gated collection, a structure is content anybody
+> holding the ground authors; (3) **no address effect**; (4) **the
+> content author writes one**, nothing derives it from `storeys`; (2)
+> the ship needed it first. ⚠ It **reversed** this slate's companion
+> ruling in `navigable-water-slate` § 7a, *"the whole difference between
+> a building and a ship is ONE FIELD"*: in review every Structure carried
+> the voyage and the code told a ship from a building by guards, so
+> `Ship extends Structure` holds the position, voyage, decks and house.
+> See [expanse.md](../../subsystems/expanse.md).
+> **Left:** what a BUILDING owns beyond the ship's case — the roof, the
+> stack, the envelope between rooms (the flue below), fire spread and
+> storeys.
+> **Size:** a build, when a building case needs it.
+
 > ⭐⭐⭐ **JUSTIFIED 2026-10-09 — the SHIP is what earns it.** See § *The
-> ship passes six for six* below. The question this slate was written to
-> ask is answered; what remains is a build.
+> ship passes six for six* below.
 >
-> **Status: UNBUILT — and formerly "possibly unnecessary."** Nothing in the model
+> *(Before the build: UNBUILT — and formerly "possibly unnecessary.")* Nothing in the model
 > says two Locations belong to one structure. Four things come close and
 > none of them claims it: a **Locality** is an authored coverage prefix
 > in the address namespace (*"any kind of place, at any depth… **never a

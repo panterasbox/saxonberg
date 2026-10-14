@@ -296,6 +296,11 @@ export class GraphInvariants {
         // `bidirectional` installs the reverse, so it satisfies the
         // both-sides rule `boundary.md` states.
         if (edge.bidirectional) continue;
+        // ⭐ A DECLARED one-way edge is not one-sided by accident — the
+        // same escape `asymmetric-edge` names in its own advice. The sea
+        // landing's `aboard` is the case: its way back is the deck's
+        // `ashore`, a code-resolved edge to wherever the ship lies.
+        if (edge.oneWay) continue;
         if (far.edges.some((e) => this.#far(e) === node)) continue;
         out.push(
           this.#finding(

@@ -9,3 +9,5 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Wharfside Mill
   cellSize: 4.0
+  # Indoors: nothing beyond the walls is scanned from in here.
+  horizon: []

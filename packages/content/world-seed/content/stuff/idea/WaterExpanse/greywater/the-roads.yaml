@@ -1,0 +1,10 @@
+# The roads — the open anchorage outside the bar, where the channel ends
+# and the Westerlies begin. An AREAL passage: a point you reach by bearing.
+class: /platform/idea/ExpanseNode
+data:
+  name: the roads
+  alternateNames: [roads, roadstead, anchorage]
+  kind: passage
+  passage: areal
+  # Three and a third miles out, bearing 069; an anchorage a mile across.
+  focus: { rho: 6192, theta: 69, radius: 1852 }

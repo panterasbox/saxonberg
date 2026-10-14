@@ -87,12 +87,25 @@ describe('fishes', () => {
     expect(fisher.getEngagementByType(FISHING_TYPE)).toBeUndefined();
   });
 
-  it('a configured shore names the reach', async () => {
+  it('⭐ he fishes the water the place he stands in names (maritime revision 3)', async () => {
     ContainmentApi.move(makeStuff(() => new Rod()) as never, fisher as never);
-    const shore = makeStuffAtPath(() => new Idea(), '/world/test/thing/river-edge');
-    (shore as unknown as { getReachRef: () => string }).getReachRef = () => 'holloway:head';
-    await fishes.act(ctx({ shore: '/world/test/thing/river-edge' }));
+    const names = vi.fn(async () => ({ key: 'tarn', ref: 'holloway:head', read: {} as never }));
+    (room as unknown as { waterRefFor: typeof names }).waterRefFor = names;
+    vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === room) as never);
+    await fishes.act(ctx());
     expect((fisher.getEngagementByType(FISHING_TYPE) as unknown as { reachRef: string }).reachRef).toBe('holloway:head');
+    expect(names).toHaveBeenCalledWith(undefined);
+  });
+
+  it('a place that cannot say which water (two, none named) is not fished — no guess', async () => {
+    ContainmentApi.move(makeStuff(() => new Rod()) as never, fisher as never);
+    (room as unknown as { waterRefFor: () => Promise<unknown> }).waterRefFor = async () => ({
+      refusal: 'Which water — the Kestrel or the Delight?',
+      reason: 'which-water',
+    });
+    vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === room) as never);
+    await fishes.act(ctx());
+    expect(fisher.getEngagementByType(FISHING_TYPE)).toBeUndefined();
   });
 });
 

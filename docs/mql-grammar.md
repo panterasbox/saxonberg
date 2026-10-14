@@ -134,6 +134,7 @@ seed yields a list of Stuff (possibly empty).
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
 | `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) |
 | `inventory` | the giver's contents (the giver itself is `me`) |
+| `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `online` | every connected command-giver |
 | `it` / `him` / `her` | last single match of matching gender |
 | `them` | last multi-match list |
@@ -225,6 +226,17 @@ tool, not an author's privilege.
 
 `#abc123` looks up a Stuff by its exact stuffId. Useful for
 debugging.
+
+### ⭐ A SET or a NAME
+
+Every result says how the query asked (`isSet` on `MqlOne`/`MqlMany`):
+a query that **names a set** — a seed (`horizon`, `peers`, `inventory`),
+`them`, a path, `me:i` — is a set; a query that **searches by keyword**
+anywhere in it (`brass`, `horizon:tower`) names things, and only that can
+be ambiguous. A single referent (`here`, `me`, `it`, `#id`) is one thing.
+A verb asks *which?* only about a name; a set, or your own `all` / count,
+is taken as you said it. See [command-spec.md § Who decides how
+many](./subsystems/command-spec.md).
 
 ## Chain operator `:`
 

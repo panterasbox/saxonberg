@@ -256,11 +256,16 @@ describe('every corridor room is a real place', () => {
       expect(d._address, `${path} has no address`).toBeTruthy();
       expect(d._biomePath, `${path} has no biome`).toBeTruthy();
       // Unlit is PITCH BLACK, and every object in a dark room reads as
-      // "something".
+      // "something". ⭐ A room open to the sky is lit BY the sky (its noon
+      // flux is `light.sky.noonLux` × its floor area, derived): an
+      // authored `ambientIntensity` replaces that rather than calibrating
+      // it, and on the estuary's 20 m cells it read under two lux at noon
+      // (the maritime drive's finding). So: authored light, or the sky.
+      const skyLit = String(d._biomePath ?? '').includes('/biome/outdoor/');
       expect(
-        Number(d.ambientIntensity ?? 0),
+        Number(d.ambientIntensity ?? 0) > 0 || skyLit,
         `${path} is unlit`,
-      ).toBeGreaterThan(0);
+      ).toBe(true);
       // Prose, and things to look at: a road room is a budget line.
       expect(String(d.longDescription ?? '').length).toBeGreaterThan(200);
       expect(Object.keys((d.details ?? {}) as object).length).toBeGreaterThanOrEqual(3);

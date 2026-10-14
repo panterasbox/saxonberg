@@ -111,6 +111,7 @@ export class MqlApi {
     return logic().resolveMany(query, ctx);
   }
 
+
   // ⭐ There is no third resolve method. `world` is refused for
   // everybody here and permitted by the ENVIRONMENT — see
   // `CompactApi.readWorldAs` and `ExecutionContextApi.getWorldReadGrant`.

@@ -1,0 +1,7 @@
+# Gannet Rock — the landing at the foot of the light, fifteen miles out.
+# Ordinary rooms in an ordinary zone; the rock's place on the sea is its
+# expanse node's, and the light is a Structure with a fixed position.
+class: /platform/idea/location/CartesianZone
+data:
+  name: Gannet Rock
+  cellSize: 10.0

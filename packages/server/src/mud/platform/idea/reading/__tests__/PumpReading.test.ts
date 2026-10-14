@@ -131,13 +131,14 @@ describe('analyze pump', () => {
     expect(m).not.toBeNull();
     const centre = Number(m![1]);
     const half = Number(m![2] ?? 0);
-    // ⚠ Both figures are printed ROUNDED to the bracket's own decade, so
-    // each edge may sit up to one rounding step off the truth. The seed
-    // includes the game DAY, so without this slack the test passed or
-    // failed by the calendar (found by the dairy build, 2026-10-10).
-    const slack = 0.1;
-    expect(centre - half).toBeLessThanOrEqual(10.34 + slack);
-    expect(centre + half).toBeGreaterThanOrEqual(10.32 - slack);
+    // ⚠ The centre and the half-width are each PRINTED to 0.1 m, so the
+    // printed bracket can miss the truth by up to 0.1 m even when the real
+    // one holds it — and the bracket's offset is seeded by the day, so this
+    // failed only on days the truth sat near the bracket's edge (found by
+    // the maritime build's full suite, 2026-10-13: "9.5 ± 0.8").
+    const printed = 0.1;
+    expect(centre - half).toBeLessThanOrEqual(10.33 + printed);
+    expect(centre + half).toBeGreaterThanOrEqual(10.33 - printed);
     expect(body).not.toMatch(/air|atmospher|pressure|vacuum/i);
   });
 
