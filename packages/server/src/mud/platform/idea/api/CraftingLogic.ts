@@ -1,6 +1,7 @@
 // CraftingLogic — the hot-reloadable logic singleton behind CraftingApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import type { Construction } from '../../../lib/material/Construction';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import type { AromaTag } from '../../../lib/metabolism/DissolvedAromatics';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
@@ -1776,6 +1777,32 @@ async function applyTangibleOutput(
     if (fractions.length > 0) output.setSeasonedFraction(Math.min(...fractions));
   }
 
+  // ⭐ …and so does how the stock was SHAPED. Fibres a saw cut stay cut:
+  // a haft carved from a sawn board is sawn, whatever the haft's row
+  // says, and a rail hewn from a riven blank is hewn (the axe tore some).
+  // So the output is the WEAKEST of its own row's stock form and every
+  // input's — no act raises integrity, and no list of acts is needed (a
+  // froe's riven blank from a riven billet stays riven; the row's form is
+  // what a part bought or cloned from nowhere carries).
+  if (MixinApi.isConstructed(output)) {
+    const own = output.getConstruction();
+    // A covering's or a blade's form is a different question; leave it.
+    if (own === null || own.isStock()) {
+      let weakest: Construction | null = own;
+      for (const m of matchedItems) {
+        if (!MixinApi.isConstructed(m.stuff)) continue;
+        const c = m.stuff.getConstruction();
+        if (!c?.isStock()) continue;
+        if (weakest === null || c.integrityFor('shock') < weakest.integrityFor('shock')) {
+          weakest = c;
+        }
+      }
+      if (weakest !== null && weakest !== own) {
+        output.setConstructionForm(weakest.getForm());
+      }
+    }
+  }
+
   // ⭐ The per-instance minor constituents ride the transform when both
   // ends can carry them. That is what keeps a carburized bar's carbon
   // through consolidation: the MATERIAL becomes iron (the kind changed)
@@ -2316,6 +2343,11 @@ function applyAssembledOutput(
     if (ms.some((m) => MixinApi.isSeasoning(m.stuff) && m.stuff.isGreen())) {
       line.green = true;
       line.greenAt = WorldClockApi.getNow().rawValue();
+    }
+    // ⭐ …and a flat-sawn member that has dried is CUPPED: harmless in a
+    // pegged frame, fatal under a glue line (the joint reads it at seat).
+    if (ms.some((m) => MixinApi.isSeasoning(m.stuff) && m.stuff.isCupped())) {
+      line.cupped = true;
     }
     if (MixinApi.isAssembled(first.stuff)) {
       line.parts = first.stuff.getParts();
@@ -3507,6 +3539,24 @@ const RECOVERY_BY_BAND: Record<CompetenceBandName, number> = {
   expert: 1.05,
 };
 
+/**
+ * A row's `extends:` parents, nearest first (the row itself excluded) —
+ * what it IS as well as what it is called. Bounded by the template chain
+ * cap; an unknown row has no lineage.
+ */
+async function rowLineage(path: string): Promise<string[]> {
+  const out: string[] = [];
+  let cursor = path;
+  for (let i = 0; cursor && i < 32; i++) {
+    const tpl = await Template.findByPath(cursor);
+    const parent = tpl?.extends;
+    if (!parent || out.includes(parent)) break;
+    out.push(parent);
+    cursor = parent;
+  }
+  return out;
+}
+
 async function jointCatalogue(): Promise<JointCatalogue> {
   return (
     StuffApi.findByTemplatePath<JointCatalogue>(TemplatePaths.jointCatalogue) ??
@@ -3697,8 +3747,21 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   }
   whole.ensureParts();
   const tplPath = part.getTemplatePath() ?? '';
+  // ⭐ A part fits a line when it is the same KIND of thing: the same row,
+  // a row that `extends:` the line's (a quartered board IS a board), or
+  // the line's row extending the part's — or it answers to the part's
+  // name. Row lineage, never a list of substitutes.
+  const partLineage = await rowLineage(tplPath);
+  const lineLineage = new Map<string, string[]>();
+  for (const l of whole.getParts()) {
+    if (l.template && !lineLineage.has(l.template)) {
+      lineLineage.set(l.template, await rowLineage(l.template));
+    }
+  }
   const fits = (l: PartLine): boolean =>
     l.template === tplPath ||
+    (!!l.template && partLineage.includes(l.template)) ||
+    (!!tplPath && (lineLineage.get(l.template) ?? []).includes(tplPath)) ||
     (MixinApi.isPerceptible(part) && part.hasKeyword(l.part));
   const candidates = whole.getParts().filter(fits);
   if (candidates.length === 0) {
@@ -3732,6 +3795,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const grade = MixinApi.isGraded(part) ? part.getGrade().getBand() : ('fair' as GradeBand);
   const form = MixinApi.isConstructed(part) ? part.getConstructionForm() : '';
   const green = MixinApi.isSeasoning(part) && part.isGreen();
+  const cupped = MixinApi.isSeasoning(part) && part.isCupped();
   const nested =
     MixinApi.isAssembled(part)
       ? { parts: part.getParts(), joints: part.getJoints() }
@@ -3751,6 +3815,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     grade,
     ...(form ? { form } : {}),
     ...(green ? { green } : {}),
+    ...(cupped ? { cupped } : {}),
     maker: makerId,
     ...(nested ? nested : {}),
   });

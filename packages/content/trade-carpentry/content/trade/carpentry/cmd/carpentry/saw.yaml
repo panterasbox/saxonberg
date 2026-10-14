@@ -9,12 +9,13 @@ help: |
 
   ⭐ **The decision is how you open the log.** Through-sawn (the
   default) takes every board off parallel to the last: the most boards a
-  log will give, and the wide ones cup as they dry, because the growth
+  log will give, and the wide ones CUP as they dry, because the growth
   rings run across their faces. Quartered (`saw bole --quarter`) splits
   the log into four first and takes the boards off radially: a third of
   the wood goes to waste in the wedges, and every board left stays flat.
-  A cooper and a joiner pay for quartered boards; a barn does not need
-  them.
+  What flat buys is glue — a hide glued over a cupped board never holds,
+  so a shield-maker pays for quartered boards; a pegged frame does not
+  care. `look` at a board to read which it is (see `help the-cut`).
 
   ⭐⭐ **What a sawmill buys you is your TIME.** At a pit saw both your
   hands are on the handle until the cut is through. At a sawmill on a

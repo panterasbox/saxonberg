@@ -9,6 +9,9 @@
 # outer surface is what an edge, a flame or a splash of lye meets first.
 # The `hide-face` slot is the bill's FACING part (not required by
 # `lint:bills`) and it is here because a bare-boarded shield splits.
+# ⭐ The face is GLUED, and a glue line needs flat faces: a through-sawn
+# board cups as it dries and the facing over it never holds. Build it on
+# a QUARTERED board (`saw bole --quarter`, or the yard's dearer stack).
 recipeId: shield
 name: Faced Shield
 keywords: [shield]

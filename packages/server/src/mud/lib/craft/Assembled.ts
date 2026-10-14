@@ -136,6 +136,12 @@ export interface PartLine {
   greenAt?: number;
   /** It dried in place and moved: a member failed for that reason. */
   warped?: boolean;
+  /**
+   * A flat-sawn member that has dried — its face is hollow across the
+   * width. Harmless in a pegged frame; a joint that needs its members
+   * flat (glue) seats short of it.
+   */
+  cupped?: boolean;
   /** Identity paths of everyone who made or fitted a member of this line. */
   makers: string[];
   /** The nested record, when the fitted part was itself an assembly. */
@@ -209,7 +215,7 @@ export interface Assembled {
   replaceMembers(
     part: string,
     k: number,
-    fitted: { material: string; grade: GradeBand; form?: string; green?: boolean; maker: string; parts?: PartLine[]; joints?: JointState[] },
+    fitted: { material: string; grade: GradeBand; form?: string; green?: boolean; cupped?: boolean; maker: string; parts?: PartLine[]; joints?: JointState[] },
   ): void;
   /** Restore every line's wear (not its failures) and every joint. */
   restoreAll(maker: string): void;
@@ -239,6 +245,12 @@ function dial(key: string, fallback: number): number {
 const WARP_AFTER_SEASONING_FRACTION = 0.1;
 /** How much of its shrinkage a warped member takes off its joints' tension. */
 const WARP_SLACK_PER_SHRINKAGE = 6;
+/**
+ * How much of its shrinkage a CUPPED member takes off a joint that needs
+ * its members flat — the same figure as a warp: both are the across-grain
+ * shrinkage the board took as it dried, showing up as a gap.
+ */
+const CUP_SLACK_PER_SHRINKAGE = WARP_SLACK_PER_SHRINKAGE;
 
 /** The default a joint is read at when its row is not (yet) warm. */
 const JOINT_DEFAULT: Pick<JointDescriptor, 'strength' | 'failure'> = {
@@ -289,7 +301,12 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     const mat = materialAt(l.material)?.getName();
     const noun = nounOf(l, l.count);
     const qty = l.count === 1 ? GrammarApi.articleFor(mat ?? noun) : GrammarApi.inWords(l.count);
-    return mat ? `${qty} ${mat} ${noun}` : `${qty} ${noun}`;
+    // The grain, when the part was wood shaped one way or another — the
+    // difference between a haft that snaps and one that does not.
+    const grain = l.form === 'riven' || l.form === 'sawn' || l.form === 'hewn' ? `${l.form} ` : '';
+    const first = `${grain}${mat ?? noun}`;
+    const q = l.count === 1 ? GrammarApi.articleFor(first) : qty;
+    return mat ? `${q} ${grain}${mat} ${noun}` : `${q} ${grain}${noun}`;
   };
   const sentences: string[] = [];
   const made = GrammarApi.joinList(lines.map(describe));
@@ -315,7 +332,20 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     );
   }
   for (const j of host.slackJoints()) {
-    sentences.push(GrammarApi.cap(`The ${j.key} has gone slack.`));
+    // ⭐ Say WHY when the cause is a cupped member under a flat joint —
+    // the lesson is the quartered board, and the look is where it is read.
+    const cupped = jointRow(j.method)?.needsFlat
+      ? j.members
+          .map((m) => lines.find((l) => l.part === m))
+          .find((l) => l?.cupped)
+      : undefined;
+    sentences.push(
+      cupped
+        ? GrammarApi.cap(
+            `The ${j.key} has never held: the ${cupped.part} has cupped as it dried, and will not lie flat under it.`,
+          )
+        : GrammarApi.cap(`The ${j.key} has gone slack.`),
+    );
   }
   // ⭐ Whose hands are in it (drive 18): everyone who made or fitted a
   // part, or made a joint — so a mended cask reads two names: as the world
@@ -513,6 +543,27 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.joints = joints.map((j) => ({ ...j, members: [...j.members] }));
       for (const l of this.parts) for (const m of l.makers) this.noteHand(m);
       for (const j of this.joints) this.noteHand(j.maker);
+      this.seatFlatJoints();
+    }
+
+    /**
+     * ⭐ A joint that needs its members FLAT (glue) seats short of a cupped
+     * one, by what the member's species shrinks across the grain — and
+     * no hand can close that gap, since the board is the wrong shape, not
+     * the joint. Run whenever a joint is made or re-made; the remedy is a
+     * flat member (a quartered board), fitted in its place.
+     */
+    private seatFlatJoints(): void {
+      for (const j of this.joints) {
+        if (!jointRow(j.method)?.needsFlat) continue;
+        for (const name of j.members) {
+          const line = this.parts.find((l) => l.part === name);
+          if (!line?.cupped) continue;
+          const slack =
+            (materialAt(line.material)?.getGreenShrinkage() ?? 0) * CUP_SLACK_PER_SHRINKAGE;
+          j.tension = Math.min(j.tension, Math.max(0, 1 - slack));
+        }
+      }
     }
 
     ensureParts(): void {
@@ -648,6 +699,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       j.tension = 1;
       if (maker) j.maker = maker;
       this.noteHand(maker);
+      this.seatFlatJoints();
     }
 
     replaceMembers(
@@ -658,6 +710,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         grade: GradeBand;
         form?: string;
         green?: boolean;
+        cupped?: boolean;
         maker: string;
         parts?: PartLine[];
         joints?: JointState[];
@@ -689,6 +742,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
           delete line.greenAt;
         }
         delete line.warped;
+        if (fitted.cupped) line.cupped = true;
+        else delete line.cupped;
         if (fitted.parts && fitted.parts.length > 0) {
           line.parts = fitted.parts.map((p) => ({ ...p }));
           line.joints = (fitted.joints ?? []).map((j) => ({ ...j }));
@@ -705,6 +760,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
           line.greenAt = WorldClockApi.getNow().rawValue();
         }
         if (line.failed === 0) delete line.warped;
+        if (fitted.cupped) line.cupped = true;
       }
       if (fitted.maker && !line.makers.includes(fitted.maker)) {
         line.makers.push(fitted.maker);
@@ -717,6 +773,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (fitted.maker) j.maker = fitted.maker;
         }
       }
+      this.seatFlatJoints();
     }
 
     restoreAll(maker: string): void {
@@ -727,6 +784,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (maker) j.maker = maker;
       }
       this.noteHand(maker);
+      this.seatFlatJoints();
     }
 
     getGauge(): GaugeRecord | null {

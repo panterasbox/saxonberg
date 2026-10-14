@@ -1072,6 +1072,39 @@ the gap in the slate. Flagged.
 
 ---
 
+### D16 — The grain is real: what a carve keeps, and what a cupped board costs (review, 2026-10-14)
+
+The review's lens pass on carpentry found both verbs' help promising two
+consequences the world did not keep. Lens 1 decided both (wood anatomy is
+the trade's derivable lesson; a lesson the world does not enforce teaches
+that the help lies):
+
+- **The stock form rides the transform, weakest link.** A tangible output
+  is the weakest (under a jar) of its own row's stock form and every
+  input's: a haft carved from a sawn board is sawn, a rail hewn from a
+  riven blank is hewn, and no act raises integrity — so no list of acts
+  is needed (`rive` and `saw` author their form on their rows and keep
+  it). The weakness numbers (`sawn: shock 0.7`) already shipped; a carved
+  part simply never inherited them.
+- **Cupping is derived and costs glue.** `Seasoning.isCupped()` = sawn,
+  not quarter-sawn, and seasoned. A part line records `cupped`; a Joint
+  row's new `needsFlat` (only `glued` today) seats short of a cupped
+  member by its species' shrinkage (the warp arithmetic), re-checked
+  whenever a joint is made or re-made, so `repair` cannot close it. A
+  pegged or wedged joint does not care. The look says why ("the facing
+  has never held: the shield-board has cupped").
+- **`fit` matches by row lineage.** A part fits a line when either row
+  `extends:` the other (or it answers to the part's name); the quartered
+  board now `extends:` the board, so the remedy is reachable.
+- **The grain is visible:** a wooden part's look line names its form
+  ("a sawn oak shield-board") and a piece of stock reads its end grain in
+  words (split along the grain · sawn on the quarter · sawn through, and
+  cupped or about to).
+
+Left for a carpentry slate (not designed here): carving as an engaged act
+with exertion, whether `carve` shares `make`'s can-make gate, competence
+in sawing, the lathe as `carve`'s next rung, the store's stocked hafts.
+
 ## ⭐⭐ Host placement
 
 For every new field, mixin and class — the host, and what composing it

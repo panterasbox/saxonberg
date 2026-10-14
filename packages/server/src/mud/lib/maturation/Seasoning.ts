@@ -73,6 +73,14 @@ export interface Seasoning {
   isGreen(): boolean;
   /** Was it quarter-sawn (cut radially — stabler, fewer boards)? */
   isQuarterSawn(): boolean;
+  /**
+   * Has it CUPPED — a flat-sawn (through-sawn) piece that has dried, its
+   * face gone hollow across the width because the rings run across it and
+   * wood shrinks more along a ring than through one. Derived, never
+   * stored: sawn, not quarter-sawn, and seasoned. A quartered board, a
+   * riven one, and a green one have not.
+   */
+  isCupped(): boolean;
   /** Set the seasoned fraction directly (a mint, a test, a sale of dry stock). */
   setSeasonedFraction(f: number): void;
 }
@@ -107,7 +115,35 @@ function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
           : f >= 0.15
             ? 'It has begun to dry — lighter than it was, the end grain paling — but it is still green.'
             : 'It is green — heavy, cool, and wet at the end grain.';
-  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+  const grain = grainLine(host);
+  const both = grain ? `${grain} ${line}` : line;
+  return text && text.length > 0 ? `${text}\n\n${both}` : both;
+}
+
+/**
+ * ⭐ How it was opened, read off the end grain — in words, because it is
+ * the trade's whole lesson and a player must be able to SEE it: riven
+ * stock does not snap across (the fibres were followed), sawn stock has
+ * them cut; a through-sawn board cups as it dries, a quartered one stays
+ * flat. `''` for a piece with no stock form.
+ */
+function grainLine(host: Stuff & Seasoning): string {
+  if (!MixinApi.isConstructed(host)) return '';
+  switch (host.getConstructionForm()) {
+    case 'riven':
+      return 'It was split along the grain, and the fibres run unbroken the length of it.';
+    case 'hewn':
+      return 'It was hewn with an axe — along the grain mostly, torn in places.';
+    case 'sawn':
+      if (host.isQuarterSawn()) {
+        return 'It was sawn on the quarter: the rings run straight through it, edge to edge, and it has stayed flat.';
+      }
+      return host.isCupped()
+        ? 'It was sawn through: the rings arc across its end, and as it dried its face has cupped hollow.'
+        : 'It was sawn through: the rings arc across its end, and it will cup as it dries.';
+    default:
+      return '';
+  }
 }
 
 export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -215,6 +251,12 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     isQuarterSawn(): boolean {
       return this.quarterSawn;
+    }
+
+    isCupped(): boolean {
+      if (this.quarterSawn || !this.isSeasoned()) return false;
+      const self = this as unknown as Stuff;
+      return MixinApi.isConstructed(self) && self.getConstructionForm() === 'sawn';
     }
 
     setSeasonedFraction(f: number): void {

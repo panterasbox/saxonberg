@@ -5,7 +5,7 @@
  * goes SLACK with every member sound.
  */
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Tool from '../../../platform/thing/Tool';
 import AssembledTool from '../../../platform/thing/AssembledTool';
 import Assembly from '../../../platform/thing/Assembly';
@@ -21,6 +21,10 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import type { PartLine } from '../Assembled';
+import JointCatalogue from '../../../platform/idea/JointCatalogue';
+import { Template } from '../../stuff/Template';
+import { TemplatePaths } from '../../paths';
+import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 function material(path: string, hardness: number, toughness: number): Material {
   const m = makeStuff(() => new Material());
@@ -195,5 +199,76 @@ describe('AssembledMixin', () => {
     expect(MixinApi.isAssembled(makeStuff(() => new AssembledTool()))).toBe(true);
     expect(MixinApi.isAssembled(makeStuff(() => new Tool()))).toBe(false);
     expect(MixinApi.isAssembled(makeStuff(() => new Assembly()))).toBe(true);
+  });
+});
+
+describe('⭐ a glue line needs FLAT faces — a cupped board under it never holds', () => {
+  const glued = {
+    key: 'glued',
+    portability: 'hand',
+    competence: null,
+    reversible: 'never',
+    strength: 0.7,
+    structuralRecovery: 0,
+    fastenerRecovery: 0,
+    tightenable: false,
+    needsFlat: true,
+    failure: 'parted',
+  };
+  beforeEach(async () => {
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      cls === '/platform/idea/Joint'
+        ? ([{ path: '/platform/idea/Joint/glued', class: cls, data: glued }] as never)
+        : ([] as never),
+    );
+    await makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue).allWarmed();
+    StuffApi.findByTemplatePath<Material>(ASH)!.greenShrinkage = 0.1;
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  function shield(boardOver: Partial<PartLine>): Assembly {
+    const s = makeStuff(() => new Assembly());
+    s.recordAssembly(
+      [
+        line('shield-board', ASH, { form: 'sawn', ...boardOver }),
+        line('hide-face', IRON, { role: 'facing' }),
+      ],
+      [{ key: 'facing', method: 'glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
+    );
+    return s;
+  }
+
+  it('⭐ glued over a cupped board, the facing is slack from the start — and says why', () => {
+    const s = shield({ cupped: true });
+    expect(s.slackJoints().map((j) => j.key)).toEqual(['facing']);
+    expect(s.getMarkupLong(s)).toMatch(/facing has never held: the shield-board has cupped/);
+  });
+
+  it('⭐ no hand closes the gap — re-seating the joint finds the board still cupped', () => {
+    const s = shield({ cupped: true });
+    s.tightenJoint('facing', '');
+    expect(s.slackJoints().map((j) => j.key)).toEqual(['facing']);
+    s.restoreAll('');
+    expect(s.slackJoints().map((j) => j.key)).toEqual(['facing']);
+  });
+
+  it('⭐ the remedy is a flat board fitted in its place', () => {
+    const s = shield({ cupped: true });
+    s.replaceMembers('shield-board', 1, { material: ASH, grade: 'fair', form: 'sawn', maker: '' });
+    expect(s.slackJoints()).toEqual([]);
+    expect(shield({}).slackJoints()).toEqual([]);
+  });
+
+  it('a pegged or wedged joint does not care whether its member cupped', () => {
+    const t = makeStuff(() => new AssembledTool());
+    t.recordAssembly(
+      [line('head', IRON), line('haft', ASH, { form: 'sawn', cupped: true })],
+      [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
+    );
+    expect(t.slackJoints()).toEqual([]);
+  });
+
+  it('the look names the grain of each wooden part', () => {
+    expect(shield({}).getMarkupLong(makeStuff(() => new Tool()))).toMatch(/sawn /);
   });
 });

@@ -65,6 +65,11 @@ export interface JointDescriptor {
   fastenerRecovery: number;
   /** Whether `repair`'s cheapest rung (tighten) applies. */
   tightenable: boolean;
+  /**
+   * Whether it holds only between FLAT faces (a glue line): a cupped
+   * member seats it short, and nothing tightens that.
+   */
+  needsFlat: boolean;
   failure: JointFailure;
 }
 
@@ -83,6 +88,7 @@ export default class Joint extends Idea {
   public structuralRecovery: number = 0.8;
   public fastenerRecovery: number = 0.5;
   public tightenable: boolean = false;
+  public needsFlat: boolean = false;
   public failure: JointFailure = "parted";
 
   static fieldMeta: FieldMeta = {
@@ -96,6 +102,7 @@ export default class Joint extends Idea {
     structuralRecovery: { persistent: true },
     fastenerRecovery: { persistent: true },
     tightenable: { persistent: true },
+    needsFlat: { persistent: true },
     failure: { persistent: true },
   };
 

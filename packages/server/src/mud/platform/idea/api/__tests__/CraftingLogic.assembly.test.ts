@@ -43,6 +43,7 @@ import { TemplatePaths } from '../../../../lib/paths';
 import {
   makeStuff,
   makeStuffAtPath,
+  stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 
 class TestRoom extends ContainerMixin(Idea) {
@@ -278,5 +279,88 @@ describe('CraftingLogic — assembly', () => {
       { part: 'head', count: 1, of: 1 },
       { part: 'haft', count: 0, of: 1 },
     ]);
+  });
+});
+
+describe('⭐ the grain rides the carve — no act raises integrity', () => {
+  const CARVED = '/x/thing/carved-haft';
+  const RAIL = '/x/thing/hewn-rail';
+  function timber(form: string, keywords: string[]): Timber {
+    const t = makeStuff(() => new Timber());
+    t.setMaterial(mat(ASH));
+    t.setMass(Quantity.of(1, 'kg'));
+    t.setKeywords(keywords);
+    t.setConstructionForm(form);
+    t.setSeasonedFraction(1);
+    return t;
+  }
+  beforeEach(async () => {
+    const clone = StuffApi.clone as unknown as { getMockImplementation(): (p: string) => unknown };
+    const prior = clone.getMockImplementation();
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+      // The rows: a haft authored riven, a rail authored hewn.
+      if (path === CARVED) return timber('riven', ['carved-haft']) as never;
+      if (path === RAIL) return timber('hewn', ['hewn-rail']) as never;
+      return prior(path) as never;
+    });
+    for (const [id, out] of [['carved-haft', CARVED], ['hewn-rail', RAIL]] as const) {
+      store.recipes!.push({
+        recipeId: id,
+        name: id,
+        keywords: [id],
+        inputSlots: [{ slot: 'stock', category: 'wood', minGrade: 'poor', kind: 'item', count: 1 }],
+        toolCapabilities: [],
+        outputTemplate: out,
+        outputMaterial: '',
+        outputApplication: 'tangible',
+      });
+    }
+    await StuffApi.findByTemplatePath<RecipeCatalogue>('/platform/idea/RecipeCatalogue')!.warm();
+  });
+
+  async function carve(recipe: string, stockForm: string): Promise<Timber> {
+    ContainmentApi.move(timber(stockForm, ['stock', 'board']), smith);
+    const out = await as<CraftOutcome>(() => CraftingApi.craft({ recipeRef: recipe, makerMode: 'self' }));
+    if (!out.ok) throw new Error(JSON.stringify(out));
+    return out.output as unknown as Timber;
+  }
+
+  it('⭐ a haft carved from a SAWN board is sawn — the saw cut the fibres', async () => {
+    expect((await carve('carved-haft', 'sawn')).getConstructionForm()).toBe('sawn');
+  });
+  it('a haft carved from a riven blank is riven, as its row says', async () => {
+    expect((await carve('carved-haft', 'riven')).getConstructionForm()).toBe('riven');
+  });
+  it('a rail hewn from a riven blank is hewn — the row can lower it', async () => {
+    expect((await carve('hewn-rail', 'riven')).getConstructionForm()).toBe('hewn');
+  });
+  it('…and a rail from a sawn board is sawn — the input cannot be raised', async () => {
+    expect((await carve('hewn-rail', 'sawn')).getConstructionForm()).toBe('sawn');
+  });
+});
+
+describe('⭐ fit matches a part to a line by ROW LINEAGE — a quartered board is a board', () => {
+  const BETTER = '/x/thing/better-haft';
+  it('a part whose row extends the line\'s row fits it, whatever it is called', async () => {
+    const findByPath = Template.findByPath as unknown as { getMockImplementation(): (p: string) => unknown };
+    const prior = findByPath.getMockImplementation();
+    vi.spyOn(Template, 'findByPath').mockImplementation(async (p: string) =>
+      p === BETTER ? ({ path: p, class: '/platform/thing/Tool', extends: HAFT, data: {} } as never) : (prior(p) as never),
+    );
+    const pick = await makePick();
+    const better = part(ASH, ['spare'], 0.8); // not called "haft"
+    stampTemplatePathForTest(better, BETTER);
+    ContainmentApi.move(better, smith);
+    const out = await as<FitOutcome>(() => CraftingApi.fit({ part: better, whole: pick }));
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+  });
+
+  it('an unrelated row that is not called by the part\'s name does not fit', async () => {
+    const pick = await makePick();
+    const stray = part(ASH, ['spare'], 0.8);
+    stampTemplatePathForTest(stray, '/x/thing/stray');
+    ContainmentApi.move(stray, smith);
+    const out = await as<FitOutcome>(() => CraftingApi.fit({ part: stray, whole: pick }));
+    expect(out.ok).toBe(false);
   });
 });

@@ -29,8 +29,17 @@ data:
 
     ⭐ The cost is the wedges. Quartering wastes about a third of the log,
     so a quartered log gives two boards for every three a through-sawn
-    one would. A cooper pays for quartered boards because a cask head that
-    cups leaks. A barn wall does not care.
+    one would.
+
+    ⭐ What flat buys you is GLUE. A glue line holds only between flat
+    faces: glue a hide over a cupped board and the facing never holds,
+    and no tightening mends it — the board is the wrong shape, not the
+    joint. So a shield-maker pays for quartered boards. A pegged frame,
+    a barn wall, a board nailed down do not care, and through-sawn is the
+    better buy for them.
+
+    You can see which you have: `look` at a board and read its end grain —
+    rings arcing across it, or running straight through.
 
     ## The saw that does it
 

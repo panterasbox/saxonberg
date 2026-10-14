@@ -1,5 +1,8 @@
 # Glued — hide glue, a fish glue, a pitch. Anybody can smear it on, and
 # nobody can take it apart again: the joint is stronger than the wood.
+# ⭐ A glue line holds only between FLAT faces (`needsFlat`): a board
+# that cupped as it dried seats it short, and no tightening closes that —
+# glue a face to a quartered board.
 class: /platform/idea/Joint
 data:
   key: glued
@@ -12,4 +15,5 @@ data:
   structuralRecovery: 0.0
   fastenerRecovery: 0.0
   tightenable: false
+  needsFlat: true
   failure: parted

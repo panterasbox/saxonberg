@@ -154,15 +154,19 @@ describe('the cut — how many boards a log gives', () => {
   });
 
   it('⭐ both board rows weigh what the arithmetic divides by, and are sawn', () => {
-    for (const name of ['board', 'quartered-board']) {
-      const d = row(name).data!;
-      expect(row(name).class).toBe('/platform/thing/Timber');
-      expect(d.mass).toBe(BOARD_KG);
-      expect(d.constructionForm).toBe('sawn');
-    }
-    // A quartered board is a different stack, by an authored field.
-    expect(row('quartered-board').data!.quarterSawn).toBe(true);
-    expect(row('board').data!.quarterSawn).toBeUndefined();
+    const d = row('board').data!;
+    expect(row('board').class).toBe('/platform/thing/Timber');
+    expect(d.mass).toBe(BOARD_KG);
+    expect(d.constructionForm).toBe('sawn');
+    // ⭐ A quartered board IS a board — it extends the row (so `fit` takes
+    // it where a board was) and overrides only what quartering changes:
+    // its look, and the authored field that makes it a different stack.
+    const q = row('quartered-board') as { extends?: string; class?: string; data?: Record<string, unknown> };
+    expect(q.extends).toBe('/trade/carpentry/thing/board');
+    expect(q.class).toBeUndefined();
+    expect(q.data!.mass).toBeUndefined();
+    expect(q.data!.quarterSawn).toBe(true);
+    expect(d.quarterSawn).toBeUndefined();
   });
 });
 

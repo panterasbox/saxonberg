@@ -1,21 +1,20 @@
 # A quarter-sawn board — the same board, opened radially. ⭐ Two for every
-# three a through-sawn log gives, and every one of them stays flat.
+# three a through-sawn log gives, and every one of them stays flat — which
+# is what a glue line needs (a shield's face; see `help the-cut`).
+#
+# ⭐ It `extends:` the board, because it IS a board: that is what lets it
+# be fitted where a board was (`fit board to shield`) — `fit` matches a
+# part to a line by row lineage, never by a list of substitutes.
 #
 # ⚠ A row of its own rather than a flag the `saw` verb stamps: the
 # seasoning substrate authors `quarterSawn` and offers no setter, and a
 # row is the honest home for what a thing IS. `quarterSawn` is stack
 # identity — a quartered board never merges into a stack of through-sawn
-# ones, which is what lets a cooper ask for the one he wants.
-class: /platform/thing/Timber
+# ones, which is what lets a shield-maker ask for the one he wants.
+extends: /trade/carpentry/thing/board
 data:
   shortDescription: quartered board
   keywords: [board, boards, quartered, quarter-sawn, "quartered board", plank]
-  register: indefinite
   longDescription: |
     A sawn board with the growth rings running straight through its thickness, edge to edge, and the silvery ray fleck showing on its face where the saw crossed the medullary rays.
-  _materialPath: /stuff/idea/material/wood/oak
-  mass: 6
-  constructionForm: sawn
   quarterSawn: true
-  seasonedFraction: 1
-  quantity: 1

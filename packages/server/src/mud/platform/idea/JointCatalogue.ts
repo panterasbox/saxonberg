@@ -167,6 +167,7 @@ function describe(data: unknown): JointDescriptor | string {
     structuralRecovery: frac(d.structuralRecovery, 0.8),
     fastenerRecovery: frac(d.fastenerRecovery, 0.5),
     tightenable: d.tightenable === true,
+    needsFlat: d.needsFlat === true,
     failure: failure as JointFailure,
   };
 }

@@ -134,3 +134,27 @@ describe('SeasoningMixin', () => {
     expect(t.getSeasonedFraction()).toBe(0);
   });
 });
+
+describe('⭐ the cut — a through-sawn board CUPS as it dries; a quartered one stays flat', () => {
+  function board(form: string, fraction: number, quartered = false): Timber {
+    const t = stack(OAK, fraction);
+    t.setConstructionForm(form);
+    // Row-authored in production (`quartered-board`); no setter by design.
+    (t as unknown as { quarterSawn: boolean }).quarterSawn = quartered;
+    return t;
+  }
+
+  it('cupped only when sawn through AND dried', () => {
+    expect(board('sawn', 1).isCupped()).toBe(true);
+    expect(board('sawn', 1, true).isCupped()).toBe(false);
+    expect(board('sawn', 0).isCupped()).toBe(false); // green — not yet
+    expect(board('riven', 1).isCupped()).toBe(false);
+  });
+
+  it('⭐ the end grain says how it was opened — in words', () => {
+    expect(board('sawn', 1).getMarkupLong(yard)).toMatch(/sawn through.*cupped hollow/);
+    expect(board('sawn', 0).getMarkupLong(yard)).toMatch(/will cup as it dries/);
+    expect(board('sawn', 1, true).getMarkupLong(yard)).toMatch(/on the quarter.*stayed flat/);
+    expect(board('riven', 1).getMarkupLong(yard)).toMatch(/split along the grain/);
+  });
+});

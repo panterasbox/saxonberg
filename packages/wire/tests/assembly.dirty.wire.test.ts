@@ -99,6 +99,11 @@ const T = {
   brewCask: '/trade/brewing/thing/cask',
   frame: '/trade/carpentry/thing/frame',
   plough: '/trade/farming/thing/plough',
+  board: '/trade/carpentry/thing/board',
+  quarteredBoard: '/trade/carpentry/thing/quartered-board',
+  hideFace: '/trade/tanning/thing/hide-face',
+  boss: '/trade/smithing/thing/shield-boss',
+  rivet: '/trade/smithing/thing/rivet',
 };
 
 /** The verb was understood — not the parser's "I don't understand". */
@@ -515,6 +520,55 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
     expect(made, `fit spindle: ${made}`).toMatch(/spindle/i);
     const apart = await say(joiner, 'salvage spindle');
     expect(apart, `pull apart: ${apart}`).toMatch(/come away whole/i);
+  }, 300_000);
+});
+
+/**
+ * ⭐⭐ **The cut — what the grain is FOR** (the review's lens pass on
+ * carpentry). Two lessons the help had promised and the world had not
+ * kept: a part carved from a sawn board is sawn (the saw cut the fibres),
+ * and a through-sawn board cups as it dries — which a glue line cannot
+ * forgive, so a shield-maker pays for quartered boards.
+ */
+suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', () => {
+  let wright: Session;
+  beforeAll(async () => {
+    await toDaylight();
+    const w = await newPlayer('shieldwright', SMITHY);
+    const handle = w.handle;
+    w.close();
+    wright = await goTo(handle, SMITHY);
+    await practise(wright, 'smithing', 4);
+  }, 600_000);
+  afterAll(() => wright?.close());
+
+  it('⭐ a peg carved from a SAWN board is sawn — and its end grain says so', async () => {
+    await cloneHere(SMITHY, T.board);
+    await cloneHere(SMITHY, T.billhook);
+    const carved = await say(wright, 'carve peg from board');
+    expect(carved, `carve peg: ${carved}`).toMatch(/peg/i);
+    const peg = await examine(wright, 'peg');
+    expect(peg, `peg: ${peg}`).toMatch(/sawn through/i);
+    expect(peg).not.toMatch(/split along the grain/i);
+  }, 300_000);
+
+  it('⭐⭐ a hide glued over a through-sawn board never holds; a quartered board mends it', async () => {
+    await cloneHere(SMITHY, T.board);
+    await cloneHere(SMITHY, T.hideFace);
+    await cloneHere(SMITHY, T.boss);
+    await cloneHere(SMITHY, T.rivet, 4);
+    const made = await say(wright, 'fit shield');
+    expect(made, `fit shield: ${made}`).toMatch(/shield/i);
+    const cupped = await examine(wright, 'shield');
+    expect(cupped, `shield on a sawn board: ${cupped}`).toMatch(/never held/i);
+    expect(cupped).toMatch(/cupped/i);
+    const tightened = await say(wright, 'repair shield');
+    expect(tightened, `repair: ${tightened}`).not.toMatch(/take up the slack/i);
+    await cloneHere(SMITHY, T.quarteredBoard);
+    const refit = await say(wright, 'fit board to shield');
+    expect(refit, `fit quartered board: ${refit}`).toMatch(/fit a new/i);
+    const flat = await examine(wright, 'shield');
+    expect(flat, `shield on a quartered board: ${flat}`).not.toMatch(/never held|slack/i);
   }, 300_000);
 });
 
