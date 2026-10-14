@@ -255,7 +255,7 @@ Reading, Placement), and `LocationGraphRegistry`'s own boot reason says
    ~50 house and premises boots. Fixtures that already author
    `businessPath` keep following it forward (`Attendant.ts:205`).
    Rosters, wages and shifts reconcile when the house loads (ruling 2).
-2. **Stock refills on load.** The counter names its lines (`stockLines`
+2. ✂ **Cut to [unobserved-economy-slate](./unobserved-economy-slate.md)** (2026-10-14 review): refilling and inter-place supply are an economy design, not a loading fix. *Was:* **Stock refills on load.** The counter names its lines (`stockLines`
    exists; 6 rows author it) and tops itself up by elapsed time when it
    loads. The boot spawn sweep and the `censusKey` scan go.
 3. **Water and fishing: the reach names its works and its species.**
