@@ -39,6 +39,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 330
   greenShrinkage: 0.12
+  # How cleanly it opens along its grain under a froe (plan D17) — splits clean for the fire; wanders for a long piece.
+  cleavability: 0.6
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/fagus/sylvatica
     tissueType: wood

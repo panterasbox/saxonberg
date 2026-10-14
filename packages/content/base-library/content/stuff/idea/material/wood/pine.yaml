@@ -3,8 +3,9 @@
 # The numbers that make it so: the LOWEST `autoignitionTemperature` of
 # the eight and the HIGHEST `heatOfCombustion` — the resin. A pine
 # kindles a fire that a beech then holds. Soft (`hardness` 22: it marks
-# under a fingernail, and a pine floor shows every chair), low toughness
-# (it splits straight and easily — the plank, the mast, the pit prop),
+# under a fingernail, and a pine floor shows every chair), low toughness,
+# and straight-grained (`cleavability` 0.8 — it splits straight and
+# easily: the plank, the mast, the pit prop),
 # and cheap, because a conifer is straight and fast. The one softwood in
 # the vocabulary, and the garden bed is made of it.
 #
@@ -40,6 +41,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 180
   greenShrinkage: 0.07
+  # How cleanly it opens along its grain under a froe (plan D17) — straight and soft — the plank, the mast, the pit prop.
+  cleavability: 0.8
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris
     tissueType: wood

@@ -39,6 +39,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 150
   greenShrinkage: 0.08
+  # How cleanly it opens along its grain under a froe (plan D17) — split for the basket and the spelk.
+  cleavability: 0.75
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/salicaceae/salix/alba
     tissueType: wood

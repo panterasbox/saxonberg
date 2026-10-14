@@ -67,6 +67,18 @@ export const BILLET_KG = 3;
 export const RIVE_MS = 20_000;
 /** Endurance points it costs — the cross-cut's, a mallet being lighter than a saw. */
 export const RIVE_COST = 5;
+/**
+ * ⭐ Below this `cleavability` a wood will not open along its grain at
+ * all — the fibres interlock (elm) and the froe only bruises it. An
+ * author's number, recorded (plan D17).
+ */
+export const RIVE_FLOOR = 0.3;
+/**
+ * At or above this `cleavability` a length opens clean into its full
+ * count of billets; below it the split wanders out of the piece and the
+ * yield falls in proportion — the rest goes to kindling.
+ */
+export const CLEAN_CLEAVE = 0.8;
 
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 const ENDURANCE = 'endurance';
@@ -114,6 +126,22 @@ export default class RiveController extends ManualBuildController<RiveModel> {
         Mml.compose`${Mml.thing(froe)} will not split wood along its grain. That wants a froe.`,
       );
       return;
+    }
+
+    // ⭐ Whether the wood will open at all is the WOOD's — its
+    // `cleavability`, how straight its fibres run. Elm's interlock, so a
+    // froe will not rive it, and the refusal says why (plan D17).
+    if (target instanceof Bole || target instanceof Billet) {
+      const wood = target.getMaterial();
+      if ((wood?.getCleavability() ?? 0) < RIVE_FLOOR) {
+        const name = wood?.getName() ?? 'this wood';
+        this.turnDown(
+          context,
+          'will-not-rive',
+          Mml.compose`${Mml.thing(target)} will not open along its grain. The froe goes in and only bruises it — the fibres of ${name} interlock, and nothing follows them. Saw it, or burn it.`,
+        );
+        return;
+      }
     }
 
     if (target instanceof Bole) {
@@ -304,7 +332,14 @@ async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
 
   const left = bole.takeLength();
 
-  const count = Math.max(1, Math.floor(TIMBER_MASS_KG / BILLET_KG));
+  // ⭐ A straight-grained wood opens clean into the full count; one whose
+  // split wanders runs out of the piece, and the rest is kindling.
+  const full = Math.floor(TIMBER_MASS_KG / BILLET_KG);
+  const clean = Math.min(1, (wood?.getCleavability() ?? 0) / CLEAN_CLEAVE);
+  const count = Math.max(1, Math.floor(full * clean));
+  const wandered = count < full
+    ? ' The split wanders out of the wood more than once, and the rest of it is kindling.'
+    : '';
   const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH, undefined, {
     madeFrom: bole,
   });
@@ -320,7 +355,7 @@ async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`You rive the last length of ${Mml.thing(bole)} into ${GrammarApi.inWords(count)} billets. What is left is the butt and the brash.`,
+        Mml.compose`You rive the last length of ${Mml.thing(bole)} into ${GrammarApi.inWords(count)} billets.${wandered} What is left is the butt and the brash.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} rives the last of ${Mml.thing(bole)} into billets.`)
       .send();
@@ -329,7 +364,7 @@ async function finishRiveBole(giver: Stuff, bole: Bole): Promise<void> {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`The length comes away from ${Mml.thing(bole)} and opens under the froe into ${GrammarApi.inWords(count)} billets. ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
+        Mml.compose`The length comes away from ${Mml.thing(bole)} and opens under the froe into ${GrammarApi.inWords(count)} billets.${wandered} ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} rives a length off ${Mml.thing(bole)} into billets.`)
       .send();

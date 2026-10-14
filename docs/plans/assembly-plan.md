@@ -1120,6 +1120,29 @@ nobody in the realm SELLS a cutting tool at all (the fuel yard's one
 billhook and the billhook/felling-axe recipes are the only edges), so
 the carver's instrument is the scarcest thing in the column (lens 6).
 
+### D17 — Only a straight grain rives (review, 2026-10-14)
+
+`rive` shipped in W4 as plumbing (D5 named the conversion acts *not
+assembly's budget*) and never had a lens pass. The pass found the same
+class of defect as D16: the elm material row says elm *"will not split"*
+and `rive` split it into good billets — and the row explained it wrongly
+(*"toughness at a low density"*; ash is tougher and denser and is the
+best riving wood). Lens 1 decided it:
+
+- **`Material.cleavability`** (0..1, authored on the ten woods: oak 0.9,
+  ash 0.85, hazel/pine 0.8, willow 0.75, beech/yew 0.6, birch 0.55, maple
+  0.45, elm 0.1) — how straight the fibres run, which no other number
+  carries. 0 unauthored; a forestry test holds every wood to authoring it.
+- **`rive` reads it**: below `RIVE_FLOOR` (0.3) a bole or billet is
+  refused, naming the interlock; below `CLEAN_CLEAVE` (0.8) a length
+  gives proportionally fewer billets and the scene says the split wandered
+  and the rest is kindling.
+- The elm and pine rows' false derivations are corrected; `help grain` and
+  `rive`'s help say which woods rive and why.
+- ⚠ **Latent, not driven:** no wood stands elm today (the live stands are
+  oak, ash, hazel — all clean), so the refusal is unit-tested and no
+  player can reach it until a wood authors an elm.
+
 ## ⭐⭐ Host placement
 
 For every new field, mixin and class — the host, and what composing it

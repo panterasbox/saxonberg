@@ -39,6 +39,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 150
   greenShrinkage: 0.07
+  # How cleanly it opens along its grain under a froe (plan D17) — split rods for the hurdle and the thatch spar.
+  cleavability: 0.8
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana
     tissueType: wood

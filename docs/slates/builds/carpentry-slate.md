@@ -7,7 +7,8 @@
 > the grain as a stock form that rides a carve, and cupping that a glue
 > line cannot forgive → [crafting.md](../../subsystems/crafting.md),
 > plan D16 of `assembly-plan.md`.
-> **Left:** carving as an **act** (time, effort, the hand) · whether
+> **Left:** **riving** (reading the billet, the instant arm, the mallet,
+> an elm to meet) · carving as an **act** (time, effort, the hand) · whether
 > `carve` is **knowledge-gated** like `make` · the **edge** (what carves,
 > who makes it, who sells it) · **skill at the saw** and the **pit saw's
 > second person** · the **lathe** as carve's next rung · **joinery**
@@ -199,7 +200,31 @@ the town (the settlement model's *a city is where the general store
 fragments*). Recommend the first: the shelf stays, its supply becomes
 somebody's job.
 
-### H. Wood movement beyond cupping — deliberately small
+### H. Riving — the column's first act (lens 1)
+
+`rive` (`trade-forestry`) splits a bole into billets and a billet into a
+stave or a blank. Since plan D17 the **wood** decides whether it opens
+(`cleavability`: elm refuses, a wandering grain gives fewer billets). What
+is still undesigned:
+
+- **Reading the billet.** The whole craft of riving is reading a log —
+  straightness, knots, twist, which way a split will run — and every
+  billet is identical today. The same seeded defects fork D gives the
+  sawyer (knots, shake) should reach the river one step upstream: a
+  knotty billet gives a short stave or none; competence resolves how much
+  of that the river SEES before committing the froe (DETAIL, never
+  ACCESS). One seed serves both verbs.
+- **The billet arm is instant** (a stave in a word) — the abstraction law
+  again, as fork A for carving.
+- **The mallet.** The help and the scene say *froe and mallet*; only the
+  froe is required. Either the mallet becomes a second instrument
+  (`striking`, the smith's hammer would do) or the prose drops it.
+- **Elm is unreachable.** No wood stands one, so the refusal D17 made
+  real is a lesson no player can meet. A wood that authors elm (a damp
+  slope, a hedgerow) is a row — and the wheelwright's hub, the one thing
+  elm is FOR, would want it.
+
+### I. Wood movement beyond cupping — deliberately small
 
 Twist, bow and checking are real and **not worth modelling** beyond what
 ships (seasoning already checks wood dried too hot). Expression is

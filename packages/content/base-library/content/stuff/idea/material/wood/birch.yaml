@@ -38,6 +38,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 200
   greenShrinkage: 0.09
+  # How cleanly it opens along its grain under a froe (plan D17) — splits for the fire, runs out for anything long.
+  cleavability: 0.55
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/betula/pendula
     tissueType: wood

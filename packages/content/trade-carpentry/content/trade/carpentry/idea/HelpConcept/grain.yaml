@@ -5,7 +5,7 @@ data:
   key: grain
   title: Grain
   summary: Why riven wood is stronger than sawn, and why the froe comes before the saw.
-  keywords: [grain, riven, rive, sawn, saw, froe, fibre, split, haft, wood]
+  keywords: [grain, riven, rive, sawn, saw, froe, fibre, split, haft, wood, elm, cleave]
   seeAlso: [the-cut, seasoning]
   body: |
     Wood is a bundle of long fibres running the length of the tree. Almost
@@ -30,6 +30,19 @@ data:
     snaps as a sawn one. Riven stock is about a third tougher under a
     shock. `analyze response` on the two will tell you the same thing in
     numbers.
+
+    ## Which woods rive
+
+    Riving only works if the fibres run STRAIGHT. Oak and ash open the
+    whole length of a billet; so do the conifers, hazel and willow. Beech,
+    birch and yew wander, and a length gives fewer billets — the split
+    runs out of the wood and the rest is kindling. Maple wanders worse.
+    And elm will not open at all: its grain interlocks, so a froe only
+    bruises it. That is why elm is the wheelwright's hub and the chair
+    seat — it will not split under a load — and why you saw it.
+
+    It is not how TOUGH a wood is: ash is tougher than elm and rives
+    better than any. It is how straight it grew.
 
     ## Why boards are sawn anyway
 

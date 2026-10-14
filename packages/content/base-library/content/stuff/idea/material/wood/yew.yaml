@@ -40,6 +40,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 540
   greenShrinkage: 0.05
+  # How cleanly it opens along its grain under a froe (plan D17) — the bowyer splits the stave, and follows the wood where it goes.
+  cleavability: 0.6
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/taxaceae/taxus/baccata
     tissueType: wood

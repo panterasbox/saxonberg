@@ -11,7 +11,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import RiveController, { BILLET_PATH, BILLET_KG, type RiveModel } from '../idea/cmd/forestry/RiveController';
+import RiveController, { BILLET_PATH, BILLET_KG, CLEAN_CLEAVE, type RiveModel } from '../idea/cmd/forestry/RiveController';
 import Bole, { BOLE_LENGTHS, TIMBER_MASS_KG } from '../thing/Bole';
 import Billet from '../thing/Billet';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
@@ -54,6 +54,7 @@ function oak(): Material {
     m.setName('oak');
     m.setTags(['wood']);
     m.setDensity(Quantity.of(750, 'kg/m³'));
+    m.cleavability = 0.9; // the row's figure: oak opens the whole length
     return m;
   }, OAK_WOOD) as unknown as Material;
 }
@@ -180,5 +181,34 @@ describe('rive', () => {
     const c = ctx(giver, room);
     await makeStuff(() => new RiveController()).execute(model(one(froe, 'froe'), one(froe, 'froe')), c);
     expect(reasons(c)).toContain('not-rivable');
+  });
+  // ⭐⭐ Plan D17 — whether a wood rives is the WOOD's: how straight its
+  // fibres run (`cleavability`), not its toughness or its density.
+  it('⭐⭐ an interlocked wood (elm) will not rive — refused, and the refusal says why', async () => {
+    wood.setName('elm');
+    wood.cleavability = 0.1;
+    const froe = tool(['riving'], 'froe');
+    ContainmentApi.move(froe, giver);
+    const c = ctx(giver, room);
+    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    expect(reasons(c)).toContain('will-not-rive');
+    expect(JSON.stringify(giver.received)).toMatch(/interlock/);
+    expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
+  });
+
+  it('⭐ a wood whose split wanders gives fewer billets — the rest is kindling', async () => {
+    wood.cleavability = 0.55; // birch
+    const froe = tool(['riving'], 'froe');
+    ContainmentApi.move(froe, giver);
+    const c = ctx(giver, room);
+    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    await settle();
+    const stack = (room as unknown as { getContents(): Stuff[] })
+      .getContents()
+      .find((s): s is Billet => s instanceof Billet)!;
+    const full = Math.floor(TIMBER_MASS_KG / BILLET_KG);
+    expect(stack.getQuantity()).toBe(Math.floor(full * (0.55 / CLEAN_CLEAVE)));
+    expect(stack.getQuantity()).toBeLessThan(full);
+    expect(JSON.stringify(giver.received)).toMatch(/kindling/);
   });
 });

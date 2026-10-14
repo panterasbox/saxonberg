@@ -45,6 +45,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 365
   greenShrinkage: 0.1
+  # How cleanly it opens along its grain under a froe (plan D17) — the stave and the shingle: straight, and it opens the whole length.
+  cleavability: 0.9
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur
     tissueType: wood

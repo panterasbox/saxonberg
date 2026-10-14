@@ -38,6 +38,8 @@ data:
   # done green move. Grain: an author's numbers.
   seasoningDays: 300
   greenShrinkage: 0.08
+  # How cleanly it opens along its grain under a froe (plan D17) — the haft wood, riven before it is shaped.
+  cleavability: 0.85
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/fraxinus/excelsior
     tissueType: wood
