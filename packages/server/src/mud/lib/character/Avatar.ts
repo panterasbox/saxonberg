@@ -330,6 +330,13 @@ export default abstract class Avatar extends AvatarBase {
       "platform/cmd/stream/watch.yaml",
       "platform/cmd/stream/tune.yaml",
       "platform/cmd/crafting/make.yaml",
+      // ⭐ `fit`'s RAISE arm is `make` for a thing made of parts, and its
+      // hand rung (a wedge, a friction fit) has no instrument — so it is
+      // the person's, like `make`. Afforded by the parts it was not: a
+      // pick head is a plain `Tool`, and only a class that IS made of
+      // parts composes `AssembledMixin` (which still affords the
+      // replace arm, `repair` and `salvage` on the assembly itself).
+      "platform/cmd/crafting/fit.yaml",
     ],
     peers: [],
     environment: [],

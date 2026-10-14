@@ -1786,9 +1786,20 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 21 (2026-10-13), after `fit` moved to the person: _pending_.**
+
 **Run 20 (2026-10-13), after the narrowing review (`AssembledMixin` only
 on classes that ARE made of parts; `isAssembly()` and its guards gone;
-`lint:bills` arm 7): _pending_.**
+`lint:bills` arm 7): 16 / 21** — all five failures one defect: `fit pick`
+was *not understood*. The raise arm had been afforded by the parts, and
+the pick head was a `Tool` that composed `AssembledMixin` only because
+every Tool did; narrowed, a carried haft (`Timber`, `peers` only) and a
+plain head afforded nothing, and the boots, lantern, compass and spindle
+had no part that could. ⭐ **Decided (lens 1 — the verb must exist where
+the refusal teaches):** `fit` is the person's, beside `make` on
+`Avatar` — the raise arm IS `make` for a thing of parts and its hand rung
+has no instrument. The assembly still affords it (and `repair`/`salvage`)
+for the replace arm.
 
 **Run 19 (2026-10-13), after "ownership follows the inputs" replaced the
 acting-person-through-timers rule: 21 / 21 green**, the restart included.
