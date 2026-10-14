@@ -1786,6 +1786,13 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 23 (2026-10-14), after merging master (maritime): 21 / 21 green**,
+the restart included. Run 22 on the same tree was 6 / 21 with ~1 GB free:
+drive 5's first `goTo` never reached the server (300 s), NPC verbs went
+`unknown-verb` mid-run, and everything after read "something" (the world
+drifted into night while it stalled) — starvation, not code; run 23 on a
+quiet box passed every step.
+
 **Run 21 (2026-10-14), after `fit` moved to the person: 21 / 21 green**,
 the restart included — every assembled row on its narrow class.
 
