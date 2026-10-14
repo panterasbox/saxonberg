@@ -1,0 +1,10 @@
+# Open sea — a point on the water with nothing at it. ⭐ Most nodes have
+# no content: you can be here, and there is nothing to step onto.
+class: /platform/idea/ExpanseNode
+data:
+  name: open sea
+  alternateNames: [offing, sea]
+  kind: passage
+  passage: areal
+  # Twenty-six miles out, bearing 103 — open water is wide.
+  focus: { rho: 48399, theta: 103.3, radius: 3704 }

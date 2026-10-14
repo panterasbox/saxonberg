@@ -627,6 +627,14 @@ ships designed-for-them, ships none.
   § *Traits are competence for dispositions* (the shared act-signature).
 
 
+## `navigation` (the maritime build, 2026-10)
+
+ISCED-F 1041, a sibling of `teamstering`. Competence buys INFORMATION —
+the bracket on a sight, the bottom a sounding reads, how precisely the
+reckoning is stated — and never an outcome: no conferral, no synergy, no
+capability rung. Earned by `measure latitude` and `measure depth`. ⭐ A
+pilot is NOT this Discipline: a pilot's knowledge is `told` claims.
+
 ## The standing witness
 
 After each append is persisted, the ledger calls

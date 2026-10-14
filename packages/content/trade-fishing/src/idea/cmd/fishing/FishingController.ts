@@ -27,16 +27,28 @@ export abstract class FishingController<M extends CommandModel = CommandModel> e
   }
 
   /**
-   * ⭐ The reach: the bound Shore's, else the covering Locality's — the
-   * fallback that lets a locality that never mentioned fish have them.
+   * ⭐ The reach: the water the bound place names (maritime revision 3 —
+   * the place is the shore, and it says which water you mean or why
+   * none), else the covering Locality's — the fallback that lets a
+   * locality that never mentioned fish have them. A refusal comes back
+   * in the place's own words; the controller only renders it.
    */
-  protected async reachFor(giver: Stuff, shore: MqlOneResult | undefined): Promise<string | null> {
-    const bound = shore?.stuff as unknown as { getReachRef?: () => string } | undefined;
-    const fromShore = bound?.getReachRef?.() ?? '';
-    if (fromShore) return fromShore;
+  protected async reachFor(
+    giver: Stuff,
+    shore: MqlOneResult | undefined,
+  ): Promise<{ reach: string } | { refusal: string; reason: string } | null> {
     const room = this.roomOf(giver);
+    if (shore?.stuff) {
+      const name = shore.via?.detailPath?.[0];
+      if (MixinApi.isShore(shore.stuff)) {
+        const pick = await shore.stuff.waterRefFor(name);
+        return 'refusal' in pick ? pick : { reach: pick.ref };
+      }
+      return { refusal: `There is no water in the ${shore.raw ?? 'that'}.`, reason: 'not-water' };
+    }
     if (room === null) return null;
-    return (await this.waters()).reachAt(room);
+    const reach = await (await this.waters()).reachAt(room);
+    return reach === null ? null : { reach };
   }
 
   protected async registry(): Promise<FisheryRegistry | null> {

@@ -1,43 +1,100 @@
 /**
- * InventoryController — list items the giver is carrying.
+ * InventoryController — `inventory [<thing>]`: the itemised LEDGER of what
+ * something holds (maritime revision 2).
+ *
+ * ⭐ `look` answers *what is this like?*; `inventory` answers *what
+ * exactly does this hold?* — complete and grouped:
+ * - yourself (no argument): what you WEAR, what you HOLD, what you CARRY;
+ * - a person: what they wear and hold — ⛔ never their pockets or what is
+ *   inside their body (`PerceptionApi.visibleContentsOf`, the one rule
+ *   `look` reads too, so the two can never disagree);
+ * - a container: everything in it if open; a shut one refuses in words.
+ *
+ * `look in <thing>` is the same ledger ({@link InventoryController.ledger}).
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
-import type {
-  CommandContext,
-  CommandModel,
-  } from '../../../../api/command';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
+import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
-export default class InventoryController extends CommandController {
-  execute(_model: CommandModel, context: CommandContext): void {
-    const actor = context.commandGiver;
-    if (!MixinApi.isContainer(actor)) {
-      MessageApi.scene(actor)
+interface InventoryModel extends CommandModel {
+  target?: MqlOneResult;
+}
+
+/**
+ * The ledger controller. `ledger` is a public static for exactly three
+ * callers — this controller, `LookController` (`look in`) and
+ * `QueryController` (`query --ledger`) — none of them author surface
+ * (`lint:lib-statics`' caller audit). ⭐ `inventory <thing>` is `query
+ * --ledger <thing>:i` (maritime revision 2′), kept as its own view
+ * because its argument is a HOLDER and it defaults to you.
+ *
+ * @internal
+ */
+export default class InventoryController extends CommandController<InventoryModel> {
+  execute(model: InventoryModel, context: CommandContext): void {
+    const viewer = context.commandGiver;
+    const raw = model.target?.raw ?? '';
+    const target = model.target?.stuff ?? (raw === '' ? viewer : null);
+    if (target === null) {
+      MessageApi.scene(viewer)
         .topic('sense.survey')
-        .toSelf(Mml.compose`You have no inventory.`)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return;
+    }
+    if (!MixinApi.isContainer(target)) {
+      const line = target === viewer
+        ? Mml.compose`You have no inventory.`
+        : Mml.compose`${Mml.actor(target)} holds nothing.`;
+      MessageApi.scene(viewer).topic('sense.survey').toSelf(line).send();
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
       return;
     }
-    const contents = actor.getContents();
-
-    let body: Mml;
-    if (contents.length === 0) {
-      body = Mml.compose`\nYou are not carrying anything.\n`;
-    } else {
-      const items = contents.map((item) => Mml.thing(item));
-      const list = Mml.list(items);
-      body = Mml.compose`\nYou are carrying: ${list}.\n`;
+    const body = InventoryController.ledger(viewer, target);
+    if (body === null) {
+      MessageApi.scene(viewer)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.actor(target)} is shut.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'shut', detail: target.getPresentation() });
+      return;
     }
+    MessageApi.scene(viewer).topic('sense.survey').toSelf(body).send();
+  }
 
-    MessageApi.scene(actor)
-      .topic('sense.survey')
-      .toSelf(body)
-      .send();
-
-    return;
+  /**
+   * ⭐ The ledger of what `viewer` may see `target` hold — grouped, and
+   * complete (no summary). `null` when `target` is a container that is
+   * shut. Shared by `inventory` and `look in <thing>`.
+   */
+  public static ledger(viewer: Stuff, target: Stuff, only?: ReadonlySet<string>): Mml | null {
+    const all = PerceptionApi.visibleContentsOf(viewer, target);
+    if (all.shut) return null;
+    // `query --ledger <a narrowed set>` groups just what the query named.
+    const keep = (xs: Stuff[]): Stuff[] => (only ? xs.filter((x) => only.has(x.stuffId)) : xs);
+    const v = { worn: keep(all.worn), held: keep(all.held), carried: keep(all.carried) };
+    const list = (xs: Stuff[]): Mml => Mml.list(xs.map((x) => Mml.thing(x)));
+    const lines: Mml[] = [];
+    if (viewer === target) {
+      if (v.worn.length) lines.push(Mml.compose`You are wearing: ${list(v.worn)}.`);
+      if (v.held.length) lines.push(Mml.compose`You are holding: ${list(v.held)}.`);
+      if (v.carried.length) lines.push(Mml.compose`You are carrying: ${list(v.carried)}.`);
+      if (lines.length === 0) return Mml.compose`\nYou are not carrying anything.\n`;
+    } else {
+      lines.push(Mml.compose`${Mml.actor(target)}`);
+      if (v.worn.length) lines.push(Mml.compose`── Wearing: ${list(v.worn)}.`);
+      if (v.held.length) lines.push(Mml.compose`── Holding: ${list(v.held)}.`);
+      if (v.carried.length) lines.push(Mml.compose`── In it: ${list(v.carried)}.`);
+      if (lines.length === 1) lines.push(Mml.compose`── Nothing you can see.`);
+    }
+    const body = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
+    return Mml.compose`\n${body}\n`;
   }
 }

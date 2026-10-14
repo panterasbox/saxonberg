@@ -35,7 +35,7 @@ export default class SpillController extends CommandController<SpillModel> {
       return;
     }
 
-    const fromSlot = BulkableApi.slotFor(target, model.target.via?.bulk?.affordance);
+    const fromSlot = BulkableApi.slotFor(target, model.target.via);
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)

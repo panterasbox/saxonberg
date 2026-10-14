@@ -48,13 +48,21 @@ function brainExists(path: string): boolean {
 const data = (path: string) => rowAt(path).data as Record<string, unknown>;
 
 describe('the bank', () => {
-  it("⭐ props the river's edge — a water-pack Shore on the confluence — and casts the fisher", () => {
-    const bank = data('/world/terminus/wharfside/bank');
-    expect(bank.props).toContain('/world/terminus/wharfside/thing/river-edge');
+  it("⭐ is a quay whose own river feature cites the confluence — no edge object — and casts the fisher", () => {
+    const bankRow = rowAt('/world/terminus/wharfside/bank');
+    expect(bankRow.class).toBe('/platform/location/Quay');
+    const bank = data('/world/terminus/wharfside/bank') as {
+      props: string[];
+      cast: string[];
+      waters: Record<string, string>;
+      details: Record<string, { keywords: string[] }>;
+    };
+    expect(bank.waters).toEqual({ river: 'kestrel:confluence' });
+    expect(bank.details.river!.keywords).toContain('kestrel');
+    // ⚠ The Delight is a second water at the confluence; this feature is not it.
+    expect(bank.details.river!.keywords).not.toContain('delight');
+    expect(bank.props.some((p) => p.endsWith('/river-edge'))).toBe(false);
     expect(bank.cast).toContain('/world/terminus/wharfside/agent/fisher');
-    const edge = rowAt('/world/terminus/wharfside/thing/river-edge');
-    expect(edge.class).toBe('/system/water/thing/Shore');
-    expect((edge.data as { reachRef: string }).reachRef).toBe('kestrel:confluence');
     // The outfall discharges into the same reach: one reach, the city's whole problem.
     expect((data('/world/terminus/wharfside/thing/city-outfall') as { dischargeReach?: string; reachRef?: string }).reachRef ?? 'kestrel:confluence').toBe('kestrel:confluence');
   });
@@ -78,7 +86,8 @@ describe('the fisher', () => {
     // its own. Pacing is the `behavior.beat*Ms` dial, not a number in this
     // row — which is what took the realm from 263.2 fires/min to 17.
     expect(fishes.trigger).toBe('candidate');
-    expect(rowExists(fishes.config!.shore as string)).toBe(true);
+    // ⭐ No configured shore: he fishes the water of the place he stands in.
+    expect(fishes.config?.shore).toBeUndefined();
     const reads = d.behaviors.find((b) => b.brain === '/trade/fishing/behavior/reads-water')!;
     expect(reads.trigger).toBe('engage');
     const lines = reads.config!.lines as Record<string, string>;
@@ -154,12 +163,16 @@ describe('the store', () => {
 });
 
 describe('the moor', () => {
-  it("⭐ the heath props a Shore on the Holloway's HEAD with no trade dependency", () => {
-    const heath = data('/world/moor/stormy-heath') as { props: string[] };
-    expect(heath.props).toContain('/world/moor/heath-mere');
-    const mere = rowAt('/world/moor/heath-mere');
-    expect(mere.class).toBe('/system/water/thing/Shore');
-    expect((mere.data as { reachRef: string }).reachRef).toBe('holloway:head');
+  it("⭐ the heath is a shore whose tarn cites the Holloway's HEAD, with no trade dependency", () => {
+    expect(rowAt('/world/moor/stormy-heath').class).toBe('/platform/location/Shore');
+    const heath = data('/world/moor/stormy-heath') as {
+      waters: Record<string, string>;
+      details: Record<string, { keywords: string[] }>;
+    };
+    expect(heath.waters).toEqual({ tarn: 'holloway:head' });
+    // ⚠ Not `mere`/`water` — the heath floor's pool answers to both.
+    expect(heath.details.tarn!.keywords).not.toContain('mere');
+    expect(heath.details.tarn!.keywords).not.toContain('water');
     const pkg = JSON.parse(readFileSync(join(PACKS, 'world-seed', 'package.json'), 'utf8')) as { dependencies: Record<string, string> };
     expect(pkg.dependencies['@saxonberg/content-water']).toBeDefined();
     expect(pkg.dependencies['@saxonberg/content-trade-fishing']).toBeUndefined();

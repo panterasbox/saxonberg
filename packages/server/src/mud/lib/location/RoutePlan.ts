@@ -29,7 +29,7 @@
 import type { TravelProfileSpec } from './TravelProfile';
 
 /** The four channels a map claim can arrive on. Mirrors `MapChannel`. */
-export type RouteClaimChannel = 'walked' | 'seen' | 'searched' | 'published';
+export type RouteClaimChannel = 'walked' | 'seen' | 'searched' | 'published' | 'charted' | 'told';
 
 /** One step of a plan: leave `from` by `dir` and arrive at `to`. */
 export interface RouteLeg {

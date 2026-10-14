@@ -1,0 +1,11 @@
+# The pump — the bilge pump by the mainmast. Unmanned in a hard sea it
+# wears; what a broken pump costs the hull is the vessel build's.
+class: /platform/thing/Tool
+data:
+  shortDescription: bilge pump
+  keywords: [pump, bilge, brake]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    An elm pump barrel standing up beside the mainmast with a long iron brake on it. The sea comes in a little all the time; this is how it goes out again.
+  _materialPath: /stuff/idea/material/wood/elm

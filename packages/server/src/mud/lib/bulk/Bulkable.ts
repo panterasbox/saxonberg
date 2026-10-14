@@ -255,9 +255,42 @@ export class BulkSlot {
     public readonly affordance: BulkAffordance,
   ) {}
 
-  /** The holder Stuff this slot belongs to. */
-  getHolder(): Stuff & Bulkable {
+  /**
+   * The holder Stuff this slot belongs to. ⚠ Not always `Bulkable`: a
+   * {@link SourceSlot} is held by a PLACE (a shore draws from the water it
+   * is beside, maritime revision 3), so callers narrow before asking a
+   * holder anything bulk-shaped.
+   */
+  getHolder(): Stuff {
     return this.host;
+  }
+
+  /**
+   * ⭐ The temperature, K, of what this slot would pour — the holder's
+   * when it is Thermal, else `null` (no thermal coupling). A source slot
+   * answers its water's.
+   */
+  getTemperatureK(): number | null {
+    return MixinApi.isThermal(this.host) ? this.host.getTemperature().rawValue() : null;
+  }
+
+  /**
+   * ⭐ Why this slot has nothing to give right now, in words — or `null`
+   * (the ordinary slot: empty is just empty). A source slot says *frozen
+   * from bank to bank*, *which water?*, *no water in the lamps*. A
+   * controller's empty-source line prints this when there is one.
+   */
+  whyEmpty(): string | null {
+    return null;
+  }
+
+  /**
+   * Wait until this slot can say what it holds. Resolved at once for a
+   * vessel; a source slot reads its water (async) first. A controller
+   * about to draw awaits it.
+   */
+  settle(): Promise<void> {
+    return Promise.resolve();
   }
 
   /** Material-path ref (`null` ⇒ empty slot). */

@@ -320,6 +320,39 @@ credit on the same slot with the temperature clamped at the melting point
 `Meltable` destructs into a molten floor pool and a vessel's liquid
 solidifies to a cast Thing ([thermal.md](./thermal.md)).
 
+## ⭐⭐ A slot held by a PLACE — `SourceSlot` (maritime revision 3, 2026-10-11)
+
+`fill pail from river`, `drink from mere`, `wash shirt in river`. A shore
+(a waterside place, `ShoreMixin`) is no vessel — water is cited, never
+contained, and making a bank `Bulkable` would put it in
+`reachable:[mixin.BulkableMixin]` and leak liquid keywords into room
+scope. So `BulkableApi.slotFor(holder, via?)` routes a shore to its
+`waterSlot(via)` — the shore reads the feature the player named from the
+same `via` (`detailPath`); bulk never learns what a feature is — and the
+shore hands out a
+**`SourceSlot`** (`lib/bulk/SourceSlot.ts`, a `BulkSlot` subclass):
+
+- what it gives is the water's read: **fresh, fouled (below an outfall
+  that fouls the reach) or salt**, at **the water's temperature**;
+- it **never depletes** (`available()` ∞, `debit` a no-op) — a pail is
+  nothing to a river;
+- one that cannot give is **empty and says why** — `whyEmpty()`: *frozen
+  from bank to bank*, *which water?*, *no water in the lamps*, *you cannot
+  tell what you would be drawing yet*. The controllers print it in their
+  existing empty branch, so `mustHaveBulkSlot` is unchanged (a shore
+  always has a slot).
+
+Three members every `BulkSlot` gained for it, each a no-op for a vessel:
+`getTemperatureK()` (the Thermal holder's; the transfer's thermal
+coupling now reads the SLOT, not the holder), `whyEmpty()` (`null`), and
+`settle()` (resolved at once — a source slot reads its water first, and
+Fill / Drink / Wash await it). `getHolder()` is now `Stuff`, not `Stuff &
+Bulkable`: a source slot's holder is a place.
+
+⭐ **A draught, not ∞.** `drink` with no amount from a source that never
+runs dry takes one draught — `bulk.draughtL` (0.25 L). The shipped tap
+(`UnboundedSourceMixin`) had the same unbounded `'all'`; it closes too.
+
 ## `BulkableApi.transfer` (`api/bulk.ts`)
 
 The one primitive — the bulk analog of `StackableApi.applyQuantity`
@@ -364,8 +397,11 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 
 Verb-facing helpers on the same Api:
 
-- `slotFor(holder, affordance)` — resolve a holder's slot from
-  `model.field.via?.bulk?.affordance`.
+- `slotFor(holder, via?)` — resolve a holder's slot from the bound
+  argument's `via` (`model.field.via`): HOW it was named. A vessel reads
+  `via.bulk.affordance` (which slot); a shore reads `via.detailPath`
+  (which water). One argument, so no caller passes a holder-specific
+  field.
 - `amountFromQuantity(quantity, fallback)` — translate an MQL measure
   hint to litres (via the converters).
 - `floorSurfaceNear(near)` — walk the containment chain to the
@@ -613,6 +649,7 @@ Each lands in a named home later; none is in this slice.
 |---|---|
 | `lib/bulk/Bulkable.ts` | mixin + `BulkSlot` + closure scale + `via.bulk` + `requiredClosureFor` + `getContentsDescriptionFor` |
 | `lib/bulk/UnboundedSource.ts` | `UnboundedSourceMixin` — inexhaustible-source override (urn) |
+| `lib/bulk/SourceSlot.ts` | `SourceSlot` — a slot held by a place: the water a shore is beside |
 | `obj/UnboundedReceptacle.ts` | the urn's class (`UnboundedSourceMixin(Receptacle)`) |
 | `api/bulk.ts` | `BulkableApi.transfer` + `slotFor` / `amountFromQuantity` / `floorSurfaceNear` / `floorPuddleSummary` / `ingest` |
 | `platform/idea/cmd/perception/LookController.ts` | room-view puddle line (the only non-bulk file the build touches) |

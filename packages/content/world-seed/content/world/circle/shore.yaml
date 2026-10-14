@@ -1,7 +1,7 @@
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: circlemere shore
-  keywords: [shore, mere, circlemere]
+  keywords: [shore]
   register: definite
   longDescription: |
     The shore of a wide shallow mere. Across the water, the far bank is a low line of moraine. Snow drifts along the edge of the water.
@@ -20,5 +20,12 @@ data:
       destination: /world/circle/far-bank
       media: [ground]
       edgeMinutes: 10
-  props:
-    - /world/circle/circlemere
+  # ⭐ The mere, in this shore's own words — and WHICH water it is
+  # (maritime revision 3).
+  details:
+    mere:
+      keywords: [mere, water, ice, circlemere]
+      description: |
+        A wide shallow mere on the upland, grey water under a grey sky.
+  waters:
+    mere: circlemere:mere

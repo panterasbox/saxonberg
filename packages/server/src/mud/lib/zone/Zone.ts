@@ -30,6 +30,8 @@
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
+import { StuffApi } from '../../api/stuff';
+import { Template } from '../stuff/Template';
 import type { FieldMeta } from '../mixin';
 
 import type { BoundaryRole } from '../security/BoundaryRole';
@@ -181,6 +183,33 @@ export abstract class Zone extends Idea {
   public async lookupAncestorField<T>(fieldName: string): Promise<T | null> {
     const parent = await ZoneApi.getEnclosingZone(this);
     return parent ? parent.lookupField<T>(fieldName) : null;
+  }
+
+  /**
+   * ⭐ The SYNCHRONOUS sibling of {@link lookupField} — the same walk over
+   * the zones that are RESIDENT, for a reader that cannot wait (the
+   * horizon the MQL seed resolves). A zone holding rooms that are resident
+   * is itself resident, and so are the zones above it that anything has
+   * read; an ancestor nobody has stood up answers nothing here.
+   *
+   * @hook Override {@link peekAncestorField} alongside
+   *   {@link lookupAncestorField} if this zone bars or redirects the walk.
+   */
+  public peekField<T>(fieldName: string): T | null {
+    const own = readField<T>(this, fieldName);
+    if (own != null) return own;
+    return this.peekAncestorField<T>(fieldName);
+  }
+
+  /** The sync ancestor step: the nearest RESIDENT enclosing zone's {@link peekField}. */
+  public peekAncestorField<T>(fieldName: string): T | null {
+    const ownPath = this.getTemplatePath();
+    if (!ownPath) return null;
+    for (const ancestor of Template.ancestorPaths(ownPath)) {
+      const z = StuffApi.findByTemplatePath<Zone>(ancestor);
+      if (z instanceof Zone) return z.peekField<T>(fieldName);
+    }
+    return null;
   }
 }
 

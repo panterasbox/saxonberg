@@ -39,7 +39,7 @@ import type {
   ClosureLevel,
 } from '../lib/bulk/Bulkable';
 import type Material from '../lib/material/Material';
-import type { MqlQuantity } from './mql';
+import type { MqlQuantity, MqlMatchVia } from './mql';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BulkableLogic } from '../platform/idea/api/BulkableLogic';
@@ -113,18 +113,23 @@ function logic(): BulkableLogic {
 
 export class BulkableApi {
   /**
-   * Resolve a holder's bulk slot handle for a verb. `affordance`
-   * comes from `model.field.via?.bulk?.affordance` (set by the `:b`
-   * transform or material-keyword resolution); when absent, the
-   * holder's single present slot is used. Returns `null` when the
+   * Resolve a holder's bulk slot handle for a verb. Pass the bound
+   * argument's `via` (`model.field.via`) — HOW it was named: its
+   * `bulk.affordance` (set by the `:b` transform or material-keyword
+   * resolution) picks the slot; absent, the holder's single present slot
+   * is used. Returns `null` when the
    * holder isn't Bulkable or the slot can't be resolved (ambiguous /
    * missing) — the controller renders the player-facing decline.
+   *
+   * ⭐ A shore (a place beside a named water, maritime revision 3) is no
+   * vessel but answers too: it reads the same `via` for the feature the
+   * player named, and gives that water (or its one water) as a source
+   * slot that never runs dry and, when it cannot give, says why in
+   * `whyEmpty()`. Bulk never learns what a feature is — it hands the
+   * `via` on.
    */
-  static slotFor(
-    holder: Stuff,
-    affordance: BulkAffordance | undefined,
-  ): BulkSlot | null {
-    return logic().slotFor(holder, affordance);
+  static slotFor(holder: Stuff, via?: MqlMatchVia): BulkSlot | null {
+    return logic().slotFor(holder, via);
   }
 
   /**

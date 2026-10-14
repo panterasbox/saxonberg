@@ -1,0 +1,38 @@
+# Tam Rook — a deckhand who will keep the Hesper's watch, if somebody
+# appoints her to it (maritime R7).
+#
+# ⭐⭐ She is NOT the lookout until she is in the seat. Appointed (`appoint
+# tam to lookout at the Hesper's company`), she goes on watch at once (the
+# outfit starts a hire's shift), climbs to the masthead in the sense that
+# matters — the seat is what sees from twenty metres — and calls out what
+# comes into view. Unappointed, she is a pair of hands on deck and calls
+# nothing: nobody on watch, nobody told.
+#
+# ⚠ The name is a placeholder.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Tam Rook
+  keywords: [tam, rook, deckhand, hand, lookout]
+  shortDescription: deckhand
+  register: definite
+  archetype: hand
+  longDescription: >-
+    A rangy young woman in a salt-stiff jacket, coiling a line on the pin
+    rail without looking at it, her eyes going out over the water every
+    few seconds as if she cannot help it.
+  prologue:
+    - "Went to sea at twelve and has the longest sight on the coast, she says."
+    - "Will keep a watch for anybody who will pay her to."
+  dispositions:
+    - { disposition: sociability, valence: 40 }
+    - { disposition: composure, valence: 60 }
+  behaviors:
+    # Rides the agent's one deliberation beat (`candidate`): the brain
+    # declares its urgency, so it needs no timer of its own.
+    - brain: /system/water/behavior/keeps-watch
+      trigger: candidate

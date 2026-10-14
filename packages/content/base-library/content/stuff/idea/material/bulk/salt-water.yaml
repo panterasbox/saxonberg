@@ -5,7 +5,7 @@ class: /platform/idea/material/Material
 data:
   name: salt water
   keywords: [water, brine, "salt water", saltwater, seawater, salt]
-  appearance: murky brine
+  appearance: clear brine
   density: 1025
   thermalConductivity: 0.6
   specificHeat: 3990

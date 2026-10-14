@@ -1,0 +1,31 @@
+# The brow of the headland — the one room in the headland's zone.
+#
+# ⭐ What can be seen from up here is not this room's to say: its zone
+# (`estuary/headland`) carries the HEIGHT and names what it overlooks,
+# and `look horizon` derives the rest (maritime R11).
+class: /platform/location/Shore
+data:
+  shortDescription: headland
+  keywords: [headland, point, cliff, height]
+  register: definite
+  _address: terminus/city/wharfside/headland
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A turf-topped shoulder of rock above the cove, the wind coming straight off the sea and flattening the thrift.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/estuary/strand
+      media: [ground]
+  # ⭐ The sea below, and which water it is (maritime revision 3): `look
+  # sea` reads the Greywater at the headland's nearest landing.
+  details:
+    sea:
+      keywords: [sea, greywater, water]
+      description: |
+        The sea runs out grey from the foot of the rock until it meets the sky.
+  waters:
+    sea: /stuff/idea/WaterExpanse/greywater

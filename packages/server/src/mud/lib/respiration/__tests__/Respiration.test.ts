@@ -41,6 +41,7 @@ import { NamedMixin } from '../../description/Named';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
+import { buildMode } from '../../locomotion/__tests__/test-helpers';
 
 class TestLocation extends Location {}
 /** A bowl: holds a bulk interior AND things (the fish). */
@@ -233,6 +234,25 @@ describe('RespirationMixin — the crisis core', () => {
 
     // Submerged, it is fine — the drain cancels, recovery runs.
     ContainmentApi.move(fish, room('water'));
+    await fish.reassess();
+    expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
+  });
+
+  it('⭐ swimming is at the SURFACE: a person keeps their head up, a fish stays under', async () => {
+    // (maritime review, 2026-10-14 — a person swimming the estuary pool
+    // blacked out in seconds and drowned while the swim medium won.)
+    const swim = buildMode('swim');
+    const swimmer = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(swimmer, room('air'));
+    swimmer.setEngagedMode(swim);
+    await swimmer.reassess();
+    expect(swimmer.getEngagementByType('respiration-drain')).toBeUndefined();
+    tick(50);
+    expect(swimmer.getConsciousness()).toBe('conscious');
+
+    const fish = bodyWith({ breathableMedia: ['water'] });
+    ContainmentApi.move(fish, room('air'));
+    fish.setEngagedMode(swim);
     await fish.reassess();
     expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
   });

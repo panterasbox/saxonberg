@@ -777,3 +777,7 @@ second consumer.
 
 *(Retire when: the column, the medium and the ascent Journey ship and
 hunting has acted in one authored underwater place.)*
+
+## ⬅ From the maritime build (2026-10-14)
+
+- **Swimming is at the SURFACE until this build.** Respiration used to let the swim mode's medium win outright, so a person swimming across the estuary pool breathed water and drowned in seconds. It now breathes whichever of the water and the air over it the body can (a fish the water, a person the air). ⭐ Going under — the dive face, held breath, the ascent — is this slate's, and drowning while swimming comes back with it: the swimmer's position in the column (depth > 0) is what should make the swim medium the one they breathe.

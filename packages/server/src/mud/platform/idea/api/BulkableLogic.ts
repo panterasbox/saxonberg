@@ -25,7 +25,7 @@ import { Blood } from '../../../lib/vitals/Blood';
 import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
 import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
 import { Concentration } from '../../../lib/bulk/Concentration';
-import type { MqlQuantity } from '../../../api/mql';
+import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
@@ -73,17 +73,20 @@ const BulkableApiCallers = SecurityPolicies.AnyOf(
 export class BulkableLogic extends ApiLogic {
   /** See {@link BulkableApi.slotFor}. */
   @CallSecurity(BulkableApiCallers)
-  public slotFor(
-    holder: Stuff,
-    affordance: BulkAffordance | undefined,
-  ): BulkSlot | null {
-    if (!MixinApi.isBulkable(holder)) return null;
+  public slotFor(holder: Stuff, via?: MqlMatchVia): BulkSlot | null {
+    // ⭐ A shore is no vessel, but it draws (maritime revision 3): it reads
+    // the same `via` for the feature named — a slot that says why when it
+    // can't. Bulk hands the `via` on and never learns what a feature is.
+    if (!MixinApi.isBulkable(holder)) {
+      return MixinApi.isShore(holder) ? holder.waterSlot(via) : null;
+    }
     try {
-      return holder.getBulk(affordance);
+      return holder.getBulk(via?.bulk?.affordance);
     } catch {
       return null;
     }
   }
+
 
   /** See {@link BulkableApi.compareClosure}. */
   @CallSecurity(BulkableApiCallers)
@@ -401,10 +404,9 @@ export class BulkableLogic extends ApiLogic {
     const fromHolder = from.getHolder();
     const toHolder = to?.getHolder() ?? null;
     const toAmountBefore = to !== null ? to.getAmount().rawValue() : 0;
-    const blendFromK =
-      toHolder !== null && MixinApi.isThermal(fromHolder)
-        ? fromHolder.getTemperature().rawValue()
-        : null;
+    // The SLOT's temperature, not the holder's: every vessel slot answers
+    // its Thermal holder's, and a shore's source slot its water's.
+    const blendFromK = toHolder !== null ? from.getTemperatureK() : null;
     const blendToK =
       toHolder !== null && MixinApi.isThermal(toHolder)
         ? toHolder.getTemperature().rawValue()
@@ -745,6 +747,10 @@ function computeApplied(
   const sourceAvail = from.available();
   const destRoom = to === null ? Infinity : to.remaining();
   if (amount.kind === 'all') {
+    // ⭐ A river has no "all": drinking (no destination) from a source that
+    // never runs dry takes one draught — `bulk.draughtL` (the shipped tap
+    // had the same ∞ hole).
+    if (to === null && !Number.isFinite(sourceAvail)) return draughtL();
     // Take the whole source, bounded by the destination's room. ⚠ An
     // inexhaustible source into a bottomless place (a spring spilled on
     // the ground) has no "all": nothing moves, rather than a litre count
@@ -818,5 +824,16 @@ function emitEscapedGas(
       return;
     }
     at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+}
+
+/** One draught, L — what `drink` takes from a source that never runs dry. */
+function draughtL(): number {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.bulkDraughtL);
+    const n = Number.parseFloat(String(raw ?? ''));
+    return Number.isFinite(n) && n > 0 ? n : 0.25;
+  } catch {
+    return 0.25;
   }
 }

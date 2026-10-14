@@ -96,7 +96,14 @@ import {
  * picked up the `mass: 0.1` the shop's copy had simply never stated. A
  * duplicated row is a duplicated omission.
  */
-export const MASS_CEILING = 240;
+/**
+ * ⭐ **Lowered 240 → 238 by maritime revision 3 (2026-10-11).** Two of
+ * the water pack's `Shore` prop rows (the heath's mere and the river's
+ * edge) stated neither a mass nor a material; the shore moved onto the
+ * place (`waters:` on the room) and the props were deleted, so a feature
+ * of a room has no mass to state.
+ */
+export const MASS_CEILING = 238;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

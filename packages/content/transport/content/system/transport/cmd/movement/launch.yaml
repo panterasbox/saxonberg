@@ -1,0 +1,13 @@
+# `launch` — put the boat you are sitting in over the side (maritime).
+# Afforded from inside a `Boat`; you are then wherever the boat is.
+verbs: [launch]
+controller: /system/transport/idea/cmd/movement/LaunchController
+description: "Put the boat you are sitting in over the side"
+help: |
+  Sitting in a ship's boat on deck, `launch` puts her in the water. You
+  are not in the sea — you are in the boat, and the boat is where you
+  are now: `course` and `anchor` work from her as from a helm, and
+  `recover` brings her back aboard a ship lying close.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

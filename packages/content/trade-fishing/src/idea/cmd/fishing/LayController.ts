@@ -45,7 +45,12 @@ export default class LayController extends FishingController<LayModel> {
       return;
     }
     const room = this.roomOf(giver);
-    const reach = await this.reachFor(giver, model.shore);
+    const pick = await this.reachFor(giver, model.shore);
+    if (pick !== null && 'refusal' in pick) {
+      this.decline(context, pick.refusal, pick.reason);
+      return;
+    }
+    const reach = pick?.reach ?? null;
     if (room === null || reach === null || !MixinApi.isContainer(room)) {
       this.decline(context, 'There is no water here to set it in.', 'no-water');
       return;

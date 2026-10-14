@@ -102,6 +102,13 @@ recorded in `SpatialZone.ts`, where the two citations sit as strings the
 kernel interprets nowhere). The **address** crosses the seam, never a seed:
 each model derives its own.
 
+⭐ **The shape's second instance is the shore** (maritime revision 3):
+`WaterSourceMixin` (`lib/location/WaterSource.ts`) — a waterside place
+cites a water as a string the kernel never parses, and the water pack's
+`WatercourseCatalogue` (a reach) and `WaterExpanse` (a sea) answer for
+it, found the same way (a cited path is its own source; else the realm's
+default, `water.sourcePath`). See [fishing.md](./fishing.md) § the shore.
+
 ⭐ They do not overlap. A character answers within its `topsoilM`; a column
 answers from the collar down. That boundary is what lets a field read loam
 while the gallery beneath it reads its host rock — **one ladder, two

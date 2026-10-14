@@ -327,7 +327,6 @@ export default abstract class Avatar extends AvatarBase {
       // identity — `recall --scope frames` reads a store keyed on
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
-      "platform/cmd/stream/watch.yaml",
       "platform/cmd/stream/tune.yaml",
       "platform/cmd/crafting/make.yaml",
       // ⭐ `fit`'s RAISE arm is `make` for a thing made of parts, and its

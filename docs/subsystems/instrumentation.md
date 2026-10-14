@@ -173,6 +173,19 @@ that opens with an escaped quote. The rest is: **read the words**.
 - [command-routing.md](./command-routing.md) — the binder, and the
   `greedy`/`required` rules the article defect turns on
 
+## Two channels from the maritime build (2026-10)
+
+- **`depth`** (`/system/water/idea/reading/depth`, the water pack's) —
+  `measure depth` with a lead line (`instrument: sounding`). Everybody
+  gets the depth, bracketed; a `competent` hand also reads the bottom.
+  Over a band that authors its own depth it is a FIX. No eye rung.
+- **`latitude`** (`/platform/idea/reading/latitude`) — `measure latitude`
+  on the SAME `sighting` capability the shipped sextant offers `measure
+  elevation`: a second reading on one tool is a row. The centre is the
+  true latitude and the bracket is by band, so a novice and a practised
+  hand get the same answer with a different bracket. Refused under any
+  non-`clear` sky in the sky's own word, and with the sun down.
+
 ## Two channels from the drilling trade (2026-10)
 
 `structure` and `head`, both `trade-drilling`'s, and both are worked

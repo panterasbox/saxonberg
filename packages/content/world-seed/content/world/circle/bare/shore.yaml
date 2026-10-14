@@ -1,6 +1,6 @@
 # The bare shore — clearmere's: the same air as circlemere's, with no snow
 # on the ice. Black ice beside snow-ice, one variable apart. Teleport only.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Shore
 data:
   shortDescription: bare shore
   keywords: [shore, bare]
@@ -17,5 +17,12 @@ data:
       destination: /world/circle/camp
       media: [ground]
       edgeMinutes: 20
-  props:
-    - /world/circle/bare/clearmere
+  # ⭐ The mere, in this shore's own words — and WHICH water it is
+  # (maritime revision 3).
+  details:
+    mere:
+      keywords: [mere, water, ice, clearmere]
+      description: |
+        A small mere the wind keeps swept, so whatever is on it shows dark and clear.
+  waters:
+    mere: clearmere:mere

@@ -1,0 +1,22 @@
+# depth — the sounding: how deep the water is under you, by a lead line.
+#
+# ⚠ Free — `dip` is mining's seam angle and `elevation` the land's. This
+# is the sounding, and it is why the water column could not be deferred:
+# over ground with a depth of its own (a bank, a bar) it is a fix.
+#
+# ⭐ A competent hand reads the bottom too — the armed lead brings up
+# sand or shell. Competence buys information, never the depth itself.
+class: /system/water/idea/reading/DepthReading
+data:
+  channel: depth
+  kind: fact
+  scope: [here]
+  discipline: navigation
+  instrument: sounding
+  instrumentNoun: "a lead line"
+  # You cannot see the bottom.
+  eyeCeiling: untrained
+  improves: >-
+    how much water is under you, and over known ground, where you are
+  stakes: >-
+    a keel on a bar at half tide; a landfall made blind in fog
