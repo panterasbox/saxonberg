@@ -1834,6 +1834,18 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 27 (2026-10-14), after D16 (the grain is real): 23 / 23 green**,
+the restart included — two new checkpoints: a dowel carved from a sawn
+board reads "sawn through"; a hide glued over a through-sawn board never
+holds, `repair` cannot mend it, and a quartered board fitted in its place
+does. Runs 24–26 on the way: 24 void (a filtered run on the same port
+killed its server — my error); 25 found carve unsayable with a held board
+(fixed: the `Board` class, `environment` bucket) plus two harness races
+(the fuel yard's one billhook; the restart killing the smith's logout
+save after a two-second grace — the checkpoint now lets saves land); 26
+found a carved peg blocking drive 9's `clone …/peg` (the clone gate reads
+the first live instance's zone) — the checkpoint carves a dowel.
+
 **Run 23 (2026-10-14), after merging master (maritime): 21 / 21 green**,
 the restart included. Run 22 on the same tree was 6 / 21 with ~1 GB free:
 drive 5's first `goTo` never reached the server (300 s), NPC verbs went
