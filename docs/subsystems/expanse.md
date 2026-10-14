@@ -229,7 +229,7 @@ wrong chart is wrong in one row and never reconciled. See
 | `measure bearing` | reading row (`bearing`; the hand-bearing compass, or the eye at ±10°) | the bearing of a thing in view; a fix on a fixed one |
 | `scan horizon` | `query` (alias `scan`; a bare `horizon` names a set) | what is in view beyond the room |
 | `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
-| `swim` | `StillWater` (environment, peers) | a small water is a place |
+| `swim` | `ShoreMixin` (inventory) — every place beside or in a water; the gate decides the way | a small water is a place: a `Pool` IS the water, swum in and swum INTO |
 | `go aboard` / `go ashore` | `AboardExit` / `AshoreExit` | the far side recomputed every traverse |
 
 ⛔ No `fix` verb: the four fixes are four acts that already have verbs.

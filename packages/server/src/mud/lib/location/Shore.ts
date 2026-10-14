@@ -80,6 +80,11 @@ const DRAW_VERBS = [
   'platform/cmd/bulk/fill.yaml',
   'platform/cmd/bulk/drink.yaml',
   'platform/cmd/crafting/wash.yaml',
+  // ⭐ Swimming is SAYABLE beside any water; whether a way is swimmable
+  // is the gate's (the place you are in, or the place an exit leads into,
+  // must BE the water — a `Pool`). A riverbank or a deck affords the verb
+  // and refuses the way in words; it is never itself swimmable.
+  'platform/cmd/movement/swim.yaml',
 ];
 
 export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {

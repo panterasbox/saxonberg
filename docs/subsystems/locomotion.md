@@ -12,7 +12,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 |---|---|---|
 | `LocomotionMode` | `lib/locomotion/LocomotionMode.ts` | Singleton Idea — one per mode. Author-data: speed / noise / body-profile / ground-contact / cost / passthrough / conveyance + enablement mixin names / medium |
 | `Enablement` | `lib/locomotion/Enablement.ts` | Shared interface (axes + difficulty + capability gate) implemented by all three per-mode enablement mixins |
-| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history. ⚠⚠ **`Swimmable` and `Flyable` compose NOTHING, and both views are declared.** The ONLY composition of either anywhere is `__tests__/integration/locomotion.test.ts`, which manufactures its own hosts — *a test that manufactures what the world lacks hides the lack.* `fly.yaml` is held on `base-class-narrowing-slate` (no `media: ['air']` exit, no flying species, so the refusal would point at nothing); `swim.yaml` is held on **`navigable-water-slate`**, which owns how a player gets into water and whose model is place-or-passage with a **dive entrance** citing a water node — *"nowhere on, in or under the water is a place you can be"*, and *"the first water anybody can stand in"* is on its Left list. ⭐ The reachability sweep briefly shipped a `platform/thing/OpenWater` propped in the estuary and reversed it: a Thing in a land room is a fourth shape that design would never produce, in the rooms it names as its own first target. ⚠ Six exits already carry `media: [ground, water]` — somebody wanted this, and that build inherits the evidence |
+| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history. `fly.yaml` is held on `base-class-narrowing-slate` (no `media: ['air']` exit, no flying species, so the refusal would point at nothing). ⭐ `swim` is LIVE since the maritime build: a `platform/location/Pool` is the first composer — the place IS the water (review, 2026-10-13, which retired the interim `StillWater` thing: the reachability sweep had already reversed one water-thing, `OpenWater`, and maritime reintroduced the shape) — and `ShoreMixin` affords the verb beside any water, the far-side rule letting you swim from a shore INTO a pool. `Flyable` still composes nothing |
 | `LocomotionApi` | `api/locomotion.ts` | Mode resolution, eligibility, engagement lifecycle, passthrough chain, emission walk, default-mode resolution |
 | `LocomotionControllerBase` | `platform/idea/cmd/movement/LocomotionControllerBase.ts` | Abstract base for the six per-mode verbs and refactored `go` |
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `platform/idea/cmd/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |
@@ -249,6 +249,13 @@ asks to break a run to a walk (W2).
 
 `engageAround(actor, mode, exit, action)` sets `actor.engagedMode = mode`,
 runs the action, then conditionally clears engagedMode:
+
+⭐ **The far side** (maritime review, 2026-10-13). When the near side has
+no enablement host, `canTraverseExit` asks the exit's DESTINATION: a
+destination that itself composes the mode's enablement mixin (a `Pool`)
+admits the mode, with its own axes, difficulty and the load veto. Only
+the place counts, never its contents — you swim INTO water, but a ladder
+at the foot of a shaft does not make the top climbable.
 
 - **Transient** (cleared): walk + the vehicular modes (no enablement-
   mixin to remain "in" at the destination), OR climb/swim/fly when

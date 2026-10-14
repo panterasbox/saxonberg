@@ -241,7 +241,7 @@ suite('2 · 3 · the wade, the small water', () => {
   });
   afterAll(() => wader?.close());
 
-  it('2 · wading is refused where no still water stands, in words; admitted where it does', async () => {
+  it('2 · wading is refused where no water lies that way; admitted into the pool from the strand', async () => {
     const r = await wader.cmd('swim west');
     expectRefused(r);
     expect(squash(await r.said())).not.toMatch(/don't understand/i);
@@ -699,5 +699,21 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     const r = await w.cmd('wash');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/wash your hands|scrub your hands/i);
+  }, 300_000);
+
+  it('40 · the strand is a shore of the pool and the pool IS the water: swim in, draw salt, no water object', async () => {
+    // ⭐ (review, 2026-10-13) No `still water` thing stands anywhere: the
+    // strand cites the water it is beside, the pool the water it is.
+    await at('/world/terminus/estuary/strand');
+    expect(await readOf('pool', /The sea is /)).toMatch(/Green and still[^]*The sea is /);
+    expect(await look(w)).not.toMatch(/still water/i);
+    expectOk(await w.cmd('swim east'));
+    expect(await look(w)).toMatch(/You are in the water/);
+    expect(await readOf('pool', /The sea is /)).toMatch(/Clear green water[^]*The sea is /);
+    await w.cmd('spill skin');
+    expectOk(await w.cmd('fill skin from pool'));
+    expect(await look(w, 'look --peek skin')).toMatch(/brine/i);
+    expectOk(await w.cmd('swim west'));
+    expect(await look(w)).toMatch(/strand/i);
   }, 300_000);
 });

@@ -1,14 +1,11 @@
-# ⭐ CONFERRED by the maritime build (D27). Held until then on the
-# navigable-water design, which owned the question of how you get into
-# water: a small water you can see across is a PLACE, and the water there
-# is a thing in the room — `StillWater`, the instrument of swimming as a
-# ladder is of climbing — standing in the pool and on the strand you wade
-# in from. The six `media: [ground, water]` exits authored in the estuary
-# and at the wharf were the evidence somebody wanted this before either
-# design; they become swimmable wherever a `StillWater` stands.
-#
-# ⛔ Never conferred by a shore (a waterside place) or a deck: a shore cites a water you are
-# not in.
+# ⭐ CONFERRED by the maritime build (D27; reshaped in review, 2026-10-13).
+# A small water you can see across is a PLACE — a `Pool` — and the PLACE
+# is the water: being in it makes its ways swimmable, and an exit whose
+# destination is one (the strand's east) is swimmable INTO it. Every
+# place beside a water (`ShoreMixin`) affords the verb, so you are told
+# in words where a way cannot be swum; ⛔ a shore or a deck is never
+# itself swimmable. (The `StillWater` thing that stood in the pool and on
+# the strand is retired: water is not an instrument you set down.)
 verbs: [swim]
 controller: /platform/idea/cmd/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."

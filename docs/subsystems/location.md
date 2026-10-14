@@ -108,7 +108,16 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   kestrel:confluence }`); `look river` reads it, the fishing verbs bind
   the place, and `fill`/`drink`/`wash` draw from it. ⚠ A waterside place
   of any OTHER class (a riverside dyehouse) needs its own composed class
-  — the recorded cost (`shore-as-place-slate`). See
+  — the recorded cost (`shore-as-place-slate`).
+- ⭐ **A place that IS a small water** — `platform/location/Pool`
+  (`SwimmableMixin(ShoreMixin(SingletonCartesianLocation))`: the cove
+  off the estuary strand). The PLACE is the water: being in it makes its
+  ways swimmable, an exit whose destination is one is swimmable INTO it
+  (`LocomotionLogic`'s far-side rule), and it cites the water it is
+  (`waters: { pool: … }`) so `look pool` reads it and `fill` draws it.
+  A frozen pool is not swum (derived from the read). Review, 2026-10-13
+  — it retired the `StillWater` thing that stood in the pool and on the
+  strand. See
   [fishing.md](./fishing.md) § the shore and [bulk.md](./bulk.md)
   § a slot held by a place.
 

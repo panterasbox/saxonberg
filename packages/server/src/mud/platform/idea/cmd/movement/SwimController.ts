@@ -19,7 +19,7 @@ export default class SwimController extends LocomotionControllerBase {
     model: LocomotionModel,
   ): string {
     if (guard.gate === 'enablement') {
-      return "There's no water to swim in.";
+      return "You can't swim that way.";
     }
     if (guard.gate === 'capability') {
       return "This water's too rough for you.";

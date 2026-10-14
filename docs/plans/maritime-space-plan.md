@@ -2879,6 +2879,23 @@ ground, content-packs, navigable-water-slate, shore-as-place-slate.
     eight Greywater rows re-authored from the bar as origin. The
     wiki-spoiler snapshot also carried three stale `Structure.*` lines
     from B-91 — regenerated.
+  - **B-93 — a pool IS the water; `StillWater` retired** (review,
+    2026-10-13 — reshapes D27). D27 shipped `StillWater`, a fixed
+    `SwimmableMixin(Good)` propped in the pool AND on the strand: the
+    shore-prop shape revision 3 had just retired, and the second
+    water-thing (the reachability sweep had reversed `OpenWater`). It
+    was a static second copy of the water (fixed prose, hard-coded
+    salt, swum frozen or not), nothing could draw from it, and it
+    collided on `water`. Now: `platform/location/Pool` =
+    `SwimmableMixin(ShoreMixin(SingletonCartesianLocation))` (axes `*`,
+    not swum when its cited water reads frozen) — the pool cites
+    `greywater` and its biome is `open-water`; the strand is a `Shore`
+    citing the pool. `LocomotionLogic.canTraverseExit` gains the far
+    side: with no near-side host, a DESTINATION composing the mode's
+    enablement mixin admits it (never its contents). `ShoreMixin`
+    affords `swim` (inventory), so beside any water the verb exists and
+    refuses the way in words — `SwimController`'s enablement refusal is
+    now *"You can't swim that way."* Drive step 40.
 
 ## ⭐⭐⭐ Revision 2′ — `look` is one thing; a set is `query`'s (2026-10-12, review)
 

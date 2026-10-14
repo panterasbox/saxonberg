@@ -1,8 +1,9 @@
 # The strand — a sandy shore on land, beside a water small enough to see
-# across. ⭐ You are ON LAND here: the water is a thing beside you, and
-# `swim east` takes you into it — admitted because still water stands
-# here, as a ladder stands at a shaft.
-class: /platform/location/SingletonCartesianLocation
+# across. ⭐ You are ON LAND here: a `Shore` beside the pool, citing the
+# water it is beside (maritime review, 2026-10-13). `swim east` takes you
+# into it — admitted because the place that way IS the water (a `Pool`),
+# never because the strand is swimmable.
+class: /platform/location/Shore
 data:
   shortDescription: strand
   keywords: [strand, beach, sand, shore]
@@ -15,8 +16,13 @@ data:
     x: 4
     y: 0
     z: 0
-  props:
-    - /world/terminus/estuary/thing/still-water
+  details:
+    pool:
+      keywords: [pool, cove, water]
+      description: |
+        Green and still, and a short swim across.
+  waters:
+    pool: /stuff/idea/WaterExpanse/greywater
   exits:
     west:
       destination: /world/terminus/estuary/estuary-mouth
