@@ -275,13 +275,17 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
   // edge legitimately is: the fuel yard's one billhook, in the smith's
   // hands, at the yard that sells sawn boards. (Nobody in the realm SELLS
   // a cutting tool — a carpentry-slate finding.)
-  it('⭐ D16 — a peg carved from a SAWN board is sawn, and its end grain says so', async () => {
+  //
+  // ⚠ A DOWEL, not a peg: a live peg here would make the founder's later
+  // `clone …/peg` (drive 9) resolve its title through THIS zone and be
+  // refused — the clone gate reads the first live instance's zone.
+  it('⭐ D16 — a dowel carved from a SAWN board is sawn, and its end grain says so', async () => {
     await buy(smith, 'sawn board');
-    const carved = await say(smith, 'carve peg from sawn board with billhook');
-    expect(carved, `carve peg: ${carved}`).toMatch(/peg/i);
-    const peg = await examine(smith, 'peg');
-    expect(peg, `peg: ${peg}`).toMatch(/sawn through/i);
-    expect(peg).not.toMatch(/split along the grain/i);
+    const carved = await say(smith, 'carve dowel from sawn board with billhook');
+    expect(carved, `carve dowel: ${carved}`).toMatch(/dowel/i);
+    const dowel = await examine(smith, 'dowel');
+    expect(dowel, `dowel: ${dowel}`).toMatch(/sawn through/i);
+    expect(dowel).not.toMatch(/split along the grain/i);
   }, 300_000);
 });
 
