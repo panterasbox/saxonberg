@@ -99,8 +99,6 @@ const T = {
   brewCask: '/trade/brewing/thing/cask',
   frame: '/trade/carpentry/thing/frame',
   plough: '/trade/farming/thing/plough',
-  board: '/trade/carpentry/thing/board',
-  quarteredBoard: '/trade/carpentry/thing/quartered-board',
   hideFace: '/trade/tanning/thing/hide-face',
   boss: '/trade/smithing/thing/shield-boss',
   rivet: '/trade/smithing/thing/rivet',
@@ -534,8 +532,16 @@ suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', (
   let wright: Session;
   beforeAll(async () => {
     await toDaylight();
-    const w = await newPlayer('shieldwright', SMITHY);
-    const handle = w.handle;
+    // An edge, the way drive 5's smith gets one: the fuel yard's billhook
+    // (its room re-props it after the forty days, if that smith took it).
+    const w0 = await newPlayer('shieldwright', FUEL_YARD);
+    await say(w0, 'get billhook');
+    const handle = w0.handle;
+    w0.close();
+    // ⭐ Boards the way a player gets them: off the timber yard's stacks —
+    // two sawn through, one to carve and one to put a face on.
+    const w = await goTo(handle, SAWMILL);
+    await buy(w, 'sawn board', 2);
     w.close();
     wright = await goTo(handle, SMITHY);
     await practise(wright, 'smithing', 4);
@@ -543,9 +549,10 @@ suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', (
   afterAll(() => wright?.close());
 
   it('⭐ a peg carved from a SAWN board is sawn — and its end grain says so', async () => {
-    await cloneHere(SMITHY, T.board);
-    await cloneHere(SMITHY, T.billhook);
-    const carved = await say(wright, 'carve peg from board');
+    // ⚠ Not the store's clasp knife: it is a `Weapon`, not a tool, so
+    // `carve` refuses it — a carpentry-slate finding (its own prose says
+    // it "whittles a peg").
+    const carved = await say(wright, 'carve peg from sawn board with billhook');
     expect(carved, `carve peg: ${carved}`).toMatch(/peg/i);
     const peg = await examine(wright, 'peg');
     expect(peg, `peg: ${peg}`).toMatch(/sawn through/i);
@@ -553,7 +560,6 @@ suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', (
   }, 300_000);
 
   it('⭐⭐ a hide glued over a through-sawn board never holds; a quartered board mends it', async () => {
-    await cloneHere(SMITHY, T.board);
     await cloneHere(SMITHY, T.hideFace);
     await cloneHere(SMITHY, T.boss);
     await cloneHere(SMITHY, T.rivet, 4);
@@ -564,8 +570,14 @@ suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', (
     expect(cupped).toMatch(/cupped/i);
     const tightened = await say(wright, 'repair shield');
     expect(tightened, `repair: ${tightened}`).not.toMatch(/take up the slack/i);
-    await cloneHere(SMITHY, T.quarteredBoard);
-    const refit = await say(wright, 'fit board to shield');
+    // The lesson learned, back to the yard for a quartered board.
+    const handle = wright.handle;
+    wright.close();
+    wright = await goTo(handle, SAWMILL);
+    await buy(wright, 'quartered board');
+    wright.close();
+    wright = await goTo(handle, SMITHY);
+    const refit = await say(wright, 'fit quartered board to shield');
     expect(refit, `fit quartered board: ${refit}`).toMatch(/fit a new/i);
     const flat = await examine(wright, 'shield');
     expect(flat, `shield on a quartered board: ${flat}`).not.toMatch(/never held|slack/i);

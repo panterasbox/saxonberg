@@ -21,6 +21,7 @@ import Sawmill from '../thing/Sawmill';
 import LoftedSawmill from '../thing/LoftedSawmill';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Blank from '../thing/Blank';
+import Board from '../thing/Board';
 import { boardsFrom, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
@@ -155,7 +156,8 @@ describe('the cut — how many boards a log gives', () => {
 
   it('⭐ both board rows weigh what the arithmetic divides by, and are sawn', () => {
     const d = row('board').data!;
-    expect(row('board').class).toBe('/platform/thing/Timber');
+    // A `Board` — Timber that affords `carve`, like the riven blank.
+    expect(row('board').class).toBe('/trade/carpentry/thing/Board');
     expect(d.mass).toBe(BOARD_KG);
     expect(d.constructionForm).toBe('sawn');
     // ⭐ A quartered board IS a board — it extends the row (so `fit` takes
@@ -175,9 +177,18 @@ describe('the rows the verbs lean on', () => {
     expect(row('riven-blank').class).toBe('/trade/carpentry/thing/Blank');
     expect(row('riven-blank').data!.constructionForm).toBe('riven');
     const peers = Blank.commandContributions.peers ?? [];
-    expect(Blank.commandContributions.self).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
+    // ⭐ To whoever HOLDS it (`environment`), not `self` — a carried blank
+    // afforded nothing until the review pass.
+    expect(Blank.commandContributions.environment).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
     expect(peers).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
     // ⚠ Base-class statics SHADOW: Timber's own peers must be carried.
+    for (const v of Timber.commandContributions.peers ?? []) expect(peers).toContain(v);
+  });
+
+  it('⭐ a sawn board affords `carve` too — the part keeps the board\'s grain', () => {
+    const peers = Board.commandContributions.peers ?? [];
+    expect(Board.commandContributions.environment).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
+    expect(peers).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
     for (const v of Timber.commandContributions.peers ?? []) expect(peers).toContain(v);
   });
 

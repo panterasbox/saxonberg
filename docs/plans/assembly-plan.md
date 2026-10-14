@@ -1096,6 +1096,16 @@ that the help lies):
 - **`fit` matches by row lineage.** A part fits a line when either row
   `extends:` the other (or it answers to the part's name); the quartered
   board now `extends:` the board, so the remedy is reachable.
+- **A board affords `carve` too, and a HELD piece does.** The drive of
+  this decision found the lesson unreachable twice over: only the riven
+  `Blank` afforded `carve` (so with a sawn board and an edge in hand the
+  verb did not exist), and the blank declared it in `self` — a thing's
+  own verbs — rather than `environment`, which is how a held thing grants
+  a verb to its holder, so a blank in your hands afforded nothing either
+  (drive 5 only worked because blanks lay in the room). The sawn boards
+  are a trade-carpentry `Board` class now (a `Timber` with the blank's
+  affordance, `Timber`'s `fit` restated — base statics shadow), and both
+  declare `environment` + `peers`.
 - **The grain is visible:** a wooden part's look line names its form
   ("a sawn oak shield-board") and a piece of stock reads its end grain in
   words (split along the grain · sawn on the quarter · sawn through, and
@@ -1103,7 +1113,9 @@ that the help lies):
 
 Left for a carpentry slate (not designed here): carving as an engaged act
 with exertion, whether `carve` shares `make`'s can-make gate, competence
-in sawing, the lathe as `carve`'s next rung, the store's stocked hafts.
+in sawing, the lathe as `carve`'s next rung, the store's stocked hafts,
+and the general store's clasp knife — its prose says it "whittles a peg"
+and `carve` refuses it, because it is a `Weapon` and not a tool.
 
 ## ⭐⭐ Host placement
 

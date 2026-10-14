@@ -6,7 +6,7 @@
 # the two together. The row is seasoned because the row is what the
 # timber yard stocks — the yard's patience is what you pay for. Boards a
 # player saws off a bole come off green, whatever the row says.
-class: /platform/thing/Timber
+class: /trade/carpentry/thing/Board
 data:
   shortDescription: sawn board
   keywords: [board, boards, plank, planks, sawn, "sawn board"]
