@@ -59,6 +59,7 @@ import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
+import type Structure from '../../platform/idea/Structure';
 
 /** What composes at one position. */
 export interface ExpanseField {
@@ -170,7 +171,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    * each where its node is (maritime review: a building on a rock has no
    * position of its own; it is where its rock is).
    */
-  private landmarks: { stuff: Stuff; at: GeoPosition }[] = [];
+  private landmarks: { stuff: Structure; at: GeoPosition }[] = [];
 
   public getOrigin(): GeoPosition | null {
     return this.origin === null ? null : new GeoPosition(this.origin);
@@ -372,7 +373,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     const out: Sighted[] = this.landmarks.map(({ stuff, at }) => ({
       craft: stuff,
       at,
-      heightM: (stuff as unknown as { getHeightM?: () => number }).getHeightM?.() ?? 0,
+      heightM: stuff.getHeightM(),
       fixed: true,
     }));
     for (const c of this.craft()) {
@@ -541,7 +542,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    */
   private async loadStructures(): Promise<void> {
     const self = this.getTemplatePath() ?? '';
-    const landmarks: { stuff: Stuff; at: GeoPosition }[] = [];
+    const landmarks: { stuff: Structure; at: GeoPosition }[] = [];
     // ⭐ The structure catalogue, by key — never a full-table query
     // (maritime review, 2026-10-13). Reading it here also warms it at
     // boot, which the horizon then reads synchronously.
@@ -572,7 +573,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
       const row = await cat.structureOf(dest);
       if (row === null || row.ship || landmarks.some((l) => l.stuff.getTemplatePath() === row.path)) continue;
       try {
-        landmarks.push({ stuff: await StuffApi.singleton<Stuff>(row.path), at });
+        landmarks.push({ stuff: await StuffApi.singleton<Structure>(row.path), at });
       } catch {
         /* a broken row contributes nothing */
       }

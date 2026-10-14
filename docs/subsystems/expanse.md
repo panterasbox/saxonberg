@@ -305,9 +305,22 @@ emitters that announce themselves (a bell, a gun, a signal).
 | vector wind | `Band.lean` becomes a deviation | weather |
 | a boat adrift across a restart | the dinghy is a deck prop, not boot-listed | the vessel build |
 | cargo in a ship's hold | the rooms are singleton, non-persistable | the vessel build |
+| the logbook (*what proves the depletion*) | `chronicle` is append-only and exists | navigable-water § salvaged Q1 |
+| the place↔bulk line (a bath, a cistern, a spring) | `Shore` (beside) and `Pool` (in) are its two drawn edges | navigable-water § salvaged Q2 |
+| reversing flow, the tidal bore | — | navigable-water § 4 / salvaged Q3 |
 
 ## History
 
+- **Maritime review — a pool IS the water (2026-10-13, `b6d9f5211`).**
+  D27's `StillWater` (a fixed swimmable thing propped in the pool and on
+  the strand) retired for `platform/location/Pool` and a strand that is
+  a `Shore`; the locomotion gate reads an exit's far side. See
+  [location.md](./location.md), [locomotion.md](./locomotion.md).
+- **Maritime review — a Ship is a Structure (2026-10-13, `df5f24d0d`).**
+  *"One field is the whole difference"* reversed: `Ship extends
+  Structure` carries the voyage; a building is a plain `Structure`, and
+  the light on a rock is where its rock's node is. Scoped reads replaced
+  every registry-wide one (`d3daaa29a`).
 - **Maritime review — the graph is spherical (2026-10-13, before
   merge).** The build had made lat/lon the ONLY system: every node
   authored an absolute `expansePosition`, nodes had no size
@@ -328,6 +341,13 @@ emitters that announce themselves (a bell, a gun, a signal).
   navigator's jobs (lens 3b). In their place: the `horizon` scope, `look
   horizon`, `watch horizon` + the hired lookout's brain, `measure
   bearing`, the derived crossing delta, and fog as a weather lean.
-- **Maritime build (2026-10).** The frame, the water tier, the voyage,
-  the Structure, the two channels, the Greywater and the Hesper. The
-  `SpatialZone` split into the region and `LocationZoneMixin`.
+- **Maritime revisions 2′ and 3 (2026-10-11/12).** `look` takes one
+  thing and `query` (aliases `scan`, `inventory --ledger`'s rendering)
+  lists a set (`810387483`); the shore as a place and drawing water
+  (`a0d5e65cb`…`e9a83bdb4`) — see [location.md](./location.md) and
+  [fishing.md](./fishing.md).
+- **Maritime build (2026-10, MR !358, `0a393f154`…`b6d9f5211`).** The
+  frame, the water tier, the voyage, the Structure, the two channels,
+  the Greywater and the Hesper. The `SpatialZone` split into the region
+  and `LocationZoneMixin`. The plan and requirements retired at the
+  sweep; git history keeps both, with the drive record.

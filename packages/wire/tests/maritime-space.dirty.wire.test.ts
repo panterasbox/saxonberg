@@ -4,9 +4,11 @@
  * Greywater's channel, Westerlies, haar and race, Gannet Rock and its light,
  * the pilot on the wharf and two charts in the hold.
  *
- * The requirements doc's drive, its numbering kept where a step is driven
- * here. ⚠ Step 22 (log out mid-crossing, restart, log back in) is run BY
- * HAND and recorded in the plan — a wire file cannot restart the server.
+ * The maritime requirements' drive, its numbering kept where a step is
+ * driven here (the requirements and the plan, with its drive record, were
+ * retired at the pre-merge sweep — git history keeps both). ⚠ Step 22 (log
+ * out mid-crossing, restart, log back in) was run BY HAND and recorded in
+ * that drive record — a wire file cannot restart the server.
  * ⚠ Step 8's *different bracket at a different band* is proven in the unit
  * suite (`LatitudeReading.test.ts`): no wire session can be granted a
  * navigation band without earning one. Step 21's *same traffic at the same
@@ -85,7 +87,7 @@ const MATE = uniqueHandle('mate');
  * ⚠ `look here`, not a bare `look`: a bare look targets `$focus`, and
  * after handling things in one room and leaving it, the focus can still
  * name that room's things — the drive met a "which target?" prompt
- * between a chart in hand and the hold's lantern (recorded in the plan).
+ * between a chart in hand and the hold's lantern (the plan's drive record).
  */
 async function look(s: Session, what = 'look here'): Promise<string> {
   await s.drainProse();

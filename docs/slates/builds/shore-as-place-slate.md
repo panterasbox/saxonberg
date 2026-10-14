@@ -2,10 +2,13 @@
 
 > **Status: BUILT** in maritime revision 3 (MR !358, 2026-10-11) — the place names its water, the fishing verbs bind the place, drawing water ships. **Tail kept:** a waterside place of another class (a dyehouse, a mill race) needs its own composed class; a general way for any place to be made waterside from its own row is the open design. Originally raised in the climate build's review (2026-10-11),
 > handed to the maritime build (`maritime-space`, build-1) to do in its MR.
-> **Left:** the citation on the room · the faces · the cited water as a
-> target (`look kestrel`) · the verbs and brains that bind a `Shore` ·
-> `Gunwale` as a deck's derived citation · the five shipped rows · the
-> `Shore` class's retirement
+> **Left:** only the tail — a waterside place of another class (a
+> riverside dyehouse, a mill race) needs its own composed class, and a
+> general way for any place to be made waterside from its own row is the
+> open design. (Built since: the citation on the room, the cited water
+> as a target, the verbs and brains that bind the place, the deck as a
+> `Shore`, the prop's retirement — and in review, the `Pool`: a small
+> water you are IN is the place itself, citing the water it is.)
 > **Size:** a wave
 
 ## ⚠ Two rulings since this slate was written (maritime's review)

@@ -392,7 +392,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     if (reach === null) return null;
     let registry: FisheryRegistry | null = null;
     try {
-      registry = (await StuffApi.singleton<Stuff>(FISHERY_PATH)) as unknown as FisheryRegistry;
+      registry = await StuffApi.singleton<FisheryRegistry>(FISHERY_PATH);
     } catch {
       registry = null;
     }
@@ -431,7 +431,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     if (!state) return [];
     const lines = physicalRead(state);
     if (state.standing !== null) {
-      const registry = StuffApi.findByTemplatePath<Stuff>(FISHERY_PATH) as unknown as FisheryRegistry | null;
+      const registry = StuffApi.findByTemplatePath<FisheryRegistry>(FISHERY_PATH);
       if (registry) lines.push(...registry.readForViewer(state.standing, state.disciplineKey, viewer));
     }
     return lines;

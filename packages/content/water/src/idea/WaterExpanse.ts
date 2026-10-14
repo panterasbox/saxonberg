@@ -148,7 +148,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     let standing: FisheryStanding | null = null;
     let disciplineKey: string | null = null;
     try {
-      const registry = (await StuffApi.singleton<Stuff>(FISHERY_PATH)) as unknown as FisheryRegistry;
+      const registry = await StuffApi.singleton<FisheryRegistry>(FISHERY_PATH);
       standing = await registry.standingAt(ref, nowS).catch(() => null);
       disciplineKey = await registry.readDisciplineKey();
     } catch {
@@ -171,7 +171,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     if (!state) return [];
     const lines = [state.line];
     if (state.standing !== null) {
-      const registry = StuffApi.findByTemplatePath<Stuff>(FISHERY_PATH) as unknown as FisheryRegistry | null;
+      const registry = StuffApi.findByTemplatePath<FisheryRegistry>(FISHERY_PATH);
       if (registry) lines.push(...registry.readForViewer(state.standing, state.disciplineKey, viewer));
     }
     return lines;

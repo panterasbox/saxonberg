@@ -58,6 +58,7 @@ import {
 } from '@saxonberg/server/mud/lib/document/Register';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Discipline from '@saxonberg/server/mud/platform/idea/Discipline';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type {
@@ -311,8 +312,8 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
       /* the default */
     }
     try {
-      const row = await StuffApi.singleton<Stuff>(path);
-      const key = (row as unknown as { getKey?: () => string })?.getKey?.() ?? '';
+      const row = await StuffApi.singleton<Discipline>(path);
+      const key = row.getKey();
       return key === '' ? null : key;
     } catch {
       return null;

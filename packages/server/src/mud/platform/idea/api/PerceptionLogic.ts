@@ -1320,8 +1320,8 @@ function horizonAshore(viewer: Stuff): HorizonView {
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
     // The zone's own structures — the catalogue's keyed answer.
     for (const row of structureCatalogue()?.peekStructuresWithin(zonePath) ?? []) {
-      const live = StuffApi.findByTemplatePath<Stuff>(row.path);
-      const s = live && live.isIdea() ? (live as unknown as Craft & Structure) : null;
+      // The catalogue's rows ARE structures — its own class query.
+      const s = StuffApi.findByTemplatePath<Structure>(row.path) ?? null;
       if (s === null || s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;
