@@ -5,7 +5,7 @@
 # own when the oil is gone. Until the envelope build it was a `PortableLight`
 # — a `Switchable` — which meant it burned forever, and the only reason that
 # never mattered is that nowhere in the realm was dark.
-class: /platform/thing/Lamp
+class: /platform/thing/Lantern
 data:
   mass: 0.85
   shortDescription: punched-tin lantern

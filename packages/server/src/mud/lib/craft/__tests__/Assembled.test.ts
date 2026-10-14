@@ -7,6 +7,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Tool from '../../../platform/thing/Tool';
+import AssembledTool from '../../../platform/thing/AssembledTool';
 import Assembly from '../../../platform/thing/Assembly';
 import Material from '../../material/Material';
 import { MaterialApi } from '../../../api/material';
@@ -47,8 +48,8 @@ function line(part: string, mat: string, over: Partial<PartLine> = {}): PartLine
   };
 }
 
-function pick(): Tool {
-  const t = makeStuff(() => new Tool());
+function pick(): AssembledTool {
+  const t = makeStuff(() => new AssembledTool());
   t.recordAssembly(
     [line('head', IRON), line('haft', ASH)],
     [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
@@ -64,12 +65,11 @@ beforeEach(() => {
 afterEach(() => StuffApi.clearAll());
 
 describe('AssembledMixin', () => {
-  it('is vacuous on a one-material thing — every Durable read is unchanged', () => {
+  it('⭐ a one-material tool is not an assembly at all — the mixin is not composed there', () => {
     const knife = makeStuff(() => new Tool());
-    expect(knife.isAssembly()).toBe(false);
-    knife.wear(0.25, 'shock');
+    expect(MixinApi.isAssembled(knife)).toBe(false);
+    knife.wear(0.25);
     expect(knife.getCondition()).toBeCloseTo(0.75, 6);
-    expect(knife.leaks()).toBe(false);
   });
 
   it('⭐ routes a jar to the part that gives first — the haft, never the head', () => {
@@ -130,7 +130,7 @@ describe('AssembledMixin', () => {
   });
 
   it('a FOUND thing reads its bill at defaults and materializes it on first use', () => {
-    const t = makeStuff(() => new Tool());
+    const t = makeStuff(() => new AssembledTool());
     t.setBill({
       parts: [
         { part: 'head', template: '/x/thing/head', count: 1, role: 'structural', material: IRON },
@@ -138,7 +138,6 @@ describe('AssembledMixin', () => {
       ],
       joints: [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'] }],
     });
-    expect(t.isAssembly()).toBe(true);
     expect(t.getParts().map((l) => l.part)).toEqual(['head', 'haft']);
     t.wear(0.2, 'shock');
     expect(t.getLine('haft')!.condition).toBeCloseTo(0.8, 6);
@@ -146,7 +145,7 @@ describe('AssembledMixin', () => {
   });
 
   it('refuses a malformed bill on the setter', () => {
-    const t = makeStuff(() => new Tool());
+    const t = makeStuff(() => new AssembledTool());
     expect(() => t.setBill({ parts: [{ part: 'x', template: '/x', count: 1, role: 'decorative' }] })).toThrow();
   });
 
@@ -192,8 +191,9 @@ describe('AssembledMixin', () => {
     WorldClockApi._resetForTesting();
   });
 
-  it('composes on Tool and is registered', () => {
-    expect(MixinApi.isAssembled(makeStuff(() => new Tool()))).toBe(true);
+  it('composes on the assembled classes, never on the broad family', () => {
+    expect(MixinApi.isAssembled(makeStuff(() => new AssembledTool()))).toBe(true);
+    expect(MixinApi.isAssembled(makeStuff(() => new Tool()))).toBe(false);
     expect(MixinApi.isAssembled(makeStuff(() => new Assembly()))).toBe(true);
   });
 });

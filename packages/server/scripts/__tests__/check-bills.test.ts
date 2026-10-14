@@ -126,4 +126,33 @@ describe('check-bills', () => {
     expect(all).toMatch(/Discipline 'coopering', which no row ships/);
     expect(all).toMatch(/joint 'bare' carries no competence/);
   });
+  describe('arm 7 — a bill iff the class composes AssembledMixin', () => {
+    const assembled = (c: string): boolean => c === '/platform/thing/AssembledTool';
+    const withPickClass = (cls: string): [string, TemplateRow][] =>
+      SOUND.map(([p, r]) =>
+        p === '/x/thing/pick' ? row(p, { ...r.raw, class: cls }) : ([p, r] as [string, TemplateRow]),
+      );
+    const run = (rows: [string, TemplateRow][]): string =>
+      checkBills(new Map(rows), [PICK_RECIPE], assembled)
+        .map((f) => f.detail)
+        .join('\n');
+
+    it('is quiet when the billed row names the assembled subclass', () => {
+      expect(run(withPickClass('/platform/thing/AssembledTool'))).toBe('');
+    });
+
+    it('⭐ fires on a bill on the broad family (the parts record is never read)', () => {
+      expect(run(withPickClass('/platform/thing/Tool'))).toMatch(
+        /a bill on a \/platform\/thing\/Tool, which does not compose AssembledMixin/,
+      );
+    });
+
+    it('⭐ fires on the assembled subclass with no bill (no parts is no assembly)', () => {
+      const rows = [
+        ...withPickClass('/platform/thing/AssembledTool'),
+        row('/x/thing/knife', { class: '/platform/thing/AssembledTool', data: { mass: 0.2 } }),
+      ];
+      expect(run(rows)).toMatch(/composes AssembledMixin but this row has no bill/);
+    });
+  });
 });

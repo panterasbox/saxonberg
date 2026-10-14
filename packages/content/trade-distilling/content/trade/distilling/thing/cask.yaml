@@ -29,7 +29,7 @@
 # `imparts` figures now actually express.
 # ⭐ The KIND is the commons cask (assembly D10): the bill, the charred
 # profile a re-fire reveals, and the cooper's recipe that makes one.
-class: /platform/thing/Vat
+class: /platform/thing/Cask
 extends: /stuff/thing/vessel/cask
 data:
   shortDescription: "whiskey cask"

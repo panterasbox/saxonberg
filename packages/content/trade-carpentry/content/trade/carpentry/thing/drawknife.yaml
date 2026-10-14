@@ -2,7 +2,7 @@
 # along the grain to shave a piece round or flat. The tool the cooper
 # hollows and backs a stave with, and the one that trues a re-fired cask.
 # A smith's blade and two carved handles, wedged.
-class: /platform/thing/Tool
+class: /platform/thing/AssembledTool
 data:
   keywords: [drawknife, draw-knife, drawshave, "draw knife"]
   shortDescription: drawknife

@@ -273,6 +273,9 @@ describe("general-store content integrity", () => {
     // ⭐ A light that burns fuel — `BurnerMixin` over a `LightSource`,
     // so it has a reserve, a burn rate and a burnout edge for free.
     "/platform/thing/Lamp",
+    // The lantern is a `Lamp` made of parts (frame, panes, burner) — the
+    // assembled subclass, discrete like its parent.
+    "/platform/thing/Lantern",
     "/platform/thing/equipment/Weapon",
     // ⭐ The injury build's armour + arms line (W-A5 / W-C1). A `Garment`
     // is the covering class (padded gambeson → steel breastplate, one
@@ -282,6 +285,12 @@ describe("general-store content integrity", () => {
     // quantity. The AMMUNITION they fire is the one exception, below.
     "/platform/thing/equipment/Garment",
     "/platform/thing/equipment/Launcher",
+    // The same families made of parts — boots, hafted arms, the bow, the
+    // pick. Each extends its family and is exactly as discrete.
+    "/platform/thing/equipment/AssembledGarment",
+    "/platform/thing/equipment/AssembledWeapon",
+    "/platform/thing/equipment/AssembledLauncher",
+    "/platform/thing/AssembledTool",
     "/platform/thing/Receptacle",
     // A `Feeder` is a `Receptacle` that an animal eats from — the same
     // Bulkable/Container/Thing stack with one marker mixin on top, and no
@@ -307,6 +316,7 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/DisguiseGarment",
     "/trade/cooking/thing/KitchenTool",
     "/trade/textiles/thing/SpinningTool",
+    "/trade/textiles/thing/AssembledSpinningTool", // made of parts; extends the line above
     "/trade/dyeing/thing/DyeVat",
     // ⭐ A `Watch` (the University Avenue locality's class) — a brass
     // hunter-cased pocket watch, `Sealable` + `MechanicalMovement` over a
@@ -341,6 +351,7 @@ describe("general-store content integrity", () => {
     // are Vat-family vessels (the transform rides the vessel), the
     // small still the distilling pack's furnace-tool — all discrete.
     "/platform/thing/Vat",
+    "/platform/thing/Cask", // made of parts; extends the line above
     "/trade/distilling/thing/Still",
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
@@ -359,6 +370,8 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
+    // The bed and the armchair: a `Chair` made of parts (frame + cushion).
+    "/platform/thing/AssembledChair",
     "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
@@ -516,7 +529,10 @@ describe("general-store content integrity", () => {
     // goes out, which is the defect the class change exists to fix.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `thing/${f}.yaml`);
-      expect(light.class).toBe("/platform/thing/Lamp");
+      // The lantern is the `Lamp` made of parts (`Lantern` extends it).
+      expect(light.class).toBe(
+        f === "lantern" ? "/platform/thing/Lantern" : "/platform/thing/Lamp",
+      );
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
       // ⚠ `BurnerMixin.lit` defaults TRUE — a row that forgets this
       // ships alight on a shop shelf with its fuel draining.

@@ -1079,13 +1079,14 @@ claims about everything else on that host.
 
 | what | host | the claim, and the check |
 |---|---|---|
-| **`AssembledMixin`** (`lib/craft/Assembled.ts`; fields `bill`, `parts`, `joints`, `gauge`; a `commandContributions` static for `fit`; overrides `getCondition`, `isBroken`, `wear`; adds `isAssembly()`, `leaks()`, `partAnswering`, `wearLine`, `ensureParts`, `getParts()`, `getJoints()`; a `markupAugmenters` bill line) | requires `DurableMixin` beneath it (`__validateComposition__` throws otherwise) | *a durable thing MAY be made of parts.* Vacuous for a one-input thing: `parts` empty, `bill` absent, every override falls through to Durable. A dagger from one bar is not an assembly and says nothing about one (`isAssembly()` false). No guard anywhere re-narrows the host set; the mixin answers its own emptiness, as `imparts` does |
-| `AssembledMixin` on `Tool` | `platform/thing/Tool.ts` → `AssembledMixin(CraftedMixin(ToolMixin(DurableMixin(Good))))` | every tool may be hafted; the pick, the axe, the froe, the plough, the compass. True |
-| on `Weapon` (→ `Launcher`), `Shield`, `Garment` | `equipment/` | the spear, the bow, the shield's face over boards, the boots. True; and these are the covering-fold hosts the channel routing serves |
-| on **`Vat`** + **`DurableMixin`** (new) | `platform/thing/Vat.ts` | *a vessel wears and can be made of staves.* Sixteen rows gain a `condition` gauge at 1 — a carboy, a salt pan, a culture jar wear honestly and never say so until worn. **This is what makes `repair <cask>` reach the controller** (the `requires: DurableMixin` gate). `getClosure()` consults `leaks()` |
-| on **`Lamp`** + `Durable` | `platform/thing/Lamp.ts` | a lamp wears and may be a body + pane + wick. `getEmittedFlux()` multiplies the `facing` lines' condition (a failed pane × dial `paneCrackedFlux` 0.35) |
-| on **`Chair`** + `Durable` | `platform/thing/Chair.ts` | every seat and bed wears and may be a frame + cushion. `getRestQuality()` × the worst structural line's condition, and the bare-frame figure (dial) when the cushion line is failed |
-| on **`Receptacle`** + `Durable` | `platform/thing/Receptacle.ts` | a pail, a pot, a bowl wear and may be hooped. `getClosure()` consults `leaks()`. The widest claim in the table; true of every pot |
+| **`AssembledMixin`** (`lib/craft/Assembled.ts`; fields `bill`, `parts`, `joints`, `gauge`; a `commandContributions` static for `fit`/`repair`/`salvage`; overrides `getCondition`, `isBroken`, `wear`; adds `leaks()`, `partAnswering`, `wearLine`, `ensureParts`, `getParts()`, `getJoints()`; a `markupAugmenters` bill line) | requires `DurableMixin` beneath it (`__validateComposition__` throws otherwise) | ⭐⭐ ***this thing IS made of parts.*** **Re-planned in review (2026-10-13):** the first cut composed it on the broad families (`Tool`, `Vat`, `Lamp`, `Chair`, `Receptacle`, `Weapon`, `Garment`) on the theory that it was vacuous for a one-input thing — and every caller then grew an `isAssembly()` guard to re-narrow the host set, which is the tell that the host is wrong (62 of 69 tools, all 19 receptacles had no parts). `isAssembly()` and every guard are gone; `MixinApi.isAssembled` is the only question, and `lint:bills` arm 7 holds *bill ⇔ composes AssembledMixin* in both directions |
+| **`AssembledTool`** | `platform/thing/AssembledTool.ts` → `AssembledMixin(Tool)` | the pick, the felling axe, the froe, the drawknife, the croze, the inshave, the plough. `Tool` itself is master's composition again |
+| **`AssembledWeapon`** · **`AssembledLauncher`** · **`AssembledGarment`** · `Shield` | `platform/thing/equipment/` → `AssembledMixin(<family>)` | spear, mace, warhammer, flail · the hunting bow · the leather boots · the shield (every shield row has a face over boards). `AssembledLauncher` restates `Launcher`'s `commandContributions` (base statics shadow) |
+| **`Cask`** | `platform/thing/Cask.ts` → `AssembledMixin(DurableMixin(Vat))` | a vat made of staves: the five cask rows. Carries the dry-out (`emptySince`, `reconcileDrying`, `getClosure()` via `leaks()`, dial `caskDryOutDays`). `Vat` keeps only `debitBulk` (an emptied vessel ends its batch — true of every vat) |
+| **`Lantern`** | `platform/thing/Lantern.ts` → `AssembledMixin(CraftedMixin(DurableMixin(Lamp)))` | the lantern; `getEmittedFlux()` × a failed `facing` pane (dial `lampCrackedGlassFlux` 0.35). The torch stays a `Lamp` |
+| **`AssembledChair`** | `platform/thing/AssembledChair.ts` → `AssembledMixin(CraftedMixin(DurableMixin(Chair)))` | the armchair and the bed; `getRestQuality()` falls to the bare-frame figure when the cushion line fails. The tub stays a `Chair` |
+| `AssembledSurveyInstrument` (trade-mining) · `AssembledSpinningTool` (trade-textiles) | the pack's `src/thing/` | the compass, the drop spindle; each restates its parent's `commandContributions` |
+| ⛔ `Receptacle` | — | no receptacle row has a bill; it is master's composition again |
 | on `Smoker` (pack) | `trade-apiculture/src/thing/Smoker.ts` | the bellows is riveted leather over boards; local to the pack |
 | ⛔ NOT on `Good`, `Thing`, `Fitting`, `Chest`, `WaterFixture`, `Bottle`, `Provision` | — | *Freshness off every Thing* is the shape to fear. The table and the wardrobe are deferred (a `Fitting` claim is *every shelf wears*, weak; a `Chest` is Staged); the water-butt is a source by class; the fuel casks are bottles |
 | **`platform/thing/Assembly`** (new concrete) | `AssembledMixin(DurableMixin(CraftedMixin(Good)))` | the generic made-of-parts thing with no other capability: cask head, bellows, frame, cushion, wheel. A noun, not an adjective. The twin of `Good` for this axis |
@@ -1097,6 +1098,7 @@ claims about everything else on that host.
 | `Construction` stock domain (`riven`, `sawn`, `hewn`; `integrityFor`) | `lib/material/Construction.ts` | a closed third tuple; `isCovering()`/`isWeapon()` false, so every existing guard holds. `Timber` rows and part lines carry it |
 | `MaturingMixin.fillCount`, `impartsSpent`, `charLevel`, `charredImparts` | `lib/maturation/Maturing.ts` | *a maturing vessel's character depletes with use and can be restored.* True of every vat; vacuous where no `imparts` is authored |
 | `ClosureLevel` `dryTight` | `lib/bulk/Bulkable.ts` | a band between open and liquid-tight; `compareClosure` orders it |
+| **`LoftedSawmill`** (trade-carpentry) | `src/thing/LoftedSawmill.ts` → `ChamberedMixin(Sawmill)` | the water sawmill and its drying loft. **Re-planned in review:** `ChamberedMixin` was first on `Sawmill`, which gave the pit saw (a blade) an empty compartment. `Sawmill` is `ToolMixin(Good)` again |
 | **`Chamber`** (`platform/thing/Chamber.ts`) + `ChamberedMixin` (`lib/spatial/Chambered.ts`) + the `Atmospheric` widening | per the fridge-design-pack | the widening is a claim on every Atmospheric composer: none may assume `getContents()` on `this`; the compiler enforces it |
 | `Government.standards[]` | `platform/idea/Government.ts` | *a polity may declare a standard measure.* Empty by default |
 | `Landing` on the three request shapes | `api/crafting.ts` | optional; `'hands'` default; derived `'none'` for a claimed vessel |
@@ -1783,6 +1785,10 @@ Read first, in this order:
 ---
 
 ## Drive record
+
+**Run 20 (2026-10-13), after the narrowing review (`AssembledMixin` only
+on classes that ARE made of parts; `isAssembly()` and its guards gone;
+`lint:bills` arm 7): _pending_.**
 
 **Run 19 (2026-10-13), after "ownership follows the inputs" replaced the
 acting-person-through-timers rule: 21 / 21 green**, the restart included.

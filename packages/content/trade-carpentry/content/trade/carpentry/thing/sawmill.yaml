@@ -12,7 +12,7 @@
 #
 # `maxThroughputKgPerHour: 300` is the frame's own ceiling — a flood does
 # not make the blades go through oak faster than the carriage can feed.
-class: /trade/carpentry/thing/Sawmill
+class: /trade/carpentry/thing/LoftedSawmill
 data:
   shortDescription: sawmill frame
   # ⚠ Not `frame`: a chair frame and a hive frame are parts a player

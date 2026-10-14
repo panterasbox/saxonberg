@@ -10,7 +10,7 @@
 # metal a particular one is made of, so it does not say — the shape is
 # the row's and the metal is the instance's, and `analyze weapon` is
 # where you find out.
-class: /platform/thing/equipment/Weapon
+class: /platform/thing/equipment/AssembledWeapon
 data:
   shortDescription: flail
   keywords: [flail]

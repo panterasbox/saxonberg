@@ -85,7 +85,7 @@ export default class FitController extends CraftController<FitModel> {
     // SHARES in hand bound "plough" to a share (inventory is searched
     // first, and a share is a Tool like the plough) — the assembly drive.
     // The thing the part fits, answering to the word, is what was meant.
-    if (whole && !(MixinApi.isAssembled(whole) && whole.isAssembly()) && model.whole?.raw) {
+    if (whole && !MixinApi.isAssembled(whole) && model.whole?.raw) {
       const meant = this.wholeFor(part, giver, model.whole.raw.trim().toLowerCase());
       if (meant) whole = meant;
     }
@@ -153,7 +153,7 @@ export default class FitController extends CraftController<FitModel> {
     if (room && MixinApi.isContainer(room)) pools.push(...room.getContents());
     const tpl = part.getTemplatePath() ?? '';
     const fits = (s: Stuff): { failed: boolean } | null => {
-      if (s === part || !MixinApi.isAssembled(s) || !s.isAssembly()) return null;
+      if (s === part || !MixinApi.isAssembled(s)) return null;
       if (named && !(MixinApi.isPerceptible(s) && s.hasKeyword(named))) return null;
       const lines = s
         .getParts()

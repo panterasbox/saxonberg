@@ -6076,3 +6076,27 @@ which asserts the **premise** too — that the exit graph really is
 circular — so if that ever stops being true somebody learns the fixes
 became unnecessary rather than wrong. See
 [boundary.md § Locking](./subsystems/boundary.md).
+
+## A mixin composed on a broad family, then guarded back down
+
+**Don't.** Compose a capability mixin on a family because *some* of its
+members have it, call it "vacuous for the rest", and then guard every
+caller with a predicate that re-narrows the host set
+(`MixinApi.isAssembled(x) && x.isAssembly()`).
+
+**Do.** Give the family a narrow subclass that IS the thing
+(`AssembledTool extends AssembledMixin(Tool)`, `Cask`, `Lantern`), point
+only the rows that have the capability at it, and let `MixinApi.isX` be
+the whole question. Where the capability has a row-side declaration (a
+`bill:`), gate *declaration ⇔ composition* in both directions so neither
+side can drift (`lint:bills` arm 7).
+
+**Why.** The guard is the tell that the host is wrong: the type says
+every tool is made of parts, and every reader has to know it is lying.
+The assembly build's first cut put `AssembledMixin` on `Tool`, `Vat`,
+`Lamp`, `Chair`, `Receptacle`, `Weapon` and `Garment`: 62 of 69 tools and
+all 19 receptacles had no parts, and nine call sites carried
+`isAssembly()`. It is the same mistake the base-class narrowing refactor
+removed. ⚠ A subclass restates its parent's `commandContributions` when
+it adds a mixin above the parent (base statics shadow; mixin statics
+union).

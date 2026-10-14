@@ -5,7 +5,7 @@
 # armies carried them for two hundred years after firearms arrived.
 # What it gives up is energy — ~50 J against a musket's 1500 — so it
 # beats mail by being a POINT, not by arriving at firearm pressure.
-class: /platform/thing/equipment/Launcher
+class: /platform/thing/equipment/AssembledLauncher
 data:
   shortDescription: hunting bow
   keywords: [bow, hunting, shortbow]

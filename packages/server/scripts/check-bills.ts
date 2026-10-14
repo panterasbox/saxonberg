@@ -26,6 +26,14 @@
  *    mass, so a bill whose parts outweigh its row refused every take-apart
  *    with a conservation breach (the assembly drive: a 2.5 kg cask head
  *    of three 6 kg boards). A row with a bill states its mass.
+ * 7. ⭐⭐ **a bill and `AssembledMixin` are one claim, held both ways**: a
+ *    billed row's class composes `AssembledMixin`, and a row whose class
+ *    composes it carries a bill. The mixin goes on a NARROW subclass
+ *    (`AssembledTool`, `Cask`, `Lantern`…) and never on a broad family
+ *    (`Tool`, `Vat`, `Lamp`) — composing it there put the parts surface
+ *    on 62 tools with no parts and every caller grew an `isAssembly()`
+ *    guard to re-narrow the host set (antipatterns § mixin on the wrong
+ *    host). This arm is what keeps the guard from coming back.
  * 5. ⛔ every `Joint` row's `competence.discipline` names a Discipline that
  *    exists — a joint gated on a Discipline nobody ships reads every
  *    salvager as a novice and nothing says why (found in the plan's
@@ -39,7 +47,9 @@ import YAML from "yaml";
 import {
   CONTENT,
   SERVER_SRC,
+  composesMixin,
   effectiveRow,
+  packSources,
   inheritanceIndex,
   walkYamlFiles,
   type TemplateRow,
@@ -75,6 +85,8 @@ interface RecipeDoc {
 export function checkBills(
   rows: ReadonlyMap<string, TemplateRow>,
   recipes: readonly RecipeDoc[],
+  /** Does this class compose `AssembledMixin`? Arm 7; omitted, it is skipped. */
+  assembled?: (classPath: string) => boolean,
 ): BillFinding[] {
   const out: BillFinding[] = [];
   const at = (row: TemplateRow): string => relative(CONTENT, row.file);
@@ -204,6 +216,32 @@ export function checkBills(
     }
   }
 
+  // 7 — a bill iff the class composes AssembledMixin.
+  if (assembled) {
+    for (const [path, row] of rows) {
+      const eff = effectiveRow(path, rows);
+      if (!eff.class) continue;
+      const billed = !!eff.data.bill;
+      const composes = assembled(eff.class);
+      if (billed && !composes) {
+        out.push({
+          where: at(row),
+          detail:
+            `a bill on a ${eff.class}, which does not compose AssembledMixin — the ` +
+            `parts record would never be read. Name the family's assembled subclass ` +
+            `(AssembledTool, Cask, Lantern…), or give the family one.`,
+        });
+      } else if (composes && !billed) {
+        out.push({
+          where: at(row),
+          detail:
+            `${eff.class} composes AssembledMixin but this row has no bill — a thing ` +
+            `with no parts is not an assembly. Name the broad class instead.`,
+        });
+      }
+    }
+  }
+
   // 3 — one declaration: the recipe's slots cover the bill.
   for (const r of recipes) {
     const bill = bills.get(r.outputTemplate);
@@ -267,7 +305,11 @@ export function readRecipes(contentDir: string = CONTENT): RecipeDoc[] {
 
 function main(): void {
   const { rows } = inheritanceIndex(SERVER_SRC, CONTENT);
-  const findings = checkBills(rows, readRecipes());
+  const sources = packSources();
+  const cache = new Map<string, boolean>();
+  const findings = checkBills(rows, readRecipes(), (c) =>
+    composesMixin(c, "AssembledMixin", sources, cache),
+  );
   let billCount = 0;
   for (const path of rows.keys()) {
     if (effectiveRow(path, rows).data.bill) billCount++;

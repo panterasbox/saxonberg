@@ -53,7 +53,6 @@ export default class RepairController extends ManualBuildController<RepairModel>
     // (assembly D6). The check mutates nothing when that is the answer.
     if (
       MixinApi.isAssembled(item) &&
-      item.isAssembly() &&
       item.failedLines().length > 0
     ) {
       const author0 = ExecutionContextApi.getActingAuthor() as Stuff | null;

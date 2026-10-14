@@ -3,7 +3,7 @@
 # and salt in (`dryTight`) and not liquor. ⭐ Not a worse cask: a
 # different one. Pour beer in and it runs out through the joints — the
 # stated reason.
-class: /platform/thing/Vat
+class: /platform/thing/Cask
 data:
   shortDescription: dry cask
   keywords: [cask, "dry cask", dry-cask, barrel, oak, empty]

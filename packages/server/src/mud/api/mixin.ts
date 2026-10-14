@@ -1847,8 +1847,9 @@ export class MixinApi {
   }
 
   /** A durable thing whose parts keep their identity (a pick: a head on a
-   * haft). Composed beside `Durable`; vacuous on a one-material thing —
-   * ask `isAssembly()` whether THIS one has parts. See AssembledMixin. */
+   * haft). Composed only by classes whose every row has a bill
+   * (`lint:bills`), so composing it IS being made of parts. See
+   * AssembledMixin. */
   public static isAssembled(obj: Stuff): obj is Stuff & Assembled & Durable {
     return this.hasMixin(obj, Mixins.Assembled);
   }

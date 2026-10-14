@@ -24,7 +24,7 @@
 # profile, same grade cap at the cut's band. What you choose when you
 # choose a cask is CHARACTER, not quality — and the whiskey-aging
 # profile's `productAtFraction` is where *when to bottle* lives.
-class: /platform/thing/Vat
+class: /platform/thing/Cask
 extends: /stuff/thing/vessel/cask
 data:
   shortDescription: "charred cask"

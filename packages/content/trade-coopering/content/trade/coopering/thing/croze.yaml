@@ -1,7 +1,7 @@
 # A croze — the cooper's groove-cutter, run round inside the ends of a
 # raised cask to cut the channel its heads seat in. A blade on a handle,
 # wedged: anybody can re-haft one.
-class: /platform/thing/Tool
+class: /platform/thing/AssembledTool
 data:
   keywords: [croze]
   shortDescription: croze

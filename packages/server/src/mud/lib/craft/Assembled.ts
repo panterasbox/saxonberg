@@ -29,11 +29,13 @@
  * 1` on a count-30 line; *the hoops are slack* is a joint whose `tension`
  * fell with every line sound.
  *
- * ⭐ **Vacuous on a thing with no parts.** A dagger from one bar has no bill
- * and no record: `isAssembly()` is false and every override falls through
- * to {@link DurableMixin}. No caller re-narrows the host set — the mixin
- * answers its own emptiness, as `imparts` does on a vat that imparts
- * nothing.
+ * ⭐⭐ **Composed only by things that ARE made of parts.** A class composes
+ * this mixin only when every row of it has a bill — the pick is an
+ * `AssembledTool`, a dagger is a plain `Tool` — and `lint:bills` holds
+ * both directions. So no caller asks "is this one really an assembly?":
+ * composing it is the answer (the base-class narrowing's rule; an earlier
+ * cut composed it on whole families and guarded every read with an
+ * emptiness check, the mixin-on-the-wrong-host tell).
  *
  * A FOUND thing (spawned from a row with a bill, never crafted) reads its
  * derived properties off the bill at defaults and MATERIALIZES its record
@@ -173,7 +175,6 @@ export interface GaugeRecord {
 
 export interface Assembled {
   /** True when this thing has a bill or a parts record — it IS made of parts. */
-  isAssembly(): boolean;
   getBill(): Bill | null;
   /** The parts record (materialized from the bill first, for a found thing). */
   getParts(): PartLine[];
@@ -281,7 +282,7 @@ function nounOf(line: { part: string; plural?: string }, n: number): string {
 
 /** The look line: what it is made of, what has failed, what is slack. */
 function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
-  if (!MixinApi.isAssembled(host) || !host.isAssembly()) return text;
+  if (!MixinApi.isAssembled(host)) return text;
   const lines = host.getParts();
   if (lines.length === 0) return text;
   const describe = (l: PartLine): string => {
@@ -453,9 +454,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
     }
 
-    isAssembly(): boolean {
-      return this.parts.length > 0 || (this.bill?.parts.length ?? 0) > 0;
-    }
 
     getBill(): Bill | null {
       if (!this.bill) return null;
@@ -560,7 +558,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     leaks(): boolean {
-      if (!this.isAssembly()) return false;
       return (
         this.getParts().some((l) => l.role === 'structural' && l.failed > 0) ||
         this.slackJoints().length > 0
@@ -794,11 +791,12 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     wear(amount?: number, channel?: Channel): void {
       const a = amount ?? 0.01;
       if (!Number.isFinite(a) || a < 0) return;
-      if (!this.isAssembly()) {
+      this.ensureParts();
+      // No parts recorded or billed (a test fixture): its own gauge.
+      if (this.parts.length === 0) {
         (Base.prototype as unknown as Durable).wear.call(this, a);
         return;
       }
-      this.ensureParts();
       if (channel) {
         const line = this.lineGivingFirst(channel);
         if (!line) {

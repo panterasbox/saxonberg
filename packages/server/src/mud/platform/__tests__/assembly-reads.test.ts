@@ -6,8 +6,10 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Lamp from '../thing/Lamp';
+import Lantern from '../thing/Lantern';
 import Chair from '../thing/Chair';
-import Vat from '../thing/Vat';
+import AssembledChair from '../thing/AssembledChair';
+import Cask from '../thing/Cask';
 import Timber from '../thing/Timber';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
@@ -30,7 +32,7 @@ describe('a part moves another subsystem', () => {
     vi.spyOn(Object.getPrototypeOf(Lamp.prototype), 'getEmittedFlux').mockReturnValue(
       Quantity.of(100, 'lumen'),
     );
-    const lantern = makeStuff(() => new Lamp());
+    const lantern = makeStuff(() => new Lantern());
     lantern.recordAssembly([line('body', 'structural'), line('pane', 'facing')], []);
     expect(lantern.getEmittedFlux().rawValue()).toBeCloseTo(100, 6);
     lantern.recordAssembly([line('body', 'structural'), line('pane', 'facing', 1)], []);
@@ -39,7 +41,7 @@ describe('a part moves another subsystem', () => {
 
   it('⭐ a failed cushion leaves you on the bare frame; a worn frame rests worse', () => {
     vi.spyOn(Object.getPrototypeOf(Chair.prototype), 'getRestQuality').mockReturnValue(0.8);
-    const chair = makeStuff(() => new Chair());
+    const chair = makeStuff(() => new AssembledChair());
     chair.recordAssembly([line('frame', 'structural'), line('cushion', 'wear')], []);
     expect(chair.getRestQuality()).toBeCloseTo(0.8, 6);
     chair.recordAssembly([line('frame', 'structural'), line('cushion', 'wear', 1)], []);
@@ -51,7 +53,7 @@ describe('a part moves another subsystem', () => {
   it('⭐⭐ a cask left EMPTY dries out and its hoops ride loose — every stave sound', () => {
     let nowS = 1_000_000;
     WorldClockApi._setNowProviderForTesting(() => nowS);
-    const cask = makeStuff(() => new Vat());
+    const cask = makeStuff(() => new Cask());
     cask.recordAssembly(
       [line('stave', 'structural')],
       [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 1, maker: '' }],

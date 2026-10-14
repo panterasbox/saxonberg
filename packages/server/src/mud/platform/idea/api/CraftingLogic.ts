@@ -2271,8 +2271,7 @@ function applyAssembledOutput(
     if (
       matchedItems.length === 1 &&
       only &&
-      MixinApi.isAssembled(only.stuff) &&
-      only.stuff.isAssembly()
+      MixinApi.isAssembled(only.stuff)
     ) {
       output.recordAssembly(only.stuff.getParts(), only.stuff.getJoints());
     }
@@ -2318,7 +2317,7 @@ function applyAssembledOutput(
       line.green = true;
       line.greenAt = WorldClockApi.getNow().rawValue();
     }
-    if (MixinApi.isAssembled(first.stuff) && first.stuff.isAssembly()) {
+    if (MixinApi.isAssembled(first.stuff)) {
       line.parts = first.stuff.getParts();
       line.joints = first.stuff.getJoints();
     }
@@ -3197,7 +3196,7 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   // ⭐⭐ The assembly rungs come FIRST (assembly D6): a slack hoop is not
   // wear, so a sound cask whose hoops have slipped reads as "nothing to
   // repair" to the wear rung below — and it weeps all the same.
-  const assembled = MixinApi.isAssembled(item) && item.isAssembly();
+  const assembled = MixinApi.isAssembled(item);
   if (assembled) {
     const { tools: jointTools } = await gatherMatter(location, maker);
     const rung = await repairAssemblyRungs(item, maker, jointTools);
@@ -3693,7 +3692,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const whole = req.whole ?? null;
   const part = req.part ?? null;
   if (!whole || !part) return { ok: false, reason: 'insufficient-input', detail: 'nothing-to-fit' };
-  if (!MixinApi.isAssembled(whole) || !whole.isAssembly()) {
+  if (!MixinApi.isAssembled(whole)) {
     return { ok: false, reason: 'no-line', detail: 'not-an-assembly' };
   }
   whole.ensureParts();
@@ -3734,7 +3733,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const form = MixinApi.isConstructed(part) ? part.getConstructionForm() : '';
   const green = MixinApi.isSeasoning(part) && part.isGreen();
   const nested =
-    MixinApi.isAssembled(part) && part.isAssembly()
+    MixinApi.isAssembled(part)
       ? { parts: part.getParts(), joints: part.getJoints() }
       : null;
   const makerId = maker.getIdentityPath() ?? '';
@@ -3826,7 +3825,7 @@ async function salvageByJoints(
    * mass, in that part's own material — the melt-down's input. */
   remnants: { material: Material | null; share: number }[];
 } | null> {
-  if (!item.isAssembly()) return null;
+  if (item.getParts().length === 0) return null;
   item.ensureParts();
   const joints = item.getJoints();
   if (joints.length === 0) return null;

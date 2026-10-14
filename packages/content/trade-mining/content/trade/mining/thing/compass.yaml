@@ -7,7 +7,7 @@
 # and the compass is a thing in your pocket. Both feed the same reading;
 # the reader's eye is what sets the error band. Competence buys
 # resolution; equipment buys access.
-class: /trade/mining/thing/instrument/SurveyInstrument
+class: /trade/mining/thing/instrument/AssembledSurveyInstrument
 data:
   # ⚠ No `needle`: the needle is a PART now, and a bill's part is matched
   # by keyword.

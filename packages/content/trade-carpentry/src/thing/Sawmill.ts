@@ -29,7 +29,6 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
-import { ChamberedMixin } from '@saxonberg/server/mud/lib/spatial/Chambered';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -51,8 +50,9 @@ interface FlowSource {
   flowAt(reach: string, nowS: number): Promise<{ m3s: number } | null>;
 }
 
-// ⭐ Chambered: the sawmill declares its drying loft (assembly D15).
-const SawmillBase = ChamberedMixin(ToolMixin(Good));
+// ⚠ Not Chambered: a pit saw is a blade and has no loft. The mill that
+// does is `LoftedSawmill`, which composes it on top of this.
+const SawmillBase = ToolMixin(Good);
 
 export default class Sawmill extends SawmillBase {
   static fieldMeta: FieldMeta = {

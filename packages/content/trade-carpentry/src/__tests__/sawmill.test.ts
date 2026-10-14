@@ -18,6 +18,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import Sawmill from '../thing/Sawmill';
+import LoftedSawmill from '../thing/LoftedSawmill';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Blank from '../thing/Blank';
 import { boardsFrom, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
@@ -125,9 +127,17 @@ describe('the sawmill — one class, two rungs, and the rate is the river\'s', (
 
   it('both rungs offer `sawing` — the capability the view defaults on', () => {
     for (const name of ['sawmill', 'pit-saw']) {
-      expect(row(name).class).toBe('/trade/carpentry/thing/Sawmill');
       expect(row(name).data!.capabilities).toEqual(['sawing']);
     }
+    // ⭐ Only the mill has a loft: the pit saw is a blade (no compartment),
+    // the water sawmill the Sawmill with a drying loft composed on top.
+    expect(row('pit-saw').class).toBe('/trade/carpentry/thing/Sawmill');
+    expect(row('sawmill').class).toBe('/trade/carpentry/thing/LoftedSawmill');
+    expect(MixinApi.isChambered(makeStuff(() => new Sawmill()))).toBe(false);
+    expect(MixinApi.isChambered(makeStuff(() => new LoftedSawmill()))).toBe(true);
+    expect(LoftedSawmill.commandContributions.peers).toContain(
+      'trade/carpentry/cmd/carpentry/saw.yaml',
+    );
   });
 });
 

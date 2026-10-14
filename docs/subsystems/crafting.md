@@ -413,6 +413,20 @@ still deferred — not faked.
 > **`Durable` wear with no parts makes every failure TOTAL** — an axe is a
 > head and a haft, and the haft is what breaks.
 
+> ⭐⭐ **Built by the assembly build (MR !361): `AssembledMixin` composes
+> only on a class that IS made of parts.** Each family that has
+> assembled members gets a narrow subclass — `AssembledTool`,
+> `AssembledWeapon`, `AssembledLauncher`, `AssembledGarment`, `Cask`
+> (a `Vat` of staves), `Lantern` (a `Lamp` with panes), `AssembledChair`,
+> the generic `Assembly`, and two pack ones — and the broad family
+> (`Tool`, `Vat`, `Lamp`, `Chair`, `Receptacle`) stays as it was. The
+> first cut put it on the families as "vacuous for a one-input thing",
+> and every caller grew an `isAssembly()` guard to re-narrow the host
+> set: the tell that the host is wrong ([antipatterns.md § a mixin composed on a
+> broad family](../antipatterns.md#a-mixin-composed-on-a-broad-family-then-guarded-back-down)). `MixinApi.isAssembled` is now the
+> whole question, and `lint:bills` arm 7 holds *a row has a bill ⇔ its
+> class composes `AssembledMixin`* both ways.
+
 ## The offer: `CommerceMenu` + the venue subclasses
 
 The venue-neutral base is **`lib/commerce/Menu.ts`** (`CommerceMenu`, a

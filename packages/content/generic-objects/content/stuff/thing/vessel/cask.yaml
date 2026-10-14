@@ -15,7 +15,7 @@
 # Its character: what fresh oak gives (`imparts`) and what a charred
 # inside gives (`charredImparts`, the re-fire's). Each fill after the
 # first since a re-fire spends a third of it.
-class: /platform/thing/Vat
+class: /platform/thing/Cask
 data:
   shortDescription: cask
   keywords: [cask, barrel, oak, empty]

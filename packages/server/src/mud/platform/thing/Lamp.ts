@@ -66,22 +66,6 @@ import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
 import { MixinApi } from '../../api/mixin';
-import { DurableMixin } from '../../lib/material/Durable';
-import { AssembledMixin } from '../../lib/craft/Assembled';
-import { CraftedMixin } from '../../lib/craft/Crafted';
-import { Quantity } from '../../lib/quantity';
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../../lib/config/AppSettings';
-
-/** Numeric AppSetting read with the seeded fallback. */
-function lampDial(key: string, fallback: number): number {
-  try {
-    const n = Number.parseFloat(AppApi.setting(key));
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 /**
  * Lamp dials. Playtest-tuned, not plan decisions.
@@ -105,14 +89,8 @@ const LAMP = {
   MAX_BURN_POWER_W: 300,
 } as const;
 
-// ⭐ Durable + Assembled (assembly D8): a lamp wears, and may be a body,
-// a pane and a wick — the pane's condition is a light the room reads.
 const LampBase = BurnerMixin(
-  LightSourceMixin(
-    BulkableMixin(
-      ThermalMixin(AssembledMixin(CraftedMixin(DurableMixin(Good)))),
-    ),
-  ),
+  LightSourceMixin(BulkableMixin(ThermalMixin(Good))),
 );
 
 export default class Lamp extends LampBase {
@@ -136,23 +114,6 @@ export default class Lamp extends LampBase {
    * The hook answers for both off the same class, which is why a torch
    * and a lantern are one class and two rows.
    */
-  /**
-   * ⭐ A lantern's light comes THROUGH its pane (assembly D8, AC 11): a
-   * failed facing line — a cracked pane — lets out a fraction of it, and
-   * the room it lights is darker for it. Replace the pane and the room
-   * brightens. A lamp with no parts reads its flame exactly as before.
-   */
-  public override getEmittedFlux(): Quantity<'lumen'> {
-    const flux = super.getEmittedFlux();
-    if (!this.isAssembly()) return flux;
-    let factor = 1;
-    for (const line of this.getParts()) {
-      if (line.role !== 'facing' || line.failed <= 0) continue;
-      factor *= lampDial(AppSettingKeys.lampCrackedGlassFlux, 0.35);
-    }
-    return factor === 1 ? flux : Quantity.of(flux.rawValue() * factor, 'lumen');
-  }
-
   protected override fuelSlot(): BulkSlot | null {
     const self = this as unknown as Lamp;
     if (!MixinApi.isBulkable(self)) return null;

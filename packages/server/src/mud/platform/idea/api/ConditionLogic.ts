@@ -1198,8 +1198,7 @@ function inflictThroughStack(
       // material, form, grade and wear. Nothing composite is computed.
       const answering =
         Channels.isMechanicalChannel(channel) &&
-        MixinApi.isAssembled(layer.occ) &&
-        layer.occ.isAssembly()
+        MixinApi.isAssembled(layer.occ)
           ? layer.occ.partAnswering(channel)
           : null;
       const lineForm = answering?.form;
