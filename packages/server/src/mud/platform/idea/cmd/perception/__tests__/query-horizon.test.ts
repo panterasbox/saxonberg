@@ -146,3 +146,34 @@ describe('a set the player asked for (`query all brass`)', () => {
     expect(out[0]).toMatch(/^You see [^\n]*brass lamp[^\n]*brass bell/);
   });
 });
+
+describe('⭐ a set that came through a FEATURE names the feature (maritime browser walk, 2026-10-14)', () => {
+  it('`query all sea` on a deck: the sea and a sea chest — never the deck', async () => {
+    room.setShortDescription("the Hesper's deck");
+    const chest = structure('/t/chest', 'sea chest', false);
+    const bodies: string[] = [];
+    vi.spyOn(PerceptionApi, 'horizonFor').mockReturnValue({ things: [], traffic: [], atSea: false });
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (body: Mml) => { bodies.push(body.toString()); return b; };
+      b.send = () => {};
+      return b as never;
+    });
+    await withRootContext(null, 'query.test', () =>
+      makeStuff(() => new QueryController()).execute(
+        {
+          set: {
+            stuff: [room, chest],
+            vias: [{ detailPath: ['sea'] }, undefined],
+            raw: 'all sea',
+          },
+        } as never,
+        ctx(),
+      ),
+    );
+    expect(bodies.join('\n')).toMatch(/the sea/);
+    expect(bodies.join('\n')).toMatch(/sea chest/);
+    expect(bodies.join('\n')).not.toMatch(/Hesper's deck/);
+  });
+});

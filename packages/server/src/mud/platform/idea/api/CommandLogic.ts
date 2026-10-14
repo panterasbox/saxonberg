@@ -439,6 +439,22 @@ async function worldRetry(
  * pretending it saw nothing. That is the 0-of-N cell, and it was already
  * honest.
  */
+/**
+ * `r.vias` re-aligned to `kept` — a subset of `r.stuff`, in order, as the
+ * cardinality policy returns it. One object may appear twice with two
+ * vias (a room, and the room's feature), so each position is consumed
+ * once.
+ */
+function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefined)[] {
+  const used = new Set<number>();
+  return kept.map((s) => {
+    const i = r.stuff.findIndex((x, j) => x === s && !used.has(j));
+    if (i < 0) return undefined;
+    used.add(i);
+    return r.vias?.[i];
+  });
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -454,9 +470,15 @@ async function walkScopes(
     const got = await scopedMany(raw, giver, scope, field, context);
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
-    const kept = got.stuff.filter(admissible);
+    // Filter by INDEX so each kept match keeps its own `via`.
+    const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
+    const kept = keep.map((i) => got.stuff[i]!);
     for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
-    if (kept.length > 0) return { result: { ...got, stuff: kept }, discarded };
+    if (kept.length > 0) {
+      const result: MqlMany = { ...got, stuff: kept };
+      if (got.vias) result.vias = keep.map((i) => got.vias![i]);
+      return { result, discarded };
+    }
   }
   if (firstRaw) return { result: firstRaw, discarded: [] };
   // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
@@ -1402,6 +1424,7 @@ export class CommandLogic extends ApiLogic {
         // horizon` of one thing is still a list, not that thing's look).
         if (r.isSet) bound.isSet = true;
         if (r.via) bound.via = r.via;
+        if (r.vias) bound.vias = viasAligned(r, filtered);
         if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
@@ -1448,23 +1471,15 @@ export class CommandLogic extends ApiLogic {
             const got = walked.result;
             if (got.stuff.length > 0) {
               stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
-              via = got.via;
-              quantity = got.quantity;
-              isSet = got.isSet === true;
               // ⭐ Taking the TOP of several: its own `via`, not the set's
               // consensus (found in the maritime browser walk: `fill skin
               // from sea` on the deck matched the deck's `sea` feature AND
               // the sea chest, the consensus was nothing, and the deck lost
-              // the feature it was named by).
-              if (useTop && got.stuff.length > 1 && via === undefined) {
-                for (const scope of tries) {
-                  const one: MqlOne = await scopedOne(raw, giver, scope, fname, context);
-                  if (one.stuff === got.stuff[0]) {
-                    via = one.via;
-                    break;
-                  }
-                }
-              }
+              // the feature it was named by). The result carries each
+              // match's own now, so nothing is resolved twice.
+              via = useTop && got.vias ? got.vias[0] : got.via;
+              quantity = got.quantity;
+              isSet = got.isSet === true;
             }
             if (
               !applyFilteredPolicy(

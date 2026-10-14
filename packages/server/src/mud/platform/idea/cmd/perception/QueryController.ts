@@ -46,7 +46,8 @@ export default class QueryController extends CommandController<QueryModel> {
     // query names the feature, not the place that has it — say the
     // feature, where it is (found in the maritime browser walk: it read
     // "You see the bank at the confluence").
-    const detailPath = model.set?.via?.detailPath;
+    const vias = model.set?.vias ?? (items.length === 1 ? [model.set?.via] : []);
+    const detailPath = vias[0]?.detailPath;
     if (items.length === 1 && detailPath && detailPath.length > 0) {
       const name = detailPath[detailPath.length - 1]!;
       const host = items[0]!;
@@ -61,7 +62,7 @@ export default class QueryController extends CommandController<QueryModel> {
       return;
     }
     if (model.ledger === true) return this.ledger(items, context);
-    this.list(items, context);
+    this.list(items, vias, context);
   }
 
   /**
@@ -111,13 +112,17 @@ export default class QueryController extends CommandController<QueryModel> {
       if (body) parts.push(body);
     }
     if (loose.length > 0) parts.push(Mml.compose`\n${Mml.list(loose.map((x) => Mml.thing(x)))}\n`);
-    if (parts.length === 0) return this.list(items, context);
+    if (parts.length === 0) return this.list(items, [], context);
     const body = parts.reduce((acc, p) => Mml.compose`${acc}${p}`);
     MessageApi.scene(viewer).topic('sense.survey').toSelf(body).send();
   }
 
   /** The plain list — the horizon's rendering when the set is in view. */
-  private list(items: readonly Stuff[], context: CommandContext): void {
+  private list(
+    items: readonly Stuff[],
+    vias: readonly ({ detailPath?: string[] } | undefined)[],
+    context: CommandContext,
+  ): void {
     const viewer = context.commandGiver;
     const view: HorizonView = PerceptionApi.horizonFor(viewer);
     const onHorizon = new Map(view.things.map((t) => [t.stuff.stuffId, t]));
@@ -127,7 +132,17 @@ export default class QueryController extends CommandController<QueryModel> {
       b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
     const featured: Mml[] = [];
     const rest: Mml[] = [];
-    for (const item of items) {
+    for (const [i, item] of items.entries()) {
+      // ⭐ A match that came through a FEATURE is that feature — `query all
+      // sea` on a deck is the sea and a sea chest, not the deck and a
+      // chest (maritime browser walk, 2026-10-14).
+      const feature = vias[i]?.detailPath?.at(-1);
+      if (feature) {
+        rest.push(item === room
+          ? Mml.compose`the ${feature}`
+          : Mml.compose`the ${feature} on ${Mml.thing(item)}`);
+        continue;
+      }
       const seen = onHorizon.get(item.stuffId);
       const isFeatured = seen !== undefined && (
         (item instanceof Structure && item.isLandmark()) ||

@@ -203,6 +203,15 @@ export interface MqlOne {
 export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
+  /**
+   * ⭐ Each match's OWN attribution, index-aligned with `stuff` — present
+   * when any match arrived through a sub-feature (maritime browser walk,
+   * 2026-10-14: `query all sea` on a deck matched the deck's `sea`
+   * feature and a sea chest; the consensus `via` was nothing, so the
+   * deck was named instead of its sea). A set that mixes paths keeps
+   * every path here; `via` stays the consensus.
+   */
+  vias?: (MqlMatchVia | undefined)[];
   quantity?: MqlQuantity;
   /** Present only when the run walked the registry — see {@link RegistryScan}. */
   scan?: RegistryScan;

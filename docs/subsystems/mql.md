@@ -79,7 +79,7 @@ interface MqlContext {
 }
 
 interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; }
-interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; }
+interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; }
 ```
 
 Both methods route through the same internal `resolve()` in
@@ -755,13 +755,18 @@ one.
 
 `MqlApi.resolveMany` returns a single query-level `via` only when
 every match arrived through the same sub-feature path; mixed paths
-produce `via: undefined`. The cheap shallow-equal is in
-`mql.ts:consensusVia` — JSON.stringify each match's via and compare
-to the first.
+produce `via: undefined`. The shallow-equal is
+`MqlLogic.consensusVia`.
 
-For the mixed-path case (a comma-union like `north, sword`), the
-controller has to handle the absence: that's a documented limitation
-that bites only dev queries.
+⭐ **And each match keeps its own** (maritime browser walk, 2026-10-14):
+`MqlMany.vias` is index-aligned with `stuff`, present whenever any match
+came through a sub-feature. The mixed case was not dev-only after all —
+`query all sea` on a deck matched the deck's `sea` feature AND a sea
+chest, the consensus was nothing, and the deck was named instead of its
+sea. The binder keeps `vias` aligned through `requires:` filtering
+(`walkScopes`) and the cardinality policy (`viasAligned`), and a
+`type: object` slot taking the top of several reads the top's own via
+from it instead of resolving a second time.
 
 ## Pronoun memory (`mql/pronoun-memory.ts`)
 

@@ -255,6 +255,12 @@ suite('2 · 3 · the wade, the small water', () => {
 
   it('3 · a water you can see across is a PLACE: you are in the pool, by an ordinary exit', async () => {
     expect(await look(wader)).toMatch(/You are in the water/);
+    // ⭐ Swimming is at the surface: linger, and you are still breathing
+    // (browser walk, 2026-10-14 — a swimmer blacked out in seconds here).
+    const lingered = squash(await wader.listen(12_000));
+    expect(lingered).not.toMatch(/can't breathe|everything goes black/i);
+    // A blacked-out body is refused this ("not conscious enough").
+    expectOk(await wader.cmd('look here'));
     expectOk(await wader.cmd('swim west'));
     expect(await look(wader)).toMatch(/strand/i);
   });
@@ -688,6 +694,11 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     // Wherever she is now, the deck is a shore of the sea under her.
     await at('/world/terminus/hesper/deck');
     expect(await readOf('sea', /The sea is /)).toMatch(/Below the rail, the water[^]*The sea is /);
+    // ⭐ A set through a feature names the feature (browser walk,
+    // 2026-10-14: this said "the Hesper's deck and a sea chest").
+    const set = squash(await w.prose('query all sea'));
+    expect(set).toMatch(/the sea\b/);
+    expect(set).not.toMatch(/Hesper's deck/);
     await w.cmd('spill skin'); // empty already, after the blackmere — or not
     const fill = await w.cmd('fill skin from sea');
     expectOk(fill);

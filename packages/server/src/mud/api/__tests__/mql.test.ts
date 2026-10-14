@@ -966,3 +966,23 @@ const out = MqlApi.resolveMany('flower', ctx);
     expect(() => resolve('2nd 3 flower', ctx)).toThrow(/ambiguous/);
   });
 });
+
+describe('⭐ resolveMany carries each match its OWN via (maritime browser walk, 2026-10-14)', () => {
+  it('a mixed set keeps every path: the room through its feature, its contents through nothing', () => {
+    const world = makeWorld();
+    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const out = MqlApi.resolveMany('here:inscription, here:i', ctx);
+    expect(out.stuff.length).toBeGreaterThan(1);
+    expect(out.via).toBeUndefined();
+    expect(out.vias).toHaveLength(out.stuff.length);
+    const i = out.stuff.indexOf(world.location);
+    expect(out.vias![i]?.detailPath).toEqual(['inscription']);
+    expect(out.vias!.filter((v) => v === undefined)).toHaveLength(out.stuff.length - 1);
+  });
+
+  it('a set with no feature in it carries no vias at all', () => {
+    const world = makeWorld();
+    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    expect(MqlApi.resolveMany('here:i', ctx).vias).toBeUndefined();
+  });
+});

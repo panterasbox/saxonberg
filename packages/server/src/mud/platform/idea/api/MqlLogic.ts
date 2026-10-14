@@ -132,6 +132,7 @@ export class MqlLogic extends ApiLogic {
     const out: MqlMany = { stuff };
     if (isSet) out.isSet = true;
     if (via) out.via = via;
+    if (matches.some((m) => m.via)) out.vias = matches.map((m) => m.via);
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
     return out;
