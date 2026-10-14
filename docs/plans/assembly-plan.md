@@ -1115,7 +1115,10 @@ Left for a carpentry slate (not designed here): carving as an engaged act
 with exertion, whether `carve` shares `make`'s can-make gate, competence
 in sawing, the lathe as `carve`'s next rung, the store's stocked hafts,
 and the general store's clasp knife — its prose says it "whittles a peg"
-and `carve` refuses it, because it is a `Weapon` and not a tool.
+and `carve` refuses it, because it is a `Weapon` and not a tool; and
+nobody in the realm SELLS a cutting tool at all (the fuel yard's one
+billhook and the billhook/felling-axe recipes are the only edges), so
+the carver's instrument is the scarcest thing in the column (lens 6).
 
 ## ⭐⭐ Host placement
 

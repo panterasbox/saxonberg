@@ -270,6 +270,19 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
     const fitted = await say(smith, 'fit haft to miners-pick');
     expect(fitted, `fit green haft: ${fitted}`).toMatch(/fit a new haft/i);
   }, 300_000);
+
+  // ⭐⭐ The grain rides the carve (plan D16). Here because this is where an
+  // edge legitimately is: the fuel yard's one billhook, in the smith's
+  // hands, at the yard that sells sawn boards. (Nobody in the realm SELLS
+  // a cutting tool — a carpentry-slate finding.)
+  it('⭐ D16 — a peg carved from a SAWN board is sawn, and its end grain says so', async () => {
+    await buy(smith, 'sawn board');
+    const carved = await say(smith, 'carve peg from sawn board with billhook');
+    expect(carved, `carve peg: ${carved}`).toMatch(/peg/i);
+    const peg = await examine(smith, 'peg');
+    expect(peg, `peg: ${peg}`).toMatch(/sawn through/i);
+    expect(peg).not.toMatch(/split along the grain/i);
+  }, 300_000);
 });
 
 suite('⭐ the wood column (drive 4, 16, 23 setup; AC 12, 20)', () => {
@@ -528,36 +541,19 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
  * and a through-sawn board cups as it dries — which a glue line cannot
  * forgive, so a shield-maker pays for quartered boards.
  */
-suite('⭐⭐ the cut — the grain rides the carve; glue wants a flat board', () => {
+suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
   let wright: Session;
   beforeAll(async () => {
     await toDaylight();
-    // An edge, the way drive 5's smith gets one: the fuel yard's billhook
-    // (its room re-props it after the forty days, if that smith took it).
-    const w0 = await newPlayer('shieldwright', FUEL_YARD);
-    await say(w0, 'get billhook');
-    const handle = w0.handle;
-    w0.close();
-    // ⭐ Boards the way a player gets them: off the timber yard's stacks —
-    // two sawn through, one to carve and one to put a face on.
-    const w = await goTo(handle, SAWMILL);
-    await buy(w, 'sawn board', 2);
+    // ⭐ A board the way a player gets one: off the timber yard's stack.
+    const w = await newPlayer('shieldwright', SAWMILL);
+    await buy(w, 'sawn board');
+    const handle = w.handle;
     w.close();
     wright = await goTo(handle, SMITHY);
     await practise(wright, 'smithing', 4);
   }, 600_000);
   afterAll(() => wright?.close());
-
-  it('⭐ a peg carved from a SAWN board is sawn — and its end grain says so', async () => {
-    // ⚠ Not the store's clasp knife: it is a `Weapon`, not a tool, so
-    // `carve` refuses it — a carpentry-slate finding (its own prose says
-    // it "whittles a peg").
-    const carved = await say(wright, 'carve peg from sawn board with billhook');
-    expect(carved, `carve peg: ${carved}`).toMatch(/peg/i);
-    const peg = await examine(wright, 'peg');
-    expect(peg, `peg: ${peg}`).toMatch(/sawn through/i);
-    expect(peg).not.toMatch(/split along the grain/i);
-  }, 300_000);
 
   it('⭐⭐ a hide glued over a through-sawn board never holds; a quartered board mends it', async () => {
     await cloneHere(SMITHY, T.hideFace);
@@ -606,6 +602,14 @@ suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', ()
     smith?.close();
     sawyer?.close();
     cooper?.close();
+    // ⚠ Let the logouts' saves land before the world goes down. The pick is
+    // the SMITH's (they made it) and persists in the smith's estate, placed
+    // in the mender's hands — so it is the smith's logout save that keeps
+    // it. The restart below SIGTERMs the server and SIGKILLs it after two
+    // seconds, far less than a shutdown sweep of a world this size takes,
+    // so a save still in flight is lost: a crash losing unsaved state is
+    // legitimate; the checkpoint is about what was SAVED surviving.
+    await new Promise((r) => setTimeout(r, 8_000));
 
     // Keep the first world's log — the reboot overwrites it.
     try {
