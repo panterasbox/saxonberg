@@ -973,9 +973,9 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
-    await advance('10 minutes');
-    const furnace = await read(k, 'look furnace');
-    note(`look furnace → ${furnace}`);
+    // Pour while it runs: 0.17 kg of copper sets in the crucible within
+    // minutes once the bellows stop (run 23 waited ten and poured nothing).
+    await act(k, 'pump bellows');
     const poured = await act(k, 'pour crucible into mould');
     note(`pour crucible into mould → ${poured.said}`);
     expect(refusedFor(poured.r)).toBeNull();
