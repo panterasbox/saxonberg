@@ -108,8 +108,12 @@ DERIVED position while a course is set:
     positionNow = fix + course × (now − courseSetAt) + Σ set × time-in-band
 
 integrated piecewise along the undisplaced track, split at every
-boundary. `rebase` is the one writer; `steer` / `anchorHere` / `placeAt`
-are the acts.
+boundary. ⭐ A course set for a node **stops where the track first comes
+inside its radius** (`positionAtS` over the raw `driftAtS`; sampled at
+half the radius, bisected, memoised per course) — between watch beats
+she lies off the node instead of sailing through it and snapping back at
+the beat (the live browser walk, 2026-10-14). `rebase` is the one
+writer; `steer` / `anchorHere` / `placeAt` are the acts.
 
 `Voyage` (`lib/expanse/Voyage.ts`) is a **sustained engagement whose
 actor is the craft** — nobody's `cancel` reaches it, logging out does
@@ -124,9 +128,11 @@ emission per watch (`expanse.watchGameHours`, default 4):
    paling over shallow ground), then the sky over the deck against the
    last watch's (*Fog closes in.*). Never a position, never authored; a
    crossing that changes nothing perceptible says nothing;
-2. **arrival** — a course set for a node arrives when the track passes
-   within the node's radius (else `expanse.arrivalNm`); a bare bearing
-   never does;
+2. **arrival** — a course set for a node arrives when she is inside the
+   node's radius (`isAt`, the clamp's own metric) or the track passed
+   within it (else `expanse.arrivalNm`); a bare bearing never does. ⛔
+   `course <node>` while already inside it is refused (*"You are at
+   Gannet Rock already."*);
 3. **neglect** — the deck's `Durable` gear wears by
    `gearHardness × roughness × expanse.neglectWearPerWatch`, a quarter of
    that when the watch is manned. Nothing new persists.
@@ -311,6 +317,12 @@ emitters that announce themselves (a bell, a gun, a signal).
 
 ## History
 
+- **Maritime live browser walk (2026-10-14, `3978f8935`…`a9528fc07`).**
+  The derived position stops at the target's radius and the beat records
+  it on the first watch; `course` to the node you are at is refused;
+  swimming is at the surface (respiration — a person breathes the air
+  over the water); and a query set carries each match's own `via`, so
+  `query all sea` on a deck names the sea, not the deck.
 - **Maritime review — a pool IS the water (2026-10-13, `b6d9f5211`).**
   D27's `StillWater` (a fixed swimmable thing propped in the pool and on
   the strand) retired for `platform/location/Pool` and a strand that is
