@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:olive
   shortDescription: crate of olives
-  keywords: [olives, crate, olive, produce]
+  keywords: [olives, crate, olive, produce, "crate of olives"]
   register: indefinite
   longDescription: A slatted wooden crate of olives, the grower's stencil on the side.
-  censusKey: produce:olive
-  regionTarget: 4
   materialTags: [produce, olive]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/olive, count: 12 }

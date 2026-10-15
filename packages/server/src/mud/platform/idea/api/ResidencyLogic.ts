@@ -265,11 +265,8 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
     placed: 0,
   };
 
-  // The candidate set: every template row that declares a census key
-  // (a producer's floor product, authored with its home `container:`)
-  // plus every live circulating thing's own template. Template-derived
-  // first, so a FRESH boot stands a floor at target before any instance
-  // exists to copy. The AUTHORED half of D31 (a declared par on a
+  // The candidate set: every template row that declares a census key —
+  // a row saying it appears from nothing. The AUTHORED half of D31 (a declared par on a
   // resettable holder) rides the reset sweep and is untouched here —
   // `props:` likewise stays a clone-time cascade for set dressing,
   // never the injection path for economy-bearing items.
@@ -282,15 +279,12 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
   const census = new Map<string, Map<string, number>>();
   for (const [region, bucket] of taken) census.set(region, new Map(bucket));
   const regions = new Set<string>(taken.keys());
-  for (const c of candidates) if (c.region !== undefined) regions.add(c.region);
   report.regions = regions.size;
 
   for (const region of regions) {
     const { stocks, affinity, blessingOdds } = await regionStockFor(region);
-    // A zone's declared count wins over the item's baseline; a candidate
-    // with an authored home is only ever drawn for that home.
+    // A zone's declared count wins over the item's baseline.
     const scoped = candidates
-      .filter((c) => c.region === undefined || c.region === region)
       .map((c) => {
         const declared = stocks[c.censusKey];
         return typeof declared === 'number'
@@ -417,19 +411,23 @@ function rollBlessing(
 
 /**
  * The templates the spawn table may draw from — every template row that
- * DECLARES a census key (a floor product: `censusKey`, `regionTarget`,
- * `materialTags` and its home `container:` all authored in `data`), plus
- * every live circulating thing's own template (the shipped v1 set, which
- * keeps an item that exists somewhere stockable even when its key is
- * derived rather than authored). Deduped by path, the authored row
- * winning because it carries the home region.
+ * authors a `regionTarget` beside its `censusKey`: a row saying *I appear
+ * from nothing, this many to a region*. (`censusKey` alone is the good's
+ * kind bucket — a consign ask reads it — and spawns nothing.)
  *
- * A template candidate's home region is the zone of its `container:` —
- * the producer's Stock counter — resolved once per sweep. A row with no
- * container is homeless and may be drawn anywhere (the v1 behaviour).
+ * ⚠ Two sources retired in the scan sweep's review (2026-10-15):
+ *  - **a home `container:`** — a producer's goods are its stock's LINES
+ *    now (`Stock.reset` makes them up to par), and the good says nothing
+ *    about where it is made;
+ *  - **every live circulating thing's own template** (the v1 set) — it
+ *    made any good it saw respawn from nothing at the default target, a
+ *    spawn nobody authored. What becomes of unstaged content generally
+ *    (foraging, hunting) is deferred design.
+ *
+ * ⚠ The sweep places nothing: a mint stays in the null environment.
  */
 async function collectSpawnCandidates(): Promise<SpawnCandidate[]> {
-  const byPath = new Map<string, SpawnCandidate>();
+  const out: SpawnCandidate[] = [];
   const rows = await Template.findWhereDataHas('censusKey');
   const circulatingClass = new Map<string, boolean>();
   for (const tpl of rows) {
@@ -440,45 +438,20 @@ async function collectSpawnCandidates(): Promise<SpawnCandidate[]> {
       circulatingClass.set(tpl.class, await isCirculatingClass(tpl.class));
     }
     if (!circulatingClass.get(tpl.class)) continue;
-    const container = typeof data.container === 'string' ? data.container : null;
-    const region = container ? await regionOfPath(container) : undefined;
+    if (typeof data.regionTarget !== 'number') continue;
     const materialTags = Array.isArray(data.materialTags)
       ? data.materialTags.filter((t): t is string => typeof t === 'string')
       : [];
-    byPath.set(tpl.path, {
+    out.push({
       templatePath: tpl.path,
       censusKey,
       effectTags: [],
       materialTags,
-      regionTarget:
-        typeof data.regionTarget === 'number' ? data.regionTarget : DEFAULT_REGION_TARGET,
-      ...(region !== undefined ? { region } : {}),
+      regionTarget: data.regionTarget,
     });
   }
-  for (const obj of StuffApi.getAllObjects()) {
-    const raw = ProxyApi.unwrap(obj);
-    if (!MixinApi.isCirculating(raw)) continue;
-    const c = obj as Stuff & Circulating;
-    const templatePath = c.getTemplatePath();
-    const censusKey = c.getCensusKey();
-    if (!templatePath || censusKey.length === 0) continue;
-    if (byPath.has(templatePath)) continue;
-    byPath.set(templatePath, {
-      templatePath,
-      censusKey,
-      effectTags: c.getEffectTags(),
-      materialTags: c.getMaterialTags(),
-      // The ITEM's own baseline. A Zone that declares a stock list
-      // overrides it per region (see `regionStockFor`) — "how many
-      // wands this forest holds" is properly a fact about the forest.
-      regionTarget: c.getRegionTarget(),
-    });
-  }
-  return [...byPath.values()];
+  return out;
 }
-
-/** The item's own baseline target when a row leaves it unauthored (`Circulating`'s). */
-const DEFAULT_REGION_TARGET = 3;
 
 /** Does `classPath` compose `CirculatingMixin`? (The `MaterialLogic.isMaterialClass` precedent.) */
 async function isCirculatingClass(classPath: string): Promise<boolean> {
@@ -487,16 +460,6 @@ async function isCirculatingClass(classPath: string): Promise<boolean> {
     return MixinApi.hasMixin(ctor as never, Mixins.Circulating);
   } catch {
     return false;
-  }
-}
-
-/** The census region a template path falls in — its zone, else the unplaced region. */
-async function regionOfPath(path: string): Promise<string> {
-  try {
-    const zone = await ZoneApi.resolveZoneForPath(path);
-    return zone?.getTemplatePath() ?? '';
-  } catch {
-    return '';
   }
 }
 

@@ -79,7 +79,7 @@ export function RadioactiveMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       halfLife: { persistent: true, authorable: true },
       decayMode: { persistent: true, authorable: true },
-      _decayProductPath: { persistent: true, authorable: true, authorPicker: 'Material' },
+      _decayProductPath: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
     };
 
     /**

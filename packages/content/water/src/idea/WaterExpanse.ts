@@ -23,14 +23,13 @@
  * editable by the realm), with their nodes and bands beneath.
  */
 
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import {
   WaterSourceMixin,
   type WaterRead,
 } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import type StructureCatalogue from '@saxonberg/server/mud/platform/idea/StructureCatalogue';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
@@ -199,10 +198,10 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     const path = place.getTemplatePath() ?? '';
     if (!path || this.craftOfPlace.has(path)) return;
     try {
-      const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      const row = await cat.structureOf(path);
-      if (row !== null) await StuffApi.singleton<Stuff>(row.path);
-      this.craftOfPlace.set(path, row?.path ?? '');
+      // The craft this place belongs to — attached to it in the location
+      // graph's record (never a catalogue of every structure).
+      const craft = await NavigationApi.structureAt(path);
+      this.craftOfPlace.set(path, craft?.getTemplatePath() ?? '');
     } catch {
       /* asked again on the next read */
     }

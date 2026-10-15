@@ -44,9 +44,8 @@ import type {
   BrainContext,
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from '../idea/ResidenceCatalogue';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 
 const DEFAULT_BATCH = 3;
 
@@ -119,36 +118,42 @@ export const brain = class {
 /**
  * Every live holding programme whose key sits under `extent`.
  *
- * ⭐ Asked of the residence system's own roster. It used to be asked of
- * the WORLD, by class name in a string — every live object read and
- * filtered, once per property manager per cadence, from a kernel file
- * naming a pack's class. Both halves of that are fixed by the brain
- * living where its subject does.
+ * ⭐ Asked of the location graph's record (the scan sweep, 2026-10-14).
+ * It was asked of the WORLD by class name, then of a catalogue that found
+ * the institutions by a scan of the template table.
  *
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
 async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   const out: HoldingShape[] = [];
-  let found: Stuff[] = [];
-  try {
-    const catalogue = await StuffApi.singleton<ResidenceCatalogue>(
-      RESIDENCE_CATALOGUE_PATH,
-    );
-    found = await catalogue.holdingsUnder(extent);
-  } catch {
-    return out;
+  // ⭐ Asked of the location graph's record (the scan sweep): an
+  // institution is attached to its own `parentExtent`, so the ones over or
+  // inside the extent are map reads. One that is not standing has no live
+  // holdings to mind, so none is stood up for this.
+  const paths = new Set([
+    ...(await NavigationApi.attachedTo(extent, 'institution')),
+    ...(await NavigationApi.attachedWithin(extent, 'institution')),
+  ]);
+  const institutions: OuterWarren[] = [];
+  for (const p of paths) {
+    const s = StuffApi.findByTemplatePath(p);
+    if (s instanceof OuterWarren && !s.isDestroyed()) institutions.push(s);
   }
-  for (const s of found) {
-    const h = s as unknown as Partial<HoldingShape>;
-    if (
-      typeof h.holdingKey !== 'function' ||
-      typeof h.conditionBand !== 'function' ||
-      typeof h.entryRoom !== 'function'
-    ) {
-      continue;
+  for (const institution of institutions) {
+    for (const s of institution.holdings()) {
+      const h = s as unknown as Partial<HoldingShape>;
+      if (
+        typeof h.holdingKey !== 'function' ||
+        typeof h.conditionBand !== 'function' ||
+        typeof h.entryRoom !== 'function'
+      ) {
+        continue;
+      }
+      const key = h.holdingKey();
+      if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
+      out.push(h as HoldingShape);
     }
-    out.push(h as HoldingShape);
   }
   return out;
 }

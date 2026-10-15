@@ -188,84 +188,16 @@ class SingletonContainer extends SingletonMixin(ContainerMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
 
-describe('ContainableMixin.applyContainer', () => {
-  beforeEach(() => {
-    StuffApi.clearAll();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    StuffApi.clearAll();
-  });
-
-  it('declares container as an instruction field', () => {
-    const fields = MixinApi.getAllInstructionFields(TestContainable);
-    expect(fields).toContain('container');
-  });
-
-  it('places self into the declared container on first apply', async () => {
-    const target = makeStuffAtPath(
-      () => new SingletonContainer(),
-      '/test/target-room'
-    );
-    const child = makeStuff(() => new TestContainable());
-    expect(child.getContainer()).toBeNull();
-
-    await (child as unknown as {
-      applyContainer(path: string): Promise<void>;
-    }).applyContainer('/test/target-room');
-
-    expect(child.getContainer()).toBe(target);
-  });
-
-  it('no-ops when current container equals declared (compare-and-move)', async () => {
-    const target = makeStuffAtPath(
-      () => new SingletonContainer(),
-      '/test/already-here'
-    );
-    const child = makeStuff(() => new TestContainable());
-    ContainmentApi.move(child, target);
-    expect(child.getContainer()).toBe(target);
-
-    // Spy on ContainmentApi.move to confirm no second move is issued.
-    const moveSpy = vi.spyOn(ContainmentApi, 'move');
-
-    await (child as unknown as {
-      applyContainer(path: string): Promise<void>;
-    }).applyContainer('/test/already-here');
-
-    expect(moveSpy).not.toHaveBeenCalled();
-    expect(child.getContainer()).toBe(target);
-  });
-
-  it('moves when current container differs from declared', async () => {
-    const elsewhere = makeStuffAtPath(
-      () => new SingletonContainer(),
-      '/test/elsewhere'
-    );
-    const target = makeStuffAtPath(
-      () => new SingletonContainer(),
-      '/test/target'
-    );
-    const child = makeStuff(() => new TestContainable());
-    ContainmentApi.move(child, elsewhere);
-    expect(child.getContainer()).toBe(elsewhere);
-
-    await (child as unknown as {
-      applyContainer(path: string): Promise<void>;
-    }).applyContainer('/test/target');
-
-    expect(child.getContainer()).toBe(target);
-    expect(elsewhere.hasContainable(child)).toBe(false);
+describe('ContainableMixin — where a thing is is runtime state', () => {
+  it('⭐ `container` is not an authored field (retired 2026-10-15)', () => {
+    expect(MixinApi.getAllInstructionFields(TestContainable)).not.toContain('container');
+    expect(
+      (TestContainable as unknown as { prototype: Record<string, unknown> }).prototype
+        .applyContainer,
+    ).toBeUndefined();
   });
 });
 
-/**
- * ⭐ `getEnclosingScope` — *what stands between me and my container, for
- * air, sight and reach.* The one read the thermal ambient and the reach
- * refusal both ask, so the day they disagree is the day a compartment
- * keeps its cold in one path and not the other.
- */
 describe('ContainableMixin.getEnclosingScope', () => {
   let room: ConcreteStuff;
   let item: TestContainable;

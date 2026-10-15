@@ -383,23 +383,20 @@ async function resolvePlacementAnchor(
     return null;
   }
   if (place.container) {
-    // Live instance first, else MATERIALIZE the room — after a server
-    // restart the captured location isn't stood up yet (rooms are lazy),
-    // and a live-only lookup would silently leave the host containerless
-    // (a returning avatar then fails `Avatar.enter`). The residency
-    // re-clone path is the same one an exit traversal would take.
-    let target: Stuff | null =
-      StuffApi.findByTemplatePath(place.container) ?? null;
-    if (!target) {
-      try {
-        target = await StuffApi.singletonOrClone<Stuff>(place.container);
-      } catch (err) {
-        console.warn(
-          `PersistableLogic.restorePlacement: captured container ` +
-            `'${place.container}' unresolvable — host left where cloned:`,
-          err,
-        );
-      }
+    // `singleton` returns the live room or MATERIALIZES it — after a
+    // server restart the captured location isn't stood up yet (rooms are
+    // lazy), and a live-only lookup would silently leave the host
+    // containerless (a returning avatar then fails `Avatar.enter`). The
+    // same get-or-create an exit traversal takes.
+    let target: Stuff | null = null;
+    try {
+      target = await StuffApi.singleton<Stuff>(place.container);
+    } catch (err) {
+      console.warn(
+        `PersistableLogic.restorePlacement: captured container ` +
+          `'${place.container}' unresolvable — host left where cloned:`,
+        err,
+      );
     }
     if (target && MixinApi.isContainer(target)) return target as Stuff & Container;
   }

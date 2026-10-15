@@ -13,5 +13,9 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/vintner/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/winemaking/thing/wine-bottle, par: 10 }
   prices: {}

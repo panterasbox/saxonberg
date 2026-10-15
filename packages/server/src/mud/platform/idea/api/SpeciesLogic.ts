@@ -84,8 +84,15 @@ export class SpeciesLogic extends ApiLogic {
   @CallSecurity(SpeciesApiCallers)
   public isSentient(o: Stuff): boolean {
     if (!MixinApi.isOrganism(o)) return false;
+    const cited = (o as Stuff & Organism).getSpeciesPath();
     const species = (o as Stuff & Organism).getSpecies();
-    if (!species) return false;
+    // ⭐⭐ FAILS CLOSED (the scan sweep, 2026-10-14). A body that CITES a
+    // species whose row is not resident is treated as sentient — the
+    // cautious branch (consent, blame, no cull) — never as a thing. It
+    // used to answer false, which let a collie be butchered on a cold
+    // world. The species is a constituent of the body, so it loads with
+    // it; this is the belt. Only a body with no species at all is not.
+    if (!species) return Boolean(cited);
     return species.isSentient();
   }
 
@@ -93,8 +100,7 @@ export class SpeciesLogic extends ApiLogic {
   @CallSecurity(SpeciesApiCallers)
   public async preloadAnatomy(actor: Stuff): Promise<void> {
     if (!MixinApi.isOrganism(actor)) return;
-    const speciesPath = (actor as unknown as { _speciesPath: string | null })
-      ._speciesPath;
+    const speciesPath = (actor as Stuff & Organism).getSpeciesPath();
     if (!speciesPath) return;
     // Tolerant ensure: ancestor path segments without a seeded
     // template (e.g. `/stuff/idea/species/animalia/chordata/mammalia` —

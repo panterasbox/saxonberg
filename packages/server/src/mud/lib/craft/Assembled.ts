@@ -258,11 +258,26 @@ const JOINT_DEFAULT: Pick<JointDescriptor, 'strength' | 'failure'> = {
   failure: 'parted',
 };
 
+/**
+ * The joint row for `method`, synchronously — the wear route and the look
+ * cannot wait. ⭐ Loads on first use (the scan sweep's rule: a dictionary
+ * warms when an act first needs it, never at boot): a cold catalogue is
+ * stood up and warmed in the background, and this one read answers from
+ * the defaults. Every read that DECIDES something — a joint made, fitted,
+ * repaired or taken apart — goes through `CraftingLogic`, which awaits the
+ * warm catalogue first, so only a wear figure or a label can read cold.
+ */
 function jointRow(method: string): JointDescriptor | null {
   const cat = StuffApi.findByTemplatePath<JointCatalogue>(
     TemplatePaths.jointCatalogue,
   );
-  return cat ? cat.peek(method) : null;
+  if (!cat) {
+    void StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue)
+      .then((c) => c.allWarmed())
+      .catch((err: unknown) => console.warn('Assembled: joint catalogue load failed:', err));
+    return null;
+  }
+  return cat.peek(method);
 }
 
 function materialAt(path: string): Material | null {

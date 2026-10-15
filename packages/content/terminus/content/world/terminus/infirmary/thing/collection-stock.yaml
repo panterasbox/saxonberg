@@ -1,9 +1,7 @@
-# The collection cold case — the producer FLOOR the blood units spawn
-# into (blood build D13). Every Terminus unit row names this as its
-# `container:`; the infirmary zone's `stocks:` sets the counts, and the
-# recurring spawn sweep stands them at target (the Veshko-floor shape —
-# the game's sanctioned production abstraction). The runner carries from
-# here to the ward fridge.
+# The collection cold case — the producer FLOOR (blood build D13). It names
+# each Terminus unit as a line and the reset sweep makes it up to par (the
+# Veshko-floor shape — the game's sanctioned production abstraction). The
+# runner carries from here to the ward fridge.
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: collection cold case
@@ -18,6 +16,13 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/infirmary/idea/bloodworks
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /world/terminus/infirmary/thing/unit-a, par: 2 }
+    - { itemTemplatePath: /world/terminus/infirmary/thing/unit-ab, par: 1 }
+    - { itemTemplatePath: /world/terminus/infirmary/thing/unit-b, par: 2 }
+    - { itemTemplatePath: /world/terminus/infirmary/thing/unit-o, par: 4 }
   prices: {}
   mass: 60

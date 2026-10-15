@@ -1669,6 +1669,12 @@ temperature through `look`'s body line; drive 23.
 > makers line survives the maker being offline;
 > (8) `EmploymentApi.ensureOrganization(path)` — the by-path sibling of
 > `ensureOperatorAt` — so a sleeping business can be appointed into.
+> ⚠ **Superseded by master's scan sweep (merged 2026-10-15):** naming an
+> organization resolves it AT THE ACT through `StuffApi.singleton(path)`,
+> which is exactly this; the static is deleted. The same merge moved the
+> `JointCatalogue` off the boot list — it loads on first use (`jointRow`
+> stands it up cold; every deciding read awaits it in `CraftingLogic`),
+> under master's `lint:boot-entries` ceiling and `LAZY_DICT` allowance.
 
 `packages/wire/tests/assembly.dirty.wire.test.ts` — the 23 steps, each
 a checkpoint that asserts a **state change** and can fail

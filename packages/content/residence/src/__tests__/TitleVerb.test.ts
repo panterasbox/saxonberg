@@ -23,10 +23,8 @@ import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/Titl
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from '../idea/ResidenceCatalogue';
 import DeedDesk from '../thing/DeedDesk';
+import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
 import HoldingWarren from '../idea/HoldingWarren';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -252,18 +250,14 @@ function seedSubdivision(): void {
     ],
   });
 
-  // The roster the verb reads. The book's own ROW is what puts it on the
-  // roster (`data.parentExtent` is the derivation), and the catalogue
-  // singleton has to be standing for `StuffApi.singleton` to find it.
+  // ⭐ The DESK names the book it fronts (the scan sweep); the book's row
+  // is there for anything that resolves it by path.
   col('content').push({
     _id: `d-book-${++idCounter}`,
     path: BOOK_PATH,
     class: '/system/residence/idea/PlatBook',
     data: { parentExtent: SUBURB },
   });
-  if (!StuffApi.findByTemplatePath(RESIDENCE_CATALOGUE_PATH)) {
-    makeStuffAtPath(() => new ResidenceCatalogue(), RESIDENCE_CATALOGUE_PATH);
-  }
 
   const book =
     StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH) ??
@@ -380,6 +374,7 @@ describe('title', () => {
       fresh('/world/somewhere/records'),
     );
     const desk = makeStuff(() => new DeedDesk());
+    desk.setBooks([BOOK_PATH]);
     ContainmentApi.move(desk, room);
     return room as unknown as Location;
   }
@@ -570,6 +565,10 @@ describe('title', () => {
     await run(buyer, room, model('buy', 'lot 2'));
 
     buyer.lines = [];
+    // ⭐ What you hold is asked of the title register, and the book a lot
+    // belongs to of the location graph — the book is attached to its own
+    // `parentExtent`.
+    attachGraph({ [SUBURB]: [[BOOK_PATH, 'institution']] });
     const ctx = await run(buyer, room, model());
     expect(reasons(ctx)).not.toContain('holds-nothing');
     const said = buyer.lines.join(' ');

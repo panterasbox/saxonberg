@@ -62,8 +62,8 @@ const isYardRow = (path: string, data?: Record<string, unknown>): boolean =>
   path.startsWith(PREMISES) ||
   path.startsWith(`${VESHKO}/`) ||
   HOLLIS_ROWS.includes(path) ||
-  data?.container === VESHKO_STOCK ||
-  data?.container === HOLLIS_STOCK;
+  linedAt(VESHKO_STOCK, data) ||
+  linedAt(HOLLIS_STOCK, data);
 const YARDS = ['veshko', 'hollis'];
 /** Every distilling floor on the goods yards runs a consigns beat — the two corpo yards and Crowsfoot. */
 const DISTILLING_FLOORS = ['crowsfoot', ...YARDS];
@@ -115,6 +115,20 @@ function allRows(): Row[] {
 
 const rows = allRows();
 const byPath = new Map(rows.map((r) => [r.path, r]));
+/** Does `stockPath`'s row name the row carrying `data` as a line? (Set by path below.) */
+const yardLines = new Map<string, Set<string>>();
+for (const r of rows) {
+  if (r.class !== '/trade/shopkeeping/thing/Stock' || !r.path.startsWith(PREMISES)) continue;
+  yardLines.set(
+    r.path,
+    new Set(((r.data.stockLines ?? []) as Array<{ itemTemplatePath: string }>).map((l) => l.itemTemplatePath)),
+  );
+}
+const pathOfData = new Map(rows.map((r) => [r.data, r.path]));
+function linedAt(stockPath: string, data?: Record<string, unknown>): boolean {
+  const path = data ? pathOfData.get(data) : undefined;
+  return path !== undefined && (yardLines.get(stockPath)?.has(path) ?? false);
+}
 const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path, r.data));
 // A `vessel:` census key is a VESSEL faucet (empty glass at target —
 // an empty is never product); the product assertions below apply to
@@ -124,6 +138,24 @@ const floorRows = annexRows.filter(
     typeof r.data.censusKey === 'string' &&
     !(r.data.censusKey as string).startsWith('vessel:'),
 );
+
+/**
+ * ⭐ The Stock that NAMES a row as one of its lines (the scan sweep's
+ * review, 2026-10-15: the producer names its lines; the good names no
+ * home), or `undefined`.
+ */
+const lineHome = (path: string) =>
+  rows.find(
+    (r) =>
+      r.class === '/trade/shopkeeping/thing/Stock' &&
+      r.path.startsWith(PREMISES) &&
+      ((r.data.stockLines ?? []) as Array<{ itemTemplatePath: string }>).some(
+        (l) => l.itemTemplatePath === path,
+      ),
+  );
+const parOf = (path: string): number | undefined =>
+  ((lineHome(path)?.data.stockLines ?? []) as Array<{ itemTemplatePath: string; par: number }>)
+    .find((l) => l.itemTemplatePath === path)?.par;
 
 describe('libations annexes — the floor rows fit the faucet', () => {
   beforeEach(() => {
@@ -142,13 +174,13 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     for (const pack of ['trade-winemaking', 'trade-brewing']) {
       expect(floorRows.filter((r) => r.pack === pack).length, pack).toBe(0);
     }
-    // ⭐ A producer is counted by the Stock its rows spawn INTO, not by
-    // their path. The unbranded rail lives at the TRADE's paths — it
-    // carries no mark, so nothing about it should shout Veshko — while
-    // its `container:` says who makes it. That gap is the design: the
+    // ⭐ A producer is counted by the Stock that names its rows as lines,
+    // not by their path. The unbranded rail lives at the TRADE's paths —
+    // it carries no mark, so nothing about it should shout Veshko — while
+    // Veshko's stock line says who makes it. That gap is the design: the
     // corpo is in your glass even when there is no mark on the bottle.
     const homedIn = (stockPath: string) =>
-      floorRows.filter((r) => r.data.container === stockPath).length;
+      floorRows.filter((r) => lineHome(r.path)?.path === stockPath).length;
     expect(homedIn(VESHKO_STOCK), 'veshko').toBe(7);
     expect(floorRows.filter((r) => HOLLIS_ROWS.includes(r.path)).length, 'hollis').toBe(2);
     // A corpo pack is capital + the mark: no product, no locality.
@@ -164,18 +196,17 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     expect(floorRows.length).toBe(0 + 0 + 9 + 10 + 4 + 7 + 2);
   });
 
-  it('every floor row has a target and a home container that is a Stock on the CITY\'s premises', () => {
+  it('every floor row is a line, with a par, on a Stock on the CITY\'s premises', () => {
     // ⭐ Economic bootstrap D6: a trade is placeless. Its floor product
     // is homed in a Stock the TERMINUS pack ships under the goods yards,
     // where the committee that holds the ground answers for the outfit.
     for (const r of floorRows) {
-      expect(typeof r.data.regionTarget, r.path).toBe('number');
-      const home = byPath.get(r.data.container as string);
-      expect(home, `${r.path} container ${String(r.data.container)}`).toBeDefined();
-      expect(home!.class, r.path).toBe('/trade/shopkeeping/thing/Stock');
+      expect(r.data.container, `${r.path} names no home`).toBeUndefined();
+      const home = lineHome(r.path);
+      expect(home, `${r.path} is no Stock's line`).toBeDefined();
       expect(home!.pack, r.path).toBe('terminus');
       expect(home!.path.startsWith(PREMISES), r.path).toBe(true);
-      expect(home!.data.stockLines, `${home!.path} must not reset`).toEqual([]);
+      expect(parOf(r.path), r.path).toBeGreaterThan(0);
     }
   });
 
@@ -216,7 +247,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     expect(old.data.interiorMaterial).toBe(rail('whiskey').data.interiorMaterial);
     expect(cane.data.interiorMaterial).toBe(rail('rum-dark').data.interiorMaterial);
     expect(rail('whiskey').data._brandKey).toBeUndefined();
-    expect(rail('whiskey').data.container).toBe(`${VESHKO}/thing/stock`);
+    expect(lineHome(rail('whiskey').path)?.path).toBe(`${VESHKO}/thing/stock`);
     expect(old.data._brandKey).toBe('old-hollis');
     expect(byPath.get(`${VESHKO}/thing/volk`)!.data._brandKey).toBe('volk');
     // Every brand key an annex names is a Brand row some pack ships.
@@ -349,19 +380,17 @@ describe('libations annexes — the serving recipes and the zone', () => {
     expect(MixinApi.isChattel(c)).toBe(true);
   });
 
-  it("the Veshko zone's stocks: reaches the field ResidencyLogic reads (lookupField), and favours with it", async () => {
+  it("⭐ Veshko's yard stands deep on Volk and the rail — the STOCK's pars say so; the zone keeps its favours", async () => {
+    // The zone's census `stocks:` table retired in the scan sweep's
+    // review: how many stand in the yard is the stock's own fact.
     const zoneRow = byPath.get(VESHKO)!;
     expect(zoneRow.class).toBe('/platform/idea/location/CartesianZone');
+    expect(zoneRow.data.stocks).toBeUndefined();
+    expect(parOf(`${VESHKO}/thing/volk`)).toBe(24);
+    expect(parOf('/trade/distilling/thing/gin')).toBe(18);
     const z = makeStuff(() => new CartesianZone());
     stampTemplatePathForTest(z, VESHKO);
-    z.setStocks(zoneRow.data.stocks as Record<string, number>);
     z.setFavours(zoneRow.data.favours as string[]);
-    expect(await z.lookupField<Record<string, number>>('stocks')).toMatchObject({ 'spirit:volk': 24 });
     expect(await z.lookupField<string[]>('favours')).toEqual(['spirit']);
-    // Every key the zone stocks is a floor row homed in the yard.
-    for (const key of Object.keys(zoneRow.data.stocks as Record<string, number>)) {
-      const row = floorRows.find((r) => r.data.censusKey === key);
-      expect(row?.data.container, key).toBe(`${VESHKO}/thing/stock`);
-    }
   });
 });

@@ -60,11 +60,15 @@ describe('the oil works outfit', () => {
     expect(positions.find((p) => p.key === 'hand')?.purchases).toBe(true);
   });
 
-  it('the stock belongs to the outfit and sells nothing (a producer, not a shop)', () => {
+  it('the stock belongs to the outfit, names the cask as its line, and sells nothing (a producer, not a shop)', () => {
     const stock = doc(`${OILWORKS}/thing/stock.yaml`);
     expect(stock.class).toBe('/trade/shopkeeping/thing/Stock');
     expect(stock.data.businessPath).toBe(OUTFIT_PATH);
-    expect(stock.data.stockLines).toEqual([]);
+    // ⭐ The producer names its lines (the scan sweep's review); the cask
+    // says nothing about where it is made.
+    expect(stock.data.stockLines).toEqual([
+      { itemTemplatePath: '/trade/fuel/thing/lamp-oil-cask', par: 4 },
+    ]);
     expect(stock.data.prices).toEqual({});
     expect(stock.data._materialPath).toBeTruthy(); // lint:mass
   });
@@ -92,10 +96,11 @@ describe('the oil works outfit', () => {
     expect(floor.data.cast).toEqual(expect.arrayContaining([HAND_PATH]));
   });
 
-  it("⭐ the cask's faucet is this stock, and its census key matches the ask", () => {
+  it("⭐ the cask is this stock's line, and its census key matches the ask", () => {
     const cask = doc(`${FUEL}trade/fuel/thing/lamp-oil-cask.yaml`);
-    expect(cask.data.container).toBe(STOCK_PATH);
+    // The good names no home and no spawn target — the stock names it.
+    expect(cask.data.container).toBeUndefined();
+    expect(cask.data.regionTarget).toBeUndefined();
     expect(cask.data.censusKey).toBe('fuel:lamp-oil');
-    expect(cask.data.regionTarget).toBeGreaterThan(0);
   });
 });

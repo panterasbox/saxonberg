@@ -2,9 +2,10 @@
 # built against (see `cola.yaml` and its siblings). `sealed` because a
 # screw cap holds gas: an uncapped mixer goes flat, a capped one keeps.
 #
-# ⭐⭐ `container:` since the reachability sweep — the bottling floor's own
-# stock, where every one of its filled siblings already stands. It was
-# named by nothing at all: a row whose stated job is to be *the standard
+# ⭐⭐ A line on the bottling floor's own stock (it was `container:` from the
+# reachability sweep until the scan sweep's review made that runtime-only)
+# — where every one of its filled siblings already stands. It was named by
+# nothing at all: a row whose stated job is to be *the standard
 # the others are built against* and which no player could ever hold, on a
 # floor whose whole business is filling it.
 #
@@ -20,7 +21,7 @@
 class: /platform/thing/Bottle
 data:
   shortDescription: "mixer bottle"
-  keywords: [bottle, mixer, empty]
+  keywords: [bottle, mixer, empty, "mixer bottle"]
   register: indefinite
   longDescription: "A one-litre bottle, straight-sided, with a screw cap."
   # The VESSEL KIND — the tie between this row and every product
@@ -30,4 +31,3 @@ data:
   interiorCapacity: 1
   closure: sealed
   open: true
-  container: /world/terminus/goods-yards/bottling/thing/stock

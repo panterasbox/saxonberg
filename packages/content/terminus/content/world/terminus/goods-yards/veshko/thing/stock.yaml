@@ -1,5 +1,5 @@
-# Veshko's stock — the Stock the yard's floor product spawns INTO (every
-# Veshko bottle row's `container:`); the zone's `stocks:` sets the counts.
+# Veshko's stock — it names the yard's floor product as lines, each made
+# up to par by the reset sweep.
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: Veshko's stock
@@ -11,5 +11,15 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/veshko/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/distilling/thing/gin, par: 18 }
+    - { itemTemplatePath: /trade/distilling/thing/rum-dark, par: 12 }
+    - { itemTemplatePath: /trade/distilling/thing/rum-light, par: 18 }
+    - { itemTemplatePath: /trade/distilling/thing/tequila, par: 12 }
+    - { itemTemplatePath: /trade/distilling/thing/vodka, par: 18 }
+    - { itemTemplatePath: /trade/distilling/thing/whiskey, par: 18 }
+    - { itemTemplatePath: /world/terminus/goods-yards/veshko/thing/volk, par: 24 }
   prices: {}

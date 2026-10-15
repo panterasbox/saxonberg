@@ -1,8 +1,9 @@
 # The floor sack of coffee.
 class: /platform/thing/Bottle
 data:
+  censusKey: pantry:coffee
   shortDescription: "sack of coffee"
-  keywords: [coffee, sack, beans]
+  keywords: [coffee, sack, beans, "sack of coffee"]
   register: indefinite
   longDescription: "A five-kilo sack of roasted coffee, still warm-smelling."
   category: sack
@@ -13,7 +14,4 @@ data:
   _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
-  censusKey: pantry:coffee
-  regionTarget: 4
   materialTags: ["coffee"]
-  container: /world/terminus/goods-yards/pantry/thing/stock

@@ -20,5 +20,3 @@ requires:
   # A hired clerk is staff; the showrunner may also play the CEO.
   title:
     - { extent: /corpo/aevex, holder: { group: aevex-committee } }
-boot:
-  - { template: /corpo/aevex, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }

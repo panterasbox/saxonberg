@@ -79,7 +79,7 @@ export const brain = class {
     const last = typeof ctx.state.lastEditionS === 'number' ? ctx.state.lastEditionS : -Infinity;
     if (now - last < window) return;
 
-    const index = BankingApi.priceIndex();
+    const index = await BankingApi.priceIndex();
     if (index.counters.length === 0) return;
     ctx.state.lastEditionS = now;
 

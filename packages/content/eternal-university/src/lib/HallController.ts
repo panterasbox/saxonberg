@@ -32,11 +32,13 @@ export abstract class HallController<
   /**
    * May `actor` provision or unprovision a dorm? Staff (a holder of a
    * position at the college) or the owner (a member of the committee over
-   * the hall). Fails closed when the college is not resident — it is a
-   * boot entry.
+   * the hall). Fails closed when the college's row does not stand up.
    */
   protected static async mayProvision(actor: Stuff): Promise<boolean> {
-    const college = StuffApi.findByTemplatePath(COLLEGE_PATH);
+    // ⭐ A relation resolved at the act (the scan sweep): asking stands
+    // the college up — it is not booted.
+    const college =
+      await StuffApi.singleton(COLLEGE_PATH).catch(() => null);
     if (college && MixinApi.isOrganization(college) && college.employs(actor)) return true;
     return CompactApi.isCommitteeMember(actor, HALL_EXTENT);
   }

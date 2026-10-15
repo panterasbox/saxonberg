@@ -1,5 +1,6 @@
 // ExpanseLogic — the hot-reloadable logic singleton behind ExpanseApi.
 
+import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -8,8 +9,6 @@ import type { Positioned } from '../../../lib/expanse/Positioned';
 import { Expanse } from '../../../lib/expanse/Expanse';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { TemplatePaths } from '../../../lib/paths';
-import type StructureCatalogue from '../StructureCatalogue';
 import type { ClimateLean } from '../../../lib/weather/WeatherType';
 
 const ExpanseApiCallers = SecurityPolicies.FromModule('/api/expanse#ExpanseApi');
@@ -33,11 +32,10 @@ export class ExpanseLogic extends ApiLogic {
     if (here && MixinApi.isPositioned(here) && here.getExpansePosition() !== null) {
       return here;
     }
-    const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-    const row = await cat.structureOf(placePath);
-    if (row === null) return null;
-    const s = await StuffApi.singleton<Stuff>(row.path);
-    return MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
+    // The structure attached to the place in the location graph's record
+    // — never a catalogue of every structure.
+    const s = await NavigationApi.structureAt(placePath);
+    return s && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
   }
 
   /** See {@link ExpanseApi.leanAtSync}. */
@@ -46,12 +44,9 @@ export class ExpanseLogic extends ApiLogic {
     if (!placePath) return null;
     let craft: Stuff | null = StuffApi.findByTemplatePath<Stuff>(placePath) ?? null;
     if (!craft || !MixinApi.isPositioned(craft) || craft.getExpansePosition() === null) {
-      // The structure this place is a member of — the structure
-      // catalogue's keyed answer (O(depth)), never a registry-wide read
-      // (maritime review, 2026-10-13).
-      const cat = StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      const row = cat?.peekStructureOf(placePath) ?? null;
-      craft = row ? StuffApi.findByTemplatePath<Stuff>(row.path) ?? null : null;
+      // The structure this place is a member of — attached to it in the
+      // location graph's record, and standing whenever the place is.
+      craft = NavigationApi.structureAtNow(placePath);
     }
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const pos = craft.getExpansePosition();

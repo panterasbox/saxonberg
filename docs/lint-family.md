@@ -1029,7 +1029,7 @@ identifiers or spreads.
 
 #### Arm R's five mechanisms, and the faucet/citation split
 
-faucet-named · self-placed (`container:`/`seatIn:`) · census-drawn
+faucet-named · self-placed (`seatIn:`; `container:` retired 2026-10-15) · census-drawn
 (`censusKey` + `CirculatingMixin` + a positive target, including a zone's
 `stocks:` override) · parent-of-a-reachable-child · code-named.
 
@@ -1251,16 +1251,22 @@ portable thing in a codebase — it travels further than the code it
 explains, because the next author reads the reason and trusts it.
 Thirteen sites, no test ever failed.
 
-⚠ **Its own first run over-matched, and that is recorded here on
-purpose.** It flagged eight kernel sites that are NOT defects —
-memoized module refs whose lookup does real cache-invalidation work, and
-sync accessors beside async ensures. A gate that cries wolf is a gate
-somebody disables, so the rule was narrowed to the form whose `if` body
-is exactly `return <thatvar>;`, and
-`scripts/__tests__/check-get-or-create.test.ts` pins the boundary in
-**both** directions — four cases that must flag, five that must not.
+⚠⚠ **Then it UNDER-matched, which is the worse failure.** Its first run
+flagged "memoized" refs, so the rule was narrowed to the form whose `if`
+body is exactly `return <thatvar>;` — and the scan sweep grew fifteen
+sites of `findByTemplatePath(p) ?? (await StuffApi.singleton(p))` past
+it in one build, each citing the last. The memoized exemption was wrong
+too: `singleton` reads the same live index, so it supersedes a cached
+handle on its own. Since review (2026-10-15) the gate matches ANY
+same-path pre-check before `singleton` / `singletonOrClone` inside one
+scope; the only escape is leaving the scope (a sync accessor beside an
+async ensure). `scripts/__tests__/check-get-or-create.test.ts` pins both
+directions. ⭐ **Narrowing a gate to silence a false positive must name
+what the narrowing lets through** — this one let through the commonest
+form.
 
-Ratchet at zero; all thirteen swept in the commit that added it. Full
+Ratchet at zero; thirteen swept in the commit that added it, twenty-six
+more when it was widened. Full
 rationale: [antipatterns.md § A resident pre-check in front of
 `StuffApi.singleton()`](./antipatterns.md).
 
@@ -1815,6 +1821,41 @@ that cites it, in every season. The honest tool for *this place is warm
 for its latitude* is the zone's `climateOffsetK`. (The runtime half:
 `BiomeCatalogue.warm()` now COUNTS a row that fails to stand up and
 files an author diagnostic for it, rather than a `console.warn`.)
+
+### ⭐⭐ `lint:boot-entries` + `lint:template-scans` — load on use (the scan sweep, 2026-10)
+
+The house rule: **content loads when a player's act forces it, by
+following authored references from what is already loaded — never by
+searching the template table, and never at boot unless the reason is
+written down and holds.** Two gates hold the two ways round it.
+
+- **`lint:boot-entries`** reads every pack's manifest `boot:` list. (a)
+  The total is a ceiling (128 at landing, 79 when the sweep shipped). (b) Every entry has a
+  `reason`. (c) An entry whose template is CONTENT (`/world/`,
+  `/trade/`, `/corpo/`, `/compact/`) must cite `unobserved-economy` —
+  the houses whose NPCs act with nobody present are the only content
+  that stays booted (→ `unobserved-economy-slate`); the count that do
+  not is its own burn-down to zero. `--list` prints the roster.
+- **`lint:template-scans`** censuses every
+  `Template.findByClass|findByPathInfix|findWhereDataHas|findDescendants|findByPathGlob`
+  call in the kernel and every pack's `src/`. Each surviving site is an
+  `ALLOWLIST` entry with its reason (the location graph, author tooling,
+  the installer, a dictionary's own lazy warm, a system compiling its
+  own index); a new one fails, and an allowance above what a file holds
+  is stale. 43 at landing, 39 when the sweep shipped, every one with its
+  reason.
+
+⭐ **The lesson both encode: a search, or a boot entry, is what a
+reference pointing the WRONG WAY forces.** *Which business operates this
+room?* is a scan of every business. ⚠⚠ The fix is NOT to author the
+reverse: the sweep first had every room name its house in a `stands:`
+list, which wrote each fact twice and made forgetting the second copy a
+new silent failure; review retired it. The fix is the location graph's
+record, which DERIVES what is attached to a place from the references
+content already authors (`operatingLocations`, `extent`, `parentExtent`,
+`seatIn`) and answers with a map read. *Is this species sentient?* on a
+cold world is a boot entry; *an animal loads what it is made of*
+(`identity:constituent`) is not.
 
 ## Where the family runs
 

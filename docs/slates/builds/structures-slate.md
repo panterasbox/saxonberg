@@ -3,7 +3,9 @@
 > **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
 > (`platform/idea/Structure`) is membership by extent prefix, the
 > entrance, the outside look, `landmark` and `heightM`;
-> `StructureCatalogue` answers which structure a room is in, by key. The
+> a room's own zone answers which structure it is in — a zone NAMES the
+> structures standing in it (`structures:`) and loads them with itself
+> (2026-10-14; a boot-warmed catalogue was tried and removed). The
 > open questions below were closed by it: (1) **not a Parcel** — a
 > parcel is title in a gated collection, a structure is content anybody
 > holding the ground authors; (3) **no address effect**; (4) **the

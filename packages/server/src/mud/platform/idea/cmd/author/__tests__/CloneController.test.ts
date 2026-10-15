@@ -225,7 +225,7 @@ describe('CloneController.execute — hydrate-first', () => {
       },
       '/test/artifact'
     );
-    // Simulate hydration's applyContainer placing the child in target
+    // Simulate the clone placing itself (a fixture's seatIn) in target
     // BEFORE the controller gets it back from clone.
     stubClone(() => {
       ContainmentApi.move(child, target);

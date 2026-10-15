@@ -12,6 +12,7 @@
  * (once, then cached) when the async gate is asked.
  */
 
+import { NavigationApi } from '../../api/navigation';
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -20,8 +21,6 @@ import type { Containable } from '../../lib/spatial/Containable';
 import { Expanse } from '../../lib/expanse/Expanse';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { TemplatePaths } from '../../lib/paths';
-import type StructureCatalogue from './StructureCatalogue';
 
 export default class AshoreExit extends DeferredDestinationExit {
   private craftPath: string | null = null;
@@ -34,11 +33,11 @@ export default class AshoreExit extends DeferredDestinationExit {
     const here = this.getSource().getTemplatePath();
     if (!here) return;
     try {
-      const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      const row = await cat.structureOf(here);
-      if (row === null) return;
-      this.craftPath = row.path;
-      const craft = await StuffApi.singleton<Stuff>(row.path);
+      // The ship this deck belongs to — attached to the deck in the
+      // location graph's record, from the ship's own `extent`.
+      const craft = await NavigationApi.structureAt(here);
+      if (craft === null) return;
+      this.craftPath = craft.getTemplatePath();
       if (MixinApi.isVoyaging(craft)) {
         const e = await craft.liveExpanse();
         if (e) await e.nodes();

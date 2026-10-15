@@ -401,7 +401,7 @@ export function AtmosphericMixin<
      * serializes natively without a map marshaller.
      */
     static fieldMeta: FieldMeta = {
-      _biomePath: { persistent: true, authorable: true, authorPicker: 'Biome' },
+      _biomePath: { persistent: true, authorable: true, authorPicker: 'Biome', ref: 'identity:constituent' },
       _temperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), authorable: true },
       _pressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa'), authorable: true },
       _humidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%'), authorable: true },

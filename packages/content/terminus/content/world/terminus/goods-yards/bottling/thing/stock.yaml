@@ -13,5 +13,18 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/bottling/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/bottling/thing/can-of-cola, par: 12 }
+    - { itemTemplatePath: /trade/bottling/thing/cola, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/cranberry-juice, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/ginger-beer, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/grapefruit-soda, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/mixer-bottle, par: 3 }
+    - { itemTemplatePath: /trade/bottling/thing/ice-bag, par: 10 }
+    - { itemTemplatePath: /trade/bottling/thing/orange-juice, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/soda-water, par: 8 }
+    - { itemTemplatePath: /trade/bottling/thing/tonic, par: 8 }
   prices: {}

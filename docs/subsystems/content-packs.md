@@ -835,9 +835,8 @@ renders its own preimage.
 They look like a serial loop worth parallelising (987 saves × ~33 ms on
 a fresh boot) but they are order-dependent *through the hook chain*:
 `content`'s around-save hook walks the row's ancestors for the
-folder/leaf invariant, and `validateSingletonContainerTarget` requires
-the row named by `data.container` to already exist — both read rows an
-earlier save in the same install just wrote. Batching means validating
+folder/leaf invariant, which reads rows an earlier save in the same
+install just wrote. Batching means validating
 serially and bulk-writing after, which is a change to the hook contract.
 
 ### Runtime — the `pack` verb
@@ -1139,16 +1138,22 @@ already resident when the union runs (a lazy `StuffApi.singleton` mint
 earlier in the boot — the installer standing an organization up) is
 **reused**, never cloned twice.
 
-The platform declares the registries and catalogues (`/platform/idea/EventRegistry`
+⭐⭐ **What a pack may boot (the scan sweep, 2026-10-14).** Content loads
+when a player's act forces it, by following authored references — never
+at boot unless the reason is written down and holds. So the platform
+boots its engine wardens and registries (`/platform/idea/EventRegistry`
 first — every emit resolves it; `/platform/idea/AccessRegistry`,
-`/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the scheduler chain
-under `/platform/idea/WorldClockRegistry`), the two organizations
-(`/compact/executive`, `/compact/press`), `/platform/idea/PressBoard` and
-`/platform/location/void`; each corpo pack its own organization;
-`saxonberg-lounge` the TPA root (`/world/lounge/thing/terminal`);
-`world-seed` the three remaining locality producers (the Duncan Hall
-dorm-warren, the Hinkley Hills plat-book and lot-holder). `pnpm
-lint:instanceable` checks each entry names a real row.
+`/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the
+scheduler chain under `/platform/idea/WorldClockRegistry`),
+`/platform/idea/PressBoard` and `/platform/location/void`; and a content
+pack boots only the houses and premises whose NPCs act while nobody is
+present — the unobserved economy (→ `unobserved-economy-slate`), each
+reason citing it. Organizations (`/compact/*`, the corpos) are resolved
+at the act; a house that only advertises is stood up when somebody
+arrives at a place it operates (the location graph attaches it there). **`pnpm lint:boot-entries`** holds the total as a
+ceiling and requires every content entry to cite the unobserved economy;
+`lint:instanceable` reads no `boot:` (this paragraph used to say it
+did).
 
 ## Pack zero — the platform-only boot
 
@@ -1238,9 +1243,9 @@ Thirty-eight rows over **fifty-eight** packs (`arcane-descriptors` folded into
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack; the TPA reform added **tpa**, the first pack
 to ship a `src/lib/`; textiles added trade-textiles, trade-dyeing and
-trade-tailoring; the world-scan build gave **residence** a
-`ResidenceCatalogue` and the `maintains` brain in its own
-`src/behavior/`; forestry added **trade-forestry** — a capability pack
+trade-tailoring; the world-scan build gave **residence** the `maintains` brain in its own
+`src/behavior/` (and a `ResidenceCatalogue` the scan sweep retired — the
+zone names its institution now); forestry added **trade-forestry** — a capability pack
 whose `src/lib/Stand.ts` is a pack-owned mixin composed by a pack-owned
 LOCATION class, `Wood`, that a venue's rows name with no code of their
 own — see [forestry.md](./forestry.md)); trades-and-labor added

@@ -2,11 +2,9 @@
  * check-get-or-create unit tests — the pure scan in BOTH directions,
  * plus the live-tree self-regression.
  *
- * ⭐⭐ The negative cases carry the weight here. This gate's first run
- * flagged eight kernel sites that are **not** defects — memoized module
- * refs whose lookup does real cache-invalidation work — and a gate that
- * cried wolf on those would have been turned off inside a week. The
- * boundary is the thing under test, not the happy path.
+ * ⭐⭐ The boundary is the thing under test. The gate's first version
+ * exempted "memoized" refs and matched only `if (x) return x;`, and the
+ * `??` form grew fifteen sites past it in one build (2026-10-15).
  */
 
 import "../../src/test-bootstrap";
@@ -52,17 +50,37 @@ describe("scanGetOrCreate — the antipattern", () => {
     expect(scanGetOrCreate(source, FILE)).toHaveLength(1);
   });
 
-  it("passes the collapsed form", () => {
-    const source = "return StuffApi.singleton<C>(CATALOGUE_PATH);";
-    expect(scanGetOrCreate(source, FILE)).toEqual([]);
+  it("⭐⭐ flags the `??` form, with or without a tolerant catch", () => {
+    const source = [
+      "const org =",
+      "  StuffApi.findByTemplatePath(record.organizationPath) ??",
+      "  // a comment between does not hide it",
+      "  (await StuffApi.singleton(record.organizationPath).catch(() => null));",
+    ].join("\n");
+    expect(scanGetOrCreate(source, FILE)).toHaveLength(1);
   });
-});
 
-describe("scanGetOrCreate — what it must NOT flag", () => {
-  it("⭐⭐ a MEMOIZED ref whose lookup invalidates the cache", () => {
-    // The lookup is doing work `singleton` cannot do for the caller:
-    // *the live registered instance supersedes my cached handle.* Eight
-    // of these exist in the kernel and none is a defect.
+  it("flags the let / if-not / try form", () => {
+    const source = [
+      "let org: Stuff | null = StuffApi.findByTemplatePath(path) ?? null;",
+      "if (!org) {",
+      "  try {",
+      "    org = await StuffApi.singleton(path);",
+      "  } catch {",
+      "    org = null;",
+      "  }",
+      "}",
+    ].join("\n");
+    expect(scanGetOrCreate(source, FILE)).toHaveLength(1);
+  });
+
+  it("flags a pre-check in front of singletonOrClone — together they ARE singleton", () => {
+    const source =
+      "const counter = StuffApi.findByTemplatePath(counterPath) ?? (await StuffApi.singletonOrClone(counterPath));";
+    expect(scanGetOrCreate(source, FILE)).toHaveLength(1);
+  });
+
+  it("⭐⭐ flags the MEMOIZED ref — singleton reads the same live index", () => {
     const source = [
       "let catalogueRef: C | null = null;",
       "async function requireCatalogue(): Promise<C> {",
@@ -76,9 +94,16 @@ describe("scanGetOrCreate — what it must NOT flag", () => {
       "  return catalogueRef;",
       "}",
     ].join("\n");
-    expect(scanGetOrCreate(source, FILE)).toEqual([]);
+    expect(scanGetOrCreate(source, FILE)).toHaveLength(1);
   });
 
+  it("passes the collapsed form", () => {
+    const source = "return StuffApi.singleton<C>(CATALOGUE_PATH);";
+    expect(scanGetOrCreate(source, FILE)).toEqual([]);
+  });
+});
+
+describe("scanGetOrCreate — what it must NOT flag", () => {
   it("⚠ a pre-check on a DIFFERENT path — a different question entirely", () => {
     const source = [
       "const a = StuffApi.findByTemplatePath<C>(FIRST_PATH);",

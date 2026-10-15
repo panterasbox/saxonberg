@@ -70,6 +70,7 @@ import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
 import { BoundaryApi } from '../../../../api/boundary';
+import { NavigationApi } from '../../../../api/navigation';
 
 const TOPIC = 'act.deed';
 
@@ -95,15 +96,13 @@ interface PlatBookShape extends Stuff {
 }
 
 /**
- * The residence system's roster, met over a path and a shape — never an
- * import, because the kernel does not depend on a pack.
+ * A deed desk, met over its SHAPE (the concrete class ships in the
+ * residence pack): it names the plat books it fronts (the scan sweep —
+ * the desk names its books; nothing searches for them).
  */
-interface ResidenceCatalogueView {
-  platBooks?: () => Promise<Stuff[]>;
+interface DeedDeskShape extends Stuff {
+  getBooks(): readonly string[];
 }
-
-/** Where the residence pack's roster stands, if the pack is installed. */
-const RESIDENCE_CATALOGUE_PATH = '/system/residence/idea/ResidenceCatalogue';
 
 /** The provisioning half a book names by path (`residence/idea/PlatWarren`). */
 interface PlatWarrenShape extends Stuff {
@@ -113,6 +112,12 @@ interface PlatWarrenShape extends Stuff {
    *  told, or a cardinal gate is a guessing game. Optional: a
    *  provisioning model with no ring simply says nothing. */
   gateDirectionFor?(lotExtent: string): string | null;
+}
+
+/** Does `s` answer the plat-book shape this verb reads? */
+function isPlatBook(s: Stuff): s is PlatBookShape {
+  const b = s as Partial<PlatBookShape>;
+  return typeof b.lotExtents === 'function' && typeof b.getHolderPath === 'function';
 }
 
 interface TitleModel extends CommandModel {
@@ -137,26 +142,34 @@ export default class TitleController extends CommandController<TitleModel> {
   }
 
   /**
-   * Every subdivision with lots to sell — asked of the residence
-   * system's own roster, reached by **path and shape** rather than by
-   * naming a pack's class in a string (the `TravelNode` precedent). A
-   * realm with no residence pack installed simply sells no land.
+   * ⭐ The books THIS desk fronts (the scan sweep, 2026-10-14): the desk
+   * names them in `books:`, each stood up here — a relation resolved at
+   * the act. It used to ask a pack catalogue that found every plat book by
+   * a scan of the template table and answered only for the BOOTED ones.
    */
-  private async books(): Promise<PlatBookShape[]> {
-    let catalogue: Stuff | null = null;
-    try {
-      catalogue = await StuffApi.singleton<Stuff>(RESIDENCE_CATALOGUE_PATH);
-    } catch {
-      return [];
+  private async books(giver: Stuff): Promise<PlatBookShape[]> {
+    const desk = this.deskHere(giver);
+    if (!desk) return [];
+    const out: PlatBookShape[] = [];
+    for (const path of desk.getBooks()) {
+      const book = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (book && isPlatBook(book)) out.push(book);
     }
-    const view = catalogue as unknown as ResidenceCatalogueView;
-    if (typeof view.platBooks !== 'function') return [];
-    return (await view.platBooks()).filter(
-      (s): s is PlatBookShape =>
-        typeof (s as Partial<PlatBookShape>).lotExtents === 'function' &&
-        typeof (s as Partial<PlatBookShape>).getHolderPath === 'function',
-    );
+    return out;
   }
+
+  /**
+   * The plat book an extent belongs to — attached to it in the location
+   * graph's record (from the book's own `parentExtent`), stood up here.
+   */
+  private async bookCovering(extent: string): Promise<PlatBookShape | null> {
+    for (const p of await NavigationApi.attachedTo(extent, 'institution')) {
+      const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
+      if (s && isPlatBook(s) && extent.startsWith(`${s.getParentExtent()}/`)) return s;
+    }
+    return null;
+  }
+
 
   /**
    * The provisioner a book names, or null when it names none (an offer
@@ -175,13 +188,19 @@ export default class TitleController extends CommandController<TitleModel> {
     const me = giver.getIdentityPath() ?? '';
     const held: string[] = [];
 
-    for (const book of await this.books()) {
-      const where = book.getLabel();
-      for (const extent of await book.lotExtents()) {
+    // ⭐ What the giver HOLDS is asked of the title register, and the book
+    // a lot belongs to of the place over it — never of every book.
+    for (const extent of await ParcelApi.extentsHeldBy(
+      async (owner) => owner.kind === 'player' && owner.templatePath === me,
+    )) {
+      {
         const record = await ParcelApi.coveringParcelOf(extent);
         if (!record || record.getExtent() !== extent) continue;
         const owner = record.getOwner();
         if (owner?.kind !== 'player' || owner.templatePath !== me) continue;
+        const book = await this.bookCovering(extent);
+        if (!book) continue;
+        const where = book.getLabel();
         const use = ParcelApi.landUseOf(extent);
         const area = record.getArea();
         const size = area
@@ -225,7 +244,7 @@ export default class TitleController extends CommandController<TitleModel> {
     }
 
     const lines: string[] = [];
-    for (const book of await this.books()) {
+    for (const book of await this.books(giver)) {
       const price = Money.of(book.getPriceMinor(), BankingApi.compactCurrency());
       const area = Quantity.of(book.getAreaM2(), 'm²');
       const use = book.getLandUse();
@@ -277,7 +296,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const raw = model.lot ?? '';
     let book: PlatBookShape | null = null;
     let extent: string | null = null;
-    for (const b of await this.books()) {
+    for (const b of await this.books(giver)) {
       const candidate = b.extentFor(raw);
       if (candidate) {
         book = b;
@@ -442,20 +461,30 @@ export default class TitleController extends CommandController<TitleModel> {
    * pack; the kernel imports no pack code).
    */
   private atDeedDesk(giver: Stuff): boolean {
-    if (!MixinApi.isContainable(giver)) return false;
+    return this.deskHere(giver) !== null;
+  }
+
+  /** The deed desk in the giver's room, or `null`. */
+  private deskHere(giver: Stuff): DeedDeskShape | null {
+    if (!MixinApi.isContainable(giver)) return null;
     const here = giver.getContainer();
-    if (!here || !MixinApi.isContainer(here)) return false;
-    return here.getContents().some((c) => {
+    if (!here || !MixinApi.isContainer(here)) return null;
+    for (const c of here.getContents()) {
       let proto = Object.getPrototypeOf(c) as {
         constructor?: { name?: string };
       } | null;
       while (proto?.constructor) {
-        if (proto.constructor.name === 'DeedDesk') return true;
+        if (proto.constructor.name === 'DeedDesk') {
+          return typeof (c as Partial<DeedDeskShape>).getBooks === 'function'
+            ? (c as unknown as DeedDeskShape)
+            : null;
+        }
         proto = Object.getPrototypeOf(proto) as typeof proto;
       }
-      return false;
-    });
+    }
+    return null;
   }
+
 
   private notAtDesk(context: CommandContext, sub: string): void {
     const giver = context.commandGiver;

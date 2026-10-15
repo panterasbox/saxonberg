@@ -25,7 +25,7 @@ const SeedBase = PlantableMixin(Good);
 
 export default class Seed extends SeedBase {
   static fieldMeta: FieldMeta = {
-    _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
+    _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species', ref: 'identity:constituent' },
   };
 
   /**

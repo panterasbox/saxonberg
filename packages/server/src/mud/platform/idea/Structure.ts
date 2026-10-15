@@ -89,13 +89,14 @@ export default class Structure extends DetailedMixin(
   }
 
   /**
-   * ⭐ A structure stands: never culled (maritime R4). The horizon reads
-   * the RESIDENT structures synchronously — the MQL `horizon` seed cannot
-   * wait — so a tower that residency put away would silently drop off
-   * every horizon it stands on. Structures are few (a building, a light,
-   * a ship), and each is booted by its pack (`lint:structures`).
+   * ⭐ A structure stands as long as the zone that names it. Nothing boots
+   * it (maritime review, 2026-10-14): it loads with that zone, as a room's
+   * props load with the room — and a zone holds only its PATH, so one that
+   * residency put away under a zone still standing would silently drop
+   * off every horizon until nothing reloaded it. The zone is what goes
+   * cold; the structure goes with it.
    */
   public override canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'a structure stands; the horizon reads it resident' };
+    return { ok: false, reason: 'a structure stands while the zone that names it does' };
   }
 }

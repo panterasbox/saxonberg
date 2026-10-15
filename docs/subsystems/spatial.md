@@ -215,47 +215,34 @@ Code that throws on null-env is a bug — file the regression as a
 matrix-invariant violation. Regression tests live in
 `lib/spatial/__tests__/Containable.nullEnv.test.ts`.
 
-### Declarative-content `container:`
+### Where a thing is — runtime state, never authored
 
-`ContainableMixin` declares `container: { instruction: true }`
-plus an `applyContainer(path)` Phase 2 applier. When the source
-template's `data` block carries a `container: /some/singleton-target`
-string, the Hydrator resolves the target via `StuffApi.singleton(path)`
-and moves self into it via `ContainmentApi.move`.
+⭐ **Stuff always clones into the null environment, and then places
+itself or is placed by its creator.** That is the whole design. Where a
+thing IS is runtime state, set by whoever placed it and persisted by its
+container's slice:
 
-**Compare-and-move idempotency.** `applyContainer` no-ops when the
-current container's templatePath matches the declared path; otherwise
-the move fires. The shape supports both fresh-clone placement (current
-container is null → declared) AND `Avatar.restore()` re-move semantics
-(current is `/A`, declared is `/B` → move) with no flag.
+- **a place names what it holds** — `props:` / `cast:` (`StagedMixin`),
+  the dominant authoring direction;
+- **a thing seats itself** — `seatIn:` (fixtures), resolved through the
+  target (`resolveLanding`), which decides how to take it: a Warren picks
+  a member room, a location takes it;
+- **its creator places it** — a craft output, a stock's reset making a
+  line up to par, a verb.
 
-**Singleton-target constraint (v1).** The target template's class
-MUST compose `SingletonMixin`. The invariant is enforced at template-
-save time by `TemplateApi.validateSingletonContainerTarget`, fired
-through the `DomainHook` aroundSave alongside the folder/leaf
-validator. A non-singleton target throws at save with a clear
-diagnostic naming both the source and target paths.
+A thing nothing places stays in null. That is not an antipattern (an
+`Idea` has no containment at all); it is content nobody put in the
+world.
 
-This is a known v1 limitation. Two reasons to relax it later:
-
-1. **Class redefinition.** A template that saved when its target
-   composed `SingletonMixin` may not still satisfy the check after a
-   class refactor; an eager save-time check is stricter than the
-   actual runtime requirement.
-2. **Non-singleton container use cases (multirooms).** Legitimately,
-   multiple live instances of "the same" container template are
-   useful (multirooms, instanced dungeons). The eager check
-   forecloses on this without language for addressing a specific
-   instance.
-
-The lazy direction: `applyContainer` already uses `StuffApi.singleton(path)`,
-which surfaces the same diagnostic class at first-hydrate time when
-the path doesn't resolve to exactly one instance. Removing the eager
-validator would defer the check to that natural site, accepting the
-"fail at first clone instead of at save" trade-off in exchange for
-not over-constraining authoring. When the multiroom story lands,
-this constraint should be re-evaluated alongside the addressing
-scheme (templatePath alone is 1:1; multirooms need richer keys).
+⛔ **`container:` was an authored field until the scan sweep's review
+(2026-10-15), and it is retired.** Its Phase 2 applier `singleton()`'d
+the named target and moved every clone of the row into it — so on a
+*kind* row it routed every copy of gin anywhere to one distillery's
+counter, and on a cold world it minted the target outside its own room.
+A producer's goods are now its stock's `stockLines` ([retail.md](./retail.md));
+a placed thing is its place's prop. `lint:instanceable` invariant 14
+refuses the key in pack content and `TemplateApi.validateNoAuthoredContainer`
+refuses it at a CMS save.
 
 For populating a Container with children declaratively (the inverse
 direction), see `StagedMixin` and the `props:` instruction

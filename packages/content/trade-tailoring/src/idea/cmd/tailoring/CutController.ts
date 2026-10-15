@@ -169,7 +169,7 @@ async function finish(
     }
     if (MixinApi.isConstructed(pieces) && MixinApi.isConstructed(cloth)) {
       const form = cloth.getConstructionForm();
-      if (form) pieces.setConstructionForm(form);
+      if (form) await pieces.setConstructionForm(form);
     }
     // ⭐ The material travels: a coat cut from fine linen IS fine linen,
     // and every downstream read (clo, resist, dye) asks the material.

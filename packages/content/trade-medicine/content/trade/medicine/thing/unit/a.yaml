@@ -6,7 +6,7 @@
 class: /trade/medicine/thing/BloodUnit
 data:
   shortDescription: labelled unit of type A blood
-  keywords: [unit, blood, bag, a]
+  keywords: [unit, blood, bag, a, "type a blood", "labelled unit of type a blood"]
   register: indefinite
   longDescription: >-
     A flat, sealed pouch of waxed cloth, cold to the touch, its label

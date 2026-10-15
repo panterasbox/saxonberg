@@ -846,6 +846,51 @@ export class StuffApi {
   }
 
   /**
+   * ⭐ **Load what a holder is MADE OF** — the one cycle-safe constituent
+   * load (the scan sweep, 2026-10-14). The `TemplateApplier` awaits this
+   * for every path an `identity:constituent` field carries, in phase 1,
+   * before the field's setter runs, so a synchronous question about the
+   * holder (its species, its material, its biome) never meets a cold row
+   * — and nothing has to be booted to make that true.
+   *
+   * - live → nothing to do;
+   * - already loading (`#pendingSingletons`) → return WITHOUT awaiting: a
+   *   concurrent load completes on its own, and awaiting a load that is
+   *   waiting on this holder would deadlock (the census refuses an
+   *   authored cycle, so this is the concurrent case);
+   * - else the row's `extends:` ancestors first, outermost last (a cited
+   *   biome's parent chain is walked live by the biome resolver, so the
+   *   ancestors are constituents of what cites them), then the row.
+   *
+   * Never throws: a holder with a bad citation is a degraded holder, not
+   * a failed clone. It warns, and `lint:census` refuses the row at build.
+   */
+  public static async ensureConstituent(path: string): Promise<void> {
+    if (!path) return;
+    if (this.#indexes.byTemplatePath.exact(path).length > 0) return;
+    if (this.#pendingSingletons.has(path)) return;
+    try {
+      const { Template } = await import('../lib/stuff/Template');
+      const row = await Template.findByPath(path);
+      if (!row) {
+        console.warn(`StuffApi.ensureConstituent('${path}'): no such row`);
+        return;
+      }
+      if (typeof row.extends === 'string' && row.extends.length > 0) {
+        await this.ensureConstituent(row.extends);
+      }
+      if (this.#indexes.byTemplatePath.exact(path).length > 0) return;
+      if (this.#pendingSingletons.has(path)) return;
+      await this.singleton(path);
+    } catch (err) {
+      console.warn(
+        `StuffApi.ensureConstituent('${path}'): did not stand up — ` +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    }
+  }
+
+  /**
    * Create and register a Stuff object via a caller-supplied factory.
    *
    * Sister of `clone()`: same register / onCreate tail, no hydration

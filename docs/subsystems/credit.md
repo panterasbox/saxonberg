@@ -231,8 +231,10 @@ franchising and frontage stay with the retail slate.
 
 ## The index and the Gazette
 
-`BankingApi.priceIndex()` reads the counters `reserve.indexBasket` names
-and, for each `stocking` line, divides the ask by the authored base; the
+`await BankingApi.priceIndex()` reads the counters `reserve.indexBasket`
+names — ⭐ standing each one up if nobody has loaded it (the scan sweep,
+2026-10-14: the basket names its counters, so the index follows the
+reference; a counter self-places, so its room comes too) — and, for each `stocking` line, divides the ask by the authored base; the
 index is the mean, printed as a whole percentage of base (a hundred is
 par). `reserve` prints it to the Governor. **The state aggregates, never
 reports**: the Terminus Gazette (`/world/terminus/gazette`, a public

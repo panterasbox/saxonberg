@@ -14,11 +14,14 @@
  * 2. **The words resolve.** A `band` outside the competence ladder, or a
  *    `discipline` no shipped `Discipline` row keys, is a criterion
  *    nothing can ever satisfy — a wall wearing a sign's clothes.
- * 3. ⭐ **A house that advertises must be REACHABLE.** The help-wanted
- *    sign is derived from LIVE businesses (walking past a shop may not
- *    stand one up — that would make a look an economic act), so a house
- *    authoring a `headcount` must be a `boot:` entry of its own pack, or
- *    its opening exists and nobody can ever see it.
+ * 3. ⭐ **A house must be REACHABLE from the places it operates.** The
+ *    help-wanted sign, `buy`, `house` and the bank all read the LIVE house
+ *    operating a room, and nothing is booted to make one live (the scan
+ *    sweep, 2026-10-14): the location graph attaches the house to the
+ *    places its `operatingLocations` name, and loading the place stands it
+ *    up. So every operated path must be a room, or a fixture placed in one.
+ *    (Until the sweep this rule said an advertising house must be a
+ *    `boot:` entry.)
  * 4. ⭐ **A fulfilling seat's holder must stand somewhere its house
  *    operates.** `isFulfilling` is employer-bounded, so a roster assignee
  *    in a room the business does not list silently stops fulfilling —
@@ -104,8 +107,8 @@ const rows: Row[] = [];
  * places people and fixtures, so it is how this gate resolves "here".
  */
 const roomOf = new Map<string, string>();
-/** Per pack, the set of template paths its `boot:` names. */
-const bootByPack = new Map<string, Set<string>>();
+/** Every row's `seatIn:` self-placement, by its path. */
+const containerOf = new Map<string, string>();
 /**
  * ⭐ The two classes that make a room a place somebody can BUY at. Both
  * compose `ConsignmentShelfMixin` (a `Stock` counter IS a shelf too),
@@ -123,13 +126,6 @@ const operatingByPath = new Map<string, string[]>();
 const parRows: Row[] = [];
 
 for (const pack of packs) {
-  const manifest = YAML.parse(
-    readFileSync(join(CONTENT, pack, 'pack.yaml'), 'utf8'),
-  ) as { boot?: Array<{ template?: string }> };
-  bootByPack.set(
-    pack,
-    new Set((manifest.boot ?? []).map((b) => b.template ?? '')),
-  );
   const contentDir = join(CONTENT, pack, 'content');
   for (const file of walk(contentDir)) {
     let doc: Record<string, unknown>;
@@ -144,6 +140,7 @@ for (const pack of packs) {
     const data = doc.data as Record<string, unknown> | undefined;
     if (!data) continue;
     const here = `/${relative(contentDir, file).replace(/\.yaml$/, '')}`;
+    if (typeof data.seatIn === 'string') containerOf.set(here, data.seatIn);
     for (const key of ['cast', 'props'] as const) {
       const list = data[key];
       if (!Array.isArray(list)) continue;
@@ -285,7 +282,7 @@ for (const row of rows) {
       }
     }
 
-    // 3 — an advertising house must be reachable.
+    // 3a — a headcount is a whole number, and a waged seat is payable.
     if (p.headcount != null) {
       const n = Number(p.headcount);
       if (!Number.isInteger(n) || n < 1) {
@@ -303,18 +300,6 @@ for (const row of rows) {
             `\`banksAt\`.\n    ⚠ There is no operating account for the wage to ` +
             `come out of: the shift settles into a throw, and the worker is ` +
             `never paid.`,
-        );
-      }
-      const boot = bootByPack.get(row.pack) ?? new Set<string>();
-      if (!boot.has(row.path)) {
-        say(
-          row,
-          `position '${key}' advertises (\`headcount: ${String(p.headcount)}\`) but ` +
-            `'${row.path}' is not a \`boot:\` entry of pack '${row.pack}'.\n` +
-            `    ⭐ The help-wanted sign is derived from LIVE businesses — a ` +
-            `\`look\` may not stand a house up, or walking past a shop would be\n` +
-            `    an economic act. A house nobody has traded with yet is a house ` +
-            `whose opening nobody can see.`,
         );
       }
     }
@@ -357,6 +342,46 @@ for (const row of rows) {
         );
       }
     }
+  }
+}
+
+/**
+ * 3 — ⭐ **every place a house operates is a PLACE** (the scan sweep). The
+ * location graph attaches a house to the places in its `operatingLocations`
+ * — a room, or a fixture followed to the room whose `props:`/`cast:` place
+ * it (or its `seatIn:`) — and loading that place stands the
+ * house up. So the one way to lose a house is an operated path that is
+ * neither a room nor placed anywhere: the graph would anchor the house at
+ * a path that never loads, and nothing would ever stand it up.
+ */
+const rowData = new Map<string, Record<string, unknown>>();
+for (const pack of packs) {
+  const contentDir = join(CONTENT, pack, 'content');
+  for (const file of walk(contentDir)) {
+    try {
+      const doc = YAML.parse(readFileSync(file, 'utf8')) as { data?: Record<string, unknown> } | null;
+      rowData.set(`/${relative(contentDir, file).replace(/\.yaml$/, '')}`, doc?.data ?? {});
+    } catch {
+      /* another gate's finding */
+    }
+  }
+}
+const isRoom = (path: string): boolean => {
+  const d = rowData.get(path);
+  return d !== undefined && ('exits' in d || 'coords' in d);
+};
+const houseFile = new Map<string, string>();
+for (const r of [...rows, ...parRows]) houseFile.set(r.path, r.file);
+for (const [house, operating] of operatingByPath) {
+  for (const op of operating) {
+    if (typeof op !== 'string' || op.length === 0) continue;
+    if (isRoom(op) || roomOf.has(op) || containerOf.has(op)) continue;
+    findings.push(
+      `  ${houseFile.get(house) ?? house}\n    operates '${op}', which is neither a room ` +
+        `nor placed in one (no props:/cast:/seatIn: reaches it).\n` +
+        `    ⚠ The location graph would attach the house to a path that never ` +
+        `loads, and nothing would ever stand it up.`,
+    );
   }
 }
 

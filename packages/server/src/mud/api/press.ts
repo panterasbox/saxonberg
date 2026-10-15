@@ -178,7 +178,7 @@ export class PressApi {
    * way for a caller to get the comparison backwards. It serves the
    * window — no cursor, no paging. A press room is not an archive.
    */
-  public static pressRoom(limit?: number): PublicReleaseRow[] {
+  public static pressRoom(limit?: number): Promise<PublicReleaseRow[]> {
     return logic().pressRoom(limit);
   }
 

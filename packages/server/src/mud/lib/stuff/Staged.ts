@@ -57,8 +57,8 @@
  *     `StuffApi.singleton(path)` returns the unique instance; if
  *     the instance is already placed somewhere
  *     (`getContainer() !== null`), the move is skipped — the
- *     singleton lives wherever it was first placed (its own
- *     `applyContainer`, another host's list, player action).
+ *     singleton lives wherever it was first placed (a seat,
+ *     another host's list, player action).
  *   - Non-singleton: `StuffApi.clone(path)` mints a fresh instance,
  *     unconditionally moved into self via `ContainmentApi.move`.
  *

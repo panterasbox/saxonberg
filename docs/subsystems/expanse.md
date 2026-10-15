@@ -171,11 +171,22 @@ heights, the house, and the aboard hooks. *Is it a ship?* is `instanceof
 Ship`, never a guard on a field. (Every Structure once composed the
 whole voyage and told ships from buildings by `deckHeightM === null`.)
 
-The expanse's compile stands up, by the structure catalogue's keys and
-never a full-table query:
-- **its ships** (`StructureCatalogue.structuresOn(sea)`) — registered as
-  craft from the start, so a ship is alongside its landing before it
-  ever sails;
+⭐⭐ **Nothing here is booted and nothing is found by searching**
+(maritime review, 2026-10-14, which removed a boot-warmed
+`StructureCatalogue` and `lint:structures-booted`). A structure is
+ATTACHED to the extent its own `extent` names, and a ship to the sea its
+`expanse` names — derived in the location graph's record, never written
+twice ([location-graph.md § Attachments](./location-graph.md); the
+maritime build's zone-side `structures:` list retired in the scan
+sweep's review). A room joining its zone stands up what is attached to
+it (kicked, never awaited inside the load: a ship standing up reaches
+back for its sea, and a sea awaiting its ships would wait on itself).
+*Which structure is this room in* is `NavigationApi.structureAt(path)`
+— the innermost attached extent (`structureAtNow` for a synchronous
+reader). The sea loads what is attached to it:
+- **its ships** — the realm's own (the Hesper), counted in `craft()` at
+  anchor or not, so a ship is alongside its landing before it ever sails.
+  A ship a player builds is loaded by its crew being aboard;
 - **its landmarks** — a BUILDING standing at one of its nodes (the node's
   landing is in the building's extent): the light on Gannet Rock. ⭐ It has
   no position of its own; it is where its rock's node is, so the
@@ -263,13 +274,15 @@ emitters that announce themselves (a bell, a gun, a signal).
   resolver cannot wait, so every MQL caller gets the truth with one call.
   It reads only warm state, and ⭐⭐ **only through the scope that owns
   each answer — never a registry-wide read** (maritime review,
-  2026-10-13): *which craft am I aboard* is the structure catalogue's
-  keyed answer (`peekStructureOf` — the room's own path walked up its
-  segments); *what can I see at sea* is that craft's expanse's
-  (`sightables()`); *what stands in a named zone* is the catalogue's
-  again (`peekStructuresWithin`). Structures are booted and never culled
-  (`Structure.canEvict`, `lint:structures`); the catalogue is booted
-  `sync-read` and warmed by the expanse's compile. Also read: the resident zones' fields
+  2026-10-13): *which craft am I aboard* is the room's own zone's
+  `structureOf`; *what can I see at sea* is that craft's expanse's
+  (`sightables()`); *what stands in a named zone* is that zone's
+  `getStructures()`. ⭐ **What a place can see loads with the place**
+  (`LocationZone.lookOutFrom`, 2026-10-14): when a zone gets its first
+  room, the zones and seas its `horizon` names are stood up, and with
+  them the structures they name — so a scan reads them resident without
+  anything at boot. It cannot cascade: a zone stood up only because
+  somebody can SEE it has no room, so it never looks out itself. Also read: the resident zones' fields
   (`Zone.peekField`, the sync sibling of `lookupField`), the compiled sea,
   and the cached sky (`WeatherApi.peekSkyType`). A sky nobody has read yet
   counts as clear once and starts its read; a sea nobody has compiled
@@ -317,6 +330,16 @@ emitters that announce themselves (a bell, a gun, a signal).
 
 ## History
 
+- **Maritime review — lazy, not booted (2026-10-14).** Maritime R4 had
+  booted every Structure and sea and enforced it (`lint:structures-
+  booted`), and kept a `StructureCatalogue` — a class scan of every
+  structure row — to answer which structure a room is in and what stands
+  in a zone. Both broke the house rule: *everything loads when a player's
+  act forces it, by following authored references, never by search*.
+  Zones name their structures (`structures:`), what a place can see loads
+  with the place, the sea names its own ships and lights, a ship's voyage
+  is reconciled when she loads (one watch at load), and `journey` asks
+  the seas the traveller can see instead of scanning every node row.
 - **Maritime live browser walk (2026-10-14, `3978f8935`…`a9528fc07`).**
   The derived position stops at the target's radius and the beat records
   it on the first watch; `course` to the node you are at is refused;

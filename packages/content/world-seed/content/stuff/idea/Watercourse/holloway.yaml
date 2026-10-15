@@ -18,6 +18,6 @@ data:
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
   nodes:
-    - { name: head, elevation: 1100, catchmentKm2: 300 }
-    - { name: vale, elevation: 300, channelWidthM: 14, catchmentKm2: 180 }
-    - { name: mouth, elevation: 0, channelWidthM: 70 }
+    - { name: head, elevation: 1100, catchmentKm2: 300, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: vale, elevation: 300, channelWidthM: 14, catchmentKm2: 180, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }] }
+    - { name: mouth, elevation: 0, channelWidthM: 70, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

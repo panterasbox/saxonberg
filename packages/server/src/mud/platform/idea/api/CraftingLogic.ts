@@ -172,19 +172,12 @@ interface MatchedItemInput {
   material: Material;
 }
 
-/** Cached catalogue handle (a fallback; the live registered one wins). */
-let catalogueRef: RecipeCatalogue | null = null;
+/**
+ * The live catalogue — `singleton` returns the registered instance (an
+ * HMR-replaced or test-reset one included) and clones only on a miss.
+ */
 async function requireCatalogue(): Promise<RecipeCatalogue> {
-  // Prefer the currently-registered singleton (HMR-replaced or test-reset
-  // instances supersede the cache); fall back to the cache, then clone.
-  const found = StuffApi.findByTemplatePath<RecipeCatalogue>(CATALOGUE_PATH);
-  if (found) {
-    catalogueRef = found;
-    return found;
-  }
-  if (catalogueRef) return catalogueRef;
-  catalogueRef = await StuffApi.singleton<RecipeCatalogue>(CATALOGUE_PATH);
-  return catalogueRef;
+  return StuffApi.singleton<RecipeCatalogue>(CATALOGUE_PATH);
 }
 
 function toView(recipe: Recipe): RecipeView {
@@ -3565,11 +3558,9 @@ async function rowLineage(path: string): Promise<string[]> {
   return out;
 }
 
+/** The joint vocabulary — loaded on first use (`singleton` is the get-or-create). */
 async function jointCatalogue(): Promise<JointCatalogue> {
-  return (
-    StuffApi.findByTemplatePath<JointCatalogue>(TemplatePaths.jointCatalogue) ??
-    (await StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue))
-  );
+  return StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue);
 }
 
 /** The person's band in a Discipline (the floor for an unadvancing body). */

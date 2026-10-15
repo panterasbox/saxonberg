@@ -1,8 +1,9 @@
 # The floor bottle of cranberry juice — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: mixer:cranberry-juice
   shortDescription: "bottle of cranberry juice"
-  keywords: [cranberry, juice, bottle, mixer]
+  keywords: [cranberry, juice, bottle, mixer, "bottle of cranberry juice"]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of cranberry juice, the bottling floor's plain label."
   category: mixer-bottle
@@ -12,7 +13,4 @@ data:
   interiorAmount: 1
   closure: liquidTight
   gradeBand: fair
-  censusKey: mixer:cranberry-juice
-  regionTarget: 8
   materialTags: ["mixer", "cranberry-juice"]
-  container: /world/terminus/goods-yards/bottling/thing/stock

@@ -6,12 +6,13 @@
 # bitters. The bar cannot serve its menu without dealing with the little
 # place across town, however much cheaper the corpo's rail is.
 #
-# `container:` is Crowsfoot's Stock — the ONLY faucet. Its hand carries
-# the case to the cash-and-carry and consigns it AS Crowsfoot.
+# Crowsfoot's Stock names it as a line and makes it up to par;
+# its hand carries the case to the cash-and-carry and consigns it AS Crowsfoot.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:bitters
   shortDescription: bottle of aromatic bitters
-  keywords: [bitters, bottle, dasher, spirit, aromatic]
+  keywords: [bitters, bottle, dasher, spirit, aromatic, "bottle of aromatic bitters"]
   register: indefinite
   longDescription: A small dasher bottle of aromatic bitters, the cap crusted.
   category: spirit-bottle
@@ -20,7 +21,4 @@ data:
   interiorMaterial: /trade/distilling/idea/material/bitters
   interiorAmount: 0.2
   gradeBand: fair
-  censusKey: spirit:bitters
-  regionTarget: 12
   materialTags: [spirit, bitters]
-  container: /world/terminus/goods-yards/crowsfoot/thing/stock

@@ -53,7 +53,9 @@ export default class ClockController extends CommandController<ClockModel> {
       return this.fail(context, ClockController.refusal(result, sub), result.reason);
     }
 
-    const house = StuffApi.findByTemplatePath(result.organizationPath);
+    const house =
+      // A relation resolved at the act (the scan sweep): not booted.
+      await StuffApi.singleton(result.organizationPath).catch(() => null);
     const name = house && MixinApi.isOrganization(house)
       ? EmploymentApi.organizationLabel(house)
       : result.organizationPath;

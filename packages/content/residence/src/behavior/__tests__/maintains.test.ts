@@ -27,9 +27,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from '../../idea/ResidenceCatalogue';
+import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
 import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -109,16 +107,6 @@ class TestInstitution extends OuterWarren {
   protected async unwireHostFixtures(): Promise<void> {}
 }
 
-/**
- * The roster, standing at its real path, with only its ROW DERIVATION
- * replaced — `holdingsUnder`'s extent filter is the shipped one.
- */
-class TestCatalogue extends ResidenceCatalogue {
-  public roster: OuterWarren[] = [];
-  override async institutions(): Promise<OuterWarren[]> {
-    return this.roster;
-  }
-}
 
 let institution: TestInstitution;
 
@@ -165,12 +153,10 @@ function keeper(desk: SingletonCartesianLocation): Avatar {
 beforeEach(() => {
   StuffApi.clearAll();
   issued = [];
-  institution = makeStuff(() => new TestInstitution());
-  const catalogue = makeStuffAtPath(
-    () => new TestCatalogue(),
-    RESIDENCE_CATALOGUE_PATH,
-  );
-  catalogue.roster = [institution as unknown as OuterWarren];
+  // ⭐ The institution is attached to its extent in the location graph's
+  // record (from its own `parentExtent`) — the brain reads that.
+  institution = makeStuffAtPath(() => new TestInstitution(), `${DORMS}/warren`);
+  attachGraph({ [DORMS]: [[`${DORMS}/warren`, 'institution']] });
 });
 
 /**

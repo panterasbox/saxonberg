@@ -302,7 +302,6 @@ ConsumableMixin.residueTemplatePath = 0
 ConsumableMixin.usesRemaining = 0
 ContactsMixin._contacts = 0
 ContainableMixin._placementHost = 0
-ContainableMixin.container = 0
 ContainableMixin.environment = 0
 ContainableMixin.fixedInPlace = 0
 ContaminableMixin._pathogenLoads = 0

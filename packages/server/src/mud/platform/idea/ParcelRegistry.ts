@@ -364,6 +364,11 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     const prior = record.getOwner();
     await this.appendEvent("transfer", extent, prior, newOwner);
     record.owner = newOwner;
+    // ⚠ The owner index moves with the owner (found by the scan sweep:
+    // a bought lot stayed indexed under the subdivision's holder, so
+    // `extentsHeldBy` — and `AccessApi.heldExtents` — never saw it).
+    this.deindexExtent(extent);
+    this.indexRecord(record);
     await record.save();
     return record;
   }

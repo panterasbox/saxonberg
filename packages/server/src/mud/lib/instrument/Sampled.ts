@@ -88,7 +88,7 @@ export function SampledMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⚠ `ref: identity` on `sampledAt` says what it IS — a path
       // string, persistable, re-resolved by nobody. Not an instance
       // ref: the place may be gone and the claim still true.
-      sampledAt: { persistent: true, ref: 'identity' },
+      sampledAt: { persistent: true, ref: 'identity:provenance' },
       sampledBy: { persistent: true },
       sampledOn: { persistent: true },
     };

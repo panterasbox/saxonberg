@@ -11,13 +11,14 @@
 # `_materialPath` and is a `lint:mass` ceiling offender — this row does not
 # inherit that gap. The oil is the INTERIOR bulk, separate from the cask body.
 #
-# ⭐ `container:` is the oil works' floor stock — the ONLY faucet: the spawn
-# sweep stands casks at target there, and the works' hand consigns them to the
-# cash-and-carry, where a town's public-works department buys them.
+# ⭐ The oil works' floor stock names casks as a line and makes them up to
+# par; the works' hand consigns them to the cash-and-carry, where a town's
+# public-works department buys them.
 class: /platform/thing/Bottle
 data:
+  censusKey: fuel:lamp-oil
   shortDescription: cask of lamp oil
-  keywords: [cask, oil-cask, lamp-oil, oil]
+  keywords: [cask, oil-cask, lamp-oil, oil, "cask of lamp oil"]
   register: indefinite
   longDescription: >-
     A liquid-tight oak cask, iron-hooped, its bung sealed with wax. It sloshes
@@ -30,9 +31,6 @@ data:
   interiorMaterial: /stuff/idea/material/bulk/lamp-oil
   interiorAmount: 40
   gradeBand: fair
-  censusKey: fuel:lamp-oil
   materialTags: [lamp-oil, fuel]
   # A week of an oil-lit town's demand as buffer (6 L/night × 7 ≈ one cask a
   # week); the sweep keeps a few on the floor for the public-works buyer.
-  regionTarget: 4
-  container: /world/terminus/goods-yards/oilworks/thing/stock

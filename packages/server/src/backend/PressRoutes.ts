@@ -105,7 +105,7 @@ export class PressRoutes {
 
     // ⭐ The anonymous press room. NO `requireAuth` — deliberately, and
     // the handler below touches no session, no cookie and no `req.user`.
-    app.get("/api/press/releases", (req, res) => {
+    app.get("/api/press/releases", async (req, res) => {
       // ⚠ Paging is REFUSED rather than ignored. Ignoring it would make a
       // future `before=` on this route silently start working the day
       // somebody wires one up.
@@ -123,7 +123,7 @@ export class PressRoutes {
         req.query.limit !== undefined && Number.isFinite(raw)
           ? raw
           : undefined;
-      const rows: PublicReleaseRow[] = PressApi.pressRoom(limit);
+      const rows: PublicReleaseRow[] = await PressApi.pressRoom(limit);
       res.json(rows);
     });
 

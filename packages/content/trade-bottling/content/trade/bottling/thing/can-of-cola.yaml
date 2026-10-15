@@ -1,18 +1,18 @@
 # A can of cola — the STANDARD USED: `can.yaml`'s vessel, filled and
 # seamed. The 330 mL can is its own price point, not a smaller bottle,
-# so it carries its own census key.
+# so it is its own line on the bottling floor's stock.
 #
-# Drain it and it is a can again: `Bottle.getCensusKey()` derives the
-# EMPTY's key from state, so an empty stops counting as product and the
-# floor restocks. Nothing spawns empties — they come from drinking.
+# Drain it and it is a can again — nothing makes empties; they come
+# from drinking.
 # ⭐⭐ EXTENDS the can. The class, the aluminium, the 330 mL capacity,
 # the seamed lid and the `category: can` tie all come from the parent —
-# this row states the FILL, the prose, and the floor's census line.
+# this row states the FILL and the prose.
 # Change the can and every canned product changes with it.
 extends: /trade/bottling/thing/can
 data:
+  censusKey: mixer:cola-can
   shortDescription: "can of cola"
-  keywords: [cola, coke, can, tin]
+  keywords: [cola, coke, can, tin, "can of cola"]
   longDescription: "A 330 mL can of cola, cold to the hand, the lid unbroken."
   interiorMaterial: /trade/bottling/idea/material/cola
   interiorAmount: 0.33
@@ -21,7 +21,4 @@ data:
   # line enough.
   open: false
   gradeBand: fair
-  censusKey: mixer:cola-can
-  regionTarget: 12
   materialTags: ["mixer", "cola"]
-  container: /world/terminus/goods-yards/bottling/thing/stock

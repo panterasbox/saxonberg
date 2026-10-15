@@ -1,8 +1,9 @@
 # Hollis Cane — Hollis's mark on Veshko's dark rum.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:hollis-cane
   shortDescription: "bottle of Hollis Cane"
-  keywords: [hollis-cane, hollis, rum, bottle, spirit, cane]
+  keywords: [hollis-cane, hollis, rum, bottle, spirit, cane, "bottle of hollis cane"]
   register: indefinite
   longDescription: "A red-labelled bottle of Hollis Cane dark rum. The liquid is Veshko's."
   category: spirit-bottle
@@ -13,7 +14,4 @@ data:
   closure: sealed
   gradeBand: fair
   _brandKey: hollis-cane
-  censusKey: spirit:hollis-cane
-  regionTarget: 8
   materialTags: ["spirit", "rum"]
-  container: /world/terminus/goods-yards/hollis/thing/stock

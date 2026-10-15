@@ -118,6 +118,20 @@ export default class TemplateApplier extends Idea {
   public static readonly templatePath = TemplatePaths.templateApplier;
 
   /**
+   * The template paths a constituent value carries: a string, an array of
+   * strings, or an object's string values (a map of slot → material).
+   */
+  private static pathsIn(raw: unknown): string[] {
+    if (typeof raw === 'string') return raw.length > 0 ? [raw] : [];
+    const vals = Array.isArray(raw)
+      ? raw
+      : raw !== null && typeof raw === 'object'
+        ? Object.values(raw as Record<string, unknown>)
+        : [];
+    return vals.filter((v): v is string => typeof v === 'string' && v.length > 0);
+  }
+
+  /**
    * Put `data` onto `host`, three phases in order, as the occasion
    * named by `mode` allows.
    */
@@ -129,7 +143,7 @@ export default class TemplateApplier extends Idea {
     const constructor = host.constructor as new (...args: unknown[]) => Stuff;
     const meta = MixinApi.getAllFieldMeta(constructor) as Record<
       string,
-      { birthOnly?: true } | undefined
+      { birthOnly?: true; ref?: string } | undefined
     >;
     const persistentFields = MixinApi.getAllPersistentFields(constructor);
     const marshallerPaths = MixinApi.getAllFieldMarshallers(constructor);
@@ -143,6 +157,14 @@ export default class TemplateApplier extends Idea {
       // newly-minted instance and wrong for a live one.
       if (mode === 'go-live' && meta[field]?.birthOnly) continue;
       const raw = data[field];
+      // ⭐ A CONSTITUENT loads with its holder (the scan sweep): what a
+      // thing is made of is read synchronously, so the cited rows stand
+      // up before the field is set — on mint, go-live and restore alike.
+      if (meta[field]?.ref === 'identity:constituent') {
+        for (const cited of TemplateApplier.pathsIn(raw)) {
+          await StuffApi.ensureConstituent(cited);
+        }
+      }
       const path = marshallerPaths[field];
       let value: unknown;
       if (path && raw != null) {

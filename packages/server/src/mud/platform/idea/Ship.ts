@@ -47,7 +47,7 @@ export default class Ship extends PersistableMixin(
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
-    house: { persistent: true, authorable: true },
+    house: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
 
   /** An observer's eye height on deck, metres. */

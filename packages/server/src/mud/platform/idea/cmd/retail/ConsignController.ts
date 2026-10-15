@@ -159,7 +159,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // held by /corpo/veshko; the yard's parentOrganization) is the
     // house's to put up.
     const chain = house
-      ? (house as Stuff & Organization).organizationChain().map(
+      ? (await (house as Stuff & Organization).organizationChain()).map(
           (o) => o.getOrganizationPath(),
         )
       : [];

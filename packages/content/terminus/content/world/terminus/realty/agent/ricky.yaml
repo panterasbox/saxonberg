@@ -14,6 +14,9 @@
 # here that leads to one.
 class: /world/terminus/realty/agent/Realtor
 data:
+  # ⭐ The plat books fronted here (the scan sweep — named, never searched for).
+  books:
+    - /world/terminus/hinkley-hills/idea/plat-book
   name: Ricky
   keywords: [shiny, ricky, land, agent, good, coat, gone, slightly]
   pronouns: he

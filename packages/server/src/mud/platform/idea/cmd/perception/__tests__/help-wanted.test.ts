@@ -8,10 +8,10 @@
  * advertise** and a filled one cannot go on advertising. The puddle line
  * is the precedent: a room-level line a subsystem read contributes.
  *
- * ⚠ Live businesses only. Standing a house up is an economic act — its
- * roster ticks, its wages flow — and walking into a room must not be
- * one. The authoring rule that makes that honest (an advertising house
- * is a `boot:` producer of its own pack) is `lint:openings`'s.
+ * ⭐ Live businesses only, and a look never stands one up: the house
+ * stood up when somebody arrived — the location graph attaches it to the
+ * places its `operatingLocations` name (the scan sweep, 2026-10-14) — and
+ * the look runs the one-house pass on it so its openings are honest.
  */
 
 import '../../../../../../test-bootstrap';
@@ -151,7 +151,7 @@ beforeEach(() => {
   ContainmentApi.move(counter as never, shop as never);
   biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
   biz.positions = [seat()] as never;
-  biz.operatingLocations = [COUNTER];
+  biz.setOperatingLocations([COUNTER]);
   alice = makeStuffAtPath(() => {
     const a = new Browser();
     a.setName('alice');
@@ -163,19 +163,19 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('⭐⭐ the sign is derived — a venue with an open seat cannot fail to advertise', () => {
-  it('an open seat on a business operating a FIXTURE in the room is advertised', () => {
-    const notices = EmploymentApi.noticesAt(shop as unknown as Stuff);
+  it('an open seat on a business operating a FIXTURE in the room is advertised', async () => {
+    const notices = await EmploymentApi.noticesAt(shop as unknown as Stuff);
     expect(notices).toHaveLength(1);
     expect(notices[0]!.describe()).toMatch(/HELP WANTED — hand/);
     expect(notices[0]!.describe()).toMatch(/two completed gigs asked/);
   });
 
-  it('a business operating the ROOM directly is advertised too', () => {
-    biz.operatingLocations = [SHOP];
-    expect(EmploymentApi.noticesAt(shop as unknown as Stuff)).toHaveLength(1);
+  it('a business operating the ROOM directly is advertised too', async () => {
+    biz.setOperatingLocations([SHOP]);
+    expect(await EmploymentApi.noticesAt(shop as unknown as Stuff)).toHaveLength(1);
   });
 
-  it('⭐ a FILLED seat stops advertising, with nothing decremented', () => {
+  it('⭐ a FILLED seat stops advertising, with nothing decremented', async () => {
     alice.employments = [
       {
         organizationPath: BIZ,
@@ -185,27 +185,29 @@ describe('⭐⭐ the sign is derived — a venue with an open seat cannot fail t
         onShiftSince: null,
       },
     ];
-    expect(EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
+    expect(await EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
   });
 
-  it('a seat with no headcount is not an opening', () => {
+  it('a seat with no headcount is not an opening', async () => {
     biz.positions = [seat({ headcount: undefined })] as never;
-    expect(EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
+    expect(await EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
   });
 
-  it('⚠ a CLOSED house is not hiring', () => {
-    biz.setClosed(true);
-    expect(EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
+  it('⚠ a CLOSED house is not hiring', async () => {
+    // The sign is DERIVED by the one-house pass the look runs (the scan
+    // sweep), so a hand-set flag would be re-derived; stub the fact.
+    vi.spyOn(biz, 'isClosed').mockReturnValue(true);
+    expect(await EmploymentApi.noticesAt(shop as unknown as Stuff)).toEqual([]);
   });
 
-  it('a room with no business costs a miss and says nothing', () => {
+  it('a room with no business costs a miss and says nothing', async () => {
     const elsewhere = makeStuffAtPath(() => {
       const r = new Room();
       r.setName('elsewhere');
       return r;
     }, '/stuff/test/sign/location/elsewhere');
-    expect(EmploymentApi.noticesAt(elsewhere as unknown as Stuff)).toEqual([]);
-    expect(EmploymentApi.noticesAt(null)).toEqual([]);
+    expect(await EmploymentApi.noticesAt(elsewhere as unknown as Stuff)).toEqual([]);
+    expect(await EmploymentApi.noticesAt(null)).toEqual([]);
   });
 
   it('⭐ the LOOK prints it', async () => {

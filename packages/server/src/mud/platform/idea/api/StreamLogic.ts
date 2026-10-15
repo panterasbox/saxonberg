@@ -585,11 +585,6 @@ let relayRef: StreamRelay | null = null;
 
 async function requireRelay(): Promise<StreamRelay> {
   if (relayRef) return relayRef;
-  const found = StuffApi.findByTemplatePath<StreamRelay>(RELAY_PATH);
-  if (found) {
-    relayRef = found;
-    return found;
-  }
   relayRef = await StuffApi.singleton<StreamRelay>(RELAY_PATH);
   return relayRef;
 }
