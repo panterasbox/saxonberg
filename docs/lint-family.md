@@ -1227,16 +1227,22 @@ portable thing in a codebase — it travels further than the code it
 explains, because the next author reads the reason and trusts it.
 Thirteen sites, no test ever failed.
 
-⚠ **Its own first run over-matched, and that is recorded here on
-purpose.** It flagged eight kernel sites that are NOT defects —
-memoized module refs whose lookup does real cache-invalidation work, and
-sync accessors beside async ensures. A gate that cries wolf is a gate
-somebody disables, so the rule was narrowed to the form whose `if` body
-is exactly `return <thatvar>;`, and
-`scripts/__tests__/check-get-or-create.test.ts` pins the boundary in
-**both** directions — four cases that must flag, five that must not.
+⚠⚠ **Then it UNDER-matched, which is the worse failure.** Its first run
+flagged "memoized" refs, so the rule was narrowed to the form whose `if`
+body is exactly `return <thatvar>;` — and the scan sweep grew fifteen
+sites of `findByTemplatePath(p) ?? (await StuffApi.singleton(p))` past
+it in one build, each citing the last. The memoized exemption was wrong
+too: `singleton` reads the same live index, so it supersedes a cached
+handle on its own. Since review (2026-10-15) the gate matches ANY
+same-path pre-check before `singleton` / `singletonOrClone` inside one
+scope; the only escape is leaving the scope (a sync accessor beside an
+async ensure). `scripts/__tests__/check-get-or-create.test.ts` pins both
+directions. ⭐ **Narrowing a gate to silence a false positive must name
+what the narrowing lets through** — this one let through the commonest
+form.
 
-Ratchet at zero; all thirteen swept in the commit that added it. Full
+Ratchet at zero; thirteen swept in the commit that added it, twenty-six
+more when it was widened. Full
 rationale: [antipatterns.md § A resident pre-check in front of
 `StuffApi.singleton()`](./antipatterns.md).
 

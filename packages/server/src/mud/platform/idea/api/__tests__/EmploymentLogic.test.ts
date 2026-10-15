@@ -60,15 +60,15 @@ describe('EmploymentApi / EmploymentLogic', () => {
     expect(stored?.status).toBe('employed');
   });
 
-  it('fires and quits by flipping status (history preserved)', () => {
+  it('fires and quits by flipping status (history preserved)', async () => {
     const biz = seedBusiness();
     const mara = seedWorker(MARA);
-    biz.appoint(mara, 'bartender');
+    await biz.appoint(mara, 'bartender');
 
-    biz.dismiss(mara);
+    await biz.dismiss(mara);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
-    mara.quitJob(BUSINESS);
+    await mara.quitJob(BUSINESS);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('quit');
   });
 

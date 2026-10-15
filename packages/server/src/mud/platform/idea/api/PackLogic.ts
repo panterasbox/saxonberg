@@ -1786,10 +1786,7 @@ function wikiFileBody(f: WikiFile): { front: WikiFront; body: string } {
 
 /** The wiki registry (a lazy singleton — resident or minted on first use). */
 async function wikiRegistry(): Promise<WikiRegistry> {
-  return (
-    StuffApi.findByTemplatePath<WikiRegistry>(TemplatePaths.wikiRegistry) ??
-    (await StuffApi.singleton<WikiRegistry>(TemplatePaths.wikiRegistry))
-  );
+  return StuffApi.singleton<WikiRegistry>(TemplatePaths.wikiRegistry);
 }
 
 /**

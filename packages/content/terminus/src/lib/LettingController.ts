@@ -41,8 +41,7 @@ export abstract class LettingController<
     // ⭐ A relation resolved at the act (the scan sweep): asking stands
     // the agency up — it is not booted.
     const agency =
-      StuffApi.findByTemplatePath(AGENCY_PATH) ??
-      (await StuffApi.singleton(AGENCY_PATH).catch(() => null));
+      await StuffApi.singleton(AGENCY_PATH).catch(() => null);
     if (agency && MixinApi.isOrganization(agency) && agency.employs(actor)) return true;
     return CompactApi.isCommitteeMember(actor, BUILDING_EXTENT);
   }

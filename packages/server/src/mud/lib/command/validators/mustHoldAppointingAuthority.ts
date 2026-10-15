@@ -56,8 +56,7 @@ const preload: NonNullable<FieldValidator<boolean>['preload']> = async (
   // ⭐ A relation resolved AT THE ACT (the scan sweep): naming an
   // organization stands it up; nothing is booted so this can find it.
   const organization =
-    StuffApi.findByTemplatePath(path) ??
-    (await StuffApi.singleton(path).catch(() => null));
+    await StuffApi.singleton(path).catch(() => null);
   if (!organization || !MixinApi.isOrganization(organization)) return false;
   return EmploymentApi.holdsAuthority(
     context.commandGiver,

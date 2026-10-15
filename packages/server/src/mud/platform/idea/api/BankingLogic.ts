@@ -857,8 +857,7 @@ async function priceIndexImpl(): Promise<PriceIndex> {
   const stood = await Promise.all(
     counters.map(
       async (path) =>
-        StuffApi.findByTemplatePath(path) ??
-        (await StuffApi.singleton(path).catch(() => null)),
+        await StuffApi.singleton(path).catch(() => null),
     ),
   );
   for (const [i, path] of counters.entries()) {

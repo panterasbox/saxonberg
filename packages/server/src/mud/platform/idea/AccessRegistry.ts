@@ -492,14 +492,9 @@ export default class AccessRegistry extends AccessRegistryBase {
     // ⭐ A relation resolved AT THE ACT (the scan sweep): the title names
     // its organization, and asking whether somebody holds it stands it up.
     // Nothing is booted for this any more.
-    let org: Stuff | null = StuffApi.findByTemplatePath(owner.templatePath) ?? null;
-    if (!org) {
-      try {
-        org = await StuffApi.singleton(owner.templatePath);
-      } catch {
-        org = null;
-      }
-    }
+    const org: Stuff | null = await StuffApi.singleton(owner.templatePath).catch(
+      () => null,
+    );
     if (!org || !MixinApi.isOrganization(org)) {
       this.reportUnresolvedOrganization(owner.templatePath);
       return false;

@@ -103,13 +103,13 @@ describe('EmploymentLogic.tickRoster', () => {
     expect(mara.shiftState()).toBe('off-shift');
   });
 
-  it('does not resurrect a fired worker', () => {
+  it('does not resurrect a fired worker', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     // Materialize, then fire.
     atClock(2, 20);
     EmploymentApi.tickRoster();
-    biz.dismiss(mara);
+    await biz.dismiss(mara);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
     // A tick during the on-shift window leaves the terminal status alone.

@@ -221,12 +221,6 @@ let catalogueRef: ChannelCatalogue | null = null;
 
 async function requireCatalogue(): Promise<ChannelCatalogue> {
   if (catalogueRef) return catalogueRef;
-  const cat = StuffApi.findByTemplatePath<ChannelCatalogue>(CATALOGUE_PATH);
-  if (cat) {
-    catalogueRef = cat;
-    return cat;
-  }
-  const lazy = await StuffApi.singleton<ChannelCatalogue>(CATALOGUE_PATH);
-  catalogueRef = lazy;
-  return lazy;
+  catalogueRef = await StuffApi.singleton<ChannelCatalogue>(CATALOGUE_PATH);
+  return catalogueRef;
 }

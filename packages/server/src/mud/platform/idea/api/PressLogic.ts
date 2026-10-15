@@ -135,14 +135,9 @@ async function resolvePublisherImpl(
   if (path.length === 0) return null;
   // ⭐ A relation resolved at the act (the scan sweep): a release names its
   // publisher, and publishing as it stands it up — nothing is booted.
-  let organization: Stuff | null = StuffApi.findByTemplatePath(path) ?? null;
-  if (!organization) {
-    try {
-      organization = await StuffApi.singleton(path);
-    } catch {
-      organization = null;
-    }
-  }
+  const organization: Stuff | null = await StuffApi.singleton(path).catch(
+    () => null,
+  );
   if (!organization || !MixinApi.isPublisher(organization)) return null;
   return organization;
 }

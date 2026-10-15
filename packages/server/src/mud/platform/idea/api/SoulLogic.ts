@@ -25,14 +25,8 @@ const SoulApiCallers = SecurityPolicies.FromModule('/api/soul#SoulApi');
 let catalogueRef: SoulCatalogue | null = null;
 async function requireCatalogue(): Promise<SoulCatalogue> {
   if (catalogueRef) return catalogueRef;
-  const cat = StuffApi.findByTemplatePath<SoulCatalogue>(CATALOGUE_PATH);
-  if (cat) {
-    catalogueRef = cat;
-    return cat;
-  }
-  const lazy = await StuffApi.singleton<SoulCatalogue>(CATALOGUE_PATH);
-  catalogueRef = lazy;
-  return lazy;
+  catalogueRef = await StuffApi.singleton<SoulCatalogue>(CATALOGUE_PATH);
+  return catalogueRef;
 }
 
 /**

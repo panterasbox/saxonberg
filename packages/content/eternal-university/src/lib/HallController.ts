@@ -38,8 +38,7 @@ export abstract class HallController<
     // ⭐ A relation resolved at the act (the scan sweep): asking stands
     // the college up — it is not booted.
     const college =
-      StuffApi.findByTemplatePath(COLLEGE_PATH) ??
-      (await StuffApi.singleton(COLLEGE_PATH).catch(() => null));
+      await StuffApi.singleton(COLLEGE_PATH).catch(() => null);
     if (college && MixinApi.isOrganization(college) && college.employs(actor)) return true;
     return CompactApi.isCommitteeMember(actor, HALL_EXTENT);
   }

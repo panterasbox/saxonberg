@@ -318,8 +318,7 @@ async function organizationChainOfImpl(
     // ⭐ A relation resolved at the act (the scan sweep): the parent
     // organization stands up when somebody asks — it is not booted.
     const parent =
-      StuffApi.findByTemplatePath(parentPath) ??
-      (await StuffApi.singleton(parentPath).catch(() => null));
+      await StuffApi.singleton(parentPath).catch(() => null);
     if (!parent || !MixinApi.isOrganization(parent)) return out;
     out.push(parent);
     current = parent;
@@ -614,9 +613,8 @@ async function endEmploymentImpl(
 ): Promise<void> {
   if (!MixinApi.isEmployed(actor)) return;
   const organization =
-    StuffApi.findByTemplatePath(organizationPath) ??
     // A relation resolved at the act (the scan sweep): not booted.
-    (await StuffApi.singleton(organizationPath).catch(() => null));
+    await StuffApi.singleton(organizationPath).catch(() => null);
   if (organization && MixinApi.hasMixin(organization, Mixins.Organization)) {
     (organization as OrganizationStuff).endEmployment(
       actor as EmployedActor,
@@ -1871,8 +1869,7 @@ export class EmploymentLogic extends ApiLogic {
     }
     const employment = onPremises[0]!;
     const business =
-      StuffApi.findByTemplatePath(employment.organizationPath) ??
-      (await StuffApi.singleton(employment.organizationPath).catch(() => null));
+      await StuffApi.singleton(employment.organizationPath).catch(() => null);
     if (!business || !MixinApi.isBusiness(business)) {
       return { ok: false, reason: 'not-employed-here' };
     }

@@ -51,9 +51,8 @@ export default class QuitController extends CommandController<QuitModel> {
     }
     await giver.quitJob(record.organizationPath);
     const org =
-      StuffApi.findByTemplatePath(record.organizationPath) ??
       // A relation resolved at the act (the scan sweep): not booted.
-      (await StuffApi.singleton(record.organizationPath).catch(() => null));
+      await StuffApi.singleton(record.organizationPath).catch(() => null);
     const name = org?.getPresentation() ?? record.organizationPath;
     MessageApi.scene(giver)
       .topic(TOPIC)
