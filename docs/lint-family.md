@@ -1800,7 +1800,7 @@ searching the template table, and never at boot unless the reason is
 written down and holds.** Two gates hold the two ways round it.
 
 - **`lint:boot-entries`** reads every pack's manifest `boot:` list. (a)
-  The total is a ceiling (128 at landing). (b) Every entry has a
+  The total is a ceiling (128 at landing, 79 when the sweep shipped). (b) Every entry has a
   `reason`. (c) An entry whose template is CONTENT (`/world/`,
   `/trade/`, `/corpo/`, `/compact/`) must cite `unobserved-economy` —
   the houses whose NPCs act with nobody present are the only content
@@ -1812,7 +1812,8 @@ written down and holds.** Two gates hold the two ways round it.
   `ALLOWLIST` entry with its reason (the location graph, author tooling,
   the installer, a dictionary's own lazy warm, a system compiling its
   own index); a new one fails, and an allowance above what a file holds
-  is stale.
+  is stale. 43 at landing, 39 when the sweep shipped, every one with its
+  reason.
 
 ⭐ **The lesson both encode: a search, or a boot entry, is what a
 reference pointing the WRONG WAY forces.** *Which business operates this
