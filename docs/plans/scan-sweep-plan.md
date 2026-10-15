@@ -999,6 +999,16 @@ HELP WANTED on the first look; `apply` takes the seat (AC 2). The
 
 ### W2 — Water and fishing: the reach names its works and its species
 
+> ✅ **DONE** (`784de3a95`). As planned. The row read reproduces each
+> class's two live answers (`Conduit`: direction, `on === true`, `cut`,
+> capacity, load, kind; `ControlStructure`: `passFraction`). ⚠ The works
+> roster now lives on the compiled index, so a work authored AFTER the
+> first compile needs `invalidateCache()` — which the installer's go-live
+> already fires (a test that authored a control mid-test had to call it).
+> Species named on every reach of the seven courses (freshwater reaches:
+> trout/carp/eel; brackish mouths add mullet, crab, sturgeon) — a named
+> species that does not fit derives capacity 0.
+
 **Goal.** AC 4.
 
 **Implements** D8.
@@ -1033,6 +1043,21 @@ fit; the sea band's stock still bites.
 **Commit.** `feat(water): the reach names its works and its species — an unvisited outfall fouls from its row; no species class scan`
 
 ### W3 — Residence, the books, the basket, the self-seating fixtures
+
+> ✅ **DONE** (`b28986d1d` + `dd84e9b10` — one wave split across two
+> commits by a `git add` that died on an already-staged pathspec; the
+> second commit says so). `title` (what you hold) is asked of
+> `ParcelApi.extentsHeldBy` + the zone, not of every book — which found a
+> ⚠ **pre-existing defect**: `ParcelRegistry.transfer` changed the owner
+> without moving the owner index, so no bought lot ever appeared in
+> `extentsHeldBy` / `AccessApi.heldExtents`. Fixed. The `holdingsUnder`
+> zone walk lives in the `maintains` brain module (a pack may hold no
+> Api); a public static on `OuterWarren` would have raised
+> `lint:lib-statics`. W1 follow-ups the drive found are in the same
+> commit: `organizationChain()` is async and resolves each parent at the
+> act (every consign beat was refused `not-owner` once the corpos were
+> unbooted), and apply/clock/quit/the opening advance resolve the
+> employer at the act.
 
 **Goal.** AC 3, AC 7; the building / warren / prop / book entries.
 
@@ -1076,6 +1101,25 @@ pass.
 **Commit.** `feat(residence): the zone names its institutions; the desk and the agent name their books; the price index loads its basket; no warren, book or self-seating fixture is booted`
 
 ### W4 — Vocabularies and species: holders load what they are made of; dictionaries are lazy
+
+> ✅ **DONE** (same commits as W3). ⚠ **D6/D7 re-planned in place.**
+> (a) `isSentient` FAILS CLOSED by returning `true` for a body that cites
+> a cold species — no `SpeciesUnresolved` class: the six engine callers
+> take the sentient branch unchanged and the three safety gates' existing
+> null-check refuses first. (b) The plan said Material/Biome/Condition
+> retire because "every reader is by path and the citing row now loads
+> it" — **false**: 74 synchronous material lookups by path, most of them
+> RELATIONS (product materials, composition parts, alloying) no holder
+> loads. By D6's own reader rule they stay booted, with the reason in the
+> entry, as do Spell (the casting verbs' command source), Discipline
+> (`fulfils` inside every order), Placement, Corpo, Government,
+> AddressRegistry, MaturationProfile and FractionSchedule — each read
+> synchronously with no act-shaped seam. **Lazy now:** Reading, Soul (the
+> login palette loads it), Operation, Help (`HelpApi.ready()`), Fabric
+> (the form setter warms it), Dyestuff. Species and herdbooks unbooted.
+> Boot 99 → 79; uncited content entries 0. AC 1 is MET for structures,
+> seas, species rows, organizations and advertising houses, and PARTLY
+> for "content catalogue" — ⚠ flagged for review.
 
 **Goal.** AC 5, AC 6; the catalogue and species entries.
 
@@ -1121,6 +1165,18 @@ drives pass.
 **Commit.** `feat(templates): a holder loads what it is made of; typed-word and keyed dictionaries warm on first use; isSentient fails closed; no vocabulary or species row is booted`
 
 ### W5 — Part 1's nine, the ratchets pinned, the docs
+
+> ✅ **DONE** (`686929470`), ⚠ **narrowed in place.** Built: the
+> residency candidates read the Circulating bucket (a real walk of every
+> object); every template-table search carries its reason (39, no stub).
+> **Not built, and why:** the `byDocPath` index (StuffApi's own doctrine
+> refuses a per-feature index); the `extends` memo (its runtime callers
+> are gone — the rest are once-per-process warms — and a stale memo hides
+> rows); owner-keyed maps for the remaining RegistryWideReaders pairs —
+> each is a read of StuffApi's mixin bucket, which is already maintained
+> on write, and W1 showed owner hooks are fragile (houses minted with no
+> setter). The pair count holds at 12. `holdsAnyPublishingPosition` stays
+> a bucket read.
 
 **Goal.** AC 8; both gates become ratchets at their final counts.
 
