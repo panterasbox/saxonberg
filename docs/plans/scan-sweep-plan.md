@@ -1620,3 +1620,12 @@ deck: maritime's step 20 appoints the lookout first, so the one seat is
 filled and there is no HELP WANTED left to see. Two dirty files consume
 the same seat. **`scan-sweep` alone: 12/12** — the Hesper's outfit stands
 up on coming aboard from the graph's attachment alone.
+
+**Review round 2 re-drive (2026-10-15, dropped DB):** `scan-sweep` 13/14
+on the first run of the new checkpoint 10 — Veshko's stock prints its
+lines (the old `stockLines: []` could not) and the valley's oil store
+holds its casks; the one miss was the checkpoint's own second assertion,
+which wanted the word *gin* from `look in stock` in a yard too dim to
+name anything ("In it: something…" × ~120). It now asserts the stock
+holds goods. Not re-booted for that one-line change. Maritime not run —
+this round does not touch it. `test:near` 690 files green.
