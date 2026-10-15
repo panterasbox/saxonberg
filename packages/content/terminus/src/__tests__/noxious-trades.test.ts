@@ -64,25 +64,24 @@ describe('three premises, and all three are VACANT', () => {
     }
   });
 
-  it('⭐⭐ and every premises NAMES its outfit, so arriving stands the house up', () => {
+  it('⭐⭐ every outfit names its premises, so arriving stands the house up — and none is booted', () => {
     // The derived help-wanted sign reads LIVE businesses, and nothing is
-    // booted to make one live (the scan sweep, 2026-10-14): the ROOM names
-    // its house in `stands:` and loading the room stands it up. This is the
-    // pairing `lint:openings` rule 3 holds — and none of the three is a
-    // boot entry any more.
+    // booted to make one live (the scan sweep, 2026-10-14): the location
+    // graph attaches each house to the places its `operatingLocations`
+    // name, and loading the place stands it up. Authored once, on the house.
     const rooms: Record<string, string> = {
-      knackers: 'world/terminus/wharfside/knackers/location/yard',
-      tannery: 'world/terminus/wharfside/tannery/location/yard',
-      chandlery: 'world/terminus/wharfside/chandlery/location/floor',
+      knackers: '/world/terminus/wharfside/knackers/location/yard',
+      tannery: '/world/terminus/wharfside/tannery/location/yard',
+      chandlery: '/world/terminus/wharfside/chandlery/location/floor',
     };
     const pack = readFileSync(PACK, 'utf8');
     for (const p of PREMISES) {
-      const row = YAML.parse(readFileSync(`${CONTENT}${rooms[p]}.yaml`, 'utf8'));
-      expect(row.data.stands, `${p} room`).toContain(
-        `/world/terminus/wharfside/${p}/idea/outfit`,
+      const outfit = YAML.parse(
+        readFileSync(`${CONTENT}world/terminus/wharfside/${p}/idea/outfit.yaml`, 'utf8'),
       );
+      expect(outfit.data.operatingLocations, `${p} outfit`).toContain(rooms[p]);
       expect(pack).not.toContain(`/world/terminus/wharfside/${p}/idea/outfit, role:`);
-      expect(pack).not.toContain(`/${rooms[p]}, role:`);
+      expect(pack).not.toContain(`${rooms[p]}, role:`);
     }
   });
 });

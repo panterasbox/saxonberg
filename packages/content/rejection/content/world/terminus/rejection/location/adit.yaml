@@ -14,10 +14,6 @@
 # here.
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/rejection/idea/coop-business
   shortDescription: adit mouth
   keywords: [adit, mouth, entrance, tunnel]
   register: definite

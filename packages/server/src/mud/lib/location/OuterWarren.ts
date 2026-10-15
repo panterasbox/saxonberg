@@ -43,7 +43,6 @@
 import { Warren } from './Warren';
 import { PlatPlan } from './PlatPlan';
 import { StuffApi } from '../../api/stuff';
-import { ZoneApi } from '../../api/zone';
 import { AppApi } from '../../api/app';
 import { ParcelApi } from '../../api/parcel';
 import { PersistableApi } from '../../api/persistable';
@@ -363,8 +362,8 @@ export abstract class OuterWarren extends Warren {
 
   /**
    * Re-enter a keyed room from a captured placement: find the
-   * institution whose parent extent prefixes the key (the zone over the
-   * key names it in `stands:` — nothing is booted), admit the holding,
+   * institution whose parent extent prefixes the key (attached to the key
+   * in the location graph's record — nothing is booted), admit the holding,
    * and resolve the specific room. The log-out-in-your-yard seam
    * (residences D16); null when no institution covers the key.
    */
@@ -391,32 +390,22 @@ export abstract class OuterWarren extends Warren {
 
   /**
    * ⭐ *Which institutions claim this key*, innermost first — asked of the
-   * PLACE (the scan sweep, 2026-10-14). The zone over the key names its
-   * institution in `stands:` (Duncan Hall its dorm warren, Seznick House
-   * its building, Hinkley Hills its plat book); the walk stands each zone
-   * on the key's ancestry up, awaits what it names, and keeps the warrens
-   * whose parent extent prefixes the key. It used to ask a pack's
-   * catalogue, which found the institutions by a scan of the template
-   * table and could only answer for the ones that were BOOTED.
+   * location graph's record (the scan sweep, 2026-10-14): an institution is
+   * attached to its own `parentExtent`, so the institutions over a key are
+   * a map read up the key's ancestry, each stood up here. It used to ask a
+   * pack's catalogue, which found them by a scan of the template table and
+   * could only answer for the ones that were BOOTED.
    */
   private static async institutionsCovering(
     key: string,
   ): Promise<OuterWarren[]> {
+    const { NavigationApi } = await import('../../api/navigation');
     const out: OuterWarren[] = [];
-    let probe = key;
-    for (let depth = 0; depth < 32 && probe.length > 0; depth += 1) {
-      const zone = await ZoneApi.resolveZoneForPath(probe);
-      if (!zone) break;
-      await zone.standsLoaded();
-      for (const s of zone.standing()) {
-        if (!(s instanceof OuterWarren) || out.includes(s)) continue;
-        const parent = s.getParentExtent();
-        if (parent && key.startsWith(parent + '/')) out.push(s);
-      }
-      const at = zone.getTemplatePath() ?? '';
-      const up = at.slice(0, at.lastIndexOf('/'));
-      if (up.length === 0 || up === at) break;
-      probe = up;
+    for (const p of await NavigationApi.attachedTo(key, 'institution')) {
+      const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
+      if (!(s instanceof OuterWarren) || out.includes(s)) continue;
+      const parent = s.getParentExtent();
+      if (parent && key.startsWith(parent + '/')) out.push(s);
     }
     out.sort(
       (a, b) => (b.getParentExtent() ?? '').length - (a.getParentExtent() ?? '').length,

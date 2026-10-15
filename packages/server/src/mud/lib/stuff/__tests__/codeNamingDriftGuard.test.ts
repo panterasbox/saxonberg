@@ -142,6 +142,8 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `<root>/<branch>/` pattern — silently, which is how a gate becomes
   // a gate-shaped comment.
   { site: "platform/idea/LocationGraphRegistry.ts::loadClassByPath", classification: "gated-direct" },
+  // The scan sweep: the projection asks whether an attached row is a Structure.
+  { site: "platform/idea/LocationGraphRegistry.ts::loadClassByPath", classification: "gated-direct" },
   // `BiomeCatalogue.onCreate` keeps a row by `instanceof Biome` — the
   // MaterialCatalogue filter exactly, added by the ground build because
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome

@@ -1,5 +1,6 @@
 // ExpanseLogic — the hot-reloadable logic singleton behind ExpanseApi.
 
+import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -7,8 +8,6 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import { Expanse } from '../../../lib/expanse/Expanse';
 import { MixinApi } from '../../../api/mixin';
-import { ZoneApi } from '../../../api/zone';
-import { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { StuffApi } from '../../../api/stuff';
 import type { ClimateLean } from '../../../lib/weather/WeatherType';
 
@@ -33,12 +32,9 @@ export class ExpanseLogic extends ApiLogic {
     if (here && MixinApi.isPositioned(here) && here.getExpansePosition() !== null) {
       return here;
     }
-    // The place's own zone names what stands in it (maritime review,
-    // 2026-10-14 — never a catalogue of every structure).
-    const zone = await ZoneApi.resolveZoneForPath(placePath);
-    if (!(zone instanceof SpatialZone)) return null;
-    await zone.standsLoaded();
-    const s = zone.structureOf(placePath);
+    // The structure attached to the place in the location graph's record
+    // — never a catalogue of every structure.
+    const s = await NavigationApi.structureAt(placePath);
     return s && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
   }
 
@@ -48,10 +44,9 @@ export class ExpanseLogic extends ApiLogic {
     if (!placePath) return null;
     let craft: Stuff | null = StuffApi.findByTemplatePath<Stuff>(placePath) ?? null;
     if (!craft || !MixinApi.isPositioned(craft) || craft.getExpansePosition() === null) {
-      // The structure this place is a member of — named by the place's
-      // own zone, and standing whenever the place is.
-      const zone = craft?.getZone() ?? null;
-      craft = zone?.structureOf(placePath) ?? null;
+      // The structure this place is a member of — attached to it in the
+      // location graph's record, and standing whenever the place is.
+      craft = NavigationApi.structureAtNow(placePath);
     }
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const pos = craft.getExpansePosition();

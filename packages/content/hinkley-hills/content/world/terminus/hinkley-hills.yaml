@@ -7,11 +7,6 @@
 # in the gated `parcels` collection, the governing security invariant.
 class: /platform/idea/location/CartesianZone
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/hinkley-hills/idea/plat-book
-    - /world/terminus/hinkley-hills/idea/lot-holder
   name: Hinkley Hills
   cellSize: 6.0
   # ⭐ 130 m, and the whole of the suburb's water problem is in that

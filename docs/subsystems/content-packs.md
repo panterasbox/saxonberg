@@ -1150,8 +1150,8 @@ scheduler chain under `/platform/idea/WorldClockRegistry`),
 pack boots only the houses and premises whose NPCs act while nobody is
 present — the unobserved economy (→ `unobserved-economy-slate`), each
 reason citing it. Organizations (`/compact/*`, the corpos) are resolved
-at the act; a house that only advertises is stood up by the room that
-names it in `stands:`. **`pnpm lint:boot-entries`** holds the total as a
+at the act; a house that only advertises is stood up when somebody
+arrives at a place it operates (the location graph attaches it there). **`pnpm lint:boot-entries`** holds the total as a
 ceiling and requires every content entry to cite the unobserved economy;
 `lint:instanceable` reads no `boot:` (this paragraph used to say it
 did).

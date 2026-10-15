@@ -629,8 +629,9 @@ different money from different gates, and it is the content that gives
 the Authority a maintenance round to staff.
 
 The four terminals are **not** boot-manifest entries — and since the scan
-sweep (2026-10-14) neither is the lounge hub: the lounge zone names its
-terminal in `stands:`, and the network cascades from whichever node first
+sweep (2026-10-14) neither is the lounge hub: the location graph attaches
+the terminal to the lounge room (it seats in the warren that room names),
+and the network cascades from whichever node first
 loads (a player in the lounge, or at a departure gate whose room props its
 terminal). Nothing is booted to make the network exist. The three departure terminals
 are never route targets, so a plain route-target cascade would never reach

@@ -3,11 +3,11 @@
  *
  * The rule (the scan sweep, 2026-10-14): content is reached by following
  * an AUTHORED reference from what is already loaded — a room's `props:`,
- * a place's `stands:`, a holder's constituents — never by searching the
- * template table for rows that answer a question. A search is what a
- * reference pointing the wrong way forces: *which business operates this
- * room?* is a scan of every business; *this room names its house* is a
- * read.
+ * the location graph's attachments, a holder's constituents — never by
+ * searching the template table for rows that answer a question. A search
+ * is what a reference pointing the wrong way forces: *which business
+ * operates this room?* is a scan of every business; the graph's record of
+ * each house's `operatingLocations`, read reversed, is a lookup.
  *
  * So every call that enumerates the table —
  * `Template.findByClass` · `findByPathInfix` · `findWhereDataHas` ·
@@ -150,8 +150,8 @@ export function check(sites: ScanSite[], allow: AllowEntry[] = ALLOWLIST): strin
       problems.push(
         `${file}:${list[0]!.line}  Template.${list[0]!.method}() searches the ` +
           `template table. Content is reached by following an authored ` +
-          `reference — name it from the place (\`stands:\`), the holder (a ` +
-          `constituent) or the row that asks. A search is legitimate only in ` +
+          `reference — the place loads what the location graph attaches to ` +
+          `it, a holder its constituents, a row what it names. A search is legitimate only in ` +
           `a sanctioned home; add one to ALLOWLIST with its reason only if ` +
           `this is one.`,
       );

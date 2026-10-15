@@ -210,12 +210,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // structures, and the rows a chart or pilot's `entries` cite. A rowless
   // one is a sight-line to nothing. (A `horizon` names ZONES, which are
   // rows too.)
-  // ⭐ `stands` (maritime review as `structures`, 2026-10-14) — what a
-  // place loads with itself, as a room loads its props: a rowless one is a
-  // tower missing from every horizon, a house that never opens, silently.
-  // ⭐ Renamed `stands` and widened to any place by the scan sweep: a room
-  // names its house, a zone its tower — one list.
-  for (const f of ['endpoints', 'featured', 'horizon', 'stands'] as const) {
+  for (const f of ['endpoints', 'featured', 'horizon'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   if (Array.isArray(data.entries)) {

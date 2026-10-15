@@ -27,8 +27,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import { ZoneApi } from '@saxonberg/server/mud/api/zone';
-import type { SpatialZone } from '@saxonberg/server/mud/lib/zone/SpatialZone';
+import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
 import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -108,19 +107,6 @@ class TestInstitution extends OuterWarren {
   protected async unwireHostFixtures(): Promise<void> {}
 }
 
-/**
- * ⭐ The zone over the extent names its institution in `stands:` (the
- * scan sweep) — so the zone is the fixture, and `holdingsUnder`'s extent
- * filter is the shipped one.
- */
-function zoneStanding(institutions: OuterWarren[]): void {
-  const zone = {
-    standsLoaded: async () => undefined,
-    standing: () => institutions,
-    getTemplatePath: () => '/world',
-  } as unknown as SpatialZone;
-  vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(zone);
-}
 
 let institution: TestInstitution;
 
@@ -167,8 +153,10 @@ function keeper(desk: SingletonCartesianLocation): Avatar {
 beforeEach(() => {
   StuffApi.clearAll();
   issued = [];
-  institution = makeStuff(() => new TestInstitution());
-  zoneStanding([institution as unknown as OuterWarren]);
+  // ⭐ The institution is attached to its extent in the location graph's
+  // record (from its own `parentExtent`) — the brain reads that.
+  institution = makeStuffAtPath(() => new TestInstitution(), `${DORMS}/warren`);
+  attachGraph({ [DORMS]: [[`${DORMS}/warren`, 'institution']] });
 });
 
 /**

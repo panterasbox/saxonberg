@@ -2,12 +2,11 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
 import Ship from '../Ship';
-import { SpatialZone } from '../../../lib/zone/SpatialZone';
+import { NavigationApi } from '../../../api/navigation';
+import { attachGraph } from '../../../lib/location/__tests__/attachments-fixture';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
-
-class TestZone extends SpatialZone {}
 
 /**
  * The Structure (maritime D4): membership by extent prefix, sparse. ⭐ A
@@ -67,29 +66,27 @@ describe('Structure', () => {
     expect(s.isLandmark()).toBe(true);
   });
 
-  it('⭐ a zone NAMES its structures and loading it stands them up — nothing is searched for', async () => {
+  it('⭐ a place\'s structure is ATTACHED to it in the location graph — stood up, never searched for', async () => {
     const tower = makeStuffAtPath(() => new Structure(), '/test/t/structure');
     tower.setExtent('/test/t');
     tower.setLandmark(true);
-    const zone = makeStuffAtPath(() => new TestZone(), '/test/t');
+    attachGraph({ '/test/t': [['/test/t/structure', 'structure']] });
     const singleton = vi.spyOn(StuffApi, 'singleton');
-    await zone.applyStands(['/test/t/structure']);
-    await zone.standsLoaded();
+    expect(await NavigationApi.structureAt('/test/t/room')).toBe(tower);
     expect(singleton).toHaveBeenCalledWith('/test/t/structure');
-    expect(zone.standingStructures()).toEqual([tower]);
-    expect(zone.standingStructures()[0]!.isLandmark()).toBe(true);
   });
 
-  it('the zone answers the structure a place is in — the innermost extent', async () => {
+  it('the innermost extent answers — a wing inside a hall', async () => {
     const hall = makeStuffAtPath(() => new Structure(), '/test/a/structure');
     hall.setExtent('/test/a');
     const wing = makeStuffAtPath(() => new Structure(), '/test/a/wing/structure');
     wing.setExtent('/test/a/wing');
-    const zone = makeStuffAtPath(() => new TestZone(), '/test/a');
-    await zone.applyStands(['/test/a/structure', '/test/a/wing/structure']);
-    await zone.standsLoaded();
-    expect(zone.structureOf('/test/a/wing/attic')).toBe(wing);
-    expect(zone.structureOf('/test/a/hall')).toBe(hall);
-    expect(zone.structureOf('/test/elsewhere')).toBeNull();
+    attachGraph({
+      '/test/a': [['/test/a/structure', 'structure']],
+      '/test/a/wing': [['/test/a/wing/structure', 'structure']],
+    });
+    expect(NavigationApi.structureAtNow('/test/a/wing/attic')).toBe(wing);
+    expect(NavigationApi.structureAtNow('/test/a/hall')).toBe(hall);
+    expect(NavigationApi.structureAtNow('/test/elsewhere')).toBeNull();
   });
 });

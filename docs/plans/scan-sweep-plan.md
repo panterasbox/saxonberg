@@ -7,6 +7,9 @@ Terminus realm as it stands plus every typed-word verb). The doctrine:
 references from what is already loaded — never by searching the template
 table, and never at boot unless the reason is written down and holds.**
 
+⚠⚠ **Review round 1 (2026-10-15) retired `stands:` / `SiteMixin`** — every
+mention below is history; see *Review round 1* at the end of the decisions.
+
 ⚠ **This plan replaces one the user rejected in review (2026-10-14).**
 What was cut, and why, is binding on every wave below:
 
@@ -769,6 +772,40 @@ transient promise. No snapshot grows; no host becomes Persistable; no
 Mongo collection changes; no migration — the `structures:` → `stands:`
 rename lands by pack reconcile, and a dev DB that will not boot is
 dropped.
+
+### ⭐⭐ Review round 1 (2026-10-15) — `stands:` retired; the location graph derives it
+
+**Superseding W0's `SiteMixin`/`stands:` and every wave that authored a
+`stands:` line (W1, W3, maritime's `structures:`).** The user asked why a
+mixin carried by every location — then by every `CartesianLocation` —
+existed for a list a handful of rows authored, and with no link to what
+a location is. The honest answer: `stands:` was the **reverse copy** of a
+reference content already authors (`operatingLocations`, a structure's
+`extent`, a ship's `expanse`, `parentExtent`, `seatIn`, an agent's
+`institution`), hand-maintained, so forgetting the second copy was a new
+silent failure. The user approved deriving it in the location graph —
+*"as long as it's performant; we created it expressly to do things like
+this without having to scan through content records."*
+
+- `LocationGraphRegistry` derives `anchor → target → kind`
+  (`house · structure · craft · institution · fixture`) in the same pass
+  `rebuildImpl` already makes over every row; a content write marks it
+  dirty, the next read re-derives; a read is a map lookup over the path's
+  ancestors. `NavigationApi.attachedTo / attachedWithin / structureAt`
+  (+ `…Now` sync forms). No second template scan (template-scans holds).
+- `LocationZone.addLocation` kicks the attached singletons;
+  `lookOutFrom` stands up structures within the horizon. `SpatialZone`
+  is back to `extends Zone`; `Site.ts`, `Mixins.Site`, `MixinApi.isSite`
+  deleted; 56 `stands:` blocks removed from rows.
+- `lint:openings` rule 3 now asks that an operated path be a room or a
+  placed fixture — nothing reverse to check.
+- Docs: [location-graph.md § Attachments](../subsystems/location-graph.md)
+  is the home; zone, templates, employment, residence, expanse,
+  fasttravel, holding, residency, content-packs, ref-shapes,
+  antipatterns and the lint-family lesson updated.
+- **Lesson:** never answer a reverse question with a second authored
+  list; derive it from the forward reference in the index built for the
+  world's shape.
 
 ---
 

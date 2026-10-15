@@ -950,7 +950,6 @@ Ship.deckHeightM = 0
 Ship.house = 0
 Ship.mastheadHeightM = 0
 ShoreMixin.waters = 0
-SiteMixin.stands = 0
 SlottedMixin.staticSlots = 0
 SmellSourceMixin.emittedConcentration = 0
 SmellSourceMixin.odorIdentity = 0

@@ -186,7 +186,7 @@ axis, kernel and packs, resolved on every row that authors it, with the
 constituent graph checked acyclic (a constituent is awaited by its
 holder's load, so a cycle waits on itself). The hand-kept list in
 `refsOf` remains for nested and structural shapes (`props:`, `cast:`,
-`stands:`, `exits`, `stocks[].species` …) that a flat declaration cannot
+`exits`, `stocks[].species` …) that a flat declaration cannot
 name.
 
 ---

@@ -70,7 +70,7 @@ import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
 import { BoundaryApi } from '../../../../api/boundary';
-import { ZoneApi } from '../../../../api/zone';
+import { NavigationApi } from '../../../../api/navigation';
 
 const TOPIC = 'act.deed';
 
@@ -159,25 +159,17 @@ export default class TitleController extends CommandController<TitleModel> {
   }
 
   /**
-   * The plat book an extent belongs to, asked of the PLACE: the zone over
-   * the extent names its book in `stands:` (Hinkley Hills names its own).
+   * The plat book an extent belongs to — attached to it in the location
+   * graph's record (from the book's own `parentExtent`), stood up here.
    */
   private async bookCovering(extent: string): Promise<PlatBookShape | null> {
-    let probe = extent;
-    for (let depth = 0; depth < 32 && probe.length > 0; depth += 1) {
-      const zone = await ZoneApi.resolveZoneForPath(probe);
-      if (!zone) return null;
-      await zone.standsLoaded();
-      for (const s of zone.standing()) {
-        if (isPlatBook(s) && extent.startsWith(`${s.getParentExtent()}/`)) return s;
-      }
-      const at = zone.getTemplatePath() ?? '';
-      const up = at.slice(0, at.lastIndexOf('/'));
-      if (up.length === 0 || up === at) return null;
-      probe = up;
+    for (const p of await NavigationApi.attachedTo(extent, 'institution')) {
+      const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
+      if (s && isPlatBook(s) && extent.startsWith(`${s.getParentExtent()}/`)) return s;
     }
     return null;
   }
+
 
   /**
    * The provisioner a book names, or null when it names none (an offer

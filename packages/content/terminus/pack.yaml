@@ -113,7 +113,8 @@ boot:
   # still the distilling trade's — the racking, the counter, the clerk.
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   # ⭐ The one chartered bank is NOT booted (the scan sweep): the banking
-  # hall names it in `stands:`, and `appoint … at` resolves it at the act.
+  # hall loads it (the location graph attaches it from its operatingLocations),
+  # and `appoint … at` resolves it at the act.
   # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
   # Stock is the home container its trade's rows spawn into, and an
   # outfit's hand runs its brain over a live Business. Moved here WITH the
@@ -121,9 +122,10 @@ boot:
   - { template: /world/terminus/wharfside/mill/location/floor, role: producer, reason: "the mill floor — its Stock is the home container bolts spawn into, and its weaver runs the consigns brain; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   - { template: /world/terminus/wharfside/mill/idea/outfit, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   # ⭐⭐ The houses that only ADVERTISE are not booted at all (the scan
-  # sweep, 2026-10-14): each premises names its house in `stands:`, so the
-  # house stands up when somebody arrives, and `lint:openings` rule 3 holds
-  # the room to it. What stays below is booted for one reason only: its
+  # sweep, 2026-10-14): the location graph attaches each house to the
+  # premises its own operatingLocations name, so the house stands up when
+  # somebody arrives (`lint:openings` rule 3 proves each is a place). What
+  # stays below is booted for one reason only: its
   # NPCs act while nobody is present (→ unobserved-economy-slate).
   # ⭐ The tailor orders cloth off her par sheet with nobody present (the
   # restocks beat) — the unobserved economy keeps her shop and outfit live.

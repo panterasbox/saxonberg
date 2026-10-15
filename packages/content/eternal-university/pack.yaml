@@ -45,5 +45,5 @@ requires:
     - { extent: /world/terminus/eternal/campus-farm,  parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
     - { extent: /world/terminus/eternal/campus-field, parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
   # ⭐ The farm unit advertises rung ZERO (trades-and-labor D16) and is not
-  # booted (the scan sweep): the yard and the field name it in `stands:`,
-  # so arriving stands it up, and `lint:openings` rule 3 holds them to it.
+  # booted (the scan sweep): the location graph attaches it to the yard and
+  # the field it operates, so arriving stands it up.

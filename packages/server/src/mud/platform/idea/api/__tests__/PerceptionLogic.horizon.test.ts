@@ -16,7 +16,7 @@ import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
 import { MqlApi } from '../../../../api/mql';
 import { PerceptionApi } from '../../../../api/perception';
 import { ContainmentApi } from '../../../../api/containment';
-import { SpatialZone } from '../../../../lib/zone/SpatialZone';
+import { attachGraph } from '../../../../lib/location/__tests__/attachments-fixture';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /** The sea's origin — what the graph's points are measured from. */
@@ -85,13 +85,22 @@ beforeEach(() => {
   live.clear();
   standing.length = 0;
   onTheSea.length = 0;
-  // ⭐ A zone answers *what stands in me* and *which building is this
-  // room in* from what it names — the horizon asks it, never a catalogue.
-  vi.spyOn(SpatialZone.prototype, 'standingStructures').mockImplementation(function (this: SpatialZone) {
-    if (this instanceof Expanse) return [...onTheSea];
-    const z = this.getTemplatePath() ?? '';
-    return standing.filter((s) => s.getExtent() === z || s.getExtent().startsWith(`${z}/`));
-  });
+  // ⭐ What is attached to a place comes from the location graph's record
+  // (the scan sweep) — the horizon reads it, never a catalogue: a
+  // structure is attached at its own extent.
+  const covers = (s: Structure, path: string): boolean =>
+    path === s.getExtent() || path.startsWith(`${s.getExtent()}/`);
+  // A fake registry whose table is DERIVED from the fixtures each read.
+  const graph = attachGraph({});
+  live.set('/platform/idea/LocationGraphRegistry', graph as unknown as Stuff);
+  vi.spyOn(graph, 'attachedWithinNow').mockImplementation(((z: string) =>
+    standing
+      .filter((s) => s.getExtent() === z || s.getExtent().startsWith(`${z}/`))
+      .map((s) => s.getTemplatePath() ?? '')) as never);
+  vi.spyOn(graph, 'attachedNow').mockImplementation(((path: string, kind?: string) =>
+    kind === 'craft'
+      ? []
+      : [...standing, ...onTheSea].filter((s) => covers(s, path)).map((s) => s.getTemplatePath() ?? '')) as never);
   sky = true;
   vi.spyOn(BiomeApi, 'isSkyExposed').mockImplementation(() => sky);
   vi.spyOn(WeatherApi, 'peekSkyType').mockReturnValue('clear');

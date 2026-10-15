@@ -44,7 +44,7 @@ import type {
   BrainContext,
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
-import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 
 const DEFAULT_BATCH = 3;
@@ -118,8 +118,8 @@ export const brain = class {
 /**
  * Every live holding programme whose key sits under `extent`.
  *
- * ⭐ Asked of the zone over the extent (the scan sweep, 2026-10-14). It
- * was asked of the WORLD by class name, then of a catalogue that found
+ * ⭐ Asked of the location graph's record (the scan sweep, 2026-10-14).
+ * It was asked of the WORLD by class name, then of a catalogue that found
  * the institutions by a scan of the template table.
  *
  * The `key` atom is the programme's own parcel extent (residences D16),
@@ -127,23 +127,18 @@ export const brain = class {
  */
 async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   const out: HoldingShape[] = [];
-  // ⭐ Asked of the PLACE (the scan sweep): the zone over the extent names
-  // its institution in `stands:`, and the walk up the extent's ancestry
-  // stands each zone and awaits what it names. An institution that is not
-  // standing has no live holdings to mind.
+  // ⭐ Asked of the location graph's record (the scan sweep): an
+  // institution is attached to its own `parentExtent`, so the ones over or
+  // inside the extent are map reads. One that is not standing has no live
+  // holdings to mind, so none is stood up for this.
+  const paths = new Set([
+    ...(await NavigationApi.attachedTo(extent, 'institution')),
+    ...(await NavigationApi.attachedWithin(extent, 'institution')),
+  ]);
   const institutions: OuterWarren[] = [];
-  let probe = extent;
-  for (let depth = 0; depth < 32 && probe.length > 0; depth += 1) {
-    const zone = await ZoneApi.resolveZoneForPath(probe);
-    if (!zone) break;
-    await zone.standsLoaded();
-    for (const s of zone.standing()) {
-      if (s instanceof OuterWarren && !institutions.includes(s)) institutions.push(s);
-    }
-    const at = zone.getTemplatePath() ?? '';
-    const up = at.slice(0, at.lastIndexOf('/'));
-    if (up.length === 0 || up === at) break;
-    probe = up;
+  for (const p of paths) {
+    const s = StuffApi.findByTemplatePath(p);
+    if (s instanceof OuterWarren && !s.isDestroyed()) institutions.push(s);
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {

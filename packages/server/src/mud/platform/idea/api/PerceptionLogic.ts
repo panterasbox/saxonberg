@@ -2,6 +2,7 @@
 // PerceptionApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
+import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -1198,8 +1199,7 @@ function craftAboard(viewer: Stuff): Craft | null {
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
   const path = room?.getTemplatePath() ?? '';
-  const zone = room ? (room.getZone() as SpatialZone | null) : null;
-  const s = path && zone ? zone.structureOf(path) : null;
+  const s = path ? NavigationApi.structureAtNow(path) : null;
   return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }
 
@@ -1312,9 +1312,13 @@ function horizonAshore(viewer: Stuff): HorizonView {
     const theirElev = target?.peekField<number>('elevation') ?? 0;
     const within = here === zonePath || here.startsWith(`${zonePath}/`);
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
-    // The structures the named zone says stand in it — stood up when the
-    // first room looking out at it was (`LocationZone.lookOutFrom`).
-    for (const s of target?.standingStructures() ?? []) {
+    // The structures attached within the named zone (the location graph's
+    // record) — stood up when the first room looking out at it was
+    // (`LocationZone.lookOutFrom`). Only what is standing is seen.
+    for (const sp of NavigationApi.attachedWithinNow(zonePath, 'structure')) {
+      // Structural: `Structure` is a type import here (a module cycle).
+      const s = StuffApi.findByTemplatePath(sp) as (Stuff & Partial<Structure>) | undefined;
+      if (!s || typeof s.hasMember !== 'function' || typeof s.getHeightM !== 'function') continue;
       if (s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;

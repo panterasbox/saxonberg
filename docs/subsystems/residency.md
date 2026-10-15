@@ -567,7 +567,8 @@ bar. ⭐ **These are the only content rows still booted** (the scan sweep,
 2026-10-14): every entry cites `unobserved-economy-slate`, which owns the
 question of whether and how the NPC economy runs unobserved, and
 `lint:boot-entries` refuses a content entry that does not. A house that
-only advertises is stood up by the room that names it in `stands:`.
+only advertises is stood up when somebody arrives at a place it operates
+(the location graph attaches it there).
 `Stock.reset()` now
 skips a line with a `supplier` — the sweep is the faucet for IMPORTS
 only (goods nobody produces), never for a line somebody sells. See

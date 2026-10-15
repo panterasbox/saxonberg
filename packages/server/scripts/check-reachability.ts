@@ -521,7 +521,6 @@ export function articleShapesOf(doc: {
  */
 const FAUCETS: Record<string, string> = {
   props: "born-with placement — the row is cloned into the place",
-  stands: "what stands with a place (the scan sweep) — loading the place stands the singleton up",
   template: "the `{template, as}` entry form of props/cast, and floor/residue entries",
   cast: "born-with agents; kept here so an agent-shaped thing row still counts",
   itemTemplatePath: "a counter's stockLines — the shop clones it to par",

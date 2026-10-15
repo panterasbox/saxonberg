@@ -1,6 +1,7 @@
 // EmploymentLogic — the hot-reloadable logic singleton behind EmploymentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -451,25 +452,20 @@ function allBusinessesImpl(): BusinessStuff[] {
 }
 
 /**
- * What the ROW at `path` names in `stands:` — or, for a fixture row that
- * names none, the `stands:` of the row its `container:` (or `seatIn:`)
- * places it in (one hop). Exact reads, never a scan: the place names its house, so asking
- * the place is the whole lookup (the scan sweep).
+ * Stand up the houses attached to `path` in the location graph's record —
+ * derived from each house's own `operatingLocations`, so nothing is
+ * written twice and nothing searched (the scan sweep). Awaited: a caller
+ * here is about to read the house.
  */
-async function standsNamedFor(path: string): Promise<string[]> {
-  const { Template } = await import('../../../lib/stuff/Template');
-  const listOf = (data: Record<string, unknown> | undefined): string[] =>
-    Array.isArray(data?.stands)
-      ? (data.stands as unknown[]).filter((p): p is string => typeof p === 'string')
-      : [];
-  const row = await Template.findByPath(path);
-  if (!row) return [];
-  const own = listOf(row.data);
-  if (own.length > 0) return own;
-  const container = row.data?.container ?? row.data?.seatIn;
-  if (typeof container !== 'string' || container.length === 0) return [];
-  const room = await Template.findByPath(container);
-  return listOf(room?.data);
+async function housesAttachedTo(path: string): Promise<void> {
+  if (!path) return;
+  for (const p of await NavigationApi.attachedTo(path, 'house')) {
+    try {
+      await StuffApi.singleton(p);
+    } catch (err) {
+      console.warn(`EmploymentLogic: house '${p}', attached to '${path}', did not stand up:`, err);
+    }
+  }
 }
 
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
@@ -1975,12 +1971,13 @@ export class EmploymentLogic extends ApiLogic {
   /** See {@link EmploymentApi.noticesAt}. */
   @CallSecurity(EmploymentApiCallers)
   public async noticesAt(here: Stuff | null): Promise<Opening[]> {
-    // ⭐ The room stood its house up when somebody ARRIVED (`stands:`, the
-    // scan sweep); a look awaits that load and never starts one. Then the
-    // one-house pass on each live house, so an opening nobody's roster has
-    // been run against does not advertise every seat — the engine's own
-    // tick run early, idempotent (user ruling, 2026-10-14).
-    if (here && MixinApi.isSite(here)) await here.standsLoaded();
+    // ⭐ The room's house stood up when somebody ARRIVED — it is attached
+    // to the room in the location graph's record, derived from the house's
+    // own `operatingLocations` (the scan sweep); a look awaits that load.
+    // Then the one-house pass on each live house, so an opening nobody's
+    // roster has been run against does not advertise every seat — the
+    // engine's own tick run early, idempotent (user ruling, 2026-10-14).
+    if (here) await housesAttachedTo(here.getIdentityPath() ?? here.getTemplatePath() ?? '');
     const out: Opening[] = [];
     for (const business of this.operatorsAtImpl(here)) {
       await this.bringHouseCurrent(business);
@@ -1999,10 +1996,10 @@ export class EmploymentLogic extends ApiLogic {
    * seat resolution (`BankingControllerBase.resolveHouse`) and the
    * help-wanted sign (`noticesAt`).
    *
-   * ⚠ **Live only.** Nothing here stands a house up; the room's
-   * `stands:` did that when somebody arrived, and `lint:openings` proves
-   * every operated room names its house (the scan sweep reversed the old
-   * rule that an advertising house must be a `boot:` entry).
+   * ⚠ **Live only.** Nothing here stands a house up; arriving did that —
+   * the location graph attaches the house to the places its own
+   * `operatingLocations` name (the scan sweep reversed the old rule that
+   * an advertising house must be a `boot:` entry).
    */
   private operatorsAtImpl(here: Stuff | null): BusinessStuff[] {
     if (!here) return [];
@@ -2042,11 +2039,10 @@ export class EmploymentLogic extends ApiLogic {
    * scan of the template table:
    *
    *   1. live → the one-house pass, return it;
-   *   2. the live place at the path (the room, or a fixture's room) names
-   *      its house in `stands:` — await that load and look again;
-   *   3. the ROW — its `stands:`, else its `container:` row's (one hop),
-   *      exact reads — stand each named path up and look again;
-   *   4. nobody operates here.
+   *   2. the houses the location graph attaches to the path — or, for a
+   *      live fixture, to the room it stands in — derived from each
+   *      house's own `operatingLocations`: stand them up, look again;
+   *   3. nobody operates here.
    *
    * Ungated, so a sibling logic method (`settleSale`) can run it without
    * tripping the `FromModule(EmploymentApi)` gate.
@@ -2056,32 +2052,16 @@ export class EmploymentLogic extends ApiLogic {
   ): Promise<BusinessStuff | null> {
     let house = this.businessByKey('location', locationPath);
     if (!house) {
+      // The houses attached to the place in the location graph's record —
+      // the path itself, or, for a fixture, the room it stands in.
+      await housesAttachedTo(locationPath);
       const here =
         StuffApi.findByTemplatePath(locationPath) ??
         StuffApi.findByIdentityPath(locationPath)[0] ??
         null;
-      const site =
-        here && MixinApi.isSite(here)
-          ? here
-          : here && MixinApi.isContainable(here)
-            ? here.getContainer()
-            : null;
-      if (site && MixinApi.isSite(site)) {
-        await site.standsLoaded();
-        house = this.businessByKey('location', locationPath);
-      }
-    }
-    if (!house) {
-      for (const path of await standsNamedFor(locationPath)) {
-        try {
-          await StuffApi.singleton(path);
-        } catch (err) {
-          console.warn(
-            `EmploymentLogic: '${locationPath}' names '${path}' in stands:, which did not stand up:`,
-            err,
-          );
-        }
-      }
+      const room = here && MixinApi.isContainable(here) ? here.getContainer() : null;
+      const roomPath = room?.getIdentityPath() ?? room?.getTemplatePath() ?? '';
+      if (roomPath) await housesAttachedTo(roomPath);
       house = this.businessByKey('location', locationPath);
     }
     if (!house) return null;

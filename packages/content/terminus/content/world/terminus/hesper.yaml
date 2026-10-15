@@ -8,12 +8,6 @@
 # ⚠ The name is a placeholder.
 class: /platform/idea/location/CartesianZone
 data:
-  # ⭐ What stands in this zone, loaded with it as a room's props are
-  # (maritime review, 2026-10-14): the Hesper loads when somebody comes
-  # aboard, or onto her sea. Nothing boots her.
-  stands:
-    - /world/terminus/hesper/structure
-    - /world/terminus/hesper/idea/outfit
   name: The Hesper
   cellSize: 4.0
   # No `horizon`: afloat, what is in view is COMPUTED from two heights

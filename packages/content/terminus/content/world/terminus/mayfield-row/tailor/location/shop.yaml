@@ -11,10 +11,6 @@
 # deferred and is the player-tailor's, not the NPC's.
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/mayfield-row/tailor/idea/outfit
   coords:
     x: 0
     y: 0

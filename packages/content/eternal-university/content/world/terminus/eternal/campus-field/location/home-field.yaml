@@ -17,10 +17,6 @@
 # which is exactly what makes authoring one possible without code.
 class: /trade/farming/location/Field
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/eternal/campus-farm/idea/farm-unit
   fieldName: the home field
   shortDescription: home field
   keywords: [field, "home field", ground, ley, home]

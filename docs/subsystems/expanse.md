@@ -173,14 +173,17 @@ whole voyage and told ships from buildings by `deckHeightM === null`.)
 
 ⭐⭐ **Nothing here is booted and nothing is found by searching**
 (maritime review, 2026-10-14, which removed a boot-warmed
-`StructureCatalogue` and `lint:structures-booted`). A zone NAMES the
-structures standing in it — the instruction field `structures:` on
-`SpatialZone`, applied as `props:` is — and loading the zone loads them
-(kicked, never awaited inside the load: a ship standing up reaches back
-for its sea, and a sea awaiting its ships would wait on itself;
-`structuresLoaded()` is what an async caller awaits). *Which structure
-is this room in* is the room's own zone's `structureOf(path)` — the
-innermost extent. The sea is a zone too, and names what loads with it:
+`StructureCatalogue` and `lint:structures-booted`). A structure is
+ATTACHED to the extent its own `extent` names, and a ship to the sea its
+`expanse` names — derived in the location graph's record, never written
+twice ([location-graph.md § Attachments](./location-graph.md); the
+maritime build's zone-side `structures:` list retired in the scan
+sweep's review). A room joining its zone stands up what is attached to
+it (kicked, never awaited inside the load: a ship standing up reaches
+back for its sea, and a sea awaiting its ships would wait on itself).
+*Which structure is this room in* is `NavigationApi.structureAt(path)`
+— the innermost attached extent (`structureAtNow` for a synchronous
+reader). The sea loads what is attached to it:
 - **its ships** — the realm's own (the Hesper), counted in `craft()` at
   anchor or not, so a ship is alongside its landing before it ever sails.
   A ship a player builds is loaded by its crew being aboard;

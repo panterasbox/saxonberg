@@ -458,8 +458,6 @@ export const Mixins = {
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
   Staged: 'StagedMixin',
-  /** ⭐ What STANDS with a place — `stands:`, the non-contained designation. See Site.ts. */
-  Site: 'SiteMixin',
   /** ⭐ The third designation beside `props:` and `cast:` — see Staged.ts. */
   Costumed: 'CostumedMixin',
   Persistable: 'PersistableMixin',

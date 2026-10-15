@@ -1,3 +1,4 @@
+import { attachGraph } from '../../location/__tests__/attachments-fixture';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Expanse } from '../Expanse';
@@ -9,8 +10,6 @@ import { Template } from '../../stuff/Template';
 import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
-import { ZoneApi } from '../../../api/zone';
-import { SpatialZone } from '../../zone/SpatialZone';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
@@ -37,7 +36,6 @@ function corridor(from: [number, number], to: [number, number], widthNm: number)
  * nodes by keyword, the seeded traffic field, per-channel co-presence.
  */
 class TestExpanse extends Expanse {}
-class TestZone extends SpatialZone {}
 
 const SEA = '/test/sea';
 let sea: TestExpanse;
@@ -169,11 +167,9 @@ describe('ExpanseApi.craftAt', () => {
     const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
     ship.setExtent('/test/ship');
     live.set('/test/ship/structure', ship);
-    // ⭐ The place's own ZONE names the ship — no catalogue, no search.
-    const zone = makeStuffAtPath(() => new TestZone(), '/test/ship');
-    await zone.applyStands(['/test/ship/structure']);
-    vi.spyOn(ZoneApi, 'resolveZoneForPath').mockImplementation((async (p: string) =>
-      (p.startsWith('/test/ship/') ? zone : null)) as never);
+    // ⭐ The ship is ATTACHED to its rooms in the location graph's record
+    // (its own `extent`) — no catalogue, no search.
+    attachGraph({ '/test/ship': [['/test/ship/structure', 'structure']] });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
@@ -229,13 +225,13 @@ describe('the weather on the water (maritime R9/R10)', () => {
       b.setExtent(belt(49, 51));
       b.setWeatherLean({ fog: 8 });
     });
-    // The deck's own zone names the ship it is a member of.
-    const zone = makeStuffAtPath(() => new TestZone(), '/test/ship');
-    live.set('/test/ship/deck', { getZone: () => zone, isDestroyed: () => false } as unknown as Stuff);
+    // The deck's ship is attached to it in the location graph's record.
+    live.set('/test/ship/deck', { isDestroyed: () => false } as unknown as Stuff);
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: the zone names nothing yet
-    await zone.applyStands(['/test/ship/structure']);
-    await zone.standsLoaded();
+    const graph = attachGraph({});
+    live.set('/platform/idea/LocationGraphRegistry', graph as unknown as Stuff);
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing attached yet
+    graph.table = { '/test/ship': [['/test/ship/structure', 'structure']] };
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
     await sea.bands();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });

@@ -116,18 +116,20 @@ CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
   gridded zone answers as cell size × its grid's span). A height is a
   zone with its own `elevation` (the estuary's headland). See
   [expanse.md § Perception at range](./expanse.md).
-  ⭐⭐ **`stands:` — what stands in this region, loaded with it**
-  (maritime review as `structures:`, 2026-10-14; one list on ANY place
-  since the scan sweep — `SiteMixin`, composed on `Location` and
-  `SpatialZone`). An INSTRUCTION field, applied as a room's `props:` is:
-  loading the place stands up the singletons it names — a tower, a
-  business, an institution, a fixture that seats itself — kicked not
-  awaited (`standsLoaded()` for an async caller, `standing()` the live
-  read), and `structureOf(path)` answers which Structure a room is in
-  (the innermost extent, over `standingStructures()`). And **what a
-  place can see loads with the place**: when a `LocationZone` gets a
-  room, the zones and seas its `horizon` names are stood up
-  (`lookOutFrom`) — never at boot, never by search, and never cascading
+  ⭐⭐ **What belongs with a room loads with the room** (the scan sweep,
+  2026-10-14): when a `LocationZone` gets a room, it stands up what the
+  location graph's record ATTACHES to that room — the house that
+  operates it, the structure it is part of, the institution over its
+  extent, the fixtures that seat in it — each derived from a reference
+  content already authors pointing AT the place (see
+  [location-graph.md § Attachments](./location-graph.md)). Kicked, never
+  awaited. Zones name nothing: the maritime build's `structures:` list
+  (and the scan sweep's interim `stands:`) retired with it, and
+  `NavigationApi.structureAt(path)` answers which Structure a room is
+  in. And **what a place can see loads with the place**: when a `LocationZone` gets a
+  room, the zones and seas its `horizon` names are stood up, with the
+  structures attached within them (`lookOutFrom`) — never at boot, never
+  by search, and never cascading
   (a zone stood up only because somebody can SEE it has no room, so it
   never looks out itself).
   `CartesianZone` and `SphericalZone` extend this — not `Zone`

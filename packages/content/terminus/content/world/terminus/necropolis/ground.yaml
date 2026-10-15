@@ -1,10 +1,6 @@
 # The burial ground. One room off Mayfield Row (NORTHWEST back).
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/necropolis/business
   shortDescription: necropolis
   keywords: [necropolis]
   register: definite

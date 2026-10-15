@@ -19,11 +19,6 @@
 # governing security invariant.
 class: /platform/idea/location/CartesianZone
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/lounge/thing/terminal
-    - /world/lounge/thing/check-rack
   name: lounge
   # 4 m cells — a bar and its side rooms are ordinary interior spans.
   cellSize: 4.0

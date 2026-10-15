@@ -8,11 +8,10 @@
  * advertise** and a filled one cannot go on advertising. The puddle line
  * is the precedent: a room-level line a subsystem read contributes.
  *
- * ⭐ Live businesses only, and a look never stands one up: the room's
- * `stands:` stood its house up when somebody arrived (the scan sweep,
- * 2026-10-14), and the look runs the one-house pass on it so its
- * openings are honest. `lint:openings` proves every operated room names
- * its house.
+ * ⭐ Live businesses only, and a look never stands one up: the house
+ * stood up when somebody arrived — the location graph attaches it to the
+ * places its `operatingLocations` name (the scan sweep, 2026-10-14) — and
+ * the look runs the one-house pass on it so its openings are honest.
  */
 
 import '../../../../../../test-bootstrap';

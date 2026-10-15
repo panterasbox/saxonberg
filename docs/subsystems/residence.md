@@ -367,13 +367,16 @@ could still only answer for the institutions that were BOOTED. ⭐ The scan
 sweep retired the catalogue: every question is now asked of a reference
 somebody authored.
 
-- **The zone over an extent names its institution** in `stands:`
-  (`SiteMixin`): Duncan Hall names its dorm warren and its college,
-  Seznick House its building, Hinkley Hills its plat book and lot holder.
-  `OuterWarren.admitFor(key)` walks the zones on the key's ancestry
-  (`ZoneApi.resolveZoneForPath`), awaits what each names, and keeps the
-  warrens whose parent extent prefixes the key, innermost first. The
-  `maintains` brain walks the same way to its extent's holdings.
+- **An institution is attached to the extent it names.** A warren's or
+  a plat book's own `parentExtent` is the only authored fact; the location
+  graph's record reads it reversed
+  ([location-graph.md § Attachments](./location-graph.md)), so
+  `NavigationApi.attachedTo(key, 'institution')` answers for the key and
+  every ancestor of it — Duncan Hall's dorm warren and college, Seznick
+  House's building, Hinkley Hills' plat book and lot holder.
+  `OuterWarren.admitFor(key)` keeps the warrens whose parent extent
+  prefixes the key, innermost first; the `maintains` brain adds
+  `attachedWithin(extent)` for the holdings under its own.
 - **A desk names the books it fronts** (`DeedDesk.books`), and so does
   an agent (`Realtor.books`, the terminus pack): `title list` / `title
   buy` read the desk in the giver's room; Ricky's `realty-list` reads his
@@ -383,7 +386,7 @@ somebody authored.
   over it.
 
 ⭐ **The second-instance test still holds**: a new subdivision is a row
-plus one line in the `stands:` of the zone it sits in, and a second
+naming its `parentExtent` — nothing else is written — and a second
 desk names its books — no code. ⚠ The kernel still meets the pack's
 classes by SHAPE (the `DeedDesk`/plat-book duck types in
 `TitleController.ts`), never by import.

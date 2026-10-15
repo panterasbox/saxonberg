@@ -11,10 +11,6 @@
 # Terminus board names this destination by its locality (D13).
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/newbie-wilds/budget
   shortDescription: crossroads at the last counted mile
   keywords: [crossroads, last, counted, mile]
   register: definite

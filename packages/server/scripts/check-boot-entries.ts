@@ -123,8 +123,9 @@ export function check(
     problems.push(
       `(a) ${entries.length} boot entries, ceiling ${ceilings.total}. A boot ` +
         `entry is content loaded with no act at all. If a reader cannot find ` +
-        `the thing live, the reference points the wrong way: name it in the ` +
-        `place's \`stands:\`, declare it a constituent of its holder, or warm ` +
+        `the thing live, the reference points the wrong way: let the place ` +
+        `load it (the location graph's attachments), declare it a ` +
+        `constituent of its holder, or warm ` +
         `the dictionary on first use. See docs/lint-family.md.`,
     );
   }

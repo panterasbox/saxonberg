@@ -10,8 +10,9 @@
  *   6. the typed-word dictionaries answer on FIRST use (run first, or boot
  *      order would make it vacuous);
  *   2. a house that advertises and is NOT booted (the Hesper's
- *      outfit, the campus farm) shows its opening on the first look — the room names
- *      its house in `stands:` — and `apply` takes a seat that asks nothing,
+ *      outfit, the campus farm) shows its opening on the first look — the
+ *      house's own `operatingLocations` attaches it to the room in the
+ *      location graph — and `apply` takes a seat that asks nothing,
  *      and names what a seat that asks for more wants, which only a live,
  *      rostered house can say;
  *   3. both deed desks list the plat book they NAME;
@@ -129,8 +130,8 @@ suite('6. the dictionaries answer on FIRST use — none of them booted', () => {
 
 suite('2. a house that advertises is NOT booted, and its opening shows on the first look', () => {
   it('⭐⭐ the Hesper\'s deck (her outfit unbooted): HELP WANTED, and `apply` takes the lookout seat', async () => {
-    // The ship's zone names her outfit in `stands:`, so coming aboard
-    // stands the house up — the lookout seat asks nothing.
+    // Her outfit operates the deck, so the graph attaches it there and
+    // coming aboard stands the house up — the lookout seat asks nothing.
     const s = await Session.open(uniqueHandle('lookout'), { startLocation: DECK });
     try {
       let seen = '';

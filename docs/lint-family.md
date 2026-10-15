@@ -1817,10 +1817,15 @@ written down and holds.** Two gates hold the two ways round it.
 
 ⭐ **The lesson both encode: a search, or a boot entry, is what a
 reference pointing the WRONG WAY forces.** *Which business operates this
-room?* is a scan of every business; *this room names its house*
-(`stands:`) is a read. *Is this species sentient?* on a cold world is a
-boot entry; *an animal loads what it is made of* (`identity:constituent`)
-is not. Flip the reference and the scan and the entry both go.
+room?* is a scan of every business. ⚠⚠ The fix is NOT to author the
+reverse: the sweep first had every room name its house in a `stands:`
+list, which wrote each fact twice and made forgetting the second copy a
+new silent failure; review retired it. The fix is the location graph's
+record, which DERIVES what is attached to a place from the references
+content already authors (`operatingLocations`, `extent`, `parentExtent`,
+`seatIn`) and answers with a map read. *Is this species sentient?* on a
+cold world is a boot entry; *an animal loads what it is made of*
+(`identity:constituent`) is not.
 
 ## Where the family runs
 

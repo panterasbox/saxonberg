@@ -23,6 +23,7 @@
  * editable by the realm), with their nodes and bands beneath.
  */
 
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import {
   WaterSourceMixin,
@@ -197,11 +198,9 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     const path = place.getTemplatePath() ?? '';
     if (!path || this.craftOfPlace.has(path)) return;
     try {
-      // The place's own zone names the craft it belongs to (maritime
-      // review, 2026-10-14 — never a catalogue of every structure).
-      const zone = place.getZone();
-      if (zone) await zone.standsLoaded();
-      const craft = zone?.structureOf(path) ?? null;
+      // The craft this place belongs to — attached to it in the location
+      // graph's record (never a catalogue of every structure).
+      const craft = await NavigationApi.structureAt(path);
       this.craftOfPlace.set(path, craft?.getTemplatePath() ?? '');
     } catch {
       /* asked again on the next read */

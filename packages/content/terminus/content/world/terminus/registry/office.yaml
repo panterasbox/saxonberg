@@ -6,10 +6,6 @@
 # declared explicitly on both sides (the gate lists `east`→here).
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/registry/business
   shortDescription: Terminus Registry
   keywords: [registry, terminus]
   register: definite

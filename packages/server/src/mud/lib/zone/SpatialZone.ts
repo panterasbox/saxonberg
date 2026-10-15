@@ -18,10 +18,7 @@
  * folder-of-templates contract without inheriting location-aware behavior.
  */
 import { Zone } from './Zone';
-import { SiteMixin } from '../stuff/Site';
-import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
-import type Structure from '../../platform/idea/Structure';
 import {
   DEFAULT_CLIMATE_SITE,
   type ClimateSite,
@@ -36,7 +33,7 @@ import type { MagicSuppression } from '../magic/Suppression';
  * (`CartesianZone`, `SphericalZone`, via `LocationZoneMixin`) and the
  * frames that hold no rooms (`Expanse`).
  */
-export abstract class SpatialZone extends SiteMixin(Zone) {
+export abstract class SpatialZone extends Zone {
   /**
    * The region fields the spawn sweep reads, all three off the ordinary
    * `lookupField` walk so a parent region's declaration covers its
@@ -275,42 +272,6 @@ export abstract class SpatialZone extends SiteMixin(Zone) {
   public getHorizon(): string[] | null { return this.horizon; }
   public setHorizon(value: string[] | null): void {
     this.horizon = Array.isArray(value) ? value.map((p) => String(p)) : null;
-  }
-
-  /**
-   * ⭐ **The Structures standing in this region** — the entries of
-   * `stands:` (`SiteMixin`) that answer the Structure shape. A zone NAMES
-   * what stands in it, and loading the zone loads them, exactly as a
-   * room's `props:` load with the room (maritime review, 2026-10-14; one
-   * list on any place since the scan sweep). A consumer narrowing its own
-   * answer, not a host guard: a zone may name a business or an
-   * institution beside its tower.
-   */
-  public standingStructures(): Structure[] {
-    const out: Structure[] = [];
-    for (const s of this.standing()) {
-      // ⚠ A structural read, not `instanceof`: `Structure` composes the
-      // description mixins and a value import here closes a module cycle.
-      const c = s as Stuff & Partial<Pick<Structure, 'hasMember' | 'getExtent'>>;
-      if (typeof c.hasMember === 'function' && typeof c.getExtent === 'function') {
-        out.push(s as Stuff & Structure);
-      }
-    }
-    return out;
-  }
-
-  /**
-   * The standing structure in this zone that `locationPath` is a member
-   * of — the innermost (longest extent) when one stands inside another, a
-   * wing in a mansion — or `null`.
-   */
-  public structureOf(locationPath: string): Structure | null {
-    let best: Structure | null = null;
-    for (const s of this.standingStructures()) {
-      if (!s.hasMember(locationPath)) continue;
-      if (best === null || s.getExtent().length > best.getExtent().length) best = s;
-    }
-    return best;
   }
 
   /**

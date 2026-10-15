@@ -12,10 +12,6 @@
 # the wait is what makes the assay an event.
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/rejection/idea/smelter-business
   shortDescription: assay shed
   keywords: [shed, "assay shed", assay]
   register: definite

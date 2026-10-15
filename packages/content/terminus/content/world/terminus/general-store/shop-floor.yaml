@@ -9,10 +9,6 @@
 # street, so no new address node is minted (the slim-roster discipline).
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/general-store/business
   shortDescription: general store
   keywords: [store, general]
   register: definite

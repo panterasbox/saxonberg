@@ -19,10 +19,6 @@
 # good. That is what dryland arable is.
 class: /trade/farming/location/Field
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/hearts-delight/idea/farm-business
   fieldName: the upper bench
   shortDescription: upper bench
   keywords: [bench, field, ground, corn, wheat]

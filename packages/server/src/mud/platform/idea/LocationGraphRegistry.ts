@@ -42,6 +42,7 @@ import { PlatPlan } from '../../lib/location/PlatPlan';
 import { OuterWarren } from '../../lib/location/OuterWarren';
 import Location from '../../lib/stuff/Location';
 import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
+import type { AttachmentKind } from '../../api/navigation';
 import {
   GraphInvariants,
   type GraphFinding,
@@ -168,6 +169,7 @@ export default class LocationGraphRegistry extends Idea {
     let projected = 0;
     try {
       const rows = await this.locationRows();
+      await this.deriveAttachments(rows.all);
       for (const row of rows.places) {
         await this.writeTemplateNode(row, generation);
         projected++;
@@ -195,6 +197,7 @@ export default class LocationGraphRegistry extends Idea {
   /** Re-project one content row, and remove its node if it stopped being one. */
   @CallSecurity(NavigationLogicOnly)
   public async projectRow(path: string): Promise<void> {
+    this.attachmentsDirty = true;
     const row = await Template.findByPath(path);
     if (!row) {
       await this.removeRow(path);
@@ -213,6 +216,7 @@ export default class LocationGraphRegistry extends Idea {
   /** Drop every node this row produced. */
   @CallSecurity(NavigationLogicOnly)
   public async removeRow(path: string): Promise<void> {
+    this.attachmentsDirty = true;
     const existing = await PlaceNode.find<PlaceNode>({ template: path });
     for (const row of existing) await row.delete();
   }
@@ -290,6 +294,177 @@ export default class LocationGraphRegistry extends Idea {
     return view;
   }
 
+  /**
+   * ⭐⭐ **What is attached to a place** (the scan sweep, 2026-10-14) — the
+   * houses that operate it, the structures and craft it is part of, the
+   * institutions over its extent, the fixtures that seat themselves in it.
+   * Every one is DERIVED from a reference the content already authors,
+   * pointing at the place (`operatingLocations`, a structure's `extent`, a
+   * ship's `expanse`, `parentExtent`, `seatIn`, an agent's `institution`),
+   * so loading a place can load what belongs with it without anybody
+   * writing the reverse down and without a search: a read is a map lookup
+   * over the place's path and its ancestors.
+   */
+  @CallSecurity(NavigationLogicOnly)
+  public async attachedTo(path: string, kind?: AttachmentKind): Promise<string[]> {
+    await this.ensureAttachments();
+    return this.attachedAt(path, kind);
+  }
+
+  /** Everything attached at or UNDER `extent` — a district's towers. */
+  @CallSecurity(NavigationLogicOnly)
+  public async attachedWithin(extent: string, kind?: AttachmentKind): Promise<string[]> {
+    await this.ensureAttachments();
+    return this.withinAt(extent, kind);
+  }
+
+  /** {@link attachedWithin}, synchronously — the last derivation. */
+  @CallSecurity(NavigationLogicOnly)
+  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
+    return this.withinAt(extent, kind);
+  }
+
+  private withinAt(extent: string, kind?: AttachmentKind): string[] {
+    const out = new Set<string>();
+    for (const [anchor, targets] of this.attachments) {
+      if (anchor !== extent && !anchor.startsWith(`${extent}/`)) continue;
+      for (const [target, k] of targets) if (!kind || k === kind) out.add(target);
+    }
+    return [...out];
+  }
+
+  /**
+   * The synchronous read, for a caller that cannot await — whatever the
+   * last derivation said, `[]` before the first. A place that has loaded
+   * has already warmed it (its zone asked on `addLocation`).
+   */
+  @CallSecurity(NavigationLogicOnly)
+  public attachedNow(path: string, kind?: AttachmentKind): string[] {
+    return this.attachedAt(path, kind);
+  }
+
+  private attachedAt(path: string, kind?: AttachmentKind): string[] {
+    const out = new Set<string>();
+    let probe = path;
+    for (let depth = 0; depth < 64 && probe.length > 0; depth++) {
+      for (const [target, k] of this.attachments.get(probe) ?? []) {
+        if (!kind || k === kind) out.add(target);
+      }
+      const cut = probe.lastIndexOf('/');
+      if (cut <= 0) break;
+      probe = probe.slice(0, cut);
+    }
+    return [...out];
+  }
+
+  /** anchor (a place, or an extent) → target → why it is attached. */
+  private attachments = new Map<string, Map<string, AttachmentKind>>();
+  private attachmentsDirty = true;
+  private attachmentsLoading: Promise<void> | null = null;
+
+  /**
+   * Derived once with the graph (`rebuildImpl` reads every row anyway) and
+   * again after a content write marks it dirty — a CMS save or a pack
+   * go-live, never a read.
+   */
+  private async ensureAttachments(): Promise<void> {
+    await this.ensureWarm();
+    if (!this.attachmentsDirty) return;
+    if (!this.attachmentsLoading) {
+      this.attachmentsLoading = this.locationRows()
+        .then((rows) => this.deriveAttachments(rows.all))
+        .finally(() => {
+          this.attachmentsLoading = null;
+        });
+    }
+    await this.attachmentsLoading;
+  }
+
+  private async deriveAttachments(all: Template[]): Promise<void> {
+    const rows = new Map<string, Record<string, unknown>>();
+    /** A thing → the place that holds it: `props:`, `cast:`, a room's `warren:`. */
+    const placedIn = new Map<string, string>();
+    for (const row of all) {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      rows.set(row.path, data);
+      for (const key of ['props', 'cast'] as const) {
+        const list = data[key];
+        if (!Array.isArray(list)) continue;
+        for (const entry of list) {
+          const p =
+            typeof entry === 'string'
+              ? entry
+              : typeof (entry as { template?: unknown })?.template === 'string'
+                ? (entry as { template: string }).template
+                : '';
+          if (p) placedIn.set(p, row.path);
+        }
+      }
+      if (typeof data.warren === 'string') placedIn.set(data.warren, row.path);
+    }
+    // Where a referenced thing actually IS: follow its placement to a place.
+    const placeOf = (start: string): string => {
+      let p = start;
+      for (let hop = 0; hop < 8; hop++) {
+        const d = rows.get(p);
+        const next =
+          placedIn.get(p) ??
+          (typeof d?.container === 'string' ? d.container : undefined) ??
+          (typeof d?.seatIn === 'string' ? d.seatIn : undefined);
+        if (!next || next === p) return p;
+        p = next;
+      }
+      return p;
+    };
+    const next = new Map<string, Map<string, AttachmentKind>>();
+    const add = (anchor: string, target: string, kind: AttachmentKind): void => {
+      if (!anchor || !target) return;
+      let bucket = next.get(anchor);
+      if (!bucket) next.set(anchor, (bucket = new Map()));
+      bucket.set(target, kind);
+    };
+    for (const row of all) {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      if (Array.isArray(data.operatingLocations)) {
+        for (const op of data.operatingLocations) {
+          if (typeof op === 'string') add(placeOf(op), row.path, 'house');
+        }
+      }
+      if (typeof data.parentExtent === 'string') add(data.parentExtent, row.path, 'institution');
+      if (typeof data.seatIn === 'string') add(placeOf(data.seatIn), row.path, 'fixture');
+      if (typeof data.institution === 'string' && placedIn.has(row.path)) {
+        add(placeOf(row.path), data.institution, 'institution');
+      }
+      if ((typeof data.extent === 'string' || typeof data.expanse === 'string') &&
+          row.class && (await this.isStructureClass(row.class))) {
+        if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
+        if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
+      }
+    }
+    this.attachments = next;
+    this.attachmentsDirty = false;
+  }
+
+  private readonly structureClasses = new Map<string, boolean>();
+
+  private async isStructureClass(classPath: string): Promise<boolean> {
+    const cached = this.structureClasses.get(classPath);
+    if (cached !== undefined) return cached;
+    let verdict = false;
+    try {
+      // Lazily: a static import of `Structure` here closes a module cycle.
+      const { default: Structure } = await import('./Structure');
+      const cls = (await StuffApi.loadClassByPath(classPath)) as { prototype?: unknown };
+      verdict =
+        typeof cls === 'function' &&
+        ((cls as unknown) === Structure || cls.prototype instanceof Structure);
+    } catch {
+      verdict = false;
+    }
+    this.structureClasses.set(classPath, verdict);
+    return verdict;
+  }
+
   @CallSecurity(NavigationLogicOnly)
   public async pointingAt(identity: string): Promise<PlaceNode[]> {
     await this.ensureWarm();
@@ -339,6 +514,7 @@ export default class LocationGraphRegistry extends Idea {
    * class verdict is computed once per class and cached.
    */
   private async locationRows(): Promise<{
+    all: Template[];
     places: Template[];
     warrens: Template[];
   }> {
@@ -352,7 +528,7 @@ export default class LocationGraphRegistry extends Idea {
       if (kind === 'place') places.push(row);
       else if (kind === 'warren') warrens.push(row);
     }
-    return { places, warrens };
+    return { all, places, warrens };
   }
 
   /**

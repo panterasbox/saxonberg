@@ -173,7 +173,7 @@ export function BusinessMixin<
 
     static fieldMeta: FieldMeta = {
       // ⭐ Relations (the scan sweep): loading a house never loads its
-      // rooms — the ROOM names the house in `stands:` instead.
+      // rooms — the location graph attaches the house to them instead.
       operatingLocations: {
         persistent: true,
         authorable: true,

@@ -370,19 +370,20 @@ extends Idea` at `/platform/idea/api/employment`, HMR-able; every method gated
   names the **fixture** a Business operates (a terminal / vending unit), not the
   room — so two venues sharing a room each resolve their *own* operator
   (`businessAt(fixture)` is a sound 1:1; two businesses claiming one fixture is
-  an authoring error). ⭐⭐ **The place names its house** (the scan sweep,
-  2026-10-14): a room lists the house that operates it — or the house that
-  operates a fixture standing in it — in `stands:` (`SiteMixin`), and
-  loading the room stands the house up. `ensureOperatorAt(path)` follows
-  that reference and never searches: (1) live → the one-house pass;
-  (2) the live room (or the fixture's room) → await its `standsLoaded()`;
-  (3) the ROW — its `stands:`, else its `container:` row's — exact reads,
-  stand each named path up; (4) nobody operates here. The reverse index
+  an authoring error). ⭐⭐ **The house is attached to the places it
+  operates** (the scan sweep, 2026-10-14): the location graph's
+  projection reads `operatingLocations` — a fixture followed to the room
+  that places it — and attaches the house there, so loading the room
+  stands the house up. Authored ONCE, on the house. `ensureOperatorAt(path)`
+  never searches: (1) live → the one-house pass; (2) the houses attached
+  to the path, or to a live fixture's room — stand them up; (3) nobody
+  operates here. The reverse index
   over the whole template table (`operatingLocation → Business`) is gone,
   and so is the realm-wide `runTick` a standup used to trigger: the
   one-house pass (`closedSignImpl` + `tickBusiness`) brings the one house
-  current. `lint:openings` rule 3 proves every operated room names its
-  house. **No** manifest entry, **no** `Bar.onCreate` / `TicketClerk`
+  current. `lint:openings` rule 3 proves every operated path is a room or
+  a fixture placed in one (else the house would hang off a path that
+  never loads). **No** manifest entry, **no** `Bar.onCreate` / `TicketClerk`
   clone. Consumers: `OrderController` (the bar)
   and `TeleportController.settleFare` (the transit fare) call `ensureOperatorAt`;
   the roster tick's live-scan then processes it.
@@ -490,14 +491,14 @@ lies and a refusal that never fires). `lint:openings` catches it first.
 - `EmploymentApi.noticesAt(here)` — every opening advertised where `here`
   is, over `operatorsAt` (the one candidate walk, shared with
   `BankingControllerBase.resolveHouse`). ⭐ **Async, and it never stands a
-  house up**: arriving did that (the room's `stands:`), so a look awaits
-  the room's `standsLoaded()` and then runs the one-house pass on each
+  house up**: arriving did that (the graph attaches it to the room), so a
+  look awaits the attached houses and then runs the one-house pass on each
   live house — at most once per game hour per house — so an opening
   nobody's roster has been run against does not advertise every seat (the
   user's ruling, 2026-10-14). Nothing is persisted: the closed sign and
   the vacancies derive from the ledger and the clock. Until the scan
   sweep an advertising house had to be a `boot:` producer of its own
-  pack; `lint:openings` rule 3 now requires the operated ROOM to name it.
+  pack.
 
 **The sign has no host, no mixin and no object.** `LookController` prints
 one line per opening, so a venue with an open seat *cannot fail to
@@ -553,8 +554,8 @@ budget`) is the second consumer after Dave's Bar: it lists the operational
 departure gate in `operatingLocations` (so the transit fare's city share
 attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
 shift so the wage settles at the boundary), and closes the conserved fare-in →
-wage-out loop. The budget Business stands up **lazily** — the departure
-gate's room names it in `stands:`, so the room loading (or the first
+wage-out loop. The budget Business stands up **lazily** — the graph
+attaches it to the departure gate it operates, so the room loading (or the first
 `ensureOperatorAt(fixture)` at the gate) stands it up — no
 `TicketClerk`/`Bar.onCreate` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.

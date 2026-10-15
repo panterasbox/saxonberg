@@ -8,10 +8,5 @@
 # newbie-wilds build will stamp its own owner group. Generic classes only.
 class: /platform/idea/location/CartesianZone
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/newbie-wilds/idea/watch
-    - /world/newbie-wilds/idea/long-road
   name: The Last Counted Mile
   cellSize: 3.0

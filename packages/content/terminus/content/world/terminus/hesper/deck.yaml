@@ -8,10 +8,6 @@
 # deck wears out; the dinghy is what goes over the side.
 class: /platform/location/Shore
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/hesper/idea/outfit
   shortDescription: Hesper's deck
   keywords: [deck, hesper, ketch, ship]
   register: definite

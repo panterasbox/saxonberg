@@ -17,12 +17,11 @@
  * 3. ⭐ **A house must be REACHABLE from the places it operates.** The
  *    help-wanted sign, `buy`, `house` and the bank all read the LIVE house
  *    operating a room, and nothing is booted to make one live (the scan
- *    sweep, 2026-10-14): the ROOM names its house in `stands:` and loading
- *    the room stands it up. So every path in a house's
- *    `operatingLocations` must resolve to a room that lists the house —
- *    the path itself when it is a room, else the room whose `props:`/
- *    `cast:` places it, else the row its `container:` names. (Until the
- *    sweep this rule said an advertising house must be a `boot:` entry.)
+ *    sweep, 2026-10-14): the location graph attaches the house to the
+ *    places its `operatingLocations` name, and loading the place stands it
+ *    up. So every operated path must be a room, or a fixture placed in one.
+ *    (Until the sweep this rule said an advertising house must be a
+ *    `boot:` entry.)
  * 4. ⭐ **A fulfilling seat's holder must stand somewhere its house
  *    operates.** `isFulfilling` is employer-bounded, so a roster assignee
  *    in a room the business does not list silently stops fulfilling —
@@ -108,8 +107,6 @@ const rows: Row[] = [];
  * places people and fixtures, so it is how this gate resolves "here".
  */
 const roomOf = new Map<string, string>();
-/** Every row's `stands:` list, by the path it installs at. */
-const standsOf = new Map<string, string[]>();
 /** Every row's `container:` (or `seatIn:`) self-placement, by its path. */
 const containerOf = new Map<string, string>();
 /**
@@ -143,9 +140,6 @@ for (const pack of packs) {
     const data = doc.data as Record<string, unknown> | undefined;
     if (!data) continue;
     const here = `/${relative(contentDir, file).replace(/\.yaml$/, '')}`;
-    if (Array.isArray(data.stands)) {
-      standsOf.set(here, (data.stands as unknown[]).map(String));
-    }
     if (typeof data.container === 'string') containerOf.set(here, data.container);
     else if (typeof data.seatIn === 'string') containerOf.set(here, data.seatIn);
     for (const key of ['cast', 'props'] as const) {
@@ -353,27 +347,41 @@ for (const row of rows) {
 }
 
 /**
- * 3 — ⭐ **every place a house operates names it** (the scan sweep). The
- * operated path is a room, or a fixture whose room is the one whose
- * `props:`/`cast:` places it, else the row its `container:` (or a fixture's
- * `seatIn:`) names. That
- * room's `stands:` must list the house, or a cold world has no house there
- * at all: no sign, no counter that sells, no bank that answers.
+ * 3 — ⭐ **every place a house operates is a PLACE** (the scan sweep). The
+ * location graph attaches a house to the places in its `operatingLocations`
+ * — a room, or a fixture followed to the room whose `props:`/`cast:` place
+ * it (or its `container:` / `seatIn:`) — and loading that place stands the
+ * house up. So the one way to lose a house is an operated path that is
+ * neither a room nor placed anywhere: the graph would anchor the house at
+ * a path that never loads, and nothing would ever stand it up.
  */
+const rowData = new Map<string, Record<string, unknown>>();
+for (const pack of packs) {
+  const contentDir = join(CONTENT, pack, 'content');
+  for (const file of walk(contentDir)) {
+    try {
+      const doc = YAML.parse(readFileSync(file, 'utf8')) as { data?: Record<string, unknown> } | null;
+      rowData.set(`/${relative(contentDir, file).replace(/\.yaml$/, '')}`, doc?.data ?? {});
+    } catch {
+      /* another gate's finding */
+    }
+  }
+}
+const isRoom = (path: string): boolean => {
+  const d = rowData.get(path);
+  return d !== undefined && ('exits' in d || 'coords' in d);
+};
 const houseFile = new Map<string, string>();
 for (const r of [...rows, ...parRows]) houseFile.set(r.path, r.file);
 for (const [house, operating] of operatingByPath) {
   for (const op of operating) {
     if (typeof op !== 'string' || op.length === 0) continue;
-    const room = roomOf.get(op) ?? containerOf.get(op) ?? op;
-    if ((standsOf.get(room) ?? []).includes(house)) continue;
+    if (isRoom(op) || roomOf.has(op) || containerOf.has(op)) continue;
     findings.push(
-      `  ${houseFile.get(house) ?? house}\n    operates '${op}'` +
-        (room === op ? '' : ` (in '${room}')`) +
-        `, but '${room}' does not name '${house}' in \`stands:\`.\n` +
-        `    ⭐ The room stands its house up when it loads — add\n` +
-        `      stands:\n        - ${house}\n    to ${room}. Nothing is booted ` +
-        `to make a house live any more.`,
+      `  ${houseFile.get(house) ?? house}\n    operates '${op}', which is neither a room ` +
+        `nor placed in one (no props:/cast:/container:/seatIn: reaches it).\n` +
+        `    ⚠ The location graph would attach the house to a path that never ` +
+        `loads, and nothing would ever stand it up.`,
     );
   }
 }

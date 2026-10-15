@@ -12,6 +12,7 @@
  * (once, then cached) when the async gate is asked.
  */
 
+import { NavigationApi } from '../../api/navigation';
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -32,11 +33,9 @@ export default class AshoreExit extends DeferredDestinationExit {
     const here = this.getSource().getTemplatePath();
     if (!here) return;
     try {
-      // The deck's own zone names the ship (maritime review, 2026-10-14).
-      const zone = this.getSource().getZone();
-      if (zone === null) return;
-      await zone.standsLoaded();
-      const craft = zone.structureOf(here);
+      // The ship this deck belongs to — attached to the deck in the
+      // location graph's record, from the ship's own `extent`.
+      const craft = await NavigationApi.structureAt(here);
       if (craft === null) return;
       this.craftPath = craft.getTemplatePath();
       if (MixinApi.isVoyaging(craft)) {

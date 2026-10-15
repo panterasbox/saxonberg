@@ -595,13 +595,10 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     so the surface fixture must be listed before its resting
     items (the back-bar before its bottles). See
     [crafting.md](./crafting.md).
-  - ⭐ `applyStands` on `SiteMixin` (the scan sweep, 2026-10-14) — the
-    designation beside `props:`/`cast:` for what a PLACE loads that it
-    does not contain: its business, its tower, its institution. Each
-    path is `StuffApi.singleton`'d, **kicked, never awaited** (a ship
-    standing up reaches back for its sea); `standsLoaded()` is the
-    awaitable. Composed on `Location` and `SpatialZone`. See
-    [zone.md](./zone.md).
+  - ⚠ What a place loads that it does NOT contain (its house, its tower,
+    its institution) is not an instruction field: the location graph
+    attaches it, derived from the references content already authors
+    pointing at the place. See [location-graph.md § Attachments](./location-graph.md).
 
 ⭐⭐ **The constituent step (phase 1).** A persistent field declared
 `ref: 'identity:constituent'` names what its holder is MADE OF (its

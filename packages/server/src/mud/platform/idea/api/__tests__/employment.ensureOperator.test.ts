@@ -1,9 +1,9 @@
 /**
  * EmploymentApi.ensureOperatorAt — the lazy Business standup, by FOLLOWING
- * THE PLACE (the scan sweep, 2026-10-14). The room a fixture stands in names
- * its house in `stands:`; asking at the fixture reads the fixture's row, hops
- * to its `container:` room's row, and stands the named house up — exact
- * reads, no scan of the template table, no manifest entry. Keyed on the
+ * THE PLACE (the scan sweep, 2026-10-14). A house is attached to the room
+ * its fixture stands in, in the location graph's record (derived from the
+ * house's own `operatingLocations`); asking at the fixture reads that and
+ * stands the house up — no scan of the template table, no manifest entry. Keyed on the
  * fixture (a terminal / vending unit), so two venues in one room each resolve
  * their own operator.
  */
@@ -18,6 +18,11 @@ import {
   type Doc,
 } from "../../../../world/lounge/__tests__/lounge-fixtures";
 import TemplateApplier from "../../TemplateApplier";
+import Location from "../../../../lib/stuff/Location";
+import Thing from "../../../thing/Thing";
+import { ContainmentApi } from "../../../../api/containment";
+import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
+import { attachGraph } from "../../../../lib/location/__tests__/attachments-fixture";
 
 const PH = TemplateApplier.templatePath;
 const FIXTURE_A = "/world/test/emp/fixture-a";
@@ -31,12 +36,7 @@ const ROOM = "/world/test/emp/room";
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
-  // ⭐ The room names what stands with it; the fixtures name their room.
-  // Read as rows only — nothing here is cloned.
-  { path: ROOM, class: "/platform/location/CartesianLocation", data: { stands: [BIZ_A, BIZ_B, BIZ_C] } },
-  { path: FIXTURE_A, class: "/platform/thing/Thing", data: { container: ROOM } },
-  { path: FIXTURE_B, class: "/platform/thing/Thing", data: { container: ROOM } },
-  { path: FIXTURE_C, class: "/platform/thing/Thing", data: { container: ROOM } },
+
   // Two Businesses, each operating its OWN fixture (two venues, one "room").
   {
     path: BIZ_A,
@@ -73,13 +73,22 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     StuffApi.clearAll();
     installStore(docs);
     await AppSettings.warm();
+    // ⭐ The houses are attached to the room their fixtures stand in — the
+    // location graph's record, derived from each house's own
+    // `operatingLocations` — and the fixtures stand there, live.
+    attachGraph({ [ROOM]: [[BIZ_A, "house"], [BIZ_B, "house"], [BIZ_C, "house"]] });
+    const room = makeStuffAtPath(() => new Location(), ROOM);
+    for (const f of [FIXTURE_A, FIXTURE_B, FIXTURE_C]) {
+      const t = makeStuffAtPath(() => new Thing(), f);
+      ContainmentApi.move(t as never, room as never);
+    }
   });
   afterEach(() => {
     AppSettings._resetForTesting();
     vi.restoreAllMocks();
   });
 
-  it("stands the Business up from the stands: of the fixture's room — no scan", async () => {
+  it("stands the Business up from what the graph attaches to the fixture's room — no scan", async () => {
     // Not live yet — the sync scan finds nothing.
     expect(EmploymentApi.businessAt(FIXTURE_A)).toBeNull();
 
@@ -99,7 +108,7 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     expect(a).not.toBe(b);
   });
 
-  it("returns null when no place names a house there", async () => {
+  it("returns null when nothing is attached there", async () => {
     expect(await EmploymentApi.ensureOperatorAt("/world/test/emp/nowhere")).toBeNull();
   });
 

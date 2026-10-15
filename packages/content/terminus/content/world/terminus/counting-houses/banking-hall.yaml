@@ -11,10 +11,6 @@
 # day heists/safe-deposit exist, never a speculative empty room now.
 class: /platform/location/SingletonCartesianLocation
 data:
-  # ⭐ What stands with this place: loading it stands its house up
-  # (the scan sweep — nothing is booted to make a house live).
-  stands:
-    - /world/terminus/counting-houses/business
   shortDescription: Goodkin banking hall
   keywords: [hall, goodkin, banking]
   register: definite

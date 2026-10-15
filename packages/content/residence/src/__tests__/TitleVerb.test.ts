@@ -24,7 +24,7 @@ import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
 import DeedDesk from '../thing/DeedDesk';
-import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
 import HoldingWarren from '../idea/HoldingWarren';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -566,13 +566,9 @@ describe('title', () => {
 
     buyer.lines = [];
     // ⭐ What you hold is asked of the title register, and the book a lot
-    // belongs to of the PLACE over it — the suburb's zone names its book.
-    const book = StuffApi.findByTemplatePath(BOOK_PATH)!;
-    vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue({
-      standsLoaded: async () => undefined,
-      standing: () => [book],
-      getTemplatePath: () => SUBURB,
-    } as never);
+    // belongs to of the location graph — the book is attached to its own
+    // `parentExtent`.
+    attachGraph({ [SUBURB]: [[BOOK_PATH, 'institution']] });
     const ctx = await run(buyer, room, model());
     expect(reasons(ctx)).not.toContain('holds-nothing');
     const said = buyer.lines.join(' ');
