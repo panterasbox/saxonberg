@@ -290,6 +290,30 @@ query (the owners on the pair list). Every pair is resolved by
 `lint:gates` — including that the class really declares a method of that
 name, because a mistyped method denies forever while looking correct.
 
+## Searching (or Booting) for What a Reference Should Name
+
+⭐⭐ The house rule (the scan sweep, 2026-10-14): **content loads when a
+player's act forces it, by following AUTHORED references from what is
+already loaded — never by searching the template table, and never at boot
+unless the reason is written down.** A search or a boot entry is what a
+reference pointing the WRONG WAY forces.
+
+| Don't | Do |
+|---|---|
+| `Template.findDescendants('/')` → "which business operates this room?" | the ROOM names its house: `stands: [/…/idea/business]` (`SiteMixin`); `ensureOperatorAt` follows the place |
+| a `boot:` entry so a sync read can find a house, an org, a book | `stands:` on the place it belongs to; an organization is a **relation** — `await StuffApi.singleton(path)` at the act |
+| a `boot:` entry so a species / material / biome is resident | declare the citing field `ref: 'identity:constituent'` — the applier loads it with its holder |
+| `Template.findByClass(Species)` to find "what lives in this reach" | the reach names its species (`stocks:`), each loaded at the read |
+| a pack catalogue that scans `findWhereDataHas('parentExtent')` | the zone over the extent names its institution; walk the zones on the key's ancestry |
+| a dictionary warmed at boot for a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it |
+
+⚠ **What legitimately stays booted:** the engine's wardens and
+registries; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
+before the read (the *reader rule* — say so in the entry's reason); and
+the houses whose NPCs act while nobody is present
+(→ `unobserved-economy-slate`). `lint:boot-entries` and
+`lint:template-scans` hold the rest at zero growth.
+
 ## Hunting for an Instrument Instead of Declaring It
 
 **ANTIPATTERN**: A controller resolving the thing its verb acts *with* by

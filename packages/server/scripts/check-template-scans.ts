@@ -51,12 +51,9 @@ export interface AllowEntry {
 const LAZY_DICT =
   "a typed-word / keyed dictionary's own warm — built once on first use, never booted";
 const TOOL = "author tooling — a scan is a tool's job";
-const STUB = "W0 census — the scan sweep removes or justifies this site";
 
 /**
- * ⭐ Every sanctioned search, with its reason. Entries marked with the W0
- * stub are the sweep's burn-down: each later wave deletes the scan or
- * writes the real reason.
+ * ⭐ Every sanctioned search, with its reason.
  */
 export const ALLOWLIST: AllowEntry[] = [
   // ── the sanctioned index ──
@@ -91,12 +88,12 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/ConditionCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   // ── systems compiling their own index ──
   { file: "packages/content/water/src/idea/WatercourseCatalogue.ts", count: 2, reason: "the water system compiling its own keyed index of its courses (and the localities draining to them) — once, lazily, never booted" },
-  { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: STUB },
-  { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: STUB },
+  { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: "the transport system compiling its own index of its lanes and service routes, under its own namespace — once, lazily" },
+  { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: "the energy system compiling its own feeder reachability, under its own namespace — once, lazily" },
   { file: "packages/server/src/mud/platform/idea/Ship.ts", count: 1, reason: "a structure's own members — the rows under its own extent, which it owns" },
-  { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: STUB },
+  { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: "a sea compiling its own nodes and bands — the rows under its own extent, which it owns (Expanse.compile)" },
   // ── the wrong-way references the sweep flips ──
-  { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: STUB },
+  { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: "an attribute match with no reference (a material → the trade's own product row), inside the trade's own namespace — the requirements' lazy-index case" },
   // ── the unobserved economy ──
   { file: "packages/server/src/mud/platform/idea/api/ResidencyLogic.ts", count: 1, reason: "the residency spawn sweep's censusKey read — the unobserved economy's faucet, kept by the scan sweep (→ unobserved-economy-slate)" },
 ];
@@ -197,11 +194,9 @@ function main(): void {
     for (const p of problems) console.error(`  ${p}`);
     process.exit(1);
   }
-  const stubs = ALLOWLIST.filter((e) => e.reason === STUB).reduce((n, e) => n + e.count, 0);
   console.log(
     `check-template-scans: ${sites.length}/${TEMPLATE_SCAN_CEILING} template-table ` +
-      `searches, every one in a sanctioned home` +
-      (stubs > 0 ? ` (${stubs} still awaiting the sweep).` : "."),
+      `searches, every one in a sanctioned home.`,
   );
 }
 

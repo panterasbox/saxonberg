@@ -455,7 +455,9 @@ async function collectSpawnCandidates(): Promise<SpawnCandidate[]> {
       ...(region !== undefined ? { region } : {}),
     });
   }
-  for (const obj of StuffApi.getAllObjects()) {
+  // ⭐ The Circulating bucket, not a walk of every live object (the scan
+  // sweep, Part 1): the composition index already knows who circulates.
+  for (const obj of StuffApi.findByMixin('CirculatingMixin')) {
     const raw = ProxyApi.unwrap(obj);
     if (!MixinApi.isCirculating(raw)) continue;
     const c = obj as Stuff & Circulating;
