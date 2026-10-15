@@ -849,14 +849,20 @@ async function priceIndexImpl(): Promise<PriceIndex> {
   })();
   const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   const lines: PriceIndex["lines"] = [];
-  for (const path of counters) {
-    // ⭐ The basket NAMES its counters, and computing the index stands each
-    // one up (the scan sweep, 2026-10-14) — a counter self-places through
-    // its row, so its room comes too (accepted: a basket of a few). It used
-    // to read only the counters somebody had already loaded.
-    const counter =
-      StuffApi.findByTemplatePath(path) ??
-      (await StuffApi.singleton(path).catch(() => null));
+  // ⭐ The basket NAMES its counters, and computing the index stands each
+  // one up (the scan sweep, 2026-10-14) — a counter self-places through
+  // its row, so its room comes too (accepted: a basket of a few). It used
+  // to read only the counters somebody had already loaded. In parallel: a
+  // cold basket is several rooms, and the reader is waiting.
+  const stood = await Promise.all(
+    counters.map(
+      async (path) =>
+        StuffApi.findByTemplatePath(path) ??
+        (await StuffApi.singleton(path).catch(() => null)),
+    ),
+  );
+  for (const [i, path] of counters.entries()) {
+    const counter = stood[i];
     if (!counter || !MixinApi.isPricedOffer(counter)) continue;
     for (const key of counter.pricedKeys()) {
       const base = counter.basePriceFor(key);

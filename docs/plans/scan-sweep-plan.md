@@ -1464,4 +1464,56 @@ refusal) AND a state change.
 
 ## Drive record
 
-*(appended at build time)*
+*(2026-10-14/15, build-1, owned worlds on `WIRE_PORT=2014`, every run on a
+dropped DB; master baselines on a detached `origin/master` worktree, same
+port and DB, run sequentially.)*
+
+**The drive file** — `packages/wire/tests/scan-sweep.dirty.wire.test.ts`:
+12 checkpoints. **Final run: 12/12** on a dropped DB. On the way: the
+cookhouse step could not read HELP WANTED in a dim interior, and the
+cookhouse is booted again (below), so it proved nothing about an unbooted
+house; the knacker's yard is pitch dark at every hour and its seat has no
+`headcount` (not an opening, by design); the step settled on the Hesper's
+deck — her outfit is unbooted and the lookout seat asks nothing. `reserve`
+once overran the 30 s frame on a cold basket: the index now stands its
+counters up in parallel.
+
+| step | result |
+|---|---|
+| 1 boot list | `check-boot-entries.test.ts`: no species/material row, only the universe biome, no structure/sea/organization; 83 entries, every content one cites the economy slate |
+| 2 unbooted houses advertise | ✅ the campus farm and the Hesper's deck — the only two unbooted houses with a `headcount` seat: HELP WANTED on the first look, `apply` takes the seat |
+| 3 desks name their books | ✅ `title list` at the Registry AND the realty office lists Hinkley Hills · Ricky's dialogue list is unit-proven (`Realtor.test.ts`) |
+| 4 the basket | ✅ `reserve` prints the index · coverage of an unloaded counter is unit-proven (`bootstrap.reserve.test.ts`) |
+| 5 the Kestrel | ✅ `analyze water` at the confluence reports the outfall · ⚠ the *unvisited* half cannot be driven: the only Kestrel shore room props the outfall; proven by `Contamination.test.ts` (an unstanding outfall fouls from its row) |
+| 6 dictionaries, first use | ✅ `readings`, `help look`, `help bank_ledger`, an emote — run first in the file · `operate`/`cast` stay with their own drives (Spell is kept booted under the reader rule) |
+| 7 Hearts Delight | ✅ `butcher collie` refuses past the species gate (never `unidentified-species`) · `isSentient` fails closed, unit-proven · shear/eggs: carcass-chain drive |
+| 8 restart in a keyed room | ⚠ **NOT RUN** — needs a provisioned dorm unit and a manual server restart; the re-entry walk (`admitFor` via the zone) is unit-covered |
+| 9 Part 1 | ✅ `bank open` + `bank` at the hall; `press post` by a stranger refused |
+| 10 every drive | below |
+
+**The shipped drives** (this branch vs master, same port, same day):
+
+| drive | this branch | master | verdict |
+|---|---|---|---|
+| maritime-space | ✅ all | — | |
+| blood-economy, work | ✅ all | — | |
+| economic-bootstrap | 4/14 | 2/14 | ⚠ red on master — the houses open treasury-short and no bounty can be funded on either; heap-OOM in multi-file boots seen on both |
+| trades-and-labor | the hall board has no gig at world start | fails earlier (darkness) | ⚠ likely pre-existing: the cook's gig needs a funded house (above) |
+| fishing | `reserve issue` unknown-subcommand | same | pre-existing |
+| reachability | `lock north` no longer unknown | same | pre-existing |
+| instrumentation | the bench in the dark | same | pre-existing |
+| apiculture | lantern no-fuel, `put super`, `rob` | same | pre-existing |
+| injury | `rinse` crash, the dark meadow | same | pre-existing |
+| carcass-chain, textiles, clinical-medicine, climate-and-water, platform-smoke | ✅ | — | |
+
+**What the drive found, fixed in the build:** the consign beat refused
+`not-owner` for every hand once the corpos were unbooted
+(`organizationChain` read parents live — now resolved at the act); the
+cook's and the tailor's par-sheet beats need their houses booted (the
+unobserved economy's); `ParcelRegistry.transfer` never moved the owner
+index (pre-existing; found by the `title` holdings test).
+
+**The full suite** (`tools/suite`, once, before the MR): 39/40 packages
+green; the server's two failures were this build's own — a snapshot
+listing the new `stands` field and a test asserting the fabric roster was
+booted — both fixed and re-run green.

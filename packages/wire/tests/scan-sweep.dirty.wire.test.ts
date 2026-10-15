@@ -9,10 +9,11 @@
  *
  *   6. the typed-word dictionaries answer on FIRST use (run first, or boot
  *      order would make it vacuous);
- *   2. a house that advertises and is NOT booted shows its opening on the
- *      first look (the room names its house in `stands:`), and `apply`
- *      takes a seat that asks nothing — and names what a seat that asks
- *      for more wants, which only a live, rostered house can say;
+ *   2. a house that advertises and is NOT booted (the Hesper's
+ *      outfit, the campus farm) shows its opening on the first look — the room names
+ *      its house in `stands:` — and `apply` takes a seat that asks nothing,
+ *      and names what a seat that asks for more wants, which only a live,
+ *      rostered house can say;
  *   3. both deed desks list the plat book they NAME;
  *   4. the reserve prints the price index over its basket;
  *   5. the Kestrel at the city reads fouled;
@@ -49,8 +50,8 @@ import {
 import type { CommandResult } from '../src/harness';
 
 export const DIRTY_REASON =
-  'takes the labourer seat on the campus farm and advances the world clock ' +
-  'to daylight — neither is produced again';
+  'takes the labourer seat on the campus farm and the Hesper lookout seat, ' +
+  'and advances the world clock to daylight — none of it is produced again';
 
 declareFile({
   file: 'scan-sweep.dirty.wire.test.ts',
@@ -62,7 +63,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const DECK = '/world/terminus/hesper/deck';
 const FARM_YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const REGISTRY = '/world/terminus/registry/office';
 const REALTY = '/world/terminus/realty/office';
@@ -102,7 +103,7 @@ async function daylight(s: Session): Promise<void> {
 let me: Session;
 
 beforeAll(async () => {
-  me = await Session.open(uniqueHandle('sweep'), { startLocation: COOKHOUSE, wizard: true });
+  me = await Session.open(uniqueHandle('sweep'), { startLocation: BANK_HALL, wizard: true });
 }, 600_000);
 
 afterAll(() => {
@@ -127,14 +128,21 @@ suite('6. the dictionaries answer on FIRST use — none of them booted', () => {
 });
 
 suite('2. a house that advertises is NOT booted, and its opening shows on the first look', () => {
-  it('⭐⭐ the cookhouse: HELP WANTED, and `apply` names the two gigs the seat asks for', async () => {
-    await daylight(me);
-    const seen = await look(me);
-    expect(seen, seen).toMatch(/HELP WANTED/);
-    const r = await me.cmd('apply');
-    expect(r.status, JSON.stringify(r.notes)).not.toBe('ok');
-    // Only a live, rostered house knows what its seat asks for.
-    expect(squash(await me.prose('apply'))).toMatch(/two completed gigs/i);
+  it('⭐⭐ the Hesper\'s deck (her outfit unbooted): HELP WANTED, and `apply` takes the lookout seat', async () => {
+    // The ship's zone names her outfit in `stands:`, so coming aboard
+    // stands the house up — the lookout seat asks nothing.
+    const s = await Session.open(uniqueHandle('lookout'), { startLocation: DECK });
+    try {
+      let seen = '';
+      for (let i = 0; i < 12 && !/HELP WANTED/.test(seen); i++) {
+        seen = await look(s);
+        if (!/HELP WANTED/.test(seen)) await advanceWorldClock('2 hours');
+      }
+      expect(seen, seen).toMatch(/HELP WANTED/);
+      expectOk(await s.cmd('apply'));
+    } finally {
+      s.close();
+    }
   });
 
   it('⭐⭐ the campus farm: HELP WANTED, and `apply` takes the seat that asks nothing', async () => {
