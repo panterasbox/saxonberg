@@ -852,6 +852,29 @@ game, which is why "just rename one" is not automatically the answer. The
 alternatives are one view with subcommands, or a rename; **never a new
 line in the allowlist.**
 
+### `lint:self-contributions` — a `self` verb nobody is asked for (2026-10)
+
+`static commandContributions.self` is read off exactly three kinds of
+host — a **command giver**, a **shadow**, a **hosted update**
+([command-routing.md](./subsystems/command-routing.md) § the buckets). On
+any other class, or on a mixin no receiver composes, the list is dead:
+declared, type-checked, asserted by a unit test that reads the
+declaration, and never consulted by the dispatcher.
+
+⚠⚠ **Why a gate.** It cost the assembly build four verbs in one day
+(`AssembledMixin` — a pick in your hands could not be repaired; `Blank`;
+`Bole`; `Billet`), every one green in its tests, found only by the first
+**browser** walk — the wire drive always had the thing on the floor or an
+anvil in the room, which is `peers`. A declaration-level test cannot see
+it; this gate asks who RECEIVES. A mixin is live if a receiver composes
+it directly or through another mixin's own chain.
+
+**Census, then ratchet: ceiling 9** at 2026-10-15 — seven redundant (the
+same verbs also ride a live bucket on the class; delete the `self` line)
+and two that are the verb's only route: the kernel and farming `Spade`s,
+so `plot` is sayable nowhere and `dig` only at a quarry face. Those want
+`environment`. The ceiling may fall, never rise.
+
 ### ⭐⭐⭐ `lint:reachability` — a verb nothing confers, a row nothing reaches (2026-10)
 
 **`lint:verb-collisions` above asks whether two views claim one verb.

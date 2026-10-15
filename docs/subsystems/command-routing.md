@@ -343,6 +343,14 @@ view.** Read them as "who gets this verb because of where I am":
 | `environment` | my container **chain**, outward, at any depth *(recursive)* |
 | `peers` | my siblings, and one **passable** exit away |
 
+⚠⚠ **`self` is read off only three kinds of host**: a command giver (a
+person's own verbs), a shadow (lent to the host it rides) and a hosted
+update (an aether app's, granted to the implant's host). On anything else
+it is **dead** — a held pick declaring `repair` in `self` affords it to
+nobody. A thing you hold grants through `environment`, a thing you stand
+beside through `peers`, a room through `inventory`. `lint:self-contributions`
+gates it ([lint-family.md](../lint-family.md)).
+
 ⚠ `inventory` used to be named from the *receiver's* side — "commands
 the host gains when this thing is in its inventory" — while the other
 three were named from the contributor's. That is why a wand declaring

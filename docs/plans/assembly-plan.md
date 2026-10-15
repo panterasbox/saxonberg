@@ -1175,6 +1175,13 @@ what 29 wire runs could not. Fixed here, this build's own:
 - The drive: the D16 dowel checkpoint asserts no cup and a part-sized
   mass, and a HELD `repair miners-pick` at the sawmill (no anvil there).
 
+⭐ **And a gate, `lint:self-contributions`** (2026-10-15): a non-empty
+`self` list on a class that is no command giver, shadow or hosted update
+— or on a mixin no such class composes — is dead. Census-then-ratchet at
+**9**: seven redundant (the verbs also ride `inventory`/`peers`) and the
+two `Spade`s, whose `self` is `dig`'s and `plot`'s only route — so `plot`
+is sayable nowhere and `dig` only at a quarry face (farming's to fix).
+
 Found and NOT this build's (reported): the Hearthworks smithy reads pitch
 dark to a player holding a glowcap at noon in the browser (cards describe
 everything while prose says "something"); `look pick haft` offers *60
