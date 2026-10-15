@@ -840,6 +840,24 @@ Content edits land in the wave whose mechanism they feed.
 
 ### W0 — Substrate: `stands:`, the identity sub-values, the gates at census
 
+> ✅ **DONE** (`056a55bc8`). `SiteMixin` lands as planned (outermost on
+> `LocationBase` — inference held, no fallback needed). Build notes:
+> `SpatialZone.standingStructures()` filters `standing()` STRUCTURALLY
+> (`hasMember` + `getExtent`) — a value import of `Structure` into
+> `SpatialZone` closed a module cycle (`VisibleMixin is not a function`
+> at test-bootstrap), so it stays a type import. `lint:census` clause (f)
+> landed ADDITIVE: the hand list in `refsOf` is kept for the nested
+> shapes, and a declared field counts as READ by the coverage clause, so
+> each declaration forces its name off `UNREAD_PATH_FIELDS` (the stale
+> check) — the ratchet does the trimming. The singleton-SHAPE check was
+> not built: relation targets include rooms and fixtures, which are
+> `singleton()`-resolvable but compose no `SingletonMixin`, so the check
+> would refuse correct rows. Census at landing: boot 128 (71 content
+> entries uncited), template scans 43 (the grep over-counted two prose
+> mentions), RegistryWideReaders 12. `lint:template-scans` also counts
+> `findByPathGlob`. No `check-field-meta` test file exists; the rule is
+> exercised by the lint over the tree.
+
 **Goal.** Everything later waves consume, with no behaviour change.
 
 **Implements** D1, D2 (mechanism; no field re-declared yet except the
@@ -893,6 +911,27 @@ maritime wire drive passes (the rename is behaviour-neutral).
 **Commit.** `feat(site): stands: on every place — structures: generalised; the identity axis names constituent · relation · kind · provenance; boot-entry and template-scan ratchets at census`
 
 ### W1 — Employment and organizations: the place names its house
+
+> ✅ **DONE** (`fbf9453d9`). ⚠ **D3 re-planned in place (membership):**
+> the maintained `businesses` set was NOT built. Membership stays
+> StuffApi's own `BusinessMixin` bucket — which IS maintained on write
+> (register / destruct), the one audit point — and the keyed maps derive
+> from it, rebuilt only when membership changes or a house re-points its
+> premises (`Business.getOperatingRevision()`, bumped by
+> `setOperatingLocations`). A miss is an answer. Why: 28 test files and
+> every minted stall create houses without the setter path the plan
+> assumed, and the bucket is HMR-safe where a logic-singleton set is not.
+> Consequence: the `allBusinesses` RegistryWideReaders pair STAYS (the
+> W5 target is 9, not 8). `noteBusiness` was not needed. `noticesAt`
+> runs the one-house pass at most once per game hour per house (a read
+> must not settle the roster on every look). The row hop follows
+> `container:` OR `seatIn:` (the TPA terminals seat themselves — found by
+> `lint:instanceable` when the crossroads terminal row was given a
+> `stands:` its class does not declare). Validators have an async
+> `preload` seam (`mustHoldAppointingAuthority`), which also answers the
+> W5 open about `holdsAnyPublishingPosition`. Also resolved at the act:
+> Seznick's agency (`LettingController`) and Duncan Hall's college
+> (`HallController`). Boot 128 → 99; uncited 71 → 10.
 
 **Goal.** AC 2; the house and organization half of AC 1.
 
