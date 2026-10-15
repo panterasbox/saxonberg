@@ -1,24 +1,66 @@
 # Scan sweep — load on use, ask the scope that holds the answer, never the world
 
-> **Status: UNBUILT.** Part 1 (registry scans) surveyed in the maritime
-> build's review (2026-10-13), re-verified against the code 2026-10-14;
-> Part 2 (the catalogue and boot audit) audited 2026-10-14 after the
-> maritime structures were found booted and catalogued — fixed on
-> `fix/maritime-lazy`, which also closed Part 1 item 2.
-> **Left:** ⭐ the doctrine written into a gate · Part 2's build order —
-> employment's operator flipped onto the room (it runs on every `look`,
-> and it is behind ~50 boot entries), stock that refills on load, water
-> and fishing named by the reach, residence named by the extent's zone,
-> the warm-only vocabularies replaced by references and the typed-word
-> ones made lazy · Part 1's remaining nine registry scans · the two
-> ratchets (registry-wide readers, boot entries) · the docs that claim
-> enforcement no gate performs.
-> **Size:** a build — one sweep across a dozen subsystems, bundled to pay
-> the full suite once.
+> **Status: PARTIAL** — built as MR !362 (2026-10-15; the plan and
+> requirements retired at merge, their history in git). Shipped: the
+> identity axis (`identity:constituent | relation | kind | provenance`,
+> constituents loading with their holder); `lint:boot-entries` (128 → 83)
+> and `lint:template-scans` (43 → 39, every one reasoned); employment,
+> structures, institutions and fixtures reached through the location
+> graph's derived ATTACHMENTS (`stands:` was built and retired in review —
+> a hand-authored reverse copy); organizations resolved at the act;
+> water, species and the typed-word dictionaries loaded on use;
+> `container:` made runtime-only and producers' stocks naming their lines
+> (review round 2); `lint:get-or-create` widened to every pre-check form.
+> **Left:** the fourteen sync-read catalogues still booted · where
+> singleton-ness lives · AC 7 (log back in to a keyed room after a
+> restart) merged unverified · unstaged content · vessel lines count by
+> template · six drives red on master too — see § What remains.
+> **Size:** the first two are each a build; the rest are tails.
 
 *Opened from the maritime review, on the user's ask: "we should do a
 survey of anything else that's doing registries or full scans of things
 for stupid reasons."*
+
+
+## What remains (after MR !362)
+
+- ⚠ **Fourteen catalogues still booted under the READER RULE** —
+  Material, Biome, Condition, Topic, Recipe, Archetype, Spell,
+  Discipline, Placement, Corpo, Government, AddressRegistry,
+  MaturationProfile, FractionSchedule: each is read synchronously with
+  no act-shaped async seam (74 sync material lookups, most of them
+  relations no holder loads). Making those readers async is its own
+  build; AC 1 is only partly met until it lands.
+- ⚠⚠ **Where singleton-ness lives** — competing authorities:
+  `SingletonMixin` on the class, `StuffApi.singleton()` chosen by the
+  caller, `singletonOrClone`; and one class backs both unique rows (the
+  general store's counter) and kinds (the receiving bench in every
+  venue). `singleton(counter)` on a cold world mints a counter its shop
+  then clones again; the price-index basket is safe only because both
+  basket shops are booted. `EmploymentLogic.startWorkForHiredNpc`'s
+  `singletonOrClone(operatingLocations[0])` clones a counter every call
+  (dormant: no business that sets `startsShiftOnHire` names a counter
+  first); `ContractLogic.resolveDestination` clones a stray shared
+  fixture when none is live. A `NavigationApi.loadPlaced` was rejected
+  as a second minting path — the answer belongs to StuffApi and the
+  mixins.
+- ⚠ **AC 7 never run** — logging back in to a keyed dorm room after a
+  restart (the warren's admit now goes through the graph's institution
+  attachments; `restorePlacement` now calls `singleton()`). Needs a
+  Katie-provisioned unit and a manual restart; the wire harness cannot
+  restart. Merged UNVERIFIED by the user's decision.
+- **Unstaged content** — the census spawn sweep places nothing (a mint
+  stays in null) and nothing logs orphaned content; deferred to the
+  foraging / hunting design.
+- **A vessel line counts by template, not state** — `Stock.onHand`
+  counts by template path where the sweep counted census keys, so a
+  keg filled ON the brewing stock holds its line's par until the hand
+  consigns it.
+- **Drives red on master as well** (baselined during the build):
+  economic-bootstrap, apiculture (lantern / `put super` / `rob`),
+  injury (`rinse`, the dark meadow), fishing (`reserve issue`),
+  reachability (`lock north`), instrumentation (the bench). Each wants
+  its owning trade.
 
 ---
 
@@ -255,7 +297,7 @@ Reading, Placement), and `LocationGraphRegistry`'s own boot reason says
    ~50 house and premises boots. Fixtures that already author
    `businessPath` keep following it forward (`Attendant.ts:205`).
    Rosters, wages and shifts reconcile when the house loads (ruling 2).
-2. ✂ **Cut to [unobserved-economy-slate](./unobserved-economy-slate.md)** (2026-10-14 review): refilling and inter-place supply are an economy design, not a loading fix. *Was:* **Stock refills on load.** The counter names its lines (`stockLines`
+2. ✂ **Cut to [unobserved-economy-slate](../builds/unobserved-economy-slate.md)** (2026-10-14 review): refilling and inter-place supply are an economy design, not a loading fix. *Was:* **Stock refills on load.** The counter names its lines (`stockLines`
    exists; 6 rows author it) and tops itself up by elapsed time when it
    loads. The boot spawn sweep and the `censusKey` scan go.
 3. **Water and fishing: the reach names its works and its species.**

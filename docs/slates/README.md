@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**294 slates.** 70 greenfield · 101 continuations · 62 waves · 61 tails.
+**294 slates.** 69 greenfield · 102 continuations · 62 waves · 61 tails.
 
-## ⭐ Greenfield — nothing shipped yet (70)
+## ⭐ Greenfield — nothing shipped yet (69)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -103,7 +103,6 @@ respect.
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
-| [scan-sweep](./builds/scan-sweep-slate.md) | ⭐ the doctrine written into a gate · Part 2's build order — employment's operator flipped onto the room (it runs on every `look`, and it is behind ~50 boot entries), stock that refills on load, water and fishing named by the reach, residence named by the extent's zone, the warm-only vocabularies replaced by references and the typed-word ones made lazy · Part 1's remaining nine registry scans · the two ratchets (registry-wide readers, boot entries) … |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
@@ -115,7 +114,7 @@ respect.
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (101)
+## ⭐ Continuations — substrate shipped, a build's worth remains (102)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -211,6 +210,7 @@ are the named remainders.
 | [retail](./builds/retail-slate.md) | S2 the Circulation Reserve (the welfare-floor buy) · S3 producer + real cost/supply pricing (the derived stance, then characterization) · S4 player-owned storefronts, franchising and the market arena · ⚠ **a business never stands DOWN** (below) … |
 | [sampling-and-labs](./builds/sampling-and-labs-slate.md) | the sample object + its provenance field · bench instruments and the campus lab as a place · the hand-tool middle tier (lens, streak plate, hardness kit) · the certified assayer vocation … |
 | [sanitation](./builds/sanitation-slate.md) | `collect` + the impound yard · the abandonment rule and the two legal regimes a locality picks · animal control (the yard with creatures in it, the shelter as its output) · the scavenger vocation and its rungs … |
+| [scan-sweep](./tails/scan-sweep-slate.md) | the fourteen sync-read catalogues still booted · where singleton-ness lives · AC 7 (log back in to a keyed room after a restart) merged unverified · unstaged content … |
 | [senses](./builds/senses-slate.md) | smell trails / temporal persistence + NPC scent-tracking · the active-sense pattern (echolocation) + the alien channels (magneto-/electroreception, pit-sensing) · differential per-channel rendering · sensorium-relative stealth / NPC detection … |
 | [spawn-distribution](./builds/spawn-distribution-slate.md) | the creature half — a procgen-NPC generator over the NameBank / species dossier / `PersonaMixin` · create-monster · creature respawn economics · a true weighted-rarity draw with depth/biome/tag eligibility (shipped item half is region-scoped counts, not this) … |
 | [species](./builds/species-slate.md) | every actual difference — the ectotherm · scent-based recognition · cannot-metabolise-a-staple · equipment incompatibility … |
@@ -373,6 +373,7 @@ tail in `tails/`. These need moving or re-stamping.
 | [object-taxonomy](./builds/object-taxonomy-slate.md) | a tail | `builds/` |
 | [pack-boundary](./builds/pack-boundary-slate.md) | a tail | `builds/` |
 | [rendering](./builds/rendering-slate.md) | a wave | `builds/` |
+| [scan-sweep](./tails/scan-sweep-slate.md) | a build | `tails/` |
 | [shore-as-place](./builds/shore-as-place-slate.md) | a wave | `builds/` |
 | [tourism-and-sport](./builds/tourism-and-sport-slate.md) | a tail | `builds/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |

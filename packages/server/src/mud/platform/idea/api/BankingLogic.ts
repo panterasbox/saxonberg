@@ -856,7 +856,7 @@ async function priceIndexImpl(): Promise<PriceIndex> {
   // stood up here before its shop loads is one the shop mints again. Both
   // basket shops are booted today, so the counters are resident; where
   // uniqueness lives (the class, the caller, the row) is the open question
-  // recorded in the scan-sweep plan's review round.
+  // recorded in scan-sweep-slate's Left list.
   const stood = await Promise.all(
     counters.map((path) => StuffApi.singleton(path).catch(() => null)),
   );

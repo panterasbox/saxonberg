@@ -31,8 +31,9 @@
  *     so a wire session cannot read that reach without loading it; the
  *     row-fouls half is `water/src/__tests__/Contamination.test.ts`.
  *   - Ricky's list (a dialogue wheel) is `terminus/src/realty/__tests__/
- *     Realtor.test.ts`; 8 (restart) was run BY HAND (a wire file cannot
- *     restart the server) — see the plan's drive record.
+ *     Realtor.test.ts`. ⚠ 8 (log back in to a keyed room after a
+ *     restart) was NEVER run — a wire file cannot restart the server, and
+ *     it merged unverified; see scan-sweep-slate's Left list.
  *
  * ⭐ Every checkpoint asserts the verb was UNDERSTOOD (ok, or a NAMED
  * refusal) AND the words that prove the state.
