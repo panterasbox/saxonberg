@@ -13,6 +13,7 @@ data:
   # aboard, or onto her sea. Nothing boots her.
   stands:
     - /world/terminus/hesper/structure
+    - /world/terminus/hesper/idea/outfit
   name: The Hesper
   cellSize: 4.0
   # No `horizon`: afloat, what is in view is COMPUTED from two heights

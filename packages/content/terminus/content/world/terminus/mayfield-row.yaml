@@ -5,5 +5,9 @@
 # holds the street; Mayfield Holdings the building), never here.
 class: /platform/idea/location/CartesianZone
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/mayfield-row/idea/agency
   name: Mayfield Row
   cellSize: 3.0

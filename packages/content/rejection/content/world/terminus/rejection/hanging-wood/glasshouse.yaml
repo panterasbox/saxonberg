@@ -9,6 +9,10 @@
 # restocked — the Hearthworks shape). The sand you win yourself at the pit.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/rejection/idea/glasshouse-business
   shortDescription: glasshouse
   keywords: [glasshouse, glassworks, furnace, "glass house"]
   register: definite

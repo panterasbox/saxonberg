@@ -11,6 +11,10 @@
 # `populates` set below is the placement and respawns each boot.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/goods-yards/pantry/idea/outfit
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
   # and inherited nothing from one. See the zone row beside it.

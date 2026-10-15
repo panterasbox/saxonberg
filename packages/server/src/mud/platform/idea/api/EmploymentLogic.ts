@@ -446,6 +446,28 @@ function allBusinessesImpl(): BusinessStuff[] {
   );
 }
 
+/**
+ * What the ROW at `path` names in `stands:` — or, for a fixture row that
+ * names none, the `stands:` of the row its `container:` (or `seatIn:`)
+ * places it in (one hop). Exact reads, never a scan: the place names its house, so asking
+ * the place is the whole lookup (the scan sweep).
+ */
+async function standsNamedFor(path: string): Promise<string[]> {
+  const { Template } = await import('../../../lib/stuff/Template');
+  const listOf = (data: Record<string, unknown> | undefined): string[] =>
+    Array.isArray(data?.stands)
+      ? (data.stands as unknown[]).filter((p): p is string => typeof p === 'string')
+      : [];
+  const row = await Template.findByPath(path);
+  if (!row) return [];
+  const own = listOf(row.data);
+  if (own.length > 0) return own;
+  const container = row.data?.container ?? row.data?.seatIn;
+  if (typeof container !== 'string' || container.length === 0) return [];
+  const room = await Template.findByPath(container);
+  return listOf(room?.data);
+}
+
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
 async function hireImpl(
   organization: OrganizationStuff,
@@ -1438,14 +1460,18 @@ async function flowSplitsForImpl(
 @Unshadowable
 export class EmploymentLogic extends ApiLogic {
   /**
-   * The Business index — businesses are found by the `BusinessMixin`
-   * marker (never a field on a room), the `SlotLogic` / `LocomotionLogic`
-   * enumerate-by-scan precedent. Cached on the singleton instance so a
-   * `StuffApi.clearAll` (which recreates the singleton) starts fresh;
-   * rebuilt on a miss (the cache is a fast path, the live scan is the
-   * source of truth). An ungated private helper — no gate to trip.
+   * The Business index (the scan sweep, 2026-10-14). Membership is
+   * StuffApi's own `BusinessMixin` bucket — maintained on register and
+   * destruct, the one audit point — and the two keyed maps below are
+   * derived from it. ⭐ They are rebuilt only when the population CHANGES
+   * (the bucket's membership moves, or a house re-points its premises —
+   * `getOperatingRevision`), never on a
+   * miss: most rooms have no house, so a miss is the ordinary answer and
+   * re-enumerating on one made every `look` a scan.
    */
   private businessCache: BusinessStuff[] | null = null;
+  private businessCacheSize = -1;
+  private businessCacheRevision = -1;
 
   /**
    * `operatingLocation → Business` and `proprietorPath → Business`, built
@@ -1457,12 +1483,23 @@ export class EmploymentLogic extends ApiLogic {
   private businessByProprietor: Map<string, BusinessStuff> | null = null;
 
   private allBusinesses(): BusinessStuff[] {
-    if (this.businessCache) return this.businessCache;
-    const out = allBusinessesImpl();
-    this.businessCache = out;
+    const live = allBusinessesImpl();
+    const cached = this.businessCache;
+    const revision = live.reduce((n, b) => n + b.getOperatingRevision(), 0);
+    if (
+      cached &&
+      live.length === this.businessCacheSize &&
+      revision === this.businessCacheRevision &&
+      live.every((b, i) => b === cached[i])
+    ) {
+      return cached;
+    }
+    this.businessCache = live;
+    this.businessCacheSize = live.length;
+    this.businessCacheRevision = revision;
     const byLocation = new Map<string, BusinessStuff>();
     const byProprietor = new Map<string, BusinessStuff>();
-    for (const b of out) {
+    for (const b of live) {
       for (const loc of b.getOperatingLocations()) {
         if (!byLocation.has(loc)) byLocation.set(loc, b);
       }
@@ -1473,37 +1510,22 @@ export class EmploymentLogic extends ApiLogic {
     }
     this.businessByLocation = byLocation;
     this.businessByProprietor = byProprietor;
-    return out;
+    return live;
   }
 
-  /**
-   * A keyed business lookup, with today's rebuild-and-retry: a newly
-   * stood-up business post-dates the memo, so a miss drops it and asks
-   * once more. Never a scan of the list at the call site.
-   */
+  /** A keyed business lookup. ⭐ A miss is an answer, never a rescan. */
   private businessByKey(
     which: 'location' | 'proprietor',
     key: string,
   ): BusinessStuff | null {
     if (!key) return null;
-    const read = (): BusinessStuff | null => {
-      this.allBusinesses();
-      const map =
-        which === 'location' ? this.businessByLocation : this.businessByProprietor;
-      return map?.get(key) ?? null;
-    };
-    const hit = read();
-    if (hit) return hit;
-    this.invalidateBusinessCache();
-    return read();
+    this.allBusinesses();
+    const map =
+      which === 'location' ? this.businessByLocation : this.businessByProprietor;
+    return map?.get(key) ?? null;
   }
 
-  /** Drop the business memo and its two keyed indexes together. */
-  private invalidateBusinessCache(): void {
-    this.businessCache = null;
-    this.businessByLocation = null;
-    this.businessByProprietor = null;
-  }
+
 
   /**
    * ⭐⭐ **The employee roster memo** — `organizationPath → the durable
@@ -1943,9 +1965,16 @@ export class EmploymentLogic extends ApiLogic {
 
   /** See {@link EmploymentApi.noticesAt}. */
   @CallSecurity(EmploymentApiCallers)
-  public noticesAt(here: Stuff | null): Opening[] {
+  public async noticesAt(here: Stuff | null): Promise<Opening[]> {
+    // ⭐ The room stood its house up when somebody ARRIVED (`stands:`, the
+    // scan sweep); a look awaits that load and never starts one. Then the
+    // one-house pass on each live house, so an opening nobody's roster has
+    // been run against does not advertise every seat — the engine's own
+    // tick run early, idempotent (user ruling, 2026-10-14).
+    if (here && MixinApi.isSite(here)) await here.standsLoaded();
     const out: Opening[] = [];
     for (const business of this.operatorsAtImpl(here)) {
+      await this.bringHouseCurrent(business);
       // ⚠ A closed house is not hiring. `isClosed()` is a Business fact,
       // read here where Business is known — the chart's `openings()` has
       // no business asking it.
@@ -1961,11 +1990,10 @@ export class EmploymentLogic extends ApiLogic {
    * seat resolution (`BankingControllerBase.resolveHouse`) and the
    * help-wanted sign (`noticesAt`).
    *
-   * ⚠ **Live only, and deliberately.** `ensureOperatorAt` would stand a
-   * house up — an economic act (its roster ticks, its wages flow) — and
-   * walking past a shop must not be one. The consequence is an authoring
-   * rule `lint:openings` enforces: a house that advertises is a `boot:`
-   * producer of its own pack.
+   * ⚠ **Live only.** Nothing here stands a house up; the room's
+   * `stands:` did that when somebody arrived, and `lint:openings` proves
+   * every operated room names its house (the scan sweep reversed the old
+   * rule that an advertising house must be a `boot:` entry).
    */
   private operatorsAtImpl(here: Stuff | null): BusinessStuff[] {
     if (!here) return [];
@@ -1991,31 +2019,6 @@ export class EmploymentLogic extends ApiLogic {
     return out;
   }
 
-  /**
-   * Cached reverse index `operatingLocation → BusinessTemplatePath`, built
-   * from the authored Business templates' own `operatingLocations` data. The
-   * derived-standup source of truth (no per-instance standup hook). Filtered
-   * cheaply by the presence of the `operatingLocations` field — no class
-   * resolution; `ensureOperatorAt` verifies `isBusiness` after standup. Nulled
-   * with `businessCache` on a fresh singleton (a `StuffApi.clearAll`).
-   */
-  private operatorIndex: Map<string, string> | null = null;
-
-  private async buildOperatorIndex(): Promise<Map<string, string>> {
-    if (this.operatorIndex) return this.operatorIndex;
-    const { Template } = await import('../../../lib/stuff/Template');
-    const idx = new Map<string, string>();
-    for (const t of await Template.findDescendants('/')) {
-      const ops = t.data?.operatingLocations as unknown;
-      if (!Array.isArray(ops)) continue;
-      for (const loc of ops) {
-        if (typeof loc === 'string' && loc.length > 0) idx.set(loc, t.path);
-      }
-    }
-    this.operatorIndex = idx;
-    return idx;
-  }
-
   /** See {@link EmploymentApi.ensureOperatorAt}. */
   @CallSecurity(EmploymentApiCallers)
   public async ensureOperatorAt(
@@ -2025,59 +2028,91 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /**
-   * The standup, ungated — so a sibling logic method (`settleSale`) can run
-   * it without tripping the `FromModule(EmploymentApi)` gate (a logic→logic
-   * self-call is not the face; the same reason the body below reaches for
-   * the ungated `businessByKey` rather than `this.businessAt`).
+   * ⭐ The house that operates `locationPath` (a room, or a fixture), stood
+   * up by FOLLOWING THE PLACE (the scan sweep, 2026-10-14) — never by a
+   * scan of the template table:
+   *
+   *   1. live → the one-house pass, return it;
+   *   2. the live place at the path (the room, or a fixture's room) names
+   *      its house in `stands:` — await that load and look again;
+   *   3. the ROW — its `stands:`, else its `container:` row's (one hop),
+   *      exact reads — stand each named path up and look again;
+   *   4. nobody operates here.
+   *
+   * Ungated, so a sibling logic method (`settleSale`) can run it without
+   * tripping the `FromModule(EmploymentApi)` gate.
    */
   private async ensureOperatorAtInternal(
     locationPath: string,
   ): Promise<BusinessStuff | null> {
-    // Call the ungated private finder, not `this.businessAt` — a gated
-    // intra-singleton self-call would be denied (the caller is the logic, not
-    // the face).
-    const live = this.businessByKey('location', locationPath);
-    if (live) {
-      // ⚠⚠ **An already-live business still needs the pass.** This used to
-      // `return live` here, which quietly voided the promise the paragraph
-      // below makes — and voided it for precisely the venue that needed it.
-      // The roster resolves against the assignees LIVE at the moment of the
-      // pass; a cast NPC is spawned by residency only when a player walks
-      // in, so the boot pass logged `… is not live` and skipped them, and
-      // nothing re-ran it once they existed. The cook then stood at his own
-      // hearth uncontracted — nobody fulfilling, `order` → "There's no one on
-      // hand to make that" — for up to a whole game-hour.
-      //
-      // One venue's roster, not the realm's, and idempotent: `ensureRostered`
-      // and the house-card issue are no-ops after the first, and
-      // begin/endShift only fire on a transition.
-      const now = WorldClockApi.getNow();
-      await closedSignImpl(live);
-      this.tickBusiness(
-        live,
-        DefaultCalendar.singleton().decompose(now),
-        now.rawValue(),
-      );
-      return live;
+    let house = this.businessByKey('location', locationPath);
+    if (!house) {
+      const here =
+        StuffApi.findByTemplatePath(locationPath) ??
+        StuffApi.findByIdentityPath(locationPath)[0] ??
+        null;
+      const site =
+        here && MixinApi.isSite(here)
+          ? here
+          : here && MixinApi.isContainable(here)
+            ? here.getContainer()
+            : null;
+      if (site && MixinApi.isSite(site)) {
+        await site.standsLoaded();
+        house = this.businessByKey('location', locationPath);
+      }
     }
-    // Derive the operator from the authored Business templates and stand it up
-    // lazily (idempotent). No manifest entry, no clerk/venue standup hook.
-    const idx = await this.buildOperatorIndex();
-    const tplPath = idx.get(locationPath);
-    if (!tplPath) return null;
-    const inst = await StuffApi.singletonOrClone<Stuff>(tplPath);
-    this.invalidateBusinessCache(); // the enumeration must re-see it
-    if (MixinApi.isBusiness(inst)) {
-      // A lazily stood-up business arrives with CORRECT on-shift state —
-      // the same immediate roster pass `boot()` runs for boot-time
-      // businesses. Without it, a cold venue's first customer finds the
-      // roster hired but nobody conferred (`order` → no-maker) until the
-      // next scheduled tick.
-      this.runTick();
-      return inst;
+    if (!house) {
+      for (const path of await standsNamedFor(locationPath)) {
+        try {
+          await StuffApi.singleton(path);
+        } catch (err) {
+          console.warn(
+            `EmploymentLogic: '${locationPath}' names '${path}' in stands:, which did not stand up:`,
+            err,
+          );
+        }
+      }
+      house = this.businessByKey('location', locationPath);
     }
-    return null;
+    if (!house) return null;
+    await this.bringHouseCurrent(house, true);
+    return house;
   }
+
+  /**
+   * ⭐ **One house brought current** — the closed sign and the roster pass
+   * `runTick` runs for every house, for this one only, so a house the
+   * arrival just stood up has its cast rostered and its shift state right
+   * before anybody reads it. Idempotent; nothing persisted (the ledger and
+   * the clock are the record). A read (`look`) runs it at most once per
+   * game hour per house; an act (`force`) always runs it.
+   *
+   * ⚠⚠ **An already-live business still needs the pass.** The roster
+   * resolves against the assignees LIVE at the moment of the pass; a cast
+   * NPC is spawned by residency only when a player walks in, so a pass at
+   * boot skipped them, and nothing re-ran it once they existed — the cook
+   * stood at his own hearth uncontracted for up to a whole game-hour.
+   */
+  private async bringHouseCurrent(
+    house: BusinessStuff,
+    force = false,
+  ): Promise<void> {
+    const now = WorldClockApi.getNow();
+    const key = house.getOrganizationPath();
+    const hour = Math.floor(now.rawValue() / 3600);
+    if (!force && key && this.passedAt.get(key) === hour) return;
+    if (key) this.passedAt.set(key, hour);
+    await closedSignImpl(house);
+    this.tickBusiness(
+      house,
+      DefaultCalendar.singleton().decompose(now),
+      now.rawValue(),
+    );
+  }
+
+  /** organizationPath → the game hour its last one-house pass ran in. */
+  private passedAt = new Map<string, number>();
 
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)

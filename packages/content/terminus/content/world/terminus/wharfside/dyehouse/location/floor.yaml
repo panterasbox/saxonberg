@@ -5,6 +5,10 @@
 # `discipline: line` — bring cloth, wait your turn.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/wharfside/dyehouse/idea/outfit
   coords:
     x: 0
     y: 0

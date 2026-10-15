@@ -7,5 +7,9 @@
 # see CartesianZone.cellSize doc).
 class: /platform/idea/location/CartesianZone
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/eternal/duncan-hall/idea/college
   name: Duncan Hall
   cellSize: 3.0

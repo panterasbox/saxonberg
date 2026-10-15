@@ -481,15 +481,25 @@ export default class AccessRegistry extends AccessRegistryBase {
    * (`EmploymentApi.holdsPosition`) and by its appointing authority
    * (`EmploymentApi.holdsAuthority` — for an office that is
    * `CompactApi.holdsOffice`, founder default included). The organization
-   * **must be resident** (`/compact/executive` and the corpos are `boot:`
-   * entries for exactly this reason); a non-resident or non-organization
-   * target fails CLOSED with one diagnostic per path.
+   * is stood up here if it is not resident — a relation resolved at the
+   * act, never booted; a path that does not stand up, or is not an
+   * organization, fails CLOSED with one diagnostic per path.
    */
   private async subjectHoldsOrganization(
     subject: Stuff,
     owner: ParcelOwner & { kind: 'organization' },
   ): Promise<boolean> {
-    const org = StuffApi.findByTemplatePath(owner.templatePath);
+    // ⭐ A relation resolved AT THE ACT (the scan sweep): the title names
+    // its organization, and asking whether somebody holds it stands it up.
+    // Nothing is booted for this any more.
+    let org: Stuff | null = StuffApi.findByTemplatePath(owner.templatePath) ?? null;
+    if (!org) {
+      try {
+        org = await StuffApi.singleton(owner.templatePath);
+      } catch {
+        org = null;
+      }
+    }
     if (!org || !MixinApi.isOrganization(org)) {
       this.reportUnresolvedOrganization(owner.templatePath);
       return false;
@@ -523,9 +533,9 @@ export default class AccessRegistry extends AccessRegistryBase {
       channel: 'access.organization-owner',
       severity: 'warning',
       message:
-        `A title is held by organization '${templatePath}', which is not ` +
-        `resident (or is not an OrganizationMixin host) — the title admits ` +
-        `nobody until it is. List it under the owning pack's boot: entries.`,
+        `A title is held by organization '${templatePath}', whose row did ` +
+        `not stand up (or is not an OrganizationMixin host) — the title ` +
+        `admits nobody until it does.`,
     });
   }
 

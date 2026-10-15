@@ -47,13 +47,13 @@ import { CONTENT } from "./pack-roots";
 export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
 
 /** ⭐ The total ceiling. It may fall, never rise. */
-export const BOOT_ENTRY_CEILING = 128;
+export const BOOT_ENTRY_CEILING = 99;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —
  * the burn-down clause (c) drives to zero.
  */
-export const UNCITED_CONTENT_CEILING = 71;
+export const UNCITED_CONTENT_CEILING = 10;
 
 /** The roots whose rows are CONTENT rather than the engine's own. */
 export const CONTENT_ROOTS = ["/world/", "/trade/", "/corpo/", "/compact/"];

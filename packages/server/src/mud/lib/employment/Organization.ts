@@ -255,11 +255,13 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       proprietorPath: {
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       positions: { persistent: true, authorable: true },
       rosterSlots: { persistent: true, authorable: true },

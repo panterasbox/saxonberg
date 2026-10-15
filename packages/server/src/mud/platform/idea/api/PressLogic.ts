@@ -129,9 +129,20 @@ async function loadImpl(releaseId: string): Promise<Release | null> {
  * closed: an unresolvable path, or one that is not a publisher, is no
  * publisher at all.
  */
-function resolvePublisherImpl(path: string): (Stuff & Publisher) | null {
+async function resolvePublisherImpl(
+  path: string,
+): Promise<(Stuff & Publisher) | null> {
   if (path.length === 0) return null;
-  const organization = StuffApi.findByTemplatePath(path);
+  // ⭐ A relation resolved at the act (the scan sweep): a release names its
+  // publisher, and publishing as it stands it up — nothing is booted.
+  let organization: Stuff | null = StuffApi.findByTemplatePath(path) ?? null;
+  if (!organization) {
+    try {
+      organization = await StuffApi.singleton(path);
+    } catch {
+      organization = null;
+    }
+  }
   if (!organization || !MixinApi.isPublisher(organization)) return null;
   return organization;
 }
@@ -187,7 +198,7 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
         '(fail closed — authorship is derived, never caller-supplied)'
     );
   }
-  const publisher = resolvePublisherImpl(req.publisher);
+  const publisher = await resolvePublisherImpl(req.publisher);
   if (!publisher) {
     throw new Error(
       `PressApi.publish: ${req.publisher || '(none)'} is not a publisher`
@@ -250,7 +261,7 @@ async function editImpl(
 ): Promise<Release | null> {
   const existing = await loadImpl(releaseId);
   if (!existing) return null;
-  const publisher = resolvePublisherImpl(existing.getOwner());
+  const publisher = await resolvePublisherImpl(existing.getOwner());
   if (!publisher) return null;
   const updated = existing.withPatch({
     ...(patch.headline !== undefined ? { headline: patch.headline } : {}),
@@ -278,7 +289,7 @@ async function editImpl(
 async function retractImpl(releaseId: string): Promise<Release | null> {
   const existing = await loadImpl(releaseId);
   if (!existing) return null;
-  const publisher = resolvePublisherImpl(existing.getOwner());
+  const publisher = await resolvePublisherImpl(existing.getOwner());
   if (!publisher) return null;
   // Soft delete: the document stays (archive truthfulness), but the window
   // filters it out. No hard delete.
@@ -331,7 +342,7 @@ async function archiveImpl(query: ArchiveQuery): Promise<Release[]> {
  * each entry is resolved by path — a warm catalogue would be machinery
  * with no query to serve.
  */
-function frontPagePublishersImpl(): Array<Stuff & Publisher> {
+async function frontPagePublishersImpl(): Promise<Array<Stuff & Publisher>> {
   let raw = '';
   try {
     raw = AppApi.setting(AppSettingKeys.pressFrontPage);
@@ -342,7 +353,7 @@ function frontPagePublishersImpl(): Array<Stuff & Publisher> {
   for (const entry of raw.split(',')) {
     const path = entry.trim();
     if (path.length === 0) continue;
-    const publisher = resolvePublisherImpl(path);
+    const publisher = await resolvePublisherImpl(path);
     if (!publisher) {
       console.warn(
         `PressApi: press.frontPage names '${path}', which is not a live ` +
@@ -369,9 +380,9 @@ function frontPagePublishersImpl(): Array<Stuff & Publisher> {
  * out here ever sees an unresolved visibility: this is an already-filtered
  * read, not a predicate somebody could call the wrong way round.
  */
-function pressRoomImpl(limit?: number): PublicReleaseRow[] {
+async function pressRoomImpl(limit?: number): Promise<PublicReleaseRow[]> {
   const listed = new Map(
-    frontPagePublishersImpl().map((p) => [
+    (await frontPagePublishersImpl()).map((p) => [
       (p as Stuff).getIdentityPath() ?? '',
       p,
     ])
@@ -462,7 +473,7 @@ export class PressLogic extends ApiLogic {
 
   /** See {@link PressApi.pressRoom}. */
   @CallSecurity(PressApiCallers)
-  public pressRoom(limit?: number): PublicReleaseRow[] {
+  public pressRoom(limit?: number): Promise<PublicReleaseRow[]> {
     return pressRoomImpl(limit);
   }
 

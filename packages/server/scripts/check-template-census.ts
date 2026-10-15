@@ -775,11 +775,11 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   // carries a `bulkMaterial` field holding a BARE name (`water`), not a
   // path, so a name-keyed read would choke on the effect. Warn-only.
   'bulkMaterial',
-  'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
+  'carriedSpellPath', 'charMaterialPath', 'charter',
   'container', 'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
-  'lobbyPath', 'makerId', 'operatingLocations', 'parLines',
-  'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
+  'lobbyPath', 'makerId', 'parLines',
+  'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
   'steepsInto', 'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
   'warren',

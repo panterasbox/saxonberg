@@ -64,27 +64,26 @@ describe('three premises, and all three are VACANT', () => {
     }
   });
 
-  it('⚠⚠ and every one is a BOOT PRODUCER, or the vacancy is invisible', () => {
-    // The derived help-wanted sign reads LIVE businesses only (a `look`
-    // may not stand a house up), and a business advertises into a ROOM —
-    // so both halves need warming or `look` shows nothing. This is the
-    // exact pairing `lint:openings` holds, and the exact shape that cost
-    // the campus farm a build.
+  it('⭐⭐ and every premises NAMES its outfit, so arriving stands the house up', () => {
+    // The derived help-wanted sign reads LIVE businesses, and nothing is
+    // booted to make one live (the scan sweep, 2026-10-14): the ROOM names
+    // its house in `stands:` and loading the room stands it up. This is the
+    // pairing `lint:openings` rule 3 holds — and none of the three is a
+    // boot entry any more.
+    const rooms: Record<string, string> = {
+      knackers: 'world/terminus/wharfside/knackers/location/yard',
+      tannery: 'world/terminus/wharfside/tannery/location/yard',
+      chandlery: 'world/terminus/wharfside/chandlery/location/floor',
+    };
     const pack = readFileSync(PACK, 'utf8');
     for (const p of PREMISES) {
-      expect(pack, `${p} outfit`).toContain(
-        `/world/terminus/wharfside/${p}/idea/outfit, role: producer`,
+      const row = YAML.parse(readFileSync(`${CONTENT}${rooms[p]}.yaml`, 'utf8'));
+      expect(row.data.stands, `${p} room`).toContain(
+        `/world/terminus/wharfside/${p}/idea/outfit`,
       );
+      expect(pack).not.toContain(`/world/terminus/wharfside/${p}/idea/outfit, role:`);
+      expect(pack).not.toContain(`/${rooms[p]}, role:`);
     }
-    expect(pack).toContain(
-      '/world/terminus/wharfside/knackers/location/yard, role: producer',
-    );
-    expect(pack).toContain(
-      '/world/terminus/wharfside/tannery/location/yard, role: producer',
-    );
-    expect(pack).toContain(
-      '/world/terminus/wharfside/chandlery/location/floor, role: producer',
-    );
   });
 });
 

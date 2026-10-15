@@ -7,6 +7,10 @@
 # survivable — which is what a tutorial face IS, historically and here.
 class: /trade/mining/location/AuthoredWorking
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/rejection/idea/coop-business
   shortDescription: timbered drift
   keywords: [drift, "timbered drift", timbered]
   register: definite

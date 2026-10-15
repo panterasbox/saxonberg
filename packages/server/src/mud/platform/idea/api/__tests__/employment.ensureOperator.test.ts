@@ -1,9 +1,11 @@
 /**
- * EmploymentApi.ensureOperatorAt — the derived, lazy Business standup. A
- * Business stands up from its OWN `operatingLocations` template data on first
- * query at a fixture it operates — no manifest entry, no per-venue standup
- * hook. Keyed on the fixture (a terminal / vending unit), so two venues in one
- * room each resolve their own operator.
+ * EmploymentApi.ensureOperatorAt — the lazy Business standup, by FOLLOWING
+ * THE PLACE (the scan sweep, 2026-10-14). The room a fixture stands in names
+ * its house in `stands:`; asking at the fixture reads the fixture's row, hops
+ * to its `container:` room's row, and stands the named house up — exact
+ * reads, no scan of the template table, no manifest entry. Keyed on the
+ * fixture (a terminal / vending unit), so two venues in one room each resolve
+ * their own operator.
  */
 
 import "../../../../../test-bootstrap";
@@ -25,9 +27,16 @@ const BIZ_B = "/world/test/emp/business-b";
 const FIXTURE_C = "/world/test/emp/fixture-c";
 const BIZ_C = "/world/test/emp/business-c";
 const ABSENT_COOK = "/world/test/emp/absent-cook";
+const ROOM = "/world/test/emp/room";
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
+  // ⭐ The room names what stands with it; the fixtures name their room.
+  // Read as rows only — nothing here is cloned.
+  { path: ROOM, class: "/platform/location/CartesianLocation", data: { stands: [BIZ_A, BIZ_B, BIZ_C] } },
+  { path: FIXTURE_A, class: "/platform/thing/Thing", data: { container: ROOM } },
+  { path: FIXTURE_B, class: "/platform/thing/Thing", data: { container: ROOM } },
+  { path: FIXTURE_C, class: "/platform/thing/Thing", data: { container: ROOM } },
   // Two Businesses, each operating its OWN fixture (two venues, one "room").
   {
     path: BIZ_A,
@@ -70,7 +79,7 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     vi.restoreAllMocks();
   });
 
-  it("stands the Business up lazily from its operatingLocations template data", async () => {
+  it("stands the Business up from the stands: of the fixture's room — no scan", async () => {
     // Not live yet — the sync scan finds nothing.
     expect(EmploymentApi.businessAt(FIXTURE_A)).toBeNull();
 
@@ -90,7 +99,7 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     expect(a).not.toBe(b);
   });
 
-  it("returns null when no authored Business operates the path", async () => {
+  it("returns null when no place names a house there", async () => {
     expect(await EmploymentApi.ensureOperatorAt("/world/test/emp/nowhere")).toBeNull();
   });
 

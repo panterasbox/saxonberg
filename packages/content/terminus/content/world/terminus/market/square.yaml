@@ -18,6 +18,10 @@
 # explicit — the block declares SOUTHWEST here).
 class: /platform/location/Street
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/market/business
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
   # lamp, and one identical fuelled object per street would be forty-one

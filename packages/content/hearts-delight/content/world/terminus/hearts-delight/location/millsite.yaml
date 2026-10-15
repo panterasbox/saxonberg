@@ -13,6 +13,10 @@
 # its own mill rather than one big one.
 class: /platform/location/Street
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/hearts-delight/idea/mill-business
   # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 3 — the
   # JUNIOR way, the FIRST to stand cold when the store runs short: a lamp at
   # the fall matters less than a lamp at the gate, and the order is recorded

@@ -20,6 +20,10 @@
 class: /world/lounge/location/Bar
 extends: /trade/hospitality/location/bar
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/lounge/idea/business
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. The bar is the lounge grid's origin; the office is one cell north of it, which is what the door has always said.
   coords:

@@ -2,6 +2,11 @@
 # loaded rather than looked at.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /trade/haulage/idea/carrier-business
+    - /trade/haulage/idea/depot-business
   shortDescription: lower towpath
   keywords: [towpath, lower]
   register: definite

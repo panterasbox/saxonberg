@@ -5,6 +5,10 @@
 # DIY floor.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/hearthworks/idea/business
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
   # to and look at. The room follows the sun: bright at noon, dark

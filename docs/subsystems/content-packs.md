@@ -1139,16 +1139,22 @@ already resident when the union runs (a lazy `StuffApi.singleton` mint
 earlier in the boot — the installer standing an organization up) is
 **reused**, never cloned twice.
 
-The platform declares the registries and catalogues (`/platform/idea/EventRegistry`
+⭐⭐ **What a pack may boot (the scan sweep, 2026-10-14).** Content loads
+when a player's act forces it, by following authored references — never
+at boot unless the reason is written down and holds. So the platform
+boots its engine wardens and registries (`/platform/idea/EventRegistry`
 first — every emit resolves it; `/platform/idea/AccessRegistry`,
-`/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the scheduler chain
-under `/platform/idea/WorldClockRegistry`), the two organizations
-(`/compact/executive`, `/compact/press`), `/platform/idea/PressBoard` and
-`/platform/location/void`; each corpo pack its own organization;
-`saxonberg-lounge` the TPA root (`/world/lounge/thing/terminal`);
-`world-seed` the three remaining locality producers (the Duncan Hall
-dorm-warren, the Hinkley Hills plat-book and lot-holder). `pnpm
-lint:instanceable` checks each entry names a real row.
+`/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the
+scheduler chain under `/platform/idea/WorldClockRegistry`),
+`/platform/idea/PressBoard` and `/platform/location/void`; and a content
+pack boots only the houses and premises whose NPCs act while nobody is
+present — the unobserved economy (→ `unobserved-economy-slate`), each
+reason citing it. Organizations (`/compact/*`, the corpos) are resolved
+at the act; a house that only advertises is stood up by the room that
+names it in `stands:`. **`pnpm lint:boot-entries`** holds the total as a
+ceiling and requires every content entry to cite the unobserved economy;
+`lint:instanceable` reads no `boot:` (this paragraph used to say it
+did).
 
 ## Pack zero — the platform-only boot
 

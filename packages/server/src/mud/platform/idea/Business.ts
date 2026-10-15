@@ -72,6 +72,12 @@ export interface BusinessTrade {
   /** The account key for this Business — its own durable path. */
   setOperatingLocations(paths: readonly string[]): void;
   /**
+   * How many times this house has re-pointed what it operates — the
+   * employment index's change signal (the scan sweep: the index is kept
+   * on write, and a miss is an answer, never a rescan).
+   */
+  getOperatingRevision(): number;
+  /**
    * ⭐ Is the house CLOSED (economic bootstrap D16)? Every principal who
    * could run it — the entity authority if a member, every member holder
    * — absent past the short clock, and no NPC on a position. Set by the
@@ -166,10 +172,13 @@ export function BusinessMixin<
     static _mixinName = 'BusinessMixin';
 
     static fieldMeta: FieldMeta = {
+      // ⭐ Relations (the scan sweep): loading a house never loads its
+      // rooms — the ROOM names the house in `stands:` instead.
       operatingLocations: {
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
       parLines: { persistent: true, authorable: true },
@@ -177,6 +186,7 @@ export function BusinessMixin<
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       charter: { persistent: true, authorable: true },
       payrollArrears: { persistent: true },
@@ -332,6 +342,13 @@ export function BusinessMixin<
     /** Point the house at what it operates — a minted stall's counter at rent, nothing at give-up. */
     public setOperatingLocations(paths: readonly string[]): void {
       this.operatingLocations = [...paths];
+      this.operatingRevision += 1;
+    }
+
+    private operatingRevision = 0;
+
+    public getOperatingRevision(): number {
+      return this.operatingRevision;
     }
 
     public getAccountPath(): string {

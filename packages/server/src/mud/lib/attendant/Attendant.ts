@@ -128,7 +128,7 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
       staffingPolicy: { persistent: true, authorable: true },
       attendDurationMs: { persistent: true, authorable: true },
       skin: { persistent: true, authorable: true },
-      businessPath: { persistent: true, authorable: true, authorPicker: 'Business' },
+      businessPath: { persistent: true, authorable: true, authorPicker: 'Business', ref: 'identity:relation' },
     };
 
     public discipline: ServiceDiscipline = "line";

@@ -6,6 +6,10 @@
 # fuel. Von Thünen, in one exit.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/rejection/idea/fuel-yard-business
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: fuel yard
   keywords: [yard, "fuel yard", coppice, clamp, fuel]

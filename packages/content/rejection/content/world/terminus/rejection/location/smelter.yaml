@@ -6,6 +6,10 @@
 # out of — with a real sink at the end, because picks wear out.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/rejection/idea/smelter-business
   shortDescription: smelter
   keywords: [smelter, furnace, works]
   register: definite

@@ -6,6 +6,10 @@
 # the yard on shift and runs the `restocks` loop from it.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/hearts-delight/public-works/idea/department
   coords: { x: 2, y: 0, z: 0 }
   shortDescription: public-works yard
   keywords: [yard, works, depot, public-works]

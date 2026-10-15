@@ -4,6 +4,11 @@
 # store and the bank.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/infirmary/business
+    - /world/terminus/infirmary/idea/window
   shortDescription: infirmary
   keywords: [infirmary]
   register: definite

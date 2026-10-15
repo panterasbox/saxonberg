@@ -97,7 +97,6 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/Ship.ts", count: 1, reason: "a structure's own members — the rows under its own extent, which it owns" },
   { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: STUB },
   // ── the wrong-way references the sweep flips ──
-  { file: "packages/server/src/mud/platform/idea/api/EmploymentLogic.ts", count: 1, reason: STUB },
   { file: "packages/content/residence/src/idea/ResidenceCatalogue.ts", count: 1, reason: STUB },
   { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: STUB },
   // ── the unobserved economy ──
