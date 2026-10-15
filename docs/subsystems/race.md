@@ -741,7 +741,9 @@ never meets a cold row and no species is booted. ⚠ The belt:
 `SpeciesApi.isSentient` **fails closed** — a body that cites a species
 whose row is not resident answers SENTIENT (consent, blame, no cull). It
 answered false until the sweep, which let a collie be butchered on a cold
-world.
+world. It reads the CITED path through `getSpeciesPath()` — the row the
+body names whether or not it is resident — beside `getSpecies()`, which
+answers only for a resident one.
 
 ### ⭐⭐ Age is a DATE, and what it confers is the whole design
 
@@ -995,7 +997,7 @@ undefined` — distinct from the field-level
 
 `requiresAnimate` also declares an async `preload` hook that runs
 before the sync validator phase. The preload reads the giver's
-raw `_speciesPath` field (not `getSpecies()`, since that uses
+cited path (`getSpeciesPath()`, not `getSpecies()`, since that uses
 `findByTemplatePath` which would return null for the very
 singleton we're about to ensure) and calls `StuffApi.singleton(...)`
 for the species template AND every ancestor in the kingdom walk.
