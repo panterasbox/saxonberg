@@ -60,27 +60,6 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('the location graph attaches what belongs with a place', () => {
-  it('⭐⭐ loadPlaced loads a counter BY ITS ROOM — one counter, never a second the room mints later', async () => {
-    const counter = await NavigationApi.loadPlaced(`${T}/counter`);
-    expect(counter).not.toBeNull();
-    expect(StuffApi.findByTemplatePath(`${T}/shop`)).toBeTruthy();
-    // Again, and the room again: the same counter, and the path still
-    // resolves to exactly one (findByTemplatePath throws on two).
-    expect(await NavigationApi.loadPlaced(`${T}/counter`)).toBe(counter);
-    await StuffApi.singleton(`${T}/shop`);
-    expect(StuffApi.findByTemplatePath(`${T}/counter`)).toBe(counter);
-  });
-
-  it('⚠ the defect it prevents: a counter cloned on its own, then its room, is TWO counters', async () => {
-    await StuffApi.singleton(`${T}/counter`);
-    await StuffApi.singleton(`${T}/shop`);
-    expect(() => StuffApi.findByTemplatePath(`${T}/counter`)).toThrow();
-  });
-
-  it('a thing nothing places is stood up on its own', async () => {
-    expect(await NavigationApi.loadPlaced(`${T}/idea/farm`)).not.toBeNull();
-  });
-
   it('⭐ a house is attached to the ROOM its counter stands in — the house named the counter, nobody named the house', async () => {
     expect(await NavigationApi.attachedTo(`${T}/shop`, 'house')).toEqual([`${T}/idea/house`]);
     expect(await NavigationApi.attachedTo(`${T}/yard`, 'house')).toEqual([`${T}/idea/farm`]);

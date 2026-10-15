@@ -357,24 +357,8 @@ export default class LocationGraphRegistry extends Idea {
     return [...out];
   }
 
-  /**
-   * ⭐ **Where an authored thing is placed** — the outermost place its row
-   * is put in (a room's `props:` / `cast:` / `warren:`, then `container:`,
-   * then `seatIn:`), or `null` when nothing places it. Loading THAT place
-   * is how the thing loads: a counter is minted by its room's `props:`,
-   * and standing the counter up on its own first would leave the room to
-   * clone a second one.
-   */
-  @CallSecurity(NavigationLogicOnly)
-  public async placeOf(path: string): Promise<string | null> {
-    await this.ensureAttachments();
-    return this.placements.get(path) ?? null;
-  }
-
   /** anchor (a place, or an extent) → target → why it is attached. */
   private attachments = new Map<string, Map<string, AttachmentKind>>();
-  /** thing → the place that loads it (see {@link placeOf}). */
-  private placements = new Map<string, string>();
   private attachmentsDirty = true;
   private attachmentsLoading: Promise<void> | null = null;
 
@@ -457,13 +441,7 @@ export default class LocationGraphRegistry extends Idea {
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
       }
     }
-    const placements = new Map<string, string>();
-    for (const thing of placedIn.keys()) {
-      const place = placeOf(thing);
-      if (place !== thing) placements.set(thing, place);
-    }
     this.attachments = next;
-    this.placements = placements;
     this.attachmentsDirty = false;
   }
 

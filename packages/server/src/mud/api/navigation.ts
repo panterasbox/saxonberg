@@ -18,7 +18,6 @@
  */
 
 import type Structure from '../platform/idea/Structure';
-import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
@@ -224,19 +223,6 @@ export class NavigationApi {
    */
   public static structureAt(path: string): Promise<Structure | null> {
     return logic().structureAt(path);
-  }
-
-  /**
-   * ⭐ **Load an authored thing by loading where it is placed.** A counter,
-   * a shelf, a fixture is minted by the place whose `props:` (or `cast:`,
-   * `warren:`, `container:`, `seatIn:`) names it — so the place is stood
-   * up and the thing is read back, never cloned on its own (that leaves
-   * the place to mint a second, and every later lookup of the path
-   * throws). A thing nothing places is `singleton`'d. `null` when it will
-   * not resolve.
-   */
-  public static loadPlaced<T extends Stuff = Stuff>(path: string): Promise<T | null> {
-    return logic().loadPlaced<T>(path);
   }
 
   /** {@link structureAt} over what is already standing — never loads. */

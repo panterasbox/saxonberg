@@ -27,7 +27,6 @@
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
@@ -138,8 +137,7 @@ export const brain = class {
     const carried = (hand.getContents() as Stuff[]).filter((c) => isOre(c));
     if (carried.length === 0) return;
 
-    // Loaded by its room — a shelf is its room's prop (`loadPlaced`).
-    const shelf = await NavigationApi.loadPlaced(shelfPath);
+    const shelf = await StuffApi.singleton(shelfPath);
     if (!shelf || !MixinApi.isConsignmentShelf(shelf) || !MixinApi.isContainable(shelf)) {
       return;
     }

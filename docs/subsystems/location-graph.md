@@ -524,13 +524,6 @@ computed where it is already scanned.
   `attachedNow` / `attachedWithinNow` are the synchronous forms — the
   last derivation, `[]` before the first — for the readers that cannot
   await (`Expanse.craft()`, the horizon).
-- **`NavigationApi.loadPlaced(path)`** loads an authored THING by loading
-  where it is placed — the same derivation keeps `thing → place`
-  (`props:` / `cast:` / `warren:`, then `container:`, then `seatIn:`).
-  ⚠ A counter or a shelf is its room's prop, and not a Singleton class,
-  so `StuffApi.singleton(counter)` on a cold world mints it containerless
-  and the room clones a SECOND when it loads — after which every lookup
-  of the path throws. Load the room; read the counter back.
 - **`NavigationApi.structureAt(path)`** stands up each attached structure
   and returns the innermost; `structureAtNow` reads the live ones.
 - **The load hook** is `LocationZone.addLocation`: a room joining its

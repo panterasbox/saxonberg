@@ -45,7 +45,6 @@
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
@@ -96,8 +95,7 @@ export const brain = class {
     const keeper = host as Keeper;
     const counterPath = ctx.config.counter;
     if (typeof counterPath !== 'string') return;
-    // Loaded by its room — a counter is its room's prop (`loadPlaced`).
-    const counter = await NavigationApi.loadPlaced(counterPath);
+    const counter = await StuffApi.singleton(counterPath);
     if (!(counter instanceof Stock) || !MixinApi.isContainable(counter)) return;
     const counterRoom = counter.getContainer();
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
