@@ -91,7 +91,9 @@ export default class AppointController extends CommandController<AppointModel> {
     const organization =
       asked.length === 0
         ? await this.houseIRun(context)
-        : StuffApi.findByTemplatePath(asked);
+        : // ⭐ A relation resolved at the act (the scan sweep): appointing
+          // into a named organization stands it up — nothing is booted.
+          await StuffApi.singleton(asked).catch(() => null);
     if (!organization || !MixinApi.isOrganization(organization)) {
       return this.fail(
         context,

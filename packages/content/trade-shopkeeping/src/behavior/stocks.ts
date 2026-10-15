@@ -95,7 +95,7 @@ export const brain = class {
     const keeper = host as Keeper;
     const counterPath = ctx.config.counter;
     if (typeof counterPath !== 'string') return;
-    const counter = StuffApi.findByTemplatePath(counterPath) ?? (await StuffApi.singletonOrClone(counterPath));
+    const counter = await StuffApi.singleton(counterPath);
     if (!(counter instanceof Stock) || !MixinApi.isContainable(counter)) return;
     const counterRoom = counter.getContainer();
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
@@ -275,7 +275,7 @@ async function walkRoute(
 
 /** The supplier's counter: the first Stock among the supplier Business's operating locations. */
 async function supplierCounterOf(supplierPath: string): Promise<Stock | null> {
-  const supplier = StuffApi.findByTemplatePath(supplierPath) ?? (await StuffApi.singletonOrClone(supplierPath).catch(() => null));
+  const supplier = await StuffApi.singleton(supplierPath).catch(() => null);
   if (!supplier || !MixinApi.isBusiness(supplier)) return null;
   for (const path of supplier.getOperatingLocations()) {
     const live = StuffApi.findByTemplatePath(path);

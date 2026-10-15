@@ -16,8 +16,7 @@ import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
 import { MqlApi } from '../../../../api/mql';
 import { PerceptionApi } from '../../../../api/perception';
 import { ContainmentApi } from '../../../../api/containment';
-import StructureCatalogue, { type StructureRow } from '../../StructureCatalogue';
-import { TemplatePaths } from '../../../../lib/paths';
+import { attachGraph } from '../../../../lib/location/__tests__/attachments-fixture';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /** The sea's origin — what the graph's points are measured from. */
@@ -54,17 +53,22 @@ function zoneAt(path: string, cells: Array<[number, number]>, cellSize = 3): Car
   return z;
 }
 
-/** The structure catalogue's rows, as the fixture authors them. */
-const rows: StructureRow[] = [];
+/**
+ * ⭐ What each zone NAMES as standing in it (maritime review, 2026-10-14 —
+ * no catalogue): a land zone, the structures under its path; the sea, the
+ * ones the fixture names on it.
+ */
+const standing: Structure[] = [];
+const onTheSea: Structure[] = [];
 
 function structureAt(path: string, extent: string, heightM: number, keywords: string[]): Structure {
-  rows.push({ path, name: keywords[0]!, extent, entrance: null, landmark: false, heightM, ship: false, expanse: null });
   const s = makeStuffAtPath(() => new Structure(), path);
   s.setExtent(extent);
   s.setHeightM(heightM);
   s.setKeywords(keywords);
   s.setShortDescription(keywords[0]!);
   live.set(path, s);
+  standing.push(s);
   return s;
 }
 
@@ -79,21 +83,24 @@ let avenue: CartesianZone;
 beforeEach(() => {
   StuffApi.clearAll();
   live.clear();
-  rows.length = 0;
-  // ⭐ The scope that answers *which building is this room in* and *what
-  // stands in this zone* — the horizon asks it, never the registry.
-  const cat = makeStuffAtPath(() => new StructureCatalogue(), TemplatePaths.structureCatalogue);
-  vi.spyOn(cat, 'peekStructureOf').mockImplementation((place: string) => {
-    let best: StructureRow | null = null;
-    for (const r of rows) {
-      const inside = place === r.extent || place.startsWith(`${r.extent}/`);
-      if (inside && (best === null || r.extent.length > best.extent.length)) best = r;
-    }
-    return best;
-  });
-  vi.spyOn(cat, 'peekStructuresWithin').mockImplementation((zone: string) =>
-    rows.filter((r) => r.extent === zone || r.extent.startsWith(`${zone}/`)),
-  );
+  standing.length = 0;
+  onTheSea.length = 0;
+  // ⭐ What is attached to a place comes from the location graph's record
+  // (the scan sweep) — the horizon reads it, never a catalogue: a
+  // structure is attached at its own extent.
+  const covers = (s: Structure, path: string): boolean =>
+    path === s.getExtent() || path.startsWith(`${s.getExtent()}/`);
+  // A fake registry whose table is DERIVED from the fixtures each read.
+  const graph = attachGraph({});
+  live.set('/platform/idea/LocationGraphRegistry', graph as unknown as Stuff);
+  vi.spyOn(graph, 'attachedWithinNow').mockImplementation(((z: string) =>
+    standing
+      .filter((s) => s.getExtent() === z || s.getExtent().startsWith(`${z}/`))
+      .map((s) => s.getTemplatePath() ?? '')) as never);
+  vi.spyOn(graph, 'attachedNow').mockImplementation(((path: string, kind?: string) =>
+    kind === 'craft'
+      ? []
+      : [...standing, ...onTheSea].filter((s) => covers(s, path)).map((s) => s.getTemplatePath() ?? '')) as never);
   sky = true;
   vi.spyOn(BiomeApi, 'isSkyExposed').mockImplementation(() => sky);
   vi.spyOn(WeatherApi, 'peekSkyType').mockReturnValue('clear');
@@ -186,21 +193,33 @@ async function seaWithLanding(dest: string): Promise<TestExpanse> {
  * BUILDING (no deck — a light) stands at a node, and the sea finds it
  * there as a landmark — what its compile does.
  */
-function afloat(path: string, extent: string, heightM: number, at: GeoPosition, deck: number | null): Structure {
-  const sea = live.get('/t/sea') as unknown as { register(c: unknown): void; landmarks: unknown[] };
+async function afloat(path: string, extent: string, heightM: number, at: GeoPosition, deck: number | null): Promise<Structure> {
+  const sea = live.get('/t/sea') as TestExpanse;
   const name = [path.split('/').pop()!];
   if (deck === null) {
+    // A light stands at a NODE whose landing is in its extent; the sea
+    // names it, and sights it where the node is.
     const light = structureAt(path, extent, heightM, name);
-    sea.landmarks.push({ stuff: light, at });
+    onTheSea.push(light);
+    const node = makeStuffAtPath(() => new ExpanseNode(), `/t/sea/${name[0]}`);
+    node.setKind('passage');
+    node.setDestination(`${extent}/landing`);
+    node.setFocus({ rho: ORIGIN.distanceNm(at) * 1852, theta: ORIGIN.bearingTo(at) });
+    live.set(`/t/sea/${name[0]}`, node);
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue(
+      [...live.keys()].filter((p) => p.startsWith('/t/sea/')).map((p) => ({ path: p, data: {} })) as unknown as Template[],
+    );
+    sea.invalidate();
+    await sea.nodes();
     return light;
   }
-  rows.push({ path, name: name[0]!, extent, entrance: null, landmark: false, heightM, ship: true, expanse: '/t/sea' });
   const s = makeStuffAtPath(() => new Ship(), path);
   s.setExtent(extent);
   s.setHeightM(heightM);
   s.setKeywords(name);
   s.setShortDescription(name[0]!);
   live.set(path, s);
+  standing.push(s);
   s.setExpanse('/t/sea');
   s.setExpansePosition(at);
   s.setDeckHeightM(deck);
@@ -214,7 +233,7 @@ describe('a height ashore that names a sea (R11)', () => {
     const head = zoneAt('/t/head', [[0, 0]], 20);
     head.setHorizon(['/t/sea']);
     // 18 nm out: a 30 m light needs an eye of ~9 m to raise it.
-    afloat('/t/rock/structure', '/t/rock', 30, new GeoPosition(42, -8.4).destination(45, 18), null);
+    await afloat('/t/rock/structure', '/t/rock', 30, new GeoPosition(42, -8.4).destination(45, 18), null);
     head.setElevation(2);
     expect(names(PerceptionApi.horizonFor(viewerIn('/t/head/room-0')))).toEqual([]);
     head.setElevation(45);
@@ -228,8 +247,8 @@ describe('the horizon afloat', () => {
   it('⭐ from the viewer\'s eye over the resident craft on her sea — and fog cuts it to a tenth', async () => {
     await seaWithLanding('/t/elsewhere/landing');
     zoneAt('/t/ship', [[0, 0]]);
-    const ship = afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
-    const brig = afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
+    const ship = await afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
+    const brig = await afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
     void ship;
     let type: string | null = 'clear';
     vi.spyOn(WeatherApi, 'peekSkyType').mockImplementation(() => type as never);
@@ -248,8 +267,8 @@ describe('the horizon afloat', () => {
   it('below decks there is no horizon', async () => {
     await seaWithLanding('/t/elsewhere/landing');
     zoneAt('/t/ship', [[0, 0]]);
-    afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
-    afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
+    await afloat('/t/ship/structure', '/t/ship', 18, new GeoPosition(42, -8), 3);
+    await afloat('/t/brig/structure', '/t/brig', 18, new GeoPosition(42, -8).destination(90, 3), 3);
     sky = false;
     const view = PerceptionApi.horizonFor(viewerIn('/t/ship/room-0'));
     expect(view.atSea).toBe(true);

@@ -150,7 +150,7 @@ describe('the publishing entitlement', () => {
     expect(org.allowsPublishingBy(director)).toBe(false);
   });
 
-  it('reuses the one exit-handling path: an exit is never resurrected', () => {
+  it('reuses the one exit-handling path: an exit is never resurrected', async () => {
     const org = makePressOffice();
     // An authored roster entry, the source that survives a cold start...
     const director = makeAvatar('director');
@@ -164,8 +164,8 @@ describe('the publishing entitlement', () => {
     expect(org.allowsPublishingBy(director)).toBe(true);
 
     // ...which an explicit exit suppresses rather than being resurrected by.
-    org.appoint(director as unknown as Stuff, DIRECTOR);
-    (director as unknown as Stuff & Employed).quitJob(PRESS);
+    await org.appoint(director as unknown as Stuff, DIRECTOR);
+    await (director as unknown as Stuff & Employed).quitJob(PRESS);
     expect(org.allowsPublishingBy(director)).toBe(false);
     expect(org.holdersOf(DIRECTOR)).toEqual([]);
   });

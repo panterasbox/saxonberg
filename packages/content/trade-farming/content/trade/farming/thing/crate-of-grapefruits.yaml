@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:grapefruit
   shortDescription: crate of grapefruits
-  keywords: [grapefruits, crate, grapefruit, produce]
+  keywords: [grapefruits, crate, grapefruit, produce, "crate of grapefruits"]
   register: indefinite
   longDescription: A slatted wooden crate of grapefruits, the grower's stencil on the side.
-  censusKey: produce:grapefruit
-  regionTarget: 4
   materialTags: [produce, grapefruit]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/grapefruit, count: 6 }

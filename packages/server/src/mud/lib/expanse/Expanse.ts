@@ -45,12 +45,12 @@
  * its own water.
  */
 
+import { NavigationApi } from '../../api/navigation';
 import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { Template } from '../stuff/Template';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
-import { TemplatePaths } from '../paths';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -166,12 +166,6 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /** The compiled rows once loaded, for the synchronous reads. */
   private loadedBands: Band[] = [];
   private loadedNodes: ExpanseNode[] = [];
-  /**
-   * The buildings standing at this sea's nodes — a light on a rock —
-   * each where its node is (maritime review: a building on a rock has no
-   * position of its own; it is where its rock is).
-   */
-  private landmarks: { stuff: Structure; at: GeoPosition }[] = [];
 
   public getOrigin(): GeoPosition | null {
     return this.origin === null ? null : new GeoPosition(this.origin);
@@ -356,9 +350,50 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     this.craftSet.delete(craft);
   }
 
-  /** The craft currently on this expanse. */
+  /**
+   * The craft on this expanse: those registered (under way, launched) and
+   * the ships attached to this sea that are standing — at anchor or not.
+   * A ship is attached by its own `expanse:` (the location graph's
+   * record), so the sea names nothing.
+   */
   public craft(): (Stuff & Positioned)[] {
-    return [...this.craftSet].filter((c) => !c.isDestroyed());
+    const out = new Set([...this.craftSet].filter((c) => !c.isDestroyed()));
+    const self = this.getTemplatePath();
+    if (!self) return [...out];
+    for (const p of NavigationApi.attachedNow(self, 'craft')) {
+      const s = StuffApi.findByTemplatePath<Stuff>(p);
+      if (s && !s.isDestroyed() && MixinApi.isPositioned(s) && s.getExpanse() === self) {
+        out.add(s);
+      }
+    }
+    return [...out];
+  }
+
+  /**
+   * The buildings this sea names that stand at one of its nodes — a light
+   * on a rock — each where its node is (a building on a rock has no
+   * position of its own; it is where its rock is).
+   */
+  private landmarks(): { stuff: Structure; at: GeoPosition }[] {
+    const out: { stuff: Structure; at: GeoPosition }[] = [];
+    const seen = new Set<Structure>();
+    for (const node of this.loadedNodes) {
+      const dest = node.getDestination();
+      const at = node.getExpansePosition();
+      if (!dest || at === null) continue;
+      // The structures attached at the node's landing (a light on its
+      // rock), standing now.
+      for (const p of NavigationApi.attachedNow(dest, 'structure')) {
+        // Structural, not `instanceof`: a value import of `Structure` here
+        // would close a module cycle (it is a type import for that reason).
+        const s = StuffApi.findByTemplatePath<Stuff & Partial<Structure>>(p) as Structure | undefined;
+        if (!s || typeof s.hasMember !== 'function' || seen.has(s) || s.isDestroyed()) continue;
+        if (MixinApi.isPositioned(s) || !s.hasMember(dest)) continue;
+        seen.add(s);
+        out.push({ stuff: s, at });
+      }
+    }
+    return out;
   }
 
   /**
@@ -370,7 +405,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    */
   public sightables(): Sighted[] {
     if (this.compiled === null) void this.compile().catch(() => undefined);
-    const out: Sighted[] = this.landmarks.map(({ stuff, at }) => ({
+    const out: Sighted[] = this.landmarks().map(({ stuff, at }) => ({
       craft: stuff,
       at,
       heightM: stuff.getHeightM(),
@@ -533,56 +568,6 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
 
   /* ───────────────────────── internals ───────────────────────── */
 
-  /**
-   * ⭐ The Structures sited on this sea, stood up from their rows: one
-   * with a DECK is a ship and is registered as craft from the start (so a
-   * ship that has never sailed is still alongside its landing); one with
-   * no deck is a building — a light on a rock — and is a LANDMARK, sighted
-   * but never sailing.
-   */
-  private async loadStructures(): Promise<void> {
-    const self = this.getTemplatePath() ?? '';
-    const landmarks: { stuff: Structure; at: GeoPosition }[] = [];
-    // ⭐ The structure catalogue, by key — never a full-table query
-    // (maritime review, 2026-10-13). Reading it here also warms it at
-    // boot, which the horizon then reads synchronously.
-    const cat = (await StuffApi.singleton<Stuff>(TemplatePaths.structureCatalogue).catch(() => null)) as
-      | (Stuff & {
-          structuresOn(p: string): Promise<readonly { path: string; ship: boolean }[]>;
-          structureOf(p: string): Promise<{ path: string; ship: boolean } | null>;
-        })
-      | null;
-    if (cat === null) return;
-    // Ships sited on this sea are craft from the start, so one that has
-    // never sailed is still alongside its landing.
-    for (const row of await cat.structuresOn(self)) {
-      if (!row.ship) continue;
-      try {
-        const s = await StuffApi.singleton<Stuff>(row.path);
-        if (MixinApi.isPositioned(s)) this.register(s);
-      } catch {
-        /* a broken row contributes nothing */
-      }
-    }
-    // A BUILDING standing at one of this sea's nodes (the light on Gannet
-    // Rock: the node lands in its extent) is a landmark, where its node is.
-    for (const node of this.loadedNodes) {
-      const dest = node.getDestination();
-      const at = node.getExpansePosition();
-      if (!dest || at === null) continue;
-      const row = await cat.structureOf(dest);
-      if (row === null || row.ship || landmarks.some((l) => l.stuff.getTemplatePath() === row.path)) continue;
-      try {
-        landmarks.push({ stuff: await StuffApi.singleton<Structure>(row.path), at });
-      } catch {
-        /* a broken row contributes nothing */
-      }
-    }
-    this.landmarks = landmarks;
-  }
-
-
-
   private compile(): Promise<{ nodes: ExpanseNode[]; bands: Band[] }> {
     if (this.compiled === null) {
       const run = this.load();
@@ -623,7 +608,18 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     }
     this.loadedBands = bands;
     this.loadedNodes = nodes;
-    await this.loadStructures();
+    // ⭐ What belongs with the sea stands up with its chart: the ships
+    // attached to it (their own `expanse:`) and the structures at its
+    // landings (a light on a rock) — kicked, never awaited, since a ship
+    // standing up reaches back for this sea.
+    const kick = (paths: readonly string[]): void => {
+      for (const p of paths) void StuffApi.singleton<Stuff>(p).catch(() => null);
+    };
+    void NavigationApi.attachedTo(base, 'craft').then(kick).catch(() => undefined);
+    for (const n of nodes) {
+      const dest = n.getDestination();
+      if (dest) void NavigationApi.attachedTo(dest, 'structure').then(kick).catch(() => undefined);
+    }
     return { nodes, bands };
   }
 }

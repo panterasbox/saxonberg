@@ -2414,7 +2414,7 @@ export class MixinApi {
             `(an IDENTITY ref with persistent: true is the normal case)`
         );
       }
-      if (entry.ref === 'identity' && entry.lifetime) {
+      if (entry.ref?.startsWith('identity') && entry.lifetime) {
         fail(
           field,
           `an identity ref takes no lifetime — it re-resolves from its ` +

@@ -118,7 +118,7 @@ export interface Organization {
    */
   employees(): readonly string[];
   /** The organization chain above this one, nearest parent first. */
-  organizationChain(): OrganizationStuff[];
+  organizationChain(): Promise<OrganizationStuff[]>;
   /** The live stock sheet against what `viewer` perceives. */
   stockSheetFor(viewer: Stuff): StockSheetLine[];
 
@@ -255,11 +255,13 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       proprietorPath: {
         persistent: true,
         authorable: true,
         authorPicker: 'Template',
+        ref: 'identity:relation',
       },
       positions: { persistent: true, authorable: true },
       rosterSlots: { persistent: true, authorable: true },
@@ -809,7 +811,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     }
 
     /** The organization chain above this one, nearest parent first. */
-    public organizationChain(): OrganizationStuff[] {
+    public organizationChain(): Promise<OrganizationStuff[]> {
       return employmentLogic().organizationChainOf(
         this as unknown as OrganizationStuff,
       );

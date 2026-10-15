@@ -50,7 +50,6 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   RegistrarMixin,
@@ -87,9 +86,6 @@ export const FISHERY_KIND = 'fishery';
 /** The branch the register's documents are owned by: the water system. */
 export const FISHERY_OWNER = '/system/water';
 
-/** The class every species row is found by (the catalogue's own pattern). */
-const SPECIES_CLASS = '/platform/idea/species/Species';
-
 /** The singleton's own template path — its row ships with this pack. */
 export const FISHERY_REGISTRY_PATH = '/system/water/idea/FisheryRegistry';
 
@@ -97,8 +93,6 @@ export const FISHERY_REGISTRY_PATH = '/system/water/idea/FisheryRegistry';
 const DEFAULT_READ_DISCIPLINE = '/trade/fishing/idea/Discipline/fishing';
 
 const SECONDS_PER_DAY = 86_400;
-/** The species roster is re-read once a weather segment (six game hours). */
-const SPECIES_SEGMENT_S = 6 * 3600;
 
 /** The record — only what cannot derive. */
 export interface FisheryRecord {
@@ -190,28 +184,32 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     const record = await this.read(reachRef);
     const drawn = record === null ? {} : recovered(record, nowS).drawn;
 
+    // ⭐ A reach holds the species it NAMES (the scan sweep, 2026-10-14) —
+    // each loaded at this read, a relation resolved at the act — never a
+    // class scan of every species row. With no authored capacity the
+    // number derives from habitat fit, exactly as before.
     const species: SpeciesStanding[] = [];
-    for (const sp of await this.species()) {
-      const habitat = sp.getHabitat();
-      if (habitat === null) continue;
-      const path = sp.getTemplatePath() ?? '';
+    for (const stock of reach.stocks) {
+      const sp = await speciesAt(stock.species);
+      const habitat = sp?.getHabitat() ?? null;
+      if (!sp || habitat === null) continue;
+      const path = stock.species;
       const { fit, limiting } = sp.fitIn(water, season);
-      const stock = reach.stocks.find((s) => s.species === path);
-      const capacity =
-        stock !== undefined
-          ? stock.capacity
-          : Math.round(fit * habitat.abundance * lengthKm);
+      const authored = stock.capacity !== undefined;
+      const capacity = authored
+        ? stock.capacity!
+        : Math.round(fit * habitat.abundance * lengthKm);
       const level = Math.max(0, capacity - Math.round(drawn[path] ?? 0));
-      const full = stock !== undefined ? stock.capacity : Math.max(1, Math.round(habitat.abundance * lengthKm));
+      const full = authored ? stock.capacity! : Math.max(1, Math.round(habitat.abundance * lengthKm));
       species.push({
         speciesPath: path,
         name: sp.getCommonNames()[0] ?? nameOf(path),
         capacity,
         full,
         level,
-        fit: stock !== undefined ? 1 : fit,
-        limiting: stock !== undefined ? null : limiting,
-        stocked: stock !== undefined,
+        fit: authored ? 1 : fit,
+        limiting: authored ? null : limiting,
+        stocked: authored,
         role: habitat.role,
         fightRating: habitat.fightRating,
         ...(habitat.feedsAt !== undefined ? { feedsAt: habitat.feedsAt } : {}),
@@ -254,11 +252,12 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     const lengthKm = dial('water.fishery.reachLengthKm', 1);
     const record = await this.read(ref);
     const drawn = record === null ? {} : recovered(record, nowS).drawn;
+    // ⭐ The sea holds what it and its bands NAME (the scan sweep).
     const species: SpeciesStanding[] = [];
-    for (const sp of await this.species()) {
-      const habitat = sp.getHabitat();
-      if (habitat === null) continue;
-      const path = sp.getTemplatePath() ?? '';
+    for (const path of Object.keys(placed)) {
+      const sp = await speciesAt(path);
+      const habitat = sp?.getHabitat() ?? null;
+      if (!sp || habitat === null) continue;
       const { fit, limiting } = sp.fitIn(water, season);
       const abundance = placed[path];
       const stocked = abundance !== undefined;
@@ -459,39 +458,24 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     return (await StuffApi.singleton<Stuff>(WATERCOURSE_CATALOGUE_PATH)) as unknown as Catalogue;
   }
 
-  /**
-   * Every species row, resolved live. Found by CLASS, the catalogue's
-   * own pattern; a species with no `habitat` is skipped by the read.
-   *
-   * ⭐ Memoised per six-game-hour segment — the watercourse catalogue's
-   * flow and ice rule (maritime review, 2026-10-13: this re-read every
-   * species row, plus every `extends` row, on each angler's minute). A
-   * species row installed later still shows up, within a segment.
-   */
-  private async species(): Promise<Species[]> {
-    const segment = Math.floor(WorldClockApi.getNow().rawValue() / SPECIES_SEGMENT_S);
-    if (this.speciesMemo === null || this.speciesMemo.segment !== segment) {
-      this.speciesMemo = { segment, list: this.readSpecies() };
-    }
-    return this.speciesMemo.list;
-  }
 
-  /** The per-segment species read — see {@link species}. Transient. */
-  private speciesMemo: { segment: number; list: Promise<Species[]> } | null = null;
-
-  private async readSpecies(): Promise<Species[]> {
-    const out: Species[] = [];
-    for (const tpl of await Template.findByClass(SPECIES_CLASS)) {
-      const habitat = (tpl.data as { habitat?: unknown } | undefined)?.habitat;
-      if (habitat === undefined || habitat === null) continue;
-      const sp = await StuffApi.singleton<Species>(tpl.path);
-      if (sp) out.push(sp);
-    }
-    return out;
-  }
 }
 
 /* ───────────────────────── module-private ───────────────────────── */
+
+/** A species row a water names, stood up at the read; `null` if it will not stand. */
+async function speciesAt(path: string): Promise<Species | null> {
+  try {
+    const sp = await StuffApi.singleton<Stuff>(path);
+    // Structural: `Species` is a type import here (the pack reads the
+    // kernel class through its surface), and a habitat is what we need.
+    return typeof (sp as Partial<Species>).getHabitat === 'function'
+      ? (sp as unknown as Species)
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 /** `/system/water/fisheries/<course>/<node>`, or `null` for a malformed citation. */
 /** `"<expanse>@<lat>,<lon>"` → its parts, or `null`. */

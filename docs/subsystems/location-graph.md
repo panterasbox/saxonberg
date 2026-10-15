@@ -492,6 +492,54 @@ building nobody authored.
 ⚠ No card. The inspection card is laid out by `StuffKind` and a map is
 not a Stuff; the renderer and its card are `map-slate`'s.
 
+## Attachments — what loads with a place
+
+⭐⭐ (the scan sweep, 2026-10-14, after review.) Loading a place loads
+what belongs with it — the house that operates it, the structure it is
+part of, the institution over its extent, the fixtures that seat in it —
+**and nobody writes that list down.** Every attachment is DERIVED here
+from a reference content already authors, pointing AT the place:
+
+| kind | derived from | anchored at |
+|---|---|---|
+| `house` | a business's `operatingLocations` | the operated room — a fixture's room when the entry is a counter (followed through `props:` / `cast:` / a room's `warren:`, then `container:`, then `seatIn:`) |
+| `structure` | a Structure row's `extent` | the extent |
+| `craft` | a Ship row's `expanse` | the sea |
+| `institution` | a row's `parentExtent`; an agent's `institution` | the extent; the room that casts the agent |
+| `fixture` | a row's `seatIn` | the seat's place |
+
+⚠ Why derived and not authored: the build first had every room name its
+house in a `stands:` list, and review rejected it — it was the REVERSE
+copy of `operatingLocations`, hand-maintained, on every location in the
+game, for the handful of rows that needed it. A reverse question answered
+by a second authored list is two copies of one fact. **The location
+graph is the index the doctrine allows** (it exists so a question about
+the world's shape need not scan content records), so the reverse is
+computed where it is already scanned.
+
+- **The read** is `NavigationApi.attachedTo(path, kind?)` — a map lookup
+  over the path and each of its ancestors (so a room inside a ship's
+  extent finds the ship). `attachedWithin(extent, kind?)` answers *what
+  is attached at or under* an extent (a horizon's towers).
+  `attachedNow` / `attachedWithinNow` are the synchronous forms — the
+  last derivation, `[]` before the first — for the readers that cannot
+  await (`Expanse.craft()`, the horizon).
+- **`NavigationApi.structureAt(path)`** stands up each attached structure
+  and returns the innermost; `structureAtNow` reads the live ones.
+- **The load hook** is `LocationZone.addLocation`: a room joining its
+  zone kicks a `singleton` of everything attached to it (never awaited —
+  a ship standing up reaches back for its sea). `lookOutFrom` stands up
+  the structures within the zones a place can see.
+- **Cost.** The derivation rides the graph's existing scan
+  (`rebuildImpl` reads every location row already) — one pass, no second
+  `Template` search (`lint:template-scans` holds the registry at its one
+  site). A content write (`projectRow` / `removeRow`) marks it dirty and
+  the next read re-derives; reads never do. A Structure class test is a
+  memo per class path.
+- ⛔ **Server-side only**, like the rest of the index: an attachment is
+  the world's shape, not a player's knowledge, and never reaches a
+  client.
+
 ## ⭐⭐⭐ Routing — one traversal, or none
 
 The index exists so somebody can plan over it, and this is that

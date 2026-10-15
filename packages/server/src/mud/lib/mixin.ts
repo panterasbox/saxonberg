@@ -136,16 +136,40 @@ export interface FieldMetaEntry {
    * **Axis 1** — what this field points at when it points at other
    * Stuff.
    *
-   * `identity` stores a templatePath ("what kind of thing"), is
-   * persistable, and re-resolves on read, so it cannot dangle.
-   * `instance` stores a live ref ("this particular object") and is
-   * never persistable, because `stuffId` does not survive a reboot.
+   * `instance` stores a live ref ("this particular object") and is never
+   * persistable, because `stuffId` does not survive a reboot.
+   *
+   * `identity:*` stores a templatePath, is persistable, and re-resolves
+   * on read, so it cannot dangle. ⭐⭐ Since the scan sweep (2026-10-14)
+   * an identity ref must say WHICH KIND it is, because the kind decides
+   * when the target loads — and loading by reference, never by search or
+   * boot, is the rule:
+   *
+   * - `identity:constituent` — what the holder is MADE OF (its material,
+   *   biome, species). Loaded WITH the holder: the applier awaits
+   *   `StuffApi.ensureConstituent` for every path before phase 1 sets
+   *   the field, on mint, go-live and restore, because questions about
+   *   the holder are answered synchronously. Must be `persistent`.
+   * - `identity:relation` — something the holder POINTS AT (a treasury,
+   *   an organization, its premises). Nothing loads at hydration; the act
+   *   that follows it resolves it then, with `StuffApi.singleton`.
+   * - `identity:kind` — a path to a row that is not a singleton (what a
+   *   harvest yields). Nothing loads; minting from it is an act.
+   * - `identity:provenance` — a historical claim (`sampledAt`). Never
+   *   resolved; the census does not require the row to exist.
+   *
+   * Bare `identity` is refused by `lint:field-meta`.
    *
    * The discriminator is **the holder's meaning, not a property of the
    * target** — "the room I am in" is an instance ref even though rooms
    * have unique paths. That is why it is declared and not inferred.
    */
-  ref?: 'identity' | 'instance';
+  ref?:
+    | 'instance'
+    | 'identity:constituent'
+    | 'identity:relation'
+    | 'identity:kind'
+    | 'identity:provenance';
   /**
    * **Axis 2** — what happens to the target when this holder destructs.
    * Instance refs only; an identity ref re-resolves and cannot dangle.

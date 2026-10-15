@@ -29,9 +29,6 @@ import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
 import { DialogueEffectRegistry } from "@saxonberg/server/mud/lib/npc/DialogueEffects";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 
 /** The provisioner half a book asks for capacity and the next free leaf. */
@@ -49,13 +46,12 @@ class TestHolder extends Idea {
 let sold: string[];
 
 /**
- * The rows behind the roster. The window is enumerated off the residence
- * system's roster now, and a book is ON that roster because its ROW
- * authors a `parentExtent` — so a synthetic book here declares one, the
- * same way a real subdivision does. That is still no code change: it is
- * content.
+ * ⭐ The books the agent FRONTS — his row names them (`books:`, the scan
+ * sweep), so a second subdivision is one more path on the list and no
+ * code. Every realtor in these suites fronts the books made below.
  */
 let rows: Array<Record<string, unknown>>;
+let named: string[];
 
 function installStore(): void {
   rows = [];
@@ -68,7 +64,8 @@ function installStore(): void {
     delete: vi.fn(async () => {}),
     isConnected: () => true,
   } as unknown as PersistenceManager);
-  makeStuffAtPath(() => new ResidenceCatalogue(), RESIDENCE_CATALOGUE_PATH);
+  named = [];
+  vi.spyOn(Realtor.prototype, "getBooks").mockImplementation(() => named);
 }
 
 function book(
@@ -86,6 +83,7 @@ function book(
     class: "/system/residence/idea/PlatBook",
     data: { parentExtent: parent },
   });
+  named.push(path);
   const b = makeStuffAtPath(() => new PlatBook(), path);
   b.setLabel(label);
   b.setParentExtent(parent);
@@ -94,6 +92,11 @@ function book(
   b.setLandUse("residential");
   b.setHolderPath(`${path}-holder`);
   return b;
+}
+
+/** An agent fronting the books made in this suite. */
+function agent(): Realtor {
+  return makeStuffAtPath(() => new Realtor(), "/world/fx/realty/agent");
 }
 
 function buyer(id = "iris"): Avatar {
@@ -155,11 +158,11 @@ afterEach(() => {
 });
 
 describe("the realty window", () => {
-  it("⭐ spans every book — a second subdivision needs NO code change here", async () => {
+  it("⭐ spans every book the agent names — a second subdivision is a row, no code", async () => {
     book("/world/fx/hinkley/plat-book", "Hinkley Hills", "/world/fx/hinkley", 500, "lot-4");
     book("/world/fx/newtown/plat-book", "Newtown", "/world/fx/newtown", 300, "lot-1");
 
-    const offers = await Realtor.offers();
+    const offers = await Realtor.offers(agent());
     expect(offers.map((o) => o.book)).toEqual(["Newtown", "Hinkley Hills"]);
     // Cheapest first — the only ordering an agent would use.
     expect(offers[0]!.priceMinor).toBe(300);
@@ -169,12 +172,12 @@ describe("the realty window", () => {
     book("/world/fx/hinkley/plat-book", "Hinkley Hills", "/world/fx/hinkley", 500, "lot-2");
     sold = ["/world/fx/hinkley/lots/lot-1"];
 
-    const offers = await Realtor.offers();
+    const offers = await Realtor.offers(agent());
     expect(offers.map((o) => o.leaf)).toEqual(["lot-2"]);
   });
 
   it("says so plainly when there is nothing on the books", async () => {
-    expect(await Realtor.offers()).toEqual([]);
+    expect(await Realtor.offers(agent())).toEqual([]);
   });
 });
 

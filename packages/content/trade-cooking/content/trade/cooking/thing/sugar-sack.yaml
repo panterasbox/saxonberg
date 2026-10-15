@@ -1,8 +1,9 @@
 # The floor sack of sugar — 10 kg at target in the pantry stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: pantry:sugar
   shortDescription: "sack of sugar"
-  keywords: [sugar, sack]
+  keywords: [sugar, sack, "sack of sugar"]
   register: indefinite
   longDescription: "A ten-kilo hessian sack of sugar, stencilled."
   category: sack
@@ -13,7 +14,4 @@ data:
   _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
-  censusKey: pantry:sugar
-  regionTarget: 6
   materialTags: ["food", "sugar"]
-  container: /world/terminus/goods-yards/pantry/thing/stock

@@ -273,7 +273,7 @@ export class BankingApi {
    * of every priced key's ask over its authored base, as a whole percentage
    * (one hundred is par). Journalism, never an oracle — the Gazette prints it.
    */
-  public static priceIndex(): PriceIndex {
+  public static priceIndex(): Promise<PriceIndex> {
     return logic().priceIndex();
   }
 

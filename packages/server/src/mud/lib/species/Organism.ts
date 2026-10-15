@@ -56,6 +56,12 @@ const SECONDS_PER_GAME_DAY = 86_400;
 
 export interface Organism {
   getSpecies(): Species | null;
+  /**
+   * The species row this body CITES — whether or not that row is
+   * resident (`getSpecies()` answers only for a resident one). A body
+   * citing a cold species is what the sentience gate fails closed on.
+   */
+  getSpeciesPath(): string | null;
   setSpecies(value: Species | null): void;
   getAge(): number;
   /** Back-date the birthday so this body is `value` game days old. */
@@ -144,7 +150,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The age line an old body shows on `look`. See {@link ageAugmenter}. */
     static markupAugmenters: MarkupAugmenter[] = [ageAugmenter];
     static fieldMeta: FieldMeta = {
-      _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
+      _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species', ref: 'identity:constituent' },
       bornAt: { persistent: true, authorable: true },
       diedAt: { persistent: true },
       lifecycleState: { persistent: true, runtimeState: true },
@@ -225,6 +231,10 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getSpecies(): Species | null {
       if (!this._speciesPath) return null;
       return StuffApi.findByTemplatePath<Species>(this._speciesPath) ?? null;
+    }
+
+    public getSpeciesPath(): string | null {
+      return this._speciesPath;
     }
 
     public setSpecies(value: Species | null): void {

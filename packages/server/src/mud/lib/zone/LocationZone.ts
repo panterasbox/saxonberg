@@ -20,6 +20,8 @@ import type Location from '../stuff/Location';
 import type { VetoResult } from '../errors';
 import type { MixinConstructor } from '../mixin';
 import type { SpatialZone } from './SpatialZone';
+import type { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
 
 export interface LocationZone {
   getLocations(): ReadonlySet<Location>;
@@ -45,6 +47,9 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      */
     protected locations: Set<Location> = new Set();
 
+    /** Horizon targets already stood up from here (runtime only). */
+    private sightedTargets: Set<string> | null = null;
+
     public getLocations(): ReadonlySet<Location> { return this.locations; }
 
     /**
@@ -55,6 +60,72 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
     public addLocation(location: Location): void {
       this.locations.add(location);
       location.setZone(this as unknown as SpatialZone);
+      this.standUpAttached(location);
+      this.lookOutFrom(location);
+    }
+
+    /**
+     * ⭐⭐ **What belongs with a room loads with the room** (the scan sweep,
+     * 2026-10-14): the house that operates it, the structure it is part
+     * of, the institution over its extent, the fixtures that seat in it —
+     * read off the location graph's record, where each is DERIVED from a
+     * reference the content already authors pointing at the place. Nothing
+     * is booted, nothing is searched, and nothing is written twice.
+     *
+     * Kicked, never awaited: `addLocation` is a registration, and a ship
+     * standing up reaches back for the sea it sails on. A caller that must
+     * have the house awaits it through the employment path.
+     */
+    private standUpAttached(location: Location): void {
+      const path = location.getIdentityPath() ?? location.getTemplatePath();
+      if (!path) return;
+      void import('../../api/navigation')
+        .then(({ NavigationApi }) => NavigationApi.attachedTo(path))
+        .then((paths) => {
+          for (const p of paths) {
+            void StuffApi.singleton<Stuff>(p).catch((err) =>
+              console.warn(`LocationZone: '${p}', attached to '${path}', did not stand up:`, err),
+            );
+          }
+        })
+        .catch(() => undefined);
+    }
+
+    /**
+     * ⭐ **What can be seen from a room loads with the room** (maritime
+     * review, 2026-10-14), as its props do: the zones and seas its
+     * `horizon` names are stood up — and with them the structures attached
+     * within them — when the first room looking out at them is. Nothing is
+     * loaded at boot and nothing is searched for.
+     *
+     * ⚠ It cannot cascade: a zone stood up only because somebody can SEE
+     * it has no room in it, so it never looks out itself. Kicked, not
+     * awaited — `addLocation` is a registration, and a horizon read made
+     * the instant a room appears sees whatever has stood up by then.
+     */
+    private lookOutFrom(location: Location): void {
+      // A zone's towers are the structures attached within it.
+      const standStructuresWithin = (zonePath: string): void => {
+        void import('../../api/navigation')
+          .then(({ NavigationApi }) => NavigationApi.attachedWithin(zonePath, 'structure'))
+          .then((paths) => {
+            for (const p of paths) void StuffApi.singleton<Stuff>(p).catch(() => null);
+          })
+          .catch(() => undefined);
+      };
+      const own = location.getHorizon();
+      const named = own ?? (this as unknown as SpatialZone).peekField<string[]>('horizon');
+      if (!Array.isArray(named)) return;
+      this.sightedTargets ??= new Set();
+      for (const target of named) {
+        if (this.sightedTargets.has(target)) continue;
+        this.sightedTargets.add(target);
+        standStructuresWithin(target);
+        void StuffApi.singleton<Stuff>(target).catch((err) => {
+          this.sightedTargets?.delete(target);
+          console.warn(`LocationZone: horizon target '${target}' did not stand up:`, err);
+        });
+      }
     }
 
     /** Remove a location from this zone. Clears the back-reference. */

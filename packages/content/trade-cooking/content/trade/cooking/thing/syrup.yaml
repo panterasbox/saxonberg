@@ -5,8 +5,9 @@
 # pantry hand like the sacks.
 class: /platform/thing/Bottle
 data:
+  censusKey: pantry:syrup
   shortDescription: "bottle of simple syrup"
-  keywords: [syrup, simple-syrup, bottle, simple]
+  keywords: [syrup, simple-syrup, bottle, simple, "bottle of simple syrup"]
   register: indefinite
   longDescription: "A half-litre bottle of clear sugar syrup, the cork sticky."
   category: syrup-bottle
@@ -16,7 +17,4 @@ data:
   interiorAmount: 0.5
   closure: liquidTight
   gradeBand: fair
-  censusKey: pantry:syrup
-  regionTarget: 6
   materialTags: ["food", "syrup"]
-  container: /world/terminus/goods-yards/pantry/thing/stock

@@ -355,50 +355,41 @@ reuse) → `refreshProvisioned`. The shell re-leases clean; a re-provision to
 that slot materializes at the **default** look. A live occupant is ejected to
 the floor corridor first (best-effort).
 
-## ⭐⭐ `ResidenceCatalogue` — the system's roster of itself
+## ⭐⭐ The PLACE names its institution (the scan sweep, 2026-10-14)
 
 Three places used to find this system's objects by walking every live
-object in the world and matching a **class name in a string** —
-`world:[class.OuterWarren]` (`OuterWarren.admitFor`, the log-back-in-
-where-you-logged-out seam), `world:[class.PlatBook]` (`title list` and
-the realty desk), and `world:[class.HoldingWarren]` (the `maintains`
-brain, once per property manager per cadence). Each was a kernel→pack
-dependency the type system cannot see, priced at the size of the realm.
+object in the world and matching a **class name in a string**
+(`OuterWarren.admitFor` — the log-back-in-where-you-logged-out seam;
+`title list` and the realty desk; the `maintains` brain). The world-scan
+build replaced those with a `ResidenceCatalogue` that found every row
+authoring `parentExtent` by a **scan of the template table** — and
+could still only answer for the institutions that were BOOTED. ⭐ The scan
+sweep retired the catalogue: every question is now asked of a reference
+somebody authored.
 
-`/system/residence/idea/ResidenceCatalogue` is the roster. Lazy,
-self-loading, never warmed — the `LaneCatalogue` shape, with `canEvict`
-and `canDestruct` vetoes and an `invalidateCache()` for HMR.
+- **An institution is attached to the extent it names.** A warren's or
+  a plat book's own `parentExtent` is the only authored fact; the location
+  graph's record reads it reversed
+  ([location-graph.md § Attachments](./location-graph.md)), so
+  `NavigationApi.attachedTo(key, 'institution')` answers for the key and
+  every ancestor of it — Duncan Hall's dorm warren and college, Seznick
+  House's building, Hinkley Hills' plat book and lot holder.
+  `OuterWarren.admitFor(key)` keeps the warrens whose parent extent
+  prefixes the key, innermost first; the `maintains` brain adds
+  `attachedWithin(extent)` for the holdings under its own.
+- **A desk names the books it fronts** (`DeedDesk.books`), and so does
+  an agent (`Realtor.books`, the terminus pack): `title list` / `title
+  buy` read the desk in the giver's room; Ricky's `realty-list` reads his
+  own row. Each book is stood up at the act.
+- **`title` (what you hold)** is asked of the title register
+  (`ParcelApi.extentsHeldBy`) and the book a lot belongs to of the zone
+  over it.
 
-**It derives from the shape of the ROW, not from a class.** An
-institution is any row that authors `data.parentExtent` — the parcel
-extent its holdings are subdivided out of, which is the one thing every
-institution has and nothing else in the content tree declares (four rows
-today, across three packs).
-
-⭐ **Why not by class:** institution classes **span packs**. `DormWarren`
-belongs to eternal-university and descends straight from the kernel's
-`OuterWarren` without touching this pack at all, so a roster that only
-knew its own classes would be wrong on the first campus — and a push at
-`onCreate` cannot be inherited from a base the pack does not own.
-
-⭐ **The second-instance test, which is what this placement was chosen
-against:** a new subdivision, dormitory or let building needs **zero
-code here**. It authors a row with a `parentExtent` and it is found.
-
-The memo holds ROW PATHS; every read resolves them with
-`StuffApi.findByTemplatePath` and drops what is not standing — exactly
-the population the world walk returned, since that saw live instances
-only. A read that finds nothing covering its key rebuilds once and
-retries, so a row authored at runtime is found.
-
-Reads: `institutions()` · `institutionsCovering(key)` (longest extent
-first, so a building inside a district answers before the district) ·
-`holdingsUnder(extent)` · `platBooks()`.
-
-⚠ **The kernel meets it over a path and a shape, never an import** — a
-`ResidenceCatalogueView` duck type in `OuterWarren.ts` and
-`TitleController.ts`, the `TravelNode` precedent. A realm with no
-residence pack installed simply has no institutions and sells no land.
+⭐ **The second-instance test still holds**: a new subdivision is a row
+naming its `parentExtent` — nothing else is written — and a second
+desk names its books — no code. ⚠ The kernel still meets the pack's
+classes by SHAPE (the `DeedDesk`/plat-book duck types in
+`TitleController.ts`), never by import.
 
 ⚠ Three test fixtures had to learn the roster exists, and every one of
 them failed **silently and empty** rather than loudly — which is the

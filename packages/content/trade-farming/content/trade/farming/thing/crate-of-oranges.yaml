@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:orange
   shortDescription: crate of oranges
-  keywords: [oranges, crate, orange, produce]
+  keywords: [oranges, crate, orange, produce, "crate of oranges"]
   register: indefinite
   longDescription: A slatted wooden crate of oranges, the grower's stencil on the side.
-  censusKey: produce:orange
-  regionTarget: 4
   materialTags: [produce, orange]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/orange, count: 8 }

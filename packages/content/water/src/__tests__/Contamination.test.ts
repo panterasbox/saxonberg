@@ -75,21 +75,24 @@ const WORLD = [
 
 /**
  * ⚠ The row store is module-scoped so a FIXTURE can add to it. A water
- * work is found by its `content` row naming a waterwork class — that is
- * how the catalogue finds the city's conduits without walking the world
- * — so a conduit built only in memory is, correctly, invisible to the
- * river. `work()` below is what makes a fixture a real one.
+ * work is found because a REACH NAMES it (`works:` on a node — the scan
+ * sweep) and its row says what it is, so a conduit built only in memory
+ * is, correctly, invisible to the river. `work()` below is what makes a
+ * fixture a real one: a row, and a name on the river.
  */
 let store: Array<{ _id: string; path: string } & Record<string, unknown>> = [];
 
 /** Give `path` a row, so the catalogue's roster can find what stands there. */
 function work(path: string, cls = '/system/water/thing/Conduit'): string {
   store.push({ _id: `w-${store.length + 1}`, path, class: cls, data: {} });
+  const course = store.find((r) => r.path === '/stuff/idea/Watercourse/kestrel');
+  const nodes = (course?.data as { nodes: Array<{ works?: string[] }> }).nodes;
+  nodes[0]!.works = [...(nodes[0]!.works ?? []), path];
   return path;
 }
 
 function installWorld(): void {
-  store = WORLD.map((r, i) => ({ _id: String(i + 1), ...r }));
+  store = WORLD.map((r, i) => ({ _id: String(i + 1), ...structuredClone(r) }));
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
@@ -99,6 +102,8 @@ function installWorld(): void {
         return store.filter((d) => re.test(d.path));
       }
       if (typeof q === 'string') return store.filter((d) => d.path === q);
+      const inList = (q as { $in?: string[] } | undefined)?.$in;
+      if (Array.isArray(inList)) return store.filter((d) => inList.includes(d.path));
       return store.slice();
     },
   );
@@ -192,6 +197,33 @@ describe('an outfall fouls its reach and everything below it', () => {
     const c = catalogue();
     expect((await c.contaminationAt('kestrel:mill', YEAR))!.level).toBeGreaterThan(0);
     expect((await c.contaminationAt('kestrel:town', YEAR))!.level).toBeGreaterThan(0);
+  });
+
+  it('⭐⭐ an outfall nobody has visited fouls the river FROM ITS ROW (the scan sweep)', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    installWorld();
+    // A row and a name on the river — and nothing standing. The outfall's
+    // room was never loaded, and the water below it is dirty anyway.
+    const path = work('/system/water/thing/Conduit/_unvisited');
+    const row = store.find((r) => r.path === path)!;
+    row.data = {
+      direction: 'disposal', reachRef: 'kestrel:mill', on: true,
+      capacityM3S: 5, dischargeLoadPerSecond: 4, dischargeKind: 'organic',
+    };
+    expect(StuffApi.findByTemplatePath(path)).toBeUndefined();
+    const c = catalogue();
+    expect((await c.contaminationAt('kestrel:headwaters', YEAR))!.level).toBe(0);
+    expect((await c.contaminationAt('kestrel:town', YEAR))!.level).toBeGreaterThan(0);
+  });
+
+  it('a work no reach names is not read at all', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    installWorld();
+    store.push({
+      _id: 'orphan', path: '/system/water/thing/Conduit/_orphan', class: '/system/water/thing/Conduit',
+      data: { direction: 'disposal', reachRef: 'kestrel:mill', on: true, dischargeLoadPerSecond: 4 },
+    });
+    expect((await catalogue().contaminationAt('kestrel:town', YEAR))!.level).toBe(0);
   });
 
   it('⭐ an outfall BELOW you does not foul you — the whole of "move your intake"', async () => {

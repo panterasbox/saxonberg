@@ -23,5 +23,3 @@ requires:
   # A hired clerk is staff; the showrunner may also play the CEO.
   title:
     - { extent: /corpo/veshko, holder: { group: veshko-committee } }
-boot:
-  - { template: /corpo/veshko, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }

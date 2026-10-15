@@ -61,6 +61,7 @@ describe("HelpController", () => {
       b.send = () => {};
       return b as never;
     });
+    vi.spyOn(HelpApi, "ready").mockResolvedValue();
     vi.spyOn(HelpApi, "index").mockReturnValue({
       entries: [],
       categories: [
@@ -107,7 +108,7 @@ describe("HelpController", () => {
     StuffApi.clearAll();
   });
 
-  function run(model: Partial<CommandModel>): { topic?: string; body: string } {
+  async function run(model: Partial<CommandModel>): Promise<{ topic?: string; body: string }> {
     const ctrl = makeStuff(() => new HelpController());
     const ctx = CommandApi.createCommandContext({
       commandGiver: {} as never,
@@ -118,66 +119,66 @@ describe("HelpController", () => {
       verb: "help",
       command: undefined as unknown as CommandDefinition,
     });
-    ctrl.execute(model as CommandModel, ctx as CommandContext);
+    await ctrl.execute(model as CommandModel, ctx as CommandContext);
     return { topic: topicName, body: (selfBody as Mml)?.toString() ?? "" };
   }
 
-  it("bare `help` renders the landing/index on shell.result", () => {
-    const out = run({});
+  it("bare `help` renders the landing/index on shell.result", async () => {
+    const out = await run({});
     expect(out.topic).toBe("shell.result");
     expect(out.body).toContain("Commands");
     expect(out.body).toContain("90"); // mixin count from the index
   });
 
-  it("fallthrough `help look` renders the command topic", () => {
-    const out = run({ topic: "look" });
+  it("fallthrough `help look` renders the command topic", async () => {
+    const out = await run({ topic: "look" });
     expect(out.body).toContain("LOOK: Look around");
   });
 
-  it("fallthrough `help bank_ledger` reaches the collection topic", () => {
+  it("fallthrough `help bank_ledger` reaches the collection topic", async () => {
     // Acceptance criterion 7's shape, at the controller. That it works
     // over a real socket is proved by driving, not here.
-    const out = run({ topic: "bank_ledger" });
+    const out = await run({ topic: "bank_ledger" });
     expect(out.body).toContain("Every movement of money, append-only.");
     expect(out.body).toContain("The nightly reset EMPTIES this collection.");
   });
 
-  it("a verb wins over a collection of the same name", () => {
+  it("a verb wins over a collection of the same name", async () => {
     // The fallthrough order is command → collection → api, because a
     // verb is what most people mean by a bare word.
-    const out = run({ topic: "look" });
+    const out = await run({ topic: "look" });
     expect(out.body).toContain("LOOK: Look around");
   });
 
-  it("`help verb bank_ledger` stays strict — it does NOT fall through", () => {
+  it("`help verb bank_ledger` stays strict — it does NOT fall through", async () => {
     // Asking for a VERB by that name should say the verb does not
     // exist, not wander off into the persistence layer.
-    const out = run({ subcommand: "verb", name: "bank_ledger" });
+    const out = await run({ subcommand: "verb", name: "bank_ledger" });
     expect(out.body).toContain("unknown command: bank_ledger");
     expect(out.body).not.toContain("append-only");
   });
 
-  it("legacy `help verb look` still resolves the command topic", () => {
-    const out = run({ subcommand: "verb", name: "look" });
+  it("legacy `help verb look` still resolves the command topic", async () => {
+    const out = await run({ subcommand: "verb", name: "look" });
     expect(out.body).toContain("LOOK: Look around");
   });
 
-  it("`help api ContainmentApi.move` renders a real signature + summary", () => {
-    const out = run({ subcommand: "api", target: "ContainmentApi.move" });
+  it("`help api ContainmentApi.move` renders a real signature + summary", async () => {
+    const out = await run({ subcommand: "api", target: "ContainmentApi.move" });
     expect(out.body).toContain("move(item: Stuff & Containable, to: Container): void");
     expect(out.body).toContain("Move an item into a container.");
     expect(out.body).not.toContain("not yet indexed");
   });
 
-  it("`help search` renders results grouped by kind", () => {
-    const out = run({ subcommand: "search", query: "channel" });
+  it("`help search` renders results grouped by kind", async () => {
+    const out = await run({ subcommand: "search", query: "channel" });
     expect(out.body).toContain("command:");
     expect(out.body).toContain("chat");
     expect(out.body).toContain("mixin:");
     expect(out.body).toContain("Forums");
   });
 
-  it("an unknown command emits a controller-rejected note", () => {
+  it("an unknown command emits a controller-rejected note", async () => {
     const ctrl = makeStuff(() => new HelpController());
     const notes: { kind: string }[] = [];
     const ctx = CommandApi.createCommandContext({
@@ -194,7 +195,7 @@ describe("HelpController", () => {
       notes.push(n as { kind: string });
       realNote(n);
     });
-    ctrl.execute({ topic: "nope" } as CommandModel, ctx as CommandContext);
+    await ctrl.execute({ topic: "nope" } as CommandModel, ctx as CommandContext);
     expect(notes.some((n) => n.kind === "controller-rejected")).toBe(true);
   });
 });

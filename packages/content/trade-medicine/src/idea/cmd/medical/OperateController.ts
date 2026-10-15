@@ -65,9 +65,11 @@ export default class OperateController extends CommandController<OperateModel> {
     if (!model.kit?.stuff) {
       return this.fail(context, "You need a surgeon's kit to operate.", 'no-kit');
     }
-    const catalogue = StuffApi.findByTemplatePath<OperationCatalogue>(
+    // ⭐ The operation dictionary warms on first use (the scan sweep): the
+    // singleton's own creation indexes the roster — nothing boots it.
+    const catalogue = await StuffApi.singleton<OperationCatalogue>(
       TemplatePaths.operationCatalogue,
-    );
+    ).catch(() => null);
     const ops = catalogue?.allOperations() ?? [];
     const body = target as Stuff & Vitals;
 

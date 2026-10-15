@@ -562,11 +562,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       interiorBulk: { persistent: true, authorable: true },
       surfaceBulk: { persistent: true, authorable: true },
-      interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       interiorPayload: { persistent: true, runtimeState: true },
       interiorAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
       interiorCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
-      surfaceMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      surfaceMaterial: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       surfacePayload: { persistent: true, runtimeState: true },
       surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
       surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },

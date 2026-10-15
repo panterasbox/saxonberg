@@ -85,7 +85,7 @@ describe('the employee roster memo', () => {
     const biz = seedBusiness();
     const mara = seedWorker(MARA);
     await biz.appoint(mara, 'bartender');
-    biz.dismiss(mara);
+    await biz.dismiss(mara);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
     expect([...EmploymentApi.employeesOf(BUSINESS)]).toEqual([MARA]);
     expect(biz.holdersOf('bartender')).toEqual([]);

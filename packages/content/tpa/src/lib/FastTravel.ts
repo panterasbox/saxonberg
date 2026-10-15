@@ -934,9 +934,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       }
       if (!path) return null;
       try {
-        const tpa =
-          StuffApi.findByTemplatePath(path) ??
-          (await StuffApi.singletonOrClone<Stuff>(path));
+        const tpa = await StuffApi.singleton<Stuff>(path);
         if (!tpa || !MixinApi.isBusiness(tpa)) return null;
         return await EmploymentApi.operatingAccountOf(tpa);
       } catch {

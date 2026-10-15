@@ -3,8 +3,9 @@
 # is what keeps a sparkling wine sparkling.
 class: /platform/thing/Bottle
 data:
+  censusKey: vessel:wine-bottle
   shortDescription: "wine bottle"
-  keywords: [bottle, wine, empty]
+  keywords: [bottle, wine, empty, "wine bottle"]
   register: indefinite
   longDescription: "A dark-green 750 mL bottle with a punted base, the neck ready for a cork."
   # The VESSEL KIND — the tie between this row and every product
@@ -14,11 +15,7 @@ data:
   interiorCapacity: 0.75
   closure: sealed
   open: true
-  # The vessel faucet (fermentation W4): empties stand at target in the
-  # winery's stock — an empty is never product, it counts under its
-  # vessel kind — and the cellars brain fills, corks and consigns them.
-  # The glass keeps arriving by sweep until a glassworks trade earns
-  # the demand test.
-  censusKey: vessel:wine-bottle
-  regionTarget: 10
-  container: /world/terminus/goods-yards/vintner/thing/stock
+  # The winery's stock names empties as a line (fermentation W4) — an
+  # empty is never product — and the cellars brain fills, corks and
+  # consigns them. The glass arrives from nothing until a glassworks
+  # supplies the line.

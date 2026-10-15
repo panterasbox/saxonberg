@@ -155,7 +155,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     static fieldMeta: FieldMeta = {
-      castTemplate: { persistent: true, authorable: true, ref: 'identity' },
+      castTemplate: { persistent: true, authorable: true, ref: 'identity:kind' },
       reusable: { persistent: true, authorable: true },
       wearPerCast: { persistent: true, authorable: true },
       discipline: { persistent: true, authorable: true },

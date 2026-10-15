@@ -32,12 +32,11 @@
  * ⭐ A ratchet at zero, not a census: all ten were swept in the commit
  * that added this gate (`check-drive-scripts` is the precedent).
  *
- * ⚠ **What this gate does NOT flag**, deliberately: a *memoized* sync
- * accessor beside an async ensure. `findByTemplatePath` is synchronous
- * and `singleton` is not, so a class that needs a sync read (a
- * `describeFor`, a render path) legitimately keeps both — those are two
- * functions serving two call shapes, not one lookup written twice. The
- * gate matches the sequential in-one-function form only.
+ * ⚠ **What this gate does NOT flag**, deliberately: a sync accessor
+ * beside an async ensure. `findByTemplatePath` is synchronous and
+ * `singleton` is not, so a class that needs a sync read (a `describeFor`,
+ * a render path) legitimately keeps both — two functions serving two
+ * call shapes, not one lookup written twice.
  *
  * Standalone script, not an ESLint rule, for the same reason as
  * `check-gate-strings` (ESLint 8 legacy config cannot load a local rule
@@ -59,27 +58,44 @@ export interface GetOrCreateFinding {
 }
 
 /**
- * The shape, and it is deliberately narrow: bind the resident lookup to
- * a local, return **that local and nothing else**, then `singleton` the
- * SAME path expression close behind.
- *
- * ⭐⭐ **Both back-references earn their place.** The path one keeps a
- * pre-check on a DIFFERENT path out (a different question entirely). The
- * variable one keeps the legitimate **memoized** shape out —
+ * The shape: a `findByTemplatePath(P)` and, close behind it and IN THE
+ * SAME SCOPE, a `singleton(P)` or `singletonOrClone(P)` on the same path
+ * expression — whatever joins them. That covers every form the tree
+ * has grown:
  *
  * ```ts
- * const found = StuffApi.findByTemplatePath<T>(P);
- * if (found) { catalogueRef = found; return found; }   // ← assigns first
+ * const r = StuffApi.findByTemplatePath(P); if (r) return r; return StuffApi.singleton(P);
+ * StuffApi.findByTemplatePath(P) ?? (await StuffApi.singleton(P).catch(() => null));
+ * let r = StuffApi.findByTemplatePath(P) ?? null; if (!r) { try { r = await StuffApi.singleton(P); } catch {} }
+ * const f = StuffApi.findByTemplatePath(P); if (f) { ref = f; return f; } … ref = await StuffApi.singleton(P);
  * ```
  *
- * — where the lookup is doing real cache-invalidation work (*the live
- * registered instance supersedes my cached one*) that `singleton` cannot
- * do on the caller's behalf. Eight of those exist in the kernel and none
- * is a defect. The antipattern is the form whose `if` body is exactly
- * `return <thatvar>;`, because then the branch adds nothing at all.
+ * ⚠⚠ The last was EXEMPT until the scan sweep's review (2026-10-15), as a
+ * "memoized ref whose lookup does cache-invalidation work". It does none
+ * `singleton` does not: `singleton` reads the same live index, so an
+ * HMR-replaced or test-reset instance supersedes any cached handle either
+ * way. The exemption is what let the `??` form grow fifteen new sites in
+ * one build, citing each other. A pre-check then `singletonOrClone` is the
+ * same thing too — together they behave exactly as `singleton` does.
+ *
+ * ⭐ **Not a finding:** a pre-check on a DIFFERENT path (a different
+ * question), and a SYNCHRONOUS accessor beside an async ensure — two
+ * functions, two call shapes. The window may not leave the scope the
+ * lookup is in (a `}` that closes it ends the match), which is what
+ * keeps the second out.
  */
 const SHAPE =
-  /const\s+(\w+)\s*=\s*[\s\S]{0,40}?findByTemplatePath<[^>]*>\(\s*([A-Za-z0-9_.$[\]'"/-]+)\s*\)\s*;?\s*if\s*\(\s*\1\s*\)\s*return\s+\1\s*;[\s\S]{0,240}?singleton<[^>]*>\(\s*\2\s*\)/g;
+  /findByTemplatePath(?:<[^>]*>)?\(\s*([A-Za-z0-9_.$[\]'"/-]+)\s*\)([\s\S]{0,400}?)singleton(?:OrClone)?(?:<[^>]*>)?\(\s*\1\s*[,)]/g;
+
+/** Does `between` leave the scope it started in (a `}` below depth 0)? */
+function leavesScope(between: string): boolean {
+  let depth = 0;
+  for (const ch of between) {
+    if (ch === "{") depth++;
+    else if (ch === "}" && --depth < 0) return true;
+  }
+  return false;
+}
 
 /** Source with `//` and block comments blanked, newlines preserved. */
 function stripComments(source: string): string {
@@ -95,10 +111,15 @@ export function scanGetOrCreate(source: string, file: string): GetOrCreateFindin
   SHAPE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = SHAPE.exec(code))) {
+    const between = m[2] ?? "";
+    if (/findByTemplatePath/.test(between) || leavesScope(between)) {
+      SHAPE.lastIndex = m.index + 1;
+      continue;
+    }
     out.push({
       file,
       line: code.slice(0, m.index).split("\n").length,
-      path: m[2] ?? "",
+      path: m[1] ?? "",
     });
   }
   return out;

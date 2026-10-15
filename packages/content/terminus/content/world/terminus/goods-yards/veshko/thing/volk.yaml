@@ -1,8 +1,9 @@
 # Volk — Veshko's own mark on Veshko's own vodka: the cheap, ubiquitous well-rail bottle. By VOLUME the shelf is mostly this. The zone's `stocks:` stands 24 in the yard.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:volk
   shortDescription: "bottle of Volk vodka"
-  keywords: [volk, vodka, bottle, spirit]
+  keywords: [volk, vodka, bottle, spirit, "bottle of volk vodka"]
   register: indefinite
   longDescription: "A grey-labelled bottle of Volk \u2014 the well-rail vodka, industrially perfect."
   category: spirit-bottle
@@ -13,7 +14,4 @@ data:
   closure: sealed
   gradeBand: fair
   _brandKey: volk
-  censusKey: spirit:volk
-  regionTarget: 12
   materialTags: ["spirit", "vodka"]
-  container: /world/terminus/goods-yards/veshko/thing/stock

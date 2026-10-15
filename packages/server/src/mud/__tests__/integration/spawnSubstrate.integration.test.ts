@@ -1,10 +1,9 @@
 /**
  * Spawn-substrate integration test — exercises the
- * `props:` / `container:` cascade end-to-end via lazy hydrate
- * from `StuffApi.singleton`. The fixture mirrors the requirements
- * doc's acceptance criteria: a singleton Container, a singleton
- * Containable declaring `data.container`, a non-singleton
- * Containable, and a parent Container declaring `props:`.
+ * `props:` cascade end-to-end via lazy hydrate from
+ * `StuffApi.singleton`: a singleton Container, a singleton
+ * Containable, a non-singleton Containable, and a parent Container
+ * declaring `props:`. (`container:` is runtime-only since 2026-10-15.)
  */
 
 import "../../../test-bootstrap";
@@ -86,8 +85,7 @@ class SpawnTreasury extends SingletonMixin(
   static fieldMeta: FieldMeta = {};
 }
 
-// Singleton Containable that declares `data.container` to land
-// itself in the treasury.
+// Singleton Containable (one sword in the world).
 class SpawnSword extends SingletonMixin(ContainableMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
@@ -147,7 +145,7 @@ describe('spawn substrate integration', () => {
       {
         path: '/test/sword',
         class: '/platform/idea/SpawnSword',
-        data: { container: '/test/treasury' },
+        data: {},
       },
       {
         path: '/test/potion',
@@ -162,24 +160,21 @@ describe('spawn substrate integration', () => {
     ]);
 
     const library = await StuffApi.singleton<SpawnLibrary>('/test/library');
-    const treasury = StuffApi.findByTemplatePath<SpawnTreasury>(
-      '/test/treasury'
-    )!;
     const sword = StuffApi.findByTemplatePath<SpawnSword>('/test/sword')!;
 
-    // Sword is a singleton with data.container; its applyContainer
-    // placed it in /test/treasury. Library's applyProps skipped
-    // it (already elsewhere).
-    expect(sword.getContainer()).toBe(treasury);
-    expect(library.hasContainable(sword as never)).toBe(false);
-    expect(treasury.hasContainable(sword as never)).toBe(true);
+    // Sword is a singleton: the library got-or-created THE sword and
+    // moved it in.
+    expect(sword.getContainer()).toBe(library);
 
     // Potion is non-singleton; library cloned a fresh one and moved
     // it in.
-    expect(library.getContents().length).toBe(1);
-    const potion = library.getContents()[0]!;
-    expect(potion).toBeInstanceOf(SpawnPotion);
+    expect(library.getContents().length).toBe(2);
+    const potion = library.getContents().find((c) => c instanceof SpawnPotion)!;
     expect(potion.getContainer()).toBe(library);
+
+    // ⭐ A singleton already placed elsewhere is left be.
+    const treasury = await StuffApi.singleton<SpawnTreasury>('/test/treasury');
+    expect(treasury.getContents().length).toBe(0);
   });
 
   // ⭐ The go-live case, and the one that matters. `restoreFromTemplate`
@@ -218,33 +213,5 @@ describe('spawn substrate integration', () => {
     // And the applier itself is inert on a second call, however reached.
     await library.applyProps(['/test/potion']);
     expect(library.getContents().length).toBe(1);
-  });
-
-  it('clone-from-template with data.container places the child via Layer 3 (hydration self-placement)', async () => {
-    installInMemoryStore([
-      {
-        path: TemplateApplier.templatePath,
-        class: '/platform/idea/TemplateApplier',
-        data: {},
-      },
-      {
-        path: '/test/treasury',
-        class: '/platform/idea/SpawnTreasury',
-        data: {},
-      },
-      {
-        path: '/test/sword',
-        class: '/platform/idea/SpawnSword',
-        data: { container: '/test/treasury' },
-      },
-    ]);
-
-    // Resolve sword fresh — its applyContainer should have placed
-    // it in the treasury during hydration.
-    const sword = await StuffApi.singleton<SpawnSword>('/test/sword');
-    const treasury = StuffApi.findByTemplatePath<SpawnTreasury>(
-      '/test/treasury'
-    )!;
-    expect(sword.getContainer()).toBe(treasury);
   });
 });

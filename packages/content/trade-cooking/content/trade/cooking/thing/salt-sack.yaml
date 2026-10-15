@@ -1,8 +1,9 @@
 # The floor sack of salt — 10 kg at target in the pantry stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: pantry:salt
   shortDescription: "sack of salt"
-  keywords: [salt, sack]
+  keywords: [salt, sack, "sack of salt"]
   register: indefinite
   longDescription: "A ten-kilo hessian sack of salt, stencilled."
   category: sack
@@ -13,7 +14,4 @@ data:
   _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
-  censusKey: pantry:salt
-  regionTarget: 6
   materialTags: ["food", "salt"]
-  container: /world/terminus/goods-yards/pantry/thing/stock

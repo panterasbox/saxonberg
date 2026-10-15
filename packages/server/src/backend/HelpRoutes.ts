@@ -49,11 +49,13 @@ export class HelpRoutes {
   public static setup(app: Express): void {
     const requireAuth = AuthMiddleware.requireAuthApi;
 
-    app.get("/api/help/index", requireAuth, (_req, res) => {
+    app.get("/api/help/index", requireAuth, async (_req, res) => {
+      await HelpApi.ready();
       res.json(HelpApi.index());
     });
 
-    app.get("/api/help/kind", requireAuth, (req, res) => {
+    app.get("/api/help/kind", requireAuth, async (req, res) => {
+      await HelpApi.ready();
       const kind = String(req.query.kind ?? "");
       if (!HELP_KINDS.has(kind)) {
         sendError(res, 400, "invalid", `unknown kind: ${kind || "(missing)"}`);
@@ -62,7 +64,8 @@ export class HelpRoutes {
       res.json(HelpApi.listKind(kind as HelpKind));
     });
 
-    app.get("/api/help/topic", requireAuth, (req, res) => {
+    app.get("/api/help/topic", requireAuth, async (req, res) => {
+      await HelpApi.ready();
       const id = String(req.query.id ?? "").trim();
       if (id.length === 0) {
         sendError(res, 400, "invalid", "missing topic id");
@@ -76,7 +79,8 @@ export class HelpRoutes {
       res.json({ topic });
     });
 
-    app.get("/api/help/search", requireAuth, (req, res) => {
+    app.get("/api/help/search", requireAuth, async (req, res) => {
+      await HelpApi.ready();
       const q = String(req.query.q ?? "").trim();
       if (q.length === 0) {
         sendError(res, 400, "invalid", "missing query");

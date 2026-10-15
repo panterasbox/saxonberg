@@ -46,9 +46,8 @@ import { Currency } from "@saxonberg/server/mud/lib/banking/Currency";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
+import type PlatBook from "@saxonberg/content-residence/src/idea/PlatBook";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 /** One unsold lot, as the office describes it. */
 interface Offer {
@@ -64,6 +63,25 @@ const TOPIC = "civics.title";
 
 export default class Realtor extends CastMixin(StagedMixin(NPC)) {
   /**
+   * ⭐ The plat books this agent fronts (the scan sweep, 2026-10-14) — a
+   * realtor sells the subdivisions his row names, each stood up when
+   * somebody asks. A second realtor is a row naming other books.
+   */
+  static fieldMeta: FieldMeta = {
+    books: { persistent: true, authorable: true, ref: "identity:relation" },
+  };
+
+  protected books: string[] = [];
+
+  public getBooks(): readonly string[] {
+    return this.books;
+  }
+
+  public setBooks(value: readonly string[] | null): void {
+    this.books = Array.isArray(value) ? value.map((p) => String(p)) : [];
+  }
+
+  /**
    * Register the two effects once the NPC is live — the
    * `BankCounter.onCreate` shape. A live fixture in the world is
    * what makes a domain effect real; there is no module-scope
@@ -75,17 +93,20 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
     DialogueEffectRegistry.register("realty-buy", Realtor.BUY_EFFECT);
   }
 
-  /** Every unsold lot in every live plat book, cheapest first. */
   /**
-   * @internal the realtor’s live offer list — read by this module and its tests.
+   * Every unsold lot in the books `realtor` fronts, cheapest first.
+   * @internal the realtor’s offer list — read by this module and its tests.
    */
-  static async offers(): Promise<Offer[]> {
-    // The residence system's own roster — the same read `title list`
-    // does, and the reason a new subdivision needs no code here.
-    const catalogue = await StuffApi.singleton<ResidenceCatalogue>(
-      RESIDENCE_CATALOGUE_PATH,
-    );
-    const books = await catalogue.platBooks();
+  static async offers(realtor: Stuff): Promise<Offer[]> {
+    const named =
+      realtor instanceof Realtor ? realtor.getBooks() : ([] as readonly string[]);
+    const books: PlatBook[] = [];
+    for (const path of named) {
+      const book = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (book && typeof (book as unknown as Partial<PlatBook>).lotExtents === "function") {
+        books.push(book as unknown as PlatBook);
+      }
+    }
 
     const out: Offer[] = [];
     for (const book of books) {
@@ -115,7 +136,7 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
   /** `realty-list` — the cross-book listing, messaged to the buyer. */
   static LIST_EFFECT: DialogueEffectHandler = {
     async apply({ npc, player }) {
-      const offers = await Realtor.offers();
+      const offers = await Realtor.offers(npc);
       if (offers.length === 0) {
         MessageApi.scene(npc)
           .topic(TOPIC)
@@ -152,7 +173,7 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
       const interactive = MixinApi.isHasInteractive(player)
         ? [...player.getInteractives()][0]
         : undefined;
-      const offers = await Realtor.offers();
+      const offers = await Realtor.offers(npc);
       if (offers.length === 0) {
         MessageApi.scene(npc)
           .topic(TOPIC)

@@ -15,10 +15,7 @@ requires:
   # premises, if any, sit in the world under a locality's committee.
   title:
     - { extent: /trade/dyeing, holder: { organization: /compact/trade } }
-boot:
-  # ⭐ Reference Ideas are INERT AT BOOT unless something warms them —
-  # a rule that has bitten three times. The dyestuff roster is read
-  # synchronously by `dye`, so it is stood up eagerly here.
-  - { template: /trade/dyeing/idea/dyestuff-catalogue, role: sync-read, reason: "the dyestuff roster DyeController resolves synchronously (self-warming — no Api.boot)" }
+  # ⭐ The dyestuff roster warms on first use (the scan sweep): `dye`
+  # stands the catalogue up before it matches a bath — nothing boots it.
   # The dyehouse's own boot entries moved to `terminus` with the rows
   # (economic bootstrap D6): a trade is placeless; its floor is the city's.

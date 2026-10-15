@@ -6,12 +6,13 @@
 # bitters. The bar cannot serve its menu without dealing with the little
 # place across town, however much cheaper the corpo's rail is.
 #
-# `container:` is Crowsfoot's Stock — the ONLY faucet. Its hand carries
-# the case to the cash-and-carry and consigns it AS Crowsfoot.
+# Crowsfoot's Stock names it as a line and makes it up to par;
+# its hand carries the case to the cash-and-carry and consigns it AS Crowsfoot.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:bitter-liqueur
   shortDescription: bottle of bitter liqueur
-  keywords: [amaro, bottle, liqueur, bitter, spirit]
+  keywords: [amaro, bottle, liqueur, bitter, spirit, "bottle of bitter liqueur"]
   register: indefinite
   longDescription: A dark bottle of bitter liqueur with a florid old label.
   category: spirit-bottle
@@ -20,7 +21,4 @@ data:
   interiorMaterial: /trade/distilling/idea/material/bitter-liqueur
   interiorAmount: 0.75
   gradeBand: fair
-  censusKey: spirit:bitter-liqueur
-  regionTarget: 12
   materialTags: [spirit, liqueur, bitter-liqueur]
-  container: /world/terminus/goods-yards/crowsfoot/thing/stock

@@ -290,6 +290,31 @@ query (the owners on the pair list). Every pair is resolved by
 `lint:gates` — including that the class really declares a method of that
 name, because a mistyped method denies forever while looking correct.
 
+## Searching (or Booting) for What a Reference Should Name
+
+⭐⭐ The house rule (the scan sweep, 2026-10-14): **content loads when a
+player's act forces it, by following AUTHORED references from what is
+already loaded — never by searching the template table, and never at boot
+unless the reason is written down.** A search or a boot entry is what a
+reference pointing the WRONG WAY forces.
+
+| Don't | Do |
+|---|---|
+| `Template.findDescendants('/')` → "which business operates this room?" | the house's own `operatingLocations`, read REVERSED by the location graph: `NavigationApi.attachedTo(room, 'house')`; `ensureOperatorAt` follows the place |
+| a `boot:` entry so a sync read can find a house, an org, a book | let the place load it — the location graph attaches it from the reference the house/book already authors ([location-graph.md § Attachments](./subsystems/location-graph.md)); an organization is a **relation** — `await StuffApi.singleton(path)` at the act |
+| a hand-authored reverse list on the place (`stands:`, `structures:`) so loading it loads its dependents | nothing — the forward reference already exists; derive the reverse in the location graph's record (retired in review, 2026-10-14: a second copy of one fact, on every location, for a handful of rows) |
+| a `boot:` entry so a species / material / biome is resident | declare the citing field `ref: 'identity:constituent'` — the applier loads it with its holder |
+| `Template.findByClass(Species)` to find "what lives in this reach" | the reach names its species (`stocks:`), each loaded at the read |
+| a pack catalogue that scans `findWhereDataHas('parentExtent')` | `NavigationApi.attachedTo(key, 'institution')` — the graph's record anchors each `parentExtent` at its extent and reads the key's ancestry |
+| a dictionary warmed at boot for a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it |
+
+⚠ **What legitimately stays booted:** the engine's wardens and
+registries; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
+before the read (the *reader rule* — say so in the entry's reason); and
+the houses whose NPCs act while nobody is present
+(→ `unobserved-economy-slate`). `lint:boot-entries` and
+`lint:template-scans` hold the rest at zero growth.
+
 ## Hunting for an Instrument Instead of Declaring It
 
 **ANTIPATTERN**: A controller resolving the thing its verb acts *with* by
@@ -4867,25 +4892,35 @@ the *reason* and trusts it.
 (`scripts/check-get-or-create.ts`, a ratchet — all thirteen were swept
 in the commit that added it).
 
-### ⚠ What is NOT this antipattern
+### ⚠⚠ It came back in a different coat (2026-10-15)
 
-A **memoized** module ref whose lookup does real cache-invalidation work
-— *the live registered instance supersedes my cached handle* — is a
-different thing, and eight of them in the kernel are correct:
+The gate first matched only `if (x) return x;` and exempted a
+**memoized** ref (`if (found) { ref = found; return found; }`) as doing
+"cache-invalidation work". It does none `singleton` does not —
+`singleton` reads the same live index, so an HMR-replaced or test-reset
+instance supersedes a cached handle either way. With the narrow match in
+place, the scan sweep grew **fifteen** sites of the `??` form, each
+citing the last:
 
 ```ts
-let catalogueRef: C | null = null;
-const found = StuffApi.findByTemplatePath<C>(CATALOGUE_PATH);
-if (found) { catalogueRef = found; return found; }   // ← assigns first
+// WRONG — every one of these is the same lookup twice
+StuffApi.findByTemplatePath(p) ?? (await StuffApi.singleton(p).catch(() => null));
+let x = StuffApi.findByTemplatePath(p) ?? null; if (!x) { try { x = await StuffApi.singleton(p); } catch {} }
+StuffApi.findByTemplatePath(p) ?? (await StuffApi.singletonOrClone(p));   // together they ARE singleton
+
+// RIGHT
+await StuffApi.singleton(p).catch(() => null);
 ```
 
-So is a **synchronous** accessor beside an async ensure:
-`findByTemplatePath` is sync and `singleton` is not, so a class that
-needs a sync read (a render path, a `describeFor`) legitimately keeps
-both. Two call shapes is not one lookup written twice.
+All 26 in the tree were collapsed in review and `lint:get-or-create`
+now matches any same-path pre-check inside one scope.
 
-The tell is whether the `if` body is *exactly* `return <thatvar>;`. If
-it is, the branch adds nothing and the whole thing collapses.
+### ⚠ What is NOT this antipattern
+
+A **synchronous** accessor beside an async ensure: `findByTemplatePath`
+is sync and `singleton` is not, so a class that needs a sync read (a
+render path, a `describeFor`) legitimately keeps both — in two
+functions. Two call shapes is not one lookup written twice.
 
 ---
 

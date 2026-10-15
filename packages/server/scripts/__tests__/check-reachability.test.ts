@@ -150,7 +150,7 @@ describe("arm R — the row census", () => {
     expect(r?.detail).toContain("outputTemplate");
   });
 
-  it("counts a row that places itself with container:", () => {
+  it("counts a row that seats itself with seatIn:", () => {
     expect(row("/fixture/thing/self-placed")?.how).toBe("self-placed");
   });
 

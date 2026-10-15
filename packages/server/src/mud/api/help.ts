@@ -59,6 +59,15 @@ function catalogue(): HelpCatalogue | null {
 }
 
 export class HelpApi {
+  /**
+   * ⭐ Stand the help catalogue up — the rulebook warms on first use (the
+   * scan sweep: it is not booted). Every entry point (the `help` verb, the
+   * REST routes) awaits this before its synchronous reads.
+   */
+  static async ready(): Promise<void> {
+    await StuffApi.singleton(TemplatePaths.helpCatalogue).catch(() => null);
+  }
+
   /** Light index slice + the category descriptors. */
   static index(viewer: HelpViewer = FLOOR): HelpIndexResult {
     const cat = catalogue();

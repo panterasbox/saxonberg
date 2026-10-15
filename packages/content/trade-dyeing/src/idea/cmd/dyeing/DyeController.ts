@@ -42,6 +42,7 @@
  * which is visible in whether your bolts stack.
  */
 
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
@@ -64,6 +65,9 @@ interface DyeModel extends CommandModel {
   bath?: MqlManyResult;
 }
 
+/** The dyestuff roster's row (`trade-dyeing`'s own). */
+const DYESTUFF_CATALOGUE_PATH = '/trade/dyeing/idea/dyestuff-catalogue';
+
 export default class DyeController extends ManualBuildController<DyeModel> {
   static readonly BASE_MS_KEY = 'dyeing.dye.baseMs';
   static readonly BASE_MS = 45 * 60 * 1000;
@@ -75,6 +79,9 @@ export default class DyeController extends ManualBuildController<DyeModel> {
   static readonly EXHAUST = 0.5;
 
   async execute(model: DyeModel, context: CommandContext): Promise<void> {
+    // ⭐ The dyestuff dictionary warms on first use (the scan sweep): the
+    // catalogue's own creation stands the roster up — nothing boots it.
+    await StuffApi.singleton(DYESTUFF_CATALOGUE_PATH).catch(() => null);
     const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (!target || !MixinApi.isDyed(target)) {

@@ -319,16 +319,14 @@ which composes both around-save and around-delete and enforces the
 folder/leaf invariant on the `domain` collection. See
 [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant)
 for the rule it enforces. `DomainHook.aroundSave` also calls
-`TemplateApi.validateSingletonContainerTarget` — the singleton-target
-check for the `data.container` declarative-content field shipped with
-the spawn substrate.
+`TemplateApi.validateNoAuthoredContainer`, which refuses a row that
+authors `data.container` (runtime-only since 2026-10-15 —
+[spatial.md](./spatial.md)).
 
 ⚠ **A consequence for the pack installer: its content writes cannot
 simply be parallelized.** The around-save hook validates the folder/leaf
-invariant by walking the row's ancestors, and
-`validateSingletonContainerTarget` requires the row named by
-`data.container` to *already exist* — both read rows an earlier save in
-the same install wrote. The installer's writes are order-dependent
+invariant by walking the row's ancestors, which reads rows an earlier
+save in the same install wrote. The installer's writes are order-dependent
 *through the hook chain*, not by accident. Batching them would mean
 validating serially (cheap — those walks are the resident cache's best
 customer) and bulk-writing after, which is a change to the hook contract

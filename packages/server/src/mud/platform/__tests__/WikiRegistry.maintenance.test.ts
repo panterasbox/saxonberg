@@ -65,7 +65,10 @@ beforeEach(() => {
   registry = makeStuffAtPath(() => new WikiRegistry(), TemplatePaths.wikiRegistry);
   actor = makeStuff(() => new Principal()) as unknown as Stuff;
   zone = makeStuff(() => new WikiNamespaceZone());
-  vi.spyOn(StuffApi, 'singleton').mockResolvedValue(zone as never);
+  // `singleton` IS the get-or-create: the registry by its path, the
+  // namespace zone for anything else the walk asks for.
+  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string) =>
+    path === TemplatePaths.wikiRegistry ? registry : zone) as never);
   vi.spyOn(zone, 'lookupField').mockResolvedValue(null);
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(true);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);

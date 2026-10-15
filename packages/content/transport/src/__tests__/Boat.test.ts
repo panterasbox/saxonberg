@@ -11,9 +11,8 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import StructureCatalogue from '@saxonberg/server/mud/platform/idea/StructureCatalogue';
+import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import Boat from '../thing/Boat';
 
 class Deck extends CartesianLocation {}
@@ -23,8 +22,8 @@ let boat: Boat;
 beforeEach(() => {
   StuffApi.clearAll();
   boat = makeStuffAtPath(() => new Boat(), '/test/ship/thing/dinghy');
-  vi.spyOn(Template, 'findByClass').mockResolvedValue([]);
-  makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
+  // A dinghy on a deck belongs to no structure here: its place has no zone.
+  vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(null);
 });
 
 afterEach(() => vi.restoreAllMocks());

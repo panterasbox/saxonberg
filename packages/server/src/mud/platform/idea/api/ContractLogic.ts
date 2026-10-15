@@ -1394,7 +1394,9 @@ async function issueLoanImpl(spec: IssueLoanSpec): Promise<IssueLoanResult> {
  */
 async function openingAdvanceImpl(businessKey: string): Promise<IssueLoanResult> {
   if (!active()) return { ok: false, reason: "offline", detail: "" };
-  const live = StuffApi.findByTemplatePath(businessKey);
+  const live =
+    // A relation resolved at the act (the scan sweep): not booted.
+    await StuffApi.singleton(businessKey).catch(() => null);
   if (!live || !MixinApi.isBusiness(live)) return { ok: false, reason: "no-business", detail: businessKey };
   const business = live as Stuff & BusinessShape;
   const borrowerKey = business.getAccountPath();

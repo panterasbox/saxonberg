@@ -739,9 +739,19 @@ per withdrawer, and that is already memoised per reach per segment.
 
 ⭐⭐ **It used to walk every object in the world** and duck-type each
 one for a `withdrawalM3S` — 1,807 objects to find five. It now walks
-the works the **content rows** name (`WATERWORK_CLASSES` — `Conduit`
-and `ControlStructure`) and duck-types those: the same check, over a
-set the size of the answer.
+the works the **reaches name** (`works:` on a node — the scan sweep,
+2026-10-14, replaced a class scan of the template table): the same
+check, over a set the size of the answer.
+
+⭐⭐ **The row is the record; the live object is the override.** A work
+that is standing is read live (so a shut sluice stops drawing on the
+next query). One that is not is read from its ROW — one exact
+`findByPaths` query, memoised with the index — through the same two
+answers its class gives (`Conduit`: direction, `on`, `cut`, capacity,
+load and kind; `ControlStructure`: `passFraction`). So the outfall below
+the city fouls the confluence whether or not anybody ever walked onto
+the wharf, and a work's unpersisted live state comes back as its row
+says when it unloads.
 
 Nothing above changes. The ROW list is memoised — authored content only
 moves at install — while the LIVE resolution is not, so a shut sluice

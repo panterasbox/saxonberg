@@ -159,7 +159,6 @@ export const HOOK_NAMES: ReadonlySet<string> = new Set([
   "onLinkdead",
   "applyExits",
   "applyDetails",
-  "applyContainer",
   "applyPopulates",
   "applyRoutes",
 ]);

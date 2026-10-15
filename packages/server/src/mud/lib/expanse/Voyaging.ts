@@ -396,10 +396,12 @@ export function VoyagingMixin<
     }
 
     /**
-     * ⭐ Re-establish the voyage after a restart (maritime D6): the three
-     * fields are back, so the voyage is too — the craft registers on its
-     * expanse, and if a course was set the engagement starts again with
-     * the position already wherever the clock has carried it.
+     * ⭐ Re-establish the voyage when she LOADS (maritime D6; since the
+     * 2026-10-14 review nothing loads her at boot — her zone or her sea
+     * does, when somebody comes aboard or within sight): the three fields
+     * are back, so the voyage is too — if a course was set the engagement
+     * starts again with the position already wherever the clock has
+     * carried it, and a first watch reconciles the time away.
      */
     async onRestored(): Promise<void> {
       const inner = (super.onRestored as unknown as (() => Promise<void>) | undefined);
@@ -417,7 +419,14 @@ export function VoyagingMixin<
       void expanse.bands();
       if (this.course !== null && this.currentVoyage() === null) {
         expanse.register(this as unknown as Stuff & Positioned);
-        SchedulerApi.start(new Voyage(this as unknown as Craft));
+        const voyage = new Voyage(this as unknown as Craft);
+        SchedulerApi.start(voyage);
+        // ⭐ Nothing kept her loaded while nobody was aboard or in sight
+        // (maritime review, 2026-10-14 — no ship is booted), so the time
+        // she was away is worked out NOW: her position is already derived
+        // (and stops at the node she was making for), and one watch at
+        // load records the arrival and the wear.
+        void voyage.watch();
       }
     }
 

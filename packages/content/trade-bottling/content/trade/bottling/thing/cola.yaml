@@ -1,8 +1,9 @@
 # The floor bottle of cola — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: mixer:cola
   shortDescription: "bottle of cola"
-  keywords: [cola, coke, bottle, mixer]
+  keywords: [cola, coke, bottle, mixer, "bottle of cola"]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of cola, the bottling floor's plain label."
   category: mixer-bottle
@@ -12,7 +13,4 @@ data:
   interiorAmount: 1
   closure: liquidTight
   gradeBand: fair
-  censusKey: mixer:cola
-  regionTarget: 8
   materialTags: ["mixer", "cola"]
-  container: /world/terminus/goods-yards/bottling/thing/stock

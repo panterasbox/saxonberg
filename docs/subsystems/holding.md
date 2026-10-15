@@ -71,9 +71,10 @@ substrate anything could use, while a *residential programme* is content
 vocabulary — a floorplan, a tenure term, a weathering clock. The kernel
 never imports the pack; where it must read a programme (the `survey`
 verb) it does so through the `WarrenMember` back-ref BY SHAPE, or —
-where it needs the whole roster — through the residence pack's own
-`ResidenceCatalogue`, reached by PATH and SHAPE (the `TravelNode`
-precedent). ⚠ It used to reach through MQL **by class NAME in a
+where it needs an institution — through the location graph's record,
+which attaches each institution to its own `parentExtent` (the scan
+sweep, 2026-10-14; a pack catalogue that scanned the template table was
+retired). ⚠ It used to reach through MQL **by class NAME in a
 string**: a kernel→pack dependency the type system cannot see, priced at
 the size of the world. `OuterWarren.admitFor` and `title list` were the
 two sites; the `maintains` brain was a third and moved into the pack
@@ -357,7 +358,8 @@ would be modelling permission where the world models work.
   ⭐ It lives **with its subject** rather than in the kernel: it reads
   holdings, which are the residence system's, and the move deleted the
   kernel's last `class.HoldingWarren` string. It asks
-  `ResidenceCatalogue.holdingsUnder(extent)` — which matters more here
+  the location graph's record for the institutions over or inside its
+  extent — which matters more here
   than anywhere, because this is the per-NPC, per-cadence beat, and it
   was the site that read the whole world most often.
 

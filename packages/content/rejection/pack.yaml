@@ -39,9 +39,3 @@ requires:
     # orchards") is the honest word for a worked common, and ISCED 0821
     # forestry sits under 08 agriculture. **No seventh land use.**
     - { extent: /world/terminus/rejection/hanging-wood, parentParcel: /world/terminus/rejection, holder: { group: rejection }, landUse: agricultural }
-
-# ⭐ (dairy D14) What has to be resident before a player can reach the
-# goats — the boot union, the fifth reachability link.
-boot:
-  - { template: /world/terminus/rejection/thing/goat-book, role: producer, reason: "the goat book affords draft/return on the three nannies — the only way into the herd, and a prop nothing warms is a prop that is not there" }
-  - { template: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus, role: sync-read, reason: "a nanny's milk tap and butchery yield are synchronous species reads — an inert goat row is a goat with no milk" }

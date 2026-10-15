@@ -135,6 +135,13 @@ function species(name: string, habitat: Habitat): string {
     class: '/platform/idea/species/Species',
     data: { habitat },
   });
+  // ⭐ A reach holds the species it NAMES (the scan sweep), so a test
+  // species is named on every reach; whether it is THERE is still the
+  // habitat fit, which is what these suites prove.
+  for (const r of rows) {
+    const nodes = r.data.nodes as Array<{ stocks?: Array<{ species: string }> }> | undefined;
+    for (const n of nodes ?? []) n.stocks = [...(n.stocks ?? []), { species: path }];
+  }
   const sp = makeStuffAtPath(() => new Species(), path) as Species;
   sp.setCommonNames([name]);
   sp.setHabitat(habitat);
@@ -243,6 +250,20 @@ describe('⭐ the reach reports every parameter a tank will hold (D22)', () => {
 });
 
 describe('⭐⭐ the fishery derives — no table for the confluence, none for the moor', () => {
+  it('⭐⭐ a reach holds only the species it NAMES — a fit fish it does not name is not there', async () => {
+    installRows();
+    catalogue();
+    const mullet = species('mullet', MULLET);
+    // Un-name it on the confluence: it fits there, and it is not there.
+    const kestrel = rows.find((r) => r.path === '/stuff/idea/Watercourse/kestrel')!;
+    for (const n of kestrel.data.nodes as Array<{ name: string; stocks?: Array<{ species: string }> }>) {
+      if (n.name === 'confluence') n.stocks = (n.stocks ?? []).filter((x) => x.species !== mullet);
+    }
+    const reg = registry();
+    const confluence = (await reg.standingAt('kestrel:confluence', SUMMER))!;
+    expect(confluence.species.some((x) => x.speciesPath === mullet)).toBe(false);
+  });
+
   it('a brackish slow-water fish is at the confluence and not at the Holloway head; a trout the reverse', async () => {
     installRows();
     catalogue();

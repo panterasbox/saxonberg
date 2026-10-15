@@ -6,12 +6,13 @@
 # bitters. The bar cannot serve its menu without dealing with the little
 # place across town, however much cheaper the corpo's rail is.
 #
-# `container:` is Crowsfoot's Stock — the ONLY faucet. Its hand carries
-# the case to the cash-and-carry and consigns it AS Crowsfoot.
+# Crowsfoot's Stock names it as a line and makes it up to par;
+# its hand carries the case to the cash-and-carry and consigns it AS Crowsfoot.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:orange-liqueur
   shortDescription: bottle of orange liqueur
-  keywords: [liqueur, bottle, orange, spirit]
+  keywords: [liqueur, bottle, orange, spirit, "bottle of orange liqueur"]
   register: indefinite
   longDescription: A slim bottle of orange liqueur, sticky at the neck.
   category: spirit-bottle
@@ -20,7 +21,4 @@ data:
   interiorMaterial: /trade/distilling/idea/material/orange-liqueur
   interiorAmount: 0.75
   gradeBand: fair
-  censusKey: spirit:orange-liqueur
-  regionTarget: 12
   materialTags: [spirit, liqueur, orange-liqueur]
-  container: /world/terminus/goods-yards/crowsfoot/thing/stock

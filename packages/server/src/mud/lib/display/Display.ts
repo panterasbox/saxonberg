@@ -165,8 +165,8 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       pairing: { persistent: true, authorable: true },
       shows: { persistent: true, authorable: true },
-      principal: { persistent: true, authorable: true, authorPicker: 'Template' },
-      remote: { persistent: true, authorable: true, authorPicker: 'Template' },
+      principal: { persistent: true, authorable: true, authorPicker: 'Template', ref: 'identity:relation' },
+      remote: { persistent: true, authorable: true, authorPicker: 'Template', ref: 'identity:relation' },
     };
 
     pairing: DisplayPairing = 'open';

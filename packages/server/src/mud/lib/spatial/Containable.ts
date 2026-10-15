@@ -78,28 +78,6 @@ export interface Containable {
   getRootContainer(): (Stuff & Container) | null;
 
   /**
-   * Declarative-content applier. Phase 2 of the applier's two-
-   * phase dispatch reads `data.container` from the source template
-   * and calls this method with the resolved templatePath. The
-   * applier resolves the target via `StuffApi.singleton` (the
-   * target MUST be singleton-shaped — validated at template-save
-   * time by `TemplateApi.validateSingletonContainerTarget`) and
-   * moves self into it via `ContainmentApi.move`.
-   *
-   * Per-call idempotency: compare current container's templatePath
-   * to the declared path; no-op when they match. The compare-and-
-   * move shape supports both fresh-clone placement AND
-   * `Avatar.restore()` re-move semantics with no flag.
-   *
-   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
-   *   a template's `container` field (self-placement during the clone
-   *   cascade). **Instruction applier** — no paired getter (not a
-   *   property); idempotent (compare-and-move, no-op when already in
-   *   the declared container).
-   */
-  applyContainer(path: string): Promise<void>;
-
-  /**
    * ⭐ **Where inside its container this thing sits** — the placement
    * host and the name of the relation (`on` a desk, `in` a compartment,
    * `from` a hook), or `null` when the thing is merely loose.
@@ -227,13 +205,12 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Instruction field — declarative spawn target. Consumed by
-     * Phase 2 of the applier. There is NO paired `getContainer(path)`
-     * declaration accessor; the live `getContainer()` ref is the
-     * only runtime getter.
+     * ⚠ No `container` field (retired in the scan sweep's review,
+     * 2026-10-15): where a thing IS is runtime state, set by whoever
+     * placed it — its creator, a place's `props:` / `cast:`, a seat — and
+     * persisted by the container's slice. A row does not author it.
      */
     static fieldMeta: FieldMeta = {
-      container: { instruction: true, authorable: true, authorPicker: 'Template' },
       fixedInPlace: { persistent: true, authorable: true },
       // Both reference fields are instance refs, so both self-heal on
       // read. Neither is persistent — see the field docs below.
@@ -284,10 +261,9 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Live reference to the container. NOT a persistent field —
      * cross-Stuff references would round-trip badly through the
-     * applier's reflection. The container relationship is rebuilt
-     * at clone time via the `applyContainer` instruction-field path
-     * (declared `{ instruction: true }` in `fieldMeta` above) or by
-     * direct `ContainmentApi.move` calls after hydration.
+     * applier's reflection. The container relationship is set by
+     * whoever places the thing (`ContainmentApi.move` / `place`) and
+     * rebuilt on restore from the container's persisted slice.
      *
      * The auxiliary `_placementHost` pointer below is the SAME shape,
      * not a different one — both reference fields here are instance
@@ -461,26 +437,6 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     _setPlacement(host: (Stuff & Placing) | null, name?: string): void {
       this._placementHost = host;
       this._placementName = host ? (name ?? 'on') : '';
-    }
-
-    /**
-     * Phase 2 applier — see the interface docstring for semantics.
-     * Compare-and-move idempotency: no-op when the current container's
-     * templatePath matches the declared `path`; otherwise resolve the
-     * target via `StuffApi.singleton` and `ContainmentApi.move` into
-     * it. The singleton-target invariant is enforced at template-save
-     * time by `TemplateApi.validateSingletonContainerTarget`.
-     */
-    async applyContainer(path: string): Promise<void> {
-      const target = await StuffApi.singleton<Stuff & Container>(path);
-      const current = this.getContainer();
-      if (current && current.getTemplatePath() === path) {
-        return; // already in declared container; no-op.
-      }
-      ContainmentApi.move(
-        this as unknown as Stuff & Containable,
-        target,
-      );
     }
   }
   return ContainableMixin;

@@ -184,7 +184,11 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
       fitIn: () => ({ fit: 0, limiting: null }),
       getCommonNames: () => ['herring'],
     };
-    vi.spyOn(reg as unknown as { species: () => Promise<unknown[]> }, 'species').mockResolvedValue([herring]);
+    // ⭐ The sea holds what its bands NAME, each species loaded at the read
+    // (the scan sweep) — so the herring is served where the band names it.
+    const real = StuffApi.singleton.bind(StuffApi);
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
+      p === '/test/species/herring' ? herring : real(p)) as never);
     vi.spyOn(reg, 'read').mockResolvedValue(null);
     const standing = await reg.standingAt(`${SEA}@50.5,0.0`, 0);
     expect(standing?.species).toHaveLength(1);

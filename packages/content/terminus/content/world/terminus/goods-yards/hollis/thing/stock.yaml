@@ -10,5 +10,10 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/hollis/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/distilling/thing/hollis-cane, par: 8 }
+    - { itemTemplatePath: /trade/distilling/thing/old-hollis, par: 8 }
   prices: {}
