@@ -46,8 +46,17 @@ import { CONTENT } from "./pack-roots";
 /** ⚠ A fact about the past: the roster the day the gate landed. */
 export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
 
-/** ⭐ The total ceiling. It may fall, never rise. */
-export const BOOT_ENTRY_CEILING = 79;
+/**
+ * ⭐ The total ceiling. It may fall, never rise.
+ *
+ * ⚠ It read 79 for one wave and is 83 — a correction inside the build
+ * that landed the gate, not a rise: W1 unbooted the Hearthworks and
+ * tailor houses as advertising-only, and the drive found both run a
+ * par-sheet `restocks` beat with nobody present (the hall board had no
+ * work at world start). By the requirements' own rule they are the
+ * unobserved economy's, so they and their rooms stay booted.
+ */
+export const BOOT_ENTRY_CEILING = 83;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

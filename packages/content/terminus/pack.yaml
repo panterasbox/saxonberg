@@ -125,6 +125,10 @@ boot:
   # house stands up when somebody arrives, and `lint:openings` rule 3 holds
   # the room to it. What stays below is booted for one reason only: its
   # NPCs act while nobody is present (→ unobserved-economy-slate).
+  # ⭐ The tailor orders cloth off her par sheet with nobody present (the
+  # restocks beat) — the unobserved economy keeps her shop and outfit live.
+  - { template: /world/terminus/mayfield-row/tailor/location/shop, role: producer, reason: "the tailor stands here and her restocks beat orders cloth off the par sheet with nobody present; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
+  - { template: /world/terminus/mayfield-row/tailor/idea/outfit, role: producer, reason: "the tailor's par sheet and purchases seat, read by her restocks beat; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   - { template: /world/terminus/goods-yards/crowsfoot/location/floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   - { template: /world/terminus/goods-yards/veshko/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   - { template: /world/terminus/goods-yards/hollis/location/floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }

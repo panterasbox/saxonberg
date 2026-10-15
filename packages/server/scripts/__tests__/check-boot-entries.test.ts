@@ -31,6 +31,15 @@ describe('the ratchet', () => {
   it('the shipped roster passes', () => {
     expect(check(bootEntries()).problems).toEqual([]);
   });
+
+  it('⭐⭐ the drive\'s step 1: no species, material or biome row, no structure or sea, no organization is booted', () => {
+    const paths = bootEntries().map((e) => e.template);
+    expect(paths.filter((p) => p.startsWith('/stuff/idea/species/'))).toEqual([]);
+    expect(paths.filter((p) => /\/idea\/material\//.test(p))).toEqual([]);
+    // The universe biome stays: the root every chain falls back to.
+    expect(paths.filter((p) => /\/idea\/biome\//.test(p))).toEqual(['/stuff/idea/biome/universe']);
+    expect(paths.filter((p) => /\/structure$|WaterExpanse|\/compact\/|^\/corpo\//.test(p))).toEqual([]);
+  });
 });
 
 describe('a positive fixture', () => {
