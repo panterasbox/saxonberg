@@ -313,9 +313,13 @@ describe('plot — breaking a field out of ground you hold', () => {
 
   it('the spade affords the verb — a static on the class, not a row', () => {
     // ⚠ A row's `commandContributions:` is dead silently.
-    const verbs = CommandApi.collectContributions(Spade, 'self')
+    // ⭐ `environment` — to whoever HOLDS it. It was `self`, read only off a
+    // command giver, so `plot` was sayable nowhere (lint:self-contributions).
+    const verbs = CommandApi.collectContributions(Spade, 'environment')
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('plot');
+    expect(verbs).toContain('dig');
+    expect(CommandApi.collectContributions(Spade, 'self')).toEqual([]);
   });
 });

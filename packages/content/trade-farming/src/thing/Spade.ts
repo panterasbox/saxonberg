@@ -33,10 +33,13 @@ export default class Spade extends KernelSpade {
     // ⚠⚠ **`dig` is RE-LISTED, and it has to be.** A class's own
     // `commandContributions` is collected beside every mixin in its chain,
     // but a SUBCLASS's static SHADOWS its base's — so extending the kernel
-    // `Spade` and declaring `self` here would silently drop `dig`, and
+    // `Spade` and declaring `environment` here would silently drop `dig`, and
     // every test would pass because the affordance is a static nothing
     // type-checks. This is the `Panel` precedent, one class over.
-    self: [
+    // ⚠ `environment` — to whoever HOLDS it (both verbs take the spade from
+    // your hands). It was `self`, read only off a command giver, so `plot`
+    // was sayable nowhere at all (lint:self-contributions).
+    environment: [
       'platform/cmd/ground/dig.yaml',
       'trade/farming/cmd/farming/plot.yaml',
     ],

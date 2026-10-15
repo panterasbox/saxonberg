@@ -39,7 +39,7 @@
  *
  * ## What it affords, and to whom
  *
- * `static commandContributions = { self, inventory }` — on a LOCATION
+ * `static commandContributions = { inventory }` — on a LOCATION
  * host, *the people standing in it are its inventory*
  * (`api/command.ts`), so `inventory` is what puts `fell` in a player's
  * commands while they stand on the ride. ⚠ NOT `environment`/`peers`:
@@ -250,10 +250,7 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * asserts.
      */
     static commandContributions = {
-      self: [
-        'trade/forestry/cmd/forestry/fell.yaml',
-        'trade/forestry/cmd/forestry/tap.yaml',
-      ],
+      // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: [
         'trade/forestry/cmd/forestry/fell.yaml',
         'trade/forestry/cmd/forestry/tap.yaml',

@@ -31,6 +31,9 @@ import type { CommandContributions } from '../../api/command';
 export default class Spade extends Tool {
   /** ⭐ A spade in your hands affords `dig`, wherever you are standing. */
   static commandContributions: CommandContributions = {
-    self: ['platform/cmd/ground/dig.yaml'],
+    // ⚠ `environment` — to whoever HOLDS it (`dig` takes its tool from your
+    // hands). It was `self`, which is read only off a command giver, so a
+    // spade in your hands afforded nothing (lint:self-contributions).
+    environment: ['platform/cmd/ground/dig.yaml'],
   };
 }

@@ -268,7 +268,7 @@ export function OpenWorkingMixin<
      * the street"*.
      */
     static commandContributions = {
-      self: ['platform/cmd/ground/dig.yaml'],
+      // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: ['platform/cmd/ground/dig.yaml'],
     };
 

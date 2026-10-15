@@ -313,14 +313,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * class and nothing else.
      */
     static commandContributions = {
-      self: [
-        'trade/mining/cmd/mining/hew.yaml',
-        'trade/mining/cmd/mining/drive.yaml',
-        'trade/mining/cmd/mining/sink.yaml',
-        'trade/mining/cmd/mining/raise.yaml',
-        'trade/mining/cmd/mining/shore.yaml',
-        'trade/mining/cmd/mining/drain.yaml',
-      ],
+      // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: [
         'trade/mining/cmd/mining/hew.yaml',
         'trade/mining/cmd/mining/drive.yaml',

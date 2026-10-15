@@ -100,7 +100,7 @@ export default class Block extends BlockBase implements Splittable {
    * works in the hand too.
    */
   static commandContributions: CommandContributions = {
-    self: ['platform/cmd/ground/split.yaml'],
+    // `peers`: the people beside it (`self` is a giver's, never a block's).
     peers: ['platform/cmd/ground/split.yaml'],
   };
 

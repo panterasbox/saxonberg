@@ -213,7 +213,7 @@ export default class Field extends FieldBase {
    * rather than shadowing them.
    */
   static commandContributions = {
-    self: ['trade/farming/cmd/farming/plough.yaml'],
+    // `inventory`: a location's occupants hear it (`self` is a giver's).
     inventory: ['trade/farming/cmd/farming/plough.yaml'],
   };
 

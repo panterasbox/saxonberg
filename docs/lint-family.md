@@ -869,11 +869,12 @@ anvil in the room, which is `peers`. A declaration-level test cannot see
 it; this gate asks who RECEIVES. A mixin is live if a receiver composes
 it directly or through another mixin's own chain.
 
-**Census, then ratchet: ceiling 9** at 2026-10-15 — seven redundant (the
-same verbs also ride a live bucket on the class; delete the `self` line)
-and two that are the verb's only route: the kernel and farming `Spade`s,
-so `plot` is sayable nowhere and `dig` only at a quarry face. Those want
-`environment`. The ceiling may fall, never rise.
+**Census, then ratchet — and burned down the same day: ceiling 0.** The
+census (2026-10-15) found nine: seven redundant (the same verbs also rode
+a live bucket on the class — the `self` line was deleted) and the two
+`Spade`s, whose `self` was the verb's only route, so **`plot` had been
+sayable nowhere** and `dig` only at a quarry face. Those moved to
+`environment` (both verbs take the spade from your hands).
 
 ### ⭐⭐⭐ `lint:reachability` — a verb nothing confers, a row nothing reaches (2026-10)
 

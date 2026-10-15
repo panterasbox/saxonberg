@@ -54,20 +54,14 @@ import { readdirSync, statSync } from "fs";
 import { join, relative } from "path";
 
 /**
- * Dead `self` declarations at the census (2026-10-15) — the ceiling. It
- * may fall, never rise; ⚠ a rise wants the fix, not a bump. The nine:
- *
- * - **seven redundant** — the same verbs also ride a live bucket on the
- *   same class, so nothing is lost, and the `self` copy only misleads:
- *   `ImprovableMixin`, `SwardMixin`, `Field`, `StandMixin`, mining
- *   `WorkingMixin`, quarrying `OpenWorkingMixin` (all `inventory` — a
- *   location's occupants), `Block` (`peers`). Delete the `self` line.
- * - **two that are the verb's ONLY route** — the kernel `Spade` (`dig`)
- *   and farming's `Spade` (`dig`, `plot`): a spade in your hands affords
- *   nothing, so `plot` is sayable nowhere and `dig` only where a quarry
- *   face affords it. These want `environment` (the holder).
+ * Dead `self` declarations — ⭐ **zero**, and it stays there. The census
+ * (2026-10-15) found nine and burned them down the same day: seven
+ * redundant (the verbs also rode `inventory`/`peers`, so the line was
+ * deleted) and the two `Spade`s, whose `self` was `dig`'s and `plot`'s
+ * only route — `plot` had been sayable nowhere. Those moved to
+ * `environment`. A new one is a verb nobody can say; fix the bucket.
  */
-export const CEILING = 9;
+export const CEILING = 0;
 
 /** One non-empty `self` list, and whose it is. */
 export interface SelfDeclaration {

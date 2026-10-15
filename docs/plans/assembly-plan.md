@@ -1177,10 +1177,11 @@ what 29 wire runs could not. Fixed here, this build's own:
 
 ⭐ **And a gate, `lint:self-contributions`** (2026-10-15): a non-empty
 `self` list on a class that is no command giver, shadow or hosted update
-— or on a mixin no such class composes — is dead. Census-then-ratchet at
-**9**: seven redundant (the verbs also ride `inventory`/`peers`) and the
-two `Spade`s, whose `self` is `dig`'s and `plot`'s only route — so `plot`
-is sayable nowhere and `dig` only at a quarry face (farming's to fix).
+— or on a mixin no such class composes — is dead. Census nine,
+burned to **zero** the same day: seven redundant `self` lines deleted (the
+verbs also rode `inventory`/`peers`), and the two `Spade`s moved to
+`environment` — their `self` had been `dig`'s and `plot`'s only route, so
+`plot` was sayable nowhere and `dig` only at a quarry face.
 
 Found and NOT this build's (reported): the Hearthworks smithy reads pitch
 dark to a player holding a glowcap at noon in the browser (cards describe
