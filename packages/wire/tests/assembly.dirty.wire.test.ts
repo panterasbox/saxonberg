@@ -194,6 +194,30 @@ async function buy(s: Session, item: string, n = 1): Promise<void> {
   }
 }
 
+/**
+ * Wait for a shop shelf to stand back at par. ⚠ The restock is the
+ * residency reset sweep, which a clock jump FIRES but which runs
+ * asynchronously — the shelf refills seconds after the jump, not inside
+ * it (a player arriving in those seconds sees it honestly bare). Buying
+ * the instant after `advanceWorldClock` raced the sweep; this asks the
+ * world rather than assuming it. Bounded: a shelf that never refills
+ * still fails the buy that follows.
+ */
+async function untilRestocked(s: Session, keyword: string, atLeast: number, ms = 120_000): Promise<void> {
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    const rows = await s.query(`here:i:i:[keyword.${keyword}]`, { fields: 'detail' }).catch(() => []);
+    const held = (rows as Array<{ displayName?: unknown; quantity?: unknown }>).reduce((n, r) => {
+      const q = Number(r.quantity ?? NaN);
+      if (Number.isFinite(q)) return n + q;
+      const m = /^(\d+)\s/.exec(String(r.displayName ?? ''));
+      return n + (m ? Number(m[1]) : 1);
+    }, 0);
+    if (held >= atLeast) return;
+    await new Promise((r) => setTimeout(r, 3_000));
+  }
+}
+
 async function practise(s: Session, discipline: string, n: number): Promise<void> {
   for (let i = 0; i < n; i++) await s.cmd(`practice ${discipline} hard success`);
 }
@@ -407,6 +431,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     const handle = cooper.handle;
     cooper.close();
     cooper = await goTo(handle, SAWMILL);
+    await untilRestocked(cooper, 'stave', 30);
     await buy(cooper, 'stave', 30);
     cooper.close();
     cooper = await goTo(handle, SMITHY);
