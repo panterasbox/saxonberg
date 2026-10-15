@@ -37,7 +37,7 @@ export class ExpanseLogic extends ApiLogic {
     // 2026-10-14 — never a catalogue of every structure).
     const zone = await ZoneApi.resolveZoneForPath(placePath);
     if (!(zone instanceof SpatialZone)) return null;
-    await zone.structuresLoaded();
+    await zone.standsLoaded();
     const s = zone.structureOf(placePath);
     return s && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
   }

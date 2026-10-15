@@ -1314,7 +1314,7 @@ function horizonAshore(viewer: Stuff): HorizonView {
     const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
     // The structures the named zone says stand in it — stood up when the
     // first room looking out at it was (`LocationZone.lookOutFrom`).
-    for (const s of target?.getStructures() ?? []) {
+    for (const s of target?.standingStructures() ?? []) {
       if (s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
       const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
       if (clearanceM * ratio < distanceM) continue;

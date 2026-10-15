@@ -35,7 +35,7 @@ export default class AshoreExit extends DeferredDestinationExit {
       // The deck's own zone names the ship (maritime review, 2026-10-14).
       const zone = this.getSource().getZone();
       if (zone === null) return;
-      await zone.structuresLoaded();
+      await zone.standsLoaded();
       const craft = zone.structureOf(here);
       if (craft === null) return;
       this.craftPath = craft.getTemplatePath();

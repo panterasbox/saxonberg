@@ -547,7 +547,17 @@ const TRUE_ONLY = new Set([
   "birthOnly",
 ]);
 const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
-const REF_VALUES = new Set(["identity", "instance"]);
+/**
+ * ⭐ The identity axis names its KIND (the scan sweep, 2026-10-14): the
+ * kind decides when the target loads. Bare `identity` is refused.
+ */
+const REF_VALUES = new Set([
+  "instance",
+  "identity:constituent",
+  "identity:relation",
+  "identity:kind",
+  "identity:provenance",
+]);
 /** The template-inheritance merge rules (`FieldMetaEntry.inherit`). */
 const INHERIT_VALUES = new Set(["replace", "by-key", "by-entry", "never"]);
 const LIFETIME_VALUES = new Set(["weak", "symmetric", "owned"]);
@@ -677,7 +687,11 @@ function lint(): void {
                 (!ts.isStringLiteral(val) || !REF_VALUES.has(val.text))
               ) {
                 problems.push(
-                  `${at(attr)}  \`${field}.ref\` must be 'identity' or 'instance'`
+                  `${at(attr)}  \`${field}.ref\` must be 'instance' or ` +
+                    `'identity:constituent' | 'identity:relation' | ` +
+                    `'identity:kind' | 'identity:provenance' — an identity ` +
+                    `ref names WHICH KIND it is, because the kind decides ` +
+                    `when the target loads. See docs/ref-shapes.md`
                 );
               }
               if (
@@ -719,9 +733,20 @@ function lint(): void {
                   `docs/ref-shapes.md`
               );
             }
-            if (refText === "identity" && seen.has("lifetime")) {
+            if (
+              refText === "identity:constituent" &&
+              !seen.has("persistent")
+            ) {
               problems.push(
-                `${at(p)}  \`${field}\` is \`ref: 'identity'\` with a ` +
+                `${at(p)}  \`${field}\` is \`ref: 'identity:constituent'\` ` +
+                  `without \`persistent\` — the applier loads a constituent ` +
+                  `in phase 1, which only sees persistent fields. See ` +
+                  `docs/ref-shapes.md`
+              );
+            }
+            if (refText?.startsWith("identity") && seen.has("lifetime")) {
+              problems.push(
+                `${at(p)}  \`${field}\` is \`ref: 'identity:*'\` with a ` +
                   `\`lifetime\` — an identity ref re-resolves on read and ` +
                   `cannot dangle. See docs/ref-shapes.md`
               );

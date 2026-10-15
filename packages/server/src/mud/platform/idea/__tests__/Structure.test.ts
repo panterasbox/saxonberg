@@ -73,11 +73,11 @@ describe('Structure', () => {
     tower.setLandmark(true);
     const zone = makeStuffAtPath(() => new TestZone(), '/test/t');
     const singleton = vi.spyOn(StuffApi, 'singleton');
-    await zone.applyStructures(['/test/t/structure']);
-    await zone.structuresLoaded();
+    await zone.applyStands(['/test/t/structure']);
+    await zone.standsLoaded();
     expect(singleton).toHaveBeenCalledWith('/test/t/structure');
-    expect(zone.getStructures()).toEqual([tower]);
-    expect(zone.getStructures()[0]!.isLandmark()).toBe(true);
+    expect(zone.standingStructures()).toEqual([tower]);
+    expect(zone.standingStructures()[0]!.isLandmark()).toBe(true);
   });
 
   it('the zone answers the structure a place is in — the innermost extent', async () => {
@@ -86,8 +86,8 @@ describe('Structure', () => {
     const wing = makeStuffAtPath(() => new Structure(), '/test/a/wing/structure');
     wing.setExtent('/test/a/wing');
     const zone = makeStuffAtPath(() => new TestZone(), '/test/a');
-    await zone.applyStructures(['/test/a/structure', '/test/a/wing/structure']);
-    await zone.structuresLoaded();
+    await zone.applyStands(['/test/a/structure', '/test/a/wing/structure']);
+    await zone.standsLoaded();
     expect(zone.structureOf('/test/a/wing/attic')).toBe(wing);
     expect(zone.structureOf('/test/a/hall')).toBe(hall);
     expect(zone.structureOf('/test/elsewhere')).toBeNull();

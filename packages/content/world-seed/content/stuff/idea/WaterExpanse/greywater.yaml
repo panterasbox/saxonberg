@@ -24,7 +24,7 @@ data:
   # ship or landmark is booted): the light on Gannet Rock, sighted where
   # its node is, and the Hesper, the realm's own ship based here. A ship a
   # player builds is loaded by its crew being aboard, not listed here.
-  structures:
+  stands:
     - /world/terminus/gannet-rock/structure
     - /world/terminus/hesper/structure
   # The map a chart of it files under — `map greywater`.

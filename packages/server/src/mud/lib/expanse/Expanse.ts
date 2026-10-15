@@ -356,7 +356,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   public craft(): (Stuff & Positioned)[] {
     const out = new Set([...this.craftSet].filter((c) => !c.isDestroyed()));
     const self = this.getTemplatePath();
-    for (const s of this.getStructures()) {
+    for (const s of this.standingStructures()) {
       if (MixinApi.isPositioned(s) && s.getExpanse() === self) out.add(s);
     }
     return [...out];
@@ -367,8 +367,8 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    * bands: standing the sea up compiles them (maritime review,
    * 2026-10-14 — the zone that loads what is in it). Kicked, not awaited.
    */
-  public override async applyStructures(paths: string[] | null): Promise<void> {
-    await super.applyStructures(paths);
+  public override async applyStands(paths: string[] | null): Promise<void> {
+    await super.applyStands(paths);
     void this.compile().catch(() => undefined);
   }
 
@@ -379,7 +379,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
    */
   private landmarks(): { stuff: Structure; at: GeoPosition }[] {
     const out: { stuff: Structure; at: GeoPosition }[] = [];
-    for (const s of this.getStructures()) {
+    for (const s of this.standingStructures()) {
       if (MixinApi.isPositioned(s)) continue;
       for (const node of this.loadedNodes) {
         const dest = node.getDestination();

@@ -5,7 +5,7 @@ class: /platform/idea/location/CartesianZone
 data:
   # ⭐ What stands in this zone, loaded with it as a room's props are
   # (maritime review, 2026-10-14) — the light on the rock. Nothing boots it.
-  structures:
+  stands:
     - /world/terminus/gannet-rock/structure
   name: Gannet Rock
   cellSize: 10.0

@@ -11,7 +11,7 @@ data:
   # ⭐ What stands in this zone, loaded with it as a room's props are
   # (maritime review, 2026-10-14): the Hesper loads when somebody comes
   # aboard, or onto her sea. Nothing boots her.
-  structures:
+  stands:
     - /world/terminus/hesper/structure
   name: The Hesper
   cellSize: 4.0

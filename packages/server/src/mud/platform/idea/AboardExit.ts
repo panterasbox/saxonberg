@@ -54,7 +54,7 @@ export default class AboardExit extends DeferredDestinationExit {
       // catalogue of every structure.
       const zone = await ZoneApi.resolveZoneForPath(berth);
       if (!(zone instanceof SpatialZone)) return;
-      await zone.structuresLoaded();
+      await zone.standsLoaded();
       const ship = zone.structureOf(berth);
       const sea = ship && MixinApi.isPositioned(ship) ? ship.getExpanse() : null;
       const e = sea ? await StuffApi.singleton<Stuff>(sea) : null;

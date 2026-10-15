@@ -87,7 +87,7 @@ beforeEach(() => {
   onTheSea.length = 0;
   // ⭐ A zone answers *what stands in me* and *which building is this
   // room in* from what it names — the horizon asks it, never a catalogue.
-  vi.spyOn(SpatialZone.prototype, 'getStructures').mockImplementation(function (this: SpatialZone) {
+  vi.spyOn(SpatialZone.prototype, 'standingStructures').mockImplementation(function (this: SpatialZone) {
     if (this instanceof Expanse) return [...onTheSea];
     const z = this.getTemplatePath() ?? '';
     return standing.filter((s) => s.getExtent() === z || s.getExtent().startsWith(`${z}/`));

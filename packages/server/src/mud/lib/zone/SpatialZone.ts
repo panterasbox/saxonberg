@@ -18,10 +18,10 @@
  * folder-of-templates contract without inheriting location-aware behavior.
  */
 import { Zone } from './Zone';
-import type { FieldMeta } from '../mixin';
+import { SiteMixin } from '../stuff/Site';
 import type { Stuff } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
 import type Structure from '../../platform/idea/Structure';
-import { StuffApi } from '../../api/stuff';
 import {
   DEFAULT_CLIMATE_SITE,
   type ClimateSite,
@@ -36,7 +36,7 @@ import type { MagicSuppression } from '../magic/Suppression';
  * (`CartesianZone`, `SphericalZone`, via `LocationZoneMixin`) and the
  * frames that hold no rooms (`Expanse`).
  */
-export abstract class SpatialZone extends Zone {
+export abstract class SpatialZone extends SiteMixin(Zone) {
   /**
    * The region fields the spawn sweep reads, all three off the ordinary
    * `lookupField` walk so a parent region's declaration covers its
@@ -70,9 +70,6 @@ export abstract class SpatialZone extends Zone {
     celestialProfile: { persistent: true, authorable: true },
     suppressesMagic: { persistent: true, authorable: true },
     horizon: { persistent: true, authorable: true },
-    // ⭐ The Structures standing in this region — an INSTRUCTION, applied
-    // as `props:` is: loading the zone loads them (`applyStructures`).
-    structures: { instruction: true, authorable: true },
     // ⭐ The region's GEOGRAPHY (the water and climate builds): where on
     // the world it is. On `Zone` until the climate build's review, which
     // offered a latitude to `/wiki` and to Animalia — see the block at
@@ -281,46 +278,23 @@ export abstract class SpatialZone extends Zone {
   }
 
   /**
-   * ⭐ **The Structures standing in this region** (maritime review,
-   * 2026-10-14 — replaces a boot-warmed catalogue of every structure row).
-   * Nothing is loaded at boot and nothing is found by searching: a zone
-   * NAMES what stands in it, and loading the zone loads them, exactly as a
-   * room's `props:` load with the room. So the clock tower exists once
-   * somebody is in the terminal's zone or can see into it, the Hesper once
-   * somebody is aboard or on her sea, and never before.
-   *
-   * Kicked, never awaited, here: a ship standing up reaches back for the
-   * sea it sails on, and a sea that awaited its ships inside its own load
-   * would wait on itself. A caller that must have them awaits
-   * {@link structuresLoaded}; a synchronous reader sees whichever are up.
+   * ⭐ **The Structures standing in this region** — the entries of
+   * `stands:` (`SiteMixin`) that answer the Structure shape. A zone NAMES
+   * what stands in it, and loading the zone loads them, exactly as a
+   * room's `props:` load with the room (maritime review, 2026-10-14; one
+   * list on any place since the scan sweep). A consumer narrowing its own
+   * answer, not a host guard: a zone may name a business or an
+   * institution beside its tower.
    */
-  private structurePaths: string[] = [];
-  private structuresLoading: Promise<void> | null = null;
-
-  public async applyStructures(paths: string[] | null): Promise<void> {
-    this.structurePaths = Array.isArray(paths) ? paths.map((p) => String(p)) : [];
-    const run = Promise.all(
-      this.structurePaths.map((p) =>
-        StuffApi.singleton<Stuff>(p).catch((err) => {
-          console.warn(`SpatialZone: '${this.getTemplatePath() ?? '?'}' names structure '${p}', which did not stand up:`, err);
-          return null;
-        }),
-      ),
-    ).then(() => undefined);
-    this.structuresLoading = run;
-  }
-
-  /** Resolves once every structure this zone names has been stood up. */
-  public structuresLoaded(): Promise<void> {
-    return this.structuresLoading ?? Promise.resolve();
-  }
-
-  /** The named structures that are standing now. */
-  public getStructures(): Structure[] {
+  public standingStructures(): Structure[] {
     const out: Structure[] = [];
-    for (const p of this.structurePaths) {
-      const s = StuffApi.findByTemplatePath<Structure>(p);
-      if (s && !s.isDestroyed()) out.push(s);
+    for (const s of this.standing()) {
+      // ⚠ A structural read, not `instanceof`: `Structure` composes the
+      // description mixins and a value import here closes a module cycle.
+      const c = s as Stuff & Partial<Pick<Structure, 'hasMember' | 'getExtent'>>;
+      if (typeof c.hasMember === 'function' && typeof c.getExtent === 'function') {
+        out.push(s as Stuff & Structure);
+      }
     }
     return out;
   }
@@ -332,7 +306,7 @@ export abstract class SpatialZone extends Zone {
    */
   public structureOf(locationPath: string): Structure | null {
     let best: Structure | null = null;
-    for (const s of this.getStructures()) {
+    for (const s of this.standingStructures()) {
       if (!s.hasMember(locationPath)) continue;
       if (best === null || s.getExtent().length > best.getExtent().length) best = s;
     }

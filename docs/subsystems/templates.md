@@ -595,6 +595,24 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     so the surface fixture must be listed before its resting
     items (the back-bar before its bottles). See
     [crafting.md](./crafting.md).
+  - ⭐ `applyStands` on `SiteMixin` (the scan sweep, 2026-10-14) — the
+    designation beside `props:`/`cast:` for what a PLACE loads that it
+    does not contain: its business, its tower, its institution. Each
+    path is `StuffApi.singleton`'d, **kicked, never awaited** (a ship
+    standing up reaches back for its sea); `standsLoaded()` is the
+    awaitable. Composed on `Location` and `SpatialZone`. See
+    [zone.md](./zone.md).
+
+⭐⭐ **The constituent step (phase 1).** A persistent field declared
+`ref: 'identity:constituent'` names what its holder is MADE OF (its
+species, material, biome). Before the field's setter runs, the applier
+awaits `StuffApi.ensureConstituent(path)` for every path the value
+carries (a string, an array, a map's values) — on mint, go-live AND
+restore — so a synchronous question about the holder never meets a cold
+row, and no catalogue or species row has to be booted to make that
+true. `ensureConstituent` walks the row's `extends:` ancestors first,
+skips a path already loading (a cycle or a concurrent load), and warns
+rather than throws. See [ref-shapes.md](../ref-shapes.md).
 
 The two shapes split apart cleanly: properties have symmetric shape
 and storage IS the value; instructions are commands whose outcome

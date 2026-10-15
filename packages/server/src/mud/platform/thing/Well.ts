@@ -58,7 +58,7 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
 
   static fieldMeta: FieldMeta = {
     depthM: { persistent: true, authorable: true },
-    standing: { persistent: true, authorable: true, ref: 'identity' },
+    standing: { persistent: true, authorable: true, ref: 'identity:constituent' },
   };
 
   /** Sideways: anyone at the well can try its handle. */

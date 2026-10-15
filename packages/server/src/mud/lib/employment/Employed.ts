@@ -319,7 +319,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       employments: { persistent: true, runtimeState: true },
-      institution: { ref: 'identity', persistent: true, authorable: true },
+      institution: { ref: 'identity:relation', persistent: true, authorable: true },
     };
 
     /**

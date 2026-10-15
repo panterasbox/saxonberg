@@ -116,16 +116,20 @@ CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
   gridded zone answers as cell size × its grid's span). A height is a
   zone with its own `elevation` (the estuary's headland). See
   [expanse.md § Perception at range](./expanse.md).
-  ⭐⭐ **`structures:` — what stands in this region, loaded with it**
-  (maritime review, 2026-10-14). An INSTRUCTION field, applied as a
-  room's `props:` is: loading the zone stands up the Structures it names
-  (`applyStructures`, kicked not awaited; `structuresLoaded()` for an
-  async caller), and `structureOf(path)` answers which one a room is in
-  (the innermost extent). And **what a place can see loads with the
-  place**: when a `LocationZone` gets a room, the zones and seas its
-  `horizon` names are stood up (`lookOutFrom`) — never at boot, never by
-  search, and never cascading (a zone stood up only because somebody can
-  SEE it has no room, so it never looks out itself).
+  ⭐⭐ **`stands:` — what stands in this region, loaded with it**
+  (maritime review as `structures:`, 2026-10-14; one list on ANY place
+  since the scan sweep — `SiteMixin`, composed on `Location` and
+  `SpatialZone`). An INSTRUCTION field, applied as a room's `props:` is:
+  loading the place stands up the singletons it names — a tower, a
+  business, an institution, a fixture that seats itself — kicked not
+  awaited (`standsLoaded()` for an async caller, `standing()` the live
+  read), and `structureOf(path)` answers which Structure a room is in
+  (the innermost extent, over `standingStructures()`). And **what a
+  place can see loads with the place**: when a `LocationZone` gets a
+  room, the zones and seas its `horizon` names are stood up
+  (`lookOutFrom`) — never at boot, never by search, and never cascading
+  (a zone stood up only because somebody can SEE it has no room, so it
+  never looks out itself).
   `CartesianZone` and `SphericalZone` extend this — not `Zone`
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.

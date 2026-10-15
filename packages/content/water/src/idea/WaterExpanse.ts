@@ -200,7 +200,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       // The place's own zone names the craft it belongs to (maritime
       // review, 2026-10-14 — never a catalogue of every structure).
       const zone = place.getZone();
-      if (zone) await zone.structuresLoaded();
+      if (zone) await zone.standsLoaded();
       const craft = zone?.structureOf(path) ?? null;
       this.craftOfPlace.set(path, craft?.getTemplatePath() ?? '');
     } catch {

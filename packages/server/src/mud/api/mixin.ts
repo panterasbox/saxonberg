@@ -135,6 +135,7 @@ import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Attired } from '../lib/slot/Attired';
+import type { Site } from '../lib/stuff/Site';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
 import type {
@@ -1649,6 +1650,11 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Cut);
   }
 
+  /** ⭐ A place that names what STANDS with it (`stands:`) — see Site.ts. */
+  public static isSite(obj: Stuff): obj is Stuff & Site {
+    return this.hasMixin(obj, Mixins.Site);
+  }
+
   public static isPersistable(obj: Stuff): obj is Stuff & Persistable {
     return this.hasMixin(obj, Mixins.Persistable);
   }
@@ -2396,7 +2402,7 @@ export class MixinApi {
             `(an IDENTITY ref with persistent: true is the normal case)`
         );
       }
-      if (entry.ref === 'identity' && entry.lifetime) {
+      if (entry.ref?.startsWith('identity') && entry.lifetime) {
         fail(
           field,
           `an identity ref takes no lifetime — it re-resolves from its ` +

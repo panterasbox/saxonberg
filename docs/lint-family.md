@@ -1792,6 +1792,35 @@ for its latitude* is the zone's `climateOffsetK`. (The runtime half:
 `BiomeCatalogue.warm()` now COUNTS a row that fails to stand up and
 files an author diagnostic for it, rather than a `console.warn`.)
 
+### ⭐⭐ `lint:boot-entries` + `lint:template-scans` — load on use (the scan sweep, 2026-10)
+
+The house rule: **content loads when a player's act forces it, by
+following authored references from what is already loaded — never by
+searching the template table, and never at boot unless the reason is
+written down and holds.** Two gates hold the two ways round it.
+
+- **`lint:boot-entries`** reads every pack's manifest `boot:` list. (a)
+  The total is a ceiling (128 at landing). (b) Every entry has a
+  `reason`. (c) An entry whose template is CONTENT (`/world/`,
+  `/trade/`, `/corpo/`, `/compact/`) must cite `unobserved-economy` —
+  the houses whose NPCs act with nobody present are the only content
+  that stays booted (→ `unobserved-economy-slate`); the count that do
+  not is its own burn-down to zero. `--list` prints the roster.
+- **`lint:template-scans`** censuses every
+  `Template.findByClass|findByPathInfix|findWhereDataHas|findDescendants|findByPathGlob`
+  call in the kernel and every pack's `src/`. Each surviving site is an
+  `ALLOWLIST` entry with its reason (the location graph, author tooling,
+  the installer, a dictionary's own lazy warm, a system compiling its
+  own index); a new one fails, and an allowance above what a file holds
+  is stale.
+
+⭐ **The lesson both encode: a search, or a boot entry, is what a
+reference pointing the WRONG WAY forces.** *Which business operates this
+room?* is a scan of every business; *this room names its house*
+(`stands:`) is a read. *Is this species sentient?* on a cold world is a
+boot entry; *an animal loads what it is made of* (`identity:constituent`)
+is not. Flip the reference and the scan and the entry both go.
+
 ## Where the family runs
 
 | moment | what runs |

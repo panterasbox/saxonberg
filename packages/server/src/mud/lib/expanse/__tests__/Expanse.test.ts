@@ -171,7 +171,7 @@ describe('ExpanseApi.craftAt', () => {
     live.set('/test/ship/structure', ship);
     // ⭐ The place's own ZONE names the ship — no catalogue, no search.
     const zone = makeStuffAtPath(() => new TestZone(), '/test/ship');
-    await zone.applyStructures(['/test/ship/structure']);
+    await zone.applyStands(['/test/ship/structure']);
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockImplementation((async (p: string) =>
       (p.startsWith('/test/ship/') ? zone : null)) as never);
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
@@ -234,8 +234,8 @@ describe('the weather on the water (maritime R9/R10)', () => {
     live.set('/test/ship/deck', { getZone: () => zone, isDestroyed: () => false } as unknown as Stuff);
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: the zone names nothing yet
-    await zone.applyStructures(['/test/ship/structure']);
-    await zone.structuresLoaded();
+    await zone.applyStands(['/test/ship/structure']);
+    await zone.standsLoaded();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
     await sea.bands();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });

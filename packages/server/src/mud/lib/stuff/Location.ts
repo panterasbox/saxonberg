@@ -20,6 +20,7 @@
  *   getFixtureBoundaries(), getFixtureLightSources() (from AdornableMixin)
  */
 
+import { SiteMixin } from './Site';
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
@@ -158,13 +159,20 @@ export interface FloorDefaults {
 // three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
-const LocationBase = AddressableMixin(
-  AmbientLitMixin(
-    AtmosphericMixin(
-      AdornableMixin(
-        ContainerMixin(
-          VisibleMixin(
-            DetailedMixin(PerceptibleMixin(Stuff)),
+//
+// ⭐ `SiteMixin` is the OUTERMOST layer (the scan sweep, 2026-10-14): every
+// place may name the non-contained singletons that stand with it
+// (`stands:` — its business, its institution). Outermost so the inference
+// of the eight-deep chain below is untouched.
+const LocationBase = SiteMixin(
+  AddressableMixin(
+    AmbientLitMixin(
+      AtmosphericMixin(
+        AdornableMixin(
+          ContainerMixin(
+            VisibleMixin(
+              DetailedMixin(PerceptibleMixin(Stuff)),
+            ),
           ),
         ),
       ),
