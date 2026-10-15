@@ -43,6 +43,7 @@
 import { Warren } from './Warren';
 import { PlatPlan } from './PlatPlan';
 import { StuffApi } from '../../api/stuff';
+import { ZoneApi } from '../../api/zone';
 import { AppApi } from '../../api/app';
 import { ParcelApi } from '../../api/parcel';
 import { PersistableApi } from '../../api/persistable';
@@ -94,19 +95,6 @@ interface HoldingView {
 interface WarrenMemberView {
   getWarren?: () => HoldingView | null | undefined;
 }
-
-/**
- * The residence system's roster, met over a **path and a shape** — never
- * an import. The `TravelNode` precedent: the kernel knows there is such
- * a thing as a residence catalogue and what one question of it looks
- * like; the catalogue itself is a capability pack's.
- */
-interface ResidenceCatalogueView {
-  institutionsCovering?: (key: string) => Promise<Stuff[]>;
-}
-
-/** Where the residence pack's roster stands, if the pack is installed. */
-const RESIDENCE_CATALOGUE_PATH = '/system/residence/idea/ResidenceCatalogue';
 
 export abstract class OuterWarren extends Warren {
   static fieldMeta: FieldMeta = {
@@ -374,10 +362,10 @@ export abstract class OuterWarren extends Warren {
   }
 
   /**
-   * Re-enter a keyed room from a captured placement: find the resident
-   * institution whose parent extent prefixes the key (the boot roster —
-   * every institution boots as a producer), admit the holding, and
-   * resolve the specific room. The log-out-in-your-yard seam
+   * Re-enter a keyed room from a captured placement: find the
+   * institution whose parent extent prefixes the key (the zone over the
+   * key names it in `stands:` — nothing is booted), admit the holding,
+   * and resolve the specific room. The log-out-in-your-yard seam
    * (residences D16); null when no institution covers the key.
    */
   public static async admitFor(
@@ -402,24 +390,38 @@ export abstract class OuterWarren extends Warren {
   }
 
   /**
-   * The residence roster's answer to *which institutions claim this
-   * key*, innermost first — or nothing at all when the residence pack
-   * is not installed, which is a realm with no holdings and therefore
-   * the honest empty answer.
+   * ⭐ *Which institutions claim this key*, innermost first — asked of the
+   * PLACE (the scan sweep, 2026-10-14). The zone over the key names its
+   * institution in `stands:` (Duncan Hall its dorm warren, Seznick House
+   * its building, Hinkley Hills its plat book); the walk stands each zone
+   * on the key's ancestry up, awaits what it names, and keeps the warrens
+   * whose parent extent prefixes the key. It used to ask a pack's
+   * catalogue, which found the institutions by a scan of the template
+   * table and could only answer for the ones that were BOOTED.
    */
   private static async institutionsCovering(
     key: string,
   ): Promise<OuterWarren[]> {
-    let catalogue: Stuff | null = null;
-    try {
-      catalogue = await StuffApi.singleton<Stuff>(RESIDENCE_CATALOGUE_PATH);
-    } catch {
-      return [];
+    const out: OuterWarren[] = [];
+    let probe = key;
+    for (let depth = 0; depth < 32 && probe.length > 0; depth += 1) {
+      const zone = await ZoneApi.resolveZoneForPath(probe);
+      if (!zone) break;
+      await zone.standsLoaded();
+      for (const s of zone.standing()) {
+        if (!(s instanceof OuterWarren) || out.includes(s)) continue;
+        const parent = s.getParentExtent();
+        if (parent && key.startsWith(parent + '/')) out.push(s);
+      }
+      const at = zone.getTemplatePath() ?? '';
+      const up = at.slice(0, at.lastIndexOf('/'));
+      if (up.length === 0 || up === at) break;
+      probe = up;
     }
-    const view = catalogue as unknown as ResidenceCatalogueView;
-    if (typeof view.institutionsCovering !== 'function') return [];
-    const found = await view.institutionsCovering(key);
-    return found.filter((w): w is OuterWarren => w instanceof OuterWarren);
+    out.sort(
+      (a, b) => (b.getParentExtent() ?? '').length - (a.getParentExtent() ?? '').length,
+    );
+    return out;
   }
 
   /**

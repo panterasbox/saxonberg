@@ -117,8 +117,10 @@ export class SoulLogic extends ApiLogic {
    */
   @CallSecurity(SoulApiCallers)
   public async snapshot(): Promise<EmoteCatalogueEntry[]> {
-    const cat =
-      catalogueRef ?? StuffApi.findByTemplatePath<SoulCatalogue>(CATALOGUE_PATH);
+    // ⭐ Logging in is the act that wants the palette, so it loads it (the
+    // scan sweep: the emote dictionary is not booted). A world with no
+    // catalogue row still answers `[]`.
+    const cat = await requireCatalogue().catch(() => null);
     if (!cat) return [];
     return cat.snapshot();
   }

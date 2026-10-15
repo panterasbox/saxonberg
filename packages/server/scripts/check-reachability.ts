@@ -521,6 +521,7 @@ export function articleShapesOf(doc: {
  */
 const FAUCETS: Record<string, string> = {
   props: "born-with placement — the row is cloned into the place",
+  stands: "what stands with a place (the scan sweep) — loading the place stands the singleton up",
   template: "the `{template, as}` entry form of props/cast, and floor/residue entries",
   cast: "born-with agents; kept here so an agent-shaped thing row still counts",
   itemTemplatePath: "a counter's stockLines — the shop clones it to par",
@@ -572,6 +573,7 @@ const CITATIONS: Record<string, string> = {
   class: "a class path, not a row",
   classPath: "a class path, not a row",
   operatingLocations: "a business lists where it trades; it clones nothing",
+  works: "a reach names the works on it — read live or from the row, never placed (the scan sweep)",
   exemplar: "a par line's example good — it arrives by purchase, not by minting",
   mainsRef: "the line a device is wired to",
   suppliedBy: "the main a tap is plumbed to — read live, never placed (the pump build)",

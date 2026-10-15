@@ -1244,9 +1244,9 @@ Thirty-eight rows over **fifty-eight** packs (`arcane-descriptors` folded into
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack; the TPA reform added **tpa**, the first pack
 to ship a `src/lib/`; textiles added trade-textiles, trade-dyeing and
-trade-tailoring; the world-scan build gave **residence** a
-`ResidenceCatalogue` and the `maintains` brain in its own
-`src/behavior/`; forestry added **trade-forestry** — a capability pack
+trade-tailoring; the world-scan build gave **residence** the `maintains` brain in its own
+`src/behavior/` (and a `ResidenceCatalogue` the scan sweep retired — the
+zone names its institution now); forestry added **trade-forestry** — a capability pack
 whose `src/lib/Stand.ts` is a pack-owned mixin composed by a pack-owned
 LOCATION class, `Wood`, that a venue's rows name with no code of their
 own — see [forestry.md](./forestry.md)); trades-and-labor added

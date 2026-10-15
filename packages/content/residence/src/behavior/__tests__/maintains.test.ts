@@ -27,9 +27,8 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from '../../idea/ResidenceCatalogue';
+import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import type { SpatialZone } from '@saxonberg/server/mud/lib/zone/SpatialZone';
 import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -110,14 +109,17 @@ class TestInstitution extends OuterWarren {
 }
 
 /**
- * The roster, standing at its real path, with only its ROW DERIVATION
- * replaced — `holdingsUnder`'s extent filter is the shipped one.
+ * ⭐ The zone over the extent names its institution in `stands:` (the
+ * scan sweep) — so the zone is the fixture, and `holdingsUnder`'s extent
+ * filter is the shipped one.
  */
-class TestCatalogue extends ResidenceCatalogue {
-  public roster: OuterWarren[] = [];
-  override async institutions(): Promise<OuterWarren[]> {
-    return this.roster;
-  }
+function zoneStanding(institutions: OuterWarren[]): void {
+  const zone = {
+    standsLoaded: async () => undefined,
+    standing: () => institutions,
+    getTemplatePath: () => '/world',
+  } as unknown as SpatialZone;
+  vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(zone);
 }
 
 let institution: TestInstitution;
@@ -166,11 +168,7 @@ beforeEach(() => {
   StuffApi.clearAll();
   issued = [];
   institution = makeStuff(() => new TestInstitution());
-  const catalogue = makeStuffAtPath(
-    () => new TestCatalogue(),
-    RESIDENCE_CATALOGUE_PATH,
-  );
-  catalogue.roster = [institution as unknown as OuterWarren];
+  zoneStanding([institution as unknown as OuterWarren]);
 });
 
 /**

@@ -108,7 +108,6 @@ boot:
   # when somebody is aboard or on the Greywater. A ship under way that
   # nobody can see is not sailing anywhere a player could tell; her voyage
   # is worked out when she next loads.
-  - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the
   # avenue is a PLACE, so the locality holds it. Everything IN it is
   # still the distilling trade's — the racking, the counter, the clerk.

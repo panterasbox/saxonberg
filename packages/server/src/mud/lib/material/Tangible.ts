@@ -147,8 +147,8 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `fromStored` and only runs on the persistence path.
      */
     static fieldMeta: FieldMeta = {
-      _materialPath: { persistent: true, authorable: true, authorPicker: 'Material' },
-      _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material' },
+      _materialPath: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
+      _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg'), authorable: true },
     };
 

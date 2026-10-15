@@ -27,5 +27,9 @@
 # Found by booting the metal-chain build against a real database.
 class: /platform/idea/location/CartesianZone
 data:
+  # ⭐ What stands with this place: loading it stands its house up
+  # (the scan sweep — nothing is booted to make a house live).
+  stands:
+    - /world/terminus/mayfield-row/seznick-house/building
   name: Seznick House
   cellSize: 3.0

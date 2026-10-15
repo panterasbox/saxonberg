@@ -839,7 +839,7 @@ export interface PriceIndex {
  * journalism, never an oracle: a shop following a stocking rule is still a
  * party posting a price. A basket nobody stocks reads par.
  */
-function priceIndexImpl(): PriceIndex {
+async function priceIndexImpl(): Promise<PriceIndex> {
   const raw = (() => {
     try {
       return AppApi.setting(AppSettingKeys.reserveIndexBasket) || "";
@@ -850,7 +850,13 @@ function priceIndexImpl(): PriceIndex {
   const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   const lines: PriceIndex["lines"] = [];
   for (const path of counters) {
-    const counter = StuffApi.findByTemplatePath(path);
+    // ⭐ The basket NAMES its counters, and computing the index stands each
+    // one up (the scan sweep, 2026-10-14) — a counter self-places through
+    // its row, so its room comes too (accepted: a basket of a few). It used
+    // to read only the counters somebody had already loaded.
+    const counter =
+      StuffApi.findByTemplatePath(path) ??
+      (await StuffApi.singleton(path).catch(() => null));
     if (!counter || !MixinApi.isPricedOffer(counter)) continue;
     for (const key of counter.pricedKeys()) {
       const base = counter.basePriceFor(key);
@@ -2547,7 +2553,7 @@ export class BankingLogic extends ApiLogic {
 
   /** See {@link BankingApi.priceIndex}. */
   @CallSecurity(BankingApiCallers)
-  public priceIndex(): PriceIndex {
+  public priceIndex(): Promise<PriceIndex> {
     return priceIndexImpl();
   }
 

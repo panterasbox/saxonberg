@@ -17,6 +17,7 @@
  * each read (HMR-safe, no cached instance).
  */
 
+import { StuffApi } from '../../api/stuff';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Construction } from './Construction';
 import { Channels } from './Channel';
@@ -29,12 +30,15 @@ import type { Stuff } from '../stuff/Stuff';
 export interface Constructed {
   /** The persisted form word (e.g. `'plate'`). Host/persist surface. */
   getConstructionForm(): string;
-  setConstructionForm(value: string): void;
+  setConstructionForm(value: string): Promise<void>;
   /** The construction as a value-object, or `null` when unset. The
    * inter-Stuff contract. */
   getConstruction(): Construction | null;
   setConstruction(value: Construction): void;
 }
+
+/** The fabric roster's row — registers the textile forms when it stands. */
+const FABRIC_CATALOGUE_PATH = '/platform/idea/FabricCatalogue';
 
 export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConstructedMixin extends Base implements Constructed {
@@ -53,7 +57,13 @@ export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.constructionForm;
     }
 
-    setConstructionForm(value: string): void {
+    async setConstructionForm(value: string): Promise<void> {
+      // ⭐ A form word this process has not met warms the fabric roster
+      // once (the scan sweep — the catalogue is not booted): a row that
+      // cites `woven` loads what woven IS. Still an invariant afterwards.
+      if (value !== '' && !Construction.isForm(value)) {
+        await StuffApi.singleton(FABRIC_CATALOGUE_PATH).catch(() => null);
+      }
       if (value !== '' && !Construction.isForm(value)) {
         throw new RangeError(
           `ConstructedMixin.setConstructionForm: unknown form '${value}'`,

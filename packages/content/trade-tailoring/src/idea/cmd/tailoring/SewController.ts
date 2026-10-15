@@ -111,7 +111,7 @@ async function finish(
     }
     if (MixinApi.isConstructed(garment) && MixinApi.isConstructed(pieces)) {
       const form = pieces.getConstructionForm();
-      if (form) garment.setConstructionForm(form);
+      if (form) await garment.setConstructionForm(form);
     }
     if (MixinApi.isWearable(garment) && MixinApi.isWearable(pieces)) {
       const cut = pieces.getCutTo();

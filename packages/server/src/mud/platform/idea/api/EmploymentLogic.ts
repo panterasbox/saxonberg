@@ -298,9 +298,9 @@ function holdsPositionImpl(
  * to nothing — or to something that is not an organization — simply ends
  * the chain: that is a gap, not a contradiction.
  */
-function organizationChainOfImpl(
+async function organizationChainOfImpl(
   organization: OrganizationStuff,
-): OrganizationStuff[] {
+): Promise<OrganizationStuff[]> {
   const out: OrganizationStuff[] = [];
   const seen = new Set<string>([organization.getOrganizationPath()]);
   let current: OrganizationStuff = organization;
@@ -314,7 +314,11 @@ function organizationChainOfImpl(
       );
     }
     seen.add(parentPath);
-    const parent = StuffApi.findByTemplatePath(parentPath);
+    // ⭐ A relation resolved at the act (the scan sweep): the parent
+    // organization stands up when somebody asks — it is not booted.
+    const parent =
+      StuffApi.findByTemplatePath(parentPath) ??
+      (await StuffApi.singleton(parentPath).catch(() => null));
     if (!parent || !MixinApi.isOrganization(parent)) return out;
     out.push(parent);
     current = parent;
@@ -613,7 +617,10 @@ async function endEmploymentImpl(
   status: 'fired' | 'quit' | 'vacated',
 ): Promise<void> {
   if (!MixinApi.isEmployed(actor)) return;
-  const organization = StuffApi.findByTemplatePath(organizationPath);
+  const organization =
+    StuffApi.findByTemplatePath(organizationPath) ??
+    // A relation resolved at the act (the scan sweep): not booted.
+    (await StuffApi.singleton(organizationPath).catch(() => null));
   if (organization && MixinApi.hasMixin(organization, Mixins.Organization)) {
     (organization as OrganizationStuff).endEmployment(
       actor as EmployedActor,
@@ -1750,7 +1757,7 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(OrgCallers)
   public organizationChainOf(
     organization: OrganizationStuff,
-  ): OrganizationStuff[] {
+  ): Promise<OrganizationStuff[]> {
     return organizationChainOfImpl(organization);
   }
 
@@ -1867,7 +1874,9 @@ export class EmploymentLogic extends ApiLogic {
       };
     }
     const employment = onPremises[0]!;
-    const business = StuffApi.findByTemplatePath(employment.organizationPath);
+    const business =
+      StuffApi.findByTemplatePath(employment.organizationPath) ??
+      (await StuffApi.singleton(employment.organizationPath).catch(() => null));
     if (!business || !MixinApi.isBusiness(business)) {
       return { ok: false, reason: 'not-employed-here' };
     }

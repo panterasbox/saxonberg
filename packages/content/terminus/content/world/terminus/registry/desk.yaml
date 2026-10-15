@@ -4,6 +4,9 @@
 # records office) is a populated row and no code change.
 class: /system/residence/thing/DeedDesk
 data:
+  # ⭐ The plat books fronted here (the scan sweep — named, never searched for).
+  books:
+    - /world/terminus/hinkley-hills/idea/plat-book
   shortDescription: deed desk
   keywords: [desk, counter, book, plat, deed]
   register: definite

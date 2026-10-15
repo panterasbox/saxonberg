@@ -144,7 +144,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The age line an old body shows on `look`. See {@link ageAugmenter}. */
     static markupAugmenters: MarkupAugmenter[] = [ageAugmenter];
     static fieldMeta: FieldMeta = {
-      _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
+      _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species', ref: 'identity:constituent' },
       bornAt: { persistent: true, authorable: true },
       diedAt: { persistent: true },
       lifecycleState: { persistent: true, runtimeState: true },

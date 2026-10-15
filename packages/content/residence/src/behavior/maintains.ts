@@ -44,9 +44,8 @@ import type {
   BrainContext,
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
-import ResidenceCatalogue, {
-  RESIDENCE_CATALOGUE_PATH,
-} from '../idea/ResidenceCatalogue';
+import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 
 const DEFAULT_BATCH = 3;
 
@@ -119,36 +118,47 @@ export const brain = class {
 /**
  * Every live holding programme whose key sits under `extent`.
  *
- * ⭐ Asked of the residence system's own roster. It used to be asked of
- * the WORLD, by class name in a string — every live object read and
- * filtered, once per property manager per cadence, from a kernel file
- * naming a pack's class. Both halves of that are fixed by the brain
- * living where its subject does.
+ * ⭐ Asked of the zone over the extent (the scan sweep, 2026-10-14). It
+ * was asked of the WORLD by class name, then of a catalogue that found
+ * the institutions by a scan of the template table.
  *
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
 async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   const out: HoldingShape[] = [];
-  let found: Stuff[] = [];
-  try {
-    const catalogue = await StuffApi.singleton<ResidenceCatalogue>(
-      RESIDENCE_CATALOGUE_PATH,
-    );
-    found = await catalogue.holdingsUnder(extent);
-  } catch {
-    return out;
-  }
-  for (const s of found) {
-    const h = s as unknown as Partial<HoldingShape>;
-    if (
-      typeof h.holdingKey !== 'function' ||
-      typeof h.conditionBand !== 'function' ||
-      typeof h.entryRoom !== 'function'
-    ) {
-      continue;
+  // ⭐ Asked of the PLACE (the scan sweep): the zone over the extent names
+  // its institution in `stands:`, and the walk up the extent's ancestry
+  // stands each zone and awaits what it names. An institution that is not
+  // standing has no live holdings to mind.
+  const institutions: OuterWarren[] = [];
+  let probe = extent;
+  for (let depth = 0; depth < 32 && probe.length > 0; depth += 1) {
+    const zone = await ZoneApi.resolveZoneForPath(probe);
+    if (!zone) break;
+    await zone.standsLoaded();
+    for (const s of zone.standing()) {
+      if (s instanceof OuterWarren && !institutions.includes(s)) institutions.push(s);
     }
-    out.push(h as HoldingShape);
+    const at = zone.getTemplatePath() ?? '';
+    const up = at.slice(0, at.lastIndexOf('/'));
+    if (up.length === 0 || up === at) break;
+    probe = up;
+  }
+  for (const institution of institutions) {
+    for (const s of institution.holdings()) {
+      const h = s as unknown as Partial<HoldingShape>;
+      if (
+        typeof h.holdingKey !== 'function' ||
+        typeof h.conditionBand !== 'function' ||
+        typeof h.entryRoom !== 'function'
+      ) {
+        continue;
+      }
+      const key = h.holdingKey();
+      if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
+      out.push(h as HoldingShape);
+    }
   }
   return out;
 }

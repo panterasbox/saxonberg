@@ -76,7 +76,7 @@ export default class Herdbook extends HerdbookBase {
   static fieldMeta: FieldMeta = {
     herdId: { persistent: true, authorable: true },
     herdName: { persistent: true, authorable: true },
-    speciesPath: { persistent: true, authorable: true },
+    speciesPath: { persistent: true, authorable: true, ref: 'identity:constituent' },
     tally: { persistent: true, authorable: true },
     foundingMeanAgeDays: { persistent: true, authorable: true },
     holderRef: { persistent: true, authorable: true },

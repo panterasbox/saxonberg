@@ -72,7 +72,10 @@ export default class ApplyController extends CommandController<ApplyModel> {
     }
 
     const opening = openings[0]!;
-    const house = StuffApi.findByTemplatePath(opening.organizationPath);
+    const house =
+      StuffApi.findByTemplatePath(opening.organizationPath) ??
+      // A relation resolved at the act (the scan sweep): not booted.
+      (await StuffApi.singleton(opening.organizationPath).catch(() => null));
     if (!house || !MixinApi.isOrganization(house)) {
       return this.fail(context, "That house isn't hiring.", 'no-opening');
     }

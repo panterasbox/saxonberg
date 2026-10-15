@@ -73,10 +73,10 @@ const data = (rel: string): Record<string, unknown> =>
  * them — so the catalogue compiles the REAL geography.
  */
 /**
- * ⚠ Module-scoped so a fixture can add to it. A water work is found by
- * its `content` row naming a waterwork class — that is how the
- * catalogue finds the city's conduits without walking the world — so a
- * conduit standing with no row is, correctly, invisible to the river.
+ * ⚠ Module-scoped so a fixture can add to it. A water work is found
+ * because a REACH NAMES it (`works:` on the node), and read live when it
+ * stands — so a conduit standing where no reach names it is, correctly,
+ * invisible to the river.
  */
 let store: Array<Record<string, unknown> & { path: string }> = [];
 
@@ -151,9 +151,10 @@ function fromRow<T extends Stuff>(
 ): T {
   seq += 1;
   const d = data(rel);
-  const path = `/world/_watershed-test/${seq}`;
-  // Give it the row the installer would have written, so the
-  // catalogue's roster finds it exactly as it finds the shipped ones.
+  // ⭐ At its SHIPPED path: the reach names its works (the scan sweep), so
+  // a work stands where the river expects it or the river never feels it.
+  const path = `/${rel.replace(/\.yaml$/, '')}`;
+  // Give it the row the installer would have written.
   store.push({
     _id: `w-${seq}`,
     path,

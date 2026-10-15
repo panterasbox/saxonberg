@@ -33,10 +33,10 @@ describe('ConstructedMixin', () => {
     expect(t.getConstruction()!.isWeapon()).toBe(true);
   });
 
-  it('validates the form on set (empty clears)', () => {
+  it('validates the form on set (empty clears)', async () => {
     const t = makeStuff(() => new ConstructedThing());
-    expect(() => t.setConstructionForm('nonsense')).toThrow(RangeError);
-    t.setConstructionForm('');
+    await expect(t.setConstructionForm('nonsense')).rejects.toThrow(RangeError);
+    await t.setConstructionForm('');
     expect(t.getConstruction()).toBeNull();
   });
 });

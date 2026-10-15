@@ -352,19 +352,16 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
     ]);
   });
 
-  it('⚠⚠ a cited biome that nothing cloned resolves to NULL — and the floor reads indoors', async () => {
-    // ⭐⭐ **This is the diagnosis of the drive's finding, as a test.**
-    // `Atmospheric.getBiome()` is an identity ref resolved on read through
-    // `BiomeApi.findByPath` → `StuffApi.findByTemplatePath` — a REGISTRY
-    // read with **no get-or-create**. So a room whose row cites a biome
-    // nobody has instantiated answers `null` forever, `isSkyExposed` answers
-    // `false` (its documented behaviour when no biome resolves), and the
-    // floor takes the indoor default. That is the *reference Ideas inert at
-    // boot* shape, which this repo has recorded three times before, and it
-    // is why five outdoor rooms in the booted world read as oak boards.
+  it('⭐⭐ a cited biome loads WITH the room — and the floor is on grade (the scan sweep)', async () => {
+    // This was the drive's finding: `getBiome()` is a registry read with no
+    // get-or-create, so a room citing a biome nobody had instantiated read
+    // `null` forever and five outdoor rooms read as oak boards. ⭐ Since the
+    // scan sweep the biome is a CONSTITUENT of the room (`_biomePath`,
+    // `identity:constituent`): the applier loads it before the room exists,
+    // so nothing has to be booted and nothing has to remember to warm it.
     const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
-    expect(room.getBiome()).toBeNull();
-    expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(false);
+    expect(room.getBiome()).not.toBeNull();
+    expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(true);
   });
 
   it('⭐ …and once the biome EXISTS, the same room is on grade', async () => {

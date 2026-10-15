@@ -782,11 +782,11 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'bulkMaterial',
   'carriedSpellPath', 'charMaterialPath', 'charter',
   'container', 'departments', 'dropDestination', 'effects',
-  'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
+  'feedPath', 'growsIntoPath', 'harvestTemplatePath',
   'lobbyPath', 'makerId', 'parLines',
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
-  'steepsInto', 'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
   'warren',
 ];
 

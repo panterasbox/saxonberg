@@ -638,8 +638,8 @@ has a mixin composition, so `byMixin` describes the type system, not one
 subsystem's content. That is the test for any future one: *does this
 describe every object, or does it describe my feature?* ⛔ A
 `byClassName` index was rejected on exactly that test, so the
-`[class.X]` readers went to their owners' rosters (`residence.md §
-ResidenceCatalogue`, `antipatterns.md § Bespoke Object-Search
+`[class.X]` readers went to their owners (`residence.md § The PLACE
+names its institution`, `antipatterns.md § Bespoke Object-Search
 Algorithms`). The index is cheap because `hasMixin` is a pure function
 of the constructor: `MixinApi` memoizes the lowercased name set per
 class (`#lowercaseMemo`, a `WeakMap` keyed on the ctor), so the bucket

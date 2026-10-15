@@ -115,30 +115,30 @@ describe('organization parentage', () => {
     StuffApi.clearAll();
   });
 
-  it('walks the enclosing organizations, nearest parent first', () => {
+  it('walks the enclosing organizations, nearest parent first', async () => {
     const parent = makeStuffAtPath(() => new OrganizationEntity(), PMO);
     const child = makeStuffAtPath(() => new OrganizationEntity(), COMPACT);
     child.parentOrganization = PMO;
 
     expect(child.getParentOrganizationPath()).toBe(PMO);
     expect(
-      child.organizationChain().map((o) => o.getTemplatePath()),
+      (await child.organizationChain()).map((o) => o.getTemplatePath()),
     ).toEqual([PMO]);
-    expect(parent.organizationChain()).toEqual([]);
+    expect(await parent.organizationChain()).toEqual([]);
   });
 
-  it('ends the chain on a parent that does not resolve', () => {
+  it('ends the chain on a parent whose row does not stand up', async () => {
     const child = makeStuffAtPath(() => new OrganizationEntity(), COMPACT);
     child.parentOrganization = '/compact/never-stood-up';
-    expect(child.organizationChain()).toEqual([]);
+    expect(await child.organizationChain()).toEqual([]);
   });
 
-  it('⚠ refuses a parent cycle at read rather than looping', () => {
+  it('⚠ refuses a parent cycle at read rather than looping', async () => {
     const a = makeStuffAtPath(() => new OrganizationEntity(), PMO);
     const b = makeStuffAtPath(() => new OrganizationEntity(), COMPACT);
     a.parentOrganization = COMPACT;
     b.parentOrganization = PMO;
-    expect(() => a.organizationChain()).toThrowError(/cycle/);
+    await expect(a.organizationChain()).rejects.toThrowError(/cycle/);
 
     // ...including a self-parenting organization.
     const solo = makeStuffAtPath(
@@ -146,8 +146,6 @@ describe('organization parentage', () => {
       '/compact/solo',
     );
     solo.parentOrganization = '/compact/solo';
-    expect(() => solo.organizationChain()).toThrowError(
-      /cycle/,
-    );
+    await expect(solo.organizationChain()).rejects.toThrowError(/cycle/);
   });
 });
