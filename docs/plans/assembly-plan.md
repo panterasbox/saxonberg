@@ -1899,6 +1899,19 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 30 (2026-10-14), after D18 (the browser walk's fixes): 23 / 23
+green**, the restart included — the D16 dowel checkpoint now also asserts
+no cup, a part-sized mass and a HELD `repair` at the sawmill. Then a
+second **browser** walk on a fresh world confirmed the two fixes a player
+sees: a dowel carved from a sawn board reads *"It was sawn: the saw ran
+across its fibres…"*, weighs 0.08 kg and has no cup; a drop spindle
+raised and HELD in the general store (no anvil, no tool) answers `repair
+spindle`.
+
+**The browser walk (2026-10-14)** — the build's first: a fresh world, the
+real client, a funded player through the general store, the timber yard,
+the fuel yard, the smithy and the sawmill. What it found is D18.
+
 **Run 29 (2026-10-14), after D17 (only a straight grain rives): 23 / 23
 green**, the restart included; available memory sampled every 30 s never
 fell below 3.6 GB. Run 28 on the same tree was 14/23: the server stopped
