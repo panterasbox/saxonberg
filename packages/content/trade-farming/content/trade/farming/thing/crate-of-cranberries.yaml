@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:cranberry
   shortDescription: crate of cranberries
-  keywords: [cranberries, crate, cranberry, produce]
+  keywords: [cranberries, crate, cranberry, produce, "crate of cranberries"]
   register: indefinite
   longDescription: A slatted wooden crate of cranberries, the grower's stencil on the side.
-  censusKey: produce:cranberry
-  regionTarget: 4
   materialTags: [produce, cranberry]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/cranberry, count: 12 }

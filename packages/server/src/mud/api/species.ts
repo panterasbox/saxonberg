@@ -112,6 +112,9 @@ export class SpeciesApi {
    * it, no consent/blame), while a sentient target is only *defeated* by
    * it — death is the separate, interruptible coup, and the attack
    * carries consent + blame. Non-Organism Stuff is never sentient.
+   *
+   * ⭐ Fails CLOSED: a body citing a species whose row is not resident
+   * answers sentient (the scan sweep).
    */
   public static isSentient(o: Stuff): boolean {
     return logic().isSentient(o);

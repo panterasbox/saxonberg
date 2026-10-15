@@ -79,7 +79,7 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       const d = await BankingApi.reserveDashboard(c);
       await ContractApi.reconcileLoans(null);
       const defaults = await ContractApi.windowDefaultRate(c);
-      const index = BankingApi.priceIndex();
+      const index = await BankingApi.priceIndex();
       const amount = (minor: number): string => Money.of(minor, c).render();
       const perMember = Number(AppApi.setting(AppSettingKeys.reserveMoneyPerActiveMember) || 0);
       const windowRate = Number(AppApi.setting(AppSettingKeys.reserveWindowRatePerYear) || 0);

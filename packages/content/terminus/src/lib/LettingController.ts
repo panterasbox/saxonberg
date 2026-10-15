@@ -34,11 +34,14 @@ export abstract class LettingController<
   /**
    * May `actor` let or end a let at Seznick House? Staff (a holder of the
    * agency's `agent` position) or the owner (a member of the committee
-   * over the building's extent). Fails closed when the agency is not
-   * resident — it is a boot entry.
+   * over the building's extent). Fails closed when the agency's row does
+   * not stand up.
    */
   protected static async mayLet(actor: Stuff): Promise<boolean> {
-    const agency = StuffApi.findByTemplatePath(AGENCY_PATH);
+    // ⭐ A relation resolved at the act (the scan sweep): asking stands
+    // the agency up — it is not booted.
+    const agency =
+      await StuffApi.singleton(AGENCY_PATH).catch(() => null);
     if (agency && MixinApi.isOrganization(agency) && agency.employs(actor)) return true;
     return CompactApi.isCommitteeMember(actor, BUILDING_EXTENT);
   }

@@ -132,8 +132,10 @@ aramid's toughness and comes out genuinely protective. That is
    assertion** over `TEXTILE_RESIST_PROFILE`, because they all share it
    — the whole reason that profile is a kernel constant.
 4. `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`) warms the
-   roster at `onCreate`, **never an operator `boot()`**, and rides
-   the platform pack's `boot:` manifest. ⚠ This is the
+   roster at `onCreate`, **never an operator `boot()`**. ⭐ Since the
+   scan sweep it is NOT booted: `Constructed.setConstructionForm` (async,
+   awaited by the applier) stands it up the first time a row cites a form
+   word the process has not met, then re-checks. ⚠ This was the
    *reference-Ideas-inert-at-boot* rule, and here the failure would not
    even be silent: a garment row authoring `constructionForm: woven`
    **throws at hydration** against a cold roster. The manifest is the

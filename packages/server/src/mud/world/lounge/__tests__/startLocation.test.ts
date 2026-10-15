@@ -35,8 +35,8 @@ describe('startLocation spawn instruction + recover-and-warn', () => {
 
   it('Avatar auto-registers `startLocation` as an instruction field (hydrator auto-dispatch gate)', () => {
     expect(MixinApi.getAllInstructionFields(Avatar)).toContain('startLocation');
-    // `container` (from ContainableMixin) is still there — additive.
-    expect(MixinApi.getAllInstructionFields(Avatar)).toContain('container');
+    // `container` is runtime-only since 2026-10-15 — not a row field.
+    expect(MixinApi.getAllInstructionFields(Avatar)).not.toContain('container');
   });
 
   it('applyStartLocation(Warren) lands the avatar in the lazy host; the Warren is never the container (AC 1)', async () => {

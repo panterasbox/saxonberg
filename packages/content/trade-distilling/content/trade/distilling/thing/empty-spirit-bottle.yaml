@@ -1,13 +1,11 @@
-# Empty spirit bottles — the still-house's vessel faucet (an empty is
-# never product; it counts under its vessel kind): the distil and
+# Empty spirit bottles — a line on the still-house's stock (an empty is
+# never product): the distil and
 # compound recipes claim these, and the hand consigns what they fill.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: vessel:spirit-bottle
   shortDescription: empty spirit bottle
   keywords: [bottle, "spirit bottle", empty, spirit]
   register: indefinite
   longDescription: A square clear-glass spirit bottle, clean and empty.
   category: spirit-bottle
-  censusKey: vessel:spirit-bottle
-  regionTarget: 10
-  container: /world/terminus/goods-yards/crowsfoot/thing/stock

@@ -116,6 +116,22 @@ CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
   gridded zone answers as cell size × its grid's span). A height is a
   zone with its own `elevation` (the estuary's headland). See
   [expanse.md § Perception at range](./expanse.md).
+  ⭐⭐ **What belongs with a room loads with the room** (the scan sweep,
+  2026-10-14): when a `LocationZone` gets a room, it stands up what the
+  location graph's record ATTACHES to that room — the house that
+  operates it, the structure it is part of, the institution over its
+  extent, the fixtures that seat in it — each derived from a reference
+  content already authors pointing AT the place (see
+  [location-graph.md § Attachments](./location-graph.md)). Kicked, never
+  awaited. Zones name nothing: the maritime build's `structures:` list
+  (and the scan sweep's interim `stands:`) retired with it, and
+  `NavigationApi.structureAt(path)` answers which Structure a room is
+  in. And **what a place can see loads with the place**: when a `LocationZone` gets a
+  room, the zones and seas its `horizon` names are stood up, with the
+  structures attached within them (`lookOutFrom`) — never at boot, never
+  by search, and never cascading
+  (a zone stood up only because somebody can SEE it has no room, so it
+  never looks out itself).
   `CartesianZone` and `SphericalZone` extend this — not `Zone`
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.
@@ -443,7 +459,8 @@ needed instance dispatch. The build's source slates (the
 zone-architecture and declarative-content slates, since retired — their
 authoring guidance folded into the "Authoring guidelines" section below
 and into [templates.md](./templates.md)); the spawn-shape side
-(`StagedMixin` + `container:` instruction field, with live-ref
+(`StagedMixin` + the then-authored `container:` field, retired
+2026-10-15, with live-ref
 consultation in `Avatar.enter` for the across-restart spawn case)
 shipped in a follow-up build — see
 [templates.md § Hydrator contract](./templates.md#the-hydrator-contract)

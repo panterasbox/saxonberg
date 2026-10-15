@@ -1,3 +1,4 @@
+import { attachGraph } from '../../location/__tests__/attachments-fixture';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Expanse } from '../Expanse';
@@ -164,15 +165,11 @@ describe('sight and traffic', () => {
 describe('ExpanseApi.craftAt', () => {
   it('a room answers the Structure covering it, when it has a position', async () => {
     const ship = makeStuffAtPath(() => new Ship(), '/test/ship/structure');
+    ship.setExtent('/test/ship');
     live.set('/test/ship/structure', ship);
-    const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
-    const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
-    live.set('/platform/idea/StructureCatalogue', cat);
-    // The ship is a SHIP row; no plain Structure rows here.
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Ship'
-        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
-        : []) as unknown as Template[]);
+    // ⭐ The ship is ATTACHED to its rooms in the location graph's record
+    // (its own `extent`) — no catalogue, no search.
+    attachGraph({ '/test/ship': [['/test/ship/structure', 'structure']] });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
@@ -228,17 +225,13 @@ describe('the weather on the water (maritime R9/R10)', () => {
       b.setExtent(belt(49, 51));
       b.setWeatherLean({ fog: 8 });
     });
-    const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
-    const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
-    live.set('/platform/idea/StructureCatalogue', cat);
-    // The ship is a SHIP row; no plain Structure rows here.
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Ship'
-        ? [{ path: '/test/ship/structure', data: { extent: '/test/ship' } }]
-        : []) as unknown as Template[]);
+    // The deck's ship is attached to it in the location graph's record.
+    live.set('/test/ship/deck', { isDestroyed: () => false } as unknown as Stuff);
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing stood up
-    await cat.all();
+    const graph = attachGraph({});
+    live.set('/platform/idea/LocationGraphRegistry', graph as unknown as Stuff);
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing attached yet
+    graph.table = { '/test/ship': [['/test/ship/structure', 'structure']] };
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
     await sea.bands();
     expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });

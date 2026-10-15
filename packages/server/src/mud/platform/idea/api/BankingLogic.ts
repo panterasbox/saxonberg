@@ -839,7 +839,7 @@ export interface PriceIndex {
  * journalism, never an oracle: a shop following a stocking rule is still a
  * party posting a price. A basket nobody stocks reads par.
  */
-function priceIndexImpl(): PriceIndex {
+async function priceIndexImpl(): Promise<PriceIndex> {
   const raw = (() => {
     try {
       return AppApi.setting(AppSettingKeys.reserveIndexBasket) || "";
@@ -849,8 +849,19 @@ function priceIndexImpl(): PriceIndex {
   })();
   const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   const lines: PriceIndex["lines"] = [];
-  for (const path of counters) {
-    const counter = StuffApi.findByTemplatePath(path);
+  // ⭐ The basket NAMES its counters, and computing the index stands each
+  // one up (the scan sweep, 2026-10-14). It used to read only the counters
+  // somebody had already loaded. In parallel: the reader is waiting.
+  // ⚠ A counter is its shop's prop and not a Singleton class, so a counter
+  // stood up here before its shop loads is one the shop mints again. Both
+  // basket shops are booted today, so the counters are resident; where
+  // uniqueness lives (the class, the caller, the row) is the open question
+  // recorded in scan-sweep-slate's Left list.
+  const stood = await Promise.all(
+    counters.map((path) => StuffApi.singleton(path).catch(() => null)),
+  );
+  for (const [i, path] of counters.entries()) {
+    const counter = stood[i];
     if (!counter || !MixinApi.isPricedOffer(counter)) continue;
     for (const key of counter.pricedKeys()) {
       const base = counter.basePriceFor(key);
@@ -2547,7 +2558,7 @@ export class BankingLogic extends ApiLogic {
 
   /** See {@link BankingApi.priceIndex}. */
   @CallSecurity(BankingApiCallers)
-  public priceIndex(): PriceIndex {
+  public priceIndex(): Promise<PriceIndex> {
     return priceIndexImpl();
   }
 

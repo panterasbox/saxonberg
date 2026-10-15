@@ -36,7 +36,9 @@ interface HelpModel extends CommandModel {
 }
 
 export default class HelpController extends CommandController<HelpModel> {
-  execute(model: HelpModel, context: CommandContext): void {
+  async execute(model: HelpModel, context: CommandContext): Promise<void> {
+    // The rulebook warms on first use (the scan sweep — not booted).
+    await HelpApi.ready();
     switch (model.subcommand) {
       case "verb":
         return model.name

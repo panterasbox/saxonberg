@@ -409,11 +409,10 @@ a session" means; Avatar doesn't need to know how Login picked it.
 ### `Avatar.enter(interactive)` — session start
 
 1. **Resolve the starting location.** Consults the avatar's live
-   container first — set by the Avatar template's `data.container`
-   via Phase 2 `applyContainer` during clone, or by
-   `Avatar.restore()` re-hydrating saved state. Only when the
-   avatar has no container (a brand-new spawn with no declared
-   `data.container`) does the fallback fire:
+   container first — set by whoever minted it (enroll's spawn, the
+   seed's `startLocation`) or by `Avatar.restore()` re-hydrating saved
+   state. Only when the avatar has no container does the fallback
+   fire:
    `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and a
    silent `avatar.teleport(loc, { silent: true })`. Per-Avatar
    persist-back makes this branch the rarer path; the common case

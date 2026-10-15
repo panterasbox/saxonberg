@@ -159,7 +159,7 @@ export class EmploymentApi {
    * the same arithmetic that decides whether the seat is open at all.
    * `look` prints it the way it prints a puddle.
    */
-  public static noticesAt(here: Stuff | null): Opening[] {
+  public static noticesAt(here: Stuff | null): Promise<Opening[]> {
     return logic().noticesAt(here);
   }
 

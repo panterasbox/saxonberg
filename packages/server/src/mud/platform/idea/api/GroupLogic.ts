@@ -31,14 +31,8 @@ const GroupApiCallers = SecurityPolicies.FromModule('/api/group#GroupApi');
 let registryRef: GroupRegistry | null = null;
 async function requireRegistry(): Promise<GroupRegistry> {
   if (registryRef) return registryRef;
-  const reg = StuffApi.findByTemplatePath<GroupRegistry>(REGISTRY_PATH);
-  if (reg) {
-    registryRef = reg;
-    return reg;
-  }
-  const lazy = await StuffApi.singleton<GroupRegistry>(REGISTRY_PATH);
-  registryRef = lazy;
-  return lazy;
+  registryRef = await StuffApi.singleton<GroupRegistry>(REGISTRY_PATH);
+  return registryRef;
 }
 
 /**

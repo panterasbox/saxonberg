@@ -20,6 +20,3 @@ requires:
 # path with nothing behind it. The ATTRIBUTION still works (an
 # `institution:` is a path string, not a live ref) — which is exactly why
 # the omission would have been silent.
-boot:
-  - { template: /world/newbie-wilds/idea/watch, role: producer, reason: the sentry's `institution:` names it and `chronicle <body>` resolves it by label }
-  - { template: /world/newbie-wilds/idea/long-road, role: producer, reason: the sellsword's `institution:` names it and `chronicle <body>` resolves it by label }

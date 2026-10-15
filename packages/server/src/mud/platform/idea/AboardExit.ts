@@ -14,15 +14,15 @@
  * over) is not modelled.
  */
 
+import { NavigationApi } from '../../api/navigation';
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import { Expanse } from '../../lib/expanse/Expanse';
-import { TemplatePaths } from '../../lib/paths';
-import type StructureCatalogue from './StructureCatalogue';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import type ExpanseNode from './ExpanseNode';
 import Ship from './Ship';
 
@@ -48,8 +48,11 @@ export default class AboardExit extends DeferredDestinationExit {
     const berth = this.getDestinationTemplatePath();
     if (!here || !berth) return;
     try {
-      const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
-      const sea = (await cat.structureOf(berth))?.expanse ?? null;
+      // The ship lying at the berth — attached to it in the location
+      // graph's record (from the ship's own `extent`), following the exit's
+      // authored destination, never a catalogue of every structure.
+      const ship = await NavigationApi.structureAt(berth);
+      const sea = ship && MixinApi.isPositioned(ship) ? ship.getExpanse() : null;
       const e = sea ? await StuffApi.singleton<Stuff>(sea) : null;
       if (!(e instanceof Expanse)) return;
       for (const n of await e.nodes()) {

@@ -32,10 +32,10 @@ data:
   nodes:
     # A tarn under the ridge — snowmelt and rain, and nobody upstream of
     # it at all, which is exactly what makes it worth an aqueduct.
-    - { name: tarn, elevation: 1650, catchmentKm2: 60 }
+    - { name: tarn, elevation: 1650, catchmentKm2: 60, stocks: [{ species: /stuff/idea/species/brown-trout }] }
     # Where the city's intake sits. 1150 m of head over Terminus is why
     # the whole run can be gravity-fed AND generate on the descent.
-    - { name: cascade, elevation: 1150, channelWidthM: 8, catchmentKm2: 55 }
+    - { name: cascade, elevation: 1150, channelWidthM: 8, catchmentKm2: 55, stocks: [{ species: /stuff/idea/species/brown-trout }], works: [/world/terminus/wharfside/thing/aqueduct-house, /world/terminus/wharfside/thing/cold-fell-aqueduct] }
     # It sinks into the fell and goes wherever water goes; the build does
     # not model an outlet it has no use for.
-    - { name: sink, elevation: 800 }
+    - { name: sink, elevation: 800, stocks: [{ species: /stuff/idea/species/brown-trout }] }

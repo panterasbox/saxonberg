@@ -95,19 +95,6 @@ interface WarrenMemberView {
   getWarren?: () => HoldingView | null | undefined;
 }
 
-/**
- * The residence system's roster, met over a **path and a shape** — never
- * an import. The `TravelNode` precedent: the kernel knows there is such
- * a thing as a residence catalogue and what one question of it looks
- * like; the catalogue itself is a capability pack's.
- */
-interface ResidenceCatalogueView {
-  institutionsCovering?: (key: string) => Promise<Stuff[]>;
-}
-
-/** Where the residence pack's roster stands, if the pack is installed. */
-const RESIDENCE_CATALOGUE_PATH = '/system/residence/idea/ResidenceCatalogue';
-
 export abstract class OuterWarren extends Warren {
   static fieldMeta: FieldMeta = {
     plan: { persistent: true, authorable: true },
@@ -374,10 +361,10 @@ export abstract class OuterWarren extends Warren {
   }
 
   /**
-   * Re-enter a keyed room from a captured placement: find the resident
-   * institution whose parent extent prefixes the key (the boot roster —
-   * every institution boots as a producer), admit the holding, and
-   * resolve the specific room. The log-out-in-your-yard seam
+   * Re-enter a keyed room from a captured placement: find the
+   * institution whose parent extent prefixes the key (attached to the key
+   * in the location graph's record — nothing is booted), admit the holding,
+   * and resolve the specific room. The log-out-in-your-yard seam
    * (residences D16); null when no institution covers the key.
    */
   public static async admitFor(
@@ -402,24 +389,28 @@ export abstract class OuterWarren extends Warren {
   }
 
   /**
-   * The residence roster's answer to *which institutions claim this
-   * key*, innermost first — or nothing at all when the residence pack
-   * is not installed, which is a realm with no holdings and therefore
-   * the honest empty answer.
+   * ⭐ *Which institutions claim this key*, innermost first — asked of the
+   * location graph's record (the scan sweep, 2026-10-14): an institution is
+   * attached to its own `parentExtent`, so the institutions over a key are
+   * a map read up the key's ancestry, each stood up here. It used to ask a
+   * pack's catalogue, which found them by a scan of the template table and
+   * could only answer for the ones that were BOOTED.
    */
   private static async institutionsCovering(
     key: string,
   ): Promise<OuterWarren[]> {
-    let catalogue: Stuff | null = null;
-    try {
-      catalogue = await StuffApi.singleton<Stuff>(RESIDENCE_CATALOGUE_PATH);
-    } catch {
-      return [];
+    const { NavigationApi } = await import('../../api/navigation');
+    const out: OuterWarren[] = [];
+    for (const p of await NavigationApi.attachedTo(key, 'institution')) {
+      const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
+      if (!(s instanceof OuterWarren) || out.includes(s)) continue;
+      const parent = s.getParentExtent();
+      if (parent && key.startsWith(parent + '/')) out.push(s);
     }
-    const view = catalogue as unknown as ResidenceCatalogueView;
-    if (typeof view.institutionsCovering !== 'function') return [];
-    const found = await view.institutionsCovering(key);
-    return found.filter((w): w is OuterWarren => w instanceof OuterWarren);
+    out.sort(
+      (a, b) => (b.getParentExtent() ?? '').length - (a.getParentExtent() ?? '').length,
+    );
+    return out;
   }
 
   /**

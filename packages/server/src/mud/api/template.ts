@@ -148,7 +148,7 @@ export class TemplateApi {
    * wrong-class logic instance, so the namespace must stay DB-free.
    *
    * Used by `DomainHook.aroundSave` alongside `validateFolderLeafSave`
-   * and `validateSingletonContainerTarget`.
+   * and `validateNoAuthoredContainer`.
    */
   public static async validateReservedPath(
     doc: Record<string, unknown>
@@ -157,27 +157,16 @@ export class TemplateApi {
   }
 
   /**
-   * Validate a candidate domain-template doc's `data.container`
-   * against the singleton-target constraint:
-   *
-   *   - Skip when `data.container` is absent or non-string.
-   *   - Resolve the source class; throw if it doesn't compose
-   *     `ContainableMixin` (a non-Containable declaring `container`
-   *     is a config bug; Phase 2 would fail loudly at hydrate time,
-   *     but template-save is the earlier surface).
-   *   - Resolve the target template at the declared path; throw if
-   *     it doesn't exist.
-   *   - Resolve the target's backing class; throw if the class does
-   *     NOT compose `SingletonMixin`.
-   *
-   * Used by `DomainHook.aroundSave` alongside
-   * `validateFolderLeafSave`. Per declarative-content-slate
-   * § container: on Template — singleton-target constraint.
+   * Refuse a domain-template doc that authors `data.container` (retired
+   * in the scan sweep's review, 2026-10-15): containment is runtime
+   * state, set by whoever places the thing. Used by
+   * `DomainHook.aroundSave`; `lint:instanceable` refuses the key in pack
+   * content.
    */
-  public static async validateSingletonContainerTarget(
+  public static async validateNoAuthoredContainer(
     doc: Record<string, unknown>
   ): Promise<void> {
-    return logic().validateSingletonContainerTarget(doc);
+    return logic().validateNoAuthoredContainer(doc);
   }
 
   /**
@@ -250,8 +239,8 @@ export class TemplateApi {
    * Re-hydrate a live Stuff host's in-memory state from its current
    * Template doc. Operates on the existing instance; preserves
    * identity / stuffId / wired Interactives. Phase 1 setters
-   * overwrite field values; Phase 2 appliers re-fire (e.g.
-   * `applyContainer` moves the host via compare-and-move).
+   * overwrite field values; Phase 2 appliers re-fire (each is
+   * idempotent — `props:` is once-guarded).
    *
    * v1 coordination: developer/admin operation; does NOT
    * synchronize against multiplexed observers.

@@ -530,9 +530,9 @@ owns the *domain* semantics:
   whether the class composes `SingletonMixin`. No Warren/container
   special-casing lives in `StuffApi`.
 
-`applyContainer` is unchanged (plain `singleton(path)`);
-`validateSingletonContainerTarget` keeps its hard deny. The startLocation
-path is the only place the Warren semantics live.
+The startLocation path is the only place the Warren semantics live.
+(`container:` was an authored field with its own singleton-only rule
+until 2026-10-15; it is runtime-only now — [spatial.md](./spatial.md).)
 
 The avatar row (`platform/content/platform/agent/PrimaryAvatar.yaml`) declares
 `startLocation: /world/lounge/idea/warren`. **`DEFAULT_STARTING_LOCATION_PATH`

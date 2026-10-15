@@ -62,7 +62,7 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => now);
   vi.spyOn(AppApi, 'setting').mockImplementation(((key: string) =>
     key === 'press.indexEditionGameHours' ? '6' : '') as never);
-  vi.spyOn(BankingApi, 'priceIndex').mockReturnValue({
+  vi.spyOn(BankingApi, 'priceIndex').mockResolvedValue({
     counters: ['/test/counter'],
     percent: 104,
     lines: [{ counter: '/test/counter', key: '/test/thing', ask: 13, base: 12 }],
@@ -93,7 +93,7 @@ describe('the Gazette prints the index', () => {
   });
 
   it('prints nothing when no basket counter answers', async () => {
-    vi.spyOn(BankingApi, 'priceIndex').mockReturnValue({ counters: [], percent: 100, lines: [] });
+    vi.spyOn(BankingApi, 'priceIndex').mockResolvedValue({ counters: [], percent: 100, lines: [] });
     await prints.act(ctxFor({}));
     expect(editor.typed).toEqual([]);
   });

@@ -112,7 +112,7 @@ describe('OrganizationMixin', () => {
     expect(ministry.holdersOf(POSITION.key)).toEqual([HOLDER]);
   });
 
-  it('never resurrects an explicit exit from the authored roster', () => {
+  it('never resurrects an explicit exit from the authored roster', async () => {
     const ministry = makeStuffAtPath(() => new OrganizationEntity(), MINISTRY);
     ministry.positions = [POSITION];
     ministry.rosterSlots = [
@@ -120,10 +120,10 @@ describe('OrganizationMixin', () => {
     ];
     const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
 
-    ministry.appoint(holder as unknown as Stuff, POSITION.key);
+    await ministry.appoint(holder as unknown as Stuff, POSITION.key);
     expect(ministry.holdersOf(POSITION.key)).toEqual([HOLDER]);
 
-    (holder as unknown as Stuff & Employed).quitJob(MINISTRY);
+    await (holder as unknown as Stuff & Employed).quitJob(MINISTRY);
     expect(ministry.holdersOf(POSITION.key)).toEqual([]);
   });
 

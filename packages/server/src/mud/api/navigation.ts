@@ -17,6 +17,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/navigation` reloads it.
  */
 
+import type Structure from '../platform/idea/Structure';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
@@ -30,6 +31,12 @@ import type { TravelProfileSpec } from '../lib/location/TravelProfile';
 import type { ReachResult } from '../platform/idea/api/NavigationLogic';
 
 /** Canonical direction names (long form). */
+/**
+ * Why something is attached to a place in the location graph's record —
+ * see {@link NavigationApi.attachedTo}.
+ */
+export type AttachmentKind = 'house' | 'structure' | 'craft' | 'institution' | 'fixture';
+
 export type CardinalDirection =
   | 'north'
   | 'south'
@@ -179,6 +186,48 @@ export class NavigationApi {
   /** The one node with this identity, or null. */
   public static node(identity: string): Promise<PlaceNode | null> {
     return logic().node(identity);
+  }
+
+  /**
+   * ⭐⭐ The template paths ATTACHED to a place (the scan sweep, 2026-10-14)
+   * — the house that operates it, the structure or craft it belongs to, the
+   * institution over its extent, the fixtures that seat in it — read off
+   * the location graph's record at the place's path and every ancestor.
+   * Derived from what content authors pointing AT the place, so loading a
+   * place loads what belongs with it with nothing written twice and
+   * nothing searched. Optionally narrowed to one `kind`.
+   */
+  public static attachedTo(path: string, kind?: AttachmentKind): Promise<string[]> {
+    return logic().attachedTo(path, kind);
+  }
+
+  /** Everything attached at or under `extent` (a district's towers). */
+  public static attachedWithin(extent: string, kind?: AttachmentKind): Promise<string[]> {
+    return logic().attachedWithin(extent, kind);
+  }
+
+  /** {@link attachedWithin}, synchronously — the last derivation, `[]` before the first. */
+  public static attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
+    return logic().attachedWithinNow(extent, kind);
+  }
+
+  /** {@link attachedTo}, synchronously — the last derivation, `[]` before the first. */
+  public static attachedNow(path: string, kind?: AttachmentKind): string[] {
+    return logic().attachedNow(path, kind);
+  }
+
+  /**
+   * The Structure `path` is a member of — the innermost (longest extent)
+   * when one stands inside another, a wing in a mansion — standing the
+   * attached candidates up first; `null` when it is in none.
+   */
+  public static structureAt(path: string): Promise<Structure | null> {
+    return logic().structureAt(path);
+  }
+
+  /** {@link structureAt} over what is already standing — never loads. */
+  public static structureAtNow(path: string): Structure | null {
+    return logic().structureAtNow(path);
   }
 
   /** Every node in one zone. */

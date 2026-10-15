@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpatialZone } from '../SpatialZone';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import SphericalZone from '../../../platform/idea/location/SphericalZone';
@@ -50,5 +50,38 @@ describe('LocationZoneMixin', () => {
     zone.removeLocation(room);
     expect(room.getZone()).toBeNull();
     expect(zone.canDestruct().ok).toBe(true);
+  });
+});
+
+describe('⭐ what a place can see loads with the place (maritime review, 2026-10-14)', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+    StuffApi.clearAll();
+  });
+
+  it('a zone that gets a room stands up what its horizon names, once — and a zone only SEEN never looks out', async () => {
+    const seen = makeStuff(() => new CartesianZone());
+    seen.setHorizon(['/test/beyond']);
+    const here = makeStuff(() => new CartesianZone());
+    here.setHorizon(['/test/seen']);
+    const stood: string[] = [];
+    const spy = vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {
+      stood.push(p);
+      return (p === '/test/seen' ? seen : here) as never;
+    });
+    here.addLocation(makeStuff(() => new CartesianLocation()), 0, 0, 0);
+    here.addLocation(makeStuff(() => new CartesianLocation()), 1, 0, 0);
+    await Promise.resolve();
+    // Once per target, however many rooms; never what the SEEN zone sees.
+    expect(stood).toEqual(['/test/seen']);
+    spy.mockRestore();
+  });
+
+  it('nothing named, nothing stood up', () => {
+    const here = makeStuff(() => new CartesianZone());
+    const spy = vi.spyOn(StuffApi, 'singleton');
+    here.addLocation(makeStuff(() => new CartesianLocation()), 0, 0, 0);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:lemon
   shortDescription: crate of lemons
-  keywords: [lemons, crate, lemon, produce]
+  keywords: [lemons, crate, lemon, produce, "crate of lemons"]
   register: indefinite
   longDescription: A slatted wooden crate of lemons, the grower's stencil on the side.
-  censusKey: produce:lemon
-  regionTarget: 4
   materialTags: [produce, lemon]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/lemon, count: 12 }

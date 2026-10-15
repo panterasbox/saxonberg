@@ -40,7 +40,7 @@ export default class ApplyController extends CommandController<ApplyModel> {
     const wantPosition = (model.position ?? '').trim();
     const wantHouse = (model.organization ?? '').trim();
 
-    let openings = EmploymentApi.noticesAt(context.location ?? null);
+    let openings = await EmploymentApi.noticesAt(context.location ?? null);
     if (wantHouse) {
       openings = openings.filter((o) => o.organizationPath === wantHouse);
     }
@@ -52,7 +52,7 @@ export default class ApplyController extends CommandController<ApplyModel> {
       // ⚠ Say what IS going here, when anything is. "Nothing going" and
       // "not that one" are different facts and a player can act on the
       // second.
-      const here = EmploymentApi.noticesAt(context.location ?? null);
+      const here = await EmploymentApi.noticesAt(context.location ?? null);
       const line =
         here.length === 0
           ? "There's no work going here."
@@ -72,7 +72,9 @@ export default class ApplyController extends CommandController<ApplyModel> {
     }
 
     const opening = openings[0]!;
-    const house = StuffApi.findByTemplatePath(opening.organizationPath);
+    const house =
+      // A relation resolved at the act (the scan sweep): not booted.
+      await StuffApi.singleton(opening.organizationPath).catch(() => null);
     if (!house || !MixinApi.isOrganization(house)) {
       return this.fail(context, "That house isn't hiring.", 'no-opening');
     }

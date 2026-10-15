@@ -221,10 +221,27 @@ describe("the price index (D20)", () => {
   beforeEach(() => installBankingHarness());
   afterEach(() => teardownBankingHarness());
 
-  it("reads par over a basket nobody has stood up", () => {
+  it("reads par over a basket whose counter does not exist", async () => {
     withRows({ [AppSettingKeys.reserveIndexBasket]: "/test/nowhere/counter" });
-    const index = BankingApi.priceIndex();
+    const index = await BankingApi.priceIndex();
     expect(index.percent).toBe(100);
     expect(index.lines).toEqual([]);
+  });
+
+  it("⭐ stands an unvisited basket counter up and prices it (the scan sweep)", async () => {
+    withRows({ [AppSettingKeys.reserveIndexBasket]: "/test/far/counter" });
+    const counter = {
+      pricedKeys: () => ["/test/far/thing"],
+      basePriceFor: () => 10,
+      priceFor: () => 12,
+    };
+    const { MixinApi } = await import("../../../api/mixin");
+    vi.spyOn(MixinApi, "isPricedOffer").mockImplementation(((x: unknown) => x === counter) as never);
+    const stood = vi.spyOn(StuffApi, "singleton").mockImplementation((async (p: string) =>
+      p === "/test/far/counter" ? counter : null) as never);
+    const index = await BankingApi.priceIndex();
+    expect(stood).toHaveBeenCalledWith("/test/far/counter");
+    expect(index.lines).toHaveLength(1);
+    expect(index.percent).toBe(120);
   });
 });

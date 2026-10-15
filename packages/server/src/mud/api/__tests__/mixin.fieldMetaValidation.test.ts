@@ -31,7 +31,7 @@ describe('fieldMeta validation at registration', () => {
   it('accepts an IDENTITY ref that is persistent — the normal case', () => {
     class Fine {
       static fieldMeta: FieldMeta = {
-        _speciesPath: { ref: 'identity', persistent: true },
+        _speciesPath: { ref: 'identity:constituent', persistent: true },
       };
     }
     expect(() => check(Fine)).not.toThrow();
@@ -40,7 +40,7 @@ describe('fieldMeta validation at registration', () => {
   it('rejects an identity ref carrying a lifetime', () => {
     class Bad {
       static fieldMeta: FieldMeta = {
-        _speciesPath: { ref: 'identity', lifetime: 'weak' },
+        _speciesPath: { ref: 'identity:relation', lifetime: 'weak' },
       };
     }
     expect(() => check(Bad)).toThrow(/takes no lifetime/);
@@ -100,7 +100,7 @@ describe('fieldMeta validation at registration', () => {
 
   it('validates the MERGED view — a base ref plus a subclass lifetime', () => {
     class Base {
-      static fieldMeta: FieldMeta = { _x: { ref: 'identity' } };
+      static fieldMeta: FieldMeta = { _x: { ref: 'identity:relation' } };
     }
     class Sub extends Base {
       static fieldMeta: FieldMeta = { _x: { lifetime: 'weak' } };

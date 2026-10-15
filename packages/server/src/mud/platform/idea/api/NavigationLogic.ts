@@ -2,6 +2,9 @@
 // NavigationApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type Structure from '../Structure';
+import type { AttachmentKind } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -49,6 +52,28 @@ const GRAPH_REGISTRY_PATH = '/platform/idea/LocationGraphRegistry';
  * *nothing yet*, not *no such place*, which is why the projection hook
  * checks `isGraphWarm()` first rather than relying on these to no-op.
  */
+/**
+ * The live Structure among `paths` that `place` is a member of, innermost
+ * (longest extent) first — a wing inside a mansion answers before it.
+ */
+/** A thing that answers the Structure shape. */
+function isStructure(s: Stuff): s is Stuff & Structure {
+  const c = s as Partial<Structure>;
+  return typeof c.hasMember === 'function' && typeof c.getExtent === 'function';
+}
+
+function innermostStructure(place: string, paths: readonly string[]): Structure | null {
+  let best: Structure | null = null;
+  for (const p of paths) {
+    // Structural: a value import of `Structure` here closes a module cycle.
+    const s = StuffApi.findByTemplatePath(p) as (Stuff & Partial<Structure>) | undefined;
+    if (!s || typeof s.hasMember !== 'function' || s.isDestroyed()) continue;
+    if (!isStructure(s) || !s.hasMember(place)) continue;
+    if (best === null || s.getExtent().length > best.getExtent().length) best = s;
+  }
+  return best;
+}
+
 function registry(): LocationGraphRegistry | null {
   return (
     StuffApi.findByTemplatePath<LocationGraphRegistry>(GRAPH_REGISTRY_PATH) ??
@@ -262,6 +287,44 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public async node(identity: string): Promise<PlaceNode | null> {
     return (await registry()?.node(identity)) ?? null;
+  }
+
+  /** See {@link NavigationApi.attachedTo}. */
+  @CallSecurity(NavigationApiCallers)
+  public async attachedTo(path: string, kind?: AttachmentKind): Promise<string[]> {
+    return (await registry()?.attachedTo(path, kind)) ?? [];
+  }
+
+  /** See {@link NavigationApi.attachedWithin}. */
+  @CallSecurity(NavigationApiCallers)
+  public async attachedWithin(extent: string, kind?: AttachmentKind): Promise<string[]> {
+    return (await registry()?.attachedWithin(extent, kind)) ?? [];
+  }
+
+  /** See {@link NavigationApi.structureAt}. */
+  @CallSecurity(NavigationApiCallers)
+  public async structureAt(path: string): Promise<Structure | null> {
+    const paths = (await registry()?.attachedTo(path, 'structure')) ?? [];
+    await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
+    return innermostStructure(path, paths);
+  }
+
+  /** See {@link NavigationApi.structureAtNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public structureAtNow(path: string): Structure | null {
+    return innermostStructure(path, registry()?.attachedNow(path, 'structure') ?? []);
+  }
+
+  /** See {@link NavigationApi.attachedWithinNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
+    return registry()?.attachedWithinNow(extent, kind) ?? [];
+  }
+
+  /** See {@link NavigationApi.attachedNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public attachedNow(path: string, kind?: AttachmentKind): string[] {
+    return registry()?.attachedNow(path, kind) ?? [];
   }
 
   /** See {@link NavigationApi.nodesInZone}. */

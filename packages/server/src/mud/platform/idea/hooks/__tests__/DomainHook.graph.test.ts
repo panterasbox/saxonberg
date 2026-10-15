@@ -39,7 +39,7 @@ beforeEach(() => {
   // The validators are not this file's subject.
   vi.spyOn(TemplateApi, 'validateReservedPath').mockResolvedValue(undefined);
   vi.spyOn(TemplateApi, 'validateFolderLeafSave').mockResolvedValue(undefined);
-  vi.spyOn(TemplateApi, 'validateSingletonContainerTarget').mockResolvedValue(
+  vi.spyOn(TemplateApi, 'validateNoAuthoredContainer').mockResolvedValue(
     undefined,
   );
   vi.spyOn(TemplateApi, 'validateFolderLeafDelete').mockResolvedValue(

@@ -2,9 +2,8 @@
 # craft anybody can sail.
 #
 # ⭐ Her rooms are ordinary rooms in their own zone; what makes her a SHIP
-# is her Structure (`hesper/structure`), whose POSITION is a variable —
-# the one field that is the whole difference between a ship and a
-# building. Nothing about her is inside the sea.
+# is her Ship (`hesper/structure`) — a Structure whose position is a
+# variable. Nothing about her is inside the sea.
 #
 # ⚠ The name is a placeholder.
 class: /platform/idea/location/CartesianZone

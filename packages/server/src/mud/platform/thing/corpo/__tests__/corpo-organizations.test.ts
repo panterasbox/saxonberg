@@ -120,8 +120,9 @@ describe('the five corpo organizations, as authored', () => {
     const claim = m.requires?.title?.find((t) => t.extent === `/corpo/${key}`);
     expect(claim, `/corpo/${key} is not claimed`).toBeDefined();
     expect(claim!.holder).toEqual({ group: `${key}-committee` });
-    // ⚠ Resident from boot: appoint and the chart reads resolve it.
-    expect(m.boot?.some((b) => b.template === `/corpo/${key}` && b.role === 'producer')).toBe(true);
+    // ⭐ NOT booted (the scan sweep): appoint, title checks and the chain
+    // walk resolve the organization at the act — a relation, not a resident.
+    expect(m.boot?.some((b) => b.template === `/corpo/${key}`) ?? false).toBe(false);
   });
 
   it('⚠ declares no landUse — a corpo is not ground', () => {
@@ -290,7 +291,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
     ]);
   });
 
-  it('⭐ walks the branch up to its parent company', () => {
+  it('⭐ walks the branch up to its parent company', async () => {
     stand(() => new OrganizationEntity(), '/corpo/goodkin', readChart('goodkin'));
     const branch = stand(
       () => new BusinessEntity(),
@@ -298,7 +299,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
       readSeed('world/terminus/counting-houses/business.yaml'),
     );
     expect(
-      branch.organizationChain().map((o) => o.getTemplatePath()),
+      (await branch.organizationChain()).map((o) => o.getTemplatePath()),
     ).toEqual(['/corpo/goodkin']);
   });
 });

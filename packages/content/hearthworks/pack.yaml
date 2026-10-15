@@ -25,5 +25,8 @@ requires:
 # yet is a house whose opening nobody can see. `lint:openings` holds the
 # two facts together.
 boot:
-  - { template: /world/terminus/hearthworks/idea/business, role: producer, reason: "the forge's business — it advertises a kitchen-hand seat, and the derived help-wanted sign reads LIVE businesses only" }
-  - { template: /world/terminus/hearthworks/location/cookhouse, role: producer, reason: "the cookhouse is where the kitchen-hand stands and where the menu is ordered from — the house must operate a room that exists" }
+  # ⭐ Kept booted — the unobserved economy (the scan sweep's classification
+  # rule): the cook's par sheet posts carriage gigs on the works boards with
+  # nobody present, and a brain on an unspawned NPC never fires.
+  - { template: /world/terminus/hearthworks/idea/business, role: producer, reason: "the cook's restocks beat posts the house's par shortfall as gigs with nobody present; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
+  - { template: /world/terminus/hearthworks/location/cookhouse, role: producer, reason: "the cook stands here, so the cookhouse must be live for his beat to fire; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }

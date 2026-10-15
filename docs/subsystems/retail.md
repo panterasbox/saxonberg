@@ -310,8 +310,10 @@ and each beat `get`s up to `batch` goods, teleports to the counter,
 (`ConsignController` accepts an `organization` owner the giver buys for;
 the listing's `consignorKey` is the outfit's path, and "each consignor's
 account rises on resale" is the shipped split leg). The floor itself
-stands at target through the residency spawn sweep, the rows' own
-`container:` naming the outfit's Stock ([residency.md](./residency.md)).
+stands at par because the outfit's Stock NAMES its lines (`stockLines`,
+made up by `Stock.reset`) — the goods say nothing about where they are
+made (the scan sweep's review, 2026-10-15; until then each good's own
+`container:` routed the residency spawn sweep's mints there).
 
 The buyer's side is the wallet rule ([employment.md](./employment.md)):
 with the house account active, `buy` settles from it and stamps the

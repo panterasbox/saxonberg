@@ -1,8 +1,9 @@
 # The floor bottle of soda water — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: mixer:soda-water
   shortDescription: "bottle of soda water"
-  keywords: [soda, soda-water, fizz, bottle, mixer, water]
+  keywords: [soda, soda-water, fizz, bottle, mixer, water, "bottle of soda water"]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of soda water, the bottling floor's plain label."
   category: mixer-bottle
@@ -12,7 +13,4 @@ data:
   interiorAmount: 1
   closure: liquidTight
   gradeBand: fair
-  censusKey: mixer:soda-water
-  regionTarget: 8
   materialTags: ["mixer", "soda"]
-  container: /world/terminus/goods-yards/bottling/thing/stock

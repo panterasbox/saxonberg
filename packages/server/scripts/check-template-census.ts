@@ -22,6 +22,15 @@
  *       row must not leave a constant pointing at nothing).
  *   (d) A `cast:` entry names a row on an AGENT branch.
  *   (e) ⭐ The PURE-REPEAT ratchet — see {@link PURE_REPEAT_CEILING}.
+ *   (f) ⭐⭐ Every field a `fieldMeta` DECLARES on the identity axis
+ *       (`ref: 'identity:constituent' | 'identity:relation' |
+ *       'identity:kind'`), in the kernel or any pack's `src/`, resolves
+ *       on every row that authors it — read by its declaration, not by a
+ *       hand-kept list (the scan sweep, 2026-10-14). `identity:provenance`
+ *       is a historical claim and is not checked. The constituent graph
+ *       over rows must be ACYCLIC: a constituent loads with its holder,
+ *       so a cycle is a load that waits on itself. One field name
+ *       declared as two different kinds is a finding.
  *
  * No exemption list, by design: a reference that cannot resolve is a
  * content bug, not a candidate for a list.
@@ -34,6 +43,8 @@ import YAML from 'yaml';
 import { packSources,
   effectiveRow,
   inheritanceIndex,
+  fieldMetaEntries,
+  MUD,
 } from './pack-roots';
 
 const EXIT_ON_FINDINGS = true;
@@ -447,6 +458,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (Array.isArray(nodes)) {
     for (const node of nodes) {
       if (!node || typeof node !== 'object') continue;
+      // ⭐ `nodes[].works[]` (the scan sweep) — the intakes, outfalls and
+      // control structures on a reach, read live when standing and from
+      // their row when not. A rowless one is a work the river never feels.
+      const works = (node as Record<string, unknown>).works;
+      if (Array.isArray(works)) for (const w of works) push('nodes.works', w);
       const stocks = (node as Record<string, unknown>).stocks;
       if (!Array.isArray(stocks)) continue;
       for (const stock of stocks) {
@@ -759,18 +775,22 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   // carries a `bulkMaterial` field holding a BARE name (`water`), not a
   // path, so a name-keyed read would choke on the effect. Warn-only.
   'bulkMaterial',
-  'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
-  'container', 'departments', 'dropDestination', 'effects',
-  'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
-  'lobbyPath', 'makerId', 'operatingLocations', 'parLines',
-  'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
+  'carriedSpellPath', 'charMaterialPath', 'charter',
+  'departments', 'dropDestination', 'effects',
+  'feedPath', 'growsIntoPath', 'harvestTemplatePath',
+  'lobbyPath', 'makerId', 'parLines',
+  'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
-  'steepsInto', 'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
   'warren',
 ];
 
-function checkPathFieldCoverage(rows: Map<string, string>): void {
-  const read = new Set<string>();
+function checkPathFieldCoverage(
+  rows: Map<string, string>,
+  declared: ReadonlyMap<string, unknown> = new Map(),
+): void {
+  // A field declared on the identity axis is read by clause (f).
+  const read = new Set<string>(declared.keys());
   const seen = new Set<string>();
   for (const [, file] of rows) {
     let parsed: Record<string, unknown> | null;
@@ -842,6 +862,108 @@ function checkFieldRefs(rows: Map<string, string>): number {
       }
     }
   }
+  return checked;
+}
+
+// ── clause (f): every DECLARED identity field resolves ─────────────
+/** Every `.ts` under a source root, tests excluded. */
+function* sourceFiles(root: string): Generator<string> {
+  for (const f of walk(root, '.ts')) {
+    if (f.includes('/__tests__/')) continue;
+    yield f;
+  }
+}
+
+/**
+ * Field name → the identity kinds `fieldMeta` declares it with, across
+ * the kernel and every pack's `src/`.
+ */
+export function declaredIdentityFields(): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
+  const roots = [MUD, ...packSources().map((p) => p.srcDir)];
+  for (const root of roots) {
+    for (const f of sourceFiles(root)) {
+      const src = readFileSync(f, 'utf8');
+      if (!src.includes('fieldMeta')) continue;
+      for (const [field, rule] of fieldMetaEntries(src)) {
+        if (!rule.ref?.startsWith('identity:')) continue;
+        const kinds = out.get(field) ?? new Set<string>();
+        kinds.add(rule.ref);
+        out.set(field, kinds);
+      }
+    }
+  }
+  return out;
+}
+
+/** The template paths a value carries: a string, an array, a map's values. */
+function pathsIn(v: unknown): string[] {
+  if (isPath(v)) return [v];
+  const vals = Array.isArray(v)
+    ? v
+    : v && typeof v === 'object' ? Object.values(v as Record<string, unknown>) : [];
+  return vals.filter(isPath);
+}
+
+function checkDeclaredIdentity(
+  rows: Map<string, string>,
+  declared: Map<string, Set<string>>,
+): number {
+  for (const [field, kinds] of declared) {
+    if (kinds.size > 1) {
+      findings.push({
+        clause: 'f', file: '(src)',
+        detail:
+          `\`${field}\` is declared as ${[...kinds].join(' and ')} on two ` +
+          `classes — one field name, one meaning, or the applier loads it ` +
+          `on one host and not the other`,
+      });
+    }
+  }
+  let checked = 0;
+  const edges = new Map<string, string[]>();
+  for (const [rowPath, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try { parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+    catch { continue; }
+    const data = parsed?.data;
+    if (!data || typeof data !== 'object') continue;
+    for (const [field, v] of Object.entries(data as Record<string, unknown>)) {
+      const kinds = declared.get(field);
+      if (!kinds || kinds.has('identity:provenance')) continue;
+      for (const path of pathsIn(v)) {
+        checked += 1;
+        if (!rows.has(path)) {
+          findings.push({
+            clause: 'f', file,
+            detail: `${field} (${[...kinds].join('|')}): ${path} resolves to no content row`,
+          });
+        } else if (kinds.has('identity:constituent')) {
+          const list = edges.get(rowPath) ?? [];
+          list.push(path);
+          edges.set(rowPath, list);
+        }
+      }
+    }
+  }
+  // The constituent graph must be acyclic: a constituent is AWAITED by
+  // its holder's load, so a cycle is a load waiting on itself.
+  const state = new Map<string, 'open' | 'done'>();
+  const visit = (n: string, trail: string[]): void => {
+    const st = state.get(n);
+    if (st === 'done') return;
+    if (st === 'open') {
+      findings.push({
+        clause: 'f', file: rows.get(n) ?? n,
+        detail: `constituent cycle: ${[...trail.slice(trail.indexOf(n)), n].join(' → ')}`,
+      });
+      return;
+    }
+    state.set(n, 'open');
+    for (const m of edges.get(n) ?? []) visit(m, [...trail, n]);
+    state.set(n, 'done');
+  };
+  for (const n of edges.keys()) visit(n, []);
   return checked;
 }
 
@@ -994,7 +1116,9 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
-  checkPathFieldCoverage(rows);
+  const declared = declaredIdentityFields();
+  const identityRefs = checkDeclaredIdentity(rows, declared);
+  checkPathFieldCoverage(rows, declared);
   const constants = checkTemplatePathConstants(rows);
   const castRefs = checkCastAreAgents(rows);
 
@@ -1025,7 +1149,9 @@ function main(): void {
   } else {
     console.log(
       `check-template-census: every templatePath resolves to a row ` +
-        `(${rows.size} rows; ${fieldRefs} field refs, ${constants} singleton constants, ` +
+        `(${rows.size} rows; ${fieldRefs} field refs, ` +
+        `${identityRefs} declared-identity refs over ${declared.size} field(s), ` +
+        `${constants} singleton constants, ` +
         `${castRefs} cast member(s) on agent branches; asTemplatePath retired).`,
     );
   }

@@ -10,4 +10,4 @@ boot:
   # universe biome that boot would seed", and boot did not — so
   # `analyze power <thing>` threw "root universe biome is not loaded" in
   # every fresh world, found by the grain-chain wire flow.
-  - { template: /stuff/idea/biome/universe, role: sync-read, reason: "BiomeApi.getRootBiome and chain step 6 resolve it synchronously (the reference-Ideas-inert-at-boot rule)" }
+  - { template: /stuff/idea/biome/universe, role: sync-read, reason: "the engine's fallback for a place that cites no biome — BiomeApi.getRootBiome and chain step 6 resolve it synchronously, and no holder cites it (kept by the scan sweep: it is the root every chain falls back to)" }

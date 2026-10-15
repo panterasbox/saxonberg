@@ -36,16 +36,19 @@ class TestGood extends CirculatingMixin(Good) {}
 const REGION = '/test/spawn/spawn-batch-zone';
 const STOCK = '/test/spawn/spawn-batch-zone/thing/stock';
 
-let seq = 0;
 let room: SingletonCartesianLocation;
 let settings: Record<string, string>;
 
-/** A floor row: authored key, target and home container, no live instance. */
+/**
+ * A row that says it appears from nothing: authored key and target, no
+ * live instance. (A row no longer names a home — `container:` is
+ * runtime-only since the scan sweep's review.)
+ */
 function row(path: string, censusKey: string, regionTarget: number) {
   return {
     path,
     class: '/platform/thing/TestGood',
-    data: { censusKey, regionTarget, container: STOCK },
+    data: { censusKey, regionTarget },
   } as unknown as Template;
 }
 
@@ -68,6 +71,14 @@ describe('the spawn sweep — draw until the region declines', () => {
       lookupField: async () => undefined,
     } as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(TestGood);
+    // The region exists because something circulates in it: the census
+    // is taken over live stock, and a region nothing stands in is never
+    // drawn for. One seed good, its own target already met.
+    const seed = makeStuff(() => new TestGood());
+    stampTemplatePathForTest(seed, '/test/spawn/thing/seed');
+    seed.setCensusKey('seed');
+    seed.regionTarget = 0;
+    ContainmentApi.move(seed as never, room as never);
     vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([
       row('/test/spawn/thing/ale', 'keg:ale', 2),
       row('/test/spawn/thing/gin', 'spirit:gin', 3),
@@ -82,7 +93,8 @@ describe('the spawn sweep — draw until the region declines', () => {
         ] ?? path;
       g.setCensusKey(key);
       g.regionTarget = 99;
-      // The row's `container:` — what `applyContainer` does for a real clone.
+      // Placed by the test, so the census counts it in the region: the
+      // sweep itself places nothing.
       ContainmentApi.move(g as never, room as never);
       return g as unknown as Stuff;
     });
@@ -117,36 +129,10 @@ describe('the spawn sweep — draw until the region declines', () => {
     expect(report.declined).toBe(0);
   });
 
-  it('a row with a home is drawn only for that home’s region', async () => {
-    // A second live region with nothing of its own: the rows must not
-    // be drawn "for" it and land in the stock counter anyway.
-    const elsewhere = makeStuff(() => new SingletonCartesianLocation());
-    stampTemplatePathForTest(elsewhere, `/test/other/room-${seq++}`);
-    const stray = makeStuff(() => new TestGood());
-    stampTemplatePathForTest(stray, '/test/other/thing/stray');
-    stray.setCensusKey('stray');
-    stray.regionTarget = 1; // at target already: its own region declines
-    ContainmentApi.move(stray as never, elsewhere as never);
-    (ZoneApi.resolveZoneForPath as unknown as { mockImplementation: (f: (p: string) => Promise<unknown>) => void })
-      .mockImplementation(async (p: string) => ({
-        getTemplatePath: () => (p.startsWith('/test/other') ? '/test/other' : REGION),
-        lookupField: async () => undefined,
-      }));
-
-    const report = await ResidencyApi.spawnNow();
-    expect(report.regions).toBe(2);
-    // The three homed rows land in their region (9); the homeless live
-    // stray is drawable anywhere, so the stock's region also draws ONE
-    // of it (its target is 1 and that region held none) — 10 in all.
-    expect(report.placed).toBe(10);
-    expect(countOf('keg:ale') + countOf('spirit:gin') + countOf('spirit:vodka')).toBe(9);
-    expect(countOf('stray')).toBe(1);
-  });
-
   it('observe mode reports and places nothing', async () => {
     settings[AppSettingKeys.residencySpawnMode] = 'observe';
     const report = await ResidencyApi.spawnNow();
     expect(report.placed).toBe(0);
-    expect(room.getContents().length).toBe(0);
+    expect(room.getContents().length).toBe(1); // the seed alone
   });
 });

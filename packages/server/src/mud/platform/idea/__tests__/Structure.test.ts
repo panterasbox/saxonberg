@@ -2,11 +2,11 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
 import Ship from '../Ship';
-import StructureCatalogue from '../StructureCatalogue';
-import { Template } from '../../../lib/stuff/Template';
+import { NavigationApi } from '../../../api/navigation';
+import { attachGraph } from '../../../lib/location/__tests__/attachments-fixture';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
 /**
  * The Structure (maritime D4): membership by extent prefix, sparse. ⭐ A
@@ -66,26 +66,27 @@ describe('Structure', () => {
     expect(s.isLandmark()).toBe(true);
   });
 
-  it('the catalogue reads the landmark flag off the row', async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Structure' ? [
-      { path: '/test/t/structure', data: { extent: '/test/t', landmark: true } },
-      { path: '/test/u/structure', data: { extent: '/test/u' } },
-    ] : []) as unknown as Template[]);
-    const cat = makeStuff(() => new StructureCatalogue());
-    expect((await cat.rowOf('/test/t/structure'))?.landmark).toBe(true);
-    expect((await cat.rowOf('/test/u/structure'))?.landmark).toBe(false);
+  it('⭐ a place\'s structure is ATTACHED to it in the location graph — stood up, never searched for', async () => {
+    const tower = makeStuffAtPath(() => new Structure(), '/test/t/structure');
+    tower.setExtent('/test/t');
+    tower.setLandmark(true);
+    attachGraph({ '/test/t': [['/test/t/structure', 'structure']] });
+    const singleton = vi.spyOn(StuffApi, 'singleton');
+    expect(await NavigationApi.structureAt('/test/t/room')).toBe(tower);
+    expect(singleton).toHaveBeenCalledWith('/test/t/structure');
   });
 
-  it('the catalogue answers the structure a place is in by the longest extent', async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      (cls === '/platform/idea/Structure' ? [
-      { path: '/test/a/structure', data: { extent: '/test/a' } },
-      { path: '/test/a/wing/structure', data: { extent: '/test/a/wing' } },
-    ] : []) as unknown as Template[]);
-    const cat = makeStuff(() => new StructureCatalogue());
-    expect((await cat.structureOf('/test/a/wing/attic'))?.path).toBe('/test/a/wing/structure');
-    expect((await cat.structureOf('/test/a/hall'))?.path).toBe('/test/a/structure');
-    expect(await cat.structureOf('/test/elsewhere')).toBeNull();
+  it('the innermost extent answers — a wing inside a hall', async () => {
+    const hall = makeStuffAtPath(() => new Structure(), '/test/a/structure');
+    hall.setExtent('/test/a');
+    const wing = makeStuffAtPath(() => new Structure(), '/test/a/wing/structure');
+    wing.setExtent('/test/a/wing');
+    attachGraph({
+      '/test/a': [['/test/a/structure', 'structure']],
+      '/test/a/wing': [['/test/a/wing/structure', 'structure']],
+    });
+    expect(NavigationApi.structureAtNow('/test/a/wing/attic')).toBe(wing);
+    expect(NavigationApi.structureAtNow('/test/a/hall')).toBe(hall);
+    expect(NavigationApi.structureAtNow('/test/elsewhere')).toBeNull();
   });
 });

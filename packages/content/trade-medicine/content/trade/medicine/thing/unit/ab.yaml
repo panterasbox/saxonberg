@@ -6,7 +6,7 @@
 class: /trade/medicine/thing/BloodUnit
 data:
   shortDescription: labelled unit of type AB blood
-  keywords: [unit, blood, bag, ab]
+  keywords: [unit, blood, bag, ab, "type ab blood", "labelled unit of type ab blood"]
   register: indefinite
   longDescription: >-
     A flat, sealed pouch of waxed cloth, cold to the touch, its label

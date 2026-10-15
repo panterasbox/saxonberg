@@ -25,14 +25,8 @@ const SoulApiCallers = SecurityPolicies.FromModule('/api/soul#SoulApi');
 let catalogueRef: SoulCatalogue | null = null;
 async function requireCatalogue(): Promise<SoulCatalogue> {
   if (catalogueRef) return catalogueRef;
-  const cat = StuffApi.findByTemplatePath<SoulCatalogue>(CATALOGUE_PATH);
-  if (cat) {
-    catalogueRef = cat;
-    return cat;
-  }
-  const lazy = await StuffApi.singleton<SoulCatalogue>(CATALOGUE_PATH);
-  catalogueRef = lazy;
-  return lazy;
+  catalogueRef = await StuffApi.singleton<SoulCatalogue>(CATALOGUE_PATH);
+  return catalogueRef;
 }
 
 /**
@@ -117,8 +111,10 @@ export class SoulLogic extends ApiLogic {
    */
   @CallSecurity(SoulApiCallers)
   public async snapshot(): Promise<EmoteCatalogueEntry[]> {
-    const cat =
-      catalogueRef ?? StuffApi.findByTemplatePath<SoulCatalogue>(CATALOGUE_PATH);
+    // ⭐ Logging in is the act that wants the palette, so it loads it (the
+    // scan sweep: the emote dictionary is not booted). A world with no
+    // catalogue row still answers `[]`.
+    const cat = await requireCatalogue().catch(() => null);
     if (!cat) return [];
     return cat.snapshot();
   }

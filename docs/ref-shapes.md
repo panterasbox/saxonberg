@@ -157,24 +157,37 @@ documentation value exactly as this paragraph anticipated. See
 § *A provenance claim* below — it is a genuinely different use of the
 axis from the resolving exemplars, and worth telling apart.
 
-The rest of the paragraph stands: the framework attaches no *runtime*
-behaviour to the identity axis — a path resolved on read cannot dangle into freed
-memory, so there is nothing for the proxy or the destruct slot to
-enforce. The declaration is documentation-only there today. It IS
-validated (`identity` + any `lifetime` throws), so declaring one is safe
-whenever the documentation value is wanted.
+⭐⭐ **Since the scan sweep (2026-10-14) the identity axis names its
+KIND, and the kind is runtime behaviour.** The house rule is *content
+loads when a player's act forces it, by following authored references —
+never by searching, never at boot without a written reason* — and the
+kind of an identity reference is what says WHEN its target loads:
+
+| `ref:` | meaning | when the target loads | exemplars |
+|---|---|---|---|
+| `identity:constituent` | what the holder is MADE OF | **with the holder** — the `TemplateApplier` awaits `StuffApi.ensureConstituent` for every path in phase 1, before the setter, on mint, go-live and restore; must be `persistent` | a species, a material, a biome, a pump's mechanism, the water in a well |
+| `identity:relation` | something the holder POINTS AT | **at the act** that follows it, with `await StuffApi.singleton(path)` — never at hydration; loading a business never loads its rooms | an institution, a proprietor, premises, the main a tap is plumbed to |
+| `identity:kind` | a path to a row that is not a singleton | never — minting from it is an act | what a harvest yields, what a bow shoots |
+| `identity:provenance` | a historical claim | never resolved | `sampledAt`, `takenWith` |
+
+Bare `identity` is refused by `lint:field-meta`, and a constituent that
+is not `persistent` is refused too (phase 1 only sees persistent
+fields). An identity ref still takes no `lifetime` — a path resolved on
+read cannot dangle into freed memory.
 
 ⚠ **It does not follow that an identity ref cannot be wrong.** A path
 naming no row resolves to `null` forever, and the failure is *silent* —
 the TPA reform's `mainsRef` is the exemplar: a gate wired to a
 mistyped line reports no supply, for a reason no author could find by
-looking at the gate. **The enforcement is build-time, not runtime:
-`pnpm lint:census` walks every template-path-valued field in every
-shipped row and fails on one that resolves to nothing.** ⚠ Its field
-list (`refsOf` in `scripts/check-template-census.ts`) is **enumerated by
-hand**, so a new identity-ref field is not covered until it is added
-there — one line, and the gate is the only thing standing between a typo
-and a device that quietly does nothing.
+looking at the gate. **The enforcement is build-time: `pnpm lint:census`
+fails on a reference that resolves to nothing.** ⭐ Clause (f) reads the
+fields by their DECLARATION — every `fieldMeta` entry on the identity
+axis, kernel and packs, resolved on every row that authors it, with the
+constituent graph checked acyclic (a constituent is awaited by its
+holder's load, so a cycle waits on itself). The hand-kept list in
+`refsOf` remains for nested and structural shapes (`props:`, `cast:`,
+`exits`, `stocks[].species` …) that a flat declaration cannot
+name.
 
 ---
 

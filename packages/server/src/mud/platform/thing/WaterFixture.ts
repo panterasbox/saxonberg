@@ -87,7 +87,7 @@ export default class WaterFixture
   protected suppliedBy = '';
 
   static fieldMeta: FieldMeta = {
-    suppliedBy: { persistent: true, authorable: true, ref: 'identity' },
+    suppliedBy: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
 
   static markupAugmenters: MarkupAugmenter[] = [supplyAugmenter];

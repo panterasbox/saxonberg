@@ -54,10 +54,10 @@ export function CutMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CutMixin extends Base {
     static _mixinName: string = 'CutMixin';
     static fieldMeta: FieldMeta = {
-      tissues: { persistent: true, authorable: true, ref: 'identity' },
+      tissues: { persistent: true, authorable: true, ref: 'identity:relation' },
       cutting: { persistent: true, authorable: true },
       difficulty: { persistent: true, authorable: true },
-      _speciesPath: { persistent: true, ref: 'identity' },
+      _speciesPath: { persistent: true, ref: 'identity:constituent' },
       damaged: { persistent: true },
     };
 

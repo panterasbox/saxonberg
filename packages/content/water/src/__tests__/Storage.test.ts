@@ -96,21 +96,24 @@ const WORLD: Row[] = [
  */
 /**
  * ⚠ The row store is module-scoped so a FIXTURE can add to it. A water
- * work is found by its `content` row naming a waterwork class — that is
- * how the catalogue finds the city's conduits without walking the world
- * — so a conduit built only in memory is, correctly, invisible to the
- * river. `work()` below is what makes a fixture a real one.
+ * work is found because a REACH NAMES it and its row says what it is, so a
+ * conduit built only in memory is, correctly, invisible to the river.
+ * `work()` below is what makes a fixture a real one.
  */
 let store: Array<{ _id: string; path: string } & Record<string, unknown>> = [];
 
 /** Give `path` a row, so the catalogue's roster can find what stands there. */
 function work(path: string, cls = '/system/water/thing/Conduit'): string {
   store.push({ _id: `w-${store.length + 1}`, path, class: cls, data: {} });
+  // ⭐ ...and a name on the river (the scan sweep): a reach names its works.
+  const course = store.find((r) => r.path === '/stuff/idea/Watercourse/kestrel');
+  const nodes = (course?.data as { nodes: Array<{ works?: string[] }> }).nodes;
+  nodes[0]!.works = [...(nodes[0]!.works ?? []), path];
   return path;
 }
 
 function installWorld(): void {
-  store = WORLD.map((r, i) => ({ _id: String(i + 1), ...r }));
+  store = WORLD.map((r, i) => ({ _id: String(i + 1), ...structuredClone(r) }));
   const snapshots: Array<Record<string, unknown> & { _id?: string }> = [];
   let nextId = 1;
 
@@ -128,6 +131,8 @@ function installWorld(): void {
         return store.filter((d) => re.test(d.path));
       }
       if (typeof q === 'string') return store.filter((d) => d.path === q);
+      const inList = (q as { $in?: string[] } | undefined)?.$in;
+      if (Array.isArray(inList)) return store.filter((d) => inList.includes(d.path));
       return store.slice();
     },
   );
@@ -433,6 +438,9 @@ describe('a live control is a real reduction downstream', () => {
 
     // Put a gate on the reach above and shut it most of the way.
     makeControl({ reach: 'kestrel:falls', pass: 0.1, divertsTo: 'ditch:head' });
+    // Authoring a work on the river is an install, and the installer's
+    // go-live drops the compiled index — the works are the reaches' now.
+    c.invalidateCache();
     const draws = await c.liveDraws(YEAR + 1);
     const held = (await c.flowAt('kestrel:confluence', YEAR + 1, draws))!;
 

@@ -174,7 +174,8 @@
  *    faucet is to name it. That rule is `check-template-census`'s own
  *    hard lesson — `populates: → props:/cast:` cost it 322 of 462 refs
  *    while still reporting green.
- * 2. **self-placed** — the row declares `container:` or `seatIn:`.
+ * 2. **self-placed** — the row declares `seatIn:` (`container:` is
+ *    runtime-only since 2026-10-15; `lint:instanceable` refuses it).
  * 3. **census-drawn** — the row declares `censusKey:`, its effective
  *    class composes `CirculatingMixin`, and the target is positive:
  *    its own `regionTarget > 0`, or a zone's `stocks:` map names its key
@@ -572,6 +573,7 @@ const CITATIONS: Record<string, string> = {
   class: "a class path, not a row",
   classPath: "a class path, not a row",
   operatingLocations: "a business lists where it trades; it clones nothing",
+  works: "a reach names the works on it — read live or from the row, never placed (the scan sweep)",
   exemplar: "a par line's example good — it arrives by purchase, not by minting",
   mainsRef: "the line a device is wired to",
   suppliedBy: "the main a tap is plumbed to — read live, never placed (the pump build)",
@@ -593,7 +595,6 @@ const CITATIONS: Record<string, string> = {
   projectileTemplate: "what a launcher ACCEPTS — matched against what you carry",
   _vaultPaths: "a donation bank's vaults, filtered live to live Containers",
   value: "a setting's value",
-  container: "self-placement — mechanism 2 reads it from the ROW's own side",
   seatIn: "self-seating — mechanism 2, likewise",
 };
 
@@ -815,8 +816,12 @@ export const ARTICLE_SHAPE_CEILING = 122;
  * gives at length: the figure was measured on a stale tree and re-pinned
  * against the one the gate lands on. The one addition is
  * `/trade/fishing/thing/fish-bowl`, which prints *"glass fish bowl"*.
+ *
+ * 72 → 70 in the scan sweep's review (2026-10-15): the goods yards' stocks
+ * began naming their lines, which brought 44 goods into this arm's scope;
+ * every one was given the name it prints, and two older misses with them.
  */
-export const UNNAMEABLE_GOOD_CEILING = 72;
+export const UNNAMEABLE_GOOD_CEILING = 70;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command
@@ -976,7 +981,7 @@ export function run(
         };
       }
       // 2 — self-placed.
-      for (const f of ["container", "seatIn"] as const) {
+      for (const f of ["seatIn"] as const) {
         if (typeof data[f] === "string") {
           return { path, file, how: "self-placed", detail: `${f}: ${data[f] as string}` };
         }

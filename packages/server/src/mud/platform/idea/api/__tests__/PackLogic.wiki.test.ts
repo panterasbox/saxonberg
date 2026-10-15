@@ -125,8 +125,10 @@ beforeEach(() => {
   quietConsole();
   pages = [];
   diag = vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined) as never;
-  vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((path: string) =>
-    path === TemplatePaths.wikiRegistry ? (fakeRegistry as never) : undefined) as never);
+  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string) => {
+    if (path === TemplatePaths.wikiRegistry) return fakeRegistry as never;
+    throw new Error(`no singleton stubbed at ${path}`);
+  }) as never);
 });
 afterEach(() => {
   vi.restoreAllMocks();

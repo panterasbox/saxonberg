@@ -136,7 +136,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName: string = 'PumpingMixin';
 
     static fieldMeta: FieldMeta = {
-      mechanism: { persistent: true, authorable: true, ref: 'identity' },
+      mechanism: { persistent: true, authorable: true, ref: 'identity:constituent' },
       liftM: { persistent: true, authorable: true },
       throughputLps: { persistent: true, authorable: true },
       strokeS: { persistent: true, authorable: true },

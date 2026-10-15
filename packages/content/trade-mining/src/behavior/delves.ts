@@ -137,9 +137,7 @@ export const brain = class {
     const carried = (hand.getContents() as Stuff[]).filter((c) => isOre(c));
     if (carried.length === 0) return;
 
-    const shelf =
-      StuffApi.findByTemplatePath(shelfPath) ??
-      (await StuffApi.singletonOrClone(shelfPath));
+    const shelf = await StuffApi.singleton(shelfPath);
     if (!shelf || !MixinApi.isConsignmentShelf(shelf) || !MixinApi.isContainable(shelf)) {
       return;
     }

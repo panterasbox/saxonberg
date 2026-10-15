@@ -312,7 +312,7 @@ export default class LookController extends CommandController<LookModel> {
     // the bulk build. It is NOT fixed here — the general answer is a card
     // that renders the prose it was handed, which is the card surface's
     // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
-    const notices = EmploymentApi.noticesAt(location);
+    const notices = await EmploymentApi.noticesAt(location);
     // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
     // perception gate, tells whatever it keeps (a map, a memory,
     // nothing), and hands back the exits this viewer may know about —

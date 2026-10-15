@@ -802,6 +802,12 @@ export function declaredFields(
 export interface FieldRule {
   /** The merge rule the field declares, or `undefined` for the default. */
   inherit?: 'replace' | 'by-key' | 'by-entry' | 'never';
+  /**
+   * The `ref:` axis the field declares (`instance`, `identity:constituent`
+   * …), or `undefined`. ⭐ What lets `lint:census` resolve a field by its
+   * DECLARATION rather than a hand-kept list (the scan sweep).
+   */
+  ref?: string;
 }
 
 /**
@@ -890,7 +896,13 @@ export function fieldMetaEntries(source: string): Map<string, FieldRule> {
       /(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:\s*\{[^{}]*\binherit:\s*['"]([a-z-]+)['"]/g,
     )) {
       const key = (im[1] ?? im[2])!;
-      out.set(key, { inherit: im[3] as FieldRule['inherit'] });
+      out.set(key, { ...out.get(key), inherit: im[3] as FieldRule['inherit'] });
+    }
+    for (const rm of body.matchAll(
+      /(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:\s*\{[^{}]*\bref:\s*['"]([a-z:]+)['"]/g,
+    )) {
+      const key = (rm[1] ?? rm[2])!;
+      out.set(key, { ...out.get(key), ref: rm[3] });
     }
   }
   return out;

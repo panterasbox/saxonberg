@@ -90,14 +90,14 @@ describe('the fabric roster warm', () => {
     expect(Construction.isForm('stale')).toBe(false);
   });
 
-  it('⚠ the platform pack boots it eagerly (the wiring assert)', () => {
+  it('⭐ NOT booted — the form setter warms it on first use (the scan sweep)', () => {
     const src = readFileSync(
       fileURLToPath(
         new URL('../../../../../content/platform/pack.yaml', import.meta.url),
       ),
       'utf-8',
     );
-    expect(src).toMatch(/template: \/platform\/idea\/FabricCatalogue/);
+    expect(src).not.toMatch(/template: \/platform\/idea\/FabricCatalogue/);
   });
 
   it('the catalogue and its rows both veto eviction', () => {

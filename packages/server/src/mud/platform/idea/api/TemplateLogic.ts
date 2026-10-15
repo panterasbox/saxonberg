@@ -329,51 +329,19 @@ export class TemplateLogic extends ApiLogic {
     }
   }
 
-  /** See {@link TemplateApi.validateSingletonContainerTarget}. */
+  /** See {@link TemplateApi.validateNoAuthoredContainer}. */
   @CallSecurity(TemplateApiCallers)
-  public async validateSingletonContainerTarget(
+  public async validateNoAuthoredContainer(
     doc: Record<string, unknown>
   ): Promise<void> {
     const data = doc.data as Record<string, unknown> | undefined;
-    if (!data || typeof data.container !== 'string') return;
-    const targetPath = data.container;
-    const sourcePath =
-      typeof doc.path === 'string' ? doc.path : '(unknown source)';
-
-    // 1. Source class must compose ContainableMixin.
-    const sourceClass = await this.effectiveClassOfDoc(doc);
-    if (sourceClass === null || sourceClass === '') return; // folder-leaf validator handles
-    const sourceCtor = (await StuffApi.loadClassByPath(sourceClass)) as new (
-      ...args: unknown[]
-    ) => unknown;
-    if (!MixinApi.hasMixin(sourceCtor, Mixins.Containable)) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container' but its ` +
-          `class '${sourceClass}' does not compose ContainableMixin.`
-      );
-    }
-
-    // 2. Target template must exist.
-    const targetTpl = await Template.findByPath(targetPath);
-    if (!targetTpl) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
-          `but no template exists at that path.`
-      );
-    }
-
-    // 3. Target class must compose SingletonMixin.
-    const targetCtor = (await StuffApi.loadClassByPath(targetTpl.class)) as new (
-      ...args: unknown[]
-    ) => unknown;
-    if (!MixinApi.hasMixin(targetCtor, Mixins.Singleton)) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
-          `but the target's class '${targetTpl.class}' does not compose ` +
-          `SingletonMixin. The container: target must be singleton-shaped ` +
-          `(see declarative-content-slate § container:).`
-      );
-    }
+    if (!data || !('container' in data)) return;
+    throw new TemplateError(
+      `Template '${String(doc.path ?? '(unknown source)')}' authors ` +
+        `'data.container'. Where a thing is is runtime state, set by ` +
+        `whoever places it: a place's props: / cast:, a seat (seatIn:), ` +
+        `or its creator. A producer names its goods as stock lines.`
+    );
   }
 
   /**

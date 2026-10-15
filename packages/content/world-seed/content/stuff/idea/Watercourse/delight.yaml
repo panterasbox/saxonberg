@@ -25,7 +25,7 @@ data:
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
   nodes:
-    - { name: spring, elevation: 720, catchmentKm2: 190 }
+    - { name: spring, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The alluvial flats — the diversion fight, when it comes, is here.
-    - { name: flats, elevation: 180, channelWidthM: 22, catchmentKm2: 240 }
-    - { name: mouth, elevation: 35, channelWidthM: 30 }
+    - { name: flats, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace] }
+    - { name: mouth, elevation: 35, channelWidthM: 30, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }
