@@ -71,6 +71,13 @@ export interface CraftRequest {
   /** Optional `with <brand>` input choice — a keyword matched against present inputs. */
   brand?: string;
   /**
+   * ⭐ A SUBTRACTIVE act (carving): the output is its row's own size and
+   * the rest of the stock is shavings. Off, the output weighs what went
+   * in (a forging conserves its bar). Without it a dowel carved from a
+   * 6 kg board weighed 6 kg (the assembly browser walk).
+   */
+  subtractive?: boolean;
+  /**
    * ⭐ **The item the act is performed ON**, already resolved by the
    * controller — preferred for any item slot it satisfies.
    *

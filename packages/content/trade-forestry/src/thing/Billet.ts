@@ -21,7 +21,9 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 export default class Billet extends Timber {
   static commandContributions: CommandContributions = {
-    self: ['trade/forestry/cmd/forestry/rive.yaml'],
+    // In your hands (`environment` — to the holder; `self` grants nothing
+    // to anyone, it is a command giver's own verbs) or at your feet.
+    environment: ['trade/forestry/cmd/forestry/rive.yaml'],
     peers: [
       'trade/forestry/cmd/forestry/rive.yaml',
       ...(Timber.commandContributions.peers ?? []),

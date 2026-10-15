@@ -284,8 +284,21 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
     const carved = await say(smith, 'carve dowel from sawn board with billhook');
     expect(carved, `carve dowel: ${carved}`).toMatch(/dowel/i);
     const dowel = await examine(smith, 'dowel');
-    expect(dowel, `dowel: ${dowel}`).toMatch(/sawn through/i);
+    expect(dowel, `dowel: ${dowel}`).toMatch(/It was sawn/i);
     expect(dowel).not.toMatch(/split along the grain/i);
+    // ⭐ A dowel has no face to cup across, and it is its own size — the
+    // rest of the board is shavings (both found by the browser walk).
+    expect(dowel).not.toMatch(/cupped/i);
+    const rows = await smith.query('dowel', { fields: 'detail' });
+    const m = (rows[0] as { mass?: unknown } | undefined)?.mass;
+    const kg = typeof m === 'number' ? m : Number((m as { value?: number } | undefined)?.value ?? NaN);
+    expect(kg, `dowel mass: ${JSON.stringify(rows[0])}`).toBeLessThan(1);
+    // ⭐⭐ A HELD assembly is repairable where no instrument affords it
+    // (the browser walk: AssembledMixin offered its verbs in `self`, which
+    // grants nothing to a holder; the drive's other repairs had an anvil
+    // or a floor). The smith holds the pick, at the sawmill.
+    const mended = await say(smith, 'repair miners-pick');
+    expect(mended, `held repair: ${mended}`).not.toMatch(/don'?t understand/i);
   }, 300_000);
 });
 

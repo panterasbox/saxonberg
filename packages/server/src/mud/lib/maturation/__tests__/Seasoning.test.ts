@@ -136,11 +136,12 @@ describe('SeasoningMixin', () => {
 });
 
 describe('⭐ the cut — a through-sawn board CUPS as it dries; a quartered one stays flat', () => {
-  function board(form: string, fraction: number, quartered = false): Timber {
+  function board(form: string, fraction: number, quartered = false, wide = true): Timber {
     const t = stack(OAK, fraction);
     t.setConstructionForm(form);
-    // Row-authored in production (`quartered-board`); no setter by design.
+    // Row-authored in production (`board`, `quartered-board`); no setters by design.
     (t as unknown as { quarterSawn: boolean }).quarterSawn = quartered;
+    (t as unknown as { wideFace: boolean }).wideFace = wide;
     return t;
   }
 
@@ -149,6 +150,14 @@ describe('⭐ the cut — a through-sawn board CUPS as it dries; a quartered one
     expect(board('sawn', 1, true).isCupped()).toBe(false);
     expect(board('sawn', 0).isCupped()).toBe(false); // green — not yet
     expect(board('riven', 1).isCupped()).toBe(false);
+  });
+
+  it('⭐ a NARROW sawn piece (a dowel off a board) has no face to cup — it reads sawn, not cupped', () => {
+    const dowel = board('sawn', 1, false, false);
+    expect(dowel.isCupped()).toBe(false);
+    const look = dowel.getMarkupLong(yard);
+    expect(look).toMatch(/It was sawn: the saw ran across its fibres/);
+    expect(look).not.toMatch(/cupped/);
   });
 
   it('⭐ the end grain says how it was opened — in words', () => {

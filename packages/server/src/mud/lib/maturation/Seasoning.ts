@@ -73,12 +73,14 @@ export interface Seasoning {
   isGreen(): boolean;
   /** Was it quarter-sawn (cut radially — stabler, fewer boards)? */
   isQuarterSawn(): boolean;
+  /** Is its face wide enough to cup across — a board? Authored. */
+  isWideFace(): boolean;
   /**
    * Has it CUPPED — a flat-sawn (through-sawn) piece that has dried, its
    * face gone hollow across the width because the rings run across it and
    * wood shrinks more along a ring than through one. Derived, never
-   * stored: sawn, not quarter-sawn, and seasoned. A quartered board, a
-   * riven one, and a green one have not.
+   * stored: a WIDE face (`wideFace` — a board; a dowel or a haft has no
+   * width to cup across), sawn, not quarter-sawn, and seasoned.
    */
   isCupped(): boolean;
   /** Set the seasoned fraction directly (a mint, a test, a sale of dry stock). */
@@ -135,6 +137,11 @@ function grainLine(host: Stuff & Seasoning): string {
     case 'hewn':
       return 'It was hewn with an axe — along the grain mostly, torn in places.';
     case 'sawn':
+      // A narrow piece has no face to cup across — what the saw did to it
+      // is cut its fibres.
+      if (!host.isWideFace()) {
+        return 'It was sawn: the saw ran across its fibres wherever the grain wandered.';
+      }
       if (host.isQuarterSawn()) {
         return 'It was sawn on the quarter: the rings run straight through it, edge to edge, and it has stayed flat.';
       }
@@ -158,12 +165,17 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       seasonWorst: { persistent: true, runtimeState: true },
       // A quarter-sawn board and a through-sawn one do not merge.
       quarterSawn: { persistent: true, runtimeState: true, authorable: true, stackIdentity: true },
+      // ⭐ A face wide enough to cup across — a board. Authored on the
+      // row; a part carved FROM a board does not carry it (a dowel cannot
+      // cup), which is why it is a field and not derived from the form.
+      wideFace: { persistent: true, authorable: true },
     };
 
     public seasonedFraction = 0;
     public seasonClockStamp = 0;
     public seasonWorst = 1;
     public quarterSawn = false;
+    public wideFace = false;
 
     private seasoningDaysOf(): number {
       const self = this as unknown as Stuff;
@@ -253,8 +265,12 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.quarterSawn;
     }
 
+    isWideFace(): boolean {
+      return this.wideFace === true;
+    }
+
     isCupped(): boolean {
-      if (this.quarterSawn || !this.isSeasoned()) return false;
+      if (!this.wideFace || this.quarterSawn || !this.isSeasoned()) return false;
       const self = this as unknown as Stuff;
       return MixinApi.isConstructed(self) && self.getConstructionForm() === 'sawn';
     }

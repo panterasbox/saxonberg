@@ -9,7 +9,7 @@ data:
   keywords: [peg, pegs, pin, trenail, treenail]
   register: indefinite
   longDescription: |
-    A finger-length pin of riven oak, shaved to eight sides and tapered so it draws tighter the further it is driven.
+    A finger-length pin of hard wood, shaved to eight sides and tapered so it draws tighter the further it is driven.
   _materialPath: /stuff/idea/material/wood/oak
   mass: 0.03
   constructionForm: riven

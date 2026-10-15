@@ -12,7 +12,7 @@
  * `trade-sawing` attaches to (boards, not lengths), and it is what the
  * transport pack's sledge and dray exist to move.
  *
- * ⭐ **It affords its own cross-cut** (`commandContributions.self`), so a
+ * ⭐ **It affords its own cross-cut** (`commandContributions.peers`), so a
  * bole dragged to the yard one day is still cross-cuttable there with no
  * stand in the room. A bole in a `Wood` room survives a restart in the
  * room's container slice; a bole dragged into a transient room is lost
@@ -66,13 +66,16 @@ export default class Bole extends BoleBase {
    * riving: a froe takes a length off it as billets (`rive bole`), the
    * same way the axe takes a length off it as round timber.
    */
+  // ⚠ `peers` — to whoever stands beside it. It was `self`, which is read
+  // only off a command GIVER (a person's own verbs), so the bole afforded
+  // nothing: `rive bole` worked at the sawmill only because the timber
+  // yard's billet heap lay in the room (found by the assembly browser
+  // walk). Too heavy to carry, so no `environment`.
   static commandContributions: CommandContributions = {
-    self: [
+    peers: [
       'trade/forestry/cmd/forestry/fell.yaml',
       'trade/forestry/cmd/forestry/rive.yaml',
     ],
-    environment: [],
-    peers: [],
   };
 
   static markupAugmenters: MarkupAugmenter[] = [lengthsAugmenter];

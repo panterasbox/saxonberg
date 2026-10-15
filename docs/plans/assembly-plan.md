@@ -1143,6 +1143,48 @@ best riving wood). Lens 1 decided it:
   oak, ash, hazel — all clean), so the refusal is unit-tested and no
   player can reach it until a wood authors an elm.
 
+### D18 — What the live browser walk found (review, 2026-10-14)
+
+The first browser walk of the build (a fresh world, the real client, a
+funded player: store → timber yard → fuel yard → smithy → sawmill) found
+what 29 wire runs could not. Fixed here, this build's own:
+
+- **Held assemblies afforded nothing.** `AssembledMixin` offered `fit` /
+  `repair` / `salvage` in `self` — a command GIVER's own verbs, never read
+  off an object — so a pick or shield in your hands could not be repaired
+  ("I don't understand 'repair'"). Every drive repair had the assembly on
+  the floor or an anvil in the room. Now `environment` + `peers`. Same
+  dead `self` on `Bole` (rive and the cross-cut worked at the sawmill only
+  because the yard's billet heap lay in the room) and `Billet`; and the
+  two forestry tests that asserted `self` asserted a declaration nobody
+  receives. ⚠ Elsewhere, not fixed: `Block` (`split`) and `Spade` (`dig`)
+  declare the same dead `self`.
+- **A dowel had "cupped hollow".** Cupping is a WIDE face's: a new
+  authored `Seasoning.wideFace` (the board row; a part carved from it does
+  not carry it). A narrow sawn piece reads *"It was sawn: the saw ran
+  across its fibres…"*.
+- **A dowel weighed 6 kg** — the whole board's mass conserved into it.
+  `CraftRequest.subtractive` (set by `carve`): the output keeps its row's
+  size and the rest is shavings. Forging still conserves.
+- **Part prose asserted "riven ash" / "riven oak"** on nine carved parts
+  whose grain and species now come from the stock; rewritten. The board
+  rows' prose stated the ring orientation the derived grain line now
+  states (one fact, described twice); trimmed.
+- **A broke buyer at a heap was refused "3 shaped pick hafts"** — the
+  heap named, the piece priced. Now *"a shaped pick haft"*.
+- The drive: the D16 dowel checkpoint asserts no cup and a part-sized
+  mass, and a HELD `repair miners-pick` at the sawmill (no anvil there).
+
+Found and NOT this build's (reported): the Hearthworks smithy reads pitch
+dark to a player holding a glowcap at noon in the browser (cards describe
+everything while prose says "something"); `look pick haft` offers *60
+arrows* and spindle shafts (the matcher's substring "s-haft"); once a
+thing is your MQL focus, `look <other>` and bare `look` re-show it
+silently until `look here`; `goto` answers "no match" for a location
+nobody has loaded; the pick-head row is copper where the pick's bill says
+iron; a re-login after a server restart gave a second aether implant and
+purchases failed (a test-login artifact, unconfirmed in play).
+
 ## ⭐⭐ Host placement
 
 For every new field, mixin and class — the host, and what composing it

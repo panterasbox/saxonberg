@@ -7,7 +7,7 @@ data:
   keywords: [leg, legs, upright, post]
   register: indefinite
   longDescription: |
-    A squared length of riven ash about knee high, with two mortises chopped into it at right angles near the top.
+    A squared length of wood about knee high, with two mortises chopped into it at right angles near the top.
   _materialPath: /stuff/idea/material/wood/ash
   mass: 1.0
   constructionForm: riven

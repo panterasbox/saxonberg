@@ -120,6 +120,9 @@ export default class CarveController extends CraftController<CarveModel> {
       makerMode: 'self',
       // To hand — the Api lands, stamps and captures it.
       landing: 'hands',
+      // ⭐ Carving cuts the stock down: the part is its own size and the
+      // rest is shavings (a dowel off a board is not the board's weight).
+      subtractive: true,
       ...(stock ? { target: stock } : {}),
     });
     if (!outcome.ok) {

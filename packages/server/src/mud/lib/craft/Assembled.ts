@@ -399,7 +399,12 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       // is the lesson — so the verb must exist wherever the thing does. An
       // instrument-only affordance left a cooper with a driver and a cask
       // unable to say `repair cask` at all (the assembly drive).
-      self: [
+      // ⚠ `environment` is how a HELD thing grants a verb to its holder
+      // (`self` is the thing's own verbs, and grants nothing). It was
+      // `self` until the browser walk: a pick in your hands could not be
+      // repaired, a shield could not be salvaged — every drive checkpoint
+      // had the assembly lying on the floor, which is `peers`.
+      environment: [
         'platform/cmd/crafting/fit.yaml',
         'platform/cmd/crafting/repair.yaml',
         'platform/cmd/crafting/salvage.yaml',

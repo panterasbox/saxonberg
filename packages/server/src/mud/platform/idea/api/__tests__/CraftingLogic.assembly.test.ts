@@ -285,10 +285,10 @@ describe('CraftingLogic — assembly', () => {
 describe('⭐ the grain rides the carve — no act raises integrity', () => {
   const CARVED = '/x/thing/carved-haft';
   const RAIL = '/x/thing/hewn-rail';
-  function timber(form: string, keywords: string[]): Timber {
+  function timber(form: string, keywords: string[], kg = 1): Timber {
     const t = makeStuff(() => new Timber());
     t.setMaterial(mat(ASH));
-    t.setMass(Quantity.of(1, 'kg'));
+    t.setMass(Quantity.of(kg, 'kg'));
     t.setKeywords(keywords);
     t.setConstructionForm(form);
     t.setSeasonedFraction(1);
@@ -299,7 +299,8 @@ describe('⭐ the grain rides the carve — no act raises integrity', () => {
     const prior = clone.getMockImplementation();
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
       // The rows: a haft authored riven, a rail authored hewn.
-      if (path === CARVED) return timber('riven', ['carved-haft']) as never;
+      // The part row is a fifth of the stock it is carved from.
+      if (path === CARVED) return timber('riven', ['carved-haft'], 0.2) as never;
       if (path === RAIL) return timber('hewn', ['hewn-rail']) as never;
       return prior(path) as never;
     });
@@ -328,6 +329,19 @@ describe('⭐ the grain rides the carve — no act raises integrity', () => {
   it('⭐ a haft carved from a SAWN board is sawn — the saw cut the fibres', async () => {
     expect((await carve('carved-haft', 'sawn')).getConstructionForm()).toBe('sawn');
   });
+  it('⭐ a CARVING is the stock cut down — its row\'s size, the rest shavings (the browser walk)', async () => {
+    ContainmentApi.move(timber('sawn', ['stock', 'board']), smith);
+    const carved = await as<CraftOutcome>(() =>
+      CraftingApi.craft({ recipeRef: 'carved-haft', makerMode: 'self', subtractive: true }),
+    );
+    if (!carved.ok) throw new Error(JSON.stringify(carved));
+    expect((carved.output as unknown as Timber).getMass().rawValue()).toBeCloseTo(0.2, 6);
+  });
+
+  it('…and an ordinary transform still conserves what went in', async () => {
+    expect((await carve('carved-haft', 'sawn')).getMass().rawValue()).toBeCloseTo(1, 6);
+  });
+
   it('a haft carved from a riven blank is riven, as its row says', async () => {
     expect((await carve('carved-haft', 'riven')).getConstructionForm()).toBe('riven');
   });

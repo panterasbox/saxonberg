@@ -27,7 +27,10 @@ describe('the bole', () => {
   });
 
   it('⭐ affords its own cross-cut, so a bole in the yard is still a bole', () => {
-    const verbs = CommandApi.collectContributions(Bole, 'self').map((d) => d.verbs).flat();
+    // ⚠ `peers` — to whoever stands beside it. This read `self` (a command
+    // giver's own verbs, never read off an object), so it asserted a
+    // declaration nobody receives (the assembly browser walk).
+    const verbs = CommandApi.collectContributions(Bole, 'peers').map((d) => d.verbs).flat();
     expect(verbs).toContain('fell');
   });
 

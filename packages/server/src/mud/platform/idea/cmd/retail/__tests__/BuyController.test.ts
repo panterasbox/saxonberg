@@ -78,6 +78,10 @@ class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
   static _mixinName = "TestGiver";
+  received: unknown[] = [];
+  protected handleMessage(msg: unknown): void {
+    this.received.push(msg);
+  }
 }
 
 class Torch extends Good {}
@@ -320,6 +324,43 @@ describe("BuyController — buy that stamps", () => {
     expect(after).toHaveLength(2);
     expect(after.every((c) => (c as unknown as Stave).getQuantity() === 1)).toBe(true);
     expect(stock.onHand(STAVE)).toBe(28);
+  });
+
+  it("⭐ a broke buyer at a heap is told the price of ONE piece, not the heap (the browser walk)", async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/broke");
+    ContainmentApi.move(giver as never, loc as never);
+    await makeStoreBusiness();
+    const stock = makeStuffAtPath(() => {
+      const st = new Stock();
+      st.stockLines = [{ itemTemplatePath: STAVE, par: 30 }];
+      st.setPrice(STAVE, 2);
+      st.discipline = "line";
+      st.attendDurationMs = 0;
+      st.staffingPolicy = "self-service";
+      st.serverPositionKeys = ["clerk"];
+      return st;
+    }, STORE);
+    const heap = makeStuffAtPath(() => new Stave(), STAVE);
+    heap.setKeywords(["stave"]);
+    heap.setShortDescription("stave");
+    heap.setQuantity(30);
+    ContainmentApi.move(heap as never, stock as never);
+    const ctx = makeContext(giver, loc, stock);
+    await asOwner(giver, () =>
+      makeStuff(() => new BuyController()).execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        ctx,
+      ),
+    );
+    const reason = ctx
+      .getNotes()
+      .find((n) => n.kind === "controller-rejected") as { reason?: string } | undefined;
+    expect(reason?.reason).toBe("insufficient-funds");
+    const said = JSON.stringify(giver.received);
+    expect(said).toMatch(/can't cover a stave/);
+    expect(said).not.toMatch(/30 staves/);
+    expect(stock.onHand(STAVE)).toBe(30);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {

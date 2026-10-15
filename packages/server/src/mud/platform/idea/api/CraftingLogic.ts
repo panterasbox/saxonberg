@@ -1679,9 +1679,13 @@ async function applyTangibleOutput(
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
   deliveredHeatK: number = effectiveHeatK,
+  subtractive = false,
 ): Promise<void> {
   const primary = matchedItems[0];
   const authoredMaterial = recipe.getOutputMaterial();
+  // The row's own size, read before the inputs' mass overwrites it — what
+  // a subtractive act cuts the stock down to.
+  const rowKg = MixinApi.isTangible(output) ? output.getMass().rawValue() : 0;
   // ⭐⭐ **A tangible made entirely of BULK** (grain-chain D11). This used
   // to throw: the transform arm assumed a primary ITEM input whose
   // material and mass flow onto the output, which is true of every
@@ -1765,6 +1769,9 @@ async function applyTangibleOutput(
         : primary!.material,
     );
   }
+  // ⭐ A carving is the stock cut DOWN: it keeps its row's size and the
+  // rest is shavings. Never heavier than what went in.
+  if (subtractive && rowKg > 0) totalKg = Math.min(totalKg, rowKg);
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
 
   // ⭐ Seasoning rides the transform too (assembly D2): a stave riven from a
@@ -3066,6 +3073,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matchedItems,
       workingHeatK,
       deliveredHeatK,
+      req.subtractive === true,
     );
     // ⭐⭐ …and, when the output is made of parts, which input became which
     // part. Before consumption: the inputs are still alive to be read. The

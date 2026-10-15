@@ -78,12 +78,12 @@ describe('rive — through the binder', () => {
 
 describe('rive — who affords it', () => {
   it('⭐ the bole affords riving as it affords felling', () => {
-    expect(Bole.commandContributions.self).toContain('trade/forestry/cmd/forestry/fell.yaml');
-    expect(Bole.commandContributions.self).toContain(RIVE);
+    expect(Bole.commandContributions.peers).toContain('trade/forestry/cmd/forestry/fell.yaml');
+    expect(Bole.commandContributions.peers).toContain(RIVE);
   });
 
   it('⭐ a billet affords riving — and still offers the kernel `fit`', () => {
-    expect(Billet.commandContributions.self).toContain(RIVE);
+    expect(Billet.commandContributions.environment).toContain(RIVE);
     const peers = Billet.commandContributions.peers ?? [];
     expect(peers).toContain(RIVE);
     for (const v of Timber.commandContributions.peers ?? []) expect(peers).toContain(v);

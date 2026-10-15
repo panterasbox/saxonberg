@@ -361,7 +361,11 @@ export default class BuyController extends CommandController<BuyModel> {
     item: Stuff,
     model: BuyModel,
   ): void {
-    this.reject(giver, context, Mml.compose`You can't cover ${item.getPresentation()} just now.`, {
+    // ⚠ ONE piece: the price is per piece, and a stocked heap sits on the
+    // shelf as one stack — naming the heap told a broke buyer they had
+    // tried to buy all three (found by the assembly browser walk).
+    const one = item.presentationPhrase().withCount(1).render();
+    this.reject(giver, context, Mml.compose`You can't cover ${one} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
       detail: model.thing,

@@ -7,7 +7,7 @@ data:
   keywords: [dowel, dowels, pin, rod]
   register: indefinite
   longDescription: |
-    A rod of riven wood shaved round, as long as a hand and as thick as a finger.
+    A rod of wood shaved round, as long as a hand and as thick as a finger.
   _materialPath: /stuff/idea/material/wood/oak
   mass: 0.08
   constructionForm: riven

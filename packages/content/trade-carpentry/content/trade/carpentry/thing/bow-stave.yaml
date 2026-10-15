@@ -14,7 +14,7 @@ data:
   keywords: [bowstave, bowstaves, bow-stave, "bow stave", yew]
   register: indefinite
   longDescription: |
-    A long split stave of yew, pale cream sapwood along one face and dark orange heartwood along the other, tapering to a nock at each end and thickest at the grip.
+    A long stave, the pale sapwood along one face and the darker heartwood along the other, tapering to a nock at each end and thickest at the grip.
   _materialPath: /stuff/idea/material/wood/yew
   mass: 0.8
   constructionForm: riven

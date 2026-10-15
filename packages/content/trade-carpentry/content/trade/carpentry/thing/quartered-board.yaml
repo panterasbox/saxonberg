@@ -16,5 +16,5 @@ data:
   shortDescription: quartered board
   keywords: [board, boards, quartered, quarter-sawn, "quartered board", plank]
   longDescription: |
-    A sawn board with the growth rings running straight through its thickness, edge to edge, and the silvery ray fleck showing on its face where the saw crossed the medullary rays.
+    A sawn board with the silvery ray fleck showing on its face where the saw crossed the medullary rays.
   quarterSawn: true
