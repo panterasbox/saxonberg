@@ -8,12 +8,13 @@
 # is in your glass even when there is no mark on the bottle — a quiet
 # fact a curious player can find by asking where the case came from.
 #
-# `container:` is Veshko's yard Stock — the ONLY faucet. Its hand carries
-# the case to the cash-and-carry and consigns it AS Veshko.
+# Veshko's yard Stock names it as a line and makes it up to par;
+# its hand carries the case to the cash-and-carry and consigns it AS Veshko.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:rum-light
   shortDescription: bottle of light rum
-  keywords: [rum, bottle, spirit, light]
+  keywords: [rum, bottle, spirit, light, "bottle of light rum"]
   register: indefinite
   longDescription: A clear bottle of light rum, the label a bare stamp.
   category: spirit-bottle
@@ -22,7 +23,4 @@ data:
   interiorMaterial: /trade/distilling/idea/material/rum-light
   interiorAmount: 0.75
   gradeBand: fair
-  censusKey: spirit:rum-light
-  regionTarget: 12
   materialTags: [spirit, rum, light-rum]
-  container: /world/terminus/goods-yards/veshko/thing/stock

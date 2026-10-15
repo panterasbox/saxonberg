@@ -10,7 +10,7 @@
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
- * Twelve invariants:
+ * The invariants:
  *
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
@@ -57,6 +57,10 @@
  *      and may never rise. The census prints its violations, because the
  *      list is the first inventory of orphan authored keys the tree has
  *      ever had.
+ *  13. No row carries the RETIRED `hydratorClass:` key.
+ *  14. No row authors the RETIRED `container:` key (2026-10-15) — where
+ *      a thing is is runtime state; a place, a seat or a producer's
+ *      stock line names where it goes.
  *
  * ⚠⚠ **Invariants 5, 6, 7 and 12 all read the EFFECTIVE row** — the
  * parent chain folded in (`scripts/pack-roots.ts` `effectiveRow`). Read
@@ -381,6 +385,21 @@ function main(): void {
           `it applied, full stop; delete the line`,
       });
     }
+    // 14 — the RETIRED `container:` key (the scan sweep's review,
+    // 2026-10-15). Where a thing is is runtime state, set by whoever
+    // places it: a place's `props:` / `cast:`, a seat (`seatIn:`), or its
+    // creator. As an authored field it meant "every clone of me lands
+    // THERE", which routed a kind's every copy to one producer's counter.
+    if (data && typeof data === 'object' && 'container' in (data as object)) {
+      findings.push({
+        invariant: 14,
+        file,
+        detail:
+          `authors retired \`container:\` — let the place name it ` +
+          `(props:/cast:), seat it (seatIn:), or, for a producer's goods, ` +
+          `name it as a line on the producer's stock (stockLines:)`,
+      });
+    }
     // 9 — a curated blueprint's `classPath` must resolve, exactly as a
     // template's `class` must. Blueprints carry no `class:`, so every
     // check above skipped them — and three shipped rows (coin,
@@ -546,6 +565,7 @@ function main(): void {
     11: 'a row that clones into nothing (no class, and no extends chain that states one)',
     12: 'orphan data keys above the ratchet (a key the applier discards silently)',
     13: 'retired `hydratorClass:` key (the applier runs on data alone since 2026-10-01)',
+    14: 'retired `container:` key (runtime-only since 2026-10-15) — a place, a seat or a stock line names where a thing goes',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

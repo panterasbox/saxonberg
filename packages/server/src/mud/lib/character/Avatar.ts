@@ -878,9 +878,8 @@ export default abstract class Avatar extends AvatarBase {
    *   4. Emit `Events.PlayerLoggedIn` for engine-level observers.
    *
    * Starting location and default loadout are NOT this method's
-   * concern. The Avatar's container is set declaratively by the
-   * template's `data.container` field (Phase 2 `applyContainer`
-   * during clone) or by `Avatar.restore()` re-hydrating saved
+   * concern. The Avatar's container is set by whoever minted it
+   * (enroll's spawn) or by `Avatar.restore()` re-hydrating saved
    * state; default loadout (currently the AetherImplant) is
    * installed in `onCreate`. Both run before `enter` fires.
    *
@@ -947,7 +946,7 @@ export default abstract class Avatar extends AvatarBase {
       throw new Error(
         `Avatar.enter: ${this.getFullName()} has no container. ` +
           `The avatar seed must declare a spawn via 'data.startLocation' ` +
-          `(a room or a Warren) or 'data.container'; the seed at ` +
+          `(a room or a Warren); the seed at ` +
           `the '/platform/agent/PrimaryAvatar' row sets the default the ` +
           `embody/guest ` +
           `overlay clones from (no per-player template row exists).`,

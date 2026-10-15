@@ -1,8 +1,9 @@
 # The floor bottle of ginger beer — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  censusKey: mixer:ginger-beer
   shortDescription: "bottle of ginger beer"
-  keywords: [ginger-beer, ginger, bottle, mixer, beer]
+  keywords: [ginger-beer, ginger, bottle, mixer, beer, "bottle of ginger beer"]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of ginger beer, the bottling floor's plain label."
   category: mixer-bottle
@@ -12,7 +13,4 @@ data:
   interiorAmount: 1
   closure: liquidTight
   gradeBand: fair
-  censusKey: mixer:ginger-beer
-  regionTarget: 8
   materialTags: ["mixer", "ginger-beer"]
-  container: /world/terminus/goods-yards/bottling/thing/stock

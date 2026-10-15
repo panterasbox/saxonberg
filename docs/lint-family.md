@@ -1005,7 +1005,7 @@ identifiers or spreads.
 
 #### Arm R's five mechanisms, and the faucet/citation split
 
-faucet-named · self-placed (`container:`/`seatIn:`) · census-drawn
+faucet-named · self-placed (`seatIn:`; `container:` retired 2026-10-15) · census-drawn
 (`censusKey` + `CirculatingMixin` + a positive target, including a zone's
 `stocks:` override) · parent-of-a-reachable-child · code-named.
 

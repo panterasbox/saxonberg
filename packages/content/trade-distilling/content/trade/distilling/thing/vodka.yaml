@@ -8,12 +8,13 @@
 # is in your glass even when there is no mark on the bottle — a quiet
 # fact a curious player can find by asking where the case came from.
 #
-# `container:` is Veshko's yard Stock — the ONLY faucet. Its hand carries
-# the case to the cash-and-carry and consigns it AS Veshko.
+# Veshko's yard Stock names it as a line and makes it up to par;
+# its hand carries the case to the cash-and-carry and consigns it AS Veshko.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:vodka
   shortDescription: bottle of vodka
-  keywords: [vodka, bottle, spirit]
+  keywords: [vodka, bottle, spirit, "bottle of vodka"]
   register: indefinite
   longDescription: A plain bottle of vodka, unbranded, the seal still on.
   category: spirit-bottle
@@ -22,7 +23,4 @@ data:
   interiorMaterial: /trade/distilling/idea/material/vodka
   interiorAmount: 0.75
   gradeBand: fair
-  censusKey: spirit:vodka
-  regionTarget: 12
   materialTags: [spirit, vodka]
-  container: /world/terminus/goods-yards/veshko/thing/stock

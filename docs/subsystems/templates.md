@@ -577,12 +577,10 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
   Phase 2 — `applyX` required.
 
   Other appliers shipped by the substrate:
-  - `applyContainer` on `ContainableMixin` — resolves a templatePath
-    via `StuffApi.singleton` and moves self into it via
-    `ContainmentApi.move`. Compare-and-move idempotency: no-op when
-    the current container's templatePath matches the declared path.
-    Target must be singleton-shaped (validated at template-save
-    time by `TemplateApi.validateSingletonContainerTarget`).
+  - ~~`applyContainer`~~ — retired in the scan sweep's review
+    (2026-10-15): where a thing is is runtime state, never a row field
+    ([spatial.md](./spatial.md)). `lint:instanceable` invariant 14 and
+    `TemplateApi.validateNoAuthoredContainer` refuse `container:`.
   - `applyProps` on `StagedMixin` — iterates a list of
     entries, each either a bare templatePath or a
     `{template, onto}` object. Dispatches per-entry by
@@ -763,8 +761,8 @@ the record is (seed-then-persist).
 row — looks the row up by the host's runtime-stamped `getTemplatePath()`
 and runs `applier.apply(host, tpl.data, { mode: 'go-live' })`. Operates on
 the existing live instance; preserves identity / stuffId / wired
-Interactives. Phase 2 appliers re-fire (`applyContainer` moves the host
-via compare-and-move).
+Interactives. Phase 2 appliers re-fire (each is idempotent; `props:` is
+once-guarded).
 
 ⚠⚠ **`go-live` is the mode, and the mode is load-bearing.** It skips
 every `birthOnly` field and runs no seed phase, because this pushes an
@@ -860,8 +858,8 @@ per-instance Stuff (avatars, items, NPCs) that should multiply.
 
 ## Deferred / known limitations
 
-The declarative-content substrate (the `container:` field, `applyProps`,
-the structural field shapes) is shipped, but a few constraints are known and
+The declarative-content substrate (`applyProps`, the structural field
+shapes) is shipped, but a few constraints are known and
 left for future work:
 
 - **Reset / respawn shares substrate with `props:` (own slate).** A
@@ -878,26 +876,10 @@ left for future work:
   props entry shape doesn't get locked into something that fights reset
   later.
 
-- **`container:` can't target a multi-room facade (Lounge case).** A
-  `container:` value must resolve to a singleton-shaped Container (a canonical
-  Stuff). That can't express "land in the Lounge" when the Lounge is
-  conceptually singular but implemented as a dynamic multi-room assembly that
-  grows and shrinks with occupancy — there's no single canonical Stuff to
-  point at. A known Phase-2 limitation; the eventual fix (a facade Stuff that
-  IS a Container and routes internally, a master/slave room, or Pattern-C
-  resolve-at-clone-time) isn't pre-baked. Cross this bridge when the Lounge
-  ships.
-
-- **`container:` vs `props:` conflict detection (linter / boot
-  validation).** The same Containable-belongs-in-Container relationship can be
-  declared from either side — `container:` on the occupant or `props:` on
-  the host. Consistent declarations coexist (first to fire moves the
-  singleton, the second no-ops via the existing-container check). But
-  contradictory declarations (X says "I belong in A", yet A's `props:`
-  omits X while B's includes X) aren't caught today — they need linter-level
-  or boot-time validation that walks the template collection and flags the
-  conflict. Not required for runtime correctness (refs still resolve lazily);
-  a dev/CI affordance if conflicting declarations become an operational pain.
+- ~~`container:` can't target a multi-room facade~~ and ~~`container:` vs
+  `props:` conflict detection~~ — both closed by retiring `container:`
+  (2026-10-15): a placement is stated from ONE side now, the place's (or
+  a seat's, which the target resolves — a Warren picks the member).
 
 ## Cross-References
 

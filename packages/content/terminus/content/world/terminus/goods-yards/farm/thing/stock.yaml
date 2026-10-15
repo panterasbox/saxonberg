@@ -13,5 +13,18 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/farm/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/farming/thing/crate-of-cherries, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-cranberries, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-grapefruits, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-grapes, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-juniper, par: 3 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-lemons, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-limes, par: 6 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-mint, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-olives, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-oranges, par: 4 }
   prices: {}

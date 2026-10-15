@@ -18,10 +18,7 @@
  * invariant.
  *
  * Composes `SingletonMixin` to declare the one-instance-per-path
- * intent at the class level. Without it, persist-back of a Stuff
- * located in the void fails `TemplateApi.validateSingletonContainerTarget`
- * — `data.container: /platform/location/void` requires the target's class to
- * be singleton-shaped.
+ * intent at the class level.
  */
 
 import Location from '../../lib/stuff/Location';

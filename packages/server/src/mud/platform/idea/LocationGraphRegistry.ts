@@ -409,7 +409,6 @@ export default class LocationGraphRegistry extends Idea {
         const d = rows.get(p);
         const next =
           placedIn.get(p) ??
-          (typeof d?.container === 'string' ? d.container : undefined) ??
           (typeof d?.seatIn === 'string' ? d.seatIn : undefined);
         if (!next || next === p) return p;
         p = next;

@@ -291,8 +291,16 @@ describe('trade-distilling — the classes', () => {
 });
 
 describe('trade-distilling — the floor rows', () => {
-  it('every floor bottle is a drawable floor product homed in a shipped Stock, over a shipped material', () => {
-    const stocks = new Set(productRows().filter((r) => r.class === '/trade/shopkeeping/thing/Stock').map((r) => r.path));
+  it('every floor bottle is a LINE on a shipped Stock, over a shipped material', () => {
+    // ⭐ The producer names its lines (the scan sweep's review): a
+    // floor bottle is on some yard Stock's `stockLines`, and the bottle
+    // says nothing about where it is made.
+    const lined = new Set(
+      productRows()
+        .filter((r) => r.class === '/trade/shopkeeping/thing/Stock')
+        .flatMap((r) => ((r.data.stockLines ?? []) as Array<{ itemTemplatePath: string }>))
+        .map((l) => l.itemTemplatePath),
+    );
     const materials = new Set(rows('idea/material').map((r) => r.path));
     const floor = floorRows();
     // ⭐ The roster, by producer: Veshko makes the six unbranded rail
@@ -303,8 +311,8 @@ describe('trade-distilling — the floor rows', () => {
     expect(floor.length).toBe(7 + 2 + 5);
     for (const r of floor) {
       expect(typeof r.data.censusKey, r.file).toBe('string');
-      expect(typeof r.data.regionTarget, r.file).toBe('number');
-      expect(stocks.has(r.data.container as string), `${r.file} container`).toBe(true);
+      expect(r.data.container, `${r.file} names no home`).toBeUndefined();
+      expect(lined.has(r.path), `${r.file} is a stock line`).toBe(true);
       expect(materials.has(r.data.interiorMaterial as string), `${r.file} material`).toBe(true);
     }
     // (The counter itself moved to the `distribution` pack —

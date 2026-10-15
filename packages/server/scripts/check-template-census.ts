@@ -776,7 +776,7 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   // path, so a name-keyed read would choke on the effect. Warn-only.
   'bulkMaterial',
   'carriedSpellPath', 'charMaterialPath', 'charter',
-  'container', 'departments', 'dropDestination', 'effects',
+  'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath',
   'lobbyPath', 'makerId', 'parLines',
   'parentExtent', 'roadTemplate',

@@ -403,8 +403,23 @@ than silently placing nothing.
 
 ## ⭐ The sweep is a faucet — template candidates, the home region, the batch draw (libations)
 
-The spawn sweep is the **sanctioned faucet** a producer's floor stock
-stands at target through (D4: never a second faucet). Three changes made
+⛔⛔ **Superseded for the producer floors (the scan sweep's review,
+2026-10-15): a producer's stock NAMES ITS LINES** (`stockLines`, each
+made up to par by `Stock.reset`), and the good says nothing about where
+it is made. The goods rows lost `container:` and `regionTarget`
+(their `censusKey` stays — it is the good's kind bucket, which a
+consign ask reads); Veshko's and the infirmary's zone `stocks:` went
+with them. The spawn sweep now draws only from rows that author a
+`regionTarget` beside their `censusKey` — a row saying *I appear from
+nothing, this many to a region* (today the magic loot) — and it
+**places nothing**: a mint stays in the null environment.
+Its v1 live-candidate source is retired (it made any good it saw
+respawn at the default target, a spawn nobody authored). What becomes
+of unstaged content generally is deferred design (foraging, hunting).
+The history below is what the sweep was:
+
+The spawn sweep was the **sanctioned faucet** a producer's floor stock
+stood at target through (D4: never a second faucet). Three changes made
 it one:
 
 - **Candidates are template-derived.** As shipped the candidate set was

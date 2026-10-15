@@ -43,7 +43,7 @@ export default class DomainHook extends DomainHookBase {
   ): Promise<string> {
     await TemplateApi.validateReservedPath(doc);
     await TemplateApi.validateFolderLeafSave(doc);
-    await TemplateApi.validateSingletonContainerTarget(doc);
+    await TemplateApi.validateNoAuthoredContainer(doc);
     const id = await next(doc);
     await this.keepGraph(doc);
     return id;

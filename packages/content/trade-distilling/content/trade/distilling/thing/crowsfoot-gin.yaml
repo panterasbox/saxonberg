@@ -4,8 +4,9 @@
 # generic-objects' until the generic drain (phase 5) moves it here.
 class: /trade/distilling/thing/SpiritBottle
 data:
+  censusKey: spirit:crowsfoot-gin
   shortDescription: bottle of Crowsfoot gin
-  keywords: [crowsfoot, gin, bottle, spirit]
+  keywords: [crowsfoot, gin, bottle, spirit, "bottle of crowsfoot gin"]
   register: indefinite
   longDescription: A bottle of Crowsfoot gin — a hand-numbered label, a crow's foot pressed into the wax.
   category: spirit-bottle
@@ -15,7 +16,4 @@ data:
   interiorAmount: 0.75
   gradeBand: fine
   _brandKey: crowsfoot-gin
-  censusKey: spirit:crowsfoot-gin
-  regionTarget: 3
   materialTags: [spirit, gin, small-batch]
-  container: /world/terminus/goods-yards/crowsfoot/thing/stock

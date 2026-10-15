@@ -850,15 +850,15 @@ async function priceIndexImpl(): Promise<PriceIndex> {
   const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   const lines: PriceIndex["lines"] = [];
   // ⭐ The basket NAMES its counters, and computing the index stands each
-  // one up (the scan sweep, 2026-10-14) — a counter self-places through
-  // its row, so its room comes too (accepted: a basket of a few). It used
-  // to read only the counters somebody had already loaded. In parallel: a
-  // cold basket is several rooms, and the reader is waiting.
+  // one up (the scan sweep, 2026-10-14). It used to read only the counters
+  // somebody had already loaded. In parallel: the reader is waiting.
+  // ⚠ A counter is its shop's prop and not a Singleton class, so a counter
+  // stood up here before its shop loads is one the shop mints again. Both
+  // basket shops are booted today, so the counters are resident; where
+  // uniqueness lives (the class, the caller, the row) is the open question
+  // recorded in the scan-sweep plan's review round.
   const stood = await Promise.all(
-    counters.map(
-      async (path) =>
-        await StuffApi.singleton(path).catch(() => null),
-    ),
+    counters.map((path) => StuffApi.singleton(path).catch(() => null)),
   );
   for (const [i, path] of counters.entries()) {
     const counter = stood[i];

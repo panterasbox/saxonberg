@@ -10,13 +10,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:juniper
   shortDescription: crate of juniper berries
-  keywords: [juniper, crate, berries, produce]
+  keywords: [juniper, crate, berries, produce, "crate of juniper berries"]
   register: indefinite
   longDescription: A small slatted crate of blue-black juniper berries, resin-sharp.
-  censusKey: produce:juniper
-  regionTarget: 3
   materialTags: [produce, juniper]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/juniper-berries, count: 6 }

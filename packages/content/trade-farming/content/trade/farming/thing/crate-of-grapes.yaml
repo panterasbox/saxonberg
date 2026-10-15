@@ -10,13 +10,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:grape
   shortDescription: crate of grapes
-  keywords: [grapes, crate, grape, produce]
+  keywords: [grapes, crate, grape, produce, "crate of grapes"]
   register: indefinite
   longDescription: A slatted wooden crate of dusty wine grapes, packed tight.
-  censusKey: produce:grape
-  regionTarget: 4
   materialTags: [produce, grape]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/grape, count: 6 }

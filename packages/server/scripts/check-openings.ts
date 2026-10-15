@@ -107,7 +107,7 @@ const rows: Row[] = [];
  * places people and fixtures, so it is how this gate resolves "here".
  */
 const roomOf = new Map<string, string>();
-/** Every row's `container:` (or `seatIn:`) self-placement, by its path. */
+/** Every row's `seatIn:` self-placement, by its path. */
 const containerOf = new Map<string, string>();
 /**
  * ⭐ The two classes that make a room a place somebody can BUY at. Both
@@ -140,8 +140,7 @@ for (const pack of packs) {
     const data = doc.data as Record<string, unknown> | undefined;
     if (!data) continue;
     const here = `/${relative(contentDir, file).replace(/\.yaml$/, '')}`;
-    if (typeof data.container === 'string') containerOf.set(here, data.container);
-    else if (typeof data.seatIn === 'string') containerOf.set(here, data.seatIn);
+    if (typeof data.seatIn === 'string') containerOf.set(here, data.seatIn);
     for (const key of ['cast', 'props'] as const) {
       const list = data[key];
       if (!Array.isArray(list)) continue;
@@ -350,7 +349,7 @@ for (const row of rows) {
  * 3 — ⭐ **every place a house operates is a PLACE** (the scan sweep). The
  * location graph attaches a house to the places in its `operatingLocations`
  * — a room, or a fixture followed to the room whose `props:`/`cast:` place
- * it (or its `container:` / `seatIn:`) — and loading that place stands the
+ * it (or its `seatIn:`) — and loading that place stands the
  * house up. So the one way to lose a house is an operated path that is
  * neither a room nor placed anywhere: the graph would anchor the house at
  * a path that never loads, and nothing would ever stand it up.
@@ -379,7 +378,7 @@ for (const [house, operating] of operatingByPath) {
     if (isRoom(op) || roomOf.has(op) || containerOf.has(op)) continue;
     findings.push(
       `  ${houseFile.get(house) ?? house}\n    operates '${op}', which is neither a room ` +
-        `nor placed in one (no props:/cast:/container:/seatIn: reaches it).\n` +
+        `nor placed in one (no props:/cast:/seatIn: reaches it).\n` +
         `    ⚠ The location graph would attach the house to a path that never ` +
         `loads, and nothing would ever stand it up.`,
     );

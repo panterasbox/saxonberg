@@ -3,6 +3,7 @@
 # that is the whole point of the coupler.
 class: /platform/thing/Bottle
 data:
+  censusKey: vessel:keg
   shortDescription: "keg"
   keywords: [keg, barrel, empty]
   register: indefinite
@@ -15,9 +16,6 @@ data:
   interiorCapacity: 30
   closure: sealed
   open: true
-  # The vessel faucet (fermentation W5): empties at target in the
-  # brewery's stock — an empty is never product — for the cellars
-  # brain to fill, cap and consign.
-  censusKey: vessel:keg
-  regionTarget: 8
-  container: /world/terminus/goods-yards/brewing/thing/stock
+  # The brewery's stock names empties as a line (fermentation W5) — an
+  # empty is never product — for the cellars brain to fill, cap and
+  # consign.

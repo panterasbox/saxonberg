@@ -7,7 +7,7 @@
 # ⭐ It ships with a FOUNDING stock (six casks — the props once-guard means a
 # go-live re-hydrate never mints a second set); thereafter the warden refills
 # it from the market (`restocks` → a bounty → the carter/a player buys casks
-# at the cash-and-carry). It self-places into the yard by `container:`.
+# at the cash-and-carry). The yard props it.
 #
 # ⚠ `_materialPath` (oak, the shed's timber) is stated on the ROW so the store
 # carries mass — a `FuelStore` reaches `TangibleMixin` (lint:mass).
@@ -19,6 +19,5 @@ data:
   longDescription: |
     A timber shed of racked casks and the sharp clean smell of lamp oil. This is what the valley burns after dark; when the racks stand empty the lamps go out, from the mill up.
   _materialPath: /stuff/idea/material/wood/oak
-  container: /world/terminus/hearts-delight/public-works/location/yard
   props:
     - { template: /trade/fuel/thing/lamp-oil-cask, count: 6 }

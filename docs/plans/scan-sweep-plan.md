@@ -807,6 +807,64 @@ this without having to scan through content records."*
   list; derive it from the forward reference in the index built for the
   world's shape.
 
+### ⭐⭐ Review round 2 (2026-10-15) — one minting path; the producer names its lines
+
+**The pre-check.** `findByTemplatePath(p) ?? await singleton(p)` is one
+lookup written twice — a documented antipattern this build grew fifteen
+more of, because `lint:get-or-create` only matched `if (x) return x;`
+and exempted a "memoized" form that was no different. All 26 collapsed;
+the gate now matches any same-path pre-check inside one scope.
+
+**`loadPlaced` — built, then reverted.** Collapsing the pre-checks
+surfaced that `singleton(counter)` on a cold world mints a counter its
+shop then clones again. `NavigationApi.loadPlaced` (load the room, read
+the counter back) was a SECOND minting path beside StuffApi — the user
+rejected it: *StuffApi provides everything; everything else is the mixin
+architecture.* Reverted. The open question it exposed is recorded, not
+answered: **singleton-ness has competing authorities** — `SingletonMixin`
+on the class, `StuffApi.singleton()` chosen by the caller,
+`singletonOrClone`, and (until this round) a container validator — while
+the content shows the same class backing unique rows and kinds. The
+basket still `singleton`s its two counters; both shops are booted, so
+they are resident.
+
+**`container:` is runtime-only.** Stuff clones into null and is placed
+by itself or its creator — the user's statement of the whole design.
+`container:` meant "every clone of me lands THERE": on 46 kind rows it
+routed every copy of a good to one producer's counter through the
+census spawn sweep. Retired: `applyContainer`, the `container` field,
+`validateSingletonContainerTarget` (now `validateNoAuthoredContainer`,
+a refusal), the location graph's and `lint:openings`' reads of it;
+`lint:instanceable` invariant 14 refuses the key.
+
+**The producer's stock names its lines** (user, 10-15). Ten stocks got
+`stockLines` with today's targets as pars (zone `stocks:` where it
+named the key, else the row's `regionTarget`); the 46 goods dropped
+`container:` and `regionTarget` (their `censusKey` stays: the kind
+bucket a consign ask reads); Veshko's and the infirmary's
+zone `stocks:` retired. Decisions taken by keeping today's behaviour:
+kegs — the brewing stock gets a keg line (par 8) and the cold-store's
+four propped kegs now STAY there, where its props: put them; lamp oil —
+the oil works' stock gets a cask line (par 4) and Hearts Delight's fuel
+store keeps the six casks its props: mint (container: had sent them to
+Terminus); blood — the infirmary zone's table (O 4, A 2, B 2, AB 1) was
+silently inert (`blood:O` vs the rows' `blood:o`), every type spawned
+at the default 3; the lines take the AUTHORED counts; mixer-bottle —
+named by nothing but its container:, now a bottling line at par 3.
+The public-works store is its yard's prop.
+
+**The spawn sweep** draws only from rows authoring a `regionTarget`
+beside their `censusKey` (the magic loot) and places nothing — as built, a mint stays in null. Its
+live-candidate source is retired (it would have made gin respawn at the
+default target, homeless). ⚠ Deferred, by the user: what becomes of
+unstaged content generally (foraging, hunting); and the orphan log.
+⚠ Known difference: `Stock` counts on-hand by template path, the sweep
+counted by census key — a vessel filled ON the stock holds its line's
+par until the hand consigns it.
+
+`lint:reachability`'s naming ratchet: the new lines brought 44 goods
+into its scope; each now answers to the name it prints (ceiling 72 → 70).
+
 ---
 
 ## ⭐⭐ Host placement

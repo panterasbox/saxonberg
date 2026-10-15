@@ -11,13 +11,11 @@
 class: /platform/thing/Crate
 extends: /trade/farming/thing/crate
 data:
+  censusKey: produce:mint
   shortDescription: crate of sprigs of mint
-  keywords: [mint, crate, produce, sprigs]
+  keywords: [mint, crate, produce, sprigs, "crate of sprigs of mint"]
   register: indefinite
   longDescription: A slatted wooden crate of sprigs of mint, the grower's stencil on the side.
-  censusKey: produce:mint
-  regionTarget: 4
   materialTags: [produce, mint]
-  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - { template: /trade/farming/thing/mint, count: 12 }

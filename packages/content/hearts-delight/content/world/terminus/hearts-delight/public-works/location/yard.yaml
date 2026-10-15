@@ -22,6 +22,7 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
+    - /world/terminus/hearts-delight/public-works/thing/store
     - /trade/haulage/thing/works-board
     - /trade/haulage/thing/receiving-bench
   cast:

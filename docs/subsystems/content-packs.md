@@ -835,9 +835,8 @@ renders its own preimage.
 They look like a serial loop worth parallelising (987 saves × ~33 ms on
 a fresh boot) but they are order-dependent *through the hook chain*:
 `content`'s around-save hook walks the row's ancestors for the
-folder/leaf invariant, and `validateSingletonContainerTarget` requires
-the row named by `data.container` to already exist — both read rows an
-earlier save in the same install just wrote. Batching means validating
+folder/leaf invariant, which reads rows an earlier save in the same
+install just wrote. Batching means validating
 serially and bulk-writing after, which is a change to the hook contract.
 
 ### Runtime — the `pack` verb

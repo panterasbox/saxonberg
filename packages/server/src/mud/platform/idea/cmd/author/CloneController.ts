@@ -10,8 +10,8 @@
  *
  *   1. `--into <dest>`             — explicit Container.
  *   2. `--here`                    — sugar for the avatar's environment.
- *   3. Hydration self-placement    — `applyContainer` ran during clone
- *                                    and placed the instance somewhere.
+ *   3. Self-placement              — the instance placed itself while
+ *                                    being created (a fixture's `seatIn`).
  *   4. Fallback                    — the giver's inventory.
  *
  * Step 3 is implicit: the clone runs first and observes where the
@@ -189,9 +189,8 @@ export default class CloneController extends CommandController<CloneModel> {
       );
     }
 
-    // 2. Clone (× count). Phase 2 hydration may fire `applyContainer`
-    // if the template declares `data.container`; the instance may
-    // self-place during this step.
+    // 2. Clone (× count). The instance may place itself while it is
+    // created (a fixture's `seatIn`).
     for (let i = 1; i < count; i++) {
       // Copies 2..N: clone + place, compactly reported; the first copy
       // below keeps the full reporting shape.

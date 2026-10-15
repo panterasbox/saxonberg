@@ -21,7 +21,9 @@
  *   7. at Hearts Delight the collie's SPECIES is known on a cold world —
  *      `butcher` refuses for a reason past the species gate;
  *   9. Part 1: `bank` at a branch answers; `press post` by a stranger is
- *      refused.
+ *      refused;
+ *  10. (review round 2) a producer's stock names its lines and holds
+ *      them; a store keeps the casks its props: mint.
  *
  * ⚠ Proven elsewhere, and why:
  *   - 1 (the boot list) is `scripts/__tests__/check-boot-entries.test.ts`.
@@ -70,6 +72,8 @@ const REGISTRY = '/world/terminus/registry/office';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const RIVER_BANK = '/world/terminus/wharfside/bank';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
+const PUBLIC_WORKS = '/world/terminus/hearts-delight/public-works/location/yard';
 const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
 
 const squash = (t: string): string => plain(t).replace(/\s+/g, ' ').trim();
@@ -212,6 +216,37 @@ suite('7. Hearts Delight on a cold world: the collie\'s species is KNOWN', () =>
       const reason = reasonOf(r);
       expect(reason, JSON.stringify(r.notes)).not.toBeNull();
       expect(reason).not.toBe('unidentified-species');
+    } finally {
+      s.close();
+    }
+  });
+});
+
+suite('10. the producer names its lines (review round 2)', () => {
+  it('⭐⭐ Veshko\'s stock lists what it makes, and holds it', async () => {
+    // Its row authored `stockLines: []` and the goods were routed to it
+    // by their own `container:`; now the stock names each line and makes
+    // it up to par.
+    const s = await Session.open(uniqueHandle('carter'), { startLocation: DISTILLERY });
+    try {
+      await daylight(s);
+      const said = squash(await s.prose('look stock'));
+      expect(said, said).toMatch(/On the shelves: .*gin/);
+      const inside = squash(await s.prose('look in stock'));
+      expect(inside, inside).toMatch(/gin/i);
+    } finally {
+      s.close();
+    }
+  });
+
+  it('⭐ Hearts Delight\'s oil store keeps the casks it was stocked with', async () => {
+    // `container:` on the cask kind used to send every cask to Terminus's
+    // oil works, so the valley's store stood empty.
+    const s = await Session.open(uniqueHandle('warden'), { startLocation: PUBLIC_WORKS });
+    try {
+      await daylight(s);
+      const inside = squash(await s.prose('look in store'));
+      expect(inside, inside).toMatch(/cask/i);
     } finally {
       s.close();
     }

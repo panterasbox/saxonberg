@@ -14,5 +14,14 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: []
   businessPath: /world/terminus/goods-yards/crowsfoot/idea/outfit
-  stockLines: []
+  # ⭐ The producer names its lines (the scan sweep's review, 2026-10-15):
+  # the reset sweep makes each one up to par here. The goods say nothing
+  # about where they are made.
+  stockLines:
+    - { itemTemplatePath: /trade/distilling/thing/aperitivo, par: 12 }
+    - { itemTemplatePath: /trade/distilling/thing/bitter-liqueur, par: 12 }
+    - { itemTemplatePath: /trade/distilling/thing/bitters, par: 12 }
+    - { itemTemplatePath: /trade/distilling/thing/crowsfoot-gin, par: 3 }
+    - { itemTemplatePath: /trade/distilling/thing/empty-spirit-bottle, par: 10 }
+    - { itemTemplatePath: /trade/distilling/thing/orange-liqueur, par: 12 }
   prices: {}

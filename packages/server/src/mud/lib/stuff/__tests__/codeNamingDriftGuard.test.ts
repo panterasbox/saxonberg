@@ -355,15 +355,6 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/StudioLogic.ts::resolveExport",
     classification: "transitive-safe",
   },
-  // container-target mixin validators (does not instantiate).
-  {
-    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
-    classification: "validation-only",
-  },
-  {
-    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
-    classification: "validation-only",
-  },
   // ⭐ `describeFill` — reads the effective class's `fieldMeta` and its
   // persistence contributors to answer *what will fill this row in*
   // (hydration build W7). READ-ONLY and instantiates nothing: it asks

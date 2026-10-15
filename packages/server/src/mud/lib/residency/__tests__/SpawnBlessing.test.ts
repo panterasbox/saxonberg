@@ -45,7 +45,7 @@ const WAND_PATH = '/obj/test/spawn-wand';
 let seq = 0;
 let minted: TestWand[] = [];
 
-/** A seed instance so `collectSpawnCandidates` has something to find. */
+/** A live wand, so the census has a region to count in. */
 function seedCirculatingWand(): TestWand {
   const w = makeStuffAtPath(() => new TestWand(), WAND_PATH);
   w.setCensusKey('wand');
@@ -68,8 +68,16 @@ describe('the spawn sweep stamps a BUC band on what it mints', () => {
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
       key === AppSettingKeys.residencySpawnMode ? 'enforce' : '',
     );
-    // No authored floor rows: the candidate set is the live world's.
-    vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([]);
+    // The authored row that says a wand appears from nothing — the
+    // sweep's only candidate source since the scan sweep's review.
+    vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([
+      {
+        path: WAND_PATH,
+        class: '/obj/test/TestWand',
+        data: { censusKey: 'wand', regionTarget: 99, materialTags: ['wood'] },
+      } as unknown as Template,
+    ]);
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(TestWand as never);
     // Every clone hands back a fresh wand we keep a handle on.
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => {
       const w = makeStuff(() => new TestWand());
