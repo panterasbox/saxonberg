@@ -731,6 +731,18 @@ Species, with biological state." The mixin carries:
 - `lifecycleState: string` — initial value from the leaf template's
   `data`
 
+### ⭐⭐ The species loads WITH the body (the scan sweep, 2026-10-14)
+
+`_speciesPath` is declared `ref: 'identity:constituent'`, and so are a
+species' own `_bodyPlanPath`, `_parentCladePath` and `_defaultMaterialPath`:
+the `TemplateApplier` loads each before the field is set — on mint,
+go-live and restore — so `getSpecies()` (a synchronous registry read)
+never meets a cold row and no species is booted. ⚠ The belt:
+`SpeciesApi.isSentient` **fails closed** — a body that cites a species
+whose row is not resident answers SENTIENT (consent, blame, no cull). It
+answered false until the sweep, which let a collie be butchered on a cold
+world.
+
 ### ⭐⭐ Age is a DATE, and what it confers is the whole design
 
 `getAgeDays()` is `(diedAt ?? now) − bornAt`, derived on read and stored

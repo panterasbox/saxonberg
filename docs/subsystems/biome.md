@@ -375,7 +375,10 @@ derivation hands an interior default to open country.
 
 ⭐ **`BiomeCatalogue` (`platform/idea/BiomeCatalogue.ts`) is what warms it** —
 the `MaterialCatalogue` shape, self-warming at `onCreate`, eager through
-the platform pack's `boot:` manifest (role `sync-read`). The roster is
+the platform pack's `boot:` manifest (role `sync-read`) — kept by the scan
+sweep's READER RULE: the chain walk is synchronous with no act-shaped seam.
+⭐ But a room's own `_biomePath` is a CONSTITUENT since that sweep, so the
+biome a room cites loads with the room regardless. The roster is
 **derived**: every root's `idea/biome/` subtree filtered to rows whose `class`
 extends `Biome`, so a realm pack shipping
 `/world/<place>/idea/biome/cavern` is warmed with nothing to edit — never an
