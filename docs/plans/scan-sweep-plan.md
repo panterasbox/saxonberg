@@ -932,6 +932,14 @@ maritime wire drive passes (the rename is behaviour-neutral).
 > W5 open about `holdsAnyPublishingPosition`. Also resolved at the act:
 > Seznick's agency (`LettingController`) and Duncan Hall's college
 > (`HallController`). Boot 128 → 99; uncited 71 → 10.
+> ⚠ **Corrected by the drive** (`4aea657c4`): the Hearthworks business and
+> the tailor's outfit run a par-sheet `restocks` beat with nobody present —
+> the unobserved economy's by the classification rule — so they and their
+> rooms went back on the boot list (the plan's table had them as
+> advertising-only). The hall board had no work at world start without
+> the cook. Ceiling 83. ⚠ A gate for *a par-sheet house is booted* was
+> not added: the public-works department already has a par sheet and was
+> never booted on master.
 
 **Goal.** AC 2; the house and organization half of AC 1.
 
