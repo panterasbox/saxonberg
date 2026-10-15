@@ -86,13 +86,17 @@ async function look(s: Session, what = 'look here'): Promise<string> {
   return squash(await s.prose(what));
 }
 
-/** Advance to daylight — a dark world reads every room as pitch black. */
+/**
+ * Advance until the room can be SEEN — a dark world reads every room as
+ * pitch black. ⚠ Only pitch dark counts: an interior is dim at noon, and
+ * a dim room still prints its notices.
+ */
 async function daylight(s: Session): Promise<void> {
   for (let i = 0; i < 12; i++) {
-    if (!/pitch dark|Shapes and edges/i.test(await look(s))) return;
+    if (!/pitch dark/i.test(await look(s))) return;
     await advanceWorldClock('2 hours');
   }
-  throw new Error('no daylight in a day of trying');
+  throw new Error('no light in a day of trying');
 }
 
 let me: Session;
@@ -181,7 +185,8 @@ suite('5. the Kestrel at the city is fouled', () => {
     try {
       await daylight(s);
       const said = squash(await s.prose('analyze water'));
-      expect(said, said).toMatch(/foul|sewage|organic|dirty|contamin/i);
+      // The reach reports the city's outfall in its water.
+      expect(said, said).toMatch(/outfall/i);
     } finally {
       s.close();
     }
@@ -205,9 +210,10 @@ suite('7. Hearts Delight on a cold world: the collie\'s species is KNOWN', () =>
 });
 
 suite('9. Part 1 behaves as before', () => {
-  it('`bank` at the hall answers', async () => {
+  it('`bank open` at the hall answers, and `bank` reads the account', async () => {
     const s = await Session.open(uniqueHandle('saver'), { startLocation: BANK_HALL });
     try {
+      expectOk(await s.cmd('bank open'));
       expectOk(await s.cmd('bank'));
     } finally {
       s.close();
