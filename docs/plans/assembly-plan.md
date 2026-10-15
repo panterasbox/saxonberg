@@ -1907,6 +1907,19 @@ Read first, in this order:
 
 ## Drive record
 
+**The burn-down's drives (2026-10-15).** The dead-`self` burn-down
+touches four other trades, so their drives ran, together in one boot
+behind a throwaway noon file: extraction, farmstead, forestry and
+metal-chain, **51 / 55**. ⚠ Run cold first they failed 19, nearly all
+*"It is pitch dark"* — none of the four sets daylight, and a reset world
+boots at midnight (harness fragility, reported). The four left fail
+**identically on origin/master** (165e8e010, a temporary worktree, same
+DB, port and noon file): metal-chain's `drive south` is stale since the
+lock build renamed the miner's verb to `drift`, and forestry's run-it-out
+hits the exertion build's lift and tiredness limits (`get set` too heavy,
+`fell` too tired, so the clearing never empties). Pre-existing; not this
+branch.
+
 **Run 30 (2026-10-14), after D18 (the browser walk's fixes): 23 / 23
 green**, the restart included — the D16 dowel checkpoint now also asserts
 no cup, a part-sized mass and a HELD `repair` at the sawmill. Then a
