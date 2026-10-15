@@ -1857,6 +1857,14 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 29 (2026-10-14), after D17 (only a straight grain rives): 23 / 23
+green**, the restart included; available memory sampled every 30 s never
+fell below 3.6 GB. Run 28 on the same tree was 14/23: the server stopped
+answering inside the forty-days suite (a 300 s timeout, a 120 s query with
+no answer, the cooper suite skipped) with no error in its log and a clean
+shutdown — the starvation shape of run 22, not a defect. ⚠ D17's elm
+refusal is not driven: no wood stands an elm (see D17).
+
 **Run 27 (2026-10-14), after D16 (the grain is real): 23 / 23 green**,
 the restart included — two new checkpoints: a dowel carved from a sawn
 board reads "sawn through"; a hide glued over a through-sawn board never
