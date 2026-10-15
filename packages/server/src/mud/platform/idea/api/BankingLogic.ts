@@ -51,6 +51,7 @@ import { MqlApi } from "../../../api/mql";
 import { StuffApi } from "../../../api/stuff";
 import { PlayerApi } from "../../../api/player";
 import { ContractApi } from "../../../api/contract";
+import { NavigationApi } from "../../../api/navigation";
 import { TemplatePaths } from "../../../lib/paths";
 import { Property } from "../../../lib/stuff/Propertied";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -850,15 +851,13 @@ async function priceIndexImpl(): Promise<PriceIndex> {
   const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   const lines: PriceIndex["lines"] = [];
   // ⭐ The basket NAMES its counters, and computing the index stands each
-  // one up (the scan sweep, 2026-10-14) — a counter self-places through
-  // its row, so its room comes too (accepted: a basket of a few). It used
-  // to read only the counters somebody had already loaded. In parallel: a
-  // cold basket is several rooms, and the reader is waiting.
+  // one up (the scan sweep, 2026-10-14) BY ITS ROOM: a counter is minted by
+  // its shop's `props:`, so `loadPlaced` loads the shop and reads the
+  // counter back — cloning the counter alone would leave the shop to mint
+  // a second (accepted: a basket of a few rooms). In parallel: a cold
+  // basket is several rooms, and the reader is waiting.
   const stood = await Promise.all(
-    counters.map(
-      async (path) =>
-        await StuffApi.singleton(path).catch(() => null),
-    ),
+    counters.map((path) => NavigationApi.loadPlaced(path)),
   );
   for (const [i, path] of counters.entries()) {
     const counter = stood[i];

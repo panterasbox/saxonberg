@@ -302,6 +302,7 @@ reference pointing the WRONG WAY forces.
 |---|---|
 | `Template.findDescendants('/')` → "which business operates this room?" | the house's own `operatingLocations`, read REVERSED by the location graph: `NavigationApi.attachedTo(room, 'house')`; `ensureOperatorAt` follows the place |
 | a `boot:` entry so a sync read can find a house, an org, a book | let the place load it — the location graph attaches it from the reference the house/book already authors ([location-graph.md § Attachments](./subsystems/location-graph.md)); an organization is a **relation** — `await StuffApi.singleton(path)` at the act |
+| `await StuffApi.singleton(counterPath)` to stand up a room's prop (a counter, a shelf) from somewhere else | `await NavigationApi.loadPlaced(counterPath)` — loads the room whose `props:` mints it and reads it back; `singleton` on a non-Singleton prop mints one the room then duplicates |
 | a hand-authored reverse list on the place (`stands:`, `structures:`) so loading it loads its dependents | nothing — the forward reference already exists; derive the reverse in the location graph's record (retired in review, 2026-10-14: a second copy of one fact, on every location, for a handful of rows) |
 | a `boot:` entry so a species / material / biome is resident | declare the citing field `ref: 'identity:constituent'` — the applier loads it with its holder |
 | `Template.findByClass(Species)` to find "what lives in this reach" | the reach names its species (`stocks:`), each loaded at the read |

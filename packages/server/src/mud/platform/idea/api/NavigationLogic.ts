@@ -309,6 +309,15 @@ export class NavigationLogic extends ApiLogic {
     return innermostStructure(path, paths);
   }
 
+  /** See {@link NavigationApi.loadPlaced}. */
+  @CallSecurity(NavigationApiCallers)
+  public async loadPlaced<T extends Stuff = Stuff>(path: string): Promise<T | null> {
+    const place = (await registry()?.placeOf(path)) ?? null;
+    if (place === null) return StuffApi.singleton<T>(path).catch(() => null);
+    await StuffApi.singleton(place).catch(() => null);
+    return StuffApi.findByTemplatePath<T>(path) ?? null;
+  }
+
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
