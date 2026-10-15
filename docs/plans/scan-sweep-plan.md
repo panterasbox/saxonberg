@@ -1554,3 +1554,11 @@ index (pre-existing; found by the `title` holdings test).
 green; the server's two failures were this build's own — a snapshot
 listing the new `stands` field and a test asserting the fabric roster was
 booted — both fixed and re-run green.
+
+**Review round 1 re-drive (2026-10-15, after `stands:` → location-graph
+attachments), dropped DB each time.** `maritime-space` + `scan-sweep` in
+one world: maritime all green, scan-sweep 11/12. The miss is the Hesper's
+deck: maritime's step 20 appoints the lookout first, so the one seat is
+filled and there is no HELP WANTED left to see. Two dirty files consume
+the same seat. **`scan-sweep` alone: 12/12** — the Hesper's outfit stands
+up on coming aboard from the graph's attachment alone.
