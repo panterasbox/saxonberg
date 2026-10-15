@@ -1913,6 +1913,18 @@ Read first, in this order:
 
 ## Drive record
 
+**Run 33 (2026-10-15), after merging master (scan-sweep): 23 / 23
+green**, the restart included. Run 32 on the merge was 18/23 — the second
+cooper found the timber yard bare forty days on, and the four cooper
+checkpoints after it cascaded. Two causes, both this build's, both hidden
+until master's scan sweep retired the container-home spawn path that had
+been putting staves back on its own: (1) the single-flight reset/spawn
+sweeps (W8 decision 2) DROPPED a firing that landed mid-sweep — now a
+trailing run, never overlapping, never lost; (2) the drive bought the
+instant after the clock jump, racing a sweep that refills seconds later
+— the checkpoint now waits, bounded, for the shelf to stand at par.
+Probed live (buy out, skip forty days, staves back) before re-driving.
+
 **The burn-down's drives (2026-10-15).** The dead-`self` burn-down
 touches four other trades, so their drives ran, together in one boot
 behind a throwaway noon file: extraction, farmstead, forestry and
