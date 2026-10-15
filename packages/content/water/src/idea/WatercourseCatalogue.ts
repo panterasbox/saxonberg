@@ -90,24 +90,6 @@ export const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalog
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
 
-/**
- * ⭐⭐ **The classes that can take water out of a reach, or put
- * something back into it.** The roster is derived from the `content`
- * rows naming these classes, so a conduit authored in any locality is
- * found without anybody registering it and without walking the world.
- *
- * ⚠ **A new water work adds itself here** — a local edit in the pack
- * that ships the mechanism, which is the same pack that would define
- * the class. That is deliberately a plain list rather than a mixin the
- * works compose: two classes in one pack do not earn an interface, and
- * *a capability only one class composes is a method on that class
- * wearing a costume*.
- */
-const WATERWORK_CLASSES: readonly string[] = [
-  '/system/water/thing/Conduit',
-  '/system/water/thing/ControlStructure',
-];
-
 /** A reach citation, `"<courseKey>:<nodeName>"`. */
 export type ReachRef = string;
 
@@ -162,8 +144,10 @@ export interface CompiledReach {
   climateLocalityPath: string | null;
   /** Authored mean depth, or `null` (the `water.reach.meanDepthM` dial stands in). */
   meanDepthM: number | null;
-  /** Authored stocking — the aquaculture seam (fishing D3). Empty for every shipped row. */
+  /** The species this reach holds (and any authored capacity). */
   stocks: WatercourseStock[];
+  /** The works on this reach, by template path (the scan sweep). */
+  works: string[];
   /**
    * ⭐ **Where on the world this reach is** (the climate build): the
    * course's authored latitude, continentality and offset, at THIS
@@ -334,12 +318,6 @@ interface WorldScan {
 
 interface CompiledIndex {
   reaches: Map<ReachRef, CompiledReach>;
-  /**
-   * ⭐ The template paths of every water work that can draw or
-   * discharge — derived from the ROWS, memoised with the rest of the
-   * compile, and resolved to live objects on each read.
-   */
-  works: string[];
   /** For each reach, every reach downstream of it. */
   downstream: Map<ReachRef, Set<ReachRef>>;
   /** Immediate downstream neighbours (a delta has more than one). */
@@ -457,25 +435,41 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /**
-   * ⚠ **The works roster has its OWN slot, not a field on the compiled
-   * index.** The two expire on different clocks: the reach graph is
-   * compiled once and is expensive, while the roster is one row query
-   * and has to reflect content installed after that compile. Folding it
-   * into the index made a conduit that stood up after the first flow
-   * read invisible to the river — exactly the staleness the note on
-   * `worldScan` refuses.
+   * ⭐ **The works the reaches name** (the scan sweep, 2026-10-14) — the
+   * union of every node's authored `works:`, read off the compiled index.
+   * Authored content, so it changes only at install, and the installer's
+   * go-live fires {@link invalidateCache}. The rows behind them are read
+   * with ONE exact query (`findByPaths`) and memoised the same way; what is
+   * STANDING is still read live on every scan.
    */
-  private worksLoading: Promise<string[]> | null = null;
+  private async works(): Promise<string[]> {
+    const index = await this.index();
+    const out = new Set<string>();
+    for (const reach of index.reaches.values()) {
+      for (const w of reach.works) out.add(w);
+    }
+    return [...out];
+  }
 
-  private works(): Promise<string[]> {
-    if (!this.worksLoading) this.worksLoading = loadWorks();
-    return this.worksLoading;
+  private workRowsLoading: Promise<Map<string, Record<string, unknown>>> | null = null;
+
+  private workRows(): Promise<Map<string, Record<string, unknown>>> {
+    if (!this.workRowsLoading) {
+      this.workRowsLoading = this.works().then(async (paths) => {
+        const out = new Map<string, Record<string, unknown>>();
+        for (const tpl of await Template.findByPaths(paths)) {
+          out.set(tpl.path, { class: tpl.class, ...(tpl.data ?? {}) });
+        }
+        return out;
+      });
+    }
+    return this.workRowsLoading;
   }
 
   /** Drop the compiled drainage; the next read rebuilds. Fired by HMR. */
   public invalidateCache(): void {
     this.loading = null;
-    this.worksLoading = null;
+    this.workRowsLoading = null;
     this.flowCache.clear();
     this.flowCacheSegment = -1;
     this.iceCache.clear();
@@ -891,10 +885,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
    * for three times. A scan cannot go stale.
    *
    * ⭐⭐ **It used to walk every object in the world** and duck-type each
-   * one for a `withdrawalM3S`. It now walks the works the CONTENT ROWS
-   * name (`WATERWORK_CLASSES`) — five objects rather than eighteen
-   * hundred — and duck-types those, which is the same check over a set
-   * the size of the answer.
+   * one for a `withdrawalM3S`. It now walks the works the REACHES name
+   * (`works:` on a node — the scan sweep replaced a class scan of the
+   * template table) — five objects rather than eighteen hundred — reading
+   * each LIVE when standing and from its ROW when not.
    *
    * ⭐ Nothing in the paragraphs above changes: the ROW list is memoised
    * (authored content only moves at install), the LIVE resolution is
@@ -919,17 +913,24 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       kind: ContaminantKind;
     }> = [];
 
+    const rows = await this.workRows();
     for (const path of await this.works()) {
       const obj = StuffApi.findByTemplatePath(path);
-      if (!obj || obj.isDestroyed()) continue; // authored but not standing
-      const w = obj as unknown as Withdrawing & Discharging;
+      // ⭐ Authored but not standing: the ROW is the record (the scan
+      // sweep). An outfall nobody has visited still discharges as its row
+      // says, and a work's unpersisted live state — lost when it unloads —
+      // comes back as the row says.
+      const w = (
+        obj && !obj.isDestroyed() ? obj : rowWork(rows.get(path))
+      ) as (Withdrawing & Discharging) | null;
+      if (!w) continue;
 
       if (typeof w.withdrawalM3S === 'function') {
         const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
         const reach = index.reaches.get(ref);
         if (reach !== undefined) {
           const natural = this.naturalFlowOf(reach, nowS).total;
-          const taken = w.withdrawalM3S.call(obj, natural);
+          const taken = w.withdrawalM3S.call(w, natural);
           if (Number.isFinite(taken) && taken > 0) {
             draws.set(ref, (draws.get(ref) ?? 0) + taken);
           }
@@ -942,7 +943,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
             ? w.getDischargeReach()
             : '';
         if (at !== '' && index.reaches.has(at)) {
-          const { load, kind } = w.dischargeLoad.call(obj);
+          const { load, kind } = w.dischargeLoad.call(w);
           if (Number.isFinite(load) && load > 0) {
             discharges.push({ at, load, kind });
           }
@@ -1075,6 +1076,7 @@ async function loadIndex(): Promise<CompiledIndex> {
         climateLocalityPath: null, // filled below
         meanDepthM: node.meanDepthM ?? null,
         stocks: node.stocks ?? [],
+        works: node.works ?? [],
         site: {
           latitudeDeg: course.site?.latitudeDeg ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
           continentality:
@@ -1124,28 +1126,48 @@ async function loadIndex(): Promise<CompiledIndex> {
     byCourse,
     predecessors,
     waterByCourse,
-    works: await loadWorks(),
   };
 }
 
 /**
- * The template paths of every authored water work — one row query per
- * class, at compile time, memoised with the rest of the index and
- * dropped by `invalidateCache()` like everything else.
- *
- * ⚠ **Paths, not objects.** What is standing changes constantly and the
- * flow read must see that immediately (a shut sluice stops drawing on
- * the next query, not six game-hours later); what is AUTHORED changes
- * only when content is installed. Memoising the first would be the
- * cache bug this file's header warns about; memoising the second is
- * free.
+ * A water work read from its ROW when it is not standing — the same two
+ * answers its class gives live (`Conduit`, `ControlStructure`), from the
+ * authored fields, with the classes' own defaults. `null` for a row that
+ * is neither.
  */
-async function loadWorks(): Promise<string[]> {
-  const out: string[] = [];
-  for (const cls of WATERWORK_CLASSES) {
-    for (const tpl of await Template.findByClass(cls)) out.push(tpl.path);
+function rowWork(
+  row: Record<string, unknown> | undefined,
+): (Withdrawing & Discharging) | null {
+  if (!row) return null;
+  const cls = String(row.class ?? '');
+  const reachRef = str(row.reachRef);
+  const num = (v: unknown, d: number): number =>
+    typeof v === 'number' && Number.isFinite(v) ? v : d;
+  if (cls.endsWith('/thing/ControlStructure')) {
+    const pass = Math.min(1, Math.max(0, num(row.passFraction, 1)));
+    return {
+      getReachRef: () => reachRef,
+      withdrawalM3S: (natural: number) => Math.max(0, natural) * (1 - pass),
+    };
   }
-  return out;
+  if (cls.endsWith('/thing/Conduit')) {
+    const direction = str(row.direction) || 'supply';
+    const running = row.on === true && row.cut !== true;
+    return {
+      getReachRef: () => reachRef,
+      withdrawalM3S: (natural: number) =>
+        direction === 'supply' && running
+          ? Math.min(num(row.capacityM3S, 0), Math.max(0, natural))
+          : 0,
+      getDischargeReach: () =>
+        direction === 'disposal' && running ? reachRef : '',
+      dischargeLoad: () => ({
+        load: num(row.dischargeLoadPerSecond, 0),
+        kind: (str(row.dischargeKind) || 'organic') as ContaminantKind,
+      }),
+    };
+  }
+  return null;
 }
 
 /**
@@ -1698,6 +1720,10 @@ function nodesOf(value: unknown): WatercourseNode[] {
     }
     const stocks = stocksOf(r.stocks);
     if (stocks.length > 0) node.stocks = stocks;
+    if (Array.isArray(r.works)) {
+      const works = r.works.map(str).filter((p) => p !== '');
+      if (works.length > 0) node.works = works;
+    }
     out.push(node);
   }
   return out;
@@ -1712,11 +1738,11 @@ function stocksOf(value: unknown): WatercourseStock[] {
     const r = raw as Record<string, unknown>;
     const species = str(r.species);
     if (species === '') continue;
-    const capacity =
-      typeof r.capacity === 'number' && Number.isFinite(r.capacity)
-        ? Math.max(0, Math.round(r.capacity))
-        : 0;
-    out.push({ species, capacity });
+    if (typeof r.capacity === 'number' && Number.isFinite(r.capacity)) {
+      out.push({ species, capacity: Math.max(0, Math.round(r.capacity)) });
+    } else {
+      out.push({ species });
+    }
   }
   return out;
 }

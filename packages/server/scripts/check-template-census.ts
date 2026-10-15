@@ -463,6 +463,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (Array.isArray(nodes)) {
     for (const node of nodes) {
       if (!node || typeof node !== 'object') continue;
+      // ⭐ `nodes[].works[]` (the scan sweep) — the intakes, outfalls and
+      // control structures on a reach, read live when standing and from
+      // their row when not. A rowless one is a work the river never feels.
+      const works = (node as Record<string, unknown>).works;
+      if (Array.isArray(works)) for (const w of works) push('nodes.works', w);
       const stocks = (node as Record<string, unknown>).stocks;
       if (!Array.isArray(stocks)) continue;
       for (const stock of stocks) {

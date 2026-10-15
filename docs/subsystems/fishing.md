@@ -23,11 +23,15 @@ design: `docs/slates/tails/fishing-slate.md` (§ 12 is the home tank).
 
 ## ⭐⭐ The record is DERIVED, and it is the water pack's
 
-Nobody writes a table for the confluence or for the moor's mere. Each
-`Species` row that authors a **habitat** — tolerances over the closed
-water vocabulary, a role in the food web, an abundance per kilometre, a
-fight rating — is asked how well it fits the water the catalogue reports
-at a reach, and the answer is the population:
+Nobody writes a table of NUMBERS for the confluence or for the moor's
+mere. ⭐ A reach NAMES the species it holds (`stocks:` on the node — the
+scan sweep, 2026-10-14; it used to be a class scan of every species
+row), and each named `Species` that authors a **habitat** — tolerances
+over the closed water vocabulary, a role in the food web, an abundance
+per kilometre, a fight rating — is asked how well it fits the water the
+catalogue reports at the reach, and the answer is the population. A
+named species that does not fit has capacity `0`; a species the reach
+does not name is not there at all:
 
 ```
 capacity = round(fit × abundance × water.fishery.reachLengthKm)   (seed 1 km)
@@ -53,10 +57,12 @@ the water pack imports nothing of the trade. The one word of a trade the
 water pack speaks is a **setting**: `water.fishery.readDiscipline` names
 the Discipline whose band gates the species read at a shore.
 
-**`stocks:` on a Watercourse node** is the aquaculture seam: a stocked
-species' capacity is the authored number regardless of fit, and the read
-says *the water is stocked with…*. No shipped row authors one;
-`lint:census` walks `nodes[].stocks[].species`.
+**`stocks:` on a Watercourse node** names what the reach holds. An entry
+with no `capacity` derives its number from fit (every shipped entry);
+one WITH a `capacity` is the aquaculture seam — the authored number
+regardless of fit, and the read says *the water is stocked with…*. The
+open sea holds what it and its bands name (`stock:`). Each species is
+loaded at the read. `lint:census` walks `nodes[].stocks[].species`.
 
 ## ⭐ One law for every RGO — Liebig's minimum, and it names the limiter
 

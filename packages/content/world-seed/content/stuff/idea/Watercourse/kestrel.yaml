@@ -35,13 +35,13 @@ data:
   nodes:
     # Rejection's ground. High, cold, and where the ore is — so this is
     # simultaneously the realm's snowpack and its worst pollution risk.
-    - { name: headwaters, elevation: 1400, catchmentKm2: 380 }
+    - { name: headwaters, elevation: 1400, catchmentKm2: 380, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # Interpolated: a gorge nobody has built in and nobody needs a room
     # for. Steep enough that no boat has ever been up it.
-    - { name: gorge, catchmentKm2: 210 }
+    - { name: gorge, catchmentKm2: 210, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The falls — a control point because the drop is real, and the
     # obvious place to put a wheel or a dam.
-    - { name: falls, elevation: 500, channelWidthM: 18, catchmentKm2: 260 }
+    - { name: falls, elevation: 500, channelWidthM: 18, catchmentKm2: 260, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # ⭐ The confluence — where the Delight comes in out of the farming
     # valley, and WHERE TERMINUS IS. A city whose entire geographic
     # premise is a confluence: it drinks last, after the mining town and
@@ -51,6 +51,6 @@ data:
     #
     # 30 m, five below the city's own ground at 35, which is what makes
     # a bank a bank rather than a flood.
-    - { name: confluence, elevation: 30, channelWidthM: 90, catchmentKm2: 160 }
+    - { name: confluence, elevation: 30, channelWidthM: 90, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
     # The sea, and the global minimum: downstream of everything.
-    - { name: estuary, elevation: 0, channelWidthM: 160 }
+    - { name: estuary, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

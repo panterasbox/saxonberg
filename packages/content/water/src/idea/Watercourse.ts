@@ -115,12 +115,27 @@ export interface WatercourseNode {
    * objects until drawn, so this is NOT the zone's spawn `stocks:`.
    */
   stocks?: WatercourseStock[];
+  /**
+   * ⭐ **The works on this reach** (the scan sweep, 2026-10-14) — the
+   * template paths of the intakes, outfalls and control structures that
+   * draw from or discharge into it. The river reads each one live when it
+   * is standing and from its ROW when it is not, so an outfall nobody has
+   * visited still fouls the water below it. Before this the catalogue
+   * found its works by a class scan of the template table.
+   */
+  works?: string[];
 }
 
-/** One stocked species on a reach — a species template path and a count. */
+/**
+ * One species a reach HOLDS — a species template path, and optionally a
+ * count. ⭐ A reach holds the species it names and no other (the scan
+ * sweep): with no `capacity` the number derives from the species' habitat
+ * fit in this water, exactly as before; with one, the authored number
+ * stands regardless of fit (the aquaculture seam, fishing D3).
+ */
 export interface WatercourseStock {
   species: string;
-  capacity: number;
+  capacity?: number;
 }
 
 /**

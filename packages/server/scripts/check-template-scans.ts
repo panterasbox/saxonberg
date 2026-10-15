@@ -90,8 +90,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/BiomeCatalogue.ts", count: 1, reason: STUB },
   { file: "packages/server/src/mud/platform/idea/ConditionCatalogue.ts", count: 1, reason: STUB },
   // ── systems compiling their own index ──
-  { file: "packages/content/water/src/idea/WatercourseCatalogue.ts", count: 3, reason: STUB },
-  { file: "packages/content/water/src/idea/FisheryRegistry.ts", count: 1, reason: STUB },
+  { file: "packages/content/water/src/idea/WatercourseCatalogue.ts", count: 2, reason: "the water system compiling its own keyed index of its courses (and the localities draining to them) — once, lazily, never booted" },
   { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: STUB },
   { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: STUB },
   { file: "packages/server/src/mud/platform/idea/Ship.ts", count: 1, reason: "a structure's own members — the rows under its own extent, which it owns" },

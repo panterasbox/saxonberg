@@ -12,4 +12,4 @@ data:
   # water is still and a sheet can form on it.
   site: { latitudeDeg: -66, continentality: 1, offsetK: 0 }
   nodes:
-    - { name: mere, elevation: 900, channelWidthM: 200, meanDepthM: 4 }
+    - { name: mere, elevation: 900, channelWidthM: 200, meanDepthM: 4, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }] }
