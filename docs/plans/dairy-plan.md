@@ -2169,6 +2169,28 @@ four things the wire drive could not, three fixed:
   *you milk her right out — 0 litres*. A wording finding for the taps
   engagement's abort path.
 
+**Walk B** (scald → cool → pitch and rennet → the set → whey to the
+starter → hoop and stone → `cure wheel` → the rack → three weeks → split
+→ the wedge) works end to end in the browser, after two more fixes:
+
+- **The lanterns were set down, not hung.** A lamp lights a room
+  fixture-side; one loose among the props lit nothing. Both are
+  `adornments:` with a slot now, as the Hesper's hold hangs its lamp.
+- ⭐ **And hung, they still lit nothing — the rooms were 400 m².** Every
+  Location in the Delight takes its floor area from the zone's 20 m cell,
+  so 600 lm read 1.5 lux, `very-dim`, after dark (`lit` starts at 20).
+  The creamery and the cheese room author their own `extent` (5 m, 4 m):
+  24 and 25 lux. ⚠ Every other interior in the Delight is 400 m² too —
+  a finding for whichever build next lights one.
+- Seen, not fixed: a vat pitched too hot (328 K against the 318 K kill)
+  reads *"It sits sweet and silent — nothing is working it yet"* — the
+  unpitched line, whose *yet* promises a ferment that will never come
+  (lens 1: *throw it away* must not read as *wait*; `dairy-slate`).
+  `smell wedge` says *"thoroughly dried and heavily salted"* and nothing
+  of cheese. `down` reads *"You leave to the down"* (the movement line's
+  article, not this build's). `consign` refuses a character with no
+  account and names the remedy, as it should.
+
 Then the wire drive, re-run on the new rows, took five more runs to come
 back green — **run 39, 41/41** (488 s, fresh world):
 
