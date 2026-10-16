@@ -2150,6 +2150,30 @@ bull calf refuses to milk in his own words and gives a vell to the
 knife; and copper runs into a preheated crucible, is poured into the
 ingot mould, and comes out a bar.
 
+### The live browser walk (2026-10-16)
+
+The game in a headless browser against the drive's world — a player
+typing, not the harness. Walk A (draft → milk → creamery → pan → vat →
+pitch and rennet → skim → churn → buttermilk) works end to end. It found
+four things the wire drive could not, three fixed:
+
+- **One pail for a byre.** Two milkers at once had nothing to milk into.
+  The byre hangs three pails, the goat pen two (B6 grows).
+- **Winter dark.** The climate merge's winter puts the creamery and the
+  cheese room in pitch dark by mid-afternoon, and every vessel reads
+  *something*. A lantern burns in each (the floor's on a sconce, the
+  cellar's dimmer).
+- **An empty vessel's slug.** *The setting-pan is empty* — the bulk line
+  printed its kind's slug; it reads its words now (a `Bulkable` fix).
+- ⚠ Not fixed: a cow returned mid-milking leaves the milker's line saying
+  *you milk her right out — 0 litres*. A wording finding for the taps
+  engagement's abort path.
+
+Then the wire drive needed two more fixes on the new rows (run 35, 39/41):
+the stranger can't be handed a pail by handle (the drive drops it in the
+yard), and the smelt's copper set into a cold crucible — the crucible's
+heat is now set before the run as well as after it.
+
 ### Build decisions (not in the plan above)
 
 Decided during the build; each says which rule decided it.
