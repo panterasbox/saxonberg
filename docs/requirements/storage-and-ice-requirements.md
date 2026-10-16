@@ -310,13 +310,29 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 - **The pond remembers what was done to it,** and `look` at the field shows it: the scored grid, the open channel, the cut.
 - **Timing is a bet.** The forecast is exact for a day and blind beyond it, and a harvest runs for weeks. No change is needed.
 
-### The frozen pool: one room, on it or in it
-- **How you get there:** from the shore, out onto the ice. Where a crossing exists, it runs **through** the pool to the far bank, so crossing the ice and standing on it are one place, never two models of the same ice.
-- **How many:** one pool room per harvestable water in this build (the placeholder locality's mere). A large water may later have several, which share **one sheet** (thickness comes from the water's weather) and keep **their own logs** (work happens where you stand).
-- **The pool is one room:** the water's surface. Inside it, a person is either **on the ice** (if it bears them) or **in the water**, at the surface, swimming. An unfrozen pool is all "in".
-- **It is one place with an authored area, not a warren or a grid of cells.** An acre marked into Hudson cakes is about 9,000 cells, which is the "ten thousand objects" problem again. So the pond's log records **areas by history**: so much scraped on a date, so much marked, so much cut on a date and regrowing, the rest still the snowy field.
+### The frozen pool: one place, and the ice is its floor
+- **How you get there:** from the shore, out onto the ice. Where a crossing exists, it runs **through** the pool to the far bank, so crossing the ice and standing on it are one place, never two models of the same ice. **The crossing is one exit and the mode decides:** walking onto the pool needs its floor to bear you; swimming in needs open water.
+- **How many:** one pool per harvestable water in this build (the placeholder locality's mere). A large water may later have several, which share **one sheet** (thickness comes from the water's weather) and keep **their own logs** (work happens where you stand).
+- **⭐ Ice and open water are the same place in two states. A phase change never creates or removes space.** The pool is maritime's small water you are in. **Its floor is the water's surface:**
+  - frozen and bearing, the floor is ice, and you can stand, sit and lie on it, as on any floor;
+  - open, the floor is not standable, and you swim.
+
+  This is the shipped floor model: every place has a floor that knows what it is made of, and it already carries the weather's states (snow lying in bands, a puddle's skin of ice) without becoming another place.
+- **The pond's log is the floor's.** It records **areas by history**, not a warren or a grid of cells: an acre marked into Hudson cakes is about 9,000 cells, which is the "ten thousand objects" problem again. So the log holds so much scraped on a date (the floor's seam for cleared snow), so much marked, so much cut on a date and regrowing, and the rest still the snowy field.
   - A cut takes area out of a patch, and its blocks follow from the grid and that patch's thickness.
+  - **A hole is floor area with no ice**, so there's no down exit. A hole is never a way down.
   - You stand on whatever area still bears you. When every remaining area is cut or too thin, there is nowhere to stand.
+
+### On it or in it is support, not location
+- **Inside the one place, a person is either supported by the floor** (standing, sitting or lying on the ice, the shipped postures) **or unsupported: swimming**, the swim mode an actor already carries in maritime's pool.
+- **Falling through, step by step:**
+  1. **The floor is checked against what's on it** when someone steps onto the pool, when their load changes on it (picking up a block, a horse coming out), and when the place catches up after time has passed (spring rot under a crew still working). Thickness against mass, never chance.
+  2. **If it doesn't bear you, it gives way.** You lose your footing and are swimming, in the same place, seen by everyone there, breathing air, your body feeling 0 °C water.
+  3. **You and what you wear are soaked.**
+  4. **The body's cold already ships:** a hypothermia condition, and medicine's `warm`. Cold water drives you into them in minutes, and wet clothes keep you chilling after you're out.
+  5. **Getting out:** `stand`, and the floor decides whether the edge bears you. The ice that just broke under you won't, which is the real danger. Or swim to the shore, since a pool's exits are swimmable from the water.
+- **Going in deliberately:** leaving the floor where it is open water, at a hole or the cut channel. The plan chooses the word from the shipped vocabulary; no new verb exists for it in the requirements.
+- **Fishing** happens from the floor, through a hole.
 
 ### Where to cut, and what can be measured
 - **Which water** carries most of the variation, and all of it is modelled: its climate (latitude, height, continentality, its cold offset), still or running, and its snow. Climate's clearmere (black ice) and circlemere (snow-ice) show that difference already.
@@ -327,17 +343,6 @@ A counter fed from a store asks a price that follows **the store's** days of sup
   - **what it bears:** derived from thickness, and felt by stepping out;
   - **its history:** `look` at the field shows the scraped, marked, cut and regrown patches.
 - **Nothing else varies within a water** in this build (see Non-goals). The honest choice there is thin, mostly "cut the scraped patch, avoid last week's channel". The richer choices are which water and when.
-- **A hole is not a room.** It's a patch of open water in the pond's log, so there's **no down exit**. At a hole a person can:
-  - lower themselves into the water, deliberately;
-  - climb back out onto the edge, if the edge bears them;
-  - fish through it.
-- **Falling through, step by step:**
-  1. **The ice is checked against what's on it** when someone steps onto the pool, when their load changes on it (picking up a block, a horse coming out), and when the place catches up after time has passed (spring rot under a crew still working). Thickness against mass, never chance.
-  2. **If it doesn't bear you, it gives way.** You're in the water at the surface, breathing air, your body feeling 0 °C water.
-  3. **You and what you wear are soaked.**
-  4. **The body's cold already ships:** a hypothermia condition, and medicine's `warm`. Cold water drives you into them in minutes, and wet clothes keep you chilling after you're out.
-  5. **Getting out:** onto the edge if it bears you (the ice that just broke under you won't, which is the real danger), or swim to the shore, since a pool's exits are swimmable from the water.
-
 ### Summer
 - **The pool is the same place, open.** It is swimmable, as maritime built it. It is reached from the shore by swimming in, and where a crossing runs through it the summer crossing is a swim. The cold-water fix applies: a mountain mere chills a swimmer from its own water temperature even in summer.
 - **What was on the ice when it went** (at the thaw, or on a patch someone cuts) is placed by its material's density:
@@ -454,7 +459,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 6. **`plough` the field with the hand marker.** `look` at the field shows the scored grid.
 7. **`cut` a block with the ice saw.** It is graded from the sheet, and its mass follows the thickness and the grid. `look` at the field shows the cut and the open water. Standing where the cut was would put you in the water.
-8. **Fishing.** `fish` through the solid field is refused in words. Bore a hole with the auger and `fish` through it. Lower yourself into the harvest channel and climb back out onto ice that bears you.
+8. **Fishing.** `fish` through the solid field is refused in words. Bore a hole with the auger and `fish` through it. Go into the water at the harvest channel, then `stand`: you are back on ice that bears you.
 9. **Try a horse and ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
 10. **`get` the block with tongs and carry it to the icehouse.**
    - On shift as a house hand, `put` it on the stack. The house's stock rises.
