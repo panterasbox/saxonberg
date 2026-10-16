@@ -1,0 +1,14 @@
+# The creamery's lantern (found by the browser walk): the world boots in
+# winter now, the light through the north windows is gone by late
+# afternoon, and a dairy worked in the dark read every vessel as
+# "something". A creamery keeps a light — lit, the Hesper's hold-lantern
+# shape over the commons sconce.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: tin lantern
+  keywords: [lantern, lamp, light, tin]
+  longDescription: |
+    A tin lantern on a hook above the pressing table, its glass sooted at the top. It gives enough light to read a thermometer by, and not much more.
+  on: true
+  emittedIntensity: 600

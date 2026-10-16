@@ -16,7 +16,7 @@ data:
   ambientIntensity: 12000
   ambientColorTemperature: 4800
   longDescription: |
-    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it.
+    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it, and a tin lantern hangs above it on a hook.
 
     Everything smells of milk and of being scrubbed. A trap in the floor opens on steps going down to the cheese room.
   coords: { x: -4, y: -4, z: 0 }
@@ -30,6 +30,7 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
+    - /world/terminus/hearts-delight/creamery/thing/lantern
     # One pan: a second makes every `pour pan into …` ask which (the drive).
     - /trade/dairying/thing/setting-pan
     - /trade/dairying/thing/churn

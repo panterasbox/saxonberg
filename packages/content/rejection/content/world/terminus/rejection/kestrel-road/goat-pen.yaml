@@ -32,7 +32,8 @@ data:
       edgeMinutes: 2
   props:
     - /world/terminus/rejection/thing/goat-book
-    - /stuff/thing/vessel/pail
+    # Two pails, for more than one milker (the browser walk).
+    - { template: /stuff/thing/vessel/pail, count: 2 }
     - /trade/dairying/thing/setting-pan
     - /trade/dairying/thing/starter-crock
     - /trade/dairying/thing/hoop

@@ -361,13 +361,13 @@ suite('1–3. the dairy farm, and a cow into a washed pail', () => {
   });
 
   it('⭐ `wash pail`, then `milk cow into pail` — litres of milk', async () => {
-    await doing(k, 'get pail');
-    const washed = await doing(k, 'wash pail');
+    await doing(k, 'get 1 pail');
+    const washed = await doing(k, 'wash me:i:pail');
     expect(washed).toMatch(/wash/i);
-    const milked = await doing(k, 'milk cow into pail');
+    const milked = await doing(k, 'milk cow into me:i:pail');
     expect(milked).toMatch(/litre|pail|milk/i);
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    const pail = await read(k, 'look pail');
+    const pail = await read(k, 'look me:i:pail');
     note(`look pail → ${pail}`);
     expect(pail).toMatch(/white|milk/i);
     await doing(k, 'return cow');
@@ -391,10 +391,10 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
   it('⭐ spoilage samples: a jug left here in the warm, a crock in the cheese room', async () => {
     await doing(k, 'get thermometer');
     await doing(k, 'get jug');
-    await doing(k, 'pour pail into jug --amount 1L');
+    await doing(k, 'pour me:i:pail into jug --amount 1L');
     await doing(k, 'drop jug');
     await doing(k, 'get butter-crock');
-    await doing(k, 'pour pail into butter-crock --amount 1L');
+    await doing(k, 'pour me:i:pail into butter-crock --amount 1L');
     await say(k, 'down');
     await k.drainProse();
     await doing(k, 'drop butter-crock');
@@ -403,7 +403,7 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
   });
 
   it('⭐ `pour pail into pan` — and the pan stands', async () => {
-    await doing(k, 'pour pail into pan --amount 4L');
+    await doing(k, 'pour me:i:pail into pan --amount 4L');
     const pan = await read(k, 'look pan');
     note(`look pan (just set) → ${pan}`);
     expect(pan).toMatch(/stands|nothing has separated|white/i);
@@ -414,7 +414,7 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
 
 suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
   it('⭐ `pour pail into vat`; `heat vat` sets it on the fire', async () => {
-    await doing(k, 'pour pail into vat');
+    await doing(k, 'pour me:i:pail into vat');
     const heat = await doing(k, 'heat vat');
     expect(heat).toMatch(/set .* on|fire|hearth/i);
   });
@@ -470,9 +470,9 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
   });
 
   it('⭐⭐ `pour pan into pail` — the skim comes off and STOPS; the cream is left', async () => {
-    const drawn = await doing(k, 'pour pan into pail');
+    const drawn = await doing(k, 'pour pan into me:i:pail');
     note(`skim: ${drawn}`);
-    const pail = await read(k, 'look pail');
+    const pail = await read(k, 'look me:i:pail');
     expect(pail).toMatch(/thin|blue|skim/i);
     const pan = await read(k, 'look pan');
     note(`look pan (skimmed) → ${pan}`);
@@ -564,10 +564,10 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
   });
 
   it('⭐⭐ `pour vat into pail` — the whey comes off; the curd is left', async () => {
-    await doing(k, 'spill pail');
-    const drawn = await doing(k, 'pour vat into pail');
+    await doing(k, 'spill me:i:pail');
+    const drawn = await doing(k, 'pour vat into me:i:pail');
     note(`whey: ${drawn}`);
-    const pail = await read(k, 'look pail');
+    const pail = await read(k, 'look me:i:pail');
     expect(pail).toMatch(/green|thin|whey/i);
     const vat = await read(k, 'look vat');
     note(`look vat (whey off) → ${vat}`);
@@ -575,7 +575,7 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
   });
 
   it('⭐⭐ the whey becomes next time’s starter — `pour pail into crock`', async () => {
-    await doing(k, 'pour pail into starter');
+    await doing(k, 'pour me:i:pail into starter');
     const crock = await read(k, 'look starter');
     note(`look starter crock → ${crock}`);
     expect(crock).toMatch(/sediment|creams|culture|stirs/i);
@@ -623,8 +623,8 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     await untilHour(0);
     await doing(k, 'draft 4 from dairy');
     await untilHour(12);
-    await act(k, 'spill pail');
-    const milked = await doing(k, 'milk cow into pail');
+    await act(k, 'spill me:i:pail');
+    const milked = await doing(k, 'milk cow into me:i:pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     await doing(k, 'return cow');
   });
@@ -633,7 +633,7 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     await goTo(CREAMERY);
     // The whole pail: the vat takes 25 L, and a pail left half full is a
     // pail that cannot be emptied on a wet floor.
-    await doing(k, 'pour pail into vat');
+    await doing(k, 'pour me:i:pail into vat');
     await doing(k, 'heat vat');
     let t = await kelvinOf(k, 'vat');
     for (let i = 0; i < 40 && t < 362; i++) {
@@ -673,10 +673,10 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     expect(pen).toMatch(/goat|pen/i);
     // The byre's pail, still in hand — taking the pen's too makes every
     // later `pail` ask *which?* (run 21). Washed at the pen's butt.
-    await doing(k, 'wash pail');
-    const milked = await doing(k, 'milk goat into pail');
+    await doing(k, 'wash me:i:pail');
+    const milked = await doing(k, 'milk goat into me:i:pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
-    const pail = await read(k, 'look pail');
+    const pail = await read(k, 'look me:i:pail');
     note(`goat's milk → ${pail}`);
     // ⚠ The pen is open air on a hill, and the world boots in winter (the
     // climate build: 268 K at a clear dawn) — milk will not sour below
@@ -689,7 +689,7 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     await doing(k, 'drop vat');
     await doing(k, 'drop starter');
     await doing(k, 'drop hoop');
-    await doing(k, 'pour pail into vat');
+    await doing(k, 'pour me:i:pail into vat');
     // ⚠ The pen's crock was last fed at boot and a whey culture starves in
     // six days — it is dead, correctly. The craft's own remedy: raw milk
     // left open sours on its own (the curd's wild lactic flora, a day's
@@ -821,10 +821,10 @@ suite('25. on the bench at the Delight, in season: ewe’s milk', () => {
   it('⭐⭐ a ewe milks only in her season — and in it, she fills the pail', async () => {
     await goTo(FARMSTEAD);
     await untilHour(0);
-    await act(k, 'spill pail');
+    await act(k, 'spill me:i:pail');
     await doing(k, 'draft 0 from flock');
     await untilHour(12);
-    let milked = await act(k, 'milk ewe into pail');
+    let milked = await act(k, 'milk ewe into me:i:pail');
     for (let i = 0; i < 20 && /^season-/.test(refusedFor(milked.r) ?? ''); i++) {
       note(`ewe out of season (${refusedFor(milked.r)}): ${milked.said}`);
       await doing(k, 'return ewe');
@@ -832,10 +832,10 @@ suite('25. on the bench at the Delight, in season: ewe’s milk', () => {
       await untilHour(0);
       await doing(k, 'draft 0 from flock');
       await untilHour(12);
-      milked = await act(k, 'milk ewe into pail');
+      milked = await act(k, 'milk ewe into me:i:pail');
     }
     expect(refusedFor(milked.r)).toBeNull();
-    const pail = await read(k, 'look pail');
+    const pail = await read(k, 'look me:i:pail');
     note(`ewe's milk → ${pail}`);
     expect(pail).toMatch(/thick|white|ewe/i);
     await doing(k, 'return ewe');
@@ -894,16 +894,19 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     await goTo(BYRE);
     await doing(k, 'draft 3 from dairy');
     await advance('9 hours');
-    const milked = await doing(k, 'milk cow into pail');
+    const milked = await doing(k, 'milk cow into me:i:pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     await doing(k, 'return cow');
   });
 
   it('⭐⭐ the stranger drinks it raw, and falls ill', async () => {
-    await doing(k, 'drop pail');
-    stranger = await Session.open(uniqueHandle('stranger'), { startLocation: BYRE });
+    // Handed over, not dropped: the byre has three pails now, and a pail
+    // on the floor among them is not one a stranger can name.
+    const strangerHandle = uniqueHandle('stranger');
+    stranger = await Session.open(strangerHandle, { startLocation: BYRE });
     await stranger.drainProse();
-    const drank = await act(stranger, 'drink pail');
+    await doing(k, `give me:i:pail to ${strangerHandle}`);
+    const drank = await act(stranger, 'drink me:i:pail');
     expect(refusedFor(drank.r)).toBeNull();
     await advance('18 hours');
     const self = await read(stranger, 'look me');
@@ -922,13 +925,13 @@ suite('4. a bull calf will not milk — and gives the creamery its rennet', () =
     // ⚠ Last of the byre's acts: his body answers to `cow` afterwards.
     await goTo(BYRE);
     await untilHour(12);
-    await doing(k, 'get pail');
+    await doing(k, 'get 1 pail');
     const said = await doing(k, 'draft 1 from calves');
     expect(said).toMatch(/number 1/i);
   });
 
   it('⭐⭐ `milk bull` is refused in the animal’s own words — a male does not milk', async () => {
-    const { r, said } = await act(k, 'milk bull into pail');
+    const { r, said } = await act(k, 'milk bull into me:i:pail');
     expect(refusedFor(r)).toBe('wrong-sex');
     expect(said).toMatch(/male does not milk|nothing to give/i);
   });
@@ -942,7 +945,7 @@ suite('4. a bull calf will not milk — and gives the creamery its rennet', () =
   });
 
   it('the pail is left in the byre', async () => {
-    await doing(k, 'drop pail');
+    await doing(k, 'drop me:i:pail');
   });
 });
 
