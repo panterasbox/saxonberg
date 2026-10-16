@@ -814,18 +814,24 @@ async function runIntoCrucible(
   const crucible = crucibleIn(furnace, metalPath);
   let keptL = 0;
   if (crucible !== null) {
-    // ⭐ The pot stands IN the lit furnace, so it is at the furnace's heat
-    // when the metal runs — set before the pour as well as after it. A
-    // crucible put in cold and the furnace lit just before the smelt had
-    // not come up to heat, and the run blended down to the pot on the way
-    // in, set on contact, and dropped into the furnace as a lump: the
-    // crucible empty and "nothing to pour" (found by the live drive; a
-    // race on the real clock the unit harness does not reproduce).
+    // ⭐ Both ends of the run are at the furnace's heat BEFORE the metal
+    // moves. The pot has stood in the lit furnace, but its temperature is
+    // read lazily: one nobody looked at since it went in cold still holds
+    // that cold stamp, the run blends down to it, and copper that far under
+    // its melting point clears the latent plateau in one step and sets in
+    // the pot (dropped beside it as a lump). The source below is the same
+    // trap — a fresh receptacle reads the ambient, 268 K in winter. Which
+    // one fired turned on the wall clock, so the live drive found it in
+    // three runs of four: "There's nothing to pour".
     crucible.setContentsTemperature(heldK);
     const to = BulkableApi.slotFor(crucible, undefined);
-    const source = await StuffApi.clone<Stuff & Bulkable>(UNBOUNDED_RECEPTACLE);
+    const source = await StuffApi.clone<Stuff & Bulkable & Thermal>(
+      UNBOUNDED_RECEPTACLE,
+    );
     try {
+      source.setContentsTemperature(heldK);
       source.setBulkMaterial('interior', metal);
+      source.setContentsTemperature(heldK);
       const from = BulkableApi.slotFor(source, undefined);
       if (from && to) {
         const cap = crucible.getBulkCapacity('interior')?.rawValue() ?? 0;
