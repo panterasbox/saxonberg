@@ -119,6 +119,7 @@ Seeding slates:
 - **A field can be worked by a person:** read for thickness, scraped of snow, marked into a grid, and cut into blocks.
   - **The pond remembers each of those acts:** a scraped patch grows faster and black; a cut patch is open water and refreezes thinner from that day.
   - **A cut block's mass and grade come from the ice it was cut from.**
+  - **Where to cut is a choice a person can make from what they can measure:** which water to work, and which patch of it by its history.
 - **The ice trade has real seats:** an ice company with a keeper, house hands, a seasonal crew and an ice boss, each held by an NPC and takeable by a player. NPCs in them do the work through the same verbs a player types.
 - **The icehouse keeps ice through a summer:**
   - in proportion to its size and its sawdust;
@@ -160,7 +161,8 @@ Seeding slates:
 - **Offcuts and slab wood from the saw** → carpentry-slate.
 - **The lounge's ice bin** (it wants crushed ice), and **the bagged-ice import line** (freezer ice, cold-chain's industrial rung) → cold-chain-slate.
 - **Ice made in pans on clear nights** (radiation to the sky) → the weather slate. The model has no sky-radiation term. Rubber's roof face is where it would attach (an exterior top face that sees the sky loses heat to it, weighted by cloud).
-- **Thin ice over a current, pressure ridges** → watershed.
+- **Thin ice over a current, pressure ridges, and every other within-water variation** (depth below the ice, springs and inlets, cracks, trapped air) → watershed. Within one water, this build's ice differs only by what was done to it.
+- **A frozen lake crossed by compass** (a big bay as a coordinate field, like the sea) → navigable-water-slate / expanse.
 
 **Cross-cutting capabilities**
 - **Load-bearing surfaces in general** (rotten floors, weak bridges) → its own slate. Ice's bearing is the water's.
@@ -186,7 +188,9 @@ Seeding slates:
 ## Collisions
 
 **Places and people**
-- **The Circle and the north** (climate content): circlemere and clearmere gain a frozen pool you can walk out onto. The existing shores and crossings stay. The climate drive's checks at those shores must still pass.
+- **The Circle and the north** (climate content): circlemere and clearmere each gain a frozen pool.
+  - ⚠ **The circlemere crossing is reworked.** Today it is one exit from the shore to the moraine bank, crossing the ice without ever being on it. It becomes shore → the pool → the far bank, so the crossing *is* walking on the ice. The bearing check happens on stepping onto the pool, and breaking through mid-crossing puts you in the water. The climate drive's crossing checks are re-pointed and must still pass.
+  - The north's blackmere crossing stays as it is in this build.
 - **The Heart's Delight sawmill and sawyer:** the floor gains a real sawdust heap. The timber-yard counter is unchanged.
 - **The haulage depot warehouse and its warehouseman** (the estuary towpath): it gains the withdraw its receipt was missing, as the first bailee store.
 - **Fishing at the cold meres:** today `fish` and `lay` work straight through solid ice, because fishing has no notion of frozen water. That's a defect this build corrects: frozen water is fished only through a hole. Fishing's drive must still pass in open water.
@@ -296,7 +300,22 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 - **Timing is a bet.** The forecast is exact for a day and blind beyond it, and a harvest runs for weeks. No change is needed.
 
 ### The frozen pool: one room, on it or in it
+- **How you get there:** from the shore, out onto the ice. Where a crossing exists, it runs **through** the pool to the far bank, so crossing the ice and standing on it are one place, never two models of the same ice.
+- **How many:** one pool room per harvestable water in this build (circlemere and clearmere). A large water may later have several, which share **one sheet** (thickness comes from the water's weather) and keep **their own logs** (work happens where you stand).
 - **The pool is one room:** the water's surface. Inside it, a person is either **on the ice** (if it bears them) or **in the water**, at the surface, swimming. An unfrozen pool is all "in".
+- **It is one place with an authored area, not a warren or a grid of cells.** An acre marked into Hudson cakes is about 9,000 cells, which is the "ten thousand objects" problem again. So the pond's log records **areas by history**: so much scraped on a date, so much marked, so much cut on a date and regrowing, the rest still the snowy field.
+  - A cut takes area out of a patch, and its blocks follow from the grid and that patch's thickness.
+  - You stand on whatever area still bears you. When every remaining area is cut or too thin, there is nowhere to stand.
+
+### Where to cut, and what can be measured
+- **Which water** carries most of the variation, and all of it is modelled: its climate (latitude, height, continentality, its cold offset), still or running, and its snow. Clearmere's black ice and circlemere's snow-ice are that difference.
+- **Which patch** on a water differs only by its history. What a person can measure there:
+  - **thickness:** `measure ice` with a spud, precision banded by skill;
+  - **grade**, black or snow-ice: the same reading, and visible in `look`;
+  - **snow lying on it:** in `look`; a scraped patch shows bare;
+  - **what it bears:** derived from thickness, and felt by stepping out;
+  - **its history:** `look` at the field shows the scraped, marked, cut and regrown patches.
+- **Nothing else varies within a water** in this build (see Non-goals). The honest choice there is thin, mostly "cut the scraped patch, avoid last week's channel". The richer choices are which water and when.
 - **A hole is not a room.** It's a patch of open water in the pond's log, so there's **no down exit**. At a hole a person can:
   - lower themselves into the water, deliberately;
   - climb back out onto the edge, if the edge bears them;
@@ -395,10 +414,10 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 **On the ice**
 1. **At the circlemere shore on the first day of the cold,** `analyze water` reads young snow-ice that doesn't yet bear a person.
-2. **Walk out onto the frozen pool.** You break through, and are in the water, swimming at the surface. Your body reports the cold quickly, far faster than standing on the shore would. Your clothes read soaked. Try to climb out onto the edge: the ice that broke won't hold you. Swim back to the shore. On the shore, still soaked, you keep chilling until you're dry or warmed.
-3. **A day later,** walk out again. The ice holds you. `measure ice` with the spud reports its thickness and grade.
+2. **Walk out from the shore onto the frozen pool.** You break through, and are in the water, swimming at the surface. Your body reports the cold quickly, far faster than standing on the shore would. Your clothes read soaked. Try to climb out onto the edge: the ice that broke won't hold you. Swim back to the shore. On the shore, still soaked, you keep chilling until you're dry or warmed.
+3. **A day later,** walk out again. The ice holds you. Cross the pool to the moraine bank and back: the crossing runs over the same ice you stand on. `measure ice` with the spud reports its thickness and grade.
 4. **`scrape` a patch.** The snow is cleared.
-5. **After several more cold days,** `measure ice` on the scraped patch reads black and thicker than the unscraped field. `analyze water` agrees.
+5. **After several more cold days,** `measure ice` on the scraped patch reads black and thicker than the unscraped field. `analyze water` agrees. At clearmere, the unscraped field is already black.
 
 **The cut**
 
@@ -455,6 +474,9 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 - A person who broke through cannot climb out onto the ice that broke, and can swim to the shore.
 - Fishing frozen water is refused in words except through a hole; through a hole it works as in open water. A hole never leads down.
 - After the spring thaw, the pool holds no memory of the winter's cuts and scrapes.
+- Crossing circlemere means walking on its frozen pool: someone who breaks through mid-crossing is in the water.
+- `look` at a field distinguishes its scraped, marked, cut and regrowing patches, and `measure ice` gives each its own thickness and grade.
+- Cutting the whole field leaves nowhere on it to stand.
 
 **Storage, custody and retail**
 - An icehouse's stock falls through a summer:
