@@ -131,7 +131,7 @@ describe("Condition.matchesItem / holdsFor", () => {
     );
     ContainmentApi.move(counter, room);
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
-    ContainmentApi.place(crate, 'on', counter);
+    ContainmentApi.move(crate, counter, 'on');
     const toCounter = delivery({ destinationPath: "/world/test/counter" });
     expect(new Condition(toCounter).holdsFor(crate)).toBe(true);
     // …and to the room: the crate is in the room's contents via place().

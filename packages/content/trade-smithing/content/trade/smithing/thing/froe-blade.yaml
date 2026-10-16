@@ -1,0 +1,13 @@
+# A froe blade — ⭐⭐ the smith's half of the wood tool tree's root. A
+# carved handle wedged into its eye is a froe (`fit froe`), and a froe
+# rives the billet the next handle is carved from.
+class: /platform/thing/Tool
+data:
+  keywords: [blade, froe-blade]
+  shortDescription: froe blade
+  register: indefinite
+  longDescription: >-
+    A thick straight blade a foot long with a round eye forged at one end, sharp on one edge and broad on the back.
+  mass: 1.1
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

@@ -1,0 +1,18 @@
+# A bowstring — ⭐⭐⭐ a WEAR part (assembly AC 13): linen line laid up in
+# a long twist, waxed, and served at the middle and the loops where the
+# arrow and the nocks bear on it. It frays at the nocking point and
+# parts, and an archer carries a spare and restrings by hand in the
+# field. A stringmaker who makes nothing else sells to every archer in
+# the realm; the bow's bill names this row.
+class: /platform/thing/Tool
+data:
+  keywords: [bowstring, bowstrings, bow-string, "bow string", "linen bowstring"]
+  shortDescription: linen bowstring
+  register: indefinite
+  longDescription: >-
+    A waxed linen string a little shorter than a bow, a loop worked into
+    each end and the middle bound tight with a serving of finer thread
+    where an arrow sits.
+  mass: 0.02
+  capabilities: []
+  _materialPath: /stuff/idea/material/textile/linen

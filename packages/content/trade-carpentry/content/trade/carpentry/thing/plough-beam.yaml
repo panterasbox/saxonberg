@@ -1,0 +1,16 @@
+# A plough beam — ⭐ the part a plough is built round and the one that
+# outlives everything fitted to it. The share wears out every season and
+# the stilts every few; the beam is hewn once and passed down. Hewn ash:
+# it takes the whole draught of whatever is pulling, along its length.
+class: /platform/thing/Timber
+data:
+  shortDescription: plough beam
+  keywords: [plough-beam, "plough beam", ploughbeam, beam]
+  register: indefinite
+  longDescription: |
+    A long hewn timber of ash, squared with the axe and curved down at the back where the share is fitted, with a hitch hole bored through the front end.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 18
+  constructionForm: hewn
+  seasonedFraction: 1
+  quantity: 1

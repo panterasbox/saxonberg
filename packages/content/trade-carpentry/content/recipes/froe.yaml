@@ -1,0 +1,15 @@
+# A froe — ⭐⭐ a smith's forged blade on a carved handle, WEDGED: the
+# by-hand joint, no tool and no competence. The by-hand rung makes the
+# hand-tool rung's tools (assembly AC 21). Run by `fit froe`.
+recipeId: froe
+name: Froe
+keywords: [froe]
+inputSlots:
+  - { slot: blade, category: metal, minGrade: fair, kind: item, count: 1 }
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/carpentry/thing/froe
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

@@ -1,0 +1,15 @@
+# A friction fit — the whorl pushed down the spindle shaft until it
+# holds. The floor of the ladder: no tool, no skill, lifts straight off.
+class: /platform/idea/Joint
+data:
+  key: friction
+  label: friction-fitted
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.3
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: true
+  failure: parted

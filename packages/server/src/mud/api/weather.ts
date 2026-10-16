@@ -327,7 +327,7 @@ export class WeatherApi {
    * hemisphere the grammar's season bias reads (default northern).
    */
   public static deviatedFieldFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,

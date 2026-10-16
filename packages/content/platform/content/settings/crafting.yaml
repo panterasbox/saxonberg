@@ -29,6 +29,31 @@ settings:
   - key: crafting.salvageRate
     value: "0.5"
 
+  # ── assembly: joints and green wood (assembly D6, D2).
+  - key: crafting.joint.slackThreshold
+    value: "0.5"
+
+  - key: crafting.greenWearFactor
+    value: "2"
+
+  - key: wood.seasonedThreshold
+    value: "0.8"
+
+  - key: maturing.impartsSpentPerFill
+    value: "0.34"
+
+  - key: crafting.refireHeatK
+    value: "573"
+
+  - key: cask.dryOutDays
+    value: "7"
+
+  - key: lamp.crackedGlassFlux
+    value: "0.35"
+
+  - key: chair.bareFrameRest
+    value: "0.5"
+
   - key: crafting.repair.costFactor
     value: "0.6"
 

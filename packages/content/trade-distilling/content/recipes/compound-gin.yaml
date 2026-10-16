@@ -17,5 +17,5 @@ inputSlots:
   count: 1
 toolCapabilities: [still]
 outputApplication: bulk
-outputTemplate: /trade/distilling/thing/spirit-bottle
+outputTemplate: /trade/distilling/thing/empty-spirit-bottle
 outputMaterial: /trade/distilling/idea/material/gin

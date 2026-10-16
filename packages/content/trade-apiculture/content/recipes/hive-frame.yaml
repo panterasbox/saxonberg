@@ -1,0 +1,17 @@
+# A hive frame — four bars glued square. Run by `fit hive-frame` (`frame`
+# is the joiner's pegged frame). ⭐ The smallest honest assembly in the
+# game, and the by-hand rung of the beekeeper's woodenware: no tool, no
+# competence, and the bars are a woodworker's.
+recipeId: hive-frame
+name: Hive Frame
+keywords: [hive-frame]
+inputSlots:
+  - { slot: top-bar, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: side-bar, category: wood, minGrade: poor, kind: item, count: 2 }
+  - { slot: bottom-bar, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/apiculture/thing/frame
+outputMaterial: ''
+outputApplication: tangible
+difficulty: trivial
+discipline: apiculture

@@ -1,0 +1,18 @@
+# A pick head — the forged half, before it is hafted. ⭐ The chain closes
+# HERE: this is what a smith makes from copper somebody dug, and what a
+# miner buys to swing at the ground it came out of.
+#
+# ⭐ The SMITH's row (assembly AC 18) — it moved here from the mining
+# trade. The pick's bill names it at this path.
+class: /platform/thing/Tool
+data:
+  # ⚠ Not bare `pick`: a head in reach made `fit pick` bind the head.
+  keywords: [pick-head, head, forged, "pick head"]
+  shortDescription: forged pick head
+  register: indefinite
+  longDescription: >-
+    A drawn-out head with an eye through the middle, one point and one
+    chisel edge, still carrying the hammer marks. It wants a haft.
+  mass: 1.8
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/copper

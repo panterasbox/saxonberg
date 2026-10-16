@@ -1,0 +1,15 @@
+# A gauging rod — the gauger's instrument: a long rule, put in at the bung
+# and laid across the head, read off against the cask's diagonal. ⭐ Not a
+# badge: anybody may own one and anybody may read a cask with it. The seat
+# is what makes the figure of record (assembly D13).
+class: /platform/thing/Tool
+data:
+  keywords: [rod, "gauging rod", gauging-rod]
+  shortDescription: gauging rod
+  register: indefinite
+  longDescription: >-
+    A long, square-sectioned rule of box, graduated down two faces in
+    gallons and inches, its foot shod in brass.
+  mass: 0.5
+  capabilities: ["gauging"]
+  _materialPath: /stuff/idea/material/wood/maple

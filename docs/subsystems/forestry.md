@@ -216,14 +216,30 @@ tree (8/30 kg — the Christmas-tree case, the honest inverse of the
 bole); `seedling` → `not-yet-a-tree`; a stool → `not-a-standard` (*cut
 it with a billhook*).
 
-**Every product is stamped to the feller AND placed** — `stampChattel`
-then `followCustody`. ⚠ A stamp alone records no place: `drop`/`put`/
-`get` call `followCustody` after every move, and a good minted onto a
-floor has been moved by nobody. Without it a bole on the ride was
-skipped by the room's capture (a player's good is the owner's to
-persist) and never found by the room's overlay (`placedIn` had no row).
-Found by restarting the server; with it a bole and its logs survive a
-cold restart on the floor where they fell.
+**Every product is the feller's AND placed** — derived by the movement
+primitive (`ContainmentApi.move`: a fresh good landing where the feller
+stands is titled to them, and its place is recorded). Before that a bole
+on the ride was skipped by the room's capture until `fell` stamped and
+placed by hand — found by restarting the server; a bole and its logs now
+survive a cold restart on the floor where they fell with no call in
+`fell` at all (assembly build, MR !361).
+
+### ⭐ Riving — splitting a length along the grain (assembly build, 2026-10-14)
+
+`rive` (`RiveController`, afforded by the `Bole` to bystanders and the
+`Billet` to its holder) splits a length with a froe or wedge into
+**billets**, whose grain follows the split and so runs unbroken — the
+reason a riven stave, spoke or peg outlasts a sawn one. ⭐ Whether a wood
+rives at all is **`Material.cleavability`** (0–1, authored on every wood
+row: oak 0.9, ash 0.85, hazel/pine 0.8, willow 0.75, beech/yew 0.6, birch
+0.55, maple 0.45, elm 0.1 — elm's interlocked grain is why it was the
+wood for hubs and keels). Below `RIVE_FLOOR` (0.3) the verb refuses and
+says why (*the fibres interlock, and nothing follows them — saw it, or
+burn it*); between the floor and
+`CLEAN_CLEAVE` (0.8) it yields fewer billets from the same length. The
+grain form the billet carries is the input to the carpentry chain's
+weakest-link stock form — see [assembly.md](./assembly.md) and
+`docs/slates/builds/carpentry-slate.md`.
 
 ### ⭐⭐ Bark — the fourth yield, and it is PER-SPECIES (2026-10-05)
 

@@ -31,7 +31,20 @@ data:
     # vacant — the seat EXISTS so the office is a thing the polity can fill;
     # Terminus's electric utility is municipal by default (ownership is the
     # polity's in-world call, deliberately not pre-decided).
+    # ⭐⭐ The gauger (assembly D13): the seat whose `measure capacity` is OF
+    # RECORD. Anybody may gauge a cask; only this seat's figure is marked on
+    # the head and taken by a buyer or the magistrate. A position on the
+    # Registry's chart, held by the clerk by default (the founder-default
+    # pattern) until somebody is appointed.
+    - key: gauger
+      label: Gauger of Terminus
+      department: /world/terminus/registry/business
+      positionKey: gauger
     - key: public-works
       label: Commissioner of Works
       department: /world/terminus/budget
       positionKey: works-foreman
+  # ⭐ The city's standard measures (assembly D13, AC 24): the tun its
+  # gauger gauges against. A second polity declares its own here.
+  standards:
+    - { key: cask, value: 25, unit: L }

@@ -54,6 +54,6 @@ inputSlots:
   measureL: 0.45
 toolCapabilities: []
 outputApplication: bulk
-outputTemplate: /trade/distilling/thing/spirit-bottle
+outputTemplate: /trade/distilling/thing/empty-spirit-bottle
 outputMaterial: /trade/distilling/idea/material/blended-whisky
 outputAppearance: a deep amber blended whisky

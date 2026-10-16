@@ -1,0 +1,16 @@
+# A spindle shaft — a finger-length stick of hardwood, thickest a third
+# of the way down where a whorl jams on, notched at the top for the yarn.
+# ⭐ Half of the oldest machine there is: a shaft through a whorl, held by
+# nothing but friction (`fit drop-spindle`), and pulled apart by hand.
+class: /platform/thing/Tool
+data:
+  keywords: [spindle-shaft, "spindle shaft", "spindle stick", stick]
+  shortDescription: spindle shaft
+  register: indefinite
+  longDescription: >-
+    A slender whittled stick of oak about a handspan and a half long,
+    swelling slightly a third of the way down and cut with a spiral notch
+    at its tip.
+  mass: 0.05
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/oak

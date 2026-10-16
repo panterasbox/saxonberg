@@ -12,6 +12,9 @@ description: >-
   rotation. ⭐ An authored wood is always a wood: nothing converts land
   use at runtime; only the record on the place changes. Two customers
   ship already — the collier's clamp and the mine's timber set.
+  ⭐ And `rive`: a froe splits a length off a bole into green billets
+  along the grain, and a billet again into whatever the installed trades
+  rive out of one — a woodworker's blank, a cooper's stave.
 requires:
   # The trade is placeless (economic bootstrap D6/D7): its mechanism is
   # held by the Ministry of Trade — a seat, never a committee. Its

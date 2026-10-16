@@ -23,6 +23,7 @@ import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { ProvenanceApi } from "../../../api/provenance";
 import { ParcelApi } from "../../../api/parcel";
+import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistableApi } from "../../../api/persistable";
 import { TemplatePaths } from "../../../lib/paths";
 import {
@@ -54,6 +55,25 @@ const ChattelCallers = SecurityPolicies.AnyOf(
         (args[0] as { stuffId?: string } | undefined)?.stuffId,
   }),
 );
+
+/** The owner key a person or a house is titled by (Chattel's own rule). */
+function ownerKeyOf(owner: Stuff): ChattelOwner {
+  const templatePath = owner.getIdentityPath() ?? "";
+  return MixinApi.isOrganization(owner)
+    ? { kind: "organization", templatePath }
+    : { kind: "player", templatePath };
+}
+
+/** Is `place` the actor's own room, or something standing in it? */
+function isWhere(actor: Stuff, place: Stuff): boolean {
+  const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+  let at: Stuff | null = place;
+  for (let depth = 8; at !== null && depth > 0; depth--) {
+    if (at === actor || (room !== null && at === room)) return true;
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+  return false;
+}
 
 const GLOB_REFUSAL =
   "fungible stacks are owned by possession, not stamped";
@@ -191,9 +211,51 @@ export class ChattelLogic extends ApiLogic {
    * check who is acting; it only records where the thing ended up.
    */
   @CallSecurity(ChattelCallers)
-  public async followCustody(item: Stuff): Promise<void> {
-    if (MixinApi.isStackable(item) || !MixinApi.isChattel(item)) return;
+  public followCustody(
+    item: Stuff,
+    arrival?: { fresh: boolean; to: Stuff | null },
+  ): Promise<void> {
+    // ⚠ One record at a time per good: every move asks (the primitive
+    // fires this without awaiting), and two in flight would let the second
+    // see the first's place field before the first had written the
+    // registry and the estate — and skip as "unchanged".
+    const key = item.stuffId;
+    const prior = this.custodyQueue.get(key) ?? Promise.resolve();
+    const next = prior
+      .catch(() => undefined)
+      .then(() => this.followCustodyOnce(item, arrival));
+    this.custodyQueue.set(key, next);
+    void next.finally(() => {
+      if (this.custodyQueue.get(key) === next) this.custodyQueue.delete(key);
+    }).catch(() => undefined);
+    return next;
+  }
+
+  /** Records in flight, by good — see {@link followCustody}. */
+  private custodyQueue = new Map<string, Promise<void>>();
+
+  private async followCustodyOnce(
+    item: Stuff,
+    arrival?: { fresh: boolean; to: Stuff | null },
+  ): Promise<void> {
+    // Moved and then consumed (an ingredient, a merged stack) before the
+    // queued record ran: nothing is anywhere.
+    if (item.isDestroyed() || !MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
+    // ⭐⭐ A FRESH good's title is DERIVED at its first arrival — nobody
+    // stamps it by hand (the one movement primitive does this; see
+    // `ContainmentApi.move`). Only a good that was never anywhere (a mint
+    // arriving from nowhere) and never titled: a good that already exists
+    // — a shop's stock, a room's props — is never retitled by being moved,
+    // so taking it stays theft.
+    if (arrival?.fresh && !good.getChattelId() && !isFungibleStack(item)) {
+      const owner = this.derivedTitle(item, arrival.to);
+      if (owner) {
+        const reg = lookupRegistry();
+        if (reg) await reg.stamp(this.ensureId(good, reg), owner);
+      }
+    }
+    if (MixinApi.isStackable(item)) return;
     if (!good.getChattelId()) return; // unstamped: nothing owns it
     const owner = await this.resolveOwner(item);
     if (owner?.kind !== "player") return;
@@ -203,7 +265,77 @@ export class ChattelLogic extends ApiLogic {
       host.getIdentityPath() === owner.templatePath
         ? ESTATE_INVENTORY
         : PersistableApi.placeIdOf(host);
+    // Every move asks now (the primitive calls this), including the
+    // restore that put the good back where its record said: an unchanged
+    // place is no write.
+    if (good.getPlace() === place) return;
     await this.applyPlace(item, place);
+  }
+
+  /**
+   * ⭐⭐ Whose a freshly made good is, derived the moment it arrives — in
+   * order:
+   *
+   * 1. **what it was made FROM**: the owner of its inputs, when the titled
+   *    ones agree (the log's owner owns the boards, the customer's sample
+   *    makes the customer's paper) — whoever is acting, whenever it lands;
+   * 2. **the hands it lands in**: a person's;
+   * 3. **the acting person**, inside a live command, where they stand (a
+   *    room's `props:` laid down while somebody walks in are not theirs);
+   * 4. **its recorded maker** (a crafted thing knows who made it).
+   *
+   * Null leaves it untitled — a shop's restock, a room's props, a thing
+   * made from nobody's materials with nobody there — as it always was.
+   */
+  private derivedTitle(item: Stuff, to: Stuff | null): ChattelOwner | null {
+    const made = (item as Stuff & Chattel).getMadeFromOwner();
+    if (made) return made;
+    if (to !== null && to.isAgent()) return ownerKeyOf(to);
+    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    if (
+      actor &&
+      to !== null &&
+      ExecutionContextApi.getCommandStack().length > 0 &&
+      isWhere(actor, to)
+    ) {
+      return ownerKeyOf(actor);
+    }
+    if (MixinApi.isCrafted(item)) {
+      const maker = item.getMaker();
+      if (maker) return { kind: "player", templatePath: maker };
+    }
+    return null;
+  }
+
+  /**
+   * See {@link Chattel.recordMadeFrom}: the owner the TITLED inputs agree
+   * on, or null. Only a stamped title counts — an untitled input (a shelf
+   * good, a prop) owns nothing it could pass on, and the fallbacks
+   * `resolveOwner` reads (a parcel, a row's author) are not a title.
+   */
+  @CallSecurity(ChattelCallers)
+  public async ownerOfInputs(
+    _item: Stuff,
+    inputs: readonly Stuff[],
+  ): Promise<ChattelOwner | null> {
+    const reg = lookupRegistry();
+    if (!reg) return null;
+    let agreed: ChattelOwner | null = null;
+    for (const input of inputs) {
+      if (!MixinApi.isChattel(input)) continue;
+      const good = input as Stuff & Chattel;
+      const id = good.getChattelId();
+      // A good made a moment ago is not titled until it lands — what it
+      // was itself made from stands in for it (a press's residue cake is
+      // made from what its output was).
+      const owner = id ? reg.ownerOf(id) : good.getMadeFromOwner();
+      if (!owner || owner.kind === "group") continue;
+      if (agreed === null) agreed = owner;
+      else if (agreed.kind !== owner.kind || agreed.templatePath !== owner.templatePath) {
+        return null; // the inputs disagree: no single owner to inherit from
+      }
+    }
+    return agreed;
   }
 
   /**

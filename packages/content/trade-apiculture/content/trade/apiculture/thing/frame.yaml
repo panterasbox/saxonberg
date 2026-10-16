@@ -13,3 +13,16 @@ data:
     of wax along the top bar.
   _materialPath: /stuff/idea/material/wood/pine
   mass: 0.5
+  # ⭐ What a frame is MADE OF (assembly D3) — the smallest honest
+  # assembly: a top bar, two side bars and a bottom bar, GLUED square by
+  # hand. No tool and no competence: a beekeeper makes up frames at the
+  # kitchen table over the winter (`fit hive-frame`). Glued is `never`
+  # reversible, which is also true: nobody takes a frame apart, they
+  # burn it.
+  bill:
+    parts:
+      - { part: top-bar, template: /trade/carpentry/thing/frame-bar, count: 1, role: structural, material: /stuff/idea/material/wood/pine }
+      - { part: side-bar, template: /trade/carpentry/thing/frame-bar, count: 2, role: structural, material: /stuff/idea/material/wood/pine }
+      - { part: bottom-bar, template: /trade/carpentry/thing/frame-bar, count: 1, role: structural, material: /stuff/idea/material/wood/pine }
+    joints:
+      - { key: squaring, method: glued, members: [top-bar, side-bar, bottom-bar] }

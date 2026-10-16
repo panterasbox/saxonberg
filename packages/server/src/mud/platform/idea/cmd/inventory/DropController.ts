@@ -213,11 +213,9 @@ export default class DropController extends CommandController<DropModel> {
       }
     }
     ContainmentApi.move(operand, context.location);
-    // Custody moved; title did not. Re-derive where the owner keeps it, so
-    // a dropped good persists on ITS OWNER'S record naming this room —
-    // "I left my book at a friend's" — rather than becoming part of the
-    // room. A no-op for anything unowned. (D8)
-    if (MixinApi.isChattel(operand)) void operand.followCustody();
+    // Custody moved; title did not. `move` re-derives where the owner keeps
+    // it, so a dropped good persists on ITS OWNER'S record naming this room
+    // — "I left my book at a friend's" — rather than becoming part of it.
     MessageApi.scene(context.commandGiver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You drop ${Mml.thing(operand)}.`)

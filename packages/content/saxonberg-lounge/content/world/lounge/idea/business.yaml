@@ -117,6 +117,9 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/lounge/location/bar
+    # ⚠ AFTER the room: index 0 is where the house stands its people.
+    # The counter is the one a sale settles at (lint:shopfronts).
+    - /world/lounge/thing/bar-counter
   # ⭐ Where the cast wait when they are off shift. One fact on the HOUSE,
   # where it used to be the same path repeated in four people's `shifts`
   # config — the shape that lets one of them say something different by

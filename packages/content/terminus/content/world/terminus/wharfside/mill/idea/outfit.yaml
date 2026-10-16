@@ -55,3 +55,6 @@ data:
   operatingLocations:
     - /world/terminus/wharfside/mill/location/floor
     - /world/terminus/wharfside/mill/thing/stock
+    # ⚠ AFTER the room: index 0 is where the house stands its people.
+    # The counter is the one a sale settles at (lint:shopfronts).
+    - /trade/textiles/thing/bale-store

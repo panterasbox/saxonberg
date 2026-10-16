@@ -1,0 +1,17 @@
+# A mallet — a beech head on a handle, one piece or two, for driving
+# what an iron hammer would bruise: a froe's back, a chisel, a peg. ⭐
+# It is what offers `driving`, which the `pegged` joint asks for — so a
+# frame needs a mallet in reach, and a mallet is carved, so the frame's
+# tool is one the trade makes for itself.
+class: /platform/thing/Tool
+data:
+  keywords: [mallet, beetle, maul]
+  shortDescription: beech mallet
+  register: indefinite
+  longDescription: >-
+    A round beech head the size of a loaf on a short handle, its faces
+    bruised soft from years of striking wood.
+  mass: 0.8
+  capabilities: [driving]
+  epoch: medieval
+  _materialPath: /stuff/idea/material/wood/beech

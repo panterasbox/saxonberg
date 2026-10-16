@@ -1,0 +1,13 @@
+# A cooper's driver — a blunt iron wedge-tool set on a hoop and struck to
+# drive it down the belly. The instrument every hooped joint wants.
+class: /platform/thing/Tool
+data:
+  keywords: [driver, "hoop driver", "cooper's driver"]
+  shortDescription: cooper's driver
+  register: indefinite
+  longDescription: >-
+    A short bar of iron with a grooved, blunt edge and a battered head,
+    for setting on a hoop and striking it down.
+  mass: 0.9
+  capabilities: ["driving"]
+  _materialPath: /stuff/idea/material/element/iron

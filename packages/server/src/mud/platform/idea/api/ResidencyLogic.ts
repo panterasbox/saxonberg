@@ -667,6 +667,16 @@ export class ResidencyLogic extends ApiLogic {
 
   /** The recurring reset-sweep handle (game-time) — retained so re-install no-ops. */
   private resetHandle: ClockHandle | null = null;
+  /** A reset sweep is under way. */
+  private resetRunning = false;
+  /**
+   * A firing landed while one ran — run ONE more when it finishes. ⚠ A
+   * firing must never be dropped: the running sweep may already have
+   * passed the shelf that now needs it (a yard topped up, then bought
+   * out, then forty days skipped — bare until the next game hour; found
+   * when master's scan sweep retired the spawn path that had hidden it).
+   */
+  private resetPending = false;
 
   /** Install the game-time reset (repop) sweep (idempotent). */
   @CallSecurity(ResidencyBootCallers)
@@ -681,11 +691,35 @@ export class ResidencyLogic extends ApiLogic {
         's',
       ),
       () => {
-        void runResetSweep().catch((err) =>
-          console.warn('[residency] reset sweep failed', err),
-        );
+        // ⭐ Single-flight. A sweep tops every shelf back to par, so a
+        // firing that lands while one is still running adds nothing — and
+        // a clock that catches up a backlog fires one per missed period
+        // synchronously: a forty-day jump queued ~960 overlapping sweeps
+        // and the server answered nothing for minutes (the assembly
+        // drive). The backlog collapses to the one already under way.
+        this.startResetSweep();
       },
+      { coalesce: true },
     );
+  }
+
+  /**
+   * Single-flight with a TRAILING run: a firing during a sweep collapses
+   * to one more sweep after it — never several, never none.
+   */
+  private startResetSweep(): void {
+    if (this.resetRunning) {
+      this.resetPending = true;
+      return;
+    }
+    this.resetRunning = true;
+    this.resetPending = false;
+    void runResetSweep()
+      .catch((err) => console.warn('[residency] reset sweep failed', err))
+      .finally(() => {
+        this.resetRunning = false;
+        if (this.resetPending) this.startResetSweep();
+      });
   }
 
   /** Run one reset sweep (test / manual seam). */
@@ -696,6 +730,10 @@ export class ResidencyLogic extends ApiLogic {
 
   /** The recurring spawn-sweep handle (game-time) — retained so re-install no-ops. */
   private spawnHandle: ClockHandle | null = null;
+  /** A spawn sweep is under way — a firing meanwhile is a no-op. */
+  private spawnRunning = false;
+  /** A firing landed while one ran — one more after it (see `resetPending`). */
+  private spawnPending = false;
 
   /**
    * Install the game-time **spawn sweep** (idempotent) — the third
@@ -724,11 +762,26 @@ export class ResidencyLogic extends ApiLogic {
         // the calling function. A clock callback runs on a synthetic root
         // frame with no method identity, so calling `runSpawnSweep()`
         // directly would be denied and the sweep would stop silently.
-        void ResidencyApi.spawnNow().catch((err) =>
-          console.warn('[residency] spawn sweep failed', err),
-        );
+        // Single-flight with a trailing run, for the reset sweep's reason.
+        this.startSpawnSweep();
       },
+      { coalesce: true },
     );
+  }
+
+  private startSpawnSweep(): void {
+    if (this.spawnRunning) {
+      this.spawnPending = true;
+      return;
+    }
+    this.spawnRunning = true;
+    this.spawnPending = false;
+    void ResidencyApi.spawnNow()
+      .catch((err) => console.warn('[residency] spawn sweep failed', err))
+      .finally(() => {
+        this.spawnRunning = false;
+        if (this.spawnPending) this.startSpawnSweep();
+      });
   }
 
   /** Run one spawn sweep (test / manual seam). */

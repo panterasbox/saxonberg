@@ -196,7 +196,7 @@ describe('the retort', () => {
     it('with a condenser on it, the tar is a LIQUID in the receiver', () => {
       const r = retort();
       const c = condenser();
-      ContainmentApi.place(c as never, 'on', r as never);
+      ContainmentApi.move(c as never, r as never, 'on');
       r.receiveVolatiles(TAR, 10);
       expect(c.getBulkAmount('interior').rawValue()).toBeCloseTo(10);
       expect(c.getBulkMaterialPath('interior')).toBe(TAR);
@@ -212,7 +212,7 @@ describe('the retort', () => {
       )).toBe('sealed');
       const r = retort();
       const c = condenser();
-      ContainmentApi.place(c as never, 'on', r as never);
+      ContainmentApi.move(c as never, r as never, 'on');
       r.receiveVolatiles(COAL_GAS, 500);
       expect(c.getBulkAmount('interior').rawValue()).toBe(0);
       expect(airOf(COAL_GAS)).toBeGreaterThan(0);
@@ -222,8 +222,8 @@ describe('the retort', () => {
       const r = retort();
       const c = condenser();
       const g = gasometer();
-      ContainmentApi.place(c as never, 'on', r as never);
-      ContainmentApi.place(g as never, 'on', c as never);
+      ContainmentApi.move(c as never, r as never, 'on');
+      ContainmentApi.move(g as never, c as never, 'on');
       r.receiveVolatiles(COAL_GAS, 500);
       expect(g.getBulkAmount('interior').rawValue()).toBeCloseTo(500);
       expect(airOf(COAL_GAS)).toBe(0);
@@ -232,7 +232,7 @@ describe('the retort', () => {
     it('a condenser overflow goes to the air, not nowhere', () => {
       const r = retort();
       const c = condenser(5);
-      ContainmentApi.place(c as never, 'on', r as never);
+      ContainmentApi.move(c as never, r as never, 'on');
       r.receiveVolatiles(TAR, 20);
       expect(c.getBulkAmount('interior').rawValue()).toBeCloseTo(5);
       // ⭐ The other 15 L is vapour in the yard. A run you did not watch

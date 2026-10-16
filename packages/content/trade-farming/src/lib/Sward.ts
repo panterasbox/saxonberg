@@ -209,7 +209,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * the inner.
      */
     static commandContributions = {
-      self: ['trade/farming/cmd/farming/mow.yaml'],
+      // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: ['trade/farming/cmd/farming/mow.yaml'],
     };
 

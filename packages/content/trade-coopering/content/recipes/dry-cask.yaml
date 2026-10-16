@@ -1,0 +1,16 @@
+# Dry Cask, raised from its parts — `fit dry-cask`. Thirty staves in a truss,
+# two heads crozed in, six hoops driven down.
+# A COMPETENT cooper's product: staves that meet, hoops driven to keep flour in (hooped).
+recipeId: dry-cask
+name: Dry Cask
+keywords: [dry-cask, "dry cask"]
+inputSlots:
+  - { slot: stave, category: wood, minGrade: poor, kind: item, count: 30 }
+  - { slot: head, category: wood, minGrade: poor, kind: item, count: 2 }
+  - { slot: hoop, category: metal, minGrade: poor, kind: item, count: 6 }
+toolCapabilities: [driving, crozing]
+outputTemplate: /stuff/thing/vessel/dry-cask
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: coopering

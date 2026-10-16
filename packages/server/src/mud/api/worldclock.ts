@@ -47,6 +47,16 @@ export interface ScheduleOpts {
   host?: Stuff;
   /** Free-form label for bulk cancel via `cancelByTag`. */
   tag?: string;
+  /**
+   * ⭐ An `every` whose work is a function of NOW, not of how many periods
+   * passed (a roster pass, a repop sweep): when the clock is behind by
+   * several periods it fires ONCE, at the latest, rather than once per
+   * missed period. Without it a forty-day `advance` queued ~960 async
+   * passes per hourly schedule and the world answered nothing for minutes
+   * (the assembly drive). Leave it off for anything that ACCUMULATES per
+   * period.
+   */
+  coalesce?: boolean;
 }
 
 /**

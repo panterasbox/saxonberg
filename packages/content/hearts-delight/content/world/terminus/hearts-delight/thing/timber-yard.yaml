@@ -1,0 +1,46 @@
+# The timber yard — the sawyer's counter. ⭐ What the yard sells is the
+# middle of the wood column: boards off the frame, billets off the froe,
+# riven blanks for anybody who would rather carve than rive. A joiner
+# buys boards from somebody who makes only boards (drive 16).
+#
+# ⭐⭐ The boards and blanks are SEASONED (their rows say so) and priced
+# above what green stock would be: the yard's patience — a year in the
+# stacks under the lean-to — is the product. The billets are green,
+# because nobody stacks a billet for a year; you rive it again.
+#
+# ⚠ A par line mints to par on the sweep: the yard is a STOCKING counter,
+# the general store's shape, not a static farm shelf. The coopering trade
+# adds staves to this list when it lands.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: timber yard
+  keywords: [yard, timber-yard, "timber yard", stacks, counter]
+  register: definite
+  longDescription: |
+    A chalk board nailed to a post at the end of the stacks, with the prices in a square hand: boards by the piece, quartered dearer, blanks and billets by the heap. A tin box with a slot in it hangs underneath.
+  # A post and a board — what it is made of, so it weighs something.
+  _materialPath: /stuff/idea/material/wood/oak
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [sawyer]
+  businessPath: /world/terminus/hearts-delight/idea/sawmill-business
+  stockLines:
+    - { itemTemplatePath: /trade/carpentry/thing/board, par: 12 }
+    - { itemTemplatePath: /trade/carpentry/thing/quartered-board, par: 6 }
+    - { itemTemplatePath: /trade/carpentry/thing/riven-blank, par: 8 }
+    - { itemTemplatePath: /trade/forestry/thing/billet, par: 8 }
+    # ⭐ Staves, riven and seasoned — the cooper's raw part, sold by a yard
+    # that makes nothing else of them (drive 16).
+    - { itemTemplatePath: /trade/coopering/thing/stave, par: 30 }
+  prices:
+    # ⚠ Against the shipped ladder (stipend 20, wages 4-6 per game-hour):
+    # a board is an hour's wage, a quartered one half again — two boards
+    # in three, and they stay flat. A billet is the cheapest thing here
+    # because it is the least work and still green.
+    /trade/carpentry/thing/board: 4
+    /trade/carpentry/thing/quartered-board: 6
+    /trade/carpentry/thing/riven-blank: 2
+    /trade/forestry/thing/billet: 1
+    # A stave is a billet split and shaved — riven work, a little dearer.
+    /trade/coopering/thing/stave: 2

@@ -31,7 +31,6 @@
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Container } from '../lib/spatial/Container';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import type { ClimateSite } from '../lib/weather/WeatherType';
 import { HotReloadApi } from './hot-reload';
@@ -122,7 +121,7 @@ export class ZoneApi {
    * See [docs/subsystems/watershed.md].
    */
   public static async elevationFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<number | null> {
     return logic().elevationFor(scope);
   }
@@ -141,7 +140,7 @@ export class ZoneApi {
    * See [docs/subsystems/weather.md].
    */
   public static async climateSiteFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<ClimateSite> {
     return logic().climateSiteFor(scope);
   }

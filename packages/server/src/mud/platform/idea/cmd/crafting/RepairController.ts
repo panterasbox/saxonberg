@@ -19,6 +19,7 @@ import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../../api/mixin';
 import { CraftingApi } from '../../../../api/crafting';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { MessageApi } from '../../../../api/message';
@@ -34,7 +35,7 @@ interface RepairModel extends CommandModel {
 }
 
 export default class RepairController extends ManualBuildController<RepairModel> {
-  execute(model: RepairModel, context: CommandContext): void {
+  async execute(model: RepairModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const item: Stuff | null = model.item?.stuff ?? null;
     if (!item) {
@@ -45,6 +46,28 @@ export default class RepairController extends ManualBuildController<RepairModel>
         .send();
       context.note({ kind: 'empty-result', field: 'item', query: raw });
       return;
+    }
+
+    // ⭐ A FAILED PART is answered now, not after a spell of work: no
+    // repair mends a split haft, and the refusal naming it is the lesson
+    // (assembly D6). The check mutates nothing when that is the answer.
+    if (
+      MixinApi.isAssembled(item) &&
+      item.failedLines().length > 0
+    ) {
+      const author0 = ExecutionContextApi.getActingAuthor() as Stuff | null;
+      const outcome = await CraftingApi.repair({
+        item,
+        makerPath: author0?.getIdentityPath() ?? '',
+      });
+      if (!outcome.ok) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: outcome.reason, detail: outcome.detail ?? '' });
+        return;
+      }
     }
 
     // The pacer: the reachable instrument of a kind whose family
@@ -59,9 +82,10 @@ export default class RepairController extends ManualBuildController<RepairModel>
 
     // Capture the maker from the live command frame; the repair runs at
     // engaged-completion, where no frame exists (the strain pattern).
-    const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
-      '';
+    // ⚠ The IDENTITY path — a joint re-made records WHO, and every player
+    // Avatar shares one templatePath (assembly D3).
+    const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    const makerPath = author?.getIdentityPath() ?? author?.getTemplatePath() ?? '';
 
     this.engageStep(context, {
       durationMs: this.paceMs(REPAIR_MS, pacer, ['mending', 'anvil']),
@@ -84,6 +108,27 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+        .send();
+      return;
+    }
+    if (outcome.rung === 'tightened') {
+      // ⭐ The joint, not the parts: nothing was consumed (assembly D6).
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You take up the slack in ${Mml.thing(item)} — the ${outcome.named ?? 'joint'}, driven home. Nothing else wanted doing.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} tightens ${Mml.thing(item)}.`)
+        .send();
+      return;
+    }
+    if (outcome.rung === 'refired') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You shave ${Mml.thing(item)} back to clean wood and fire the inside until it chars — it will give its contents something again.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} re-fires ${Mml.thing(item)}.`)
         .send();
       return;
     }

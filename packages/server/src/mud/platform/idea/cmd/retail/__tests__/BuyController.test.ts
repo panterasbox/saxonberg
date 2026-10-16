@@ -32,6 +32,8 @@ import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
+import { StackableMixin } from "../../../../../lib/stuff/Stackable";
+import { StackableApi } from "../../../../../api/stackable";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import Location from "../../../../../lib/stuff/Location";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -76,9 +78,19 @@ class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
   static _mixinName = "TestGiver";
+  received: unknown[] = [];
+  protected handleMessage(msg: unknown): void {
+    this.received.push(msg);
+  }
 }
 
 class Torch extends Good {}
+
+/** A stackable shelf good — a heap of thirty is ONE object. */
+class Stave extends StackableMixin(Good) {
+  static _mixinName = "Stave";
+}
+const STAVE = "/obj/test/Stave";
 
 function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, "buy.test", () => {
@@ -95,6 +107,11 @@ function stubClones(): void {
       return t;
     }
     if (path === POT) return makePot(path);
+    if (path === STAVE) {
+      const st = makeStuffAtPath(() => new Stave(), path);
+      st.setKeywords(["stave"]);
+      return st;
+    }
     const c = makeStuffAtPath(() => {
     const coin = new Coin();
     coin.currency = "zorkmid";
@@ -245,6 +262,105 @@ describe("BuyController — buy that stamps", () => {
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
+  });
+
+  it("⭐ a heap on the shelf sells ONE piece at the piece price (the assembly drive)", async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/pat");
+    ContainmentApi.move(giver as never, loc as never);
+    const card = makeStuff(() => new PaymentCard());
+    ContainmentApi.move(card as never, giver as never);
+    const bank = makeStuffAtPath(() => {
+      const b = new BankCounter();
+      b.setCorpoKey("goodkin");
+      return b;
+    }, BANK);
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
+    const cash = await asOwner(giver, () =>
+      BankingApi.issueCash(giver as never, Money.of(300, BankingApi.compactCurrency())),
+    );
+    await asOwner(giver, () => bank.deposit(cash as never));
+    const storeAcct = await makeStoreBusiness();
+    const stock = makeStuffAtPath(() => {
+      const st = new Stock();
+      st.stockLines = [{ itemTemplatePath: STAVE, par: 30 }];
+      st.setPrice(STAVE, 2);
+      st.discipline = "line";
+      st.attendDurationMs = 0;
+      st.staffingPolicy = "self-service";
+      st.serverPositionKeys = ["clerk"];
+      return st;
+    }, STORE);
+    const heap = makeStuffAtPath(() => new Stave(), STAVE);
+    heap.setKeywords(["stave"]);
+    heap.setQuantity(30);
+    ContainmentApi.move(heap as never, stock as never);
+
+    StackableApi.installMergeOnArrival();
+    const controller = makeStuff(() => new BuyController());
+    await asOwner(giver, () =>
+      controller.execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
+    );
+
+    expect(heap.getContainer()).toBe(stock);
+    expect(stock.onHand(STAVE)).toBe(29);
+    const bought = giver.getContents().filter((c) => c !== card);
+    expect(bought).toHaveLength(1);
+    expect((bought[0] as unknown as Stave).getQuantity()).toBe(1);
+    expect(BankingApi.balanceOf(storeAcct).minor).toBe(2);
+
+    // ⚠ A bought piece is TITLED, and a titled lot does not merge — the
+    // second stave arrives as its own piece beside the first.
+    await asOwner(giver, () =>
+      controller.execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
+    );
+    const after = giver.getContents().filter((c) => c !== card);
+    expect(after).toHaveLength(2);
+    expect(after.every((c) => (c as unknown as Stave).getQuantity() === 1)).toBe(true);
+    expect(stock.onHand(STAVE)).toBe(28);
+  });
+
+  it("⭐ a broke buyer at a heap is told the price of ONE piece, not the heap (the browser walk)", async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/broke");
+    ContainmentApi.move(giver as never, loc as never);
+    await makeStoreBusiness();
+    const stock = makeStuffAtPath(() => {
+      const st = new Stock();
+      st.stockLines = [{ itemTemplatePath: STAVE, par: 30 }];
+      st.setPrice(STAVE, 2);
+      st.discipline = "line";
+      st.attendDurationMs = 0;
+      st.staffingPolicy = "self-service";
+      st.serverPositionKeys = ["clerk"];
+      return st;
+    }, STORE);
+    const heap = makeStuffAtPath(() => new Stave(), STAVE);
+    heap.setKeywords(["stave"]);
+    heap.setShortDescription("stave");
+    heap.setQuantity(30);
+    ContainmentApi.move(heap as never, stock as never);
+    const ctx = makeContext(giver, loc, stock);
+    await asOwner(giver, () =>
+      makeStuff(() => new BuyController()).execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        ctx,
+      ),
+    );
+    const reason = ctx
+      .getNotes()
+      .find((n) => n.kind === "controller-rejected") as { reason?: string } | undefined;
+    expect(reason?.reason).toBe("insufficient-funds");
+    const said = JSON.stringify(giver.received);
+    expect(said).toMatch(/can't cover a stave/);
+    expect(said).not.toMatch(/30 staves/);
+    expect(stock.onHand(STAVE)).toBe(30);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {

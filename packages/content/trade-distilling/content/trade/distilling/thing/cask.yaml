@@ -27,7 +27,10 @@
 # the char lived nowhere at all. Fixed here: this row is a plain cask and
 # `charred-cask.yaml` is the toasted one, which is the difference the
 # `imparts` figures now actually express.
-class: /platform/thing/Vat
+# ⭐ The KIND is the commons cask (assembly D10): the bill, the charred
+# profile a re-fire reveals, and the cooper's recipe that makes one.
+class: /platform/thing/Cask
+extends: /stuff/thing/vessel/cask
 data:
   shortDescription: "whiskey cask"
   # ⚠⚠ `plain` and the MULTI-WORD `"plain cask"` — added because this
@@ -52,7 +55,7 @@ data:
     filled in. The staves are pale inside, raised but never fired.
   category: cask
   _materialPath: /stuff/idea/material/wood/oak
-  mass: 40
+  mass: 50
   interiorBulk: true
   interiorCapacity: 25
   closure: liquidTight

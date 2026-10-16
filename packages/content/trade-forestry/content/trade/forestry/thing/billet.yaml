@@ -1,0 +1,22 @@
+# A billet — a length off a bole split along its grain with a froe:
+# `rive bole`. ⭐ The first rung of converted wood: not round timber and
+# not yet a part. A cooper rives a billet again into staves; a woodworker
+# rives it into blanks and carves a haft out of one. Riven, so every
+# fibre runs its whole length — which is why a riven stave holds liquor
+# and a sawn one does not.
+#
+# Green: a billet comes off a fresh bole full of sap, and the row says so
+# (`seasonedFraction: 0`). The material is restamped from the bole it
+# came off; the row's oak is the default a billet authored loose reads as.
+class: /trade/forestry/thing/Billet
+data:
+  shortDescription: riven billet
+  keywords: [billet, billets, riven, split, "riven billet"]
+  register: indefinite
+  longDescription: |
+    A split length of green wood as long as your arm, triangular in section where the froe followed the grain, the bark still on its back.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 3
+  constructionForm: riven
+  seasonedFraction: 0
+  quantity: 1

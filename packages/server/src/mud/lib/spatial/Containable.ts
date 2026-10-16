@@ -103,8 +103,7 @@ export interface Containable {
   getPlacement(): { host: Stuff & Placing; name: string } | null;
 
   /**
-   * Privileged setter — only `ContainmentApi.place` /
-   * `ContainmentApi.move` may call. Runtime-rejected by the
+   * Privileged setter — only `ContainmentApi.move` may call. Runtime-rejected by the
    * call-security gate otherwise. Authors don't touch this directly;
    * the Api maintains the invariant that a placement is only set when
    * the item's container matches the host's container.
@@ -425,8 +424,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Privileged setter for the placement pair. Reachable only from
-     * `ContainmentApi.move` / `ContainmentApi.place`. Pass `null` to
-     * clear.
+     * `ContainmentApi.move`. Pass `null` to clear.
      *
      * Stores the host ref directly (instance ref); the pair is
      * persisted by the container's slice, not here.

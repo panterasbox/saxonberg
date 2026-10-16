@@ -229,8 +229,8 @@ async function mintPhysical(
       ? ["keycard", "card", ...(master ? ["master"] : [])]
       : ["key", ...(master ? ["keys", "ring", "master"] : ["brass"])],
   );
-  ContainmentApi.move(
-    key as unknown as Stuff & Containable,
-    holder as Stuff & Container,
-  );
+  // ⭐ The physical key is the durable form: the move titles it to the
+  // holder and records its place (custody is derived in
+  // `ContainmentApi.move`), or it vanishes at the next restart.
+  ContainmentApi.move(key as unknown as Stuff & Containable, holder as Stuff & Container);
 }

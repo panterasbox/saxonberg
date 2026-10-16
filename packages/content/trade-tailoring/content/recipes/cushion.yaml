@@ -1,0 +1,16 @@
+# A cushion — two covers and a fill of stuffing, stitched round. Run by
+# `fit cushion`; the `stitched` joint wants a needle (`mending`) and a
+# tailor's novice band. The cushion is the armchair's wear part, and a
+# tailor who makes nothing else has a customer in every parlour.
+recipeId: cushion
+name: Cushion
+keywords: [cushion]
+inputSlots:
+  - { slot: cover, category: textile, minGrade: poor, kind: item, count: 2 }
+  - { slot: stuffing, category: textile, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [mending]
+outputTemplate: /trade/tailoring/thing/cushion
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: tailoring

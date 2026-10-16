@@ -249,6 +249,9 @@ describe("chattel possession core", () => {
       torch as unknown as Stuff & Containable,
       vault as unknown as Stuff & Container,
     );
+    // The move records custody asynchronously (derived in the primitive);
+    // let that record land before overriding the place, or it lands after.
+    await torch.followCustody();
     await torch.setChattelPlace("inventory");
 
     // The vault captures WITHOUT the torch (the skip rule), and the flush

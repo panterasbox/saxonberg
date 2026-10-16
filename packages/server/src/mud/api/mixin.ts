@@ -26,6 +26,7 @@ import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
+import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { ClimateControl } from '../lib/thermal/ClimateControl';
 import type { Powered } from '../lib/supply/Powered';
@@ -188,6 +189,8 @@ import type { Graded } from '../lib/craft/Graded';
 import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
+import type { Assembled } from '../lib/craft/Assembled';
+import type { Seasoning } from '../lib/maturation/Seasoning';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
@@ -1034,6 +1037,11 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Placing);
   }
 
+  /** A thing that declares and mints compartments of its own. */
+  public static isChambered(obj: Stuff): obj is Stuff & Chambered {
+    return this.hasMixin(obj, Mixins.Chambered);
+  }
+
   public static isCoolbox(
     obj: Stuff,
   ): obj is Stuff & Coolbox & Container & Thermal & Sealable {
@@ -1868,6 +1876,20 @@ export class MixinApi {
    * armor). A `Tool` is also `Durable`; the reverse does not hold. */
   public static isDurable(obj: Stuff): obj is Stuff & Durable {
     return this.hasMixin(obj, Mixins.Durable);
+  }
+
+  /** A durable thing whose parts keep their identity (a pick: a head on a
+   * haft). Composed only by classes whose every row has a bill
+   * (`lint:bills`), so composing it IS being made of parts. See
+   * AssembledMixin. */
+  public static isAssembled(obj: Stuff): obj is Stuff & Assembled & Durable {
+    return this.hasMixin(obj, Mixins.Assembled);
+  }
+
+  /** Converted wood that dries over time at its species' rate (a board, a
+   * stave, a billet). See SeasoningMixin. */
+  public static isSeasoning(obj: Stuff): obj is Stuff & Seasoning {
+    return this.hasMixin(obj, Mixins.Seasoning);
   }
 
   /** An edged/pointed good with the fast-cycling keenness (edge) gauge —

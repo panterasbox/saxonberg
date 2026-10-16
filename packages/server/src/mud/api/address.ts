@@ -22,7 +22,6 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Container } from '../lib/spatial/Container';
 import type Locality from '../platform/idea/Locality';
 import { AddressLogic } from '../platform/idea/api/AddressLogic';
 import { fileURLToPath } from 'url';
@@ -85,14 +84,14 @@ export class AddressApi {
    * `Zone.lookupField`.
    */
   public static async resolveLocalityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<Locality | null> {
     return logic().resolveLocalityFor(scope);
   }
 
   /** Full resolution bundle (locality + matched address + which step). */
   public static async resolveFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<AddressResolution> {
     return logic().resolveFor(scope);
   }
@@ -113,7 +112,7 @@ export class AddressApi {
 
   /** The `trace address` provenance variant — full trace. */
   public static async traceResolveFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<AddressTrace> {
     return logic().traceResolveFor(scope);
   }

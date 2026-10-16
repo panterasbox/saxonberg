@@ -1,0 +1,22 @@
+# A stave — one of the thirty riven oak boards a cask is raised from.
+# ⭐ RIVEN, not sawn: split along the grain with a froe, so the fibres run
+# the whole length unbroken and the liquor cannot follow a cut fibre out.
+# A sawn stave weeps (the construction axis, assembly D10). Stackable, so
+# thirty staves are one heap until a cooper raises a cask from them; and
+# it seasons, so a stave worked green is a cask that warps.
+class: /platform/thing/Timber
+data:
+  keywords: [stave, staves, "oak stave"]
+  shortDescription: oak stave
+  register: indefinite
+  longDescription: >-
+    A riven length of oak, shaved hollow on the inside and backed round
+    on the outside, broad at the middle and narrowing to both ends so
+    that thirty of them stood in a ring make a belly.
+  mass: 1.2
+  constructionForm: riven
+  # A stave that comes off a yard's stack has had its year: seasoned. One
+  # riven from a green billet takes the billet's fraction instead (the
+  # mint carries the greenest input's).
+  seasonedFraction: 1
+  _materialPath: /stuff/idea/material/wood/oak

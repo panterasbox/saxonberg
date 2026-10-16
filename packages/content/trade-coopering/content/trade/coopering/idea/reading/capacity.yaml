@@ -1,0 +1,26 @@
+# capacity — what a vessel holds, read with a gauging rod.
+#
+# ⭐⭐ The gauger's act, and anybody's: the reading answers whoever takes
+# it, to their coopering and their rod; a holder of a polity's `gauger`
+# seat also writes the gauge onto the cask, of record (assembly D13).
+# The seat and the standard are the GOVERNMENT row's — this pack names
+# neither, so a second polity appoints a gauger with rows alone.
+class: /trade/coopering/idea/reading/CapacityReading
+data:
+  channel: capacity
+  kind: fact
+  scope: [subject]
+  subjectRequires: [BulkableMixin]
+  discipline: coopering
+  instrument: gauging
+  instrumentNoun: a gauging rod
+  eyeCeiling: untrained
+  # The realm-default standard measure, in litres, when no polity over the
+  # place declares one of its own.
+  standardL: 25
+  improves: >-
+    what a cask really holds, and so what it is worth and what it owes in
+    duty
+  stakes: >-
+    buying short measure, selling long, and paying duty on liquor that was
+    never there

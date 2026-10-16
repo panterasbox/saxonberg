@@ -1,0 +1,15 @@
+# A pick haft — ⭐ a WOODWORKER's part now (assembly AC 18). It moved here
+# from the mining trade, row and recipe: the miner buys a haft from
+# somebody who makes only hafts, or carves one. One piece of wood and an
+# edge — the by-hand rung, run by `carve`.
+recipeId: pick-haft
+name: Pick Haft
+keywords: [haft, pick-haft]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/pick-haft
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

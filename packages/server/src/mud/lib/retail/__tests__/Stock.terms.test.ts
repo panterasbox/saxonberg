@@ -182,3 +182,21 @@ describe("a terms good the shop never priced asks the supplier's price plus the 
     expect(counter.termsLineFor(unpriced)).toBe("");
   });
 });
+
+describe("⚠⚠ a STACK on the shelf counts as its quantity", () => {
+  it("a stackable line restocked twice stays at par — it does not grow every hour", async () => {
+    const STAVES = "/test/stock-terms/thing/staves";
+    counter.stockLines = [{ itemTemplatePath: STAVES, par: 5 }];
+    const { StackableMixin } = await import("../../stuff/Stackable");
+    class Stave extends StackableMixin(Good) {}
+    const shelf = makeStuffAtPath(() => new Stave(), STAVES);
+    shelf.setQuantity(5);
+    ContainmentApi.move(shelf as never, counter as never);
+    const clone = vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) =>
+      makeStuffAtPath(() => new Stave(), path)) as never);
+    await counter.reset();
+    await counter.reset();
+    expect(clone).not.toHaveBeenCalled();
+    expect(counter.onHand(STAVES)).toBe(5);
+  });
+});

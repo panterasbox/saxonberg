@@ -1,0 +1,16 @@
+# A boot upper — the cut and closed leather of one boot above the sole.
+# ⭐ A structural part: a pair of boots is two uppers welted to two soles
+# (`fit leather-boots`), and the upper is what lasts. The soles wear
+# through and are replaced; a good upper sees three pairs of them.
+class: /platform/thing/Tool
+data:
+  keywords: [upper, uppers, boot-upper, "boot upper"]
+  shortDescription: leather boot upper
+  register: indefinite
+  longDescription: >-
+    The cut and closed leather of one boot, shaped over a last and still
+    holding the shape of it, open along the bottom edge where a sole is
+    meant to be stitched.
+  mass: 0.4
+  capabilities: []
+  _materialPath: /stuff/idea/material/organic/leather

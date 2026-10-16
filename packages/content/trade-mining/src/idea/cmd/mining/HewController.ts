@@ -43,6 +43,12 @@ const HEW_MS = 9000;
 /** Endurance one cut costs, in percentage points. */
 /** Metabolic watts of swinging a pick: (967 − 300) × 9 s / 1500 = the old 4 %. */
 const HEW_EFFORT_W = 967;
+
+/**
+ * Condition one hew takes off the pick — fifty good swings to the haft (a
+ * green one half that). Grain: a number for a balance pass to move.
+ */
+const PICK_WEAR_PER_HEW = 0.02;
 /** Lumps one cut wins. */
 const HEW_LUMPS = 1;
 /**
@@ -190,6 +196,14 @@ export default class HewController extends MiningActController<HewModel> {
       // the shipped `HammerController` closes over locals for exactly
       // this reason.
       onComplete: () => {
+        // ⭐ The swing JARS the pick, and a pick is a head on a haft: the
+        // jar goes to the part that gives first under it, which is the
+        // haft (assembly D7). The recipe's own comment promised *"a real
+        // sink at the end because picks wear out"*; until the assembly
+        // build nothing wore one.
+        if (MixinApi.isDurable(tool) && !tool.isDestroyed()) {
+          tool.wear(PICK_WEAR_PER_HEW, 'shock');
+        }
         void winOre(context, working, room, chosen, oreRow, grade);
       },
     });
@@ -227,16 +241,17 @@ async function winOre(
     const giver = context.commandGiver;
   const lump = (await StuffApi.clone(oreRow)) as unknown as Ore;
     lump.setGrade(grade);
-    ContainmentApi.move(lump as unknown as Stuff & Containable, room as never);
-    working.recordWinning(face.direction, HEW_LUMPS);
-  await maybeRun(context, working, face);
-
     // ⭐ Who owns it. On tutwork the business keeps the ore; on your own
-    // claim it is yours. Title is the parcel's answer, never the ledger's.
-  const owner = await ownerFor(giver, working);
+    // claim it is yours. Title is the parcel's answer, never the ledger's —
+    // so it is stamped BEFORE it arrives: a titled good is not fresh, and
+    // the movement primitive does not derive a title for it.
+    const owner = await ownerFor(giver, working);
     if (owner && MixinApi.isChattel(lump as unknown as Stuff)) {
       await (lump as unknown as Stuff & Chattel).stampChattel(owner);
     }
+    ContainmentApi.move(lump as unknown as Stuff & Containable, room as never);
+    working.recordWinning(face.direction, HEW_LUMPS);
+  await maybeRun(context, working, face);
 
     MessageApi.scene(giver)
       .topic(MINING_TOPIC)

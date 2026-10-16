@@ -383,7 +383,7 @@ hosts, which would constrain several identical tables in one hall.
 - `getPlacement(): { host, name } | null` — normalises the pair.
 - `_setPlacement(host, name?)` — gated
   `@CallSecurity(FromContainmentApi) @Final @Unshadowable`; reachable
-  only from `ContainmentApi.place` / `.move`.
+  only from `ContainmentApi.move`.
 - ⭐ `getEnclosingScope(): Stuff | null` — **what stands between me
   and my container, for air, sight and reach.** The placement host
   when the member `encloses`, else the container. Read by
@@ -413,26 +413,51 @@ within the same contents list** plus the member name;
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
 
-### `ContainmentApi.place(item, name, host)`
+### ⭐⭐ Two layers of movement, and nothing else
 
-The placement analogue of `move`, and it **calls** `move` — the
-dependency runs one way.
+**`ContainmentApi.move(item, dest[, placement])`** is the movement
+primitive — the ONE way anything is put anywhere. **`MobileMixin`'s
+`traverse`** is the other layer: a thing moving of its own accord,
+crossing exits, arriving through `move`. There is no third call
+(`place` and `land` were folded in by the assembly build, 2026-10-12).
+
+A destination that offers placements and holds nothing — a desk, a
+drying loft, a rack — is a placement: `move(apple, desk)` puts it ON
+the desk (the host's default member), and `move(ham, rack, 'from')`
+names the member when a host offers several.
 
 ```typescript
-ContainmentApi.place(apple, 'on', desk);
+ContainmentApi.move(apple, desk);
 // internally:
-//   1. targetEnv = desk.getContainer()          // the room
-//   2. desk.canPlace(apple, 'on')               // host veto → reason
-//   3. ContainmentApi.move(apple, targetEnv)    // ordinary move
-//   4. apple._setPlacement(desk, 'on')          // restamp
-//   5. if Thermal, restamp()                    // see below
+//   1. name = desk.resolvePlacement(word)       // the default, or the word
+//   2. targetEnv = desk.getContainer()          // the room
+//   3. desk.canPlace(apple, name)               // host veto → reason
+//   4. the ordinary move into targetEnv
+//   5. apple._setPlacement(desk, name)          // restamp
+//   6. if Thermal, restamp()                    // see below
 ```
 
-⚠ **`move`'s signature and meaning are unchanged.** It takes no
-member, picks no default, and has no options bag. The one thing it
-does with placement is the invariant it always had: when the container
-actually changes, the pair clears. Picking an apple up off a desk into
-inventory clears it automatically.
+When the container actually changes the pair clears (the invariant
+`move` always had): picking an apple up off a desk clears it.
+
+⭐⭐ **Everything else a move implies is DERIVED in the primitive**, so
+no caller remembers it:
+- **custody** — an owned good records where it now is (`followCustody`,
+  fired by `move` and by `Adornable.addFixture`), so it is where it was
+  left after a restart;
+- **title** — a FRESH good (arriving from nowhere: just made) is titled
+  by derivation, in order: to whoever owned what it was **made from**
+  (`StuffApi.clone(row, ctx, { madeFrom })` — the log's owner owns the
+  boards, the customer's sample makes the customer's paper, whoever is
+  acting and whenever it lands); else the person whose **hands** it lands
+  in; else the **acting person**, inside a live command, where they
+  stand (a room's `props:` laid down while somebody walks in are not
+  theirs); else its recorded **maker**. Untitled otherwise — a restock, a
+  prop. A good that already exists is never retitled by being moved, so
+  taking one is theft. Nothing rides a timer: ownership never depends on
+  how or when the act that made the thing was scheduled. (One trade rule
+  stays a hand-stamp before arrival: ore hewn on shift is the house's —
+  work for hire, not inheritance.)
 
 ⭐ **Step 5 is not optional.** `move` is a no-op when the container is
 unchanged (a mug moving from one desk to another in the same room), so
@@ -492,7 +517,7 @@ Three subscribable fields carry it (the projection seam is
 | `holds` | `Container` **and** `Placing` | `REF_FIELDS` | `true` — this thing is itself a holder. A capability, not a count (`static`, never fires), true for an empty container; a thing composing both reads one `holds` |
 | `placed` | `Placing` | `DETAIL_FIELDS` | the items placed on this host, grouped by member with the member's own `Placement.getHeading()` — the card half of `look`'s drill-in prose |
 
-`placement` is name-keyed on the field bus, so `ContainmentApi.place`
+`placement` is name-keyed on the field bus, so a placing `move`
 fires a `placement` `FieldChangedEvent` after `_setPlacement` (and the
 `move` invariant fires it on the clear). `Container.contents`
 `dependsOnFields: ['contents', 'placement']` so a placement change
@@ -618,8 +643,8 @@ secondary — which is how `put ham on hook` resolves `from`. No match
 names what the host does take; two matches ask which. With no word,
 a single offer is taken and several ask.
 
-Dispatch: region zero → `ContainmentApi.move`; a member →
-`ContainmentApi.place(item, name, target)`. ⚠ A shut container is
+Dispatch: region zero → `ContainmentApi.move(item, target)`; a member →
+`ContainmentApi.move(item, target, name)`. ⚠ A shut container is
 refused **at the verb** with reason `shut`, never in `move` — brains
 and restocks legitimately move goods into closed cupboards — and the
 target stays BOUND, because a region you can name and be refused from

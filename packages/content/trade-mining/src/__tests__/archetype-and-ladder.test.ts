@@ -113,33 +113,42 @@ describe('the recipe ladder', () => {
   it('⭐ the tiers ARE the ladder: a by-hand bottom rung and a formidable top', () => {
     const rows = recipes();
     // The bottom: no heat, no station — a stick of wood and a knife.
+    // (The pick haft was the other one; it is the woodworker's now —
+    // assembly AC 18 — and carved under `carpentry`.)
     const bottom = rows.filter((r) => r.difficulty === 'easy' && !r.requiresHeatK);
-    expect(bottom.map((r) => r.recipeId).sort()).toEqual(['pick-haft', 'timber-set']);
+    expect(bottom.map((r) => r.recipeId).sort()).toEqual(['timber-set']);
     // The top: the two instruments, and nothing else.
     const top = rows.filter((r) => r.difficulty === 'formidable');
     expect(top.map((r) => r.recipeId).sort()).toEqual(['assay-kit', 'miners-dial']);
-    // …and every band between is populated, so the ladder has no gap.
+    // …and the bands between. ⚠ `hard` was the pick head, which is the
+    // SMITH's recipe now (assembly AC 18): the forging rung of a miner's
+    // ladder is climbed at the anvil, under smithing, and a miner who
+    // wants to make their own head learns that trade.
     const bands = new Set(rows.map((r) => r.difficulty));
-    expect([...bands].sort()).toEqual(['easy', 'formidable', 'hard', 'standard']);
+    expect([...bands].sort()).toEqual(['easy', 'formidable', 'standard']);
   });
 
-  it('⭐⭐ the chain closes on itself: the pick head is FORGED and the pick is assembled from it', () => {
+  it('⭐⭐ the chain closes on itself: the pick is ASSEMBLED from a smith\'s head and a woodworker\'s haft', () => {
     const rows = recipes();
-    const head = rows.find((r) => r.recipeId === 'pick-head')!;
-    // ⚠ `forgeable`, not `metal`: the head is beaten out on an anvil, and
-    // an anvil recipe takes stock an anvil can work. `metal` would have
-    // admitted a pig of cast iron (it shatters) and a bloom (a quarter
-    // glass) — both honestly metal, neither of them stock.
-    expect(head.inputSlots!.some((s) => s.category === 'forgeable')).toBe(true);
+    // ⭐ Neither half is the mining trade's to make any more (assembly AC
+    // 18): the head is forged under smithing, the haft carved under
+    // carpentry, and the miner fits them.
+    expect(rows.find((r) => r.recipeId === 'pick-head')).toBeUndefined();
+    expect(rows.find((r) => r.recipeId === 'pick-haft')).toBeUndefined();
     const pick = rows.find((r) => r.recipeId === 'pick')!;
     // ⭐ The pick itself is ASSEMBLED rather than forged — a head and a
     // haft fitted together — so it asks for `metal` and is right to: what
     // it wants is a head, and a head is made of whatever you forged it
     // from.
     expect(pick.inputSlots!.map((s) => s.category).sort()).toEqual(['metal', 'wood']);
-    // The tool a miner swings is forged from metal somebody dug — and
-    // picks wear out, which is the real sink that makes it a cycle.
     expect(pick.outputTemplate).toBe('/trade/mining/thing/pick');
+    // …and the row's bill names the two trades' rows, at their homes.
+    const row = YAML.parse(
+      readFileSync(`${PACK}content/trade/mining/thing/pick.yaml`, 'utf8'),
+    ) as { data: { bill: { parts: Array<{ part: string; template: string }> } } };
+    const byPart = new Map(row.data.bill.parts.map((p) => [p.part, p.template]));
+    expect(byPart.get('head')).toBe('/trade/smithing/thing/pick-head');
+    expect(byPart.get('haft')).toBe('/trade/carpentry/thing/pick-haft');
   });
 
   it('⚠ the SAFETY tool sits low on the ladder, on purpose', () => {
@@ -156,8 +165,10 @@ describe('the recipe ladder', () => {
       // (the billhook and the felling axe are the FORESTRY trade's since
       // the forestry build — the instruments ship with the trade that
       // affords the act, and the coppice is forestry's)
+      // (the pick head and the pick haft are the SMITH's and the
+      // WOODWORKER's since the assembly build — AC 18)
       'assay-kit', 'miners-dial', 'pick',
-      'pick-haft', 'pick-head', 'pinch-bar', 'shovel', 'sledge',
+      'pinch-bar', 'shovel', 'sledge',
       'timber-set', 'tongs',
     ]);
   });

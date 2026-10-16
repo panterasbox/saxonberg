@@ -118,7 +118,7 @@ describe('the stand', () => {
     expect(MixinApi.isActive(c, STAND_MIXIN)).toBe(true);
     const verbs = (bucket: 'self' | 'inventory' | 'environment' | 'peers'): string[] =>
       CommandApi.collectContributions(TestClearing, bucket).map((d) => d.verbs).flat();
-    expect(verbs('self')).toContain('fell');
+    expect(verbs('self')).not.toContain('fell'); // a giver's bucket, never a place's
     expect(verbs('inventory')).toContain('fell');
     // NOT outward — for a location those reach the zone and the neighbours.
     expect(verbs('environment')).not.toContain('fell');

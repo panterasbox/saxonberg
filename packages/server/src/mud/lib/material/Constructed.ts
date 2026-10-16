@@ -113,6 +113,10 @@ function responsePipsAugmenter(
   if (!MixinApi.isConstructed(host)) return text;
   const construction = host.getConstruction();
   if (!construction) return text;
+  // ⚠ A STOCK form (riven, sawn) is how wood was shaped, not armour and
+  // not a weapon: it has no protection or delivery profile to pip, and the
+  // delivery table THROWS on it (the assembly drive's first board).
+  if (construction.isStock()) return text;
   const material = MixinApi.isTangible(host) ? host.getMaterial() : null;
   // isGraded / isDurable are type predicates — they narrow `host` directly.
   const grade = MixinApi.isGraded(host) ? host.getGrade() : undefined;

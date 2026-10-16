@@ -49,7 +49,7 @@ describe('Container.getLooseContents', () => {
     const loose = makeStuff(() => new TestItem());
     ContainmentApi.move(surface, room);
     ContainmentApi.move(loose, room);
-    ContainmentApi.place(onSurface, 'on', surface);
+    ContainmentApi.move(onSurface, surface, 'on');
 
     const result = room.getLooseContents([surface, onSurface, loose]);
     expect(result).toContain(surface);
@@ -62,7 +62,7 @@ describe('Container.getLooseContents', () => {
     const surface = makeStuff(() => new TestSurface());
     const onSurface = makeStuff(() => new TestItem());
     ContainmentApi.move(surface, room);
-    ContainmentApi.place(onSurface, 'on', surface);
+    ContainmentApi.move(onSurface, surface, 'on');
 
     // The host isn't in the listing → the placed item stays top-level.
     expect(room.getLooseContents([onSurface])).toContain(onSurface);
@@ -351,14 +351,14 @@ describe('ContainmentApi', () => {
 
     it('places item into the host\'s container AND sets the placement', () => {
       ContainmentApi.move(surface, location1);
-      ContainmentApi.place(item, 'on', surface);
+      ContainmentApi.move(item, surface, 'on');
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
     });
 
     it('move() after place clears the placement (container-change invariant)', () => {
       ContainmentApi.move(surface, location1);
-      ContainmentApi.place(item, 'on', surface);
+      ContainmentApi.move(item, surface, 'on');
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
       ContainmentApi.move(item, container1);
       expect(item.getContainer()).toBe(container1);
@@ -368,10 +368,10 @@ describe('ContainmentApi', () => {
     it('place between two hosts in same env: container unchanged, placement updates', () => {
       ContainmentApi.move(surface, location1);
       ContainmentApi.move(otherSurface, location1);
-      ContainmentApi.place(item, 'on', surface);
+      ContainmentApi.move(item, surface, 'on');
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(surface);
-      ContainmentApi.place(item, 'on', otherSurface);
+      ContainmentApi.move(item, otherSurface, 'on');
       expect(item.getContainer()).toBe(location1);
       expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     });
@@ -379,16 +379,16 @@ describe('ContainmentApi', () => {
     it('place between hosts in different envs: both container and placement update', () => {
       ContainmentApi.move(surface, location1);
       ContainmentApi.move(otherSurface, location2);
-      ContainmentApi.place(item, 'on', surface);
+      ContainmentApi.move(item, surface, 'on');
       expect(item.getContainer()).toBe(location1);
-      ContainmentApi.place(item, 'on', otherSurface);
+      ContainmentApi.move(item, otherSurface, 'on');
       expect(item.getContainer()).toBe(location2);
       expect((item.getPlacement()?.host ?? null)).toBe(otherSurface);
     });
 
     it('throws when the host has no environment', () => {
       // surface was never moved into a container; getContainer() is null.
-      expect(() => ContainmentApi.place(item, 'on', surface)).toThrow(
+      expect(() => ContainmentApi.move(item, surface, 'on')).toThrow(
         /no environment/,
       );
     });
@@ -404,7 +404,7 @@ describe('ContainmentApi', () => {
         `/test/place-rejecting-${testIndex}`,
       );
       ContainmentApi.move(rejecting, location1);
-      expect(() => ContainmentApi.place(item, 'on', rejecting)).toThrow(/rejects/);
+      expect(() => ContainmentApi.move(item, rejecting, 'on')).toThrow(/rejects/);
     });
   });
 });

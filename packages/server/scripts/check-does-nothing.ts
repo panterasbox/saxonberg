@@ -21,6 +21,7 @@ import {
   Construction,
   COVERING_FORMS,
   WEAPON_DELIVERY_FORMS,
+  STOCK_FORMS,
   TEXTILE_RESIST_PROFILE,
 } from '../src/mud/lib/material/Construction';
 
@@ -60,7 +61,17 @@ function main(): void {
     }
   }
 
-  const total = COVERING_FORMS.length + WEAPON_DELIVERY_FORMS.length + 1;
+  // ⭐ The stock domain (assembly D10): `riven` is the reference (whole
+  // everywhere), and every other stock form must leave SOME channel less
+  // than whole, or it is riven by another name.
+  for (const form of STOCK_FORMS) {
+    if (Construction.of(form).doesNothing()) {
+      findings.push(`stock form '${form}' is whole on every channel — riven by another name`);
+    }
+  }
+
+  const total =
+    COVERING_FORMS.length + WEAPON_DELIVERY_FORMS.length + STOCK_FORMS.length + 1;
   if (findings.length === 0) {
     console.log(
       `check-does-nothing: all ${total} construction form(s) have a real effect.`,

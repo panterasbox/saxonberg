@@ -1,0 +1,15 @@
+# A stave, riven from a billet with a froe — run by `rive billet into
+# stave`. The cooper's first rung, and the reason the cooper buys billets
+# from the wood rather than boards from the mill: a riven stave holds
+# liquor and a sawn one weeps.
+recipeId: stave
+name: Stave
+keywords: [stave, staves]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [riving]
+outputTemplate: /trade/coopering/thing/stave
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: coopering

@@ -381,7 +381,10 @@ export default class Hive extends HiveBase implements Splittable {
       const mass = Math.min(perFrame, take.units - i * perFrame);
       let comb: Stuff;
       try {
-        comb = await StuffApi.clone<Stuff>(tap.yieldRow);
+        // Made FROM the hive: the comb is the hive's owner's.
+        comb = await StuffApi.clone<Stuff>(tap.yieldRow, undefined, {
+          madeFrom: this as unknown as Stuff,
+        });
       } catch {
         return made;
       }
@@ -734,7 +737,9 @@ export default class Hive extends HiveBase implements Splittable {
     this.strength = this.strength * 0.6;
     let made: Stuff | null = null;
     try {
-      made = await StuffApi.clone<Stuff>('/trade/apiculture/thing/nuc');
+      made = await StuffApi.clone<Stuff>('/trade/apiculture/thing/nuc', undefined, {
+        madeFrom: this as unknown as Stuff,
+      });
     } catch {
       made = null;
     }
@@ -747,10 +752,7 @@ export default class Hive extends HiveBase implements Splittable {
       const half = made as unknown as Colonial;
       half.seedFromSplit(taken, this.nowGameSeconds() ?? 0);
       if (MixinApi.isContainer(by)) {
-        ContainmentApi.move(
-          made as Stuff & Containable,
-          by as Stuff & Container,
-        );
+        ContainmentApi.move(made as Stuff & Containable, by as Stuff & Container);
       }
     }
     return {

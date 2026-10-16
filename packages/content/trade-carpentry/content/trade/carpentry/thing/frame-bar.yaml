@@ -1,0 +1,16 @@
+# A frame bar — a thin sawn lath of pine, notched at the ends. Four of
+# them glued square are a hive frame (`fit hive-frame`): the smallest
+# honest assembly in the game, and the one a beekeeper puts together at
+# the kitchen table over the winter.
+class: /platform/thing/Timber
+data:
+  shortDescription: frame bar
+  keywords: [frame-bar, "frame bar", lath, laths]
+  register: indefinite
+  longDescription: |
+    A thin sawn strip of pine about a forearm long, a notch cut in each end so it locks square against its neighbour.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 0.1
+  constructionForm: sawn
+  seasonedFraction: 1
+  quantity: 1

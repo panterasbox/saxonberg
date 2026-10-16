@@ -1,0 +1,16 @@
+# A bowstave — worked down from a riven blank along its grain, the
+# sapwood left whole on the back. ⭐ Hard: a stave that cuts across one
+# growth ring on the back breaks there the first time it is drawn.
+# The wood you carve it from is the wood the bow is (yew makes the bow
+# the row describes). Run by `carve`.
+recipeId: bow-stave
+name: Bowstave
+keywords: [bowstave, bow-stave]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/bow-stave
+outputMaterial: ''
+outputApplication: tangible
+difficulty: hard
+discipline: carpentry

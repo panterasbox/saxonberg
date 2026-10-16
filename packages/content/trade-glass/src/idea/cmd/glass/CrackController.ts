@@ -107,7 +107,9 @@ export default class CrackController extends ManualBuildController<CrackModel> {
         ? (giver as unknown as Stuff & Container)
         : null;
 
-    const product = await StuffApi.clone<Stuff>(productRow);
+    const product = await StuffApi.clone<Stuff>(productRow, undefined, {
+      madeFrom: gather as unknown as Stuff,
+    });
     if (MixinApi.isTangible(product)) product.setMass(Quantity.of(massKg * (1 - moilFrac), "kg"));
     if (MixinApi.isAlloyed(product) && alloying.length > 0) product.setAlloying(alloying);
     // ⭐ Stamp the maker — a bottle is Crafted; without this it credits
@@ -126,7 +128,9 @@ export default class CrackController extends ManualBuildController<CrackModel> {
 
     // The moil — waste glass left on the pipe — as cullet beside you.
     try {
-      const moil = await StuffApi.clone<Stuff>(CULLET_ROW);
+      const moil = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, {
+        madeFrom: gather as unknown as Stuff,
+      });
       if (MixinApi.isTangible(moil)) {
         const mat = gather.getMaterial();
         if (mat) moil.setMaterial(mat);

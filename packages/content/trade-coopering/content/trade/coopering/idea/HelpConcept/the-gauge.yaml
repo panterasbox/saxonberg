@@ -1,0 +1,30 @@
+# ⭐⭐ What a gauger is FOR, stated so a reader can predict the market.
+class: /platform/idea/HelpConcept
+data:
+  key: the-gauge
+  title: The Gauge
+  summary: Why anybody can measure a cask and only the gauger's figure counts.
+  keywords: [gauge, gauger, gauging, capacity, measure, cask, standard, tun, duty]
+  seeAlso: [slack-and-tight]
+  body: |
+    A cask is sold by what it holds, and nobody can see inside one.
+
+    Anybody with a **gauging rod** can find out: run it in at the bung,
+    lay it across the head, read the diagonal. `measure capacity cask`
+    does exactly that, to the resolution your hand and your rod allow —
+    a coarse reading is vague, never wrong.
+
+    ⭐ What you cannot do is make your figure **count**. A buyer who has
+    been sold short measure once wants a figure from somebody whose
+    business it is to be right and who answers for it if they are not.
+    That is the **gauger**: a seat on a city's government. When the
+    holder gauges a cask, the figure is marked on the head, of record —
+    and a cask that carries the mark sells as what it says.
+
+    Every city declares a **standard measure** — Terminus's tun is
+    twenty-five litres. A cask more than a twentieth short of it, or
+    over it, is **off standard**, and the reading says so to anyone.
+    A short cask sold as a full one is the oldest fraud in the cellar.
+
+    The seat is something a polity appoints, and the standard is
+    something it declares. Neither is in the cooper's gift.

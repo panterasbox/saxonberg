@@ -171,8 +171,11 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     // the polity can fill to run the city's grid and lamps — so the city now
     // carries two seats: the magistrate the clerk holds, and public-works
     // held by nobody.
+    // ⭐ The assembly build added a third — the Gauger, whose measure of a
+    // cask is of record — rostered to the clerk like the magistrate.
     const seats = await GovernmentApi.seatsOf("terminus-city");
-    expect(seats).toHaveLength(2);
+    expect(seats).toHaveLength(3);
+    expect(seats.find((s) => s.seat.key === "gauger")!.holder).toBe(CLERK_PATH);
     const magistrate = seats.find((s) => s.seat.key === "magistrate")!;
     expect(magistrate.holder).toBe(CLERK_PATH);
     const works = seats.find((s) => s.seat.key === "public-works")!;

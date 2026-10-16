@@ -79,7 +79,7 @@ describe('fell.yaml — the arg gates', () => {
     expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('harvest'); // the copied-in four
-    expect(verbs(Bole, 'self')).toContain('fell');
+    expect(verbs(Bole, 'peers')).toContain('fell'); // `self` is a giver's, never read off a bole
   });
 });
 

@@ -5,7 +5,7 @@
  * `PlacingMixin(Good)` — a `Thing` (Tangible/Visible/
  * Containable, so it lives in a room) that **holds placed items**
  * (`Placing`, not `Container` — it doesn't enclose). Items placed on it
- * via `ContainmentApi.place` keep `container = the room` and gain a
+ * via `ContainmentApi.move` keep `container = the room` and gain a
  * placement pair naming this host, so they're reachable in room scope
  * but render *under* the fitting rather than as loose room clutter.
  *

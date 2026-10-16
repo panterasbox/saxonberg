@@ -346,7 +346,13 @@ describe('libations annexes — the serving recipes and the zone', () => {
         !f.includes(`${sep}trade-cooking${sep}`) &&
         !/(crush|white-crush|mash|dry-vermouth|sweet-vermouth|honey-must)\.yaml$/.test(
           f,
-        ),
+        ) &&
+        // ⭐ Asked what it IS, not named (the finding above, taken for one
+        // case): a thing raised from parts is a TANGIBLE output, never a
+        // pour — farming's plough (assembly) lives in an annex pack and is
+        // not a serving recipe.
+        (parse(readFileSync(f, 'utf8')) as { outputApplication?: string }).outputApplication !==
+          'tangible',
     );
     expect(files.length).toBe(1 + 3 + 1);
     for (const f of files) {

@@ -31,12 +31,10 @@ import type {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 
 const TOPIC = 'act.deed';
 
@@ -53,16 +51,9 @@ export default class BakeController extends CraftController<BakeModel> {
 
     if (!(await this.requireDeed(context, recipeRef, 'bake'))) return;
 
-    const outcome = await CraftingApi.craft({ recipeRef, makerMode: 'self' });
-    if (!outcome.ok) {
-      this.declineToScene(giver, outcome, context);
-      return;
-    }
-    const output = outcome.output;
-    if (output === null) return;
-
     // ⭐ Into the oven, if the fire is a chamber you can put something
-    // in. A campfire is not, and then the loaf comes to hand.
+    // in. A campfire is not, and then the loaf comes to hand. Decided
+    // BEFORE the craft, because the Api is what lands the output.
     //
     // ⚠ The FIRE is read off the model — the binder resolved it, so a
     // bakehouse with two ovens is addressable. What is still decided
@@ -70,8 +61,19 @@ export default class BakeController extends CraftController<BakeModel> {
     // Container. A mixin predicate cannot express "lit", and pretending
     // the arg could would be a worse lie than this narrowing.
     const oven = this.usableChamber(model.oven?.stuff ?? null);
+    const outcome = await CraftingApi.craft({
+      recipeRef,
+      makerMode: 'self',
+      landing: oven !== null ? { into: oven } : 'hands',
+    });
+    if (!outcome.ok) {
+      this.declineToScene(giver, outcome, context);
+      return;
+    }
+    const output = outcome.output;
+    if (output === null) return;
+
     if (oven !== null) {
-      await ContainmentApi.move(output as Stuff & Containable, oven);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -82,12 +84,6 @@ export default class BakeController extends CraftController<BakeModel> {
         )
         .send();
       return;
-    }
-    if (MixinApi.isContainer(giver)) {
-      await ContainmentApi.move(
-        output as Stuff & Containable,
-        giver as Stuff & Container,
-      );
     }
     MessageApi.scene(giver)
       .topic(TOPIC)

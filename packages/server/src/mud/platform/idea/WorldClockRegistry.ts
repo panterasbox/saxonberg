@@ -112,6 +112,8 @@ interface Schedule {
    * `null` for every field/system registration — no extra work.
    */
   birthScope: string | null;
+  /** Fire once for a backlog of missed periods (`ScheduleOpts.coalesce`). */
+  coalesce: boolean;
 }
 
 const WorldClockRegistryBase = Idea;
@@ -769,6 +771,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       handle: null as unknown as ClockHandle,
       birthScope:
         registrantScope === OMNI_SCOPE ? null : registrantScope,
+      coalesce: spec.opts?.coalesce === true,
     };
     s.handle = {
       id,
@@ -885,6 +888,16 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
           this.cancelInternal(s);
         }
       } else {
+        // A coalescing schedule skips to its LATEST missed period, then
+        // fires once (bounded runs keep their per-period count).
+        if (s.coalesce && s.remainingRuns === null) {
+          const behind = Math.floor(
+            (deadline - (s.nextFireAtS as number)) / s.intervalS,
+          );
+          if (behind > 0) {
+            s.nextFireAtS = (s.nextFireAtS as number) + behind * s.intervalS;
+          }
+        }
         do {
           s.fireCount++;
           this.invoke(s);

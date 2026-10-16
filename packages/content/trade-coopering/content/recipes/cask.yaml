@@ -1,0 +1,16 @@
+# Cask, raised from its parts — `fit cask`. Thirty staves in a truss,
+# two heads crozed in, six hoops driven down.
+# ⭐⭐ A PROFICIENT cooper's product: the tight cask that holds liquor (tight-hooped). A hand short of that band is refused NAMING the band — and can still make the other two.
+recipeId: cask
+name: Cask
+keywords: [cask, "tight cask"]
+inputSlots:
+  - { slot: stave, category: wood, minGrade: poor, kind: item, count: 30 }
+  - { slot: head, category: wood, minGrade: poor, kind: item, count: 2 }
+  - { slot: hoop, category: metal, minGrade: poor, kind: item, count: 6 }
+toolCapabilities: [driving, crozing]
+outputTemplate: /stuff/thing/vessel/cask
+outputMaterial: ''
+outputApplication: tangible
+difficulty: hard
+discipline: coopering

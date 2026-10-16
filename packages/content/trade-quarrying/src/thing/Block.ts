@@ -41,7 +41,6 @@ import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { Final } from '@saxonberg/server/mud/lib/security/decorators';
 
 /** Cubic metres of stone a block is — what its mass is derived from. */
@@ -101,7 +100,7 @@ export default class Block extends BlockBase implements Splittable {
    * works in the hand too.
    */
   static commandContributions: CommandContributions = {
-    self: ['platform/cmd/ground/split.yaml'],
+    // `peers`: the people beside it (`self` is a giver's, never a block's).
     peers: ['platform/cmd/ground/split.yaml'],
   };
 
@@ -171,14 +170,16 @@ export default class Block extends BlockBase implements Splittable {
   }
 
   public async completeWork(
-    by: Stuff,
+    _by: Stuff,
     _tool: (Stuff & Tooled) | null,
     _token: unknown,
   ): Promise<WorkResult> {
     const left = this.takePiece();
     let piece: Stuff | null = null;
     try {
-      piece = await StuffApi.clone<Stuff>(PIECE_ROW);
+      piece = await StuffApi.clone<Stuff>(PIECE_ROW, undefined, {
+        madeFrom: this as unknown as Stuff,
+      });
     } catch {
       // ⚠ A missing row is a content gap, not a reason to lose the work.
       console.error(`Block: piece row '${PIECE_ROW}' did not resolve`);
@@ -195,13 +196,6 @@ export default class Block extends BlockBase implements Splittable {
         : null;
       if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(piece)) {
         ContainmentApi.move(piece as Stuff & Containable, where as Stuff & Container);
-      }
-      if (MixinApi.isChattel(piece)) {
-        try {
-          await (piece as Stuff & Chattel).stampChattel(by);
-        } catch {
-          /* nobody's stone: honest */
-        }
       }
     }
     const tail =

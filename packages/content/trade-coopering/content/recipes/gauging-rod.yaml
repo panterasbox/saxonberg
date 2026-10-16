@@ -1,0 +1,12 @@
+# A gauging rod, carved from a length of close-grained wood.
+recipeId: gauging-rod
+name: Gauging Rod
+keywords: [rod, gauging-rod, "gauging rod"]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/coopering/thing/gauging-rod
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: coopering

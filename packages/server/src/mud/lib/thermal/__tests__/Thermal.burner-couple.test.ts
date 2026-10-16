@@ -226,7 +226,7 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     f.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.place(pot, 'on', f);
+    await ContainmentApi.move(pot, f, 'on');
     await pot.restamp();
 
     expect((pot.getPlacement()?.host ?? null)).toBe(f);
@@ -240,7 +240,7 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     o.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.place(pot, 'on', o);
+    await ContainmentApi.move(pot, o, 'on');
     await pot.restamp();
 
     expect((pot.getPlacement()?.host ?? null)).toBe(o);

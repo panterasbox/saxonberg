@@ -27,6 +27,10 @@ data:
   businessPath: /world/terminus/wharfside/chandlery/idea/outfit
   stockLines:
     - { itemTemplatePath: /trade/chandlery/thing/candle, par: 12 }
+    # ⭐ Wick by the length — a lantern's WEAR part (assembly AC 13). It
+    # burns down and is trimmed to nothing, and a new one is seated in the
+    # burner (`fit wick to lantern`). Who sells wick is who sells candles.
+    - { itemTemplatePath: /trade/chandlery/thing/wick, par: 10 }
   prices:
     # ⚠ ONE row and ONE price, because there is one candle row — what a
     # candle is made of is per-instance, so the counter cannot price the
@@ -35,3 +39,5 @@ data:
     # pricing work the counter cannot, and the day `Stock` can key a
     # price on an instance's material this becomes two lines.
     /trade/chandlery/thing/candle: 2
+    # Cheaper than a candle: it is a hand of tape, and it lasts longer.
+    /trade/chandlery/thing/wick: 1

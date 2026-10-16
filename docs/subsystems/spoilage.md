@@ -584,7 +584,7 @@ Three rungs, and between them they keep the store sparse:
 | **placed** on a host | the host's own `Placing.getAirExposure()`, default `1` | a rack, a meat hook, a slatted shelf. ⭐ A ham HUNG from a hook (`from`, exposure `1`) is in the air on every side; an author turns the number down for a close surface. |
 | lying on **bare ground** | the `cure.groundExposure` dial, `0.35` | one face to the air and nothing underneath — which is exactly why turf is built into an openwork lattice and cheese sits on slatted shelves. |
 
-⚠ `ContainmentApi.place` moves an item into **the host's container**
+⚠ A placing `ContainmentApi.move` puts an item into **the host's container**
 and *then* stamps the placement pair, so a ham on the cookhouse rack and a ham
 dropped on the cookhouse floor share a container and share the air.
 `getRestingOn()` is the only thing that tells them apart, which is why the
@@ -633,7 +633,7 @@ stack.
 content was `cure: { moisture: 0.35 }`) is **deleted**: an instant constant
 is not a treatment, it is a lookup table dressed as physics. `dry <thing>
 [on <rack>]` now does what hanging a ham actually is — it puts the thing
-where the air can reach it (`ContainmentApi.place`) — and narrates the
+where the air can reach it (a placing `ContainmentApi.move`) — and narrates the
 **prospect in words** (*"In this air it will take about a week or so."* ·
 *"Nothing will dry in this air."*), never a figure, because the weather is
 free to make any figure a lie. The drying is then the thing's own clock.

@@ -1,0 +1,16 @@
+# Riveted — a soft-iron rivet peened over: the bellows' leather to its
+# boards, a shield's boss to its face. Comes apart only by cutting the
+# rivets, which are lost.
+class: /platform/idea/Joint
+data:
+  key: riveted
+  label: riveted
+  portability: tool
+  instrument: striking
+  competence: { discipline: smithing, band: novice }
+  reversible: never
+  strength: 0.8
+  structuralRecovery: 0.0
+  fastenerRecovery: 0.0
+  tightenable: false
+  failure: parted

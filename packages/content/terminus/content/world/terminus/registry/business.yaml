@@ -31,11 +31,21 @@ data:
       noun: magistrate
       label: sitting as Magistrate of Terminus
       wageRate: 6
+    # ⭐ The gauger (assembly D13) — the Government row's `gauger` seat
+    # names this position; ⚠ a seat whose positionKey is not on this chart
+    # resolves and matches nobody, silently.
+    - key: gauger
+      noun: gauger
+      label: gauging casks of record for the city
+      wageRate: 4
   rosterSlots:
     - positionKey: registrar
       assignee: /world/terminus/registry/clerk
       schedule: []
     - positionKey: magistrate
+      assignee: /world/terminus/registry/clerk
+      schedule: []
+    - positionKey: gauger
       assignee: /world/terminus/registry/clerk
       schedule: []
   banksAt: goodkin

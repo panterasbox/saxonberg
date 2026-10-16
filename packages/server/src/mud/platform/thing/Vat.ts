@@ -29,11 +29,14 @@ import { Quantity } from '../../lib/quantity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 
 // Merge of two independent changes: master wrapped the vat in
 // `VesselKindMixin`; this branch renamed `FermentingMixin` to
 // `MaturingMixin` (bleaching is a photochemical maturation, not a
 // ferment — see maturation.md). Both apply.
+// A vat made of staves is a `Cask` (its own class: an assembly); a carboy,
+// a culture jar and a crock are vats with no parts.
 const VatBase = VesselKindMixin(
   MaturingMixin(
     CraftedMixin(
@@ -62,6 +65,19 @@ export default class Vat extends VatBase {
   // thermal drift (the Flask precedent). This is what makes "credit
   // the closed window at its conditions" honest — the open time past
   // finished and the cellar move are each credited exactly.
+
+  /**
+   * ⭐ Emptied is an ended batch NOW, not at the next read: a cask filled,
+   * spilled and filled again with nothing reading it between kept its
+   * batch, so the second fill was not a fill and spent none of the
+   * cask's character (the assembly drive, drive 17).
+   */
+  public override debitBulk(affordance: BulkAffordance, litres: number): void {
+    super.debitBulk(affordance, litres);
+    if (affordance === 'interior' && this.isBulkEmpty('interior')) {
+      this.reconcileFerment();
+    }
+  }
 
   public override setOpen(value: boolean): void {
     this.reconcileFerment();

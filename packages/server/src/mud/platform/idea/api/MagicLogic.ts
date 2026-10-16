@@ -1702,6 +1702,8 @@ async function execConjure(
     const conjured = await StuffApi.clone(e.templatePath);
     const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(conjured)) {
+      // ⭐ The move titles it to whoever acted and records its place (both
+      // derived in `ContainmentApi.move`): a conjured thing is a good.
       ContainmentApi.move(conjured, scene);
     }
     return `${conjured.getPresentation()} takes shape out of nothing.`;

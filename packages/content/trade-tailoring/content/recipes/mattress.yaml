@@ -1,0 +1,14 @@
+# A mattress — two covers and three bags of stuffing, stitched round and
+# tufted. Run by `fit mattress`. The bed's wear part.
+recipeId: mattress
+name: Mattress
+keywords: [mattress]
+inputSlots:
+  - { slot: cover, category: textile, minGrade: poor, kind: item, count: 2 }
+  - { slot: stuffing, category: textile, minGrade: poor, kind: item, count: 3 }
+toolCapabilities: [mending]
+outputTemplate: /trade/tailoring/thing/mattress
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: tailoring
