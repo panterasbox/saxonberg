@@ -4,7 +4,7 @@
 > dev complete, unmerged at writing) ships the **mould mechanism** with
 > three consumers; this slate is the **lens pass moulding never had**,
 > across every trade that moulds, and the build it implies.
-> **Left:** ✅ three rulings (§ 0) · **impressions** — a mould taken from
+> **Left:** ✅ five rulings (§ 0) · **impressions** — a mould taken from
 > any object (shape copies, identity never) · **pressing** as a load on a
 > mould · **the pour can fail**, on physics already in the rows (a mould
 > that cannot survive the pour, a misrun, a damp mould, shrinkage, draft)
@@ -26,6 +26,14 @@
 >
 > ⭐⭐ **Pressing is in the mould system**, as a load on a mould — the
 > extension of what dairy already does with the hoop and the press stone.
+>
+> ⭐⭐ **Brickmaking is the first new consumer** — the settlement's most
+> basic building need, met by nobody (§ 9).
+>
+> ⭐⭐ **Cure works rubber's way:** anything set by HEAT (bake, vulcanise,
+> fire) is a recipe fired with its charge in a mould, and the mould gives
+> the output its shape; a *set process* is only what happens with no act
+> (freeze, drain, dry) (§ 5).
 >
 > ⭐⭐ **Sequencing:** this is its own build, after repair. Repair takes one
 > seam now — **a cast part is mended under the discipline its mould
@@ -129,18 +137,18 @@ dryness of the sand — not the outcome.
 | **freeze** | cools through its melting point | metal, wax, water, sugar, chocolate, thermoplastics | ✅ ships |
 | **drain** | the mould takes the water out | cheese (hoop), ⭐ **slip-cast pottery** (a plaster mould drinks the slip), ⭐ **paper** (pulp on the paper-maker's mould) | ✅ ships for cheese — the other two are the SAME physics |
 | **dry** | gives water to the air | bricks, tiles, clay before firing | deferred by dairy |
-| **cure** | a chemical set | plaster and concrete (hydration), ⚠ **rubber (vulcanising)**, thermosets | deferred by dairy — see the rubber fork below |
-| **bake** | heat sets it | bread in a tin, cakes | deferred by dairy |
+| **cure** | a chemical set with no act | plaster and concrete (hydration) | deferred by dairy |
+| *fired* (not a set process) | a heat recipe, shaped by the mould the charge sits in | ✅ rubber's vulcanising (`reqs/rubber`), bread in a tin, thermosets, fired brick and pottery | § 0 — rubber's way |
 
 ⚠ **The rubber fork.** `reqs/rubber` makes **vulcanising a recipe fired in
 the works' oven**, with *"the mould decides the shape: a boot, a glove, a
 sheet, a ring, a tube."* That is consistent with this system only if a
-firing of a mould's contents asks the mould for its shape. Decide at
-requirements whether *cure* is a set process on the mould (dairy's word)
-or a recipe whose output is shaped by the mould it was fired in
-(rubber's) — ⭐ recommendation: rubber's shape is the general one for
-every heat-driven cure (bake, vulcanise, fire), and *set process* stays
-for what happens with no act (freeze, drain, dry).
+firing of a mould's contents asks the mould for its shape. ✅ **Decided (§ 0): rubber's way.** Every heat-driven
+set (bake, vulcanise, fire) is a recipe fired with its charge in a mould,
+shaped by that mould; *set process* stays for what happens with no act
+(freeze, drain, dry). Plaster and concrete hydration (a chemical set with
+no heat and no act) is a set process — the one *cure* that stays on the
+mould.
 
 ## 6. Melts again, or does not
 
@@ -245,14 +253,13 @@ records whose impression a thing is; it decides nothing.
 ## 11. Open questions (to close at requirements)
 
 1. The impression of an assembly — one piece (recommended) or refused.
-2. The rubber fork (§ 5): cure as a set process vs a fired recipe shaped
-   by its mould.
+2. ~~The rubber fork~~ — ✅ rubber's way (§ 0).
 3. Pressing's load: a stone, a screw press, a drop hammer — one load
    scale, or kinds?
 4. Where founding lives — a branch of smithing, smelting's, or its own
    trade pack.
-5. Which gap trade is the first new consumer — **brickmaking** (the
-   settlement's need) is the recommendation.
+5. ~~The first new consumer~~ — ✅ **brickmaking** (§ 0): press + dry in
+   the mould, then fire in a kiln (a fired recipe, rubber's way).
 6. How a die's authority is recorded (whose impression a coin bears) —
    the attestation slate may already own the shape.
 7. The deskilling question made legible: does a moulded good's look say
