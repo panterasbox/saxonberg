@@ -240,6 +240,13 @@ bailee (a brewery's ice, for a fee).
   pits: shallow pans freezing on clear nights above freezing air) → the
   weather slate; the model has no sky-radiation term.
 - **Thin ice over the current, pressure ridges** → watershed.
+- **Ice rescue** — a rope thrown from thicker ice, crawling out flat to
+  spread your weight, pulling someone out → this slate, as the harvest's
+  next content (the requirements make breaking through real; getting
+  someone else out is not yet an act).
+- **Ice-fishing gear and behaviour** (tip-ups, shanties, cold-water bite)
+  → [fishing-slate](../tails/fishing-slate.md). The build makes frozen water
+  fishable only through a hole.
 - **Who holds the water licenses the cut** — the shipped holding is enough
   for now; a licence beyond it → navigable-water § 5.
 

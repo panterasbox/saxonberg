@@ -166,7 +166,7 @@ Seeding slates:
 - **Load-bearing surfaces in general** (rotten floors, weak bridges) → its own slate. Ice's bearing is the water's.
 - **Going under the water** (diving, drowning beneath the ice) → underwater-slate. Breaking through puts you at the surface, swimming. A hole is never a way down.
 - **Ice rescue** (a rope thrown from thicker ice, crawling out flat to spread your weight, pulling someone out) → [ice-trade-slate](../slates/builds/ice-trade-slate.md), as the next content on the harvest.
-- **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/builds/fishing-slate.md). This build only makes frozen water fishable through a hole.
+- **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/tails/fishing-slate.md). This build only makes frozen water fishable through a hole.
 - **A licence to cut beyond holding the water** → navigable-water-slate § 5.
 
 ## Placement
