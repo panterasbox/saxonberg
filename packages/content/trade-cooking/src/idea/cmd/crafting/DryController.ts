@@ -23,9 +23,9 @@
  * ⭐ The rack is a **declared instrument arg**, and it earns its keep now:
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
  * dries about three times as fast as one dropped on the floor of the same
- * room. Before the lens pass the rack was decoration —
- * `ContainmentApi.place` moves an item into the *host's* container, so
- * racked and dropped were the same air and the same arithmetic.
+ * room. Before the lens pass the rack was decoration — a placement
+ * moves an item into the *host's* container, so racked and dropped were
+ * the same air and the same arithmetic.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';

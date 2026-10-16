@@ -260,8 +260,8 @@ export default class Plant extends PlantBase {
         const seed = await StuffApi.clone<Stuff>(path, undefined, {
           madeFrom: this as unknown as Stuff,
         });
-        // ⭐ LANDED — placed and its host captured in one call. A seed a
-        // flowering set has no actor, so it carries no title.
+        // ⭐ The move places it and captures its host in one call. A seed
+        // a flowering set has no actor, so it carries no title.
         if (MixinApi.isContainable(seed)) {
           ContainmentApi.move(seed as Stuff & Containable, target as Stuff & Container);
         } else {

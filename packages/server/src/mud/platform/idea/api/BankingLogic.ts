@@ -2060,8 +2060,8 @@ async function issueCardImpl(
   pay.setActiveAccount(accountId);
   pay.setSpendCap(capMinor);
   if (principal && MixinApi.isContainer(principal)) {
-    // ⭐ LANDED: a card is a held good — titled to whoever it is issued
-    // to and recorded where it is, or it is gone at the next restart.
+    // ⭐ A card is a held good — the move titles it to whoever it is
+    // issued to and records where it is, or it is gone at the next restart.
     ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
   return card as Stuff & CredentialWallet;

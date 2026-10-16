@@ -5,8 +5,8 @@
 > water sawmill, through-sawn · quartered), `carve` (one piece of wood and
 > an edge → a part), the `Board` / `Blank` / `Timber` stock, seasoning,
 > the grain as a stock form that rides a carve, and cupping that a glue
-> line cannot forgive → [crafting.md](../../subsystems/crafting.md),
-> plan D16 of `assembly-plan.md`.
+> line cannot forgive → [assembly.md](../../subsystems/assembly.md) §
+> *The grain*, [crafting.md](../../subsystems/crafting.md).
 > **Left:** **riving** (reading the billet, the instant arm, the mallet,
 > an elm to meet) · carving as an **act** (time, effort, the hand) · whether
 > `carve` is **knowledge-gated** like `make` · the **edge** (what carves,
@@ -266,9 +266,9 @@ over-simulation.
 
 ## Cross-references
 
-- `docs/plans/assembly-plan.md` — D16 (the grain is real) and the drive
-  record runs 24–27.
-- [assembly-slate.md](./assembly-slate.md) — the joint as the epoch axis.
+- [assembly.md](../../subsystems/assembly.md) — the grain carry, cupping,
+  the drive's traps (the retired assembly plan's D16 and runs 24–27).
+- [assembly-slate.md](../tails/assembly-slate.md) — the joint as the epoch axis.
 - [crafting.md](../../subsystems/crafting.md) · [forestry.md](../../subsystems/forestry.md) ·
   [instrumentation.md](../../subsystems/instrumentation.md) ·
   [exertion.md](../../subsystems/exertion.md) ·

@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **Assembly, driven end to end** — the assembly build's exit
- * criterion, run against the real socket (docs/requirements/
- * assembly-requirements.md § The drive).
+ * criterion, run against the real socket (the requirements doc's drive
+ * script, retired at the sweep; the model is docs/subsystems/assembly.md).
  *
  * The drive in one sentence: *buy a haft, make a pick from it and a head
  * and read what it is made of; carve a haft from a green billet, fit it,

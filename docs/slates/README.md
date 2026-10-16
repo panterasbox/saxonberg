@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**294 slates.** 69 greenfield · 102 continuations · 62 waves · 61 tails.
+**295 slates.** 68 greenfield · 103 continuations · 62 waves · 62 tails.
 
-## ⭐ Greenfield — nothing shipped yet (69)
+## ⭐ Greenfield — nothing shipped yet (68)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -49,7 +49,6 @@ respect.
 | [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the butcher-or-offer fork + the recognition-never-reward guardrail … |
 | [amendment-library](./builds/amendment-library-slate.md) | the catalog Document + module registry + the adoption path over Art. X · the v1 standard-library modules as amendment documents (due process · free expression · term limits … |
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
-| [assembly](./builds/assembly-slate.md) | the `Joint` **ROW** vocabulary (condition · operation · strength · reversibility … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [attribution](./builds/attribution-slate.md) | ⭐ **the observe-only sampler** (§ 4 — the one new instrument, and the thing to prototype first) · the **bucketed use counter** (§ 4a — the denominator) · the offline RAM rating table (§ 4d) · the mint ledger … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
@@ -114,7 +113,7 @@ respect.
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (102)
+## ⭐ Continuations — substrate shipped, a build's worth remains (103)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -134,6 +133,7 @@ are the named remainders.
 | [call](./builds/call-slate.md) | the whole push-at-range column (dispatch, the turnout, the hue and cry) and the brain-fact eligibility it needs · the addressed posting (`claimMode` gains `addressed`; the resolver already takes a handed-in set) · a `critical` need that REFUSES a call — importance flows one way today and the reverse needs a criterion and an appeal (the lens 7 question below) · the mob's rule, if it turns out to need one (§ *the mob is an employer*) … |
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
+| [carpentry](./builds/carpentry-slate.md) | **riving** (reading the billet, the instant arm, the mallet, an elm to meet) · carving as an **act** (time, effort, the hand) · whether `carve` is **knowledge-gated** like `make` · the **edge** (what carves, who makes it, who sells it) … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries; the ten temperaments + `counter`/`venue-staff`) · the lens-vs-seed dual compilation · the `requires` config gate + its lint (with `temperament: opaque` and the ungateable role) · standing as pointers (Change 2) … |
 | [climate](./builds/climate-slate.md) | rain-on-snow melt (open question 6) · the ice-albedo term · firn, névé and the glacier (the perennial cap is the attach point) · the content register below — the August crisis, winter defers, the ice core, the station as a vocation … |
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | the blood-BANK economy → blood-slate; cold storage → cold-chain-slate; the full surgery build → surgery-specialty-slate; the diagnostic |
@@ -291,7 +291,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (61)
+## Tails — small and opportunistic (62)
 
 | slate | left |
 |---|---|
@@ -299,6 +299,7 @@ are the named remainders.
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — denies + `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()` for non-staff verbs (chat gag-as-deny, channel post/moderate roles, guild kick, field masks) + deny-wins composition · the location/context source · the lease-vs-quota design question, which should not ride the audit sink's cycle |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled — and ⭐ the prefix is an **MQL string**, 2026-09-25) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) · ⭐⭐ **the collision-resolution ladder** (below) |
 | [apiculture](./tails/apiculture-slate.md) | ⛔⛔ **NO ACT RESOLVES `crush-comb` OR `spin-comb`** — two authored recipes a player cannot run, and the comb→honey rung of the trade's own epoch ladder (see below) |
+| [assembly](./tails/assembly-slate.md) | the deferred seams in § *Left after the build* (the furniture family's second half, casks that are not Vats, the threaded fastener, humidity in seasoning, the sawmill's water right) + four small code tidies the pre-merge audit recorded rather than fixed. |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |

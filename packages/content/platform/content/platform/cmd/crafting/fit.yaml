@@ -10,7 +10,10 @@
 # ⭐ Afforded by WHAT IS BEING FITTED, not by an instrument: every
 # assembly in reach (and every part beside it) makes the verb sayable,
 # because the hand rung — a friction fit, a wedge — has no instrument at
-# all (AssembledMixin's static `commandContributions`).
+# all (AssembledMixin's static `commandContributions`, environment +
+# peers). The person affords it too (`Avatar`'s self contributions), so
+# `fit pick` with nothing fittable in reach is understood and refused in
+# words rather than unknown.
 #
 # Taking a thing apart is `salvage` — the shipped verb, whose yield the
 # joint's reversibility decides. Tightening a slack joint is `repair`.

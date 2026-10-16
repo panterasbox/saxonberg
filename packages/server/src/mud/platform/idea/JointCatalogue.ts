@@ -7,8 +7,9 @@
  * found with no boot line of its own. ⭐ It warms LAZILY, on the first
  * read — `LocationGraphRegistry`'s half of the `ReadingCatalogue` pattern,
  * with no `onCreate` (the `lint:on-create` ratchet: a roster warm is not a
- * reason for the hook to grow). The boot line exists so the singleton
- * EXISTS for the sync read to find.
+ * reason for the hook to grow). There is no boot line: a reader gets the
+ * singleton through `StuffApi.singleton` (load on use), and `lint:template-
+ * scans` lists the warm under `LAZY_DICT`.
  *
  * ⚠ Two reads, on purpose. `warmed(key)` is async and warms on a miss — the
  * verbs use it, and the craft mint warms the roster before it records any

@@ -48,9 +48,9 @@ export type MakerMode = 'self' | 'fulfilling-bartender';
  * ⭐⭐ **Where a minted output LANDS** — the Api places it, never the
  * controller. A good minted onto a floor and moved by nobody is invisible
  * to persistence: the room's estate slice skips a player's good whose
- * `place` was never written, and the overlay never finds it. So the mint
- * moves, stamps (`stampChattel` + `followCustody`, the `fell` pair) and
- * captures in one place, and the seventh verb cannot forget.
+ * place was never written, and the overlay never finds it. So the mint
+ * moves through `ContainmentApi.move` — which derives the title and the
+ * custody and captures — in one place, and the seventh verb cannot forget.
  *
  * - `'hands'` — into the maker (the default for a tangible output);
  * - `'here'` — into the maker's container (salvage's default);

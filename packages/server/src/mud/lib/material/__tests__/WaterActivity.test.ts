@@ -392,7 +392,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
 
   it('(f) ⭐⭐ the SAME cut on a rack and on the floor DIVERGE', () => {
     // The pin the lens pass added, and the one the rack existed without:
-    // before this, `ContainmentApi.place` moved the item into the
+    // before this, a placement moved the item into the
     // surface's ROOM, so a ham on the cookhouse rack and a ham dropped on
     // the cookhouse floor had the same container and the same air, and the
     // rack was arithmetically inert. Drying is surface-limited; the support

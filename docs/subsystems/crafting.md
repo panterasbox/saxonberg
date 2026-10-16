@@ -398,7 +398,7 @@ properties emerge from components) is a genuinely different model,
 still deferred — not faked.
 
 > ⭐⭐⭐ **The deferral acquired a DRIVER 2026-10-09 —
-> [assembly-slate](../slates/builds/assembly-slate.md).** The one-line
+> [assembly-slate](../slates/tails/assembly-slate.md).** The one-line
 > definition above is kept verbatim there; what the slate adds is the
 > **epoch argument**: a factory is an assembly of assemblies, so
 > **you cannot build a factory until you can build a thing from parts**,
@@ -425,7 +425,8 @@ still deferred — not faked.
 > set: the tell that the host is wrong ([antipatterns.md § a mixin composed on a
 > broad family](../antipatterns.md#a-mixin-composed-on-a-broad-family-then-guarded-back-down)). `MixinApi.isAssembled` is now the
 > whole question, and `lint:bills` arm 7 holds *a row has a bill ⇔ its
-> class composes `AssembledMixin`* both ways.
+> class composes `AssembledMixin`* both ways. The full model — bills, joints,
+> wear, the grain carry — is [assembly.md](./assembly.md).
 
 ## The offer: `CommerceMenu` + the venue subclasses
 

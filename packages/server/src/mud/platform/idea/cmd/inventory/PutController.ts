@@ -1,9 +1,9 @@
 /**
  * PutController — `put X (in|on) Y`.
  *
- * Preposition-aware dispatch: `put X in Y` routes to
- * `ContainmentApi.move`, `put X on Y` routes to
- * `ContainmentApi.place`, and `put X in Y` where X fits an open SLOT
+ * Preposition-aware dispatch: `put X in Y` and `put X on Y` both route
+ * to `ContainmentApi.move` (a placing destination stamps the placement
+ * pair; the preposition picks the name), and `put X in Y` where X fits an open SLOT
  * on Y routes to `Slotted.occupy` (after the containment move — the
  * `plant`/`repot` order). The YAML's `prepositions: [in, on]` on
  * the `target` field lands the consumed preposition on

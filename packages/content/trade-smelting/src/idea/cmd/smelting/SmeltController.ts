@@ -496,8 +496,8 @@ async function runCharge(
   // become metal.
   const trapped = flux.length > 0 ? BLOOM_SLAG_FLUXED : BLOOM_SLAG;
   const productKg = bloom ? metalKg * (1 + trapped) : metalKg;
-  // ⭐ The carbon and the trapped slag are set BEFORE it lands, so the
-  // capture `land` takes is of the finished product.
+  // ⭐ The carbon and the trapped slag are set BEFORE it moves, so the
+  // capture the move takes is of the finished product.
   await pour(furnace, row, productKg, owner, (product) => {
     if (MixinApi.isAlloyed(product) && carbon > 0) {
       product.setFractionOf(CARBON, carbon);
