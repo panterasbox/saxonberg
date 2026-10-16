@@ -1,6 +1,6 @@
 # Repair slate — assemblies, part two
 
-> **Status: UNBUILT** — opened 2026-10-16, the day after the assembly
+> **Status: UNBUILT** — requirements in progress — opened 2026-10-16, the day after the assembly
 > build (MR !361) merged. *Repair* is the framing device; the build is
 > **assemblies, part two**: what a mend asks of the hand that does it,
 > who is paid to do it for you, which things are made of parts at all,
@@ -34,6 +34,13 @@ skill in it. See § 1.
 > `Shield`…), not on `Good` — § 5.
 >
 > ⭐⭐ **A seat is AUTHORED only** — never earned — § 6.
+>
+> And, agreed the same day on the slate's proposals: **botched mends
+> COMPOUND** (§ 3) · a **working cast into a part authors its seat**, and
+> a **reforged seat is named by the smith** (Narsil's rule, § 6) · a
+> service is **priced by the diagnosis**, not by mass (§ 4) · the **first
+> mender is a tinker on the road**, a city cobbler the second (§ 4) ·
+> tailoring's **`alter` stays its own act** (§ 9).
 
 `repair.yaml`'s help promises *"Restores fully — gear never obsoletes, it
 asks for care."* The second half stands; the first becomes **conditional
@@ -121,8 +128,10 @@ A proposal to argue with, not a table to ship:
 | competent | 1.0 | — |
 | proficient / expert | 1.0 | cheaper in stock (the `RECOVERY_BY_BAND` shape salvage already uses) |
 
-Open within it: whether a ceiling below 1.0 **compounds** (an amateur's
-mend of an amateur's mend) — ⭐ lens 1 says it should be *readable* on the
+✅ **Botched mends compound** — an amateur's mend of an amateur's mend
+sinks lower each time (the ceiling applies to what is there, not to
+new) — which is what makes a second-hand buyer's inspection worth
+anything — ⭐ lens 1 says it should be *readable* on the
 thing either way (`look` names a botched mend, `analyze` the band it was
 done at), so a buyer of second-hand gear can tell.
 
@@ -253,10 +262,10 @@ names its seat; nothing earns one — no name settles on a long-held part,
 and an ordinary sword never acquires a seat by being kept. Earned names
 are not this build's and not a seat.
 
-Still open: whether *the part a working was cast into* counts as
-authoring (the caster authored it — lens 2 says yes: the spell is the
-author's act), and the reforging rule — does a broken seat reforged keep
-its name, or does the smith name it (Narsil → Andúril)?
+✅ **A working cast into a part authors its seat** (lens 2: the spell is
+the author's act). ✅ **A broken seat reforged is named by the smith** —
+Narsil's rule: the old name stays with whoever remembers it, and the
+reforged blade is whatever the smith calls it.
 
 ## 7. ⭐⭐ Upkeep reaches the part
 
@@ -315,22 +324,16 @@ really about.
    measured not decided. The cordwainer/cobbler line is a polity's to
    enact, tier C.
 
-## 9. Open questions (to close at requirements)
+## 9. Closed (2026-10-16)
 
-1. The failure table (§ 3): ceilings, grade loss, compounding, and how a
-   botched mend reads.
-2. ~~Where `AssembledMixin` composes~~ — ✅ the families; found vs made is
-   data (§ 5).
-3. The seat (§ 6): ~~authored vs earned~~ ✅ authored; still open — a
-   cast working as authoring, and the reforging rule.
-4. Which state a part line carries (§ 7), and the full upkeep census.
-5. The mender's venue: where, and whose — a tinker on the road (a
-   travelling NPC with a pack) is the period-honest first one, a cobbler
-   in the city the second.
-6. Pricing the service: by the diagnosis (what failed) rather than by
-   mass × deficit.
-7. Whether `alter` (tailoring's re-fit) is a repair rung, a `fit`, or its
-   own act.
+Every question this slate opened is answered (§ 0); requirements
+proceeds from here. ⭐ The one the slate had not recommended: **`alter`
+stays tailoring's own act** — it changes *whom* a garment fits, not its
+condition, so it is neither a repair rung nor a `fit` of a part.
+
+Still to be decided at requirements, as product surface: the exact
+failure table (§ 3 is a proposal), the upkeep census (§ 7), and where
+the tinker walks.
 
 ## Cross-references
 
