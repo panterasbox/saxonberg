@@ -995,10 +995,13 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     // 28). Picked up only now: the three lumps no longer stack (the
     // assembly merge), and carried to the fuel yard they left room for
     // three baskets, not four (run 32). Charged a lump at a time.
+    // The smelter's own two baskets make up the charge: what else the
+    // character carries leaves room for three from the yard (run 33).
+    await act(k, 'get charcoal');
+    await doing(k, 'put charcoal in furnace');
+    await doing(k, 'put charcoal in furnace');
     await doing(k, 'get malachite');
     for (let i = 0; i < 3; i++) await doing(k, 'put malachite in furnace');
-    await doing(k, 'put charcoal in furnace');
-    await doing(k, 'put charcoal in furnace');
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
