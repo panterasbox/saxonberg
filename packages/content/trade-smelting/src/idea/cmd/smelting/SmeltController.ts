@@ -814,6 +814,14 @@ async function runIntoCrucible(
   const crucible = crucibleIn(furnace, metalPath);
   let keptL = 0;
   if (crucible !== null) {
+    // ⭐ The pot stands IN the lit furnace, so it is at the furnace's heat
+    // when the metal runs — set before the pour as well as after it. A
+    // crucible put in cold and the furnace lit just before the smelt had
+    // not come up to heat, and the run blended down to the pot on the way
+    // in, set on contact, and dropped into the furnace as a lump: the
+    // crucible empty and "nothing to pour" (found by the live drive; a
+    // race on the real clock the unit harness does not reproduce).
+    crucible.setContentsTemperature(heldK);
     const to = BulkableApi.slotFor(crucible, undefined);
     const source = await StuffApi.clone<Stuff & Bulkable>(UNBOUNDED_RECEPTACLE);
     try {

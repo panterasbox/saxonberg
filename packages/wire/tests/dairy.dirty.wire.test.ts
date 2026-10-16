@@ -900,13 +900,16 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
   });
 
   it('⭐⭐ the stranger drinks it raw, and falls ill', async () => {
-    // Handed over, not dropped: the byre has three pails now, and a pail
-    // on the floor among them is not one a stranger can name.
-    const strangerHandle = uniqueHandle('stranger');
-    stranger = await Session.open(strangerHandle, { startLocation: BYRE });
+    // Set down in the yard, where no other pail hangs: the byre has three,
+    // and a stranger cannot be named by a handle to be handed one.
+    await goTo(YARD);
+    await doing(k, 'drop me:i:pail');
+    stranger = await Session.open(uniqueHandle('stranger'), {
+      startLocation: YARD,
+    });
     await stranger.drainProse();
-    await doing(k, `give me:i:pail to ${strangerHandle}`);
-    const drank = await act(stranger, 'drink me:i:pail');
+    await doing(stranger, 'get pail');
+    const drank = await act(stranger, 'drink pail');
     expect(refusedFor(drank.r)).toBeNull();
     await advance('18 hours');
     const self = await read(stranger, 'look me');
