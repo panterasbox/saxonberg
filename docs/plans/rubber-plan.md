@@ -379,6 +379,23 @@ author it; renaming buys nothing. Both specs are the same closed shape
 same way. ⚠ `Enclosed.ts`'s *"No `roofed`"* paragraph is rewritten: the
 roof is now a declared part because the sky bit is leaving the biome.
 
+**D1a — A part is ONE layer or a LIST of layers, outside-in (added
+2026-10-16 after reading build-4's storage-and-ice requirements).**
+Their icehouse wall is a sawdust-filled double wall (timber · sawdust ·
+timber); a hothouse may be double-glazed. So `enclosure:` and `roof:`
+each accept today's single `{ material, thicknessM }` **or** a list of
+them, outermost first; the single form is a one-element list and every
+shipped row stays valid unchanged. `ResolvedEnclosure` becomes a list of
+resolved layers plus three derived figures the readers use:
+`resistanceM2KW = Σ tᵢ/kᵢ` (heat — layers in series), `transmittance =
+Π e^(−αᵢ·tᵢ)` (light, D5), and `capacityJPerKM2` from the **innermost**
+layer's skin (the active-depth term stays the skin that answers within
+the hour — the room sees its lining, not the brick behind it).
+`lint:envelope` clause (e) validates every layer. ⭐ The layer list is
+also the seam a building's **bill of goods** would read (material × face
+area × thickness = a mass of material per layer) — not built here; see
+Deferred seams.
+
 **D2 — Hosts of the construction: the `Structure` owns it; a room
 overrides; a vessel is its own material all round.** `Structure` gains
 `enclosure`, `roof` and `storeys` (host placement below). A room's own
@@ -476,8 +493,10 @@ miss, one pass over the room's obvious exits.
 **D5 — Light through matter by Beer–Lambert: `Material.lightAbsorption`
 in 1/m; absent means opaque.** A new `Quantity<'1/m'>` unit (the
 catalog in `lib/quantity.ts` gains it) and a `Material` field with
-marshaller; `getLightAbsorption(): Quantity<'1/m'> | null`. A face of
-thickness `t` passes `e^(−α·t)`; a material authoring nothing passes 0.
+marshaller; `getLightAbsorption(): Quantity<'1/m'> | null`. A layer of
+thickness `t` passes `e^(−α·t)`; a face passes the PRODUCT over its
+layers (D1a); a material authoring nothing passes 0, so one opaque layer
+makes the face opaque.
 Rows that author it this build: `glass/glass.yaml` (α ≈ 8/m: 4 mm clear
 glass passes 0.97), `bulk/water` (≈ 0.5/m), the ice cast's material
 (≈ 2/m), `organic/horn` if it exists (≈ 200/m), and nothing else — every
@@ -502,7 +521,8 @@ a horizontal surface, ⚠ the one calibration constant, and it is a
 setting not a plan decision), `skyFactor(t)` the pure-geometry
 `CelestialApi.skyIlluminanceFactor` at the realm's profile and latitude
 (sync), `weatherDim` the scope's cached dim factor, `w_top = 1`,
-`w_wall = light.solar.sideWeight`. Folded into `reconcileEnvelope`'s
+`w_wall = light.solar.sideWeight`, and `T_i` each face's layer product
+(D1a). Folded into `reconcileEnvelope`'s
 `heatW` **per segment**: a gap is split into at most
 `envelope.solarSegmentsMax` (48) equal segments, each no longer than a
 game hour, with the sky factor sampled at the segment's midpoint; a room
@@ -514,8 +534,8 @@ dial and the two share only the sky factor and the dim.
 
 **D7 — Heat between rooms of one building: one-hop coupling through
 interior faces, each neighbour read as a constant over the gap.** For
-each `Face` in `exposure().interiorFaces()`, `U_i = A_i / (t_i/k_i +
-R_films)` through the partition (the room's own resolved walls — a
+each `Face` in `exposure().interiorFaces()`, `U_i = A_i / (Σ t/k over the partition's layers +
+R_films)` (D1a) through the partition (the room's own resolved walls — a
 party wall is the building's walls; the structure's `partition:` is
 deliberately NOT a third spec, see Deferred seams) and `T_i =
 neighbour.envelopeTemperatureLast()`. The steady state becomes
@@ -645,6 +665,22 @@ the question.**
    boots wading brine soak as the body does. Leather (wAC 15 ⇒
    permeability 0.375) soaked in salt water (≈ 5 S/m) reads ≈ 1.9 S/m —
    a conductor; rubber stays 1e-13.
+   ⭐⭐ **ONE wet law, two readers (added 2026-10-16, coordinated with
+   build-4's storage-and-ice build).** Water in a material's pores
+   replaces air; that is the whole mechanism, and it changes more than
+   one property. So the law is stated ONCE, on `MaterialLogic` (surfaced
+   through `MaterialApi`), as *the effective value of a property for a
+   material at a saturation, given the fluid in its pores*:
+   `p_eff = p_dry + saturation · permeability(material) · (p_fluid −
+   p_dry)` with the same `permeability` as above. Two readers:
+   **electrical conductivity** (this build — the boots; fluid = the pool
+   or fresh water) and **thermal conductivity** (build-4 — the icehouse's
+   sawdust soaked by its meltwater; fluid = water, ≈ 0.6 W/m·K, ~23×
+   air). ⚠ **Whichever build lands second consumes the other's law, never
+   a second copy.** If build-4 lands first with its own form, this build
+   folds `contactResistance`'s wet term onto it; if this lands first,
+   build-4 reads it. The plan's `contactResistance(material, wet?)`
+   becomes a caller of the shared law, not its owner.
 2. *The outermost layer sheds rain.* `Attired.exposeToRain(delta)` (a
    method on the wearer — verbs on objects): for each body part by
    surface share, the outermost covering takes `delta` (it is `Wet`), and
@@ -810,7 +846,9 @@ content; interiors in no building are a counted, falling number.**
   `SkyExposedBiome`, or it authors none) that lies under no Structure
   row's `extent`, excluding `Offstage`/lounge rows and rows that author
   `_temperature` (a cellar authors its air and has no weather question);
-  **the count at W0 is the ceiling**, held in the script as
+  ⚠ build-4 (storage-and-ice) is authoring an icehouse as a walled room; it
+  has been asked to author it as a Structure row so neither build trips
+  this gate whichever lands first. **The count at W0 is the ceiling**, held in the script as
   `UNHOUSED_CEILING` with the list of paths, failing when a listed path
   is no longer unhoused (pay the debt, delete the line) and when the
   count rises. Today's figure is computed by the script itself at W0 —
@@ -950,10 +988,15 @@ lint family, at a commit. `pnpm test` runs once before the MR.
 
 ### W0 — the construction vocabulary and the `Exposure` answer (behaviour-preserving)
 
-Implements D1, D2, D3, D4, D14 (the census).
+Implements D1, D1a, D2, D3, D4, D14 (the census).
 
 Files:
-- `lib/spatial/Enclosed.ts` — add `RoofSpec` (= `EnclosureSpec | 'none'`),
+- `lib/spatial/Enclosed.ts` — a part is `EnclosureSpec | EnclosureSpec[]`
+  (D1a, outermost first; the single form is a one-element list);
+  `resolveEnclosure` returns the resolved layers + `resistanceM2KW` and
+  the innermost skin, and `reconcileEnvelope`'s `U` reads the series sum
+  (byte-identical for every one-layer row — a test asserts it); add
+  `RoofSpec` (= `EnclosureSpec | EnclosureSpec[] | 'none'`),
   `StoreySpec { key, extent, on?, open? }`, `roofDefaults()` on the
   `Enclosed` interface; rewrite the *No `roofed`* paragraph.
 - `lib/spatial/Exposure.ts` — NEW value object (D4).
@@ -967,7 +1010,7 @@ Files:
 - `lib/boundary/ExitableVessel.ts` — `roofDefaults()` override (own
   material when `interiorVolume`, `'none'` otherwise).
 - `packages/server/scripts/check-envelope.ts` — clause (e) admits `roof`
-  with the same two keys and `none`; clause (f) the storey tree.
+  with the same two keys and `none`, and a list of layers for either part; clause (f) the storey tree.
 - `packages/server/scripts/check-unhoused.ts` — NEW; `package.json`
   `lint:unhoused`.
 - Tests: `lib/spatial/__tests__/Exposure.test.ts` (a fixture structure
@@ -1369,6 +1412,18 @@ Each leaves as a slate line, not a plan section.
   drilling-slate (the `CrosslinkSpec` is the seam: a second polymer is a
   spec on a second feedstock).
 - **A `cure` discovery loop / the published curve** → inquiry-slate.
+- **Radiation to a clear night sky** (ice in pans on clear nights; a
+  hothouse losing heat faster under stars than under cloud) →
+  weather-slate. ⭐ The attach point is this build's: an exterior top face
+  with `skyVisible()` gains a radiative loss term weighted by the cloud
+  dim — the same face, a third heat path beside conduction and solar
+  gain. build-4 defers its pan ice to the same slate.
+- **A building's bill of goods — erection and upkeep paid in RGO outputs**
+  (build-4's ⚠ OPEN item) → structures-slate, in NEITHER build. The seam
+  is D1a: a Structure owns its layers, and each layer's material × face
+  area × thickness is a line of the bill; settling and rot are upkeep on
+  a layer. Who erects, who pays and what decays is an economic design of
+  its own (assembly-shaped).
 
 ---
 

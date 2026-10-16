@@ -15,6 +15,15 @@
 > author likes and tied to parcels, so no zone is the authority for a
 > building.
 
+> ⭐ **Layers and the bill of goods (2026-10-16).** Read side by side with
+> build-4's storage-and-ice requirements: a wall or roof is a LIST of
+> layers (the icehouse's timber · sawdust · timber; a double-glazed
+> hothouse), and that list is the seam a building's **bill of goods**
+> reads — each layer's material × face area × thickness is a line, its
+> settling and rot the upkeep. ⚠ Erection and upkeep paid in RGO outputs
+> was build-4's OPEN item; it lands **here, in neither build** — who
+> erects, who pays and what decays is an economic design of its own.
+
 > **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
 > (`platform/idea/Structure`) is membership by extent prefix, the
 > entrance, the outside look, `landmark` and `heightM`;
