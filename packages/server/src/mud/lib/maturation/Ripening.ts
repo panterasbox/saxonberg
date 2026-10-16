@@ -144,6 +144,21 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     private _reconcilingRipening = false;
 
+    /**
+     * ⭐ It starts ripening the moment it IS a cheese (dairy, found by the
+     * drive): ripening used to start at the first READ, so a wheel cast,
+     * salted and racked and left unlooked-at stored `idle` — its spoilage
+     * gauge unheld and its clock unstarted for every day before somebody
+     * looked — and came off the rack three weeks later *faintly off*.
+     * Both the cast and the salting craft set the material.
+     */
+    public setMaterial(value: Material | null, detailKey?: string): void {
+      (Base.prototype as unknown as {
+        setMaterial(v: Material | null, k?: string): void;
+      }).setMaterial.call(this, value, detailKey);
+      this.reconcileRipening();
+    }
+
     public reconcileRipening(): void {
       if (this._reconcilingRipening) return;
       const self = this as unknown as Stuff;

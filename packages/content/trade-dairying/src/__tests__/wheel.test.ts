@@ -59,6 +59,18 @@ describe('the wheel', () => {
   });
   afterEach(tearDown);
 
+  it('⭐ a wheel ripens — and is held — from the moment it is a cheese, read or not (dairy, found by the drive)', () => {
+    at(0);
+    const { wheel: w } = wheel(MAT.hardCheese);
+    // Nothing reads it until three weeks on — and the phase as STORED is
+    // what the spoilage hold asks, so it must already be ripening.
+    expect((w as unknown as { ripeningPhase: string }).ripeningPhase).toBe('active');
+    expect(w.holdsSpoilage()).toBe(true);
+    at(21 * DAY);
+    expect(w.getMicrobialLoad()).toBeLessThan(0.25);
+    expect(w.ripenessLine()).toMatch(/coming on/);
+  });
+
   it('a hard wheel ripens over a season, young first', () => {
     at(0);
     const { wheel: w } = wheel(MAT.hardCheese);

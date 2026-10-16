@@ -2073,6 +2073,35 @@ USE them.
     (four; the smelter props two, the fuel yard four); `get bar`, since
     `ingot` names the mould too.
 
+25. ⭐⭐ **After the climate merge the world boots in deep winter** (runs
+    17–20): 268 K at a clear dawn, the creamery 277–286 K, a vat 271–277 K
+    — under a curd's 283 K stall, so the renneted batch sat *cold and
+    sluggish* and the warm jug never turned. Tried and dropped: a
+    limestone envelope on the creamery (it read colder, not steadier); a
+    2.5 kW room stove (267–276 K lit — room heating against the new
+    climate is thermal's to size); a jump to midsummer (six 30-day steps
+    left the server drowning). Kept: the creamery and the Dry are
+    AUTHORED 293 K on `lint:envelope`'s list (B9), and every set is
+    waited on by its state.
+26. Runs 20–28, the merged tree's drive-shape lessons: two pails in hand
+    (the goat pen's and the byre's) and `can` → *canvas shoes* each
+    asked *which?* and wedged the session; `say` answers in flight and
+    skips a stale refresh frame with no matches (it had answered nothing
+    and stopped); six baskets will not let the crucible lift, and four
+    are the run; a SET curd is no longer a working batch, so its gauge
+    is not held — the curd is drained when ready and the wheel unmoulded
+    on set, or the wheel arrives *faintly off* and its wedge is refused
+    as turned; 0.17 kg of copper sets in the crucible within minutes of
+    the bellows stopping, so it is poured at once; one 21-day jump
+    leaves the server at 94% CPU and the next command queues past any
+    timeout, so the rack's three weeks go in three-day steps; `ore` also
+    names the ore buyer (`malachite`). The account is opened before any
+    cheese exists.
+27. **The scan-sweep merge** retired boot lists (props load with their
+    room, a species with its animal): the dairy's four boot entries are
+    gone, and the byre's books loaded on arrival (run 26). `Mould`'s
+    `castTemplate` is `ref: 'identity:kind'` under the split vocabulary.
+
 ### Build decisions (not in the plan above)
 
 Decided during the build; each says which rule decided it.
@@ -2106,6 +2135,14 @@ Decided during the build; each says which rule decided it.
   depth is spatial's, so it goes to `cold-chain-slate` rather than being
   solved in a trade build. The freeze into the pan's shape is pinned by
   the W2b mould tests.
+- **B9 — The creamery workroom and the Dry are authored 293 K**
+  (`lint:envelope`'s list, each with its reason). The climate build made
+  the world boot in winter and no mechanism yet holds a room warm enough
+  for a curd. *Decided by:* the nearest pattern — the brewery, vintner and
+  crowsfoot floors are on that list because a maturation clock reads the
+  room; both entries are marked first to pay down when thermal sizes room
+  heating (`thermal-slate`). The Dry also gains the stove its prose has
+  always claimed.
 - **B8 — A venue's starter dies unfed in six days, and stays dead.** Not
   softened: the craft's remedy (raw milk soured wild, its whey
   backslopped) is real and the drive walks it. A co-op that sells starter

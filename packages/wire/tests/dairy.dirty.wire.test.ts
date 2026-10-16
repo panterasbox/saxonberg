@@ -987,12 +987,16 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'ignite furnace');
     await act(k, 'pump bellows');
+    // ⚠ Preheat: 0.17 kg of copper tapped into a COLD crucible sets on
+    // contact — run 29 poured nothing straight after the tap. A smelter
+    // brings the pot up with the furnace first.
+    await advance('30 minutes');
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
-    // Pour while it runs: 0.17 kg of copper sets in the crucible within
-    // minutes once the bellows stop (run 23 waited ten and poured nothing).
-    await act(k, 'pump bellows');
+    note(`look crucible (tapped) → ${await read(k, 'look crucible')}`);
+    // Poured at once, the bellows still going (a second `pump` eases them
+    // OFF — run 29).
     const poured = await act(k, 'pour crucible into mould');
     note(`pour crucible into mould → ${poured.said}`);
     expect(refusedFor(poured.r)).toBeNull();
