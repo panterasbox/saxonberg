@@ -280,8 +280,9 @@ timber, lime, slate, glass, sawdust fill.
   density = the mass of each material owed), and upkeep from what time does
   to each material — the same "the good decides what time does to it" rule
   as [storage-slate](./storage-slate.md).
-- **Where it builds: OPEN** — the storage-and-ice build or the rubber
-  (hothouse) build, whichever the side-by-side reading of the two
-  requirements picks. Consumers waiting: the icehouse wall, the hothouse's
+- **Where it builds: AFTER the rubber build**, in neither it nor
+  storage-and-ice (decided 2026-10-16, after reading the two side by side):
+  rubber's **layered** walls and roof are the seam the bill derives from —
+  each layer's material × area × thickness is a line of it. Consumers waiting: the icehouse wall, the hothouse's
   glass and its stove house, every building rubber's construction model
   describes.

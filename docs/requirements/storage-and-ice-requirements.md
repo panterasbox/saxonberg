@@ -147,9 +147,9 @@ Seeding slates:
 
 **Storage beyond this build**
 - **Damp, spontaneous combustion and vermin in stores** → storage-slate's next pass, with the granary and the haymow. ⚠ **One exception is in this build: meltwater soaking an icehouse's packing** (see Surface decisions).
-- **⚠ OPEN: building materials, erection and upkeep.** A building would have a bill of goods to erect and maintain it, paid in RGO outputs, so the icehouse's sawdust-filled wall would be one line of its bill and its settling and rot its upkeep. → [structures-slate](../slates/builds/structures-slate.md), where the idea is recorded.
-  - **Not designed yet.** It may be taken in **this build or in the rubber (hothouse) build**, decided once both requirements have been read side by side.
-  - **Until then, the walls are authored construction**, and they wear nothing.
+- **Building materials, erection and upkeep** (a building's bill of goods to erect and maintain it, paid in RGO outputs; the icehouse's wall fill would be one line of its bill, its settling and rot the upkeep) → [structures-slate](../slates/builds/structures-slate.md), **after the rubber build lands**.
+  - Decided 2026-10-16, after reading rubber beside this: rubber's layered walls are the seam the bill derives from (each layer's material × area × thickness), so it is built on that and in neither build.
+  - **Until then, walls are authored construction**, and they wear nothing.
 - **Moving the timber yard onto a store** → storage-slate, as a candidate.
 - **Transferable receipts** (futures; a receipt as collateral) → storage-slate; credit.md wants the second.
 - **NPC restocking while nobody is online** → unobserved-economy-slate. The physics needs nothing: stores catch up when read.
@@ -157,7 +157,7 @@ Seeding slates:
 **Other trades and kinds of ice**
 - **Offcuts and slab wood from the saw** → carpentry-slate.
 - **The lounge's ice bin** (it wants crushed ice), and **the bagged-ice import line** (freezer ice, cold-chain's industrial rung) → cold-chain-slate.
-- **Ice made in pans on clear nights** (radiation to the sky) → the weather slate. The model has no sky-radiation term.
+- **Ice made in pans on clear nights** (radiation to the sky) → the weather slate. The model has no sky-radiation term. Rubber's roof face is where it would attach (an exterior top face that sees the sky loses heat to it, weighted by cloud).
 - **Thin ice over a current, pressure ridges** → watershed.
 
 **Cross-cutting capabilities**
@@ -177,6 +177,7 @@ Seeding slates:
 - **Sawdust is carpentry's,** because the saw makes it.
 - **Cold water reaching the body is the kernel's** body-heat correction, and applies to every swimmer.
 - **The placeholder venue** (frozen pools at circlemere and clearmere, an icehouse, an ice company) is authored in the Circle's locality content.
+- **The icehouse is a building of its own,** standing apart from any warm room as real icehouses did. It is authored as a building now, which already works. That keeps rubber's count of rooms in no building from rising, and lets it take walls and a roof from the building when rubber lands.
 
 ## Collisions
 
@@ -197,8 +198,17 @@ Seeding slates:
 - **`measure`** gains two readings.
 
 **⚠ The rubber build (build-1, planned, not built)**
-- It authors a light-absorption value on the ice material, which this build moves to the commons. Whichever lands second re-points it.
-- It also makes a building own its walls and roof. The icehouse is authored as a walled room that works today, and can become a building when that lands.
+Read side by side on 2026-10-16; see build-1's note `docs/plans/rubber-note-to-storage-and-ice.md` on `reqs/rubber`.
+- **The ice material:** rubber authors a light-absorption value on it, and this build moves it to the commons. Whichever lands second re-points it.
+- **The icehouse is a building now** (see Placement), so neither build raises rubber's count of rooms in no building.
+- **Walls become layers** under rubber (a list, outermost first, in series). The honest icehouse wall is timber, sawdust, timber. Until then it is one thick layer of the same total insulation, converted by editing the row.
+- **⚠ One wet law, not three.** Water filling a material's pores is one mechanism:
+  - this build's wet sawdust, for heat;
+  - rubber's wet leather, for electricity;
+  - textiles' **already-shipped** wet cloth, for heat (why wet wool fails).
+
+  It is stated once, at the material, and every reader uses it. Whichever build lands first generalizes the textiles law, and the second consumes it, never a new copy.
+- **Rooms in one building share heat** under rubber. An icehouse that stands apart is unaffected, and one that shares a wall with a warm room would rightly gain heat through it.
 
 ## Surface decisions
 
@@ -216,12 +226,12 @@ Object physics stays as it is. Lenses 1 and 2: the real mechanism, and new kinds
 - **The store is an object in an ordinary authored room,** not a walkable place.
 - **It reads its conditions from what reaches it.** A store in a compartment reads the compartment.
 - **The packing belongs to the stock:** an icehouse's store holds an ice line and a sawdust line. **The sawdust's amount over the stack's surface is the packing's depth**, and so its insulation. Too little sawdust is a fast melt.
-- **The shed's own walls are the room's walls,** as every room's already are, authored thick (historically a sawdust-filled double wall).
+- **The shed's own walls are the building's walls,** authored thick: historically a sawdust-filled double wall, and timber, sawdust, timber once rubber's layers land.
 - **The same law governs both layers** (thickness over conductivity), and sawdust's conductivity is authored once.
 
 ### Meltwater soaks the packing
 - **The ice's melt wets the sawdust** in proportion to the mass melted, less what the house's floor drains away. Drainage is a property of the store, authored like the stack's shape.
-- **Wet packing insulates by the law that already makes wet wool fail.** Water conducts about 23× better than air.
+- **Wet packing insulates by the law that already makes wet wool fail,** the one wet law shared with rubber (see Collisions). Water conducts about 23× better than air.
 - **So a neglected house spirals:** a soaked house melts faster, which soaks it more.
 - **The keeper's seasonal work** is to dig out the spoiled sawdust and repack with fresh, which gives the sawmill a recurring buyer.
 - **Wet sawdust is a grade of sawdust,** so spoiled packing taken out is distinguishable from fresh.
