@@ -209,6 +209,7 @@ Seeding slates:
 - **The general store's powered cold room, and bagged ice at the bottling counter:** both stand as ice's successor. Nothing changes.
 
 **Kernel behaviour other builds rely on**
+- **The estuary pool's floor becomes water.** Under the floor model a pool's floor is its water's surface, so the cove no longer has a board floor you can sit on; you are in it, swimming. That is a correction to maritime's pool, and maritime's drive must still pass.
 - **Every swimmer** (the estuary pool, the sea) now feels cold water, and is soaked by it. Maritime's drive must still pass. A summer swim chills nobody, but still leaves you wet.
 - **Metal lumps** (smelting, smithing, salvage) must keep their alloying and temper exactly. **Glass cullet and salvage** must keep their iron. The smelting, smithing and glass drives must still pass.
 

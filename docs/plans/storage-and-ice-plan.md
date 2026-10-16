@@ -7,67 +7,40 @@ poolable good the saw now leaves behind). Three corrections ride along:
 a swimmer's body reads the water, the re-meltable lump stops claiming a
 temper, and ice becomes a material of the commons.
 
-Written 2026-10-16 against `reqs/storage-and-ice` at `0c8a48153`. Paths
-are relative to `packages/`; `S` = `server/src/mud`, `C` = `content`.
-The build agent runs with fresh context: every wave is executable from
-this document plus the files it names.
+Written 2026-10-16 against `reqs/storage-and-ice` at `0c8a48153`;
+re-planned the same day against `801b97cdc` (the floor ruling — *the
+frozen pool is one place and the ice is its floor; on it or in it is
+support, not location*). Paths are relative to `packages/`; `S` =
+`server/src/mud`, `C` = `content`. The build agent runs with fresh
+context: every wave is executable from this document plus the files it
+names.
 
 ---
 
 ## ⚠ Requirements problems found
 
-Listed first, as the planner contract asks. The plan proceeds on the
-recommended fix for each; the parent session decides whether to edit
-the requirements doc to match.
+None open. Five questions the first draft raised were **resolved by the
+user on 2026-10-16** and are in the requirements doc now; the plan
+carries each as a settled decision: `plough` → `mark` for the ice act
+(D19, with the verification that farming's `PloughController` is bound
+to the `Field` protocol and cannot unify); `cut` is ONE kernel view over
+a cut-plan protocol, tailoring refactored in W7 (D16); the fishing hole
+is cut with the ice saw and boring with the auger goes to fishing-slate
+(D15); tongs are flavour and carrying is ordinary `get` (D19); the
+`custody` category name stands (D6). The first draft's in-room model of
+the frozen pool (a transient standing map, a `wade` verb, a `mode`
+argument on the place hooks) was rejected and replaced by the floor
+model (D12, D13).
 
-1. **`plough` cannot be shared with farming's view, and the plan uses
-   `mark` for the ice act.** The requirements say *"`plough` (farming)
-   also marks a frozen pool"* and the task forbids a second `plough`
-   view and any `KNOWN_COLLISIONS` amnesty. Verified: farming's
-   `PloughController` is a `FieldWorkController` bound to the farming
-   `Field` protocol — `this.fieldOf(...)` → `field.bankWork('clearing',
-   LABOUR_PER_ACT × draught, bill)` with the soil sample's stoniness
-   pacing the bout (`C/trade-farming/src/idea/cmd/farming/PloughController.ts:109–152`).
-   Unifying by shape (rung 2) would make a frozen pool fake a field's
-   work bank and a soil sample, i.e. a guard re-asking *field or sheet*
-   — the collision ladder's own tell that unify is wrong. Rung 5 (never
-   co-afforded) does not satisfy `lint:verb-collisions`, which fails on
-   any verb two views claim. **Rung 1 applied to the challenger**: the
-   historical tool is literally the *ice marker* and the act *marking
-   off*; `mark` is free (verified: no view claims it; `score` is the
-   social verb). Recommended edit: Surface decisions § The harvest,
-   Collisions § Words and verbs, drive steps 6 and 9, and the
-   acceptance criterion *"`look` at a field distinguishes its …
-   marked …"* keep their meaning with `mark` as the verb. The draught
-   rule (hand marker pushed, ice plough drawn by a horse that needs
-   thicker ice) is unchanged.
-2. **Drive step 10, "`get` the block with tongs."** `get` has no
-   instrument argument (`C/platform/content/platform/cmd/inventory/get.yaml`
-   binds only `targets`), and handling at scale is freight-slate's by
-   the requirements' own non-goals. Tongs ship as a tool row
-   (`gripping`) and do not gate carrying; weight is the shipped soft
-   encumbrance. The drive reads `get block`. Recommend the requirements
-   say tongs are flavour in this build.
-3. **The placeholder mere must be in the southern hemisphere.** The
-   drive starts *"on the first day of the cold"* in a fresh world, and a
-   fresh world's day 0 is the northern spring equinox (the climate drive
-   stands at *"66° S on the northern equinox, where the cold is DAYS
-   OLD"*). A northern mere would be 270 days from its first frost. The
-   requirements say *real seasons* and nothing about hemisphere; the
-   plan authors the locality at ~58° S with an **alive** clear pin
-   (deterministic weather, seasons still run) and a cold offset tuned so
-   the freeze comes within days of day 0 and the thaw by day ~150. Not a
-   contradiction; a closure the requirements left open, recorded here.
-4. **`cut` is shared by tailoring and the ice cut, and the only rung
-   that satisfies both the requirement (*neither may shadow the other*)
-   and the gate (no second view, no amnesty) is rung 2: ONE kernel
-   `cut` view over a cut-plan protocol the target supplies.** That is a
-   tailoring refactor inside this build (D16). It is the right shape by
-   the project's own doctrine (*the ladder's first rung is unify behind
-   an interface*; *mixin authoritative, controller dumb*), and it is
-   flagged under Risks as the one wart the user should see: tailoring's
-   three options (`--for`, `--tight`, `--generous`) ride the kernel view
-   as the plan protocol's option bag.
+One closure the requirements leave open is recorded here so the parent
+session sees it: **the placeholder mere is authored in the southern
+hemisphere.** The drive starts *"on the first day of the cold"* in a
+fresh world, and a fresh world's day 0 is the northern spring equinox
+(the climate drive stands at *"66° S on the northern equinox, where the
+cold is DAYS OLD"*); a northern mere would be 270 days from its first
+frost. The locality sits at ~58° S with an **alive** clear pin
+(deterministic weather, seasons still run) and a cold offset tuned so
+the freeze comes within days of day 0 and the thaw by day ~150 (D22).
 
 ---
 
@@ -241,7 +214,9 @@ plan relies on it). What exists, what it does, what it does NOT do.
 - `Pool` (`S/platform/location/Pool.ts`) =
   `SwimmableMixin(ShoreMixin(SingletonCartesianLocation))`; `axes:
   ['*']`; `canEngageAxis` returns false when `peekWaterRead(key)?.frozen`.
-  `ShoreMixin` (`S/lib/location/Shore.ts`): `waters: Record<key,
+  ⚠ A `Pool` mints the DEFAULT floor like any Location (a board floor —
+  `/stuff/thing/surface/default-floor`), so today `sit` in the estuary
+  cove sits you on boards over the water. `ShoreMixin` (`S/lib/location/Shore.ts`): `waters: Record<key,
   citation>`, `waterFor(name?)`, async `waterRefFor(name?)`, sync
   `peekWaterRead(key)`, a 6-hour memo, `commandContributions.inventory:
   DRAW_VERBS`. `WaterRead` (`S/lib/location/WaterSource.ts:39–54`):
@@ -261,10 +236,21 @@ plan relies on it). What exists, what it does, what it does NOT do.
   `enablementMixin: null`, `medium: ground`.
 - `Mobile.traverse` (`S/lib/spatial/Mobile.ts:395–470`) — the seven
   steps; `crossExit` calls `canExit(mover, exit)` on the source and
-  `canEnter(mover, exit)` on the destination (l.918–926, **no mode
-  argument**; `Exitable.ts:197–199` declares them optional), moves,
-  then fires `onExited`/`onEntered(mover, exit)` on the places and
-  `onTraversed(exit)` on the mover (l.1005–1012).
+  `canEnter(mover, exit)` on the destination (l.918–926, no mode
+  argument; `Exitable.ts:197–199` declares them optional), moves, then
+  fires `onExited`/`onEntered(mover, exit)` on the places and
+  `onTraversed(exit)` on the mover (l.1005–1012). The mover's own say
+  is `beforeTraverse?(via): TraversalGuard` (l.109; combat's flee is
+  its one implementer today). ⭐ **The attempted mode is readable off
+  the mover inside every one of those hooks**: `LocomotionLogic.engageAround`
+  (l.416–453) does `actor.setEngagedMode(mode)` BEFORE running the
+  action and, in `finally`, clears it only when `isTransientEngagement`
+  (l.456–467: passthrough → keep; no enablement mixin → clear; an
+  enablement mode whose destination composes the mixin → keep). So a
+  swimmer who arrived by `swim` into a Swimmable room keeps `swim`
+  engaged; one who walked in has none; and a refused walk out of a pool
+  leaves the actor with NO engaged mode — the engaged mode is a fact
+  about the last crossing, not a durable "I am swimming" state.
 - `ThermalRegulation.effectiveAmbient` (`S/lib/thermal/ThermalRegulation.ts:502–588`):
   ambient from `BiomeApi.resolveTemperatureFor(scope)`, `mediumTag =
   resolveAtmosphereFor(scope)`; `immersion = k(medium)/k(air)`; above 2
@@ -301,6 +287,68 @@ plan relies on it). What exists, what it does, what it does NOT do.
   `@saxonberg/content-water`.
 - Buoyancy: no float/sink logic; `Material.getDensity()` exists; no
   bottom container.
+
+### The floor, posture and support
+
+- **Every Location has a floor** (`Location.ensureFloor`, `S/lib/stuff/Location.ts:368–420`,
+  run from the base `onCreate`): unless `noDefaultFloor`, it clones
+  `this.floor?.template ?? TemplatePaths.defaultFloor` and
+  `addFixture(minted, 'floor')`. ⭐ **`FloorSpec.template` names the
+  floor ROW a room clones** (`Location.ts:52–61`: `{template?,
+  material?, onGrade?, worked?}`), so a row may carry a floor of any
+  Floor class without a room subclass. `floorDefaults(onGrade)` answers
+  only `{worked, materialPath}`. The floor is a **fixture**
+  (`Adornable.fixtureSlots`, read back by `getFloor()`, `Adornable.ts:296–298`),
+  has no container, and `setAdornedTo(host)` is its back-reference
+  (`Adornment.ts:35, 75`); `resolveUnderfoot()` is awaited right after
+  `addFixture`, so the floor knows its room from there.
+- **The Floor twin** `S/platform/thing/Floor.ts` =
+  `FloorMixin(BulkableMixin(PosturedMixin(SlottedMixin(AdornmentMixin(VisibleMixin(Thing))))))`,
+  fixed in place. `FloorMixin` (`S/lib/ground/Floor.ts`): `onGrade`
+  (tri-state), `isWorked`, `getGroundKind()` (derived), `hasStandingWater`,
+  `getUnderfootMaterialPath/Rung`, `resolveUnderfoot()`, `groundPhrase()`,
+  `getSnowDepthM()` (reads `WeatherApi.snowCoverAt`, gated on *on grade
+  and under the sky*), `getSnowBand()`, `isSnowPerennial()`, `snowPhrase()`,
+  `isFrozenOver()` (the puddle's skin: standing water under air at or
+  below freezing, l.621). There is **no `bears()`/standability read on a
+  floor**; the only existence question is `noDefaultFloor`. The
+  shovelled-snow seam (`snowRemovedMm`) is named in `ground.md` and not
+  built.
+- **The floor's slot** `ground:1` (`Floor.ts:142–146`): `accepts:
+  Slottable`, unbounded capacity, `postures: [Sit, Lie, Kneel, Stand]`,
+  `userFacingDetail: 'floor'`. So `stand on the ground` is already a
+  posture transfer onto the floor's slot; bare `stand` is slot-less
+  (`StandController.ts:76–77` → `vacatePostureBearingSlots()`); `sit`
+  has `default: "ground"` (`sit.yaml:20`) resolving to that slot.
+- **Who may change a posture.** `PosedMixin` (`S/lib/character/Posed.ts`):
+  `transferPosture` (l.276) and `vacatePostureBearingSlots` (l.331) are
+  gated `PostureVerbCallers` = the six posture/mount controllers
+  (l.82–87); `setPosture` is ungated (l.205). The HOST side is not
+  gated: `Slotted.canOccupy(candidate, slot)` (`S/lib/slot/Slotted.ts:328`,
+  overridable), `occupy` (l.376–400: calls `canOccupy`, then
+  `candidate._noteOccupied(host, slot)` and the claim witness) and
+  `vacate` (the chokepoint `Slottable.getOccupiedHost()` reads back,
+  `Slottable.ts:142`). `transferOccupancy` is the atomic
+  vacate-then-occupy (`Slottable.ts:226–258`). A room move does NOT
+  vacate a posture slot (only the conveyance/dismount path does,
+  `Mobile.ts:1108–1112`).
+- **Ground kinds** (`S/lib/ground/GroundKind.ts`): ten words closed by
+  `GROUND_KINDS` (l.55–67); a material's class comes from a tag table
+  (`rock/mineral/ceramic/glass → mineral; earth; granular; wood →
+  timber; metal/alloy → metal`, l.90–100) with a precedence order; the
+  fold `GROUND_KIND_FOLD` (l.143–160) is `f(materialClass, onGrade,
+  worked, standingWater)`, `contrived` when nothing matches (l.180:
+  *"of no material anything underfoot has a word for"*). The ice
+  material's tags `[solid, ice, frozen]` match no class → `contrived`.
+- **`lint:ground`** (`server/scripts/check-ground.ts`): (a) the
+  unbacked-prose ratchet; (b)/(c) stale entries; (d) every `FloorMixin`
+  row says `ground` and `floor` in its keywords; (e) every Location
+  `onCreate` override chains `super`; (f) a floor row authors no detail
+  named `floor`/`ground`.
+- **Respiration** (`S/lib/respiration/Respiration.ts:244–284`) resolves
+  the medium from the engaged mode when breathable, else `immersedIn()`
+  (the first containment ancestor holding a bulk interior), else the
+  scope's atmosphere — a swimmer at the surface breathes air either way.
 
 ### The lump, the saw, verbs, readings, seats, packs, the drive
 
@@ -340,8 +388,10 @@ plan relies on it). What exists, what it does, what it does NOT do.
   rows (`C/platform/.../cmd/perception/measure.yaml`; the `tool` arg
   is `objects` with default `reachable:[mixin.ToolMixin]`, the Reading
   narrows). `lint:verb-collisions` (`server/scripts/check-verb-collisions.ts:93–99`)
-  amnesties only lease/unlease/pour. `mark`, `scrape`, `wade`,
-  `deposit`, `withdraw` are free at the top level.
+  amnesties only lease/unlease/pour. `mark`, `scrape`, `deposit`,
+  `withdraw` are free at the top level; `stand`, `sit`, `lie` and
+  `swim` are the shipped posture/movement verbs this build extends
+  rather than adds to.
 - Readings: row shape `<root>/idea/reading/<channel>.yaml` with `class,
   channel, kind, scope [self|here|subject], subjectRequires, discipline,
   instrument, instrumentNoun, eyeCeiling, improves, stakes`
@@ -690,128 +740,207 @@ add the Material methods — the note binds both sides.
 ### Cold water, wetness, the frozen pool
 
 **D10 — A swimmable place says who is in its water, and the body reads
-it.** `SwimmableMixin` gains `immersionOf(occupant: Stuff): {mediumTag:
-'water', temperatureK: number} | null` — base: every occupant is
-immersed; temperature = the host's scope temperature (a flooded room).
-`Pool` overrides: `peekWaterRead(key)?.draw?.temperatureK ?? 274` (the
-read is null when frozen → 274 K, the under-ice floor). `FrozenPool`
-(D12) overrides per occupant (null on the ice). `ThermalRegulation.effectiveAmbient`
-asks, right after the biome reads: `if (scope && MixinApi.isSwimmable(scope))
-{ const im = scope.immersionOf(host); if (im) { ambientK = im.temperatureK;
+it; "in the water" is derived from SUPPORT.** `SwimmableMixin` gains
+`immersionOf(occupant: Stuff): {mediumTag: 'water', temperatureK:
+number} | null`. Base: an occupant is immersed unless it is **supported
+by the host's floor** — `MixinApi.isSlottable(occupant) &&
+occupant.getOccupiedHost() === floor` where `floor` is the host's
+`getFloor()` (a host with no floor, a flooded room, immerses everyone);
+temperature = the host's scope temperature. `Pool` overrides the
+temperature only: `peekWaterRead(key)?.draw?.temperatureK ?? 274` (the
+read's draw is null when frozen → 274 K, the under-ice floor). There
+is no per-occupant flag anywhere: standing, sitting or lying on the
+floor's slot IS support, and not holding it in a swimmable place IS
+swimming — the engaged `swim` mode is set for the sense consumers when
+a body goes in (D12), but nothing derives immersion from it, because
+`engageAround` clears a transient mode on every refused crossing
+(Grounding). `ThermalRegulation.effectiveAmbient` asks, right after the
+biome reads: `if (scope && MixinApi.isSwimmable(scope)) { const im =
+scope.immersionOf(host); if (im) { ambientK = im.temperatureK;
 mediumTag = im.mediumTag; } }` — then the shipped immersion fold and
 the wet amplifier do the rest. `MixinApi.isSwimmable` is added (the
-`Mixins` constant exists). Implementers: the mixin's base and two
-overrides on one class line — a method behind a mixin predicate, not an
-optional hook.
+`Mixins` constant exists). One implementation on the mixin plus one
+temperature override on `Pool`; a method behind a mixin predicate, not
+an optional hook.
 
 **D11 — Going into water soaks you and what you wear.** `Attired.immerse()`
 (`S/lib/slot/Attired.ts`, beside the existing part walk): `this.wet(1)`
 on the body and `layer.wet(1)` for every layer at every exterior part
 (`coveringAt(part.key)`); a non-Attired Wet thing gets `wet(1)`.
 Callers: `Pool.onEntered(mover, exit)` when `immersionOf(mover)` is
-non-null; `FrozenPool.breakThrough`; and `ThermalRegulation.restamp`
-re-immerses while `immersionOf(host)` is non-null, so the drain does
-not dry you while you swim. Rubber plans `Attired.exposeToRain(delta)`
+non-null after the support check; `WaterSurface.giveWay(occupant)`
+(D12); and `ThermalRegulation.restamp` re-immerses while
+`immersionOf(host)` is non-null, so the drain does not dry you while you
+swim. Rubber plans `Attired.exposeToRain(delta)`
 on the same host (their D12.2); different method, no conflict; the
 second to land re-reads the file.
 
-**D12 — The frozen pool is the water pack's, a subclass of the kernel
-`Pool`, persistable outermost.** `C/water/src/lib/Icefield.ts`
-(`IcefieldMixin`, pack `lib/`: substrate only inherited) and
-`C/water/src/location/FrozenPool.ts` = `PersistableMixin(IcefieldMixin(Pool))`,
-template path `/system/water/location/FrozenPool`. Why the water pack:
-the patch walk and the under-ice temperature read
-`WatercourseCatalogue`, which the kernel cannot import; the slate says
-*ice's bearing is the water pack's*. A second harvest pool is a row.
+**D12 — The ice is the pool's FLOOR. One place (the kernel `Pool`), a
+floor row the water pack ships, and support instead of location.** A
+phase change never creates or removes space: the pool is maritime's
+small water you are in, and its floor is the water's surface — ice when
+frozen and bearing, not standable when open. Three layers, each on the
+host that already answers its question:
 
-- **The log is areas by history.** `log: PatchRecord[]` (persistent,
-  runtimeState): `{id, kind: 'field'|'scraped'|'marked'|'cut'|'broken'|'hole',
-  areaM2, sinceS, gridM?}`. `areaM2` (authored) seeds one `field` patch
-  on first read. A cut/hole/broken patch is open water from `sinceS`;
-  a scraped patch is bare from `sinceS` until the next snowfall; a
-  marked patch carries its `gridM`. `look` (`getLong()` override) lists
-  the patches in words with their keywords (*the scraped patch, the
-  marked patch, the channel, the hole*), and the snow on each.
-- **The patch walk** is one extension of `computeIce`:
-  `iceAt(ref, nowS, opts?: {openedAtS?: number; bareFromS?: number})` —
-  with `openedAtS` the walk discards every step before it and starts
-  `h = 0` (a cut is open water on its date); with `bareFromS` every step
-  after it reads `packMm = 0` until the first step with `phase: 'snow'`
-  after it (scraped = clear-ice growth until new snow). The cache key
-  includes the opts. The field patch is the plain `iceAt`. Tests in
-  `C/water/src/__tests__/Ice.test.ts` pin: a cut patch regrows thinner
-  than the field; a scraped patch is thicker and black after the same
-  cold; new snow ends the bare run.
-- **Standing.** `standing: Map<stuffId, patchId>` (transient; a restart
-  drops occupants anyway). `standingOf(occupant): 'ice' | 'water'` =
-  `iceAt(patch).bearsKg ≥ loadKgOn(patch)` where the load is the sum of
-  `getMass()` over everything standing on that patch (mass sums carried
-  goods). A newcomer is placed on the best-bearing patch with area > 0;
-  if none bears them, **`breakThrough(occupant)`**: a `broken` patch of
-  `patchFootprintM2` (authored, default 1) is split off the patch they
-  were on (`sinceS = now`), they stand in it (in water), they are
-  immersed (D11), the scene prints it. No roll: thickness against mass.
-- **The check moments** are hooks that already exist with other
-  implementers: `onEntered(mover, exit)` (step on), `onContainableAdded /
-  onContainableRemoved` (a drop or a `get` on the ice changes a patch's
-  load), and `reconcile()` at the top of every pool verb and every
-  `look` (catch-up: spring rot under a crew still working). `reconcile()`
-  re-evaluates every occupant.
-- **Animals do not walk onto ice that will not bear them.** `canEnter(mover,
-  via, mode)`: a mover that is an Agent but not a Character (the branch
-  predicates) is refused when no patch bears it, in words — the horse's
-  own instinct, which is the horse's to have (lens 3b is about the
-  player's job). A person is let on, and falls through. The hook's
-  signature gains a trailing `mode` (D13).
-- **Exits and modes.** The pool's exit rows carry `media: [ground,
-  water]` and `_conditional: true` (routing already states *over the
-  ice* as an assumption). `canExit(mover, via, mode)`: an occupant whose
-  standing is `water` may leave only by `swim` (*"You are in the water;
-  swim for it."*); one on the ice by anything but `swim`. The pool's
-  `canEngageAxis(direction)` answers true whenever any patch is open
-  water or the whole sheet is open; `canBeEngagedBy(actor)` answers
-  `standingOf(actor) === 'water'` for an occupant and `sheetOpen()` for
-  somebody outside it (the far-side rule: you swim in from the shore
-  only when the edge is open). So in winter the crossing shore → pool →
-  far bank is walked on the ice you stand on, and in summer it is a
-  swim, from one row.
-- **At a hole.** `wade in` / `wade out` — ONE view in the water pack
-  (`C/water/content/system/water/cmd/water/wade.yaml`, `verbs: [wade]`,
-  arg `where: string` — `in`, `out`, or a patch word), afforded by
-  `FrozenPool` through `commandContributions.inventory` (its occupants
-  hear it), controller `C/water/src/idea/cmd/water/WadeController.ts`.
-  `in` lowers you into the nearest open patch (deliberate; immersed);
-  `out` moves you onto the best-bearing patch or refuses *"the edge
-  will not hold you"* when none bears you. No down exit exists; a hole
-  never leads down.
-- **Floating and sinking.** `reconcile()` compares each content's patch
-  with the log: anything resting on a patch that has become open water
-  (a cut under it, or the thaw) is sorted by its material's density
-  against 1000 kg/m³ — floats stay in the pool's contents (at the
-  surface); sinkers are moved `in` the pool's **bottom**: a `props:`
-  Holder row `/system/water/thing/pool-bottom` (class
-  `C/water/src/thing/PoolBottom.ts` = `SealableMixin(Holder)`, shipped
-  shut and with no `open` affordance — a shut Sealable's contents are
-  neither perceived nor reachable, which is exactly *kept but
-  unreachable until diving*). Captured with the pool (`captureHostOf`
-  walks to the nearest persistable ancestor).
-- **The thaw wipes the log.** When the field patch's `thicknessM` is 0
-  (open water, not `running`), `log` collapses to one `field` patch of
-  the full area, `standing` is cleared, every occupant is in the water
-  and every content is sorted float/sink. A frozen sheet never resets
-  the log; a restart never repairs a cut (the log is persisted;
-  `singleton()` restores it through `holder_snapshots` as `OpenWorking`'s
-  pit is).
-- **Rivers.** No class work: a `FrozenPool` row cites a reach, and
-  `iceAt` already answers `running` above the threshold (D14). None is
-  authored.
+- **A kernel water-surface floor** — `S/platform/thing/WaterSurface.ts`
+  extends the `Floor` twin (`platform/thing/Floor`), row
+  `/stuff/thing/surface/water-surface` (generic-objects; keywords
+  `[water, surface, floor, ground]` for `lint:ground` (d)). It adds to
+  `FloorMixin` two kernel reads that every floor now answers:
+  `bears(loadKg): boolean` (base `true`: ordinary ground bears
+  anything) and `supportIsSlotted(): boolean` (base `false`: on ordinary
+  ground standing is the free posture). `WaterSurface` answers `bears →
+  false` and `supportIsSlotted → true`, overrides `Slotted.canOccupy(candidate,
+  'ground:1')` with `bears(candidate mass)` (so `sit`/`lie`/`stand on
+  the ground` are refused on open water in the slot host's own words),
+  and owns **`giveWay(occupant)`**: `vacate('ground:1', occupant)` if
+  held, `occupant.setEngagedMode(swim)`, `immerse()` (D11), and the
+  scene *"the ice gives under you and you are in the water"* / *"you go
+  in"*. ⭐ **`Pool` names it as its default floor** by setting
+  `this.floor = { template: TemplatePaths.waterSurface }` in its
+  constructor (a class default any row's `floor:` overrides) — so the
+  estuary cove's floor is water from this build, and `sit` on it is
+  refused honestly (today it sits you on boards).
+- **The ice sheet** — `C/water/src/thing/IceSheet.ts` extends
+  `WaterSurface` (the water pack reads `WatercourseCatalogue`, which the
+  kernel cannot), row `/system/water/thing/ice-sheet` (keywords `[ice,
+  sheet, field, floor, ground]`, `_materialPath: /stuff/idea/material/bulk/ice`,
+  `onGrade: false` — nothing continues beneath; the bed is the
+  underwater slate's). The Hollow Mere pool row is a plain
+  `/platform/location/Pool` with `floor: { template:
+  /system/water/thing/ice-sheet }`. **No `FrozenPool` subclass exists**:
+  the room names its floor through `FloorSpec.template` and every hook
+  the pool needs is generic over the floor protocol below. A second
+  harvest pool is a row.
+  - **The log is the floor's: areas by history.** `log: PatchRecord[]`
+    (persistent, runtimeState) `{id, kind: 'field'|'scraped'|'marked'|'cut'|'broken'|'hole',
+    areaM2, sinceS, gridM?}`; `areaM2` seeds one `field` patch on first
+    read (authored on the floor row via the room's `floor:` spec is not
+    possible — `FloorSpec` is closed — so `areaM2` is authored ON the
+    sheet row, and a pool of another size `extends:` it).
+  - **Scraped = the floor's cleared-snow seam, per area.** The
+    `snowRemovedMm` seam `ground.md` names is taken by the log: a
+    `scraped` patch is bare from `sinceS` until the next step with
+    `phase: 'snow'`; the field's `getSnowDepthM()` is the sheet's
+    (overridden to read the walk when frozen regardless of `onGrade`,
+    since snow lies on ice; 0 when open). `snowPhrase()` reads *"the
+    scraped patch shows bare"* beside the field's band.
+  - **The patch walk** is one extension of `computeIce`:
+    `iceAt(ref, nowS, opts?: {openedAtS?: number; bareFromS?: number})`
+    — with `openedAtS` the walk discards every step before it and starts
+    `h = 0` (a cut is open water on its date); with `bareFromS` every
+    step after it reads `packMm = 0` until the first snow step after it.
+    The cache key includes the opts; the field patch is the plain
+    `iceAt`. `Ice.test.ts` pins: a cut patch regrows thinner than the
+    field; a scraped patch is thicker and black after the same cold;
+    new snow ends the bare run.
+  - **`bears(loadKg)`** = some patch with `areaM2 > 0` has
+    `iceAt(patch).bearsKg ≥ loadKg` and is not rotting; a person stands
+    on whatever area still bears them. **`canOccupy`** inherits it. A
+    hole is floor area with no ice (`kind: 'hole'`, `thickness 0` from
+    `openedAtS`); there is no down exit, ever.
+  - **`giveWay`** (inherited, extended): the patch that failed splits
+    off a `broken` patch of `patchFootprintM2` (authored, default 1) at
+    `sinceS = now` before the kernel drop runs — so the hole somebody
+    went through is open water in the log.
+  - **`reconcileSupport()`** — the catch-up: for every occupant holding
+    `ground:1`, if `!bears(mass)` → `giveWay`. Called by the pool's
+    hooks below and at the top of every sheet read (`groundPhrase`,
+    `bears`, the acts), so spring rot under a crew still working drops
+    them at the next read.
+  - **`groundPhrase()`** lists the patches in words with their keywords
+    (*the snowy field, the scraped patch, the marked grid, the channel,
+    the hole*) — the room's `look` already appends the floor's sentence
+    through its markup augmenter, and `look ice`/`look field` reads the
+    floor by keyword. The kind: a new eleventh word **`ice`**, folded
+    from a new material class `ice` (tag `ice`) with phrase *"frozen
+    hard"* — lens 1: it is a word anyone underfoot has, and `contrived`
+    (*no word for it*) would be false of a sheet you stand on; lens 2:
+    a frozen puddle elsewhere stays its earth kind plus the skin (the
+    ten words were closed against snow ON the ground; ice that IS the
+    ground is the exception the fold was built to take). When the
+    sheet is open the sheet's `getUnderfootMaterialPath()` answers
+    water, which folds to `contrived` — honest, because nobody stands on
+    it — and `groundPhrase` says *open water*.
+  - **Float and sink.** At the thaw (and only then — an item does not
+    record which patch it lies on, a simplification named under Risks),
+    `reconcileSupport()` sorts every unheld content of the pool by its
+    material's density against 1000 kg/m³: floats stay in the pool's
+    contents; sinkers go `in` the **bottom**, a `props:` Holder row
+    `/system/water/thing/pool-bottom` (class `C/water/src/thing/PoolBottom.ts`
+    = `SealableMixin(Holder)`, shipped shut with no `open` affordance —
+    a shut Sealable's contents are neither perceived nor reachable:
+    *kept but unreachable until diving*).
+  - **The thaw wipes the log.** When the field patch reads thickness 0
+    (open, not `running`): `log` collapses to one `field` patch of the
+    full area, every occupant holding the slot is given way, contents
+    are sorted. A frozen sheet never resets the log.
+  - **Persistence.** The sheet is a fixture with no container, so
+    `captureHostOf` cannot reach it; it composes `PersistableMixin`
+    itself and establishes its own record keyed by its pool:
+    `restoreOrSeed(this, poolPath)` in `resolveUnderfoot()` (the room
+    is `getAdornedTo()` there), the spine's `(scope, key)` multi-instance
+    form; `capture(this, poolPath)` after every mutating act. Fallback
+    if a fixture cannot be a `(scope, key)` host: a one-line
+    `PersistableMixin(Pool)` twin for the row to name, and the sheet's
+    capture goes through the room — say so in the wave if taken.
+- **The pool's hooks, generic over the floor protocol** (on the kernel
+  `Pool`, no subclass): `onEntered(mover, exit)` → `floor.bears(mass)` ?
+  `floor.occupy(mover, 'ground:1')` : `floor.giveWay(mover)` — stepping
+  onto the pool is the first check; `onExited(mover)` → vacate the slot
+  if held (a room move does not); `onContainableAdded/Removed` → the
+  floor's `reconcileSupport()` (a drop or a `get` on the ice is a load
+  change; mass sums carried goods); `canExit(mover, via)` → an
+  unsupported occupant may leave only when `mover.getEngagedMode()?.getMedium()
+  === 'water'` (the attempted mode is on the mover during the hook,
+  Grounding) — *"You are in the water; swim for it."*; `canEngageAxis(direction)`
+  → true when the floor's `openWaterAreaM2() > 0`; `canBeEngagedBy(actor)`
+  → an occupant swims iff unsupported; somebody outside swims in iff
+  the field itself is open (the far-side rule). So the crossing shore →
+  pool → far bank is **one exit pair** with `media: [ground, water]`,
+  `_conditional: true`, and the MODE decides: walking onto the pool
+  arrives on the floor and the floor bears you or gives way; swimming
+  in needs open water.
+- **Animals do not walk onto ice that will not bear them** — the
+  mover's own say, `beforeTraverse(via)` on the kernel animal rung
+  (`DraftAnimal`'s base, the class `platform/agent/DraftAnimal =
+  Mountable(Hauler(Beast))` descends from): if the destination
+  (`via.getDestination()`, sync) has a floor whose `bears(own mass)` is
+  false → `{ok: false, gate: 'blocked', reason: 'the horse will not go
+  out on it'}`. The hook's second implementer (combat's flee is the
+  first). A person is let on and falls through; the horse's instinct
+  is the horse's.
+- **Getting out is `stand`.** `StandController`'s no-arg path: if the
+  giver occupies no posture slot and the room's floor answers
+  `supportIsSlotted()`, it transfers to the floor instead of the
+  slot-less flip — `giver.transferPosture(floor, Postures.Stand,
+  'stand')` — and the floor's `canOccupy` decides whether the edge bears
+  you (the controller renders the refusal; the floor is the authority).
+  Elsewhere bare `stand` is unchanged. On success the floor's claim
+  witness clears the engaged swim mode (the `onSlotReleased` twin).
+- **Going in deliberately** is leaving the floor at open water:
+  `swim` with no direction. The `swim.yaml` view binds a required
+  `target`; it gains `required: false` with the documented meaning
+  *"swim here: let go of the floor and swim where you are"* →
+  `SwimController` with no target asks the room's floor
+  (`supportIsSlotted()` and `openWaterAreaM2() > 0`) and calls
+  `floor.giveWay(giver)` deliberately (the same drop, the gentler
+  scene *"you lower yourself into the water"*); with a floor that has
+  no open water it refuses *"there is no open water here to swim in"*.
+  Justification: `swim` is the shipped word for being in the water, the
+  view already has the right affordance (every `ShoreMixin` place and
+  the pool itself afford it), and a direction-less `swim` is the one
+  shape nothing else claims; no new verb.
+- **Rivers.** No class work: a pool row on a slow reach names the same
+  sheet row; `iceAt` answers `running` above the threshold (D14). None
+  is authored.
 
-**D13 — `canExit`/`canEnter` gain a trailing `mode` argument.**
-`Mobile.crossExit` passes `mode` as the third element of the hook's
-args; `Exitable`'s optional declarations gain `mode?: string`. Existing
-implementers ignore it; the frozen pool needs it to tell a swim from a
-walk. One line each, and the `locomotion.test.ts` integration tests
-assert the new arity.
+**D13 — No `mode` argument on `canExit`/`canEnter`.** The first draft
+added one; the floor model does not need it. `engageAround` sets the
+mover's engaged mode before the place hooks run, so `Pool.canExit`
+reads `mover.getEngagedMode()?.getMedium()` to tell a swim from a walk,
+and nothing else wants the mode. `Exitable`'s declarations and
+`Mobile.crossExit` are untouched.
 
 **D14 — The still-water threshold moves to 0.5 m/s.**
 `water.ice.stillWaterMps` in `C/water/content/settings/water.yaml`
@@ -824,17 +953,17 @@ crossing checks are re-run (W5 acceptance).
 **D15 — Fishing frozen water is refused except through a hole.**
 `FishingController.reachFor` (the one seam Fish, Lay and Release share)
 checks after resolving the reach: if the bound shore's
-`peekWaterRead(key)?.frozen` and the room is not a FrozenPool with an
-open patch (`typeof room.openWaterAreaM2 === 'function' &&
-room.openWaterAreaM2() > 0`, the shape the water pack class offers) →
-`{refusal: 'The water is frozen over; you would need a hole.', reason:
-'frozen'}`. Through a hole the reach is the same reach and fishing is
+`peekWaterRead(key)?.frozen` and the room's FLOOR does not offer open
+water (`const floor = room.getFloor(); typeof floor?.openWaterAreaM2 ===
+'function' && floor.openWaterAreaM2() > 0` — the shape the water pack's
+sheet offers, read by shape) → `{refusal: 'The water is frozen over;
+you would need a hole.', reason: 'frozen'}`. Fishing happens from the
+floor, through the hole; the reach is the same reach and fishing is
 unchanged. **A hole is a small `cut` patch (0.1 m²) made by `cut hole`
-with the ice saw** (D16: a raw word `hole` makes a 0.1 m² cut and mints
-no block). Verified: forestry's auger has no `bore` verb (it is
-consumed only by `tap`), so the requirements' *"or bored with the
-auger"* is not built here unless the user asks for it (Risks 3); the
-drive's step 8 reads `cut hole`.
+with the ice saw** (D16: the raw word `hole` makes a 0.1 m² cut and
+mints no block). Resolved by the user 2026-10-16: boring a hole with
+forestry's auger is fishing-slate's (the auger has no `bore` verb; it
+is consumed only by `tap`); the drive's step 8 reads `cut hole`.
 
 ### Harvest verbs, the lump, sawdust
 
@@ -857,11 +986,15 @@ interface Cuttable { cutPlan(req: CutRequest): Promise<CutPlan | CutRefusal> }
   narrows the tools by the capability IT needs with a literal
   `hasCapability('…')` so `lint:capabilities` sees the consumer.
 - `S/platform/idea/cmd/crafting/CutController.ts extends
-  ManualBuildController`: `host = target.stuff` when it is Cuttable,
-  else the actor's room when THAT is Cuttable (a patch word binds
-  `stuff: null, raw: 'scraped'`, the `measure` precedent), else refuse
-  *"Cut what?"*. `plan = await host.cutPlan(req)`; refusal →
-  `declineStep`; plan → `this.engageStep(context, plan)`.
+  ManualBuildController`: `host = target.stuff` when it is Cuttable
+  (`cut ice` binds the sheet by its keyword), else the room's floor
+  (`room.getFloor()`) when THAT is Cuttable and the target was a bare
+  word (a patch word binds `stuff: null, raw: 'scraped'`, the `measure`
+  precedent), else refuse *"Cut what?"*. `plan = await host.cutPlan(req)`;
+  refusal → `declineStep`; plan → `this.engageStep(context, plan)`.
+  Resolved by the user 2026-10-16: this unification (rung 2, with
+  tailoring's three options riding the kernel view as the plan's option
+  bag) is the decision; no alternative is open.
 - Tailoring: the cloth's class (whatever `CutController.ts` narrows —
   a Stackable, Constructed covering) implements `cutPlan` with the
   moved logic (pattern units, allowance, spoilage without a bench,
@@ -871,17 +1004,19 @@ interface Cuttable { cutPlan(req: CutRequest): Promise<CutPlan | CutRefusal> }
   affords the PLATFORM view; `trade/tailoring/cmd/tailoring/cut.yaml`,
   its controller row and `CutController.ts` are deleted. Tailoring's
   tests and the textiles drive re-run.
-- Ice: `FrozenPool.cutPlan({raw})` — `raw` names a patch (`marked`,
-  `scraped`, `field`, `hole`); needs a tool with `hasCapability('ice-sawing')`;
-  refuses on open water, on a patch that does not bear the actor, and
-  with no marked grid unless `raw === 'hole'`. `onComplete` →
-  `cutBlock(patch)`: block mass = `thickness × gridM² × 917`, grade =
-  the patch's quality, area `gridM²` leaves the patch as a `cut` patch
-  (merged with an adjacent cut), the block is minted
+- Ice: `IceSheet.cutPlan({raw})` — the FLOOR is the Cuttable host;
+  `raw` names a patch (`marked`, `scraped`, `field`, `hole`); needs a
+  tool with `hasCapability('ice-sawing')`; refuses when the actor is not
+  supported by the sheet (you do not saw from the water), on a patch
+  that is open, and with no marked grid unless `raw === 'hole'`.
+  `onComplete` → `cutBlock(patch)`: block mass = `thickness × gridM² ×
+  917`, grade = the patch's quality, area `gridM²` leaves the patch as a
+  `cut` patch (merged with an adjacent cut), the block is minted
   (`/stuff/thing/ice-block`, `setMass`, `setIceQuality`, stamped
-  temperature 273.15 − a little) and dropped on the ice beside the
-  actor; the pool captures itself. A `hole` cut is 0.1 m² and mints no
-  block.
+  temperature 273.15 − a little) and dropped in the pool beside the
+  actor; the sheet captures itself and runs `reconcileSupport()` (the
+  load on the remaining area changed). A `hole` cut is 0.1 m² and mints
+  no block.
 
 **D17 — The truthful lump.** `AlloyedMixin` splits into
 `CompositionMixin` (`S/lib/material/Composition.ts`: the `alloying`
@@ -949,17 +1084,27 @@ template, same wetness band). Carve's shavings stay out (carpentry-slate).
 each.** `C/trade-ice/src/thing/Scraper.ts extends Tool` affords
 `trade/ice/cmd/ice/scrape.yaml` (`environment` + `peers`, the
 `CuttingTool` bucket); `IceMarker.ts extends Tool` (field `gridM`,
-`draught: 'hand' | 'horse'`) affords `mark.yaml`. Both controllers are
-dumb: they resolve the patch word and the tool and call
-`pool.scrapePatch(actor, tool, raw)` / `pool.markPatch(actor, tool,
-raw)`, which the water pack's `FrozenPool` implements (the trade-ice
-pack depends on water; the pool's methods are the authority).
-`scrape` turns area off `field` into a `scraped` patch (`sinceS = now`,
-area = the scraper row's `sweepM2` per act, default 4); `mark` turns
-`scraped` (or `field`) area into a `marked` patch stamped with the
-tool's `gridM` (hand marker 0.3 m; ice plough 0.56 m); the horse rung
-refuses unless a `DraftAnimal` stands in the pool (it got there only
-if the ice bore it, D12). `measure ice` / `analyze ice`:
+`draught: 'hand' | 'horse'`) affords `mark.yaml`. Resolved by the user
+2026-10-16: `mark` is the ice act's verb (farming's `PloughController`
+is a `FieldWorkController` bound to `Field` — `fieldOf` →
+`bankWork('clearing', …)` with the soil sample's stoniness,
+`PloughController.ts:109–152` — so it cannot unify with a sheet, and
+two `plough` views would fail `lint:verb-collisions`; the historical
+tool is the *ice marker* and the act *marking off*). Both controllers
+are dumb: they resolve the patch word and the tool, take the room's
+floor (`room.getFloor()`, narrowed by shape to the sheet's act surface)
+and call `sheet.scrapePatch(actor, tool, raw)` / `sheet.markPatch(actor,
+tool, raw)`, which the water pack's `IceSheet` implements (the
+trade-ice pack depends on water; the floor's methods are the authority
+and refuse an actor the sheet is not supporting). `scrape` turns area
+off `field` into a `scraped` patch (`sinceS = now`, area = the scraper
+row's `sweepM2` per act, default 4); `mark` turns `scraped` (or `field`)
+area into a `marked` patch stamped with the tool's `gridM` (hand marker
+0.3 m; ice plough 0.56 m); the horse rung refuses unless a `DraftAnimal`
+stands in the pool (it got there only if the sheet bore it, D12).
+Tongs: a row over `Tool` with `gripping`, flavour only — carrying a
+block is ordinary `get` under the shipped soft encumbrance (resolved by
+the user 2026-10-16). `measure ice` / `analyze ice`:
 `C/trade-ice/src/idea/reading/IceReading.ts` + row
 `content/trade/ice/idea/reading/ice.yaml` (`scope: [here]`, subject raw
 = a patch word, `instrument: spudding`, `instrumentNoun: a spud`,
@@ -1039,9 +1184,11 @@ southern water under northern air. The locality (`stuff/idea/Locality/hollow-mer
 `site: {latitudeDeg: -58, continentality: 1, offsetK: <tuned>}`, a
 `mere` node 300 m × 5 m with a couple of fish stocks so fishing binds),
 rooms: `shore` (Shore; exits south → `road`, north → `pool`),
-`pool` (`/system/water/location/FrozenPool`; `areaM2: 4000`; waters
-`mere: hollowmere:mere`; exits south → shore, north → far-bank, both
-`media: [ground, water]`, `_conditional: true`; props the bottom),
+`pool` (`class: /platform/location/Pool`; `floor: { template:
+/world/terminus/hollow-mere/thing/sheet }` where that row `extends:
+/system/water/thing/ice-sheet` with `areaM2: 4000`; waters `mere:
+hollowmere:mere`; exits south → shore, north → far-bank, both `media:
+[ground, water]`, `_conditional: true`; props the bottom),
 `far-bank` (Shore), `road` (a Street linking the shore, the icehouses
 and the realm), `icehouse-platform` (volume, `enclosure` 0.2 m pine,
 ambient light, props: the counter `class: /trade/shopkeeping/thing/Stock`
@@ -1082,14 +1229,18 @@ test: a guard that re-narrows the host set means the host is wrong.
 | `AtmosphericMixin.envelopeSteadyStateK(outsideK)` | every Atmospheric scope | *a scope can say what temperature it would settle at for a given outside* — the formula it already uses, exposed | — |
 | `Material.permeability() / wetProperty()` | `Material` | *every material has a pore permeability, zero when it absorbs nothing* | — |
 | `CompositionMixin` / `TemperedMixin` | `Casting` (composition only); `MetalCasting`, `Ingot`, `Bloom` (both via `AlloyedMixin`) | composition: *this piece remembers what dissolved in it*; temper: *this piece can be heat-treated* — true only of metal | the split IS the narrowing; no guard |
-| `SwimmableMixin.immersionOf()` | `Swimmable` hosts (`Pool`, `FrozenPool`) | *a place you swim in knows who is in its water and how cold it is* | base = everybody; overrides on the one class line |
+| `SwimmableMixin.immersionOf()` | `Swimmable` hosts (`Pool`) | *a place you swim in knows who is in its water (whoever its floor is not supporting) and how cold it is* | base reads support off the floor's slot; `Pool` overrides the temperature only |
+| `FloorMixin.bears(loadKg)` / `supportIsSlotted()` | every floor | *a floor can say whether it holds a load, and whether standing on it is a slot you hold or the free posture* — base `true`/`false`, which is what every shipped floor already means | no guard: ordinary ground answers the base; a water surface answers the other way by override |
+| `WaterSurface` (kernel floor twin subclass; `giveWay`, `canOccupy` by bearing) + `Pool.floor` class default | the floor of every `Pool` | *a pool's floor is the water's surface: not standable, and it drops whoever it stops bearing* | the estuary cove's floor becomes water (today it is boards) — a correction, not a widening |
+| `IceSheet` (water pack, extends `WaterSurface`; the log, the patch walk, the acts, `cutPlan`, its own `(scope, key)` record) | the floor row a harvest pool names via `floor.template` | *this water's surface carries a sheet somebody can stand on and work* | not on `Pool` (the cove has no sheet to work); never a room subclass |
+| the ground kind `ice` + material class `ice` | `GROUND_KINDS` / `GROUND_KIND_FOLD` | *a floor made of ice has a word* | folds only from the `ice` tag; a frozen puddle keeps its earth kind and its skin |
+| `Beast.beforeTraverse` (the animal's refusal of ice that will not bear it) | the kernel animal rung | *an animal will not step onto a floor that does not bear it* | the hook's second implementer (combat's flee is the first); people are not animals here and are let on |
 | `Attired.immerse()` | every `Attired` body | *a dressed body can be soaked through, garments and all* | — |
 | `Employed.isOnShiftFor(org)` | every `Employed` | a read beside `isOnShift()` | — |
 | `ShiftEntry.season?` | the roster value object | *a shift may name the part of the year it runs in* — optional, every shipped roster unchanged | — |
-| `IcefieldMixin` (log, standing, patches, acts, float/sink) | `FrozenPool` (water pack, extends kernel `Pool`) | *this small water carries a sheet somebody can stand on and work* | not on `Pool` (the estuary cove has no sheet to work); not on `Shore` |
 | `PoolBottom` | a props Holder row in a pool | *what sank is kept here, unreachable* | — |
 | `StockLine.source?` | retail `Stock` | *a counter line may be fed from a store* | the three sources are disjoint by field: `supplier` / `source` / neither |
-| `Cuttable` (interface) | tailoring's cloth, `FrozenPool` | *this thing can plan a cut for an actor with a tool* | by shape; the kernel controller never names a pack class |
+| `Cuttable` (interface) | tailoring's cloth, `IceSheet` (the floor) | *this thing can plan a cut for an actor with a tool* | by shape; the kernel controller never names a pack class |
 | `Scraper`, `IceMarker` (Tool subclasses) | trade-ice rows | *this instrument performs scrape / mark* | affordance needs a class static; the two rungs of `mark` are rows over one class |
 | `Sawdust` | carpentry's `PoolableMixin(StackableMixin(Good))` | *a granular heap, by the kilogram, that pools* | — |
 | `Sawmill.kerfM` | the saw rows (frame saw, pit saw) | *a saw has a kerf* | read by shape in `finishSaw` |
@@ -1097,8 +1248,12 @@ test: a guard that re-narrows the host set means the host is wrong.
 Things deliberately NOT placed: no field on `Thing` or `Good`; nothing
 on `BulkableMixin`; no `storekeeping` Discipline (the stocktake bands by
 `appraisal`); no `HeatSinkMixin`; no new Mongo collection (receipts are
-documents under the business, the pond's log and the stack's lines are
-`holder_snapshots` records of singleton hosts).
+documents under the business, the stack's lines are a singleton host's
+`holder_snapshots` record, the sheet's log a `(scope, key)` record of
+the floor); **no room subclass for the frozen pool, no per-occupant
+"standing" state on any room, no `mode` argument on the place hooks,
+no `wade` verb** — the floor's slot is the support state and the shipped
+posture verbs move you on and off it.
 
 ---
 
@@ -1109,10 +1264,10 @@ Checked at plan time against the current tree.
 - **`props:` / `cast:`** — every new room row uses `props:` for
   fixtures and `cast:` for people (`populates:` is retired; none in the
   files read).
-- **Locations, not rooms** — `FrozenPool` extends `Pool`
-  (`SingletonCartesianLocation`); the icehouse rooms are
-  `CartesianLocation`/`Street` rows with `enclosure:`; nothing new is a
-  `FurnishableRoom`.
+- **Locations, not rooms** — the harvest pool is a plain `Pool` row
+  (`SingletonCartesianLocation`) naming its floor; the icehouse rooms
+  are `CartesianLocation`/`Street` rows with `enclosure:`; nothing new
+  is a `FurnishableRoom`, and no new Location class is added.
 - **The five axes and `<root>/<branch>/`** — kernel classes at
   `S/platform/thing/{Stockpile,StoreBook,IceBlock,MetalCasting}.ts`,
   `S/platform/idea/reading/StockReading.ts`,
@@ -1127,9 +1282,12 @@ Checked at plan time against the current tree.
   statements; the pond's seed and the store's face are made in
   `onCreate`/first `reconcile()`; catalogues warm themselves.
 - **Import boundary** — pack `src/` imports the kernel by package
-  specifier only; `FishingController` reads the frozen pool by shape;
-  trade-ice reads the draft horse by `MixinApi` predicate. `lib/`
-  imports nothing outside `src/mud/`.
+  specifier only; `FishingController` and the kernel `CutController`
+  read the sheet by shape off the room's floor; trade-ice reads the
+  draft horse by `MixinApi` predicate; the kernel `Pool`, `WaterSurface`
+  and `StandController` know only the floor protocol (`bears`,
+  `supportIsSlotted`, `giveWay`, `openWaterAreaM2`), never the water
+  pack's class. `lib/` imports nothing outside `src/mud/`.
 - **No new module category, no free helper** — the four new
   `lib/storage` files are two value objects and two mixins; the two
   interfaces are types; no `*Api` is added (the custody verbs are
@@ -1142,20 +1300,27 @@ Checked at plan time against the current tree.
   `getPoolKey()`-style methods; tests reach raw state via
   `Stuff.RAW_TARGET` with a comment.
 - **A Map field is never bare-persistent** — `lines`, `log` and the
-  receipts' claims are arrays of plain records; `standing` and
-  `pendingPutters` are transient Maps.
+  receipts' claims are arrays of plain records; `pendingPutters` is a
+  transient Map; support is the floor's slot occupancy, which the slot
+  substrate already persists and restores.
 - **A person keys on `getIdentityPath()`** — the depositor on a receipt,
   the putter, the hauler.
 - **Lint gates this build must satisfy** (all run by `lint:family`):
   `instanceable-placement` (new kernel classes under `platform/<branch>`;
-  pack classes under pack roots; the pack `lib/` holds only
-  `IcefieldMixin`), `location-graph` (mutual exits; `_conditional`
-  rows; no dangling destination), `location-classes`, `counters` (the
-  ice counter names `/trade/shopkeeping/thing/Stock`; `Stockpile` and
-  `StoreBook` compose no priced-service mixin), `reachability` (every
-  new verb is conferred by a class static — `wade` by `FrozenPool`,
-  `scrape` by `Scraper`, `mark` by `IceMarker`, `cut` by `CuttingTool`
-  and `IceSaw`, `deposit`/`withdraw` by `StoreBook`), `verb-collisions`
+  pack classes under pack roots — `IceSheet` and `PoolBottom` at
+  `/system/water/thing/`; no pack `lib/` is added), `location-graph`
+  (mutual exits; `_conditional` rows; no dangling destination),
+  `location-classes` (no new Location class), **`ground`** (the two new
+  floor rows say `ground` and `floor`; no `floor`/`ground` detail on
+  them; `Pool`'s `onCreate` is untouched; the `ice` kind joins
+  `GROUND_KINDS` with its phrase, and the report's census of kinds is
+  re-run), `counters` (the ice counter names
+  `/trade/shopkeeping/thing/Stock`; `Stockpile` and `StoreBook` compose
+  no priced-service mixin), `reachability` (every new verb is conferred
+  by a class static — `scrape` by `Scraper`, `mark` by `IceMarker`,
+  `cut` by `CuttingTool` and `IceSaw`, `deposit`/`withdraw` by
+  `StoreBook`; `swim` and `stand` are shipped verbs already afforded),
+  `verb-collisions`
   (zero new collisions; the tailoring `cut` view is deleted, not
   amnestied), `capabilities` (new kinds `ice-sawing`, `spudding`,
   `scraping`, `marking` each with a literal consumer), `instrument-args`
@@ -1298,48 +1463,74 @@ Implements D8.
 - Commit: `build(storage-and-ice W4): a counter fed from a store, priced
   by the store's days of supply`.
 
-### W5 — Cold water, soaking, the threshold
+### W5 — Cold water, the water's surface as a floor, support
 
-Implements D10, D11, D13, D14. Kernel correction for every swimmer.
+Implements D10, D11, D13, D14 and the kernel half of D12. Kernel
+correction for every swimmer; the floor model lands here so W6 only
+adds the sheet.
 
-- `SwimmableMixin.immersionOf`, `Pool` override, `MixinApi.isSwimmable`;
-  `ThermalRegulation.effectiveAmbient` reads it; `Attired.immerse()`;
-  `Pool.onEntered` soaks; `restamp` re-immerses; `canExit`/`canEnter`
-  take `mode`.
+- `FloorMixin.bears(loadKg)` / `supportIsSlotted()` (base answers);
+  `S/platform/thing/WaterSurface.ts` + the generic-objects row
+  `/stuff/thing/surface/water-surface` (`canOccupy` by bearing,
+  `giveWay`, `openWaterAreaM2()` = the whole surface); `Pool`'s floor
+  default and its hooks (`onEntered`, `onExited`,
+  `onContainableAdded/Removed`, `canExit`, `canEngageAxis`,
+  `canBeEngagedBy`) over the floor protocol; `Beast.beforeTraverse`;
+  `StandController`'s slotted-floor path; `swim` with no target
+  (`swim.yaml` `required: false` + `SwimController`'s give-way path);
+  `TemplatePaths.waterSurface`.
+- `SwimmableMixin.immersionOf` (support-derived), `Pool`'s temperature
+  override, `MixinApi.isSwimmable`; `ThermalRegulation.effectiveAmbient`
+  reads it; `Attired.immerse()`; `restamp` re-immerses.
 - `water.ice.stillWaterMps` → 0.5; `Ice.test.ts` re-pinned.
 - Tests: a body in a 274 K pool cools ≥ 3× faster than in 274 K air
   (the AC's *several times*); a summer swim (290 K water) does not
-  chill but soaks; every worn layer reads soaked after entry; the
-  hook arity.
+  chill but soaks; every worn layer reads soaked after entry; on a
+  water surface `sit`/`stand on the ground` are refused and bare
+  `stand` is refused in the floor's words; `swim` with no target drops
+  a supported body and is refused where the floor has no open water;
+  a Beast refuses an exit whose destination floor will not bear it;
+  `canExit` lets an unsupported body out only by a water-medium mode;
+  the estuary cove's floor resolves to the water surface (the
+  `Location.floor.test.ts` shape).
 - Acceptance: maritime's and climate's wire drives still pass (run
   both; the climate drive's open-water and crossing checks are the
-  threshold's regression).
+  threshold's regression; maritime's swim-in/swim-out is the support
+  model's).
 - Commit: `build(storage-and-ice W5): a swimmer's body reads the water;
-  going in soaks you; the still-water threshold`.
+  the water's surface is a pool's floor; going in soaks you; the
+  still-water threshold`.
 
-### W6 — The frozen pool
+### W6 — The ice sheet
 
-Implements D12, D15; `FrozenPool`'s acts (`scrapePatch`, `markPatch`,
-`cutPlan`, `wade`) are implemented here and driven by verbs in W7/W8.
+Implements the water-pack half of D12 and D15; the sheet's acts
+(`scrapePatch`, `markPatch`, `cutPlan`) are implemented here and driven
+by verbs in W7/W8.
 
 - `WatercourseCatalogue.iceAt(ref, nowS, opts)` with the patch walk +
-  tests; `C/water/src/lib/Icefield.ts`, `location/FrozenPool.ts`,
-  `thing/PoolBottom.ts`, `idea/cmd/water/WadeController.ts`,
-  `content/system/water/cmd/water/wade.yaml` + controller row;
+  tests; `C/water/src/thing/IceSheet.ts` (extends `WaterSurface`:
+  `bears` from the sheet, the log, `reconcileSupport`, `groundPhrase`,
+  the per-area snow seam, the thaw wipe, float/sink, its own `(scope,
+  key)` record), `thing/PoolBottom.ts`, rows
+  `content/system/water/thing/{ice-sheet,pool-bottom}.yaml`; the `ice`
+  ground kind + material class in `GroundKind.ts`;
   `FishingController.reachFor` frozen gate.
-- Tests (`C/water/src/__tests__/FrozenPool.test.ts`): seed; step on
-  thin ice → broken patch, in water, immersed; a day later → on ice;
-  cross; scrape → black and thicker after the same cold; mark → grid;
-  cut → block mass and grade from the patch, cut patch open then
-  thinner; the hole; `wade out` refused on the broken edge, allowed on
-  the field; horse refused, later admitted; the thaw wipes the log;
-  float/sink; `look` words; persistence through `materialize`.
-  Fishing: refused on the sheet, allowed through the hole, unchanged
-  in open water.
-- Acceptance: the water pack's suite and `lint:location-graph` green;
-  fishing's wire drive still passes.
-- Commit: `build(storage-and-ice W6): the frozen pool — a sheet you
-  stand on, the pond's log, falling through, the hole, the thaw`.
+- Tests (`C/water/src/__tests__/IceSheet.test.ts`, a `Pool` row naming
+  the sheet): seed; step on thin ice → broken patch, unsupported,
+  immersed; a day later → supported; cross; scrape → black and thicker
+  after the same cold; mark → grid; cut → block mass and grade from the
+  patch, cut patch open then thinner; the hole; bare `stand` refused
+  while nothing bears you, allowed once the field does; a horse refused,
+  later admitted; load change (`get` a block on thin ice) gives way;
+  the thaw wipes the log, drops every occupant, sorts float/sink; `look`
+  words (the floor's sentence in the room's description); persistence
+  through `materialize` with the pool's key. Fishing: refused on the
+  sheet, allowed through the hole, unchanged in open water.
+- Acceptance: the water pack's suite, `lint:ground` and
+  `lint:location-graph` green; fishing's wire drive still passes.
+- Commit: `build(storage-and-ice W6): the ice sheet — a floor you stand
+  on while it bears you, the pond's log, giving way, the hole, the
+  thaw`.
 
 ### W7 — One `cut`
 
@@ -1373,9 +1564,11 @@ Implements D19, D20, D22 (the trade half).
   `cmd/ice/{scrape,mark}.yaml`, controller rows, `idea/reading/ice.yaml`,
   `idea/Discipline/ice-harvesting.yaml`, `thing/{stack,book}.yaml`,
   a HelpConcept.
-- Tests: the controllers with binder-shaped fixtures; `measure ice`
-  bands; `mark` horse rung needs a `DraftAnimal` in the room; the
-  brains drive literal verbs through `forceCommand` (one beat each).
+- Tests: the controllers with binder-shaped fixtures (the room's floor
+  narrowed by shape; an actor the sheet does not support is refused);
+  `measure ice` bands; `mark` horse rung needs a `DraftAnimal` in the
+  room; the brains drive literal verbs through `forceCommand` (one beat
+  each).
 - Acceptance: `lint:reachability`, `lint:capabilities`,
   `lint:instrument-args` green for the pack.
 - Commit: `build(storage-and-ice W8): the ice trade — tools, readings,
@@ -1416,9 +1609,12 @@ Docs that graduate at the sweep (not a wave): a new
 immersion); `watershed.md` (the frozen pool, the patch walk, the
 threshold); `retail.md` (the third source); `employment.md` (seasons,
 `isOnShiftFor`); `logistics.md` (withdraw); `crafting.md` (the cut
-plan); `materials` / `glass.md` (composition vs temper); the
+plan); `materials` / `glass.md` (composition vs temper); `ground.md`
+(the water surface, `bears`/`supportIsSlotted`, the `ice` kind, the
+per-area snow seam) and `posture.md` (support on a slotted floor;
+`stand` from the water); `locomotion.md` (`swim` with no target); the
 `CLAUDE.md` map line and verb list (`custody` category; `cut` is the
-kernel's; `mark`, `scrape`, `wade`); `content-packs.md` (two packs).
+kernel's; `mark`, `scrape`); `content-packs.md` (two packs).
 
 ---
 
@@ -1434,14 +1630,16 @@ link fails closed and silent.
 | stocktake | kernel `measure`/`analyze` | `Avatar` affords `measure` | `platform/idea/reading/stock.yaml`; a `gauging` tool in reach | `ReadingCatalogue` warms rows by path | `subjectRequires: StoreMixin`; the Reading narrows tools by `gauging` |
 | put on / get from the stack | platform `put`/`get` | platform | the stack is `PlacingMixin` (`on`) with a face | — | `put` target `ContainerMixin|PlacingMixin`; `get` targets Visible+Containable (the face) — ⚠ the house must be LIT (author `ambientIntensity`) or the face reads *something* |
 | buy ice at the platform | platform `buy` | `Stock.commandContributions.peers` | `stockLines[].source`, `pricing: stocking`; `businessPath`; the company lists the counter in `operatingLocations` | the company booted | the line's leaf `ice-block` is what `buy ice-block` matches; `buy block` must also match → author the row's keywords and verify `carriesLine` |
-| measure / analyze ice | kernel `measure`/`analyze` | `Avatar` | `trade/ice/idea/reading/ice.yaml` + `IceReading` class; a `spudding` tool | catalogue warm | `scope: [here]` on a FrozenPool; subject raw = patch word |
-| scrape | `trade/ice/cmd/ice/scrape.yaml` | `Scraper` (`environment`+`peers`) | scraper row `capabilities: [scraping]` | — | `tool default me:i:[capability.scraping]`; `patch: string` |
+| measure / analyze ice | kernel `measure`/`analyze` | `Avatar` | `trade/ice/idea/reading/ice.yaml` + `IceReading` class; a `spudding` tool | catalogue warm | `scope: [here]`; the reading takes the room's floor and narrows it by shape; subject raw = patch word |
+| scrape | `trade/ice/cmd/ice/scrape.yaml` | `Scraper` (`environment`+`peers`) | scraper row `capabilities: [scraping]` | — | `tool default me:i:[capability.scraping]`; `patch: string`; the floor must support the actor |
 | mark | `mark.yaml` | `IceMarker` | hand-marker / ice-plough rows (`gridM`, `draught`) | — | `tool default me:i:[capability.marking]`; the horse rung reads a `DraftAnimal` occupant |
-| cut (ice) | kernel `cut.yaml` | `IceSaw` | ice-saw row `capabilities: [ice-sawing]` | — | `target requires any` (raw word); `FrozenPool.cutPlan` narrows tools by `hasCapability('ice-sawing')` |
+| cut (ice) | kernel `cut.yaml` | `IceSaw` | ice-saw row `capabilities: [ice-sawing]`; the sheet row's keywords (`ice`, `field`) so `cut ice` binds the floor | — | `target requires any` (the floor, or a raw patch word); `IceSheet.cutPlan` narrows tools by `hasCapability('ice-sawing')` |
 | cut (cloth) | kernel `cut.yaml` | `CuttingTool` | shears rows (`cutting`) | — | the cloth's `cutPlan` narrows by `hasCapability('cutting')` |
-| wade in/out | `system/water/cmd/water/wade.yaml` | `FrozenPool.commandContributions.inventory` | — | the pool is a singleton reached by an exit | `where: string` |
-| walk onto / swim into the pool | platform `go`/`walk`/`swim` | — | exit rows `media: [ground, water]`, `_conditional: true` | — | `swim.yaml` `enablementMixin: SwimmableMixin` → `canEngageAxis` + `canBeEngagedBy` |
-| fishing through a hole | fishing's `fish`/`lay` | fishing's | the mere's `stocks` | fishery registry | `reachFor`'s frozen gate reads the pool by shape |
+| standing, sitting, lying on the ice | shipped `stand`/`sit`/`lie` (`default: "ground"`) | shipped | the sheet row's `ground:1` slot (inherited from the Floor twin) | — | the floor's `canOccupy` by `bears(mass)`; bare `stand` routes to a slotted floor |
+| going into the water on purpose | shipped `swim` with no target | shipped (`ShoreMixin` + the pool) | — | — | `target required: false`; refused where the floor has no open water |
+| walk onto / swim into the pool | platform `go`/`walk`/`swim` | — | the pool row's `floor.template`; exit rows `media: [ground, water]`, `_conditional: true` | the sheet is minted by `ensureFloor` at the pool's `onCreate` | arrival → `floor.bears` (occupy or give way); `swim.yaml` `enablementMixin: SwimmableMixin` → `canEngageAxis` (open water) + `canBeEngagedBy` (unsupported / field open) |
+| the horse on the ice | platform `go`/`lead`… | — | the draft horse row | — | `Beast.beforeTraverse` reads the destination floor's `bears` |
+| fishing through a hole | fishing's `fish`/`lay` | fishing's | the mere's `stocks` | fishery registry | `reachFor`'s frozen gate reads the room's floor by shape |
 | sawdust at the saw | carpentry's `saw` | `Sawmill` | `kerfM` on the saw rows; `/trade/carpentry/thing/sawdust` | — | — |
 | seasonal seats | — | — | `rosterSlots[].schedule[].season` | the company booted so the tick runs | `SEASONS` closed vocabulary |
 | the cook's ice | `restocks` (`job post supply …`) | — | the par line's `supplier` + `exemplar`; `cold:` in the cook's config; the icebox row | hearthworks already boots | the hauler's `buy` at the ice counter; `fulfill` (alias `handoff`, `platform/cmd/work/fulfill.yaml`) at the bench |
@@ -1453,16 +1651,16 @@ link fails closed and silent.
 
 | requirements AC | wave(s) |
 |---|---|
-| walk onto ice: in the water if it cannot bear you, on it if it can; decided by thickness and mass | W6 (+ W5 immersion) |
+| walk onto ice: in the water if it cannot bear you, on it if it can; decided by thickness and mass | W5 (the floor protocol, give way) + W6 (the sheet's `bears`) |
 | a swimmer in near-freezing water cools several times faster; a summer swimmer unaffected | W5 |
 | `measure ice` reports thickness and grade, more precisely to a skilled reader | W8 (reading) over W6 |
 | a scraped patch reads thicker and black | W6 (patch walk) |
 | a cut patch reads open at once, then thinner | W6 |
 | a block's mass follows thickness and grid, grade follows the patch; a pan block reads cloudy | W6 (cut), W0 (default cloudy) |
-| a draft horse cannot go out on ice a person can, until it thickens | W6 (`canEnter` for animals) |
+| a draft horse cannot go out on ice a person can, until it thickens | W5 (`Beast.beforeTraverse`) + W6 (the sheet's `bears`) |
 | anyone who goes into water comes out wet, worn clothes wet; wet clothes keep chilling in freezing air | W5 (+ the shipped wet-cloth law) |
-| broke through: cannot climb out onto the ice that broke; can swim to the shore | W6 (`wade out`, `canExit` by mode) |
-| fishing frozen water refused except through a hole; a hole never leads down | W6 (+ note: the auger path is dropped, see Risks) |
+| broke through: cannot climb out onto the ice that broke; can swim to the shore | W5 (`stand` onto a slotted floor; `canExit` by the attempted mode) + W6 |
+| fishing frozen water refused except through a hole; a hole never leads down | W6 (the hole is `cut hole`; the auger is fishing-slate's, resolved) |
 | after the thaw the pool holds no memory | W6 |
 | crossing the mere = walking on its frozen pool; a mid-crossing break-through puts you in | W6 + W9 rows |
 | summer: reached and crossed by swimming; chilled and wet | W5, W6, W9 |
@@ -1483,8 +1681,9 @@ link fails closed and silent.
 | every stock, receipt and pond log survives a restart | W2, W3, W6; proved in W10 |
 | the climate, maritime, assembly, smelting and fishing drives still pass | W5 (climate, maritime), W0 (smelting), W6 (fishing), W1 (assembly — the saw) — each re-run in its wave; all five again at W10 |
 
-Nothing is unmapped. Two deviations are recorded under Risks (tongs do
-not gate; the auger does not bore a hole).
+Nothing is unmapped. The requirements' *"or bored with the auger"* and
+*"with tongs"* are resolved by the user (fishing-slate; flavour) and
+recorded in D15 and D19.
 
 ---
 
@@ -1532,6 +1731,16 @@ not gate; the auger does not bore a hole).
     message.
   - Steps map 1:1 to the requirements' drive 1–21 with `mark` for
     `plough` (step 6/9), `get block` (step 10), `cut hole` (step 8).
+    Step 2: walk out (`north` from the shore) → the room is the pool,
+    `look` reads *in the water*, the body line reports cold, worn
+    clothes read soaked; `stand` is refused in the floor's words; `swim
+    south` lands on the shore. Step 3: a day later `north` → supported
+    (`look` reads on the ice; `sit` on the ground succeeds), `north`
+    again crosses to the far bank and back. Step 8: `cut hole` with the
+    ice saw, `fish` through it, then `swim` (no target) lowers you into
+    the channel and `stand` puts you back on ice that bears you — each
+    asserted by the room's/body's state, not by the absence of a
+    refusal.
     Step 12's two-house comparison reads both stacks with `measure
     stock` as the keeper (the drive's character is appointed keeper for
     that checkpoint — `appoint` is shipped) and the repack is performed
@@ -1553,23 +1762,27 @@ not gate; the auger does not bore a hole).
 
 ## Risks & opens
 
-1. **`cut` unification carries tailoring's options in a kernel view
-   (`--for`, `--tight`, `--generous`).** The plan protocol passes an
-   option bag the target interprets; the kernel view must declare the
-   words for the parser. **Needs the user:** confirm rung 2 with the
-   option bag, or choose the alternative — the ice saw unifies with
-   carpentry's `saw` instead (same refactor shape in carpentry;
-   `saw <patch>`), leaving tailoring's `cut` alone. The requirements
-   chose `cut`; the plan follows them.
-2. **`plough` → `mark`** (requirements problem 1). The plan proceeds on
-   `mark`; the parent session edits the requirements or overrules.
-3. **The auger does not bore a hole** (D15): no `bore` verb exists on
-   forestry's auger (it is consumed by `tap`), and inventing one for a
-   fishing hole is a verb the fishing slate owns. The hole is cut with
-   the ice saw. **Needs the user** only if they want the auger path in
-   this build (it would be a `bore` view afforded by the auger, water
-   pack or forestry — undecided by any doc).
-4. **Tongs do not gate carrying** (requirements problem 2).
+1. **The sheet's own record.** A floor is a fixture with no container,
+   so it must establish its own `(scope, key)` record keyed by its pool
+   (D12). If `restoreOrSeed` on a fixture turns out awkward (the
+   `Adornable` attach happens after the clone's `onCreate`), the
+   fallback is a one-line `PersistableMixin(Pool)` twin the row names
+   and capture through the room — the wave says which was taken. The
+   drive's restart (step 21) is the proof either way.
+2. **An item does not know its patch.** Float/sink sorts at the thaw
+   (the whole surface) and not at a single cut; the requirements'
+   *"or on a patch someone cuts"* is not literal here, because nothing
+   records where on a 4 000 m² sheet a dropped tool lies. Drive step 12
+   tests the thaw. If a reviewer wants the cut case, the honest seam is
+   a `patchId` stamped on things dropped by an actor whose cut is in
+   progress — a small addition, not a redesign.
+3. **The estuary cove's floor changes** from the default board floor to
+   the water surface (D12): `sit`/`lie` on its ground are now refused,
+   which is a correction. Maritime's drive is re-run in W5 for it.
+4. **The `ice` ground kind** is the first word added to the closed ten
+   since the ground build; `lint:ground`'s report and any census that
+   enumerates `GROUND_KINDS` are re-run, and the kind is folded only
+   from the `ice` tag so no shipped floor changes its word.
 5. **Unobserved-gap physics.** The store integrates its own gap from
    the weather walk (D4) because the room's `envelopeOutsideK` is stale
    while nobody is there. If `outsideKFor`'s site resolution is not
@@ -1608,9 +1821,11 @@ not gate; the auger does not bore a hole).
     receipt record, not the kind list. If the sweep prefers a distinct
     `store-receipt` kind, that is a one-line vocabulary edit with a
     schema-docs line, decided then.
-12. **Verb words the user may want to weigh:** `wade in` / `wade out`
-    (the water pack's one verb for lowering yourself in and climbing
-    out), `mark` (for `plough`), the `custody` category name.
+12. **Bare `stand` on a slotted floor and `swim` with no target** are
+    the two shipped-verb behaviours this build extends (D12). Both are
+    conditional on the floor's `supportIsSlotted()`, so no ordinary room
+    changes; the W5 tests pin that a chair-room's bare `stand` is
+    byte-identical before and after.
 
 ---
 
@@ -1634,8 +1849,10 @@ Clean attach points, each with the slate it leaves as:
   storage-slate (candidate). `PoolableMixin` on the board with
   `poolState = {seasonedFraction}` and the minimum merge.
 - **Ice rescue** (a rope from thicker ice, crawling out flat) →
-  ice-trade-slate. Attach: `FrozenPool.loadKgOn(patch)` and `wade out`'s
-  bearing check are where a prone posture spreads load.
+  ice-trade-slate. Attach: `IceSheet.bears(loadKg)` and the floor's
+  `canOccupy` are where a prone posture (`lie` on the floor's slot)
+  would spread a load; a rope is a `Slottable` pull from a supported
+  body.
 - **Ice-fishing gear and behaviour** → fishing-slate. Attach: the
   frozen gate in `reachFor`.
 - **Handling at scale** (poling, hooking, the elevator; tongs as a
@@ -1675,8 +1892,20 @@ Read first, in this order, with the lines cited in § Grounding:
    `lib/material/Material.ts` (380–391, 485–500, 1061)
 6. `packages/server/src/mud/lib/thermal/ThermalRegulation.ts` (500–610),
    `lib/locomotion/Swimmable.ts`, `platform/location/Pool.ts`,
-   `lib/location/Shore.ts`, `lib/spatial/Mobile.ts` (395–470, 905–1015),
-   `platform/idea/api/LocomotionLogic.ts` (225–280, 533–541)
+   `lib/location/Shore.ts`, `lib/spatial/Mobile.ts` (100–112, 395–470,
+   905–1015), `platform/idea/api/LocomotionLogic.ts` (225–280, 416–467,
+   533–541), `lib/respiration/Respiration.ts` (244–284)
+6a. **The floor model:** `docs/subsystems/ground.md` and
+   `docs/subsystems/posture.md` (whole), `packages/server/src/mud/lib/stuff/Location.ts`
+   (52–61, 368–420, 449), `lib/ground/Floor.ts` (142–146, 150–215,
+   323–400, 560–625), `lib/ground/GroundKind.ts` (55–185),
+   `platform/thing/Floor.ts`, `lib/slot/Slotted.ts` (328–400),
+   `lib/slot/Slottable.ts` (142, 226–258), `lib/character/Posed.ts`
+   (82–87, 268–340), `platform/idea/cmd/posture/StandController.ts`,
+   `platform/idea/cmd/movement/SwimController.ts`,
+   `packages/content/platform/content/platform/cmd/{posture/stand,posture/sit,movement/swim}.yaml`,
+   `packages/content/generic-objects/content/stuff/thing/surface/default-floor.yaml`,
+   `packages/server/scripts/check-ground.ts` (1–80, 500–700)
 7. `packages/content/water/src/idea/WatercourseCatalogue.ts` (480–520,
    700–730, 1616–1685), `packages/server/src/mud/api/weather.ts` (244–266),
    `packages/content/water/content/settings/water.yaml`
