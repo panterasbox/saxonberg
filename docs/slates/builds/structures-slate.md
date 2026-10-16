@@ -1,5 +1,20 @@
 # Structures slate — the thing that says "these rooms are one building", and whether it is needed at all
 
+> ⭐⭐⭐ **LOAD-BEARING FOR INTERIORS (2026-10-16)** →
+> [rubber-requirements](../../requirements/rubber-requirements.md). The
+> 10-15 ruling that a Structure is only for what is seen over the horizon
+> is **reversed**: every interior belongs to one, and an interior that
+> does not is a counted, ratcheted exception. The structure owns **walls
+> and roof**, and **storeys as a tree** (each names the storey it stands
+> `on:`; a storey may be `open:` — a roof terrace is the building's, and
+> its floor is the roof below). This takes the Left list's roof, storeys
+> and envelope between rooms (heat moves between rooms of one building;
+> the threshold is `structureOf(this) !== structureOf(far)`). Air mixing
+> between rooms and fire spread stay here. ⚠ Zone was tried as the owner
+> in conversation and rejected: a zone is any space, composed however the
+> author likes and tied to parcels, so no zone is the authority for a
+> building.
+
 > **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
 > (`platform/idea/Structure`) is membership by extent prefix, the
 > entrance, the outside look, `landmark` and `heightM`;

@@ -1,5 +1,12 @@
 # Tapping slate — the yield that does not kill the organism
 
+> ⭐ **Rubber's supply, 2026-10-16** → [rubber-requirements](../../requirements/rubber-requirements.md):
+> Hevea cannot grow in this realm's open air, so latex is tapped **under
+> glass** (a stove house; the tap's `weather` window reads the house's own
+> derived temperature, so a dead stove closes the run) and the second
+> source is Russian dandelion, **dug** as a crop rather than tapped.
+> *"Latex is resin's mechanism exactly"* still holds for the Hevea half.
+
 > **Status: ⭐ SAP SHIPPED 2026-10-01 · RESIN UNBUILT** — the taps build
 > took the whole mechanism and the sap vertical;
 > [taps.md](../../subsystems/taps.md) is the subsystem doc.

@@ -1,5 +1,13 @@
 # Inquiry slate (working doc) — discovering, verifying, and trusting knowledge
 
+> ⭐ **2026-10-16 — rubber ships with NO gate**
+> ([rubber-requirements](../../requirements/rubber-requirements.md)): not
+> even the token. The oven asks nobody what they know; the cure window is
+> narrow enough that it is reached by measuring rather than by tradition,
+> which is the industrial break encoded in physics instead of a lock.
+> Cold discovery is open by construction. Row 5 (discovery) remains this
+> slate's, as a better way to earn the curve.
+
 > **Status: PARTIAL** — the instrument seam (`analyze` / `measure`) and
 > the Competence ladder shipped →
 > [advancement.md](../../subsystems/advancement.md)

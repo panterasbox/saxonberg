@@ -1,5 +1,22 @@
 # Rubber slate — the first technology
 
+> ⭐⭐⭐ **IN REQUIREMENTS 2026-10-16** →
+> [rubber-requirements](../../requirements/rubber-requirements.md) (branch
+> `reqs/rubber`). Four of this slate's premises did not survive the
+> survey: (1) ⛔ **it is NOT blocked** — inquiry's codification doctrine
+> (2026-10-08) took the on-ramp off the critical path, and the build ships
+> **no knowledge gate at all**: the oven asks nobody what they know, and
+> the narrow window is what makes it industrial; (2) **no latex can grow
+> here** (no tropical biome; Terminus is 42°) — the supply is Russian
+> dandelion as a field crop plus Hevea in a **glass stove house**; (3)
+> **no sulfur existed** — it is a caprock band above the Hill Quarry's
+> salt; (4) ⚠ **three of the four "free" consumers were not free** —
+> leather already broke the ground path and wet leather never conducted,
+> rain never asked what you wear, packing wear ignored material, and
+> vitriol was authored to eat rubber. The hothouse also forced the sky
+> question: **sky exposure becomes construction** (walls + roof owned by
+> a load-bearing `Structure`, storeys as a tree) — see the requirements.
+
 > **Status: UNBUILT** — and it is the case that proves the **epoch
 > on-ramp** ([inquiry-slate § From law to technology](./inquiry-slate.md)).
 > The material row ships, fully specified, and ⚠ **nothing in the entire
