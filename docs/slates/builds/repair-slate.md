@@ -46,6 +46,12 @@ skill in it. See § 1.
 > service is **priced by the diagnosis**, not by mass (§ 4) · the **first
 > mender is a tinker on the road**, a city cobbler the second (§ 4) ·
 > tailoring's **`alter` stays its own act** (§ 9).
+>
+> ⭐⭐ **Building UPKEEP is in; ERECTION gets its own design** (2026-10-16):
+> a building's walls and roof are layers (the rubber build's model), each
+> weathers at its material's pace, and `maintain` replaces what time took
+> — materials in hand, by that layer's trade, at the hand's band. It waits
+> on rubber's layers reaching master; erection → structures-slate.
 
 `repair.yaml`'s help promises *"Restores fully — gear never obsoletes, it
 asks for care."* The second half stands; the first becomes **conditional

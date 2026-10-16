@@ -21,6 +21,12 @@ part** (Excalibur re-hilted is still Excalibur), and **upkeep that
 reaches the part it is about** (hone a loose blade and it keeps its edge
 in the haft).
 
+⭐ **Reopened 2026-10-16 (owner): building upkeep is in.** A building
+is an assembly at the scale of places — every wall and roof is layers of
+materials, each weathers by what it is, and keeping it standing is paid
+in those materials, layer by layer, by the trade that laid each one.
+*Erecting* a building is not this build's (Non-goals).
+
 Seeded by [repair-slate](../slates/builds/repair-slate.md) (all of its
 questions closed, § 0); it supersedes GitLab **#39**. The tail of
 [assembly-slate](../slates/tails/assembly-slate.md) rides where § 5
@@ -43,9 +49,13 @@ touches it.
 | **named objects** | ⚠ **none.** `name` names a bonded animal; `label` writes on a thing. No authored named, heirloom or relic item exists. A magic item's working sits on the whole item. |
 | **NPCs on the road** | ⚠ **none walks a round.** The carter journeys on demand for bounties; nothing keeps a timetable. The roads exist: Terminus → Delight Road → the crossroads → Hearts' Delight, the crossroads → Kestrel Road → Rejection, Terminus → Valley Road → Hinkley Hills. |
 | **Disciplines** | smithing, carpentry, coopering, tailoring, leatherwork, glasswork, textiles, appraisal (*a merchant's eye*). **No mending Discipline, and none is wanted** (§ Surface decisions 1). |
+| **building upkeep** | ships for **holdings** (the residence pack): a holding's shell weathers on the calendar (*sound · weathered · worn · shabby · dilapidated*, a cause line, no number); `survey` reads it and who owes it (the dorm's is the university's, a let unit's shell the landlord's, a bought house the owner's); `maintain` with a householder's kit puts it back to sound for anyone — ⚠ **costing no materials, asking no trade**; the dorm and the Seznick shell are kept by NPCs (Katie, Walter) on a cadence. ⚠ **Two clocks never touch**: a shell weathers on the calendar, a good only with use. |
+| **walls and roofs as layers** | ⚠ **not on master** — the rubber build (in flight) gives every place its walls and roof as a material and a thickness, or several layers outermost first; a structure says which places stand together, never what they are made of. The structures slate (on both in-flight branches) names *a building's bill of goods derived from those layers* as the next step, after rubber. |
 | **overlapping slates** | sanitation (scavenger, salvage yard, the lemons problem), freight (the roadmender's on-shift repair), patina (seasoned tools worth more), auction / warranty / insurance (second-hand title), trade-roster (a pedlar), textiles (the cordwainer). |
 
-⭐ **Therefore what is genuinely new here is:** a mend whose result
+⭐ **Therefore what is genuinely new here is:** a building whose upkeep
+costs the materials time took from it, layer by layer, by the trade that
+laid them; a mend whose result
 depends on the hand and is legible afterwards; a paid mend performed by
 a person whose skill you are buying; two menders and an NPC that keeps a
 round; keenness that edged tools have and loose parts keep; every made
@@ -80,6 +90,18 @@ named thing whose name lives in one of its parts.
   hones its head; a head honed loose keeps its edge when it is hafted,
   and a part's wear, grade and edge travel with it in and out of a
   whole.
+- **A building is kept up with materials, by trades.** Each layer of a
+  place's walls and roof weathers at its own material's pace (thatch
+  thins, lime washes out, a sawdust fill settles and rots, slate barely
+  moves); `survey` names which layer is going and what it will take;
+  `maintain` replaces what time took — the materials themselves, in
+  hand — under the trade that lays that layer, at the hand's band, so a
+  botched patch is possible and compounds. The holding's shell band
+  reads from its layers. Who owes it is unchanged; who may do it is
+  still anyone.
+- **The NPC keepers buy what they lay.** Katie and Walter keep their
+  buildings with materials their employers purchase; an employer that
+  cannot buy them leaves its building to weather.
 - **A named thing's name lives in a part.** An authored heirloom keeps
   its name through any re-hilting; draw the blade and the name goes with
   it. A broken named blade reforged loses its name, and the smith who
@@ -108,7 +130,17 @@ named thing whose name lives in one of its parts.
   their own shop) → the business ladder in
   [settlement-model.md](../settlement-model.md); here a player can hold
   the cobbler's seat or mend by hand for whoever asks.
-- **Buildings** (`maintain`) — not assemblies here; unchanged.
+- **Erecting a building** from its bill of goods — who builds, who pays,
+  how a new building comes to exist on a parcel → its own design, in
+  [structures-slate](../slates/builds/structures-slate.md) § building
+  materials (owner, 2026-10-16: *upkeep only; erection gets its own
+  design*).
+- **Hiring a thatcher or a mason through a counter** (a paid service for
+  a building) → the erection design; here anyone may maintain anything,
+  as shipped, and a player can do it for whoever asks.
+- **Fire, rot and collapse as events** (a building that falls down) →
+  structures-slate; here a neglected building only weathers to
+  dilapidated, as shipped.
 - **Tailoring's `alter`** — stays its own act (it changes whom a garment
   fits, not its condition).
 - **Furniture as assemblies, casks that are not vats** → the
@@ -129,6 +161,14 @@ named thing whose name lives in one of its parts.
   and the cobbler is a city trade. ⭐ The cobbler is the *second venue*
   and must need no code — that is its job in this build.
 - **The heirloom** is locality content (Hearthworks, below).
+- **Building upkeep** extends the residence system's weathering and the
+  kernel's construction of places: the layers are the place's (rubber's
+  model), the materials and their weathering pace are the materials'
+  rows, which trade lays which material is the trades'. ⚠ **It needs the
+  rubber build's layered walls and roofs on master.** Everything else in
+  this build waits only on dairy; if rubber has not merged when the rest
+  is done, the rest ships and building upkeep follows as its own merge
+  request.
 - **Edges on tools, the sword's parts** are the trades' rows (smithing,
   carpentry, tailoring for boots).
 
@@ -163,6 +203,15 @@ named thing whose name lives in one of its parts.
   the drive buys its pick at Rejection).
 - **The roads** — Delight Road, the crossroads, Kestrel Road: the tinker
   walks them; nobody lives on them now.
+- **The residence pack's `survey`, `maintain`, the householder's kit and
+  the `maintains` brain** — `maintain` now asks for materials and a trade;
+  the kit stays the householder's instrument for the layers a householder
+  lays (whitewash, putty); Katie's and Walter's employers purchase the
+  materials, and the dorm and the Seznick shell are where a player first
+  sees a building cost something to keep.
+- **The rubber build's hothouse and the ice build's icehouse** (in flight)
+  — their glass, their double walls and sawdust fill are the first
+  buildings whose layers matter; they gain upkeep for free once both land.
 - **Freight's roadmender** (designed, unbuilt) — the same "repair on
   shift" shape; this build makes it rows when it comes.
 
@@ -255,6 +304,17 @@ cloth at his bands, and his seat can be applied for: a player cobbler is
 paid a wage and their band does the work. ⭐ Built from rows only — it is
 the proof that a second mender needs no code.
 
+### 10. Building upkeep, layer by layer
+Each place's walls and roof are layers (rubber's model). Each layer
+weathers on the calendar at its material's pace — the shell clock, never
+the goods clock. `survey` at home names the layer and the cure: *"the
+thatch has thinned over the north side — it wants two bundles of reed."*
+`maintain` lays new material into the worst layer you can reach: the
+materials must be in hand, the instrument is that layer's trade's, and
+the band table (§ 2) decides how far it comes back and whether the patch
+is sound. The holding's five bands read from its layers. A building with
+no layers authored weathers as today, as one shell.
+
 ## Lens pass
 
 1. **Pedagogy** — the Discipline exercised is the trade that made the
@@ -322,8 +382,15 @@ A funded player, a fresh world, the real socket.
 10. Consign the twice-botched pick on the general store's shelf; a
     second player `look`s at it — *mended* — and with appraisal sees *by
     an unpractised hand, twice*.
-11. Restart the server. The pick's grade and mend history, the
-    billhook's keen head, the heirloom's name in its blade: all as left.
+11. *(Building upkeep — once rubber has merged.)* Advance the clock a
+    season. At home, `survey`: a named layer is going and the cure names
+    the material and the amount. `maintain` with no materials — refused,
+    naming them. Get them; `maintain` untrained — the layer comes back
+    short and `survey` says the patch is poor. Watch the dorm's keeper
+    keep the dorm with materials the university bought.
+12. Restart the server. The pick's grade and mend history, the
+    billhook's keen head, the heirloom's name in its blade, the patched
+    layer: all as left.
 
 ## Acceptance criteria
 
@@ -361,7 +428,16 @@ A funded player, a fresh world, the real socket.
 14. The heirloom keeps its name when re-hilted and when its blade is
     drawn; the drawn hilt has no name; broken and reforged, the blade
     loses its name and its reforger can name it once.
-15. The drive passes end to end, including the restart.
+15. After a season unwatched, `survey` names which layer of a building
+    weathered and what it needs; slate and thatch on the same calendar
+    weather differently.
+16. `maintain` lays the named material from hand into the named layer,
+    by that layer's trade, at the hand's band — refused without the
+    material, short and readable when untrained; a durable good beside it
+    is unchanged across the same season.
+17. The dorm stays kept while its keeper's employer can buy the
+    materials, and weathers when it cannot.
+18. The drive passes end to end, including the restart.
 
 ## Cross-references
 
