@@ -1011,6 +1011,14 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
+    // ⚠ The smelt is engaged: the tap comes on its own clock. On a slow
+    // box it landed after the reply and the pour ran before the metal did
+    // (run 40). A smelter pours when the metal has run — wait for the tap.
+    let tapped = smelt.said;
+    for (let i = 0; i < 12 && !/tap the furnace/i.test(tapped); i++) {
+      tapped += await k.listen(10_000);
+    }
+    expect(tapped).toMatch(/tap the furnace/i);
     note(`look crucible (tapped) → ${await read(k, 'look crucible')}`);
     // Poured at once, the bellows still going (a second `pump` eases them
     // OFF — run 29).
