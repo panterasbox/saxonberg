@@ -656,8 +656,8 @@ the question.**
    contactResistanceImpl` computes `σ_eff = σ_mat + saturation ·
    permeability(material) · fluidSigma`, where `permeability = 0` when
    `waterAbsorptionCapacity ≤ wetness.impermeableBelowPct` (2 — rubber
-   0.5, glass 0.1, metals 0) else `min(1, wAC / 40)` (Wearable's
-   `ABSORPTION_REFERENCE`). `ElectricityLogic.groundContactInsulated`
+   0.5, glass 0.1, metals 0) else `min(1, wAC / absorptionReference)` (the
+   shipped textiles setting — see the THREE-readers note below). `ElectricityLogic.groundContactInsulated`
    and `pathResistance` pass each worn layer's own `getWetness()` and
    the pool's material conductivity when immersed (else fresh water's
    0.01 S/m). `ElectricityLogic.isWet`, on immersion, also wets the
@@ -681,6 +681,26 @@ the question.**
    folds `contactResistance`'s wet term onto it; if this lands first,
    build-4 reads it. The plan's `contactResistance(material, wet?)`
    becomes a caller of the shared law, not its owner.
+   ⭐⭐⭐ **THREE readers, and one already ships** (build-4's reply,
+   2026-10-16, verified): textiles' wet cloth on master is this law —
+   `k_void = k_air·(1 − s) + k_water·s`, `s = wetness × min(1, wAC /
+   ABS_REF)` (thermal.md § worn insulation; `lib/slot/Wearable.ts` ~423,
+   `CLO_DEFAULTS.ABSORPTION_REFERENCE` = 40, setting
+   `textiles.clo.absorptionReference`). So **whichever build lands first
+   GENERALIZES THE SHIPPED LAW onto the material and migrates cloth onto
+   it**; the second consumes it. Concretely, if this build is first:
+   - `permeability(material) = 0` when `wAC ≤ wetness.impermeableBelowPct`
+     (2), else `min(1, wAC / absorptionReference)` — ⚠ **hoist the ONE
+     existing setting**; never a second `40`;
+   - the cutoff is NEW and NECESSARY: without it a rubber boot (wAC 0.5)
+     soaked in 5 S/m brine reads ≈ 0.06 S/m, above the 0.001 insulator
+     cutoff, and the boots fail. Verified 2026-10-16: **no shipped
+     textile/leather/hide row has wAC ≤ 2**, so the cutoff changes no
+     shipped cloth outcome — a test asserts cloth's `k_void` is
+     byte-identical before and after the migration;
+   - `Wearable`'s clo arithmetic calls the shared law for `k_void`
+     (thermal reader, shipped), `MaterialLogic.contactResistanceImpl` for
+     σ (electrical, this build), build-4's packing for k (thermal, theirs).
 2. *The outermost layer sheds rain.* `Attired.exposeToRain(delta)` (a
    method on the wearer — verbs on objects): for each body part by
    surface share, the outermost covering takes `delta` (it is `Wet`), and
