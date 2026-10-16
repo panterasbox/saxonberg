@@ -2191,6 +2191,16 @@ starter → hoop and stone → `cure wheel` → the rack → three weeks → spl
   article, not this build's). `consign` refuses a character with no
   account and names the remedy, as it should.
 
+**Walk C** (a nanny milked at the goat pen, the vat, crock and hoop
+carried up to the Dry, the goat's wheel; then the furnace preheated, the
+charge, the smelt, the crucible poured into the ingot mould, the bar)
+works end to end in the browser — walking between the places, not
+teleporting. The ore is minted by the founder as the drive does: the
+smelter stocks none, and hewing it is the mining build's chain. Seen on
+the way: two pails in reach make `look pail` ask *which?* (honest); a
+nanny left drafted and unmilked dries off for the season (honest — the
+drive's step 26 lesson, met by accident).
+
 Then the wire drive, re-run on the new rows, took five more runs to come
 back green — **run 39, 41/41** (488 s, fresh world):
 
