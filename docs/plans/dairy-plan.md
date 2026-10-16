@@ -2102,6 +2102,54 @@ USE them.
     gone, and the byre's books loaded on arrival (run 26). `Mould`'s
     `castTemplate` is `ref: 'identity:kind'` under the split vocabulary.
 
+28. **The assembly merge** (runs 29–34): `RipeningMixin` started
+    ripening at its first READ while its spoilage hold asked the phase as
+    STORED, so a wheel cast, salted and racked and not looked at was
+    unheld for every day before somebody looked, and came off the rack
+    *faintly off* — its wedge refused as turned. ⭐ A wheel now ripens
+    from the moment its material is set (the cast and the salting craft
+    both set it; wheel.test pins it and fails without it). The smelt: a
+    crucible put into a cold furnace sets 0.17 kg of copper on contact,
+    so the furnace is lit and blown half an hour first; a charge in a
+    burning furnace burns, so the ore and the reductant go in after the
+    preheat; the ore lumps no longer stack, so what a character can lift
+    decides the order (the fuel yard's baskets, then the smelter's own,
+    then the ore). The assembly build's ownership line ("Owned by …")
+    put digits in `look`, so the no-figure check reads the ripening
+    without it.
+
+### ✅ The record — run 34, 41/41 on a fresh world
+
+`packages/wire/tests/dairy.dirty.wire.test.ts`, attached to an owned
+world on `WIRE_PORT=2013` after `reset:db`, on the tree merged with
+master through the assembly build: **41 passed, 1 skipped** (the
+clock-setup suite, which skips by design off an owned world), 473 s.
+
+Every step of the requirements' script ran except 19b (B7 — the ice
+pan's block, not drivable while the only freezer nests its pan two
+open containers deep). The walk, in order: a cow drafted at midnight
+and milked into a washed pail at noon; the creamery's pan sets and the
+skim draws off and stops at the cream; the cream breaks in the churn
+carried down to the cheese room; milk scalded to 336 K on the low
+hearth, cooled to 311 K, pitched from the whey crock and renneted; the
+warm jug turns while the cellar crock keeps; the curd sets, the whey
+backslops the starter, the hoop presses a wheel, `cure wheel` salts it,
+and it goes on the rack; a second batch boiled to 362+ K sets *badly —
+slack and grainy*; a nanny at Rejection milked into a washed pail, her
+milk soured wild by the Dry's stove and its whey restarting a dead
+crock, her wheel *made from goat's milk*; three weeks on the hard wheel
+is *coming on*, splits with the cheese knife, and its wedge is listed
+on the co-op shelf; butter fries two bundles of roots at the cookhouse; a
+ewe milks in her season; a cow left unmilked dries off, stays dry
+redrafted, and is back in milk after her rest; nine-hours-unwashed
+hands put e-coli in a stranger's raw milk and the stranger is ill
+(`assess`: *"You seem coliform infection"* — the self-assess line drops
+its verb for a condition read by name; a finding for `AssessController`,
+not this build's); a
+bull calf refuses to milk in his own words and gives a vell to the
+knife; and copper runs into a preheated crucible, is poured into the
+ingot mould, and comes out a bar.
+
 ### Build decisions (not in the plan above)
 
 Decided during the build; each says which rule decided it.

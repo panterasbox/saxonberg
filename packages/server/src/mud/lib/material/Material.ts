@@ -540,20 +540,25 @@ export default class Material extends SingletonMixin(
       this.drainSetting = null;
       return;
     }
-    const m = value.moisture;
-    const ok =
-      Number.isFinite(value.days) &&
-      value.days > 0 &&
-      m !== null &&
-      typeof m === 'object' &&
-      m.unloaded > 0 &&
-      m.unloaded <= 1 &&
-      m.loaded > 0 &&
-      m.loaded <= m.unloaded &&
-      Number.isFinite(value.loadRef) &&
-      value.loadRef > 0 &&
-      (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== ''));
-    if (!ok) {
+    // ⚠ No local `const` here: `wiki-spoiler-fields.snapshot` labels each
+    // field by the nearest `class`/`const` above this class's `fieldMeta`,
+    // which sits after the methods — a `const ok` filed every Material
+    // field under `ok`.
+    if (
+      !(
+        Number.isFinite(value.days) &&
+        value.days > 0 &&
+        value.moisture !== null &&
+        typeof value.moisture === 'object' &&
+        value.moisture.unloaded > 0 &&
+        value.moisture.unloaded <= 1 &&
+        value.moisture.loaded > 0 &&
+        value.moisture.loaded <= value.moisture.unloaded &&
+        Number.isFinite(value.loadRef) &&
+        value.loadRef > 0 &&
+        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== ''))
+      )
+    ) {
       throw new RangeError(
         'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
           'loadRef > 0, and becomes a path or absent',
@@ -561,7 +566,7 @@ export default class Material extends SingletonMixin(
     }
     this.drainSetting = {
       days: value.days,
-      moisture: { unloaded: m.unloaded, loaded: m.loaded },
+      moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
       loadRef: value.loadRef,
       ...(value.becomes ? { becomes: value.becomes } : {}),
     };

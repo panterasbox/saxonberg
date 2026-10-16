@@ -104,6 +104,17 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     static markupAugmenters: MarkupAugmenter[] = [ripeningAugmenter];
 
+    static fieldMeta: FieldMeta = {
+      ripeningPhase: { persistent: true, runtimeState: true },
+      ripenessFraction: { persistent: true, runtimeState: true },
+      ripeningStamp: { persistent: true, runtimeState: true },
+      ripeningProfileKey: { persistent: true, runtimeState: true },
+      ripeningMaterialPath: { persistent: true, runtimeState: true },
+      ripeningInputBand: { persistent: true, runtimeState: true },
+      _ripeWorst: { persistent: true, runtimeState: true },
+      overDays: { persistent: true, runtimeState: true },
+    };
+
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
       for (const [mixin, why] of [
@@ -116,17 +127,6 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         }
       }
     }
-
-    static fieldMeta: FieldMeta = {
-      ripeningPhase: { persistent: true, runtimeState: true },
-      ripenessFraction: { persistent: true, runtimeState: true },
-      ripeningStamp: { persistent: true, runtimeState: true },
-      ripeningProfileKey: { persistent: true, runtimeState: true },
-      ripeningMaterialPath: { persistent: true, runtimeState: true },
-      ripeningInputBand: { persistent: true, runtimeState: true },
-      _ripeWorst: { persistent: true, runtimeState: true },
-      overDays: { persistent: true, runtimeState: true },
-    };
 
     public ripeningPhase: RipeningPhase = 'idle';
     public ripenessFraction = 0;

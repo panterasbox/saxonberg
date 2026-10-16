@@ -228,17 +228,6 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
 
     static markupAugmenters: MarkupAugmenter[] = [fractionAugmenter];
 
-    static __validateComposition__(ctor: AnyConstructor): void {
-      const name = (ctor as { name?: string }).name ?? 'class';
-      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
-        throw new Error(
-          `${name} composes FractionatingMixin without BulkableMixin; ` +
-            `the run rides the host's interior bulk slot — there is nothing ` +
-            `to fractionate without one.`,
-        );
-      }
-    }
-
     static fieldMeta: FieldMeta = {
       chargeL: { persistent: true, runtimeState: true },
       drawnL: { persistent: true, runtimeState: true },
@@ -250,6 +239,17 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       chargedAtS: { persistent: true, runtimeState: true },
       runResidueFraction: { persistent: true, runtimeState: true },
     };
+
+    static __validateComposition__(ctor: AnyConstructor): void {
+      const name = (ctor as { name?: string }).name ?? 'class';
+      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
+        throw new Error(
+          `${name} composes FractionatingMixin without BulkableMixin; ` +
+            `the run rides the host's interior bulk slot — there is nothing ` +
+            `to fractionate without one.`,
+        );
+      }
+    }
 
     /**
      * Game-seconds the charge landed (dairy D4) — what a schedule's

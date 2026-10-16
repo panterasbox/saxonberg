@@ -93,7 +93,6 @@ export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
 /** A batch phase — one of {@link FERMENT_PHASES}. */
 export type MaturationPhase = (typeof FERMENT_PHASES)[number];
 
-
 /**
  * Grams of sugar per litre consumed per 1% ABV produced (≈16.8 in the
  * real stoichiometry; 17 is the teachable round figure — the mass
@@ -418,16 +417,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter, characterAugmenter];
 
-    static __validateComposition__(ctor: AnyConstructor): void {
-      const name = (ctor as { name?: string }).name ?? 'class';
-      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
-        throw new Error(
-          `${name} composes MaturingMixin without BulkableMixin; ` +
-            `the transform rides the vessel's interior bulk slot (D2).`,
-        );
-      }
-    }
-
     static fieldMeta: FieldMeta = {
       maturationClockStamp: { persistent: true, runtimeState: true },
       maturationPhase: { persistent: true, runtimeState: true },
@@ -471,6 +460,16 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       batchDays: { persistent: true, runtimeState: true },
       batchPeakK: { persistent: true, runtimeState: true },
     };
+
+    static __validateComposition__(ctor: AnyConstructor): void {
+      const name = (ctor as { name?: string }).name ?? 'class';
+      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
+        throw new Error(
+          `${name} composes MaturingMixin without BulkableMixin; ` +
+            `the transform rides the vessel's interior bulk slot (D2).`,
+        );
+      }
+    }
 
     /**
      * ⭐ **The scald mark** (dairy D6) — the hottest the batch has been since

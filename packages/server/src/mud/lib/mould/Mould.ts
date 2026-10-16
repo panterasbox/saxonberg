@@ -139,6 +139,16 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     static markupAugmenters: MarkupAugmenter[] = [mouldAugmenter];
 
+    static fieldMeta: FieldMeta = {
+      castTemplate: { persistent: true, authorable: true, ref: 'identity:kind' },
+      reusable: { persistent: true, authorable: true },
+      wearPerCast: { persistent: true, authorable: true },
+      discipline: { persistent: true, authorable: true },
+      setProgress: { persistent: true, runtimeState: true },
+      setStamp: { persistent: true, runtimeState: true },
+      setPressed: { persistent: true, runtimeState: true },
+    };
+
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
       for (const [mixin, why] of [
@@ -153,16 +163,6 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
       }
     }
-
-    static fieldMeta: FieldMeta = {
-      castTemplate: { persistent: true, authorable: true, ref: 'identity:kind' },
-      reusable: { persistent: true, authorable: true },
-      wearPerCast: { persistent: true, authorable: true },
-      discipline: { persistent: true, authorable: true },
-      setProgress: { persistent: true, runtimeState: true },
-      setStamp: { persistent: true, runtimeState: true },
-      setPressed: { persistent: true, runtimeState: true },
-    };
 
     /** ⭐ The shape — the template a pool set in this mould becomes. */
     public castTemplate = '';
