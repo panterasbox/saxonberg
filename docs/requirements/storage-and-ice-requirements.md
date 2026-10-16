@@ -177,7 +177,7 @@ Seeding slates:
 - **An authored river venue** (a mill pond, a slow reach of a river) → nowhere for now. Rivers qualify by this build's rule, but with geography placeholder none is authored or driven here.
 - **Boating on a pool in summer** → nowhere for now.
 - **Ice rescue** (a rope thrown from thicker ice, crawling out flat to spread your weight, pulling someone out) → [ice-trade-slate](../slates/builds/ice-trade-slate.md), as the next content on the harvest.
-- **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/tails/fishing-slate.md). This build only makes frozen water fishable through a hole.
+- **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/tails/fishing-slate.md). This build only makes frozen water fishable through a hole. **Boring a fishing hole with forestry's auger** goes there too (it needs a boring verb, which nothing ships).
 - **A licence to cut beyond holding the water** → navigable-water-slate § 5.
 
 ## Placement
@@ -213,8 +213,8 @@ Seeding slates:
 - **Metal lumps** (smelting, smithing, salvage) must keep their alloying and temper exactly. **Glass cullet and salvage** must keep their iron. The smelting, smithing and glass drives must still pass.
 
 **Words and verbs**
-- **`plough`** (farming) also marks a frozen pool.
-- **`cut`** (tailoring) is shared with the ice cut, and neither may shadow the other.
+- **`plough`** (farming) is untouched: it is welded to a field's soil, so marking a frozen pool is its own verb, **`mark`** (the tool is historically the ice marker). Tailoring's **`cut`** becomes one shared `cut` the ice also answers (below).
+- **`cut`** becomes **one** verb that tailoring's cloth and the ice both answer, each target planning its own cut (tailoring's `--for`, `--tight`, `--generous` ride along). Neither shadows the other, and tailoring's behaviour is unchanged.
 - **`measure`** gains two readings.
 
 **⚠ The rubber build (build-1, planned, not built)**
@@ -303,9 +303,9 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 - **The work, in four verbs:**
   - **`measure ice`** with a spud gives the thickness, to a precision banded by skill;
   - **`scrape`** clears snow off a patch;
-  - **`plough`** with an ice marker scores the grid and sets the block size. The hand marker is pushed; the ice plough is drawn by a horse, which needs thicker ice than a person;
+  - **`mark`** with an ice marker scores the grid and sets the block size. The hand marker is pushed; the ice plough (a marker drawn by a horse) needs a horse on the ice, and a horse needs thicker ice than a person;
   - **`cut`** with an ice saw takes a block.
-- **The hand rung's blocks are carryable with tongs** (about 25–50 kg). Bigger cakes go by wagon, as placeholder.
+- **The hand rung's blocks are carryable** (about 25–50 kg). Tongs exist as the trade's tool and are flavour in this build: carrying is ordinary `get` under the shipped encumbrance, and handling at scale is freight's. Bigger cakes go by wagon, as placeholder.
 - **The ladder is hand saw → crew and horse plough.** The steam elevator is the next rung, out of this build with the rest of handling at scale.
 - **The pond remembers what was done to it,** and `look` at the field shows it: the scored grid, the open channel, the cut.
 - **Timing is a bet.** The forecast is exact for a day and blind beyond it, and a harvest runs for weeks. No change is needed.
@@ -371,7 +371,7 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 
 ### Ice fishing, minimal
 - **Frozen water can be fished only through a hole.** Through solid ice, `fish` and `lay` are refused in words.
-- **A fishing hole** is cut with the ice saw, or bored with the auger forestry already ships. It's a small cut in the pond's log and refreezes like any other.
+- **A fishing hole** is cut with the ice saw (`cut hole`). It's a small cut in the pond's log and refreezes like any other. Boring one with forestry's auger is not in this build: the auger has no boring verb, and making one is the fishing slate's.
 
 ### Cold water
 - **A swimmer's body reads the water around it:** its temperature, and its much higher conductivity.
@@ -457,11 +457,11 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 **The cut**
 
-6. **`plough` the field with the hand marker.** `look` at the field shows the scored grid.
+6. **`mark` the field with the hand marker.** `look` at the field shows the scored grid.
 7. **`cut` a block with the ice saw.** It is graded from the sheet, and its mass follows the thickness and the grid. `look` at the field shows the cut and the open water. Standing where the cut was would put you in the water.
-8. **Fishing.** `fish` through the solid field is refused in words. Bore a hole with the auger and `fish` through it. Go into the water at the harvest channel, then `stand`: you are back on ice that bears you.
-9. **Try a horse and ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
-10. **`get` the block with tongs and carry it to the icehouse.**
+8. **Fishing.** `fish` through the solid field is refused in words. `cut hole` with the ice saw and `fish` through it. Go into the water at the harvest channel, then `stand`: you are back on ice that bears you.
+9. **Try to `mark` with a horse and the ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
+10. **`get` the block and carry it to the icehouse.**
    - On shift as a house hand, `put` it on the stack. The house's stock rises.
    - Then, as an outside depositor, on the icehouse **platform**, `deposit` a block **with the keeper**. A receipt in your name is issued, showing its terms.
 
