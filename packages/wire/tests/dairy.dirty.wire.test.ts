@@ -752,7 +752,10 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     note(`look wheel (three weeks) → ${look}`);
     note(`taste wheel (three weeks) → ${taste}`);
     expect(look).toMatch(/coming on|rind|ripe/i);
-    expect(look).not.toMatch(/[0-9]/);
+    // No figure in the ripening — the words only. (The look's ownership
+    // line names the character, whose handle has digits: master's
+    // assembly build.)
+    expect(look.replace(/── Owned by[^\n]*/g, '')).not.toMatch(/[0-9]/);
     expect(taste).toMatch(/milk|cheese/i);
   });
 
@@ -965,7 +968,6 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await doing(k, 'put crucible in furnace');
     // `malachite`: `ore` also names the ore buyer, who will not lift (run 28).
     await doing(k, 'get malachite');
-    await doing(k, 'put malachite in furnace');
     // A run wants two baskets IN THE CHARGE (the reductant) and a lit bed
     // of its own — four baskets, and the smelter props two. The fuel yard
     // next door props four (run 14). Fetched AFTER the crucible and ore
@@ -981,16 +983,18 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     // smelter's own two stay where they are — a seventh and eighth basket
     // will not lift (run 21).
     await goTo(SMELTER);
-    await doing(k, 'put charcoal in furnace');
-    await doing(k, 'put charcoal in furnace');
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'ignite furnace');
     await act(k, 'pump bellows');
     // ⚠ Preheat: 0.17 kg of copper tapped into a COLD crucible sets on
     // contact — run 29 poured nothing straight after the tap. A smelter
-    // brings the pot up with the furnace first.
+    // brings the pot up with the furnace first, and charges AFTER: a
+    // charge in a burning furnace burns (run 31's preheat ate a basket).
     await advance('30 minutes');
+    await doing(k, 'put malachite in furnace');
+    await doing(k, 'put charcoal in furnace');
+    await doing(k, 'put charcoal in furnace');
     const smelt = await act(k, 'smelt');
     note(`smelt → ${smelt.said}`);
     expect(refusedFor(smelt.r)).toBeNull();
