@@ -19,6 +19,31 @@ and the drive file. W8 is stretch, first to cut.
 
 ---
 
+> ⚠⚠ **RE-PLAN BEFORE BUILD — waits on dairy (build-2), repair (build-3)
+> and storage-and-ice (build-4), 2026-10-16.**
+> 1. **D10 moulds → dairy's kernel mould system.** Dairy ships
+>    `lib/mould/Mould.ts` (`MouldMixin`, `platform/thing/Mould`: a vessel
+>    that decides the shape of what sets in it — `castTemplateFor`).
+>    repair's `moulding-slate` § 5 already decided *"rubber's way"*:
+>    every heat-driven set (bake, vulcanise, fire) is a recipe **fired
+>    with its charge IN a mould, and the firing asks the mould for its
+>    shape**. So D10's `Tool`-row moulds and the `consumed: false` recipe
+>    slot are a second mould concept and go; the charge goes into a
+>    dairy `Mould` row, the mould goes into the oven, and `runFiring`
+>    asks the mould for the output's template. The cure (D9) is unchanged.
+> 2. **D13.2 latex setting → a set process on dairy's hook**, not a new
+>    solid product in the maturation engine. Latex coagulating with no
+>    act is moulding-slate's *cure* row (a chemical set with no act,
+>    deferred by dairy); a coagulating pan is a mould whose cast is the
+>    raw-rubber sheet. Re-plan against whatever form dairy's set hook
+>    finally takes.
+> 3. **The bill of materials and building upkeep** may land in repair
+>    (build-3), which is reopened on *"building upkeep, layer by layer"*.
+>    D1a's per-place layers are its seam; check its plan does not put
+>    materials on `Structure` (refused here, D2).
+> 4. **storage-and-ice** — the shared wet law (D12.1) and the ice
+>    material's light absorption; whichever lands first owns them.
+
 ## Grounding
 
 Every fact below was verified by opening the file this cycle
