@@ -6,8 +6,9 @@
 > who is paid to do it for you, which things are made of parts at all,
 > where a named thing's identity lives when its parts are replaced, and
 > how every act of upkeep reaches the PART it is really about.
-> **Left:** everything — ✅ one ruling only (*a bad repair is possible*,
-> the owner, 2026-10-16) · the per-part gate on the maker's discipline ·
+> **Left:** ✅ three rulings so far (§ 0: *a bad repair is possible*;
+> *the mixin composes on the FAMILIES*; *seats are AUTHORED only* — the
+> owner, 2026-10-16) · the per-part gate on the maker's discipline ·
 > the failure mode, deterministic · the paid service performed by a
 > person · the mender as a vocation · ⭐ **one class per kind** (retire the
 > narrow `Assembled*` subclasses; the mixin's test is *we write a recipe
@@ -24,9 +25,15 @@ skill in it. See § 1.
 
 ---
 
-## 0. The ruling
+## 0. The rulings (the owner, 2026-10-16)
 
-> ⭐⭐ **A bad repair is possible.** (The owner, 2026-10-16.)
+> ⭐⭐ **A bad repair is possible.**
+>
+> ⭐⭐ **`AssembledMixin` composes on the FAMILIES** we write recipes for
+> (`Tool`, `Weapon`, `Garment`, `Vat`, `Lamp`, `Chair`, `Receptacle`,
+> `Shield`…), not on `Good` — § 5.
+>
+> ⭐⭐ **A seat is AUTHORED only** — never earned — § 6.
 
 `repair.yaml`'s help promises *"Restores fully — gear never obsoletes, it
 asks for care."* The second half stands; the first becomes **conditional
@@ -193,17 +200,18 @@ bill yet: the smith's hammer, scythe, auger, billhook, mallet, sledge,
 tongs, sextant, barometer — and the **sword** (blade · guard · grip ·
 pommel, tang through and peened).
 
-Opens:
+✅ **Decided: the families** (§ 0). The narrow `Assembled*` subclasses
+retire into them; `Cask` and `Lantern` fold back into `Vat` and `Lamp`
+by the same rule (a carboy is a vat of one part).
 
-- **Which classes compose it** — the families we write recipes for
-  (`Tool`, `Weapon`, `Garment`, `Vat`, `Lamp`, `Chair`, `Receptacle`,
-  `Shield`…), or `Good` once and for all? ⭐ Recommendation: the
-  families first; `Good` only if the third family-level composition
-  shows the line is really *made vs found*.
-- **Found things** (a stone, a stick, an apple) have no recipe. A bill of
-  one derived from *nothing* is still total, so they could compose it
-  harmlessly — but nothing would read it. Decide whether *found* is a
-  class line or a data line.
+✅ **Found vs made is therefore a DATA line, not a class line** (lens 2:
+the ordinary case needs no code). A found thing in a family — a stone
+picked up as a hammer, a stick as a staff — has no recipe and is a bill
+of one derived from nothing: total, unread, harmless. A found thing
+outside every family (an apple) never composes the mixin at all.
+
+Still open:
+
 - **`lint:bills` arm 7** flips from *bill ⇔ the class composes it* to
   *every row of a composing class has a bill or a recipe of one input*.
 - **Durable beneath** stays required (`repair.yaml`'s `requires`), which
@@ -240,12 +248,15 @@ no seat and is simply the sum of its parts — the shipped behaviour.
 - [magic-items.md](../../subsystems/magic-items.md): a working is
   already held by a physical shell; the seat is where it is held.
 
-Opens: is the seat **authored** (Excalibur's row names its blade) or
-**earned** (a long-held thing's name settles on the part that stayed
-longest)? ⭐ Recommendation: authored, plus *the part a working was
-cast into*; earned names are a renown question, not this build's. And:
-does reforging a broken seat keep the name or invite a new one (Narsil's
-rule)? A player decision at the anvil is the Narsil answer.
+✅ **Decided: AUTHORED only** (§ 0). A row (or an author's instance)
+names its seat; nothing earns one — no name settles on a long-held part,
+and an ordinary sword never acquires a seat by being kept. Earned names
+are not this build's and not a seat.
+
+Still open: whether *the part a working was cast into* counts as
+authoring (the caster authored it — lens 2 says yes: the spell is the
+author's act), and the reforging rule — does a broken seat reforged keep
+its name, or does the smith name it (Narsil → Andúril)?
 
 ## 7. ⭐⭐ Upkeep reaches the part
 
@@ -308,9 +319,10 @@ really about.
 
 1. The failure table (§ 3): ceilings, grade loss, compounding, and how a
    botched mend reads.
-2. Where `AssembledMixin` composes (§ 5): the families, or `Good`; and
-   *found vs made* as a class line or a data line.
-3. The seat (§ 6): authored vs earned; the reforging rule.
+2. ~~Where `AssembledMixin` composes~~ — ✅ the families; found vs made is
+   data (§ 5).
+3. The seat (§ 6): ~~authored vs earned~~ ✅ authored; still open — a
+   cast working as authoring, and the reforging rule.
 4. Which state a part line carries (§ 7), and the full upkeep census.
 5. The mender's venue: where, and whose — a tinker on the road (a
    travelling NPC with a pack) is the period-honest first one, a cobbler
