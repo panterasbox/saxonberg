@@ -487,9 +487,10 @@ one that has walls or a roof of its own. Concretely, for a place `R`
   through the ladder of D2 (row → class hook → universe). When the roof
   is **undeclared** (a `Location` row authoring no `roof:`), the legacy
   biome walk (`BiomeApi.isSkyExposed`) decides, exactly as today: a sky
-  biome ⇒ `roof = none` and `enclosure = none` (a street has no walls);
+  biome ⇒ `roof = none` and `enclosure = none` (a street has no walls —
+  which is also the eventual default, D14, so this half is not debt);
   anything else ⇒ `roof` = the walls' resolved material (today's *one
-  material, five faces*). `declared: false` is the one thing that marks
+  material, five faces* — the counted transition, D14). `declared: false` is the one thing that marks
   it, and D14's census counts it.
 - **top** — `ceiling` iff `R` is in `S` and some storey `j` with `on: k`
   contains an enclosed member; else `roof` unless `R`'s resolved roof is
@@ -872,8 +873,8 @@ code. The water table stays at −12.
 ### The pack, the works, the census and the drive (D14–D15)
 
 **D14 — `trade-rubber` at `/trade/rubber`; the works is Terminus
-content; places whose sky still comes from the biome are a counted,
-falling number.**
+content; the default is open, and interiors whose construction still
+comes from the biome are a counted, falling number.**
 
 - `packages/content/trade-rubber/`: `pack.yaml` (`root: /trade/rubber`,
   `requires.title: [{ extent: /trade/rubber, holder: { organization:
@@ -929,23 +930,32 @@ falling number.**
   walled place or as a one-place structure; **either is fine now** —
   housedness is no longer debt, and a lone place with its own walls and
   roof is complete.
+- ⭐⭐ **The default is OPEN; the interiors are the debt (user,
+  2026-10-16).** Open sky is the absence of construction, and authors
+  author causes, so the eventual default for a `Location` that authors
+  nothing is **no walls and no roof**: streets, yards and fields are
+  correct with no edit, ever. Until every interior has said what it is
+  made of, the transition rule in D4 holds: an unauthored place whose
+  biome is a `SkyExposedBiome` is open (the new default and today's
+  answer agree — **not debt**); an unauthored place whose biome is NOT
+  sky-exposed keeps today's one material on five faces (the legacy
+  answer — **debt**).
 - **`lint:biome-sky`** (`packages/server/scripts/check-biome-sky.ts`,
   picked up by the derived roster; it REPLACES the earlier plan's
-  `lint:unhoused`, which is not built): a census-then-ratchet of **places
-  whose sky answer still comes from the biome** — every Location row
-  authoring no `roof:` whose class hook (`roofDefaults()`) answers
-  `null` (every `Location` class today; `ExitableVessel` rows answer
-  with their own material and are never counted). For such a row the
-  legacy `SkyExposedBiome` discriminator still decides open vs roofed.
-  **The count at W0 is the ceiling**, held in the script as
-  `BIOME_SKY_CEILING` with the list of paths; it fails when a listed row
-  has since authored a `roof:` (pay the debt, delete the line) and when
-  the count rises (a new Location row must say what is over it — `roof:
-  none` for a yard, a material for a hut). Today's figure is every
-  Location row — 263 — and the script computes it itself at W0. ⚠ A
-  street authoring `roof: none` is the same one-line declaration as a
-  hut authoring slate; the census is of *places that have not said*, not
-  of interiors.
+  `lint:unhoused`, which is not built): a census-then-ratchet of
+  **interiors whose construction still comes from the biome** — every
+  Location row that lacks **either** `enclosure:` **or** `roof:` AND
+  whose biome (the legacy walk) is not sky-exposed. ⚠ Both keys, because
+  at ceiling zero BOTH `Location` defaults flip to `none`: an interior
+  that authored only its roof would lose its walls. `ExitableVessel` rows
+  answer with their own material and are never counted; sky-biome rows
+  are never counted. **The count at W0 is the ceiling** (roughly 170 —
+  the script computes it), held as `BIOME_SKY_CEILING` with the list of
+  paths; it fails when a listed row has since authored both keys (pay the
+  debt, delete the line) and when the count rises (a new interior must
+  say what it is made of). **At zero**, `Location.enclosureDefaults()`
+  and `roofDefaults()` both answer `none`, the D4 transition branch is
+  deleted, and `SkyExposedBiome` retires (biome-normalization slate).
 - `SkyExposedBiome` and `SkyExposedMixin` **stay** as the legacy
   discriminator for the counted rows and are retired at ceiling zero —
   the biome-normalization slate carries it (Deferred seams). ⚠ This is
@@ -1452,14 +1462,11 @@ Nothing unmapped.
    alternatives are to author a cafeteria at the University (the
    University only teaches, but a cafeteria is not a trade venue) or to
    use the stove house for step 1 as well. Decide before W7.
-2. ⚠ **`SkyExposedBiome` does not retire this build**; it is the
-   discriminator for the counted rows that have not yet authored a
-   `roof:` and retires when `lint:biome-sky` reaches zero. The
-   requirements say exactly this now (*"a place that says nothing keeps
-   the answer its biome gives today"*); the ceiling at W0 is every
-   Location row (263), and the way down is one line per row (`roof:
-   none` for a yard, a material for a hut), which the requirements
-   defer to *"the rest follow the count"*.
+2. ✅ **RESOLVED — default open, count the interiors (user,
+   2026-10-16).** `SkyExposedBiome` does not retire this build; it
+   decides only for interiors that have not yet authored `enclosure:` and
+   `roof:` (~170, D14), and retires when `lint:biome-sky` reaches zero and
+   both `Location` defaults flip to `none`. Outdoor rows are never debt.
 3. ✅ **RESOLVED — keep the fourth row** (user took the lean). `rubber-scorched` (D9) — the requirements'
    curve has three materials and *scorched* as a worse grade that says
    so. A row is how it says so without a flag on every crafted thing. If

@@ -301,11 +301,13 @@ decide alone, so the structure says it.
   and no roof.
 - **A structure with no places** — something seen from outside and never
   entered — stays valid; it has nothing for the face rule to read.
-- **The biome stops deciding the sky.** Until every place says what is
-  over it, a place that says nothing keeps the answer its biome gives
-  today; **the number of places whose sky still comes from the biome is
-  counted and may fall, never rise.** This build moves the drive's
-  places; the rest follow the count.
+- **The default is open.** A place that says nothing has no walls and
+  no roof — streets, yards and fields need no edit. **Interiors are the
+  debt:** until an interior says what it is made of, it keeps the answer
+  its biome gives today; **the number of interiors whose construction
+  still comes from the biome is counted and may fall, never rise.** This
+  build moves the drive's places; the rest follow the count, and the
+  biome stops deciding the sky when it reaches zero.
 - **A vessel's construction is its own material**, all round, for rain
   as well as heat — a coach is dry inside.
 
@@ -463,8 +465,8 @@ player must see; "not refused" is never success.
 12. Rubber boots and gloves can be bought at the general store.
 13. Every place the drive visits answers the sky and heat questions
     from what it says it is made of and the structure it is in (if any);
-    the number of places whose sky still comes from the biome is counted
-    and does not rise.
+    the number of interiors whose construction still comes from the biome
+    is counted and does not rise.
 15. A place in no structure (a lone hut, a pen) and a structure with no
     places (a landmark seen from outside) both work: the first answers
     every question on its own, the second still stands on the horizon.
