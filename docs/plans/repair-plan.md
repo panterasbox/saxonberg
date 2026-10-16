@@ -790,6 +790,27 @@ The two-clocks rule holds by construction — the only reader of the
 calendar is still the programme, an Idea; no Good composes anything
 new; the regression test gains a layered holding beside the spanner.
 
+**D20a — Two opt-ins (owner, 2026-10-16), and they shape D20–D22.**
+(1) **The building opts in.** The fabric clock is a capability a host
+DECLARES, not a property of every holding's rows by accident: put
+D20's `fabric` + `reconcileFabric` on a mixin (e.g. `WeatheringMixin`,
+`lib/residence/` or the kernel's `lib/` if a non-pack host will need it
+— the icehouse is the named next composer, so prefer the kernel), plus a
+row flag (`weathers: true`) the host reads, so a composing class can
+still leave a row out. `HoldingWarren` composes it and its rows set the
+flag; nothing else composes it in this build. ⛔ Never on a Good (two
+clocks). The icehouse later opts in by composing/flagging, no new
+mechanism. (2) **The material opts in, and only when supplied.** A
+material weathers only if its row says so (`weathers: true`, default
+**false** — opposite of D21's default below, which now applies only to
+opted-in materials); an un-opted layer is seeded but never loses
+condition and never appears in a cure. ⚠ **Sawdust stays off** (no
+sawyer → icehouse supply chain); lime plaster, slate, thatch, brick and
+the boards opt in for the first holdings because the general store
+stocks their laying goods (D26). A `lint:` arm or a test pins it: every
+opted-in material's `laying.good` is sold somewhere in the realm
+(a stock line or a producer) — the supply rule made checkable. AC 15a.
+
 **D21 — Weathering pace is ONE authored field on `Material`:
 `weatheringDays` (game-days in the open from sound to worn — the
 shipped `daysToWorn` scale), defaulting to
@@ -1438,6 +1459,7 @@ Each fails closed and silent; the drive is what proves each link.
 | 13 every shipped assembly still lists/mends/fits/salvages | W1 (every existing test + `assembly.dirty.wire.test.ts` stays in the suite) |
 | 14 heirloom keeps its name re-hilted and drawn; hilt nameless; reforged loses it, reforger names once | W0 (seat on the line) + W2 (reforge grant) + W5 (row) · W6 (drive 9) |
 | 15 a season unwatched → `survey` names the layer and its need; slate and thatch differ | W7 (unit: two layers one year; `fabricReport`) · W7 drive 11 (`survey` after a season) |
+| 15a an un-opted building (the smithy) and an un-opted material (sawdust) are unchanged after the season | W7 (unit: D20a both opt-ins; the supply pin) · W7 drive 11 |
 | 16 `maintain` lays the named material by its trade at the hand's band; refused without it; short + readable untrained; a durable beside it unchanged | W7 (unit: refusal words, band table, the extended two-clocks test) · drive 11 |
 | 17 the dorm stays kept while its employer can buy, weathers when it cannot | W7 (`maintains.test.ts`: stocked → lays; broke → nothing posted) · drive 11 (fund, watch; drain, watch) |
 | 18 the drive end to end incl. restart | W6 (1–10, 12) · W7 (11, and 12 again in its own MR) |

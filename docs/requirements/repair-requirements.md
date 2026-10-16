@@ -210,8 +210,10 @@ named thing whose name lives in one of its parts.
   materials, and the dorm and the Seznick shell are where a player first
   sees a building cost something to keep.
 - **The rubber build's hothouse and the ice build's icehouse** (in flight)
-  — their glass, their double walls and sawdust fill are the first
-  buildings whose layers matter; they gain upkeep for free once both land.
+  — their glass, their double walls and sawdust fill are the buildings
+  whose layers matter most; they do **not** weather in this build. Each
+  can opt in later by declaration, and the icehouse's sawdust only once a
+  supply reaches it (§ 10).
 - **Freight's roadmender** (designed, unbuilt) — the same "repair on
   shift" shape; this build makes it rows when it comes.
 
@@ -314,6 +316,24 @@ materials must be in hand, the instrument is that layer's trade's, and
 the band table (§ 2) decides how far it comes back and whether the patch
 is sound. The holding's five bands read from its layers. A building with
 no layers authored weathers as today, as one shell.
+
+⭐⭐ **Two opt-ins, both deliberate** (owner, 2026-10-16):
+
+- **A building opts in to weathering.** In this build only **holdings**
+  do (they already run the weathering clock and have someone who owes
+  the upkeep). Every other building — the smithy, a shop, the rubber
+  build's hothouse, the ice build's icehouse — does not weather, and is
+  not refused for it: the opt-in is a declaration a building makes, so
+  the icehouse can make it later with no new mechanism.
+- **A material opts in to upkeep only when the realm can supply it.** A
+  layer of a material nobody produces and nobody moves to where it is
+  needed must not demand it — that is a time bomb, not an economy. So a
+  material's weathering is off unless it is declared on, and it is
+  declared on only when there is a supply: player-run, or NPCs that make
+  enough of it and get it where it is needed. ⚠ **Sawdust is off** (the
+  icehouse's fill): no sawyer or haulage yet makes it reach an icehouse.
+  The lime, slate and thatch the first holdings use are on, because the
+  general store stocks them.
 
 ## Lens pass
 
@@ -431,6 +451,9 @@ A funded player, a fresh world, the real socket.
 15. After a season unwatched, `survey` names which layer of a building
     weathered and what it needs; slate and thatch on the same calendar
     weather differently.
+15a. A building that has not opted in (the smithy) is unchanged after the
+     same season; a layer of a material that has not opted in (a sawdust
+     fill) is unchanged beside a lime layer that weathered.
 16. `maintain` lays the named material from hand into the named layer,
     by that layer's trade, at the hand's band — refused without the
     material, short and readable when untrained; a durable good beside it
