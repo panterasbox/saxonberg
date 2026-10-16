@@ -408,7 +408,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 9. **Try a horse and ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
 10. **`get` the block with tongs and carry it to the icehouse.**
    - On shift as a house hand, `put` it on the stack. The house's stock rises.
-   - Then, as an outside depositor, `deposit` a block **with the keeper**. A receipt in your name is issued, showing its terms.
+   - Then, as an outside depositor, on the icehouse **platform**, `deposit` a block **with the keeper**. A receipt in your name is issued, showing its terms.
 
 **Sawdust**
 
@@ -417,15 +417,16 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 **Summer**
 
 12. **Advance the season to late summer.**
+    - The pool reads open water, and the pond remembers none of the winter's cuts.
     - `look` at the stack describes it in words: how much remains, the state of the packing.
     - `measure stock` gives an estimate, more precise for a skilled reader.
     - The **small icehouse has lost a far larger share** of its ice than the large one under the same weather, and a stack with thin sawdust has lost more than a well-packed one.
     - `look` at the packing shows it wetter than it went in.
     - A house that was never repacked has lost more than one whose keeper dug out the wet sawdust and repacked mid-season.
     - The dug-out sawdust reads as wet.
-13. **The icehouse room is colder than an empty shed beside it.**
+13. **The house room is colder than an empty shed beside it.**
 14. **A second character, with no claim and no shift, `get`s a block from the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
-15. **At the ice company's counter, `buy` a block.**
+15. **At the ice company's counter on the platform, `buy` a block.** It is brought up from the house: the house's stock falls by one block.
     - It is dearer now than it was just after the harvest.
     - Empty the house's own claim: the counter sells out and does not refill.
 16. **The cookhouse's icebox block melts.** The cookhouse keeper buys a new block from the ice company. The ice company's account rises, and the cookhouse's falls.
@@ -437,7 +438,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 **Kernel checks**
 
 19. **`look` at an ice block and at a glass lump:** neither claims alloying. `look` at an iron lump: it still does, and its carbon is unchanged.
-20. **Swim in the estuary pool in winter and in summer.** Winter chills the body; summer doesn't.
+20. **Swim in the estuary pool in winter and in summer.** Winter chills the body; summer doesn't. Both leave you and your clothes wet.
 21. **Restart the world.** The stores' stock, the receipts and the pond's cut and scraped patches all survive.
 
 ## Acceptance criteria
@@ -450,6 +451,10 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 - A cut patch reads as open water at once, and then as thinner ice than the field.
 - A block's mass changes with the ice's thickness and the grid's size, and its grade with where it was cut. A pan-frozen block reads cloudy.
 - A draft horse cannot go out on ice a person can, until the ice thickens.
+- Anyone who goes into water comes out wet, with their worn clothes wet, and wet clothes in freezing air keep chilling them until they are dry or warmed.
+- A person who broke through cannot climb out onto the ice that broke, and can swim to the shore.
+- Fishing frozen water is refused in words except through a hole; through a hole it works as in open water. A hole never leads down.
+- After the spring thaw, the pool holds no memory of the winter's cuts and scrapes.
 
 **Storage, custody and retail**
 - An icehouse's stock falls through a summer:
@@ -465,7 +470,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
   - loss beyond the allowance is shared pro rata;
   - with no keeper, both are refused in words.
 - Retail:
-  - the ice company's counter sells blocks while the house holds ice, and sells out when it doesn't;
+  - the ice company's counter, on the platform, sells blocks brought up from the house while the house holds ice, and sells out when it doesn't;
   - its price is higher in late summer than after the harvest.
 - The cookhouse icebox, left alone through a summer, is resupplied by purchase from the ice company, and money moves.
 
