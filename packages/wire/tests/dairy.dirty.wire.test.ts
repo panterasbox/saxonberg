@@ -966,8 +966,7 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await untilHour(12);
     await doing(k, 'get crucible');
     await doing(k, 'put crucible in furnace');
-    // `malachite`: `ore` also names the ore buyer, who will not lift (run 28).
-    await doing(k, 'get malachite');
+
     // A run wants two baskets IN THE CHARGE (the reductant) and a lit bed
     // of its own — four baskets, and the smelter props two. The fuel yard
     // next door props four (run 14). Fetched AFTER the crucible and ore
@@ -992,7 +991,12 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     // brings the pot up with the furnace first, and charges AFTER: a
     // charge in a burning furnace burns (run 31's preheat ate a basket).
     await advance('30 minutes');
-    await doing(k, 'put malachite in furnace');
+    // `malachite`: `ore` also names the ore buyer, who will not lift (run
+    // 28). Picked up only now: the three lumps no longer stack (the
+    // assembly merge), and carried to the fuel yard they left room for
+    // three baskets, not four (run 32). Charged a lump at a time.
+    await doing(k, 'get malachite');
+    for (let i = 0; i < 3; i++) await doing(k, 'put malachite in furnace');
     await doing(k, 'put charcoal in furnace');
     await doing(k, 'put charcoal in furnace');
     const smelt = await act(k, 'smelt');
