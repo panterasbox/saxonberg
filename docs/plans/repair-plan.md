@@ -1,6 +1,9 @@
 > ⏸ **ON HOLD (owner, 2026-10-16): do not `/build` until dairy (build-2)
 > has merged** — it ships the kernel mould system, and moulds' place in
 > crafting/assembly is to be decided first; re-ground W1 and D17 against it.
+> ⏸ **W7 (building upkeep, D20–D27) is gated SEPARATELY on the rubber
+> build reaching master** — see § W7 and § Risks 12. If it has not, W0–W6
+> open the MR and W7 ships as its own follow-up MR.
 
 # Repair — assemblies, part two — implementation plan
 
@@ -13,11 +16,14 @@ made the part, derived never rolled), makes the paid mend somebody's
 work, puts two menders in the world, folds the narrow `Assembled*` twins
 back into their families (a monolith is a thing of one piece), carries a
 part's own state — wear, edge, grade, mend history, name — in and out of
-a whole, and lets a name live in a part.
+a whole, lets a name live in a part, and — reopened 2026-10-16 — makes a
+building's upkeep cost the materials time took from it, layer by layer,
+by the trade that laid each one (W7, D20–D27).
 
 Waves: **W0** kernel parts model · **W1** the fold-back · **W2** the
 mend + legibility · **W3** the paid service · **W4** the roster
-timetable · **W5** content · **W6** the drive + docs. Every wave lands
+timetable · **W5** content · **W6** the drive + docs · **W7** building
+upkeep (gated on rubber; its own MR if rubber is late). Every wave lands
 on its own commit; `pnpm test` runs once, before the MR.
 
 ---
@@ -335,6 +341,117 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `practise` = `practice <discipline> hard success`, `toDaylight`; the
   restart block `:638–676`); `advanceWorldClock` (`src/harness/world.ts:157`).
 
+### Building upkeep (W7) — master today, and the rubber PLAN
+
+- **The shell clock** — `content/residence/src/idea/HoldingWarren.ts`:
+  `UPKEEP_TERMS` `:76`; `CONDITION_BANDS` `:83` (≥ .9 sound · .7
+  weathered · .5 worn · .25 shabby · dilapidated); fieldMeta `:100–106`
+  (`shellCondition`, `shellStamp` persistent; the class composes
+  `PersistableMixin`); `reconcileShell()` `:550` — linear, `0.5 /
+  (daysToWorn × 86 400)` per game-second off
+  `residence.weather.daysToWorn` (`content/residence/content/settings/
+  residence.yaml`, 45), stamp-forward, no scheduler; `conditionBand()`
+  `:570`; `conditionCause()` `:579` (two fixed sentences);
+  `restoreShell()` `:589`. `OuterWarren.conditionOf`
+  (`lib/location/OuterWarren.ts:340–361`) reads both BY SHAPE for the
+  ascent gate.
+- **`survey`** — `platform/idea/cmd/perception/SurveyController.ts`:
+  `HoldingShape` `:54` (duck-typed — the kernel never imports the pack),
+  the holding lines `:121–128`; its suite
+  (`__tests__/SurveyController.test.ts:314–315`) asserts no `%` and no
+  `0.x` reaches the readout.
+- **`maintain`** — `content/residence/content/system/residence/cmd/
+  crafting/maintain.yaml`: one arg `kit`, `default:
+  "me:i:[capability.upkeep]"`, `requires: [ToolMixin]` (declared, never
+  hunted — `lint:instrument-args`); `src/idea/cmd/crafting/
+  MaintainController.ts`: holding here → the bound kit
+  `hasCapability('upkeep')` → already sound → `restoreShell()` +
+  `wear(KIT_WEAR 0.08)`. **No materials, no discipline, no band.**
+  `src/thing/HouseholdersKit.ts` = `extends Tool` +
+  `commandContributions.environment: [maintain.yaml]`; row
+  `thing/householders-kit.yaml` (`toolCapabilities: [{kind: upkeep}]`).
+- **The `maintains` brain** — `src/behavior/maintains.ts`: `config
+  {extent, batch 3}`; `holdingsUnder(extent)` via
+  `NavigationApi.attachedTo/attachedWithin(extent, 'institution')` →
+  `OuterWarren.holdings()` filtered by `holdingKey()` prefix; per
+  holding below sound: `teleport(entryRoom)`, `forceCommand('maintain')`,
+  back. Rows: `eternal-university/…/duncan-hall/agent/katie.yaml` (props
+  the kit + the master ring; `extent: …/duncan-hall/dorms`),
+  `terminus/…/mayfield-row/agent/walter.yaml` (`…/seznick-house`).
+- ⚠ **Their employers are Organizations, not Businesses**:
+  `duncan-hall/idea/college.yaml` (`/platform/idea/Organization`,
+  `hall-manager`, wage 0, Katie on `rosterSlots`),
+  `mayfield-row/idea/agency.yaml` (`agent`, Walter). No `banksAt`, no
+  `parLines`, no `purchases` — **neither can buy anything today.**
+  `BusinessMixin extends OrganizationMixin` (`platform/idea/
+  Business.ts:145–160`).
+- **The buying seam** — `Position.purchases` (`lib/employment/
+  Position.ts:160`); `issueHouseCardImpl` (`EmploymentLogic.ts:574`)
+  deals a non-Avatar `purchases` holder a `PaymentCard` on the house's
+  account **from the roster tick** (`:1678`), so an authored-roster NPC
+  gets one if the house `banksAt`. `lib/behavior/restocks.ts` is the
+  shipped NPC buyer: `business.stockSheetFor(keeper)` → short lines by
+  supplier → a `job post` carriage bounty per line (module-private
+  `order`, house-funded, landing on a `bench`) → `unpackBench`; the
+  keeper never travels (logistics D11). A `ParLine {category, unit,
+  level, supplier, exemplar}` matches by `getCategory()` or a material
+  TAG (the tailor's `outfit.yaml`).
+- **The first homes** — `duncan-hall/idea/dorm-programme.yaml` (a
+  one-room floorplan over `location/dormroom.yaml`, `institution-all`;
+  one keyed instance per unit — *the dorm* is many holdings);
+  `dormroom.yaml` is a plain Location, **no `enclosure:`**. Seznick:
+  `seznick-house/unit-programme.yaml` (hall · main · bedroom · generic
+  bathroom; `landlord-shell`), rooms `location/{hall,main,bedroom}.yaml`.
+  Hinkley: `hinkley-hills/idea/house-programme.yaml` (`owner-all`; rooms
+  `/world/terminus/hinkley-hills/lots/*`). Seven rows author
+  `enclosure:` on master (smithy, woodshed, cold room, two fridges, two
+  hives) — none in a holding.
+- **Construction on master** — `lib/spatial/Enclosed.ts`:
+  `EnclosureSpec {material?, thicknessM?}` (closed; `lint:envelope`
+  clause (e)), `ResolvedEnclosure {kWmK, rhoKgM3, cJkgK, thicknessM,
+  materialPath}`; `lib/biome/Atmospheric.ts:422` `enclosure
+  {persistent, authorable}`, `getEnclosure()` `:510`,
+  `resolveEnclosure()` `:1130`. ⚠ `AtmosphericMixin` composes on
+  `ExitableVessel` and the apiculture `Hive`
+  (`trade-apiculture/…/thick-hive.yaml` authors `enclosure:`) — **a
+  Thing, a GOOD.**
+- **`Material`** — `lib/material/Material.ts` fieldMeta `:808–872`:
+  `density`, `thermalConductivity`, `waterAbsorptionCapacity`,
+  `hardness`, `seasoningDays` (`:846`, the precedent for a time
+  constant on a Material), `tags`; **no weathering rate, no laying
+  trade.** Rows: `rock/slate`, `rock/granite`, `wood/*`, `glass/glass`,
+  `caustic/quicklime`; **no thatch, lime plaster, brick or sawdust**
+  (brick is rubber's content pass; sawdust the ice build's). The
+  library is a closed vocabulary (`race.md`). Discipline rows: the
+  platform pack's `content/platform/idea/Discipline/*.yaml`, a trade's
+  under `<pack>/content/trade/<x>/idea/Discipline/`; **no masonry, no
+  thatching.** `GrammarApi.inWords(n)` (`api/grammar.ts:278`) is the
+  number-to-words reader; `GRADE_BANDS` `lib/craft/Grade.ts:25`.
+- **The two-clocks regression** — `content/residence/src/__tests__/
+  HoldingWarren.test.ts:611` (a `Tool` in the hall, one game year,
+  `reconcileShell()` → dilapidated, `tool.getCondition()` unchanged);
+  `:366` the stamp-honest decline; `:528/:547` maintain restores /
+  refuses without a kit.
+- ⚠⚠ **The rubber build is a PLAN, not code** (`origin/reqs/rubber`: 8
+  docs files; `origin/reqs/storage-and-ice` likewise). The seams W7
+  plans against, **as rubber's plan defines them** (`git show
+  origin/reqs/rubber:docs/plans/rubber-plan.md`): **D1** `roof:` as
+  `enclosure:`'s sibling on the place, `none` legal; **D1a** each is one
+  `{material, thicknessM}` or a LIST outermost first, `ResolvedEnclosure`
+  a list of resolved layers — rubber names it *the seam a building's
+  bill of goods would read (material × face area × thickness)* and
+  defers that to structures-slate (`:421`, `:1583`); **D2** the place
+  owns every material (`AtmosphericMixin` gains `roof` +
+  `roofDefaults()`; a `Structure` carries neither); **D4**
+  `lib/spatial/Exposure.ts`, `exposure()` per room — `top: 'open' |
+  'roof' | 'ceiling'`, `roof: Face | null`, `walls: Face[]`, `Face
+  {material, areaM2, exterior}`, `exteriorAreaM2()`; **D14** the census
+  of interiors lacking `enclosure:` or `roof:` ratchets down. Rubber's
+  W0 lands the vocabulary + `Exposure`, its W7 the content pass (the
+  works authors `enclosure: brick 0.23`, `roof: slate 0.01` — brick
+  arrives with it). **Nothing in rubber weathers, wears or costs a
+  layer.**
+
 ---
 
 ## Plan-level decisions
@@ -639,6 +756,158 @@ checked in code).
 `mending-slate.yaml` is re-authored as the tinker's and moved from the
 provisioning shed's props to the smelter's (AC 7).
 
+### Building upkeep (reopened 2026-10-16; W7)
+
+**D20 — A layer's condition lives on the HOLDING PROGRAMME, keyed by
+member room, part and index; the clock stays the programme's one
+`shellStamp`; the scalar becomes a read.** `HoldingWarren.fabric:
+LayerState[]` `{room (member key), part: 'walls' | 'roof', index
+(outermost 0), materialPath, condition 0..1, grade: GradeBand ('fair' at
+mint), patches: PatchRecord[]}` `{persistent}` — an array, never a
+bare-persistent Map. Seeded at wake from each member room's **declared**
+`getEnclosure()` / `getRoof()` (rubber D1a: a spec, a list, `'none'`,
+null) — the resolved universe default is NOT a layer; an undeclared room
+contributes nothing; a re-authored row re-seeds sound at
+`restoreFromTemplate`. `reconcileShell()`: with `fabric` non-empty, each
+layer whose part has an exterior face (rubber D4: the roof iff
+`exposure().top === 'roof'`, the walls iff any `walls[].exterior`) loses
+`elapsed × 0.5 / (weatheringDays(material) × gradeFactor × 86 400)` and
+`shellCondition` is **assigned the minimum** — the holding is as sound
+as its worst layer, so `conditionBand()`, `OuterWarren.conditionOf` and
+the ascent gate are unchanged readers; with `fabric` empty the shipped
+slope runs (*a building with no layers weathers as today*). ⛔ Not the
+assembly vocabulary: a `PartLine` is Durable state on a GOOD and a
+whole's condition is the goods clock — calling a wall a part invites
+`AssembledMixin` onto a place and `wear()` onto the calendar. ⛔ Not on
+`AtmosphericMixin`/`Enclosed`, the layers' owner: it composes on the
+`Hive` and `ExitableVessel`, both Goods — a clock there rots a beehive
+on the calendar, the exact two-clocks breach. ⛔ Not a mixin on
+`Location`: `maintain`'s *holding here* check would become a guard
+re-narrowing the host set, and the smithy's slate would weather with
+nobody able to keep it. Written down instead of coded: **a building
+outside a holding does not weather in this build** → Deferred seams.
+The two-clocks rule holds by construction — the only reader of the
+calendar is still the programme, an Idea; no Good composes anything
+new; the regression test gains a layered holding beside the spanner.
+
+**D21 — Weathering pace is ONE authored field on `Material`:
+`weatheringDays` (game-days in the open from sound to worn — the
+shipped `daysToWorn` scale), defaulting to
+`residence.weather.daysToWorn`.** Not derived: the predicate does not
+exist — `waterAbsorptionCapacity` and `hardness` are authored on a
+minority of rows, and a formula fitted to *thatch fast, slate slow* is
+invented physics wearing a derived face; `seasoningDays` is the
+precedent for a time constant on a material. Lens 1: the lesson is
+*what is this roof made of and what does it cost a year*, which the
+material's NAME teaches; lens 2 grain: one number a realm re-authors.
+A poorly patched layer weathers faster — `gradeFactor = 1 / (1 + 0.5 ×
+bands below fair)` (D25's compounding, in the same clock). First
+numbers (grain): lime plaster 30 · thatch 60 · oak/pine/ash boards 120
+· brick 400 · glass 600 (the putty goes, not the pane) · slate 900. A
+material that says nothing takes the default — no gate refuses an
+author.
+
+**D22 — A material names its laying trade on its row: `laying:
+{discipline, capability, good} | null`.** The Discipline that lays it
+(the band read), the tool capability the instrument must offer, and the
+Stackable row a layer is laid FROM (its `mass` is the unit the cure is
+said in; the draw matches by MATERIAL, so any stack of it serves).
+`null` (default) = the householder's: no discipline (as if competent —
+D1's rule for a thing nothing can be known about), instrument `upkeep`.
+On `Material` because no tag says *thatcher*; not a `Laying` row because
+a field will do; the shape is the Joint row's `competence` + its tool
+capability. Authored in W7: thatch → `{thatching, thatching,
+reed-bundle}` · lime plaster → `{masonry, masonry, lime-sack}` · brick →
+`{masonry, masonry, brick}` (rubber's row) · slate → `{masonry,
+masonry, slates}` · oak/pine/ash → `{carpentry, upkeep, plank}` (nailed
+with what is in the kit) · glass → `{glasswork, upkeep, pane}` (putty)
+· sawdust → `null`. Two new Discipline rows, `masonry` and `thatching`,
+in the platform pack beside `smithing`; two instrument rows, a
+**trowel** (`masonry`) and a **leggett** (`thatching`), both ALSO
+carrying `upkeep` (D25).
+
+**D23 — The holding's band reads from its layers; the cause line names
+the worst layer in words.** `conditionCause()` on a layered holding:
+*"The lime on the walls of the hall is going; the slate over the bedroom
+has gone."* — material name, part, member room (weathered/worn → *is
+going*; shabby/dilapidated → *has gone*), no per-material prose. An
+unlayered holding keeps its two shipped sentences. `survey` adds one
+line per wanting layer from a new shape method `fabricReport():
+FabricLine[]` (`{room, part, material, band, cure}`), read by shape like
+`conditionCause`.
+
+**D24 — `survey`'s cure line: the layer, the material, the amount in
+words.** `owedKg = (1 − condition) × areaM2 × thicknessM × density`
+(area from rubber's `exposure()` face); `count = ceil(owedKg /
+good.mass)`; said as `GrammarApi.inWords(count)` + the good's noun —
+*"the thatch over the bedroom has thinned; it wants two bundles of
+reed."* No digit, no unit symbol: the suite's regex runs over the cure
+line. A patched layer below fair adds *the patch is poor* (plain, for
+anyone — grain).
+
+**D25 — `maintain` lays the material from hand into the worst reachable
+layer, by the material's trade, at the hand's band, through D8's
+table.** Reachable = the layers of the room you stand in (no ladder;
+grain). Order: holding here (shipped) → `reconcileShell()`; the worst
+layer of this room below `1 − ε`, else the shipped scalar path when the
+holding has no `fabric` (kit, back to sound — the requirement's last
+sentence) → the instrument: the bound `kit` must
+`hasCapability(laying?.capability ?? 'upkeep')`, refused naming the
+tool (*"Thatch wants a leggett, not a putty knife."*) — every laying
+tool carries `upkeep`, so the view's ONE declared default still binds
+it and `maintain with leggett` names it → the materials: stacks in the
+actor's hands of the layer's material totalling ≥ `owedKg ×
+stock(band)`, refused naming the good and the count in words →
+`CraftingApi.mendTerms(hand, discipline)` → `MendTerms {band, ceiling,
+gradeLoss, stock}` (a read-only static over `MEND_BY_BAND` — the pack's
+seam into D8; `laying: null` answers competent) → draw the stock
+(`Stackable.applyQuantity` / destruct on the actor's own stacks),
+`condition = max(current, ceiling)`, `grade −= gradeLoss`, push
+`PatchRecord {at, by, byName, band, result}`, wear the instrument
+(`KIT_WEAR`), `PersistableApi.captureHostOf(programme)`. Compounding IS
+the grade: two untrained patches are two bands down and twice the pace
+(D21). `maintain.yaml` help rewritten; the `kit` arg unchanged. ⚠ A
+layer's condition has NO physics yet — Deferred seams.
+
+**D26 — The keepers buy what they lay: the college and the agency
+become Businesses with a par sheet and a bench; the `maintains` brain
+orders, receives, carries and lays.** `college.yaml` → `class:
+/platform/idea/Business`, `banksAt: goodkin`, `hall-manager` gains
+`purchases: true` (the roster tick deals Katie the house card),
+`parLines` one per material the dorm's layers name (`exemplar` the
+good, `supplier` the general store's business, `level` = one patch's
+count), `operatingLocations: [the lobby]`, a receiving bench + a store
+cupboard propped in the lobby; `agency.yaml` likewise at Seznick's. The
+brain's beat gains the `restocks` front half before its round: from the
+lobby, `business.stockSheetFor(keeper)` → `business.orderShortfall(
+keeper, {board, bench, reward, batch})` → `business.receiveBench(
+keeper, bench, into)` — **both MOVED onto `BusinessMixin` out of
+`restocks.ts`'s module-private `order`/`unpackBench`** (a second brain
+is the second caller; a pack brain cannot import a kernel brain's
+privates; an Api static with a world object first would raise the
+`lint:object-verbs` ceiling); `restocks` calls the same two. Then per
+wanting holding: take the layer's good from the cupboard into hand,
+teleport, `forceCommand('maintain')`, return the remainder. An employer
+that cannot fund the bounty (`job post` refuses on escrow) posts
+nothing, nothing arrives, the holding weathers — AC 17 by the same
+refusal a player gets; the brain says nothing (`survey` is the mirror).
+Supply: general-store stock lines for `reed-bundle`, `slates`,
+`lime-sack` (the producer-stock convention); `plank` at the timber
+yard; `pane` from the glass trade. ⚠ No RGO behind reed, lime or slate
+— Risks 15.
+
+**D27 — The first layered buildings.** `dormroom.yaml`: `enclosure:
+[{lime-plaster 0.015}, {brick 0.23}]` (outermost first), `roof:
+[{slate 0.008}, {oak 0.025}]`; `lobby`, `corridor`, `steps`, `cistern`
+likewise so the hall leaves rubber's census. Seznick `hall/main/
+bedroom`: `[brick 0.23]`, `roof: [{slate 0.008}, {pine 0.02}]`. Hinkley
+`house-programme`'s rooms: lime over brick, `roof: [{thatch 0.3}]` —
+where thatch lives in the world (AC 15's *slate and thatch on one
+calendar* is a unit test; the drive's home is the dorm, where the lime
+goes before the slate). Without a `Structure`'s storeys every room's
+roof is exterior (rubber's lone-place rule) — a ground-floor room
+weathers a roof it does not have; grain, Deferred seams.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -661,13 +930,23 @@ provisioning shed's props to the smelter's (AC 7).
 | `recipeFor(outputTemplate)` | `RecipeCatalogue` | an index on an existing warm, no scan (D1). |
 | `ConditionReading` | `platform/idea/reading/` + a platform row | a channel like every other (D11). |
 | the station map, assignee grouping | `EmploymentLogic` | a seat's station may change within one shift (D13). |
+| `fabric: LayerState[]`, `fabricReport`, the layered `reconcileShell` / `conditionCause` | `HoldingWarren` (residence pack) | every holding whose member rooms DECLARE layers weathers by them; one that declares none weathers as today (D20). ⛔ Not `AtmosphericMixin` (the Hive is a Good), not `Location` (nobody could keep the smithy). |
+| `weatheringDays`, `laying` | `Material` (kernel) | every material may say how fast it goes in the open and who lays it; one that says nothing takes the default and the householder (D21, D22). No Good reads either. |
+| `mendTerms` | `CraftingApi` (read over `MEND_BY_BAND`) | the band table is readable by a pack; nothing but `CraftingLogic` writes it. |
+| `orderShortfall`, `receiveBench` | `BusinessMixin` | every house may order its shortfall and receive at a bench — `restocks` and `maintains` are the two callers (D26). |
+| `UpkeepTool` (← `HouseholdersKit`) | residence pack, `src/thing/` | a tool that confers `maintain`: the kit, the trowel, the leggett are rows of it, each carrying `upkeep` + its trade capability (D25). |
+| `masonry`, `thatching` | platform Discipline rows | two trades that lay building materials; no pack owns them yet (D22). |
 
 **The test, applied:** no caller anywhere asks `isAssembled(x) && x has
 parts` to decide whether to proceed; `fitImpl` refuses `one-piece` from
 the mixin's own `isOnePiece()`; the look augmenter's *one piece* line is
 a total method on the host. If the build finds itself writing
 `if (!MixinApi.isAssembled(host) || host.getParts().length === 0)
-return` in a CALLER, the host is wrong — write it down instead.
+return` in a CALLER, the host is wrong — write it down instead. The
+same test on W7: `maintain`'s *holding here* check is the SHIPPED
+boundary of the clock, not a guard added to narrow a kernel mixin —
+which is why the layers' state sits on the programme (D20) and not on
+the place.
 
 ---
 
@@ -718,6 +997,19 @@ Checked at plan time against `CLAUDE.md` and the current tree:
   "wiki-spoiler snapshot" was not found under that name; the golden
   this build churns is `lint:field-meta`'s
   (`scripts/__fixtures__/field-meta-golden.json`, `--snapshot`).
+- **W7 additionally**: `envelope` (rubber's clause (e) validates every
+  layer; the dorm/Seznick/Hinkley rows must pass it), `field-meta`
+  (re-snapshot: `Material.weatheringDays/laying`,
+  `HoldingWarren.fabric`), `unconsumed-seams` (both Material fields are
+  read in the residence pack — the gate walks packs), `instanceable`
+  (the kit row re-points to `UpkeepTool`), `object-verbs` stays 0 (the
+  order/receive seam is a method on `Business`), `instrument-args` (the
+  one declared default), `reachability` + `mass` (the new goods are
+  stocked and weigh), `boot-entries` (the college and the agency cite
+  `unobserved-economy-slate`), `dossiers` (unchanged — no new Cast). The
+  Material library is a closed vocabulary (`race.md`): thatch and lime
+  plaster are two rows whose substrate-read properties differ from
+  everything shipped — Risks 15.
 
 ---
 
@@ -998,8 +1290,10 @@ heirloom's blade line is named, the sword's bill weighs ≤ 1.0 kg.
 ### W6 — the drive, the suite, the MR
 
 **Goal.** `packages/wire/tests/repair.dirty.wire.test.ts` runs the
-requirements' drive 1–11 against the real socket on `WIRE_PORT`
-2016; the record lands in this plan; `pnpm test` once; MR.
+requirements' drive **1–10 and 12** (the restart) against the real
+socket on `WIRE_PORT` 2016 — drive 11 is W7's and is appended to the
+SAME file when W7 lands; the record lands in this plan; `pnpm test`
+once; MR.
 
 **Files.** The wire file (`DIRTY_REASON`: buys out the store's billhook
 and whetstone and Rejection's pick, clones iron and a billet into the
@@ -1018,7 +1312,82 @@ for step 9/AC 14 by a wizard write (`eval`) or repeated strikes — assert
 `failed` on the line first. Each checkpoint asserts a STATE CHANGE read
 back; `refusedFor` is blind to `command-rejected`. Restart last.
 
-**Commit.** `drive(repair): the requirements' drive, 1–11, on the real socket` then the MR.
+**Commit.** `drive(repair): the requirements' drive, 1–10 + the restart, on the real socket` then the MR.
+
+### W7 — building upkeep (⏸ gated: the rubber build on master)
+
+**Gate.** Do not start until rubber's W0 is on `origin/master` (`git
+log origin/master -- packages/server/src/mud/lib/spatial/Exposure.ts`
+shows a commit). **If rubber has not merged when W6 is done, W6 opens
+the MR without this wave and W7 ships as its own follow-up MR** off the
+merged repair branch, adding drive step 11 to the same wire file (the
+requirements' Placement). ⚠ That is the EXPECTED path — rubber is a
+plan with no code today.
+
+**Re-ground first** — write the findings into § Grounding before any
+code: `getEnclosure()` / `getRoof()` return shapes and `roofDefaults()`
+(`lib/biome/Atmospheric.ts`); `lib/spatial/Exposure.ts` (`exposure()`,
+`Face.areaM2 / exterior`, `top`); the resolved layer list in
+`Enclosed.ts`; `check-envelope.ts` clause (e); the brick material's
+path; whether rubber's census pass touched the dorm or Seznick rooms;
+whether the ice build's sawdust landed; `trade-glass`'s
+`GlazeController` capability. Then D20–D27 in order.
+
+**Files.**
+- Kernel: `lib/material/Material.ts` (`weatheringDays`, `laying`,
+  fieldMeta `authorable`, getters); `api/crafting.ts` +
+  `CraftingLogic.ts` (`mendTerms`); `platform/idea/Business.ts` +
+  `lib/employment/*` (`orderShortfall`, `receiveBench` moved out of
+  `lib/behavior/restocks.ts`, which now calls them);
+  `cmd/perception/SurveyController.ts` (`fabricReport` by shape → the
+  cure lines); platform Discipline rows `masonry.yaml`, `thatching.yaml`.
+- Commons rows (`generic-objects`): materials `organic/thatch.yaml`,
+  `mineral/lime-plaster.yaml`; `weatheringDays` + `laying` on slate,
+  oak, pine, ash, glass (brick on rubber's row); goods
+  `stuff/thing/building/{reed-bundle, slates, lime-sack}.yaml`
+  (Stackable, `mass`), `/trade/carpentry/thing/plank.yaml` (`Timber`) if
+  none exists; tools `stuff/thing/tools/{trowel, leggett}.yaml`
+  (`class: /system/residence/thing/UpkeepTool`); general-store
+  `counter.yaml` + the timber yard's counter stock lines.
+- Residence pack: `src/idea/HoldingWarren.ts` (D20, D23, D24);
+  `src/thing/UpkeepTool.ts` (rename of `HouseholdersKit.ts`; the kit
+  row re-pointed); `src/idea/cmd/crafting/MaintainController.ts` (D25);
+  `maintain.yaml` (help); `src/behavior/maintains.ts` (D26; config
+  gains `board`, `bench`, `cupboard`, `reward`).
+- Locality content: `college.yaml`, `agency.yaml` → Business + lobby
+  props; `katie.yaml` / `walter.yaml` brain config; the dorm, Seznick
+  and Hinkley rooms author `enclosure:` + `roof:` (D27); boot entries
+  for the two houses in `eternal-university/pack.yaml` +
+  `terminus/pack.yaml` (reason citing `unobserved-economy-slate`).
+- Tests: `HoldingWarren.test.ts` — the two-clocks test **extended,
+  never replaced** (a layered holding AND the spanner over one game
+  year: the lime goes, the slate barely moves, the band is the lime's,
+  the spanner unchanged; an unlayered holding as before);
+  `MaintainController` — refusals naming the good + count in words and
+  the wrong tool; untrained → ceiling 0.6, grade down, patch recorded,
+  twice the pace after; competent → sound; the unlayered path
+  unchanged; `SurveyController.test.ts` — the digit regex over the cure
+  line; `maintains.test.ts` — orders when short, lays when stocked,
+  weathers when the house is broke; `Material.test.ts` — the defaults;
+  the `restocks` suite green after the move; `lint:field-meta
+  --snapshot`.
+- Wire: drive 11 appended to `repair.dirty.wire.test.ts`:
+  `advanceWorldClock` a season; `survey` at the dorm (the lime line, the
+  cure in words, no digit); `maintain` refused naming lime; `buy lime`;
+  `maintain` untrained → *short*; `survey` → *the patch is poor*; fund
+  the hall's account, `look` the lobby (brings the house current),
+  watch Katie post the bounty, take it (buy, deliver to the bench),
+  watch the dorm come back sound; drain the account by wizard write →
+  a season later it weathers. Step 12's restart re-asserts the patch.
+- Docs: `holding.md § Condition`, `race.md` (the two Material fields),
+  `employment.md` (`orderShortfall` / `receiveBench`), `behavior.md`,
+  `vocations.md` (thatching, masonry: demand with no supply).
+
+**Acceptance.** AC 15–17 by unit + drive 11; `lint:family`; the
+residence, terminus, eternal-university, hinkley-hills, generic-objects
+suites; `pnpm test:near`.
+
+**Commit.** `feat(residence): a building is kept up layer by layer — materials in hand, the laying trade's band, the keeper's par sheet (repair W7)`
 
 ---
 
@@ -1039,6 +1408,11 @@ back; `refusedFor` is blind to `command-rejected`. Restart last.
 | the cobbler's seat | `apply`, `clock on` | the opening derived from `headcount` | `requires {leatherwork, novice}` | the house stands up on arrival | `lint:openings` vocabulary |
 | the name | `name` | `Avatar` self (shipped) | `nameGrant` on the line | — | `requires: any` + both arms checked in the controller |
 | the heirloom | `look`, `get`, `salvage`, `fit` | props of the smithy | the row's bill with `name:` | the smithy stands up on arrival | — |
+| a layer weathers (W7) | `survey` | actor-side beside `look` (shipped) | `enclosure:` / `roof:` DECLARED on the member rows; `weatheringDays` on the material; `exposure()` exterior faces | the holding wakes with its room | — |
+| the cure in words | `survey` | same | `laying.good`'s `mass`; `inWords` | — | — |
+| lay a layer | `maintain` | `UpkeepTool` env on whoever holds it (kit, trowel, leggett) | `laying` on the material; the good in hand; `mendTerms` | — | the `kit` arg's `capability.upkeep` — every laying tool carries it |
+| the keeper buys | (`job post`, `get`, `maintain` as literal verbs) | — | the house's `parLines`, `purchases`, `banksAt`; the bench + cupboard props; the brain config | **boot entries** for the college and the agency (else an unwatched Katie never orders) | the house must fund escrow; refused → weathers |
+| the materials exist | `buy` | the store counter | stock lines | the store stands up on arrival | — |
 | sole / upper | `sew` (tailoring's shipped verb — `SewController` runs any installed recipe wanting `mending`; the recipe's OWN discipline is credited, so the sole credits leatherwork). ⛔ No new `cut` in tanning: tailoring's `cut` is the cloth-pattern act and the collision ladder's first rung is *unify behind the verb that exists* | the needle-case / the cobbler's last-and-awl (`mending`) in the room | the two recipe docs (`toolCapabilities: [mending]`) | `RecipeCatalogue` | — |
 
 Each fails closed and silent; the drive is what proves each link.
@@ -1063,7 +1437,10 @@ Each fails closed and silent; the drive is what proves each link.
 | 12 parts or one piece; the sword's four | W1 + W5 (sword) · W6 (drive 1) |
 | 13 every shipped assembly still lists/mends/fits/salvages | W1 (every existing test + `assembly.dirty.wire.test.ts` stays in the suite) |
 | 14 heirloom keeps its name re-hilted and drawn; hilt nameless; reforged loses it, reforger names once | W0 (seat on the line) + W2 (reforge grant) + W5 (row) · W6 (drive 9) |
-| 15 the drive end to end incl. restart | W6 |
+| 15 a season unwatched → `survey` names the layer and its need; slate and thatch differ | W7 (unit: two layers one year; `fabricReport`) · W7 drive 11 (`survey` after a season) |
+| 16 `maintain` lays the named material by its trade at the hand's band; refused without it; short + readable untrained; a durable beside it unchanged | W7 (unit: refusal words, band table, the extended two-clocks test) · drive 11 |
+| 17 the dorm stays kept while its employer can buy, weathers when it cannot | W7 (`maintains.test.ts`: stocked → lays; broke → nothing posted) · drive 11 (fund, watch; drain, watch) |
+| 18 the drive end to end incl. restart | W6 (1–10, 12) · W7 (11, and 12 again in its own MR) |
 
 Nothing unmapped.
 
@@ -1089,8 +1466,15 @@ Nothing unmapped.
   tinker at a stop after a clock jump in a world nobody watched, the
   cobbler seat's wage landing, the restart, every prose line a player
   reads (read the words — a substring match is blind to the sentence).
+- **The two clocks** (W7): `HoldingWarren.test.ts:611` is extended, not
+  replaced — one game year over a layered holding AND a durable good in
+  it: the lime layer goes, the slate barely moves, the good is
+  unchanged; and nothing on a Good reads `weatheringDays` (a grep-level
+  assertion in the Material test: no `lib/material/Durable.ts` import
+  of it).
 - `pnpm test` runs **twice in the cycle**: before the MR opens (W6) and
-  at `/finalize`. Never in the background.
+  at `/finalize`. Never in the background. ⚠ If W7 ships as its own MR
+  it runs once more, before that MR.
 
 ---
 
@@ -1149,6 +1533,40 @@ Nothing unmapped.
     discipline (`leather-jerkin` is the precedent). The cobbler's shop
     therefore props a `/trade/tailoring/thing/needle-case` beside the
     last-and-awl so `sew` is sayable there (D16).
+12. **The rubber dependency is a PLAN, not code** (W7). `reqs/rubber`
+    is docs only; the seams W7 needs have not been started. Expect W7
+    as the follow-up MR; re-ground against the merged files, treating
+    § Grounding's rubber paragraph as the contract to re-check when
+    shapes drift.
+13. **Requirements wording, listed not absorbed.** *What already
+    exists* calls layered walls *the rubber build (in flight)*; rubber
+    is PLANNED, not built, so the fallback (W7 as its own MR) is the
+    likely path. Owner's eye; no plan change.
+14. **Katie's and Walter's "employers" are Organizations with no
+    money.** D26 makes both Businesses with an account; the economic
+    bootstrap must FUND them (re-ground how the tailor's shop's account
+    is seeded) or AC 17's *while its employer can buy* is vacuous on
+    day one. Owner's eye: the university paying for its own roof is the
+    first institution with a bill, reaching the committee that holds
+    the hall.
+15. **No RGO makes reed, lime plaster or slate tiles**; the general
+    store mints them (the producer-stock convention — honest within the
+    shipped rule, a real gap: reed beds, lime burning, the quarry's
+    slate → `vocations.md`). The two new Material rows (thatch, lime
+    plaster) are vocabulary decisions under the closed-library rule —
+    properties differ from everything shipped; owner's eye.
+16. **Two new Discipline rows** (`masonry`, `thatching`) with no trade
+    pack; check `DisciplineCatalogue.yaml` / `lint:dossiers` for a list
+    to extend at re-ground.
+17. **`HouseholdersKit` → `UpkeepTool`** is a pack-internal class rename
+    (one row's `class:`, the suite's import, `holding.md`); no
+    migration. If the owner keeps the kit's name, the trowel and leggett
+    become rows of `HouseholdersKit` and the name lies a little.
+18. **Rubber's lone-place rule makes every dorm room's roof exterior**
+    (no storeys on the hall) — harmless for a one-room holding; the
+    storeys are rubber's content or the structures-slate's.
+19. **`mendTerms` is the ONE seam between `maintain` and `repair`'s
+    band table** — never copy the numbers into the pack.
 
 ---
 
@@ -1172,6 +1590,25 @@ Nothing unmapped.
 - **Three bill parts no recipe makes** (share, hide-face, bellows) —
   `lint:bills` arm 8 holds the ceiling at 3 and names them → farming,
   tanning, apiculture tails.
+- **Erecting a building** from its bill of goods (D20's layers summed
+  over a structure's members × area × thickness × density) →
+  `structures-slate` § building materials (owner: upkeep only).
+- **Hired building trades** — a thatcher or mason through a counter
+  (`order thatch` as a `Tariff` service kind, D12's paid-mend shape on
+  a layer) → the erection design.
+- **Fire, rot, collapse; a worn layer's physics** (rain through thin
+  thatch, heat through a settled fill — rubber's five answers reading
+  `LayerState.condition`) → `structures-slate`.
+- **Buildings outside a holding weathering** (the smithy, the rubber
+  works, the icehouse; the programme's clock generalized onto a
+  `Structure`) → `structures-slate`, with erection (D20's written-down
+  narrowing).
+- **Storeys for the hall and Seznick** (a ground-floor room has a
+  ceiling, not a roof) → rubber's content pass / `structures-slate`.
+- **A supply chain for reed, lime and slate** (reed beds, lime burning,
+  slate from the quarry) → `vocations.md` gap list.
+- **The keeper walking to the store** → the same `rounds` seam as the
+  tinker.
 
 ---
 
@@ -1195,10 +1632,18 @@ Read first, in this order:
 14. The exemplar rows: `terminus/…/mayfield-row/tailor/**`, `hearthworks/…/{idea/business,thing/smithy-tariff,agent/smith,location/smithy}.yaml`, `generic-objects/…/armor/leather-boots.yaml`, `trade-mining/…/thing/pick.yaml`, `trade-forestry/…/thing/felling-axe.yaml`
 15. `packages/wire/tests/assembly.dirty.wire.test.ts`, `packages/wire/src/harness/session.ts:800–840`
 
+For W7, additionally:
+
+16. `packages/content/residence/src/idea/HoldingWarren.ts:60–130, 540–600`, `src/idea/cmd/crafting/MaintainController.ts`, `src/behavior/maintains.ts`, `src/thing/HouseholdersKit.ts`, `content/system/residence/cmd/crafting/maintain.yaml`, `content/system/residence/thing/householders-kit.yaml`, `src/__tests__/HoldingWarren.test.ts:360–640`
+17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/location/OuterWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
+18. `git show origin/reqs/rubber:docs/plans/rubber-plan.md` § D1–D4, D14, § Host placement (`roof`/`exposure()` on `AtmosphericMixin`), § Deferred seams — then the MERGED files once rubber lands (re-ground, § W7)
+19. `eternal-university/…/duncan-hall/{idea/college, idea/dorm-programme, location/dormroom, agent/katie}.yaml`, `terminus/…/mayfield-row/{idea/agency, agent/walter, seznick-house/unit-programme, seznick-house/location/*}.yaml`, `hinkley-hills/…/idea/house-programme.yaml`, `general-store/{business, counter}.yaml`, `trade-apiculture/…/thick-hive.yaml` (the Good that authors `enclosure:`)
+
 ---
 
 ## Drive record
 
 *(appended at build time — the output of running the requirements'
-drive 1–11 on the real socket, the count, and what each failure was.
+drive 1–10 + 12 on the real socket (and 11 + 12 again when W7 lands),
+the count, and what each failure was.
 Precedent: `farming-plan.md § Checkpoint A`.)*
