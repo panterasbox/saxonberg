@@ -51,11 +51,11 @@ withdrawal. What does ship:
 | consignment | custody + a listing record; a lot of one | titles single objects only |
 | `Stackable` / `Bulkable` | a quantity on one Stuff / litres on a holder | no store, no receipts |
 | watershed `StorageNode` | ⭐ one scalar with its own physics | the precedent for "a number and its physics" |
-| banking | ⭐ the only dematerializing store (coin ⇄ balance) | money has no grade |
+| banking | ⭐ a ledger of balances over coin kept PHYSICALLY in the vault, one-for-one — record vs reality already, but nothing dematerializes | money has no grade |
 
 Design that already exists: logistics Part 11.5 (space · stock ·
 institution; contents RECORDED; record vs reality as the spine; capacity
-is MASS via `canRest`), freight-slate (stores are *"instance data, no new
+is MASS via `canRest` — renamed since: the seam is `Placing.canPlace`), freight-slate (stores are *"instance data, no new
 class"*; rungs warehouseman → forwarder → network), and the bailee
 cluster (warehouse · impound · auction house · bank · inn).
 
@@ -203,7 +203,7 @@ authored, and a player keeper can always override it.
 
 ### 3.8 Capacity
 
-Part 11.5 decided it: **mass**, via the `canRest` validator seam
+Part 11.5 decided it: **mass**, via the placement validator seam (`canRest` then, `Placing.canPlace` now)
 (authored on 126 rows; cannot be gamed by nesting). A full store is a
 legitimate world state, refused at the validator.
 
@@ -223,6 +223,21 @@ legitimate world state, refused at the validator.
   today) → a candidate, not done here.
 - **Transferable receipts** (futures; a receipt as collateral, which
   `credit.md` already wants) → later; the receipt document is the seam.
+- **⭐ The bank vault as a store, and the money warehouse** → banking /
+  currency slate (recorded 2026-10-16, not now). Banking already IS this
+  slate's spine — account balances are the claims, the vault's coin is the
+  stock, till liquidity and the withdrawal cap are claims against stock, a
+  run is a run. The vault would be a **second consumer** of the store
+  mechanism (coin lines per currency and denomination; robbery is taking
+  from the stack; **the audit is stocktake**), with the claims kept in the
+  sealed `bank_ledger`, never in receipt documents. The gain is coherence,
+  not objects (coin is already one stack per denomination); the cost is
+  re-proving banking's conservation. ⚠ **The literal money warehouse is a
+  different institution:** a warehouse keeps 100 % of its goods and a bank
+  lends them, and a gold receipt that people pass hand to hand **is a
+  banknote** — the goldsmith path to paper money and fractional reserve.
+  A keeper who quietly sells depositors' pooled stock is already running
+  one (or embezzling, depending who asks). Its own slate.
 - **The NPC loop while unobserved** (a keeper restocking with nobody on)
   → [unobserved-economy-slate](./unobserved-economy-slate.md). The
   physics needs nothing: lines reconcile on read.

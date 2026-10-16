@@ -34,16 +34,19 @@ Seeding slates:
 - ⚠ **No frozen pool exists.** The only pool is on the sea, which has no ice. The three cold meres are shores you stand beside:
   - blackmere in the north;
   - circlemere and clearmere in the Circle.
+- ⚠ **The Circle's weather is pinned frozen** by climate (snow, and "the weather never changes here"), which made its drive repeatable. No summer ever comes there.
 - **Swimming:** the swimmer breathes the air. But **a swimmer's body temperature reads the room's air, not the water**, so a winter swim chills like standing on the bank.
 
 **Cold goods**
 - **A 4 kg block of ice** ships. It holds at 0 °C until its melting heat is spent, and lasts hours in an icebox.
-- ⚠ **The block claims it can be alloyed and tempered,** because the shipped re-meltable lump carries metal's alloying. The same lie is on glass and wax lumps.
+- ⚠ **The block claims it can be tempered,** because the shipped re-meltable lump carries metal's alloying mixin, which holds both a **composition** and a **temper**. Glass and wax lumps claim a temper too. ⚠ But the **composition is load-bearing for glass**: cracking or salvaging glass writes its iron fraction into the lump, and that iron is what turns recycled glass greener.
 - ⚠ **Its material lives under the bottling trade.**
 - **Freezing in a pan** turns a pan of water into a block.
 
 **Cold-storage venues**
 - **The cookhouse icebox** holds one authored block, never replaced. That gap is the named demand.
+  - **The cook's restocking never travels.** It posts a supply job to the job board, delivered to a receiving bench, and someone else, a hauler or a player, fulfills it.
+  - ⚠ **The cook's stock count does not look inside a shut icebox,** and deliveries are unpacked **onto the table**, so the icebox loop could not close today.
 - **Two kitchen iceboxes** sit empty.
 - **The bottling counter** sells **bagged ice** from nowhere: an import line, with freezer-made ice as its fiction.
 - **The lounge's ice bin** restocks from a distributor that stocks no ice.
@@ -54,8 +57,8 @@ Seeding slates:
 - **Storage that exists today:**
   - **The haulage depot's warehouse** holds goods as live objects and files a receipt, but **there is no way to withdraw**. Logistics names *"`withdraw <receipt>` at the shed"* as the missing piece.
   - **Shop counters** hold discrete goods topped up to par. A line with a supplier is bought by the keeper's restocking; a line without one is imported from nowhere.
-  - **Banking** is the only store that turns goods into a count and back again.
-  - **Nothing holds goods as a count per grade.**
+  - **Banking** keeps a ledger of balances, with the coin held physically in its vault, one-for-one.
+  - **Nothing anywhere holds goods as a count and turns them back into objects.**
 
 **Wood**
 - **`saw`** (carpentry, MR !361) turns a log into boards at the Heart's Delight sawmill (sawyer Tamsin Rook, a timber-yard counter) or a pit saw. **The rest of the log's mass vanishes**, and `carve`'s shavings vanish too.
@@ -121,6 +124,7 @@ Seeding slates:
   - **A cut block's mass and grade come from the ice it was cut from.**
   - **Where to cut is a choice a person can make from what they can measure:** which water to work, and which patch of it by its history.
 - **The ice trade has real seats:** an ice company with a keeper, house hands, a seasonal crew and an ice boss, each held by an NPC and takeable by a player. NPCs in them do the work through the same verbs a player types.
+  - **A seat can be seasonal:** the crew and the ice boss are on the roster, and paid, only in winter. Any seasonal trade can reuse this.
 - **The icehouse keeps ice through a summer:**
   - in proportion to its size and its sawdust;
   - **while its meltwater soaks the packing,** so a house that isn't repacked each season insulates worse and melts faster;
@@ -129,11 +133,11 @@ Seeding slates:
 - **In summer the same pool is open water:** reached from the shore by swimming, crossed by swimming, and as cold as its own water. What was left on the ice when it went floats at the surface if it floats, and goes to the bottom if it sinks.
 - **Rivers can be venues:** a slow reach or a mill pond freezes when its winter current falls low enough, and breaks up when the flow rises.
 - **A frozen water can be fished only through a hole** cut in it, and a hole is part of the pond's memory like any other cut.
-- **The cookhouse icebox is resupplied** by its keeper buying ice from the ice company, and money moves.
+- **The cookhouse icebox is resupplied:** the cook sees the block run low in the shut icebox, posts a supply job for ice, whoever takes it buys at the ice company and delivers it, and the cook puts the block in the icebox. Money moves at each step.
 
 **Corrections**
 - **A sawn log leaves sawdust in proportion to the cuts made.** It accumulates where it was sawn, can be gathered, and packs an icehouse.
-- **An ice, glass or wax lump no longer claims to be alloyable,** and a metal lump still is, with nothing lost.
+- **Only metal claims a temper.** Every re-meltable lump keeps its **composition** (glass its iron, ice its water), and a metal lump keeps both, with nothing lost.
 - **Ice is a material of the commons,** not of the bottling trade.
 
 ## Non-goals
@@ -187,26 +191,26 @@ Seeding slates:
 - **Ice the material, and the block,** live in the commons, beside water.
 - **Sawdust is carpentry's,** because the saw makes it.
 - **Cold water reaching the body is the kernel's** body-heat correction, and applies to every swimmer.
-- **The placeholder venue** (frozen pools at circlemere and clearmere, an icehouse, an ice company) is authored in the Circle's locality content. The icehouse is two rooms in one building: **the platform** and **the house** (see Surface decisions).
+- **The placeholder venue** is authored in **a new placeholder locality with real seasons**, not in climate's Circle, whose frozen weather pin stays: a cold mere with its shore, its frozen pool and a far bank (the crossing runs through the pool), plus the ice company and its icehouses. The icehouse is two rooms in one building: **the platform** and **the house** (see Surface decisions).
 - **The icehouse is a building of its own,** standing apart from any warm room as real icehouses did. It is authored as a building now, which already works. That keeps rubber's count of rooms in no building from rising, and lets it take walls and a roof from the building when rubber lands.
 
 ## Collisions
 
 **Places and people**
-- **The Circle and the north** (climate content): circlemere and clearmere each gain a frozen pool.
-  - ⚠ **The circlemere crossing is reworked.** Today it is one exit from the shore to the moraine bank, crossing the ice without ever being on it. It becomes shore → the pool → the far bank, so the crossing *is* walking on the ice. The bearing check happens on stepping onto the pool, and breaking through mid-crossing puts you in the water. The climate drive's crossing checks are re-pointed and must still pass.
-  - The north's blackmere crossing stays as it is in this build.
+- **The Circle and the north** (climate content) **are unchanged.** Climate's frozen weather pin and its crossings stay, so its drive stays repeatable.
+  - The new placeholder locality is where a crossing runs **through** a pool (shore → the pool → the far bank). Climate's crossings, which cross the ice without being on it, are left for a later pass to bring onto the same model.
   - ⚠ **The still-water threshold moves toward the real figure.** Climate shipped "a reach at or above 0.1 m/s current does not freeze", which leaves almost no river able to freeze. Real rivers freeze over at currents up to roughly 0.5 m/s, and only fast, turbulent water stays open. It is climate's setting, changed here, so the climate drive's open-water and crossing checks are re-run.
-  - In summer the circlemere crossing becomes a swim, where climate shipped a refusal.
+  - In summer the new locality's crossing is a swim.
 - **The Heart's Delight sawmill and sawyer:** the floor gains a real sawdust heap. The timber-yard counter is unchanged.
 - **The haulage depot warehouse and its warehouseman** (the estuary towpath): it gains the withdraw its receipt was missing, as the first bailee store.
 - **Fishing at the cold meres:** today `fish` and `lay` work straight through solid ice, because fishing has no notion of frozen water. That's a defect this build corrects: frozen water is fished only through a hole. Fishing's drive must still pass in open water.
-- **The cookhouse:** its icebox's par names the ice company as supplier, so its authored block is resupplied.
+- **The cookhouse:** its business gains an ice par line naming the ice company as supplier. The cook's restocking now counts what is in a shut icebox and unpacks ice into it. Other venues' restocking must be unchanged.
+- **Employment:** shifts gain an optional season window. Every existing roster has none and is unchanged.
 - **The general store's powered cold room, and bagged ice at the bottling counter:** both stand as ice's successor. Nothing changes.
 
 **Kernel behaviour other builds rely on**
 - **Every swimmer** (the estuary pool, the sea) now feels cold water, and is soaked by it. Maritime's drive must still pass. A summer swim chills nobody, but still leaves you wet.
-- **Metal lumps** (smelting, smithing, salvage) must keep their alloying exactly. Their drives must still pass.
+- **Metal lumps** (smelting, smithing, salvage) must keep their alloying and temper exactly. **Glass cullet and salvage** must keep their iron. The smelting, smithing and glass drives must still pass.
 
 **Words and verbs**
 - **`plough`** (farming) also marks a frozen pool.
@@ -308,14 +312,14 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 
 ### The frozen pool: one room, on it or in it
 - **How you get there:** from the shore, out onto the ice. Where a crossing exists, it runs **through** the pool to the far bank, so crossing the ice and standing on it are one place, never two models of the same ice.
-- **How many:** one pool room per harvestable water in this build (circlemere and clearmere). A large water may later have several, which share **one sheet** (thickness comes from the water's weather) and keep **their own logs** (work happens where you stand).
+- **How many:** one pool room per harvestable water in this build (the placeholder locality's mere). A large water may later have several, which share **one sheet** (thickness comes from the water's weather) and keep **their own logs** (work happens where you stand).
 - **The pool is one room:** the water's surface. Inside it, a person is either **on the ice** (if it bears them) or **in the water**, at the surface, swimming. An unfrozen pool is all "in".
 - **It is one place with an authored area, not a warren or a grid of cells.** An acre marked into Hudson cakes is about 9,000 cells, which is the "ten thousand objects" problem again. So the pond's log records **areas by history**: so much scraped on a date, so much marked, so much cut on a date and regrowing, the rest still the snowy field.
   - A cut takes area out of a patch, and its blocks follow from the grid and that patch's thickness.
   - You stand on whatever area still bears you. When every remaining area is cut or too thin, there is nowhere to stand.
 
 ### Where to cut, and what can be measured
-- **Which water** carries most of the variation, and all of it is modelled: its climate (latitude, height, continentality, its cold offset), still or running, and its snow. Clearmere's black ice and circlemere's snow-ice are that difference.
+- **Which water** carries most of the variation, and all of it is modelled: its climate (latitude, height, continentality, its cold offset), still or running, and its snow. Climate's clearmere (black ice) and circlemere (snow-ice) show that difference already.
 - **Which patch** on a water differs only by its history. What a person can measure there:
   - **thickness:** `measure ice` with a spud, precision banded by skill;
   - **grade**, black or snow-ice: the same reading, and visible in `look`;
@@ -378,12 +382,18 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 
 ### The seats and the Discipline
 - **The ice company's seats:** a keeper, house hands, a seasonal crew, and an ice boss distinct from the keeper. Lens 3b: an NPC doing two jobs is a vacancy deleted.
+- **Seasonal seats:** a shift may name the part of the year it runs in. The crew and the ice boss work, and are paid, only in winter. A seat paid year-round for winter work would be dishonest economics (lens 6).
+
+### The cookhouse's ice
+- **The cook posts a supply job; the cook does not travel.** That is the shipped restocking: the job goes on the board for delivery to the receiving bench, and a hauler (player or NPC) takes it, buys the ice at the ice company's counter, and delivers it.
+- **Two shipped gaps close here:** the cook's stock count looks inside a shut icebox, and the cook puts delivered ice **in the icebox**, not on the table.
 - **One new Discipline, ice harvesting,** for reading a field and cutting it.
 - **Stocktake readings are banded by the existing `appraisal`.**
 
 ### The truthful lump
-- **The re-meltable lump is just that.**
-- **Alloying belongs only to metal's form,** which keeps all of it.
+- **The lump's two claims are split.** **Composition** (what fraction of the melt is what) is true of every melt and stays on every lump. **Temper** (heat treatment) is metal's alone.
+- **So:** ice shows its composition and no temper; glass keeps its iron, which recycled glass greens by, and no temper; metal keeps both, exactly.
+- Dropping composition from glass would quietly break the glass trade's rule that cullet only ever moves toward green.
 - **The ice block carries a grade:**
   - black or snow-ice from the sheet;
   - cloudy from a pan.
@@ -434,11 +444,11 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 Run in a world where the Circle is in winter. Travel between placeholder places by whatever means the harness has: that is the deferred haul.
 
 **On the ice**
-1. **At the circlemere shore on the first day of the cold,** `analyze water` reads young snow-ice that doesn't yet bear a person.
+1. **At the placeholder mere's shore on the first day of the cold,** `analyze water` reads young snow-ice that doesn't yet bear a person.
 2. **Walk out from the shore onto the frozen pool.** You break through, and are in the water, swimming at the surface. Your body reports the cold quickly, far faster than standing on the shore would. Your clothes read soaked. Try to climb out onto the edge: the ice that broke won't hold you. Swim back to the shore. On the shore, still soaked, you keep chilling until you're dry or warmed.
-3. **A day later,** walk out again. The ice holds you. Cross the pool to the moraine bank and back: the crossing runs over the same ice you stand on. `measure ice` with the spud reports its thickness and grade.
+3. **A day later,** walk out again. The ice holds you. Cross the pool to the far bank and back: the crossing runs over the same ice you stand on. `measure ice` with the spud reports its thickness and grade.
 4. **`scrape` a patch.** The snow is cleared.
-5. **After several more cold days,** `measure ice` on the scraped patch reads black and thicker than the unscraped field. `analyze water` agrees. At clearmere, the unscraped field is already black.
+5. **After several more cold days,** `measure ice` on the scraped patch reads black and thicker than the unscraped field. `analyze water` agrees.
 
 **The cut**
 
@@ -459,7 +469,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 12. **Advance the season to late summer.**
     - The pool reads open water, and the pond remembers none of the winter's cuts.
     - Before the thaw, a block and an iron tool were left on the field. Now the block floats in the pool, and the tool is gone to the bottom.
-    - Swim from the shore into the pool and across to the moraine bank. The water chills you, and you come out wet.
+    - Swim from the shore into the pool and across to the far bank. The water chills you, and you come out wet.
     - `look` at the stack describes it in words: how much remains, the state of the packing.
     - `measure stock` gives an estimate, more precise for a skilled reader.
     - The **small icehouse has lost a far larger share** of its ice than the large one under the same weather, and a stack with thin sawdust has lost more than a well-packed one.
@@ -471,7 +481,8 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 15. **At the ice company's counter on the platform, `buy` a block.** It is brought up from the house: the house's stock falls by one block.
     - It is dearer now than it was just after the harvest.
     - Empty the house's own claim: the counter sells out and does not refill.
-16. **The cookhouse's icebox block melts.** The cookhouse keeper buys a new block from the ice company. The ice company's account rises, and the cookhouse's falls.
+16. **The cookhouse's icebox block melts in the shut icebox.** The cook posts a supply job for ice. Take the job, buy a block at the ice company's counter, and deliver it to the receiving bench. The cook puts it **in the icebox**. The ice company's account rose at the sale, you were paid the job's reward, and the cookhouse's account fell.
+    - In winter the crew and the ice boss are on the ice company's roster. In summer they are not, and draw no wages.
 17. **As the depositor, `withdraw` against the receipt with the keeper.**
     - The block comes out at about 0 °C, and the fee is paid.
     - With two depositors on one grade and losses beyond the allowance, each gets their pro-rata share.
@@ -479,7 +490,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 **Kernel checks**
 
-19. **`look` at an ice block and at a glass lump:** neither claims alloying. `look` at an iron lump: it still does, and its carbon is unchanged.
+19. **`look` at an ice block and at a glass lump:** neither claims a temper, and each shows its composition. Crack a green glass gather into cullet and remelt it: it is no clearer than it was. `look` at an iron lump: it still shows its alloy and temper, and its carbon is unchanged.
 20. **Swim in the estuary pool in winter and in summer.** Winter chills the body; summer doesn't. Both leave you and your clothes wet.
 21. **Restart the world.** The stores' stock, the receipts and the pond's cut and scraped patches all survive.
 
@@ -497,7 +508,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 - A person who broke through cannot climb out onto the ice that broke, and can swim to the shore.
 - Fishing frozen water is refused in words except through a hole; through a hole it works as in open water. A hole never leads down.
 - After the spring thaw, the pool holds no memory of the winter's cuts and scrapes.
-- Crossing circlemere means walking on its frozen pool: someone who breaks through mid-crossing is in the water.
+- Crossing the placeholder mere means walking on its frozen pool: someone who breaks through mid-crossing is in the water.
 - In summer the pool is reached and crossed by swimming, and a person who swims it is chilled and wet.
 - Things left on ice that gives way float at the surface if they float, and are gone to the bottom if they sink.
 - A river reach whose winter current falls below the threshold freezes, and one whose current rises above it opens.
@@ -520,11 +531,12 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 - Retail:
   - the ice company's counter, on the platform, sells blocks brought up from the house while the house holds ice, and sells out when it doesn't;
   - its price is higher in late summer than after the harvest.
-- The cookhouse icebox, left alone through a summer, is resupplied by purchase from the ice company, and money moves.
+- The cookhouse icebox, left alone through a summer, is seen running low while shut, a supply job for ice is posted, and the delivered block ends up in the icebox, with money moving at the sale and the delivery.
+- The ice company's crew and ice boss are rostered and paid in winter and not in summer, and no other business's roster changes.
 
 **Corrections**
 - Sawing a log leaves sawdust that grows with the number of cuts, and it can be gathered and packed into an icehouse.
-- Ice, glass and wax lumps show no alloying, and an iron lump still shows and keeps its alloy.
+- Ice, glass and wax lumps claim no temper and keep their composition; recycled glass is never clearer than its cullet; an iron lump still shows and keeps its alloy and temper.
 
 **Across the world**
 - Every stock, receipt and pond log survives a restart.
