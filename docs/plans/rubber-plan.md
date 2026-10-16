@@ -11,8 +11,9 @@ Drowned Substation as the proving ground.
 
 The plan is in nine waves. W0–W3 are the kernel construction model and
 its consequences (rain · light · sky view · wind · heat, solar gain,
-heat between rooms) and are behaviour-preserving for every room not yet
-placed in a building. W4 is materials and the cure. W5 is the four
+heat between members of one structure) and are behaviour-preserving for
+every place that has not yet said what is over it. W4 is materials and
+the cure. W5 is the four
 corrections. W6 is supply. W7 is the pack, the works, the content pass
 and the drive file. W8 is stretch, first to cut.
 
@@ -396,19 +397,30 @@ also the seam a building's **bill of goods** would read (material × face
 area × thickness = a mass of material per layer) — not built here; see
 Deferred seams.
 
-**D2 — Hosts of the construction: the `Structure` owns it; a room
-overrides; a vessel is its own material all round.** `Structure` gains
-`enclosure`, `roof` and `storeys` (host placement below). A room's own
-`enclosure:`/`roof:` (on `AtmosphericMixin`, where `enclosure` already
-lives) wins over the structure's, which wins over the class hook
-`enclosureDefaults()` (which keeps answering the universe default — and
-`roofDefaults()` answers the walls' material, so an unhoused interior
-reproduces today's *one material, five faces*). `ExitableVessel`
-overrides both to its own material at `VESSEL_WALL_M` when it declares
-an `interiorVolume`, and to `none` when it does not (an open boat).
+**D2 — ONE PLACE or A SET (user, 2026-10-16): the place owns every
+material; the structure owns only relations.** What bounds a place is a
+fact the place decides alone, so `enclosure:` (walls) and `roof:` — each
+one layer, a list of layers (D1a) or `none` — live ONLY on the place:
+`AtmosphericMixin` implements `Enclosed`, as today, and gains `roof`
+beside `enclosure`. The rung ladder is unchanged and has no structure
+rung: **row → class hook → universe.** `enclosureDefaults()` keeps
+answering the universe default; the new `roofDefaults()` answers
+`null` on a `Location` — *undeclared* — which is what hands the sky
+answer to the legacy biome discriminator for a row that has not yet
+said what is over it (D4, D14). `ExitableVessel` overrides both hooks to
+its own material at `VESSEL_WALL_M` when it declares an
+`interiorVolume`, and to `none` when it does not (an open boat): a
+vessel is its own material all round and is never undeclared.
+`Structure` carries **no** `enclosure`, **no** `roof`; it says which
+places are its members and which stand on which (D3), and nothing
+about what anything is made of. A lone hut, a single pen and an
+icehouse standing apart are complete with no structure at all; a
+structure with no member places (a castle on the horizon) is still a
+structure.
 
-**D3 — Storeys are a small tree on the structure; membership is the
-longest storey prefix; no `storeys` means one implicit storey.**
+**D3 — Storeys are a small tree of RELATIONS on the structure;
+membership is the longest storey prefix; no `storeys` means one
+implicit storey; there is no `open` flag.**
 
 ```yaml
 storeys:
@@ -417,17 +429,24 @@ storeys:
   - { key: wing,    extent: …/location/ground/wing }
   - { key: loft,    extent: …/location/loft,    on: works }
   - { key: tower,   extent: …/location/tower,   on: wing }
-  - { key: terrace, extent: …/location/terrace, on: loft, open: true }
+  - { key: terrace, extent: …/location/terrace, on: loft }
 ```
 
-A storey with no `on` stands on the ground. `open: true` is a storey
-with no roof and no walls of its own (a terrace, a flat deck, a
-balcony); its floor is the roof of the storey it stands on. An author
-carves prefixes as finely as the stacking needs — the loft stands on the
-works room, not on the whole ground floor, so the works room is its own
-storey. `lint:envelope` gains clause (f): every `on` names a key, no
-cycle, every storey extent lies inside the structure's extent, and
-`open` storeys carry no `enclosure`/`roof` of their own.
+A storey with no `on` stands on the ground. Whether a storey is
+**enclosed** is not a storey fact and is never authored on it: a storey
+is enclosed for the face rule iff a member place of it has walls or a
+roof of its own (read off that place's `Enclosed`). So a roof terrace
+is simply a member place authoring `enclosure: none` and `roof: none`
+in a storey standing `on:` another; its floor **is** the roof of the
+place it stands on, found through the `on` relation (the member of the
+storey below that an exit joins it to, else that storey's first
+member). An author carves prefixes as finely as the stacking needs —
+the loft stands on the works room, not on the whole ground floor, so
+the works room is its own storey. A structure may author no `storeys`
+and an `extent` that covers no place at all (a landmark): nothing in
+the model requires members. `lint:envelope` gains clause (f): every
+`on` names a key, no cycle, every storey extent lies inside the
+structure's extent — and nothing more.
 
 **D4 — One rule decides every face, computed once per room into an
 `Exposure` value object, synchronously.** `lib/spatial/Exposure.ts` (a
@@ -435,48 +454,75 @@ named value object, the module category `Light`/`Quantity` use) is the
 construction answer:
 
 ```ts
-interface Face { material: ResolvedEnclosure | null; areaM2: number; exterior: boolean; neighbour?: Stuff }
+interface Face { material: ResolvedEnclosure | null; areaM2: number; exterior: boolean;
+                 neighbour?: Stuff; exit?: Exit }   // exit: the opening that joins them, if any
 interface Exposure {
-  housed: boolean;            // in a Structure (or a vessel's own hull)
+  structure: Structure | null;  // the set this place belongs to, if any
+  storey: string | null;        // its storey key within it
+  declared: boolean;            // the ROOF came from the row or the class hook —
+                                // false ⇒ the legacy biome discriminator answered (D14's census)
   top: 'open' | 'roof' | 'ceiling';
-  roof: Face | null;          // the top face when 'roof'
-  walls: Face[];              // up to four; interior where a same-storey
-                              // member of this building stands across an exit
-  wallsNone: boolean;         // `enclosure: none` — wind enters
-  onGrade: boolean;           // root storey of the building (no `on`)
-  floorIsRoofOf: Structure | null;  // an open storey's floor
-  rainReaches(): boolean;     // top === 'open'
-  skyLightFraction(): number; // D5 — 1 when open, 0 when ceiling
-  skyVisible(): boolean;      // skyLightFraction() > 0
-  windEnters(): boolean;      // wallsNone || top === 'open'
-  isOutside(): boolean;       // !housed && legacy sky walk true, or open on top and no walls
-  exteriorAreaM2(): number;   // Σ exterior face areas (replaces 5·side²)
-  interiorFaces(): Face[];    // the room-to-room couplings (D7)
+  roof: Face | null;            // the top face when 'roof'
+  walls: Face[];                // the place's walls less its openings (see below)
+  wallsNone: boolean;           // `enclosure: none`
+  openSides: number;            // doorless exterior exits — an open-fronted barn's missing wall
+  onGrade: boolean;             // see below
+  floorIsRoofOf: (Stuff & Atmospheric) | null;  // a terrace: the place below, via `on`
+  rainReaches(): boolean;       // top === 'open'
+  skyLightFraction(): number;   // D5 — 1 when open, 0 when ceiling
+  skyVisible(): boolean;        // skyLightFraction() > 0
+  windEnters(): boolean;        // wallsNone || top === 'open' || an exterior exit stands open
+  isOutside(): boolean;         // top === 'open' && (wallsNone || every side open)
+  exteriorAreaM2(): number;     // Σ exterior face areas (replaces 5·side²)
+  interiorFaces(): Face[];      // the member-to-member couplings (D7)
 }
 ```
 
 The face rule, exactly as the requirements state it: a face is exterior
-unless the space across it is an enclosed space of the same building.
-Concretely, for a room `R` in structure `S` at storey `k`:
+unless the space across it is an enclosed place of the same structure —
+one that has walls or a roof of its own. Concretely, for a place `R`
+(in structure `S` at storey `k`, or in none):
 
-- **top** — `ceiling` iff some non-open storey `j` has `on: k`; else
-  `roof` unless `R`'s resolved roof is `none`, in which case `open`. An
-  open storey's own top is always `open` and it has no walls.
-- **walls** — four faces of the cube cell (`side = ∛V`); a face is
-  interior for each distinct same-storey member of `S` reachable by an
-  obvious exit (capped at four); the rest exterior. ⚠ A stated
-  abstraction: the engine has no room geometry, so *which wall is
-  shared* is answered by *who is next door*. A stair or ladder to
-  another storey is an interior face too (it couples heat, D7) but does
-  not consume a wall.
-- **floor** — never a loss face (the ground, or the room below), as today.
-- **a vessel** — `housed` by its own declaration: roof and four walls of
-  its own material when it declares an interior; open when it does not.
-- **not in any structure** — `housed: false`, and the five answers are
-  **today's**: `BiomeApi.isSkyExposed` (the legacy walk) decides
-  outside vs interior; an interior gets five exterior faces of its
-  resolved enclosure (`roofDefaults()` = the walls' material). This is
-  the counted exception of D14.
+- **the place's own construction** — `enclosure` and `roof` resolve
+  through the ladder of D2 (row → class hook → universe). When the roof
+  is **undeclared** (a `Location` row authoring no `roof:`), the legacy
+  biome walk (`BiomeApi.isSkyExposed`) decides, exactly as today: a sky
+  biome ⇒ `roof = none` and `enclosure = none` (a street has no walls);
+  anything else ⇒ `roof` = the walls' resolved material (today's *one
+  material, five faces*). `declared: false` is the one thing that marks
+  it, and D14's census counts it.
+- **top** — `ceiling` iff `R` is in `S` and some storey `j` with `on: k`
+  contains an enclosed member; else `roof` unless `R`'s resolved roof is
+  `none`, in which case `open`.
+- **walls** — four faces of the cube cell (`side = ∛V`). **Openings are
+  exits; there is no per-wall vocabulary.** A face is *interior* for each
+  distinct same-storey member of `S` reachable by an obvious exit (it
+  carries that exit); a face is an *open side* for each doorless obvious
+  exit to a place that is not an enclosed member (a three-sided shed, an
+  open-fronted barn); the remaining faces are *exterior walls* of the
+  place's own enclosure (`max(0, 4 − interior − openSides)`). A doored
+  exterior exit is a wall with a door in it: shut, it is the wall; open,
+  the shipped `U_open` term already counts it and it lets the wind in. A
+  window is a `Window` boundary and passes light by its own
+  transmissivity (leg (d)), as today. ⚠ A stated abstraction: the engine
+  has no room geometry, so *which wall is shared* is answered by *who is
+  next door through an exit*; two members side by side with no exit
+  between them are not detected as sharing a wall (each keeps that face
+  exterior). A stair or ladder to another storey is an interior face too
+  (it couples heat, D7) but consumes no wall.
+- **floor** — never a loss face (the ground, or the place below), as
+  today. **`onGrade`**: in a structure, true iff `R`'s storey has no
+  `on`; a place in no structure keeps today's rule (an open top ⇒ true;
+  `z < 0` ⇒ true; else false) unless its `Floor` authors `onGrade`. A
+  place in a storey standing `on:` another has `floorIsRoofOf` the
+  place below (D3), and its floor's default material is that place's
+  roof.
+- **a vessel** — its own material all round when it declares an
+  interior (roof + four walls, no structure); open when it does not.
+- **a place in no structure** — complete on its own: its walls, its
+  roof, its openings, every face exterior, the sky from its own roof.
+  Nothing in `Exposure` requires a structure, and nothing in it requires
+  a structure to have members (a landmark's `Exposure` is never asked).
 
 The method is `AtmosphericMixin.exposure(): Exposure`, cached in a
 transient `_exposure` keyed by `(structure stuffId | null, storey key)`
@@ -485,10 +531,13 @@ different structure than the cache was built against — the Floor snow
 precedent (*re-runs each read until the place answers*), because a
 structure stands up asynchronously after its room (`LocationZone.
 addLocation` kicks and does not await) and a memo taken before it
-stands would say *unhoused* forever. Also invalidated by
-`restoreFromTemplate` and by `resolveEnclosure`'s own cache reset. Cost
-on the hot path: one map lookup over the path's ancestors plus, on a
-miss, one pass over the room's obvious exits.
+stands would say *no structure* forever. Also invalidated by
+`restoreFromTemplate`, by `resolveEnclosure`'s own cache reset, and by
+a door on one of its exits opening or shutting (the opening count is
+re-read, not cached — it is one pass over the obvious exits, the same
+pass `openExteriorOpenings` already makes). Cost on the hot path: one
+map lookup over the path's ancestors plus, on a miss, one pass over the
+place's obvious exits.
 
 **D5 — Light through matter by Beer–Lambert: `Material.lightAbsorption`
 in 1/m; absent means opaque.** A new `Quantity<'1/m'>` unit (the
@@ -532,13 +581,22 @@ conversion is NOT used: `noonLux` is a MUD-scale number (80), not a
 photometric one (light.md § Calibration), so the irradiance is its own
 dial and the two share only the sky factor and the dim.
 
-**D7 — Heat between rooms of one building: one-hop coupling through
-interior faces, each neighbour read as a constant over the gap.** For
-each `Face` in `exposure().interiorFaces()`, `U_i = A_i / (Σ t/k over the partition's layers +
-R_films)` (D1a) through the partition (the room's own resolved walls — a
-party wall is the building's walls; the structure's `partition:` is
-deliberately NOT a third spec, see Deferred seams) and `T_i =
-neighbour.envelopeTemperatureLast()`. The steady state becomes
+**D7 — Heat between members of one structure: one-hop coupling through
+interior faces, each neighbour read as a constant over the gap; the
+exit's boundary state decides how strongly.** For each `Face` in
+`exposure().interiorFaces()` the coupling is one of two shipped terms,
+chosen by the exit that joins the two places — an honest, simple rule,
+stated once: **shut ⇒ conduction, open ⇒ flow.** A doored exit whose
+door is shut (or a `Window` boundary) couples by conduction through the
+party wall, `U_i = A_i / (Σ t/k over the place's own wall layers +
+R_films)` (D1a; a party wall is the place's walls — a `partition:` spec
+is deliberately NOT a third vocabulary, see Deferred seams); a doorless
+exit, an open door or an open gate couples by air exchange at the same
+flow constant an open exterior opening already uses, `U_i =
+envelope.openingUPerM3 · V` (an open stair between kitchen and loft is
+the inside air moving, not a wall conducting — which is why the loft
+warms within the hour and a shut door between them makes it an
+afternoon). `T_i = neighbour.envelopeTemperatureLast()`. The steady state becomes
 `(U_ext·T_out + Σ U_i·T_i + P) / (U_ext + Σ U_i)` and `τ = C / (U_ext +
 Σ U_i)`; a neighbour whose `Last` is `null` (never resolved) contributes
 no term (adiabatic, not exterior). **Bounded and recursion-free:** the
@@ -814,7 +872,8 @@ code. The water table stays at −12.
 ### The pack, the works, the census and the drive (D14–D15)
 
 **D14 — `trade-rubber` at `/trade/rubber`; the works is Terminus
-content; interiors in no building are a counted, falling number.**
+content; places whose sky still comes from the biome are a counted,
+falling number.**
 
 - `packages/content/trade-rubber/`: `pack.yaml` (`root: /trade/rubber`,
   `requires.title: [{ extent: /trade/rubber, holder: { organization:
@@ -836,50 +895,64 @@ content; interiors in no building are a counted, falling number.**
   stays on raw-rubber.
 - The works and stove house: `packages/content/terminus/content/world/
   terminus/goods-yards/rubber-works/` — `structure.yaml`
-  (`/platform/idea/Structure`, `extent: …/rubber-works`, `enclosure:
-  brick 0.23`, `roof: slate 0.01`, the storeys of D3, `entrance: the
-  works floor`), `rubber-works.yaml` (a `CartesianZone` beside the
-  oilworks', cellSize 3), rooms `location/ground/works/floor.yaml` (the
-  oven, moulds, a `stove`), `location/ground/stove-house.yaml` (room
-  override `roof: { material: glass, thicknessM: 0.004 }` and `enclosure:
-  { material: glass, thicknessM: 0.004 }` — a glasshouse is glass all
-  round on a brick dwarf wall, and the override is the room's; a
+  (`/platform/idea/Structure`, `extent: …/rubber-works`, the storeys of
+  D3, `entrance: the works floor`; **no material on it**),
+  `rubber-works.yaml` (a `CartesianZone` beside the oilworks', cellSize
+  3), and six rooms **each authoring its own construction** (D2):
+  `location/ground/works/floor.yaml` (`enclosure: brick 0.23`, `roof:
+  slate 0.01`; the oven, moulds, a `stove`; ladder exit up to the loft),
+  `location/ground/stove-house.yaml` (`enclosure: { material: glass,
+  thicknessM: 0.004 }` and `roof: { material: glass, thicknessM: 0.004 }`
+  — a glasshouse is glass all round on a brick dwarf wall; a
   `/stuff/thing/stove` prop; three Hevea stems; a door exit to the yard
-  that is the vent), `location/ground/wing/store.yaml`, `location/loft/
-  loft.yaml` (ladder exit from the works floor), `location/tower/
-  tower.yaml`, `location/terrace/terrace.yaml` (stair from the loft).
-  The business (`idea/outfit.yaml`) and a works hand are the oilworks'
-  shape and are **optional** — nothing in the drive needs staff.
-- The content pass places the drive's other buildings: the **terminal
-  hall** gets a room override `roof: glass` (a station train shed —
-  period-honest, and the terminal is already a Structure) and the
-  terminal structure gains `enclosure: brick`, `roof: slate` and one
-  implicit storey; the **market awning** is a new one-room Structure
-  `market/awning` (`enclosure: none`, `roof: { material: canvas,
-  thicknessM: 0.002 }`) with a room `market/location/under-the-awning`
-  off the square; the **coach** authors `_materialPath` (ash) so its
-  envelope and its rain answer name a real material. The two orphan
-  cafeteria biome rows are **deleted** (Risks & opens 1).
-- `lint:unhoused` (`packages/server/scripts/check-unhoused.ts`, picked up
-  by the derived roster): counts every Location row the legacy rule
-  reads as an interior (its `_biomePath` resolves to no
-  `SkyExposedBiome`, or it authors none) that lies under no Structure
-  row's `extent`, excluding `Offstage`/lounge rows and rows that author
-  `_temperature` (a cellar authors its air and has no weather question);
-  ⚠ build-4 (storage-and-ice) is authoring an icehouse as a walled room; it
-  has been asked to author it as a Structure row so neither build trips
-  this gate whichever lands first. **The count at W0 is the ceiling**, held in the script as
-  `UNHOUSED_CEILING` with the list of paths, failing when a listed path
-  is no longer unhoused (pay the debt, delete the line) and when the
-  count rises. Today's figure is computed by the script itself at W0 —
-  roughly 170 of the 263 location rows (85 author a sky biome).
+  that is the vent), `location/ground/wing/store.yaml` (brick, slate),
+  `location/loft/loft.yaml` (brick, slate; stair up to the terrace),
+  `location/tower/tower.yaml` (brick, slate), `location/terrace/
+  terrace.yaml` (`enclosure: none`, `roof: none` — a member place in a
+  storey `on: loft`; its floor's default material is the loft's roof,
+  slate). The business (`idea/outfit.yaml`) and a works hand are the
+  oilworks' shape and are **optional** — nothing in the drive needs
+  staff.
+- The content pass moves the drive's other places: the **terminal
+  hall** authors `roof: { material: glass, thicknessM: 0.004 }` and
+  `enclosure: brick` (a station train shed — period-honest; the
+  terminal is already a Structure and keeps its one implicit storey),
+  and the terminal's other five rooms author `enclosure: brick`, `roof:
+  slate` in the same pass so the whole structure leaves the census; the
+  **market awning** is a **lone place** — no structure needed — a new
+  room `market/location/under-the-awning` off the square with
+  `enclosure: none` and `roof: { material: canvas, thicknessM: 0.002 }`;
+  the **coach** authors `_materialPath` (ash) so its envelope and its
+  rain answer name a real material (a vessel is never undeclared, so it
+  was never in the census). The two orphan cafeteria biome rows are
+  **deleted** (Risks & opens 1). ⚠ build-4's icehouse may land as a lone
+  walled place or as a one-place structure; **either is fine now** —
+  housedness is no longer debt, and a lone place with its own walls and
+  roof is complete.
+- **`lint:biome-sky`** (`packages/server/scripts/check-biome-sky.ts`,
+  picked up by the derived roster; it REPLACES the earlier plan's
+  `lint:unhoused`, which is not built): a census-then-ratchet of **places
+  whose sky answer still comes from the biome** — every Location row
+  authoring no `roof:` whose class hook (`roofDefaults()`) answers
+  `null` (every `Location` class today; `ExitableVessel` rows answer
+  with their own material and are never counted). For such a row the
+  legacy `SkyExposedBiome` discriminator still decides open vs roofed.
+  **The count at W0 is the ceiling**, held in the script as
+  `BIOME_SKY_CEILING` with the list of paths; it fails when a listed row
+  has since authored a `roof:` (pay the debt, delete the line) and when
+  the count rises (a new Location row must say what is over it — `roof:
+  none` for a yard, a material for a hut). Today's figure is every
+  Location row — 263 — and the script computes it itself at W0. ⚠ A
+  street authoring `roof: none` is the same one-line declaration as a
+  hut authoring slate; the census is of *places that have not said*, not
+  of interiors.
 - `SkyExposedBiome` and `SkyExposedMixin` **stay** as the legacy
   discriminator for the counted rows and are retired at ceiling zero —
   the biome-normalization slate carries it (Deferred seams). ⚠ This is
   a sequencing fact, not a scope change: the requirements' *"the biome
-  stops deciding the sky"* is true for every housed room and every
-  outdoor room from W1, and *"keeps exactly today's behaviour"* for an
-  unhoused interior is only possible if something still says it is one.
+  stops deciding the sky"* is true from W1 for every place that has said
+  what is over it, and *"keeps the answer its biome gives today"* for
+  one that has not is only possible if something still says it.
 
 **D15 — The drive is a wire file, born in W7, and it drives time and
 weather with what exists.** `packages/wire/tests/rubber.dirty.wire.test.ts`
@@ -917,8 +990,8 @@ material when one is present, else the bulk material. Cut this wave and
 
 | new thing | host | what composing it claims about everything else on that host |
 |---|---|---|
-| `enclosure` (exists), **`roof`**, **`storeys`** fields | `platform/idea/Structure` | every Structure — a building, the Hesper, Gannet Rock's light — has walls and a roof and storeys. True: a ship has a hull and decks (its `storeys` are its decks, and `Ship`'s own `deckHeightM` is untouched); a light has walls and a lantern roof. No guard re-narrows. |
-| `roof` field + `roofDefaults()` hook + `exposure()` | `lib/biome/Atmospheric.ts` (`AtmosphericMixin`, beside `enclosure`) | every scope with air — a Location, an `ExitableVessel`, the `Hive` — has a construction answer. True of all three (the hive's is its own walls, as its envelope already is). ⚠ NOT on `Location` (the `Enclosed.ts` argument: the mixin could only reach it through a cast) and NOT on `Enclosed` as a new mixin (TS inference depth, same file). |
+| **`storeys`** field (relations only) | `platform/idea/Structure` | every Structure — a building, the Hesper, Gannet Rock's light — may say which of its places stand on which. True: a ship's decks are its storeys (`Ship`'s own `deckHeightM` is untouched); a light with no member places authors none and is still a structure. ⛔ NO `enclosure`/`roof` here — a structure says nothing about what anything is made of (D2). No guard re-narrows. |
+| `roof` field + `roofDefaults()` hook + `exposure()` | `lib/biome/Atmospheric.ts` (`AtmosphericMixin`, beside `enclosure` — the `Enclosed` implementer, which owns every material of a place) | every scope with air — a Location, an `ExitableVessel`, the `Hive` — has a construction answer of its own, structure or no structure. True of all three (the hive's is its own walls, as its envelope already is). ⚠ NOT on `Location` (the `Enclosed.ts` argument: the mixin could only reach it through a cast), NOT on `Enclosed` as a new mixin (TS inference depth, same file), and NOT on `Structure` (a place decides what bounds it alone). |
 | `Exposure` | `lib/spatial/Exposure.ts`, a value object | nothing composes it; it is computed and cached. |
 | `lightAbsorption`, `elasticity`, `crosslinking` | `lib/material/Material.ts` | every material may be transparent, may stretch, may crosslink. All three default to the honest zero (opaque, rigid, inert), so every shipped row is byte-identical until it authors one. |
 | `CrosslinkSpec` + `Crosslinking` | `lib/material/Crosslinking.ts`, a value object | nothing composes it; `FireController` and the test call it. |
@@ -927,15 +1000,17 @@ material when one is present, else the bulk material. Cut this wave and
 | `exposeToRain(delta)` | `lib/slot/Attired.ts` (`AttiredMixin`, on `Creature`) | every body that wears things sheds rain through them. True; a creature wearing nothing passes everything, as today. ⚠ NOT on `Wet` (a cloak is Wet and has no layers) and NOT in `WeatherLogic` (the walk belongs to the body that owns the slots — the three-copies lesson in `Attired.ts`'s header). |
 | wet term on `contactResistance` | `MaterialApi`/`MaterialLogic` (exists) | an optional argument; dry callers are byte-identical. |
 | `wearFactor` | `lib/pump/Pumping.ts` (`PumpingMixin`) | every pump wears its packing by the packing's material. True by construction. |
-| `lint:unhoused` | `packages/server/scripts/check-unhoused.ts` | a gate, not a host. |
+| `lint:biome-sky` | `packages/server/scripts/check-biome-sky.ts` | a gate, not a host. |
 | the `weather` window's air read | `lib/husbandry/Producing.ts` | every weather-windowed tap reads the air at its place. True of birch, Hevea, any future row. |
 | Hevea rows, the works, the moulds, the goods | content — `trade-rubber`, `terminus`, `trade-farming`, `trade-quarrying`, `base-library` | rows name shipped classes; no class is added unless W7 finds one is needed, and then it is `trade-rubber/src/thing/`. |
 
 **The narrowing test, applied.** Nothing above needs an `if (host is a
 building)` guard: a vessel answers the construction question with its
-own material (an override, not a guard), an unhoused room answers with
-the legacy walk (a fallback the census is shrinking, not a re-narrowing
-of the host set), and a material with no `crosslinking` simply has none.
+own material (a class hook, not a guard), a place that has not yet said
+what is over it answers with the legacy walk (a fallback the census is
+shrinking, not a re-narrowing of the host set), a place in no structure
+simply has `structure: null`, and a material with no `crosslinking`
+simply has none.
 The one place a guard was tempting — *is this charge rubber?* in
 `FireController` — is answered by the material carrying a spec or not.
 
@@ -960,7 +1035,7 @@ Checked at plan time against the current tree, not recalled:
   ship from trade packs today — forestry's maple).
 - **Module scope declares; lifecycles initialize** — `Exposure` and
   `Crosslinking` are value objects with no module-scope execution; no
-  new Api; `check-unhoused.ts` is a script.
+  new Api; `check-biome-sky.ts` is a script.
 - **Import boundary** — nothing new outside `api/**` imports outside
   `src/mud/`; `Exposure` reaches `NavigationApi` through `api/navigation`
   (a static import from `lib/biome/Atmospheric.ts` — ⚠ check for a cycle;
@@ -986,7 +1061,7 @@ Checked at plan time against the current tree, not recalled:
   are dropped (the quarry column changes a seeded Deposit row).
 - **Lint gates this build must satisfy:** `lint:envelope` (grown),
   `lint:biome`, `lint:light-sources` (its row-side sky mirror learns
-  `roof`), `lint:unhoused` (new), `lint:closed-vocabularies` (no new
+  `roof`), `lint:biome-sky` (new), `lint:closed-vocabularies` (no new
   closed word; `none` is a value of an open spec), `lint:unconsumed-seams`
   (every new field has a reader in its wave), `lint:reachability` (every
   new thing row reached: props, stock lines, recipe outputs, `wins`),
@@ -1017,39 +1092,56 @@ Files:
   the innermost skin, and `reconcileEnvelope`'s `U` reads the series sum
   (byte-identical for every one-layer row — a test asserts it); add
   `RoofSpec` (= `EnclosureSpec | EnclosureSpec[] | 'none'`),
-  `StoreySpec { key, extent, on?, open? }`, `roofDefaults()` on the
-  `Enclosed` interface; rewrite the *No `roofed`* paragraph.
+  `StoreySpec { key, extent, on? }` (no `open`), `roofDefaults():
+  RoofSpec | null` on the `Enclosed` interface (`null` = undeclared);
+  rewrite the *No `roofed`* paragraph.
 - `lib/spatial/Exposure.ts` — NEW value object (D4).
-- `platform/idea/Structure.ts` — fields `enclosure`, `roof`, `storeys`
-  (persistent, authorable); `getEnclosure/getRoof/getStoreys`,
-  `storeyOf(path)` (longest prefix; the implicit storey when none),
-  `storeyStandingOn(key)`, `isOpenStorey(key)`.
+- `platform/idea/Structure.ts` — ONE new field, `storeys` (persistent,
+  authorable); `getStoreys`, `storeyOf(path)` (longest prefix; the
+  implicit storey when none), `storeysStandingOn(key)`,
+  `membersOf(key)` (resident members only — a sync read over the zone's
+  locations, never a template search). ⛔ No `enclosure`, no `roof`.
 - `lib/biome/Atmospheric.ts` — `roof` field + `getRoof/setRoof`,
-  `roofDefaults()` (walls' material), `resolveRoof()`, `exposure()` with
-  the cache rule; `envelopeExposedAreaM2` **unchanged this wave**.
+  `roofDefaults()` (`null`), `resolveRoof()` (row → hook → the legacy
+  biome discriminator when `null`, stamping `declared`), `exposure()`
+  with the cache rule; `envelopeExposedAreaM2` **unchanged this wave**.
 - `lib/boundary/ExitableVessel.ts` — `roofDefaults()` override (own
   material when `interiorVolume`, `'none'` otherwise).
 - `packages/server/scripts/check-envelope.ts` — clause (e) admits `roof`
-  with the same two keys and `none`, and a list of layers for either part; clause (f) the storey tree.
-- `packages/server/scripts/check-unhoused.ts` — NEW; `package.json`
-  `lint:unhoused`.
+  with the same two keys and `none`, and a list of layers for either
+  part, **on place rows only** (a Structure row authoring `enclosure` or
+  `roof` FAILS — the one-place-or-a-set line); clause (f) the storey tree
+  (keys, `on`, extents inside the structure's; nothing about openness).
+- `packages/server/scripts/check-biome-sky.ts` — NEW; `package.json`
+  `lint:biome-sky`.
 - Tests: `lib/spatial/__tests__/Exposure.test.ts` (a fixture structure
   with the D3 tree: works floor → ceiling; stove house → roof; wing →
-  ceiling; loft → roof; terrace → open, floor is the roof; an unhoused
-  interior → five exterior faces of its enclosure; an outdoor row →
-  outside; a coach → housed by itself), `Structure.storeys.test.ts`,
-  the lint's fixture.
+  ceiling; loft → roof; terrace → open, floor is the loft's roof; a
+  three-sided shed → one open side, three exterior walls; **a lone hut
+  with walls and slate → complete, every face exterior, dry; a lone pen
+  with `enclosure` and `roof: none` → open top, wind does not enter; a
+  row authoring nothing under a sky biome → open; under an indoor biome
+  → five exterior faces of its enclosure, `declared: false`**; a coach
+  → its own material, no structure), `Structure.storeys.test.ts`
+  (**a structure with no `storeys` and an `extent` covering no place
+  loads by the horizon route — `LocationZone.lookOutFrom` →
+  `attachedWithin` → `StuffApi.singleton` — and is sighted; nothing in
+  `Exposure` or either lint is asked about it**), the lints' fixtures.
 
 Acceptance: every existing test green with no reader moved; `exposure()`
 for every shipped room reproduces `isSkyExposed`'s answer in
-`isOutside()`; `lint:unhoused` prints the ceiling and the list.
+`isOutside()`; the memberless structure test passes; `lint:biome-sky`
+prints the ceiling and the list; `lint:envelope` refuses a Structure row
+authoring a material.
 
-Commit: `feat(construction): walls, a roof and storeys on the Structure; Exposure answers the five faces`
+Commit: `feat(construction): a place says what bounds it, a structure says what stands on what; Exposure answers the five faces`
 
 ### W1 — the five readers move onto the construction
 
 Implements D4's second half; the biome stops deciding the sky for every
-housed and every outdoor room.
+place that has said what is over it (which, until W7, is only the
+vessels — so this wave is behaviour-preserving for every Location row,
+except where a structure's membership turns a face interior).
 
 Files (each caller from Grounding, in this order):
 - **air & heat** — `Atmospheric.ts`: `addAtmosphereContent` (`exposure().
@@ -1058,9 +1150,10 @@ Files (each caller from Grounding, in this order):
   `isThreshold(far)` → `structureOf(this) !== structureOf(far) ||
   far.exposure().isOutside()` (the documented one-liner),
   `envelopeExposedAreaM2` → `exposure().exteriorAreaM2()` (⚠ this is the
-  first behavioural change for housed rooms: the terminal's and the
-  Hesper's interiors lose through fewer faces; unhoused rooms are
-  byte-identical because their exposure is five exterior faces).
+  first behavioural change for structure members: the terminal's and the
+  Hesper's interiors lose through fewer faces where an exit joins two
+  members; a place in no structure is byte-identical because its
+  exposure is five exterior faces).
 - **rain** — `WeatherLogic.ts`: the two `computeResolved` callers pass
   `exposure().rainReaches()` as `skyExposed` for `precipitationHere` and
   keep the sky-field decision on `isOutside()` (an atrium under glass is
@@ -1076,30 +1169,31 @@ Files (each caller from Grounding, in this order):
   winning); `VisionModality.ownFlux` multiplies the sky term by
   `exposure().skyLightFraction()` (1 for open, so every street is
   byte-identical; the fraction only bites in W2 when glass authors an
-  absorption — until then a roof passes 0 and a housed interior with a
-  slate roof is dark unless lit, which is today's answer).
+  absorption — until then a roof passes 0 and a roofed place is dark
+  unless lit, which is today's answer).
 - **view** — `PerceptionLogic.horizonAtSea/Ashore`, `SurveyController.
   waysideSpaces`, `WeatherReading` → `skyVisible()`.
-- **ground** — `Floor.isOnGrade()` default → `exposure().onGrade` for a
-  housed room (root storey), the legacy walk for an unhoused one;
-  `floorDefaults(onGrade)` on an open storey reads the structure's roof
-  material (`floorIsRoofOf`).
+- **ground** — `Floor.isOnGrade()` default → `exposure().onGrade` (root
+  storey for a member; today's rule for a place in no structure);
+  `floorDefaults(onGrade)` for a place standing `on:` another reads that
+  place's roof material (`floorIsRoofOf`).
 - **weather deviation** — `BiomeLogic`'s six `skyExposedWalk` gates →
   `exposure().isOutside()`; `outsideKFor`'s `fromSky` unchanged (it is
   about the chain's provenance).
 - Lints: `check-biome.ts` and `check-light-sources.ts` row-side mirrors
-  learn: a row under a Structure's extent takes its answer from the
-  structure's roof/storeys; the legacy class check holds for the rest.
+  learn: a row authoring `roof:` takes its sky answer from it (`none` ⇒
+  open; a material ⇒ roofed) and, under a Structure's storeys, a
+  ceiling; the legacy class check holds for a row authoring none.
 - `BiomeApi.exposureOf(scope)` (+ `BiomeLogic`) if any script or test
   needs it without a mixin in hand.
 
 Acceptance: the shipped drives `envelope`, `climate-and-water`, `fire`,
 `glass`, `taps` unchanged (run their wire files); `Exposure.test.ts`
-extended with each reader's answer; the terminal hall (no override yet)
-is dry, dark and under slate; the Hesper's cabins under a deck are a
-ceiling.
+extended with each reader's answer; the terminal hall (authoring nothing
+yet) keeps its biome answer; a fixture member under an enclosed storey
+reads a ceiling.
 
-Commit: `refactor(sky): the five readers answer from the construction; the biome keeps only the unhoused`
+Commit: `refactor(sky): the five readers answer from the construction; the biome keeps only what has not said`
 
 ### W2 — Beer–Lambert and solar gain
 
@@ -1138,9 +1232,11 @@ resolveEnvelopeTemperature` (neighbours' outside resolved one hop),
 `Exposure.ts` (`interiorFaces()` carries the neighbour). Tests:
 `Atmospheric.coupling.test.ts` — two rooms of one fixture structure, a
 `SpaceHeating` stove lit in the lower: the upper's `Last` rises within a
-game hour and sits above an identical unheated control; an interior
-partition's U does not appear in `uWperK`; a cycle of three rooms
-reconciles without recursion (`Thermal.freeze.test.ts`'s ticking clock).
+game hour and sits above an identical unheated control; **the same pair
+with the stair's door shut couples by conduction and warms slower (shut
+⇒ conduction, open ⇒ flow)**; an interior partition's U does not appear
+in `uWperK`; a cycle of three rooms reconciles without recursion
+(`Thermal.freeze.test.ts`'s ticking clock).
 
 Acceptance: AC 7 by test; the works' loft in the drive (W7) by the drive.
 
@@ -1231,8 +1327,9 @@ Commit: `feat(rubber): latex from a Hevea under glass, rubber roots from a field
 
 Implements D14, D15 (and the general-store and gas-bladder collisions).
 
-Files: `terminus/…/goods-yards/rubber-works/**` (structure, zone, six
-rooms, the oven `/trade/rubber/thing/oven` — an `Oven` row,
+Files: `terminus/…/goods-yards/rubber-works/**` (structure — storeys
+only — zone, six rooms each authoring its own `enclosure`/`roof` per
+D14, the oven `/trade/rubber/thing/oven` — an `Oven` row,
 `burnTemperatureK: 430`, `bellowsMultiplier: 1.12` so the bellows is
 how you scorch — five mould `Tool` rows and their tag materials, a
 `stove` prop in the stove house, a stove in the works floor, the three
@@ -1241,8 +1338,8 @@ thing/{rubber-boots (extends leather-boots, material rubber, bill parts
 rubber), rubber-gloves, rubber-sheet, packing, hose, rubber-apron
 (extends tailoring's apron), rubberized-coat (extends coat; material a
 new `textile/rubberized-cloth` row: linen with wAC 0.5)}`; the terminal
-hall's glass roof + the terminal structure's construction; the market
-awning structure and room; the coach's `_materialPath`; the general
+hall's glass roof + the other five terminal rooms' brick and slate; the
+awning as a lone place off the square; the coach's `_materialPath`; the general
 store's two stock lines; the gas bladder's material →
 `rubberized-cloth`; deletion of the two cafeteria biome rows;
 `packages/wire/tests/rubber.dirty.wire.test.ts` (steps 1–22).
@@ -1252,10 +1349,12 @@ SkyExposedMixin, light.md § The sky, ground.md § onGrade each gain a
 pointer paragraph) and `docs/subsystems/rubber.md` (NEW).
 
 Acceptance: `lint:reachability` arm R zero (every new row reached by a
-prop, a stock line, a recipe output or a `wins`); `lint:unhoused` falls
-by the terminal's six rooms (already housed — unchanged) plus the works'
-six (new, housed) and does not rise; **the drive runs 22/22 against a
-freshly dropped world** (the exit criterion); AC 5, 6, 12, 13.
+prop, a stock line, a recipe output or a `wins`); `lint:biome-sky`
+falls by the terminal's six rooms and the awning (they now say) and
+does not rise for the works' six (new rows that say from birth); **the
+drive runs 22/22 against a freshly dropped world** (the exit
+criterion), and it `query`s each visited place's `declared` and
+structure; AC 5, 6, 12, 13, 15.
 
 Commit: `feat(rubber): the works and its stove house in the goods yards; the drive's buildings placed; rubber on the shelf`
 
@@ -1274,7 +1373,7 @@ Commit: `feat(fit): a garment stretches by its material; an elastic waist serves
 
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
-| the sky from construction | none (`look`, `feel`, `measure light/temperature`, `analyze weather` exist) | — | Structure rows' `enclosure`/`roof`/`storeys`; room overrides | none — a structure loads with its zone (`LocationZone.standUpAttached`), the cache recomputes when it stands; **no boot warming, no template search** | — |
+| the sky from construction | none (`look`, `feel`, `measure light/temperature`, `analyze weather` exist) | — | each place's own `enclosure`/`roof`; a Structure row's `storeys` (relations only); exits as openings | none — a structure loads with its zone (`LocationZone.standUpAttached`; a memberless one by `lookOutFrom`), the cache recomputes when it stands; **no boot warming, no template search** | — |
 | `fire … for 2 hours` | `fire`/`burn` (exists) | `BurnerMixin` default (exists) | the `for` arg | — | ⚠ the arg is `required: false`, `type: string`, `prepositions: [for]` — a required arg with no default fails closed and silent (instrumentation.md); test the bare `fire` still binds |
 | the cure | `fire` | the oven is a `BurnerMixin` host in reach | five recipe rows (`RecipeCatalogue` warms `recipe` documents at boot — exists); the mould slot `consumed: false`; `crosslinking` on raw-rubber | the pack's `recipes/` are installed like glass's | the chamber must hold raw rubber + sulfur + a mould; `mixed-charge` if two moulds — the drive puts one in |
 | `tap` a Hevea | `tap` (forestry's) | `SapStandard.commandContributions.peers` (the class static — a row's `commandContributions:` is dead silently) — the stem row names that class | species `production`, window `weather` | none (species resolve by identity ref) | `yieldShape: volume` ⇒ a vessel is needed; the drive carries a cup |
@@ -1282,7 +1381,7 @@ Commit: `feat(fit): a garment stretches by its material; an elastic waist serves
 | dandelion → pulp → lump | `mill`/`grind` (trade-milling), `make` (platform) | millstones in reach; craft-resolve | two recipe rows; the crop's material tag `rubber-root` | — | `make` needs water in reach: a bulk slot `measureL: 5` |
 | sulfur | `dig` (platform) | the quarry face | the band's `wins` | — | depth: the drive digs from the coal floor |
 | rubber boots/gloves | `buy` | the store's counter | two `stockLines` | the store's sweep clones par | the names are two words — `buy "rubber boots"` quoting exists; keywords carry the phrase |
-| `lint:unhoused` | — | — | the ceiling list in the script | the derived roster | — |
+| `lint:biome-sky` | — | — | the ceiling list in the script | the derived roster | — |
 
 Each of these is asserted by the drive as a state change, not a
 non-refusal.
@@ -1305,8 +1404,9 @@ non-refusal.
 | 10 rubber packing outlasts leather | W5 | drive 20; `Pumping.wear.test` |
 | 11 vitriol eats linen, not rubber | W5 | drive 21 |
 | 12 boots and gloves buyable | W7 | drive 22 |
-| 13 every drive room answers from a building; the unhoused count does not rise | W0, W7 | `lint:unhoused`; `query` of each room's structure in the drive |
+| 13 every drive place answers from what it says it is made of and its structure (if any); the biome-sky count does not rise | W0, W7 | `lint:biome-sky`; the drive `query`s each visited place's `declared` and structure |
 | 14 (cut-first) elastic fits | W8 | drive 23 |
+| 15 a lone place is complete; a memberless structure still stands | W0, W7 | `Exposure.test` (lone hut, lone pen), `Structure.storeys.test` (the horizon route); the awning in the drive (a lone place, step 2) and `look horizon:tower` from the yard |
 
 Nothing unmapped.
 
@@ -1324,7 +1424,7 @@ Nothing unmapped.
   the works' rows resolve); `terminus` row test for the structure's
   storeys (every member room under a storey); `test-bootstrap` imported
   by anything touching the wired runtime.
-- **Lints:** the family, with `lint:envelope` (f) and `lint:unhoused`
+- **Lints:** the family, with `lint:envelope` (f) and `lint:biome-sky`
   new; run `pnpm -C packages/server lint:family` at every wave.
 - **The drive:** `packages/wire/tests/rubber.dirty.wire.test.ts`, run
   against a freshly dropped world (`WIRE_BOOT=1 WIRE_PORT=2014`) before
@@ -1353,11 +1453,13 @@ Nothing unmapped.
    University only teaches, but a cafeteria is not a trade venue) or to
    use the stove house for step 1 as well. Decide before W7.
 2. ⚠ **`SkyExposedBiome` does not retire this build**; it is the
-   discriminator for the counted unhoused rows and retires at ceiling
-   zero. The requirements' wording (*retires*) is satisfied in effect for
-   every housed and outdoor room; if the user wants the class gone now,
-   the only honest route is to house or re-biome ~170 rows in this build,
-   which is a content pass the requirements explicitly defer.
+   discriminator for the counted rows that have not yet authored a
+   `roof:` and retires when `lint:biome-sky` reaches zero. The
+   requirements say exactly this now (*"a place that says nothing keeps
+   the answer its biome gives today"*); the ceiling at W0 is every
+   Location row (263), and the way down is one line per row (`roof:
+   none` for a yard, a material for a hut), which the requirements
+   defer to *"the rest follow the count"*.
 3. ✅ **RESOLVED — keep the fourth row** (user took the lean). `rubber-scorched` (D9) — the requirements'
    curve has three materials and *scorched* as a worse grade that says
    so. A row is how it says so without a flag on every crafted thing. If
@@ -1388,8 +1490,10 @@ Nothing unmapped.
    invented silently.
 9. **Cache staleness in `exposure()`** — a structure standing up after
    its rooms; the recompute-on-identity-change rule covers it, but a
-   room read in the gap gets the unhoused answer once. Pinned by a test
-   that reads before and after the singleton stands.
+   room read in the gap gets the no-structure answer once (every face
+   exterior — which is the lone-place answer, so nothing is wrong, only
+   one read early). Pinned by a test that reads before and after the
+   singleton stands.
 10. **TS inference depth** — `Enclosed.ts` records that one more mixin
     layer on `Location` blew the chain. The plan adds no layer: `roof`
     and `exposure()` ride `AtmosphericMixin`, and `Structure`'s fields
@@ -1410,8 +1514,13 @@ Nothing unmapped.
 
 Each leaves as a slate line, not a plan section.
 
-- **`SkyExposedBiome`/`SkyExposedMixin` retirement at `lint:unhoused` = 0;
-  the Terminus housing pass** → biome-normalization-slate (job 2's tail).
+- **`SkyExposedBiome`/`SkyExposedMixin` retirement at `lint:biome-sky` =
+  0; the pass that gives every remaining place a `roof:` line** →
+  biome-normalization-slate (job 2's tail).
+- **Detecting a shared wall between two members with no exit between
+  them** (a solid party wall) → structures-slate; the engine has no room
+  geometry, and *who is next door through an exit* is the stated
+  abstraction.
 - **Air mixing between rooms of one building; the flue as an object;
   fire spread through storeys** → structures-slate.
 - **Sun direction; a south-facing glass face** → biome-normalization-slate
@@ -1419,7 +1528,8 @@ Each leaves as a slate line, not a plan section.
   becomes four).
 - **A partition spec distinct from the walls** (an interior stud wall in
   a stone building) → structures-slate; today the party wall is the
-  building's wall.
+  place's own wall, and the exit's boundary state decides conduction vs
+  flow (D7).
 - **Glazing as pane objects on a construction face; hail** → glass-slate.
 - **A woodland canopy as a roof of leaves** → forestry (rows only, once
   `roof:` exists).
@@ -1440,9 +1550,9 @@ Each leaves as a slate line, not a plan section.
   gain. build-4 defers its pan ice to the same slate.
 - **A building's bill of goods — erection and upkeep paid in RGO outputs**
   (build-4's ⚠ OPEN item) → structures-slate, in NEITHER build. The seam
-  is D1a: a Structure owns its layers, and each layer's material × face
-  area × thickness is a line of the bill; settling and rot are upkeep on
-  a layer. Who erects, who pays and what decays is an economic design of
+  is D1a: each place owns its layers, a structure sums its members, and
+  each layer's material × face area × thickness is a line of the bill;
+  settling and rot are upkeep on a layer. Who erects, who pays and what decays is an economic design of
   its own (assembly-shaped).
 
 ---

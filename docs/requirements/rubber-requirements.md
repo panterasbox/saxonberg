@@ -96,9 +96,12 @@ questions — and the heat question — from its construction.**
   built of: rain, sky light, sky view, wind and heat loss all follow the
   same construction, and a glass roof, a slate roof, a ceiling, an
   awning, a roof terrace and open sky each give the right five answers.
-- **A building is one thing**: its rooms, its storeys and which storey
-  stands on which, its walls and its roof — and an interior that belongs
-  to no building is a counted, shrinking exception.
+- **Each place says what it is made of; a structure says how its
+  places stand together.** A lone hut, a single pen or an icehouse
+  standing apart is complete on its own; a building, a ship or a
+  multi-room pen is a structure that knows which of its places stand on
+  which and which share a wall. A structure with no places (a castle on
+  the horizon) is still a structure.
 - **A hothouse behaves like one**: warm on a winter afternoon from the
   sun alone, freezing before dawn unless stoked, overheating at summer
   noon unless vented — and the latex tap answers to all of it.
@@ -167,8 +170,8 @@ building row.
 - **The cafeteria atrium** is authored as open sky "because it has a
   glass roof" — it becomes a covered room with a glass roof.
 - **Every Terminus interior** currently gets its sky answer from its
-  biome; each keeps that answer until it is placed in a building, and
-  the drive's buildings are placed in this build.
+  biome; each keeps that answer until it says what is over it, and the
+  drive's places are moved in this build.
 - **The coach** keeps the cold out by its own material but not the rain;
   it answers both from its material.
 - **The Drowned Substation** is world-seed content reachable only by
@@ -248,41 +251,61 @@ same law the glass trade's tint already uses, and the two agree.
 
 ### What is over you and around you
 
+⭐ **The split (decided 2026-10-16): one place, or a set.** What bounds a
+place is a fact the place can decide alone, so the place says it. What
+stands on what, and who shares a wall with whom, is a fact no place can
+decide alone, so the structure says it.
+
 - **A place's construction has two parts**: its **walls** and its
-  **roof**, each a material and a thickness, or nothing.
-- **A building (a structure) owns them**, and its rooms inherit; a room
-  may override (the atrium's glass roof; an awning's missing walls).
-- **A building lists its storeys as a small tree**: each storey is the
-  rooms under an address prefix and names the storey it stands **on**;
-  a storey may be **open** (a roof terrace, a flat roof deck, a
-  balcony level). A tower over one wing stands on that wing.
+  **roof**, each a material and a thickness (or several layers, outermost
+  first), or nothing. **The place itself says it**; a place that says
+  nothing is built of the ordinary default, as every room is today.
+- **A place's openings are its exits.** A doorless exit to outside is an
+  open side (a three-sided shed, an open-fronted barn); a door or gate is
+  a side that opens and shuts; a window passes light. No second,
+  per-wall vocabulary.
+- **A structure is a set of places that decide something together**: a
+  building, a ship, a multi-room pen. It says which places are its
+  members, and **which stands on which** — its storeys, as a small tree,
+  each storey the places under an address prefix naming the storey it
+  stands **on**. A tower over one wing stands on that wing. A structure
+  says nothing about what anything is made of.
 - **One rule decides every face**: a face is **exterior** unless the
-  space across it is an **enclosed** space of the same building. So:
-  - a room with an enclosed storey standing on it has a **ceiling** —
+  space across it is an **enclosed** place of the same structure — one
+  that has walls or a roof of its own. So:
+  - a place with an enclosed storey standing on it has a **ceiling** —
     no rain, no sky, no heat to the weather;
-  - a room with nothing enclosed above it has the **roof** — and a roof
-    terrace above it is open air, so the roof is still exterior;
-  - a roof terrace belongs to the building, and its floor **is** the
+  - a place with nothing enclosed above it has its **roof** — and a roof
+    terrace above it (a place with no walls and no roof) is open air, so
+    the roof is still exterior;
+  - a roof terrace belongs to the structure, and its floor **is** the
     roof below it;
-  - a door within one building is interior; a door out of it is
-    exterior — the terraced party wall and the atrium's doors both come
+  - between two members, a solid wall is a party wall, and an exit
+    between them is whatever boundary it has (a gate between paddocks,
+    an open stair between kitchen and loft);
+  - an exit within one structure is interior; an exit out of it is
+    exterior — the terraced party wall and the hall's doors both come
     out right.
 - **The five answers follow from the faces**: rain reaches only through
-  an open top; light through each exterior face by Beer–Lambert; the sky
-  is visible through any face that passes light; wind enters only where
-  there are no walls; heat leaves through exterior faces and **flows
-  between rooms through interior ones**.
-- **Sunlight through a transparent face warms the room** (solar gain).
+  an open top; light through each exterior face by Beer–Lambert and
+  through open exits; the sky is visible through any face that passes
+  light; wind enters where there are no walls or through an open
+  exterior exit; heat leaves through exterior faces and openings and
+  **flows between members through interior ones**.
+- **Sunlight through a transparent face warms the place** (solar gain).
 - **Underground** is a place whose faces are earth.
 - **Whether the floor is open ground** stops borrowing the sky answer
   and becomes a fact about the floor.
-- **Not in any building = outdoors**, open on every face, as streets,
-  yards and fields are today.
-- **An interior that belongs to no building** keeps exactly today's
-  behaviour (one material on five faces, all exterior) and is counted;
-  the count may fall and never rise. This build places the drive's
-  buildings; the rest of Terminus follows the count.
-- **The biome stops deciding the sky.** It keeps describing air.
+- **A place in no structure is complete**: its walls, its roof, its
+  openings, every face exterior. Streets, yards and fields have no walls
+  and no roof.
+- **A structure with no places** — something seen from outside and never
+  entered — stays valid; it has nothing for the face rule to read.
+- **The biome stops deciding the sky.** Until every place says what is
+  over it, a place that says nothing keeps the answer its biome gives
+  today; **the number of places whose sky still comes from the biome is
+  counted and may fall, never rise.** This build moves the drive's
+  places; the rest follow the count.
 - **A vessel's construction is its own material**, all round, for rain
   as well as heat — a coach is dry inside.
 
@@ -438,9 +461,13 @@ player must see; "not refused" is never success.
 10. A rubber packing outlasts a leather one on the same pump.
 11. Vitriol damages a linen apron and not a rubber one.
 12. Rubber boots and gloves can be bought at the general store.
-13. Every room the drive visits answers the sky and heat questions from
-    a building; the number of interiors belonging to no building is
-    counted and does not rise.
+13. Every place the drive visits answers the sky and heat questions
+    from what it says it is made of and the structure it is in (if any);
+    the number of places whose sky still comes from the biome is counted
+    and does not rise.
+15. A place in no structure (a lone hut, a pen) and a structure with no
+    places (a landmark seen from outside) both work: the first answers
+    every question on its own, the second still stands on the horizon.
 14. *(cut-first)* An elastic garment fits a body a plain stock garment of
     the same cut is tight on.
 

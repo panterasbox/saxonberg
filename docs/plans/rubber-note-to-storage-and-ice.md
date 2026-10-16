@@ -52,3 +52,14 @@ on `reqs/rubber`; the decisions below are in it as D1a, D12.1 and D14.
    solar gain, so your numbers hold — unless the icehouse shares a
    building with a warm room, in which case heat now flows in through the
    interior face. That is true of real icehouses, which stood apart.
+
+## Addendum (2026-10-16, later)
+
+**The icehouse no longer has to be a Structure.** Rubber's model split:
+a *place* says what it is made of (walls and roof, layered, on the room
+itself); a *structure* says only which places are its members and which
+stands on which. So a lone icehouse is complete as one place, and
+`lint:unhoused` is gone — the new gate counts places whose sky answer
+still comes from the biome. A one-place Structure is also fine; keep
+whichever you have. ⚠ The walls go on the icehouse ROOM's `enclosure:`,
+not on a Structure row — a Structure row authoring a material is refused.
