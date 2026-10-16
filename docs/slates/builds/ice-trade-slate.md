@@ -57,7 +57,7 @@ icebox is a steady buyer the moment a par line names a supplier.
 |---|---|
 | Q1 climate | ✅ shipped: Stefan thickness, Gold bearing, black vs snow-ice, rotting, per-mover crossing |
 | Q3 does the pond recover | ✅ recomputed from the weather; the cut refreezes from its date (§ 4) |
-| Q4 thickness thresholds | ✅ derived: ~10 cm a person, ~14 cm a horse, ~24 cm a loaded team |
+| Q4 thickness thresholds | ✅ derived (Gold): ~6 cm a person, ~14 cm a horse, ~20 cm a loaded cart (the folk rule's 10 cm for a person carries a safety margin) |
 | grade (clear vs cloudy) | ✅ black vs snow-ice off the sheet; snow slows growth and makes snow-ice |
 | Q2 harvested = pool ice? | ✅ § 4: the same **good** from two **sources** |
 | Q5 sawdust | ✅ § 6: the saw's kerf |
@@ -127,7 +127,7 @@ hooked out with tongs, run up into the house.
 ### The ladder and the crew
 
 ✅ **Hand saw → crew and horse plough → steam elevator (by Discipline).**
-The horse needs ~14 cm where a person needs ~10, so the plough rung
+The horse needs ~14 cm where a person needs ~6, so the plough rung
 arrives later in the season with no rule written for it.
 
 The crew are **real seats**, hired seasonally on the shipped employment

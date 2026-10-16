@@ -126,6 +126,8 @@ Seeding slates:
   - **while its meltwater soaks the packing,** so a house that isn't repacked each season insulates worse and melts faster;
   - it sells it from its own counter;
   - it's cheap in spring and dear in late summer.
+- **In summer the same pool is open water:** reached from the shore by swimming, crossed by swimming, and as cold as its own water. What was left on the ice when it went floats at the surface if it floats, and goes to the bottom if it sinks.
+- **Rivers can be venues:** a slow reach or a mill pond freezes when its winter current falls low enough, and breaks up when the flow rises.
 - **A frozen water can be fished only through a hole** cut in it, and a hole is part of the pond's memory like any other cut.
 - **The cookhouse icebox is resupplied** by its keeper buying ice from the ice company, and money moves.
 
@@ -167,6 +169,9 @@ Seeding slates:
 **Cross-cutting capabilities**
 - **Load-bearing surfaces in general** (rotten floors, weak bridges) → its own slate. Ice's bearing is the water's.
 - **Going under the water** (diving, drowning beneath the ice) → underwater-slate. Breaking through puts you at the surface, swimming. A hole is never a way down.
+- **Recovering what sank** when the ice gave way → underwater-slate. It is kept at the bottom, and unreachable until diving exists.
+- **An authored river venue** (a mill pond, a slow reach of a river) → nowhere for now. Rivers qualify by this build's rule, but with geography placeholder none is authored or driven here.
+- **Boating on a pool in summer** → nowhere for now.
 - **Ice rescue** (a rope thrown from thicker ice, crawling out flat to spread your weight, pulling someone out) → [ice-trade-slate](../slates/builds/ice-trade-slate.md), as the next content on the harvest.
 - **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/tails/fishing-slate.md). This build only makes frozen water fishable through a hole.
 - **A licence to cut beyond holding the water** → navigable-water-slate § 5.
@@ -191,6 +196,8 @@ Seeding slates:
 - **The Circle and the north** (climate content): circlemere and clearmere each gain a frozen pool.
   - ⚠ **The circlemere crossing is reworked.** Today it is one exit from the shore to the moraine bank, crossing the ice without ever being on it. It becomes shore → the pool → the far bank, so the crossing *is* walking on the ice. The bearing check happens on stepping onto the pool, and breaking through mid-crossing puts you in the water. The climate drive's crossing checks are re-pointed and must still pass.
   - The north's blackmere crossing stays as it is in this build.
+  - ⚠ **The still-water threshold moves toward the real figure.** Climate shipped "a reach at or above 0.1 m/s current does not freeze", which leaves almost no river able to freeze. Real rivers freeze over at currents up to roughly 0.5 m/s, and only fast, turbulent water stays open. It is climate's setting, changed here, so the climate drive's open-water and crossing checks are re-run.
+  - In summer the circlemere crossing becomes a swim, where climate shipped a refusal.
 - **The Heart's Delight sawmill and sawyer:** the floor gains a real sawdust heap. The timber-yard counter is unchanged.
 - **The haulage depot warehouse and its warehouseman** (the estuary towpath): it gains the withdraw its receipt was missing, as the first bailee store.
 - **Fishing at the cold meres:** today `fish` and `lay` work straight through solid ice, because fishing has no notion of frozen water. That's a defect this build corrects: frozen water is fished only through a hole. Fishing's drive must still pass in open water.
@@ -327,6 +334,20 @@ A counter fed from a store asks a price that follows **the store's** days of sup
   4. **The body's cold already ships:** a hypothermia condition, and medicine's `warm`. Cold water drives you into them in minutes, and wet clothes keep you chilling after you're out.
   5. **Getting out:** onto the edge if it bears you (the ice that just broke under you won't, which is the real danger), or swim to the shore, since a pool's exits are swimmable from the water.
 
+### Summer
+- **The pool is the same place, open.** It is swimmable, as maritime built it. It is reached from the shore by swimming in, and where a crossing runs through it the summer crossing is a swim. The cold-water fix applies: a mountain mere chills a swimmer from its own water temperature even in summer.
+- **What was on the ice when it went** (at the thaw, or on a patch someone cuts) is placed by its material's density:
+  - things that float (ice blocks, timber, a wooden sledge) stay at the surface, in the pool;
+  - things that sink go to the bottom, kept but unreachable until the underwater slate builds diving.
+
+  Nothing is authored for this, and the history is real: Thoreau records tools lost through the Walden ice.
+- **It is mappable as any other place.** The pool is a node, and its exits are conditional, as climate's crossings already are: walked on the ice, swum in the open. A player's map records what they actually did and is never corrected, so following a January route in July finds open water. Route planning already states its assumptions, and "over the ice" is one.
+
+### Rivers
+- **The rule is the current, not the kind of water.** A reach freezes when its current is below the still-water threshold, and its current follows its flow, which follows the weather. So a wide, slow reach in a dry, cold January freezes, and the spring flood breaks it up.
+- **The threshold moves to the real figure** (see Collisions). The biggest historical harvests were rivers, the Hudson and the Kennebec, and mill ponds above a dam were classic. The watershed already ships dams and reservoirs.
+- **A river venue would be a pool place** on a slow reach or a mill pond, harvested like a mere. None is authored in this build.
+
 ### What persists, and what repairs the ice
 - **The sheet is never stored.** It's always recomputed from the weather, so nothing resets it.
 - **The pond's log persists.** A restart or a reload doesn't repair a cut field.
@@ -437,6 +458,8 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 12. **Advance the season to late summer.**
     - The pool reads open water, and the pond remembers none of the winter's cuts.
+    - Before the thaw, a block and an iron tool were left on the field. Now the block floats in the pool, and the tool is gone to the bottom.
+    - Swim from the shore into the pool and across to the moraine bank. The water chills you, and you come out wet.
     - `look` at the stack describes it in words: how much remains, the state of the packing.
     - `measure stock` gives an estimate, more precise for a skilled reader.
     - The **small icehouse has lost a far larger share** of its ice than the large one under the same weather, and a stack with thin sawdust has lost more than a well-packed one.
@@ -475,6 +498,9 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 - Fishing frozen water is refused in words except through a hole; through a hole it works as in open water. A hole never leads down.
 - After the spring thaw, the pool holds no memory of the winter's cuts and scrapes.
 - Crossing circlemere means walking on its frozen pool: someone who breaks through mid-crossing is in the water.
+- In summer the pool is reached and crossed by swimming, and a person who swims it is chilled and wet.
+- Things left on ice that gives way float at the surface if they float, and are gone to the bottom if they sink.
+- A river reach whose winter current falls below the threshold freezes, and one whose current rises above it opens.
 - `look` at a field distinguishes its scraped, marked, cut and regrowing patches, and `measure ice` gives each its own thickness and grade.
 - Cutting the whole field leaves nowhere on it to stand.
 
