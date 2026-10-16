@@ -4,6 +4,10 @@
 # one upstairs into the warm and it goes over, or dies.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # The room's own size: a low vault some four metres across, not the Delight's 20 m cell: its
+  # lantern turned low (400 lm) lights 16 m² to `lit`, and would have lit
+  # 400 m² to nothing (the night browser walk).
+  extent: 4
   shortDescription: cheese room
   keywords: [cellar, "cheese room", cave, store]
   register: definite

@@ -4,6 +4,11 @@
 # every vessel here is a row over dairying's classes or the kernel's.
 class: /platform/location/SingletonCartesianLocation
 data:
+  # The room's own size: a whitewashed workroom some five metres across, not the Delight's
+  # 20 m cell: at 400 m² its lantern read `very-dim` after dark and every
+  # vessel was "something" (the night browser walk). 600 lm over 25 m² is
+  # `lit` — enough to read a thermometer by, as its prose says.
+  extent: 5
   shortDescription: co-op creamery
   keywords: [creamery, dairy, co-op, coop]
   register: definite
