@@ -2118,7 +2118,7 @@ USE them.
     put digits in `look`, so the no-figure check reads the ripening
     without it.
 
-### ✅ The record — run 34, 41/41 on a fresh world
+### ✅ The record — run 34, 41/41 on a fresh world (re-proved: run 39, 41/41, after the browser walk's changes)
 
 `packages/wire/tests/dairy.dirty.wire.test.ts`, attached to an owned
 world on `WIRE_PORT=2013` after `reset:db`, on the tree merged with
@@ -2169,10 +2169,34 @@ four things the wire drive could not, three fixed:
   *you milk her right out — 0 litres*. A wording finding for the taps
   engagement's abort path.
 
-Then the wire drive needed two more fixes on the new rows (run 35, 39/41):
-the stranger can't be handed a pail by handle (the drive drops it in the
-yard), and the smelt's copper set into a cold crucible — the crucible's
-heat is now set before the run as well as after it.
+Then the wire drive, re-run on the new rows, took five more runs to come
+back green — **run 39, 41/41** (488 s, fresh world):
+
+- **The stranger can't be handed a pail by handle**: the drive sets the
+  pail down in the yard and the stranger takes it there.
+- ⭐ **The smelt's run into the crucible failed three runs in four**
+  (*"There's nothing to pour"*), and it took two defects to explain it.
+  The crucible's temperature is read lazily, so a pot nobody had looked
+  at since it went in cold still held that cold stamp; the run blended
+  down to it and the copper cleared its latent plateau in one step and
+  set (logged: the crucible at 1358 K, copper's melting point, the whole
+  run kept). And the transient source receptacle is fresh and reads the
+  ambient — 268 K in winter — so the copper could set before it left.
+  Both are set to the furnace's held heat before the transfer. Run 36 had
+  the first fix and not the second, run 37 the second and not the first.
+  ⚠ The root is wider than the smelt: *a lazily-read temperature is
+  stale until somebody reads it*, and a transfer that blends on a stale
+  stamp gets the wrong answer. Pinned here at the one site that bit;
+  the general seam is `thermal-slate`'s.
+- ⚠ **Open, seen once in five runs:** in run 37 the vat read *killed*
+  (*"It is slack and lifeless, and smells of nothing but wet flour"*)
+  straight after it was pitched and renneted, though it had cooled to
+  311 K against the profile's 318 K kill — and its curd set normally
+  afterwards. A diagnostic line on the killed branch (run 38) did not
+  fire; the cause is not found. Note too that the microbial `killed`
+  sentence is bread's (*wet flour*) and reads wrong over milk — the
+  mechanism lines speak for a sourdough; a per-profile line is
+  `dairy-slate`'s.
 
 ### Build decisions (not in the plan above)
 
