@@ -663,13 +663,21 @@ the question.**
    (`/trade/rubber/thing/packing`, a `Tool` with `capabilities:
    [packing]`, the tanning row's twin) outlasts leather four to one on
    the same pump — AC 10 by arithmetic, printed by a test.
-4. *Rubber and ebonite resist acid.* Rubber's row drops the `organic`
-   tag (`[elastomer, insulating, synthetic, polymer]`); ebonite,
-   raw rubber and rubber-scorched are tagged the same way; vitriol's and
-   quicklime's `corrosiveTo` lists are untouched. ⚠ The build greps every
-   reader of the `organic` tag (`Combustible`, spoilage, `lint:perishable`)
-   before retagging and records what each does with it — a retag is a
-   data change with readers.
+4. *Rubber and ebonite resist acid.* **Decided with the user
+   (2026-10-16): rubber KEEPS its `organic` tag** — it is chemically
+   organic, and falsifying a tag to dodge a reader is the wrong way round.
+   Instead **vitriol's and quicklime's `corrosiveTo` lose the coarse
+   `organic` entry** and name what they really attack. The build first
+   greps every row tagged `organic` that the entry currently catches
+   beyond `textile`/`leather`/`tissue` (wood, food, rawhide, wax…),
+   records each in the commit, and adds the honest tags (e.g.
+   `cellulose`, `protein`, or the existing family tags) to the
+   `corrosiveTo` lists and, where missing, to those material rows, so
+   every shipped corrosion outcome is unchanged except rubber, ebonite,
+   raw rubber and rubber-scorched (tags `[organic, elastomer, insulating,
+   polymer]`, plus `synthetic` on the cured three), which nothing in the
+   lists names. A test asserts the before/after corrosion outcome for
+   every shipped material row is identical bar the elastomers.
 
 ### Supply (D13)
 
@@ -697,23 +705,29 @@ air answers. Birch outdoors reads the same number either way after its
 τ; a test asserts the birch's shipped season is unchanged on the
 equinox.
 
-**D13.2 — Latex sets into raw rubber by the shipped phase engine.** A
+**D13.2 — Latex sets into raw rubber as a SOLID product of the
+maturation engine (decided with the user, 2026-10-16).** A
 `MaturationProfile` row `/trade/rubber/idea/maturation/latex.yaml`
-(`inputCategory: latex`, `mechanism: chemical`, `ratePerDay` so a cup
-turns in about a game day at room temperature, `stallBelowK: 278`,
-`productMaterial: /stuff/idea/material/organic/raw-rubber-coagulum`), and
-the coagulum material authors `meltingPoint: 320`, a small
-`latentHeatOfFusion`, and `castTemplate: /trade/rubber/thing/raw-rubber`
-— so the vessel's pool, now a liquid below its own melting point,
-plateaus and **casts to a lump** exactly as a jug of water in a winter
-street casts to ice (thermal.md § Phase change both ways; `Bulkable &
-Thermal` hosts since the climate build). No new mechanism; two rows.
-The lump (`/trade/rubber/thing/raw-rubber`, class `/platform/thing/Thing`,
+(`inputCategory: latex`, `mechanism: chemical` — acid/air coagulation;
+`MATURATION_MECHANISMS` stays closed at five; `ratePerDay` so a cup turns
+in about a game day at room temperature, `stallBelowK: 278`). ⛔ **Not
+the phase-change cast with a fake melting point** — that would let a lump
+warmed past 47 °C melt back into latex, which is false. Instead the
+maturation engine gains a **solid product**: a profile may name
+`productTemplate:` (a thing row) beside/instead of `productMaterial:`;
+when the batch completes, the vessel's pool is consumed and the product
+thing is minted **and placed in the vessel** (the creator places it —
+never left in null; see `craft-mint-does-not-place`), its mass the pool's
+solids (`productFraction` of the latex mass, ≈ 0.35 dry rubber content).
+This is a kernel change to `lib/maturation/` (find the completion seam
+where `productMaterial` is applied and branch there on the profile's
+declaration, not on the material); test it on the latex row and assert
+every shipped profile (no `productTemplate`) is byte-identical. The lump
+(`/trade/rubber/thing/raw-rubber`, class `/platform/thing/Thing`,
 material raw-rubber, tag `elastomer-raw`) is `Thermal` like every
 `Thing`, so `feel` gives its band and its description reads *tacky when
-warm, stiff when cold*. ⚠ `MATURATION_MECHANISMS` is a closed five under
-`lint:closed-vocabularies`; `chemical` is the honest word (acid
-coagulation) and no sixth is added.
+warm, stiff when cold*. The `raw-rubber-coagulum` material is NOT
+needed and is dropped from D14's list.
 
 **D13.3 — Russian dandelion.** Rows in `trade-farming` (its title extent;
 Placement says *a farming crop row*): species
@@ -760,7 +774,7 @@ content; interiors in no building are a counted, falling number.**
   `AssembledGarment` rows, the lump a `Thing` row. If the build finds it
   needs a class, it is `src/thing/<Name>.ts` and nothing else.
 - Materials are commons rows in `base-library`: `organic/latex`
-  (bulk, tag `latex`), `organic/raw-rubber-coagulum`, `organic/raw-rubber`,
+  (bulk, tag `latex`), `organic/raw-rubber`,
   `organic/ebonite`, `organic/rubber-scorched`, `mineral/sulfur`;
   `organic/rubber.yaml` gains `elasticity` and `crosslinking`
   stays on raw-rubber.
@@ -1080,7 +1094,7 @@ Recipe.ts` (`consumed?`), `platform/idea/cmd/device/FireController.ts`
 platform/content/platform/cmd/device/fire.yaml` (the `for` arg + help),
 `platform/idea/api/CraftingLogic.ts` (honour `consumed: false` in the
 `make` path — one guard at the consume site), `base-library` rows
-(`raw-rubber`, `raw-rubber-coagulum`, `latex`, `ebonite`, `rubber-scorched`,
+(`raw-rubber`, `latex`, `ebonite`, `rubber-scorched`,
 `mineral/sulfur`, `elasticity` on rubber/leather/wool/linen/glass/iron/
 raw-rubber/ebonite), `lib/material/__tests__/Crosslinking.test.ts`
 (prints the curve: 3 % sulfur at 418 K for 1800 s → rubber `fine`; 1 %
@@ -1108,9 +1122,10 @@ ElectricityLogic.ts` (`groundContactInsulated`, `pathResistance`,
 `platform/idea/api/WeatherLogic.ts` (`wetOccupants`), `lib/pump/
 Pumping.ts` (`wearFactor`), `packages/content/platform/content/settings/
 {pump,wetness,electricity}.yaml` (`pump.referenceToughness`,
-`pump.elasticityWearRelief`, `wetness.impermeableBelowPct`), the rubber
-retag + the three new rubber materials' tags, a grep record of `organic`
-readers in the commit. Tests: `ElectricityLogic.wet-boots.test.ts`
+`pump.elasticityWearRelief`, `wetness.impermeableBelowPct`), the narrowed
+`corrosiveTo` lists on vitriol and quicklime + the honest tags on the rows
+they must still catch, a grep record of every `organic`-tagged row the old
+entry caught in the commit, and a before/after corrosion-outcome test. Tests: `ElectricityLogic.wet-boots.test.ts`
 (leather boots dry in the brine cell: insulated; the same boots after
 `isWet` immersion: shocked; rubber boots: insulated wet or dry),
 `Attired.rain.test.ts` (wool coat: body wets as the coat saturates;
@@ -1131,14 +1146,16 @@ Implements D13.
 
 Files: `lib/husbandry/Producing.ts` (the `weather` window's air read;
 test the birch unchanged), `trade-rubber` species + tree + stems +
-maturation profile rows (the pack skeleton lands here with `pack.yaml`
+maturation profile rows, `lib/maturation/` (the solid `productTemplate`
+completion branch, D13.2; every shipped profile byte-identical by test) (the pack skeleton lands here with `pack.yaml`
 and `package.json`), `trade-farming` dandelion species/plant/seed/crop +
 root material, `trade-rubber/content/recipes/{root-pulp, raw-rubber-
 from-pulp}.yaml`, `trade-quarrying/…/thing/sulfur.yaml`, `rejection/…/
 deposit/quarry-hill.yaml` (the band), `base-library` `mineral/sulfur`
 (if not landed in W4). Tests: `trade-rubber/src/__tests__/latex.test.ts`
 (a stem in a 300 K scope: open; at 285 K: `cold`; a cup of latex left a
-game day casts a raw-rubber lump), `trade-farming` row test (the crop
+game day completes into a raw-rubber lump placed in the cup, and a warm
+lump never melts back to latex), `trade-farming` row test (the crop
 mills to pulp; the `make` recipe mints the lump with water in reach),
 the quarry column test (`dig` at −10.2 wins sulfur; −11 wins salt).
 
@@ -1198,7 +1215,7 @@ Commit: `feat(fit): a garment stretches by its material; an elastic waist serves
 | `fire … for 2 hours` | `fire`/`burn` (exists) | `BurnerMixin` default (exists) | the `for` arg | — | ⚠ the arg is `required: false`, `type: string`, `prepositions: [for]` — a required arg with no default fails closed and silent (instrumentation.md); test the bare `fire` still binds |
 | the cure | `fire` | the oven is a `BurnerMixin` host in reach | five recipe rows (`RecipeCatalogue` warms `recipe` documents at boot — exists); the mould slot `consumed: false`; `crosslinking` on raw-rubber | the pack's `recipes/` are installed like glass's | the chamber must hold raw rubber + sulfur + a mould; `mixed-charge` if two moulds — the drive puts one in |
 | `tap` a Hevea | `tap` (forestry's) | `SapStandard.commandContributions.peers` (the class static — a row's `commandContributions:` is dead silently) — the stem row names that class | species `production`, window `weather` | none (species resolve by identity ref) | `yieldShape: volume` ⇒ a vessel is needed; the drive carries a cup |
-| latex → lump | none (time) | — | the maturation row under `/trade/rubber/idea/maturation/` (catalogue warms by infix — verify `MaturationProfileCatalogue.onCreate` scans every root, as `MaterialCatalogue` does; if it is platform-only, that is a one-line infix fix in W6) + `castTemplate` on the coagulum material | the platform's `boot:` already stands the catalogue up | the cup must be `Bulkable & Thermal` — the drive uses a `Receptacle` row |
+| latex → lump | none (time) | — | the maturation row under `/trade/rubber/idea/maturation/` (catalogue warms by infix — verify `MaturationProfileCatalogue.onCreate` scans every root, as `MaterialCatalogue` does; if it is platform-only, that is a one-line infix fix in W6) + the maturation engine's new solid `productTemplate` (D13.2) | the platform's `boot:` already stands the catalogue up | the cup must be `Bulkable & Thermal` — the drive uses a `Receptacle` row |
 | dandelion → pulp → lump | `mill`/`grind` (trade-milling), `make` (platform) | millstones in reach; craft-resolve | two recipe rows; the crop's material tag `rubber-root` | — | `make` needs water in reach: a bulk slot `measureL: 5` |
 | sulfur | `dig` (platform) | the quarry face | the band's `wins` | — | depth: the drive digs from the coal floor |
 | rubber boots/gloves | `buy` | the store's counter | two `stockLines` | the store's sweep clones par | the names are two words — `buy "rubber boots"` quoting exists; keywords carry the phrase |
@@ -1263,7 +1280,7 @@ Nothing unmapped.
 
 ## Risks & opens
 
-1. ⚠⚠ **The cafeteria atrium does not exist.** The requirements name it
+1. ✅ **RESOLVED 2026-10-16 — the terminal hall** (user). ~~The cafeteria atrium does not exist.~~ The requirements name it
    in *Collisions* and drive step 1; the only rows are two orphan biome
    rows no location references, and the University has no dining room.
    The plan's answer (D14): the **terminal hall** is the glass-roofed
@@ -1278,7 +1295,7 @@ Nothing unmapped.
    every housed and outdoor room; if the user wants the class gone now,
    the only honest route is to house or re-biome ~170 rows in this build,
    which is a content pass the requirements explicitly defer.
-3. **A fourth material row, `rubber-scorched`** (D9) — the requirements'
+3. ✅ **RESOLVED — keep the fourth row** (user took the lean). `rubber-scorched` (D9) — the requirements'
    curve has three materials and *scorched* as a worse grade that says
    so. A row is how it says so without a flag on every crafted thing. If
    the user prefers *grade only*, the branch collapses to `cured` at
@@ -1290,7 +1307,7 @@ Nothing unmapped.
    for the birch, asserted unchanged by test; if the test disagrees on
    the equinox, the plan keeps the body read for `rising` rows and the
    air read otherwise, and says so.
-6. **The `organic` tag retag** (D12.4) — readers of the tag must be
+6. ✅ **RESOLVED — no retag; vitriol's and quicklime's lists narrow instead** (D12.4, user). ~~The `organic` tag retag~~ — readers of the tag must be
    grepped; if `Combustible` or spoilage keys on it, rubber must still
    burn (it does, in life) and never spoil (it does not). The build
    records each reader's behaviour in the commit.
