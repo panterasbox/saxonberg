@@ -179,7 +179,7 @@ describe('the sward', () => {
     // ⚠ Two mixins on one host each declaring `commandContributions`:
     // `bucketFilenames` collects the class's own static PLUS every mixin
     // in the chain, so neither shadows the other.
-    const verbs = CommandApi.collectContributions(TestPaddock, 'self')
+    const verbs = CommandApi.collectContributions(TestPaddock, 'inventory')
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('mow');

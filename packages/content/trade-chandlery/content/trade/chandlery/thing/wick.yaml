@@ -1,0 +1,16 @@
+# A lamp wick — ⭐⭐⭐ a WEAR part (assembly AC 13): a flat woven tape of
+# linen that draws the oil up to the flame and burns down doing it. It is
+# trimmed until there is nothing left to trim, and then a new one is
+# seated in the burner (`fit wick to lantern`). The chandler sells wick by
+# the length alongside the candles, which is where a household buys it.
+class: /platform/thing/Tool
+data:
+  keywords: [wick, wicks, lamp-wick, "lamp wick"]
+  shortDescription: linen lamp wick
+  register: indefinite
+  longDescription: >-
+    A flat tape of loosely woven linen a finger wide and a hand long, one
+    end blackened where it has been trimmed and lit.
+  mass: 0.005
+  capabilities: []
+  _materialPath: /stuff/idea/material/textile/linen

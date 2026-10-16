@@ -621,7 +621,7 @@ final state written captures it explicitly before `StuffApi.destruct`.
 
 > ⭐⭐⭐ **The three tiers, and what *"transient space"* means**
 > (recorded 2026-10-09 →
-> [assembly-slate § 11](../slates/builds/assembly-slate.md)). `scope` being
+> [assembly-slate § 11](../slates/tails/assembly-slate.md)). `scope` being
 > a **singleton** `templatePath` is why `captureHostOf` captures **the
 > nearest persistable ancestor** rather than the thing: five hundred casks
 > sharing one row were never going to have records here.

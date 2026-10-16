@@ -26,3 +26,6 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/infirmary/collection
+    # ⚠ AFTER the room: index 0 is where the house stands its people.
+    # The counter is the one a sale settles at (lint:shopfronts).
+    - /world/terminus/infirmary/thing/collection-stock

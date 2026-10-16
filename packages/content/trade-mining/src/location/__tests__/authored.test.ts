@@ -128,12 +128,13 @@ describe('a hand-authored working', () => {
   it('⭐⭐ BOTH working classes afford the six acts — the affordance is a class STATIC', () => {
     for (const Cls of [AuthoredWorking, MineRoom]) {
       const contributions = (Cls as unknown as {
-        commandContributions: { self: string[]; inventory: string[] };
+        commandContributions: { self?: string[]; inventory: string[] };
       }).commandContributions;
       // ⚠ A row's `commandContributions:` is dead silently. Without the
       // static, `hew` parses as nothing at all — which is exactly what
-      // the drive found in the tutorial drift.
-      expect([...contributions.self].sort()).toEqual([...ACTS].sort());
+      // the drive found in the tutorial drift. ⚠ And NOT `self`: that is
+      // read only off a command giver (lint:self-contributions).
+      expect(contributions.self ?? []).toEqual([]);
       // `inventory` reaches everything nested inside, at any depth, so a
       // character standing in the room gets the acts — and loses them on
       // the way out, which is the honest answer to "why can't I hew here".

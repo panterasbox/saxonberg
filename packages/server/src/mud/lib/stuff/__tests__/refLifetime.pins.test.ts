@@ -134,7 +134,7 @@ describe('reference-lifetime pins', () => {
       const mug = makeStuff(() => new Thing());
       ContainmentApi.move(desk, room);
       ContainmentApi.move(mug, room);
-      ContainmentApi.place(mug, 'on', desk);
+      ContainmentApi.move(mug, desk, 'on');
       expect((mug.getPlacement()?.host ?? null)).toBe(desk);
 
       StuffApi.destruct(desk);

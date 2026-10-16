@@ -191,8 +191,8 @@ function waterAugmenter(
  *     face to the air and nothing underneath, which is exactly why turf
  *     is built into an openwork lattice rather than heaped.
  *
- * ⚠ `ContainmentApi.place` moves an item into **the host's
- * container** and then stamps `restingOn`, so the container is the room
+ * ⚠ `ContainmentApi.move` onto a placing host moves an item into **the
+ * host's container** and then stamps `restingOn`, so the container is the room
  * either way and `getPlacement()` is the only thing that tells a racked
  * thing from a dropped one. That is why this reads the support and not
  * the container.

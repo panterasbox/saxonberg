@@ -167,6 +167,11 @@ export class BulkableLogic extends ApiLogic {
     if (boiling > 0 && boiling <= bulkDial(AppSettingKeys.atmosphereStandardK, 293)) {
       return 'sealed';
     }
+    // ⭐ A GRANULAR solid — flour, meal, sand — is kept in by any vessel
+    // whose staves meet: `dryTight` (assembly D10). It does not need the
+    // liquor-tight cask, which is the whole reason a dry cooper's barrel
+    // and a wet cooper's cask are different products.
+    if (material.hasTag('granular')) return 'dryTight';
     return 'liquidTight';
   }
 
@@ -746,8 +751,12 @@ function computeApplied(
     // never runs dry takes one draught — `bulk.draughtL` (the shipped tap
     // had the same ∞ hole).
     if (to === null && !Number.isFinite(sourceAvail)) return draughtL();
-    // Take the whole source, bounded by the destination's room.
-    return Math.max(0, Math.min(sourceAvail, destRoom));
+    // Take the whole source, bounded by the destination's room. ⚠ An
+    // inexhaustible source into a bottomless place (a spring spilled on
+    // the ground) has no "all": nothing moves, rather than a litre count
+    // of infinity (it threw — the assembly drive's `spill` on a butt).
+    const all = Math.max(0, Math.min(sourceAvail, destRoom));
+    return Number.isFinite(all) ? all : 0;
   }
   const requested = amount.litres;
   const fittable = Math.min(sourceAvail, destRoom);

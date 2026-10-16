@@ -301,6 +301,18 @@ export default class Material extends SingletonMixin(
    * response function. Zero-default until authored (materials stay
    * content — packs supply the roster's values).
    */
+  /** Game-days a 25 mm board takes to season in good air; 0 = never seasons. */
+  public seasoningDays = 0;
+  /** 0..1 — how much it shrinks drying from green; what makes green work warp. */
+  public greenShrinkage = 0;
+  /**
+   * 0..1 — how cleanly it opens along its grain under a froe or a wedge.
+   * Not toughness and not density: it is how STRAIGHT the fibres run (oak,
+   * ash, a conifer: high) and whether they interlock (elm: almost none). 0
+   * for anything never riven — every material but wood.
+   */
+  public cleavability = 0;
+
   private _hardness: Quantity<'MPa'> = Quantity.of(0, 'MPa');
 
   protected get hardness(): Quantity<'MPa'> {
@@ -887,6 +899,14 @@ export default class Material extends SingletonMixin(
     thermalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
     specificHeat: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
     hardness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MPa') },
+    // ⭐ Seasoning (assembly D2): how long a 25 mm board of this takes to
+    // dry in good drying air, in game-days; and how much it shrinks doing
+    // it. Both 0 for anything that does not season — which is every
+    // material but wood, so the seasoning clock is vacuous on them.
+    seasoningDays: { persistent: true },
+    greenShrinkage: { persistent: true },
+    // ⭐ Riving (plan D17): how cleanly it opens along its grain.
+    cleavability: { persistent: true },
     toughness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
     electricalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('S/m') },
     waterAbsorptionCapacity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
@@ -1049,6 +1069,21 @@ export default class Material extends SingletonMixin(
    * QuantityMarshaller absorbed authoring-shape coercion at the
    * persistence boundary.
    */
+  /** Days to season a 25 mm board in good drying air; 0 = does not season. */
+  public getSeasoningDays(): number {
+    return Number.isFinite(this.seasoningDays) && this.seasoningDays > 0
+      ? this.seasoningDays
+      : 0;
+  }
+  /** 0..1 shrinkage from green to seasoned. */
+  public getGreenShrinkage(): number {
+    return Math.max(0, Math.min(1, Number(this.greenShrinkage) || 0));
+  }
+  /** 0..1 — how cleanly it opens along its grain; 0 = it will not rive. */
+  public getCleavability(): number {
+    return Math.max(0, Math.min(1, Number(this.cleavability) || 0));
+  }
+
   public getHardness(): Quantity<'MPa'> {
     return this._hardness;
   }

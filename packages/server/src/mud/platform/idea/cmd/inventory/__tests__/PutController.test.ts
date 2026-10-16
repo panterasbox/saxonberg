@@ -508,7 +508,7 @@ describe('PutController — in/on dispatch', () => {
     }, freshPath('/test/put-tableB'));
     ContainmentApi.move(tableA, loc);
     ContainmentApi.move(tableB, loc);
-    ContainmentApi.place(apple, 'on', tableA);
+    ContainmentApi.move(apple, tableA, 'on');
     expect(apple.getContainer()).toBe(loc);
     expect((apple.getPlacement()?.host ?? null)).toBe(tableA);
 
@@ -546,7 +546,7 @@ describe('PutController — in/on dispatch', () => {
     });
     ContainmentApi.move(table, loc);
     ContainmentApi.move(chest, loc);
-    ContainmentApi.place(apple, 'on', table);
+    ContainmentApi.move(apple, table, 'on');
     expect((apple.getPlacement()?.host ?? null)).toBe(table);
     // Move apple to giver's inventory so the controller path can run.
     ContainmentApi.move(apple, giver);

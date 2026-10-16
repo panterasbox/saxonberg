@@ -285,6 +285,8 @@ export const Mixins = {
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
   Placing: 'PlacingMixin',
+  /** ⭐ Declares and mints its own compartments (assembly D15). */
+  Chambered: 'ChamberedMixin',
   Coolbox: 'CoolboxMixin',
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
@@ -597,6 +599,10 @@ export const Mixins = {
   // A physical thing that wears out with use (the condition/wear gauge).
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
+  /** ⭐ Made of parts that keep their identity (assembly D3). */
+  Assembled: 'AssembledMixin',
+  /** ⭐ Converted wood that dries at its species' rate (assembly D2). */
+  Seasoning: 'SeasoningMixin',
   // The working-surface (edge) wear axis — Durable's fast-cycling sibling.
   Keen: 'KeenMixin',
   Tool: 'ToolMixin',
@@ -804,6 +810,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
   PlacingMixin: "{} isn't something you can put things on or in",
+  ChamberedMixin: '{} has no compartments',
   CoolboxMixin: "{} isn't a cold box",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
@@ -911,6 +918,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
+  AssembledMixin: "{} isn't made of parts",
+  SeasoningMixin: "{} doesn't season",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
   // `hammer` wants is a piece of metal stock, and "isn't metal stock
   // you can work" tells somebody what to go and find.

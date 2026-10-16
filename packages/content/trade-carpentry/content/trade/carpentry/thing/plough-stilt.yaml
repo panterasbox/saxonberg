@@ -1,0 +1,18 @@
+# A plough stilt — one of the two handles a ploughman steers by. Long,
+# because a plough is steered with the whole body leaning on them, and
+# pegged through the beam so a broken one is drifted out and replaced.
+class: /platform/thing/Timber
+data:
+  keywords: [stilt, stilts, plough-stilt, "plough handle", plough-handle]
+  shortDescription: plough stilt
+  register: indefinite
+  longDescription: >-
+    A long wooden handle with a gentle bend at the top where the hand
+    goes, a tenon cut at the foot and a peg hole through it.
+  mass: 2.5
+  # ⭐ Riven and carved wood: it SEASONS (assembly D2). One off a shelf
+  # has had its year; one carved from a green billet carries the billet's
+  # fraction instead, and warps where it is fitted.
+  constructionForm: riven
+  seasonedFraction: 1
+  _materialPath: /stuff/idea/material/wood/ash

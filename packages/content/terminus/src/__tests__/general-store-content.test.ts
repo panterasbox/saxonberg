@@ -62,6 +62,11 @@ const TRANSPORT_DIR = fileURLToPath(
 const FISHING_DIR = fileURLToPath(
   new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url),
 );
+// ⭐ The pick haft (assembly drive 16): a woodworker's part, a wear part
+// the shop carries so a miner can re-haft rather than buy a whole pick.
+const CARPENTRY_DIR = fileURLToPath(
+  new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url),
+);
 const MEDICINE_DIR = fileURLToPath(
   new URL("../../../trade-medicine/content/trade/medicine/", import.meta.url),
 );
@@ -95,6 +100,22 @@ const DYEING_DIR = fileURLToPath(
   new URL("../../../trade-dyeing/content/trade/dyeing/", import.meta.url),
 );
 
+// ⭐ The wear-part line (assembly W6) reaches four more trades: the
+// glasshouse's pane, the smith's share, the tanner's sole and the tailor's
+// cushion — each from the pack whose trade makes it.
+const GLASS_DIR = fileURLToPath(
+  new URL("../../../trade-glass/content/trade/glass/", import.meta.url),
+);
+const SMITHING_DIR = fileURLToPath(
+  new URL("../../../trade-smithing/content/trade/smithing/", import.meta.url),
+);
+const TANNING_DIR = fileURLToPath(
+  new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url),
+);
+const TAILORING_DIR = fileURLToPath(
+  new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url),
+);
+
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
   { prefix: "/trade/textiles/", dir: () => TEXTILES_DIR },
@@ -110,10 +131,15 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
+  { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
   // ⭐ The beekeeper's kit. It is stocked HERE rather than in the valley
   // because a general store's job IS importing — and the one line that
   // mints life (the nucleus) belongs in a shop for the same reason.
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
+  { prefix: "/trade/glass/", dir: () => GLASS_DIR },
+  { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
+  { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -247,6 +273,9 @@ describe("general-store content integrity", () => {
     // ⭐ A light that burns fuel — `BurnerMixin` over a `LightSource`,
     // so it has a reserve, a burn rate and a burnout edge for free.
     "/platform/thing/Lamp",
+    // The lantern is a `Lamp` made of parts (frame, panes, burner) — the
+    // assembled subclass, discrete like its parent.
+    "/platform/thing/Lantern",
     "/platform/thing/equipment/Weapon",
     // ⭐ The injury build's armour + arms line (W-A5 / W-C1). A `Garment`
     // is the covering class (padded gambeson → steel breastplate, one
@@ -256,6 +285,12 @@ describe("general-store content integrity", () => {
     // quantity. The AMMUNITION they fire is the one exception, below.
     "/platform/thing/equipment/Garment",
     "/platform/thing/equipment/Launcher",
+    // The same families made of parts — boots, hafted arms, the bow, the
+    // pick. Each extends its family and is exactly as discrete.
+    "/platform/thing/equipment/AssembledGarment",
+    "/platform/thing/equipment/AssembledWeapon",
+    "/platform/thing/equipment/AssembledLauncher",
+    "/platform/thing/AssembledTool",
     "/platform/thing/Receptacle",
     // A `Feeder` is a `Receptacle` that an animal eats from — the same
     // Bulkable/Container/Thing stack with one marker mixin on top, and no
@@ -281,6 +316,7 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/DisguiseGarment",
     "/trade/cooking/thing/KitchenTool",
     "/trade/textiles/thing/SpinningTool",
+    "/trade/textiles/thing/AssembledSpinningTool", // made of parts; extends the line above
     "/trade/dyeing/thing/DyeVat",
     // ⭐ A `Watch` (the University Avenue locality's class) — a brass
     // hunter-cased pocket watch, `Sealable` + `MechanicalMovement` over a
@@ -315,6 +351,7 @@ describe("general-store content integrity", () => {
     // are Vat-family vessels (the transform rides the vessel), the
     // small still the distilling pack's furnace-tool — all discrete.
     "/platform/thing/Vat",
+    "/platform/thing/Cask", // made of parts; extends the line above
     "/trade/distilling/thing/Still",
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
@@ -333,6 +370,8 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
+    // The bed and the armchair: a `Chair` made of parts (frame + cushion).
+    "/platform/thing/AssembledChair",
     "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
@@ -351,6 +390,12 @@ describe("general-store content integrity", () => {
     "/trade/apiculture/thing/HiveBox",
     "/trade/apiculture/thing/Frame",
     "/trade/apiculture/thing/Smoker",
+    // ⭐ The wear-part line (assembly W6): a pane is the glasshouse's
+    // `Sheet`, and a cushion or a smoker's bellows is an `Assembly` — a
+    // made thing of parts with no other capability. All discrete: you
+    // own a cushion, you do not carry cushions as a quantity.
+    "/trade/glass/thing/Sheet",
+    "/platform/thing/Assembly",
     // The householder's kit — a `Tool` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
@@ -382,7 +427,15 @@ describe("general-store content integrity", () => {
   // one chattel-stamped stick at a time. The injury build (W-C2) put them
   // on the shelf. Every OTHER good stays discrete; this is the exception,
   // named so a second stackable staple can't sneak in unnoticed.
-  const AMMUNITION_CLASSES = new Set(["/platform/thing/equipment/Projectile"]);
+  // ⭐ …and the second, named: worked WOOD (assembly). A haft is Timber
+  // because it seasons — one carved green warps where it is fitted — and
+  // Timber stacks. A stack on a shelf now sells one piece at the piece
+  // price and counts as its quantity toward par (the two defects that
+  // made "discrete only" the safe rule).
+  const AMMUNITION_CLASSES = new Set([
+    "/platform/thing/equipment/Projectile",
+    "/platform/thing/Timber",
+  ]);
 
   /**
    * ⭐ The supplied lines (economic bootstrap D11/D14): each names the
@@ -476,7 +529,10 @@ describe("general-store content integrity", () => {
     // goes out, which is the defect the class change exists to fix.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `thing/${f}.yaml`);
-      expect(light.class).toBe("/platform/thing/Lamp");
+      // The lantern is the `Lamp` made of parts (`Lantern` extends it).
+      expect(light.class).toBe(
+        f === "lantern" ? "/platform/thing/Lantern" : "/platform/thing/Lamp",
+      );
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
       // ⚠ `BurnerMixin.lit` defaults TRUE — a row that forgets this
       // ships alight on a shop shelf with its fuel draining.

@@ -74,7 +74,12 @@ describe('the lounge parks its cast through Offstage', () => {
     // The house operates one room, so `operatingLocations[0]` is already
     // right for every seat. `station:` is for a house with two.
     const biz = load('idea/business.yaml').data;
-    expect(biz.operatingLocations).toEqual(['/world/lounge/location/bar']);
+    // ⚠ Index 0 is the room; the bar COUNTER follows it (a sale settles at
+    // the counter's path — lint:shopfronts) and is never a place to stand.
+    expect(biz.operatingLocations![0]).toBe('/world/lounge/location/bar');
+    expect(biz.operatingLocations!.filter((p: string) => p.includes('/location/'))).toEqual([
+      '/world/lounge/location/bar',
+    ]);
     for (const slot of biz.rosterSlots ?? []) {
       expect(slot.station, slot.positionKey).toBeUndefined();
     }

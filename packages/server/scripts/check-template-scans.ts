@@ -73,6 +73,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/PlacementCatalogue.ts", count: 1, reason: LAZY_DICT },
   { file: "packages/server/src/mud/platform/idea/SpellCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/OperationCatalogue.ts", count: 1, reason: LAZY_DICT },
+  { file: "packages/server/src/mud/platform/idea/JointCatalogue.ts", count: 1, reason: LAZY_DICT },
   { file: "packages/server/src/mud/platform/idea/DisciplineCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/HelpCatalogue.ts", count: 1, reason: LAZY_DICT },
   { file: "packages/server/src/mud/platform/idea/TopicCatalogue.ts", count: 2, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },

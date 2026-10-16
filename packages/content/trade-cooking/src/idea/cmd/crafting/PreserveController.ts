@@ -50,7 +50,6 @@ import type {
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -106,6 +105,8 @@ export abstract class PreserveController<
     const outcome = await CraftingApi.craft({
       recipeRef: await this.recipeFor(named),
       makerMode: 'self',
+      // To hand — the Api lands, stamps and captures it.
+      landing: 'hands',
       ...(named ? { target: named } : {}),
     });
     if (!outcome.ok) {
@@ -114,9 +115,6 @@ export abstract class PreserveController<
     }
 
     const output = outcome.output;
-    if (MixinApi.isContainable(output) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(output, giver);
-    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(this.selfLine(output))

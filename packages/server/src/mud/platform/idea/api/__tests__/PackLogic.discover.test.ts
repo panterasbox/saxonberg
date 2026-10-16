@@ -110,9 +110,11 @@ describe('the shipped packs (real discovery, no install)', () => {
     // explain it. *A count is the one assertion a three-way merge cannot
     // reconcile* — which is why the claims below check ORDER, and the
     // count is bookkeeping.
-    // 58 → 59: the dairy build adds `trade-dairying` (⚠ the hazard above:
-    // a sibling branch adding a pack will merge clean and land red).
-    expect(ids).toHaveLength(59);
+    // ⭐ 58 → 60: the assembly build adds `trade-carpentry` and
+    // `trade-coopering`; 60 → 61: the dairy build adds `trade-dairying`
+    // (⚠ the hazard above: a sibling branch adding a pack merges clean and
+    // lands red — this one merged with a conflict instead).
+    expect(ids).toHaveLength(61);
     expect(ids[0]).toBe('platform');
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).

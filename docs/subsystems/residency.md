@@ -281,6 +281,22 @@ and re-cloned fresh by eviction — its template state *is* its reset state
 — so explicit reset only earns its keep for **warm/resident** objects
 like a browsed shop.)
 
+### ⭐ Single-flight, with a trailing run (assembly build, 2026-10-15)
+
+The reset and spawn sweeps are each **single-flight**: a firing that lands
+while one is running does not start a second, overlapping pass. But it is
+**not dropped either** — it sets a pending flag (`resetPending` /
+`spawnPending`), and when the running sweep finishes it runs **once more**.
+Any number of mid-sweep firings collapse to one trailing run; none is lost.
+
+⚠ Why it matters: the running sweep may already be past the shelf the new
+firing was for. The assembly drive found it — a timber yard bought out and
+then forty game days skipped stayed bare until the next hour, because the
+forty-day firing landed inside a sweep that had already passed the yard and
+was thrown away. A clock jump is the common trigger (`WorldClockApi.every`
+coalesces a backlog into firings that arrive together). Pinned by
+`ResidencySweep.trailing.test.ts`.
+
 Other reset consumers (respawning NPCs, resource nodes, container/door
 repop) are deferred — the sweep ships complete-at-tier, only the shop is
 wired.

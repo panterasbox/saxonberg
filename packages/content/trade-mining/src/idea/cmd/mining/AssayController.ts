@@ -335,7 +335,11 @@ async function finishAssay(
       if (sample.isDestroyed()) continue;
       try {
         const reading = await claimFor(sample);
-        const paper = (await StuffApi.clone(RECORD_ROW)) as unknown as ReadingRecord;
+        // The paper is made from the CUSTOMER's sample, so it is theirs —
+        // whoever is at the bench when the batch finishes.
+        const paper = (await StuffApi.clone(RECORD_ROW, undefined, {
+          madeFrom: sample,
+        })) as unknown as ReadingRecord;
         const stamp = (
           sample as unknown as {
             getSampling?(): { at: string; by: string; on: number } | null;
@@ -363,6 +367,8 @@ async function finishAssay(
           sampledOn: stamp?.on ?? 0,
           tell: said.tell ?? null,
         });
+        // ⭐ Landed, titled to the customer when they are still in the
+        // world — a batch can finish long after they walked off.
         ContainmentApi.move(paper as unknown as Stuff & Containable, room);
         // ⭐ The sample is CONSUMED. An assay is destructive — that is
         // why it costs a sample and why salting is worth doing.

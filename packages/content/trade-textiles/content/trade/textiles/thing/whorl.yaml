@@ -1,0 +1,16 @@
+# A whorl — a flat disc of stone bored through the middle, the weight
+# that keeps a spindle turning. ⭐ The other half of the drop spindle,
+# and a FLYWHEEL rather than an ornament: its mass and its width are what
+# decide how long a spin lasts. Friction-fitted on its shaft — no glue,
+# no peg — so it comes off in your hand.
+class: /platform/thing/Tool
+data:
+  keywords: [whorl, whorls, spindle-whorl, "spindle whorl"]
+  shortDescription: slate spindle whorl
+  register: indefinite
+  longDescription: >-
+    A disc of grey slate the width of a palm, ground round at the rim and
+    bored through the centre, one face scratched with a ring of notches.
+  mass: 0.15
+  capabilities: []
+  _materialPath: /stuff/idea/material/rock/slate

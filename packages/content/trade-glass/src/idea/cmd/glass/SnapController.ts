@@ -28,7 +28,7 @@ interface SnapModel extends CommandModel {
 }
 
 export default class SnapController extends ManualBuildController<SnapModel> {
-  execute(model: SnapModel, context: CommandContext): void {
+  async execute(model: SnapModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const sheet = model.sheet?.stuff ?? null;
     if (!sheet || !(sheet instanceof Sheet)) {
@@ -43,7 +43,9 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       );
       return;
     }
-    void this.snap(sheet, giver);
+    // ⚠ Awaited: the panes are LANDED (custody + capture), so the act
+    // finishes when they are recorded, not a microtask later.
+    await this.snap(sheet, giver);
   }
 
   private async snap(sheet: Sheet, giver: Stuff): Promise<void> {
@@ -55,7 +57,9 @@ export default class SnapController extends ManualBuildController<SnapModel> {
         ? (giver as unknown as Stuff & Container)
         : null;
     for (let i = 0; i < 2; i += 1) {
-      const p = await StuffApi.clone<Sheet>(PANE_ROW);
+      const p = await StuffApi.clone<Sheet>(PANE_ROW, undefined, {
+        madeFrom: sheet as unknown as Stuff,
+      });
       p.setMass(Quantity.of(half, "kg"));
       p.setForm("pane");
       if (MixinApi.isAlloyed(p) && alloying.length > 0) p.setAlloying(alloying);

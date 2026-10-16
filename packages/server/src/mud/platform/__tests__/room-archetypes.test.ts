@@ -67,6 +67,9 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
     // its own, that is a design decision, not a detail — make it explicitly.
     const shipped = new Set([
       "/platform/thing/Chair", // bed, tub, armchair — slots authored per seed
+      // The bed and the armchair are MADE OF PARTS (frame + cushion /
+      // mattress), so they are the assembled chair; the tub is not.
+      "/platform/thing/AssembledChair",
       "/platform/thing/Oven", // the range
       "/platform/thing/Chest", // the larder
       // The basin. ⭐ It was `/platform/thing/UnboundedReceptacle` — but
@@ -233,7 +236,7 @@ describe("the living room — AUDIENCE (D16)", () => {
 
   it("seating is a good you BUY, not a fitted built-in", () => {
     const chair = read("stuff/thing/fixture/armchair.yaml");
-    expect(chair.class).toBe("/platform/thing/Chair");
+    expect(chair.class).toBe("/platform/thing/AssembledChair");
     // ...and it is in no archetype's populates.
     for (const name of ARCHETYPES) {
       const populates = (read(name).data?.props ??

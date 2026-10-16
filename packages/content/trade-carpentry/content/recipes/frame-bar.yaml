@@ -1,0 +1,13 @@
+# A frame bar — a thin lath, notched at the ends; four make a hive
+# frame. Run by `carve`.
+recipeId: frame-bar
+name: Frame Bar
+keywords: [frame-bar, lath]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/frame-bar
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

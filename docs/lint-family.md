@@ -852,6 +852,30 @@ game, which is why "just rename one" is not automatically the answer. The
 alternatives are one view with subcommands, or a rename; **never a new
 line in the allowlist.**
 
+### `lint:self-contributions` — a `self` verb nobody is asked for (2026-10)
+
+`static commandContributions.self` is read off exactly three kinds of
+host — a **command giver**, a **shadow**, a **hosted update**
+([command-routing.md](./subsystems/command-routing.md) § the buckets). On
+any other class, or on a mixin no receiver composes, the list is dead:
+declared, type-checked, asserted by a unit test that reads the
+declaration, and never consulted by the dispatcher.
+
+⚠⚠ **Why a gate.** It cost the assembly build four verbs in one day
+(`AssembledMixin` — a pick in your hands could not be repaired; `Blank`;
+`Bole`; `Billet`), every one green in its tests, found only by the first
+**browser** walk — the wire drive always had the thing on the floor or an
+anvil in the room, which is `peers`. A declaration-level test cannot see
+it; this gate asks who RECEIVES. A mixin is live if a receiver composes
+it directly or through another mixin's own chain.
+
+**Census, then ratchet — and burned down the same day: ceiling 0.** The
+census (2026-10-15) found nine: seven redundant (the same verbs also rode
+a live bucket on the class — the `self` line was deleted) and the two
+`Spade`s, whose `self` was the verb's only route, so **`plot` had been
+sayable nowhere** and `dig` only at a quarry face. Those moved to
+`environment` (both verbs take the spade from your hands).
+
 ### ⭐⭐⭐ `lint:reachability` — a verb nothing confers, a row nothing reaches (2026-10)
 
 **`lint:verb-collisions` above asks whether two views claim one verb.
@@ -1866,6 +1890,16 @@ named four composition markers; `BankCounter` composes `BankMixin` (not
 `AttendantMixin`) and `Menu` reaches the offer surface by **inheritance**
 (`extends CommerceMenu`). A ceiling that undercounts is a ceiling that
 means nothing — it would have admitted two more counters silently.
+
+**`lint:shopfronts` — a counter that names its house is a place that
+house trades (ceiling 0; assembly build, 2026-10).** A sale settles to the
+business found at the COUNTER's own path, through every Business row's
+`operatingLocations`. A counter whose `businessPath` names a house that
+lists only the room is a shop where nothing can be bought, and the buyer
+is told *"You can't cover …"* — which blames their purse. Six counters
+shipped that way (the timber yard, the Rejection till, the lounge bar, the
+bloodworks, the haulage depot, the bale store); the assembly drive found
+it when no stave was ever sold.
 
 **`lint:openings` — an opening judges a PERSON (ceiling 0).** Six arms:
 the `requires` vocabulary is closed to `{gigs, discipline, band}` (nothing

@@ -1,0 +1,26 @@
+# Pegged — a tenon through a mortise and a hardwood peg driven through
+# both. ⭐ The first Joint a TRADE ships rather than the platform: its
+# competence names `carpentry`, which exists only once this pack does —
+# and a joint whose competence names a Discipline that does not exist is
+# the silent class (every salvager reads as a novice and nothing says
+# why). So the row ships with the trade that practises it.
+#
+# A tool joint: the peg is DRIVEN, with a mallet (`driving`). Strong, and
+# reversible with effort — drift the pegs out and the frame comes apart
+# with nearly every leg and rail sound. The pegs mostly do not survive
+# being driven out; a joiner makes new ones, which is why a peg is a
+# thing somebody carves for a living. When it fails it PARTS — the
+# tenon pulls out of the mortise and the frame racks.
+class: /platform/idea/Joint
+data:
+  key: pegged
+  label: pegged
+  portability: tool
+  instrument: driving
+  competence: { discipline: carpentry, band: novice }
+  reversible: effort
+  strength: 0.7
+  structuralRecovery: 0.9
+  fastenerRecovery: 0.3
+  tightenable: true
+  failure: parted

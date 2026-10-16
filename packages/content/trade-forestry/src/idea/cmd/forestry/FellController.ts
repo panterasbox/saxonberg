@@ -305,13 +305,11 @@ async function dropStandard(
   bole.setMass(Quantity.of(Math.round(density * BOLE_M3), 'kg'));
   bole.setLengthsLeft(BOLE_LENGTHS);
   ContainmentApi.move(bole, room);
-  await stamp(bole, giver);
 
   for (let i = 0; i < LOGS_PER_STANDARD; i += 1) {
     const log = await StuffApi.clone<Stuff & Containable>(LOG_PATH);
     if (wood && MixinApi.isTangible(log)) log.setMaterial(wood);
     ContainmentApi.move(log, room);
-    await stamp(log, giver);
   }
 
   // ⭐ The bark comes off onto the ground beside the trunk, not into your
@@ -327,7 +325,6 @@ async function dropStandard(
           bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
         }
         ContainmentApi.move(bundle, room);
-        await stamp(bundle, giver);
       } catch (err) {
         // ⚠ A missing bark row is a content gap, not a reason to lose the
         // timber — the bole and the logs are already down.
@@ -341,7 +338,6 @@ async function dropStandard(
     try {
       const seed = await StuffApi.clone<Stuff & Containable>(seedPath);
       ContainmentApi.move(seed, giver);
-      await stamp(seed, giver);
     } catch (err) {
       console.warn(`FellController: no seed at '${seedPath}':`, err);
     }
@@ -349,24 +345,6 @@ async function dropStandard(
   return bole;
 }
 
-/**
- * Stamp the good to its owner AND record where it is. ⚠ A stamp alone
- * records no place: `drop`/`put`/`get` call `followCustody` after every
- * move, and a good minted onto a floor has been moved by nobody — so
- * without this a bole on the ride was skipped by the room's capture (a
- * player's good is the owner's to persist) and never found by the room's
- * overlay (`placedIn` had no row for it). Found by restarting the server.
- */
-async function stamp(thing: Stuff, owner: Stuff): Promise<void> {
-  if (MixinApi.isChattel(thing)) {
-    try {
-      await thing.stampChattel(owner);
-      await thing.followCustody();
-    } catch (err) {
-      console.warn('FellController: chattel stamp failed:', err);
-    }
-  }
-}
 
 async function capture(host: Stuff): Promise<void> {
   try {
@@ -439,11 +417,12 @@ async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
   if (giver.isDestroyed() || bole.isDestroyed()) return;
   const room = bole.getContainer();
   const wood = bole.getMaterial();
-  const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH);
+  const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH, undefined, {
+    madeFrom: bole,
+  });
   if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
   if (MixinApi.isContainer(giver)) ContainmentApi.move(timber, giver);
   else if (room) ContainmentApi.move(timber, room);
-  await stamp(timber, giver);
 
   const left = bole.takeLength();
   if (left <= 0) {
@@ -516,7 +495,6 @@ async function fellPlantedTree(
     }
     if (MixinApi.isContainer(giver)) ContainmentApi.move(tree, giver);
     else ContainmentApi.move(tree, room);
-    await stamp(tree, giver);
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(Mml.compose`${name} comes away at the ankle, whole, and you take it up.`)

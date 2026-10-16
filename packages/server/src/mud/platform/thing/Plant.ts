@@ -257,14 +257,16 @@ export default class Plant extends PlantBase {
     if (!target || !MixinApi.isContainer(target)) return;
     void (async () => {
       try {
-        const seed = await StuffApi.clone<Stuff>(path);
+        const seed = await StuffApi.clone<Stuff>(path, undefined, {
+          madeFrom: this as unknown as Stuff,
+        });
+        // ⭐ The move places it and captures its host in one call. A seed
+        // a flowering set has no actor, so it carries no title.
         if (MixinApi.isContainable(seed)) {
-          ContainmentApi.move(
-            seed as Stuff & Containable,
-            target as Stuff & Container,
-          );
+          ContainmentApi.move(seed as Stuff & Containable, target as Stuff & Container);
+        } else {
+          await PersistableApi.captureHostOf(this);
         }
-        await PersistableApi.captureHostOf(this);
       } catch (err) {
         console.warn(
           `Plant.onFloweringLatched: could not set a seed from '${path}':`,

@@ -23,9 +23,9 @@
  * ⭐ The rack is a **declared instrument arg**, and it earns its keep now:
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
  * dries about three times as fast as one dropped on the floor of the same
- * room. Before the lens pass the rack was decoration —
- * `ContainmentApi.place` moves an item into the *host's* container, so
- * racked and dropped were the same air and the same arithmetic.
+ * room. Before the lens pass the rack was decoration — a placement
+ * moves an item into the *host's* container, so racked and dropped were
+ * the same air and the same arithmetic.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -141,7 +141,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.place(target, member!, rack);
+      ContainmentApi.move(target, rack, member!);
     }
 
     const scope = this.scopeOf(target);

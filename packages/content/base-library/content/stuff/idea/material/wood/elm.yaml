@@ -1,9 +1,13 @@
 # Elm — will not split, and does not rot wet.
 #
-# The number that makes it so is TOUGHNESS at a low density: the grain
-# interlocks, so a wedge will not open it — which is why elm is the wood
-# of the wheel hub, the chair seat and the coffin, and why it is the
-# worst wood to cleave for firewood. Under water it lasts for centuries
+# The number that makes it so is `cleavability` (0.1): the grain
+# INTERLOCKS, so a froe or a wedge bruises it and will not open it — and
+# `rive` refuses it, naming why. That is why elm is the wood of the wheel
+# hub (it will not split under the spokes), the chair seat and the coffin,
+# and the worst wood to cleave for firewood. ⚠ It is NOT toughness at a
+# low density (an earlier version of this note said so): ash is tougher
+# and denser and is the best riving wood there is. Splitting is about how
+# straight the fibres run, which no other number carries. Under water it lasts for centuries
 # (a pipe, a pile, a lock gate); in the wet-and-dry it fails. The
 # `waterAbsorptionCapacity` is high for the same reason.
 #
@@ -34,6 +38,13 @@ data:
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
   chemistry: null
+  # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
+  # good air, and how much it shrinks getting there — what makes work
+  # done green move. Grain: an author's numbers.
+  seasoningDays: 400
+  greenShrinkage: 0.09
+  # How cleanly it opens along its grain under a froe (plan D17) — the grain interlocks; a wedge bruises it and it will not open.
+  cleavability: 0.1
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/ulmaceae/ulmus/glabra
     tissueType: wood

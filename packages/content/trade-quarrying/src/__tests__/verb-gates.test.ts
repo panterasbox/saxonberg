@@ -119,7 +119,10 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
         .flat();
     // The instrument affords it, which is what makes it a PLATFORM verb: a
     // spade in your hand means you can try it anywhere.
-    expect(verbs(Spade, 'self')).toContain('dig');
+    // In your HANDS — `environment`, to the holder (`self` is read only off a
+    // command giver; lint:self-contributions).
+    expect(verbs(Spade, 'environment')).toContain('dig');
+    expect(verbs(Spade, 'self')).toEqual([]);
     // ⭐⭐ **And so does the WORKING — two rungs, and the drive is why.** It
     // was the instrument alone at first, and a player who walked into a quarry
     // empty-handed got *"I don't understand 'dig'"* rather than a refusal
@@ -128,16 +131,17 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     //
     // ⚠ The trade still ships no VIEW and no controller — the working names
     // the platform's view, exactly as `ImprovableMixin` does for `ditch`.
-    expect(verbs(OpenWorkingLocation, 'self')).toContain('dig');
+    expect(verbs(OpenWorkingLocation, 'self')).not.toContain('dig'); // a giver's bucket
     expect(verbs(OpenWorkingLocation, 'inventory')).toContain('dig');
     // …and a plain room does not, which is what keeps it from being a global.
     expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('dig');
     // ⭐⭐ The block affords its own splitting, wherever it lies — and on
-    // `peers`, which the live drive corrected: `self` reaches a thing's HOLDER,
-    // and nobody holds a 1375 kg block, so `split block` parsed as *"I don't
-    // understand 'split'"* with a block standing right there.
+    // `peers`, which the live drive corrected: `self` reaches nobody on a
+    // thing (it is read only off a command giver), and nobody holds a
+    // 1375 kg block, so `split block` parsed as *"I don't understand
+    // 'split'"* with a block standing right there.
     expect(verbs(Block, 'peers')).toContain('split');
-    expect(verbs(Block, 'self')).toContain('split');
+    expect(verbs(Block, 'self')).not.toContain('split');
     expect(verbs(Block, 'peers')).not.toContain('dig');
   });
 });

@@ -302,9 +302,6 @@ export default class MillController extends CommandController<MillModel> {
     }
     const output = outcome.output;
     if (output === null) return;
-    if (MixinApi.isContainable(output) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(output, giver);
-    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

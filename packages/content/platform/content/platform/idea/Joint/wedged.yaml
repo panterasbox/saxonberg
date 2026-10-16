@@ -1,0 +1,18 @@
+# Wedged — a head driven onto a haft and a wedge split into the top of
+# the eye. Every hafted tool in the world is held on this way, and
+# anybody can do it: ⭐ that is why the hand rung can make the tool
+# rung's tools (the bootstrap root, stated as data — no competence).
+# Knock the wedge out and the head comes off; the wedge is lost.
+class: /platform/idea/Joint
+data:
+  key: wedged
+  label: wedged
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: effort
+  strength: 0.6
+  structuralRecovery: 1.0
+  fastenerRecovery: 0.0
+  tightenable: true
+  failure: parted

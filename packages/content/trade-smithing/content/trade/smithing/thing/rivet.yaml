@@ -1,0 +1,13 @@
+# An iron rivet — the fastener of the `riveted` joint. ⚠ A plain row, one
+# to a forging: no stackable metal class fits a fastener (the stackable
+# metal rows are scrap), so a rivet is a discrete thing until one is.
+class: /platform/thing/Tool
+data:
+  keywords: [rivet, rivets]
+  shortDescription: iron rivet
+  register: indefinite
+  longDescription: >-
+    A short iron pin with a domed head, its tail left long to be peened over.
+  mass: 0.01
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

@@ -10,6 +10,7 @@
  * nothing, silently. This is the gate that keeps that from recurring.
  */
 
+import { RIVE_FLOOR, CLEAN_CLEAVE } from '../idea/cmd/forestry/RiveController';
 import { describe, it, expect } from 'vitest';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';
@@ -95,6 +96,24 @@ describe('the wood vocabulary — ten woods, ten trees, each naming the other', 
       expect(doc.data.density).toBeGreaterThan(300);
       expect(doc.data.tags).toContain('wood');
     }
+  });
+
+  it('⭐ every wood states how cleanly it rives — and only elm will not (plan D17)', () => {
+    const cleave = new Map<string, number>();
+    for (const wood of TEN) {
+      const doc = YAML.parse(readFileSync(join(WOOD_DIR, `${wood}.yaml`), 'utf8')) as {
+        data: { cleavability?: number };
+      };
+      const v = doc.data.cleavability;
+      // ⚠ Unauthored reads 0 — `rive` refuses it — so a missing figure
+      // would make a riving wood silently unrivable.
+      expect(typeof v, `${wood} authors no cleavability`).toBe('number');
+      cleave.set(wood, v!);
+    }
+    expect([...cleave].filter(([, v]) => v < RIVE_FLOOR).map(([w]) => w)).toEqual(['elm']);
+    // The riving woods are the straight-grained ones, whatever their toughness.
+    expect(cleave.get('oak')!).toBeGreaterThanOrEqual(CLEAN_CLEAVE);
+    expect(cleave.get('ash')!).toBeGreaterThanOrEqual(CLEAN_CLEAVE);
   });
 
   it('the eight species are distinct trees in this pack', () => {

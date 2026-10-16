@@ -1,9 +1,9 @@
 /**
  * PutController — `put X (in|on) Y`.
  *
- * Preposition-aware dispatch: `put X in Y` routes to
- * `ContainmentApi.move`, `put X on Y` routes to
- * `ContainmentApi.place`, and `put X in Y` where X fits an open SLOT
+ * Preposition-aware dispatch: `put X in Y` and `put X on Y` both route
+ * to `ContainmentApi.move` (a placing destination stamps the placement
+ * pair; the preposition picks the name), and `put X in Y` where X fits an open SLOT
  * on Y routes to `Slotted.occupy` (after the containment move — the
  * `plant`/`repot` order). The YAML's `prepositions: [in, on]` on
  * the `target` field lands the consumed preposition on
@@ -305,18 +305,10 @@ export default class PutController extends CommandController<PutModel> {
         target as Stuff & Container,
       );
     } else {
-      ContainmentApi.place(
-        item as Stuff & Containable,
-        chosen!.name!,
-        target as Stuff & Placing,
-      );
+      ContainmentApi.move(item as Stuff & Containable, target as Stuff & Placing, chosen!.name!);
     }
-    // Either way custody moved and title did not — re-derive the placement
-    // so an owned good persists on its owner's record naming where it now
-    // sits. A no-op for anything unowned. (D8)
-    if (MixinApi.isChattel(item as Stuff)) {
-      void (item as Stuff & Chattel).followCustody();
-    }
+    // Either way custody moved and title did not — `move` re-derives the
+    // owner's record of where it now sits. (D8)
 
     if (mode === 'slot') {
       MessageApi.scene(giver)

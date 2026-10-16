@@ -1,0 +1,12 @@
+# A dowel — the pin that joins boards edge to edge. Run by `carve`.
+recipeId: dowel
+name: Dowel
+keywords: [dowel]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/dowel
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

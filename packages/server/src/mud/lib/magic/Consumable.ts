@@ -119,12 +119,16 @@ export function ConsumableMixin<TBase extends MixinConstructor<Stuff>>(
       const where = MixinApi.isContainable(self) ? self.getContainer() : null;
       let residue: Stuff | null = null;
       if (this.residueTemplatePath.length > 0) {
-        residue = await StuffApi.clone(this.residueTemplatePath);
+        residue = await StuffApi.clone(this.residueTemplatePath, undefined, {
+          madeFrom: self,
+        });
         if (
           where &&
           MixinApi.isContainer(where) &&
           MixinApi.isContainable(residue)
         ) {
+          // ⭐ The move captures the flask left behind where it lies;
+          // the consume names no actor, so it carries no new title.
           ContainmentApi.move(residue, where);
         }
       }

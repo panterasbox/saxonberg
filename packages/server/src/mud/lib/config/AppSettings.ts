@@ -1969,6 +1969,31 @@ export const AppSettingKeys = {
   /** Crafting — the lossy salvage fraction: each constituent material
    * returns `mass × fraction × salvageRate`; the rest is dross. */
   craftingSalvageRate: "crafting.salvageRate",
+  /** Assembly — a joint's tension below which it is SLACK: the cask weeps,
+   * the head rocks on its haft, and `repair` tightens it before anything
+   * else (assembly D6). */
+  craftingJointSlackThreshold: "crafting.joint.slackThreshold",
+  /** Assembly — how much faster a part worked GREEN wears than a seasoned
+   * one (assembly D2: green wood warps and gives). */
+  craftingGreenWearFactor: "crafting.greenWearFactor",
+  /** Seasoning — the seasoned fraction (0..1) at or above which wood may
+   * be worked without warping (assembly D2). */
+  woodSeasonedThreshold: "wood.seasonedThreshold",
+  /** Maturation — how much of a vessel's character each fill after the
+   * first spends (assembly D9): a third, so a fourth fill gives nothing. */
+  maturingImpartsSpentPerFill: "maturing.impartsSpentPerFill",
+  /** Assembly — the heat (K) a cooper's re-fire wants reachable: enough to
+   * char the inside of a shaved cask. */
+  craftingRefireHeatK: "crafting.refireHeatK",
+  /** Assembly — the share of a lamp's light a CRACKED pane lets out
+   * (assembly AC 11: a part's condition moves the room's light). */
+  lampCrackedGlassFlux: "lamp.crackedGlassFlux",
+  /** Assembly — game-days an assembled cask may stand empty before it
+   * dries out and its hoops ride loose (drive 8). */
+  caskDryOutDays: "cask.dryOutDays",
+  /** Assembly — the rest a bare frame gives, as a share of the seat's,
+   * when its cushion has failed. */
+  chairBareFrameRest: "chair.bareFrameRest",
   /** Crafting — repair material cost factor: cost mass = item mass ×
    * (1 − condition) × costFactor. */
   craftingRepairCostFactor: "crafting.repair.costFactor",

@@ -4782,45 +4782,42 @@ never the shore. See [location.md](./subsystems/location.md) and
 
 ---
 
-## A good minted onto the floor, stamped but never PLACED
+## Custody bookkeeping by hand after a move
 
-**ANTIPATTERN**: a verb's completion clones a thing into a room and
-stamps it to the actor — and stops there.
+**ANTIPATTERN**: a verb moves a good and then does the bookkeeping a
+move implies — stamps it to the actor, records where it is, captures the
+room — itself.
 
 ```ts
-// BAD — forestry's first cut of `fell`
+// BAD — the shape `fell`, `buy`, `get` and 33 trade verbs each grew
 ContainmentApi.move(bole, room);
 await bole.stampChattel(giver);
-await PersistableApi.captureHostOf(room);   // the room skips it: a player's good
+await bole.followCustody();
+await PersistableApi.captureHostOf(room);
 ```
 
-A stamp records WHO; it records no WHERE. `followCustody` is what writes
-the `place` — and only `drop`/`put`/`get` call it, after a move. A good
-minted onto a floor has been moved by nobody, so it has no `place`; the
-room's capture skips it (a player's good is the owner's to persist), and
-the room's overlay on materialize finds no row for it. The bole was
-gone after every restart while the stand's cut count, on the same room,
-survived — found by restarting the server.
+Every verb that forgot a line lost goods at the next restart (28 trade
+verbs had, by the assembly build's census), and the fix grew a second
+"land" primitive, a ratchet, and a rule nobody could state — *which*
+call does a content developer make?
 
-**INSTEAD**, the mint places it, and — when a live player is the owner —
-captures the owner too, because the owner's estate is written only on
-the residency cadence or at logout, and a hard stop inside that window
-loses the goods (a kill after a run-out lost a clearing's sixteen trunks
-in a browser):
+**INSTEAD**, one call; the rest is derived in the primitive
+(assembly build, MR !361 — see
+[spatial.md § Two layers of movement](./subsystems/spatial.md)):
 
 ```ts
-// GOOD — forestry's `stamp()`
-await bole.stampChattel(giver);
-await bole.followCustody();                  // the WHERE: the chattel row's place index + the estate
-await PersistableApi.captureHostOf(room);
-await PersistableApi.captureHostOf(giver);   // the act that puts tonnes on the floor writes the owner now
+// GOOD
+ContainmentApi.move(bole, room);   // custody recorded; a fresh good titled by derivation
 ```
 
-⚠ The tell is a verb whose product is a *player's good on the floor of a
-persistable room* — everything else (a good in the actor's hands, a
-transient room, an organization's stock) already behaves. See
-[furnishing.md § The skip rule](./subsystems/furnishing.md) and
-[forestry.md § fell](./subsystems/forestry.md).
+⭐ And whose it is follows from what it was made FROM — mint it with
+`StuffApi.clone(row, undefined, { madeFrom: input })` (the board from the
+log, the paper from the customer's sample) and the title is the input's
+owner's, whoever is acting and whenever it lands. ⚠ The one hand-stamp
+left is a rule of a trade, not of inheritance — ore hewn on shift is the
+house's (work for hire) — and it stamps BEFORE the ore arrives (a titled
+good is not fresh). Selling and naming are title acts, not custody, and
+stamp as before.
 
 ---
 
@@ -6146,3 +6143,27 @@ which asserts the **premise** too — that the exit graph really is
 circular — so if that ever stops being true somebody learns the fixes
 became unnecessary rather than wrong. See
 [boundary.md § Locking](./subsystems/boundary.md).
+
+## A mixin composed on a broad family, then guarded back down
+
+**Don't.** Compose a capability mixin on a family because *some* of its
+members have it, call it "vacuous for the rest", and then guard every
+caller with a predicate that re-narrows the host set
+(`MixinApi.isAssembled(x) && x.isAssembly()`).
+
+**Do.** Give the family a narrow subclass that IS the thing
+(`AssembledTool extends AssembledMixin(Tool)`, `Cask`, `Lantern`), point
+only the rows that have the capability at it, and let `MixinApi.isX` be
+the whole question. Where the capability has a row-side declaration (a
+`bill:`), gate *declaration ⇔ composition* in both directions so neither
+side can drift (`lint:bills` arm 7).
+
+**Why.** The guard is the tell that the host is wrong: the type says
+every tool is made of parts, and every reader has to know it is lying.
+The assembly build's first cut put `AssembledMixin` on `Tool`, `Vat`,
+`Lamp`, `Chair`, `Receptacle`, `Weapon` and `Garment`: 62 of 69 tools and
+all 19 receptacles had no parts, and nine call sites carried
+`isAssembly()`. It is the same mistake the base-class narrowing refactor
+removed. ⚠ A subclass restates its parent's `commandContributions` when
+it adds a mixin above the parent (base statics shadow; mixin statics
+union).

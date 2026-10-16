@@ -48,6 +48,19 @@ export interface GovernmentSeat {
 }
 
 /**
+ * ⭐ A standard measure a polity declares (assembly D13, AC 24): the tun a
+ * gauger gauges against. `{key: cask, value: 25, unit: L}` — a second
+ * polity declares its own with a row, and nothing in the engine changes.
+ */
+export interface GovernmentStandard {
+  /** What it is the standard OF — matched against the measured thing's
+   * category or a keyword (`cask`). */
+  key: string;
+  value: number;
+  unit: string;
+}
+
+/**
  * The runtime descriptor the catalogue caches — a plain projection of a
  * Government template's `data`, the shape consumers read (never the
  * Stuff instance).
@@ -69,6 +82,8 @@ export interface GovernmentDescriptor {
   departments: string[];
   /** The seat roster. */
   seats: GovernmentSeat[];
+  /** The standard measures this polity declares (empty by default). */
+  standards: GovernmentStandard[];
 }
 
 /**
@@ -96,8 +111,11 @@ export default class Government extends NamedMixin(Idea) {
   public departments: string[] = [];
   /** The seat roster ((department, position) references). */
   public seats: GovernmentSeat[] = [];
+  /** The standard measures this polity declares. */
+  public standards: GovernmentStandard[] = [];
 
   static fieldMeta: FieldMeta = {
+    standards: { persistent: true },
     key: { persistent: true },
     description: { persistent: true },
     charter: { persistent: true },

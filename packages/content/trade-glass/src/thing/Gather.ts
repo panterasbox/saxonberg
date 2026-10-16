@@ -130,7 +130,9 @@ export default class Gather extends GatherBase {
     const material = this.getMaterial();
     const alloying = this.getAlloying().map((e) => ({ ...e }));
     try {
-      const cullet = await StuffApi.clone<Stuff>(CULLET_ROW);
+      const cullet = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, {
+        madeFrom: this as unknown as Stuff,
+      });
       if (MixinApi.isTangible(cullet)) {
         if (material) cullet.setMaterial(material);
         cullet.setMass(Quantity.of(massKg, "kg"));

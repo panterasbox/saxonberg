@@ -72,7 +72,6 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   CompetenceBand,
@@ -269,7 +268,7 @@ export function OpenWorkingMixin<
      * the street"*.
      */
     static commandContributions = {
-      self: ['platform/cmd/ground/dig.yaml'],
+      // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: ['platform/cmd/ground/dig.yaml'],
     };
 
@@ -620,17 +619,6 @@ export function OpenWorkingMixin<
       const where = await this.destinationFor(face);
       if (MixinApi.isContainable(thing) && MixinApi.isContainer(where)) {
         ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
-      }
-      // ⭐ The good carries its owner from the face onward — what makes
-      // stone theft mean anything later. ⚠ Best-effort: ground nobody holds
-      // yields an UNSTAMPED good rather than refusing the work, which is
-      // honest — a trespasser's barrowload is nobody's in the register too.
-      if (MixinApi.isChattel(thing)) {
-        try {
-          await (thing as Stuff & Chattel).stampChattel(by);
-        } catch {
-          /* unowned ground: the good is nobody's */
-        }
       }
       const heaped =
         where !== (this as unknown as Stuff)

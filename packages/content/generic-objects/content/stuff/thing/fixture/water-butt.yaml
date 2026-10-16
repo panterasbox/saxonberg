@@ -14,7 +14,9 @@
 class: /platform/thing/WaterFixture
 data:
   shortDescription: water butt
-  keywords: [water-butt, butt, barrel, cask, water, rainwater]
+  # ⚠ Not `cask` or `barrel`: those are made things now (assembly), and
+  # `spill cask` beside a cask emptied the butt — an inexhaustible source.
+  keywords: [water-butt, butt, water, rainwater]
   register: indefinite
   longDescription: |
     A broad oak barrel standing against the wall, hooped in iron and dark with damp, brim-full of cold water. A tin dipper hangs from a nail beside it.

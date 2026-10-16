@@ -187,10 +187,7 @@ async function finish(
     // than be silently dropped.
     if (yarn instanceof TextileStock) yarn.setYarnCount(count);
     if (MixinApi.isContainable(yarn) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(
-        yarn as Stuff & Containable,
-        giver as Stuff & Container,
-      );
+      ContainmentApi.move(yarn as Stuff & Containable, giver as Stuff & Container);
     }
     if (!watching) return;
     MessageApi.scene(giver)

@@ -1,0 +1,15 @@
+# A lantern body — ⭐ tinplate, cut and bent and SOLDERED, not forged: tin
+# is not anvil stock and a lantern body is not hammered. The case a pane
+# is seated in and a burner sits inside, and the part a lantern's bill
+# names for its shell.
+class: /platform/thing/Tool
+data:
+  keywords: [body, lantern-body, case, tin]
+  shortDescription: tin lantern body
+  register: indefinite
+  longDescription: >-
+    A pierced tin cylinder with a conical hood and a wire bail, its seams
+    run with solder and a frame at the front for a pane.
+  mass: 0.4
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/tin

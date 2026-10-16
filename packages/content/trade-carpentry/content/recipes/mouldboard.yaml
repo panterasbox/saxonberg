@@ -1,0 +1,13 @@
+# A mouldboard — the twisted board that turns the sod, worked down
+# along its curve. Run by `carve`.
+recipeId: mouldboard
+name: Mouldboard
+keywords: [mouldboard]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/mouldboard
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

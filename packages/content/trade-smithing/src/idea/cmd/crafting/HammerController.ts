@@ -143,7 +143,8 @@ export default class HammerController extends ManualBuildController<HammerModel>
         const first = build.bankWorkpiece();
         build.recordCommand(commandText);
         // The hammer wears with the work (Law 2).
-        if (MixinApi.isDurable(striker)) striker.wear();
+        // A hammer blow jars the hammer — a hafted one gives at the haft.
+        if (MixinApi.isDurable(striker)) striker.wear(undefined, 'shock');
         // ⭐⭐ A bloom is CONSOLIDATED by the first blow, and only the
         // first: `bankWorkpiece` returns true exactly once per build, so
         // hammering twice cannot double the metal and cannot halve it
@@ -188,9 +189,12 @@ function isBloom(target: Stuff): boolean {
  */
 async function consolidate(giver: Stuff, target: Stuff): Promise<void> {
   const bloom = target as unknown as {
-    consolidate(): Promise<{ bar: Stuff; steel: boolean; slagKg: number; barKg: number } | null>;
+    consolidate(
+      by?: Stuff | null,
+    ): Promise<{ bar: Stuff; steel: boolean; slagKg: number; barKg: number } | null>;
   };
-  const done = await bloom.consolidate();
+  // The smith is the bar's owner — the bloom lands what it yields to them.
+  const done = await bloom.consolidate(giver);
   if (!done || giver.isDestroyed()) return;
   MessageApi.scene(giver)
     .topic(TOPIC)

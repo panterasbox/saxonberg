@@ -442,6 +442,13 @@ the analysis instead of rediscovering it:
 - `platform/idea/MaturationProfileCatalogue.ts` (the roster's
   self-warming boot home; platform pack row + `boot:` entry)
 - `platform/thing/Vat.ts` — the concrete; seal/move window events
+  (+ ⭐ an emptying `debitBulk` ends the batch NOW, not at the next read —
+  a cask spilled and refilled unread kept its batch; assembly drive 17)
+- `platform/thing/Cask.ts` — a `Vat` raised from staves, heads and hoops
+  (`AssembledMixin` + `Durable`): it weeps through a sprung stave or a
+  slack hoop and dries out standing empty (`emptySince`). Its own class,
+  because a carboy or a crock is a vat made of no parts — see
+  [assembly.md](./assembly.md)
 - `platform/idea/api/BulkableLogic.ts` — `carryBatchIdentity` +
   `tryInoculate` on the transfer
 - `lib/behavior/cellars.ts` (+ `__tests__/`) — the producer beats

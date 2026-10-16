@@ -1,0 +1,13 @@
+# Croze — a forged blade wedged onto a carved handle, by hand (`fit croze`).
+recipeId: croze
+name: Croze
+keywords: [croze]
+inputSlots:
+  - { slot: blade, category: metal, minGrade: poor, kind: item, count: 1 }
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/coopering/thing/croze
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: coopering

@@ -1,0 +1,38 @@
+# ⭐⭐ The cooper's three products, and why a beginner makes a barrel
+# rather than a bad cask.
+class: /platform/idea/HelpConcept
+data:
+  key: slack-and-tight
+  title: Slack and Tight
+  summary: Why a cooper's grades are three different things, not three qualities of one.
+  keywords: [cooper, coopering, slack, tight, barrel, cask, stave, hoop, riven, sawn]
+  seeAlso: [the-gauge, grain, seasoning]
+  body: |
+    A cask is thirty staves standing in a ring, bellied in the middle,
+    held by hoops driven down over the set. What decides what it can
+    hold is how closely the staves MEET.
+
+      slack barrel   the staves stand true and need not meet. It holds
+                     things — nails, apples, a sack of meal — and you
+                     cannot pour anything into it at all.
+      dry cask       the staves meet and the hoops are driven hard
+                     enough to keep flour in. Pour beer in and it runs
+                     out through the joints.
+      cask           the staves meet so closely that liquor stays in.
+
+    ⭐ These are not three grades of one thing: they are three things,
+    and the skill is the tightness. A cooper who cannot yet drive a
+    tight cask is not refused the trade — they make barrels, and a
+    barrel is worth what a barrel is worth.
+
+    The stave matters as much as the hand. A **riven** stave was split
+    along the grain, so its fibres run end to end and the liquor has no
+    path out; a **sawn** stave cuts across them wherever the grain
+    wandered, and it weeps. And a stave worked **green** dries where it
+    was fitted, shrinks, and pulls its joint slack — the cask leaks a
+    month after it was made, for a reason you can name.
+
+    A cask is mended a stave at a time (`fit stave to cask`), its hoops
+    are driven back down when they slip (`repair cask`, which costs
+    nothing), and when it has given its contents everything it had —
+    three fills, more or less — a cooper shaves it back and re-fires it.

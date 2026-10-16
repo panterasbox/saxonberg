@@ -1,0 +1,12 @@
+# A shield boss — the iron dome over a shield's grip, riveted through the
+# boards.
+class: /platform/thing/Tool
+data:
+  keywords: [boss, shield-boss]
+  shortDescription: shield boss
+  register: indefinite
+  longDescription: >-
+    A domed iron cup with a flat flange pierced for rivets, to cover the hand-hole of a shield.
+  mass: 0.6
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

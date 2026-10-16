@@ -112,6 +112,9 @@ describe("residency reset sweep", () => {
     // only appears once a player logs in).
     const elsewhere = makeStuff(() => new Location());
     const restore = presentIn(elsewhere);
+    // The setup's own moves record custody asynchronously (the movement
+    // primitive derives it) — let that land before the reading.
+    await new Promise((r) => setTimeout(r, 0));
 
     const rawOuter = ProxyApi.unwrap(crate as never) as unknown as {
       getLastTouched(): number;

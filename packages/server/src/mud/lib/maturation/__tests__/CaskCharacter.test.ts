@@ -251,7 +251,10 @@ describe('⭐⭐ imparts — the cask writes its character', () => {
     v.getMaturationPhase();
     fill(pail('fine', 25), v, 20);
     age(v, 12);
-    expect(aromaOf(v, 'oak')).toBeCloseTo(25, 4);
+    // A fresh extraction, not a doubled one — at the second fill's
+    // strength, because a cask spends a third of its character per fill
+    // (assembly D9; the refill used to give the whole of it again).
+    expect(aromaOf(v, 'oak')).toBeCloseTo(25 * 0.66, 4);
   });
 });
 
@@ -348,5 +351,50 @@ describe('⭐⭐ the age statement', () => {
     expect(
       BulkableApi.blendPayloads({}, 1, {}, 1).maturedDays,
     ).toBeUndefined();
+  });
+});
+
+describe('⭐⭐ the cask SPENDS its character fill by fill, and a re-fire restores it (assembly D9)', () => {
+  /** Empty the cask into a waiting pail — the batch is done with. */
+  function rack(v: Vat): void {
+    const sink = pail('fine', 0);
+    BulkableApi.transfer(slotOf(v), slotOf(sink), { kind: 'all', mode: 'strict' } as never);
+  }
+  function oneFill(v: Vat): number {
+    fill(pail('fine', 25), v, 20);
+    age(v, 12);
+    const got = aromaOf(v, 'oak');
+    rack(v);
+    return got;
+  }
+
+  it('the first fill gives all of it; each after gives a third less; the fourth nothing', () => {
+    profile();
+    const v = cask([{ type: 'oak', amount: 30 }]);
+    const first = oneFill(v);
+    const second = oneFill(v);
+    const third = oneFill(v);
+    const fourth = oneFill(v);
+    expect(first).toBeCloseTo(30, 3);
+    expect(second).toBeCloseTo(30 * 0.66, 3);
+    expect(third).toBeLessThan(second);
+    expect(fourth).toBeCloseTo(0, 6);
+    expect(v.getFillCount()).toBe(4);
+    expect(v.isSpent()).toBe(true);
+  });
+
+  it('⭐ a re-fire restores it — and a plain cask comes back CHARRED', () => {
+    profile();
+    const v = cask([{ type: 'oak', amount: 30 }]);
+    v.charredImparts = [{ type: 'char', amount: 100 }];
+    for (let i = 0; i < 4; i++) oneFill(v);
+    expect(v.isSpent()).toBe(true);
+    v.refire();
+    expect(v.getCharLevel()).toBe(1);
+    expect(v.isSpent()).toBe(false);
+    fill(pail('fine', 25), v, 20);
+    age(v, 12);
+    expect(aromaOf(v, 'char')).toBeCloseTo(100, 3);
+    expect(aromaOf(v, 'oak')).toBe(0);
   });
 });

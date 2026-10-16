@@ -163,19 +163,23 @@ export default class BuyController extends CommandController<BuyModel> {
       this.rejectBroke(giver, context, item, model);
       return;
     }
-    this.handOver(item, giver);
-    const owner = await this.buyerOf(giver, paid.receipt);
-    if (MixinApi.isChattel(item)) {
-      await item.stampChattel(owner);
-      // ⚠ And WHERE it is — the placement record every other custody
-      // verb writes (`get`/`drop`/`put`/`hang`). A bought good stamped but
-      // never placed was in nobody's estate: it vanished at the next
-      // restart unless it had been dropped and picked up once. Found by
-      // the fishing drive's restart step (a rod and a twist of fish food,
-      // bought and carried, were gone; a bowl once set down survived).
-      await item.followCustody();
+    // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
+    // as one heap: handing over the heap sold thirty staves for the price
+    // of one (found by the assembly drive). One comes off the heap.
+    if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
+      item = (await item.split(1)) as unknown as Stuff & Containable;
     }
-    this.announce(giver, item, paid.tail, owner);
+    const owner = await this.buyerOf(giver, paid.receipt);
+    // ⚠ Stamped BEFORE it is handed over, and named before: a piece that
+    // arrives where its like already is merges INTO it and is destroyed
+    // (the resident absorbs the arrival), so a stamp or a name after the
+    // move would land on nothing.
+    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    const named = item.getPresentation();
+    // `move` records where it now is (the fishing drive's restart: a
+    // bought good never placed was in nobody's estate).
+    this.handOver(item, giver);
+    this.announce(giver, item, paid.tail, owner, named);
   }
 
   /**
@@ -281,10 +285,7 @@ export default class BuyController extends CommandController<BuyModel> {
       await item.transferChattel(buyer); // stamp → buyer (or their house)
     }
     this.handOver(item, giver); // custody → buyer
-    if (MixinApi.isChattel(item)) {
-      shelf.removeListing(item.getChattelId());
-      await item.followCustody(); // placed in the buyer's estate, as above
-    }
+    if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
     this.announce(giver, item, paid.tail, buyer);
   }
 
@@ -337,12 +338,20 @@ export default class BuyController extends CommandController<BuyModel> {
     }
   }
 
-  private announce(giver: Stuff, item: Stuff, paid: string, owner: Stuff): void {
+  private announce(
+    giver: Stuff,
+    item: Stuff,
+    paid: string,
+    owner: Stuff,
+    named?: string,
+  ): void {
     const forHouse = owner === giver ? "" : ` for ${owner.getPresentation()}`;
+    // A piece that merged into a stack on arrival is named as it was.
+    const what = item.isDestroyed() ? Mml.text(named ?? "it") : Mml.thing(item);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You buy ${Mml.thing(item)}${forHouse}. ${paid}`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}${forHouse}.`)
+      .toSelf(Mml.compose`You buy ${what}${forHouse}. ${paid}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${what}${forHouse}.`)
       .send();
   }
 
@@ -352,7 +361,11 @@ export default class BuyController extends CommandController<BuyModel> {
     item: Stuff,
     model: BuyModel,
   ): void {
-    this.reject(giver, context, Mml.compose`You can't cover ${item.getPresentation()} just now.`, {
+    // ⚠ ONE piece: the price is per piece, and a stocked heap sits on the
+    // shelf as one stack — naming the heap told a broke buyer they had
+    // tried to buy all three (found by the assembly browser walk).
+    const one = item.presentationPhrase().withCount(1).render();
+    this.reject(giver, context, Mml.compose`You can't cover ${one} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
       detail: model.thing,

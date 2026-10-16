@@ -33,7 +33,6 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -389,7 +388,7 @@ export interface Atmospheric {
  */
 
 export function AtmosphericMixin<
-  TBase extends MixinConstructor<Stuff & Container>,
+  TBase extends MixinConstructor<Stuff>,
 >(Base: TBase) {
   return class AtmosphericMixin extends Base
     implements Atmospheric, Enclosed {
@@ -574,7 +573,7 @@ export function AtmosphericMixin<
     // ---------- temperature ----------
 
     public async getTemperature(detailKey?: string): Promise<Quantity<'K'>> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveTemperatureFor(self, detailKey);
     }
     public setTemperature(
@@ -607,13 +606,32 @@ export function AtmosphericMixin<
     }
 
     /**
+     * ⭐ What is IN this scope's air — the things a heat source, a
+     * re-stamp fan-out and the envelope's heat sum walk.
+     *
+     * The default is the host's contents when it is a `Container` (every
+     * `Location` and `Vessel`), and nothing otherwise. The widening to
+     * `MixinConstructor<Stuff>` is a claim about every Atmospheric
+     * composer — none may assume `getContents()` on `this` — and this is
+     * the one seam that says where a scope's occupants are.
+     *
+     * @hook Override where the class's air is a PLACEMENT rather than a
+     *   containment — `Chamber` answers `getPlaced('in')`. Never branch on
+     *   `isPlacing` here: the class whose air is a placement is the class
+     *   that says so.
+     */
+    protected occupants(): readonly Stuff[] {
+      const self = this as unknown as Stuff;
+      return MixinApi.isContainer(self) ? self.getContents() : [];
+    }
+
+    /**
      * Fire a re-stamp on every Thermal object directly contained in this
      * scope. Fire-and-forget (the setter is sync; `restamp` is async).
      * A thermal-listens-to-biome witness, not a dependency the other way.
      */
     private restampThermalContents(): void {
-      const self = this as unknown as Stuff & Container;
-      for (const content of self.getContents()) {
+      for (const content of this.occupants()) {
         if (MixinApi.isThermal(content)) {
           void content.restamp();
         }
@@ -623,7 +641,7 @@ export function AtmosphericMixin<
     // ---------- pressure ----------
 
     public async getPressure(detailKey?: string): Promise<Quantity<'Pa'>> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolvePressureFor(self, detailKey);
     }
     public setPressure(value: Quantity<'Pa'> | null, detailKey?: string): void {
@@ -647,7 +665,7 @@ export function AtmosphericMixin<
     // ---------- humidity ----------
 
     public async getHumidity(detailKey?: string): Promise<Quantity<'%'>> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveHumidityFor(self, detailKey);
     }
     public setHumidity(value: Quantity<'%'> | null, detailKey?: string): void {
@@ -671,7 +689,7 @@ export function AtmosphericMixin<
     // ---------- wind ----------
 
     public async getWind(detailKey?: string): Promise<Quantity<'m/s'>> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveWindFor(self, detailKey);
     }
     public setWind(value: Quantity<'m/s'> | null, detailKey?: string): void {
@@ -695,7 +713,7 @@ export function AtmosphericMixin<
     // ---------- gravity ----------
 
     public async getGravity(detailKey?: string): Promise<Quantity<'m/s²'>> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveGravityFor(self, detailKey);
     }
     public setGravity(
@@ -753,7 +771,7 @@ export function AtmosphericMixin<
     }
 
     public async getAtmosphere(detailKey?: string): Promise<string> {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveAtmosphereFor(self, detailKey);
     }
     /**
@@ -788,7 +806,7 @@ export function AtmosphericMixin<
     // ---------- what the medium carries (the fire build) ----------
 
     public getAtmosphereContents(): Concentrate[] {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.resolveAtmosphereContentsFor(self);
     }
 
@@ -810,7 +828,7 @@ export function AtmosphericMixin<
       if (!(litres > 0)) return 0;
       const volumeL = this.mediumLitres();
       if (volumeL === null) return 0;
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       // Open to the sky: it goes up, and that is the whole lesson of
       // running a fire outdoors.
       if (BiomeApi.isSkyExposed(self)) return 0;
@@ -952,7 +970,7 @@ export function AtmosphericMixin<
      * room's air mixes with the next room's long before its heat does.
      */
     public airChangesPerHour(): number {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       if (BiomeApi.isSkyExposed(self)) return Infinity;
       const { exterior, interior } = this.openingsByKind();
       const perOpening = envelopeDial(AppSettingKeys.fireAirAchPerOpening, 4);
@@ -968,7 +986,7 @@ export function AtmosphericMixin<
      * because the envelope's non-goal is still room-to-outside only.
      */
     private openingsByKind(): { exterior: number; interior: number } {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       if (!MixinApi.isExitable(self)) return { exterior: 0, interior: 0 };
       let exterior = 0;
       let interior = 0;
@@ -985,7 +1003,7 @@ export function AtmosphericMixin<
     }
 
     public airShare(): number {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       return BiomeApi.airShareOf(
         BiomeApi.resolveAtmosphereContentsFor(self),
       );
@@ -1022,7 +1040,7 @@ export function AtmosphericMixin<
      *    an envelope would have it drift toward itself.
      */
     public envelopeApplies(): boolean {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       if (this.getVolume() === null) return false;
       if (this._temperature !== null) return false;
       return !BiomeApi.isSkyExposed(self);
@@ -1038,7 +1056,7 @@ export function AtmosphericMixin<
      * air with each other as a general mechanism.
      */
     public openExteriorOpenings(): number {
-      const self = this as unknown as Stuff & Container;
+      const self = this as unknown as Stuff;
       if (!MixinApi.isExitable(self)) return 0;
       let open = 0;
       // The five guards live on `ExitableMixin` now (see
@@ -1080,7 +1098,7 @@ export function AtmosphericMixin<
      *   tier exists. Keep it CHEAP: `openExteriorOpenings` calls it once
      *   per obvious exit on a read that sits on the thermal hot path.
      */
-    protected isThreshold(far: Stuff & Container): boolean {
+    protected isThreshold(far: Stuff): boolean {
       return BiomeApi.isSkyExposed(far);
     }
 
@@ -1186,8 +1204,8 @@ export function AtmosphericMixin<
       this._envelopeReconciling = true;
       try {
         let heatW = 0;
-        const self = this as unknown as Stuff & Container;
-        for (const occupant of self.getContents()) {
+        const self = this as unknown as Stuff;
+        for (const occupant of this.occupants()) {
           if (!MixinApi.isSpaceHeating(occupant)) continue;
           heatW += occupant.spaceHeatOutputW();
         }
@@ -1447,8 +1465,7 @@ export function AtmosphericMixin<
       let heatInputW = 0;
       let hottestSource: string | null = null;
       let hottestW = 0;
-      const self = this as unknown as Stuff & Container;
-      for (const occupant of self.getContents()) {
+      for (const occupant of this.occupants()) {
         if (!MixinApi.isSpaceHeating(occupant)) continue;
         const w = occupant.spaceHeatOutputW();
         heatInputW += w;
@@ -1581,7 +1598,7 @@ export function AtmosphericMixin<
     private async walkWeatherLocality(): Promise<void> {
       const generation = this._weatherLocalityGeneration;
       try {
-        const self = this as unknown as Stuff & Container;
+        const self = this as unknown as Stuff;
         const locality = await AddressApi.resolveLocalityFor(self);
         // A reset landed while we were walking: the answer is about an
         // address this scope no longer has. Drop it; the reset already
@@ -1635,7 +1652,7 @@ export function AtmosphericMixin<
     private async walkClimateSite(): Promise<void> {
       const generation = this._climateSiteGeneration;
       try {
-        const self = this as unknown as Stuff & Container;
+        const self = this as unknown as Stuff;
         const site = await ZoneApi.climateSiteFor(self);
         if (generation !== this._climateSiteGeneration) return;
         this._climateSite = site;

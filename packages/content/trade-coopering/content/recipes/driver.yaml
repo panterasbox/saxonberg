@@ -1,0 +1,13 @@
+# A cooper's driver, forged from a bar.
+recipeId: driver
+name: Cooper's Driver
+keywords: [driver]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/coopering/thing/driver
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1200
+difficulty: easy
+discipline: smithing

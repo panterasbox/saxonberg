@@ -1,0 +1,24 @@
+# A smoker bellows — two wooden cheeks joined by a pleated leather
+# gusset, riveted to the side of a smoker's canister. ⭐ An assembly that
+# is a PART (assembly D3's nesting): its own bill is cheeks, gusset and
+# rivets; the smoker's bill names it as its wear part. The gusset is what
+# cracks, so it is the bellows a beekeeper buys — the general store
+# stocks them beside the smokers.
+class: /platform/thing/Assembly
+data:
+  shortDescription: smoker bellows
+  keywords: [smoker-bellows, "smoker bellows", "hand bellows"]
+  register: indefinite
+  longDescription: >-
+    A small hand bellows: two flat boards the size of a palm, hinged at
+    the nozzle end and joined round the rest by a pleated leather gusset
+    that has been oiled black.
+  mass: 0.4
+  _materialPath: /stuff/idea/material/wood/pine
+  bill:
+    parts:
+      - { part: cheek, plural: cheeks, template: /trade/carpentry/thing/frame-bar, count: 2, role: structural, material: /stuff/idea/material/wood/pine }
+      - { part: gusset, template: /trade/tanning/thing/bellows-gusset, count: 1, role: structural, material: /stuff/idea/material/organic/leather }
+      - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 4, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: gusseting, method: riveted, members: [cheek, gusset], fastener: rivet }

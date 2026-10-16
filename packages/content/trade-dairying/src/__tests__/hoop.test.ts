@@ -53,7 +53,7 @@ function weigh(on: Hoop, room: TestRoom, kg: number): void {
   const stone = makeStuff(() => new Good());
   stone.setMass(Quantity.of(kg, 'kg'));
   ContainmentApi.move(stone, room);
-  ContainmentApi.place(stone, 'on', on);
+  ContainmentApi.move(stone, on, 'on');
 }
 
 async function settle(): Promise<void> {

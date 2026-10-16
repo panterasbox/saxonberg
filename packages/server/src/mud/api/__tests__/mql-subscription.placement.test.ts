@@ -102,7 +102,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     const apple = await makeThing('a red apple');
     ContainmentApi.move(chest, location);
     // `on` the lid — Chest offers `on` by default.
-    ContainmentApi.place(apple, 'on', chest);
+    ContainmentApi.move(apple, chest, 'on');
 
     const appleRef = MqlSubscriptionApi.projectFields(
       apple,
@@ -117,7 +117,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     const chest = await StuffApi.create(() => new Chest());
     const apple = await makeThing('a red apple');
     ContainmentApi.move(chest, location);
-    ContainmentApi.place(apple, 'on', chest);
+    ContainmentApi.move(apple, chest, 'on');
 
     const chestDetail = MqlSubscriptionApi.projectFields(
       chest,
@@ -153,7 +153,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     try {
       // Same container (apple already in the location) — `move` is a
       // no-op, so only the explicit placement fire proves the wake.
-      ContainmentApi.place(apple, 'on', chest);
+      ContainmentApi.move(apple, chest, 'on');
     } finally {
       spy.mockRestore();
     }

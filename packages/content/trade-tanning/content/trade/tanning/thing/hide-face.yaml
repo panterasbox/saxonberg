@@ -1,0 +1,19 @@
+# A hide face — a round of thick tanned hide cut to cover a shield's
+# boards. ⭐ The shield's FACING (`role: facing`): the part an edge meets
+# first, glued over the boards so a cut that would split the wood along
+# its grain is turned by leather that has no grain to split.
+#
+# ⚠ The shield's bill wants this line read as a `hide` covering; a leaf
+# part row has no construction axis to carry that (no kernel leaf class
+# composes it), so the line's resistance is the leather's own.
+class: /platform/thing/Tool
+data:
+  keywords: [hide-face, "hide face", "shield face", facing]
+  shortDescription: shield face of hide
+  register: indefinite
+  longDescription: >-
+    A round of stiff tanned hide a little wider than a shield, its edge
+    pierced all round for stitching over the rim.
+  mass: 1.0
+  capabilities: []
+  _materialPath: /stuff/idea/material/organic/leather

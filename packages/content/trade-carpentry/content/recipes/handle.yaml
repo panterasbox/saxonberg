@@ -1,0 +1,13 @@
+# A handle — ⭐ the tool tree's root is here: a carved handle and a
+# smith's blade are a froe (`fit froe`). Run by `carve`.
+recipeId: handle
+name: Handle
+keywords: [handle, grip]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/handle
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

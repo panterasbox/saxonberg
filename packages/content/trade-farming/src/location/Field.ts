@@ -213,7 +213,7 @@ export default class Field extends FieldBase {
    * rather than shadowing them.
    */
   static commandContributions = {
-    self: ['trade/farming/cmd/farming/plough.yaml'],
+    // `inventory`: a location's occupants hear it (`self` is a giver's).
     inventory: ['trade/farming/cmd/farming/plough.yaml'],
   };
 
@@ -762,10 +762,9 @@ export default class Field extends FieldBase {
   private async mintSpoil(row: string): Promise<Stuff | null> {
     try {
       const thing = await StuffApi.clone<Stuff>(row);
-      ContainmentApi.move(
-        thing as Stuff & Containable,
-        this as unknown as Stuff & Container,
-      );
+      // ⭐ The hook names no actor, so the spoil carries no title — but
+      // the move captures the field with it in it.
+      ContainmentApi.move(thing as Stuff & Containable, this as unknown as Stuff & Container);
       return thing;
     } catch {
       // ⚠ A missing spoil row is a content gap, not a reason to lose the

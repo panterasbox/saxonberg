@@ -223,6 +223,7 @@ export class EmploymentApi {
     return logic().ensureOperatorAt(locationPath);
   }
 
+
   /** The Business `subject` proprietors, or null. */
   public static businessOfProprietor(subject: Stuff): BusinessStuff | null {
     return logic().businessOfProprietor(subject);

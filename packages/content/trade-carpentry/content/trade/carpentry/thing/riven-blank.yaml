@@ -1,0 +1,23 @@
+# A riven blank — a billet split down with a froe to a straight-grained
+# piece about the size of the part it will be carved into.
+#
+# ⭐ The class is the trade's `Blank`, because the blank is what makes
+# `carve` sayable: a kernel class may not name a pack's view, so the
+# thing that invites carving is this pack's. Riven, because a haft or a
+# peg carved from riven wood has fibres that run its whole length.
+#
+# The row's own seasoning is the timber yard's: a blank bought off the
+# yard has stood a season. One a player rives off a fresh billet carries
+# the billet's greenness instead (the craft mint takes the greenest input).
+class: /trade/carpentry/thing/Blank
+data:
+  shortDescription: riven blank
+  keywords: [blank, blanks, riven-blank, "riven blank", riven]
+  register: indefinite
+  longDescription: |
+    A split length of wood a little longer than a forearm, roughly squared by the froe, the grain running straight from one end to the other.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 1.2
+  constructionForm: riven
+  seasonedFraction: 1
+  quantity: 1

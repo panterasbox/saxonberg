@@ -18,9 +18,13 @@
 # ⚠ The stem is the bare noun. `Candle.getShortDescription` puts the
 # material in front of it (*tallow candle*), so authoring one here would
 # render *beeswax beeswax candle*.
+#
+# ⚠ It does not answer to `wick`. A lantern's wick is a PART (the
+# chandler's `wick` row), and a bill's part is matched by keyword: a
+# candle answering to `wick` would be fitted into a lantern's burner.
 class: /trade/chandlery/thing/Candle
 data:
-  keywords: [candle, taper, wick]
+  keywords: [candle, taper]
   shortDescription: candle
   register: indefinite
   longDescription: ""

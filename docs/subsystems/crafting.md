@@ -398,7 +398,7 @@ properties emerge from components) is a genuinely different model,
 still deferred — not faked.
 
 > ⭐⭐⭐ **The deferral acquired a DRIVER 2026-10-09 —
-> [assembly-slate](../slates/builds/assembly-slate.md).** The one-line
+> [assembly-slate](../slates/tails/assembly-slate.md).** The one-line
 > definition above is kept verbatim there; what the slate adds is the
 > **epoch argument**: a factory is an assembly of assemblies, so
 > **you cannot build a factory until you can build a thing from parts**,
@@ -412,6 +412,21 @@ still deferred — not faked.
 > scrap*, so the verb needs a reader rather than a sibling; and ⚠
 > **`Durable` wear with no parts makes every failure TOTAL** — an axe is a
 > head and a haft, and the haft is what breaks.
+
+> ⭐⭐ **Built by the assembly build (MR !361): `AssembledMixin` composes
+> only on a class that IS made of parts.** Each family that has
+> assembled members gets a narrow subclass — `AssembledTool`,
+> `AssembledWeapon`, `AssembledLauncher`, `AssembledGarment`, `Cask`
+> (a `Vat` of staves), `Lantern` (a `Lamp` with panes), `AssembledChair`,
+> the generic `Assembly`, and two pack ones — and the broad family
+> (`Tool`, `Vat`, `Lamp`, `Chair`, `Receptacle`) stays as it was. The
+> first cut put it on the families as "vacuous for a one-input thing",
+> and every caller grew an `isAssembly()` guard to re-narrow the host
+> set: the tell that the host is wrong ([antipatterns.md § a mixin composed on a
+> broad family](../antipatterns.md#a-mixin-composed-on-a-broad-family-then-guarded-back-down)). `MixinApi.isAssembled` is now the
+> whole question, and `lint:bills` arm 7 holds *a row has a bill ⇔ its
+> class composes `AssembledMixin`* both ways. The full model — bills, joints,
+> wear, the grain carry — is [assembly.md](./assembly.md).
 
 ## The offer: `CommerceMenu` + the venue subclasses
 
@@ -1089,143 +1104,22 @@ reset on restart).
 | Recipe knowledge | **`documents {kind: recipe}`** (the `generic-objects` pack) | persisted reference data, pack-installed |
 | Crafted drinks | transient runtime matter | reset on restart |
 
-### ⛔⛔ DEFECT — a crafted good minted onto a floor is INVISIBLE to persistence
+### ✅ A made good is where it was left — custody is derived in `move`
 
-Found 2026-10-09 by a static read, not yet driven.
-**Fix deferred to the next build by the owner's decision.**
-
-⚠⚠ **The row above is honest for a drink and quietly wrong for anything
-you LEAVE.** `furnishing.md` names the failure class exactly:
-
-> *"**A good MINTED onto a floor has no `place` until something says
-> so.** Only the custody verbs (`drop`/`put`/`get`) call `followCustody`;
-> a verb's completion that clones a good into a persistable room and
-> stamps it **has placed it nowhere — the room's capture skips it** and
-> the overlay never finds it."*
-
-**The census:** `followCustody` is called by `hang` · `get` · `put` ·
-`drop` · `buy` (×2) · and **`fell`** — the only trade verb.
-⛔⛔ **Crafting calls it ZERO times.** Neither `CraftingLogic` nor any
-`cmd/crafting/*` controller calls `followCustody` **or**
-`captureHostOf`.
-
-**Everything else in the chain works**, which is why this has gone
-unnoticed: the shutdown sweep is wired (`AppBootstrap.ts:325` →
-`PersistableApi.captureAtShutdown()`); a room's estate slice
-**re-captures loaded, stamped contents fresh** (*"a plant that grew keeps
-its growth"*); and even the owner-offline dormancy case has its third
-path (`CaptureContext.noteOwnedGood`). **The break is upstream, at the
-mint.**
-
-#### ⭐⭐⭐ Why it is invisible for most goods and fatal for a cask
-
-> **The defect does not bite on goods you carry away, and it is total for
-> goods whose purpose is to SIT STILL.**
-
-Craft a hammer and you pick it up — `get` calls `followCustody` and
-nothing is lost. Craft a **`Vat`**, fill it, seal it and **leave it**,
-because leaving it is the entire point: nothing ever places it, so
-nothing ever captures it, and `MaturingMixin`'s
-`maturationClockStamp` reverts to its class default of **`0`**. On the
-next window event `if (this.maturationClockStamp === 0)` restamps to
-*now*. ⛔ **The whisky un-ages.**
-
-⚠ Maturation itself is innocent: `reconcileFerment` fires on window
-events only (`setOpen`/`open`/`close`/`onMoved`) and **correctly** calls
-no capture — the sweep would have covered it.
-
-#### ✅ The fix — one line, with a shipped exemplar
-
-`trade-forestry`'s `FellController` is the first verb to hit this and the
-only one that handles it:
-
-```ts
-await thing.followCustody();              // :364
-await PersistableApi.captureHostOf(host); // and capture the OWNER
-```
-
-Its own comment says why: *"without this a bole on the ride was skipped
-by the room's capture."* And the owner capture matters because *"a live
-owner's estate is otherwise written only on the residency cadence or at
-logout."*
-
-> **So: call `followCustody` + `captureHostOf` at the craft mint.** One
-> change in craft-resolve fixes **every trade at once**, because every
-> recipe output goes through the same `applyTangibleOutput` tail.
-
-⚠ **And it wants a gate after**, because the next minting verb will
-forget too — a **census-then-ratchet** over *verbs that mint a good into a
-room without calling `followCustody`*, which is grep-able even where the
-full rule is not statically decidable.
-
-⚠ **Still owed: the live confirmation.** The static path says *skipped*;
-only a drive proves *lost*. Two checkpoints — craft a cask, seal it, read
-the stamp, restart, read it again. ⛔ Not from the `master` worktree (it is
-documents-only and the port is shared).
-
-## The knowledge ladder, generalized (open canon, earned shorthand)
-
-Recipes are open information — readable in-world, wiki-equivalent by
-design. What is *earned* is the shorthand (`lib/script/RecipeKnowledge`
-— chronicle-derived, see [scripting.md](./scripting.md) /
-[chronicle.md](./chronicle.md)):
-
-- **Claim (known-of)** — minted by *reading* a recipe source (the
-  menu), **or by watching a maker perform**: `recordCraftEvidence` (the
-  craft-resolve tail, both one-shot and by-hand mint) grants every
-  other present command-giving agent with a durable identity the
-  known-of claim, idempotently.
-- **Deed (can-make)** — only your own first faithful by-hand
-  performance (the reverse-match verified it; the same act transcribes
-  the personal recipe-script). The book isn't enough — the hands learn.
-- **The gates**: `make`/`forge`/`cook` decline without the deed
-  ("work it by hand first"); `order` is never gated. A spoiler wiki
-  yields exactly what an in-world recipe card yields — information buys
-  optimization, never competence (the wiki-parity test:
-  `knowledge-ladder.test.ts`).
-
-**Advancement evidence** rides the same tail: a matched recipe that
-authors a `discipline` appends a Transcript deed
-(`creditDeed`) at its authored `difficulty` — the seeded
-`smithing` (ISCED-F 0715) / `cooking` (1013) Disciplines, the
-`mixology` shape. Control stays **fixed** this build (the skill seam is
-the declared next crafting wave); the evidence simply accrues honestly,
-and the BKT difficulty coupling already makes trivial-recipe grinding
-worthless. The seeded rosters span a deliberate difficulty ladder per
-branch (trivial → hard rungs in the `generic-objects` pack — the ZPD
-obligation: the recipe tiers ARE the ladder a learner climbs).
-
-## ⭐⭐⭐ `canMake` — one read, for a player and an NPC alike
-
-Every knowledge gate in the crafting family now asks one question through
-`CraftingApi.canMake(recipeRef)`, and there are exactly two ways to be able:
-
-1. **The lived deed** — a chronicle row saying you have made this before.
-   ⭐ A player earns this by making it by hand, once, and it is **the only
-   way a player ever earns it**. *The hands learn.*
-2. **The seeded deed** — your authored dossier licensed work of this
-   difficulty in this Discipline (`AdvancementMixin.seededBandFor` folded
-   through `Competence.seedRunFor`). ⚠⚠ Only a dossier writes `claim`-kind
-   Transcript rows, so this leg is **structurally unavailable to a player**:
-   twenty hand-built gin-tonics raise a player's *lived* band and license
-   nothing by assertion.
-
-That split is what lets Mara mix a Manhattan the first time anybody orders
-one — *a person who has tended this bar for years has made one before* —
-without handing a player a shortcut past the same work.
-
-⭐ **Consequences, by band, with no new content**: `competent` is six *easy*
-successes, `proficient` four *standard*, `expert` four *hard*. So Sloane and
-Augie (competent) make the easy pours, Mara and Remy (proficient) make the
-standard cocktails, and **nothing any dossier can assert reaches
-`formidable`** — the hardest recipes in the realm are hand-only, for
-everybody. That is a statement, not an oversight.
-
-⚠ A recipe with **no `discipline` or no `difficulty` is ungated**, which is
-right: a pint is poured, not mixed. And a ref naming no shipped recipe
-passes — it is somebody's own `def`, which they wrote. ⭐ A maker that cannot
-hold competence at all is also ungated: the gate asks *has this person
-learned it*, and a thing that cannot learn is not failing to have learned.
+Found 2026-10-09 (a crafted good minted onto a floor was placed nowhere,
+so the room's capture skipped it and a sealed cask's clock reset at
+restart); **resolved by the assembly build (MR !361)** — first as a
+`ContainmentApi.land` chokepoint plus a `lint:mint-custody` ratchet, then,
+in review, by deleting both: ⭐⭐ **custody is derived in the movement
+primitive itself.** `ContainmentApi.move` records an owned good's place
+on every move by anyone, and titles a FRESH good (arriving from nowhere)
+by derivation — first from what it was **made from** (the craft mint
+passes its consumed inputs as `madeFrom`; a member salvaged out of a
+whole is the whole's owner's); else the hands it lands in; else the
+acting person in a live command; else its recorded maker. No verb stamps
+or follows custody by hand, so there is nothing for the next verb to
+forget. See
+[spatial.md § Two layers of movement](./spatial.md).
 
 ### The refusal names somebody
 

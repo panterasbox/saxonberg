@@ -44,6 +44,20 @@ transfer.
 expressible. **Read-side only**: only the `player` arm is ever stamped, so
 no stored row gains a group owner.
 
+### ⭐ Who owns a freshly made good — derived, never stamped by hand (assembly build)
+
+A good arriving from nowhere (just minted) is titled by
+`ContainmentApi.move` itself, in order: the owner of what it was **made
+from** (`StuffApi.clone(row, ctx, { madeFrom })`) → the person whose
+**hands** it lands in → the person **acting** in a live command → the
+recorded **maker**. With none of those (a seed a plant sets, a spoil a
+field hook mints) it carries no title. Custody (`followCustody`) is derived
+in the same primitive on every move. `ContainmentApi.place`/`land` and the
+hand-called `stampChattel` + `followCustody` pair at mint sites are gone —
+see [spatial.md](./spatial.md) for the move's full sequence. A hand
+`stampChattel` remains only where title is a decision, not a derivation
+(a sale, a consignment, naming an animal).
+
 ## Where the owner keeps it — `place`
 
 A stamped good also carries a **`place`** (a room identity, `'inventory'`,

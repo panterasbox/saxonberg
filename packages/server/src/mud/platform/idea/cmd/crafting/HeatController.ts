@@ -120,7 +120,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
       );
       return;
     }
-    ContainmentApi.place(target, 'on', fire);
+    ContainmentApi.move(target, fire, 'on');
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You set ${Mml.thing(target)} on ${Mml.thing(fire)} to take the heat.`)

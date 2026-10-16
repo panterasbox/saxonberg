@@ -76,7 +76,7 @@ export interface Placing {
    * host's environment and filtering by
    * `Containable.getPlacement()?.host === this`. With `name`, only the
    * items placed under that member. Returned readonly; mutate via
-   * `ContainmentApi.place` / `ContainmentApi.move`.
+   * `ContainmentApi.move`.
    */
   getPlaced(name?: string): readonly (Stuff & Containable)[];
 

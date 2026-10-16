@@ -1,0 +1,29 @@
+# The sawmill's race — ⭐ a second `ControlStructure` on the same reach as
+# the grist mill's, authored as valley content with no code and no roster
+# edit. `WatercourseCatalogue` finds water works by CLASS, so this row is
+# a water work because of what it is.
+#
+# ⚠⚠ `passFraction: 1`, as the millrace: everything that comes down the
+# race goes back into the river below the wheel. Two mills on one fall
+# borrow the same water twice and divert none of it — which is exactly
+# why a fall carries a staircase of mills and why nobody downstream
+# minds.
+#
+# `headM: 2` — the few feet left below the grist mill's tailrace, which
+# is why this wheel is undershot and makes a third of the power: the drop
+# is the scarce thing, and the first mill on a fall took the most of it.
+class: /system/water/thing/ControlStructure
+data:
+  shortDescription: sawmill race
+  keywords: [race, leat, channel, hatch, "sawmill race"]
+  register: definite
+  longDescription: |
+    A shallow stone-sided channel taken off the river below the grist mill, leading the water a few feet down onto an undershot wheel. A wooden hatch at the head of it lifts on a chain.
+  # Stone-sided — what it is made of, so it weighs something (`lint:mass`).
+  _materialPath: /stuff/idea/material/rock/granite
+  controlKind: weir
+  reachRef: delight:flats
+  passFraction: 1
+  headM: 2
+  generates: true
+  ownerRef: "group:hearts-delight"

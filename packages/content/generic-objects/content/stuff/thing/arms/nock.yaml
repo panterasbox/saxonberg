@@ -1,0 +1,17 @@
+# A nock — a shaped tip of horn, grooved for a bowstring, glued over the
+# end of a bowstave so the string bears on horn rather than cutting into
+# the wood. ⭐ A part of the commons, beside the arrow, rather than of a
+# trade: horn is worked by a horner and there is no horner yet, so the
+# bow's bill names this row and the general store sells it — a stand-in,
+# recorded as one.
+class: /platform/thing/Tool
+data:
+  keywords: [nock, nocks, horn-nock, "horn nock"]
+  shortDescription: horn nock
+  register: indefinite
+  longDescription: >-
+    A thumb-sized cap of polished cow horn, hollowed to fit over the tip
+    of a bow and cut across with a groove for the string.
+  mass: 0.01
+  capabilities: []
+  _materialPath: /stuff/idea/material/organic/horn

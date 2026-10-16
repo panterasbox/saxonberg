@@ -164,7 +164,8 @@ describe('the improvement axis', () => {
 
   it('the ground affords its own acts — a static on the class, not a row', () => {
     // ⚠ A row's `commandContributions:` is dead silently.
-    const verbs = CommandApi.collectContributions(TestGround, 'self')
+    // `inventory`: the people standing on it (`self` is a giver's).
+    const verbs = CommandApi.collectContributions(TestGround, 'inventory')
       .map((d) => d.verbs)
       .flat();
     for (const v of ['grub', 'ditch', 'lime']) expect(verbs).toContain(v);

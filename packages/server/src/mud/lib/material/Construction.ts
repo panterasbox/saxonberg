@@ -108,6 +108,38 @@ export const WEAPON_DELIVERY_FORMS = [
 /** A weapon-delivery form — one of {@link WEAPON_DELIVERY_FORMS}. */
 export type DeliveryForm = (typeof WEAPON_DELIVERY_FORMS)[number];
 
+/**
+ * ⭐ The **stock** forms — how converted wood (or any worked stock) was
+ * SHAPED from its parent, which decides how whole its fibres are. Closed,
+ * kernel-only, and a third domain: neither a covering (it resists nothing
+ * as a layer) nor a delivery (it strikes nothing), so every guard on
+ * `responseFor` / `deliveryFor` / `getLayerDepth` holds and every hot path
+ * that filters `isCovering()` keeps skipping it (assembly D10).
+ *
+ * - `riven` — split along the grain with a froe: the fibres run the whole
+ *   length unbroken. A riven stave holds liquor; a riven haft does not
+ *   snap across.
+ * - `sawn` — cut by a saw, which crosses fibres wherever the grain wanders:
+ *   weaker under a blow and a jar, and it weeps.
+ * - `hewn` — dressed with an axe or adze: mostly along the grain, some
+ *   torn.
+ */
+export const STOCK_FORMS = ['riven', 'sawn', 'hewn'] as const;
+/** A stock form — one of {@link STOCK_FORMS}. */
+export type StockForm = (typeof STOCK_FORMS)[number];
+
+/**
+ * How whole a stock form leaves the material, per channel — 1 is the
+ * material's own figure, below 1 is fibre cut across. Grain constants (an
+ * author's numbers, recorded), read by {@link Construction.integrityFor}.
+ * Channels not named read 1.
+ */
+const STOCK_INTEGRITY: Record<StockForm, Partial<Record<Channel, number>>> = {
+  riven: {},
+  sawn: { blunt: 0.7, shock: 0.7, point: 0.85 },
+  hewn: { blunt: 0.85, shock: 0.85 },
+};
+
 /** The full KERNEL construction-form vocabulary (both domains). */
 export const CONSTRUCTION_FORMS = [
   ...COVERING_FORMS,
@@ -129,7 +161,7 @@ export type CoveringForm = string;
 export type ConstructionForm = string;
 
 /** Which vocabulary a form belongs to. */
-export type ConstructionDomain = 'covering' | 'weapon-delivery';
+export type ConstructionDomain = 'covering' | 'weapon-delivery' | 'stock';
 
 /**
  * One registered non-resisting textile form, hydrated from a
@@ -305,6 +337,10 @@ function isDeliveryForm(s: string): s is DeliveryForm {
   return (WEAPON_DELIVERY_FORMS as readonly string[]).includes(s);
 }
 
+function isStockForm(s: string): s is StockForm {
+  return (STOCK_FORMS as readonly string[]).includes(s);
+}
+
 /**
  * Construction — an immutable value-object naming one {@link
  * ConstructionForm} and exposing its per-channel profile. Constructed via
@@ -343,8 +379,9 @@ export class Construction {
    * 2026-09-14 vocabulary-guard audit.
    */
   public static isForm(s: string): boolean {
-    return isCoveringForm(s) || isDeliveryForm(s);
+    return isCoveringForm(s) || isDeliveryForm(s) || isStockForm(s);
   }
+
 
   /** Is `s` a covering form (kernel resist-bearing OR registered fabric)? */
   public static isCoveringForm(s: string): boolean {
@@ -462,7 +499,7 @@ export class Construction {
     if (!Construction.isForm(form)) {
       throw new RangeError(
         `Construction.of: unknown form '${form}' (expected one of ` +
-          `${CONSTRUCTION_FORMS.join(', ')}` +
+          `${[...CONSTRUCTION_FORMS, ...STOCK_FORMS].join(', ')}` +
           (FABRICS.size > 0 ? `, ${[...FABRICS.keys()].join(', ')}` : '') +
           `)`,
       );
@@ -477,7 +514,25 @@ export class Construction {
 
   /** Which vocabulary this form belongs to. */
   public getDomain(): ConstructionDomain {
+    if (isStockForm(this._form)) return 'stock';
     return isCoveringForm(this._form) ? 'covering' : 'weapon-delivery';
+  }
+
+  /** Is this a stock form — how worked stock was shaped? */
+  public isStock(): boolean {
+    return isStockForm(this._form);
+  }
+
+  /**
+   * ⭐ How whole this construction leaves its material on `channel` — a
+   * multiplier on the material's own figure, 1 for every non-stock form
+   * (a covering's or a weapon's shape is read by its own profile, never
+   * here). A sawn stave is 0.7 of a riven one under a jar, because the saw
+   * cut the fibres the froe followed (assembly D10, AC 20).
+   */
+  public integrityFor(channel: Channel): number {
+    if (!isStockForm(this._form)) return 1;
+    return STOCK_INTEGRITY[this._form][channel] ?? 1;
   }
 
   /**
@@ -507,7 +562,7 @@ export class Construction {
   public responseFor(channel: Channel): ResistToken {
     if (!isCoveringForm(this._form)) {
       throw new RangeError(
-        `Construction.responseFor: '${this._form}' is a weapon-delivery form, not a covering`,
+        `Construction.responseFor: '${this._form}' is not a covering form`,
       );
     }
     if (!Channels.isMechanicalChannel(channel)) {
@@ -528,7 +583,7 @@ export class Construction {
   public deliveryFor(channel: Channel): DeliveryToken {
     if (!isDeliveryForm(this._form)) {
       throw new RangeError(
-        `Construction.deliveryFor: '${this._form}' is a covering form, not a weapon`,
+        `Construction.deliveryFor: '${this._form}' is not a weapon-delivery form`,
       );
     }
     if (!Channels.isMechanicalChannel(channel)) return 'none';
@@ -605,6 +660,13 @@ export class Construction {
    * healthy roster returns `false` for every form.
    */
   public doesNothing(): boolean {
+    if (isStockForm(this._form)) {
+      // A stock form has effect iff it leaves some channel less than whole
+      // — except `riven`, which IS the reference (whole everywhere), and is
+      // the form every other is measured against, so it is not inert.
+      if (this._form === 'riven') return false;
+      return Object.values(STOCK_INTEGRITY[this._form]).every((v) => v === 1);
+    }
     if (isCoveringForm(this._form)) {
       const profile = isKernelCoveringForm(this._form)
         ? COVERING_PROFILES[this._form]
