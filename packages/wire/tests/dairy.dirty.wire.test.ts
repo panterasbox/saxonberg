@@ -739,7 +739,13 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
   it('⭐⭐ three weeks on, `look wheel` and `taste wheel` read its ripening in words', async () => {
     // A hard cheese comes on at about eighteen days at 284 K (the
     // profile's 0.3 at 0.0167/day) — a fortnight is honestly still young.
-    await advance('21 days');
+    // ⚠ In three-day steps with a look between: one 21-day jump leaves the
+    // server grinding its catch-up (94% CPU, run 27) and the next command
+    // waits behind it past any timeout.
+    for (let i = 0; i < 7; i++) {
+      await advance('3 days');
+      await read(k, 'look');
+    }
     await untilHour(12);
     const look = await read(k, 'look wheel');
     const taste = await read(k, 'taste wheel');
