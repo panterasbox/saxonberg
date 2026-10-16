@@ -19,29 +19,19 @@ and the drive file. W8 is stretch, first to cut.
 
 ---
 
-> ⚠⚠ **RE-PLAN BEFORE BUILD — waits on dairy (build-2), repair (build-3)
-> and storage-and-ice (build-4), 2026-10-16.**
-> 1. **D10 moulds → dairy's kernel mould system.** Dairy ships
->    `lib/mould/Mould.ts` (`MouldMixin`, `platform/thing/Mould`: a vessel
->    that decides the shape of what sets in it — `castTemplateFor`).
->    repair's `moulding-slate` § 5 already decided *"rubber's way"*:
->    every heat-driven set (bake, vulcanise, fire) is a recipe **fired
->    with its charge IN a mould, and the firing asks the mould for its
->    shape**. So D10's `Tool`-row moulds and the `consumed: false` recipe
->    slot are a second mould concept and go; the charge goes into a
->    dairy `Mould` row, the mould goes into the oven, and `runFiring`
->    asks the mould for the output's template. The cure (D9) is unchanged.
-> 2. **D13.2 latex setting → a set process on dairy's hook**, not a new
->    solid product in the maturation engine. Latex coagulating with no
->    act is moulding-slate's *cure* row (a chemical set with no act,
->    deferred by dairy); a coagulating pan is a mould whose cast is the
->    raw-rubber sheet. Re-plan against whatever form dairy's set hook
->    finally takes.
-> 3. **The bill of materials and building upkeep** may land in repair
->    (build-3), which is reopened on *"building upkeep, layer by layer"*.
->    D1a's per-place layers are its seam; check its plan does not put
->    materials on `Structure` (refused here, D2).
-> 4. **storage-and-ice** — the shared wet law (D12.1) and the ice
+> ⚠⚠ **BUILD GATE (2026-10-16).** Start `/build` only after **dairy
+> (build-2) has merged** — D10 and D13.2 build on its mould system — and
+> after the **repair (build-3)** and **storage-and-ice (build-4)** plans
+> have settled. Then re-ground:
+> 1. **Moulds (D10, D13.2)** — re-verify every dairy name on master.
+>    Rubber ships BEFORE the moulding build by the user's choice and takes
+>    exactly one of its seams (a firing asks the mould for its shape),
+>    written so moulding moves nothing (D10's four rules).
+> 2. **Bill of materials and building upkeep** may land in repair, which
+>    was reopened on *"building upkeep, layer by layer"*. D1a's per-place
+>    layers are its seam; confirm its plan does not put materials on
+>    `Structure` (refused here, D2), and fold in whatever it settled.
+> 3. **storage-and-ice** — the shared wet law (D12.1) and the ice
 >    material's light absorption; whichever lands first owns them.
 
 ## Grounding
@@ -703,23 +693,62 @@ gains one branch: if any consumed input's material carries a
 table, and the glass and lime firings never enter it. A test in
 `lib/material/__tests__/Crosslinking.test.ts` prints the curve.
 
-**D10 — The mould decides the shape: a recipe slot that is matched and
-not consumed.** `RecipeInputSlot` gains `consumed?: boolean` (default
-`true`; a Document field, additive, round-trip-tested). `firingsFor`
-matches it like any item slot; `runFiring` skips it when consuming.
-Five recipe rows in `trade-rubber/content/recipes/` — `vulcanize-boots`,
-`-gloves`, `-sheet`, `-ring`, `-tube` — each `{raw rubber (category
-elastomer-raw, count 1), sulfur (category sulfur, count 1), mould
-(category boot-mould …, consumed: false)}`, `requiresHeatK: 400`,
-`holdS: 1800`, `maxHeatK: 455`, `outputTemplate` the shape. The moulds
-are `Tool` rows carrying a material tag per shape (cast iron, a mould
-material row tag `boot-mould` etc. — ⚠ tags are on MATERIALS; so each
-mould row names a small `/trade/rubber/idea/material/mould-<shape>`
-iron-`extends:` material carrying the tag, the way the quarry's `wins`
-rows name materials). Lens 2: a sixth product is a mould row and a
-recipe row. Craft-resolve (`make`) is untouched: `consumed: false` is
-honoured there too (it already treats tools as reachability, so a
-non-consumed slot in a `make` recipe simply isn't consumed).
+**D10 (revised 2026-10-16) — The mould decides the shape, on DAIRY's
+mould system; rubber builds exactly one seam of the moulding build and no
+more.** Ordering decided by the user: rubber ships before the moulding
+build (repair's `moulding-slate`), so it takes the seam that slate's
+*"rubber's way"* ruling names — **a firing of a mould's contents asks the
+mould for its shape** — and leaves everything else (pressing as a load,
+the pour that fails, impressions, consumed moulds, dry/cure/bake as set
+processes) to moulding. ⛔ The earlier D10 (`Tool`-row moulds and a
+`RecipeInputSlot.consumed` flag) is **dropped**: it was a second mould
+concept beside dairy's.
+
+- **Prerequisite: dairy is merged.** It ships `lib/mould/Mould.ts`
+  (`MouldMixin`, `Mould` interface, `castTemplateFor(material)`,
+  `takeCast`, wear per cast, a broken mould casts a lump) and the
+  instanceable `platform/thing/Mould`. Re-verify every name against
+  master at W4 — the dairy plan's names are not grounding.
+- **The moulds are dairy `Mould` rows** in `trade-rubber` — `boot-mould`,
+  `glove-mould`, `sheet-mould`, `ring-mould`, `tube-mould` — each naming
+  its `castTemplate` (the boot, the glove…), reusable, crediting
+  `discipline: chemistry`. A sixth product is one mould row and one thing
+  row; **no recipe row per shape.**
+- **One vulcanize recipe** (`trade-rubber/content/recipes/vulcanize.yaml`):
+  input slots raw rubber (category `elastomer-raw`) + sulfur (category
+  `sulfur`), `requiresHeatK: 400`, `holdS: 1800`, `maxHeatK: 455`, and
+  **no `outputTemplate`** — the shape is the mould's. A charge fired with
+  no mould comes out as the material's own lump (dairy's fallback rule,
+  which is exactly *a plain vessel casts a lump*).
+- ⭐ **The seam — ONE call site, written to be moved, not rewritten.**
+  `FireController.runFiring` (and `firingsFor`, which must see a charge
+  that sits one container down, inside a mould standing in the chamber)
+  gains one branch: when the consumed charge stood in a `Mould`
+  (`MixinApi.isMould`), the output's template is
+  `mould.castTemplateFor(outcomeMaterial)` and the cast goes through
+  `mould.takeCast(cast)` (so wear, grade and maker ride exactly as dairy's
+  pour does); otherwise the recipe's `outputTemplate`, else the
+  material's lump. Rules that keep the moulding build's refactor trivial:
+  1. **No rubber word in the seam.** It reads *a mould* and *the outcome
+     material*; the cure's `Crosslinking` outcome (D9) only chooses the
+     material. Bread in a tin and fired brick use the same branch
+     unchanged.
+  2. **The seam asks the mould; the mould holds no firing logic.** Nothing
+     is added to `MouldMixin`. When moulding adds pressing (a load) or a
+     failed pour, they are reads the mould already answers (`loadKg`) or
+     new answers from `castTemplateFor`; the call site does not move.
+  3. **Named and pinned.** The branch carries a one-line comment naming
+     `moulding-slate § 5` as its owner, and
+     `FireController.mould-shape.test.ts` pins the contract: a charge in
+     a mould comes out the mould's shape; the same charge in a bare
+     chamber comes out a lump; a broken mould casts a lump; the mould
+     wears by one cast.
+  4. **No pressing.** Compression moulding is honest for rubber and is
+     moulding's pressing line; here the charge is simply *in* the mould.
+     Recorded in Deferred seams.
+- `firingsFor`'s one-level-down reach is the other half of the seam and
+  follows the same rules (a mould is the only container it reaches into;
+  it asks `MixinApi.isMould`, never a class).
 
 **D11 — Elasticity is a `Material` property: `elasticity`, a
 `Quantity<'%'>` — the strain it springs back from.** Rubber 500, raw
@@ -845,29 +874,29 @@ air answers. Birch outdoors reads the same number either way after its
 τ; a test asserts the birch's shipped season is unchanged on the
 equinox.
 
-**D13.2 — Latex sets into raw rubber as a SOLID product of the
-maturation engine (decided with the user, 2026-10-16).** A
-`MaturationProfile` row `/trade/rubber/idea/maturation/latex.yaml`
-(`inputCategory: latex`, `mechanism: chemical` — acid/air coagulation;
-`MATURATION_MECHANISMS` stays closed at five; `ratePerDay` so a cup turns
-in about a game day at room temperature, `stallBelowK: 278`). ⛔ **Not
-the phase-change cast with a fake melting point** — that would let a lump
-warmed past 47 °C melt back into latex, which is false. Instead the
-maturation engine gains a **solid product**: a profile may name
-`productTemplate:` (a thing row) beside/instead of `productMaterial:`;
-when the batch completes, the vessel's pool is consumed and the product
-thing is minted **and placed in the vessel** (the creator places it —
-never left in null; see `craft-mint-does-not-place`), its mass the pool's
-solids (`productFraction` of the latex mass, ≈ 0.35 dry rubber content).
-This is a kernel change to `lib/maturation/` (find the completion seam
-where `productMaterial` is applied and branch there on the profile's
-declaration, not on the material); test it on the latex row and assert
-every shipped profile (no `productTemplate`) is byte-identical. The lump
-(`/trade/rubber/thing/raw-rubber`, class `/platform/thing/Thing`,
-material raw-rubber, tag `elastomer-raw`) is `Thermal` like every
-`Thing`, so `feel` gives its band and its description reads *tacky when
-warm, stiff when cold*. The `raw-rubber-coagulum` material is NOT
-needed and is dropped from D14's list.
+**D13.2 (revised 2026-10-16) — Latex sets by DRAINING, on dairy's set
+hook: no new mechanism, nothing for moulding to refactor.** The earlier
+maturation-engine change (a solid `productTemplate`) is **dropped**.
+⭐ This is not a stand-in: latex coagulation is the same physics as curd —
+a colloid coagulates and gives up its serum (latex) or whey (milk) — and
+field latex sets on its own within a day as it sours. So the latex
+material row authors dairy's `drainSetting`
+(`{ days: 1, becomes: /stuff/idea/material/organic/raw-rubber, moisture:
+{ unloaded: 0.6, loaded: 0.4 }, loadRef: 2 }` — numbers to tune against
+the shipped field's real semantics at W6), and the coagulating pan is a
+dairy `Mould` row (`/trade/rubber/thing/coagulating-pan`, `castTemplate:
+/trade/rubber/thing/raw-rubber-sheet`). The acts are the shipped ones:
+`pour cup into pan`, wait (`look pan` — *filled · setting · set*), `get
+sheet from pan`. Pressing the sheet (a stone on it) drives more serum out
+by the load term dairy already ships. A cup left standing is a plain
+vessel and sets to a lump beside it (dairy's fallback) — honest.
+⚠ Re-verify `drainSetting`'s exact shape and the set hook against master
+at W6; if dairy merged it under another name, use that name — never a
+second field. The lump/sheet (`raw-rubber`, class `/platform/thing/Thing`,
+tag `elastomer-raw`) is `Thermal`, so `feel` gives its band and its
+description reads *tacky when warm, stiff when cold*; it never melts back
+to latex because raw rubber authors no melting point (moulding-slate § 6:
+*melts again, or does not* is derived from that field).
 
 **D13.3 — Russian dandelion.** Rows in `trade-farming` (its title extent;
 Placement says *a farming crop row*): species
@@ -911,7 +940,7 @@ comes from the biome are a counted, falling number.**
   imported — no dependency needed; drop if nothing imports),
   `trade-tailoring` (the apron/coat rows the rubberized versions
   `extends:`). `src/` holds **nothing** unless a wave needs a class: the
-  moulds are `Tool` rows, the oven an `Oven` row, the goods `Garment`/
+  moulds are dairy `Mould` rows (D10), the oven an `Oven` row, the goods `Garment`/
   `AssembledGarment` rows, the lump a `Thing` row. If the build finds it
   needs a class, it is `src/thing/<Name>.ts` and nothing else.
 - Materials are commons rows in `base-library`: `organic/latex`
@@ -1100,8 +1129,8 @@ Checked at plan time against the current tree, not recalled:
   closed word; `none` is a value of an open spec), `lint:unconsumed-seams`
   (every new field has a reader in its wave), `lint:reachability` (every
   new thing row reached: props, stock lines, recipe outputs, `wins`),
-  `lint:capabilities` (`packing` already minted; a `mould` capability is
-  NOT minted — moulds are matched by material tag), `lint:instanceable`,
+  `lint:capabilities` (`packing` already minted; no `mould` capability is
+  minted — a mould is a dairy `Mould` row, narrowed by `MixinApi.isMould`), `lint:instanceable`,
   `lint:field-meta`, `lint:mixin-names`, `lint:imports`, `lint:module-
   scope`, `lint:object-verbs`, `lint:lib-statics` (the two value objects
   hold no statics beyond what the ratchet allows — `Crosslinking` is
@@ -1282,18 +1311,19 @@ Commit: `feat(envelope): rooms of one building share heat through their interior
 Implements D8, D9, D10, D11.
 
 Files: `lib/material/Material.ts` (`elasticity`, `crosslinking` with a
-validating setter), `lib/material/Crosslinking.ts` (NEW), `lib/craft/
-Recipe.ts` (`consumed?`), `platform/idea/cmd/device/FireController.ts`
-(the hold; the non-consumed slot; the crosslink branch), `packages/content/
+validating setter), `lib/material/Crosslinking.ts` (NEW), `platform/idea/cmd/device/FireController.ts`
+(the hold; the crosslink branch; **the mould seam** — `firingsFor`
+reaches one level into a `Mould` in the chamber, `runFiring` asks it for
+the shape and casts through `takeCast`, D10), `trade-rubber` mould rows
+(dairy `Mould` rows, one per shape) + the one `vulcanize` recipe, `packages/content/
 platform/content/platform/cmd/device/fire.yaml` (the `for` arg + help),
-`platform/idea/api/CraftingLogic.ts` (honour `consumed: false` in the
-`make` path — one guard at the consume site), `base-library` rows
+`base-library` rows
 (`raw-rubber`, `latex`, `ebonite`, `rubber-scorched`,
 `mineral/sulfur`, `elasticity` on rubber/leather/wool/linen/glass/iron/
 raw-rubber/ebonite), `lib/material/__tests__/Crosslinking.test.ts`
 (prints the curve: 3 % sulfur at 418 K for 1800 s → rubber `fine`; 1 %
 for 600 s → under; 25 % for 3600 s → ebonite; 3 % at 470 K → scorched),
-`Recipe.schema.test.ts` round-trip, `FireController` tests (a recipe
+`FireController.mould-shape.test.ts` (D10's four-case contract), `FireController` tests (a recipe
 with `holdS` runs its hold; `for 2 hours` runs two game hours; a glass
 batch is byte-identical).
 
@@ -1340,16 +1370,17 @@ Implements D13.
 
 Files: `lib/husbandry/Producing.ts` (the `weather` window's air read;
 test the birch unchanged), `trade-rubber` species + tree + stems +
-maturation profile rows, `lib/maturation/` (the solid `productTemplate`
-completion branch, D13.2; every shipped profile byte-identical by test) (the pack skeleton lands here with `pack.yaml`
+the coagulating-pan `Mould` row + the raw-rubber sheet row, `drainSetting` on the
+latex material (D13.2 — dairy's set hook; no engine change) (the pack skeleton lands here with `pack.yaml`
 and `package.json`), `trade-farming` dandelion species/plant/seed/crop +
 root material, `trade-rubber/content/recipes/{root-pulp, raw-rubber-
 from-pulp}.yaml`, `trade-quarrying/…/thing/sulfur.yaml`, `rejection/…/
 deposit/quarry-hill.yaml` (the band), `base-library` `mineral/sulfur`
 (if not landed in W4). Tests: `trade-rubber/src/__tests__/latex.test.ts`
 (a stem in a 300 K scope: open; at 285 K: `cold`; a cup of latex left a
-game day completes into a raw-rubber lump placed in the cup, and a warm
-lump never melts back to latex), `trade-farming` row test (the crop
+game day in the coagulating pan sets into a raw-rubber sheet in the pan;
+left in a plain cup it sets to a lump beside it; a warm sheet never melts
+back to latex), `trade-farming` row test (the crop
 mills to pulp; the `make` recipe mints the lump with water in reach),
 the quarry column test (`dig` at −10.2 wins sulfur; −11 wins salt).
 
@@ -1366,7 +1397,7 @@ Files: `terminus/…/goods-yards/rubber-works/**` (structure — storeys
 only — zone, six rooms each authoring its own `enclosure`/`roof` per
 D14, the oven `/trade/rubber/thing/oven` — an `Oven` row,
 `burnTemperatureK: 430`, `bellowsMultiplier: 1.12` so the bellows is
-how you scorch — five mould `Tool` rows and their tag materials, a
+how you scorch — five dairy `Mould` rows (one per shape, D10) and the coagulating pan, a
 `stove` prop in the stove house, a stove in the works floor, the three
 stems, the raw-rubber lump's cast row, the goods rows `/trade/rubber/
 thing/{rubber-boots (extends leather-boots, material rubber, bill parts
@@ -1410,9 +1441,9 @@ Commit: `feat(fit): a garment stretches by its material; an elastic waist serves
 |---|---|---|---|---|---|
 | the sky from construction | none (`look`, `feel`, `measure light/temperature`, `analyze weather` exist) | — | each place's own `enclosure`/`roof`; a Structure row's `storeys` (relations only); exits as openings | none — a structure loads with its zone (`LocationZone.standUpAttached`; a memberless one by `lookOutFrom`), the cache recomputes when it stands; **no boot warming, no template search** | — |
 | `fire … for 2 hours` | `fire`/`burn` (exists) | `BurnerMixin` default (exists) | the `for` arg | — | ⚠ the arg is `required: false`, `type: string`, `prepositions: [for]` — a required arg with no default fails closed and silent (instrumentation.md); test the bare `fire` still binds |
-| the cure | `fire` | the oven is a `BurnerMixin` host in reach | five recipe rows (`RecipeCatalogue` warms `recipe` documents at boot — exists); the mould slot `consumed: false`; `crosslinking` on raw-rubber | the pack's `recipes/` are installed like glass's | the chamber must hold raw rubber + sulfur + a mould; `mixed-charge` if two moulds — the drive puts one in |
+| the cure | `fire` | the oven is a `BurnerMixin` host in reach | one `vulcanize` recipe row (`RecipeCatalogue` warms `recipe` documents at boot — exists); dairy `Mould` rows per shape; `crosslinking` on raw-rubber | the pack's `recipes/` are installed like glass's | the chamber must hold raw rubber + sulfur + a mould; `mixed-charge` if two moulds — the drive puts one in |
 | `tap` a Hevea | `tap` (forestry's) | `SapStandard.commandContributions.peers` (the class static — a row's `commandContributions:` is dead silently) — the stem row names that class | species `production`, window `weather` | none (species resolve by identity ref) | `yieldShape: volume` ⇒ a vessel is needed; the drive carries a cup |
-| latex → lump | none (time) | — | the maturation row under `/trade/rubber/idea/maturation/` (catalogue warms by infix — verify `MaturationProfileCatalogue.onCreate` scans every root, as `MaterialCatalogue` does; if it is platform-only, that is a one-line infix fix in W6) + the maturation engine's new solid `productTemplate` (D13.2) | the platform's `boot:` already stands the catalogue up | the cup must be `Bulkable & Thermal` — the drive uses a `Receptacle` row |
+| latex → lump | none (time) | — | `drainSetting` on the latex material + the coagulating-pan `Mould` row (D13.2) | materials warm by `MaterialCatalogue`'s infix; a mould row is a prop of the stove house | the pan is a dairy `Mould` (`Bulkable & Thermal & Container`) |
 | dandelion → pulp → lump | `mill`/`grind` (trade-milling), `make` (platform) | millstones in reach; craft-resolve | two recipe rows; the crop's material tag `rubber-root` | — | `make` needs water in reach: a bulk slot `measureL: 5` |
 | sulfur | `dig` (platform) | the quarry face | the band's `wins` | — | depth: the drive digs from the coal floor |
 | rubber boots/gloves | `buy` | the store's counter | two `stockLines` | the store's sweep clones par | the names are two words — `buy "rubber boots"` quoting exists; keywords carry the phrase |
@@ -1574,6 +1605,11 @@ Each leaves as a slate line, not a plan section.
   drilling-slate (the `CrosslinkSpec` is the seam: a second polymer is a
   spec on a second feedstock).
 - **A `cure` discovery loop / the published curve** → inquiry-slate.
+- **Compression moulding** (a load on the rubber charge in its mould), a
+  failed cure pour, consumed moulds, the *cure* set process for plaster →
+  moulding build (`moulding-slate`, repair branch). Rubber's seam
+  (D10) is the call site those extend; the latex drain (D13.2) is
+  already on the shipped set hook and needs nothing.
 - **Radiation to a clear night sky** (ice in pans on clear nights; a
   hothouse losing heat faster under stars than under cloud) →
   weather-slate. ⭐ The attach point is this build's: an exterior top face
