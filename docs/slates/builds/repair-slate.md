@@ -1,6 +1,9 @@
 # Repair slate — assemblies, part two
 
-> **Status: UNBUILT** — requirements in progress — opened 2026-10-16, the day after the assembly
+> **Status: UNBUILT** — requirements + plan written (2026-10-16).
+> ⏸ **ON HOLD until dairy ships** (build-2): dairy brings the kernel
+> MOULD system, and the owner wants a broader conversation about moulds
+> (and rubber, plastics) in crafting/assembly before this builds. — opened 2026-10-16, the day after the assembly
 > build (MR !361) merged. *Repair* is the framing device; the build is
 > **assemblies, part two**: what a mend asks of the hand that does it,
 > who is paid to do it for you, which things are made of parts at all,

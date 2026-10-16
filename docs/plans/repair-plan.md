@@ -1,3 +1,7 @@
+> ⏸ **ON HOLD (owner, 2026-10-16): do not `/build` until dairy (build-2)
+> has merged** — it ships the kernel mould system, and moulds' place in
+> crafting/assembly is to be decided first; re-ground W1 and D17 against it.
+
 # Repair — assemblies, part two — implementation plan
 
 Executes [repair-requirements](../requirements/repair-requirements.md)
