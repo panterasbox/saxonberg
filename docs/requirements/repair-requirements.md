@@ -137,9 +137,10 @@ named thing whose name lives in one of its parts.
 - **The Hearthworks smithy** — its repair counter now needs the smith on
   shift; the smith NPC who already stands there becomes the hand. Its
   price list changes from a flat fee to a quote by diagnosis.
-- **The Rejection provisioning shed's mending slate** — needs somebody on
-  shift to mend; the shed's existing provisioner takes the seat (the
-  plan checks the roster; if nobody can, the counter honestly says so).
+- **The Rejection provisioning shed's mending slate** — its only hand is
+  a storekeeper with no smithing, so it could never mend: ⚠ **the slate
+  is removed**, and Rejection's mending is the **tinker's stop** there
+  (lens 3a: a counter that can never be served is a lie).
 - **The Terminus infirmary ward's repair line** — ⚠ an infirmary mending
   your pick betrays the fiction (lens 3a); **the line is removed** and
   the ward keeps treatment.
@@ -153,8 +154,13 @@ named thing whose name lives in one of its parts.
   and keeps its parts.
 - **Every edged tool row** (scythe, billhook, axe, adze, drawknife,
   froe, knives) gains an edge.
-- **Boots** (tailoring's) gain a sole as a part, so the cobbler has
-  something to re-sole.
+- **Boots** already have their soles as a wearing part (and their
+  uppers); ⚠ **nothing makes a sole or an upper** — leatherwork gains
+  the sole's recipe (and tailoring the upper's), so the cobbler has
+  something to fit.
+- **The pick and the billhook** — the pick is sold at the Rejection store,
+  the billhook nowhere: ⚠ the **general store stocks a billhook** (and
+  the drive buys its pick at Rejection).
 - **The roads** — Delight Road, the crossroads, Kestrel Road: the tinker
   walks them; nobody lives on them now.
 - **Freight's roadmender** (designed, unbuilt) — the same "repair on
@@ -285,9 +291,9 @@ the proof that a second mender needs no code.
 
 A funded player, a fresh world, the real socket.
 
-1. Buy a **pick** and a **billhook** at the general store. `look pick` —
-   it is a head and a haft, *sound*. `look whetstone` (also bought) — *one
-   piece*. `fit haft to whetstone` — refused: *"It is one piece."*
+1. Buy a **pick** at the Rejection store and a **billhook** and a
+   **whetstone** at the general store. `look pick` —
+   it is a head and a haft, *sound*. `look whetstone` — *one piece*. `fit haft to whetstone` — refused: *"It is one piece."*
 2. Work the pick at a face until `look pick` says *worn*.
 3. At the Hearthworks forge with iron and an ash billet in reach, the
    untrained player types `repair pick`. The head comes back to roughly
@@ -336,7 +342,8 @@ A funded player, a fresh world, the real socket.
 6. A paid mend with nobody on shift is refused in words; with a hand on
    shift, the result reads at that hand's band and the hand's name is on
    the mend.
-7. The infirmary no longer offers repair.
+7. The infirmary no longer offers repair, and the Rejection shed no
+   longer offers a mend it has nobody to do.
 8. The tinker is at each posted stop at its posted hour, in a world
    nobody is watching as well as one they are; his notice is readable
    at the crossroads.
