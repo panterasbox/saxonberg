@@ -121,6 +121,7 @@ Seeding slates:
 - **The ice trade has real seats:** an ice company with a keeper, house hands, a seasonal crew and an ice boss, each held by an NPC and takeable by a player. NPCs in them do the work through the same verbs a player types.
 - **The icehouse keeps ice through a summer:**
   - in proportion to its size and its sawdust;
+  - **while its meltwater soaks the packing,** so a house that isn't repacked each season insulates worse and melts faster;
   - it sells it from its own counter;
   - it's cheap in spring and dear in late summer.
 - **The cookhouse icebox is resupplied** by its keeper buying ice from the ice company, and money moves.
@@ -145,7 +146,10 @@ Seeding slates:
 - **A warehouse interior you can walk through** → nowhere, deliberately (it would be generated rooms).
 
 **Storage beyond this build**
-- **Damp, spontaneous combustion and vermin in stores** → storage-slate's next pass, with the granary and the haymow.
+- **Damp, spontaneous combustion and vermin in stores** → storage-slate's next pass, with the granary and the haymow. ⚠ **One exception is in this build: meltwater soaking an icehouse's packing** (see Surface decisions).
+- **⚠ OPEN: building materials, erection and upkeep.** A building would have a bill of goods to erect and maintain it, paid in RGO outputs, so the icehouse's sawdust-filled wall would be one line of its bill and its settling and rot its upkeep. → [structures-slate](../slates/builds/structures-slate.md), where the idea is recorded.
+  - **Not designed yet.** It may be taken in **this build or in the rubber (hothouse) build**, decided once both requirements have been read side by side.
+  - **Until then, the walls are authored construction**, and they wear nothing.
 - **Moving the timber yard onto a store** → storage-slate, as a candidate.
 - **Transferable receipts** (futures; a receipt as collateral) → storage-slate; credit.md wants the second.
 - **NPC restocking while nobody is online** → unobserved-economy-slate. The physics needs nothing: stores catch up when read.
@@ -214,6 +218,15 @@ Object physics stays as it is. Lenses 1 and 2: the real mechanism, and new kinds
 - **The packing belongs to the stock:** an icehouse's store holds an ice line and a sawdust line. **The sawdust's amount over the stack's surface is the packing's depth**, and so its insulation. Too little sawdust is a fast melt.
 - **The shed's own walls are the room's walls,** as every room's already are, authored thick (historically a sawdust-filled double wall).
 - **The same law governs both layers** (thickness over conductivity), and sawdust's conductivity is authored once.
+
+### Meltwater soaks the packing
+- **The ice's melt wets the sawdust** in proportion to the mass melted, less what the house's floor drains away. Drainage is a property of the store, authored like the stack's shape.
+- **Wet packing insulates by the law that already makes wet wool fail.** Water conducts about 23× better than air.
+- **So a neglected house spirals:** a soaked house melts faster, which soaks it more.
+- **The keeper's seasonal work** is to dig out the spoiled sawdust and repack with fresh, which gives the sawmill a recurring buyer.
+- **Wet sawdust is a grade of sawdust,** so spoiled packing taken out is distinguishable from fresh.
+- Lenses 1 and 6: wet insulation is textiles' lesson again, and without it sawdust is bought once and never again.
+- **Only the meltwater path is in.** Damp in general stays deferred.
 
 ### What a stock line keeps
 - **A line is a good, a grade band and an amount,** plus the state the good declares:
@@ -348,6 +361,9 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
     - `look` at the stack describes it in words: how much remains, the state of the packing.
     - `measure stock` gives an estimate, more precise for a skilled reader.
     - The **small icehouse has lost a far larger share** of its ice than the large one under the same weather, and a stack with thin sawdust has lost more than a well-packed one.
+    - `look` at the packing shows it wetter than it went in.
+    - A house that was never repacked has lost more than one whose keeper dug out the wet sawdust and repacked mid-season.
+    - The dug-out sawdust reads as wet.
 12. **The icehouse room is colder than an empty shed beside it.**
 13. **A second character, with no claim and no shift, `get`s a block from the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
 14. **At the ice company's counter, `buy` a block.**
@@ -381,6 +397,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
   - faster for a small house than a large one;
   - faster for thin sawdust than thick;
   - by an amount a person can estimate with `measure stock`.
+- An icehouse's packing grows wetter as its ice melts, and a repacked house keeps its ice better than one left wet. Spoiled packing taken out reads as wet sawdust.
 - An icehouse room reads colder than the same room without the stock.
 - Taking from the stack with no claim changes no receipt and is discoverable by stocktake.
 - Custody:
