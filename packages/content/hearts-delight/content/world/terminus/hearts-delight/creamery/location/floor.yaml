@@ -29,8 +29,11 @@ data:
       destination: /world/terminus/hearts-delight/creamery/location/cheese-room
       media: [ground]
       edgeMinutes: 1
+  # Hung, not set down: a lamp lights a room fixture-side, and one left
+  # loose in its contents lights nothing (the night browser walk).
+  adornments:
+    - { template: /world/terminus/hearts-delight/creamery/thing/lantern, slot: lamp:creamery }
   props:
-    - /world/terminus/hearts-delight/creamery/thing/lantern
     # One pan: a second makes every `pour pan into …` ask which (the drive).
     - /trade/dairying/thing/setting-pan
     - /trade/dairying/thing/churn

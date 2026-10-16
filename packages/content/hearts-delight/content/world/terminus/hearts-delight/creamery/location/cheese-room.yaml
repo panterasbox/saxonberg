@@ -22,8 +22,11 @@ data:
       destination: /world/terminus/hearts-delight/creamery/location/floor
       media: [ground]
       edgeMinutes: 1
+  # Hung, not set down: a lamp lights a room fixture-side, and one left
+  # loose in its contents lights nothing (the night browser walk).
+  adornments:
+    - { template: /world/terminus/hearts-delight/creamery/thing/cellar-lantern, slot: lamp:cellar }
   props:
-    - /world/terminus/hearts-delight/creamery/thing/cellar-lantern
     - /world/terminus/hearts-delight/creamery/thing/cheese-rack
     - /world/terminus/hearts-delight/creamery/thing/cheese-knife
   details:
