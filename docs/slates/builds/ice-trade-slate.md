@@ -1,288 +1,313 @@
 # Ice trade slate — the first RGO whose product is a weather condition
 
-> **Status: UNBUILT**, and ⛔ **blocked on climate** —
-> [climate-slate](./climate-slate.md): the temperature floor anywhere, in
-> any season, is ~276 K, so **nothing in the realm can freeze.**
-> **Left:** the ambient→`Bulkable` freeze driver · **thickness** as
-> accumulated latent removal · the harvest act and its season · the ice
-> house as a self-coolant store · ice's **grade** (clear vs cloudy) · the
-> icehouse-keeper's vocation · retail · and ⚠ the **`AlloyedMixin`-on-ice
-> promotion** (below).
-> ⛔ **Three refusals:** climate is **not** this trade's (→ climate-slate)
-> · **load-bearing surfaces** are cross-cutting (below) · and the demand
-> side stays [preservation-slate](../tails/preservation-slate.md)'s.
-> **Size:** a build, once climate ships.
-
-*Designed 2026-10-09. The demand, the vocation and the seasonality were
-already argued in `preservation-slate`; `thermal-slate` already named
-"the ice economy (winter ice harvest, sawdust icehouses, ice as a traded
-good)" as an unbuilt consumer; and `ice-block.yaml` already ships
-"so a retail row can name it the day that trade ships." This slate is
-the trade itself, its physics, and its lens pass.*
+> **Status: UNBUILT, unblocked.** Climate shipped (MR !360, 2026-10-12):
+> ice exists on the meres. Maritime shipped (MR !358): the shore is a
+> place and a small water is a place (`Pool`). Assembly shipped (MR !361):
+> the saw. Designed in conversation 2026-10-12…16; builds **in one build
+> with** [storage-slate](./storage-slate.md), whose first consumer is
+> the icehouse.
+> **Left:** the frozen pool as the harvest site, and the pond's log ·
+> `cut` and the block · the crew and the ice boss · the icehouse on the
+> storage substrate · the ice company and its counter · sawdust by kerf ·
+> **cold water** (a swimmer's body reads the water; breaking through) ·
+> the `Casting` split · the ice material to the commons · the block's
+> grade.
+> ⛔ **Placeholder or deferred:** geography · the haul · ships · the
+> iceman's route · the ice card · offcuts · little ice by sky radiation ·
+> the general load-bearing surface.
+> **Size:** a build, shared with storage.
 
 ---
 
 ## 0. ⭐⭐⭐ Why this one and whaling are the last two RGOs
 
-They are complementary **by construction**, which is the argument for
-finishing with them rather than with two more of the same:
+They are complementary **by construction**:
 
 | | **whaling** | **ice** |
 |---|---|---|
 | reservoir | a population | ⭐ **a weather condition** |
 | recharge | decades | ⭐⭐⭐ **100 %, every winter** |
 | the commons question | the whole point | ⭐ **does not exist** |
-| the act | a seven-stage pipeline, no partial credit | one act, in a short window |
-| the credit | a fractional **share** (a lay) | ordinary |
-| what it tests | **reservoir and recharge** | ⭐ **the act and the credit under free recharge** |
+| the act | a seven-stage pipeline | one act, in a short window |
+| the credit | a fractional share (a lay) | ordinary |
+| what it tests | reservoir and recharge | ⭐ **the act and the credit under free recharge** |
 
-⭐⭐⭐ **Ice is the first RGO with no depletion and therefore no
-conservation question at all**, which makes it the programme's **control
-case**: every other RGO makes you weigh against the future, and ice makes
-you weigh against *this season only*.
-
-⚠ **And both keep hitting cross-cutting gaps, which is what "last"
-means.** Glass refused **molds**; ice refuses **climate** and
-**load-bearing surfaces**. The easy RGOs were the ones whose substrate
-already existed; what remains is substrate wearing a trade's clothes.
+⭐⭐⭐ **Ice is the first RGO with no depletion**, which makes it the
+programme's **control case**: every other RGO weighs against the future;
+ice weighs against *this season only*. ⭐⭐ **Its recharge is a forecast**
+(answered by climate: the sheet is recomputed from the weather).
 
 ## 1. The demand already ships and is fed by nothing
 
-`preservation-slate`'s status block, verbatim:
+The placement build shipped an icebox that **consumes**
+`/stuff/thing/ice-block`, and nothing in the realm produces or retails
+it; the cookhouse's block is authored once and never replaced. The
+placement drive's `DIRTY_REASON` is the standing evidence. Consumers
+waiting: the icebox, the bar's `IceBin`, a medic's field coolbox for
+blood ([blood.md](../../subsystems/blood.md)), and in time a butcher's
+cold store and lager brewing.
 
-> ⭐⭐ **WHO SELLS ICE** — the placement build shipped an icebox that
-> **CONSUMES** ice (`/stuff/thing/ice-block`) and **nothing in the realm
-> produces or retails it**, so the cookhouse's block is authored and never
-> replaced. That is **a named demand with no supply and therefore an
-> icehouse-keeper's whole vocation, seasonal by nature (free in winter,
-> dear in summer)** — the sharpest unbuilt thing on this slate, and **the
-> placement drive's `DIRTY_REASON` is the standing evidence it is
-> missing.**
+⭐ **Melting is the consumption.** A block melts → the keeper's par sheet
+shows a shortfall → the shipped `restocks` brain buys more. Every
+icebox is a steady buyer the moment a par line names a supplier.
 
-⭐⭐⭐ **Same lens-6 answer as whaling: the demand is authored, shipped,
-and unfed.** The rarest answer that lens gets, and two trades have it.
+## 2. What climate already answered
 
-## 2. The physics — three pieces, and ⛔ one is not ours
+| question (old § 7) | answer |
+|---|---|
+| Q1 climate | ✅ shipped: Stefan thickness, Gold bearing, black vs snow-ice, rotting, per-mover crossing |
+| Q3 does the pond recover | ✅ recomputed from the weather; the cut refreezes from its date (§ 4) |
+| Q4 thickness thresholds | ✅ derived: ~10 cm a person, ~14 cm a horse, ~24 cm a loaded team |
+| grade (clear vs cloudy) | ✅ black vs snow-ice off the sheet; snow slows growth and makes snow-ice |
+| Q2 harvested = pool ice? | ✅ § 4: the same **good** from two **sources** |
+| Q5 sawdust | ✅ § 6: the saw's kerf |
 
-1. ⭐ **Ambient cold drives a `Bulkable` freeze.** `thermal.md`: *"only
-   the powered cold source drives a `Bulkable` freeze (the
-   ClimateControl content pass); **a jug of water in a cold weather room
-   does not freeze this build.**"*
-   ⭐⭐ **So a pond cannot freeze and the harvest has no source.** It is
-   one driver, **symmetric with a fix already made for the melt** — the
-   2026-09-28 change gave `reconcileThermal()` the melt *"immediately
-   after the drift that makes a body warm,"* and the freeze rung kept its
-   powered callers. ⚠⚠ **The melt got the weather and the freeze did
-   not.**
-2. ⭐⭐ **Thickness, as accumulated latent removal.** The plateau already
-   banks `latentRemovedJ`; thickness is that read as a **depth of solid**
-   rather than a boolean. ⚠ It makes ice **partially solid**, which
-   nothing else in the game is.
-3. ⛔⛔ **A surface that bears load until it fails — CROSS-CUTTING, not
-   ice's.** `materials-response` models **harm**; `encumbrance` models
-   what **you carry**. **Nothing models what holds you up** — and the
-   consumers are rotten floorboards, a roof under snow, a rope bridge, a
-   cave-in, a cart on a weak bridge, the millsite's stage over the water.
-   ⭐ *Never solve a cross-cutting capability in a trade build*: this
-   slate names it and refuses it, as glass refused molds.
+## 3. ⭐⭐ Big ice and little ice — the representation changes at scale
 
-### ⭐⭐ A pattern worth having as a standing check
+**Thermal is untouched.** Its lumped `R` has no size term, so it cannot
+tell a block from a stack — and the user's constraint is that its broad
+mandate is not stretched for ice. So:
 
-Three instances found in one session: **the column priced its passage and
-the reach got a boolean** · **the melt got its ambient driver and the
-freeze did not** · **glass's transmissivity carried light and withheld
-sight.**
+| scale | representation | physics |
+|---|---|---|
+| **the sheet** on a mere or pool | a derived record (shipped) | Stefan / Gold from the weather |
+| **a block** in hand, a cart, an icebox | a `Thermal` Thing (shipped) | latent heat; the 0 °C plateau |
+| **the stock** in an icehouse | ⭐ a count on a store ([storage-slate](./storage-slate.md)) | heat in through the stack's surface (∝ m^⅔) and the sawdust, ÷ L |
 
-> ⭐⭐⭐ **When a bidirectional mechanism ships, one direction gets its
-> driver and the other waits for a consumer — and the waiting half is
-> invisible, because the engine looks complete.**
+Rough arithmetic (30 cm dry sawdust, a 120-day summer averaging 12 K
+over freezing): **a ~1000 t house loses ~6 %, a ~4 t house ~40 %.** That
+is why icehouses were huge, why blocks were cut to a standard and packed
+tight, and why a half-empty house loses faster — from one formula on one
+class.
 
-> ### ⚠⚠ The roster, 2026-10-08 — **six instances**
->
-> | shipped direction | the half still waiting |
-> |---|---|
-> | the melt got its ambient driver | **the freeze** did not |
-> | glass transmissivity carried **light** | it withheld **sight** |
-> | the **turbine** (ρ·g·Δh·Q) | **the pump** — the same equation read backwards, deferred by *three* slates, and now 4 consumers deep (mine · quarry · diver · harbour) |
-> | soiling's host method (`outermostAt`) | **zero emitters** — `SoilableMixin` does not exist |
-> | `wash` strips **colour** (`1 − fastness`) | it cannot strip **dirt** |
-> | ⭐ `moonPhase` / `moonAltitudeDeg` / the synodic month | **the tide clock**, named twice in `fishing.md` as a deferral — the purest case: the forcing function is complete, pure and memoized, and **nothing asks it anything** |
->
-> ⭐⭐⭐ **Six is enough to stop finding these one at a time.** The check
-> wants a pass of its own: walk every shipped bidirectional mechanism and
-> name which direction has a driver.
+**Three bridge acts:** **cut** (sheet → blocks) · **stow** (blocks →
+stock) · **draw** (stock → blocks, at about 0 °C).
 
-## 3. ⭐⭐⭐ The season, and the two gifts
+## 4. The harvest
 
-**Altitude is available and latitude is not.** `Zone.elevation` is on the
-base class *deliberately* (*"height above datum is a fact about a region
-of the map"*) and the Kestrel's headwaters are authored at **1400 m**;
-per-place latitude *"rides celestial's deferred planetary anchor."*
+### The site is a frozen pool you stand on
 
-> ⚠⚠ **CORRECTED 2026-10-08 — that last clause was quoted from a doc
-> sentence rather than read out of the code, and it is false.** Every
-> celestial function is **already latitude-parameterized**
-> (`solarAltitudeDeg(profile, latitudeDegrees, t)` and ~14 siblings), and
-> `sunriseHourAngleDeg` **already returns `'polar-day' | 'polar-night'`**
-> with a comment saying *"at 66.5° and beyond, both genuinely happen."*
-> `CAMPUS_LATITUDE = 42` is a **hardcoded argument**, not an absent
-> model, so per-place latitude is a field — the shape `Zone.elevation`
-> already is.
->
-> ⛔ **And the gift below must not be read as a reason to skip latitude.**
-> **Elevation on an expanse is zero by definition**, so the lapse term
-> contributes nothing anywhere a ship can go: an altitude-only climate
-> **cannot reach whaling**, which is the trade this programme is ordered
-> toward. Altitude is a legitimate *shortcut for ice* and the wrong
-> *axis for the realm*. See
-> [climate-slate](./climate-slate.md) § *Latitude is a hardcoded
-> argument*.
+Maritime's `Pool` is *"a place that IS a small water"*, and its own
+comment leaves *"the ice … walking on it, how thick it is"* to this
+build. So the harvest site is a frozen pool, and the slate's line
+becomes literal: **the only premises that is the same object as its
+product. Taking too much of it is standing on less.** The bearing check
+moves from an exit (the shipped ice crossing) to the place: can this ice
+hold *you, here*. The cited-water binder shipped with shore-as-place, so
+`cut ice` binds the place's water and `cut ice from blackmere` binds it
+by name.
 
-⭐⭐⭐ **So ice can ship on altitude alone** — a tarn high on the
-headwaters freezes while the lowland does not. **The mountain is the ice
-house**, and it is the historically right answer anyway: Mediterranean
-ice came down from the mountains for two thousand years before anybody
-shipped it from Boston. ⚠ Still blocked on climate's **baseline**, which
-is a number rather than a system (§ 0 of climate-slate).
+### The pond's log
 
-⭐⭐ **And ice is counter-seasonal to agriculture.** `time.md` worries
-that at 6× *"winter becomes a 15-real-day dead season"* — so at 12× it is
-**~30 real days when a farm does nothing.** That is exactly the harvest
-window. ⭐ `soil.md` already defends winter's hardness because *"drying
-and the cellar have no reason to exist"* without it; **ice is the third
-thing winter exists for, and the only one that is a job rather than a
-precaution.**
+The sheet stays a calculation. The pond keeps **a short log of what was
+done to it**, as a fishery stores only what was drawn:
 
-## 4. The trade
+- **scraped** — snow cleared off a patch on a date: it grows faster and
+  black from then on;
+- **marked** — the grid scored by the plough, which sets the block's
+  footprint;
+- **cut** — a patch taken on a date: open water from then, refreezing
+  thinner from that date. A second, thinner crop is possible (historically
+  exact), and a fresh cut is a hole in the ice beside the people working it.
 
-- ⭐⭐⭐ **The harvest site is the only industrial premises that is the
-  same object as its own product.** You stand on the thing you are
-  selling, and **taking too much of it is standing on less.**
-- ⭐⭐ **Thickness is the gate and the content.** Load-bearing ice is
-  roughly 4 inches for a person, 8 for a horse, 12 for a team and a
-  plough — a derived read, and **the honest danger is going out too
-  early**, when the ice is the hazard rather than the product. ⭐ It gives
-  the season a beginning (when is it safe), a middle (the cut) and an end
-  (the thaw): **Aristotle, from a temperature.**
-- ⭐⭐⭐ **The ice house is a `Coolbox` whose coolant is its own
-  inventory.** Not the passive twin and not `ClimateControl`: **it is cold
-  because of what is in it, and what is in it is the product.** So
-  performance is a function of how full it is — a half-empty house loses
-  faster — which is a feedback loop nothing else has and which is
-  historically exact.
-- ⭐ **Insulation is sawdust**, which is forestry's waste stream. **Maine
-  ice and Maine lumber** — so the margin depends on a sawmill being near,
-  the same shape as glass eating the collier's ruined ash.
-- ⭐⭐ **Ice has a grade:** *clear from still deep water, cloudy from
-  agitated.* Real, and `gradeBand` already ships.
-- ⭐ **Snow insulates ice, so a snowy winter makes worse ice** — a true,
-  surprising inversion, and `watershed.md` already ships **snowpack**.
+`look` at the field shows the work: the grid scored in, the channel of
+open water widening, blocks bobbing in it.
 
-## 5. ⭐⭐ The epoch arc is the inverse of whaling's
+### The cut and the block
 
-Whale oil's killer — kerosene — is named in a `lamp-oil` keyword and
-unbuilt. ⭐⭐⭐ **Ice's killer already ships: `ClimateControl`, the active
-cold source, landed 2026-10-01.**
+One act at the bottom rung: saw a block out of the field. Its mass is
+thickness × the grid square × ice's density; its grade is read off the
+sheet. ✅ **Block size is chosen when the grid is marked**, bounded by
+what the hooks, tongs and elevator can handle (row dials on the tools).
+Bigger keeps better and handles worse — surface against volume at hand
+size. A Hudson cake (~22 × 32 in, ~300 lb) is too heavy to lift, so like
+forestry's bole it is worked where it lies: poled down the channel,
+hooked out with tongs, run up into the house.
 
-So building ice means building **the predecessor of something already in
-the game**, and the transition is legible *immediately* rather than
-deferred. Lens 5's cleanest case — **the capability survives (an icebox
-and a refrigerator answer the same commands) and the trade dies.**
+### The ladder and the crew
 
-## 6. Lens pass
+✅ **Hand saw → crew and horse plough → steam elevator (by Discipline).**
+The horse needs ~14 cm where a person needs ~10, so the plough rung
+arrives later in the season with no rule written for it.
 
-**1 · Pedagogy** — #65 · #28 · #17 · #2 · #33.
-⭐⭐⭐ It teaches **latent heat**, one of the genuinely counterintuitive
-facts in thermodynamics: ice at 0 °C and water at 0 °C are the same
-temperature and wildly different energy — and you *feel* it, because the
-box holds and holds and then goes off a cliff. ⭐⭐ Second: **insulation
-is not cold.** Third: **snow makes worse ice.** ⭐ #17 **The Toy** passes
-— cutting a hole in a frozen lake is fun with no goal.
+The crew are **real seats**, hired seasonally on the shipped employment
+substrate: cutter, plough driver, poler, house hand, and the **ice boss**,
+kept separate from the keeper (lens 3b: an NPC doing two jobs is a
+vacancy deleted; historically they were different people in different
+seasons). NPCs in seats run **the same verbs a player types** (the
+`restocks` precedent): a crew of six is six people cutting. No
+multiplier, no progress bar (#64: *a dry interface over an economy of
+labour is a job*).
 
-⚠⚠ **#28 fails** (*the machine is a teaching surface*): `ice-block.yaml`
-documents its own defect — `Casting` composes `AlloyedMixin`, *"INERT on
-ice… so this block will claim it can be alloyed and tempered. That is a
-real misrepresentation,"* filed against `base-class-narrowing-slate`.
-⭐⭐⭐ **Acceptable on one cookhouse prop; unacceptable on a trade's
-staple**, because the mixin chips *are* the pedagogy. **Promote it — the
-trade must not ship on a straight man that lies.**
+### Timing is a real bet
 
-**2 · Expression** — and the **named-work test**: ⭐ *can you make the
-Walden harvest* (a hundred men, a horse plough, a railway siding, Thoreau
-complaining about it), and ⭐⭐ *can you make an ice house that fails* (a
-warm March, the lot lost, the keeper ruined). Constant: latent heat,
-conduction, the freeze rate, thickness. Variable: where the ice is, who
-cuts it, the house and its insulation, the season's quality, the grade.
+`analyze weather` forecasts the next 24 game hours exactly; beyond that
+a player has the sky's presage and the climate's normals. A harvest is a
+bet over weeks, so the ice boss reasons — *"18 cm, a normal January adds
+about a centimetre a day, and the sky says a front tomorrow"* — with real
+risk left over. ✅ No change needed.
 
-**3a · Immersion** — ⭐ already on the page: *"clouded white at the heart
-and **sweating along every edge**."* **A thing that is visibly losing** is
-rare and excellent. ⚠ And the `AlloyedMixin` chip is a 3a failure too —
-*every flag is transparency spent*, and **a mixin chip that lies spends
-more than a flag.**
+## 5. ⭐⭐ Cold water — breaking through (in this build)
 
-**3b · Participation** — ⭐⭐⭐ **the harvest is on somebody's water**, so
-the holder sets the season and the licence (and *who owns the ice on a
-frozen lake* was real litigation). ⭐ #86's vacancy test: the
-**icehouse-keeper** is a named vacancy, plus a cutter, a hauler and ⭐ **a
-sawyer who sells sawdust.**
+Refusing a mover the ice will not bear is the engine doing the player's
+job: *"the honest danger is going out too early"* has no danger in it if
+the world stops you. ✅ **User ruling (b), 2026-10-16: all three in this
+build.**
 
-**4 · Values** — ⚠ the usual question (*how much may be taken*)
-**evaporates**, because recharge is total. What remains is
-**distribution**: who gets the cut, and at what price in July. ⭐⭐⭐ And
-#63 is satisfied for free — *show the dirt, never the score*: **the ice
-house's state IS the dirt.** How full, how wet the floor, how much is
-left in August. **No gauge, and the read is the business.**
+1. **A swimmer's body reads the water, not the room's air.** Maritime's
+   fix made a swimmer *breathe* the air; the body's temperature still
+   reads the room's atmosphere, so a swimmer in a winter pool or sea cools
+   as if standing on the shore. The mirror of maritime's ruling: you
+   breathe the air, your body is in the water (≈ 20× air's conductivity).
+   A **shipped defect for every swimmer** that ice exposes.
+2. **The water's own temperature**, from the cited water — about 0 °C
+   under ice.
+3. **Breaking through**: ice that does not bear you lets you through,
+   into the pool, swimming. Deterministic — the ice is a fact, never a
+   roll ([uncertainty.md](../../uncertainty.md)).
 
-**5 · Continuity** — ⛔ no Schell instrument, and **ice's strongest lens**
-(§ 5).
+⛔ The **general** load-bearing surface (rotten floorboards, a roof under
+snow, a cart on a weak bridge) stays its own cross-cutting design; ice's
+bearing is the water pack's.
 
-**6 · Economy** — ⭐⭐⭐ demand authored and unfed, with live evidence
-(`DIRTY_REASON`), and #30's chain walk runs **backward** from a consumer
-that already exists. ⭐⭐⭐ #27 **Time** is the one to build on: **ice is
-priced in time** — free in winter, dear in summer, and the whole business
-is *storing a season while the goods evaporate.* **Nothing else in the
-game is inventory-as-arbitrage-across-time**, and `spoilage.md` is the
-demand side of the same clock. ⚠ #64's warning: *a dry interface over an
-economy of labour is a job* — a hundred men on a lake with saws must not
-render as a progress bar.
+## 6. Sawdust — the kerf, and storage's second consumer
 
-**7 · Governance** — ⭐ the water's holder licenses the cut (Tier C, by
-the charter — [navigable-water-slate § 5](./navigable-water-slate.md)).
-⭐⭐ And the ice house is a **bailment**: you store other people's ice, and
-⚠ **who bears the loss when it melts** is a real question `contract.md`'s
-**custodian rule** already answers. ⭐⭐⭐ *General average, on land.*
+Assembly's `saw` turns a log into boards and **the rest of the mass
+vanishes** (carve's shavings likewise). ✅ **`saw` leaves sawdust in
+proportion to the cuts it made** — one kerf per cut, roughly 10–15 % of a
+log through-sawn into ten boards — derived, not a dial, on the pit or mill
+floor. ✅ **Offcuts** (slabs, wedges, edgings — most of what quartering
+loses; historically firewood) → [carpentry-slate](./carpentry-slate.md).
 
-## 7. Open
+Sawdust is a declared-poolable good, so the Heart's Delight mill floor
+*"ankle deep in sawdust"* is literally a stock line, and the icehouse
+buys it by the load: Maine ice and Maine lumber. It needs none of ice's
+physics (inert; heat only).
 
-1. ⛔⛔ **Climate.** Not this slate's; the whole trade waits on it.
-2. ⚑ **Is harvested ice the same object as frozen-pool ice?** ⭐ The
-   natural answer is yes — you cut the pool's ice into blocks — ⚠ and that
-   lands the `AlloyedMixin` misrepresentation on the trade's primary good.
-3. ⚑ **Does the pond "recover"?** ⭐ It is weather, not a stock, so the
-   RGO law's reservoir/recharge reads strangely: ⭐⭐ **ice may be the
-   first RGO whose recharge is a forecast.**
-4. ⚑ **Thickness thresholds** — authored dials or derived from the freeze?
-   ⭐ Derived, presumably, from accumulated latent removal and the ice's
-   own `density`.
-5. ⚑ **Where does the sawdust come from mechanically** — is it a forestry
-   byproduct row, or a milling one?
+## 7. The icehouse and the ice company
 
----
+The icehouse is a store on the [storage-slate](./storage-slate.md)
+substrate: a shed (an authored room) and **the stack** (ice packed in
+sawdust) whose packing and surface set the melt. Its stock chills the
+room (heat only), so the icehouse doubles as a cold store.
 
-**See also:**
-[preservation-slate](../tails/preservation-slate.md) (the demand, the
-vocation, WHO SELLS ICE) · [thermal-slate](../tails/thermal-slate.md)
-(*"the engine shipped; the consumers below did not"*) ·
-[climate-slate](./climate-slate.md) (⛔ the blocker) ·
-[navigable-water-slate](./navigable-water-slate.md) (whose water, and the
-frozen lake inverting from passage to corridor) ·
-[base-class-narrowing-slate](./base-class-narrowing-slate.md) (the
-`AlloyedMixin` promotion).
+**The ice company is a business.** Seats: keeper (the store's custodian
+— stows, draws, takes stock, sets grade bands, receipt terms and asks),
+house hands, the seasonal crew, the ice boss. **Two lines of business on
+one store:** merchant (its own ice, receipts in the house's name) and
+bailee (a brewery's ice, for a fee).
 
-## From the climate build (2026-10-11) — now unblocked
+- ✅ **The counter draws from the store** and stands in the icehouse, kept
+  cold by its stock. An empty house is an empty counter in August.
+- ✅ **The NPC keeper prices against the store's days of supply** — cheap
+  in March, climbing through August, spiking after a warm winter left the
+  house half full. *Ice is priced in time*, made literal.
+- **Demand is wired, not designed:** the icebox and `IceBin` par lines name
+  the ice company as supplier.
 
-Ice exists and reads: `WatercourseCatalogue.iceAt` grows it by freezing
-degree-days (Stefan) and says what it bears (Gold); `analyze water` and the
-`Shore` read it by competence; `IceCrossingExit` crosses it. Left here: the
-thin place over the current, pressure ridges, and the **harvest** (cutting
-ice as a trade good).
+## 8. Kernel tidy-ups this build takes
+
+- ✅ **Split `Casting`.** It is the generic re-meltable lump and composes
+  `AlloyedMixin`, so ice, glass and wax lumps all claim to be alloyable and
+  temperable — a lie the card's mixin chips show a player (lens 1's #28,
+  3a). `Casting` becomes the plain re-meltable solid; alloying moves to a
+  metal twin, and metal's `castTemplate` and the metal salvage path point
+  at it. Owed by [base-class-narrowing-slate](./base-class-narrowing-slate.md)
+  since 2026-09-28; *"the trade must not ship on a straight man that
+  lies."*
+- ✅ **The ice material moves to the commons** beside water, out of
+  `/trade/bottling`.
+- ✅ **The block carries a grade**: black or snow-ice from the sheet,
+  cloudy from a pan (dissolved air leaves as it freezes). The grade is the
+  store's pooling key.
+
+## 9. ⛔ Placeholder and deferred, with destinations
+
+- **Geography — placeholder.** *"Consider it all placeholder content"*
+  (user): stand up what the tests need and decide nothing about where the
+  ice fields sit.
+- **The haul from pond to house — placeholder** until freight: existing
+  means only (carry, the haulage wagon).
+- **Ships** → freight. Ice as ballast going south is the historical
+  economics, and a Tudor voyage (ice packed in sawdust, melting by the
+  passage) is a good test case for it. ⚠ For freight: expanse lists
+  *latitude as a resolved value* as deferred, so a hold's air may not yet
+  warm as a ship sails south.
+- **The iceman's route** → logistics. **The ice card** (25/50/75/100 lb in
+  the window) → [standing-instructions-slate](./standing-instructions-slate.md):
+  a standing order and a lovely piece of real-world interface.
+- **Little ice by sky radiation** (the Persian yakhchal, the Bengal ice
+  pits: shallow pans freezing on clear nights above freezing air) → the
+  weather slate; the model has no sky-radiation term.
+- **Thin ice over the current, pressure ridges** → watershed.
+- **Who holds the water licenses the cut** — the shipped holding is enough
+  for now; a licence beyond it → navigable-water § 5.
+
+## 10. ⭐⭐ The epoch arc is the inverse of whaling's
+
+Whale oil's killer (kerosene) is unbuilt. **Ice's killer already ships**:
+`ClimateControl`, the active cold source (2026-10-01). Building ice
+builds **the predecessor of something already in the game**, so lens 5's
+cleanest case is legible at once: **the capability survives (an icebox
+and a refrigerator answer the same commands) and the trade dies.** The
+cold chain shipped its industrial rung first; this is the preindustrial
+one underneath, demonstrating the three-rung ladder from the top down.
+
+## 11. Lens pass
+
+1. **Pedagogy** — ⭐⭐⭐ **latent heat** (ice and water at 0 °C, wildly
+   different energy; the box holds and holds and then goes off a cliff) ·
+   ⭐⭐ **Stefan's law you can feel**: the second 10 cm takes three times as
+   long as the first · snow is insulation, and scraping is the lesson ·
+   the spud test (a reading, tool-made, banded by competence) · surface
+   against volume · *insulation is not cold* · cold water kills in minutes.
+2. **Expression** — the named-work test: ⭐ *the Walden harvest* (crew
+   seats, a plough, a field, a siding) and ⭐⭐ *an icehouse that fails* (a
+   warm March, the lot lost, the keeper ruined). Constant: latent heat,
+   conduction, Stefan, Gold. Variable: the pond, the season, the grid, the
+   crew, the house and its packing, the terms.
+3. **3a** — *"clouded white at the heart and sweating along every edge"*:
+   a thing visibly losing. The `Casting` chip no longer lies; the ice can
+   let you through. **3b** — the ice boss is the seat that matters (when,
+   how big, where, scrape or not); the keeper and the crew are vacancies.
+4. **Values** — the usual *how much may be taken* evaporates (recharge is
+   total); what remains is **when to go out** and **distribution**: who
+   gets the cut, at what price in July. *Show the dirt, never the score*:
+   the house's state is the dirt.
+5. **Continuity** — hand saw → plough → powered conveyor, all answering
+   `cut` on the same field; then plant ice, and the icebox does not care.
+6. **Economy** — demand authored and unfed; seasonal wages land in the
+   farm's dead season; inputs are smithing's saw and tongs, ranching's
+   horse, carpentry's sawdust. ⭐⭐⭐ #27 Time: **inventory as arbitrage
+   across time**, nothing else in the game is.
+7. **Governance** — the water's holder allows the cut; a cut channel is a
+   hazard on a public crossing; the icehouse is a bailment whose loss the
+   printed terms and the courts decide, never the engine.
+
+## 12. History, for the content pass
+
+- **Ancient and state-run:** Zimri-Lim's icehouse at Terqa (~1780 BC);
+  Zhou China's official for ice (a *seat*); Rome's Apennine snow; the
+  Persian yakhchal.
+- **Estate icehouses** (17th–19th c.), a great-house luxury.
+- **New England (1806–1910s):** Frederic Tudor to the Caribbean and, by
+  1833, Calcutta — losing money until insulation and scale fixed the
+  wastage; Nathaniel Wyeth's horse plough (1825) standardizing the block;
+  Maine sawdust; ice as ballast; Thoreau at Walden (1846–47); Hudson and
+  Kennebec houses of tens of thousands of tons; Norway's Oppegård lake
+  renamed **"Wenham Lake"** to sell under the Massachusetts brand.
+- **The end:** the 1890 ice famine; sewage-fouled natural ice and the
+  typhoid scare; Carré's ammonia plants (1859) in the blockaded
+  Confederacy; the household refrigerator, 1920s–30s.
+- **The buyers:** butchers, dairies, lager breweries, fishing fleets,
+  hospitals, bars, households.
+
+**See also:** [storage-slate](./storage-slate.md) ·
+[preservation-slate](../tails/preservation-slate.md) (the demand, WHO
+SELLS ICE) · [cold-chain-slate](./cold-chain-slate.md) (the RGO
+classification; the active rung) · [thermal-slate](../tails/thermal-slate.md) ·
+[climate-slate](./climate-slate.md) · [navigable-water-slate](./navigable-water-slate.md) ·
+[carpentry-slate](./carpentry-slate.md) ·
+[base-class-narrowing-slate](./base-class-narrowing-slate.md) ·
+[watershed.md](../../subsystems/watershed.md) · [expanse.md](../../subsystems/expanse.md) ·
+[thermal.md](../../subsystems/thermal.md).

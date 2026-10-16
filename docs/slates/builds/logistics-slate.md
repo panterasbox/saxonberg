@@ -621,6 +621,11 @@ and neither decision was made with the other in mind.**
 
 # Part 11.5 — Warehousing: the other half of logistics
 
+> ⭐ **Designed 2026-10-16 → [storage-slate](./storage-slate.md)** —
+> fungible goods as a count on a store, receipts, and the cause of
+> divergence this part was missing (the icehouse's melt, pilferage, a
+> stocktake that is a reading). Builds with the ice trade.
+
 **Captured 2026-09-03**, out of *"what about the other side of logistics
 which is warehousing… what is a warehouse. It's just a really really big
 container. But that bigness gives it certain properties and needs."*
