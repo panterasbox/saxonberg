@@ -145,6 +145,8 @@ async function untilHour(hour: number): Promise<void> {
  * after nothing is waiting for it — re-sending the command after answering
  * prompted again and handed every later checkpoint the wrong reply.
  */
+const answeredPrompts = new Set<string>();
+
 async function say(s: Session, text: string): Promise<CommandResult> {
   type Match = { stuffId?: string; displayName?: string };
   type P = { promptId?: string; outcome?: { notes?: Array<{ matches?: Match[] }> } };
@@ -171,8 +173,14 @@ async function say(s: Session, text: string): Promise<CommandResult> {
     const pick =
       matches.find((m) => m.stuffId && !/body/i.test(m.displayName ?? '')) ??
       matches.find((m) => m.stuffId);
-    note(`(asked which, for '${text}': ${matches.map((m) => m.displayName).join(' / ')} → ${pick?.displayName})`);
-    if (payload.promptId && pick?.stuffId) s.answerPrompt(payload.promptId, pick.stuffId);
+    // ⚠ A refresh of a prompt already answered arrives as a frame with no
+    // matches; answering nothing for it and stopping left the REAL prompt
+    // unanswered and the session wedged behind it (run 26). Skip it, and
+    // never answer the same prompt twice.
+    if (!payload.promptId || !pick?.stuffId || answeredPrompts.has(payload.promptId)) continue;
+    answeredPrompts.add(payload.promptId);
+    note(`(asked which, for '${text}': ${matches.map((m) => m.displayName).join(' / ')} → ${pick.displayName})`);
+    s.answerPrompt(payload.promptId, pick.stuffId);
   }
   return reply;
 }
@@ -713,6 +721,8 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     const taste = await read(k, 'taste wheel');
     note(`taste goat's wheel → ${taste}`);
     expect(taste).toMatch(/goat/i);
+    // Left in the Dry: carried on, it makes the cow's `wheel` ask which.
+    await doing(k, 'drop wheel');
   });
 });
 
