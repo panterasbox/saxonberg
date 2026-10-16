@@ -115,6 +115,7 @@ Seeding slates:
 - **A frozen pool is a place a person can stand on** when, and only when, it bears them.
   - **Ice that doesn't bear you lets you through** into the water.
   - **Cold water chills a swimmer's body** far faster than cold air, and does so wherever anyone swims.
+  - **Going into water soaks you and what you wear,** so climbing out wet into freezing air keeps chilling you.
 - **A field can be worked by a person:** read for thickness, scraped of snow, marked into a grid, and cut into blocks.
   - **The pond remembers each of those acts:** a scraped patch grows faster and black; a cut patch is open water and refreezes thinner from that day.
   - **A cut block's mass and grade come from the ice it was cut from.**
@@ -124,6 +125,7 @@ Seeding slates:
   - **while its meltwater soaks the packing,** so a house that isn't repacked each season insulates worse and melts faster;
   - it sells it from its own counter;
   - it's cheap in spring and dear in late summer.
+- **A frozen water can be fished only through a hole** cut in it, and a hole is part of the pond's memory like any other cut.
 - **The cookhouse icebox is resupplied** by its keeper buying ice from the ice company, and money moves.
 
 **Corrections**
@@ -162,7 +164,9 @@ Seeding slates:
 
 **Cross-cutting capabilities**
 - **Load-bearing surfaces in general** (rotten floors, weak bridges) → its own slate. Ice's bearing is the water's.
-- **Going under the water** (diving, drowning beneath the ice) → underwater-slate. Breaking through puts you at the surface, swimming.
+- **Going under the water** (diving, drowning beneath the ice) → underwater-slate. Breaking through puts you at the surface, swimming. A hole is never a way down.
+- **Ice rescue** (a rope thrown from thicker ice, crawling out flat to spread your weight, pulling someone out) → [ice-trade-slate](../slates/builds/ice-trade-slate.md), as the next content on the harvest.
+- **Ice-fishing gear and behaviour** (tip-ups, shanties, whether fish bite less in cold water) → [fishing-slate](../slates/builds/fishing-slate.md). This build only makes frozen water fishable through a hole.
 - **A licence to cut beyond holding the water** → navigable-water-slate § 5.
 
 ## Placement
@@ -176,7 +180,7 @@ Seeding slates:
 - **Ice the material, and the block,** live in the commons, beside water.
 - **Sawdust is carpentry's,** because the saw makes it.
 - **Cold water reaching the body is the kernel's** body-heat correction, and applies to every swimmer.
-- **The placeholder venue** (frozen pools at circlemere and clearmere, an icehouse, an ice company) is authored in the Circle's locality content.
+- **The placeholder venue** (frozen pools at circlemere and clearmere, an icehouse, an ice company) is authored in the Circle's locality content. The icehouse is two rooms in one building: **the platform** and **the house** (see Surface decisions).
 - **The icehouse is a building of its own,** standing apart from any warm room as real icehouses did. It is authored as a building now, which already works. That keeps rubber's count of rooms in no building from rising, and lets it take walls and a roof from the building when rubber lands.
 
 ## Collisions
@@ -185,11 +189,12 @@ Seeding slates:
 - **The Circle and the north** (climate content): circlemere and clearmere gain a frozen pool you can walk out onto. The existing shores and crossings stay. The climate drive's checks at those shores must still pass.
 - **The Heart's Delight sawmill and sawyer:** the floor gains a real sawdust heap. The timber-yard counter is unchanged.
 - **The haulage depot warehouse and its warehouseman** (the estuary towpath): it gains the withdraw its receipt was missing, as the first bailee store.
+- **Fishing at the cold meres:** today `fish` and `lay` work straight through solid ice, because fishing has no notion of frozen water. That's a defect this build corrects: frozen water is fished only through a hole. Fishing's drive must still pass in open water.
 - **The cookhouse:** its icebox's par names the ice company as supplier, so its authored block is resupplied.
 - **The general store's powered cold room, and bagged ice at the bottling counter:** both stand as ice's successor. Nothing changes.
 
 **Kernel behaviour other builds rely on**
-- **Every swimmer** (the estuary pool, the sea) now feels cold water. Maritime's drive must still pass. A summer swim is unchanged.
+- **Every swimmer** (the estuary pool, the sea) now feels cold water, and is soaked by it. Maritime's drive must still pass. A summer swim chills nobody, but still leaves you wet.
 - **Metal lumps** (smelting, smithing, salvage) must keep their alloying exactly. Their drives must still pass.
 
 **Words and verbs**
@@ -228,6 +233,19 @@ Object physics stays as it is. Lenses 1 and 2: the real mechanism, and new kinds
 - **The packing belongs to the stock:** an icehouse's store holds an ice line and a sawdust line. **The sawdust's amount over the stack's surface is the packing's depth**, and so its insulation. Too little sawdust is a fast melt.
 - **The shed's own walls are the building's walls,** authored thick: historically a sawdust-filled double wall, and timber, sawdust, timber once rubber's layers land.
 - **The same law governs both layers** (thickness over conductivity), and sawdust's conductivity is authored once.
+
+### The icehouse venue: two rooms, and the stack is neither
+- **The platform (front of house)** is where people transact:
+  - the counter, where customers buy;
+  - the keeper, who takes deposits, issues receipts and pays out against them.
+
+  Blocks are **brought up from the house to order**, as they historically were: the counter keeps a tiny par, topped up from the store as it sells, so little melts on it. Once rubber lands, the platform also borrows the house's cold through the shared wall.
+- **The house (back of house)** is the shed where the stack stands. Staff work here. Its door can be locked, and whoever gets in anyway can take from the stack.
+- **The store is not a pseudo-location.** It's an object whose contents are a ledger. From places it borrows only two things:
+  - conditions reach it, as they reach any object;
+  - its contents are recorded, not perceived: `look` describes them in words.
+
+  It has no air, light, exits or occupants. The one way it acts on a place is as **a heat sink in its room**, the way a stove is a heat source.
 
 ### Meltwater soaks the packing
 - **The ice's melt wets the sawdust** in proportion to the mass melted, less what the house's floor drains away. Drainage is a property of the store, authored like the stack's shape.
@@ -277,10 +295,40 @@ A counter fed from a store asks a price that follows **the store's** days of sup
 - **The pond remembers what was done to it,** and `look` at the field shows it: the scored grid, the open channel, the cut.
 - **Timing is a bet.** The forecast is exact for a day and blind beyond it, and a harvest runs for weeks. No change is needed.
 
+### The frozen pool: one room, on it or in it
+- **The pool is one room:** the water's surface. Inside it, a person is either **on the ice** (if it bears them) or **in the water**, at the surface, swimming. An unfrozen pool is all "in".
+- **A hole is not a room.** It's a patch of open water in the pond's log, so there's **no down exit**. At a hole a person can:
+  - lower themselves into the water, deliberately;
+  - climb back out onto the edge, if the edge bears them;
+  - fish through it.
+- **Falling through, step by step:**
+  1. **The ice is checked against what's on it** when someone steps onto the pool, when their load changes on it (picking up a block, a horse coming out), and when the place catches up after time has passed (spring rot under a crew still working). Thickness against mass, never chance.
+  2. **If it doesn't bear you, it gives way.** You're in the water at the surface, breathing air, your body feeling 0 °C water.
+  3. **You and what you wear are soaked.**
+  4. **The body's cold already ships:** a hypothermia condition, and medicine's `warm`. Cold water drives you into them in minutes, and wet clothes keep you chilling after you're out.
+  5. **Getting out:** onto the edge if it bears you (the ice that just broke under you won't, which is the real danger), or swim to the shore, since a pool's exits are swimmable from the water.
+
+### What persists, and what repairs the ice
+- **The sheet is never stored.** It's always recomputed from the weather, so nothing resets it.
+- **The pond's log persists.** A restart or a reload doesn't repair a cut field.
+- **Time repairs it, through the same climate physics.** The sheet already grows from the last open water, and a cut is open water on its date. So:
+  - a cut patch regrows by the same law from zero on that date, under the same weather;
+  - it's black unless snow falls on it afterwards;
+  - a scraped patch grows at the clear-ice rate until new snow lands on it.
+
+  That's why a second crop is thinner. Climate needs nothing new beyond regrowth starting from a given date.
+- **The spring thaw wipes the log.** Once the whole sheet is open water, earlier cuts and scrapes are moot, so the log is one winter's memory.
+- **The store's stock and the receipts persist,** and catch up when read.
+
+### Ice fishing, minimal
+- **Frozen water can be fished only through a hole.** Through solid ice, `fish` and `lay` are refused in words.
+- **A fishing hole** is cut with the ice saw, or bored with the auger forestry already ships. It's a small cut in the pond's log and refreezes like any other.
+
 ### Cold water
 - **A swimmer's body reads the water around it:** its temperature, and its much higher conductivity.
 - **Under ice the water is about 0 °C.** Water that is part of a larger body reads that body's temperature.
 - **The fix applies to every swimmer.** Breaking through puts you in it at the surface, swimming, as maritime ruled.
+- **Going into water soaks you and your worn clothes.** The wetness gauge and textiles' wet-cloth law both ship, but nothing wets a swimmer today. Wet clothes then insulate badly by that law, which is the real danger after you climb out.
 
 ### Sawdust
 - **`saw` leaves sawdust in proportion to the cuts it made:** one kerf per cut, derived, with no dial.
@@ -347,7 +395,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 **On the ice**
 1. **At the circlemere shore on the first day of the cold,** `analyze water` reads young snow-ice that doesn't yet bear a person.
-2. **Walk out onto the frozen pool.** You break through, and are in the water, swimming at the surface. Your body reports the cold quickly, far faster than standing on the shore would. Swim back to the shore.
+2. **Walk out onto the frozen pool.** You break through, and are in the water, swimming at the surface. Your body reports the cold quickly, far faster than standing on the shore would. Your clothes read soaked. Try to climb out onto the edge: the ice that broke won't hold you. Swim back to the shore. On the shore, still soaked, you keep chilling until you're dry or warmed.
 3. **A day later,** walk out again. The ice holds you. `measure ice` with the spud reports its thickness and grade.
 4. **`scrape` a patch.** The snow is cleared.
 5. **After several more cold days,** `measure ice` on the scraped patch reads black and thicker than the unscraped field. `analyze water` agrees.
@@ -356,40 +404,41 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 
 6. **`plough` the field with the hand marker.** `look` at the field shows the scored grid.
 7. **`cut` a block with the ice saw.** It is graded from the sheet, and its mass follows the thickness and the grid. `look` at the field shows the cut and the open water. Standing where the cut was would put you in the water.
-8. **Try a horse and ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
-9. **`get` the block with tongs and carry it to the icehouse.**
+8. **Fishing.** `fish` through the solid field is refused in words. Bore a hole with the auger and `fish` through it. Lower yourself into the harvest channel and climb back out onto ice that bears you.
+9. **Try a horse and ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
+10. **`get` the block with tongs and carry it to the icehouse.**
    - On shift as a house hand, `put` it on the stack. The house's stock rises.
    - Then, as an outside depositor, `deposit` a block **with the keeper**. A receipt in your name is issued, showing its terms.
 
 **Sawdust**
 
-10. **At the Heart's Delight sawmill, `saw` a log.** Sawdust appears on the floor, in an amount that follows the number of boards cut. Gather it, carry it to the icehouse, and put it with the stack.
+11. **At the Heart's Delight sawmill, `saw` a log.** Sawdust appears on the floor, in an amount that follows the number of boards cut. Gather it, carry it to the icehouse, and put it with the stack.
 
 **Summer**
 
-11. **Advance the season to late summer.**
+12. **Advance the season to late summer.**
     - `look` at the stack describes it in words: how much remains, the state of the packing.
     - `measure stock` gives an estimate, more precise for a skilled reader.
     - The **small icehouse has lost a far larger share** of its ice than the large one under the same weather, and a stack with thin sawdust has lost more than a well-packed one.
     - `look` at the packing shows it wetter than it went in.
     - A house that was never repacked has lost more than one whose keeper dug out the wet sawdust and repacked mid-season.
     - The dug-out sawdust reads as wet.
-12. **The icehouse room is colder than an empty shed beside it.**
-13. **A second character, with no claim and no shift, `get`s a block from the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
-14. **At the ice company's counter, `buy` a block.**
+13. **The icehouse room is colder than an empty shed beside it.**
+14. **A second character, with no claim and no shift, `get`s a block from the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
+15. **At the ice company's counter, `buy` a block.**
     - It is dearer now than it was just after the harvest.
     - Empty the house's own claim: the counter sells out and does not refill.
-15. **The cookhouse's icebox block melts.** The cookhouse keeper buys a new block from the ice company. The ice company's account rises, and the cookhouse's falls.
-16. **As the depositor, `withdraw` against the receipt with the keeper.**
+16. **The cookhouse's icebox block melts.** The cookhouse keeper buys a new block from the ice company. The ice company's account rises, and the cookhouse's falls.
+17. **As the depositor, `withdraw` against the receipt with the keeper.**
     - The block comes out at about 0 °C, and the fee is paid.
     - With two depositors on one grade and losses beyond the allowance, each gets their pro-rata share.
-17. **With no keeper present,** `deposit` and `withdraw` are refused in words.
+18. **With no keeper present,** `deposit` and `withdraw` are refused in words.
 
 **Kernel checks**
 
-18. **`look` at an ice block and at a glass lump:** neither claims alloying. `look` at an iron lump: it still does, and its carbon is unchanged.
-19. **Swim in the estuary pool in winter and in summer.** Winter chills the body; summer doesn't.
-20. **Restart the world.** The stores' stock, the receipts and the pond's cut and scraped patches all survive.
+19. **`look` at an ice block and at a glass lump:** neither claims alloying. `look` at an iron lump: it still does, and its carbon is unchanged.
+20. **Swim in the estuary pool in winter and in summer.** Winter chills the body; summer doesn't.
+21. **Restart the world.** The stores' stock, the receipts and the pond's cut and scraped patches all survive.
 
 ## Acceptance criteria
 
