@@ -345,7 +345,11 @@ at the mint and the fit; `RecipeCatalogue.recipeFor(outputTemplate)` is
 a derived index (built in `warm()`, a `Map`, never a scan) read when a
 line has no recipe — a found thing's lines, a stocked pick. Discipline =
 `getRecipe(line.recipe)?.discipline ?? recipeFor(line.template)?.discipline
-?? ''`. No `discipline:` on the bill part (a third declaration of one
+?? <the discipline the MOULD that cast it credits> ?? ''` — ⭐ the third read
+is the moulding slate's first seam (owner, 2026-10-16): a part that came out
+of a mould (dairy's `MouldMixin`) has no recipe; record the casting mould's
+discipline on the line (or the loose cast) at the set, and read it here.
+⚠ Re-ground against dairy's merged `lib/mould/Mould.ts` before building. No `discipline:` on the bill part (a third declaration of one
 fact). A line with no discipline resolvable (a found stone, a part no
 recipe makes) is mended **as if competent** — nothing can be known
 better or worse about it (lens 1: no skill, no lesson); `lint:bills`
