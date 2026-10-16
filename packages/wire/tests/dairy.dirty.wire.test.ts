@@ -963,8 +963,9 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await untilHour(12);
     await doing(k, 'get crucible');
     await doing(k, 'put crucible in furnace');
-    await doing(k, 'get ore');
-    await doing(k, 'put ore in furnace');
+    // `malachite`: `ore` also names the ore buyer, who will not lift (run 28).
+    await doing(k, 'get malachite');
+    await doing(k, 'put malachite in furnace');
     // A run wants two baskets IN THE CHARGE (the reductant) and a lit bed
     // of its own — four baskets, and the smelter props two. The fuel yard
     // next door props four (run 14). Fetched AFTER the crucible and ore
