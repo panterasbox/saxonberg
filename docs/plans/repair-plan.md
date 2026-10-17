@@ -2430,5 +2430,6 @@ billhook and *Hollin* back).
 `buy pick haft` waited out the wire's 30 s while a sibling worktree's
 world booted beside it (load ~30); every later checkpoint, which uses
 that pick, passed. 13: abandoned — four ~3 GB worlds on a 15 GB box and
-this one was OOM-killed at drive 7 (exit 137). A clean final-code run is
+this one was OOM-killed at drive 7 (exit 137). 14: abandoned at drive 4
+(0 GB available, load ~40, four worlds again). A clean final-code run is
 owed once the box is free.
