@@ -1430,8 +1430,23 @@ stay in the plan as insurance, not as the intended path.
   Hinkley `lots/yard` out of its W7. Accepted in part: one `doService`
   shape, but **we** extract the durative helper (above). Repair's name
   for our floor predicate was `takesTraffic()`; ours is `takesSoil()`.
-- **Storage-and-ice**: we accepted all seven of its asks (see the
-  Storage table); our asks of it are in the note, awaiting its answer.
+- **Storage-and-ice** (`origin/reqs/storage-and-ice` plan): we accepted
+  all seven of its asks (see the Storage table), and it accepted all
+  nine of ours: it builds `ShoreMixin.drawAt(key, room): {draw} |
+  {refusal: 'frozen', line}` + `WaterRead.underIce?: WaterDraw` (274 K,
+  the reach's material; our `hardnessDgh` once we land) in the read
+  builder's frozen branch, fishing calling it (D15); exposes
+  `ThermalRegulationMixin.exchangeWithWater(waterK, dtS)` (D10a), which
+  `effectiveAmbient` calls for a swimmable scope and our bathe calls;
+  keeps `immerse(parts?)` side-effect-only (our rinse goes inside); reads
+  the dug-out sawdust before any clock jump; keys `reface` on the stored
+  line key; declares `SEASONS` in `CLOSED_BY_DESIGN`; authors the
+  icehouse rooms as `SingletonCartesianLocation`; re-runs the cookhouse
+  steps on a fresh DB after both land; names our `Floor.hasPests()` /
+  `pestRatePerHour` as vermin's substrate and our midden as spoiled
+  packing's `dispose`; makes no `CLAUDE.md` edits. **If we land first**
+  with our own `drawAt` or `exchangeWithWater`, storage folds into the
+  one method.
 - **Rubber**: not yet answered.
 
 ### The merge rule
@@ -1530,7 +1545,7 @@ tree (≤ master's; never summed, never raised — fix code instead);
 | the one wet law | first lander (rubber D12.1 ≡ storage D9) | `Material.permeability(): number`, `Material.wetProperty(dry, fluid, saturation): number`; setting `wetness.impermeableBelowPct` (2); `textiles.clo.absorptionReference` hoisted. We only READ it (`Garment.wash`'s `wet(permeability())`) |
 | immersion | storage | `Attired.immerse(parts?: (partKey: string) => boolean)` (rubber's filter); `SwimmableMixin.immersionOf(occupant): {mediumTag, temperatureK} \| null` (Pools only). Our rinse runs INSIDE `immerse()`; a pool bather enters through `giveWay`/the swim engagement, never `immerse()` directly |
 | the cold-water exchange | storage | `ThermalRegulation.exchangeWithWater(waterK, dtS)` — the arithmetic `effectiveAmbient` folds; our tub/shore bathe calls it once per `BATHE_S` |
-| the frozen gate + the water you can reach | **ours** (kernel `ShoreMixin`) | `ShoreMixin.drawAt(key, room): {draw} \| {refusal: 'frozen', line}`; `WaterRead.underIce?: WaterDraw` (274 K, the reach's hardness; built by the water pack); fishing's `reachFor`, wash, bathe, rinse call it |
+| the frozen gate + the water you can reach | **storage** (its D15, kernel `ShoreMixin`; built here in the same shape only if storage is absent) | `ShoreMixin.drawAt(key, room): {draw} \| {refusal: 'frozen', line}`; `WaterRead.underIce?: WaterDraw` (274 K, the reach's hardness; built by the water pack); fishing's `reachFor`, wash, bathe, rinse call it |
 | floors | storage (base), ours (soil) | `FloorMixin.bears(loadKg)` (base true), `supportIsSlotted()` (base false; `WaterSurface`/`IceSheet` true); **`takesSoil() = !supportIsSlotted()`** (ours); `GROUND_KINDS` + `ice`; `cleaningMethod: Record<GroundKind, …>`; `markupAugmenters = [floorAugmenter, snowAugmenter, soilAugmenter]` |
 | sawdust | storage | material `/stuff/idea/material/wood/sawdust` tags `[wood, organic, granular, flammable, absorbent, sawdust]`; good `/trade/carpentry/thing/sawdust` (`Poolable(Stackable(Good))`, qty = kg, `poolKey = sawdust\|<wetnessBand>`). Sweep never touches it; strew consumes it; no `sawdust` DirtKind |
 | sulfur | rubber | `/stuff/idea/material/mineral/sulfur` (+ our `combustionProducts`, `heatOfCombustion 9.2`, `autoignitionTemperature 505`); won row `/trade/quarrying/thing/sulfur` (`Firewood`); band `{toZ: −10.4}`; our `brimstone` stock line at the chandlery |
