@@ -63,6 +63,9 @@ export default class Chair extends ChairBase {
       else if (line.failed > 0) bare = true;
     }
     if (bare) q *= seatDial(AppSettingKeys.chairBareFrameRest, 0.5);
-    return Math.max(0, Math.min(1, q));
+    // ⚠ Floored, never capped: a four-poster rests at 2 and a clinic cot at
+    // 1.5 (the convalescence factor reads it) — the cap the folded
+    // `AssembledChair` carried flattened every bed to a stool.
+    return Math.max(0, q);
   }
 }
