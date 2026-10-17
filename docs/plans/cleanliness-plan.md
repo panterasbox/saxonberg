@@ -1778,6 +1778,19 @@ hotspots per wave are named; **the second to land merges by hand**.
 
 ### W0 — The substrate: soil by kind, the rows, the hosts, persistence
 
+> ✅ **Done — `99939b917`.** Siblings probed first: none had landed (master
+> = rodney), so every W0 fallback applied — `Lantern.ts` still exists,
+> Soilable went on `Lamp` regardless; `supportIsSlotted()` added base
+> `false`. What changed against the plan: the hand methods live on
+> **`AttiredMixin`**, not `Creature` (B1); `ServiceableMixin.soil()` is
+> renamed **`markUsed()`** (B2 — the plan's "soil is freed by Hygiene"
+> missed it); one deposit per LAYER (a pair of gloves covers both hands and
+> takes an act once); `Recipe.soils` and its rows landed here (W1's first
+> piece); `Rug` moved to W4 with `beat` (a row nothing props fails
+> `lint:reachability`). Surprise: the Floor twin's own static
+> `markupAugmenters` read now finds Soilable's list — production unions the
+> chain, two snow tests read the static and were moved to the union read.
+
 **Goal.** `SoilableMixin`, the two row families and catalogues, the hosts
 composed, the hands clock retired onto the derived read, fixtures and
 venues that keep a record. Nothing deposits yet except the shipped
@@ -2503,6 +2516,32 @@ Read first, in this order.
     `packages/wire/src/runner/boot.ts`, `packages/wire/src/harness/{session,world}.ts`.
 
 ---
+
+## Build decisions (made by the build, not the plan)
+
+- **B1 — The hand and part soil methods are `AttiredMixin`'s, not
+  `Creature`'s** (`handSites`, `footSites`, `handCleanliness`,
+  `soilHands`, `soilBodyPart`, `washHands`, `soilFrom`, `trunkSite`). The
+  wearer owns the covering stack the soiling seam walks, and every caller
+  narrows with the shipped `MixinApi.isAttired` — a method on the
+  `Creature` class would have needed an `instanceof` or a cast at every
+  reader. *Nearest pattern: `outermostAt` already lives there.*
+- **B2 — `ServiceableMixin.soil()` → `markUsed()`.** It is the *used* bit
+  and CraftVessel composes both; `soil(kind, amount)` would have shadowed
+  it silently (seven tests caught the glass pool never marking a glass).
+- **B3 — `DirtKind.waterLifts`** (a row field the plan's table lacked):
+  what water alone takes per standard wash (mud 0.7, grease 0.05) — the
+  rate D7's rinse and a cleanser-less wash need. `Cleanser.ambient` marks
+  `sunlight`/`sulfur-fume`. Fuller's earth and chalk are two rows (15, not
+  14).
+- **B4 — A body with no hands resolved takes a hand act on the whole body**
+  (`''`), and reads its worst site — a bare `new Creature()` in a test,
+  a cow. One honest fallback, no guard.
+- **B5 — The three new closed lists (`CLEANSER_ACTIONS`, `DIRT_FORMS`,
+  `SOIL_WHERES`) are not in `CLOSED_BY_DESIGN`**: the census does not
+  detect them (their refusals are returned strings, or a throw it does not
+  pair), and the lint refuses a declaration it cannot see. Each one's
+  closure is argued at its declaration instead.
 
 ## Drive record
 
