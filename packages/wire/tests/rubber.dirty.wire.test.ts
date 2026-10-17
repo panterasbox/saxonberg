@@ -466,9 +466,9 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     // ⚠ /stuff rows cannot be cloned by anybody (no title over the
     // commons), so the leather boots are bought, as a player would.
     const buyer = await funded('wader-leather', SHOP);
-    // ⚠ `buy "leather boots"` answers "bare" — the phrase does not
-    // match the printed "pair of stout leather boots" (a retail finding).
-    await buyOne(buyer, 'leather');
+    // ⚠ A bare `buy leather` bought a leather WATERSKIN: the boots now
+    // answer to the phrase they print (a naming-ratchet row, fixed here).
+    await buyOne(buyer, '"leather boots"');
     const lh = buyer.handle;
     // ⚠ Bought, not cloned: step 22's boots are live, and the clone gate
     // reads the first live instance's zone (the shop) and refuses.

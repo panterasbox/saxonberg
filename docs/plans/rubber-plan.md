@@ -2232,4 +2232,6 @@ runs found, in the order they found it (✔ = fixed and committed):
 | 10 | four hours of stove and morning sun took the glass to 312 K, past the tree's 309 | ✔ three hours |
 | 10 | in the substation's dark `inventory` names everything "something" | ✔ the waders dress in the lit shop |
 | 10 | a counter takes the account, not loose coin: the half-orc's twenty must be banked first (`bank deposit coins`) | ✔ step 23 walks the newcomer's real path |
+| 11a | ✅ **the stove house end to end** — dawn, the sun through the glass, the stove, the tap, the latex set in the pan, a sheet of raw rubber (steps 7–11); ✅ vitriol eats the linen apron and not the rubber one (21) | — |
+| 11a | `buy leather` bought a leather WATERSKIN: the boots printed "stout leather boots" and answered to single words — one of the naming ratchet's 70 | ✔ the row answers to "leather boots"; ceiling 70 → 69 |
 
