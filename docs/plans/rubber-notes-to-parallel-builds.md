@@ -159,7 +159,7 @@ Every other shared piece is "keep both". The conflict map lists them.
     cites it by branch path until you merge; fix the citation at your
     merge.
 
-## To cleanliness (build-2) — you merge after rubber, before repair W7
+## To cleanliness (build-2) — you merge after rubber
 
 ✅ Rubber accepted all 13 of your asks — see rubber-plan § Parallel builds › *Accepted from cleanliness*.
 
