@@ -325,6 +325,51 @@ Two more real details worth having:
 
 ---
 
+## ⭐⭐ The pleasure pass — washing as a scene, not a chore
+
+Added 2026-10-17 from [stewardship-doctrine.md](../../stewardship-doctrine.md)
+§ Part 3a, whose nine principles this applies. The question is the
+*Mary Poppins* one — **how cleaning is made a pleasure** — and lens 2 and
+3b answer it better than any reward would.
+
+- ⭐⭐⭐ **The lavoir is a social space first.** Washing was historically
+  **the** place working women talked, sang, traded news and settled
+  scores — Zola's washhouse brawl is the proof that it is an arena. So the
+  lavoir is a **room people want to be in**: the gossip a player hears
+  there is real (the laundress-as-witness, aggregated), and doing your
+  own washing among others is participation, not an errand.
+- ⭐⭐ **Work songs.** *Waulking songs*: Scottish Gaelic women sang in
+  rhythm while beating woollen cloth on a board to full it — soap or stale
+  urine, a table and a song. Rhythm is the mechanical contribution made
+  communal. It is **fulling**, which `shear` has just unblocked, and it is
+  a group act (cooperative-effort).
+- **Wash day.** Monday wash day was a real, near-universal ritual. A
+  ritual is upkeep you look forward to (Stardew, Animal Crossing) — and
+  because the lavoir is busiest then, the ritual is also a *when to be
+  somewhere*, which is a reason to meet.
+- ⭐ **The visible before-and-after, in prose** (PowerWash Simulator's
+  whole loop). The read of a garment changes in words a player enjoys:
+  *grey at the cuffs* → *white, and smelling of the sun.* Linen laid on
+  the bleach green **whitens over days you can watch** — the one fade the
+  owner chooses.
+- **Sorting is a puzzle, not a chore.** Dye bleeds by fastness (shipped),
+  so a red wash with whites is a real mistake with a real, visible
+  result. Knowing what goes together is the skill (*Strange Horticulture*'s
+  identification under uncertainty, at domestic scale).
+- **The bathhouse is a destination.** Beside the gym (exertion's sweat
+  is the first body-soiling producer) and with a bar in it: the workout
+  has somewhere to end. *Spirited Away*'s bathhouse is the tonal model —
+  dignity in the work, a whole society in the steam.
+- **Cleaning to hide is a scene too.** Washing blood out *cold*, burning a
+  shirt, finding a laundress who does not ask — the concealment side of
+  the forensic read.
+
+⛔ **And what stays refused** (doctrine § 3a principle 9): no meter, no
+nag, nothing that dirties you for being away. The pleasure is in the act
+and the company, never in relief from a penalty.
+
+---
+
 ## Open questions
 
 1. **Does this wait for room-condition, or does it supply the producer?**
