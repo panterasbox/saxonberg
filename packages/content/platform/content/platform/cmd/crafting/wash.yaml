@@ -10,7 +10,7 @@ help: |
   Bare `wash` — with no thing named — washes your own HANDS clean. Clean
   hands treat a wound without infecting it, and handling a bleeding wound
   dirties them, so a careful medic washes between patients. Hands stay
-  clean for a while, then need doing again.
+  clean until something dirties them — and in gloves, you wash the gloves.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

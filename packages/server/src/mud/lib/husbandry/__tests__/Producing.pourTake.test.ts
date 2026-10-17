@@ -37,6 +37,11 @@ const TAPS: TapSpec[] = [
     behaviour: 'expire',
     windowDays: 1,
     yieldShape: 'volume',
+    // ⭐ (cleanliness D6) The take dirties the taker — the cow's own row.
+    soils: [
+      { kind: 'manure', amount: 0.3, where: 'hands' },
+      { kind: 'milk', amount: 0.1, where: 'apron' },
+    ],
   },
 ];
 
@@ -178,5 +183,28 @@ describe('the hand on the milk', () => {
     const r = await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     expect(r.self).not.toMatch(/on the floor/);
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
+  });
+
+  it('⭐ (cleanliness D6) the take soils the taker — AFTER the milk is drawn', async () => {
+    const c = cow();
+    const who = milker();
+    advance(0.5 * DAY);
+    const p = pail(() => new FoodPail());
+    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    // The first milk with clean hands is clean…
+    const slot = BulkableApi.slotFor(p, undefined)!;
+    expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
+    // …and the hands are dung-spattered now.
+    expect(who.soilKinds()).toContain('manure');
+  });
+
+  it('a tap that authors no `soils` leaves nothing on the hands', async () => {
+    const c = cow();
+    const who = milker();
+    vi.spyOn(c, 'taps').mockReturnValue([{ ...TAPS[0]!, soils: undefined }]);
+    advance(0.5 * DAY);
+    const p = pail(() => new FoodPail());
+    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    expect(who.soilKinds()).toEqual([]);
   });
 });

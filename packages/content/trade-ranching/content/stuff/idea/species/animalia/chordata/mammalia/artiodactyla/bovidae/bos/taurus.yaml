@@ -68,6 +68,11 @@ data:
       # returned to the herd, and a redraft inside it is still dry.
       sex: female
       restDays: 3
+      # ⭐ (cleanliness D6) Milking is done at the beast's flank: the
+      # hands take what is on her, the apron what splashes from the pail.
+      soils:
+        - { kind: manure, amount: 0.3, where: hands }
+        - { kind: milk, amount: 0.1, where: apron }
   # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
   #
   # Until the carcass-chain build the game had two `butcher` verbs with two

@@ -9,6 +9,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
+import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
@@ -525,6 +526,38 @@ function emitExhaustInto(
     smoke,
     dial(AppSettingKeys.fireExhaustSmokeLitresPerKg, 300) * kgBurnt,
   );
+  sootTheRoom(room, kgBurnt);
+}
+
+/**
+ * Load of soot a kilogram of fuel burnt SMOKILY leaves on each thing in a
+ * shut room (cleanliness D6, D19) — a winter of bad fires greys a pane.
+ */
+const SOOT_PER_KG = 0.01;
+
+/**
+ * ⭐ (cleanliness D6) A smoky fire indoors soots what is in the room with
+ * it — the panes, the floor, a lamp, whatever lies about. The room's own
+ * fixtures and props, asked directly; a pane is reached through its
+ * anchor. Under the open sky the smoke goes up and nothing is sooted.
+ */
+function sootTheRoom(room: Stuff & Container, kgBurnt: number): void {
+  if (BiomeApi.isSkyExposed(room)) return;
+  const amount = SOOT_PER_KG * kgBurnt;
+  if (!(amount > 0)) return;
+  const touched = new Set<Stuff>();
+  const fixtures = MixinApi.isAdornable(room) ? room.getFixtures() : [];
+  for (const f of fixtures) {
+    const glazing = BoundaryAnchor.is(f) ? f.getBoundary() : null;
+    touched.add(glazing ? (glazing as unknown as Stuff) : (f as unknown as Stuff));
+  }
+  for (const c of room.getContents()) {
+    if (c.isAgent()) continue;
+    touched.add(c);
+  }
+  for (const t of touched) {
+    if (MixinApi.isSoilable(t)) t.soil('soot', amount);
+  }
 }
 
 /**

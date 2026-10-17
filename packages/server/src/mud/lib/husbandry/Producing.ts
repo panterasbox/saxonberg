@@ -847,8 +847,18 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (take.units <= 0) return { self: 'Nothing came of it.' };
 
       const credit = this.tapCredit(key);
+      // ⭐ (cleanliness D6) What the take DIRTIES is the tap's own row
+      // field — manure on the milker's hands and milk on her apron; a
+      // maple, a birch or a rubber tree authors none. Landed AFTER the
+      // take: the hand that drew this milk is read as it was before.
+      const soilTheTaker = (): void => {
+        if (tap.soils && tap.soils.length > 0 && MixinApi.isAttired(by)) {
+          by.soilFrom(tap.soils, this as unknown as Stuff);
+        }
+      };
       if (shape === 'volume') {
         const kept = await this.pourTake(tap, take.units, vessel, by);
+        if (kept > 0) soilTheTaker();
         return {
           self: this.tapTookPhrase(key, take.units, kept),
           peers: null,
@@ -856,6 +866,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         };
       }
       const minted = await this.mintTake(tap, take, by, shape);
+      if (minted.length > 0) soilTheTaker();
       return {
         self: this.tapTookPhrase(key, take.units, take.units, minted),
         peers: null,

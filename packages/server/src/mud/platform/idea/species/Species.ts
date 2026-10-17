@@ -21,6 +21,7 @@
  */
 
 import { Idea } from '../../../lib/stuff/Idea';
+import { SoilSpecs, type SoilSpec } from '../../../lib/cleanliness/SoilSpec';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { StuffApi } from '../../../api/stuff';
@@ -502,6 +503,12 @@ export interface TapSpec {
    * (dairy D12) — a cow's dry period. Absent ⇒ no rest modelled.
    */
   restDays?: number;
+  /**
+   * ⭐ What TAKING this dirties, and where (cleanliness D6) — the cow's
+   * milk puts manure on the hands and milk on the apron. The `Recipe.soils`
+   * shape, validated at read. Absent ⇒ a clean take (sap, latex, eggs).
+   */
+  soils?: SoilSpec[];
 }
 
 /**
@@ -1485,7 +1492,18 @@ export default class Species extends SingletonMixin(
 
   public getProduction(): readonly TapSpec[] { return this.production; }
   public setProduction(value: TapSpec[]): void {
-    this.production = Array.isArray(value) ? value : [];
+    const taps = Array.isArray(value) ? value : [];
+    // A misspelt `soils:` key fails at read (the `volatiles` rule).
+    this.production = taps.map((t) =>
+      t && t.soils !== undefined
+        ? {
+            ...t,
+            soils: [
+              ...new SoilSpecs(t.soils, `Species tap '${t.key}'`).entries,
+            ],
+          }
+        : t,
+    );
   }
 
   public getBreeding(): BreedingSpec | null { return this.breeding; }

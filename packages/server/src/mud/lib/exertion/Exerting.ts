@@ -169,6 +169,13 @@ export interface BodyState {
  */
 const CONDITIONING_BAND_AT: readonly number[] = [0, 0.2, 0.4, 0.6, 0.8];
 
+/**
+ * Joules of work above the sustainable rate that sweat a full LOAD (filthy)
+ * into the innermost layer at the trunk — an hour at 200 W over is about a
+ * soiled shirt (cleanliness D6).
+ */
+const SWEAT_J_PER_LOAD = 1_800_000;
+
 /** Reference mass for a body that has none (the metabolism figure). */
 const REFERENCE_MASS_KG = 70;
 
@@ -214,6 +221,14 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       //    that puts a person there. Collapse stays the acute conditions'
       //    (starvation, dehydration, blood) and the wound's (the limp).
       const excessJ = Math.max(0, powerW - sustain) * durationS;
+      // ⭐ (cleanliness D6) Hard work SWEATS — by the excess, never by the
+      // clock: the one deposit that lands on the INNERMOST layer (the
+      // shirt under the coat). Effort under the threshold leaves nothing.
+      if (excessJ > 0 && MixinApi.isAttired(self)) {
+        const trunk = self.trunkSite();
+        const load = excessJ / SWEAT_J_PER_LOAD;
+        if (trunk && load > 0.001) self.soilBodyPart(trunk, 'sweat', load, null, 'inner');
+      }
       const endurance = self.getReserve('endurance');
       if (excessJ > 0 && endurance) {
         const perPct = dial(AppSettingKeys.exertionJoulesPerEndurancePct, 1500);

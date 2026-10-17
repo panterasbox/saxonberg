@@ -182,6 +182,19 @@ export interface Floor {
    */
   takesSoil(): boolean;
   /**
+   * ⭐ A mover arrives (cleanliness D15): this floor takes
+   * `cleanliness.traffic.trackIn` of what is on the mover's feet — and the
+   * feet lose it. A shop floor soils with what its customers bring in; a
+   * dry paved town brings in little.
+   */
+  receiveTraffic(mover: Stuff): void;
+  /**
+   * A mover crosses this floor: wet ground (`mire`, wet earth, wet loose
+   * stuff) puts mud on the feet. Standing water on paving wets and never
+   * muds. Nothing at all off a floor that does not take soil.
+   */
+  soilFeetOf(mover: Stuff): void;
+  /**
    * Standing water in the surface slot. Read for exactly one kind
    * (`mire`); public because the puddle summary and the conduction walk
    * both already ask the same question their own way.
@@ -609,6 +622,46 @@ export function FloorMixin<
 
     public takesSoil(): boolean {
       return !this.supportIsSlotted();
+    }
+
+    public receiveTraffic(mover: Stuff): void {
+      const self = this as unknown as Stuff;
+      if (!this.takesSoil() || !MixinApi.isSoilable(self)) return;
+      if (!MixinApi.isAttired(mover)) return;
+      const feet = mover.footSites();
+      if (feet.length === 0) return;
+      const share = snowDial(AppSettingKeys.cleanlinessTrafficTrackIn, 0.2);
+      const carried = new Map<string, number>();
+      const seen = new Set<Stuff>();
+      for (const foot of feet) {
+        const layer = mover.outermostAt(foot);
+        const holder: Stuff = layer ?? mover;
+        const site = layer ? '' : foot;
+        if (layer) {
+          if (seen.has(layer)) continue;
+          seen.add(layer);
+        }
+        if (!MixinApi.isSoilable(holder)) continue;
+        for (const kind of holder.soilKinds(site)) {
+          const moved = holder.removeSoil(kind, share, site);
+          if (moved > 0) carried.set(kind, (carried.get(kind) ?? 0) + moved);
+        }
+      }
+      for (const [kind, amount] of carried) self.soil(kind, amount, null, '');
+    }
+
+    public soilFeetOf(mover: Stuff): void {
+      if (!this.takesSoil() || !MixinApi.isAttired(mover)) return;
+      const kind = this.getGroundKind();
+      const self = this as unknown as Stuff;
+      const wet =
+        this.hasStandingWater() ||
+        (MixinApi.isWet(self) && self.getWetness() >= 0.3);
+      let amount = 0;
+      if (kind === 'mire') amount = 0.2;
+      else if ((kind === 'earth' || kind === 'loose') && wet) amount = 0.1;
+      if (amount <= 0) return;
+      mover.soilFrom([{ kind: 'mud', amount, where: 'feet' }]);
     }
 
     /**

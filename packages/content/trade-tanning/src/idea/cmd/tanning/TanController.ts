@@ -43,6 +43,7 @@ import type {
   MqlOneResult,
 } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { SoilSpec } from '@saxonberg/server/mud/lib/cleanliness/SoilSpec';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -63,6 +64,17 @@ interface TanModel extends CommandModel {
   hide: MqlOneResult;
   pit?: MqlManyResult;
 }
+
+/**
+ * What working a pit puts on the tanner (cleanliness D6) — the fat of the
+ * raw skin and the dung of the bate, on the hands and the apron.
+ */
+const TAN_SOILS: readonly SoilSpec[] = [
+  { kind: 'grease', amount: 0.2, where: 'hands' },
+  { kind: 'manure', amount: 0.2, where: 'hands' },
+  { kind: 'grease', amount: 0.1, where: 'apron' },
+  { kind: 'manure', amount: 0.1, where: 'apron' },
+];
 
 export default class TanController extends CommandController<TanModel> {
   async execute(model: TanModel, context: CommandContext): Promise<void> {
@@ -134,6 +146,9 @@ export default class TanController extends CommandController<TanModel> {
     // ignored for a month would start its clock at the first read, and a
     // month of liquor would be free.
     hide.reconcileTanning();
+    // ⭐ (cleanliness D6) The stench trade: a raw skin's fat and the bate's
+    // dung on the hands and the apron.
+    if (MixinApi.isAttired(giver)) giver.soilFrom(TAN_SOILS);
 
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -182,6 +197,8 @@ export default class TanController extends CommandController<TanModel> {
     if (MixinApi.isContainable(hide) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(hide, giver);
     }
+    // Lifting a sodden skin out of the liquor (cleanliness D6).
+    if (MixinApi.isAttired(giver)) giver.soilFrom(TAN_SOILS);
 
     const bands = hide.tanPenaltyBands();
     const line =

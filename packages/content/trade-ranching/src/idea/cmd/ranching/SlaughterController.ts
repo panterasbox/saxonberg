@@ -177,6 +177,19 @@ export default class SlaughterController extends CommandController<SlaughterMode
     // ⭐ ONE lethal call, and it is the same one a fight makes. Everything
     // a death does — the body, the ledger row, the deed, the engagements
     // it cancels — happens there and happens once.
+    // ⭐ (cleanliness D6) The kill bloodies the one who makes it — with the
+    // ANIMAL's blood, read while it still has a body to read it from.
+    if (MixinApi.isAttired(giver)) {
+      giver.soilFrom(
+        [
+          { kind: 'blood', amount: 0.4, where: 'hands' },
+          { kind: 'blood', amount: 0.3, where: 'apron' },
+          { kind: 'blood', amount: 0.2, where: 'floor' },
+        ],
+        animal,
+      );
+    }
+
     await ConditionApi.die(animal, 'slaughtered');
 
     if (herdId && index >= 0) {

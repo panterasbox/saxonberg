@@ -11,6 +11,10 @@ help: |
   ⚠ Some things will not come off.
 
   `unequip` on its own strips everything, outermost first.
+
+  ⭐ Pulling off something dirty in a hurry gets its dirt on your hands —
+  the doffing problem every nurse is taught. `remove gloves carefully`
+  takes three times as long and leaves your hands as they were.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -24,3 +28,8 @@ args:
     requires: WearableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
+  # ⭐ The MANNER of taking it off (cleanliness D5): `carefully` peels a
+  # dirty thing off by its inside, slower, and keeps your hands clean.
+  - name: manner
+    type: string
+    required: false

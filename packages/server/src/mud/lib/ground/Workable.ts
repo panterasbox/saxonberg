@@ -69,6 +69,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
+import type { SoilSpec } from '../cleanliness/SoilSpec';
 import type { Tooled } from '../craft/Tooled';
 
 /** How hard a deed the work counts as, when the ground credits one. */
@@ -133,6 +134,13 @@ export interface WorkResult {
    * knowing the trade exists.
    */
   credit?: { discipline: string; difficulty: WorkDifficulty } | null;
+  /**
+   * ⭐ What the work put on the worker (cleanliness D6) — the GROUND's
+   * answer, like the credit: a quarry face's earth muddies hands and feet,
+   * a split block dusts the hands, a hive's frames leave nothing. The verb
+   * lands it and never decides it.
+   */
+  soils?: readonly SoilSpec[];
 }
 
 /** The two halves every worked act shares. */

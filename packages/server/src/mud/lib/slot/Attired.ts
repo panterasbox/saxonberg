@@ -173,6 +173,13 @@ export interface Attired {
   soilFrom(specs: readonly SoilSpec[], by?: Stuff | null): void;
   /** The trunk part — the root of the body plan (`body.torso`). */
   trunkSite(): string | null;
+  /**
+   * ⭐ The doffing problem (cleanliness D5): a garment came off. Taken off
+   * in a hurry, a dirty one leaves `cleanliness.doff.transfer` of what is
+   * on it on the hands that pulled it — the bare hands once the gloves
+   * are off. Taken off `careful`ly, nothing.
+   */
+  doff(garment: Stuff, opts?: { careful?: boolean }): void;
   /** Soil both hands on the layer the act reaches (a glove, else skin). */
   soilHands(kind: string, amount: number, by?: Stuff | null): void;
   /**
@@ -775,6 +782,20 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
             break;
           }
         }
+      }
+    }
+
+    public doff(
+      this: Stuff & Slotted & Attired,
+      garment: Stuff,
+      opts: { careful?: boolean } = {},
+    ): void {
+      if (opts.careful || !MixinApi.isSoilable(garment)) return;
+      if (SOIL_BANDS.indexOf(garment.soilBand('')) < SOIL_BANDS.indexOf('marked')) return;
+      const share = dial(AppSettingKeys.cleanlinessDoffTransfer, 0.5);
+      for (const kind of garment.soilKinds('')) {
+        const load = garment.soilLoad(kind, '');
+        if (load > 0) this.soilHands(kind, load * share, null);
       }
     }
 

@@ -118,6 +118,19 @@ export default class EatController extends CommandController<EatModel> {
           : Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)} with their fingers.`,
       )
       .send();
+    // ⭐ (cleanliness D6) Eating leaves crumbs on the floor — the one
+    // producer of the one debris kind, and what the pests come for. Eaten
+    // with the fingers, a little grease on the hands as well.
+    if (MixinApi.isAttired(giver)) {
+      giver.soilFrom(
+        utensil
+          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
+          : [
+              { kind: 'crumbs', amount: 0.05, where: 'floor' },
+              { kind: 'grease', amount: 0.03, where: 'hands' },
+            ],
+      );
+    }
     await StuffApi.destruct(target);
   }
 

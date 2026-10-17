@@ -40,7 +40,7 @@ import type { EnergyInflictSpec, ShockInflictSpec } from "../../../api/condition
 import type { ConductionOutcome } from "../../../api/electricity";
 import { Quantity } from "../../../lib/quantity";
 import Weapon from "../../thing/equipment/Weapon";
-import { TRAUMA_BEHAVIOR } from "../Condition";
+import { TRAUMA_BEHAVIOR, BLEED_FAMILY } from "../Condition";
 import type { OutcomeBand } from "../../../api/material";
 import type { BrainContext, BrainStatics } from "../../../lib/behavior/brain";
 import {
@@ -2555,6 +2555,16 @@ function commitInflict(
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {
     targetState.lastStruckBy = actorState.combatant;
+    // ⭐ (cleanliness D6, D8) A blow that draws blood leaves it — the
+    // BLEEDER's, sample and all — on the outer layer at the struck part,
+    // and on the hands that struck. A coat is evidence after a fight.
+    if (BLEED_FAMILY.has(outcome.trauma.type)) {
+      const amount = Math.min(0.6, 0.15 * Math.max(0.5, outcome.trauma.severity));
+      if (MixinApi.isAttired(target) && site) {
+        target.soilBodyPart(site, 'blood', amount, target);
+      }
+      if (MixinApi.isAttired(attacker)) attacker.soilHands('blood', amount / 2, target);
+    }
   }
   // Drain the augment ctx's queued consequences — the sequence position
   // the old energized stun-baton branch held (Phase 3 folded it onto the

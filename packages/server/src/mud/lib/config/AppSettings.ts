@@ -2259,6 +2259,12 @@ export const AppSettingKeys = {
   cleanlinessBandMarkedAt: "cleanliness.band.markedAt",
   cleanlinessBandSoiledAt: "cleanliness.band.soiledAt",
   cleanlinessBandFilthyAt: "cleanliness.band.filthyAt",
+  /** Cleanliness — the share of what is on a mover's feet a floor takes
+   * at each crossing (and the feet lose). */
+  cleanlinessTrafficTrackIn: "cleanliness.traffic.trackIn",
+  /** Cleanliness — the share of a dirty glove's load a QUICK removal
+   * leaves on the bare hand under it (`remove … carefully` leaves none). */
+  cleanlinessDoffTransfer: "cleanliness.doff.transfer",
 } as const;
 
 export type AppSettingKey =

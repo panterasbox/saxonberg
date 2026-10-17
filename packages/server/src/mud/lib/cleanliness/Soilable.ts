@@ -46,7 +46,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type DirtKindCatalogue from '../../platform/idea/DirtKindCatalogue';
 import type { DirtKindDescriptor } from '../../platform/idea/DirtKind';
-import type { CleanserAction } from '../../platform/idea/Cleanser';
+import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
 
 /** The four soil bands, cleanest first — words, ordinal. */
 export const SOIL_BANDS = ['clean', 'marked', 'soiled', 'filthy'] as const;
@@ -100,6 +100,47 @@ export interface HeatStamp {
   atS: number;
 }
 
+/**
+ * One cleanser in a wash: its row, and the material it is made of (whose
+ * `corrosiveTo` is what a lye or a vitriol BURNS — derived, never
+ * authored on the cleanser).
+ */
+export interface WashCleanser {
+  row: CleanserDescriptor;
+  materialPath: string | null;
+}
+
+/**
+ * ⭐ What a wash brings to a thing (cleanliness D10) — the three
+ * contributions and the water's own read. Built by the verb from what is
+ * in reach; the chemistry is the thing's.
+ */
+export interface WashSpec {
+  /** The water's temperature, K — read from what holds it. */
+  waterK: number;
+  /** The water's hardness, °dH — the source's, carried by the water. */
+  hardnessDgh: number;
+  /** Zero or more cleansers (soap, and soda to soften the water). */
+  cleansers: readonly WashCleanser[];
+  /** Effort: `1` a plain wash, `3` a scrub. Time is the third contribution. */
+  effort: number;
+  /** Other things in the same water (the bleed of an unfast dye). */
+  coWashed?: readonly Stuff[];
+}
+
+/** What a wash did — the verb renders this and nothing else. */
+export interface WashOutcome {
+  /** Kind → load removed. */
+  removed: Record<string, number>;
+  /** Kinds that SET in this wash (blood in hot water). */
+  setNow: string[];
+  /** What the wash did to the thing itself: `felted` · `shrunk` ·
+   * `rotted` · `burnt` · `scratched` · `faded` · `bled-onto`. */
+  damage: string[];
+  /** The band after. */
+  band: SoilBand;
+}
+
 export interface Soilable {
   /**
    * ⭐ THE writer. Deposit `amount` of dirt `kind` at `site` (`''` = the
@@ -144,6 +185,15 @@ export interface Soilable {
   getWashStamp(site?: string): WashStamp | null;
   /** Record a wash at `site` (the wash itself, and the laundress's). */
   recordWash(site: string, stamp: WashStamp): void;
+  /**
+   * ⭐⭐ THE wash (cleanliness D10): remove dirt at `site` by chemistry —
+   * each kind by whether a cleanser's action is one it answers to, scaled
+   * by the water's heat, the effort and the water's hardness; blood SETS
+   * in hot water and then answers only to a bleach. Records the wash for
+   * the tiers. A host adds what washing does to IT by override (a garment
+   * felts, shrinks, rots, bleeds; a vessel tips its dregs).
+   */
+  washSite(spec: WashSpec, site?: string): WashOutcome;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -195,13 +245,11 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       this.deposits = { ...this.deposits, [key]: round(next) };
       this.heat = null;
       if (by && kind === 'blood') this.keepSample(site, kind, by);
-      const row = dirtRow(kind);
-      if (row && Object.keys(row.contaminates).length > 0) {
-        const self = this as unknown as Stuff;
-        if (MixinApi.isContaminable(self)) {
-          for (const [pathogen, severity] of Object.entries(row.contaminates)) {
-            self.contaminate(pathogen, Math.min(1, severity * amount));
-          }
+      const self = this as unknown as Stuff;
+      if (MixinApi.isContaminable(self)) {
+        const row = dirtRow(kind);
+        for (const [pathogen, severity] of Object.entries(row?.contaminates ?? {})) {
+          self.contaminate(pathogen, Math.min(1, severity * amount));
         }
       }
     }
@@ -353,6 +401,49 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       this.washes = { ...this.washes, [site]: { ...stamp } };
     }
 
+    public washSite(spec: WashSpec, site: string = WHOLE_SITE): WashOutcome {
+      const removed: Record<string, number> = {};
+      const setNow: string[] = [];
+      const actions = spec.cleansers.map((c) => c.row.action);
+      // ⭐ Soda in the same water softens it (`using` twice is two
+      // cleansers); soap in hard water scums.
+      const softened = spec.cleansers.some((c) => c.row.softens);
+      const dgh = softened ? Math.min(spec.hardnessDgh, 2) : spec.hardnessDgh;
+      const scums = spec.cleansers.some((c) => c.row.hardWaterPenalty);
+      const fHard = scums ? 1 - 0.6 * clamp01((dgh - 6) / 12) : 1;
+      // Heat: cold water does half what warm does; boiling a little more.
+      const fT = 0.5 + 0.7 * clamp01((spec.waterK - 283) / 80);
+      // Effort: a scrub (3) does more than a dip (1); never a full clean
+      // on time alone.
+      const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, spec.effort));
+      for (const kind of this.soilKinds(site)) {
+        const row = dirtRow(kind);
+        const setsAt = row?.setsAboveK ?? null;
+        // ⭐ Hot water SETS blood before it can lift it (D8).
+        if (setsAt !== null && spec.waterK >= setsAt && !this.isSoilSet(kind, site)) {
+          this.setSoilSet(kind, site, true);
+          setNow.push(kind);
+        }
+        const set = this.isSoilSet(kind, site);
+        const answers = set ? (row?.setAnswersTo ?? []) : (row?.answersTo ?? []);
+        const water = set ? 0.02 : (row?.waterLifts ?? 0.3);
+        const helped = actions.some((a) => answers.includes(a));
+        const base = helped ? Math.max(water, 0.85) : water;
+        const fraction = clamp01(base * fT * fEffort * (helped ? fHard : 1));
+        const got = this.removeSoil(kind, fraction, site);
+        if (got > 0) removed[kind] = got;
+      }
+      const first = spec.cleansers[0]?.row ?? null;
+      this.recordWash(site, {
+        atS: nowS(),
+        cleanserKey: first?.key ?? null,
+        action: first?.action ?? null,
+        waterK: spec.waterK,
+        hardnessDgh: dgh,
+      });
+      return { removed, setNow, damage: [], band: this.soilBand(site) };
+    }
+
     // ---------- internals ----------
 
     private siteTotal(site: string): number {
@@ -414,6 +505,10 @@ function splitKey(key: string): [string, string] {
   return at < 0 ? [WHOLE_SITE, key] : [key.slice(0, at), key.slice(at + 1)];
 }
 
+function clamp01(n: number): number {
+  return Math.max(0, Math.min(1, n));
+}
+
 function round(n: number): number {
   return Math.round(n * 1e4) / 1e4;
 }
@@ -455,6 +550,9 @@ function bandOf(load: number): SoilBand {
  * first use: a cold catalogue is stood up and warmed in the background,
  * and this read answers `null` (the caller uses the key as the word).
  */
+/** One warning per process for a catalogue that will not stand up. */
+let warnedCold = false;
+
 function dirtRow(kind: string): DirtKindDescriptor | null {
   const cat = StuffApi.findByTemplatePath<DirtKindCatalogue>(
     TemplatePaths.dirtKindCatalogue,
@@ -462,9 +560,11 @@ function dirtRow(kind: string): DirtKindDescriptor | null {
   if (!cat) {
     void StuffApi.singleton<DirtKindCatalogue>(TemplatePaths.dirtKindCatalogue)
       .then((c) => c.allWarmed())
-      .catch((err: unknown) =>
-        console.warn('Soilable: dirt catalogue load failed:', err),
-      );
+      .catch((err: unknown) => {
+        if (warnedCold) return;
+        warnedCold = true;
+        console.warn('Soilable: dirt catalogue load failed:', err);
+      });
     return null;
   }
   return cat.peek(kind);

@@ -13,3 +13,15 @@ settings:
     value: "0.4"
   - key: cleanliness.band.filthyAt
     value: "1"
+
+  # The share of what is on a mover's feet a floor takes at each crossing
+  # — and the feet lose. ⭐ Why a shop floor soils with its customers: the
+  # mud is brought in, by them, from wherever they walked.
+  - key: cleanliness.traffic.trackIn
+    value: "0.2"
+
+  # The share of a dirty glove's load that a QUICK removal leaves on the
+  # bare hand under it — the doffing problem nurses are trained on.
+  # `remove gloves carefully` is slower and leaves none.
+  - key: cleanliness.doff.transfer
+    value: "0.5"

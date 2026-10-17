@@ -208,6 +208,8 @@ export default class Block extends BlockBase implements Splittable {
           ? `A piece comes away.${tail}`
           : `A piece comes away clean — ${piece.getPresentation()}.${tail}`,
       peers: null,
+      // ⭐ (cleanliness D6) Stone dust on the hands.
+      soils: [{ kind: 'dust', amount: 0.1, where: 'hands' }],
       credit: { discipline: QUARRYING, difficulty: 'easy' },
     };
   }
