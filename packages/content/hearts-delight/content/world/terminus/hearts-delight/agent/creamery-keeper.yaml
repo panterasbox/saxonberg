@@ -1,0 +1,35 @@
+# The creamery keeper (dairy D14) — runs the co-op's creamery for its
+# members. Holds the co-op's seat; the creamery is titled to the co-op.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Marrow Pell
+  keywords: [marrow, pell, keeper, cheesemaker, creamery-keeper]
+  shortDescription: careful cheesemaker
+  register: definite
+  longDescription: >-
+    A narrow, careful man in a white apron, a thermometer in his breast
+    pocket like a pen. He tastes everything, with a little bone spoon, and
+    writes down what it tasted of.
+  archetype: farmer
+  prologue:
+    - "Keeps the valley's creamery for the members, and keeps the starter alive."
+    - "Has never let the crock get warm."
+  competence:
+    - { discipline: dairying, asserting: proficient }
+    - { discipline: fermenting, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: sociability, valence: 10 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "checks the thermometer, and writes something in a little book." }
+          - { kind: free, value: "lifts the lid of the starter crock, sniffs, and puts it back." }
+          - { kind: free, value: "turns a hoop on the pressing table a quarter round." }

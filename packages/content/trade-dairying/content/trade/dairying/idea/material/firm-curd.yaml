@@ -1,0 +1,30 @@
+# Firm curd — renneted milk the culture has set (dairy D7). ⭐ Pressed in a
+# hoop it drains down to about half its water and becomes a HARD cheese
+# that keeps for months (D9b); unweighted, it stays wetter and keeps
+# less. Nothing enumerates "hard cheese keeps" — the press drove the water
+# out.
+class: /platform/idea/material/Material
+data:
+  name: "firm curd"
+  keywords: [curd, "firm curd"]
+  appearance: white, springy and close
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 120000, protein: 110000, sugar: 15000, water: 700000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "perishable", "curd", "firm-curd"]
+  drainSetting:
+    days: 0.5
+    becomes: /trade/dairying/idea/material/hard-cheese
+    moisture: { unloaded: 0.8, loaded: 0.55 }
+    loadRef: 2
+  composition: []

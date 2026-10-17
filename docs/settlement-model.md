@@ -65,7 +65,7 @@ archetype list are the same list.
 > | **care** | ⚠ **the riskiest** | *"you must fund an almshouse"* would be fabricated. The honest version: injury already happens, and mutual aid is **voluntary** — a service bought, never an obligation levied. |
 >
 > ⭐ Which trades these needs charter is worked in
-> [rendering-slate](./slates/builds/rendering-slate.md): **one** genuinely
+> [rendering-slate](./slates/tails/rendering-slate.md): **one** genuinely
 > new pack (knacker → tanner → chandler, closing *light* and half of
 > *waste*), and everything else is already in the register as *designed*
 > or a named **GAP**.

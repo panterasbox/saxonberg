@@ -1,0 +1,23 @@
+# Buttermilk — what draws off a churn when the butter has come (dairy D5).
+# Sour-sweet, thin, a drink and a baker's liquid.
+class: /platform/idea/material/Material
+data:
+  name: "buttermilk"
+  keywords: [buttermilk]
+  appearance: thin, white and flecked
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sour]
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 5000, protein: 33000, sugar: 45000, water: 905000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "buttermilk"]
+  composition: []

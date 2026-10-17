@@ -47,7 +47,7 @@ simulates bladders is the one that feels like a tamagotchi).
    service.
    ⭐ *(2026-09-18)* **Soap** is the consumable that makes this state
    reachable — the chandler's second product,
-   [rendering-slate § 8](./rendering-slate.md); the **bathhouse** rides
+   [rendering-slate § 8](../tails/rendering-slate.md); the **bathhouse** rides
    hospitality as a venue archetype, next door to the gym archetype the
    nutrition & fitness build ships.
 3. **The mirror** — "how do others see me right now" is a real

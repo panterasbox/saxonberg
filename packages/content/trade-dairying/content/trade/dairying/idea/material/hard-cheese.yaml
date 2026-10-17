@@ -1,0 +1,25 @@
+# Hard cheese — what PRESSED firm curd sets into (D9b), and what the
+# `hard-cheese` ripening profile keys on: it climbs over game months and
+# never goes over. The press left it at about half its water, salt
+# (`cure wheel`) binds more, and a ripening rind holds spoilage off — so it
+# keeps for a season, which is why every dairying culture made it.
+class: /platform/idea/material/Material
+data:
+  name: "hard cheese"
+  keywords: [cheese, "hard cheese"]
+  appearance: pale gold, close-textured
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 330000, protein: 250000, sugar: 5000, water: 380000 }
+  spoilActivationEnergy: 70000
+  waterActivity: 0.91
+  toxicity: []
+  tags: ["food", "dairy", "perishable", "cheese", "hard-cheese"]
+  composition: []

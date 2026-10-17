@@ -322,7 +322,7 @@ builds:
   the medical vertical is a second consumer of that decision, and
   chain-of-custody matters more here (a mislabelled tube is a real harm).
 - **First consumers:** the infirmary (the `bloodBank`'s typed stock wants
-  a typed sample), the [blood-slate](./blood-slate.md) sector (screening a
+  a typed sample), the [blood-slate](../tails/blood-slate.md) sector (screening a
   donation), and diagnosis-before-treatment in the recovery loop.
 
 This does not expand the mining round-trip; it records that the **medical

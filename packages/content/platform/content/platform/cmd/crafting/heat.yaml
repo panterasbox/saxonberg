@@ -6,6 +6,10 @@ help: |
   the hearth (or bare `heat` for the build you're working). Latches the
   hottest heat the build has taken; recipes that need heat check it at
   the finish. Needs a lit fire in reach. Takes a moment.
+
+  Anything else that holds heat — a cheese vat, a pail of milk — is set
+  on the fire in reach (`heat vat`), and warms there until you take it
+  off (`get vat`). A thermometer tells you how far it has come.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -19,4 +23,8 @@ args:
     # resolves it (held first) instead of the controller walking for it
     # (`lint:instrument-args`).
     default: "reachable:[mixin.ManualBuildMixin]"
-    requires: ManualBuildMixin
+    # ⭐ `any`, narrowed by the controller to its two arms: a build vessel
+    # takes the heat into its build; any other vessel is SET ON the lit
+    # fire in reach (dairy D6). A build vessel and a cold vat share no
+    # mixin, so an alternation would delete a check.
+    requires: any

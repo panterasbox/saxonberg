@@ -19,7 +19,7 @@
 > **Size:** a wave
 
 See also — the chain: [ranching](../builds/ranching-slate.md) (the
-supplier) · [rendering](../builds/rendering-slate.md) (horn · glue ·
+supplier) · [rendering](./rendering-slate.md) (horn · glue ·
 gelatin · soap · kibble — the destinations the requirements assigned) ·
 [cooking](../builds/cooking-slate.md) (the law's consumer) ·
 [hearth & larder](./hearth-and-larder-design-pack.md) (the victualler) ·
@@ -484,7 +484,7 @@ which makes it an epoch-ladder story rather than a row. Glue and gelatin
 are bone's second and third sinks and nothing demands them; bone's ONE
 shipped sink is the field.
 
-→ [rendering-slate](../builds/rendering-slate.md), which owns all four.
+→ [rendering-slate](./rendering-slate.md), which owns all four.
 
 ---
 

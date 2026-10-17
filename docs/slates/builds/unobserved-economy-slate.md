@@ -94,4 +94,4 @@ answer here should stand on.
 
 - [location-graph.md](../../subsystems/location-graph.md) — the record
 - [employment.md](../../subsystems/employment.md) · [retail.md](../../subsystems/retail.md) · [residency.md](../../subsystems/residency.md) · [behavior.md](../../subsystems/behavior.md) · [credit.md](../../subsystems/credit.md) · [press.md](../../subsystems/press.md)
-- [scan-sweep-slate](../tails/scan-sweep-slate.md) — where this was cut from
+- [scan-sweep-slate](./scan-sweep-slate.md) — where this was cut from

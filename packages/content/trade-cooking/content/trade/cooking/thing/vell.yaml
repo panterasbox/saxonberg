@@ -1,0 +1,18 @@
+# The vell — a calf's (or a kid's, or a lamb's) fourth stomach, the
+# source of rennet (dairy D8).
+#
+# ⭐ Only off a YOUNG head: the species' butchery line authors
+# `maxAgeDays`, so a cow gives none and a calf gives one. Raw it spoils
+# like any offal; dried on a rack (`dry vell on rack`) it keeps, and a
+# dried vell steeped in brine is the rennet a cheesemaker sets a firm curd
+# with (the dairying trade's `rennet` recipe).
+class: /platform/thing/Provision
+data:
+  shortDescription: calf's vell
+  keywords: [vell, stomach, rennet-bag, "calf's vell"]
+  register: indefinite
+  longDescription: >-
+    A small, pale stomach bag, thin-walled and faintly sour, the kind a
+    cheesemaker would pay for and a cook would throw away.
+  _materialPath: /trade/cooking/idea/material/vell
+  mass: 0.3

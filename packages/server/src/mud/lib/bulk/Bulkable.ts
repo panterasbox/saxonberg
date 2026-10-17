@@ -987,7 +987,9 @@ function bulkContentsAugmenter(
       // par key — so the substrate asks whether this host has one.
       const kind = MixinApi.isVesselKind(host) ? host.getCategory() : '';
       if (affordance === 'interior' && kind) {
-        lines.push(`The ${kind} is empty.`);
+        // The category is a slug (`cheese-vat`); the sentence wants words
+        // (found by the dairy's browser walk: "The cheese-vat is empty").
+        lines.push(`The ${kind.replace(/-/g, ' ')} is empty.`);
       }
       continue;
     }

@@ -5399,7 +5399,7 @@ and a door would advertise a boot seam as author surface.
   `pnpm lint` too.
 
 Sweep tracked at
-[value-object-statics-slate.md](./slates/builds/value-object-statics-slate.md);
+[value-object-statics-slate.md](./slates/tails/value-object-statics-slate.md);
 worked example in [presentation.md](./subsystems/presentation.md).
 
 ## ⛔ RETIRED 2026-10-01 — `onCreate` composed OUTSIDE a layer with its own hook

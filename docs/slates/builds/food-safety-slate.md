@@ -18,7 +18,7 @@ is the completeness doctrine and is **inherited unchanged**) ·
 [cooking-slate](../builds/cooking-slate.md) (shipped; the kill step is its) ·
 [ranching-slate](../builds/ranching-slate.md) (§ *the ranching seam — leave it open*;
 this build finally cuts it, from the hunting side) ·
-[rendering-slate](../builds/rendering-slate.md) (the non-meat half of a carcass —
+[rendering-slate](../tails/rendering-slate.md) (the non-meat half of a carcass —
 adjacent, not annexed) · [pharma-slate](../builds/pharma-slate.md) (⚠ **cut** — see
 Part 10) · [health-vertical-slate](../builds/health-vertical-slate.md) (the medic
 demand this creates) · [sampling-and-labs-slate](../builds/sampling-and-labs-slate.md)

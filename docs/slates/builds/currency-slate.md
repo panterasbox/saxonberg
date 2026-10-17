@@ -234,7 +234,7 @@ of silently).
 > it has a full requirements doc,
 > [credit.md](../../subsystems/credit.md),
 > seeded by the (now-compacted)
-> [credit-slate](../tails/credit-slate.md). The rename-frees-the-word-`credit`
+> [credit-slate](./credit-slate.md). The rename-frees-the-word-`credit`
 > argument is history — the rename already shipped.
 
 # Open questions

@@ -1,0 +1,25 @@
+# Rennet — the extract of a dried vell steeped in brine (dairy D8): what
+# turns milk into a curd firm enough to press. ⭐ The `coagulant` tag is the
+# whole of what it does in the engine: a pour of it into a working milk
+# batch REKEYS the batch to renneted milk (the soft-curd profile's
+# `transforms`), whatever the order of rennet and starter.
+#
+# Authors no spoilage constants: a salt extract keeps.
+class: /platform/idea/material/Material
+data:
+  name: rennet
+  keywords: [rennet]
+  appearance: clear and faintly brown
+  density: 1050
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 1.5
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: false
+  nutrients: ["water"]
+  nutrientAmounts: { water: 900000 }
+  toxicity: []
+  tags: ["liquid", "coagulant", "rennet"]
+  composition: []

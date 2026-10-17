@@ -1,0 +1,22 @@
+# The calf register (dairy D8, D14) — the young stock, kept apart from the
+# milking herd. ⭐ It is how a young head exists at all in a world that
+# does not yet breed: a calf's vell is the dairy's rennet, so the register
+# is where the creamery's rennet supply comes from.
+class: /trade/ranching/thing/Herdbook
+data:
+  shortDescription: calf register
+  keywords: [register, "calf register", calves, book]
+  register: definite
+  longDescription: >-
+    A narrow ledger for the young stock — three lines in it, and a note
+    in the margin that the bull calves go to the block before they are
+    weaned.
+  mass: 0.3
+  herdId: delight-calves
+  herdName: the Delight calves
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
+  tally: 3
+  foundingMeanAgeDays: 45
+  femaleFraction: 0.5
+  holderRef: organization:/world/terminus/hearts-delight/idea/dairy-business
+  homeExtent: /world/terminus/hearts-delight/dairy/location/yard

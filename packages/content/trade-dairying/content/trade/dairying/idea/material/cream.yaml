@@ -1,0 +1,23 @@
+# Cream — the fat that rose (dairy D4): the residue a setting pan leaves
+# once the skim is drawn. The `cream` tag is what a churn works.
+class: /platform/idea/material/Material
+data:
+  name: "cream"
+  keywords: [cream]
+  appearance: thick, rich and pale yellow
+  density: 1000
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sweet]
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 400000, protein: 20000, sugar: 30000, water: 545000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.98
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "cream"]
+  composition: []

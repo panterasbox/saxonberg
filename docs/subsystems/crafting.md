@@ -1698,3 +1698,24 @@ one machine, derived from the feed rather than chosen on a dial.
 only the plan's composition and water, so any per-litre concentration on
 the feed was dropped. It folds the source payload through
 `BulkableApi.blendPayloads` now.
+
+## History — the dairy build (2026-10)
+
+- **`churn`** joins `stir`/`shake` on `stir.yaml` (method `churned`).
+  ⭐ The view is `requires: any` now and the controller narrows to two arms:
+  a build vessel records the method; a vessel answering the kernel's
+  **`HandWorked { workByHand(method) }`** shape (`lib/craft/ManualBuild.ts`)
+  works its own charge and says what came of it. ⚠ Why not a build
+  vessel: a `pour` into a build vessel BANKS the matter as a contribution
+  and drains the source, so cream poured into a build-vessel churn would
+  vanish. The churn confers the view itself (a static on its class).
+- **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
+  cheese vat) is SET ON the lit `Placing` fire in reach
+  (`reachableHeatSource()`), so its contents really warm; `requires: any`
+  with the controller narrowing; *"There's no fire here to set X on"*
+  otherwise.
+- ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
+  ice pan decide the shape of what sets in them with no verb, no recipe
+  and no deed; a pour into a mould credits its discipline. See
+  [mould.md](./mould.md).
+- The commons **pail is a `CraftVessel`** (washable, a surface load).

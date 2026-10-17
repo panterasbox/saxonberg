@@ -10,7 +10,7 @@
 > `harvest field`; no verb sows a `Field`) · plant genetics — `Genome`,
 > `express` reaction norms, `pollinate`, cultivars and fixed-vs-segregating
 > seed lots, the husbandry-wide breeding substrate · the environment-control
-> tier (greenhouse glass + hydroponics) · the sun→ambient light driver ·
+> tier (greenhouse glass + hydroponics) ·
 > per-stage stress sensitivities + yield scaling + the composition output ·
 > ⭐ **the plantation crop family** (coffee · tea · cocoa · tobacco · cotton ·
 > spices · sugar — needs no new mechanism, but ⚠ **no warm biome exists**,

@@ -108,7 +108,7 @@ Suggested placement: after `## ⭐⭐ Silence on worth is not silence on quantit
 > Two acts a society needs; opposite correct policies. A player who passes
 > a deposit on cans, then tries the same trick on blood and watches
 > donation **fall**, has learned something most adults never learn — and
-> no essay delivers it. See [blood-slate.md](../builds/blood-slate.md).
+> no essay delivers it. See [blood-slate.md](../../slates/tails/blood-slate.md).
 >
 > ⚠ **This entire lesson is impossible if the engine credits both with
 > standing.** That is the concrete reason the mint question

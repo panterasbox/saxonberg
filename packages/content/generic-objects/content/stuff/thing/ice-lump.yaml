@@ -1,0 +1,17 @@
+# A lump of ice — what a pool of water sets as when it freezes in a vessel
+# that is not a mould (a pail left out in a frost, a pot in a cold store).
+#
+# ⭐ Water's own fallback shape (dairy D20): the ice pan is a MOULD and
+# gives the squared `ice-block`; anything else gives this. Authored with its
+# material and prose so a frozen bucket reads *a lump of ice*, never
+# *a cast lump of water*. Mass is stamped by the pool at the freeze.
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of ice
+  keywords: [ice, lump, ice-lump]
+  register: indefinite
+  longDescription: |
+    A lump of ice, clouded and dripping, the shape of whatever it froze in.
+  _materialPath: /trade/bottling/idea/material/ice
+  mass: 1
+  stampedTemperatureK: 268

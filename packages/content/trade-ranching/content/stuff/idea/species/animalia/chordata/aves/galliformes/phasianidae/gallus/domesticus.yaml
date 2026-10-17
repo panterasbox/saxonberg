@@ -72,6 +72,9 @@ data:
       yieldShape: count
       broodAfterDays: 4
       window: { kind: photoperiod, daylightFrom: 0.45, daylightTo: 1 }
+      # A cockerel lays nothing (dairy D12) — true before by accident of
+      # nothing checking.
+      sex: female
   # ⭐⭐⭐ **A hen yields POULTRY CUTS**, and until the reachability sweep it
   # did not — it yielded the generic fallback, `stew-meat ×2`.
   #

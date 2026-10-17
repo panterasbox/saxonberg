@@ -1,0 +1,30 @@
+# Salt a wheel — the hard cheese's second hurdle (dairy D21). Rubbed and
+# packed in salt as it comes out of the hoop, a wheel's water activity
+# drops and it keeps through a long ripening.
+#
+# ⭐ No verb of its own: `cure wheel` finds this row the way `cure <hide>`
+# finds `salt-hide` — `PreserveController.recipeFor` picks, among the
+# recipes that move `solute`, the one whose item slot the named thing
+# satisfies. A salted wheel is the same wheel: material, mass, load, what
+# it was made from and its water state carry; the cure block writes the
+# salt onto it.
+recipeId: salt-wheel
+name: Salted wheel
+keywords: ["salt-wheel"]
+discipline: dairying
+difficulty: standard
+inputSlots:
+- slot: wheel
+  category: cheese
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: salt
+  category: salt
+  minGrade: fair
+  measureL: 0.3
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/dairying/thing/wheel
+cure:
+  solute: 0.45

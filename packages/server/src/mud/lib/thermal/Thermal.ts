@@ -1373,12 +1373,29 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
       return;
     }
 
-    // Solidify — the liquid becomes a cast solid of the same material, a
-    // clone of the material's `castTemplate` (water → ice-block; a metal →
-    // the generic `/stuff/thing/Casting`), mass derived back from the pool.
+    // Solidify — the liquid becomes a cast solid of the same material.
+    // ⭐⭐ **The set site asks the CONTAINER first** (dairy D9): a mould
+    // keeps what set in it, in its own shape (an ice pan → a block; an
+    // ingot mould → an ingot); any other vessel falls back to the
+    // material's `castTemplate` (water → a lump of ice; a metal → the
+    // generic `/stuff/thing/Casting`) dropped beside it, today's behaviour.
+    const setPayload = v.getBulkPayload(aff);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     v.setBulkPayload(aff, null);
+    if (MixinApi.isMould(v)) {
+      // ⭐ A metal is the same material molten or set, so the pool stamps
+      // the mould's shape row (one ingot row for copper, tin and iron); a
+      // `liquid`-tagged pool (water) has its own solid row (ice), which the
+      // shape row authors and keeps.
+      void v.castInto({
+        material: mat,
+        massKg,
+        payload: setPayload,
+        stampMaterial: !mat.hasTag('liquid'),
+      });
+      return;
+    }
     const scope = (v as unknown as { getContainer(): Stuff | null })
       .getContainer();
     void StuffApi.clone(mat.getCastTemplate()).then((cast) => {

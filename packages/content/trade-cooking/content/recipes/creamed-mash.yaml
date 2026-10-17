@@ -1,0 +1,36 @@
+# Creamed mash (dairy D15) — the root mash with milk and a knob of fat
+# beaten in. ⭐ It names no dairy row: `category: milk` takes any milk (a
+# cow's, a ewe's, a goat's) and `category: fat` takes butter or tallow —
+# the kitchen takes dairy by CATEGORY, so nothing here had to be edited
+# the day the dairy shipped.
+recipeId: creamed-mash
+name: Creamed Mash
+keywords:
+- creamed-mash
+- creamed
+inputSlots:
+- slot: roots
+  category: vegetable
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: milk
+  category: milk
+  minGrade: poor
+  kind: bulk
+  measureL: 0.2
+- slot: fat
+  category: fat
+  minGrade: poor
+  kind: bulk
+  measureL: 0.05
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: a soft pale mash, glossy with fat and milk
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 373
+maxHeatK: 393
+difficulty: easy
+discipline: cooking

@@ -271,7 +271,8 @@ trade build's to open.
   is the sink, and this slate's extract is its precondition
 - [preservation-slate](../tails/preservation-slate.md) — owns the acid
   hurdle that malt vinegar feeds
-- [whiskey-styles-slate](./whiskey-styles-slate.md) — where malting
+- [crafting.md § History — the whiskey-styles build](../../subsystems/crafting.md)
+  (its slate retired 2026-10-16, absorbed) — where malting
   shipped as a side-effect, and the peat/cut precedent for "a decision at
   one rung moves the right answer at another"
 - `docs/vocations.md` — the five criteria, and the maltster/cooper

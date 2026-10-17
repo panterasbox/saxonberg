@@ -1,0 +1,71 @@
+# The goat — ⭐ and the realm had none (dairy D13). The only `capra` in the
+# tree was a satyr.
+#
+# ⭐ It follows the COW's lactation, not the ewe's season: a goat milks
+# once she has freshened and dries off if nobody comes, so `window: event`
+# and the same expire shape — three litres a game day, where a cow gives
+# twenty-two. That is the goat's whole economic case and it is a true one:
+# a household that cannot keep a cow keeps a goat, on rough ground a cow
+# would starve on, which is why Rejection's three nannies are on the
+# Kestrel road and not in a byre.
+#
+# ⚠ In the COMMONS, beside `bos` and `ovis`: a goat exists whether or not
+# anybody is ranching.
+class: /platform/idea/species/Species
+data:
+  binomial: Capra hircus
+  commonNames: ["goat", "nanny", "billy", "kid"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 317 }
+    heartRate: { baseline: 80, survivableMin: 40, survivableMax: 200 }
+    respiratoryRate: { baseline: 22, survivableMin: 8, survivableMax: 60 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 135 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 4, survivableMin: 3, survivableMax: 5 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 15
+  circadianBand: diurnal
+  diet: herbivore
+  # ⭐ Adult liveweight in kg — a hardy hill goat, not a show breed.
+  adultMass: 60
+  ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 1000, senescentAt: 1500 }
+  breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
+  production:
+    # ⭐ The cow's shape at a goat's scale (dairy D13). `sex: female` and a
+    # three-day rest, as the cow's.
+    - key: milk
+      yieldRow: /stuff/idea/material/food/goat-milk
+      perGameDay: 3
+      behaviour: expire
+      windowDays: 0.6
+      yieldShape: volume
+      window: { kind: event }
+      sex: female
+      restDays: 3
+  # The ewe's joints (a goat breaks down the way a sheep does), and the vell
+  # off a kid, as the calf's.
+  butcheryYield:
+  - { cut: /trade/cooking/thing/cut-shoulder,  units: 2 }
+  - { cut: /trade/cooking/thing/cut-leg,       units: 2 }
+  - { cut: /trade/cooking/thing/cut-loin,      units: 2 }
+  - { cut: /trade/cooking/thing/cut-rib,       units: 2 }
+  - { cut: /trade/cooking/thing/cut-neck,      units: 1 }
+  - { cut: /trade/cooking/thing/cut-belly,     units: 2 }
+  - { cut: /trade/cooking/thing/cut-shank,     units: 4 }
+  - { cut: /stuff/thing/items/offal,         units: 2, fraction: 0.10 }
+  - { cut: /trade/ranching/thing/suet,          units: 1, fraction: 0.04 }
+  - { cut: /trade/cooking/thing/gut,           units: 1, fraction: 0.02 }
+  - { cut: /trade/cooking/thing/vell,          units: 1, fraction: 0.004, maxAgeDays: 30 }
+  - { cut: /trade/ranching/thing/hide,          units: 1, fraction: 0.08, conditioned: false }
+  - { cut: /trade/ranching/thing/bone,          units: 2, fraction: 0.12, conditioned: false }
+  longDescription: >-
+    A rangy brown nanny with a beard, a slot-eyed stare and a working jaw.
+    She has already eaten something you were going to need.
+  nameBankKeys: []

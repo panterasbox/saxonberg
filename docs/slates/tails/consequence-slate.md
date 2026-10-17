@@ -129,7 +129,7 @@ BKT floor — `combat.md` § Advancement), and Q9 (diminishment —
   [combat.md § Poise](../../subsystems/combat.md#poise--the-one-new-subsystem).
 - **The terms/consent lift** — Q5 above; unowned, needs a slate.
 - **Blood, transfusion and the donation loop** — its own build; tracked
-  on [blood-slate.md](../builds/blood-slate.md).
+  on [blood-slate.md](./blood-slate.md).
 - **Filling `g(composure)`** — the hook shipped inert; the axis belongs
   to `traits-stress`, tracked on
   [combat-experience-slate.md](../builds/combat-experience-slate.md) T5 and

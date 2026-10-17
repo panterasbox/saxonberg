@@ -1,0 +1,33 @@
+# Rennet (dairy D8) — a dried vell steeped in brine: salt, water and the
+# stomach of a young head, left to draw. What a cheesemaker sets a FIRM
+# curd with; poured into a working vat of milk, it turns the batch.
+#
+# ⭐ The vell is only to be had off a young animal (its butchery line's
+# `maxAgeDays`), so a creamery's rennet supply is a calf register's
+# business, and that is how the dairy and the farm are one economy.
+recipeId: rennet
+name: Rennet
+keywords:
+- rennet
+inputSlots:
+- slot: vell
+  category: vell
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: salt
+  category: salt
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 0.5
+toolCapabilities: []
+outputTemplate: /trade/dairying/thing/rennet-jar
+outputAppearance: a clear brown extract, smelling of salt
+outputApplication: bulk
+outputMaterial: /trade/dairying/idea/material/rennet
+difficulty: standard
+discipline: dairying

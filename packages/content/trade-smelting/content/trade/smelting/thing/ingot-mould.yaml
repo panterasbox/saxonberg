@@ -1,0 +1,21 @@
+# An ingot mould (dairy D19) — ⭐ a MOULD: molten metal poured into it
+# (`pour crucible into mould`) sets as it cools into an ingot, IN the
+# mould, until you take it out (`get ingot from mould`). Fired clay,
+# reusable, wears with each cast; a pour into it is the smelter's act and
+# credits smelting. It holds about five kilos of copper.
+class: /platform/thing/Mould
+data:
+  shortDescription: ingot mould
+  keywords: [mould, mold, "ingot mould", "ingot mold"]
+  register: indefinite
+  longDescription: >-
+    A heavy block of fired clay with a single oblong trough in its top,
+    blackened inside from the metal that has been poured into it.
+  interiorBulk: true
+  interiorCapacity: 0.6
+  closure: liquidTight
+  castTemplate: /trade/smelting/thing/ingot
+  reusable: true
+  discipline: smelting
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 6
