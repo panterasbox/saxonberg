@@ -25,7 +25,10 @@
 > `sense` (sections) and `query` (columns), the cut order; Ideas —
 > known, never perceived — through three doors (card links, an MQL
 > reference step, a `catalogue` command) behind one gate on the Idea,
-> and a unified catalogue interface — Shadow and `score` still to detail
+> and a unified catalogue interface; the Shadow card — unperceived by
+> default, its impression derived from the HOST mixins it overrides, the
+> veil badge on the host's composition chips, five tiers of who may know
+> — `score` still to detail
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -715,9 +718,91 @@ No common body, but a common frame — and the mixin rule applies:
   Idea card worth opening.
 - **Composition.**
 
+### The Shadow card — derived from what it touches
+
+A shadow is **per-instance behaviour riding a host**: it intercepts named
+methods on one specific Stuff, shadows stack (last installed runs
+first), and detaching restores the host byte for byte (call-security.md
+§ Shadow Subsystem). Buffs and debuffs, enchantments (a shadow over
+`augmentInflict`), curses, a blindfold or night vision on a viewer,
+tracers and audit hooks are all shadows. ⭐ Few exist yet — everything
+built so far is platform-consistent, not special cases — but they are
+**the mod surface**: with permission, and provided it does not lag the
+game, anyone can override anything. That content will come sooner than
+it looks.
+
+#### Unperceived by default
+
+A shadow's whole job is to override behaviour **seamlessly**, so by
+default **nobody perceives it**. Anything visible is a deliberate
+declaration, and even then it is an **impression**, never the mechanism.
+
+#### The impression is derived from the host's mixins
+
+A shadow intercepts **methods** on its host; each method belongs to a
+**mixin on the host**. So *what is this shadow up to* is answered as
+**which of the host's facets it alters**, worded by those mixins:
+vision methods on a viewer → *something is affecting their sight*; the
+lock's open check → *the lock is not behaving normally*;
+`augmentInflict` → *its strikes are altered*. It is the mixin
+organization again — not the mixins the shadow composes, but the host's
+mixins it overrides.
+
+⭐⭐ **The veil badge on the host's composition chips is the primary
+signal.** Where you are allowed to know, the `Lockable` chip on the
+chest wears a veil — *this facet is overridden* — and clicking it opens
+the shadow's card. The mixin strip doubles as a map of **where a thing
+has been modded**. A **layers** row (one veil-framed chip per shadow you
+perceive, outermost first — shadows stack, and the row shows it) is the
+secondary view.
+
+#### Shadow metadata
+
+Derivation alone cannot tell a blessing from a curse, so a shadow
+declares a little about itself: **tags** (*buff, curse, enchantment,
+cosmetic, instrumentation* — a tracer or an audit hook); an **optional
+perceivable description** (*the blade burns what it strikes*); **who may
+perceive it** (below); and **how long it lasts**. Tags give the
+impression a tone and give MQL something to filter on
+(`me:[shadow.curse]`).
+
+#### Who may know — in tiers
+
+1. **Nobody** — the default; seamless.
+2. **The host** — you know you are blindfolded; you may feel the
+   sluggishness.
+3. **Observers** — the glowing blade.
+4. **Detectable** — by a reading (an instrument, magic-sensing), detail
+   by competence, per the instrumentation ladder.
+5. **Its author and the title holders** — the full picture, in the
+   studio: every method intercepted, every host mixin touched, **who
+   installed it** (the provenance ledger already records authorship — a
+   mod with no attributable author should not exist) and **what it
+   costs** (its dispatch overhead — the mod surface's one hard rule is
+   that it must not lag the game).
+
+#### The player's Shadow card
+
+- **Header** — the Shadow chip in its dashed, veil-like frame; the name
+  **as you know it** (*an enchantment* until identified, then
+  *Flamebrand* — the identification realm, keyed on your belief like an
+  unidentified potion).
+- **On** — a link back to the host (*on your sword*).
+- **The facets it alters** — derived, in the host mixins' words.
+- **Tags and description** where declared; **duration** where
+  perceptible; **who put it there** only if you know.
+- **Composition** — a shadow is Stuff and has mixins too.
+- ⛔ **Intercepted method names appear only in the author tier.** They are
+  mechanism; the facet impression is what is shareable.
+- **Lifecycle** — live while the host is in reach; when the shadow
+  detaches, the card closes **with the reason said** (*the enchantment
+  faded*) — the card surface's existing `gone` reason.
+- **Sizes** — glance *an enchantment · on your sword*; feed header,
+  host, the facets it alters; focal everything you may know.
+
 ### Still to detail
 
-The **Shadow** body; `score` (your own sheet); the set card's lenses per
+`score` (your own sheet); the set card's lenses per
 flag beyond `--mixin`; per-kind Idea bodies as they are needed; how the
 modes (the Discord-style sidebar, with **chat** and **explore** as their
 own modes) place these cards.
