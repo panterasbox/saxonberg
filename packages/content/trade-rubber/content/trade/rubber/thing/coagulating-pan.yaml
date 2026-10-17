@@ -1,0 +1,24 @@
+# A coagulating pan — ⭐ a dairy `Mould` (rubber build, D13.2): pour latex
+# into it and leave it a day, and the latex coagulates and gives up its
+# serum the way curd gives up its whey — the same drain set, the same
+# hook — leaving a sheet of raw rubber IN the pan until you take it out.
+#
+# ⚠ It sets only in a pan: a cup of latex left standing stays latex. And
+# no press: the pan sets unloaded (a pressed pan is moulding's).
+class: /platform/thing/Mould
+data:
+  shortDescription: coagulating pan
+  keywords: [pan, "coagulating pan", tray, "latex pan"]
+  register: indefinite
+  longDescription: >-
+    A broad, shallow pan of tinned iron, a hand deep, its rim crusted with
+    old dried latex.
+  interiorBulk: true
+  interiorCapacity: 2
+  closure: liquidTight
+  castTemplate: /trade/rubber/thing/raw-rubber-sheet
+  reusable: true
+  discipline: chemistry
+  gradeBand: fine
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 2

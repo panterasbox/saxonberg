@@ -1,0 +1,14 @@
+# A sheet of raw rubber — what a coagulating pan of latex sets into in a
+# day: the pan's shape (its `castTemplate`). Tacky when warm, stiff when
+# cold; it never melts back to latex (raw rubber has no melting point).
+class: /platform/thing/Casting
+data:
+  shortDescription: sheet of raw rubber
+  keywords: [sheet, rubber, "raw rubber", "rubber sheet"]
+  register: indefinite
+  longDescription: |
+    A flat, pale sheet of coagulated latex the size of the pan it set in,
+    still damp on the underside — tacky in a warm room, stiff as leather
+    in a cold one.
+  _materialPath: /stuff/idea/material/organic/raw-rubber
+  mass: 1

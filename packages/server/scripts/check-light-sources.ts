@@ -199,6 +199,10 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
   '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
   '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight
+  '/world/terminus/goods-yards/rubber-works/location/ground/works/floor', // tall iron-framed windows down the yard wall
+  '/world/terminus/goods-yards/rubber-works/location/ground/wing/store', // a small barred window high in the end wall
+  '/world/terminus/goods-yards/rubber-works/location/loft/loft', // a dormer in the slope of the roof
+  '/world/terminus/goods-yards/rubber-works/location/tower/tower', // a window in each wall
 ];
 
 /**
@@ -295,10 +299,10 @@ function isBurnerRow(row: Row, sources: readonly PackSource[]): boolean {
 /**
  * Is this biome row's class a `SkyExposedBiome`?
  *
- * ⚠ The CLASS decides, never the folder. `indoor/cafeteria-atrium` is a
- * `SkyExposedBiome` sitting under the `indoor/` admin folder and it is
- * right to be — an atrium has a glass roof. A path test would have called
- * it enclosed and left it dark at noon.
+ * ⚠ The CLASS decides, never the folder. (`indoor/cafeteria-atrium` was a
+ * `SkyExposedBiome` under the `indoor/` admin folder — an atrium has a
+ * glass roof — and a path test would have left it dark at noon. Since the
+ * rubber build a glass roof is a place's own `roof:`, and that row is gone.)
  */
 function isSkyBiome(path: string, rows: Map<string, Row>, sources: readonly PackSource[]): boolean {
   const row = rows.get(path);

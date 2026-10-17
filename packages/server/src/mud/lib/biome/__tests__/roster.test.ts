@@ -16,8 +16,9 @@
  *   /stuff/idea/biome/outdoor/meadow          SkyExposedBiome ← 3-deep chain
  *   /stuff/idea/biome/indoor/                 FolderZone
  *   /stuff/idea/biome/indoor/baseline         Biome
- *   /stuff/idea/biome/indoor/cafeteria        Biome
- *   /stuff/idea/biome/indoor/cafeteria-atrium SkyExposedBiome ← scenario C
+ *
+ * (The two cafeteria rows were deleted by the rubber build: no place named
+ * them, and a glass roof is now a place's own `roof:`, never a biome.)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -108,18 +109,6 @@ describe('Biome roster — slim demonstrative inventory', () => {
     expect(seed.extends).toBe('/stuff/idea/biome/universe');
   });
 
-  it('indoor/cafeteria extends indoor/baseline', () => {
-    const seed = loadSeed('indoor/cafeteria.yaml');
-    expect(seed.class).toBe('/platform/idea/Biome');
-    expect(seed.extends).toBe('/stuff/idea/biome/indoor/baseline');
-  });
-
-  it('scenario C — cafeteria-atrium is SkyExposed and explicitly extends cafeteria', () => {
-    const seed = loadSeed('indoor/cafeteria-atrium.yaml');
-    expect(seed.class).toBe('/platform/idea/SkyExposedBiome');
-    expect(seed.extends).toBe('/stuff/idea/biome/indoor/cafeteria');
-  });
-
   it('no other biome seeds have crept in (slim roster discipline)', () => {
     // Anchors the roster shape so future authors don't accidentally
     // poison the demonstrative set. Materials / Species follow the
@@ -132,8 +121,6 @@ describe('Biome roster — slim demonstrative inventory', () => {
       'outdoor/meadow.yaml',
       'indoor.yaml',
       'indoor/baseline.yaml',
-      'indoor/cafeteria.yaml',
-      'indoor/cafeteria-atrium.yaml',
     ]);
     const actual = new Set(
       listYamlsRelative(SEEDS_DIR).map((p) => p.split('/').join('/')),

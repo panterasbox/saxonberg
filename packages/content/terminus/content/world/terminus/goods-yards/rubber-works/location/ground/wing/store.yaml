@@ -1,0 +1,23 @@
+# The store — under the works' tower: the tower standing on it makes its
+# top a ceiling (rubber build, drive step 6).
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords: { x: -1, y: 0, z: 0 }
+  shortDescription: "works store"
+  keywords: [store, "works store", stores]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: window
+  details:
+    window:
+      keywords: [window, glass]
+      description: A small barred window high in the end wall.
+  longDescription: |
+    A narrow brick store under the tower, shelved floor to ceiling with sacks and boxes. A stair goes up into the tower.
+  exits:
+    up:
+      destination: /world/terminus/goods-yards/rubber-works/location/tower/tower
+      bidirectional: true

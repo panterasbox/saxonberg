@@ -56,6 +56,11 @@ data:
     - { itemTemplatePath: /stuff/thing/armor/mail-hauberk, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/breastplate, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/leather-boots, par: 2 }
+    # ⭐ (rubber build) Rubber boots and gloves JOIN the leather — a competing
+    # product, not a replacement: the works casts them, the store stocks them.
+    - { itemTemplatePath: /trade/rubber/thing/rubber-boots, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/rubber-gloves, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/rubberized-coat, par: 1 }
     # ⭐⭐ **Past the medieval.** A bow and a musket on the same shelf,
     # priced so the choice between them is a real one rather than a
     # ladder you climb: the musket carries thirty times the energy and
@@ -376,6 +381,9 @@ data:
     # season's — armour is the most expensive thing a new player wants,
     # which is why the gambeson exists at 14.
     /stuff/thing/armor/leather-boots: 8
+    /trade/rubber/thing/rubber-boots: 11
+    /trade/rubber/thing/rubber-gloves: 6
+    /trade/rubber/thing/rubberized-coat: 18
     /stuff/thing/armor/hide-jerkin: 12
     /stuff/thing/armor/padded-gambeson: 14
     /stuff/thing/armor/mail-hauberk: 40

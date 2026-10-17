@@ -9,6 +9,7 @@
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-trade-forestry": "workspace:*",
+    "@saxonberg/content-trade-tailoring": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

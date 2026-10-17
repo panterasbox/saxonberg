@@ -755,6 +755,12 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
   'servesExtent',
+  // ⭐ A structure's STOREYS (rubber build) are extents too — each a
+  // membership prefix resolved longest-prefix, like the structure's own
+  // `extent`. A storey prefix very often names a folder no row backs
+  // (`…/location/ground` holds rooms, and is not one), and a storey whose
+  // prefix covers nothing has no members, which fails closed.
+  'storeys',
   // ⭐ A mining claim's block names a parcel EXTENT — ground somebody
   // holds title to — and staking one deliberately mints *a title and no
   // room*. That is the whole difference between `stake` and `title buy`:

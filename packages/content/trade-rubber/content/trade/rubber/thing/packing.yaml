@@ -1,0 +1,16 @@
+# A rubber packing — ⭐ the pump's plunger cup, cast in rubber (rubber
+# build). The leather packing's twin, and it outlasts it about four to one
+# on the same pump: the pump's wear reads the packing's MATERIAL — its
+# toughness and its spring — so nothing here says "lasts longer".
+class: /platform/thing/Tool
+data:
+  # ⚠ `"rubber packing"` is the printed name, so it is a keyword too.
+  keywords: [packing, seal, rubber, cup, "rubber packing"]
+  shortDescription: rubber packing
+  register: indefinite
+  longDescription: >-
+    A thick black cup of cured rubber, cast round to fit over the end of a
+    plunger. It springs back when you squeeze it.
+  mass: 0.3
+  _materialPath: /stuff/idea/material/organic/rubber
+  capabilities: ["packing"]

@@ -937,6 +937,9 @@ importers:
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
+      '@saxonberg/content-trade-rubber':
+        specifier: workspace:*
+        version: link:../trade-rubber
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -1816,6 +1819,9 @@ importers:
       '@saxonberg/content-trade-forestry':
         specifier: workspace:*
         version: link:../trade-forestry
+      '@saxonberg/content-trade-tailoring':
+        specifier: workspace:*
+        version: link:../trade-tailoring
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,29 @@
+# The rubber works, as a set of rooms — ⭐ RELATIONS ONLY (rubber build,
+# D3): which of its places stand on which. It is made of nothing: the
+# brick and the slate and the glass are each room's own `enclosure:` and
+# `roof:`. Membership is the longest storey prefix; a storey with no
+# `on:` stands on the ground.
+#
+#   ground  ─┬─ works (the works floor)  ← loft ← terrace (on the roof)
+#            ├─ wing  (the store)        ← tower
+#            └─ the stove house          (glass all round; nothing over it)
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/goods-yards/rubber-works
+  entrance: /world/terminus/goods-yards/rubber-works/location/ground/works/floor
+  shortDescription: rubber works
+  register: definite
+  keywords: [works, "rubber works", chimney, tower]
+  longDescription: >-
+    A two-storey brick works with a squat square tower at one end and a
+    long glasshouse against its south wall, its panes fogged from inside.
+    A thin chimney smokes over the firebox end, and the yard round it smells
+    of sulfur.
+  heightM: 12
+  storeys:
+    - { key: ground, extent: /world/terminus/goods-yards/rubber-works/location/ground }
+    - { key: works, extent: /world/terminus/goods-yards/rubber-works/location/ground/works }
+    - { key: wing, extent: /world/terminus/goods-yards/rubber-works/location/ground/wing }
+    - { key: loft, extent: /world/terminus/goods-yards/rubber-works/location/loft, on: works }
+    - { key: tower, extent: /world/terminus/goods-yards/rubber-works/location/tower, on: wing }
+    - { key: terrace, extent: /world/terminus/goods-yards/rubber-works/location/terrace, on: loft }
