@@ -1843,7 +1843,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // answers it in one field read without touching the map at all.
       if (MixinApi.isPosed(self) && !self.getRestingOnPath()) return 1.0;
       const host = self.getOccupiedHost();
-      if (host && MixinApi.isPostured(host)) return host.getRestQuality();
+      if (host && MixinApi.isPostured(host)) return host.restQualityAsKept();
       return 1.0;
     }
   };

@@ -1,0 +1,22 @@
+# Flour dust — what milling (or scutching) throws into a shut room's air
+# (cleanliness D22). ⭐ It BURNS: suspended at its own flammable limit
+# (`flammableLimit`, a share of the air) a spark sets the whole room off —
+# the mill explosion. ⚠ A particulate modelled as a gas, the stated fidelity
+# limit: one number, the limit, carries the difference. Not a poison.
+class: /platform/idea/material/Material
+data:
+  name: flour dust
+  keywords: [dust, flour]
+  appearance: a white haze of flour in the air
+  density: 1.2
+  boilingPoint: 100
+  thermalConductivity: 0.03
+  electricalConductivity: 1.0e-12
+  heatOfCombustion: 15
+  flammableLimit: 0.01
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [gas, dust, flour-dust]
+  composition: []
+  biologicalSource: null

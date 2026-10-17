@@ -48,6 +48,8 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { FloorMixin } from '../../lib/ground/Floor';
 import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type Material from '../../lib/material/Material';
+import { StuffApi } from '../../api/stuff';
 
 // FloorMixin is OUTERMOST: its `getMaterial` / `getKeywords` /
 // `getSlotNames` overrides have to see the composed stack's answers
@@ -81,6 +83,29 @@ export default class Floor extends FloorBase {
     super.soil(kind, amount, by, site);
   }
 
+  /**
+   * ⭐ The floor's own soil sentence (cleanliness D15) — after the ground
+   * and the snow; masked under snow knee-deep or worse, as the ground
+   * sentence is. *The floor is soiled, muddy and crumbed. Fresh rushes are
+   * strewn over it. Something has been at the crumbs.*
+   */
+  public override soilLookLine(viewer: Stuff | null = null): string {
+    this.reconcileStalls();
+    const band = this.getSnowBand();
+    if (band === 'knee-deep' || band === 'deep') return '';
+    const lines: string[] = [];
+    const phrase = this.soilPhrase('');
+    if (phrase) lines.push(`It is ${phrase}.`);
+    const strewn = this.getStrewn();
+    if (strewn) {
+      const m = StuffApi.findByTemplatePath<Material>(strewn.materialPath);
+      lines.push(`${capitalise(m?.getAppearance() || m?.getName() || 'something')} is strewn over it.`);
+    }
+    if (this.hasPests()) lines.push('Something has been at the crumbs.');
+    void viewer;
+    return lines.join(' ');
+  }
+
   constructor() {
     super();
     // ⭐⭐ **Fixed in place, because it is the place.** Found by the
@@ -98,4 +123,8 @@ export default class Floor extends FloorBase {
     // it, which is what a floor needs.
     this.fixedInPlace = true;
   }
+}
+
+function capitalise(s: string): string {
+  return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
 }

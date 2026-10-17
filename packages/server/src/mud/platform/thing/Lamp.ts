@@ -65,7 +65,8 @@ import type { BulkSlot } from '../../lib/bulk/Bulkable';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
-import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import { Quantity } from '../../lib/quantity';
+import { SoilableMixin, SOIL_BANDS } from '../../lib/cleanliness/Soilable';
 import { MixinApi } from '../../api/mixin';
 
 /**
@@ -117,6 +118,37 @@ export default class Lamp extends LampBase {
    * The hook answers for both off the same class, which is why a torch
    * and a lantern are one class and two rows.
    */
+  /**
+   * ⭐ How much of the light comes out THROUGH GLASS (cleanliness D18) —
+   * the share soot on the lamp can dim. `0` for a torch or a flare (an
+   * open flame soots and does not dim); a lantern answers its panes.
+   */
+  public glazedShare(): number {
+    return 0;
+  }
+
+  /**
+   * ⭐ The ONE funnel for what the lamp's glass does to its light: soot on
+   * it dims the GLAZED share (`1 − 0.6 × band/3`), and `wash lamp` brings
+   * it back (cleanliness D18).
+   */
+  public override getEmittedFlux(): Quantity<'lumen'> {
+    const flux = super.getEmittedFlux();
+    const glazed = this.glazedShare();
+    if (glazed <= 0) return flux;
+    const rank = Math.max(0, SOIL_BANDS.indexOf(this.soilBand()));
+    const factor = 1 - 0.6 * (rank / 3) * glazed;
+    return factor >= 1 ? flux : Quantity.of(flux.rawValue() * factor, 'lumen');
+  }
+
+  /** ⭐ A smoky flame soots its own lamp as it burns (cleanliness D18). */
+  public override exhaustTick(dtS: number): void {
+    super.exhaustTick(dtS);
+    if (!this.isLit() || !(dtS > 0)) return;
+    const smoky = Math.max(0, 1 - this.completeness());
+    if (smoky > 0) this.soil('soot', (dtS / 3600) * 0.1 * smoky);
+  }
+
   protected override fuelSlot(): BulkSlot | null {
     const self = this as unknown as Lamp;
     if (!MixinApi.isBulkable(self)) return null;

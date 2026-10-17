@@ -361,7 +361,57 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       draught: { persistent: true, authorable: true },
       flameEnclosed: { persistent: true, authorable: true },
       burnerFuelClockStamp: { persistent: true, runtimeState: true },
+      ashKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ The ash in the grate, kg (cleanliness D24): every kilogram of a
+     * solid fuel burnt leaves its material's `ashFraction`. Raked out by
+     * whoever sweeps the hearth — the first input of lye.
+     */
+    public ashKg = 0;
+
+    /** The ash lying in the grate, kg. */
+    public getAshKg(): number {
+      return this.ashKg;
+    }
+
+    /** Rake the grate: hand back the ash's kg and leave it clean. */
+    public takeAsh(): number {
+      const kg = this.ashKg;
+      this.ashKg = 0;
+      return kg;
+    }
+
+    /**
+     * What this fire gives off besides its CO₂ and smoke, for `kg` burnt —
+     * each fuel's own `combustionProducts`, by its share of the bed
+     * (cleanliness D22): a lump of sulfur on the coals breathes sulfur
+     * dioxide into the room.
+     */
+    public combustionProductsFor(kg: number): { material: string; litres: number }[] {
+      if (!(kg > 0)) return [];
+      const total = this.fuelRemaining();
+      if (!(total > 0)) return [];
+      const out: { material: string; litres: number }[] = [];
+      const shares: Array<[Material, number]> = [];
+      const slot = this.fuelSlot();
+      if (slot !== null) {
+        const m = slot.getMaterial();
+        if (m) shares.push([m, 1]);
+      } else {
+        for (const [path, mass] of Object.entries(this.fuelBed)) {
+          const m = StuffApi.findByTemplatePath<Material>(path);
+          if (m && mass > 0) shares.push([m, mass / total]);
+        }
+      }
+      for (const [m, share] of shares) {
+        for (const p of m.getCombustionProducts()) {
+          out.push({ material: p.material, litres: p.litresPerKg * kg * share });
+        }
+      }
+      return out;
+    }
 
     /** The vessel's ceiling (K) — what it can hold, with fuel that hot. */
     public burnTemperatureK: number = BURNER_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;
@@ -910,6 +960,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const fraction = Math.min(1, kg / total);
       for (const path of Object.keys(this.fuelBed)) {
         const mass = this.fuelBed[path] ?? 0;
+        // ⭐ What burns leaves its ash in the grate (cleanliness D24).
+        const ash = StuffApi.findByTemplatePath<Material>(path)?.getAshFraction() ?? 0;
+        if (ash > 0) this.ashKg += mass * fraction * ash;
         const left = mass - mass * fraction;
         if (left > 1e-9) this.fuelBed[path] = left;
         else delete this.fuelBed[path];
@@ -992,6 +1045,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
           scope as unknown as Stuff & Container,
           kg,
           complete,
+          this.combustionProductsFor(kg),
         );
       }
     }

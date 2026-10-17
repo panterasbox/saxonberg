@@ -1962,6 +1962,18 @@ the Cold Fell main reads soft; the Quay hard).
 
 ### W3 — Soap and the cleansers; bleaching; the perils
 
+> ✅ **Done.** Rubber absent: sulfur created at rubber's paths and numbers
+> (material + `Firewood` won row + the −10.4 band), plus fuller's earth
+> (−1.6…−2) and chalk (−6…−6.5) in the column. Soap: the **hopper** runs
+> `lye-leach` only through ash and spends the ash (`Maturing.matchProfile`
+> hook); the **kettle owns its two transforms** (fat + lye → paste, soft
+> soap + salt → curd) — no profile for fat or soft soap anywhere, so a cask
+> of tallow stays tallow (B15); the frame is a `Mould` row; the bar cures
+> by `SeasoningMixin` with its own `seasonPhrase`. The splash is
+> DETERMINISTIC (B13). Over-washed skin and coal-tar fractionation are
+> deferred (B14, B16); the `Brazier` class moves to W4 with the flue (a
+> hearth already breathes into its room, so sulfur fumes a room today).
+
 **Goal.** Lye, soft soap, glycerin, a cured bar, and every § 6 cleanser
 as a row with a source; the bleach ladder; lye in the eyes, fumes in a
 shut room, naphtha by a flame. Implements D21–D25.
@@ -2583,6 +2595,29 @@ Read first, in this order.
   a volatile liquid's vapour is (naphtha → naphtha-vapour).
 - **B12 — Cleansers are spent by use**: a bar's MASS by the row's kg per
   wash (a bar worn to nothing is gone), a flask's litres.
+- **B13 — The lye splash is deterministic, not a draw.** Drawing a caustic
+  off the tall hopper bare-handed splashes the face (`Hopper.
+  afterPouredOutBy`, the new `Bulkable` hook the pour verb calls); gloves
+  are the careful hand. `uncertainty.md` bans rolling what an action DID,
+  which is what the plan's "epistemic draw on the act" would have been.
+- **B14 — Over-washed skin is deferred** (Risk 5's own instruction): no
+  bleed-free surface trauma exists and minting one is out of scope. The
+  Cleanser rows' `skinHarshness` stays authored as the seam; AC 11 does not
+  name it.
+- **B15 — The soap kettle owns its chemistry** (`classifyForeignPour` /
+  `applyForeignPour` overrides) rather than a profile for fat and one for
+  soft soap: those would make every cask of tallow and jar of soft soap
+  "active" forever. Only `saponification` (on `soap-paste`, a tag nothing
+  else carries) and `lye-leach` are profile rows.
+- **B16 — Naphtha is sold, not yet distilled**: its material and a flask
+  at the general store ship; the coal-tar `FractionSchedule` row is
+  deferred (the solvent's chemistry and its flash are what AC 11 asks).
+  Its vapour enters the room on a pour into an open vessel and when it is
+  spent in a wash.
+- **B17 — Airing settles at `look`** (`Soilable.reconcileAiring`, awaited
+  by the look verb; a garment's override walks daylight in 2-hour steps
+  with `CelestialApi.isDayAt`). Only a garment lying in a ROOM airs —
+  worn or carried, it is not hung out.
 
 ## Drive record
 

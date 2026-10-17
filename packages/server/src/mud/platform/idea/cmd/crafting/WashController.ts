@@ -53,6 +53,8 @@ interface WashModel extends CommandModel {
   target?: MqlManyResult;
   water?: MqlManyResult;
   cleanser?: MqlManyResult;
+  /** `scrub … using <brush>` — the scrubbing instrument (scrub only). */
+  brush?: MqlManyResult;
 }
 
 /** The water a wash is done in, read once. */
@@ -64,7 +66,8 @@ interface WashWater {
 
 export default class WashController extends ManualBuildController<WashModel> {
   /** How hard this act works the thing: `1` a wash, `3` a scrub. */
-  protected effort(): number {
+  protected effort(model?: WashModel): number {
+    void model;
     return 1;
   }
 
@@ -73,7 +76,11 @@ export default class WashController extends ManualBuildController<WashModel> {
     return { self: "wash", peers: "washes" };
   }
 
+  /** The model of the act in flight (the effort reads its brush). */
+  protected currentModel: WashModel | undefined;
+
   async execute(model: WashModel, context: CommandContext): Promise<void> {
+    this.currentModel = model;
     // ⭐ A source that has to read itself first (a shore's water, a tap's
     // main) settles before anything is looked for in it.
     for (const c of model.water?.stuff ?? []) {
@@ -128,7 +135,7 @@ export default class WashController extends ManualBuildController<WashModel> {
       return;
     }
     const act = this.act();
-    const effort = this.effort();
+    const effort = this.effort(this.currentModel);
     const names = washable.map((t) => t.getPresentation());
     this.engageStep(context, {
       durationMs: WASH_MS * effort,
@@ -174,7 +181,7 @@ export default class WashController extends ManualBuildController<WashModel> {
       this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
       return;
     }
-    const effort = this.effort();
+    const effort = this.effort(this.currentModel);
     const gloved = giver.handSites().some((h) => giver.outermostAt(h) !== null);
     this.engageStep(context, {
       durationMs: WASH_MS * effort,
@@ -326,6 +333,14 @@ function spendCleansers(cleansers: WashCleanser[], washes: number): void {
     if (MixinApi.isBulkable(src)) {
       const slot = BulkableApi.slotFor(src, undefined);
       if (slot && !slot.isEmpty()) {
+        // ⭐ (cleanliness D22) A volatile cleanser spent in a wash goes into
+        // the room as vapour — naphtha by the hearth is a fire.
+        const m = slot.getMaterial();
+        const room = MixinApi.isContainable(src) ? src.getContainer() : null;
+        const outer = room && room.isAgent() && MixinApi.isContainable(room) ? room.getContainer() : room;
+        if (m && m.getVapourMaterial() && outer && MixinApi.isAtmospheric(outer)) {
+          outer.addAtmosphereContent(m.getVapourMaterial(), Math.min(per, slot.getAmount().rawValue()) * m.getVapourLPerLPerHour());
+        }
         const left = Math.max(0, slot.getAmount().rawValue() - per);
         slot.setAmount(Quantity.of(left, "L"));
         if (left <= 0) {

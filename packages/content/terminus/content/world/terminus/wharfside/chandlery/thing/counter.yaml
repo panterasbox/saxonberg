@@ -31,6 +31,16 @@ data:
     # burns down and is trimmed to nothing, and a new one is seated in the
     # burner (`fit wick to lantern`). Who sells wick is who sells candles.
     - { itemTemplatePath: /trade/chandlery/thing/wick, par: 10 }
+    # ⭐ (cleanliness D24) The chandler makes soap beside the candles — the
+    # same fat, the other half of the trade — and sells the lye and the
+    # glycerin it gives, and brimstone for the bleacher, and ash for the
+    # lye-maker with no hearth of her own.
+    - { itemTemplatePath: /trade/chandlery/thing/soap-bar, par: 6 }
+    - { itemTemplatePath: /trade/chandlery/thing/soft-soap-jar, par: 4 }
+    - { itemTemplatePath: /trade/chandlery/thing/lye-flask, par: 4 }
+    - { itemTemplatePath: /trade/chandlery/thing/glycerin-jar, par: 2 }
+    - { itemTemplatePath: /trade/quarrying/thing/sulfur, par: 4 }
+    - { itemTemplatePath: /trade/fuel/thing/ash, par: 4 }
   prices:
     # ⚠ ONE row and ONE price, because there is one candle row — what a
     # candle is made of is per-instance, so the counter cannot price the
@@ -41,3 +51,9 @@ data:
     /trade/chandlery/thing/candle: 2
     # Cheaper than a candle: it is a hand of tape, and it lasts longer.
     /trade/chandlery/thing/wick: 1
+    /trade/chandlery/thing/soap-bar: 3
+    /trade/chandlery/thing/soft-soap-jar: 2
+    /trade/chandlery/thing/lye-flask: 2
+    /trade/chandlery/thing/glycerin-jar: 4
+    /trade/quarrying/thing/sulfur: 2
+    /trade/fuel/thing/ash: 1

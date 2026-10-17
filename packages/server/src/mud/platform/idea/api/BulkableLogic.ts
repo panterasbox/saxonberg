@@ -598,6 +598,26 @@ export class BulkableLogic extends ApiLogic {
       }
     }
 
+    // ⭐ (cleanliness D22) A VOLATILE liquid poured into the open gives off
+    // its vapour into the room as it goes in — naphtha in a dish, spirit
+    // in a bowl. The quarter-hour of evaporation the pour exposes.
+    if (
+      applied > 0 &&
+      to !== null &&
+      toHolder !== null &&
+      material.getVapourLPerLPerHour() > 0 &&
+      material.getVapourMaterial() !== '' &&
+      to.getClosure() === 'open'
+    ) {
+      const room = MixinApi.isContainable(toHolder) ? toHolder.getContainer() : null;
+      if (room && MixinApi.isAtmospheric(room)) {
+        room.addAtmosphereContent(
+          material.getVapourMaterial(),
+          applied * material.getVapourLPerLPerHour() * 0.25,
+        );
+      }
+    }
+
     // 6. Thermal coupling (gated). Same material both sides (enforced at
     // step 2), so specific heats cancel — the blend is a volume-weighted
     // average. Refill into an empty vessel adopts the incoming

@@ -39,10 +39,17 @@ data:
   name: quarry-hill
   stratigraphy:
     - { toZ: -1, host: /stuff/idea/material/bulk/drift, wins: /trade/quarrying/thing/spoil }
-    - { toZ: -2, host: /stuff/idea/material/earth/clay, wins: /trade/quarrying/thing/clay }
+    - { toZ: -1.6, host: /stuff/idea/material/earth/clay, wins: /trade/quarrying/thing/clay }
+    # ⭐ (cleanliness D25) A seam of fuller's earth in the clay's foot.
+    - { toZ: -2, host: /stuff/idea/material/earth/fullers-earth, wins: /trade/quarrying/thing/fullers-earth }
     - { toZ: -6, host: /stuff/idea/material/rock/granite, wins: /trade/quarrying/thing/block }
+    # ⭐ (cleanliness D25) Chalk at the top of the limestone.
+    - { toZ: -6.5, host: /stuff/idea/material/rock/chalk, wins: /trade/quarrying/thing/chalk }
     - { toZ: -9, host: /stuff/idea/material/rock/limestone, wins: /trade/quarrying/thing/limestone }
     - { toZ: -10, host: /stuff/idea/material/mineral/coal, wins: /trade/quarrying/thing/coal }
+    # ⭐ Native sulfur below the coal (rubber's band, D13.4; created here at
+    # rubber's numbers because rubber had not landed).
+    - { toZ: -10.4, host: /stuff/idea/material/mineral/sulfur, wins: /trade/quarrying/thing/sulfur }
     # ⚠ Won as BULK — the `/idea/material/` infix is what says so, and it is
     # why `cure` runs on salt from a face exactly as on salt from a pan.
     - { toZ: -12, host: /stuff/idea/material/mineral/halite, wins: /stuff/idea/material/food/salt }

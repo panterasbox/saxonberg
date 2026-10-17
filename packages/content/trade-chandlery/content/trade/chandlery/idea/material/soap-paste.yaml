@@ -1,0 +1,19 @@
+# Soap paste — fat and lye stirred together in the kettle, before the
+# boil has done its work (cleanliness D24). Still caustic.
+class: /platform/idea/material/Material
+data:
+  name: soap paste
+  keywords: [paste, soap, soap-paste]
+  appearance: a thick, cloudy paste of fat and lye
+  density: 1000
+  specificHeat: 3000
+  thermalConductivity: 0.4
+  meltingPoint: 300
+  boilingPoint: 400
+  edibility: false
+  nutrients: []
+  toxicity: []
+  corrosiveTo: [protein, tissue]
+  tags: [liquid, caustic, soap-paste]
+  composition: []
+  biologicalSource: null

@@ -65,6 +65,11 @@
  *   - `MaturationProfile.offGas` — level 0: what a vat breathes is what
  *     the nose and a shut room tell you; `WaterFixture.hardnessDgh` —
  *     level 0: the tap's own look line says *soft* or *hard*.
+ *   - `Garment.sunYellow` / `.airingStamp`, `BurnerMixin.ashKg`,
+ *     `FluedMixin.flueSoot`, `FloorMixin.strewn` / `.stallsStamp` —
+ *     runtime state, read out in words (*yellowed*, *caked with soot*,
+ *     *rushes strewn*); `FloorMixin.stalls` — level 0, an authored
+ *     reference to the herd book whose beasts foul the floor.
  *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a

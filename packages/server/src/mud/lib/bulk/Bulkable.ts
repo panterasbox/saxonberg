@@ -456,6 +456,12 @@ export interface Bulkable {
    * a tap pulls its main's hardness into its payload (cleanliness D12).
    */
   settleBulk(affordance: BulkAffordance): Promise<void>;
+  /**
+   * @hook `by` has just poured `litres` OUT of this (the pour verb calls
+   * it). A no-op on an ordinary vessel; a tall lye hopper splashes a
+   * bare-handed pourer's face (cleanliness D23).
+   */
+  afterPouredOutBy(by: Stuff, litres: number): void;
   setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void;
   /**
    * Policy seam: the payload `litres` drawn now would carry. Base impl
@@ -875,6 +881,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public settleBulk(_affordance: BulkAffordance): Promise<void> {
       return Promise.resolve();
     }
+
+    public afterPouredOutBy(_by: Stuff, _litres: number): void {}
 
     public getBulkPayload(affordance: BulkAffordance): BulkPayload | null {
       return affordance === 'interior'

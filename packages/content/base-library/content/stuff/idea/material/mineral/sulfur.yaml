@@ -1,0 +1,29 @@
+# Native sulfur — brimstone (⚠ rubber's row, created here at rubber's path
+# and with rubber's numbers because rubber had not landed when cleanliness
+# needed it; rubber adopts it). The vulcanizer's cure — and, burnt, the
+# bleacher's fume (cleanliness D22): a lump on a brazier in a shut room
+# fills it with sulfur dioxide, which whitens wool and chokes whoever stays.
+class: /platform/idea/material/Material
+data:
+  name: sulfur
+  keywords: [sulfur, sulphur, brimstone]
+  appearance: crumbling lemon-yellow brimstone
+  density: 2070
+  specificHeat: 710
+  thermalConductivity: 0.2
+  electricalConductivity: 1.0e-15
+  meltingPoint: 388
+  hardness: 20
+  toughness: 1
+  # ⭐ It burns — a blue flame and a choking smell. 505 K sits above a
+  # vulcanizing oven, so a firing never lights its own charge.
+  autoignitionTemperature: 505
+  heatOfCombustion: 9.2
+  combustionProducts:
+    - { material: /stuff/idea/material/gas/sulfur-dioxide, litresPerKg: 700 }
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [sulfur, mineral]
+  composition: []
+  biologicalSource: null

@@ -169,3 +169,13 @@ settings:
   # fraction as the flash would not be a warning, it would be an epitaph.
   - key: fire.flammable.capAt
     value: "0.01"
+
+  # ── the flue (cleanliness D18) ──
+  # The share of a kilogram burnt BADLY (incompletely) that goes up the
+  # chimney as soot. A winter of smoky fires lays down a few hundred grams.
+  - key: fire.flue.sootFraction
+    value: "0.02"
+  # The soot in a flue (kg) at which a roaring fire sets it alight — the
+  # chimney fire, and the reason sweeps existed.
+  - key: fire.flue.ignitesAtKg
+    value: "0.5"

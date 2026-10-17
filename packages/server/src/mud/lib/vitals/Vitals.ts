@@ -1471,7 +1471,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isSlottable(self) && !restingOnNothing) {
         const host = self.getOccupiedHost();
         if (host && MixinApi.isPostured(host)) {
-          restQuality = host.getRestQuality();
+          restQuality = host.restQualityAsKept();
           clinical = host.getConvalescence();
         }
       }

@@ -897,7 +897,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.batchMaterialPath = materialPath;
       this.stampMadeFrom(materialPath);
-      const profile = MaturationProfileRef.forMaterial(material);
+      const profile = this.matchProfile(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
       if (profile !== null && profile.getKind() === 'culture') {
@@ -1467,6 +1467,16 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * fill resets all of that; a rekey is the same batch become something
      * else, which is what renneting milk is.
      */
+    /**
+     * @hook Which profile a batch of `material` runs on in THIS vessel —
+     * the material's own match by default (`inputCategory` against its
+     * tags). A vessel that is its own chemistry says otherwise: a lye
+     * hopper leaches only while there is ash in it (cleanliness D24).
+     */
+    public matchProfile(material: Material): MaturationProfile | null {
+      return MaturationProfileRef.forMaterial(material);
+    }
+
     public rekeyBatch(materialPath: string): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
@@ -1474,7 +1484,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!material) return;
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = materialPath;
-      const profile = MaturationProfileRef.forMaterial(material);
+      const profile = this.matchProfile(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
       this.maturationPhase = profile !== null ? 'active' : 'idle';
       if (profile !== null) this.stampBatchMark(profile, this.maturationClockStamp);

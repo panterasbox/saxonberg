@@ -101,8 +101,17 @@ export class FireLogic extends ApiLogic {
     room: Stuff & Container,
     kgBurnt: number,
     complete: boolean,
+    products: readonly { material: string; litres: number }[] = [],
   ): void {
     emitExhaustInto(room, kgBurnt, complete);
+    // ⭐ (cleanliness D22) What THIS fuel gives off besides — sulfur's
+    // dioxide — into the same medium, cleared by the same openings.
+    if (products.length > 0 && MixinApi.isAtmospheric(room)) {
+      const atm = room as unknown as Atmospheric;
+      for (const p of products) {
+        if (p.litres > 0) atm.addAtmosphereContent(p.material, p.litres);
+      }
+    }
   }
 
   /**
@@ -611,12 +620,20 @@ function flammableMediumCheck(
   if (contents.length === 0) return;
   const ignitesAt = dial(AppSettingKeys.fireFlammableIgnitesAt, 0.05);
   let worst: { type: string; amount: number } | null = null;
+  let worstLimit = ignitesAt;
   for (const c of contents) {
-    if (c.amount < ignitesAt) continue;
     const material = StuffApi.findByTemplatePath<Material>(c.type);
     if (!material) continue;
+    // ⭐ (cleanliness D22) A substance's own flammable limit, when it
+    // states one — mill dust flashes at a share of the air coal gas would
+    // not; the global dial for everything that does not say.
+    const limit = material.getFlammableLimit() > 0 ? material.getFlammableLimit() : ignitesAt;
+    if (c.amount < limit) continue;
     if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
-    if (worst === null || c.amount > worst.amount) worst = c;
+    if (worst === null || c.amount / limit > worst.amount / worstLimit) {
+      worst = c;
+      worstLimit = limit;
+    }
   }
   if (worst === null) return;
   const striking =
@@ -635,7 +652,7 @@ function flammableMediumCheck(
 
   const energy =
     dial(AppSettingKeys.fireFlammableFlashEnergy, 90000) *
-    (worst.amount / ignitesAt);
+    (worst.amount / worstLimit);
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
     if (s.isDestroyed()) continue;

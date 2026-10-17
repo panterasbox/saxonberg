@@ -26,6 +26,9 @@ data:
   waterAbsorptionCapacity: 45
   autoignitionTemperature: 550
   heatOfCombustion: 18
+  # ⭐ What burning it leaves in the grate (cleanliness D24) — the
+  # lye-maker's ash.
+  ashFraction: 0.01
   hardness: 30
   toughness: 60
   edibility: false

@@ -242,6 +242,18 @@ data:
     # sack; the colander drains, the thermos keeps, the basket carries,
     # and the supply crate is what a haul gig wants filling.
     - { itemTemplatePath: /stuff/thing/vessel/compost-sack, par: 3 }
+    # ⭐ (cleanliness D24, D25) What a household cleans with — and what it
+    # makes soap with, which anyone with a hopper, a kettle and fat can.
+    - { itemTemplatePath: /trade/chandlery/thing/soap-bar, par: 6 }
+    - { itemTemplatePath: /trade/fuel/thing/washing-soda, par: 4 }
+    - { itemTemplatePath: /stuff/thing/gear/scrub-brush, par: 3 }
+    - { itemTemplatePath: /trade/fuel/thing/naphtha-flask, par: 2 }
+    - { itemTemplatePath: /trade/fuel/thing/ash, par: 4 }
+    - { itemTemplatePath: /trade/quarrying/thing/fullers-earth, par: 3 }
+    - { itemTemplatePath: /trade/quarrying/thing/chalk, par: 3 }
+    - { itemTemplatePath: /trade/chandlery/thing/hopper, par: 1 }
+    - { itemTemplatePath: /trade/chandlery/thing/soap-kettle, par: 1 }
+    - { itemTemplatePath: /trade/chandlery/thing/soap-frame, par: 1 }
     - { itemTemplatePath: /stuff/thing/vessel/colander, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/thermos, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/basket, par: 4 }
@@ -341,6 +353,16 @@ data:
     - { itemTemplatePath: /trade/apiculture/thing/bellows, par: 2 }
     - { itemTemplatePath: /trade/tailoring/thing/cushion, par: 2 }
   prices:
+    /trade/chandlery/thing/soap-bar: 3
+    /trade/fuel/thing/washing-soda: 2
+    /stuff/thing/gear/scrub-brush: 2
+    /trade/fuel/thing/naphtha-flask: 4
+    /trade/fuel/thing/ash: 1
+    /trade/quarrying/thing/fullers-earth: 1
+    /trade/quarrying/thing/chalk: 1
+    /trade/chandlery/thing/hopper: 12
+    /trade/chandlery/thing/soap-kettle: 20
+    /trade/chandlery/thing/soap-frame: 6
     # ⭐⭐ **A JOINT costs four times TRIM**, and that price gap is the
     # butchery chain's whole economic argument standing in one place: the
     # same animal is worth four times as much cut well, which is why a

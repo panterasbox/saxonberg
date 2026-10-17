@@ -1,0 +1,24 @@
+# Soap curd — soft soap grained with salt (cleanliness D24): the curd
+# floats free of the brine and, poured into a frame, sets by draining into
+# a hard bar.
+class: /platform/idea/material/Material
+data:
+  name: soap curd
+  keywords: [curd, soap, soap-curd]
+  appearance: a pale, granular soap curd
+  density: 1050
+  specificHeat: 3000
+  thermalConductivity: 0.4
+  meltingPoint: 300
+  boilingPoint: 380
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, soap, soap-curd]
+  drainSetting:
+    days: 1
+    becomes: /trade/chandlery/idea/material/hard-soap
+    moisture: { unloaded: 0.9, loaded: 0.9 }
+    loadRef: 1
+  composition: []
+  biologicalSource: null

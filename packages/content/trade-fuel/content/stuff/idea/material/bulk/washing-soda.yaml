@@ -1,0 +1,18 @@
+# Washing soda — the mild alkali left when lye is boiled down to dryness
+# (cleanliness D25): it cuts grease more gently than lye and it SOFTENS hard
+# water, so soap lathers in it. Sold by the bag at the general store.
+class: /platform/idea/material/Material
+data:
+  name: washing soda
+  keywords: [soda, washing soda, crystals]
+  appearance: white crystalline washing soda
+  density: 1500
+  specificHeat: 1000
+  thermalConductivity: 0.5
+  meltingPoint: 1100
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [solid, mineral, alkali-mild, washing-soda]
+  composition: []
+  biologicalSource: null

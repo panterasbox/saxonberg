@@ -196,6 +196,12 @@ export interface Soilable {
    * felts, shrinks, rots, bleeds; a vessel tips its dregs).
    */
   washSite(spec: WashSpec, site?: string): WashOutcome;
+  /**
+   * @hook Settle what has been happening to this thing since it was last
+   * read — a garment hung in the sun or the fumes (cleanliness D21). A
+   * no-op by default; an async read point (`look`, `wash`) awaits it.
+   */
+  reconcileAiring(): Promise<void>;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -401,6 +407,10 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public recordWash(site: string, stamp: WashStamp): void {
       this.washes = { ...this.washes, [site]: { ...stamp } };
+    }
+
+    public reconcileAiring(): Promise<void> {
+      return Promise.resolve();
     }
 
     public washSite(spec: WashSpec, site: string = WHOLE_SITE): WashOutcome {

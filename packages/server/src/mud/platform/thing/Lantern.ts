@@ -37,6 +37,11 @@ export default class Lantern extends LanternBase {
    * the room it lights is darker for it. Replace the pane and the room
    * brightens.
    */
+  /** ⭐ A lantern's light comes through its panes — all of it glazed. */
+  public override glazedShare(): number {
+    return this.getParts().some((l) => l.role === 'facing') ? 1 : 0;
+  }
+
   public override getEmittedFlux(): Quantity<'lumen'> {
     const flux = super.getEmittedFlux();
     let factor = 1;

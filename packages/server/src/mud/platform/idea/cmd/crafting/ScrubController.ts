@@ -11,8 +11,10 @@
 import WashController from "./WashController";
 
 export default class ScrubController extends WashController {
-  protected override effort(): number {
-    return 3;
+  /** Three washes' worth with a brush; half that with bare hands. */
+  protected override effort(model?: { brush?: { stuff?: unknown[] } }): number {
+    const brushed = (model?.brush?.stuff ?? []).length > 0;
+    return brushed ? 3 : 1.5;
   }
 
   protected override act(): { self: string; peers: string } {

@@ -46,6 +46,17 @@ args:
     type: objects
     required: false
     greedy: true
-    prepositions: [with, using]
+    prepositions: [with]
     scope: ["reachable"]
     requires: any
+  # ⭐ WHAT WITH — the brush, DECLARED (`lint:instrument-args`): a
+  # scrubbing brush in hand or reach scrubs at the full rate; bare hands
+  # at half (`scrub floor using brush with soap`).
+  - name: brush
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [using]
+    default: "me:i:[capability.scrubbing],reachable:[capability.scrubbing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

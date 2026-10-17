@@ -1,0 +1,22 @@
+# Hard soap — a bar, set in its frame and curing on a rack (cleanliness
+# D24). It cures over four weeks by losing water to the air, and a bar cut
+# short is harsh.
+class: /platform/idea/material/Material
+data:
+  name: hard soap
+  keywords: [soap, bar, hard soap]
+  appearance: pale hard soap
+  density: 1100
+  specificHeat: 2000
+  thermalConductivity: 0.3
+  meltingPoint: 330
+  waterAbsorptionCapacity: 10
+  hardness: 5
+  toughness: 1
+  seasoningDays: 28
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [solid, soap, surfactant, cleanser]
+  composition: []
+  biologicalSource: null

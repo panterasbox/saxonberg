@@ -363,6 +363,8 @@ export const Mixins = {
   // Dirt by kind on the layer an act reached — garments, bodies (per
   // part), floors, panes, pots. No clock: only an act soils (cleanliness).
   Soilable: 'SoilableMixin',
+  // A built-in fire's flue: it soots, and a foul one catches (cleanliness).
+  Flued: 'FluedMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the
   // world long enough to be studied.

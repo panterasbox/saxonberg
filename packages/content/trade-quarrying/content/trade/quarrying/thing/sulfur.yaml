@@ -1,0 +1,15 @@
+# Native sulfur — a lump of brimstone won at Hill Quarry below the coal
+# (⚠ rubber's row, created here at rubber's path because rubber had not
+# landed; rubber adopts it). ⭐ A `Firewood`, like coal: it LIGHTS and it
+# stokes — and burnt on a brazier it fills a shut room with sulfur
+# dioxide, the bleacher's fume for wool (cleanliness D22).
+class: /platform/thing/Firewood
+data:
+  keywords: [sulfur, sulphur, brimstone, lump, "lump of brimstone"]
+  shortDescription: lump of brimstone
+  register: indefinite
+  longDescription: >-
+    A crumbling lemon-yellow lump that smells faintly of struck matches
+    and leaves a yellow dust on your fingers.
+  _materialPath: /stuff/idea/material/mineral/sulfur
+  mass: 1

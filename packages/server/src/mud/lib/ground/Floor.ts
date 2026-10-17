@@ -83,6 +83,37 @@ import {
 
 const FLOOR_MIXIN = 'FloorMixin';
 
+/** How a floor is kept, in the words a householder uses (cleanliness D15). */
+export type CleaningMethod =
+  | 'strew and sweep'
+  | 'scrub'
+  | 'scrub or sand'
+  | 'scrape';
+
+/**
+ * ⭐ EXHAUSTIVE over the ground kinds — `Record<GroundKind, …>`, so tsc
+ * fails the day an eleventh kind lands unmapped (storage-and-ice's `ice`:
+ * *snow is scraped, not swept*).
+ */
+const CLEANING_METHODS: Record<GroundKind, CleaningMethod> = {
+  rock: 'scrub',
+  'set-paving': 'scrub',
+  slab: 'scrub',
+  earth: 'strew and sweep',
+  mire: 'strew and sweep',
+  'beaten-floor': 'strew and sweep',
+  loose: 'strew and sweep',
+  boards: 'scrub or sand',
+  plate: 'scrub',
+  contrived: 'scrub',
+};
+
+/** The debris kinds a floor gathers and a sweep takes up (D15, D17). */
+const DEBRIS_KINDS = new Set(['crumbs', 'manure', 'soot', 'ash', 'flour']);
+
+/** Manure a stalled head drops on the byre floor per day (D20). */
+const MANURE_PER_HEAD_DAY = 0.15;
+
 /**
  * ⭐ How deep the snow lies, as a body standing in it would say it. A TS
  * union, never a runtime list — the bands are thresholds on a derived
@@ -194,6 +225,31 @@ export interface Floor {
    * muds. Nothing at all off a floor that does not take soil.
    */
   soilFeetOf(mover: Stuff): void;
+  /**
+   * ⭐ How this floor is kept clean, by what it IS (cleanliness D15) —
+   * earth and loose stuff are strewn and swept, paving and slab scrubbed,
+   * boards scrubbed or sanded, ice kept by nobody. Exhaustive over the
+   * ground kinds, so a new kind cannot go unanswered.
+   */
+  cleaningMethod(): CleaningMethod;
+  /** What is strewn on it — rushes, sawdust — or `null`. */
+  getStrewn(): { materialPath: string; kg: number } | null;
+  /**
+   * Strew `kg` of an absorbent over it. Refused on a floor that takes no
+   * soil. Returns whether it took.
+   */
+  strew(materialPath: string, kg: number): boolean;
+  /** Take up what is strewn (the sweep does). */
+  takeStrewn(): { materialPath: string; kg: number } | null;
+  /**
+   * ⭐ The byre's stalls (cleanliness D20) — the ONE calendar accrual in
+   * the build, declared on the row (`stalls: { herdbook }`): the floor
+   * fouls by the animal-day while the herd is kept here. Reconciled on
+   * read, following the authored reference to the book.
+   */
+  reconcileStalls(): void;
+  /** Debris on it AND open food in the room — the pests come (D17). */
+  hasPests(): boolean;
   /**
    * Standing water in the surface slot. Read for exactly one kind
    * (`mire`); public because the puddle summary and the conduction walk
@@ -353,7 +409,17 @@ export function FloorMixin<
     static fieldMeta: FieldMeta = {
       onGrade: { persistent: true, authorable: true },
       worked: { persistent: true, authorable: true },
+      strewn: { persistent: true, runtimeState: true },
+      stalls: { persistent: true, authorable: true },
+      stallsStamp: { persistent: true, runtimeState: true },
     };
+
+    /** What is strewn on the floor (cleanliness D15), or `null`. */
+    public strewn: { materialPath: string; kg: number } | null = null;
+    /** ⭐ A byre's stalls: the herd book whose head foul it (D20). */
+    public stalls: { herdbook: string } | null = null;
+    /** Game-seconds the stalls were last reconciled; `0` = never. */
+    public stallsStamp = 0;
 
     /**
      * Tri-state. `null` (the default) means *derive from the room* — see
@@ -622,6 +688,68 @@ export function FloorMixin<
 
     public takesSoil(): boolean {
       return !this.supportIsSlotted();
+    }
+
+    public cleaningMethod(): CleaningMethod {
+      return CLEANING_METHODS[this.getGroundKind()];
+    }
+
+    public getStrewn(): { materialPath: string; kg: number } | null {
+      return this.strewn ? { ...this.strewn } : null;
+    }
+
+    public strew(materialPath: string, kg: number): boolean {
+      if (!this.takesSoil() || !(kg > 0) || !materialPath) return false;
+      const prior = this.strewn;
+      this.strewn =
+        prior && prior.materialPath === materialPath
+          ? { materialPath, kg: prior.kg + kg }
+          : { materialPath, kg: (prior?.kg ?? 0) + kg };
+      return true;
+    }
+
+    public takeStrewn(): { materialPath: string; kg: number } | null {
+      const s = this.strewn;
+      this.strewn = null;
+      return s;
+    }
+
+    public reconcileStalls(): void {
+      if (!this.stalls) return;
+      const self = this as unknown as Stuff;
+      let now = 0;
+      try {
+        now = WorldClockApi.getNow().rawValue();
+      } catch {
+        return;
+      }
+      if (this.stallsStamp === 0 || now <= this.stallsStamp) {
+        this.stallsStamp = now;
+        return;
+      }
+      const days = (now - this.stallsStamp) / 86_400;
+      this.stallsStamp = now;
+      // ⭐ Load on use: the authored reference, never a search.
+      const book = StuffApi.findByTemplatePath<Stuff & { getTally?: () => number }>(
+        this.stalls.herdbook,
+      );
+      const head = typeof book?.getTally === 'function' ? book.getTally() : 0;
+      if (head > 0 && days > 0 && MixinApi.isSoilable(self)) {
+        self.soil('manure', head * days * MANURE_PER_HEAD_DAY);
+      }
+    }
+
+    public hasPests(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSoilable(self)) return false;
+      let debris = 0;
+      for (const kind of self.soilKinds('')) {
+        if (DEBRIS_KINDS.has(kind)) debris += self.soilLoad(kind, '');
+      }
+      if (debris < snowDial(AppSettingKeys.cleanlinessPestsDebrisAt, 0.4)) return false;
+      const room = this.hostOf() as unknown as Stuff | null;
+      if (!room || !MixinApi.isContainer(room)) return false;
+      return room.getContents().some((c) => MixinApi.isFresh(c));
     }
 
     public receiveTraffic(mover: Stuff): void {

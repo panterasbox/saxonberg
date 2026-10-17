@@ -2279,6 +2279,14 @@ export const AppSettingKeys = {
   /** Cleanliness — the share of a dirty glove's load a QUICK removal
    * leaves on the bare hand under it (`remove … carefully` leaves none). */
   cleanlinessDoffTransfer: "cleanliness.doff.transfer",
+  /** Fire — the share of a badly-burnt kilogram that goes up the flue as
+   * soot (cleanliness D18). */
+  fireFlueSootFraction: "fire.flue.sootFraction",
+  /** Fire — the soot in a flue (kg) at which a roaring fire sets it alight. */
+  fireFlueIgnitesAtKg: "fire.flue.ignitesAtKg",
+  /** Cleanliness — the debris load on a floor at which, with open food in
+   * the room, pests come (cleanliness D17). */
+  cleanlinessPestsDebrisAt: "cleanliness.pests.debrisAt",
 } as const;
 
 export type AppSettingKey =

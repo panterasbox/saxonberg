@@ -54,6 +54,14 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { WorldClockApi } from '../../../api/worldclock';
+import { BiomeApi } from '../../../api/biome';
+import { CelestialApi } from '../../../api/celestial';
+import { Quantity } from '../../../lib/quantity';
+import { TemplatePaths } from '../../../lib/paths';
+import type { FieldMeta } from '../../../lib/mixin';
+import type DirtKindCatalogue from '../../idea/DirtKindCatalogue';
+import type { DirtKindDescriptor } from '../../idea/DirtKind';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -70,7 +78,32 @@ const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
 /** The water at which wool FELTS — boiling, near enough. */
 const FELT_ABOVE_K = 363;
 
+/** The longest gap an airing integrates (a garment forgotten on a line). */
+const AIRING_MAX_GAP_S = 10 * 24 * 3600;
+/** The daylight walk's step. */
+const AIRING_STEP_S = 2 * 3600;
+/** The sun's oxidiser dose per daylight hour on a line — a week of good
+ * days whitens a stained shirt. */
+const SUN_DOSE_PER_HOUR = 0.012;
+/** The fume's dose per hour at unit share of the air. */
+const FUME_DOSE_PER_FRACTION_HOUR = 20;
+
 export default class Garment extends GarmentBase {
+  // ── airing (cleanliness D21): the sun and the fumes ──
+
+  /**
+   * ⭐ How far the sun has YELLOWED this (a protein fibre — wool — in
+   * daylight), `0..1`; sulfur fume whitens it back. Read out in words.
+   */
+  public sunYellow = 0;
+  /** Game-seconds of the last airing reconcile; `0` = never. */
+  public airingStamp = 0;
+
+  static fieldMeta: FieldMeta = {
+    sunYellow: { persistent: true, runtimeState: true },
+    airingStamp: { persistent: true, runtimeState: true },
+  };
+
   /**
    * ⭐⭐ What washing does to CLOTH (cleanliness D10) — on top of the dirt
    * the mixin lifts:
@@ -156,6 +189,71 @@ export default class Garment extends GarmentBase {
     return { ...outcome, damage: [...new Set(damage)] };
   }
 
+  /**
+   * ⭐⭐ The bleach ladder, integrated (cleanliness D21) — a garment HUNG
+   * somewhere (on a line, a green, a shut room's chair) gets the daylight
+   * its place has had since it was last read, and the sulfur fume in the
+   * air. Daylight is an oxidiser-slow dose: stains fade, colour fades,
+   * linen whitens — and wool YELLOWS. Fume is an oxidiser: it whitens
+   * wool. Nothing at night, nothing indoors without fume, nothing for a
+   * garment somebody is wearing or carrying (it is not hung out).
+   *
+   * ⚠ The fume share is sampled ONCE per reconcile (the light-strike
+   * fidelity rule); the daylight is walked in two-hour steps over the gap,
+   * capped at ten days.
+   */
+  public override async reconcileAiring(): Promise<void> {
+    const now = WorldClockApi.getNow().rawValue();
+    if (this.airingStamp === 0 || now <= this.airingStamp) {
+      this.airingStamp = now;
+      return;
+    }
+    const gapS = Math.min(now - this.airingStamp, AIRING_MAX_GAP_S);
+    const startS = now - gapS;
+    this.airingStamp = now;
+    const room = this.getContainer();
+    if (room === null || room.isAgent() || !MixinApi.isContainer(room)) return;
+
+    let dayHours = 0;
+    if (BiomeApi.isSkyExposed(room)) {
+      for (let t = startS; t < now; t += AIRING_STEP_S) {
+        if (await CelestialApi.isDayAt(room, Quantity.of(t, 's'))) {
+          dayHours += Math.min(AIRING_STEP_S, now - t) / 3600;
+        }
+      }
+    }
+    let fume = 0;
+    for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
+      const m = StuffApi.findByTemplatePath<Material>(c.type);
+      if (m?.hasTag('sulfur-fume')) fume += c.amount;
+    }
+    const sunDose = Math.min(1, dayHours * SUN_DOSE_PER_HOUR);
+    const fumeDose = Math.min(1, fume * (gapS / 3600) * FUME_DOSE_PER_FRACTION_HOUR);
+    if (sunDose <= 0 && fumeDose <= 0) return;
+
+    // Stains and films that answer to an oxidiser fade by the dose.
+    for (const kind of this.soilKinds('')) {
+      const row = dirtRowFor(kind);
+      const answers = this.isSoilSet(kind, '') ? row?.setAnswersTo : row?.answersTo;
+      const dose =
+        (answers?.includes('oxidiser-slow') ? sunDose : 0) +
+        (answers?.includes('oxidiser') ? fumeDose : 0);
+      if (dose > 0) this.removeSoil(kind, Math.min(1, dose), '');
+    }
+    this.bleach(sunDose * 0.5 + fumeDose * 0.5);
+    const material = this.getMaterial();
+    if (material?.hasTag('protein')) {
+      this.sunYellow = Math.max(0, Math.min(1, this.sunYellow + sunDose - fumeDose * 2));
+    }
+  }
+
+  /** The soil line, and the yellowing the sun has done to wool. */
+  public override soilLookLine(viewer: Stuff | null = null): string {
+    const soil = super.soilLookLine(viewer);
+    const yellow = this.sunYellow >= 0.25 ? 'The sun has yellowed it.' : '';
+    return [soil, yellow].filter((l) => l.length > 0).join(' ');
+  }
+
   private dyeStrength(): number {
     return this.getDyeStack().reduce((n, a) => n + a.strength, 0);
   }
@@ -170,4 +268,12 @@ function dial(key: string, fallback: number): number {
   } catch {
     return fallback;
   }
+}
+
+function dirtRowFor(kind: string): DirtKindDescriptor | null {
+  return (
+    StuffApi.findByTemplatePath<DirtKindCatalogue>(
+      TemplatePaths.dirtKindCatalogue,
+    )?.peek(kind) ?? null
+  );
 }
