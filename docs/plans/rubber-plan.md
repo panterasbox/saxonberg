@@ -1646,6 +1646,16 @@ Commit: `refactor(sky): the five readers answer from the construction; the biome
 
 ### W2 — Beer–Lambert and solar gain
 
+> ✅ **DONE `1c2f4d173`.** Decided: the solar term rides a
+> `RoomHeatExchange` `fixedW` through `steadyStateOf` — one closed form,
+> `τ = C/(U+ΣG)` — and `lib/thermal/RoomHeatExchange.ts` +
+> `envelopeSteadyStateK` are DROP-AT-MERGE copies (ice had no code on its
+> branch yet). `CelestialApi.skyFactorAt(t, lat)` was added (the sky curve
+> at any instant; the gap may span a night). Open sides contribute no
+> solar term (only faces with a material do). The `1/m` unit needed its
+> `QuantityMarshaller` seed row (`1-per-m.yaml`) — the seeds test is what
+> would have caught a live-only failure.
+
 Implements D5, D6.
 
 Files: `lib/quantity.ts` (`'1/m'`), `lib/material/Material.ts`
@@ -1676,6 +1686,25 @@ same room is warmer than its outside at noon and equal before dawn.
 Commit: `feat(light): matter passes light by Beer–Lambert; the sun warms a room through a transparent face`
 
 ### W3 — heat between rooms of one building
+
+> ✅ **DONE `2f09b6539`** (+ `b123890b7`). Decided: the conduction area is
+> the SMALLER cell's face (symmetric); a room with no exterior face still
+> integrates; a piece coupled to nothing that has resolved holds.
+> `feel` names the sun and the warm room next door. ⚠⚠ **The first wire
+> run found the hot path**: `exposure()` resolved every neighbour on every
+> call, and `envelopeApplies`/`isThreshold`/`airChangesPerHour` call it
+> many times per command — the neighbour pass is now re-checked at most
+> once a real second (structure and the legacy bit stay per call).
+> ⚠ **The shipped-drives run (fire 23/23 · glass 7/7 green)** was
+> confounded: the machine ran at load ≈ 80 (four builds), `climate`'s and
+> `envelope`'s failures were a roster timeout and *"the clock is not in the
+> small hours"* (dirty files run in ONE world, and climate moved the clock
+> days first — envelope needs a fresh world of its own), the lantern's
+> `no-fuel` is the clone's own stock, and `taps` died on its own
+> `eval --parcel` mint (a shape testing.md already records as taking the
+> server down) after its "till is broken" FINDING inverted — the till was
+> fixed upstream. None reads a construction answer. **Envelope and taps
+> are re-run alone, on a fresh world, before the rubber drive (W7).**
 
 Implements D7.
 
