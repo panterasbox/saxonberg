@@ -827,7 +827,7 @@ export const PHRASE_SHAPE_CEILING = 6;
  * stale tree is opened at the wrong number.** Measure at the merge, not
  * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 122;
+export const ARTICLE_SHAPE_CEILING = 121;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase

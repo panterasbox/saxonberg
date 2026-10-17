@@ -1839,6 +1839,24 @@ afford the kernel view.
 - Acceptance: the textiles wire drive still passes.
 - Commit: `build(storage-and-ice W7): one cut — the kernel view over a
   cut plan; tailoring's cloth plans its own`.
+- ✅ **Done (build, 2026-10-17).** The kernel `cut` view
+  (`platform/cmd/crafting/cut.yaml`), its controller row and
+  `CutController`; tailoring's view, row and controller deleted.
+  ⭐ **Decision (D16 refined):** the cloth's class is textiles'
+  `ClothBolt` and the pattern is TAILORING's, so the bolt cannot plan its
+  own cut without inverting the pack dependency. The protocol has two
+  sides, asked in order: the TARGET (`Cuttable.cutPlan` — the ice sheet,
+  reached as the room's floor when the target is a bare word like
+  `marked` / `hole`), then a bound TOOL (`CutPlanner.cutPlanFor` —
+  tailoring's `CuttingTool` plans any cloth). Lens 2: a second cuttable
+  good (a saddler's hide) answers either side with no kernel edit; the
+  instrument affords the verb. The cloth logic moved whole onto
+  `CuttingTool` (`measurementsOf` is now its module export, shared by
+  `alter` and the figure reading — a static would have raised
+  `lint:lib-statics`). `ARTICLE_SHAPE_CEILING` 122 → 121 (the retired
+  tailoring `shears` arg). The kernel test drives the planner order with
+  stubs; the cloth plan's own proof is the textiles wire drive at W10
+  (a unit test of a real woven bolt needs the construction rows).
 
 ### W8 — The ice trade pack, and seasonal seats
 

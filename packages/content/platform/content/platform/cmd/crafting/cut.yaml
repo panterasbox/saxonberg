@@ -1,0 +1,61 @@
+# ⭐ ONE `cut` (storage-and-ice D16): the kernel's verb over a cut-plan
+# protocol. The verb binds what you cut and the tools in reach; the TARGET
+# (or the tool that knows how to cut it) plans the cut — how long, what is
+# made — or refuses in its own words. Cloth is cut to a pattern by a
+# tailor's shears; ice is cut off a marked grid with an ice saw. A second
+# cuttable thing is a class that answers the protocol, never a second verb.
+verbs: [cut]
+controller: /platform/idea/cmd/crafting/CutController
+description: "Cut something — cloth to a pattern, ice off the grid"
+help: |
+  `cut <thing>` cuts it with the right tool in reach, and what that means
+  belongs to the thing.
+
+  **Cloth** (`cut linen`): a tailor's shears lay a pattern on a bolt and
+  cut the pieces. ⭐ A pattern is a 2D solution to a 3D problem, and cloth
+  is expensive: `--tight` uses the least cloth and leaves NO seam
+  allowance, so the thing can never be let out; `--generous` uses more
+  and buys a future alteration. `--for <someone>` stamps their
+  measurements on the pieces; cut for nobody and it is stock, which fits
+  an unusual body badly. Offcuts fall on the floor — patchwork, quilting
+  stock, rags.
+
+  **Ice** (`cut ice`, `cut marked`): standing on a frozen pool with an ice
+  saw, you cut a block along the grid you marked; its weight follows the
+  ice's thickness and the grid. `cut hole` saws a hole for a line instead.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # What you cut: a thing in reach (a bolt, the ice underfoot), or a word
+  # naming a part of what is underfoot (`marked`, `hole`).
+  - name: target
+    type: object
+    required: false
+    greedy: true
+    scope: ["$focus", "inventory", "reachable"]
+    requires: any
+  # ⭐ The tools — DECLARED, not hunted for (`lint:instrument-args`). The
+  # target (or the tool that plans the cut) narrows them by the capability
+  # it needs.
+  - name: tools
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using, at, on]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  for:
+    type: object
+    scope: [reachable]
+    description: "Whose measurements to cut cloth to (omit for stock)"
+    requires: OrganismMixin
+  tight:
+    type: boolean
+    description: "Cloth: least cloth, no seam allowance — it can never be let out"
+  generous:
+    type: boolean
+    description: "Cloth: more cloth, room to let out twice"
