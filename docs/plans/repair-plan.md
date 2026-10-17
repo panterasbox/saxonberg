@@ -2025,6 +2025,8 @@ generated file.
 
 ### Repair × cleanliness
 
+✅ **Settled both directions** — cleanliness recorded repair's answers (`origin/reqs/cleanliness` 45addec08) and had already applied repair's asks: `Soilable` on `Lamp` (soot in `getEmittedFlux`, glazed share only); bleach rot and vitriol burns through `wear(…, 'corrosion')`, the Flued `wear()` branch gone; a `Sawdust` stack stays one, the `sawdust` DirtKind dropped; its floor predicate is `takesSoil()` (= our `takesTraffic`); `cleaningMethod('ice')` → scrape; sulfur `autoignitionTemperature: 505`; shrink/felting only for a `fibre`-tagged material the water reaches. Same landing order.
+
 ✅ **Cleanliness's asks (2026-10-17, `origin/reqs/cleanliness:docs/plans/cleanliness-note-to-siblings.md` § To repair) — answered:**
 1. **Accepted.** `CraftingApi.fulfillingHand(giver, tariff, discipline?)` is public and resolves candidates **only within the Tariff's own house** (its `businessPath` / the house `collect` attributes to) — the lavoir and bathhouse are multi-house rooms. `diagnose` uses it.
 2. **Accepted.** `Tariff.quoteFor(lines)` takes priced lines; the Diagnosis → lines mapping stays in repair's arm.
