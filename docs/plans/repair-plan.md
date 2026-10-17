@@ -2445,5 +2445,6 @@ billhook and *Hollin* back).
 world booted beside it (load ~30); every later checkpoint, which uses
 that pick, passed. 13: abandoned — four ~3 GB worlds on a 15 GB box and
 this one was OOM-killed at drive 7 (exit 137). 14: abandoned at drive 4
-(0 GB available, load ~40, four worlds again). A clean final-code run is
-owed once the box is free.
+(0 GB available, load ~40, four worlds again). ⭐ **15: 13/13 green on
+the final code** (`b4ba3b6c2`, after the review's fold onto `Named`; 1797
+s) — drive 9 finds *Hollin* by its `Named` name, draws and re-hilts it.
