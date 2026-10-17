@@ -1,6 +1,6 @@
 /** MarkController — `mark [<patch>]`: score a grid across the ice, to be cut into blocks. */
 
-import { IceActController } from './IceActController';
+import { IceActController } from '../../../lib/IceActController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type IceSheet from '@saxonberg/content-water/src/thing/IceSheet';

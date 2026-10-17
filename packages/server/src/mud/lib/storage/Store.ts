@@ -804,6 +804,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (business === null) {
         return { ok: false, reason: 'no-bailee', line: 'Nobody keeps this store.' };
       }
+      await this.bringHouseCurrent();
       const staff = this.isStaffOnShift(actor);
       const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
       if (!staff && this.custodianIn(room) === null) {
@@ -862,6 +863,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (business === null) {
         return { ok: false, reason: 'no-bailee', line: 'Nobody keeps this store.' };
       }
+      await this.bringHouseCurrent();
       const staff = this.isStaffOnShift(actor);
       const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
       if (!staff && this.custodianIn(room) === null) {
@@ -1091,6 +1093,22 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!this.businessPath) return null;
       const biz = await StuffApi.singleton<Stuff>(this.businessPath).catch(() => null);
       return biz && MixinApi.isBusiness(biz) ? (biz as Stuff & Business) : null;
+    }
+
+    /**
+     * ⭐ Bring the house's roster current before asking who is keeping the
+     * book — as a counter does before a sale. A shift flips on the roster
+     * pass, so after a quiet stretch the keeper read as off at noon and on
+     * at midnight (the drive, run 2).
+     */
+    private async bringHouseCurrent(): Promise<void> {
+      const at = this.storeVenuePath();
+      if (!at || !this.businessPath) return;
+      try {
+        await EmploymentApi.ensureOperatorAt(at);
+      } catch (err) {
+        console.warn('StoreMixin: could not bring the house current', err);
+      }
     }
 
     /** The venue a fee is settled at: this store (an operating location of the house). */

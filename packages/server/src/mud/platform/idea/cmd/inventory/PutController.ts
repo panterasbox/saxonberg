@@ -285,6 +285,13 @@ export default class PutController extends CommandController<PutModel> {
       }
     }
 
+    // ⚠ Named BEFORE the move (GetController's rule): a stack that arrives
+    // where its like already is MERGES into it and is destroyed — a heap of
+    // sawdust put on a stack that already holds sawdust (the storage-and-ice
+    // drive) — and a late-bound reference to a destroyed thing broke the
+    // scene's template.
+    const named = item.getPresentation();
+
     // Branch to the correct primitive based on resolved mode. Three
     // distinct calls — each does one thing — preserving
     // ContainmentApi.move's existing contract.
@@ -329,6 +336,7 @@ export default class PutController extends CommandController<PutModel> {
     // say *hang* where `on` says *put*, with no code here knowing the
     // difference. A member with no live row falls back to the shipped
     // sentence, so a cold catalogue still speaks English.
+    const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
     const member = ContainmentApi.placement(chosen!.name ?? 'in');
     const template = member?.getProse() ?? '';
     const word = chosen!.words[0] ?? chosen!.name ?? 'in';
@@ -338,7 +346,7 @@ export default class PutController extends CommandController<PutModel> {
         .toSelf(
           ProseApi.format(template, {
             actor: Mml.compose`You`,
-            item: Mml.thing(item),
+            item: what,
             host: Mml.thing(target),
             s: '',
             es: '',
@@ -347,7 +355,7 @@ export default class PutController extends CommandController<PutModel> {
         .toPeers(
           ProseApi.format(template, {
             actor: Mml.actor(giver),
-            item: Mml.thing(item),
+            item: what,
             host: Mml.thing(target),
             s: 's',
             es: 'es',
@@ -357,9 +365,9 @@ export default class PutController extends CommandController<PutModel> {
       return;
     }
     scene
-      .toSelf(Mml.compose`You put ${Mml.thing(item)} ${word} ${Mml.thing(target)}.`)
+      .toSelf(Mml.compose`You put ${what} ${word} ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} ${word} ${Mml.thing(target)}.`,
+        Mml.compose`${Mml.actor(giver)} puts ${what} ${word} ${Mml.thing(target)}.`,
       )
       .send();
   }

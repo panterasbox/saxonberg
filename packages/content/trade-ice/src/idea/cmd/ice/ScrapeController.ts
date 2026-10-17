@@ -1,6 +1,6 @@
 /** ScrapeController — `scrape [<patch>]`: clear the snow off the ice so it freezes black. */
 
-import { IceActController } from './IceActController';
+import { IceActController } from '../../../lib/IceActController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
