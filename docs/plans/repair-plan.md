@@ -1211,9 +1211,14 @@ yard; `pane` from the glass trade. ⚠ No RGO behind reed, lime or slate
 
 **D27 — The first layered buildings.** `dormroom.yaml`: `enclosure:
 [{lime-plaster 0.015}, {brick 0.23}]` (outermost first), `roof:
-[{slate 0.008}, {oak 0.025}]`; `lobby`, `corridor`, `steps`, `cistern`
-likewise so the hall leaves rubber's census. Seznick `hall/main/
-bedroom`: `[brick 0.23]`, `roof: [{slate 0.008}, {pine 0.02}]`. Hinkley
+[{slate 0.008}, {oak 0.025}]`; `lobby` and `corridor` likewise so the
+hall leaves rubber's census — ⛔ **not `steps`** (an outdoor room,
+`outdoor/baseline`, lit by the sun: a slate roof would make it dry and
+dark) and ⚠ **`cistern`** only if its drown-here proof tests still pass
+(rubber, 2026-10-17). Seznick `hall/main/bedroom`: `[brick 0.23]`,
+`roof: [{slate 0.008}, {pine 0.02}]` — ⚠ authored on **Seznick's own
+room rows**, never on the shared `/stuff/location/room/{living,
+bedroom, bathroom}` rows that feed every programme. Hinkley
 `house-programme`'s **enclosed** rooms (⛔ not `lots/yard` — it is outdoors; cleanliness, 2026-10-17): lime over brick, `roof: [{thatch 0.3}]` —
 where thatch lives in the world (AC 15's *slate and thatch on one
 calendar* is a unit test; the drive's home is the dorm, where the lime
@@ -1645,7 +1650,7 @@ socket on `WIRE_PORT` 2016 — drive 11 is W7's and is appended to the
 SAME file when W7 lands; the record lands in this plan; `pnpm test`
 once; MR.
 
-**Files.** The wire file (`DIRTY_REASON`: buys out the store's billhook
+**Files.** (W5 also: `terminus/package.json` gains `trade-forestry`; `pnpm install`.) The wire file (`DIRTY_REASON`: buys out the store's billhook
 and whetstone and Rejection's pick, clones iron and a billet into the
 smithy, stokes and lights the smelter furnace, appoints a player to the
 cobbler's seat, moves the clock by hours); `docs/plans/repair-plan.md`
@@ -2009,6 +2014,20 @@ generated file.
 | repair Risk 11's wording | after ice lands, *"tailoring's `cut` is the cloth-pattern act"* is stale (`cut` becomes a kernel view over `Cuttable`); reword, behaviour unchanged. |
 
 ### Repair × rubber
+
+✅ **Rubber's note (`origin/reqs/rubber:docs/plans/rubber-notes-to-parallel-builds.md` § To repair, a2f9da83f) — answered:**
+1. **Accepted.** W7's re-ground reads the RAW getters (`getEnclosure()`/`getRoof()` → spec · list · `'none'` · null), never `resolveEnclosure()`, for layers; `'none'` is legal for both keys; `Exposure.walls[]` carries interior faces with `exterior: false`, and a layer's wall area = Σ exterior wall faces (stored on `LayerState`, P6).
+2. **Noted.** An exit is an open side only when the place across it is outside — the dorm corridor's doorless exits are not missing walls.
+3. **Accepted** (already P5): brick and canvas are rubber's rows; thatch and lime plaster in base-library.
+4. **Accepted.** `packages/server/scripts/check-biome-sky.ts` is in W7's files: W7 deletes the ceiling-list lines for rows it authors both keys on.
+5. **Accepted (corrections to D27):** `steps` stays open; Hinkley `lots/yard` is outdoor; Seznick's layers go on its own room rows, never the shared `/stuff/location/room/*` rows; `cistern` only if its drown-here tests still pass.
+6. **Accepted.** Rubber's boots/gloves/apron are one-piece casts mended by the monolith path under the boot-mould's `castDiscipline` (chemistry); repair's D1 test gains the rubber-boot case once rubber lands, and D1's grounding line *"no shipped cast composes Crafted except the Wheel"* is stale from then on.
+7. **Already in the plan (P3):** the stock draw is the same MATERIAL path first, then a family tag, never `organic` — so a rubber good is mended from rubber stock; a raw-rubber patch is exactly that draw. If no rubber stock is in reach the mend refuses naming it (no leather patch).
+8. **Noted.** Rubber's moulds and coagulating pan state iron; repair's metal path mends them.
+9. **Accepted.** W5 adds `trade-forestry` to `terminus/package.json` (the tinker's billhook prop) and re-runs `pnpm install`; `Mould.ts` separate hunks; counter keep-all; goldens regenerated.
+10. **Noted.** `moulding-slate.md` lands with repair; rubber fixes its citation at its own merge if repair has landed, else repair does at its.
+
+⚠ **Merge order — the one open disagreement.** Rubber's note fixes **ice → rubber → repair → cleanliness** (repair whole, after rubber). Storage-and-ice and cleanliness both recorded **storage + repair W0–W6 (either), rubber, cleanliness, repair W7**. Repair W0–W6 needs nothing of rubber's (rubber's pieces repair uses — brick, layers, `exposure()`, `lint:biome-sky` — are all W7's), so either order is safe for the code; repair is happy to land W0–W6 after rubber if that is the agreed order. The owner decides; until then, the owner rule stands (one named owner per shared piece, `// DROP AT MERGE` local copies).
 
 | shared | resolution |
 |---|---|
