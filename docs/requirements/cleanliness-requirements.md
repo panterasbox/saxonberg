@@ -31,7 +31,9 @@ Seeded by [laundry-slate](../slates/tails/laundry-slate.md),
 [bathroom-slate](../slates/builds/bathroom-slate.md); governed by
 [stewardship-doctrine.md](../stewardship-doctrine.md) § Part 3 (what
 upkeep must never do) and § Part 3a (the price of comfort).
-**Runs after dairy merges, in parallel with repair** (§ Collisions).
+**Runs after dairy merges, in parallel with repair, rubber and
+storage-and-ice** (§ Collisions — each sibling's shared piece is named
+there, with who owns it).
 
 ---
 
@@ -62,6 +64,7 @@ upkeep must never do) and § Part 3a (the price of comfort).
 | **chandlery** | ships: `dip` candles from tallow or beeswax; a chandlery shop in Terminus wharfside. **No Discipline, by decision.** |
 | **places** | the infirmary ward (with a basin), the Hearthworks cookhouse and the cooking pack's kitchen, the wharfside mill floor, the Delight Road **ford**, the estuary strand (a shore), the Goodkin bank (wharfside), the chandlery shop; dairy brings a byre and yard to Hearts' Delight. **No authored gym room** (the archetype only). |
 | **Disciplines** | textiles, dyeing, tailoring, chemistry, cooking, medicine, nursing, butchery, services and personal-services exist. **No housekeeping, hygiene or chandlery Discipline.** |
+| **in flight beside this build** | **rubber** (build-1): rain stops at the outer layer by its material, a wet material conducts, rubber gloves, boots and apron, native **sulfur** in the Hill Quarry, places say what their walls and roof are made of (glass faces pass light), every walled room must stand in a building. **storage-and-ice** (build-4): sawdust left where a log is sawn and gathered from a heap, going into water soaks you and what you wear, cold water chills a swimmer, frozen water reached only through a hole. Both share **one wet law** (water filling a material's pores) with textiles' shipped wet cloth. |
 | **slates** | laundry, room-condition, rendering § 9, bathroom, sanitation, disease, cosmetics, pharma (soap vs water for oily irritants — a ready consumer), surgery-specialty (the sterile field), structures (the flue as an object). |
 
 ⭐ **Therefore what is genuinely new here is:** dirt that acts deposit,
@@ -80,8 +83,8 @@ bathhouse and a doorman.
 ## Goals
 
 - **You get dirty by doing things, never by waiting.** Butchering,
-  cooking, milking, digging, tanning, rendering, sweating, fighting,
-  walking through mud and rain all soil you — on the layer the dirt
+  cooking, milking, digging, tanning, rendering, sweating, fighting
+  and walking through mud all soil you — on the layer the dirt
   reaches, as a **kind** (blood, grease, mud, sweat, soot, manure,
   ash). Sitting in the lounge does not. The hands clock is gone.
 - **Layers are honest.** Gloves take the dirt; washing your hands in
@@ -221,9 +224,33 @@ bathhouse and a doorman.
   (the verb-collision ladder's first rung: one verb, one act — taking
   the water out of a thing). `hang` is taken (wall fixtures) and is not
   reused.
-- **Rain** — now wets a worn garment's outer layer, which it never did.
-  Insulation loss from wet clothing already ships, so **winter in the
-  rain gets colder** for everyone the day this lands.
+- **Rubber** (build-1, in parallel) — ⚠ shared pieces, each owned
+  there and consumed here:
+  - **Rain on what you wear** is rubber's correction (the outer layer
+    sheds or soaks by its material). This build only reads it.
+  - **Sulfur** is rubber's native band; bleaching is its second consumer.
+  - **Rubber gloves, boots and apron** are rubber's goods; this build
+    reads them as gloves and aprons that keep caustics off and wash
+    clean.
+  - **Glass faces** on rubber's buildings take grime like a window.
+  - ⚠ **Every new walled room must stand in a building** (rubber's gate
+    against rooms outside any building): the lavoir, the bathhouse and
+    the laundress's room are authored as buildings.
+- **Storage-and-ice** (build-4, in parallel) — ⚠ shared pieces:
+  - **Sawdust** is matter there, a heap where a log is sawn; here it is
+    debris of one kind, swept, strewn or gathered — **one heap**.
+  - **Going into water soaks you and your clothes, and cold water
+    chills** — owned there; washing at a river, bathing in one and
+    climbing out wet all read it.
+  - **Frozen water is reached through a hole** — washing at a frozen
+    river needs one.
+  - The **cookhouse** gains an ice par line there and kitchen tiers
+    here: both edit its rows.
+- **The one wet law** (rubber + storage-and-ice + textiles' shipped wet
+  cloth: water filling a material's pores) — a washed garment is wet by
+  it. This build mints no copy. ⭐ **Expected order:** cleanliness
+  merges after both; if either has not, the shared piece is built here
+  in the shape the two siblings agreed, and the later build consumes it.
 - **Hearths** — every hearth, stove and brazier that burns indoors gains
   a chimney that soots. ⚠ The rubber build's walls (in flight) and the
   structures slate's flue are the building-scale version; this is the
@@ -270,15 +297,19 @@ Butchering (blood, grease) · cooking (grease, soot, flour) · milking
 (manure, milk) · digging, mining and quarrying (mud, dust) · tanning and
 rendering (the stench trades — grease and worse) · exertion (sweat, by
 how hard) · fighting (blood — **the bleeder's**, on whoever it reaches) ·
-walking through mud, mire or a puddle (mud on the feet and legs) · rain
-(wets the outer layer) · tending a fire (ash, soot) · milling (flour).
+walking through mud, mire or a puddle (mud on the feet and legs) ·
+tending a fire (ash, soot) · milling (flour) · sawing (sawdust — the
+heap storage-and-ice makes, which is debris here). Rain and swimming
+**wet** but do not soil; that is rubber's and storage-and-ice's.
 Each producer is the act that already exists; none is new.
 
 ### 3. Gloves, and taking them off
 Washing hands in gloves washes the gloves. Removing dirty gloves
 transfers their dirt to your hands unless done carefully — the
 careful way is a slower act. ⭐ That is the real doffing problem nurses
-are trained on, and it gives a surgeon's gloves real work.
+are trained on, and it gives a surgeon's gloves real work. **Rubber
+gloves** (rubber's goods) are the honest gloves for lye and the clinic:
+they wash clean and a caustic does not reach through them.
 
 ### 4. Washing
 `wash <thing>` trades three contributions: **time** (scrubbing; beating
@@ -288,9 +319,13 @@ water and time; grease only to an alkali or a surfactant; blood to
 **cold** water first — **hot water sets it**, and a set blood stain only
 bleaches. What washing can ruin, by fibre: **boiling felts wool**,
 **harsh bleaching rots linen**, **hot water shrinks**, and **un-fast dye
-bleeds** onto anything washed with it. A washed garment is wet; it
-dries by itself (warmth and air) or faster by `dry` (by a fire, on a
-line in the sun). A **textiles** band reads what a fibre will survive
+bleeds** onto anything washed with it. Hot water **shrinks**, which changes whom the garment fits
+(fit is two numbers; rubber's stretch is the other direction). A washed
+garment is wet — by the one wet law, so wet wool is cold — and it dries
+by itself (warmth and air) or faster by `dry` (by a fire, on a line in
+the sun). ⚠ **Frozen water cannot be washed in** except through a hole
+(storage-and-ice's); a roofed, spring-fed lavoir is why towns built
+one. A **textiles** band reads what a fibre will survive
 before you wash it — an untrained hand finds out after.
 
 ### 5. The forensic stain, and laundry marks
@@ -321,9 +356,11 @@ cleansers, each a row saying **what it does and to what**:
 | naphtha | solvent | oil and grease water cannot touch | coal tar's light cut |
 | fuller's earth / chalk | absorbent | grease, spills | the quarry |
 | sand | abrasive | baked-on dirt — and the surface | the quarry |
+| sawdust (strewn) | absorbent | spills and blood on a floor — swept up with them | the saw (storage-and-ice) |
+| vitriol | acid (strong) | rust, scale — and anything organic | the general store (ships) |
 | sunlight | oxidiser (slow) | colour, stains | the bleach green, by day |
 | soured milk | acid (mild) | the linen-bleacher's steep | dairy |
-| sulfur fumes | oxidiser | stains on **wool and silk** | burning sulfur |
+| sulfur fumes | oxidiser | stains on **wool and silk** | burning native sulfur (rubber's quarry band) |
 
 **Chemistry** bands the choosing. The wrong cleanser does nothing, or
 damage (lye on wool, sand on glass).
@@ -342,6 +379,8 @@ which sun-bleaching yellows and lye destroys: the fibre decides the
 bleach. Chlorine is out (non-goals).
 
 ### 9. The perils
+- **Rubber gloves and a rubber apron** (rubber's) keep lye and vitriol
+  off; leather and cloth do not.
 - **Lye in the eyes** blinds you until it is **rinsed** — a new injury
   to sight, rinsed like the caustic burn it is; untreated it worsens.
   Lye on skin is the shipped caustic.
@@ -359,8 +398,10 @@ bleach. Chlorine is out (non-goals).
 are cleaned as their kind allows: **earth and loose** floors are strewn
 with fresh rushes and the old swept out; **paving and slab** are
 scrubbed; **boards** scrubbed or sanded; a rug is taken out and beaten.
-**Debris** (crumbs, offcuts, ash, shavings) is deposited by the acts that
-make it and `sweep`-ed into a heap, then `dispose`-d. **Tidiness** is
+**Debris** (crumbs, offcuts, ash, shavings, sawdust) is deposited by the
+acts that make it and `sweep`-ed into a heap, then `dispose`-d. ⚠ The
+sawmill's **sawdust heap** (storage-and-ice) is this same heap, not a
+second one: it can be swept, gathered for an icehouse, or strewn. **Tidiness** is
 read from whether things are put where they belong. **Rest** reads the
 bed's soiling and the room's condition — a filthy bed is a worse bed,
 never a punishment. **Pests** appear when debris and open food pass a
@@ -371,7 +412,9 @@ commercial cleaning demand comes from trade, not the clock.
 ### 11. Cleanables with consequences
 - **Windows** grime with soot and weather-side dirt and **let less light
   in**, derived through the window's own transmission; washing them
-  brings the light back.
+  brings the light back. The same holds for any **glass face** a place
+  is built with (rubber's glass roofs): a grimed hothouse roof lets in
+  less sun, so the hothouse is colder and its tree taps worse.
 - **Chimneys**: every fire in a hearth soots its chimney; a heavily
   sooted chimney **can catch** (the shipped ignition model); brushing it
   clean (rods and a brush) prevents it. ⭐ This is the one cleanable
@@ -421,7 +464,9 @@ absence: the garment she did not ruin.
 A hospitality venue in Terminus with hot water, tubs and soap at par,
 and a floor to work out on: `order bath` gets you a bath — body and
 hair, clean — and the attendant will wash your clothes too. `bathe`
-anywhere with a tub or enough water does the same for yourself. ⭐ The
+anywhere with a tub or enough water does the same for yourself — and a
+winter river chills you as storage-and-ice's cold water does, which is
+what the bathhouse's hot water is for. ⭐ The
 gym and the bath share a door.
 
 ### 16. The doorman
@@ -495,8 +540,9 @@ A funded player, a fresh world after dairy, the real socket.
    not.
 3. Sit in the lounge for a game day. `look hands` — unchanged. (No
    clock.)
-4. Walk through the mire to the ford in the rain. Your boots and legs
-   are muddy; your outer layer is **wet**, and colder.
+4. Walk through the mire to the ford. Your boots and legs are muddy;
+   your shirt is not. Strew sawdust on a bloodied floor and sweep it up:
+   the floor is cleaner, the heap is bloodied sawdust.
 5. `wash shirt` (bloodstained) in the river, cold, with no soap: the
    blood mostly lifts. Bloody the shirt again, and wash it in **hot**
    water: `look shirt` — *a set stain*. `analyze shirt` reads the
@@ -567,8 +613,8 @@ A funded player, a fresh world after dairy, the real socket.
 4. Grease does not wash out in water alone and does with soap; blood
    washed hot is set and washed cold is not; boiled wool is felted;
    un-fast dye bleeds onto other garments in the same wash.
-5. A washed garment is wet and dries on its own or with `dry`; rain wets
-   a worn outer layer.
+5. A washed garment is wet (and colder to wear, by the one wet law) and
+   dries on its own or with `dry`; hot water shrinks it.
 6. `analyze` on a blood-stained garment reads the bleeder's type.
 7. Lye, soft soap, hard soap and glycerin can be made from ash, water,
    fat and salt with shipped verbs; a bar cured short reads harsh.
@@ -638,7 +684,11 @@ A funded player, a fresh world after dairy, the real socket.
   [contract.md](../subsystems/contract.md) ·
   [watershed.md](../subsystems/watershed.md) ·
   [mortality.md](../subsystems/mortality.md).
-- In flight: repair (`order`, `survey` — § Collisions) · dairy (merged
-  first — milking, the byre).
+- In flight: repair (`order`, `survey`) · **rubber**
+  (`docs/requirements/rubber-requirements.md` on `reqs/rubber`) ·
+  **storage-and-ice**
+  (`docs/requirements/storage-and-ice-requirements.md` on
+  `reqs/storage-and-ice`) — § Collisions · dairy (merged — milking, the
+  byre).
 - Overlapping slates: sanitation · disease · cosmetics · pharma ·
   surgery-specialty · structures · standing-instructions · inquiry.
