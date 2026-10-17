@@ -612,7 +612,7 @@ INCLUDES the face.
    callable from `lib/`, expose it as `AtmosphericMixin.outsideSegmentsSince(sinceS, {onStep})`
    on the scope, one method, so the room still owns its outside).
 2. **The room's temperature per segment** is the room's answer:
-   `scope.envelopeSteadyStateK(outsideK)` — a new method on
+   `scope.envelopeSteadyStateK(outsideK, atS)` — a new method on
    `AtmosphericMixin` that evaluates the closed-form steady state from
    `envelopeCoefficients()` and the occupants' exchanges (D5), the same
    formula `reconcileEnvelope` uses (folded in, one place). At a 6-h
@@ -806,9 +806,11 @@ is hoisted, not duplicated. Readers after this build: cloth (thermal,
 shipped), the icehouse packing (thermal, D4), rubber's contact
 resistance (electrical, theirs — `contactResistanceImpl` calls
 `material.permeability()`). The build agent checks `reqs/rubber` at
-build time: if rubber has landed first with the law on
-`MaterialLogic`/`MaterialApi`, this build consumes THAT and does not
-add the Material methods — the note binds both sides.
+build time: rubber's D12.1 states the SAME two `Material` instance
+methods, the same signatures and the same `wetness.impermeableBelowPct`
+key (verified 2026-10-17). If rubber has landed first, this build
+consumes them and adds neither the methods nor the settings row (see §
+Parallel builds).
 
 ### Cold water, wetness, the frozen pool
 
@@ -836,10 +838,14 @@ the wet amplifier do the rest. `MixinApi.isSwimmable` is added (the
 temperature override on `Pool`; a method behind a mixin predicate, not
 an optional hook.
 
-**D11 — Going into water soaks you and what you wear.** `Attired.immerse()`
+**D11 — Going into water soaks you and what you wear.** `Attired.immerse(parts?:
+(partKey: string) => boolean)`
 (`S/lib/slot/Attired.ts`, beside the existing part walk): `this.wet(1)`
 on the body and `layer.wet(1)` for every layer at every exterior part
-(`coveringAt(part.key)`); a non-Attired Wet thing gets `wet(1)`.
+(`coveringAt(part.key)`) the optional filter admits (no filter = every
+part; rubber's flooded cell calls it with the foot parts, cleanliness's
+`bathe` with none — both siblings consume this exact signature); a
+non-Attired Wet thing gets `wet(1)`.
 Callers: `Pool.onEntered(mover, exit)` when `immersionOf(mover)` is
 non-null after the support check; `WaterSurface.giveWay(occupant)`
 (D12); and `ThermalRegulation.restamp` re-immerses while
@@ -1140,7 +1146,9 @@ lands on whichever path exists when they land.
 **D18 — Sawdust by kerf.** Material
 `C/base-library/content/stuff/idea/material/wood/sawdust.yaml` (bulk
 density 200, k 0.06, c 2000, wAC 100, tags `[wood, organic, granular,
-flammable]`, `biologicalSource: null`). Good: carpentry's
+flammable, absorbent, sawdust]` — the last two are what cleanliness
+reads (`strew` needs `granular, absorbent`; its cleanser agent keys
+`sawdust`) — `biologicalSource: null`). Good: carpentry's
 `C/trade-carpentry/src/thing/Sawdust.ts` =
 `PoolableMixin(StackableMixin(Good))`, row `/trade/carpentry/thing/sawdust`
 (`mass: 1` per unit, so quantity is kilograms; keywords `sawdust, dust,
@@ -1192,8 +1200,12 @@ the user 2026-10-16). `measure ice` / `analyze ice`:
 thickness in cm `± bracket` and the grade; analyze prints the
 `WaterReading.iceLine` bands. Tool rows under `content/trade/ice/thing/`:
 `ice-saw` (`capabilities: [ice-sawing]`), `spud` (`[spudding]`),
-`scraper`, `hand-marker`, `ice-plough` (both `IceMarker`), `tongs`
-(`[gripping]`, a row over `Tool`). Discipline row
+`scraper`, `hand-marker`, `ice-plough` (both `IceMarker`). **No tongs
+row**: tongs are flavour (user, 2026-10-16) and the mining pack already
+ships one; the venue may `props:` `/trade/mining/thing/tongs` as
+dressing. The tool rows author no `constructionForm` (an edgeless ice
+saw; whether it is `bladed` and sharpenable is a later row edit once the
+repair build makes every Tool Keen). Discipline row
 `idea/Discipline/ice-harvesting.yaml`.
 
 ### Seats, the cookhouse, the pack, the venue
@@ -1214,7 +1226,9 @@ quarter from day-of-year (day 0 = northern spring; 0–89 spring, 90–179
 summer, 180–269 autumn, 270–359 winter), **flipped by two quarters when
 `latitudeDeg < 0`**. `tickBusiness` resolves the latitude once per
 business from its first operating location's zone and passes the season
-in the clock. Every shipped roster authors no `season` and is
+in the clock. ⚠ **The season rides ONLY `RosterClock` and
+`Roster.evaluate`** — no loop logic of its own in `tickBusiness`, so it
+survives the repair build's assignee grouping of that loop. Every shipped roster authors no `season` and is
 unchanged; the wage settles only on on→off, so a seat outside its
 season draws nothing.
 
@@ -1227,7 +1241,9 @@ Coolbox** (`MixinApi.isCoolbox`) — a cold box is shut to keep, not to
 hide, and its contents are the house's cold stock; a shut larder or
 cupboard stays invisible, so no other venue's sheet changes unless it
 keeps a par line for something in its icebox (none does). `restocks`
-gains config `cold: /stuff/thing/fixture/icebox` and an unpack rule
+gains config `cold: /stuff/thing/fixture/icebox` and an unpack rule, **one
+small named branch** (`unpackIntoCold`) with `cold` a plain config option
+so the repair build's W7 can carry it whole into `BusinessMixin.receiveBench`,
 before the shelf default: a delivered good that is not bulk and whose
 material has tag `ice` → `open <icebox>`, `put <kw> in <icebox>`,
 `close <icebox>` (literal verbs, `forceCommand`). The cook's row names
@@ -1280,8 +1296,12 @@ authored light, a lockable door to the platform, props: the stack row
 `thing/stack.yaml extends /trade/ice/thing/stack` with `capacityKg:
 30000` and the seeded lines — see W9), `small-house` (the scale check:
 8 m³, same walls, its own stack `capacityKg: 3000`), `shed` (the empty
-control: same volume and walls as the house, nothing in it), two
-Structure rows (the icehouse over platform + house; the small house),
+control: same volume and walls as the house, nothing in it), three
+Structure rows (the icehouse over platform + house; the small house; the
+shed) — each standing alone, so once rubber's heat-between-rooms lands
+only the house couples to a neighbour (its platform, through the
+door's wall), which is real and leaves the house still colder than the
+shed,
 the business `idea/ice-company.yaml` (positions keeper, house-hand,
 crew ×2, ice-boss; `call: rota`; `rosterSlots` with `season: [winter]`
 on crew and boss; `operatingLocations`: platform, counter, house,
@@ -1306,7 +1326,7 @@ test: a guard that re-narrows the host set means the host is wrong.
 | `Stockpile.capacityKg / stackShapeFactor / drainage / acceptsPoolKeys / keeperPositions / businessPath / terms` | the store row (authorable on `StoreMixin`) | *a store has a size, a shape, a floor, a keeper and printed terms* | — |
 | `StoreBookMixin` / `StoreBook` | a fixed `Thing` row | *this object is the house's book: it affords custody and names a store* | the book is the instrument; never the counter, never the room |
 | `RoomHeatExchange` (interface by shape) | `SpaceHeatingMixin` (+), `StoreMixin` (−) | *an occupant may push heat into or pull it out of its room* | two implementers; the envelope narrows by shape, never by class |
-| `AtmosphericMixin.envelopeSteadyStateK(outsideK)` | every Atmospheric scope | *a scope can say what temperature it would settle at for a given outside* — the formula it already uses, exposed | — |
+| `AtmosphericMixin.envelopeSteadyStateK(outsideK, atS)` | every Atmospheric scope | *a scope can say what temperature it would settle at for a given outside* — the formula it already uses, exposed | — |
 | `Material.permeability() / wetProperty()` | `Material` | *every material has a pore permeability, zero when it absorbs nothing* | — |
 | `CompositionMixin` / `TemperedMixin` | `Casting` (composition only); `MetalCasting`, `Ingot`, `Bloom` (both via `AlloyedMixin`) | composition: *this piece remembers what dissolved in it*; temper: *this piece can be heat-treated* — true only of metal | the split IS the narrowing; no guard |
 | `SwimmableMixin.immersionOf()` | `Swimmable` hosts (`Pool`) | *a place you swim in knows who is in its water (whoever its floor is not supporting) and how cold it is* | base reads support off the floor's slot; `Pool` overrides the temperature only |
@@ -1491,7 +1511,7 @@ Implements D1–D5, D7; composes `PoolableMixin` onto `IceBlock` and
   row for tests under `S/platform/thing/__tests__/fixtures`.
 - `S/lib/thermal/RoomHeatExchange.ts`; `SpaceHeating` implements it;
   `Atmospheric.reconcileEnvelope` sums exchanges and uses
-  `envelopeSteadyStateK(outsideK)` (new, the one formula);
+  `envelopeSteadyStateK(outsideK, atS)` (new, the one formula — `atS` so rubber's solar term can enter it);
   `outsideSegmentsSince` if `outsideKFor`'s site resolution is not
   reachable from `lib/` (read `BiomeLogic.ts:1196` first).
 - `IceBlock.reconcileInStore` (the plateau physics), `Sawdust`'s
@@ -1787,6 +1807,12 @@ recorded in D15 and D19.
   `test-bootstrap`.
 - **Between waves:** `pnpm test:near`, every touched pack's `vitest
   run`, and `pnpm -C packages/server lint:family`. Not the full suite.
+- **The two golden snapshots** (`scripts/__fixtures__/field-meta-golden.json`
+  via `lint:field-meta --snapshot`, and
+  `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` with a
+  review-log entry) are regenerated in every wave that adds a
+  persistent/authorable field (W0, W1, W2, W6, W8), and once more after
+  each merge from master.
 - **`pnpm test` runs exactly twice:** before the MR opens (after W10's
   drive passes) and at `/finalize`. A green run stays valid until a
   source file changes.
@@ -1933,6 +1959,79 @@ recorded in D15 and D19.
     byte-identical before and after.
 
 ---
+
+## ⭐⭐ Parallel builds — the four plans read side by side (2026-10-17)
+
+Four builds start at once off the same master: **rubber** (build-1,
+`reqs/rubber`), **cleanliness** (build-2, `reqs/cleanliness`), **repair**
+(build-3, `reqs/repair`) and this one. Each plan was read against this
+one; nothing below is a design conflict that blocks a build, but several
+files are edited by two or three builds and will conflict textually.
+**The rule for every row:** the build that lands SECOND merges
+`origin/master` first, resolves by hand as written here, re-runs the
+named tests and drives, and never takes "theirs" wholesale. Expected
+order (each sibling's own plan): this build and repair in either order,
+rubber, then cleanliness (it says it merges after rubber and ice), then
+repair's W7 (gated on rubber).
+
+### Files more than one build edits
+
+| file | this build | sibling | resolution |
+|---|---|---|---|
+| `S/lib/biome/Atmospheric.ts` `reconcileEnvelope` / `envelopeCoefficients` | D5: occupant `RoomHeatExchange` sum; the steady state pulled into `envelopeSteadyStateK(outsideK, atS)` | **rubber** W0–W3: `exposure()`, exterior area, solar gain per segment, interior-face terms `ΣU_i·T_i` | ⚠ the one hard conflict: ONE formula, in `envelopeSteadyStateK`: `T_ss = (U_ext·T_out + ΣU_i·T_i + ΣfixedW + driveW + P_solar(t) + ΣG_j·anchor_j) / (U_ext + ΣU_i + ΣG_j)`, `τ = C / (same denominator)`. Whoever lands second folds its terms into the other's. Re-run W2's icehouse arithmetic and rubber's hothouse tests |
+| `S/lib/material/Material.ts` (+ `scripts/__fixtures__/field-meta-golden.json`) | W0 `getCastTemplate()` rule; W1 `permeability()`/`wetProperty()` | rubber W2 `lightAbsorption`, W4 `elasticity`/`crosslinking`, W5 the same two wet methods if first; cleanliness W3 `ashFraction`, `combustionProducts`, `flammableLimit`, `vapourLPerLPerHour`; repair W7 `weatheringDays`, `laying` | adjacent additions; the wet methods exist ONCE (second drops its copy); **regenerate** the field-meta golden, never hand-merge it |
+| `C/platform/content/settings/wetness.yaml` + `AppSettings.ts` | `wetness.impermeableBelowPct: 2` | rubber the same row | one row, identical key and default; second skips |
+| `S/lib/slot/Wearable.ts` `getClo` | W1 migrates `soak`/`kVoid` onto `wetProperty` | rubber W5 the same migration (if first); cleanliness W2 the stamp's shrinkage; rubber W8 `fitOn` | identical migration, second skips; other edits are separate regions |
+| `S/lib/slot/Attired.ts` | D11 `immerse(parts?)` | rubber `exposeToRain(delta)`; cleanliness `doff(garment, {careful})` + a soil clause in the impression | separate methods; trivial adjacency |
+| `S/lib/ground/Floor.ts` + `platform/thing/Floor.ts` | W5 `bears`/`supportIsSlotted`; `WaterSurface`, `IceSheet` subclasses; the `ice` kind in `GroundKind` | rubber W1 `isOnGrade()` default + the snow gate on `rainReaches()`; cleanliness W0–W4 `SoilableMixin` on the twin (`receiveTraffic`, `soilFeetOf`, `strewn`, `cleaningMethod`, `stalls`, `soilAugmenter`) | text adjacent; ⚠ meaning: see *Floors* below |
+| `S/platform/idea/api/CraftingLogic.ts` | W0: the off-spec lump's template choice + salvage's metal branch — kept as **one small template-choice helper** so it re-applies onto a rewrite | repair W0–W3/W7 rewrites `repairImpl`, `applyAssembledOutput`, `fitImpl`, the mint, salvage-adjacent code (its range `:3215–4000` contains our salvage hunk); cleanliness W1/W5/W6 `Recipe.soils`, `contaminateFromKit`, `presentFulfillers` | ours is the small hunk: if second, re-apply the helper; re-run W0's freeze/salvage/off-spec tests (salvage a `Tool`, so it passes whether or not repair has made Tool Assembled) and the smelting + glass drives |
+| `S/platform/idea/api/EmploymentLogic.ts` `tickBusiness` | D20: the season on `RosterClock` only | repair W4 groups assignments by assignee and moves for the shift | re-thread the clock's season into repair's per-slot `evaluate`; ask repair to make `check-openings`' overlap arm season-aware (a winter-only and a year-round slot do not overlap) |
+| `S/lib/behavior/restocks.ts` | D21 `unpackIntoCold` + `cold:` | repair W7 moves `order`/`unpackBench` onto `BusinessMixin.orderShortfall`/`receiveBench` | repair carries `unpackIntoCold` and the `cold` option across whole |
+| `C/water/src/idea/WatercourseCatalogue.ts` | W6 `iceAt(ref, nowS, opts)` | cleanliness D12 `hardnessDgh` in the reach read | separate regions |
+| `C/trade-bottling/.../material/ice.yaml` → `C/base-library/.../material/bulk/ice.yaml` | W0 moves it, deletes the bottling row | rubber W2 authors `lightAbsorption ≈ 2/m` on it | modify/delete: if we land first rubber authors on `bulk/ice.yaml`; if rubber lands first we carry its line into the moved row |
+| `C/hearthworks/...` | `idea/business.yaml` (ice par), `agent/cook.yaml` (`cold:`) | cleanliness re-classes `location/cookhouse.yaml` (persistent room); repair edits `thing/smithy-tariff.yaml`, `location/smithy.yaml`, a heirloom row | different files; once cleanliness lands, the icebox's contents persist with the room (harmless) |
+| registries: `Mixins`/`MixinApi`, `check-closed-vocabularies.ts`, root `package.json` pack list, `scripts/__fixtures__/field-meta-golden.json`, `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` | Store, Poolable, Composition, Tempered, StoreBook, `isSwimmable`; `SEASONS`; trade-ice, hollow-mere; new fields (`iceQuality`, the stockpile's, `kerfM`, `seedLines`) | every sibling appends | list-append conflicts; **re-snapshot both golden files after the merge** and keep every build's review-log entry (W0, W2, W6, W8 regenerate them in this build: `lint:field-meta --snapshot` + the wiki-spoiler entry) |
+| docs at the sweep | `thermal.md`, `ground.md`, `crafting.md`, `employment.md`, `retail.md`, `watershed.md`, `CLAUDE.md` verb list | all siblings | trivial; sweep last |
+
+### Concepts two builds share (one owner each)
+
+- **The wet law** — ONE pair of `Material` methods (`permeability()`,
+  `wetProperty(dry, fluid, saturation)`), first lander writes it;
+  rubber and cleanliness consume. (Rubber's plan still has stale
+  `MaterialLogic`/`MaterialApi` wording; its D12.1 is the binding text.)
+- **Immersion** — ours: `Attired.immerse(parts?)` and
+  `SwimmableMixin.immersionOf`. Rubber's flooded cell and cleanliness's
+  `bathe` consume them as written in D10/D11.
+- **Sawdust is ONE heap** — ours: the carpentry `Sawdust` good
+  (Poolable + Stackable, one stack per wetness band). ⚠ **Asks of
+  cleanliness:** sweep sawdust AS a `Sawdust` stack, never fold it into
+  `/stuff/thing/sweepings` (the icehouse keeper's `get sawdust` and the
+  store's pool key need the template); drop or give a producer to its
+  `sawdust` `DirtKind` row; if `Sweepings` merges anything it needs a
+  class.
+- **Floors** — ours: `bears`/`supportIsSlotted`, `WaterSurface`,
+  `IceSheet`, the eleventh kind `ice`. ⚠ **Asks of cleanliness:** a
+  water surface takes no dirt — its `receiveTraffic` and `soilFeetOf`
+  must exempt a floor that does not bear (open water) and an `IceSheet`
+  (tracked mud on a mere is wrong, and a swimmer climbing out is wet,
+  not muddy); map the `ice` kind in `cleaningMethod`'s table; order its
+  `soilAugmenter` after the sheet's `groundPhrase`; and its fixture-state
+  slice must NOT capture the sheet's `log` (the sheet keeps its own
+  `(scope, key)` record — D12).
+- **Rooms in one building share heat** (rubber D7) — the icehouse
+  platform and house couple through their wall; the control shed stands
+  alone in its own Structure (D22).
+- **`lint:unhoused` does not exist**: rubber replaced it with
+  `lint:biome-sky` (rows under a non-sky biome lacking `enclosure:` or
+  `roof:`). If rubber lands first, the four icehouse rooms author
+  `roof:` (pine, 0.05 m) in W9; if we land first, rubber's census
+  authors it.
+- **Building upkeep** — repair's W7; the icehouse and sawdust are
+  deliberately off there and opt in later by declaration. Leave
+  sawdust's `laying`/`weathers` unauthored.
+- **Every `Tool` becomes an assembled, keen, one-piece host under
+  repair** — `look` gains *"It is one piece."*: no drive or test of this
+  build pins a tool's `look` text.
 
 ## Deferred seams
 
