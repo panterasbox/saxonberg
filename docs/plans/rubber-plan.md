@@ -44,20 +44,53 @@ the owner's published signature, marks it in code
 `// DROP AT MERGE — owned by <build>`, and deletes it when it merges
 master. All four sessions read this section.
 
-### Merge order (fixed — as all four sessions read it, 2026-10-17)
+### Merge order (owner decision, 2026-10-17)
 
-**storage-and-ice + repair W0–W6 → rubber → cleanliness → repair W7.**
-Repair lands as two MRs: its W0–W6 need nothing of rubber's and go
-first beside ice; its W7 (building upkeep) consumes rubber's `roof:`,
-`Exposure` and `lint:biome-sky` and lands last. Rubber consumes ice's wet
-law (`Material.permeability()/wetProperty()`), `Attired.immerse()` and
-the envelope heat protocol (`RoomHeatExchange`, `envelopeSteadyStateK`);
-cleanliness consumes rubber's `roof:`/`Exposure`/`lint:biome-sky` and its
-narrowed `corrosiveTo`. ⚠ Because repair W0–W6 lands BEFORE rubber, rubber
+1. **storage-and-ice** and **repair W0–W6**, in either order;
+2. **rubber**;
+3. **cleanliness**;
+4. **repair W7** (building upkeep) after rubber, as its own MR.
+
+Rubber consumes ice's wet law (`Material.permeability()/wetProperty()`),
+`Attired.immerse()` and the envelope heat protocol (`RoomHeatExchange`,
+`envelopeSteadyStateK`); cleanliness and repair W7 consume rubber's
+`roof:`, `Exposure` and `lint:biome-sky`, and cleanliness rubber's
+narrowed `corrosiveTo`. ⚠ Repair W0–W6 lands BEFORE rubber, so rubber
 merges master over repair's `AssembledGarment` deletion and its
 `castDiscipline` on `carryPayload`: rubber's goods are one-piece
-`Garment` casts (never `AssembledGarment`) and its moulds get
-`castDiscipline` for free — re-verify both at rubber's merge.
+`Garment`/`Tool` casts and its moulds get `castDiscipline` for free —
+re-verify both at rubber's merge. **Shared ratchet set by the owner:**
+storage-and-ice's two boot entries are approved, `BOOT_ENTRY_CEILING`
+83 → 85; rubber boots nothing and must not move it.
+
+### Accepted from repair (build-3), 2026-10-17
+
+From `origin/reqs/repair:docs/plans/repair-note-to-siblings.md` § To
+rubber (repair answered all ten of ours in its plan § Parallel builds →
+"Repair × rubber"). All accepted:
+
+1. **Rubber goods are standalone rows on the family classes**
+   (`/platform/thing/equipment/Garment`, `/platform/thing/Tool` for the
+   packing) — no bill, no `extends: leather-boots`, never an
+   `Assembled*` class.
+2. **Rubber authors `base-library/.../material/ceramic/brick.yaml`**
+   (density, specific heat, `thermalConductivity`, wAC); repair W7 adds
+   its weathering fields.
+3. **The moulds' `discipline: chemistry` is deliberately the mending trade
+   of every rubber good.** At rubber's merge (repair W0–W6 already in),
+   `FireController.mould-shape.test.ts` gains an assertion that the cast
+   carries `castDiscipline: chemistry`. `Mould.ts`: rubber edits
+   `holdsCast`, repair edits `carryPayload`.
+4. **`lint:biome-sky`'s ceiling is computed on the rebased tree**, and
+   repair's new interiors (the cobbler shop; the tinker's rooms — Offstage
+   rows are excluded anyway) are **paid by authoring `enclosure:` +
+   `roof:` on them**, never by listing them.
+5. **`getEnclosure()`/`getRoof()` and `Exposure`/`Face` are a contract
+   with repair W7** — no reshaping without telling repair.
+6. **Slate notes fixed** (structures-slate, biome-normalization-slate):
+   places own materials; building upkeep is repair W7's; erection stays in
+   structures-slate. The requirements' cobbler non-goal is re-pointed —
+   *mending* → repair, *making* (the cordwainer) → textiles-slate.
 
 ### Owner table
 
@@ -1965,8 +1998,9 @@ Each leaves as a slate line, not a plan section.
   with `skyVisible()` gains a radiative loss term weighted by the cloud
   dim — the same face, a third heat path beside conduction and solar
   gain. build-4 defers its pan ice to the same slate.
-- **A building's bill of goods — erection and upkeep paid in RGO outputs**
-  (build-4's ⚠ OPEN item) → structures-slate, in NEITHER build. The seam
+- **A building's bill of goods** — **upkeep → repair W7** (its own MR,
+  after rubber, reading D1a's layers); **erection** paid in RGO outputs →
+  structures-slate. The seam
   is D1a: each place owns its layers, a structure sums its members, and
   each layer's material × face area × thickness is a line of the bill;
   settling and rot are upkeep on a layer. Who erects, who pays and what decays is an economic design of

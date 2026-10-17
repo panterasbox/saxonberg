@@ -3,11 +3,14 @@
 > ⭐⭐⭐ **LOAD-BEARING FOR INTERIORS (2026-10-16)** →
 > [rubber-requirements](../../requirements/rubber-requirements.md). The
 > 10-15 ruling that a Structure is only for what is seen over the horizon
-> is **reversed**: every interior belongs to one, and an interior that
-> does not is a counted, ratcheted exception. The structure owns **walls
-> and roof**, and **storeys as a tree** (each names the storey it stands
-> `on:`; a storey may be `open:` — a roof terrace is the building's, and
-> its floor is the roof below). This takes the Left list's roof, storeys
+> is **reversed** — but narrower than first written (corrected the same
+> day): **places own their materials** (walls and roof, layered, on the
+> room), and a Structure owns only **membership and storeys as a tree**
+> (each names the storey it stands `on:`; a roof terrace is a member with
+> no walls and no roof, and its floor is the roof below). A place in no
+> structure is complete on its own; a structure with no places stays
+> valid. The census counts interiors whose construction still comes from
+> the biome, not unhoused rooms. This takes the Left list's roof, storeys
 > and envelope between rooms (heat moves between rooms of one building;
 > the threshold is `structureOf(this) !== structureOf(far)`). Air mixing
 > between rooms and fire spread stay here. ⚠ Zone was tried as the owner
@@ -20,9 +23,9 @@
 > layers (the icehouse's timber · sawdust · timber; a double-glazed
 > hothouse), and that list is the seam a building's **bill of goods**
 > reads — each layer's material × face area × thickness is a line, its
-> settling and rot the upkeep. ⚠ Erection and upkeep paid in RGO outputs
-> was build-4's OPEN item; it lands **here, in neither build** — who
-> erects, who pays and what decays is an economic design of its own.
+> settling and rot the upkeep. ⚠ **Building upkeep is repair W7's**
+> (layer by layer, on the holding programme); **erection** — who builds,
+> paid in RGO outputs — stays here.
 
 > **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
 > (`platform/idea/Structure`) is membership by extent prefix, the

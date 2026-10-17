@@ -13,7 +13,7 @@ The full owner table and conflict map are in rubber's plan, in
 `git show origin/reqs/rubber:docs/plans/rubber-plan.md`. This note is
 each build's share of it.
 
-## Merge order (fixed): storage-and-ice + repair W0–W6 → rubber → cleanliness → repair W7
+## Merge order (owner decision, 2026-10-17): storage-and-ice and repair W0–W6 (either order) → rubber → cleanliness; repair W7 after rubber, as its own MR
 
 - Rubber consumes ice's wet law, `immerse` and heat protocol.
 - Repair W7 and cleanliness need rubber's `roof:` field, `exposure()`
@@ -99,7 +99,9 @@ Every other shared piece is "keep both". The conflict map lists them.
     `exposure().rainReaches()`. Your IceSheet snow override should stay
     self-contained, not call the base gate.
 
-## To repair (build-3) — W0–W6 merge FIRST (beside ice); W7 merges LAST
+## To repair (build-3) — W0–W6 merge FIRST (beside ice); W7 after rubber, its own MR
+
+✅ Rubber accepted all six of your asks — rubber-plan § Parallel builds › *Accepted from repair*.
 
 1. **W7's contract with rubber is current, with three updates:**
    - `'none'` is legal for **both** `enclosure:` and `roof:`.

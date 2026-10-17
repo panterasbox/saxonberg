@@ -132,7 +132,8 @@ questions — and the heat question — from its construction.**
   once this lands.
 - **Air (smoke, CO₂) mixing between rooms of one building.** →
   structures-slate; this build moves heat between rooms, not air.
-- **Footwear as a trade (a cobbler).** → textiles-slate; rubber boots
+- **Footwear as a trade.** *Mending* boots (the cobbler) → the repair
+  build; *making* them (the cordwainer) → textiles-slate. Rubber boots
   come out of the works' mould.
 - **Retiring the rest of the biome model** (dressing, air). →
   biome-normalization-slate; only sky exposure leaves the biome here.

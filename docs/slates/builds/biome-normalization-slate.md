@@ -3,10 +3,10 @@
 > ⭐⭐ **Job 2 is ANSWERED by the rubber build (2026-10-16)** →
 > [rubber-requirements](../../requirements/rubber-requirements.md): sky
 > exposure leaves the biome. A place's construction is **walls + roof**
-> (material + thickness, or none), owned by its `Structure` with room
-> overrides; storeys are a tree on the structure (`on:`, `open:`); one
-> rule — *a face is exterior unless the space across it is an enclosed
-> space of the same building* — answers rain · light (Beer–Lambert) · sky
+> (material + thickness, layered, or none), owned by **the place
+> itself** — a `Structure` owns only membership and storeys (a tree,
+> `on:`; no `open:`, no materials); one rule — *a face is exterior unless
+> the space across it is an enclosed place of the same structure* — answers rain · light (Beer–Lambert) · sky
 > view · wind · heat for every face, and `onGrade` stops borrowing the
 > sky bit. `SkyExposedBiome` retires. The rest of this slate (dressing,
 > air, granularity) is untouched.
