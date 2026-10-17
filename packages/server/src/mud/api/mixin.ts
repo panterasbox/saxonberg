@@ -110,6 +110,8 @@ import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
 import type { WaterActive } from '../lib/material/WaterActivity';
 import type { Alloyed } from '../lib/material/Alloyed';
+import type { Composition } from '../lib/material/Composition';
+import type { Tempered } from '../lib/material/Tempered';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1497,6 +1499,20 @@ export class MixinApi {
    */
   public static isAlloyed(obj: Stuff): obj is Stuff & Alloyed {
     return this.hasMixin(obj, Mixins.Alloyed);
+  }
+
+  /**
+   * A piece that can say what is dissolved in it — metal stock, AND a
+   * re-meltable lump of glass, wax or ice (the generic `Casting`). Ask
+   * this, not {@link isAlloyed}, when only the fractions matter.
+   */
+  public static isComposition(obj: Stuff): obj is Stuff & Composition {
+    return this.hasMixin(obj, Mixins.Composition);
+  }
+
+  /** A piece a heat treatment can leave something in — metal only. */
+  public static isTempered(obj: Stuff): obj is Stuff & Tempered {
+    return this.hasMixin(obj, Mixins.Tempered);
   }
 
   /**

@@ -87,7 +87,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
         // engine chose — it is what happens, and it is why a smith
         // quenches LAST. ⚠ Local narrowing on the workpiece this handler
         // is already holding, not a guard re-narrowing a host set.
-        if (MixinApi.isAlloyed(target) && target.getTemper() !== 'none') {
+        if (MixinApi.isTempered(target) && target.getTemper() !== 'none') {
           target.setTemper('none');
           MessageApi.scene(giver)
             .topic(TOPIC)

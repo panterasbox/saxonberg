@@ -1,33 +1,24 @@
 # A block of ice — the cold you carry into an icebox, and the clock.
 #
-# ⭐ `Casting` is the shipped re-meltable solid, and its own docstring
-# names ice as an intended use: "a cast lump of whatever froze (metal
-# run into a mould, wax, ice)". It melts through the shipped plateau —
-# at 273 K the leak goes into latent heat and the temperature holds,
-# until `mass × latentHeatOfFusion` is spent and the block destructs.
+# ⭐ An `IceBlock` (storage-and-ice D17): the re-meltable `Casting` with a
+# grade and no temper. It melts through the shipped plateau — at 273 K the
+# leak goes into latent heat and the temperature holds, until `mass ×
+# latentHeatOfFusion` is spent and the block destructs. Its grade defaults
+# to `cloudy` (pan ice); a block cut from a sheet is stamped with the
+# patch's grade. The re-meltable solid stopped claiming a temper here —
+# the cost the base-class-narrowing slate filed is paid.
 #
-# ⚠ A KNOWN COST, accepted rather than overlooked: `Casting` composes
-# `AlloyedMixin`, which is load-bearing for metal (an off-spec quench
-# must not lose the carbon somebody spent three smelts putting in) and
-# INERT on ice. The client shows a player what mixins an object
-# composes, so this block will claim it can be alloyed and tempered.
-# That is a real misrepresentation, filed against
-# `docs/slates/builds/base-class-narrowing-slate.md`: the re-meltable-
-# solid concept is welded to metallurgy, and the fix is that slate's,
-# not a one-row class here.
-#
-# ⚠ Nobody sells it. The icehouse-keeper's vocation and the
-# agricultural year (cold free in winter, dear in summer) are
-# `docs/slates/tails/preservation-slate.md`'s. This row exists so a
-# retail row can name it the day that trade ships.
-class: /platform/thing/Casting
+# The ice trade (`trade-ice`) cuts these off a frozen pool and the
+# icehouse holds them as a count by grade; this row is what a cut, a
+# withdrawal and a counter's bring-up mint.
+class: /platform/thing/IceBlock
 data:
   shortDescription: block of ice
   keywords: [ice, block, ice-block]
   register: indefinite
   longDescription: |
     A four-kilo block of ice, clouded white at the heart and sweating along every edge.
-  _materialPath: /trade/bottling/idea/material/ice
+  _materialPath: /stuff/idea/material/bulk/ice
   # ⚠⚠ **Four kilos, and it belongs IN A BOX.** Found by driving: ice
   # conducts well, so a bare block's own R is tiny and the leak is
   # enormous — a block left loose in a warm kitchen is gone in

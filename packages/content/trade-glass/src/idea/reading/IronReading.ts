@@ -8,7 +8,7 @@
  * *pale and clean*, *a touch of colour in it*, *rusty with it* — while a
  * proficient glassmaker reads the figure itself. The channel is flat over
  * anything `Alloyed` (sand, a melt, a gather, a bottle), which the view's
- * `subjectRequires: [AlloyedMixin]` gates at the binder.
+ * `subjectRequires: [CompositionMixin]` gates at the binder.
  */
 
 import Reading from "@saxonberg/server/mud/lib/instrument/Reading";
@@ -41,7 +41,7 @@ export default class IronReading extends Reading {
     _param: string,
   ): Promise<void> {
     const actor = this.actorOf(context);
-    if (target === null || !MixinApi.isAlloyed(target)) {
+    if (target === null || !MixinApi.isComposition(target)) {
       this.decline(
         context,
         Mml.compose`There is nothing there whose makeup you could read.`,

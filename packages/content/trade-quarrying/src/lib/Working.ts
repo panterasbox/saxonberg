@@ -613,7 +613,7 @@ export function OpenWorkingMixin<
       // clear. Only an `Alloyed` good is stamped (a granite block composes
       // nothing and stays bare); competence never touches the figure, only
       // whether a reader can make it out.
-      if (MixinApi.isAlloyed(thing)) {
+      if (MixinApi.isComposition(thing)) {
         await this.stampAssay(thing, face);
       }
       const where = await this.destinationFor(face);
@@ -663,7 +663,7 @@ export function OpenWorkingMixin<
         [coords[0] * cellSize, coords[1] * cellSize, midZ],
         seed,
       );
-      if (sample.grade > 0 && sample.mineralPath && MixinApi.isAlloyed(thing)) {
+      if (sample.grade > 0 && sample.mineralPath && MixinApi.isComposition(thing)) {
         thing.setAlloying([
           { materialPath: sample.mineralPath, fraction: sample.grade },
         ]);

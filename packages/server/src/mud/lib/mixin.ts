@@ -544,6 +544,12 @@ export const Mixins = {
   // blade's metal is its Material ROW, and carbon on a blade would make
   // every mint guard for it.
   Alloyed: 'AlloyedMixin',
+  // The two halves of Alloyed, split 2026-10-17: COMPOSITION is what is
+  // dissolved in a piece (true of a glass or ice lump, which is why the
+  // generic Casting composes it alone); TEMPER is what a heat treatment
+  // left (true of metal only). Alloyed is the two together.
+  Composition: 'CompositionMixin',
+  Tempered: 'TemperedMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.
@@ -924,6 +930,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // `hammer` wants is a piece of metal stock, and "isn't metal stock
   // you can work" tells somebody what to go and find.
   AlloyedMixin: "{} isn't metal stock you can work",
+  CompositionMixin: "{} has no make-up to read",
+  TemperedMixin: "{} can't be tempered",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
   /*

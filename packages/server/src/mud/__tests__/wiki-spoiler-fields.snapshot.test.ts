@@ -40,6 +40,13 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Storage and the ice trade, W0 (a relabel and one field).**
+ *   - The relabel: `AlloyedMixin` split into `CompositionMixin.alloying`
+ *     and `TemperedMixin.temper`, each keeping its level-1 tag (the
+ *     figure is earned by `analyze chemistry`; that it exists is public).
+ *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
+ *     black ice is clear and white ice is white, and the trade sold by
+ *     it in the open.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

@@ -62,7 +62,7 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       });
       p.setMass(Quantity.of(half, "kg"));
       p.setForm("pane");
-      if (MixinApi.isAlloyed(p) && alloying.length > 0) p.setAlloying(alloying);
+      if (MixinApi.isComposition(p) && alloying.length > 0) p.setAlloying(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
         ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
       }

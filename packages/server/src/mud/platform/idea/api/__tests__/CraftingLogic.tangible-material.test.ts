@@ -186,6 +186,10 @@ beforeEach(async () => {
       const { default: Casting } = await import("../../../thing/Casting");
       return makeStuff(() => new Casting()) as never;
     }
+    if (path === "/stuff/thing/metal-casting") {
+      const { default: MetalCasting } = await import("../../../thing/MetalCasting");
+      return makeStuff(() => new MetalCasting()) as never;
+    }
     throw new Error(`unexpected clone ${path}`);
   });
 

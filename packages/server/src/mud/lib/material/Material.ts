@@ -501,10 +501,10 @@ export default class Material extends SingletonMixin(
   /**
    * ⭐ The identity path a frozen pool of this material MINTS when it
    * solidifies — a `Casting`-shaped Thing. Water authors
-   * `/stuff/thing/ice-block`; a metal keeps the generic `/stuff/thing/Casting`.
-   * Authorable per row; the default is the generic cast.
+   * `/stuff/thing/ice-lump`. Authorable per row; empty means the default,
+   * which {@link getCastTemplate} derives from the tags (D17).
    */
-  public castTemplate: string = '/stuff/thing/Casting';
+  public castTemplate: string = '';
 
   /**
    * ⭐ Whether freezing RUINS this material rather than casting it — blood
@@ -526,9 +526,16 @@ export default class Material extends SingletonMixin(
    */
   public drainSetting: DrainSetting | null = null;
 
-  /** The identity path a frozen pool of this becomes. */
+  /**
+   * The identity path a frozen pool of this becomes: the authored row,
+   * else ⭐ `/stuff/thing/metal-casting` for a material tagged `metal` (a
+   * metal lump can be tempered), else the composition-only
+   * `/stuff/thing/Casting` (a glass, wax or tallow lump keeps what is
+   * dissolved in it and claims no temper).
+   */
   public getCastTemplate(): string {
-    return this.castTemplate;
+    if (this.castTemplate) return this.castTemplate;
+    return this.hasTag('metal') ? '/stuff/thing/metal-casting' : '/stuff/thing/Casting';
   }
 
   /** How this matter sets by draining, or `null` when it does not. */

@@ -1515,6 +1515,26 @@ kernel check first.
   packs' suites green.
 - Commit: `build(storage-and-ice W0): the truthful lump — composition
   off temper, MetalCasting, ice to the commons`.
+- ✅ **Done (build, 2026-10-17).** As planned, plus: every pack site that
+  reads only the fractions now asks `isComposition` (glass ×6, smelting
+  ×3, smithing hammer/quench-halves, quarrying), the temper-only reads
+  `isTempered` (`heat`'s anneal); `iron.yaml`'s `subjectRequires` is
+  `CompositionMixin` so `analyze iron` still reads a cullet lump.
+  ⚠ Surprise: a class expression extending a generic mixin call inside a
+  generic function loses the halves' members, so `AlloyedMixin` declares
+  an explicit return type (`AlloyedClass<TBase>`) — the composite is the
+  type the two halves compose to. `Material.castTemplate` defaults to `''`
+  and `getCastTemplate()` derives the default from the `metal` tag.
+  Decision: `ICE_QUALITIES` is closed in `IceBlock.ts` but the
+  closed-vocabulary detector scans `lib/` only and does not see it, so no
+  `CLOSED_BY_DESIGN` entry (the gate refuses an entry it cannot match).
+  ⚠ `lint:field-meta --snapshot` cannot regenerate the golden on master
+  today (8 pre-existing declaration forms the extractor refuses), and no
+  gate reads it (`lint:field-meta` runs `--lint`), so it is left as is.
+  Decision: the regression WIRE drives (smelting, glass, assembly,
+  climate, maritime, fishing, textiles) run ONCE against one booted world
+  at W10, not per wave — each needs a ~3 GB world and the pack suites +
+  unit tests carry each wave; recorded for the MR.
 
 ### W1 — One wet law; sawdust by kerf
 

@@ -107,8 +107,34 @@ const GENERIC_COOKED_MATERIAL = '/platform/idea/material/cooked';
 /** The portion an off-spec cooked fill lands in the dish (L). */
 const GENERIC_COOKED_PORTION_L = 0.3;
 
-/** The template an off-spec workpiece mint clones (a re-meltable lump). */
+/**
+ * The templates a re-meltable lump clones. ⭐ Composition-only for any
+ * material (glass keeps its iron, wax its colour, ice its grade); the
+ * METAL lump also carries a temper, because heat treatment is a fact
+ * about steel (storage-and-ice D17).
+ */
 const WORKED_LUMP_TEMPLATE = '/stuff/thing/Casting';
+const METAL_LUMP_TEMPLATE = '/stuff/thing/metal-casting';
+
+/** The lump a re-meltable piece of `material` comes back as. */
+function lumpTemplateFor(material: Material | null | undefined): string {
+  return material?.hasTag('metal') ? METAL_LUMP_TEMPLATE : WORKED_LUMP_TEMPLATE;
+}
+
+/**
+ * Carry one piece's chemistry onto another, each half only where BOTH
+ * ends compose it: the fractions where both have a composition, the
+ * temper where both can be tempered. ⚠ Local narrowing on two pieces the
+ * caller already holds, not a guard re-narrowing a host set.
+ */
+function carryChemistry(to: Stuff, from: Stuff): void {
+  if (MixinApi.isComposition(to) && MixinApi.isComposition(from)) {
+    to.setAlloying(from.getAlloying());
+  }
+  if (MixinApi.isTempered(to) && MixinApi.isTempered(from)) {
+    to.setTemper(from.getTemper());
+  }
+}
 
 /** The template salvage's non-metal yields clone (the fungible stack). */
 const SCRAP_TEMPLATE = '/stuff/thing/Scrap';
@@ -1813,10 +1839,7 @@ async function applyTangibleOutput(
   // not a guard re-narrowing a host set. A knife is not Alloyed and
   // silently takes nothing, which is the intended answer: a blade's
   // metal is its Material row.
-  if (primary && MixinApi.isAlloyed(output) && MixinApi.isAlloyed(primary.stuff)) {
-    output.setAlloying(primary.stuff.getAlloying());
-    output.setTemper(primary.stuff.getTemper());
-  }
+  if (primary) carryChemistry(output, primary.stuff);
 
   // ⭐ …and what it is MADE OF (D26). The bulk inputs' parts, merged and
   // scaled, land on the output's `ComposedMixin` face — the fifth and
@@ -2646,10 +2669,7 @@ async function mintWorkpiece(
     // ⭐ …and the piece's own carbon rides through, when the output can
     // hold it. A bar minted from a carburized bar is still steel by the
     // number as well as by the row.
-    if (MixinApi.isAlloyed(output) && MixinApi.isAlloyed(workpiece)) {
-      output.setAlloying(workpiece.getAlloying());
-      output.setTemper(workpiece.getTemper());
-    }
+    carryChemistry(output, workpiece);
     if (!MixinApi.isCrafted(output)) {
       throw new Error(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
@@ -2670,7 +2690,7 @@ async function mintWorkpiece(
   // The generic worked lump (an off-spec build still yields *a* thing):
   // a re-meltable Casting stamped with the workpiece's material + mass —
   // the ThermalLogic freeze-stamp surface. No recipe, no mark.
-  const lump = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE, undefined, {
+  const lump = await StuffApi.clone<Stuff>(lumpTemplateFor(material), undefined, {
     madeFrom: workpiece,
   });
   const l = lump as unknown as Stuff & {
@@ -2693,10 +2713,9 @@ async function mintWorkpiece(
   // made a mistake about the FORM; losing the chemistry as well would
   // be the engine punishing them twice for one error, and the `Casting`
   // is re-meltable precisely so the work is recoverable.
-  if (MixinApi.isAlloyed(lump) && MixinApi.isAlloyed(workpiece)) {
-    lump.setAlloying(workpiece.getAlloying());
-    lump.setTemper(workpiece.getTemper());
-  }
+  // ⭐ A glass or wax lump keeps the fractions and claims no temper;
+  // only the metal lump keeps both (D17).
+  carryChemistry(lump, workpiece);
   StuffApi.destruct(workpiece);
   return { ok: true, output: lump, grade, recipeId: '' };
 }
@@ -3464,7 +3483,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
     const yieldKg = pieceKg * c.fraction * branchRate;
     if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
     if (metal || meltable) {
-      const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE, undefined, {
+      const cast = await StuffApi.clone<Stuff>(lumpTemplateFor(c.material), undefined, {
         madeFrom: item,
       });
       const lump = cast as unknown as Stuff & {
@@ -3480,7 +3499,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       // The instance's alloying is the piece's, not the constituent
       // material's — glass authors an empty composition, so the whole
       // item is one constituent and this carries its iron forward.
-      if (meltable && MixinApi.isAlloyed(item) && MixinApi.isAlloyed(cast)) {
+      if (meltable && MixinApi.isComposition(item) && MixinApi.isComposition(cast)) {
         cast.setAlloying(item.getAlloying());
       }
       meltOutputs.push(cast);
