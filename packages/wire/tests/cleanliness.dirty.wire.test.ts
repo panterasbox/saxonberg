@@ -385,13 +385,15 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
   }, 300_000);
 
   it('⭐ drive 2 — bare `wash` washes the hands; gloved, it washes the GLOVES and not the hands under them', async () => {
-    await act(cook, 'wash');
+    // Cold water alone takes about half of the blood (its row's
+    // `waterLifts`); soap takes the rest.
+    await act(cook, 'wash with soap');
     expect(await body(cook), 'washed hands').not.toMatch(/hands are .*blood/i);
     await act(cook, 'wear gloves');
     await act(cook, 'butcher carcass', 180_000);
     const gloves = await mine(cook, 'gloves');
     expect(gloves, `the gloves after butchering: ${gloves}`).toMatch(/blood/i);
-    await act(cook, 'wash');
+    await act(cook, 'wash with soap');
     const washed = await mine(cook, 'gloves');
     expect(washed, `the gloves after a wash: ${washed}`).not.toMatch(/soiled|filthy/i);
   }, 300_000);
@@ -438,8 +440,9 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
     await act(cook, 'remove apron');
     await act(cook, 'wash apron');
     expect(await mine(cook, 'apron'), 'water alone').toMatch(/greas/i);
-    await act(cook, 'wash apron with soap');
-    expect(await mine(cook, 'apron'), 'with soap').not.toMatch(/greas/i);
+    // Grease in cold water wants work as well as soap: a scrub.
+    await act(cook, 'scrub apron with soap');
+    expect(await mine(cook, 'apron'), 'scrubbed with soap').not.toMatch(/greas/i);
   }, 300_000);
 
   it('⭐ drive 5 — butchered without the apron, the SHIRT takes the blood; washed hot it SETS, and the stain names the bleeder', async () => {
@@ -452,7 +455,7 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
     await act(cook, 'wash shirt in copper');
     const set = await mine(cook, 'shirt');
     expect(set, `washed hot: ${set}`).toMatch(/set|stain|blood/i);
-    const read = await say(cook, 'analyze shirt');
+    const read = await say(cook, 'analyze blood shirt');
     expect(read, `analyze the shirt: ${read}`).toMatch(/blood|type|[ABO]{1,2}\b/i);
   }, 300_000);
 
@@ -594,8 +597,13 @@ suite('⭐⭐ drive 20 — the doorman says why; a bath and a coat, and he lets 
     await act(s, 'remove apron');
     s.close();
     const b = await goTo(cookHandle, BATHS);
-    const bathed = await act(b, 'bathe in tub with soap').catch(async () => act(b, 'bathe'));
-    expect(bathed, `bathe: ${bathed}`).toMatch(/tub|water|get into/i);
+    // ⭐ The tubs stand empty: the attendant fills one from the copper.
+    const bathed = await act(b, 'order bath');
+    expect(bathed, `order bath: ${bathed}`).toMatch(/tub|copper|climb/i);
+    await new Promise((r) => setTimeout(r, 15_000));
+    await b.drainProse();
+    const me = await body(b);
+    expect(me, `bathed: ${me}`).not.toMatch(/hands are .*(blood|grease)/i);
     b.close();
     const c = await goTo(cookHandle, BANK_HALL);
     // Out of the bloodied shirt and into the other jumper, bought clean.

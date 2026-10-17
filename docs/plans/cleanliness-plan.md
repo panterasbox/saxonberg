@@ -2771,3 +2771,35 @@ WIRE_PORT=2013`. Runs, and what each found:
   Found: the free `analyze atmosphere` names only what is OBVIOUS (8 %),
   and flour flashes at 1 % — honest (*you cannot see a flammable share*),
   so the drive reads it with a trained nose.
+- **Runs 4–7** — a sibling's world starved mine once (two 3 GB worlds on
+  15 GB) and a fresh-DB boot outlasted the 420 s budget once
+  (`WIRE_BOOT_TIMEOUT` raised). Found: ⚠ **`remove apron` with no apron
+  on stripped the player bare** — the `manner` arg this build added
+  swallowed the word and left no target, which means "everything"; a
+  stray manner is a refusal now (+ test). The harness: answer a prompt by
+  its KIND (an object prompt answered `yes` resolves to nothing and wedges
+  the session), and poll in slices so a stale wait cannot swallow the next
+  command's prompt. The requirements' wool jumper did not exist — a row,
+  stocked at the store.
+- **Run 8 + three diagnostics** — two defects no unit test could see:
+  - ⚠ **dirt was invisible in a dim room.** The deposits were all there
+    (logged server-side); the soil line was gated on `canMakeOutMarks`,
+    the light to read FINE PRINT, and the cookhouse is ~4 lux at noon. Dirt
+    is seen wherever the thing is.
+  - ⚠⚠ **every engaged completion that called back into its controller
+    ran on a dead proxy** — `_executeOne` destructs the clone when
+    `execute` returns. So over the wire `wear` never put anything on (the
+    nutrition-fitness drive's tolerated "not-worn" finding — this is its
+    cause), and this build's sweep, bathe and order-bath completions, and
+    the shipped boil, would have done nothing. Fixed by resolving up front
+    or calling statics (+ a test that destructs the controller as the
+    dispatcher does). ⚠ `equip` of several things still chains through
+    `this.dressNext` — the general fix (a census of `this.` inside
+    completions, or a dispatcher that keeps an engaged controller alive) is
+    left as a finding.
+- **Run 10** — drive 1 (the apron takes the blood, not the shirt; the
+  hands do) and drive 4 (strewn and swept) PASS. Found: wearing what is
+  already worn threw inside the completion (it had never been reachable)
+  — refused in words now. Plain cold water takes half the blood off the
+  hands and a cold soap wash leaves grease marked: real chemistry, so the
+  drive washes with soap and scrubs.
