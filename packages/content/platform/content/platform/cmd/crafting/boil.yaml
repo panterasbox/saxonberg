@@ -14,6 +14,11 @@ help: |
 
   A target can be both, and then boiling does both.
 
+  - a **cloth or a tool** — a bandage, a board, a knife — boiled in a pot
+    of water (`boil bandage in pot`) for five minutes is DISINFECTED: the
+    wound it dresses, the food it touches, takes nothing from it. Washing
+    only makes a thing clean; boiling is what kills.
+
   ⚠ It does not fix everything. A river fouled with sewage recovers over
   a few miles and boils clean in a pot; a river fouled by a smelter does
   neither. Boil that and you get hot poison — the command is not
@@ -46,3 +51,13 @@ args:
     requires: any
     validators:
       - /lib/command/validators/canReach
+  # ⭐ WHAT IN — DECLARED (`lint:instrument-args`): the pot a cloth or a
+  # tool is boiled in. A build or a vessel is its own pot and ignores it.
+  - name: pot
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [in]
+    default: "reachable:[capability.pot]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

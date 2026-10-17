@@ -11,12 +11,9 @@
 #   basin  -> real water        (filling and pouring are shipped acts)
 #   tub    -> a real affordance (restQuality + warmth, both already read)
 #
-# Washing is the deferred jewel and its seams are already cut:
-# `DressingMixin.dressingQuality` ("0 filthy .. 1 sterile") is consumed by
-# `treat` and has NO producer in the world, and `Condition.contagion` is
-# present and explicitly "reserved, no consumer v1". Handwashing IS the
-# chain of infection. An act at a basin that sets dressing quality is nearly
-# the whole feature — but it needs the condition model and it adds a verb.
+# Washing shipped with the cleanliness build: a dressing's quality is its
+# clean tier (washed, sanitised, boiled), and the hands that dress a wound
+# seed it as they are kept — the basin is where both are reached.
 #
 # The interior lock: a bathroom is the one room in a home that locks from
 # the inside. `Lockable` ships, and the door can carry it as authored

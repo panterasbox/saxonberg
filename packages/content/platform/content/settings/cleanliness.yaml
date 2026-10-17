@@ -40,3 +40,10 @@ settings:
   # lye-maker's ash. The fuel trade's ash.
   - key: cleanliness.ashTemplate
     value: "/trade/fuel/thing/ash"
+
+  # The severity a board, a knife or a pair of hands short of sanitised
+  # puts on the food it touches (a raw or dirty surface the whole of it,
+  # a merely washed one three quarters). Hot water and soap reach
+  # sanitised; a boil, disinfected.
+  - key: kitchen.surfaceInoculum
+    value: "0.5"

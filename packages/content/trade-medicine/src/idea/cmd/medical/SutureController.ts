@@ -25,6 +25,7 @@ const SUTURABLE = new Set(['laceration', 'avulsion', 'puncture']);
 
 interface SutureModel extends CommandModel {
   patient?: MqlOneResult;
+  with?: MqlOneResult;
 }
 
 export default class SutureController extends CommandController<SutureModel> {
@@ -83,10 +84,16 @@ export default class SutureController extends CommandController<SutureModel> {
 
     const rank = CompetenceBand.rank(band);
     const efficacy = Math.min(1, 0.5 + 0.15 * rank);
+    // ⭐ The needle's clean tier (cleanliness D14): a needle only washed
+    // carries what it last went through into this wound.
+    const needle = (model.with?.stuff as Stuff | null) ?? null;
     patient.applyTreatment(wound, {
       by: 'dressing',
       efficacy,
       treater: giver as unknown as Stuff,
+      ...(needle && MixinApi.isSoilable(needle)
+        ? { instrumentTier: needle.cleanTier() }
+        : {}),
     });
     wound.sutured = true;
 

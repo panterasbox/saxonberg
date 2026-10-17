@@ -26,6 +26,8 @@ import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { Dressing } from '@saxonberg/server/mud/lib/vitals/Dressing';
+import { CLEAN_TIERS, type Soilable } from '@saxonberg/server/mud/lib/cleanliness/Soilable';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -89,6 +91,19 @@ function findDressing(room: Stuff & Container): (Stuff & Dressing) | null {
     }
   }
   return null;
+}
+
+/** A pot in the ward a bandage could be boiled in. */
+function hasPot(room: Stuff & Container): boolean {
+  return room
+    .getContents()
+    .some((c) => MixinApi.isTool(c) && c.hasCapability('pot'));
+}
+
+/** The word a forced command names a thing by. */
+function keywordOf(thing: Stuff): string | null {
+  if (!MixinApi.isPerceptible(thing)) return null;
+  return thing.getPrimaryKeyword() || thing.getKeywords()[0] || null;
 }
 
 export const brain = class NursesBrain {
@@ -177,6 +192,26 @@ export const brain = class NursesBrain {
     // Dress a wound if there is one and a dressing to hand.
     const wound = dressableWound(patient);
     const dressing = wound ? findDressing(room as Stuff & Container) : null;
+    // ⭐ Boil it first (cleanliness D14) — a competent nurse will not put a
+    // raw bandage on a wound when there is a pot in the ward; a novice
+    // does not know to. The boil is the player's own verb, and it takes
+    // its time: she dresses the wound on the next beat.
+    if (
+      wound &&
+      dressing &&
+      CompetenceBand.atOrAbove(band, 'competent') &&
+      MixinApi.isSoilable(dressing as unknown as Stuff) &&
+      CLEAN_TIERS.indexOf((dressing as unknown as Stuff & Soilable).cleanTier()) <
+        CLEAN_TIERS.indexOf('disinfected') &&
+      hasPot(room as Stuff & Container)
+    ) {
+      const kw = keywordOf(dressing as unknown as Stuff);
+      const giver = host as unknown as Partial<CommandGiver>;
+      if (kw && typeof giver.forceCommand === 'function') {
+        await giver.forceCommand(`boil ${kw} in pot`);
+        return;
+      }
+    }
     if (wound && dressing) {
       // Scrub first — a professional does not infect what she treats.
       if (MixinApi.isAttired(host)) host.washHands();

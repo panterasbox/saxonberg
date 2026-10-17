@@ -9,7 +9,7 @@
  * dressed wound heals to clear.
  *
  * Treatment is **skill-gated** — harm is the first non-combat advancement
- * consumer. Outcome quality = the dressing's `dressingQuality` × the
+ * consumer. Outcome quality = the dressing's derived quality (its clean tier) × the
  * treater's `medicine` competence band; difficulty is derived from the
  * wound (a world-measurement, not a tag — advancement's rule). A graded
  * outcome mints an `ActSignature` (`recordDeed`) into the treater's
@@ -294,10 +294,16 @@ export default class TreatController extends CommandController<TreatModel> {
     // shipped ingest path, which is what makes it a real supply that runs
     // out rather than a gesture.
     if (wound && treatment.by === 'dressing') {
+      // ⭐ The dressing's clean tier (cleanliness D14): a raw bandage seeds
+      // the wound a boiled one does not.
+      const dressing = (treatment as { item: Stuff }).item;
       target.applyTreatment(wound, {
         by: 'dressing',
         efficacy: quality,
         treater: giver,
+        ...(MixinApi.isSoilable(dressing)
+          ? { dressingTier: dressing.cleanTier() }
+          : {}),
       });
     } else if (wound && treatment.by === 'fluid') {
       this.pourInto(target, (treatment as { item: Stuff }).item);

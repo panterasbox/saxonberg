@@ -276,6 +276,9 @@ describe('TreatController — stabilization', () => {
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/patient-stab');
     patient.setLifecycleState('alive');
     const dressing = makeStuff(() => new Bandage());
+    // ⭐ A boiled bandage (cleanliness D14): a dressing is as good as it
+    // is clean, and these tests are about the rescue, not the linen.
+    dressing.recordHeat(373, 300);
     ContainmentApi.move(medic, room);
     ContainmentApi.move(patient, room);
     ContainmentApi.move(dressing, medic);
@@ -349,8 +352,10 @@ describe('TreatController — stabilization', () => {
     const { medic, patient, room, dressing } = dyingPatient();
     patient.beginDying('hypothermia', 300);
     // A worthless dressing in untrained hands → the failure outcome.
-    (dressing as unknown as { setDressingQuality(q: number): void })
-      .setDressingQuality(0);
+    vi.spyOn(
+      dressing as unknown as { getDressingQuality(): number },
+      'getDressingQuality',
+    ).mockReturnValue(0);
 
     const ctrl = makeStuff(() => new TreatController());
     await ctrl.execute(

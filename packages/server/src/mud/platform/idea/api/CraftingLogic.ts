@@ -87,6 +87,8 @@ import type {
 import { MaterialApi } from '../../../api/material';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { CLEAN_TIERS } from '../../../lib/cleanliness/Soilable';
+import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
@@ -983,6 +985,93 @@ function contaminateTools(
   }
 }
 
+/** The flora a dirty board, knife or hand puts on food (D14). */
+const KITCHEN_FLORA = 'staph-aureus';
+
+/**
+ * ⭐ **The kitchen tier** (cleanliness D14) — the mirror of
+ * {@link contaminateTools}: what the kit and the hands put INTO the food.
+ * Each Soilable tool short of `sanitised` inoculates it by how far short
+ * (`kitchen.surfaceInoculum × (1 − rank/4)`, raw or dirty the whole dose,
+ * merely clean three quarters), and the maker's hands by how dirty they
+ * are. Added before the working's kill, so a stew boiled long enough is
+ * safe however dirty the board, and a salad cut on it is not.
+ */
+function kitInoculum(
+  tools: readonly Stuff[],
+  maker: Stuff | null,
+): PathogenLoads {
+  const dose = kitchenSurfaceInoculum();
+  let loads: PathogenLoads = {};
+  const sanitised = CLEAN_TIERS.indexOf('sanitised');
+  for (const tool of tools) {
+    if (!MixinApi.isSoilable(tool)) continue;
+    const idx = CLEAN_TIERS.indexOf(tool.cleanTier());
+    if (idx >= sanitised) continue;
+    const rank = Math.max(0, idx - 1);
+    loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * (1 - rank / 4));
+  }
+  if (maker !== null && MixinApi.isAttired(maker)) {
+    const dirt = 1 - maker.handCleanliness();
+    if (dirt > 0.05) {
+      loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * dirt);
+    }
+  }
+  return loads;
+}
+
+/** Add an inoculum to a load map — contact adds, it does not average. */
+function withInoculum(loads: PathogenLoads, added: PathogenLoads): PathogenLoads {
+  const out: PathogenLoads = { ...loads };
+  for (const [k, v] of Object.entries(added)) {
+    out[k] = Math.min(1, (out[k] ?? 0) + v);
+  }
+  return out;
+}
+
+/**
+ * Put the kit's inoculum onto the inputs themselves before the working —
+ * the board touches the food, then the food is cooked (or not).
+ */
+function inoculateInputs(
+  tools: readonly Stuff[],
+  maker: Stuff | null,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): void {
+  const added = kitInoculum(tools, maker);
+  if (Contamination.isClean(added)) return;
+  // ⚠ Only FOOD takes it — something that can spoil. A dirty hand on a
+  // bottle of gin or a bar of iron is a dirty bottle, not a sick drink.
+  for (const m of matchedItems) {
+    if (
+      MixinApi.isContaminable(m.stuff) &&
+      MixinApi.isFresh(m.stuff) &&
+      m.stuff.isPerishable()
+    ) {
+      m.stuff.setPathogenLoads(withInoculum(m.stuff.getPathogenLoads(), added));
+    }
+  }
+  for (const m of matched) {
+    if (m.measureL <= 0) continue;
+    if (!Freshness.isPerishable(m.slot.getMaterial())) continue;
+    const c = new Contamination(m.slot);
+    c.stampLoads(withInoculum(c.loads(), added));
+  }
+}
+
+/** `kitchen.surfaceInoculum` — the severity a dirty surface deposits. */
+function kitchenSurfaceInoculum(): number {
+  try {
+    const n = Number.parseFloat(
+      AppApi.setting(AppSettingKeys.kitchenSurfaceInoculum) ?? '',
+    );
+    return Number.isFinite(n) ? n : 0.5;
+  } catch {
+    return 0.5;
+  }
+}
+
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   new Freshness(outSlot).stampLoad(outcome.load);
@@ -1135,6 +1224,7 @@ function buildMicrobialLoad(
   effectiveHeatK: number,
   holdS: number,
   contributions: readonly BuildContribution[],
+  kit: PathogenLoads = {},
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
@@ -1150,7 +1240,7 @@ function buildMicrobialLoad(
     effectiveHeatK,
     holdS,
     total > 0 ? weighted / total : 0,
-    Contamination.blendAll(parts),
+    withInoculum(Contamination.blendAll(parts), kit),
   );
 }
 
@@ -2799,6 +2889,17 @@ async function mintVessel(
       effectiveHeatK,
       recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
       req.contributions,
+      // ⭐ The dish it goes into and the hand that made it (D14) — food
+      // only, as at the bench.
+      req.contributions.some((c) =>
+        Freshness.isPerishable(
+          c.materialPath
+            ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+            : null,
+        ),
+      )
+        ? kitInoculum([vessel], makerStuff)
+        : {},
     ),
   );
 
@@ -3006,6 +3107,10 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const base = recipe.getBaseGrade();
   if (base) grade = grade.max(base);
   grade = applyControlFloor(grade, usedTools, recipe.getToolCapabilities());
+
+  // ⭐ The kitchen tier (cleanliness D14): the board and the hands touch
+  // the food before the working's heat decides what survives.
+  inoculateInputs(usedTools, maker, matched, matchedItems);
 
   // The bar's finishing inputs — matched before anything is consumed:
   // ice from a reachable bin, the garnish by category.
@@ -3224,6 +3329,35 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
  * asks for care). Repair never touches keenness; `sharpen` never touches
  * condition.
  */
+/**
+ * ⭐ The hand that does a paid service's work (repair D12, P1): someone on
+ * shift in the room whose seat fulfils the work (any work, when the offer
+ * names no discipline) — but only for the house the OFFER's money goes to,
+ * so a shared room (the lavoir, the bathhouse) never sends another house's
+ * hand. The house's own call rule picks among several. `null` when there
+ * is nobody — which is a refusal in words, never a free service.
+ */
+async function fulfillingHandImpl(
+  giver: Stuff,
+  offer: Stuff & PricedOffer,
+  discipline?: string,
+): Promise<Stuff | null> {
+  const house = await offer.house();
+  if (!house) return null;
+  // ⚠ By PATH, never by object identity: the house the offer resolves and
+  // the house a lookup of the employment's path returns need not be the
+  // same reference (the live drive's first run: Berta on shift, "nobody").
+  const housePath = house.getOrganizationPath();
+  const candidates = presentFulfillers(giver, discipline).filter(
+    (c) =>
+      MixinApi.isEmployed(c) &&
+      c.getActiveEmployments().some((e) => e.organizationPath === housePath),
+  );
+  if (candidates.length === 0) return null;
+  const verdict = house.callFor({ patron: giver, candidates });
+  return verdict.ok ? verdict.chosen : null;
+}
+
 async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   // The engaged repair completes outside the command frame — prefer the
   // live acting author, fall back to the dispatch-captured makerPath
@@ -4023,6 +4157,16 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async repair(request: RepairRequest): Promise<RepairOutcome> {
     return repairImpl(request);
+  }
+
+  /** See {@link CraftingApi.fulfillingHand}. */
+  @CallSecurity(CraftingApiCallers)
+  public async fulfillingHand(
+    giver: Stuff,
+    offer: Stuff & PricedOffer,
+    discipline?: string,
+  ): Promise<Stuff | null> {
+    return fulfillingHandImpl(giver, offer, discipline);
   }
 
   /** See {@link CraftingApi.salvage}. */

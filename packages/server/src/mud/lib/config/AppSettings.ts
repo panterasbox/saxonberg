@@ -2290,6 +2290,9 @@ export const AppSettingKeys = {
   /** What pests add to an open food's spoilage rate, per hour, while the
    * floor has them (cleanliness D17). */
   cleanlinessPestsRatePerHour: "cleanliness.pests.ratePerHour",
+  /** The severity a board, knife or hand short of sanitised puts on the
+   * food it touches (cleanliness D14). */
+  kitchenSurfaceInoculum: "kitchen.surfaceInoculum",
   /** Cleanliness — the row a hearth's raked-out ash is minted as. */
   cleanlinessAshTemplate: "cleanliness.ashTemplate",
 } as const;
