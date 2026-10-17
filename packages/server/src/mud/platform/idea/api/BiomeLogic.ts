@@ -1231,6 +1231,25 @@ async function resolveEnvelopeTemperature(
   envelopeResolving.add(scope.stuffId);
   try {
     host.envelopeOutsideK = await outsideKFor(scope);
+    // ⭐ (D7) One hop to the rooms of the same building this one shares a
+    // face with: resolve each one's outside if it has none, and bring it
+    // current once, so the neighbour temperature this room reads is
+    // current to this read. Never recursive — a neighbour's own reconcile
+    // reads THIS room's last value, and the reentry set holds.
+    for (const face of host.exposure().interiorFaces()) {
+      const n = face.neighbour;
+      if (!n || !MixinApi.isAtmospheric(n)) continue;
+      if (envelopeResolving.has(n.stuffId) || !n.envelopeApplies()) continue;
+      envelopeResolving.add(n.stuffId);
+      try {
+        if (n.envelopeOutsideK === null) n.envelopeOutsideK = await outsideKFor(n);
+        n.reconcileEnvelope();
+      } catch {
+        // a neighbour that fails to resolve is skipped
+      } finally {
+        envelopeResolving.delete(n.stuffId);
+      }
+    }
   } finally {
     envelopeResolving.delete(scope.stuffId);
   }

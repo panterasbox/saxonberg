@@ -385,6 +385,10 @@ export interface Atmospheric {
     openings: number;
     enclosureMaterialPath: string;
     hottestSource: string | null;
+    /** The sun through its transparent faces right now, W. */
+    solarW: number;
+    /** The warmest enclosed neighbour warmer than this room. */
+    warmestNeighbour: string | null;
   } | null;
 
   /** The room's heat-loss coefficient and heat capacity, or `null`. */
@@ -1598,6 +1602,8 @@ export function AtmosphericMixin<
               heatW + driveW,
               this.envelopeExchanges(pieceStartS + pieceS / 2),
             );
+            // Coupled to nothing that has resolved yet: hold, do not drift.
+            if (!(conductanceWperK > 0)) continue;
             let steadyState = steadyK;
             // ⭐ A thermostat does not sail past its dial: a cooling drive
             // clamps the steady state from below, a heating drive from
@@ -1674,7 +1680,68 @@ export function AtmosphericMixin<
       const out: RoomHeatExchange[] = [];
       const solarW = this.solarGainW(atS);
       if (solarW > 0) out.push({ fixedW: solarW, conductanceWperK: 0, anchorK: 0 });
+      // ⭐⭐ (D7) The rooms of one building share heat through their
+      // interior faces: each neighbour is a conductance to its LAST
+      // integrated temperature — read, never integrated here, so the
+      // coupling is bounded and recursion-free. A neighbour that has never
+      // resolved contributes nothing (adiabatic, not exterior).
+      for (const face of this.exposure().interiorFaces()) {
+        const n = face.neighbour;
+        if (!n || !MixinApi.isAtmospheric(n)) continue;
+        const anchorK = n.envelopeTemperatureLast();
+        if (anchorK === null) continue;
+        const g = this.interiorConductanceWperK(face, n);
+        if (g > 0) out.push({ fixedW: 0, conductanceWperK: g, anchorK });
+      }
       return out;
+    }
+
+    /**
+     * ⭐ **Shut ⇒ conduction, open ⇒ flow** (D7), and SYMMETRIC, so heat
+     * is conserved between the two rooms: each side computes the same
+     * number from the same two rows.
+     *
+     *  - a doored exit whose door is shut couples by conduction through
+     *    the party wall — both places' own walls back to back, in series
+     *    with the films: `A / (R_this + R_far + R_films)`;
+     *  - a doorless exit or an open door couples by air exchange at the
+     *    open-opening flow constant: `openingUPerM3 · min(V_this, V_far)` —
+     *    the inside air moving, which is why the loft warms within the hour
+     *    and a shut door between them makes it an afternoon.
+     */
+    private interiorConductanceWperK(face: Face, n: Stuff & Atmospheric): number {
+      const vThis = this.getVolume()?.rawValue() ?? 0;
+      const vFar = n.getVolume()?.rawValue() ?? 0;
+      if (!(vThis > 0) || !(vFar > 0)) return 0;
+      const door = face.exit?.getDoor() ?? null;
+      const open = door === null || door.isOpen();
+      if (open) {
+        return envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) * Math.min(vThis, vFar);
+      }
+      const side = Math.cbrt(Math.min(vThis, vFar));
+      const area = side * side;
+      const rFilms = envelopeDial(AppSettingKeys.envelopeSurfaceResistanceM2KPerW, 0.17);
+      const rThis = this.construction().walls.resistanceM2KW;
+      const rFar = n.construction().walls.resistanceM2KW;
+      return area / (rThis + rFar + rFilms);
+    }
+
+    /**
+     * The warmest enclosed neighbour of the same building, when it is
+     * warmer than this room — what `feel` names as the warmth's source.
+     */
+    private warmestNeighbour(insideK: number): string | null {
+      let best: string | null = null;
+      let bestK = insideK + 0.5;
+      for (const face of this.exposure().interiorFaces()) {
+        const n = face.neighbour;
+        if (!n || !MixinApi.isAtmospheric(n)) continue;
+        const k = n.envelopeTemperatureLast();
+        if (k === null || k <= bestK) continue;
+        bestK = k;
+        best = n.getPresentation();
+      }
+      return best;
     }
 
     /** Σ T·A·w over the transparent exterior faces; 0 when there are none. */
@@ -1735,8 +1802,13 @@ export function AtmosphericMixin<
         if (MixinApi.isSpaceHeating(occupant)) heatW += occupant.spaceHeatOutputW();
       }
       const driveW = this.envelopeDriveW(this.envelopeTemperatureK ?? outsideK, false);
-      return this.steadyStateOf(outsideK, coeff.uWperK, heatW + driveW, this.envelopeExchanges(atS))
-        .steadyK;
+      const ss = this.steadyStateOf(
+        outsideK,
+        coeff.uWperK,
+        heatW + driveW,
+        this.envelopeExchanges(atS),
+      );
+      return ss.conductanceWperK > 0 ? ss.steadyK : null;
     }
 
     /**
@@ -1856,7 +1928,11 @@ export function AtmosphericMixin<
       const volume = volQ ? volQ.rawValue() : 0;
       if (!(volume > 0)) return null;
       const area = this.envelopeExposedAreaM2(volume);
-      if (!(area > 0)) return null;
+      // ⭐ A room with no exterior face at all (every side a member of its
+      // building, a ceiling over it) still has an envelope: it exchanges
+      // heat with its neighbours (D7), never with the weather.
+      const coupled = this.exposure().interiorFaces().length > 0;
+      if (!(area > 0) && !coupled) return null;
 
       const enclosure = this.resolveEnclosure();
       // ⭐⭐ **Conduction through the wall IN SERIES with the air films
@@ -1887,7 +1963,7 @@ export function AtmosphericMixin<
         volume *
         this.openExteriorOpenings();
       const uWperK = uFabric + uOpen;
-      if (!(uWperK > 0)) return null;
+      if (!(uWperK > 0) && !coupled) return null;
 
       const activeDepth = envelopeDial(
         AppSettingKeys.envelopeActiveDepthM,
@@ -1930,6 +2006,8 @@ export function AtmosphericMixin<
       openings: number;
       enclosureMaterialPath: string;
       hottestSource: string | null;
+      solarW: number;
+      warmestNeighbour: string | null;
     } | null {
       const inside = this.envelopeTemperatureLast();
       const outsideK = this.envelopeOutsideK;
@@ -1954,6 +2032,14 @@ export function AtmosphericMixin<
         openings: this.openExteriorOpenings(),
         enclosureMaterialPath: this.envelopeEnclosureMaterialPath(),
         hottestSource,
+        solarW: (() => {
+          try {
+            return this.solarGainW(WorldClockApi.getNow().rawValue());
+          } catch {
+            return 0;
+          }
+        })(),
+        warmestNeighbour: this.warmestNeighbour(inside),
       };
     }
 
