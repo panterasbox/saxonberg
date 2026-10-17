@@ -18,8 +18,12 @@
 > feed carries · ⭐ **card bodies** (2026-10-17): two base cards (subject,
 > set) with the re-run-touches and glance-on-expiry rules, the branch in
 > colour and icon, composition on every card, the place report and
-> cues, and the Location, Zone, navigator and Warren bodies — the
-> Agent, Thing, Idea and Shadow bodies still to detail
+> cues, the Location, Zone, navigator and Warren bodies; the Agent card
+> by the agency ladder with the person marker everywhere, the `commands`
+> card, the Thing card's mixin-contributed sections, notable-or-quiet
+> with the composition strip as the menu, a repeatable `--mixin` lens on
+> `look` (sections) and `query` (columns), and the cut order — Idea,
+> Shadow and `score` still to detail
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -434,11 +438,192 @@ what it is for; its instances — host and satellites, occupancy each,
 budding or merging now — which answers the otherwise baffling *"why are
 there other lounges?"*
 
+### `look` is not a scorecard
+
+Every card in this section is what **`look`** shows — what you see when
+you inspect something in the room with you. It is never a character
+sheet. A **`score`** command (your own sheet: body stocks, competences,
+standing, traits — the mirror in full) is a real thing to want and a
+**different card**. `look me` is how you appear to others, not your
+sheet.
+
+Two rules carry over from the Location and Zone cards:
+
+- **As you know it.** Recognition, identification and regard are
+  per-viewer beliefs. An agent you have not been introduced to is *"a
+  steady, watchful dwarf tending bar"*; a disguise shows the disguise;
+  an unidentified thing goes by its appearance (*a vial of murky
+  liquid*). ⚠ **The card keys on your belief's referent, never the true
+  identity** — keyed on the truth, two disguised appearances of one
+  person would touch the same card, which leaks that they are one.
+- **In words, never numbers.** Condition, wear, freshness and fill are
+  bands of words, deepening with competence (*"competence resolves
+  detail, never access"*). Numbers are the mirror's (`score`) and the
+  instruments' (`analyze`, `measure`).
+
+### The Agent card — organized by the agency ladder
+
+The ladder is the model's: **Creature** (a body — species, vitals, sex;
+no persona) → **Character** (agency — persona, pronouns, engagement) →
+**Extra** (a role: *the storekeeper*, *a hewer*) → **Cast** (a person:
+a proper name, a history) → **protagonist** (an Avatar — a player). Each
+rung adds what you can perceive.
+
+| section | creature | extra | cast | protagonist |
+|---|---|---|---|---|
+| **header** — Agent chip · what you call them · the rung | *a mule* | *the storekeeper* | *Mara* once introduced, a description until then | the name you know · **the person marker** |
+| **description** | species, authored look | the role's look | authored, richer | **player-authored** |
+| **presence** — what they are doing; posture chip (#74) | grazing, lying down | the status line, engaged chip | status, chips | the player's status, chips · **away** (linkdead reads *"staring into space"*) · **on air** (broadcast-ready) |
+| **what you can see on them** — the outermost layer per body part, what is in their hands, never pockets | a collar, a pack saddle | an apron, a ledger | ✓ | ✓ |
+| **condition as you perceive it** — words, deeper with medical competence; `assess` is the deliberate read | lame, frothing | tired, bleeding | ✓ | ✓ |
+| composition | ✓ | ✓ | ✓ | ✓ |
+
+- ⭐⭐ **The person marker goes EVERYWHERE** — the card header and every
+  link to a player anywhere (chat, room lists, cards), like the branch
+  icon. Whether an agent is a real person is the single most important
+  fact about it; the Compact is players-only by arithmetic.
+- **Not on the card, because not perceivable:** regard, standing, who
+  they answer to, your contacts metadata, a job title as *data*. A job
+  you can SEE — the apron, working behind the bar — is already in what
+  they wear and do.
+- ⭐ **The status line already exists** (`StatusMixin`: the `status` verb
+  for players, `setStatus` for NPC brains, an authored default). What is
+  missing is brains calling it when their activity changes, plus the
+  engaged and posture chips (#74).
+- **Lifecycle** — live while you share a room (status, posture and
+  condition update); parting freezes it as *"last seen at Dave's Bar,
+  12:40"*.
+
+### The `commands` card — what you can do, and where each command comes from
+
+Commands are **not** on the subject cards; they are a card of their own.
+
+- **`commands <thing>`** — the commands the thing affords you; **bare
+  `commands`** — everything available here (the room, what you hold,
+  your own repertoire). Named for the whole thing, the way *"the `ls`
+  command"* names the binary rather than one execution — the game's own
+  vocabulary already calls them command views and command controllers.
+  (`command`/`commands` is claimed by nothing today.)
+- **Grouped by source** — the subject itself (the storekeeper affords
+  `buy`), what they wear or hold (a lantern affords `light`), the room
+  (`sit`, because of the stools), you (`cast`). The resolver already
+  computes the source; the card's action row only used it as a filter.
+- **Commands you cannot use yet still appear, with the reason** — *the
+  refusal is the progression UI*: if something can lift a refusal, the
+  command must exist so you can be told.
+- Each command previews itself, like every clickable. Identity is the
+  subject plus this lens, touched on re-run. Every subject card's header
+  carries a **"commands ▸"** link.
+
+### The Thing card — sections from the composition
+
+Things vary far more than agents (a mug, a rack of sixty glasses, a
+still, a pair of trousers, a corpse, a screen, a cart built from parts).
+Rather than a card variant per kind, **each mixin that has something
+perceivable contributes a section**, and the card orders them — *one card
+laid out by kind*, made general. A vessel adds what is in it and how
+full; a garment, whether it fits you; a provision, how fresh; a display,
+what it is showing; an assembly, its parts and where each is worn; a
+light source, lit or dark.
+
+1. **Header** — the Thing chip; what you call it (by appearance until
+   identified); a **fixed** marker for furnishings; a **quantity** for a
+   stack or bulk (*12 coupes*, *two pints of ale*); the modality strip;
+   **commands ▸**.
+2. **Description and details**, detail nouns linked.
+3. **Make** — material in words; **marks you can see** (a maker's mark,
+   a brand, a hallmark); quality in words only where it shows.
+4. **State in words** — wear and condition (*chipped*, *a cracked
+   spoke*), freshness (*going off*), wet, dirty or clean (cleanliness's
+   tiers), open, closed or locked, lit or dark. Temperature only through
+   `feel`.
+5. **On it / in it / hanging from it** — in the placement words, collapsed
+   like a set (*in it: 60 glasses ▸* → `query rack:i`).
+6. **Whose** — only what you can know: **yours** (you always know your
+   own) or a visible mark. Never another owner's name from the ledger.
+7. **The mixin-contributed sections.**
+8. **Composition.**
+
+Live while in reach (a filling glass, a cooling ingot); out of reach,
+frozen as last seen.
+
+### Notable or quiet — and the composition strip is the menu
+
+Mixin-contributed sections can be a flood or nothing at all. The rule for
+every branch is the one already agreed for the senses: **show what is
+notable; everything else is one deliberate step away.**
+
+- **Each section knows when it is notable** — when its state is not the
+  default: a lock when *locked*, temperature when hot or cold, freshness
+  when going off, a light when lit, wear when damaged. The same
+  *notable* test as the sense index, applied to mixins.
+- **Notable sections show by default; quiet ones do not render** — they
+  survive as their **chip in the composition strip**.
+- ⭐⭐ **The composition strip is the table of contents.** Each mixin chip
+  is clickable and sends `look <subject> --mixin <name>`. The full depth
+  is always one click away, labelled with the architecture itself — the
+  card reinforces the mixin model in the player's mind without dumping
+  it at them.
+- **One method per mixin feeds both features** — its perceivable face,
+  in words, plus whether that face is notable.
+
+### `--mixin` — a repeatable lens on `look` and `query`
+
+- **On `look`, it chooses the sections**: `look chest --mixin lockable
+  --mixin container` shows exactly those two and nothing else. It is the
+  per-section flags addressed by the architecture's own names, so any
+  mixin takes part without anyone inventing a flag for it. `look chest
+  --all` shows everything.
+- ⭐ **On `query`, it chooses the columns** — a set plus mixin lenses is
+  a **table**, one row per thing, one column per mixin:
+  `query me:i --mixin freshness` (everything you carry, with how fresh),
+  `query here:[mixin.Container] --mixin container --mixin lockable`
+  (every container here, what is in it, whether it is locked),
+  `query back-bar:i --mixin vessel` (every glass and what is in it). MQL
+  already FILTERS on mixins (`[mixin.Lockable]`); `--mixin` adds
+  SHOWING them. On the set card it is a sortable table; in the terminal,
+  columns.
+- ⛔ **It is a lens over what you could perceive anyway.** A mixin's
+  section is its **perceivable face** only. *Measured* values are the
+  instruments' (`analyze`, `measure`, competence-banded); what **no
+  sense reports** (the spoilage doc's silent contamination) is never
+  shown by any lens — or `--mixin` becomes a sense the world does not
+  have; the **model itself** (fields, schema) is the studio's, for
+  authors.
+- The name stays **`--mixin`** rather than something softer like
+  `--facet` — it teaches the architecture by name, which is the point.
+
+The flag vocabulary is one: a section has the same name in the terminal,
+on the card and in the place report (`--prose`, `--exits`, `--cues`,
+`--make`, `--contents`, `--mixin <name>`, `--all`).
+
+### Sizes — the cut order
+
+Every card has a **header that never scrolls** (chip, name, the person
+marker or quantity, the modality strip). Below it:
+
+- **Feed size never scrolls inside the card** — scroll areas nested in
+  a scrolling feed are miserable — so it **cuts**, from the bottom of
+  the lists below upward.
+- **Focal and full scroll the body** under the fixed header.
+- ⭐ **A notable section always survives the cut** — a bleeding wound, a
+  locked door, a burning lamp jumps the queue.
+
+| branch | kept at feed size | cut first → last |
+|---|---|---|
+| **Location** | heading · exits · people · things summary | illustration → place facts → furnishings → conditions → prose to 2 lines → composition to a count |
+| **Agent** | name · rung · person marker · presence | portrait → what they wear and hold → description to 1 line → condition (unless notable) → composition to a count |
+| **Thing** | name · quantity · fixed marker · the most notable state words · contents summary | make → mixin sections to the 2 most notable → description to 1 line → composition to a count |
+
+**Glance** is the header alone, plus one state word for a thing or the
+status for an agent. **Full** is `--all`: every section, scrollable.
+
 ### Still to detail
 
-The **Agent**, **Thing**, **Idea** and **Shadow** bodies; the set card's
-lenses per flag; how the modes (the Discord-style sidebar, with **chat**
-and **explore** as their own modes) place these cards.
+The **Idea** and **Shadow** bodies; `score` (your own sheet); the set
+card's lenses per flag beyond `--mixin`; how the modes (the
+Discord-style sidebar, with **chat** and **explore** as their own modes)
+place these cards.
 
 ---
 
