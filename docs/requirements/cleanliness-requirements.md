@@ -169,6 +169,10 @@ bathhouse and a doorman.
   (room-condition: a threshold consequence, never a sim).
 - **Radiation decontamination** — nowhere until a radiation source
   exists; the model will take it as one more kind of dirt.
+- **The Washer at the Ford** (folklore over the dying clock, and the
+  index of who is dying it needs) →
+  [washer-at-the-ford-slate](../slates/tails/washer-at-the-ford-slate.md);
+  cut by the user 2026-10-17.
 - **Institutional laundries** (the Magdalene history) — nowhere as
   mechanism; handled as history if content ever touches it.
 
@@ -195,7 +199,6 @@ bathhouse and a doorman.
   floor, and the doorman (the plan picks the rooms). ⭐ **The bathhouse
   is a hospitality venue and the lavoir a civic one — a second of either
   must need no code.**
-- **The Washer at the Ford** is Delight Road content.
 - **Disciplines exercised** (no new Discipline): **textiles** (knowing a
   fibre and what it will survive — the laundress's skill), **chemistry**
   (soap, cleansers, what not to mix), **medicine / nursing** (the clinic
@@ -268,7 +271,6 @@ bathhouse and a doorman.
   grime.
 - **Dairy's byre** — fouls, is mucked out, and its manure goes to the
   soil.
-- **The Delight Road ford** — the Washer at the Ford.
 - **The Goodkin bank** — gains a doorman at its back office.
 - **The chandlery shop** — sells soap as well as candles.
 - **The general store** — stocks soap, washing soda and a brush.
@@ -478,11 +480,12 @@ a back door, or someone who does not care). His judgment is his
 (engine measures, subject values); ⭐ the wharfside's own people remark
 on a gentleman's coat the same way.
 
-### 17. The Washer at the Ford
-At the Delight Road ford, at night, a woman washes a bloodstained shroud.
-Ask her whose, and she names **someone who is dying right now**,
-anywhere in the realm — or, if nobody is, she is washing nothing. It is
-folklore made true by a mechanism that already exists (the dying clock).
+### 17. The Washer at the Ford — ⛔ CUT (user, 2026-10-17)
+Cut from this build → [washer-at-the-ford-slate](../slates/tails/washer-at-the-ford-slate.md).
+Planning found the dying state lasts 90–600 s and nothing indexes who is
+dying, so she would almost always be washing nothing, and she needed an
+index of her own. The numbering below is kept so the drive and the
+acceptance criteria keep their numbers.
 
 ### 18. Cleaning as a gig
 The contract board already lets a player pay another against a checkable
@@ -502,8 +505,8 @@ sweep or laundress can be hired today** with no new hiring mechanism.
    Disciplines: textiles, chemistry, medicine, nursing, cooking.
 2. **Creative expression** — the ordinary case is rows: a new stain, a
    new cleanser, a second lavoir or bathhouse, a doorman's dress code.
-   The bespoke case — the Washer at the Ford — is content over the
-   dying clock, no code.
+   (The bespoke case this build first named, the Washer at the Ford, is
+   cut to its own slate.)
 3. **3a immersion** — the ward's *"lye and boiled linen"* becomes true; a
    butcher looks like one; the chimney fire has a cause. **3b
    participation** — the economy gains a cleaner-shaped hole (laundress,
@@ -593,9 +596,7 @@ A funded player, a fresh world after dairy, the real socket.
     refuses you, saying why. Bathe at the bathhouse (`order bath`),
     change, and he lets you in. Go to the wharfside in the banker's
     coat: they remark on it.
-21. At the ford at night with someone in the dying clock somewhere in
-    the realm: ask the Washer whose shroud it is — she names them. With
-    nobody dying, she washes nothing.
+21. ⛔ *Cut (the Washer at the Ford — see § 17).*
 22. Post a contract — *"my study, clean, by tomorrow"* — another player
     takes it, cleans, and the escrow pays on the checked condition.
 23. Restart the server. Every stain, band, wet garment, sooted chimney,
@@ -652,7 +653,7 @@ A funded player, a fresh world after dairy, the real socket.
 20. The doorman refuses in words with a reason and admits the same
     person once they are dressed for the room; at least one other way in
     exists.
-21. The Washer names someone currently dying, and nobody when nobody is.
+21. ⛔ *Cut (the Washer at the Ford — see § 17).*
 22. A contract whose clause is a room's or a flue's condition pays out
     when the condition holds.
 23. A new dirt kind and a new cleanser can be added by a pack with no
