@@ -26,14 +26,34 @@
  *    mass, so a bill whose parts outweigh its row refused every take-apart
  *    with a conservation breach (the assembly drive: a 2.5 kg cask head
  *    of three 6 kg boards). A row with a bill states its mass.
- * 7. ⭐⭐ **a bill and `AssembledMixin` are one claim, held both ways**: a
- *    billed row's class composes `AssembledMixin`, and a row whose class
- *    composes it carries a bill. The mixin goes on a NARROW subclass
- *    (`AssembledTool`, `Cask`, `Lantern`…) and never on a broad family
- *    (`Tool`, `Vat`, `Lamp`) — composing it there put the parts surface
- *    on 62 tools with no parts and every caller grew an `isAssembly()`
- *    guard to re-narrow the host set (antipatterns § mixin on the wrong
- *    host). This arm is what keeps the guard from coming back.
+ * 7. ⭐⭐ **the mixin composes on the FAMILIES, and a thing with no bill is
+ *    one piece** (repair D4, D7 — the owner's ruling, 2026-10-16). Until
+ *    then this arm held *a bill iff the class composes the mixin* and the
+ *    mixin sat on nine narrow twins (`AssembledTool`, `Cask`, `Lantern`…):
+ *    two classes for one kind of thing. What keeps the old failure — an
+ *    `isAssembly()` guard on every caller — from coming back is not this
+ *    gate but the mixin itself: **every method of it is total on a thing
+ *    with no bill**. The arm holds what IS checkable:
+ *    - 7a. a bill on a class that does not compose `AssembledMixin` is
+ *      never read — an error;
+ *    - 7b. a row whose class composes it, with no bill, made by a
+ *      `tangible` recipe of TWO OR MORE distinct item slots — the mint
+ *      would record a thing of parts nobody declared, so a crafted one is
+ *      parts and a found one is one piece. Census-then-ratchet:
+ *      {@link UNDECLARED_ASSEMBLIES} names the rows that are this today;
+ *      a trade gives each a bill and takes it off the list;
+ *    - 7c. a composing class's billless row is ONE PIECE and passes;
+ *    - 7d. ⭐ the owner's rule made checkable — *the families we write
+ *      recipes for*: a `tangible` recipe's output row whose class composes
+ *      `Durable` composes `AssembledMixin` too. (A `bulk` recipe FILLS a
+ *      vessel; it does not make one.) ⚠ Stock is exempt (a `Stackable`
+ *      class — a stave is not a whole; it goes INTO one). This is what
+ *      answers *is a mould a family?* the day a recipe makes one.
+ * 8. ⭐ **every bill part is MADE by something** — its `template` is the
+ *    `outputTemplate` of a shipped `tangible` recipe, so the trade that mends it is
+ *    derivable (repair D1). Census-then-ratchet: {@link UNMADE_PARTS} names
+ *    each part no recipe makes, with why; it may shrink, never grow, and a
+ *    part that gains a recipe must leave it.
  * 5. ⛔ every `Joint` row's `competence.discipline` names a Discipline that
  *    exists — a joint gated on a Discipline nobody ships reads every
  *    salvager as a novice and nothing says why (found in the plan's
@@ -65,6 +85,49 @@ export const REFUSED: ReadonlySet<string> = new Set([
 
 const ROLES = new Set(["structural", "fastener", "wear", "facing"]);
 
+/**
+ * ⭐ Arm 7b's census (repair W1): rows a `tangible` recipe makes from two
+ * or more parts, with NO bill — a crafted one carries a record of lines
+ * named for the recipe's slots, a found one is one piece. Found when the
+ * families composed the mixin (the plan expected the billhook alone).
+ * Each is its trade's to declare; it may shrink, never grow.
+ */
+export const UNDECLARED_ASSEMBLIES: ReadonlyMap<string, string> = new Map([
+  ["/trade/forestry/thing/billhook", "blade + handle — declared in repair W5"],
+  ["/trade/mining/thing/shovel", "a blade forged and hafted in one recipe — mining's to declare"],
+  ["/trade/mining/thing/sledge", "a head forged and hafted in one recipe — mining's to declare"],
+  ["/trade/mining/thing/assay-kit", "a balance in a case — mining's to declare"],
+  ["/trade/mining/thing/miners-dial", "a dial body in a case — mining's to declare"],
+  ["/trade/drilling/thing/pressure-gauge", "a tube in a case — drilling's to declare"],
+  ["/trade/drilling/thing/bailer", "a hide on a stave — drilling's to declare"],
+]);
+
+/**
+ * ⭐ Arm 8's census (repair D7): bill parts no shipped recipe makes, each
+ * with WHY. A part made by a verb that is not a recipe cannot be mended
+ * under a known trade — such a line is mended as if competent, which is
+ * honest only because this list names it. ⚠ It may shrink, never grow.
+ */
+export const UNMADE_PARTS: ReadonlyMap<string, string> = new Map([
+  ["/stuff/thing/arms/nock", "the bow's nock — no fletcher's recipe yet"],
+  ["/trade/apiculture/thing/bellows", "the smoker's bellows — no maker"],
+  ["/trade/carpentry/thing/board", "a board is SAWN by the saw verb, not a recipe"],
+  ["/trade/chandlery/thing/wick", "the lantern's wick — no maker"],
+  ["/trade/glass/thing/pane", "a pane is made at the glass bench, not by a recipe"],
+  ["/trade/mining/thing/compass-housing", "the compass's housing — no maker"],
+  ["/trade/mining/thing/compass-needle", "the compass's needle — no maker"],
+  ["/trade/mining/thing/compass-rose", "the compass's rose — no maker"],
+  ["/trade/smithing/thing/canister", "the smoker's canister — no maker"],
+  ["/trade/tailoring/thing/boot-upper", "the boot's upper — gains a recipe in repair W5"],
+  ["/trade/tailoring/thing/cushion-cover", "the cushion's cover — no maker"],
+  ["/trade/tailoring/thing/stuffing", "the cushion's stuffing — no maker"],
+  ["/trade/tanning/thing/bellows-gusset", "the bellows' gusset — no maker"],
+  ["/trade/tanning/thing/hide-face", "the hide-faced shield's face — no maker"],
+  ["/trade/tanning/thing/sole", "the boot's sole — gains a recipe in repair W5"],
+  ["/trade/textiles/thing/bowstring", "the bow's string — no maker"],
+  ["/trade/textiles/thing/whorl", "the spindle's whorl — no maker"],
+]);
+
 export interface BillFinding {
   where: string;
   detail: string;
@@ -74,6 +137,8 @@ interface RecipeDoc {
   file: string;
   recipeId: string;
   outputTemplate: string;
+  /** `tangible` makes a thing; anything else fills a vessel (default `bulk`). */
+  application: string;
   slots: { slot: string; count: number; kind: string }[];
 }
 
@@ -87,6 +152,15 @@ export function checkBills(
   recipes: readonly RecipeDoc[],
   /** Does this class compose `AssembledMixin`? Arm 7; omitted, it is skipped. */
   assembled?: (classPath: string) => boolean,
+  /** Composition probes for arm 7d; omitted, 7d is skipped. */
+  probes?: {
+    durable: (classPath: string) => boolean;
+    stackable: (classPath: string) => boolean;
+  },
+  /** Arm 8's census; omitted, arm 8 is skipped. */
+  unmade?: ReadonlyMap<string, string>,
+  /** Arm 7b's census; omitted, every 7b finding is reported. */
+  undeclared?: ReadonlyMap<string, string>,
 ): BillFinding[] {
   const out: BillFinding[] = [];
   const at = (row: TemplateRow): string => relative(CONTENT, row.file);
@@ -216,27 +290,100 @@ export function checkBills(
     }
   }
 
-  // 7 — a bill iff the class composes AssembledMixin.
+  // 7 — the mixin on the families; a billless row is one piece.
+  // The item-slot names of every recipe that makes a row, by output.
+  const slotsByOutput = new Map<string, Set<string>>();
+  const tangible = recipes.filter((r) => r.application === "tangible");
+  for (const r of tangible) {
+    const names = new Set(r.slots.filter((x) => x.kind === "item").map((x) => x.slot));
+    const prior = slotsByOutput.get(r.outputTemplate);
+    if (!prior || names.size > prior.size) slotsByOutput.set(r.outputTemplate, names);
+  }
   if (assembled) {
     for (const [path, row] of rows) {
       const eff = effectiveRow(path, rows);
       if (!eff.class) continue;
       const billed = !!eff.data.bill;
       const composes = assembled(eff.class);
+      // 7a — a bill nothing reads.
       if (billed && !composes) {
         out.push({
           where: at(row),
           detail:
             `a bill on a ${eff.class}, which does not compose AssembledMixin — the ` +
-            `parts record would never be read. Name the family's assembled subclass ` +
-            `(AssembledTool, Cask, Lantern…), or give the family one.`,
+            `parts record would never be read. Name the family class (Tool, Vat, ` +
+            `Lamp, Weapon…), or compose the mixin on this family.`,
         });
-      } else if (composes && !billed) {
+      }
+      // 7b — made of parts by its recipe, but no bill declares them.
+      const slots = slotsByOutput.get(path);
+      if (composes && !billed && slots && slots.size >= 2 && !undeclared?.has(path)) {
         out.push({
           where: at(row),
           detail:
-            `${eff.class} composes AssembledMixin but this row has no bill — a thing ` +
-            `with no parts is not an assembly. Name the broad class instead.`,
+            `its recipe consumes ${slots.size} distinct parts (${[...slots].join(", ")}) ` +
+            `but the row has no bill — the mint would record a thing of parts nobody ` +
+            `declared. Give it a bill (repair D7 7b).`,
+        });
+      }
+      // 7c — a composing class's billless row is one piece: nothing to say.
+      if (undeclared?.has(path) && (billed || !slots || slots.size < 2)) {
+        out.push({
+          where: at(row),
+          detail: `on UNDECLARED_ASSEMBLIES but it has a bill or is no longer made from parts — take it off the list (the ratchet only falls)`,
+        });
+      }
+    }
+    // 7d — the families we write recipes for: a recipe output that wears.
+    if (probes) {
+      const seen = new Set<string>();
+      for (const r of tangible) {
+        if (seen.has(r.outputTemplate) || !rows.has(r.outputTemplate)) continue;
+        seen.add(r.outputTemplate);
+        const eff = effectiveRow(r.outputTemplate, rows);
+        if (!eff.class) continue;
+        if (!probes.durable(eff.class) || probes.stackable(eff.class)) continue;
+        if (assembled(eff.class)) continue;
+        out.push({
+          where: relative(CONTENT, r.file),
+          detail:
+            `recipe '${r.recipeId}' makes ${r.outputTemplate}, a ${eff.class} that ` +
+            `wears (Durable) but does not compose AssembledMixin — a thing we write ` +
+            `recipes for is parts or one piece (repair D4, D7 7d). Compose the mixin ` +
+            `on the family.`,
+        });
+      }
+    }
+  }
+
+  // 8 — every bill part is made by a recipe, or is named on the census.
+  if (unmade) {
+    const made = new Set(tangible.map((r) => r.outputTemplate));
+    const parts = new Set<string>();
+    for (const bill of bills.values()) {
+      for (const p of (bill.parts as Record<string, unknown>[]) ?? []) {
+        if (typeof p.template === "string") parts.add(p.template);
+      }
+    }
+    for (const t of [...parts].sort()) {
+      if (made.has(t) || unmade.has(t)) continue;
+      out.push({
+        where: t,
+        detail:
+          `a bill part no shipped recipe makes — the trade that mends it cannot be ` +
+          `known. Write its recipe, or name it on UNMADE_PARTS with why (repair D7 8).`,
+      });
+    }
+    for (const t of unmade.keys()) {
+      if (made.has(t)) {
+        out.push({
+          where: t,
+          detail: `on UNMADE_PARTS but a recipe now makes it — take it off the list (the ratchet only falls)`,
+        });
+      } else if (!parts.has(t)) {
+        out.push({
+          where: t,
+          detail: `on UNMADE_PARTS but no bill names it any more — take it off the list`,
         });
       }
     }
@@ -296,6 +443,10 @@ export function readRecipes(contentDir: string = CONTENT): RecipeDoc[] {
         file,
         recipeId: String(doc.recipeId ?? ""),
         outputTemplate: String(doc.outputTemplate ?? ""),
+        application:
+          doc.outputApplication === "tangible" || doc.outputApplication === "edible"
+            ? String(doc.outputApplication)
+            : "bulk",
         slots,
       });
     }
@@ -307,8 +458,19 @@ function main(): void {
   const { rows } = inheritanceIndex(SERVER_SRC, CONTENT);
   const sources = packSources();
   const cache = new Map<string, boolean>();
-  const findings = checkBills(rows, readRecipes(), (c) =>
-    composesMixin(c, "AssembledMixin", sources, cache),
+  const mixinCache = new Map<string, Map<string, boolean>>();
+  const probe = (mixin: string) => (c: string): boolean => {
+    let m = mixinCache.get(mixin);
+    if (!m) mixinCache.set(mixin, (m = new Map()));
+    return composesMixin(c, mixin, sources, m);
+  };
+  const findings = checkBills(
+    rows,
+    readRecipes(),
+    (c) => composesMixin(c, "AssembledMixin", sources, cache),
+    { durable: probe("DurableMixin"), stackable: probe("StackableMixin") },
+    UNMADE_PARTS,
+    UNDECLARED_ASSEMBLIES,
   );
   let billCount = 0;
   for (const path of rows.keys()) {

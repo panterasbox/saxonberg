@@ -6151,12 +6151,25 @@ members have it, call it "vacuous for the rest", and then guard every
 caller with a predicate that re-narrows the host set
 (`MixinApi.isAssembled(x) && x.isAssembly()`).
 
-**Do.** Give the family a narrow subclass that IS the thing
-(`AssembledTool extends AssembledMixin(Tool)`, `Cask`, `Lantern`), point
-only the rows that have the capability at it, and let `MixinApi.isX` be
-the whole question. Where the capability has a row-side declaration (a
-`bill:`), gate *declaration ⇔ composition* in both directions so neither
-side can drift (`lint:bills` arm 7).
+**Do — one of two honest shapes.**
+
+1. **Narrow:** give the family a subclass that IS the thing, point only
+   the rows that have the capability at it, and let `MixinApi.isX` be the
+   whole question; gate *declaration ⇔ composition* both ways.
+2. ⭐ **Make the family TOTAL** — when the capability's absent case is
+   itself a meaningful answer. Every method of the mixin answers the empty
+   case on its own (`isOnePiece()`, `getParts() = []`, wear on the host's
+   own fields), so no caller ever needs to ask. The repair build
+   (2026-10-17) took this shape for `AssembledMixin`: *a monolith is a
+   thing of ONE piece* (the owner's ruling), the nine narrow twins retired,
+   and `lint:bills` arm 7 now checks what remains checkable (a bill on a
+   class without the mixin; a two-part recipe output with no bill; a
+   recipe output that wears without the mixin).
+
+The test for which: is "it has none" something the WORLD says about the
+thing (*it is one piece* — yes; *it has no parts surface* — no)? If the
+empty case reads as a statement, make the family total; if it reads as
+an absence, narrow.
 
 **Why.** The guard is the tell that the host is wrong: the type says
 every tool is made of parts, and every reader has to know it is lying.
@@ -6166,4 +6179,6 @@ all 19 receptacles had no parts, and nine call sites carried
 `isAssembly()`. It is the same mistake the base-class narrowing refactor
 removed. ⚠ A subclass restates its parent's `commandContributions` when
 it adds a mixin above the parent (base statics shadow; mixin statics
-union).
+union). ⭐ The guards went away the second time not by narrowing but
+because the mixin's own methods had become total — so the family shape
+(2) came back without them.

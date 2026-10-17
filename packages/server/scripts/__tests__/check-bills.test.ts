@@ -40,6 +40,7 @@ const PICK_RECIPE = {
   file: '/content/x/content/recipes/pick.yaml',
   recipeId: 'pick',
   outputTemplate: '/x/thing/pick',
+  application: 'tangible',
   slots: [
     { slot: 'head', count: 1, kind: 'item' },
     { slot: 'haft', count: 1, kind: 'item' },
@@ -126,33 +127,120 @@ describe('check-bills', () => {
     expect(all).toMatch(/Discipline 'coopering', which no row ships/);
     expect(all).toMatch(/joint 'bare' carries no competence/);
   });
-  describe('arm 7 — a bill iff the class composes AssembledMixin', () => {
-    const assembled = (c: string): boolean => c === '/platform/thing/AssembledTool';
+  describe('arm 7 — the mixin on the FAMILIES; a billless row is one piece (repair D7)', () => {
+    const FAMILY = '/platform/thing/Tool';
+    const assembled = (c: string): boolean => c === FAMILY || c === '/x/thing/CookPot';
     const withPickClass = (cls: string): [string, TemplateRow][] =>
       SOUND.map(([p, r]) =>
         p === '/x/thing/pick' ? row(p, { ...r.raw, class: cls }) : ([p, r] as [string, TemplateRow]),
       );
-    const run = (rows: [string, TemplateRow][]): string =>
-      checkBills(new Map(rows), [PICK_RECIPE], assembled)
+    const run = (
+      rows: [string, TemplateRow][],
+      recipes = [PICK_RECIPE],
+      opts: { undeclared?: Map<string, string> } = {},
+    ): string =>
+      checkBills(
+        new Map(rows),
+        recipes,
+        assembled,
+        {
+          durable: (c) => c === FAMILY || c.endsWith('Pot') || c === '/x/thing/Stock',
+          stackable: (c) => c === '/x/thing/Stock',
+        },
+        undefined,
+        opts.undeclared,
+      )
         .map((f) => f.detail)
         .join('\n');
 
-    it('is quiet when the billed row names the assembled subclass', () => {
-      expect(run(withPickClass('/platform/thing/AssembledTool'))).toBe('');
+    it('is quiet when the billed row names the family', () => {
+      expect(run(withPickClass(FAMILY))).toBe('');
     });
 
-    it('⭐ fires on a bill on the broad family (the parts record is never read)', () => {
-      expect(run(withPickClass('/platform/thing/Tool'))).toMatch(
-        /a bill on a \/platform\/thing\/Tool, which does not compose AssembledMixin/,
+    it('7a — fires on a bill on a class that does not compose the mixin', () => {
+      expect(run(withPickClass('/x/thing/Plain'))).toMatch(
+        /a bill on a \/x\/thing\/Plain, which does not compose AssembledMixin/,
       );
     });
 
-    it('⭐ fires on the assembled subclass with no bill (no parts is no assembly)', () => {
+    it('7c — a billless row of the family is ONE PIECE and passes', () => {
       const rows = [
-        ...withPickClass('/platform/thing/AssembledTool'),
-        row('/x/thing/knife', { class: '/platform/thing/AssembledTool', data: { mass: 0.2 } }),
+        ...withPickClass(FAMILY),
+        row('/x/thing/knife', { class: FAMILY, data: { mass: 0.2 } }),
       ];
-      expect(run(rows)).toMatch(/composes AssembledMixin but this row has no bill/);
+      expect(run(rows)).toBe('');
+    });
+
+    it('⭐ 7b — fires on a two-part recipe output with no bill, unless the census names it', () => {
+      const rows = [
+        ...withPickClass(FAMILY),
+        row('/x/thing/hook', { class: FAMILY, data: { mass: 1 } }),
+      ];
+      const hook = {
+        ...PICK_RECIPE,
+        recipeId: 'hook',
+        outputTemplate: '/x/thing/hook',
+        slots: [
+          { slot: 'blade', count: 1, kind: 'item' },
+          { slot: 'handle', count: 1, kind: 'item' },
+        ],
+      };
+      expect(run(rows, [PICK_RECIPE, hook])).toMatch(/consumes 2 distinct parts \(blade, handle\)/);
+      expect(run(rows, [PICK_RECIPE, hook], { undeclared: new Map([['/x/thing/hook', 'why']]) })).toBe('');
+      // …a BULK recipe fills a vessel; it does not make one.
+      expect(run(rows, [PICK_RECIPE, { ...hook, application: 'bulk' }])).toBe('');
+      // …and a census entry that no longer applies must leave.
+      expect(run(rows, [PICK_RECIPE], { undeclared: new Map([['/x/thing/hook', 'why']]) })).toMatch(
+        /take it off the list/,
+      );
+    });
+
+    it('⭐ 7d — a recipe output that WEARS composes the mixin; stock is exempt', () => {
+      const rows = [
+        ...withPickClass(FAMILY),
+        row('/x/thing/pot', { class: '/x/thing/IronPot', data: { mass: 1 } }),
+        row('/x/thing/stave', { class: '/x/thing/Stock', data: { mass: 1 } }),
+      ];
+      const make = (out: string) => ({
+        ...PICK_RECIPE,
+        recipeId: out,
+        outputTemplate: `/x/thing/${out}`,
+        slots: [{ slot: 'stock', count: 1, kind: 'item' }],
+      });
+      expect(run(rows, [PICK_RECIPE, make('pot')])).toMatch(
+        /makes \/x\/thing\/pot, a \/x\/thing\/IronPot that wears \(Durable\) but does not compose AssembledMixin/,
+      );
+      expect(run(rows, [PICK_RECIPE, make('stave')])).toBe('');
+    });
+  });
+
+  describe('arm 8 — every bill part is MADE by something (repair D7)', () => {
+    const run = (unmade: Map<string, string>, recipes = [PICK_RECIPE]): string =>
+      checkBills(new Map(SOUND), recipes, undefined, undefined, unmade)
+        .map((f) => `${f.where}: ${f.detail}`)
+        .join('\n');
+    const make = (out: string) => ({
+      ...PICK_RECIPE,
+      recipeId: out,
+      outputTemplate: out,
+      slots: [{ slot: 'stock', count: 1, kind: 'item' }],
+    });
+
+    it('fires on a part no recipe makes and no census names', () => {
+      const out = run(new Map([['/x/thing/haft', 'why']]));
+      expect(out).toMatch(/\/x\/thing\/head: a bill part no shipped recipe makes/);
+    });
+
+    it('is quiet when every part is made or named', () => {
+      expect(run(new Map([['/x/thing/haft', 'why']]), [PICK_RECIPE, make('/x/thing/head')])).toBe('');
+    });
+
+    it('⭐ the census only falls — a named part that gains a recipe must leave', () => {
+      const out = run(
+        new Map([['/x/thing/haft', 'why'], ['/x/thing/head', 'why']]),
+        [PICK_RECIPE, make('/x/thing/head')],
+      );
+      expect(out).toMatch(/\/x\/thing\/head: on UNMADE_PARTS but a recipe now makes it/);
     });
   });
 });

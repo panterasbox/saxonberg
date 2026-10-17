@@ -40,7 +40,7 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
- * **Repair — assemblies part two (4 fields, and a relabel).** Every one
+ * **Repair — assemblies part two (6 fields, and a relabel).** Every one
  * level 0, and why:
  *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
  *     been mended (by Berta)* and `analyze condition` reads the rest by
@@ -55,6 +55,9 @@
  *     name is how you ask for it. What a name may hide (where it came
  *     from, who carried it) is the row's prose, not this field. The grant
  *     is who may name a reforged part once — the reforger is told so.
+ *   - `Vat.emptySince` (was `Cask.emptySince`) and `Timber.condition` —
+ *     the fold-back: the cask's drying clock moved onto every vat, and a
+ *     stave's wear is stack identity. Runtime state, read out in words.
  *   - ⚠ The relabel: `AssembledMixin.__validateComposition__` declared a
  *     `const name` above `static fieldMeta` (the dairy's finding, missed
  *     here), so `bill`/`parts`/`joints`/`gauge`/`hands` were filed under

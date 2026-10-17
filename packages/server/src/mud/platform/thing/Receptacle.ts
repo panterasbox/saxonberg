@@ -37,12 +37,21 @@
 import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { DurableMixin } from '../../lib/material/Durable';
+import { CraftedMixin } from '../../lib/craft/Crafted';
+import { AssembledMixin } from '../../lib/craft/Assembled';
 
 // ThermalMixin outer of Bulkable: a fluid holder's Thermal capacity
 // derives from its contents (more liquid → larger C → slower cooling),
 // so the coffee in any receptacle has a real, drifting temperature. An
 // open holder (a mug) has no sealing barrier → it cools in minutes; the
 // sealable Flask switches to a vacuum barrier when closed (τ in hours).
-const ReceptacleBase = ThermalMixin(BulkableMixin(Good));
+//
+// ⭐ Durable, Crafted and Assembled (repair D4, D5): a pail wears and is
+// mended, may be a recipe output, and is one piece unless its row has a
+// bill. Nothing wears a sack yet, so a sack reads sound.
+const ReceptacleBase = AssembledMixin(
+  CraftedMixin(DurableMixin(ThermalMixin(BulkableMixin(Good)))),
+);
 
 export default class Receptacle extends ReceptacleBase {}

@@ -7,7 +7,7 @@
 # is punishing — which is what makes an ox a genuine capital investment
 # and the first rung of a mechanisation ladder nobody authors ahead of
 # demand.
-class: /platform/thing/AssembledTool
+class: /platform/thing/Tool
 data:
   keywords: [plough, plow, ard, wooden]
   shortDescription: wooden plough

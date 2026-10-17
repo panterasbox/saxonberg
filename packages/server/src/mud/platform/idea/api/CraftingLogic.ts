@@ -3251,7 +3251,10 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   // ⭐⭐ The assembly rungs come FIRST (assembly D6): a slack hoop is not
   // wear, so a sound cask whose hoops have slipped reads as "nothing to
   // repair" to the wear rung below — and it weeps all the same.
-  const assembled = MixinApi.isAssembled(item);
+  // ⭐ A thing of ONE piece has no rungs — it is mended on its own fields
+  // (repair D8): the found-vs-materialized seam the mixin owns, read once
+  // here at the top of the ladder.
+  const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
   if (assembled) {
     const { tools: jointTools } = await gatherMatter(location, maker);
     const rung = await repairAssemblyRungs(item, maker, jointTools);
@@ -3766,6 +3769,9 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (!MixinApi.isAssembled(whole)) {
     return { ok: false, reason: 'no-line', detail: 'not-an-assembly' };
   }
+  // ⭐ The mixin's own answer (repair D4): a thing with no bill is ONE
+  // piece, and there is no line in it to fit anything to.
+  if (whole.isOnePiece()) return { ok: false, reason: 'no-line', detail: 'one-piece' };
   whole.ensureParts();
   const tplPath = part.getTemplatePath() ?? '';
   // ⭐ A part fits a line when it is the same KIND of thing: the same row,

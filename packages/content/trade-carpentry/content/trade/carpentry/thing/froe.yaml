@@ -10,7 +10,7 @@
 # competence). That is the by-hand rung making the hand-tool rung's
 # tools (assembly AC 21) — the knife carves the handle, the handle and
 # the blade are a froe, the froe rives the next blank.
-class: /platform/thing/AssembledTool
+class: /platform/thing/Tool
 data:
   keywords: [froe, frow, riving-knife, "riving knife"]
   shortDescription: froe

@@ -1481,6 +1481,41 @@ touched pack's vitest.
 
 **Commit.** `refactor(assembly): the mixin composes on the FAMILIES — a monolith is one piece; the Assembled* twins retire (repair W1)`
 
+> ✅ **W1 done (2026-10-17).** The nine twins are deleted and their **23**
+> rows (not 24) re-point. Decisions the build made, for review:
+> - **D7 7b found SEVEN rows, not one.** Once `Tool` composes the mixin,
+>   every `tangible` two-part recipe output with no bill is parts when
+>   crafted and one piece when found: the billhook (W5 declares it), and
+>   mining's shovel, sledge, assay kit and miner's dial, drilling's
+>   pressure gauge and bailer. Declaring those six means inventing part
+>   rows (a shovel blade, a dial body…) and either splitting each trade's
+>   one-step make or growing arm 8's census — scope the requirements never
+>   touched. **Decided: 7b is census-then-ratchet** (`UNDECLARED_ASSEMBLIES`,
+>   seven named with why, may only fall), the shipped behaviour for those
+>   six is unchanged (the mint already recorded slot-named lines on an
+>   Assembled output — the assembly build's *the pick needs no bill*), and
+>   each is its trade's to declare. Lens 2 decided: they already work as
+>   parts by recipe, with no code.
+> - **Arms 7b, 7d and 8, and `RecipeCatalogue.recipeFor`, read only
+>   `tangible` recipes.** A `bulk` recipe FILLS a vessel (the dough fills
+>   the trough, the rennet the jar); counting it would have recorded *egg*
+>   and *salt* as parts of a trough, and made the trough's mend trade
+>   baking. The mint already ran the parts arm for `tangible` only.
+> - **7d exempts stock**: `Timber` composes Durable now (D5) and is a
+>   recipe output (hafts, grips), but a stave is not a whole — it goes
+>   INTO one. A `Stackable` class is exempt; the plan had not seen the
+>   collision between D5 and 7d. 7d's census closed at **0** (CookPot).
+> - **D8's top-of-ladder seam landed here, not W2**: a one-piece Weapon
+>   (now Assembled) walked `repairAssemblyRungs` and asked for the joint
+>   catalogue — `repairImpl` reads `isAssembled && !isOnePiece()` once.
+> - `fit x to <one-piece>` refuses `no-line`/`one-piece` (*It is one piece
+>   — there is nothing in it to fit anything to.*); `FitController`'s
+>   mis-bind correction treats a one-piece whole as not made of parts.
+> - `ResponseReading` prints `edge:` only for an edge/point form.
+> - `lint:field-meta` needed no re-snapshot (its golden does not list
+>   runtime-state fields); the wiki-spoiler log gained `Vat.emptySince`
+>   (was `Cask.emptySince`) and `Timber.condition`.
+
 ### W2 — the mend, and what it reads like
 
 **Goal.** A mend is per line, under the line's trade, at the hand's

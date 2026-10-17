@@ -139,7 +139,10 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       for (const kw of recipe.getKeywords()) {
         byKeyword.set(kw.toLowerCase(), id);
       }
-      const out = recipe.getOutputTemplate();
+      // ⭐ Only a recipe that MAKES a thing — a `bulk` recipe fills a
+      // vessel, and the dough did not make the trough.
+      const out =
+        recipe.getOutputApplication() === 'tangible' ? recipe.getOutputTemplate() : '';
       const prior = out ? byOutput.get(out) : undefined;
       if (out && (prior === undefined || id < prior)) byOutput.set(out, id);
     }

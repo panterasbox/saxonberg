@@ -49,6 +49,16 @@
  * `PortableLight` stays for lights that burn **nothing**: the glowcap
  * jar and its fixture, which are a fungus.
  *
+ * ## Parts or one piece (repair D4, D6)
+ *
+ * A lantern is a tin body, a glass pane seated in it and a wick that
+ * wears; a torch is one piece. One class: the family composes `Crafted`,
+ * `Durable` and `Assembled` OUTSIDE the light stack (Burner stays the
+ * outermost of the fire mixins), and its light comes THROUGH its facing
+ * lines — a cracked pane darkens the room. ⭐ `getEmittedFlux` is the ONE
+ * funnel for what a pane does to the light; a thing with no lines is
+ * unchanged. (`Lantern` folded in 2026-10-17.)
+ *
  * ## Heat
  *
  * A lamp's `burnTemperatureK` defaults to **330 K** — the case, not the
@@ -66,6 +76,22 @@ import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
 import { MixinApi } from '../../api/mixin';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AssembledMixin } from '../../lib/craft/Assembled';
+import { CraftedMixin } from '../../lib/craft/Crafted';
+import { Quantity } from '../../lib/quantity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
+
+/** Numeric AppSetting read with the seeded fallback. */
+function lampDial(key: string, fallback: number): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(key));
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * Lamp dials. Playtest-tuned, not plan decisions.
@@ -89,8 +115,12 @@ const LAMP = {
   MAX_BURN_POWER_W: 300,
 } as const;
 
-const LampBase = BurnerMixin(
-  LightSourceMixin(BulkableMixin(ThermalMixin(Good))),
+// Crafted: a fitted lantern is stamped like anything else made. Durable
+// beneath Assembled: an assembly's wear has to have somewhere to go.
+const LampBase = AssembledMixin(
+  CraftedMixin(
+    DurableMixin(BurnerMixin(LightSourceMixin(BulkableMixin(ThermalMixin(Good))))),
+  ),
 );
 
 export default class Lamp extends LampBase {
@@ -119,5 +149,22 @@ export default class Lamp extends LampBase {
     if (!MixinApi.isBulkable(self)) return null;
     if (self.getBulkCapacity('interior') === null) return null;
     return self.getBulk('interior');
+  }
+
+  /**
+   * ⭐ A lamp's light comes THROUGH its facing lines (assembly D8, AC 11):
+   * a failed facing line — a cracked pane — lets out a fraction of it, and
+   * the room it lights is darker for it. Replace the pane and the room
+   * brightens. The ONE funnel for what a pane does to the light (repair
+   * P2) — a torch has no lines and is unchanged.
+   */
+  public override getEmittedFlux(): Quantity<'lumen'> {
+    const flux = super.getEmittedFlux();
+    let factor = 1;
+    for (const line of this.getParts()) {
+      if (line.role !== 'facing' || line.failed <= 0) continue;
+      factor *= lampDial(AppSettingKeys.lampCrackedGlassFlux, 0.35);
+    }
+    return factor === 1 ? flux : Quantity.of(flux.rawValue() * factor, 'lumen');
   }
 }
