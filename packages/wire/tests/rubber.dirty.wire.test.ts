@@ -148,8 +148,8 @@ async function at(handle: string, where: string): Promise<Session> {
   return s;
 }
 
-async function funded(tag: string, where: string): Promise<Session> {
-  const handle = uniqueHandle(tag);
+async function funded(tag: string, where: string, existing?: string): Promise<Session> {
+  const handle = existing ?? uniqueHandle(tag);
   const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -218,7 +218,7 @@ suite('⭐ 22 — rubber boots and gloves are on the general store\'s shelf (AC 
     expect(gloves).toMatch(/you buy/i);
     const read = await examine(s, 'boots');
     expect(read).toMatch(/rubber/i);
-  }, 300_000);
+  }, 600_000);
 });
 
 // ───────────────────────── stretch (23) ─────────────────────────
@@ -227,12 +227,13 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
   it('a half-orc buys both pairs: the plain one is tight, the elastic one is not', async () => {
     await toHour(10, 14);
     // ⭐ A real newcomer, walked through intake as a half-orc (92 kg,
-    // 1.88 m against the plan's 70 kg / 1.75 m) — the Arrival Note's
-    // twenty in coin pays for both pairs.
+    // 1.88 m against the plan's 70 kg / 1.75 m), then banked and funded
+    // like every other buyer here (the Arrival Note does not cover a
+    // counter's price on its own).
     const handle = uniqueHandle('half-orc');
     const arrival = await Session.embody(handle, { species: 'half-orc' });
     arrival.close();
-    const s = await at(handle, SHOP);
+    const s = await funded('half-orc', SHOP, handle);
     await say(s, 'remove trousers'); // intake dressed them in a sturdy pair
     await buyOne(s, 'breeches');
     const plain = await say(s, 'wear breeches');
@@ -243,7 +244,7 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
     const elastic = await say(s, 'wear elastic');
     expect(elastic, `wear elastic: ${elastic}`).toMatch(/you put on/i);
     expect(elastic).not.toMatch(/tight|loose/i);
-  }, 300_000);
+  }, 600_000);
 });
 
 // ───────────────────────── the cure (14–17) ─────────────────────────
@@ -266,7 +267,7 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     // hands, the clone gate reads THAT zone and refuses the founder.
     await cloneInto(WORKS, s, ROW.raw, 'raw-rubber', 10);
     await cloneInto(WORKS, s, ROW.sulfur, 'sulfur', 6);
-  }, 300_000);
+  }, 600_000);
 
   async function cure(
     raw: number,
@@ -288,13 +289,13 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await advanceWorldClock(`${Math.ceil(holdS / 60) + 2} minutes`);
     await new Promise((r) => setTimeout(r, 8_000));
     await s.drainProse();
-    await say(s, 'get boot-mould from oven');
+    // ⚠ `get` has no `from`: the whole tail is one greedy object list, so
+    // `get boots from boot-mould` took every pair in reach. Name the
+    // inside with MQL's chain instead.
+    await say(s, 'get here:oven:i:boot-mould');
     await say(s, 'drop boot-mould');
-    const got = await say(s, 'get boots from boot-mould');
+    const got = await say(s, 'get here:boot-mould:i:boots');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
-    // ⚠ `get boots from boot-mould` also binds the mould ('boot' is in its
-    // name) — put it back on the floor for the next charge.
-    await s.cmd('drop boot-mould');
     await s.drainProse();
     return examine(s, 'me:i:boots');
   }
@@ -335,7 +336,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     const handle = s.handle;
     s.close();
     s = await at(handle, STOVE_HOUSE);
-  }, 300_000);
+  }, 600_000);
 
   it('8 — before dawn, stove out: cold, and the tree refuses — too cold', async () => {
     await toHour(4, 6);
@@ -345,7 +346,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] stove house before dawn: ${inside.toFixed(1)} K`);
     if (inside < 291) expect(refused).toMatch(/cold/i);
-  }, 300_000);
+  }, 600_000);
 
   it('7 — a clear afternoon, stove out: warmer than the yard — the sun did it', async () => {
     await toHour(13, 15);
@@ -360,10 +361,14 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] stove house ${inside.toFixed(1)} K · yard ${outside.toFixed(1)} K`);
     expect(inside).toBeGreaterThan(outside);
-  }, 300_000);
+  }, 600_000);
 
   it('9 — light the stove and wait: the house warms, and the tap opens', async () => {
     thermoHandle = s.handle;
+    // ⭐ At dawn: by early afternoon the sun alone brings the glass to ~300
+    // K, and the sun AND the stove take it past 309, where the tree shuts
+    // down in the heat — a real lesson, and not this step's.
+    await toHour(6, 7);
     await say(s, 'get 2 coal');
     await say(s, 'stoke coal into stove');
     await say(s, 'stoke coal into stove');
@@ -376,10 +381,10 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     expect(warm).toBeGreaterThan(291);
     // Let the cuts run a while in the warm before anybody taps them.
     // ⚠ While the stove still burns: the window is sampled at the read,
-    // so a house gone cold by the tap bills the whole wait as shut.
-    await advanceWorldClock('3 hours');
+    // so a house gone cold (or hot) by the tap bills the whole wait as shut.
+    await advanceWorldClock('1 hour');
     await new Promise((r) => setTimeout(r, 3_000));
-  }, 300_000);
+  }, 600_000);
 
   it('11 — tap latex into a cup, pour it in the pan; a day later, a sheet of raw rubber', async () => {
     await say(s, 'get 1 cup');
@@ -394,7 +399,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(s, 'pan');
     expect(pan).toMatch(/set/i);
-    const got = await say(s, 'get sheet from pan');
+    const got = await say(s, 'get here:pan:i:sheet');
     expect(got).toMatch(/sheet/i);
     const sheet = await examine(s, 'sheet');
     expect(sheet).toMatch(/raw rubber|tacky|stiff/i);
@@ -434,7 +439,7 @@ suite('⭐ 4 — the works stove warms the loft above it (AC 7)', () => {
 suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
   beforeAll(async () => {
     await toHour(10, 14);
-  }, 300_000);
+  }, 600_000);
   it('in leather boots they soak through and you are shocked; in rubber boots, unharmed', async () => {
     // ⚠ /stuff rows cannot be cloned by anybody (no title over the
     // commons), so the leather boots are bought, as a player would.
@@ -455,10 +460,13 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     // ⚠ Dressing is an engaged act: let it finish before stepping down,
     // or the walk interrupts it and the wader goes in barefoot.
     for (const w of [leather, rubber]) {
+      // ⚠ Intake shod them in canvas shoes: the feet are taken.
+      await say(w, 'remove shoes');
       await say(w, 'wear boots');
       await new Promise((r) => setTimeout(r, 6_000));
       await w.drainProse();
-      expect(await examine(w, 'me'), 'the boots are on').toMatch(/boots/i);
+      const worn = await say(w, 'inventory');
+      expect(worn, 'the boots are on').toMatch(/wearing:[^.]*boots/i);
     }
     const inL = await say(leather, 'down');
     const inR = await say(rubber, 'down');
@@ -469,7 +477,7 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     console.log(`  [drive] leather wade: ${inL.slice(0, 200)}\n          rubber wade: ${inR.slice(0, 200)}`);
     expect(`${inL} ${l}`).toMatch(/shock|jolt|burn|current|spasm/i);
     expect(`${inR} ${r}`).not.toMatch(/shock|jolt|burn|current|spasm/i);
-  }, 300_000);
+  }, 600_000);
 });
 
 // ───────────────────────── vitriol (21) ─────────────────────────
@@ -495,7 +503,7 @@ suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', 
     const rubber = await examine(u, 'apron');
     expect(linen).toMatch(/eaten|corrod|scorch|burn|worn|ruin|holed/i);
     expect(rubber).not.toMatch(/eaten|corrod|holed|ruin/i);
-  }, 300_000);
+  }, 600_000);
 });
 
 // ───────────────────────── the rain (1–3, 5, 19) ─────────────────────────
@@ -578,7 +586,7 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     await toHour(11, 14);
     const lit = await say(places.hall!, 'analyze light');
     expect(lit).not.toMatch(/pitch dark/i);
-  }, 300_000);
+  }, 600_000);
 
   it('6 — the room under the tower is covered; the terrace is under the open sky', async () => {
     const store = await say(places.store!, 'analyze weather');

@@ -2198,3 +2198,23 @@ Read first, in this order:
 *(appended at build time — the output of `packages/wire/tests/
 rubber.dirty.wire.test.ts` against a freshly dropped world, run count,
 and what each run found.)*
+
+Each run is `reset:db` → a fresh world on 2014 → the whole file. What the
+runs found, in the order they found it (✔ = fixed and committed):
+
+| run | finding | fix |
+|---|---|---|
+| 1–3 | the harness's own grammar: `put` takes from the hand into a peer; `stoke <fuel> into <burner>`; quoted MQL args break, so one-word keywords (`boot-mould`, `raw-rubber`); `get boots from boot-mould` binds the mould too | ✔ the drive |
+| 1–3 | a founder `clone --into <handle>` falls back to the founder, and the clone gate reads the FIRST live instance's zone — once a lump is in a player's hands every later clone is refused | ✔ clone `--here` then `get`; all stock cloned up front; anything already live is BOUGHT |
+| 4 | an under-cured boot read exactly like a good one (the boot row's prose is authored for the good cure) | ✔ `FireController`: an off-cure cast appends *"It is \<appearance\>."* |
+| 5 | ⭐ the Hevea read its OWN 290 kg body, not the house: a planted tree stands in its pot's SLOT, and `windowAirK` only walked `getContainer()` | ✔ `windowAirK` steps out through `getOccupiedHost()` |
+| 5 | cloned raw rubber came out at a `Casting`'s pour heat — it scalded the hand and would not move | ✔ the four cast rows stamp 290 K |
+| 6 | killed by Claude Code: the machine ran out of memory (four worktrees' servers) | — |
+| 7 | ⭐ the tree read the LAST integrated envelope (`getOwnTemperatureK`), so it tapped in a house its own thermometer called 284 K | ✔ `windowAirK` reads `envelopeTemperatureSync()` |
+| 7 | a stem with every cut open and an empty pail answered *"will not take another spile at this girth"* | ✔ `SapStandard`: *"Nothing has run into it yet"* (the girth lesson kept for a player holding a spile) |
+| 7 | the tap window is SAMPLED AT THE READ (taps.md's stated abstraction): a ten-hour wait outlasted the stove's coal and billed the whole wait as shut | ✔ the drive taps while the stove burns |
+| 7 | a firing never said what heat it held, which is the input the cure turns on | ✔ *"settle in to hold it at about 430 K"* |
+| 7 | step 18's rubber boots were cloned — refused (step 22's pair is live); dressing is engaged and `down` straight after it walked in barefoot | ✔ bought; dressing waited out |
+| 7 | the rain hook (ten logins) ran out of its 15 minutes on a loaded machine | ✔ 30 minutes |
+| 8 | a newcomer's Arrival Note does not cover a counter price on its own (*"You can't cover …"*) — economic-bootstrap's shape, not rubber's | ✔ step 23 banks and funds the half-orc |
+

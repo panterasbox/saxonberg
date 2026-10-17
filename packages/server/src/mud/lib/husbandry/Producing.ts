@@ -156,6 +156,8 @@ export interface TapTake {
 export interface Producing extends Tappable {
   /** Reconcile every tap over elapsed game-time. Sync, read-triggered. */
   reconcileProduction(): void;
+  /** Refresh the air at this producer's place before a window is read. */
+  bringTapAirCurrent(): Promise<void>;
   /** The taps this animal's species authors. */
   taps(): readonly TapSpec[];
   /** What is standing in one tap, reconciled. */
@@ -477,34 +479,61 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private windowAirK(): number | null {
       const self = this as unknown as Stuff;
-      // ⚠ A planted tree stands in its pot's SLOT, not its contents: step
-      // out through whichever holds it (found by the rubber drive — the
-      // stove house's trees read their own bodies, not the house).
+      const place = this.tapAirPlace();
+      if (place !== null) {
+        // ⚠ Brought CURRENT, not the last integrated figure: a tree that
+        // reads a stale envelope taps in a house the thermometer beside
+        // it calls cold (found by the rubber drive, 284 K before dawn).
+        const air = place as Stuff & Atmospheric;
+        const own = air.envelopeTemperatureSync() ?? air.getOwnTemperatureK();
+        if (own !== null) return own;
+        try {
+          return BiomeApi.airFor(place).tempK;
+        } catch {
+          // fall through to the host's own body
+        }
+      }
+      if (MixinApi.isThermal(self)) return self.getTemperature()?.rawValue() ?? null;
+      return null;
+    }
+
+    /**
+     * The nearest scope with air of its own, walking out from the host.
+     * ⚠ A planted tree stands in its pot's SLOT, not its contents: step out
+     * through whichever holds it (found by the rubber drive — the stove
+     * house's trees read their own bodies, not the house).
+     */
+    private tapAirPlace(): Stuff | null {
       const outward = (s: Stuff): Stuff | null => {
         const c = MixinApi.isContainable(s) ? s.getContainer() : null;
         if (c !== null) return c;
         return MixinApi.isSlottable(s) ? s.getOccupiedHost() : null;
       };
-      let cursor: Stuff | null = outward(self);
+      let cursor: Stuff | null = outward(this as unknown as Stuff);
       let depth = 16;
       while (cursor !== null && depth-- > 0) {
-        if (MixinApi.isAtmospheric(cursor)) {
-          // ⚠ Brought CURRENT, not the last integrated figure: a tree that
-          // reads a stale envelope taps in a house the thermometer beside
-          // it calls cold (found by the rubber drive, 284 K before dawn).
-          const air = cursor as Stuff & Atmospheric;
-          const own = air.envelopeTemperatureSync() ?? air.getOwnTemperatureK();
-          if (own !== null) return own;
-          try {
-            return BiomeApi.airFor(cursor).tempK;
-          } catch {
-            break;
-          }
-        }
+        if (MixinApi.isAtmospheric(cursor)) return cursor;
         cursor = outward(cursor);
       }
-      if (MixinApi.isThermal(self)) return self.getTemperature()?.rawValue() ?? null;
       return null;
+    }
+
+    /**
+     * ⭐ Bring the air at this producer's place current before a window
+     * is read (rubber build). The envelope's synchronous read integrates
+     * against the OUTSIDE temperature it last fetched, which only the
+     * async resolve refreshes — so a tree asked at dawn, after a night
+     * nobody measured, answered with the afternoon's outside air. The
+     * act is async; the window is not; this is the seam between them.
+     */
+    public async bringTapAirCurrent(): Promise<void> {
+      const place = this.tapAirPlace();
+      if (place === null) return;
+      try {
+        await BiomeApi.resolveTemperatureFor(place);
+      } catch {
+        // an unresolvable place reads as before
+      }
     }
 
     public biomeWindowOpen(_spec: TapSpec): boolean {
@@ -796,6 +825,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           prose: this.tapRefusal(key, 'wrong-sex'),
         };
       }
+      await this.bringTapAirCurrent();
       const window = this.tapWindow(key);
       if (!window.open && window.reason !== null) {
         return {

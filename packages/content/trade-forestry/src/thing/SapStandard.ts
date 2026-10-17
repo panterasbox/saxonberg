@@ -179,6 +179,7 @@ export default class SapStandard extends SapStandardBase {
     // boring a hole into a stem that will not run for three months, and
     // the sentence a player wants is about the season rather than about
     // their auger.
+    await this.bringTapAirCurrent();
     const window = this.tapWindow(key);
     if (!window.open && window.reason !== null) {
       return {
