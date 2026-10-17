@@ -860,3 +860,12 @@ ingot. ⓘ The dairy build first shipped a narrower driver for
 non-`liquid` pools only (to spare tallow crocks); the climate build's
 general rule superseded it at the merge, and the chandlery's own suite
 passes under it.
+
+- **2026-10-16 (dairy build, the smelt).** ⚠ *A cached ambient is stale
+  until a restamp.* A crucible put into an unlit furnace caches the room
+  as its ambient; a furnace that later went out in a preheat and came
+  back alight with the charge left the pot drifting toward the cold room
+  inside a lit furnace, and the copper run into it set before the pour.
+  `SmeltController.runIntoCrucible` now restamps the crucible and sets
+  both ends of the run to the furnace's heat before the transfer. Which
+  path back to *lit* skips `restampHeated` is not traced.

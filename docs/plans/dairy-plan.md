@@ -1,6 +1,6 @@
 # Dairy — implementation plan
 
-Executes [dairy-requirements.md](../requirements/dairy-requirements.md)
+Executes `dairy-requirements.md` (retired at the 2026-10-16 sweep; in git history)
 (as revised at `d12166754` — moulds). **Revised 2026-10-10: moulds** — D9
 and everything that hung on it (the press, the hoop, the wheel's row, the
 `mould` verb) were reopened with the user; the revised decisions are
@@ -1894,7 +1894,7 @@ Clean attach points, each with the slate it leaves to.
 
 Read first, in this order:
 
-1. `docs/requirements/dairy-requirements.md` — the product; the drive.
+1. `docs/requirements/dairy-requirements.md` (retired; git history) — the product; the drive.
 2. `packages/server/src/mud/lib/maturation/Maturing.ts` (l.538–760,
    806–900, 1080–1160) and `MaturationProfile.ts` (l.95–350).
 3. `packages/server/src/mud/lib/fractionation/Fractionating.ts` (l.255–380,

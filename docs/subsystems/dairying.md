@@ -102,3 +102,13 @@ recipes. Competence grades; it never gates.
 - ⚠ The kill curve is about half as temperature-sensitive as real milk
   pathogens (flash pasteurization under-kills) → a finding on
   `spoilage.md`.
+
+## History
+
+- **2026-10-16 — the browser walks.** Three pails in the byre and two at
+  the goat pen (more than one milker); the creamery and its cheese room
+  each HANG a lantern (`adornments:` — a lamp loose among the props lights
+  nothing), and the creamery authors `extent: 5`, because every Delight
+  room otherwise takes the zone's 20 m cell and a 400 m² room reads
+  `very-dim` under any lantern. The cheese room keeps the cell: sized, its
+  racked wheel spoiled (suspected atmosphere, not traced).
