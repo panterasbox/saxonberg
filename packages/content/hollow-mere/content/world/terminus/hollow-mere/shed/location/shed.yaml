@@ -17,3 +17,8 @@ data:
       destination: /world/terminus/hollow-mere/location/road
       media: [ground]
       edgeMinutes: 1
+  # The crew's shed out of season: the cutter and the boss stand here when
+  # the roster does not have them on the ice.
+  cast:
+    - /world/terminus/hollow-mere/agent/cutter
+    - /world/terminus/hollow-mere/agent/ice-boss

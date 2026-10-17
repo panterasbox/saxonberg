@@ -20,5 +20,7 @@ data:
     south:
       destination: /world/terminus/hollow-mere/icehouse/location/platform
       media: [ground]
+  cast:
+    - /world/terminus/hollow-mere/agent/house-hand
   props:
     - /world/terminus/hollow-mere/icehouse/thing/stack

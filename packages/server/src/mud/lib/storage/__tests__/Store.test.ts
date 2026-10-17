@@ -159,7 +159,7 @@ async function seeded(
 ): Promise<{ room: CartesianLocation; store: Stockpile }> {
   const room = shed(volumeM3);
   const store = stack(room);
-  store.seedLines = [
+  store.initialLines = [
     { goodPath: BLOCK, amountKg: iceKg, grade: 'black', state: { temperatureK: 273.15 } },
     ...(dustKg > 0
       ? [{ goodPath: PACK, amountKg: dustKg, state: { saturation: dustSaturation } }]
@@ -385,7 +385,7 @@ describe('the icehouse arithmetic (D4) — the three inequalities, derived', () 
   it('a cold winter shed melts nothing', async () => {
     const room = shed(48, 260);
     const store = stack(room);
-    store.seedLines = [{ goodPath: BLOCK, amountKg: 20_000, state: { temperatureK: 270 } }];
+    store.initialLines = [{ goodPath: BLOCK, amountKg: 20_000, state: { temperatureK: 270 } }];
     await store.seedFromRow();
     await store.reconcile();
     advanceDays(5);
@@ -407,5 +407,31 @@ describe('persistence — the ledger round-trips through materialize', () => {
     await PersistableApi.materialize(fresh);
     expect(fresh.getLines().map((l) => [l.poolKey, l.amountKg]).sort()).toEqual(want);
     expect(want.length).toBe(2);
+  });
+});
+
+describe('⭐ the seed is laid down by the hydration source (a fresh house)', () => {
+  it('a stack with no record seeds its row; a second hydration does not seed again', async () => {
+    const room = shed(48);
+    const store = stack(room);
+    // ⚠ Through the APPLIER, as a row's clone runs it (the drive, run 1:
+    // an authorable-only field reached the instance as nothing, and a test
+    // that assigned the field directly could not see it).
+    const applier = StuffApi.findByTemplatePath<TemplateApplier>(TemplateApplier.templatePath)!;
+    await applier.apply(
+      store,
+      {
+        initialLines: [
+          { goodPath: BLOCK, amountKg: 20_000, grade: 'black', state: { temperatureK: 272 } },
+          { goodPath: PACK, amountKg: 2_000, state: { saturation: 0 } },
+        ],
+      },
+      { mode: 'mint' },
+    );
+    const out = await Stockpile.hydrateFromSource(store);
+    expect(out.status).toBe('hydrated');
+    expect(iceKg(store)).toBeCloseTo(20_000, 0);
+    await Stockpile.hydrateFromSource(store);
+    expect(iceKg(store)).toBeCloseTo(20_000, 0);
   });
 });

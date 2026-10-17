@@ -2438,3 +2438,40 @@ Read first, in this order, with the lines cited in § Grounding:
 
 *(appended at build time, not at plan time — the output of running the
 requirements doc's drive script, the count, and what each failure was.)*
+
+The drive is `packages/wire/tests/storage-and-ice.dirty.wire.test.ts`,
+booted as an owned world on `WIRE_PORT=2019` against a dropped
+`saxonberg_build4` (one fresh day-0 world per run).
+
+**Run 1 (2026-10-17) — 6/21.** What it found, beyond harness mistakes
+(the `inventory` MQL seed is not a seed; the mill finishes on the GAME
+clock; a clock jump of 280 days outran the 300 s default):
+
+1. ⭐⭐ **Both icehouses booted EMPTY.** The TemplateApplier's phase 1
+   writes `persistent` fields only; `seedLines` was `authorable` only, so
+   the row's value reached the instance as nothing — silently — and the
+   unit tests assigned the field by hand and could not see it. Fix: the
+   field is now `initialLines`, a **`seed: true`** field (the applier's
+   mint-only phase 3, whose once-ness the ledger owns): `seedInitialLines`
+   holds the lines, and the hydration source lays them down only when no
+   record restored a ledger. A Store test now drives the real applier.
+   This one defect explained four checkpoints: no face to `get`, nothing
+   for the counter to bring up, no heat sink (the house read the outside
+   air), nothing to withdraw.
+2. **No ice-company agent was ever placed** — no room `cast:` them, so
+   the keeper never stood at the platform (`no-keeper` on every deposit).
+   Keeper → the platform, house hand → the house, cutter and boss → the
+   company's shed out of season (`lint:openings` refused them on the road,
+   a room the house does not operate; the shed is now operated).
+3. **`look stack` never showed the ledger in words** — `Stockpile`
+   overrode `getLongDescription`, and `look` reads `getLong()`.
+4. **A sold-out store-fed line said "isn't for sale"** for `buy block`:
+   `carriesLine` matched only the whole leaf (`ice-block`) while
+   `bringUpFor` matched any word of it. Both now take a word of the leaf.
+5. `get ice` in the house took the lantern ("icehouse lantern" matched
+   `ice`); the lantern is a *storm lantern* now.
+6. ✅ Held on the first run: the break-through on day 0 (*"You go into the
+   water, and it closes cold over you. You're shivering."*), refused to
+   stand on broken ice, refused to walk out of the water, swam to shore,
+   soaked; the counter's price rose from 6 to 9 over the summer (days of
+   supply); the estuary swim wets you; the crossroads road links.

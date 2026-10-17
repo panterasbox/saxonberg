@@ -263,9 +263,9 @@ export default class Stock extends StockBase {
    * live browser drive hit on its second run, because every new tackle
    * line is `par: 1`.
    *
-   * ⚠ The leaf is the whole match: a player who types a word the shelf
-   * list does not print (`cane` for `…/thing/rod`) still gets the
-   * honest `not-on-shelf` refusal. Matching a row's keywords would want
+   * ⚠ The leaf (or one of its words) is the whole match: a player who
+   * types a word the shelf list does not print (`cane` for `…/thing/rod`)
+   * still gets the honest `not-on-shelf` refusal. Matching a row's keywords would want
    * the template, which is an async read this refusal path does not
    * have.
    */
@@ -276,7 +276,10 @@ export default class Stock extends StockBase {
       const leaf = (l.itemTemplatePath.split("/").pop() ?? "")
         .toLowerCase()
         .replace(/[-_]/g, " ");
-      return leaf === want;
+      // A word of the leaf names the line too (`block` for `ice-block`) —
+      // the same rule `bringUpFor` brings a store-fed line up by, so the
+      // two never disagree about what the counter sells.
+      return leaf === want || leaf.split(" ").includes(want);
     });
   }
 

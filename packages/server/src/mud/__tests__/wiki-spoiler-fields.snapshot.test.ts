@@ -51,7 +51,7 @@
  *     EXACT stock; how much is really in a house is what a stocktake
  *     (`measure stock`) earns by competence, bracketed — the keeper's
  *     book is a claim, the lines are the truth. `capacityKg`,
- *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `seedLines` —
+ *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `initialLines` —
  *     level 0: the size of a house, the shape of a stack, its floor, what
  *     it takes and what it was built with are seen by walking in.
  *   - W3: `StoreMixin.businessPath` / `keeperPositions` / `terms` /

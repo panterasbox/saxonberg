@@ -33,7 +33,7 @@ export interface StoreLine {
   lastReconciledS: number;
 }
 
-/** An authored seed line (`seedLines:` on a store row) — laid down once. */
+/** An authored seed line (`initialLines:` on a store row) — laid down once. */
 export interface StoreSeedLine {
   /** The row the line holds. */
   goodPath: string;

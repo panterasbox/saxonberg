@@ -135,8 +135,14 @@ export interface Store {
   reconcile(): Promise<void>;
   /** Wait for in-flight arrivals and re-facing to settle. */
   whenSettled(): Promise<void>;
-  /** Lay the authored `seedLines` down — once, on a store with no lines. */
+  /** Lay the authored `initialLines` down — once, on a store with no lines. */
   seedFromRow(): Promise<boolean>;
+  /**
+   * @hook The template applier's phase-3 call for `initialLines:` — it
+   *   only HOLDS the lines: whether the world already remembers this store
+   *   is the hydration source's question, which runs after it.
+   */
+  seedInitialLines(lines: readonly StoreSeedLine[]): Promise<void>;
   /** The heat this store pulls from its room (the {@link RoomHeatExchange} protocol). */
   roomHeatExchange(): RoomHeatExchange;
   /** Days the stock of `goodPath` lasts at its current loss + draw. */
@@ -186,9 +192,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       drainage: { persistent: true, authorable: true },
       acceptsPoolKeys: { persistent: true, authorable: true },
       // ⚠ Authored, NOT persistent: what a store is seeded with is
-      // content; once the ledger exists it is play (the
-      // `MarketStalls.pitches` rule).
-      seedLines: { authorable: true },
+      // content; once the ledger exists it is play. A `seed` field — the
+      // applier's mint-only phase 3 — because phase 1 writes persistent
+      // fields only, and an authorable-only key reached the instance as
+      // NOTHING (the drive, run 1: both Hollow Mere houses booted empty).
+      initialLines: { authorable: true, seed: true },
       // ── custody (D6) ──
       businessPath: { persistent: true, authorable: true, authorPicker: 'Template' },
       keeperPositions: { persistent: true, authorable: true },
@@ -207,7 +215,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /** The pool keys this store takes, or `null` for any pooled good. */
     public acceptsPoolKeys: string[] | null = null;
     /** What the row seeds the ledger with on first creation. */
-    public seedLines: StoreSeedLine[] = [];
+    public initialLines: StoreSeedLine[] = [];
     /** The business that keeps this store — the bailee on every receipt. */
     public businessPath = '';
     /** The positions whose holders may take a deposit (the Stock `serverPositionKeys` shape). */
@@ -517,14 +525,18 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     // ─────────────────────────── seeding ───────────────────────────
 
     /**
-     * Lay down the authored `seedLines` — once, on a store whose ledger is
+     * Lay down the authored `initialLines` — once, on a store whose ledger is
      * empty (the no-record branch). Each seed mints ONE exemplar, which
      * becomes the line's face; the amount is the line's.
      */
+    public async seedInitialLines(lines: readonly StoreSeedLine[]): Promise<void> {
+      this.initialLines = [...lines];
+    }
+
     public async seedFromRow(): Promise<boolean> {
-      if (this.lines.length > 0 || this.seedLines.length === 0) return false;
+      if (this.lines.length > 0 || this.initialLines.length === 0) return false;
       const now = nowS();
-      for (const seed of this.seedLines) {
+      for (const seed of this.initialLines) {
         if (!seed.goodPath || !(seed.amountKg > 0)) continue;
         const made = await StuffApi.clone<Stuff>(seed.goodPath);
         if (!MixinApi.isPoolable(made) || !MixinApi.isContainable(made)) {

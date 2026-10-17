@@ -22,6 +22,8 @@ data:
     north:
       destination: /world/terminus/hollow-mere/icehouse/location/house
       media: [ground]
+  cast:
+    - /world/terminus/hollow-mere/agent/keeper
   props:
     - /world/terminus/hollow-mere/icehouse/thing/counter
     - /world/terminus/hollow-mere/icehouse/thing/book

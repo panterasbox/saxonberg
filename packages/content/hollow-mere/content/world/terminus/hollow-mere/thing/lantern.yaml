@@ -3,7 +3,7 @@
 class: /generic-objects/thing/SconceLamp
 extends: /stuff/thing/fixture/sconce-lamp
 data:
-  shortDescription: icehouse lantern
+  shortDescription: storm lantern
   keywords: [lantern, lamp, light]
   on: true
   emittedIntensity: 600

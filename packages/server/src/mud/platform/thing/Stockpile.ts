@@ -12,7 +12,7 @@
  * Persistence is the `MarketStalls` shape: one fixture per row, keyless,
  * its own `holder_snapshots` record restored at hydration; the ledger is
  * the record, the faces ride with it as contents, and the authored
- * `seedLines` are laid down only when no record exists.
+ * `initialLines` are laid down only when no record exists.
  */
 
 import Holder from '../../lib/stuff/Holder';
@@ -63,8 +63,8 @@ export default class Stockpile extends StockpileBase {
    * capacity in bands, the packing's wetness — never a number. The face is
    * an ordinary content and shows as one.
    */
-  public override getLongDescription(): string {
-    const base = super.getLongDescription();
+  public override getLong(): string {
+    const base = super.getLong();
     const words = this.ledgerWords();
     return words ? `${base.trimEnd()}\n${words}` : base;
   }
