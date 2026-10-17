@@ -2511,3 +2511,32 @@ stood on the ice. Found:
    in late summer"* holds for a house that is running down. The drive
    asserts never-cheaper and logs both. **For the user's eye**: whether
    the horizon should instead be *days until the next harvest*.
+
+**Run 3 — 9/22.** Two silent defects, each fatal to half the drive, found
+by live probes against a long-lived world on 2019 (instrumented, then the
+probes removed):
+
+1. ⭐⭐ **The pool cited a water that was none of its features.** A shore
+   honours a `waters:` key only when the place has a `details:` feature
+   of the same name. Hollow Mere's pool and far bank had none, so
+   `waterFor()` answered *"There is no water here"* (`fish` on the mere),
+   and the ice sheet — which bound its reach from a settled read at attach
+   — never bound it at all: every walker went through ice that `analyze
+   water` said lay on the water. Content: a `mere` detail on both rooms.
+   **New gate `lint:water-citations`** (ceiling 0): the only trace had been
+   one boot-log warning. And the sheet now binds its reach from the pool's
+   CITATION on first use (`currentWaterRef` is sync for a still water) —
+   at boot the read was still pending, so even a well-cited pool would
+   have run reachless until restart.
+2. ⭐⭐ **`reconcileCover` erased a rostered proprietor.** The ice company's
+   keeper is also its appointing authority. Every pass that found the
+   house hand on shift took the keeper's own shift for a *cover* and
+   `endCover` deleted the house's employment from her, so the custody
+   verbs never found anybody keeping the book. A proprietor who holds a
+   seat on the house's own roster is now the roster's. Engine-wide: the
+   hearthworks smith has the same shape. Test in `EmploymentLogic.shiftMove`
+   (fails without the guard).
+3. Lifting the 60 kg plough is a soft body read (run 2 refused it, run 3
+   lifted it) — not a checkpoint; the drive no longer asserts it.
+4. A 287-day clock jump outran the fetch's 300 s headers timeout on the
+   loaded box; the drive jumps in 60-day chunks.

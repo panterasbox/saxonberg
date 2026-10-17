@@ -291,7 +291,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
 
   /* ───────────── 3–11. day 2: the harvest ───────────── */
 
-  it('⭐ 3. days on: the ice holds you; you cross and come back; the spud reads it', async () => {
+  it('⭐ 3. days on: the ice holds you; you cross and come back; the spud reads it; the solid field will not be fished', async () => {
     // ⚠ Day 3, not 2 (run 2): the sheet bears 92 kg at noon on day 2 and
     // the cutter is 70 kg with 23 kg of tools — physics, not a defect.
     await goto(SHORE);
@@ -311,24 +311,31 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expectOk(await k.cmd('south'));
     expect(await arrive(/Hollow Mere/i)).toMatch(/Hollow Mere/i);
     const read = await say('measure ice');
-    console.info(`  measure ice (day 2): ${read}`);
-    expect(read, read).toMatch(/read the ice at/i);
+    console.info(`  measure ice (day 3): ${read}`);
+    expect(read, read).toMatch(/read the ice at .* of (clear black ice|white snow-ice)/i);
+    // ⭐ 8 (first half). Fishing frozen water is refused in words — asked
+    // HERE, before any cut: a cut channel is open water (run 4).
+    const fish = await k.cmd('fish');
+    const why = refusal(fish);
+    const fishSaid = await fish.said();
+    console.info(`  fish (solid): ${why} — ${fishSaid.slice(0, 160)}`);
+    expect(why, 'fishing frozen water is refused').not.toBeNull();
+    expect(fishSaid, fishSaid).toMatch(/ice|frozen/i);
   });
 
   it('⭐ 4. scrape a patch: the snow is cleared', async () => {
     const said = await say('scrape');
     console.info(`  scrape: ${said.slice(0, 200)}`);
-    await new Promise((r) => setTimeout(r, 4000));
-    const look = await k.prose('look');
-    expect(look, look).toMatch(/scraped patch/i);
+    const ground = await k.prose('look ground');
+    console.info(`  look ground: ${ground.replace(/\n/g, ' | ').slice(0, 300)}`);
+    expect(ground, ground).toMatch(/scraped patch/i);
   });
 
   it('⭐ 6. mark the field: the grid is scored', async () => {
     const said = await say('mark');
     console.info(`  mark: ${said.slice(0, 200)}`);
-    await new Promise((r) => setTimeout(r, 4000));
-    const look = await k.prose('look');
-    expect(look, look).toMatch(/marked grid/i);
+    const ground = await k.prose('look ground');
+    expect(ground, ground).toMatch(/marked grid/i);
   });
 
   it('⭐ 7. cut a block: graded off the sheet, its mass from the thickness and grid; the cut shows', async () => {
@@ -340,25 +347,25 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(reach, reach).toMatch(/block of ice|ice block/i);
     const block = await examine('block');
     console.info(`  the block: ${block.slice(0, 400)}`);
-    const look = await k.prose('look');
-    expect(look, look).toMatch(/cut channel/i);
+    expect(block, block).toMatch(/black|clear/i);
+    const ground = await k.prose('look ground');
+    console.info(`  look ground: ${ground.replace(/\n/g, ' | ').slice(0, 300)}`);
+    expect(ground, ground).toMatch(/cut channel/i);
   });
 
-  it('⭐ 8. fishing the solid field is refused; a hole is cut; into the water at the channel and `stand` back onto the ice', async () => {
-    const fish = await k.cmd('fish');
-    const why = refusal(fish);
-    const fishSaid = await fish.said();
-    console.info(`  fish (solid): ${why} — ${fishSaid.slice(0, 160)}`);
-    expect(why, 'fishing frozen water is refused').not.toBeNull();
+  it('⭐ 8. a hole is cut and fished; into the water at the channel, then `stand` back onto the ice', async () => {
     await say('cut hole');
     await new Promise((r) => setTimeout(r, 15_000));
     await k.drainProse();
-    const look = await k.prose('look');
-    expect(look, look).toMatch(/hole is cut/i);
+    const ground = await k.prose('look ground');
+    expect(ground, ground).toMatch(/hole is cut/i);
     const fishAgain = await k.cmd('fish');
     const again = await fishAgain.said();
     console.info(`  fish (hole): ${refusal(fishAgain)} — ${again.slice(0, 160)}`);
     expect(again, again).not.toMatch(/frozen|through the ice/i);
+    // A second scraped patch for the reading after the cold (drive 5):
+    // `mark` took the first one for its grid.
+    await say('scrape');
     const swim = await k.cmd('swim');
     console.info(`  swim (into the channel): ${refusal(swim)} — ${(await swim.said()).slice(0, 160)}`);
     expect(refusal(swim), JSON.stringify(swim.notes)).toBeNull();
@@ -372,19 +379,36 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
   it('⭐ 9. the ice plough is a horse\'s load: nobody carries it out by hand', async () => {
     // ⚠ The horse rung (a draft animal refused on ice that bears a person)
     // is not driven: no horse stands at the mere, and the plough refuses a
-    // walker without one (`ice-trade.test.ts`). What a person CAN find out
-    // here is that the plough is not theirs to carry.
+    // walker without one (`ice-trade.test.ts`). ⚠ Run 3: lifting 60 kg is
+    // a soft body read — one cutter cannot, the next can — so each branch
+    // asserts ITS consequence.
+    await goto(SHORE);
     const r = await k.cmd('get plough');
-    console.info(`  get plough: ${refusal(r)}`);
-    expect(refusal(r)).toBe('too-heavy-to-lift');
-    expectOk(await k.cmd('north'));
+    const lifted = /plough/i.test(await carried());
+    console.info(`  get plough: ${lifted ? 'lifted' : refusal(r)}`);
+    if (!lifted) {
+      expect(refusal(r)).toBe('too-heavy-to-lift');
+      return;
+    }
+    // ⭐ Carried, it is a load the day-3 ice will not take: 93 kg of cutter
+    // and tools plus 60 kg of plough against 123 kg of bearing. The mass
+    // decides, never chance — the walker goes in, and must swim for it.
+    const out = await k.cmd('north');
+    expect(refusal(out), JSON.stringify(out.notes)).toBeNull();
+    const walkOff = await k.cmd('south');
+    expect(refusal(walkOff), 'in the water with the plough: swim for it').not.toBeNull();
+    expectOk(await k.cmd('swim south'));
+    expect(await arrive(/shore/i)).toMatch(/shore/i);
+    await say('drop plough');
   });
 
-  it('⭐ 10. carry the block to the icehouse: deposit with the keeper; a receipt in your name', async () => {
+  it('⭐ 10. carry the block to the icehouse: deposit with the keeper; the book records it in your name', async () => {
+    await goto(SHORE);
+    expectOk(await k.cmd('north'));
+    const stand = await k.cmd('stand');
+    expect(refusal(stand), 'the ice bears the cutter').toBeNull();
     await say('get block');
-    expect(await carried()).toMatch(/block/i);
-    // The spud stays on the ice for the thaw (drive 12).
-    await say('drop spud');
+    expect(await carried()).toMatch(/block of ice/i);
     expectOk(await k.cmd('south'));
     expectOk(await k.cmd('south'));
     expectOk(await k.cmd('east'));
@@ -393,13 +417,14 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     console.info(`  counter price after the harvest: ${harvestPrice}`);
     const dep = await k.cmd('deposit block');
     const said = await dep.said();
-    console.info(`  deposit block: ${refusal(dep)} — ${said.slice(0, 300)}`);
+    console.info(`  deposit block: ${refusal(dep)} — ${said.trim().slice(0, 300)}`);
     expect(refusal(dep), JSON.stringify(dep.notes)).toBeNull();
-    expect(said, said).toMatch(/receipt/i);
-    expect(await carried()).toMatch(/receipt/i);
-    const receipt = await examine('receipt');
-    console.info(`  the receipt: ${receipt.slice(0, 400)}`);
-    expect(receipt, receipt).toMatch(/allowance|fee/i);
+    // ⭐ The receipt is the BOOK's record, filed in your name with its terms.
+    expect(said, said).toMatch(/book records .* to your name/i);
+    expect(said, said).toMatch(/allowance of \d+%/i);
+    expect(await carried()).not.toMatch(/block of ice/i);
+    const book = await k.prose('look book');
+    console.info(`  look book: ${book.replace(/\n/g, ' | ').slice(0, 400)}`);
   });
 
   it('⭐ 11. at the sawmill, sawing a log lands sawdust by the boards cut', async () => {
@@ -419,29 +444,26 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     await say('get sawdust');
     await goto(HOUSE);
     const put = await say('put sawdust in stack');
-    expect(put, put).not.toMatch(/can'?t|cannot|don'?t see/i);
+    console.info(`  put sawdust: ${put.slice(0, 200)}`);
+    expect(put, put).not.toMatch(/can'?t|cannot|don'?t see|went wrong/i);
   });
 
   it('⭐ 5. eight more cold days: the scraped patch reads thicker than the field', async () => {
     await goto(SHORE);
     await nextDays(8);
     await goto(SHORE);
-    await say('get spud');
     expectOk(await k.cmd('north'));
     const field = await say('measure ice field');
     const scraped = await say('measure ice scraped');
     console.info(`  field: ${field} · scraped: ${scraped}`);
     expect(scraped, scraped).toMatch(/black/i);
     const cm = (s: string): number => Number(/(\d+(?:\.\d+)?)\s*cm/.exec(s)?.[1] ?? NaN);
-    if (Number.isFinite(cm(field)) && Number.isFinite(cm(scraped))) {
-      expect(cm(scraped)).toBeGreaterThan(cm(field));
-    }
-    // Leave a block and an iron tool on the field for the thaw (drive 12).
+    expect(Number.isFinite(cm(field)) && Number.isFinite(cm(scraped)), `${field} | ${scraped}`).toBe(true);
+    expect(cm(scraped)).toBeGreaterThan(cm(field));
+    // Leave an iron tool on the field for the thaw (drive 12).
     await say('drop spud');
     expectOk(await k.cmd('south'));
   }, 600_000);
-
-  /* ───────────── 12–18. late summer ───────────── */
 
   it('⭐ 12. late summer: the pool is open water and remembers none of the cuts; the spud is gone; you swim it and come out wet', async () => {
     await goto(SHORE);
@@ -459,8 +481,11 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     const reach = await inReach();
     expect(reach, `the spud sank: ${reach}`).not.toMatch(/spud/i);
     const across = await k.cmd('swim north');
+    console.info(`  swim north (summer, across): ${refusal(across)} — ${(await across.said()).replace(/\n/g, ' | ').slice(0, 300)} ${JSON.stringify(across.notes).slice(0, 300)}`);
     expect(refusal(across), JSON.stringify(across.notes)).toBeNull();
-    expect(await arrive(/far bank/i)).toMatch(/far bank/i);
+    const landed = await arrive(/far bank/i);
+    if (!/far bank/i.test(landed)) console.info(`  still at ${landed}: ${JSON.stringify(await k.query('me', { fields: ['bodyState'] })).slice(0, 600)}`);
+    expect(landed).toMatch(/far bank/i);
     const me = await examine('me');
     expect(me, me).toMatch(/wet|soak/i);
   }, 1_800_000);
@@ -528,6 +553,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
   it('⭐ 16. the ice company\'s seasonal seats: in summer the crew and the boss are not on the ice', async () => {
     await goto(SHORE);
     const into = await k.cmd('swim north');
+    console.info(`  swim north (16): ${refusal(into)} — ${(await into.said()).replace(/\n/g, ' | ').slice(0, 300)}`);
     expect(refusal(into), JSON.stringify(into.notes)).toBeNull();
     const look = await k.prose('look');
     console.info(`  the pool in summer: ${look.replace(/\n/g, ' | ').slice(0, 300)}`);

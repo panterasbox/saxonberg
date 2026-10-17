@@ -60,6 +60,26 @@ export default class IceBlock extends IceBlockBase {
     this.iceQuality = ICE_QUALITIES.includes(quality) ? quality : 'cloudy';
   }
 
+  /**
+   * ⭐ A block says what it IS — its grade and its heft, in words (no
+   * number: `look` names none). The row's prose was one block for every
+   * block (*four kilos, clouded white*), so a black block cut off the
+   * mere read as pan ice and an ounce sliver as a four-kilo one (the
+   * drive, run 4).
+   */
+  public override getLong(): string {
+    const kg = this.getMass().rawValue();
+    const heft =
+      kg < 1 ? 'A sliver of ice' : kg < 3 ? 'A small block of ice' : kg < 10 ? 'A block of ice' : kg < 40 ? 'A heavy block of ice' : 'A great block of ice';
+    const grade =
+      this.iceQuality === 'black'
+        ? 'clear and black right through, the way lake ice is when it freezes slow'
+        : this.iceQuality === 'snow-ice'
+          ? 'white and grainy, snow frozen into it'
+          : 'clouded white at the heart';
+    return `${heft}, ${grade}, sweating along every edge.`;
+  }
+
   // ───────────────────────── Poolable ─────────────────────────
 
   /** ⭐ Ice pools by its grade, whatever its shape (D2). */

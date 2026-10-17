@@ -52,6 +52,10 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [7, 16], season: [winter] }
   banksAt: goodkin
+  # ⭐ Off shift, the company's people wait in its shed (the drive, run 4:
+  # with no offstage, the winter crew stood on in the mere all summer —
+  # in the water once it opened).
+  offstage: /world/terminus/hollow-mere/shed/location/shed
   operatingLocations:
     - /world/terminus/hollow-mere/icehouse/location/platform
     - /world/terminus/hollow-mere/icehouse/thing/counter

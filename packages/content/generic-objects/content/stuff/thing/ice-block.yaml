@@ -16,8 +16,10 @@ data:
   shortDescription: block of ice
   keywords: [ice, block, ice-block, "block of ice"]
   register: indefinite
+  # The prose is the BLOCK's (`IceBlock.getLong`): its grade and heft in
+  # words. This line is only what a reader without the class sees.
   longDescription: |
-    A four-kilo block of ice, clouded white at the heart and sweating along every edge.
+    A block of ice, sweating along every edge.
   _materialPath: /stuff/idea/material/bulk/ice
   # ⚠⚠ **Four kilos, and it belongs IN A BOX.** Found by driving: ice
   # conducts well, so a bare block's own R is tiny and the leak is
