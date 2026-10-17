@@ -1,4 +1,4 @@
-# Ice — frozen water, bottling's row (bagged ice is a bottling-floor product). Tag `ice` is what the ice bin is recognised by and what a recipe's `ice:` draws from.
+# Ice — frozen water, a material of the commons (moved from trade-bottling, storage-and-ice D17: the ice trade, the icehouse, the cookhouse and the bar all hold it). Tag `ice` is what the ice bin is recognised by, what a recipe's `ice:` draws from, and what folds a floor of it to the `ice` ground kind.
 class: /platform/idea/material/Material
 data:
   name: ice

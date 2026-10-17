@@ -1,0 +1,31 @@
+# Sawdust — what the saw's kerf turns to dust: the wood between two
+# boards, at the bulk density of a loose heap (storage-and-ice D18).
+#
+# ⭐ The icehouse's packing. A loose heap is mostly air, so it conducts
+# like a good insulator (0.06 W/m·K dry); it drinks water to its own dry
+# weight (wAC 100), and a soaked heap conducts like the water it holds —
+# the one wet law (`Material.wetProperty`) is why a wet house melts.
+#
+# The tags are what other trades read: `granular, absorbent` is what a
+# floor can be strewn with, `sawdust` is the cleanser key, `flammable`
+# is the shavings fire. Not food: nothing grows in it here.
+class: /platform/idea/material/Material
+data:
+  name: sawdust
+  keywords: [sawdust, dust]
+  appearance: "a pale, resinous dust of sawn wood"
+  density: 200
+  specificHeat: 2000
+  thermalConductivity: 0.06
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 100
+  autoignitionTemperature: 520
+  heatOfCombustion: 16
+  hardness: 1
+  toughness: 1
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "organic", "granular", "flammable", "absorbent", "sawdust"]
+  composition: []
+  biologicalSource: null

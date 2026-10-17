@@ -88,6 +88,15 @@ export const BOARD_KG = 6;
  */
 export const QUARTER_YIELD = 2 / 3;
 
+/** The sawdust row the kerf mints (one unit a kilogram). */
+export const SAWDUST_PATH = '/trade/carpentry/thing/sawdust';
+
+/** A board's thickness, m — what one kerf is measured against. */
+export const BOARD_THICKNESS_M = 0.025;
+
+/** A saw's kerf when its row authors none, m. */
+export const DEFAULT_KERF_M = 0.004;
+
 /**
  * Metabolic watts of working a pit saw — the top sawyer's half of it,
  * heavy and steady. The water rung costs nothing of yours.
@@ -302,6 +311,19 @@ export function boardsFrom(kg: number, unitKg: number, quarter: boolean): number
 }
 
 /**
+ * ⭐ Kilograms of sawdust a cut of `boards` makes (storage-and-ice D18):
+ * one kerf a board (two when quartered — the radial cuts), each a kerf's
+ * width of a board's thickness turned to dust. Exported for the yield
+ * test. The boards come out lighter by what is minted, so mass is
+ * conserved.
+ */
+export function kerfSawdustKg(boards: number, quarter: boolean, kerfM: number): number {
+  if (!(boards > 0) || !(kerfM > 0)) return 0;
+  const cuts = boards * (quarter ? 2 : 1);
+  return (cuts * kerfM * BOARD_KG) / BOARD_THICKNESS_M;
+}
+
+/**
  * ⚠⚠ A MODULE function, never a method — see the header.
  *
  * ⭐ The boards land **where the saw is**: at a sawmill the sawyer may
@@ -349,7 +371,17 @@ async function finishSaw(job: SawJob): Promise<void> {
     if (MixinApi.isStackable(board)) board.setQuantity(boards);
     const maker = giver.isDestroyed() ? '' : (giver.getIdentityPath() ?? '');
     if (maker && MixinApi.isCrafted(board)) board.setMaker(maker);
+
+    // ⭐ The kerf (D18): the wood between the boards falls as sawdust, and
+    // the boards are lighter by EXACTLY what is minted — whole kilograms,
+    // because a heap's unit is a kilogram — so the log's mass is conserved
+    // to the gram (boards × board + dust = boards × BOARD_KG).
+    const dustKg = Math.round(kerfSawdustKg(boards, quarter, saw.getKerfM()));
+    if (dustKg > 0 && boards > 0 && MixinApi.isTangible(board)) {
+      board.setMass(Quantity.of(BOARD_KG - dustKg / boards, 'kg'));
+    }
     ContainmentApi.move(board, landing);
+    if (dustKg > 0) await landDust(dustKg, log, maker, landing);
 
     if (!saw.isDestroyed()) {
       MessageApi.scene(saw as unknown as Stuff)
@@ -361,6 +393,31 @@ async function finishSaw(job: SawJob): Promise<void> {
     }
   } finally {
     saw.setSawing(false);
+  }
+}
+
+/**
+ * Mint `kg` of sawdust where the boards fell. ⭐ It merges with the heap
+ * already on the floor through the shipped stack merge (same row, same
+ * wetness band), so a day at the saw leaves ONE heap that grows.
+ */
+async function landDust(
+  kg: number,
+  log: Stuff,
+  maker: string,
+  landing: Stuff & Container,
+): Promise<void> {
+  try {
+    const dust = await StuffApi.clone<Stuff & Containable>(SAWDUST_PATH, undefined, {
+      madeFrom: log,
+    });
+    if (MixinApi.isStackable(dust)) dust.setQuantity(kg);
+    if (maker && MixinApi.isCrafted(dust)) dust.setMaker(maker);
+    ContainmentApi.move(dust, landing);
+  } catch (err) {
+    // ⚠ A missing sawdust row is a content gap: the boards are already
+    // down and lighter, so say so loudly rather than pretend.
+    console.warn('SawController: sawdust mint failed', err);
   }
 }
 

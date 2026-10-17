@@ -1318,6 +1318,12 @@ export const AppSettingKeys = {
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
+  /** Wetness — ⭐ the ONE wet law's cutoff (`Material.permeability()`): a
+   * material whose `waterAbsorptionCapacity` (%) is at or below this takes
+   * no water into its pores at all — rubber, glass, oiled leather. Above
+   * it, permeability is `min(1, wAC / textiles.clo.absorptionReference)`.
+   * Shared with the rubber build (its D12.1); one key, one default. */
+  wetnessImpermeableBelowPct: "wetness.impermeableBelowPct",
   /** Wetness — saturation at/above which the band reads `damp`. */
   wetnessBandDampAt: "wetness.band.dampAt",
   /** Wetness — saturation at/above which the band reads `wet`. */

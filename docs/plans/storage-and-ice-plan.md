@@ -1554,6 +1554,22 @@ Implements D9, D18. Consumer: the sawmill floor.
   the cuts; mass conserved to the gram in the test; cloth clo unchanged.
 - Commit: `build(storage-and-ice W1): the wet law on Material; sawdust
   by kerf`.
+- ✅ **Done (build, 2026-10-17).** `Material.permeability()` /
+  `wetProperty()` + `wetness.impermeableBelowPct` (2); `getClo` reads the
+  law; `CLO_DEFAULTS.ABSORPTION_REFERENCE` is gone (the material reads the
+  hoisted key). The identity test is `WetLaw.test.ts`: every shipped
+  material above the cutoff agrees with the old arithmetic to 1e-12, and
+  no fibre/leather row sits at or under it. ⚠ **Decision (conservation
+  over the plan's figures):** a heap's unit is a kilogram, so the saw
+  mints `round(kerfSawdustKg)` whole kilograms and the boards are
+  lightened by EXACTLY what was minted (`BOARD_KG − dust/boards`) — 24 kg
+  through-sawn at 4 mm is 4 boards of 5 kg + 4 kg of dust, not the plan's
+  5.04 + 3.84, because 3.84 kg cannot be a stack of whole units and
+  rounding the dust while lightening the boards by the unrounded figure
+  would lose 160 g. `Sawdust.canMergeWith` vetoes across wetness bands;
+  within a band the survivor keeps its saturation (no mass-weighting —
+  the band already bounds the error). The material row dropped oak's
+  `chemistry: null` (an orphan key `lint:instanceable` counts).
 
 ### W2 — The store substrate, the face, and the heat sink
 
