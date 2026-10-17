@@ -54,7 +54,7 @@ The track inherits a real head start:
   (gated by `BROADCAST_TOKEN`), the `streamers` access axis
   (`AccessApi.isStreamer` / `requiresStreamer`, seeded from
   `STREAMER_PLAYER_IDS`), and the `stream away`/`back` verb. The OBS-side
-  overlay lives in the sibling **`pbox-stream`** repo. See
+  overlay is **Rodney**, `packages/rodney` (the sibling `pbox-stream` repo until 2026-10-17). See
   [livestream.md](../subsystems/livestream.md).
 - **Realtime engagement.** Channels + acoustic/implant comms
   (`say`/`whisper`/`shout`/`dm`/`tell`/`broadcast`) are shipped — enough
@@ -107,7 +107,7 @@ plumbing. Three phases.
   / camera-focus state on the feed, public chat forwarding over the
   broadcast feed (so the overlay can show in-game + Twitch chat),
   optional streamer-mode affordances.
-- **Outcome:** the OBS overlay (in `pbox-stream`) has richer state to
+- **Outcome:** the OBS overlay (Rodney, `packages/rodney`) has richer state to
   render; the broadcast looks and behaves like a production stream.
 
 ### Queued — "Capital → stake" (next push, scoped but not started)
@@ -116,7 +116,14 @@ The monetization milestone. Sequenced and decided; deferred out of the
 first push by choice.
 
 #### Phase 4 — Twitch-native payment intake
-- **Decision (locked):** intake is **Twitch-native only** — ingest
+- ⚠ **Reopened 2026-10-17 → [giving-slate](../slates/builds/giving-slate.md).**
+  *"The worst thing in the world is to have people that want to give you
+  money and not having a channel for them to do that."* Giving moves
+  forward and widens — and the platform still takes no payments: it
+  READS Twitch, YouTube and Patreon (Kick later), converts at **net**
+  (what reached the commons, the platform's cut shown), and holds each
+  gift as a claim until the giver signs in with or links that account. The original decision, kept for the record:
+- **Decision (was locked):** intake is **Twitch-native only** — ingest
   Twitch **EventSub** events (subscriptions, bits/cheers) over the same
   token plumbing the relay uses. No external processor (Patreon/Stripe)
   in scope; revisit only if off-platform capital becomes a real need.
@@ -175,7 +182,7 @@ first push by choice.
 - **Phase 1 includes account linking** (slate Waves 1+2), not just Twitch
   login — so a Saxonberg↔Twitch identity binding exists ahead of the
   funding push. Chat scopes remain deferred.
-- **Payment intake** = **Twitch-native only** (EventSub subs/bits). No
+- **Payment intake** ~~= **Twitch-native only**~~ → reopened 2026-10-17, see [giving-slate](../slates/builds/giving-slate.md). Was: **Twitch-native only** (EventSub subs/bits). No
   external processor for now.
 - **Track artifact** = this standalone doc (not a Build-10 entry in the
   slate index).

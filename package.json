@@ -86,6 +86,7 @@
     "bench": "pnpm --filter @saxonberg/server run bench",
     "dev:server": "pnpm --filter @saxonberg/server dev",
     "dev:client": "pnpm --filter @saxonberg/client dev",
+    "dev:rodney": "pnpm --filter @saxonberg/rodney dev",
     "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
     "dev:clean": "node packages/server/scripts/dev-preflight.mjs --all",
     "docs": "pnpm run docs:server && pnpm run docs:project",

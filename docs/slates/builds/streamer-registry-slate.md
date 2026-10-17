@@ -12,7 +12,8 @@
 > **Left:** the `Streamer` record itself (nothing about a streamer is
 > persisted today, on either side) · claim-by-proof over the shipped
 > OAuth links · retiring the four singleton env vars into per-streamer
-> fields · a per-streamer overlay token + feed scope + `StreamState` ·
+> fields · ~~a per-streamer overlay token + feed scope + `StreamState`~~
+> → moved to [broadcast-ready](broadcast-ready-slate.md) 2026-10-17 ·
 > registry-first resolve so a bare handle stops being an
 > `ambiguous-handle` reject · persisted tunes · the viewer's
 > platform preference when a record affords several · the consenting
@@ -231,7 +232,7 @@ slate deliberately does not answer:
 Today it is a standby countdown and the owner's own chat echoed back.
 For a dev stream about a MUD the interesting feed is **game state** — who
 is online, the press ticker, what just got built, a live map — and that
-lives in the `pbox-stream` repo plus whatever fields the feed grows.
+lives in Rodney (`packages/rodney`) plus whatever fields the feed grows.
 **Do that first, for yourself.** The multi-tenancy in this slate becomes
 nearly free afterwards, and doing it in that order means the feed
 contract gets frozen *after* discovering which fields matter rather than
