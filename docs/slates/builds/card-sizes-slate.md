@@ -22,8 +22,10 @@
 > by the agency ladder with the person marker everywhere, the `commands`
 > card, the Thing card's mixin-contributed sections, notable-or-quiet
 > with the composition strip as the menu, a repeatable `--mixin` lens on
-> `look` (sections) and `query` (columns), and the cut order — Idea,
-> Shadow and `score` still to detail
+> `sense` (sections) and `query` (columns), the cut order; Ideas —
+> known, never perceived — through three doors (card links, an MQL
+> reference step, a `catalogue` command) behind one gate on the Idea,
+> and a unified catalogue interface — Shadow and `score` still to detail
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -560,20 +562,31 @@ notable; everything else is one deliberate step away.**
 - **Notable sections show by default; quiet ones do not render** — they
   survive as their **chip in the composition strip**.
 - ⭐⭐ **The composition strip is the table of contents.** Each mixin chip
-  is clickable and sends `look <subject> --mixin <name>`. The full depth
+  is clickable and sends `sense <subject> --mixin <name>`. The full depth
   is always one click away, labelled with the architecture itself — the
   card reinforces the mixin model in the player's mind without dumping
   it at them.
 - **One method per mixin feeds both features** — its perceivable face,
   in words, plus whether that face is notable.
 
-### `--mixin` — a repeatable lens on `look` and `query`
+### `--mixin` — a repeatable lens on `sense` and `query`
 
-- **On `look`, it chooses the sections**: `look chest --mixin lockable
-  --mixin container` shows exactly those two and nothing else. It is the
-  per-section flags addressed by the architecture's own names, so any
-  mixin takes part without anyone inventing a flag for it. `look chest
-  --all` shows everything.
+⭐ **It belongs to `sense`, not `look`** (revised 2026-10-17): the test
+that decides which mixin sections show **is the sense index's
+*notable* rule** — *which channels are worth attention* and *which
+facets are* were always one feature. `look` stays the quick visual place
+report and the arrival verb, its flags the report's own sections;
+`sense` is **everything perceivable, organized** — by modality by
+default, by mixin with `--mixin`. Typing it explicitly is right: it is
+the deliberate deep look, not the glance on arrival. It is all the same
+card; the verb only decides which section opens and what fills it.
+
+- **On `sense`, it chooses the sections**: `sense chest --mixin lockable
+  --mixin container` shows exactly those two and nothing else — any
+  mixin takes part by its own name, without anyone inventing a flag for
+  it. `sense chest --all` is every perceivable face. `sense` was already
+  the verb bounded by what your senses can perceive, so the perceivable
+  limit below is its natural edge rather than a rule bolted onto `look`.
 - ⭐ **On `query`, it chooses the columns** — a set plus mixin lenses is
   a **table**, one row per thing, one column per mixin:
   `query me:i --mixin freshness` (everything you carry, with how fresh),
@@ -593,9 +606,10 @@ notable; everything else is one deliberate step away.**
 - The name stays **`--mixin`** rather than something softer like
   `--facet` — it teaches the architecture by name, which is the point.
 
-The flag vocabulary is one: a section has the same name in the terminal,
-on the card and in the place report (`--prose`, `--exits`, `--cues`,
-`--make`, `--contents`, `--mixin <name>`, `--all`).
+The flag vocabulary is one: a section has the same name in the terminal
+and on the card — `look`'s report sections (`--prose`, `--exits`,
+`--people`, `--furnishings`, `--things`, `--cues`, `--horizon`,
+`--all`), and `sense`'s facets (`--mixin <name>`, `--all`).
 
 ### Sizes — the cut order
 
@@ -618,12 +632,95 @@ marker or quantity, the modality strip). Below it:
 **Glance** is the header alone, plus one state word for a thing or the
 status for an agent. **Full** is `--all`: every section, scrollable.
 
+### Ideas — known, never perceived
+
+**An Idea is not one card.** Most Ideas need no card at all, and the
+ones that do each want their own body. And an Idea is not perceived, it
+is **known** — so neither `look` (sight) nor `sense` (the senses) targets
+one. Bending either to open a biome would break the one boundary
+`--mixin` keeps: *only what you could perceive*. Zones and warrens prove
+the rule: they are reached through the navigator and the room's header,
+never by looking at them.
+
+**Catalogue vs registry.** A **catalogue** is a self-warming index of
+**authored reference Ideas** — biomes, materials, readings, placements,
+disciplines, recipes, topics, spells, brands, governments (22 today). A
+**registry** owns **live runtime state** — access, cards, offices, bores.
+Registries are machinery and need no card; neither do logic singletons,
+nor any Idea nothing perceivable points at. Authors reach those through
+the studio, by path or id.
+
+#### Three doors
+
+1. **Links on cards** — any Idea a perceivable thing references,
+   catalogued or not: a room's *biome ▸*, a thing's *oak ▸* (material),
+   an agent's species, a shop's business and brand, a town's government,
+   a contract you are party to, your party, a channel. Most players will
+   only ever arrive at an Idea this way.
+2. **The reference step** — an MQL step that follows a declared
+   reference: strawman `here:@biome`, `me:i:axe:@material`. A walk along
+   a field, not a search, so it does not reintroduce the `world` seed the
+   grammar refuses; it also has uses beyond Ideas. Kept safe three ways:
+   - **only fields declared as references in `fieldMeta`** (ref-shapes.md
+     already makes every reference declare its shape) — never an
+     arbitrary property; that is the security boundary;
+   - **one hop at a time, loaded on use** — each step is one load, never
+     a fan-out;
+   - **the far end passes the Idea's own gate** (below).
+3. **`catalogue <kind> [filter]`** — a new command for browsing, outside
+   MQL: `catalogue materials [tag.metal]`. The filter **reuses MQL's
+   bracket expressions** applied to entries — one filter language,
+   without making catalogues MQL seeds. The result is a **set card**, so
+   grouping, `--mixin` columns and the cut order work with nothing
+   extra; a single entry opens its subject card. (`catalogue` is free;
+   only `recall` is taken nearby.)
+
+#### ⭐⭐ One gate, three doors
+
+The known/unknown gate **lives on the Idea**, not in the catalogue —
+MQL accepts Stuff ids as seeds, and links and the reference step bypass
+the catalogue entirely, so a catalogue-only gate leaks. Each Idea kind
+answers *may this viewer know me*: a material or recipe asks the
+**discovery** realm (the epoch on-ramp: you list what you have met or
+learned, never everything in the game); a business is public; a contract
+answers only to its parties; a party only to its members. The catalogue
+applies the gate in bulk when browsing; the reference step and links
+apply it to the one Idea at the far end. No door can leak.
+
+#### The unified catalogue interface — new work
+
+There is **no common interface today**: each of the 22 catalogues is a
+bare `Idea` with its own surface (`warm()` on some, `allWarmed()` on
+others; `DisciplineCatalogue` hands back plain descriptors rather than
+the Idea itself). The command needs one shape every catalogue
+implements: its **kind**, **`entries(viewer, filter)`** and
+**`get(key, viewer)`** — returning the **Idea Stuff instances, never
+descriptors** (so a card can show them and `--mixin` can read them), and
+taking the viewer on **every** read, so the gate is applied inside and no
+viewer-less public read exists.
+
+#### The Idea card
+
+No common body, but a common frame — and the mixin rule applies:
+
+- **Header** — the Idea chip and **what kind** (a biome, a material, a
+  discipline, a species).
+- **What it is** — its description.
+- **Its perceivable facts** via the mixin-face rule — a material's tags
+  (*metal, brittle*), a biome's climate, a discipline's band names —
+  notable-or-quiet and the composition strip working as everywhere else.
+- **Where you have met it** — back-links filtered by your own knowledge:
+  the rooms in this biome you know, the things made of oak you have
+  seen, the people of this species you have met. That is what makes an
+  Idea card worth opening.
+- **Composition.**
+
 ### Still to detail
 
-The **Idea** and **Shadow** bodies; `score` (your own sheet); the set
-card's lenses per flag beyond `--mixin`; how the modes (the
-Discord-style sidebar, with **chat** and **explore** as their own modes)
-place these cards.
+The **Shadow** body; `score` (your own sheet); the set card's lenses per
+flag beyond `--mixin`; per-kind Idea bodies as they are needed; how the
+modes (the Discord-style sidebar, with **chat** and **explore** as their
+own modes) place these cards.
 
 ---
 
