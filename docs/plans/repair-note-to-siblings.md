@@ -86,3 +86,58 @@ we author nothing on it. Asks back:
    then your floor line; no digits.
 6. Extend repair's *a priced service is performed by a person* section in
    `retail.md` / `employment.md` rather than writing a parallel one.
+
+## Found among the other three (read by repair's review, 2026-10-17 — for each pair to settle)
+
+**rubber × storage-and-ice**
+- `Atmospheric.reconcileEnvelope` (H): one steady-state formula, ice's —
+  `T_ss = (U_ext·T_out + ΣU_i·T_i + ΣfixedW + driveW + P_solar(t) + ΣG_j·anchor_j) / (U_ext + ΣU_i + ΣG_j)`
+  in `envelopeSteadyStateK(outsideK, atS)`; rubber folds its interior faces
+  and solar into it.
+- The four hollow-mere interiors need `roof:` — whoever lands second
+  authors `{pine, 0.05}` and converts the house to timber·sawdust·timber.
+- `FireController.ts:330–362` — the `isComposition` swap re-applied inside
+  rubber's `runFiring`.
+- `permeability()/wetProperty()`, `Wearable.getClo`'s wet-law migration,
+  `wetness.impermeableBelowPct` — one copy each.
+- `WaterSurface` turns off rain-puddling (`maintainPuddle`).
+- Stale: ice's reply note cites `lint:unhoused` (gone; the gate is
+  `lint:biome-sky`); rubber's D12.1 still carries the
+  `MaterialLogic`/`MaterialApi` paragraph.
+
+**rubber × cleanliness**
+- ⛔ Cleanliness's new rooms author `roof:` (rubber's field) with no
+  fallback — cleanliness merges after rubber.
+- `enclosure: none` IS allowed by `lint:biome-sky` (it counts missing
+  keys); `enclosure: [stone piers]` is not a layer. The lavoir:
+  `enclosure: none`, `roof: [{slate, 0.02}]`.
+- A place with no walls ventilates as outside; decide what two lone places
+  joined by a door mean (rubber's `isThreshold`).
+- Sulfur: one row (rubber's); cleanliness authors `heatOfCombustion` ≈
+  9.2 MJ/kg and an ignition point ≥ 505 K (the bellows oven reaches
+  ~482 K); rubber tests that a firing does not ignite its charge.
+- Washing hot shrinks only `textile`/`protein`/`cellulose` fibres — not
+  rubber gloves or boots. Lye's `corrosiveTo` never lists `organic`.
+- The quarry column: cleanliness's fuller's earth and chalk stay above
+  −10 (rubber's sulfur sits at −10.2..−10.4).
+- Rubber exposes a named `Face.transmittance()` for cleanliness's later
+  glass grime.
+
+**storage-and-ice × cleanliness**
+- ⛔ **Sawdust contradicts directly**: ice needs a `Sawdust` stack to stay
+  a `Sawdust` stack; cleanliness sweeps it into sweepings. Resolution:
+  `sweep` gathers only debris deposits and the strewn layer; a `Sawdust`
+  stack on the floor stays one; drop the `sawdust` DirtKind.
+- Floors: a `takesTraffic()` floor method (false on `WaterSurface`,
+  `IceSheet`), checked by `receiveTraffic`/`soilFeetOf`;
+  `cleaningMethod('ice')` → scrape; on a sheet `sweep` refuses and points
+  to `scrape`; augmenter order sheet → snow → soil.
+- Persisting floor state: cleanliness's fixture slice skips a fixture that
+  is itself persistable (the ice sheet keeps its own record).
+- The frozen-water refusal becomes ONE method (fishing, washing and
+  bathing all call it); `bathe` at a Pool goes through `giveWay`/`swim`,
+  not `immerse()` directly.
+- Wet sawdust goes to cleanliness's midden once both land.
+- Ice declares `SEASONS` in `CLOSED_BY_DESIGN` (`CLOSED_VOCABULARY_CEILING`
+  is 5). Ice's two boot entries need the owner's sign-off to raise
+  `BOOT_ENTRY_CEILING` (83).
