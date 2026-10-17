@@ -283,6 +283,16 @@ describe('a tree you tap', () => {
     expect(t.getSpiles()).toBe(2);
   });
 
+  it('⚠ a stem with every cut open and nothing run yet says WAIT, not girth', async () => {
+    const t = tree();
+    (t as unknown as { spiles: number }).spiles = 2;
+    const plan = await t.planTap(handsWith([]) as never, 'sap', null, null, null);
+    expect(plan.kind).toBe('refusal');
+    if (plan.kind !== 'refusal') return;
+    expect(plan.reason).toBe('empty');
+    expect(plan.prose).toMatch(/nothing has run/i);
+  });
+
   it('a stem too slender says so differently from one that is full', async () => {
     const slender = tree('young');
     const full = tree();

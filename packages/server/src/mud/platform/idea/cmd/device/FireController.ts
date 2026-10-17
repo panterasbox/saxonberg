@@ -232,7 +232,7 @@ export default class FireController extends CommandController<FireModel> {
     const holdS =
       holdOverrideS ?? (authoredHoldS > 0 ? authoredHoldS : FIRE_MS / 1000);
     const act: FiringAct = { holdS, heldK: held };
-    this.engage(context, holdS * 1000, () => {
+    this.engage(context, holdS * 1000, held, () => {
       // ⚠⚠ A module function over captured locals, never `this.<method>`: a
       // controller is one ephemeral clone per execution and is destructed the
       // moment `execute` returns, while a firing holds the chamber at heat
@@ -315,7 +315,12 @@ export default class FireController extends CommandController<FireModel> {
    * a minute's stoking spread over the hold, so the effort is the same
    * whatever the hold, and a two-hour cure does not exhaust anybody.
    */
-  private engage(context: CommandContext, holdMs: number, onDone: () => void): void {
+  private engage(
+    context: CommandContext,
+    holdMs: number,
+    heldK: number,
+    onDone: () => void,
+  ): void {
     const giver = context.commandGiver;
     const durationMs = Math.max(FIRE_MS, holdMs);
     const effortW = (FIRE_EFFORT_W * FIRE_MS) / durationMs;
@@ -341,7 +346,9 @@ export default class FireController extends CommandController<FireModel> {
     if (result.ok && result.status !== 'completed-sync') context.note(result.note);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You seal the chamber down and settle in to hold it at heat.`)
+      // ⭐ Say the heat it holds: the cure turns on it (≈ 430 K cures, past
+      // 455 K scorches), and a firing that will not say is a guess.
+      .toSelf(Mml.compose`You seal the chamber down and settle in to hold it at about ${String(Math.round(heldK / 5) * 5)} K.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} sets a firing going.`)
       .send();
   }

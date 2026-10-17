@@ -221,6 +221,31 @@ suite('⭐ 22 — rubber boots and gloves are on the general store\'s shelf (AC 
   }, 300_000);
 });
 
+// ───────────────────────── stretch (23) ─────────────────────────
+
+suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (AC 14)', () => {
+  it('a half-orc buys both pairs: the plain one is tight, the elastic one is not', async () => {
+    await toHour(10, 14);
+    // ⭐ A real newcomer, walked through intake as a half-orc (92 kg,
+    // 1.88 m against the plan's 70 kg / 1.75 m) — the Arrival Note's
+    // twenty in coin pays for both pairs.
+    const handle = uniqueHandle('half-orc');
+    const arrival = await Session.embody(handle, { species: 'half-orc' });
+    arrival.close();
+    const s = await at(handle, SHOP);
+    await say(s, 'remove trousers'); // intake dressed them in a sturdy pair
+    await buyOne(s, 'breeches');
+    const plain = await say(s, 'wear breeches');
+    expect(plain, `wear breeches: ${plain}`).toMatch(/you put on/i);
+    expect(plain).toMatch(/tight/i);
+    await say(s, 'remove breeches');
+    await buyOne(s, 'elastic');
+    const elastic = await say(s, 'wear elastic');
+    expect(elastic, `wear elastic: ${elastic}`).toMatch(/you put on/i);
+    expect(elastic).not.toMatch(/tight|loose/i);
+  }, 300_000);
+});
+
 // ───────────────────────── the cure (14–17) ─────────────────────────
 
 suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)', () => {
@@ -233,6 +258,8 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     // The works floor carries its own coal (props): pick it up, stoke it.
     await say(s, 'get 4 coal'); // bare `get coal` takes every lump in reach
     await say(s, 'stoke coal into oven');
+    await say(s, 'stoke coal into oven');
+    await say(s, 'drop coal'); // the rest is dead weight in the hands
     const lit = await say(s, 'light oven');
     expect(lit, `light oven: ${lit}`).not.toMatch(/no fuel|stoke it first/i);
     // ⚠ Every charge's stock up front: once a lump is live in a player's
@@ -248,6 +275,7 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     holdS: number,
     bellows = false,
   ): Promise<string> {
+    await say(s, 'inventory');
     // ⚠ `put` takes from your hands into something standing in the room:
     // charge the mould on the floor, THEN carry it into the oven.
     for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in boot-mould');
@@ -338,6 +366,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     thermoHandle = s.handle;
     await say(s, 'get 2 coal');
     await say(s, 'stoke coal into stove');
+    await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
     await advanceWorldClock('2 hours');
     await new Promise((r) => setTimeout(r, 3_000));
@@ -346,7 +375,9 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     console.log(`  [drive] stove house, stove lit 2 h: ${warm.toFixed(1)} K`);
     expect(warm).toBeGreaterThan(291);
     // Let the cuts run a while in the warm before anybody taps them.
-    await advanceWorldClock('10 hours');
+    // ⚠ While the stove still burns: the window is sampled at the read,
+    // so a house gone cold by the tap bills the whole wait as shut.
+    await advanceWorldClock('3 hours');
     await new Promise((r) => setTimeout(r, 3_000));
   }, 300_000);
 
@@ -413,12 +444,23 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     await buyOne(buyer, 'leather');
     const lh = buyer.handle;
     buyer.close();
+    // ⚠ Bought, not cloned: step 22's boots are live, and the clone gate
+    // reads the first live instance's zone (the shop) and refuses.
+    const seller = await funded('wader-rubber', SHOP);
+    await buyOne(seller, '"rubber boots"');
+    const rh = seller.handle;
+    seller.close();
     const leather = await at(lh, CATWALK);
-    await say(leather, 'wear boots');
+    const rubber = await at(rh, CATWALK);
+    // ⚠ Dressing is an engaged act: let it finish before stepping down,
+    // or the walk interrupts it and the wader goes in barefoot.
+    for (const w of [leather, rubber]) {
+      await say(w, 'wear boots');
+      await new Promise((r) => setTimeout(r, 6_000));
+      await w.drainProse();
+      expect(await examine(w, 'me'), 'the boots are on').toMatch(/boots/i);
+    }
     const inL = await say(leather, 'down');
-    const rubber = await at(uniqueHandle('wader-rubber'), CATWALK);
-    await cloneInto(CATWALK, rubber, '/trade/rubber/thing/rubber-boots', 'boots');
-    await say(rubber, 'wear boots');
     const inR = await say(rubber, 'down');
     await new Promise((r) => setTimeout(r, 3_000));
     const l = await examine(leather, 'me');
@@ -486,7 +528,8 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     await cloneInto(YARD, streetRubber, ROW.rubberCoat, 'mackintosh');
     await say(streetRubber, 'remove all');
     await say(streetRubber, 'wear coat');
-  }, 900_000);
+    // ⚠ Ten sessions: under a loaded machine each login can take a minute.
+  }, 1_800_000);
 
   async function wetness(s: Session): Promise<string> {
     const me = await examine(s, 'me');

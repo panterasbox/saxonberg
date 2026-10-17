@@ -194,6 +194,18 @@ export default class SapStandard extends SapStandardBase {
       return super.planTap(by, key, tool, vessel, what);
     }
 
+    // ⚠ Every cut this stem will take is already open and nothing has
+    // run yet: that is waiting, not girth (found by the rubber drive — the
+    // works' Hevea carry their two cuts and said they were too slender).
+    // Holding a spile, you mean to set another: that IS the girth lesson.
+    if (this.spiles > 0 && this.spiles >= this.maxSpiles() && !findSpile(by)) {
+      return {
+        kind: 'refusal',
+        reason: 'empty',
+        prose: this.tapEmptyPhrase(key),
+      };
+    }
+
     // Nothing has run — so this is the setting phase.
     if (this.spiles >= this.maxSpiles()) {
       return {

@@ -489,7 +489,11 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       let depth = 16;
       while (cursor !== null && depth-- > 0) {
         if (MixinApi.isAtmospheric(cursor)) {
-          const own = (cursor as Stuff & Atmospheric).getOwnTemperatureK();
+          // ⚠ Brought CURRENT, not the last integrated figure: a tree that
+          // reads a stale envelope taps in a house the thermometer beside
+          // it calls cold (found by the rubber drive, 284 K before dawn).
+          const air = cursor as Stuff & Atmospheric;
+          const own = air.envelopeTemperatureSync() ?? air.getOwnTemperatureK();
           if (own !== null) return own;
           try {
             return BiomeApi.airFor(cursor).tempK;
