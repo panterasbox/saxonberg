@@ -2179,8 +2179,12 @@ starter → hoop and stone → `cure wheel` → the rack → three weeks → spl
 - ⭐ **And hung, they still lit nothing — the rooms were 400 m².** Every
   Location in the Delight takes its floor area from the zone's 20 m cell,
   so 600 lm read 1.5 lux, `very-dim`, after dark (`lit` starts at 20).
-  The creamery and the cheese room author their own `extent` (5 m, 4 m):
-  24 and 25 lux. ⚠ Every other interior in the Delight is 400 m² too —
+  The creamery authors its own `extent` (5 m): 24 lux. The cheese room
+  was sized too (4 m) and reverted — the racked wheel came off *faintly
+  off* in runs 42–43 and its wedge turned, which run 41 at the zone cell
+  did not; the suspect is the room atmosphere a 64 m³ volume
+  concentrates, not traced. A cheese cellar is dark; its lantern is hung
+  and turned low. ⚠ Every other interior in the Delight is 400 m² too —
   a finding for whichever build next lights one.
 - Seen, not fixed: a vat pitched too hot (328 K against the 318 K kill)
   reads *"It sits sweet and silent — nothing is working it yet"* — the
@@ -2216,10 +2220,26 @@ back green — **run 39, 41/41** (488 s, fresh world):
   ambient — 268 K in winter — so the copper could set before it left.
   Both are set to the furnace's held heat before the transfer. Run 36 had
   the first fix and not the second, run 37 the second and not the first.
+  And a third (runs 40–41, a slow box): a Thermal body caches its
+  ambient and re-resolves it only at a restamp, and a furnace that went
+  out in the preheat and came back alight with the charge left the pot
+  drifting toward the cold room inside a lit furnace — the run set after
+  it was kept. The smelt restamps the crucible before the run. ⚠ The
+  kernel half is suspected, not traced: *some path back to lit does not
+  restamp what the burner heats* (`_setLit` and the burnout edge do) —
+  `fire`'s, recorded for `thermal-slate`.
   ⚠ The root is wider than the smelt: *a lazily-read temperature is
   stale until somebody reads it*, and a transfer that blends on a stale
   stamp gets the wrong answer. Pinned here at the one site that bit;
   the general seam is `thermal-slate`'s.
+- ⚠ **The drive is sensitive to the speed of the box.** The world
+  clock runs at 12× real time between commands and the test clock can
+  only advance, never pause, so a loaded machine (runs 40–42, 1070–1980 s
+  against ~490 s) hands every step more game time: the smelt's run cooled
+  before the pour, and in run 42 the milk sat warm long enough that the
+  wheel was *faintly off* when made and its wedge *turned* by the time it
+  was cut — honest outcomes, on a clock nobody chose. A pausable test
+  clock for drives is the wire harness's (`wire-tests` slate).
 - ⚠ **Open, seen once in five runs:** in run 37 the vat read *killed*
   (*"It is slack and lifeless, and smells of nothing but wet flour"*)
   straight after it was pitched and renneted, though it had cooled to
