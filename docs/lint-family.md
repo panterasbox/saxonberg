@@ -1228,6 +1228,20 @@ mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and a wall-scree
 none of which is a room — the honest test is the class walk
 (`composesMixin(classPath, 'Location')`).
 
+### `lint:completion-this` — a completion must not call its controller (2026-10)
+
+A controller is one clone per execution, destructed in `_executeOne`'s
+`finally` the moment `execute` returns — while the engagement it started
+is still pending. A completion calling `this.<method>` runs on a dead
+proxy and does **nothing, silently**: the scene plays and the world is
+unchanged. Learned and written down three times (the mining acts, the
+smelt, `WorkedActController`), found a fourth time by the cleanliness
+drive: over the wire `wear` had never put anything on. The gate counts
+`onComplete:` closures that mention `this.` (comments stripped) in every
+kernel and pack controller; ceiling = the census (8), may only fall. The
+fix is to resolve what the completion needs before engaging, or call a
+module function or a `static`.
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read
