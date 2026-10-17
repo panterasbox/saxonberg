@@ -54,6 +54,7 @@ interface Built {
   exposure(): Exposure;
   setEnclosure(v: EnclosurePartSpec | null): void;
   setRoof(v: RoofSpec | null): void;
+  getRoof(): RoofSpec | null;
 }
 type Room = CartesianLocation & Built;
 
@@ -81,6 +82,9 @@ function link(r: Room, exits: Array<[string, Stuff, boolean?]>): void {
         exit: { getDirection: () => dir, getDoor: () => (doored ? {} : null) },
         dest,
       }));
+  // The exposure re-checks its neighbours at most once a second; a test
+  // that rewires a room's exits says so (an authored change does too).
+  r.setRoof(r.getRoof());
 }
 
 const brick = { material: BRICK, thicknessM: 0.23 };

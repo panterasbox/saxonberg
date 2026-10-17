@@ -562,6 +562,8 @@ export function AtmosphericMixin<
     /** Transient: the last {@link exposure}, and what it was built against. */
     private _exposure: Exposure | null = null;
     private _exposureKey = '';
+    private _exposureHead = '';
+    private _exposureCheckedMs = 0;
 
     /** ⭐ The RAW authored form — a contract with the repair build. */
     public getEnclosure(): EnclosurePartSpec | null {
@@ -1360,17 +1362,35 @@ export function AtmosphericMixin<
           structure = null;
         }
       }
-      const neighbours = MixinApi.isExitable(self)
-        ? self.getObviousNeighbours({ doors: 'all' })
-        : [];
-      let key = structure?.stuffId ?? '';
-      for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
       // ⚠ An UNDECLARED place's answer is its biome's, and a biome
       // resolves after the room materializes (the Floor snow lesson) — so
       // the legacy bit is part of the key, re-read every call.
+      let head = structure?.stuffId ?? '';
       if (this.resolveDeclaredRoof() === null) {
-        key += AtmosphericMixin.legacySky(self) ? '|sky' : '|in';
+        head += AtmosphericMixin.legacySky(self) ? '|sky' : '|in';
       }
+      // ⚠⚠ The hot path (found by the first wire run): the envelope's gate,
+      // the air changes and every threshold test ask this, many times per
+      // command. The structure and the legacy bit are cheap and read every
+      // call; resolving the NEIGHBOURS (a pass over the exits, each one's
+      // destination resolved) is not, so it is re-checked at most once a
+      // real second — a neighbour that loads or an exit that opens shows
+      // up within the second, which no reader can tell from immediately.
+      const nowMs = Date.now();
+      if (
+        this._exposure !== null &&
+        this._exposureHead === head &&
+        nowMs - this._exposureCheckedMs < 1000
+      ) {
+        return this._exposure;
+      }
+      const neighbours = MixinApi.isExitable(self)
+        ? self.getObviousNeighbours({ doors: 'all' })
+        : [];
+      let key = head;
+      for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
+      this._exposureCheckedMs = nowMs;
+      this._exposureHead = head;
       if (this._exposure !== null && this._exposureKey === key) {
         return this._exposure;
       }

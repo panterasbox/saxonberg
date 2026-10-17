@@ -61,6 +61,7 @@ function material(path: string, k: number): void {
 type Room = CartesianLocation & {
   setEnclosure(v: EnclosurePartSpec | null): void;
   setRoof(v: RoofSpec | null): void;
+  getRoof(): RoofSpec | null;
   exposure(): Exposure;
   reconcileEnvelope(): void;
   envelopeCoefficients(): { uWperK: number } | null;
@@ -94,6 +95,9 @@ function link(r: Room, exits: Array<[string, Stuff, ('open' | 'shut')?]>): void 
         },
         dest,
       }));
+  // The exposure re-checks its neighbours at most once a second; a test
+  // that rewires a room's exits says so (an authored change does too).
+  r.setRoof(r.getRoof());
 }
 
 function house(): void {
