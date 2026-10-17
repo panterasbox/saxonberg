@@ -154,7 +154,7 @@ describe('a floor of an invented material', () => {
   it('⭐⭐ NOTHING in the closed list had to change to allow it', async () => {
     // AC 18 in one assertion. The vocabulary is still ten words, and the
     // tenth is the one that makes the other nine safe to close.
-    expect(GROUND_KINDS).toHaveLength(10);
+    expect(GROUND_KINDS).toHaveLength(11); // `ice` joined (storage-and-ice D12)
     expect(GROUND_KINDS).toContain('contrived');
   });
 

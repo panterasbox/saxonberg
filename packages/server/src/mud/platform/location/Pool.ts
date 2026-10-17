@@ -93,7 +93,7 @@ export default class Pool extends SwimmableMixin(ShoreMixin(SingletonCartesianLo
     const pick = this.waterFor();
     if (!('key' in pick)) return super.waterTemperatureK();
     const read = this.peekWaterRead(pick.key);
-    return read?.draw?.temperatureK ?? UNDER_ICE_K;
+    return read?.draw?.temperatureK ?? read?.underIce?.temperatureK ?? UNDER_ICE_K;
   }
 
   /**

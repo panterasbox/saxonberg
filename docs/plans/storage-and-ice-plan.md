@@ -1801,6 +1801,28 @@ by verbs in W7/W8.
 - Commit: `build(storage-and-ice W6): the ice sheet — a floor you stand
   on while it bears you, the pond's log, giving way, the hole, the
   thaw`.
+- ✅ **Done (build, 2026-10-17).** `WatercourseCatalogue.iceAt(ref, now,
+  history?)` + a SYNC `iceAtSync` (the compiled index kept once loaded;
+  the running check is the last async read's) — ⭐ **decision:** the
+  floor's `bears()` must be synchronous (it is asked inside the slot
+  substrate and the place hooks), and a memo refreshed off-band would
+  answer yesterday's ice after a clock jump; the ice walk itself is
+  synchronous once the drainage is compiled, so the sheet reads it fresh
+  every time. `IceSheet` (`PersistableMixin(WaterSurface)`, its own
+  `(scope, poolKey)` record restored in `resolveUnderfoot`), `PoolBottom`,
+  the two rows; the `ice` ground kind (11 words); `WaterRead.underIce`;
+  `ShoreMixin.drawAt(key, room)`; fishing's `reachFor` asks it.
+  `lib/craft/Cuttable.ts` (the W7 protocol's types) lands here because
+  the sheet's `cutPlan` is its first implementer. **Decisions:** (1) the
+  scraped patch PLANES the white top off: its snow-ice fraction restarts
+  at the scraping, so it reads black on new growth (the trade scraped and
+  planed). (2) `patchByWord` maps the player's words (`field`, `snowy`,
+  `scraped`/`bare`, `marked`/`grid`, `cut`/`channel`, `broken`, `hole`).
+  (3) Patches made in the same 6-hour segment merge. ⚠ `lint:capabilities`
+  (`ice-sawing` wanted, offered by W8's ice-saw row) and
+  `lint:reachability` (the sheet and bottom rows, reached by W9's pool)
+  are red at this commit BY CONSTRUCTION and go green when their
+  consumers land.
 
 ### W7 — One `cut`
 
