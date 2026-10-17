@@ -12,7 +12,8 @@
 > **Left:** the `Streamer` record itself (nothing about a streamer is
 > persisted today, on either side) · claim-by-proof over the shipped
 > OAuth links · retiring the four singleton env vars into per-streamer
-> fields · a per-streamer overlay token + feed scope + `StreamState` ·
+> fields · ~~a per-streamer overlay token + feed scope + `StreamState`~~
+> → moved to [broadcast-ready](broadcast-ready-slate.md) 2026-10-17 ·
 > registry-first resolve so a bare handle stops being an
 > `ambiguous-handle` reject · persisted tunes · the viewer's
 > platform preference when a record affords several · the consenting
