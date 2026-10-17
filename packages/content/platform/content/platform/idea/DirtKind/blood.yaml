@@ -1,0 +1,13 @@
+# Blood — the one dirt that is a SAMPLE (the bleeder's type rides it).
+# Cold water lifts it; hot water SETS it (above 45 °C the proteins cook
+# into the fibre), and a set stain answers only to a bleach.
+class: /platform/idea/DirtKind
+data:
+  key: blood
+  adjective: bloodied
+  form: stain
+  answersTo: [surfactant, alkali-mild, alkali-strong, acid-mild, absorbent, oxidiser-slow, oxidiser]
+  setsAboveK: 318
+  setAnswersTo: [oxidiser-slow, oxidiser]
+  absorbedBy: true
+  waterLifts: 0.5

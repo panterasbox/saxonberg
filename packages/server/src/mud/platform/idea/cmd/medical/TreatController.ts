@@ -619,7 +619,7 @@ export default class TreatController extends CommandController<TreatModel> {
     // Knock the population back by what the hand is worth — ⭐ SCALED BY
     // how CLEAN the hand is (D11): a filthy hand knocks nothing, and a
     // properly dirty one re-inoculates as it tends. A failure is a failure.
-    const hands = MixinApi.isHygiene(giver) ? giver.handsCleanliness() : 1;
+    const hands = MixinApi.isAttired(giver) ? giver.handCleanliness() : 1;
     const knock = ([0, 0.35, 0.6, 0.85, 1][score] ?? 0) * hands;
     const before = infection.pathogenLoad ?? 0;
     let next = before * (1 - knock);

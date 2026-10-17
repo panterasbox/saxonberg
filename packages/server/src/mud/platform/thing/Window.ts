@@ -38,6 +38,7 @@
 
 import { Boundary } from '../../lib/boundary/Boundary';
 import { SealableMixin } from '../../lib/spatial/Sealable';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { MixinApi } from '../../api/mixin';
@@ -55,7 +56,9 @@ import type { ColorTag } from '../../lib/perception/Light';
 import { Colour } from '../../lib/perception/Colour';
 import type { FieldMeta } from '../../lib/mixin';
 
-const WindowBase = SealableMixin(Boundary);
+// ⭐ Soilable (cleanliness D19): every pane may grime — soot from the
+// room's fires, the town's dirt — and a grimed pane passes less light.
+const WindowBase = SoilableMixin(SealableMixin(Boundary));
 
 interface DirectionalOverrides {
   aToB?: number;

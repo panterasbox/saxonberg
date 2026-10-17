@@ -1,0 +1,15 @@
+# cleanliness — the soil bands and the dials of the acts that move dirt.
+#
+# ⭐ None of these is a clock. Dirt arrives because an act put it there
+# and leaves because an act took it away; these only say how much an act
+# moves and where the words change.
+settings:
+  # The load at which a thing reads MARKED, SOILED and FILTHY. A load is a
+  # dimensionless amount of dirt at a site (a hand, a garment, a floor):
+  # one bare-handed butchering puts about a soiled's worth on the hands.
+  - key: cleanliness.band.markedAt
+    value: "0.1"
+  - key: cleanliness.band.soiledAt
+    value: "0.4"
+  - key: cleanliness.band.filthyAt
+    value: "1"

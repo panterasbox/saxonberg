@@ -49,6 +49,9 @@ import { installV1QuantityMarshallers } from "./quantity-marshaller-test-helpers
 import { Quantity } from "../../quantity";
 import { QuantityMarshaller } from "../../../platform/idea/persistence/QuantityMarshaller";
 import type { FieldMeta } from "../../mixin";
+import { SoilableMixin } from "../../cleanliness/Soilable";
+import { AdornmentMixin } from "../../boundary/Adornment";
+import { AdornableMixin } from "../../boundary/Adornable";
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */
 
@@ -1115,3 +1118,60 @@ async function evictAndMaterialize<T extends Stuff>(
   await PersistableApi.materialize(reborn);
   return reborn;
 }
+
+/* ─────────── the fixture-state slice (cleanliness D31b) ─────────── */
+
+// A room's floor stand-in: a fixture whose RUNTIME state an act changes.
+class SoilPlate extends SoilableMixin(AdornmentMixin(Idea)) {}
+// A fixture that keeps its OWN record (an ice sheet) — the slice skips it.
+class SelfKeptPlate extends PersistableMixin(SoilableMixin(AdornmentMixin(Idea))) {}
+// A persistable room that hangs fixtures.
+class KeptRoom extends PersistableMixin(AdornableMixin(ContainerMixin(Idea))) {}
+
+describe("the fixture-state slice (cleanliness D31b)", () => {
+  it("⭐ a floor's soil survives the room's record, onto the re-minted fixture", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept");
+    const floor = makeStuffAtPath(() => new SoilPlate(), "/world/kept-floor");
+    room.addFixture(floor, "floor");
+    floor.soil("mud", 0.5);
+    floor.soil("blood", 0.2);
+
+    await PersistableApi.capture(room);
+
+    evict(room);
+    const reborn = makeStuffAtPath(() => new KeptRoom(), "/world/kept");
+    // The row re-mints the fixture on hydrate, clean; the record gives
+    // back what an act did to it.
+    const fresh = makeStuffAtPath(() => new SoilPlate(), "/world/kept-floor-2");
+    reborn.addFixture(fresh, "floor");
+    expect(fresh.soilBand()).toBe("clean");
+    await PersistableApi.materialize(reborn);
+    expect(fresh.soilLoad("mud")).toBeCloseTo(0.5, 4);
+    expect(fresh.soilLoad("blood")).toBeCloseTo(0.2, 4);
+  });
+
+  it("a fixture that persists itself is skipped (it keeps its own record)", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept2");
+    const sheet = makeStuffAtPath(() => new SelfKeptPlate(), "/world/kept2-sheet");
+    room.addFixture(sheet, "floor");
+    sheet.soil("mud", 0.5);
+    await PersistableApi.capture(room);
+    const rec = snapshots.find((s) => s.scope === "/world/kept2") as {
+      state: Record<string, { fixtures?: unknown }>;
+    };
+    const slices = Object.values(rec.state);
+    expect(slices.some((s) => s && "fixtures" in s)).toBe(false);
+  });
+
+  it("⭐ captureHostOf walks a fixture to the room it hangs in", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept3");
+    const floor = makeStuffAtPath(() => new SoilPlate(), "/world/kept3-floor");
+    room.addFixture(floor, "floor");
+    floor.soil("crumbs", 0.4);
+    await PersistableApi.captureHostOf(floor);
+    expect(snapshots.some((s) => s.scope === "/world/kept3")).toBe(true);
+  });
+});

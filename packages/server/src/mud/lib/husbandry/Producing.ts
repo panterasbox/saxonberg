@@ -1177,15 +1177,15 @@ const MILKING_INOCULUM = 0.3;
  * — the identity path the harm ledger keys on, never the lineage — and,
  * when the hands have gone unwashed, what came off them. Milk comes out of
  * a healthy udder clean; what makes raw milk dangerous is the hand and the
- * pail. Hygiene's own header names this as its deferred producer, so no
- * new state is minted: six game-hours unwashed is dirty. No sense reports
- * it; procedure does.
+ * pail. The hand's cleanliness is DERIVED from what is on it (cleanliness
+ * D4) — what the last act put there, never a clock. No sense reports it;
+ * procedure does.
  */
 function stampTheHand(by: Stuff, vessel: Stuff & Bulkable, slot: BulkSlot): void {
   const maker = by.getIdentityPath();
   if (maker) slot.setPayload({ ...(slot.getPayload() ?? {}), maker });
-  if (!MixinApi.isHygiene(by)) return;
-  const clean = by.handsCleanliness();
+  if (!MixinApi.isAttired(by)) return;
+  const clean = by.handCleanliness();
   if (clean >= HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) return;
   const severity = (1 - clean) * MILKING_INOCULUM;
   const loads = new Contamination(slot).loads();

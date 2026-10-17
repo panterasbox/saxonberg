@@ -92,7 +92,7 @@ import type { Constructed } from '../lib/material/Constructed';
 import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
 import type { Vitals } from '../lib/vitals/Vitals';
-import type { Hygiene } from '../lib/vitals/Hygiene';
+import type { Soilable } from '../lib/cleanliness/Soilable';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
@@ -1360,10 +1360,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Vitals);
   }
 
-  /** Body cleanliness (a `washedAt` stamp) — the treater's, read by wound
-   * treatment (recovery build). */
-  public static isHygiene(obj: Stuff): obj is Stuff & Hygiene {
-    return this.hasMixin(obj, Mixins.Hygiene);
+  /** Carries dirt by kind on the layer an act reached — a garment, a
+   * body (per part), a floor, a pane, a pot (cleanliness D1). */
+  public static isSoilable(obj: Stuff): obj is Stuff & Soilable {
+    return this.hasMixin(obj, Mixins.Soilable);
   }
 
   /**

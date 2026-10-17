@@ -1,5 +1,7 @@
 # The Wharfside chandlery — ⭐ a hearth, a pot, and a counter.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentCartesianLocation
 data:
   coords:
     x: 0

@@ -215,7 +215,7 @@ export default class EatController extends CommandController<EatModel> {
         if (candidate.getUtensilKind() !== kind) continue;
         if (!MixinApi.isServiceable(candidate)) continue;
         if (!candidate.isClaimable()) continue;
-        candidate.soil();
+        candidate.markUsed();
         return { kind };
       }
     }

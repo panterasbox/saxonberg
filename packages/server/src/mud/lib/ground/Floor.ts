@@ -170,6 +170,18 @@ export interface Floor {
   /** What you are standing on, as one of the ten closed words. */
   getGroundKind(): GroundKind;
   /**
+   * Is standing on this floor a SLOT rather than ground — a water
+   * surface you swim in, an ice sheet you stand on by its bearing (the
+   * storage-and-ice build's surfaces answer `true`)? Base `false`.
+   */
+  supportIsSlotted(): boolean;
+  /**
+   * ⭐ Does this floor take soil — tracked mud, spilled blood, crumbs?
+   * ONE predicate, no class check: `!supportIsSlotted()`. Mud is not
+   * tracked onto a mere and blood does not pool on a sheet of ice.
+   */
+  takesSoil(): boolean;
+  /**
    * Standing water in the surface slot. Read for exactly one kind
    * (`mire`); public because the puddle summary and the conduction walk
    * both already ask the same question their own way.
@@ -589,6 +601,14 @@ export function FloorMixin<
         return rule.kind;
       }
       return 'contrived';
+    }
+
+    public supportIsSlotted(): boolean {
+      return false;
+    }
+
+    public takesSoil(): boolean {
+      return !this.supportIsSlotted();
     }
 
     /**

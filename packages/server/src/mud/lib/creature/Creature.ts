@@ -46,7 +46,9 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
-import { HygieneMixin } from '../vitals/Hygiene';
+import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { ReservedMixin, Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
@@ -174,9 +176,11 @@ const CreatureBase = PostmortemMixin(
             ThermalMixin(
               RespirationMixin(
                 MetabolicMixin(
-                  // Body cleanliness beside vitals — every body can be dirty;
-                  // only a treater's cleanliness is ever read (recovery D10).
-                  HygieneMixin(
+                  // ⭐ Dirt by kind, per body part (cleanliness D4): every
+                  // body that wears things can be dirty where it was
+                  // touched. No clock — the retired HygieneMixin decayed
+                  // clean hands to dirty by itself; now only an act soils.
+                  SoilableMixin(
                   VitalsMixin(
                     ReservedMixin(
                       PosedMixin(
@@ -352,6 +356,52 @@ export class Creature extends CreatureBase {
     // satiation / hydration) at full. Idempotent — hydration overwrites
     // from stored values afterward.
     this.installBiologicalReserves();
+  }
+
+  // ── dirt on the body (cleanliness D4) ──
+  // ⭐ A body's sites are its PART keys. Which LAYER an act reaches —
+  // the glove or the bare hand — is the wearer's question and lives on
+  // `AttiredMixin` (`soilBodyPart`, `soilHands`, `handCleanliness`);
+  // this class only words what is on the bare skin.
+
+  /**
+   * The soil on the BARE skin, by region — *Your hands are bloodied.* What
+   * a garment carries is the garment's line (and the dressed impression's
+   * upkeep clause), so only parts nothing covers are spoken for here.
+   */
+  public soilLookLine(viewer: Stuff | null = null): string {
+    const regions: Array<[string, string[]]> = [
+      ['hands', this.handSites()],
+      ['feet', this.footSites()],
+    ];
+    const claimed = new Set(regions.flatMap(([, keys]) => keys));
+    const rest = this.soilSites().filter((s) => s !== WHOLE_SITE && !claimed.has(s));
+    const bySite = new Map<string, string[]>();
+    for (const site of rest) {
+      const region = site.split('.').pop() ?? site;
+      bySite.set(region, [...(bySite.get(region) ?? []), site]);
+    }
+    regions.push(...bySite.entries());
+    const possessive = viewer === (this as unknown as Stuff) ? 'Your' : 'Their';
+    const lines: string[] = [];
+    for (const [region, keys] of regions) {
+      const bare = keys.filter((k) => this.outermostAt(k) === null);
+      let worst = '';
+      let worstLoad = 0;
+      for (const k of bare) {
+        const load = this.soilAt(k);
+        if (load > worstLoad) {
+          worstLoad = load;
+          worst = k;
+        }
+      }
+      if (!worst) continue;
+      const phrase = this.soilPhrase(worst);
+      if (!phrase) continue;
+      const verb = region.endsWith('s') ? 'are' : 'is';
+      lines.push(`${possessive} ${region} ${verb} ${phrase}.`);
+    }
+    return lines.join(' ');
   }
 
   // ── biological reserve readers — the contract surface ──

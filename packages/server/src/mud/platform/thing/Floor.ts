@@ -46,19 +46,41 @@ import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { FloorMixin } from '../../lib/ground/Floor';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 // FloorMixin is OUTERMOST: its `getMaterial` / `getKeywords` /
 // `getSlotNames` overrides have to see the composed stack's answers
 // through `super` before they add their own.
-const FloorBase = FloorMixin(
+//
+// ⭐ Soilable outer of that (cleanliness D15): every room's ground may be
+// soiled, strewn and swept — a hall's boards and a street alike — and its
+// soil reads after the ground sentence and the snow (augmenters fold
+// root → leaf). A floor that does not take soil (a water surface, an ice
+// sheet) refuses the deposit itself, below.
+const FloorBase = SoilableMixin(FloorMixin(
   BulkableMixin(
     PosturedMixin(
       SlottedMixin(AdornmentMixin(VisibleMixin(Thing))),
     )
   )
-);
+));
 
 export default class Floor extends FloorBase {
+  /**
+   * ⭐ A floor takes soil only if it {@link takesSoil} — the one
+   * predicate; a water surface or an ice sheet takes none.
+   */
+  public soil(
+    kind: string,
+    amount: number,
+    by: Stuff | null = null,
+    site?: string,
+  ): void {
+    if (!this.takesSoil()) return;
+    super.soil(kind, amount, by, site);
+  }
+
   constructor() {
     super();
     // ⭐⭐ **Fixed in place, because it is the place.** Found by the

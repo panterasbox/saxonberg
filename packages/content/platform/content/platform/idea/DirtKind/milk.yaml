@@ -1,0 +1,9 @@
+# Milk — what the milker's apron takes at the pail; water and time
+# take it off again.
+class: /platform/idea/DirtKind
+data:
+  key: milk
+  adjective: milk-splashed
+  form: film
+  answersTo: [surfactant, alkali-mild]
+  waterLifts: 0.6

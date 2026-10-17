@@ -201,7 +201,7 @@ describe("eating with cutlery (AC11a)", () => {
 
   it("a SOILED utensil is passed over — you do not eat off a dirty spoon", async () => {
     const dirty = utensil("spoon", loc);
-    dirty.soil();
+    dirty.markUsed();
     await eat(apple(loc));
     expect(self!).toContain("with your fingers");
 

@@ -1,0 +1,10 @@
+# Grease — fat that water alone will not touch. Soap, an alkali or a
+# solvent lifts it; a strewn absorbent drinks it up off a floor.
+class: /platform/idea/DirtKind
+data:
+  key: grease
+  adjective: greasy
+  form: film
+  answersTo: [surfactant, alkali-mild, alkali-strong, solvent, absorbent]
+  absorbedBy: true
+  waterLifts: 0.05

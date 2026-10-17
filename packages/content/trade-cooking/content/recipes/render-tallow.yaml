@@ -38,3 +38,8 @@ requiresHeatK: 373
 maxHeatK: 420
 difficulty: easy
 discipline: cooking
+# ⭐ Rendering is greasy work (cleanliness D6): the hands and the apron
+# take it.
+soils:
+- { kind: grease, amount: 0.3, where: hands }
+- { kind: grease, amount: 0.2, where: apron }

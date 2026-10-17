@@ -61,13 +61,19 @@ import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { DyedMixin } from '../../../lib/material/Dyed';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
+import { SoilableMixin } from '../../../lib/cleanliness/Soilable';
+import { LabelledMixin } from '../../../lib/description/Labelled';
 
-const GarmentBase = WearableMixin(
+// ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
+// may carry dirt by kind and be washed — a shirt, an apron, a pair of
+// gloves — and every garment may be marked with its owner's name, which
+// is what a laundry mark is.
+const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
     CraftedMixin(
       DurableMixin(ConstructedMixin(DyedMixin(Good))),
     ),
   ),
-);
+)));
 
 export default class Garment extends GarmentBase {}

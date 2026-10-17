@@ -453,7 +453,7 @@ interface GatheredMatter {
  */
 interface PoolGlass {
   isClaimable(): boolean;
-  soil(): void;
+  markUsed(): void;
   setTechnique(value: string): void;
   setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void;
   clearIce(): void;
@@ -1402,7 +1402,7 @@ async function finishGlass(
     }
   }
   if (typeof pool.setTechnique === 'function') pool.setTechnique(technique);
-  if (typeof pool.soil === 'function') pool.soil();
+  if (typeof pool.markUsed === 'function') pool.markUsed();
 }
 
 /**
@@ -1948,7 +1948,7 @@ async function applyEdibleOutput(
   // and the whole wash loop would be decorative; and a pot exempted from
   // it could serve dinner every night and never need cleaning.
   const pool = asPoolGlass(output);
-  if (typeof pool.soil === 'function') pool.soil();
+  if (typeof pool.markUsed === 'function') pool.markUsed();
 
   const authored = recipe.getOutputMaterial();
   if (authored) {
@@ -3143,6 +3143,11 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     recipe: recipe.getRecipeId(),
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
+
+  // ⭐ **And the hand that made it** (cleanliness D6): the recipe row says
+  // what making this dirties — grease on the renderer's hands and apron,
+  // flour on the baker's floor — and it lands on the layer it reaches.
+  if (MixinApi.isAttired(maker)) maker.soilFrom(recipe.getSoils());
 
   // ⭐⭐ **A working DIRTIES the tools it was done with** — a press that
   // pressed contaminated fruit is a dirty press, the board's route one

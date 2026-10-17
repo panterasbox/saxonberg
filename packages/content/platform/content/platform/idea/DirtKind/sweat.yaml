@@ -1,0 +1,8 @@
+# Sweat — what hard work leaves on the innermost layer.
+class: /platform/idea/DirtKind
+data:
+  key: sweat
+  adjective: sweat-stained
+  form: film
+  answersTo: [surfactant, alkali-mild, alkali-strong]
+  waterLifts: 0.5

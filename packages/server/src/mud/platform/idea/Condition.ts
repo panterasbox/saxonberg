@@ -501,6 +501,10 @@ export const HARM_DEFAULTS = {
   /** Below this cleanliness (hands) or care quality, a treatment is dirty
    * enough to inoculate a bleed-family wound. */
   SEPSIS_DIRTY_THRESHOLD: 0.5,
+  /** How much blood one dressing of a bleed puts on the treater's hands
+   * (cleanliness D4) — past the dirty threshold, so the NEXT wound dressed
+   * with unwashed hands is inoculated, as the retired hands clock had it. */
+  HAND_BLOOD_PER_DRESSING: 0.6,
   /** How long (game-seconds) a bleed-family wound above the clot threshold
    * may sit undressed before it goes bad on its own — twelve game-hours. */
   SEPSIS_OPEN_ONSET_SEC: 12 * 60 * 60,

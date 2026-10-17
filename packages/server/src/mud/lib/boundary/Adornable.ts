@@ -57,8 +57,11 @@ import type { Boundary } from './Boundary';
 import { BoundaryAnchor } from './BoundaryAnchor';
 import type {
   CaptureContext,
-  FieldsSlice,
+  FixturesSlice,
+  HydrateContext,
+  MixinSlice,
 } from '../persistence/PersistenceSlice';
+import type { AnyConstructor } from '../../api/mixin';
 
 /**
  * One `adornments` entry. A bare path string clones the template and
@@ -162,14 +165,47 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      * an empty field slice. Exactly the Container-slice rule, applied to
      * the fixtures map.
      */
-    static captureSlice(host: Stuff, ctx: CaptureContext): FieldsSlice {
+    static captureSlice(host: Stuff, ctx: CaptureContext): FixturesSlice {
       const adornable = host as Stuff & Adornable;
+      const fixtures: Record<string, Record<string, unknown>> = {};
       for (const f of adornable.getFixtures()) {
         if (MixinApi.isChattel(f) && f.isOwnerPersisted()) {
           ctx.noteOwnedGood(f);
+          continue;
         }
+        // ⭐ (cleanliness D31b) What an act did to an AUTHORED fixture —
+        // the floor's soil and strewing, a pane's grime — rides the host's
+        // record, keyed by slot. Only the fixture's RUNTIME state: its
+        // authored fields come back from the row, so an edited row still
+        // reaches a booted world. A fixture that persists ITSELF keeps
+        // its own `(scope, key)` record and is skipped.
+        const slot = adornable.slotOfFixture(f);
+        const target = fixtureStateHolder(f);
+        if (!slot || !target || MixinApi.isPersistable(target)) continue;
+        const fields = runtimeFields(target, ctx);
+        if (Object.keys(fields).length > 0) fixtures[slot] = fields;
       }
-      return { fields: {} };
+      return Object.keys(fixtures).length > 0
+        ? { fields: {}, fixtures }
+        : { fields: {} };
+    }
+
+    /** Give each re-minted fixture back what its slot's record held. */
+    static async hydrateSlice(
+      host: Stuff,
+      slice: MixinSlice,
+      ctx: HydrateContext,
+    ): Promise<void> {
+      const fixtures = (slice as FixturesSlice).fixtures;
+      if (!fixtures) return;
+      const adornable = host as Stuff & Adornable;
+      for (const f of adornable.getFixtures()) {
+        const slot = adornable.slotOfFixture(f);
+        const fields = slot ? fixtures[slot] : undefined;
+        const target = fixtureStateHolder(f);
+        if (!fields || !target || MixinApi.isPersistable(target)) continue;
+        await ctx.applyFields(target, fields);
+      }
     }
 
     /**
@@ -449,4 +485,43 @@ function hasMixinNamed(f: object, mixinName: string): boolean {
     proto = Object.getPrototypeOf(proto) as object | null;
   }
   return false;
+}
+
+/**
+ * The Stuff whose state a fixture slot keeps: the fixture itself, or —
+ * for a boundary's anchor — the boundary it anchors (a Window is one
+ * object hung on two rooms; each room's record carries the same state,
+ * and the last restored wins).
+ */
+function fixtureStateHolder(f: Stuff & Adornment): Stuff | null {
+  if (BoundaryAnchor.is(f)) {
+    return (f.getBoundary() as unknown as Stuff | null) ?? null;
+  }
+  return f;
+}
+
+/**
+ * A fixture's RUNTIME state — its persistent fields marked `runtimeState`,
+ * marshalled by the field pass's own capture. Authored fields are left to
+ * the row.
+ */
+function runtimeFields(
+  target: Stuff,
+  ctx: CaptureContext,
+): Record<string, unknown> {
+  const meta = MixinApi.getAllFieldMeta(target.constructor as AnyConstructor);
+  const wanted = new Set(
+    Object.entries(meta)
+      .filter(([, m]) => m.persistent === true && m.runtimeState === true)
+      .map(([name]) => name),
+  );
+  if (wanted.size === 0) return {};
+  const out: Record<string, unknown> = {};
+  for (const slice of Object.values(ctx.captureState(target))) {
+    if (!('fields' in slice)) continue;
+    for (const [f, v] of Object.entries(slice.fields)) {
+      if (wanted.has(f)) out[f] = v;
+    }
+  }
+  return out;
 }

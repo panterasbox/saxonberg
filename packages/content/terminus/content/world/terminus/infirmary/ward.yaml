@@ -2,7 +2,9 @@
 # (SOUTHWEST back to the street; the block declares NORTHEAST in here —
 # cross-zone cardinal exit, both sides explicit), on the same walk as the
 # store and the bank.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentCartesianLocation
 data:
   shortDescription: infirmary
   keywords: [infirmary]

@@ -5,6 +5,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { MixinApi } from '../../../api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
 import CartesianLocation from '../../location/CartesianLocation';
@@ -177,8 +178,9 @@ describe('snow lies on a sky-exposed floor', () => {
     expect(floor.getSnowBand()).toBe('deep');
     expect(floor.snowPhrase()).toMatch(/deep here.*not gone in years/);
 
-    const augmenters = (Floor as unknown as { markupAugmenters: MarkupAugmenter[] })
-      .markupAugmenters;
+    const augmenters = MixinApi.getAllMarkupAugmenters(
+      Floor,
+    ) as unknown as MarkupAugmenter[];
     let text = 'A floor.';
     for (const aug of augmenters) text = aug(text, floor, floor);
     // The ground sentence ("It is …") is masked; the snow sentence is said.
@@ -237,8 +239,9 @@ describe('a puddle in freezing air reads frozen over (W6, D7)', () => {
     await settle(warm.room);
     expect(cold.floor.isFrozenOver()).toBe(true);
     expect(warm.floor.isFrozenOver()).toBe(false);
-    const augmenters = (Floor as unknown as { markupAugmenters: MarkupAugmenter[] })
-      .markupAugmenters;
+    const augmenters = MixinApi.getAllMarkupAugmenters(
+      Floor,
+    ) as unknown as MarkupAugmenter[];
     let text = '';
     for (const aug of augmenters) text = aug(text, cold.floor, cold.floor);
     expect(text).toMatch(/skin of ice/);

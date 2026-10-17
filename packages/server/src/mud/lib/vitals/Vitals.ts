@@ -3193,9 +3193,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       let seededInfection = false;
       if (BLEED_FAMILY.has(wound.type)) {
         const treater = opts.treater;
+        // ⭐ Derived from what the hands (or the gloves) carry — never a
+        // clock (cleanliness D4).
         const hands =
-          treater && MixinApi.isHygiene(treater)
-            ? treater.handsCleanliness()
+          treater && MixinApi.isAttired(treater)
+            ? treater.handCleanliness()
             : 1;
         const dirty =
           hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD ||
@@ -3205,8 +3207,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands),
           );
         }
-        // Handling a bleeding wound soils the treater's hands.
-        if (treater && MixinApi.isHygiene(treater)) treater.soil();
+        // Handling a bleeding wound bloodies the treater's hands — with
+        // the PATIENT's blood (the sample a forensic read can name).
+        if (treater && MixinApi.isAttired(treater)) {
+          treater.soilHands(
+            'blood',
+            HARM_DEFAULTS.HAND_BLOOD_PER_DRESSING,
+            this as unknown as Stuff,
+          );
+        }
       }
       return { treated: true, by: opts.by, seededInfection };
     }

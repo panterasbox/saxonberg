@@ -65,6 +65,7 @@ import type { BulkSlot } from '../../lib/bulk/Bulkable';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 import { MixinApi } from '../../api/mixin';
 
 /**
@@ -89,9 +90,11 @@ const LAMP = {
   MAX_BURN_POWER_W: 300,
 } as const;
 
-const LampBase = BurnerMixin(
+// ⭐ Soilable (cleanliness D18): a smoky flame soots the lamp; the soot
+// dims only the GLAZED share of what it gives (`getEmittedFlux`).
+const LampBase = SoilableMixin(BurnerMixin(
   LightSourceMixin(BulkableMixin(ThermalMixin(Good))),
-);
+));
 
 export default class Lamp extends LampBase {
   /**

@@ -1,0 +1,8 @@
+# Ash — from tending a fire and raking a grate.
+class: /platform/idea/DirtKind
+data:
+  key: ash
+  adjective: ashy
+  form: film
+  answersTo: [surfactant, alkali-mild]
+  waterLifts: 0.6

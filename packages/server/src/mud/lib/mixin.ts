@@ -360,9 +360,9 @@ export const Mixins = {
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
   Vitals: 'VitalsMixin',
-  // Body cleanliness: a `washedAt` stamp that decays to "dirty", read by
-  // wound treatment (dirty hands infect a wound) — the recovery build.
-  Hygiene: 'HygieneMixin',
+  // Dirt by kind on the layer an act reached — garments, bodies (per
+  // part), floors, panes, pots. No clock: only an act soils (cleanliness).
+  Soilable: 'SoilableMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the
   // world long enough to be studied.

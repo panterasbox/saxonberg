@@ -13,8 +13,12 @@
 import Good from '../../lib/stuff/Good';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { SlottedMixin } from '../../lib/slot/Slotted';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 
-const ChairBase = PosturedMixin(SlottedMixin(Good));
+// ⭐ Soilable OUTERMOST (cleanliness D16): every seat and bed may be
+// filthy, and a filthy bed rests you worse — a factor that sits OUTSIDE
+// whatever structural factor the chain below it applies.
+const ChairBase = SoilableMixin(PosturedMixin(SlottedMixin(Good)));
 
 export default class Chair extends ChairBase {
   constructor() {

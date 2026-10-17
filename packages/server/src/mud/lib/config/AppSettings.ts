@@ -2249,6 +2249,16 @@ export const AppSettingKeys = {
   pumpHandFloorW: "pump.handFloorW",
   /** Pump — the fraction of a shift a rostered hand spends at the handle. */
   pumpCrewDuty: "pump.crewDuty",
+
+  /* ───────────────────────── cleanliness ───────────────────────── */
+  /**
+   * Cleanliness — the load (a dimensionless amount of dirt at a site) at
+   * which a thing reads MARKED, SOILED and FILTHY. The bands are the only
+   * thing a player is told; these say where the words change.
+   */
+  cleanlinessBandMarkedAt: "cleanliness.band.markedAt",
+  cleanlinessBandSoiledAt: "cleanliness.band.soiledAt",
+  cleanlinessBandFilthyAt: "cleanliness.band.filthyAt",
 } as const;
 
 export type AppSettingKey =

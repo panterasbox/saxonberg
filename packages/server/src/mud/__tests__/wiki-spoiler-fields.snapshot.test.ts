@@ -40,6 +40,24 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Cleanliness (the soiling model, the cleansers, the kept places).**
+ * Every field level 0 but two, and why:
+ *   - ⚠ `SoilableMixin.stains` — **`spoiler: 2`**. A blood stain carries the
+ *     bleeder's TRUE type, system and person key: exactly what `analyze
+ *     blood <garment>` is for. A panel that printed it would answer the
+ *     forensic question for free — the murderer's shirt read without a
+ *     reading. `donorIdentityPath` is never surfaced by any line.
+ *   - `Recipe.soils` — `spoiler: 1, spoilerName: 0`, its recipe siblings'
+ *     tag: *that a making dirties you* is public; how much is the trade's.
+ *   - `SoilableMixin.deposits` / `.setDeposits` / `.washes` / `.heat` —
+ *     runtime state read out in words (*soiled, bloodied and greasy*; the
+ *     clean tiers), never as figures; what an act did, visible to anyone
+ *     who looks.
+ *   - `DirtKind` ×9, `Cleanser` ×9 — the vocabulary rows: what a dirt is
+ *     called and what lifts it; what a cleanser does and to what. The
+ *     requirements' own table (§ 6) is the content; the chemistry is the
+ *     lesson, and the textiles band reads it before a wash.
+ *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

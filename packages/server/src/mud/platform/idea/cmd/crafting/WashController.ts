@@ -22,7 +22,6 @@ import { ManualBuildController } from "./ManualBuildController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Hygiene } from "../../../../lib/vitals/Hygiene";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -137,7 +136,7 @@ export default class WashController extends ManualBuildController<WashModel> {
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHygiene(giver)) {
+    if (!MixinApi.isAttired(giver) || giver.handSites().length === 0) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
       return;
     }
@@ -155,7 +154,7 @@ export default class WashController extends ManualBuildController<WashModel> {
       effortW: 200,
       beginSelf: Mml.compose`You step to ${Mml.thing(water)} to wash your hands.`,
       onComplete: () => {
-        (giver as Stuff & Hygiene).scrub();
+        giver.washHands();
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You scrub your hands clean under the water.`)

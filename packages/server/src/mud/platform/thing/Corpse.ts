@@ -61,7 +61,7 @@
  * and `Containable` come from `Thing` itself.
  *
  * Dropped, each because it is false of a dead body: `Metabolic`,
- * `Respiration`, `Exerting`, `Hygiene`, `LoadBearing`, `Posed`,
+ * `Respiration`, `Exerting`, `Soilable`, `LoadBearing`, `Posed`,
  * `Slottable`, `Disguisable`, `ThermalRegulation`.
  *
  * ⭐ **Not a second body stack.** The kept list is a strict SUBSET of

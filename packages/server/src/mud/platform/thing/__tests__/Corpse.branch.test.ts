@@ -71,7 +71,7 @@ describe('Corpse — the branch', () => {
     expect(MixinApi.isExerting(c)).toBe(false);
     expect(MixinApi.isDisguisable(c)).toBe(false);
     expect(MixinApi.isLoadBearing(c)).toBe(false);
-    expect(MixinApi.isHygiene(c)).toBe(false);
+    expect(MixinApi.isSoilable(c)).toBe(false);
   });
 
   it('⭐ composes neither of the Agent branch\'s operative mixins', () => {

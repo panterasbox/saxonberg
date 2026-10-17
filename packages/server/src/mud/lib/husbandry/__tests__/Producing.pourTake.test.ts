@@ -26,7 +26,6 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 
 const DAY = 86_400;
-const HOUR = 3600;
 const SPECIES_PATH = '/stuff/idea/species/_test/pour-cow';
 const MILK = '/stuff/idea/material/_test/pour-milk';
 
@@ -116,7 +115,6 @@ describe('the hand on the milk', () => {
   it('the slot names the milker by identity path', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
     advance(0.5 * DAY);
     const p = pail(() => new PlainPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
@@ -128,7 +126,7 @@ describe('the hand on the milk', () => {
     const c = cow();
     const who = milker();
     advance(0.5 * DAY);
-    who.scrub();
+    who.washHands();
     const p = pail(() => new FoodPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     const slot = BulkableApi.slotFor(p, undefined)!;
@@ -139,8 +137,9 @@ describe('the hand on the milk', () => {
   it('dirty hands put e-coli in the milk and on a food pail, scaled by the dirt', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
-    advance(12 * HOUR); // six game-hours is filthy; twelve is past it
+    // ⭐ Dirt is put there by an act, never by the clock (cleanliness D4).
+    who.soilHands('manure', 0.8);
+    advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new FoodPail());
     // ⚠ Spied rather than read back: with no pathogen roster standing in a
     // unit test, the pail's own reconcile has no organism to grow. That the
@@ -158,8 +157,8 @@ describe('the hand on the milk', () => {
   it('a plain vessel carries no surface load — only the milk is dirtied', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
-    advance(12 * HOUR);
+    who.soilHands('manure', 0.8);
+    advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new PlainPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     const slot = BulkableApi.slotFor(p, undefined)!;
@@ -169,7 +168,6 @@ describe('the hand on the milk', () => {
   it('⭐ a CraftVessel pail (the shipped pail since the dairy build) takes the milk', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
     advance(0.5 * DAY);
     const p = makeStuff(() => {
       const v = new CraftVessel();

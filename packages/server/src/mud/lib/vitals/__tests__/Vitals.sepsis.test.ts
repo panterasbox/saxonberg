@@ -37,16 +37,17 @@ function cut(): Trauma {
   };
 }
 
-/** A treater with clean hands (scrubbed just now). */
+/** A treater with clean hands — nothing has touched them (cleanliness D4:
+ * hands are clean until an act dirties them; there is no clock). */
 function cleanTreater(): Creature {
-  const t = makeStuff(() => new Creature());
-  t.scrub();
-  return t;
+  return makeStuff(() => new Creature());
 }
 
-/** A treater with dirty hands (never washed → cleanliness 0). */
+/** A treater with filthy hands (a full load of muck on them). */
 function dirtyTreater(): Creature {
-  return makeStuff(() => new Creature());
+  const t = makeStuff(() => new Creature());
+  t.soilHands('mud', 1);
+  return t;
 }
 
 beforeEach(() => {
@@ -136,8 +137,11 @@ describe('a wound goes bad on a clock — if the hands were dirty', () => {
     const wound = cut();
     patient.afflict(wound);
     const treater = cleanTreater();
-    expect(treater.handsCleanliness()).toBeCloseTo(1, 5);
+    expect(treater.handCleanliness()).toBeCloseTo(1, 5);
     patient.applyTreatment(wound, { by: 'dressing', efficacy: 1, treater });
-    expect(treater.getWashedAt()).toBeNull(); // soiled by handling the wound
+    // Bloodied by handling the wound — past the dirty threshold, so the
+    // next wound dressed without washing is inoculated.
+    expect(treater.handCleanliness()).toBeLessThan(0.5);
+    expect(treater.soilKinds()).toContain('blood');
   });
 });
