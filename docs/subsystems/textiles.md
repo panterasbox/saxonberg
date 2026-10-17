@@ -407,8 +407,10 @@ is just a worse card.
   felt at all. The `felted` fabric row ships **unreachable** (the
   `chalcopyrite` precedent) so the vocabulary is honest rather than a
   promise in prose.
-- **Cotton and silk** — a second cellulose fibre is more content and no
-  new lesson.
+- **Cotton** — a second cellulose fibre is more content and no new
+  lesson. ⚠ **Silk is not that** (2026-10-17): it is a PROTEIN filament
+  raised from an animal on a leaf crop, so it is a raw-goods chain of its
+  own → [sericulture-slate](../slates/builds/sericulture-slate.md).
 - **Synthetics, mills, mass production** — trades ship medieval and
   advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`
   construction form**: material scales the resist magnitude, so a
