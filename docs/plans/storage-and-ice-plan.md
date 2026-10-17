@@ -579,7 +579,9 @@ INCLUDES the face.
 - `get <good>` (plain; a word the face answers to — `block`, `ice`,
   `sawdust`) takes the face out of the open holder → `onContainableRemoved(face)`:
   if `!face.isDestroyed()` the line's `amountKg −= face mass` and no
-  receipt changes (off the books); then `void this.reface(key)`
+  receipt changes (off the books); then `void this.reface(key)` —
+  ⚠ keyed on the LINE's stored key, never `face.poolKey()` (a face's
+  wetness band can drift once Things integrate long gaps; cleanliness)
   (fire-and-forget clone, the `reconcileBulkPhase` precedent). If the
   face DESTRUCTED (an ice face that melted away as an object between
   reconciles) the line is NOT debited again — the line's own physics
@@ -814,6 +816,15 @@ Parallel builds).
 
 ### Cold water, wetness, the frozen pool
 
+**D10a — The immersion fold is ONE body method**,
+`ThermalRegulationMixin.exchangeWithWater(waterK: number, dtS: number)` (agreed
+with cleanliness, 2026-10-17): the shipped immersion fold (water's
+conductivity against air's, the half-gap fold, the wet amplifier) lifted
+out of `effectiveAmbient` into a public method `effectiveAmbient` calls
+for a swimmable scope (D10), and that cleanliness's tub and river-shore
+`bathe` call once per bathing step, so a river bathe chills by the same
+law as a pool swim. No second formula anywhere.
+
 **D10 — A swimmable place says who is in its water, and the body reads
 it; "in the water" is derived from SUPPORT.** `SwimmableMixin` gains
 `immersionOf(occupant: Stuff): {mediumTag: 'water', temperatureK:
@@ -845,7 +856,9 @@ on the body and `layer.wet(1)` for every layer at every exterior part
 (`coveringAt(part.key)`) the optional filter admits (no filter = every
 part; rubber's flooded cell calls it with the foot parts, cleanliness's
 `bathe` with none — both siblings consume this exact signature); a
-non-Attired Wet thing gets `wet(1)`.
+non-Attired Wet thing gets `wet(1)`. ⚠ **`immerse` stays
+side-effect-only (it wets; it computes no heat)** — cleanliness puts its
+rinse line inside it (climbing out of a river rinses mud and sweat).
 Callers: `Pool.onEntered(mover, exit)` when `immersionOf(mover)` is
 non-null after the support check; `WaterSurface.giveWay(occupant)`
 (D12); and `ThermalRegulation.restamp` re-immerses while
@@ -1029,14 +1042,21 @@ currents up to about 0.5 m/s; only fast, turbulent water stays open).
 re-pinned (fixtures, never the law); the climate drive's open-water and
 crossing checks are re-run (W5 acceptance).
 
-**D15 — Fishing frozen water is refused except through a hole.**
-`FishingController.reachFor` (the one seam Fish, Lay and Release share)
-checks after resolving the reach: if the bound shore's
-`peekWaterRead(key)?.frozen` and the room's FLOOR does not offer open
-water (`const floor = room.getFloor(); typeof floor?.openWaterAreaM2 ===
-'function' && floor.openWaterAreaM2() > 0` — the shape the water pack's
-sheet offers, read by shape) → `{refusal: 'The water is frozen over;
-you would need a hole.', reason: 'frozen'}`. Fishing happens from the
+**D15 — Frozen water is refused except through a hole: ONE gate on the
+shore, `ShoreMixin.drawAt(key, room)`** (agreed with cleanliness,
+2026-10-17: fishing and washing/bathing are its two consumers, so it is
+one kernel method, not two copies). `drawAt` returns `{draw: WaterDraw}`
+or `{refusal: 'frozen', line: 'The water is frozen over; you would need a
+hole.'}`: if `peekWaterRead(key)?.frozen` and the room's FLOOR does not
+offer open water (`const floor = room.getFloor(); typeof
+floor?.openWaterAreaM2 === 'function' && floor.openWaterAreaM2() > 0`,
+read by shape) → the refusal; through a hole → `read.underIce`. **`WaterRead`
+gains `underIce?: WaterDraw`** (274 K, the reach's material and — once
+cleanliness lands — its hardness), built in the read builder's `frozen ?
+… : …` branch, because a frozen read's `draw` is null and a copied gate
+would pass and then find no water. `FishingController.reachFor` (the one
+seam Fish, Lay and Release share) calls `drawAt`; whichever of this
+build and cleanliness lands second moves its own consumer onto it. Fishing happens from the
 floor, through the hole; the reach is the same reach and fishing is
 unchanged. **A hole is a small `cut` patch (0.1 m²) made by `cut hole`
 with the ice saw** (D16: the raw word `hole` makes a 0.1 m² cut and
@@ -1214,7 +1234,9 @@ repair build makes every Tool Keen). Discipline row
 `ShiftEntry`, resolved to the business's LOCAL season.**
 `ShiftEntry.season?: Season[]`, `SEASONS = ['spring', 'summer',
 'autumn', 'winter'] as const` in `S/lib/employment/Roster.ts`
-(registered with `lint:closed-vocabularies`); `RosterClock.season?:
+(registered with `lint:closed-vocabularies` and declared in its
+`CLOSED_BY_DESIGN` list — `CLOSED_VOCABULARY_CEILING` is 5 and
+cleanliness leans on it too); `RosterClock.season?:
 Season`; `Roster.evaluate` adds `(!e.season || e.season.includes(date.season))`.
 `CelestialApi.seasonAt(latitudeDeg: number, nowS: number): Season`
 (`S/api/celestial.ts`). ⚠ **It takes a latitude, never a world object**:
@@ -1286,7 +1308,9 @@ rooms: `shore` (Shore; exits south → `road`, north → `pool`),
 hollowmere:mere`; exits south → shore, north → far-bank, both `media:
 [ground, water]`, `_conditional: true`; props the bottom),
 `far-bank` (Shore), `road` (a Street linking the shore, the icehouses
-and the realm), `icehouse-platform` (volume, `enclosure` 0.2 m pine,
+and the realm), ⚠ every icehouse room (platform, house, small house,
+shed) is a `SingletonCartesianLocation` row (`lint:location-classes`
+enumerates `MINTED_ROWS`), `icehouse-platform` (volume, `enclosure` 0.2 m pine,
 ambient light, props: the counter `class: /trade/shopkeeping/thing/Stock`
 with `stockLines: [{itemTemplatePath: /stuff/thing/ice-block, par: 1,
 source: /world/terminus/hollow-mere/thing/stack, pricing: stocking}]`,
@@ -1722,8 +1746,10 @@ plan); `materials` / `glass.md` (composition vs temper); `ground.md`
 (the water surface, `bears`/`supportIsSlotted`, the `ice` kind, the
 per-area snow seam) and `posture.md` (support on a slotted floor;
 `stand` from the water); `locomotion.md` (`swim` with no target); the
-`CLAUDE.md` map line and verb list (`custody` category; `cut` is the
-kernel's; `mark`, `scrape`); `content-packs.md` (two packs).
+`content-packs.md` (two packs). The `CLAUDE.md` map line and verb list
+(`custody` category; `cut` is the kernel's; `mark`, `scrape`) are NOT
+written by this build: they go to the one sweep after the last of the
+four parallel builds merges (§ Parallel builds).
 
 ---
 
@@ -1868,7 +1894,13 @@ recorded in D15 and D19.
     (the line falls, no receipt changes — asserted by `measure stock`
     against `look book`); step 16 posts
     the job by advancing the cook's beat and then `job`/`buy`/`fulfill`
-    as the hauler; step 21 restarts the world with assembly's exact
+    as the hauler (⚠ once cleanliness has re-classed the cookhouse room,
+    props re-lay only on the no-record branch, so steps 16 and 21 run on
+    a FRESH DB after both land, and assert the delivered block's title
+    lands with the business); step 12 reads the dug-out sawdust's
+    wetness BEFORE any clock jump (cleanliness narrows the Wet far-past
+    guard by holder chain, so a loose heap dries across a multi-day
+    `advance`); step 21 restarts the world with assembly's exact
     sequence (wait 8 s for saves, `dev-preflight.mjs`, `bootOwnedWorld`,
     `stopOwnedWorld` in `afterAll`, `it.skipIf(!isOwnedTestWorld())`).
   - ⚠ A long jump costs; the summer step jumps in 20-day increments
@@ -1988,13 +2020,15 @@ repair's W7 (gated on rubber).
 | `S/platform/idea/api/CraftingLogic.ts` | W0: the off-spec lump's template choice + salvage's metal branch — kept as **one small template-choice helper** so it re-applies onto a rewrite | repair W0–W3/W7 rewrites `repairImpl`, `applyAssembledOutput`, `fitImpl`, the mint, salvage-adjacent code (its range `:3215–4000` contains our salvage hunk); cleanliness W1/W5/W6 `Recipe.soils`, `contaminateFromKit`, `presentFulfillers` | ours is the small hunk: if second, re-apply the helper; re-run W0's freeze/salvage/off-spec tests (salvage a `Tool`, so it passes whether or not repair has made Tool Assembled) and the smelting + glass drives |
 | `S/platform/idea/api/EmploymentLogic.ts` `tickBusiness` | D20: the season on `RosterClock` only | repair W4 groups assignments by assignee and moves for the shift | re-thread the clock's season into repair's per-slot `evaluate`; ask repair to make `check-openings`' overlap arm season-aware (a winter-only and a year-round slot do not overlap) |
 | `S/lib/behavior/restocks.ts` | D21 `unpackIntoCold` + `cold:` | repair W7 moves `order`/`unpackBench` onto `BusinessMixin.orderShortfall`/`receiveBench` | repair carries `unpackIntoCold` and the `cold` option across whole |
+| `S/lib/location/Shore.ts` + `S/lib/location/WaterSource.ts` | D15 `ShoreMixin.drawAt(key, room)`, `WaterRead.underIce` | cleanliness's `wash`/`bathe` consume `drawAt`; cleanliness adds `WaterDraw.hardnessDgh` | ONE gate; second lander moves its own consumer onto it |
+| `S/lib/thermal/ThermalRegulation.ts` | D10/D10a `exchangeWithWater(waterK, dtS)` called from `effectiveAmbient` | cleanliness's tub/shore `bathe` call it | if cleanliness lands first with its own copy of the fold, fold it into this one method |
 | `C/water/src/idea/WatercourseCatalogue.ts` | W6 `iceAt(ref, nowS, opts)` | cleanliness D12 `hardnessDgh` in the reach read | separate regions |
 | `C/trade-bottling/.../material/ice.yaml` → `C/base-library/.../material/bulk/ice.yaml` | W0 moves it, deletes the bottling row | rubber W2 authors `lightAbsorption ≈ 2/m` on it | modify/delete: if we land first rubber authors on `bulk/ice.yaml`; if rubber lands first we carry its line into the moved row |
 | `C/hearthworks/...` | `idea/business.yaml` (ice par), `agent/cook.yaml` (`cold:`) | cleanliness re-classes `location/cookhouse.yaml` (persistent room); repair edits `thing/smithy-tariff.yaml`, `location/smithy.yaml`, a heirloom row | different files; once cleanliness lands, the icebox's contents persist with the room (harmless) |
 | registries: `Mixins`/`MixinApi`, `check-closed-vocabularies.ts`, root `package.json` pack list, `scripts/__fixtures__/field-meta-golden.json`, `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` | Store, Poolable, Composition, Tempered, StoreBook, `isSwimmable`; `SEASONS`; trade-ice, hollow-mere; new fields (`iceQuality`, the stockpile's, `kerfM`, `seedLines`) | every sibling appends | list-append conflicts; **re-snapshot both golden files after the merge** and keep every build's review-log entry (W0, W2, W6, W8 regenerate them in this build: `lint:field-meta --snapshot` + the wiki-spoiler entry) |
 | `S/platform/idea/cmd/crafting/FireController.ts` `runFiring` | W0: the alloy-merge narrowings (`:340`, `:360`) become `isComposition` so a composition-only lump keeps its fractions | **rubber** rewrites `runFiring` (the alloy merge + its mould seam) | if rubber lands first, re-apply the `isComposition` swap INSIDE its rewritten `runFiring`; if we land first, rubber keeps it |
 | `S/platform/location/Pool.ts` | W5: the floor default (`WaterSurface`), the support hooks (`onEntered`/`onExited`/`onContainableAdded/Removed`/`canExit`/`canEngageAxis`/`canBeEngagedBy`), the temperature override for `immersionOf` | **cleanliness** adds `bathe` on the pool | separate members; cleanliness's `bathe` calls our `immerse()` and must not re-implement the support state |
-| docs at the sweep | `thermal.md`, `ground.md`, `crafting.md`, `employment.md`, `retail.md`, `watershed.md`, `CLAUDE.md` verb list | all siblings | trivial; sweep last |
+| docs at the sweep | `thermal.md`, `ground.md`, `crafting.md`, `employment.md`, `retail.md`, `watershed.md` | all siblings | trivial; sweep last. ⚠ **`CLAUDE.md`'s map and verb list are NOT edited by any build** (rule 5: swept, not raced) — every build adds verbs; the one sweep after the last merge writes them all |
 
 ### Concepts two builds share (one owner each)
 
@@ -2045,6 +2079,10 @@ Clean attach points, each with the slate it leaves as:
   transfer is a draw at one and a deposit at the other with a bill of
   lading between.
 - **Damp, spontaneous combustion, vermin** → storage-slate (next pass).
+  Vermin's substrate is cleanliness's `Floor.hasPests()` /
+  `pestRatePerHour` (a `pests` term in `StoreConditions`); spoiled
+  packing a keeper digs out goes to cleanliness's midden via `dispose`
+  once it lands (until then, the floor).
   Attach: `reconcileInStore` receives `StoreConditions`; a humidity term
   and a `heatW` source on the good are the seam; `poolRole` admits a
   third role.
