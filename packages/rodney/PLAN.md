@@ -1,5 +1,10 @@
 # Pantera's Box Livestream — Master Plan
 
+> ⚠ **Historical (2026-06).** Written when this was the sibling repo `pbox-stream`;
+> it is now `packages/rodney` in the saxonberg monorepo, and the live design is in
+> `docs/slates/builds/` (broadcast-ready, card-sizes, studio, giving). §4's
+> "keep it a sibling repo" decision is reversed.
+
 Status legend: ✅ done · 🔨 in progress · 📋 planned · 🔒 needs owner approval (server-side)
 
 ---

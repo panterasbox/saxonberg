@@ -1,9 +1,20 @@
-# pbox-stream
+# Rodney
 
-Pantera's Box livestream overlays — a **sibling production** to `saxonberg`, not part
-of it. These are OBS browser sources representing the **Pantera's Box parent brand**
-(navy/white/crimson, Borromean-rings seal, scholarly-society tone), distinct from
-saxonberg's watercolor in-world content style.
+The livestream overlays that run **beside** Saxonberg — OBS browser sources
+driven by the server's broadcast feed. Part of the distro since 2026-10-17
+(it was the sibling repo `pbox-stream`, imported with its history).
+
+⭐ **The name.** Rodney was the program that ran beside the MUD at End of the
+Line — FTP, fail2ban and the rest — named for NetHack's Wizard of Yendor. A
+borrowed name passed on: this Rodney is the thing that runs beside Saxonberg
+when somebody goes live.
+
+The default skin is the **Pantera's Box parent brand** (navy/white/crimson,
+Borromean-rings seal, scholarly-society tone), distinct from saxonberg's
+watercolor in-world style. The engine (feed client, scenes, the rules that
+pick them) is platform; the skin is one streamer's, and becomes a theme the
+day a second streamer runs Rodney. See
+[broadcast-ready-slate](../../docs/slates/builds/broadcast-ready-slate.md).
 
 ## Overlays
 
@@ -14,8 +25,8 @@ saxonberg's watercolor in-world content style.
 ## Run
 
 ```bash
-pnpm install
-pnpm dev          # http://localhost:5200/standby.html
+pnpm install                          # from the repo root (workspace)
+pnpm --filter @saxonberg/rodney dev   # http://localhost:5200/standby.html
 ```
 
 Point an OBS **Browser Source** at `http://localhost:5200/standby.html` (1920×1080).

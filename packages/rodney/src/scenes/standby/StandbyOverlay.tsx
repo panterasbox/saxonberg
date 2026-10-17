@@ -96,7 +96,7 @@ export default function StandbyOverlay() {
           dpr={[1, 2]}
           onCreated={({ gl }) => {
             // eslint-disable-next-line no-console
-            console.log('[pbox-stream] WebGL context OK:', gl.getContext().getParameter(0x1f01));
+            console.log('[rodney] WebGL context OK:', gl.getContext().getParameter(0x1f01));
           }}
         >
           <BannerScene />

@@ -1,9 +1,9 @@
 {
-  "name": "pbox-stream",
+  "name": "@saxonberg/rodney",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Pantera's Box livestream overlays (sibling production to saxonberg). OBS browser sources: standby/monastery, lower-thirds, tickers.",
+  "description": "Rodney \u2014 the livestream overlays that run beside Saxonberg: OBS browser sources driven by the server's broadcast feed (standby, lower thirds, tickers). Named for EotL's Rodney, the program that ran beside the MUD.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

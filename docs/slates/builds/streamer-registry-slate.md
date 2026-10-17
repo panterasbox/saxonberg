@@ -232,7 +232,7 @@ slate deliberately does not answer:
 Today it is a standby countdown and the owner's own chat echoed back.
 For a dev stream about a MUD the interesting feed is **game state** — who
 is online, the press ticker, what just got built, a live map — and that
-lives in the `pbox-stream` repo plus whatever fields the feed grows.
+lives in Rodney (`packages/rodney`) plus whatever fields the feed grows.
 **Do that first, for yourself.** The multi-tenancy in this slate becomes
 nearly free afterwards, and doing it in that order means the feed
 contract gets frozen *after* discovering which fields matter rather than

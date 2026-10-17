@@ -187,6 +187,14 @@ module.exports = {
           }
         ]
       }
+    },
+    {
+      // Rodney renders with react-three-fiber, whose JSX intrinsics
+      // (`<mesh position args>`, `<pointLight intensity distance>`) are
+      // three.js constructor props, not DOM attributes — the DOM-only
+      // `no-unknown-property` rule cannot know them.
+      files: ['packages/rodney/**/*.tsx'],
+      rules: { 'react/no-unknown-property': 'off' }
     }
   ],
   ignorePatterns: ['node_modules/', 'dist/', 'build/', '*.log']

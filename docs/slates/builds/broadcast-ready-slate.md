@@ -17,8 +17,9 @@
 > for game commands behind a scoped control credential · multistreaming
 > to YouTube and Twitch from OBS, and YouTube live detection under the
 > streamer's own login
-> **Size:** a build — one build across three repos (`saxonberg`,
-> `pbox-stream`, `pblive`), so three MRs that land together
+> **Size:** a build — the saxonberg MR (which now includes the overlay,
+> Rodney, at `packages/rodney`) plus a small `pblive` change in its own
+> repo
 
 **Captured 2026-10-17.** The founder wants a weekly stream of a couple
 of hours walking through the week's work on the platform. The hardware
@@ -36,7 +37,7 @@ contract (the table this build fills in), [streamer-registry-slate.md](streamer-
 [client-shell-slate.md](../tails/client-shell-slate.md) § public
 read-only surface (default-deny projection), the
 [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)
-Phase 3 (this build is it), and `pbox-stream`'s `PLAN.md` §2 (the two
+Phase 3 (this build is it), and Rodney's `PLAN.md` §2 (`packages/rodney`, historical) (the two
 frames) and §8 Phase 3 (the control plane).
 
 ---
@@ -48,7 +49,7 @@ frames) and §8 Phase 3 (the control plane).
 | `StreamState` (`/platform/idea/StreamState`) | `mode: live\|standby`, `awayUntil`. **In memory** — a restart resets to `live` |
 | `stream away <dur>` / `stream back` | the whole control plane; gated `requiresStreamer` |
 | the `?broadcast=<token>` feed | pushes `stream-state`; forwards the owner's Twitch/YouTube chat as `relay-chat` |
-| `pbox-stream` | ONE scene, Standby: the monastery, the banner, the countdown. Reads `stream-state`; **ignores `relay-chat`**; no OBS link |
+| Rodney (`packages/rodney`, was the sibling repo `pbox-stream`) | ONE scene, Standby: the monastery, the banner, the countdown. Reads `stream-state`; **ignores `relay-chat`**; no OBS link |
 | `StreamerDeck` (client) | a scaffold: every chip dimmed, none sends, the live/viewers/uptime readout is fake |
 | `pblive` + `pblive-streamdeck` | 2021; drives the office light; needs AWS SSM to boot; no OBS, no game link |
 | OBS ↔ anything | nothing |
@@ -220,7 +221,7 @@ ships.
 
 ---
 
-## The overlay (`pbox-stream`)
+## The overlay (Rodney, `packages/rodney`)
 
 ### Scenes
 
@@ -359,8 +360,8 @@ The exit criterion, run against the real stack with OBS open:
 - **Reading patronage** (subs, bits, memberships, Super Chats, Patreon)
   and turning it into standing — [giving-slate](giving-slate.md). This
   build renders the alerts it hands over.
-- **The World Ticker and the Agent Board** — `pbox-stream` Phase 4.
-- **Viewer interactivity / the HUD** — `pbox-stream` Phases 6–7.
+- **The World Ticker and the Agent Board** — Rodney's plan, Phase 4.
+- **Viewer interactivity / the HUD** — Rodney's plan, Phases 6–7.
 - **Moderation, rewards, penalties** on the deck — no slate builds the
   verbs.
 
