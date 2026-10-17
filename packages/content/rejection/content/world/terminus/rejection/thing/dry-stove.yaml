@@ -1,0 +1,24 @@
+# The Dry's stove — "a stove in the middle that somebody keeps going",
+# which the room's prose has always claimed and no row ever propped (found
+# by the dairy drive: Rejection had no warm room at all once the climate
+# build gave it a winter, so the nannies' milk could not be set anywhere).
+# A space heater (`Hearth`), lit with a week's charge.
+class: /platform/thing/Hearth
+data:
+  shortDescription: iron stove
+  keywords: [stove, "iron stove", fire]
+  register: definite
+  longDescription: >
+    A pot-bellied iron stove in the middle of the floor, its flue going up
+    through the roof in a collar of tin. Clothes hang steaming over it on
+    a rack, and the floor round it is dry.
+  lit: true
+  heatOutputW: 2500
+  emittedIntensity: 30
+  emittedColorTemperature: 1800
+  maxBurnPowerW: 6000
+  fuelCapacityKg: 100
+  fuelBed:
+    /stuff/idea/material/wood/oak: 100
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 120

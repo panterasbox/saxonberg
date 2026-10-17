@@ -1,0 +1,24 @@
+# Churned cream — cream the churn has BROKEN (dairy D5): butter grains
+# standing in buttermilk. The `churning` schedule separates it as it is
+# drawn — the buttermilk comes off, the butter stays. Its residue share
+# (the butter) derives from this fat.
+class: /platform/idea/material/Material
+data:
+  name: "churned cream"
+  keywords: [cream, "churned cream", butter]
+  appearance: broken into yellow grains in a thin milk
+  density: 1000
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 400000, protein: 20000, sugar: 30000, water: 545000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.98
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "churned-cream"]
+  composition: []

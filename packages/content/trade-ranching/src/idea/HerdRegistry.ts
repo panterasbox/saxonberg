@@ -135,6 +135,13 @@ export interface HerdRecord {
    * {@link HeadOverlay.bornAt}.
    */
   foundingMeanAgeDays: number;
+  /**
+   * ⭐ The share of head that are female (dairy D12) — a herd fact, not a
+   * species one: a dairy book is nearly all cows and an ox register is all
+   * bullocks. Absent on a record filed before the field existed, which
+   * reads as the old literal ({@link DEFAULT_FEMALE_FRACTION}).
+   */
+  femaleFraction?: number;
   /** Heads currently drafted out into their own objects. */
   drafted: DraftedHead[];
   /**
@@ -175,7 +182,18 @@ export interface HeadOverlay {
   served?: number;
   /** Free note — why this head is remembered at all. */
   note?: string;
+  /**
+   * ⭐ Game-seconds each `expire` tap was found DRIED OFF when this head
+   * was returned, keyed by tap (dairy D12). The dry period is the
+   * species' `restDays`, counted from here: redraft inside it and she is
+   * still dry; after it she comes back into milk. Keyed by the head, so
+   * returning and redrafting cannot launder a dry cow.
+   */
+  driedOffAt?: Record<string, number>;
 }
+
+/** The female share a record filed before `femaleFraction` existed reads. */
+export const DEFAULT_FEMALE_FRACTION = 0.85;
 
 export default class HerdRegistry extends RegistrarMixin(Idea) {
   /**
@@ -286,11 +304,18 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   public async named(needle: string): Promise<HerdRecord | null> {
     const want = needle.trim().toLowerCase();
     if (!want) return null;
-    for (const herd of await this.all()) {
+    const herds = await this.all();
+    for (const herd of herds) {
       if (herd.herdId.toLowerCase() === want) return herd;
       if (herd.name.toLowerCase() === want) return herd;
     }
-    return null;
+    // ⭐ A keeper says *draft 1 from calves*, not *from "the Delight
+    // calves"*: a WORD of the name answers when exactly one herd has it —
+    // two herds sharing the word is ambiguous, and ambiguity is a miss.
+    const byWord = herds.filter((h) =>
+      h.name.toLowerCase().split(/\s+/).includes(want),
+    );
+    return byWord.length === 1 ? (byWord[0] as HerdRecord) : null;
   }
 
   /**
@@ -415,6 +440,11 @@ function herdOf(data: unknown): HerdRecord | null {
       typeof d.foundingMeanAgeDays === 'number' && d.foundingMeanAgeDays > 0
         ? d.foundingMeanAgeDays
         : DEFAULT_FOUNDING_MEAN_AGE_DAYS,
+    ...(typeof d.femaleFraction === 'number' &&
+    d.femaleFraction >= 0 &&
+    d.femaleFraction <= 1
+      ? { femaleFraction: d.femaleFraction }
+      : {}),
     drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
     overlay:
       typeof d.overlay === 'object' && d.overlay !== null

@@ -1,0 +1,18 @@
+# Yoghurt — scalded milk soured WARM by a lactic culture (dairy D7). A
+# yoghurt maker scalds first (the `scald-milk` recipe — heat is not a
+# pour), cools it to blood-warm, pitches it from the whey crock, and keeps
+# it warm half a day. No lees: the whole batch becomes yoghurt.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: yoghurt
+  inputCategory: scalded-milk
+  mechanism: microbial
+  stallBelowK: 290
+  happyK: 316
+  damageAboveK: 322
+  ratePerDay: 2
+  productMaterial: /trade/dairying/idea/material/yoghurt
+  requiresStrain: ''
+  wildStrain: lactic
+  spontaneousLagDays: 1
+  killK: 323

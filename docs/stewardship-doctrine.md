@@ -7,6 +7,8 @@
 > **interrogates** the "deferred / deliberately not here" verdicts, and
 > proposes a **build order** that treats stewardship as a pillar rather than
 > a backlog.
+> ⭐ **Part 3a (2026-10-17)** adds the positive half — what upkeep is
+> *for*, how its price is derived, and what makes paying it worth doing.
 >
 > Provenance: a "build the typical home and stress-test the models"
 > conversation that hit a wall of deferrals, then two corpus surveys — a
@@ -220,7 +222,7 @@ for the compute substrate, and the reasoning transfers whole:
 |---|---|---|---|
 | **1** | ⭐ **Meter on USE — never on connection, never on ownership** | per-unit consumption (kWh, litres); service fees at the point of a service rendered | a fixed **standing/connection charge** (rent on owned space with the serial numbers filed off); an **ad-valorem holding tax** |
 | **2** | ⭐⭐ **Dischargeable WITHOUT attendance** | capital, a standing order, an income stream that runs while you are away | any bill whose only antidote is logging in — the inviolable floor, restated for money |
-| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/tails/credit-slate.md)'s property floor) |
+| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/builds/credit-slate.md)'s property floor) |
 
 Rule 3 is the load-bearing one. Law 2's real fear is **loss you can only avert
 by showing up**; if non-payment can never take the thing, a recurring bill
@@ -260,6 +262,199 @@ The ladder gate is already two-part — *money necessary, condition binding* —
 so premises standing simply belongs on the **money half**, where it always
 was. Nothing is lost, the Law-2 hole closes for free, and the condition read
 gets more honest.
+
+---
+
+## Part 3a — ⭐⭐⭐ The price of comfort: what upkeep is FOR
+
+**(Owner conversation, 2026-10-17, out of the laundry-and-soap design.)**
+Part 3 is complete on what upkeep must **never** do. It says nothing on
+what upkeep is **for**, how much it should cost, or what makes paying it
+worth doing — and that silence is why upkeep is easy to get wrong in
+either direction: a treadmill if nothing restrains it, an economy with no
+service trades if everything does. The owner's challenge that opened it:
+*"taxes aren't fun" is a truism, and it is not true — taxes can be fun if
+we do them right.* This part is the positive half.
+
+### The shape: one baseline nobody escapes, then a ladder you opt into
+
+- **The body is the one mandatory upkeep**, because it is always with
+  you — hunger, rest, hygiene. It is archetype 3: it accrues from
+  **playing**, never from being away. (Assisted care is the exception
+  that proves it — somebody else carries the body's upkeep.)
+- **Everything else is optional** — clothes, a home, a workplace. The
+  **comfort ladder** is opt-in, and climbing it has a price.
+- **A welfare floor exists** so nobody is homeless (the dorm first home),
+  and **its upkeep is near zero.** Unemployment is its own dial.
+- ⭐⭐ **The recluse's exit stays cheap.** A player who wants none of it
+  lives plainly and is not punished for it. They defy social norms, and
+  the only things that react are the ones whose job is to — a doorman, a
+  guest's regard. If refusing the ladder costs more than a plain life,
+  the ladder was never optional.
+
+### ⭐⭐⭐ Why upkeep must exist at all: it is somebody's INCOME
+
+Lens 6, and the strongest argument in this part. **Your upkeep is the
+cleaner's, the gardener's, the laundress's, the thatcher's and the
+chimney sweep's livelihood.** Without upkeep the service vocations have
+no customers, and the economy has no service-shaped hole for anybody to
+fill. A world with no upkeep is not kinder; it is a world where half the
+trades are impossible.
+
+> ⭐⭐⭐ **Taxes are fun when you can see who they feed.** The bill is
+> legible as a person, not a sink.
+
+### ⭐⭐ The price is DERIVED, never declared
+
+The real-world rule of thumb is that a property costs roughly **1–4% of
+its value a year** to maintain. That is a heuristic, not a law — and the
+reasons under it are mechanical, which is what lets us **compute** it
+rather than declare a percentage (lens 1):
+
+1. **More of it** — a bigger place has more floor, more glass, more
+   chimneys, more garden, more roof.
+2. **Finer materials are fussier** — marble, silk, parquet and polished
+   brass want specialist care; an earth floor wants fresh rushes.
+3. **The standard is part of what you bought** — a mansion kept to a
+   cottage standard is no longer a mansion. The comfort tier *is* the
+   upkeep tier.
+4. **Specialist labour costs more** — the marble man charges more than
+   the sweeper.
+
+> **Upkeep = surfaces × each material's care × the standard kept.**
+> Every term is already a row or a resolved field: a place's floor
+> material (`ground.md`), its walls and roof as layers (the rubber and
+> repair builds), glass, textiles. ⚠ **No percentage appears anywhere.**
+> The Sims computes bills from household net worth — the right
+> *instinct* and the declared version of it; we borrow the instinct and
+> derive the number.
+
+### ⭐⭐⭐ The engagement property: never more than you have proven you can afford
+
+The owner's rule — *the game never asks more of you than you have
+already proven you can afford* — falls out of the shipped model almost
+for free:
+
+- **Act-driven upkeep scales with USE**, and use scales with engagement.
+  Dirt and wear come from living in and using a thing (archetype 1), so a
+  player who plays less dirties less. The bill shrinks with play, with no
+  rule to write.
+- **Value scales with demonstrated earnings.** The house was bought with
+  money earned at your level of engagement, so a cost proportional to its
+  value is a bounded fraction of an income you have already shown.
+- **When engagement changes, comfort moves — never ownership.** Part 3
+  rule 3 guarantees it. That is the **downsizing** signal, and it is a
+  decision rather than a penalty; **upsizing** is the same decision the
+  other way.
+
+⚠ **The honest exception — the shell clock.** A holding's shell weathers
+**on the calendar** ([holding.md](./subsystems/holding.md) § two clocks),
+so it does not scale with engagement: a house you are away from still
+weathers. It is safe for three reasons, and all three must hold for any
+future calendar-driven upkeep: (a) it reads only as a **band**, never a
+number; (b) its floor is **dilapidated, never lost** (rule 3); (c) a
+building **opts in** to weathering and a material opts in only when the
+realm can supply it (the repair build's two opt-ins, owner 2026-10-16 —
+below). The calendar may run over absence only for a **continuous
+physical process with a legible local cause** (weather on a roof, damp
+in a cold cellar, a garden growing) — **never time-dust**, which
+room-condition already excluded.
+
+⚠ **The other exception — the asset you did not earn.** An inheritance,
+a gift or a windfall breaks the *"proven"* premise: its upkeep can
+outrun the owner's means, and selling up is the honest answer. That is
+real history (country houses sold or handed to the National Trust
+because heirs could not keep them) and ⭐ it is content: the legend of
+the **white elephant**, a gift whose upkeep ruins the recipient and which
+cannot be refused. In a polity, **a gift can be a weapon**, and lens 7
+should expect someone to use it.
+
+### ⭐⭐ Upkeep may only demand what the economy can supply
+
+Generalised from the repair build's material opt-in (*"a layer of a
+material nobody produces and nobody moves to where it is needed must not
+demand it — that is a time bomb, not an economy"*):
+
+> **No upkeep may demand a material, a service or a labour the realm
+> cannot actually supply** — by a player trade, or by NPCs that make
+> enough of it and get it where it is needed. Until the supply exists,
+> the demand stays off.
+
+The same rule covers **labour**: an upkeep that only a hired hand can
+discharge is a time bomb until hiring a hand onto your own premises
+exists ([standing-instructions-slate](./slates/builds/standing-instructions-slate.md)
+— *may a player automate labour at all?* is the open question the cleaner
+and gardener markets wait on).
+
+### Buying your way out — zorkmids for labour
+
+Part 3's third resolution already allows it: **automation delegates the
+floor at a quality penalty.** The hired cleaner, gardener, laundress or
+thatcher is that delegation, and the hiring is where the decision lives:
+**how often, to what standard, at what wage.** Doing it yourself is
+better, never mandatory. ⭐ And the NPC keepers obey the supply rule too —
+the repair build's *"the NPC keepers buy what they lay"*: an employer
+that cannot buy the materials leaves its building to weather.
+
+### ⭐⭐ What makes upkeep fun — nine principles
+
+1. **Chosen scale.** You picked the size of the bill when you picked the
+   size of the life. ⭐ *Agricola*: every child you add raises the
+   feeding bill, and the upkeep is exactly what makes every action
+   tense — the clearest proof that a tax can be the fun.
+2. **A decision inside it** — how often, how well, who does it.
+   *RollerCoaster Tycoon*'s per-ride inspection interval (costly vs
+   breakdowns); *Theme Hospital*'s handyman priority sliders. **Deciding,
+   not complying** (laundry-slate's Graveyard Keeper contrast).
+3. **Visible change.** *PowerWash Simulator* — a large hit about nothing
+   but cleaning — runs on before-and-after, a completion read and no fail
+   state. In text: the window lets the light back in (glass transmission
+   is derived), the shirt comes out white, the room's prose changes.
+4. ⭐⭐ **It feeds somebody** (above). Upkeep is legible as a person.
+5. **It reveals and conceals.** *Unpacking*'s tidying tells you who lives
+   there; *Serial Cleaner* / *Viscera Cleanup Detail* clean to hide; the
+   laundress knows what is on your clothes.
+6. **It can be shared.** *Death Stranding*'s player-maintained roads —
+   upkeep as a gift to the commons; *WoW*'s guild bank paying members'
+   repairs; the public lavoir. Commons upkeep is participation (lens 3b).
+7. **It pays off later and elsewhere, legibly.** *RimWorld*'s room
+   cleanliness and sterile tiles driving surgical infection; *Dwarf
+   Fortress*'s soap (lye + tallow) cleaning wounds. The crisis you did not
+   have is the reward, readable in retrospect.
+8. **It never threatens the thing itself.** Comfort and regard fall;
+   ownership does not (rule 3).
+9. ⭐ **Expression beats nags.** *Red Dead Redemption 2* is both lessons in
+   one game: players loved the upkeep that is **expression** (the beard
+   that grows, the bath, grooming the horse) and resented the upkeep that
+   is a **nag** (guns degrading every few days).
+
+### The survey — borrow and avoid
+
+| | game | the mechanic | take |
+|---|---|---|---|
+| ✅ | **The Sims** | bills scale with household value; maids for hire; *neat vs slob* as a trait | the scaling (derived, not declared) · tolerance for mess as a **trait** — a slob does not mind your floor |
+| ⛔ | **The Sims** | the **repo man** takes furniture for unpaid bills | rule 3 forbids it |
+| ✅ | **Kingdom Come: Deliverance** | blood and dirt on clothes change how NPCs treat you; the bathhouse washes you and your clothes | the congruence read + the bathhouse, shipped and liked — ⚠ but as a **doorman's judgment**, never its charisma stat (textiles.md: *engine measures, subject values*) |
+| ✅ | **World of Warcraft** | repair cost scales with gear quality; guild-paid repairs | valuable things cost more to keep · upkeep can be collectivised |
+| ✅ | **Old School RuneScape** | house servants by tier, on wages | zorkmids for labour, with tiers |
+| ✅ | **Albion Online** | housed, fed laborers whose output depends on their comfort | NPC labour that answers to how it is kept |
+| ✅ | **Papers, Please** | rent, heat and food every night, for a family | upkeep as **moral drama** — a scene, not a system |
+| ⛔ | **Rust** · **ARK** | upkeep scales with base size; unpaid, it **decays** and gets raided | right scaling, wrong penalty |
+| ⛔ | **Ultima Online** · **FFXIV** | houses decayed unless the owner **visited**; housing demolished after 45 days away | presence as the meter — the exact failure Law 2 was written against |
+| ⛔ | **Tamagotchi** · **Neopets** | neglect guilt on a real-time clock | presence as the meter, aimed at attachment |
+
+### Where it surfaces today
+
+- **Shipped:** the holding's shell clock + `survey` / `maintain`
+  ([holding.md](./subsystems/holding.md)); `Durable` / `Keen` wear;
+  utilities metered on use (Part 3).
+- **In flight:** the repair build — mending by the maker's trade, the
+  paid mend as somebody's work, building upkeep layer by layer, the two
+  opt-ins.
+- **Slated:** room-condition (`Soilable`, debris, `restQuality`) ·
+  laundry and soap ([laundry-slate](./slates/tails/laundry-slate.md),
+  [rendering-slate](./slates/tails/rendering-slate.md) § 9) · the hired
+  hand ([standing-instructions-slate](./slates/builds/standing-instructions-slate.md)).
 
 ---
 

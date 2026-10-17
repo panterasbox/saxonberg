@@ -155,6 +155,20 @@ describe('the spoilage gauge on a bulk slot', () => {
     expect(new Freshness(fresh).load()).toBeGreaterThan(0);
   });
 
+  it('⭐ a vessel\'s matter SPEAKS its band to a nose or an eye — never fresh, never to the ear (dairy)', () => {
+    const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
+    new Freshness(slot).stampLoad(0);
+    expect(new Freshness(slot).senseLine(['smell'])).toBeNull();
+    new Freshness(slot).stampLoad(0.9);
+    const smelled = new Freshness(slot).senseLine(['smell']);
+    expect(smelled).toBeTruthy();
+    expect(new Freshness(slot).senseLine()).toBe(smelled);
+    expect(new Freshness(slot).senseLine(['vision'])).toBe(smelled);
+    expect(new Freshness(slot).senseLine(['hearing'])).toBeNull();
+    // An empty vessel says nothing, whatever it once held.
+    expect(new Freshness(BulkableApi.slotFor(pot(0, null), undefined)!).senseLine(['smell'])).toBeNull();
+  });
+
   it('the ingest payload carries a ptomaine dose the stored payload does not', () => {
     const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     new Freshness(slot).stampLoad(0.9);

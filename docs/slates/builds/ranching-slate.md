@@ -53,7 +53,7 @@
 > materials — tallow, hide, bone, meat — scaled by condition, and culling is
 > a decision because a carcass is worth something
 > ([ranching.md § What the carcass opens onto](../../subsystems/ranching.md)); no knacker, tannery or
-> chandler was authored. The chain is [rendering-slate](./rendering-slate.md)'s.*
+> chandler was authored. The chain is [rendering-slate](../tails/rendering-slate.md)'s.*
 
 See also: [farming-slate](farming-slate.md) (**the primary sibling** — same
 guild, same production family; the feed loop + the shared genome) ·

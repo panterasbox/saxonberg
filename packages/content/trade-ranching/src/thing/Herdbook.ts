@@ -52,6 +52,7 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import HerdRegistry, {
+  DEFAULT_FEMALE_FRACTION,
   DEFAULT_FOUNDING_MEAN_AGE_DAYS,
 } from '../idea/HerdRegistry';
 
@@ -79,6 +80,7 @@ export default class Herdbook extends HerdbookBase {
     speciesPath: { persistent: true, authorable: true, ref: 'identity:constituent' },
     tally: { persistent: true, authorable: true },
     foundingMeanAgeDays: { persistent: true, authorable: true },
+    femaleFraction: { persistent: true, authorable: true },
     holderRef: { persistent: true, authorable: true },
     homeExtent: { persistent: true, authorable: true },
   };
@@ -105,6 +107,12 @@ export default class Herdbook extends HerdbookBase {
    */
   protected foundingMeanAgeDays: number = DEFAULT_FOUNDING_MEAN_AGE_DAYS;
 
+  /**
+   * ⭐ The share of head that are female (dairy D12) — a venue fact: the
+   * ox register authors `0` (every head a bullock), a dairy book `0.95`.
+   */
+  protected femaleFraction: number = DEFAULT_FEMALE_FRACTION;
+
   /** Who owns them — a `ParcelOwner`-shaped principal ref. */
   protected holderRef: string = '';
 
@@ -129,6 +137,14 @@ export default class Herdbook extends HerdbookBase {
   }
   public setTally(value: number): void {
     this.tally = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  }
+
+  public getFemaleFraction(): number { return this.femaleFraction; }
+  public setFemaleFraction(value: number): void {
+    this.femaleFraction =
+      Number.isFinite(value) && value >= 0 && value <= 1
+        ? value
+        : DEFAULT_FEMALE_FRACTION;
   }
 
   public getHolderRef(): string { return this.holderRef; }
@@ -164,6 +180,7 @@ export default class Herdbook extends HerdbookBase {
       speciesPath: this.speciesPath,
       tally: this.tally,
       foundingMeanAgeDays: this.foundingMeanAgeDays,
+      femaleFraction: this.femaleFraction,
       holderRef: this.holderRef,
       homeExtent: this.homeExtent,
       founded: this.foundedNow(),

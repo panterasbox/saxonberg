@@ -25,7 +25,7 @@ data:
   longDescription: |
     A gateway in a wall of dressed spoil-stone, wide enough for two carts abreast and standing open. There is a lodge beside it with a window at cart-driver height and a slate in the window, and set into the ground under the gateway is an iron plate the size of a door with a slot round it.
 
-    Through the gateway, northeast, the yard. North the road goes on past the wall and up into country that stops having names.
+    Through the gateway, northeast, the yard. North the road goes on past the wall and up into country that stops having names. West, against the outside of the wall, somebody keeps goats.
   coords:
     x: -4
     y: 0
@@ -45,6 +45,11 @@ data:
       destination: /world/newbie-wilds/crossroads/hub
       media: [ground]
       edgeMinutes: 12
+    # ⭐ (dairy D14) The goat pen, against the outside of the wall.
+    west:
+      destination: /world/terminus/rejection/kestrel-road/goat-pen
+      media: [ground]
+      edgeMinutes: 2
   details:
     plate:
       keywords: [plate, iron, weighbridge, scale, slot]

@@ -196,6 +196,9 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/stuff/location/room/bedroom', // a window with a catch that sticks
   '/stuff/location/room/living', // a window taking up most of one wall
   '/stuff/location/room/bathroom', // a small frosted window, high up
+  '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
+  '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
+  '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight
 ];
 
 /**

@@ -28,7 +28,7 @@ data:
 
     None of it is yours and none of it is grain. This is fruit country, and it is rich, and it says so.
 
-    A lane climbs away to the west, up onto the dry bench above the flats, where the ground is thinner and the farms are smaller.
+    A lane climbs away to the west, up onto the dry bench above the flats, where the ground is thinner and the farms are smaller. South, a track runs down to a dairy on the water meadows; southwest, just off the road, a whitewashed creamery stands with its shutters half closed.
   coords: { x: 0, y: 0, z: 0 }
   exits:
     north:
@@ -43,6 +43,16 @@ data:
       destination: /world/terminus/hearts-delight/public-works/location/yard
       media: [ground]
       edgeMinutes: 1
+    # ⭐ (dairy D14) The dairy on the flats south of the gate, and the co-op
+    # creamery off the road just inside it.
+    south:
+      destination: /world/terminus/hearts-delight/dairy/location/yard
+      media: [ground]
+      edgeMinutes: 6
+    southwest:
+      destination: /world/terminus/hearts-delight/creamery/location/floor
+      media: [ground]
+      edgeMinutes: 4
   details:
     # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
     # appends the live state ("burning, fed from the town's oil store").

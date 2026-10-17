@@ -12,7 +12,7 @@
 > firn, névé and the glacier (the perennial cap is the attach point) ·
 > the content register below — the August crisis, winter defers, the
 > ice core, the station as a vocation · the movement economy on snow is
-> [locomotion-on-snow](./locomotion-on-snow-slate.md)'s
+> [locomotion-on-snow](../tails/locomotion-on-snow-slate.md)'s
 > **Size:** a build
 
 ⭐⭐ **This realm has no winter, and the taps build is where that

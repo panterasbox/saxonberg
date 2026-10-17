@@ -689,7 +689,9 @@ export class Freshness {
     }
     const nowS = Freshness.nowSeconds();
     if (nowS === null) return gauge.load;
-    if (gauge.stamp === 0 || nowS <= gauge.stamp) {
+    // ⭐ A live ferment holds the gauge (D2): the stamp moves and the load
+    // does not, so a release never bills the held span.
+    if (gauge.stamp === 0 || nowS <= gauge.stamp || heldBy(this.slot.getHolder())) {
       this.slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
       return gauge.load;
     }
@@ -711,6 +713,21 @@ export class Freshness {
       freshness: { load, stamp: nowS },
     });
     return load;
+  }
+
+  /**
+   * ⭐ What this slot's matter tells a NOSE or an EYE about its spoilage —
+   * the band phrase the discrete gauge speaks, or `null` (fresh, inert,
+   * or a sense spoilage does not answer to). Found by the dairy drive: a
+   * jug of milk a day in the warm said nothing to `smell`, because the
+   * band line was spoken only by discrete food, never by what a vessel
+   * holds.
+   */
+  senseLine(filter?: readonly string[]): string | null {
+    if (filter && !filter.some((c) => FRESHNESS_CHANNELS.includes(c))) return null;
+    if (this.slot.isEmpty()) return null;
+    const band = Freshness.bandFor(this.load());
+    return band === 'fresh' ? null : FRESHNESS_PHRASE[band];
   }
 
   /**
@@ -761,6 +778,32 @@ export class Freshness {
     }
     return WorldClockApi.getNow().rawValue();
   }
+}
+
+/**
+ * ⭐ **A host whose own population is the flora.** A vessel holding a
+ * working culture, or a cheese whose rind is ripening, is not spoiling:
+ * the culture out-competes the spoilage organisms for as long as it
+ * works. `Freshness` asks the holder (a bulk slot) or the host (a
+ * discrete good) through this declared shape, and a host that does not
+ * answer is simply not held. ⚠ Contamination is NEVER held — a raw-milk
+ * cheese keeps its pathogens, which is the point of pasteurizing.
+ */
+export interface SpoilageHolding {
+  /** True while this host's own working flora holds spoilage off. */
+  holdsSpoilage(): boolean;
+}
+
+/**
+ * Whether a holder answers the {@link SpoilageHolding} shape and is holding
+ * now — duck-probed (the `LightFilter` precedent), so nothing composes a
+ * marker. A module function, not a class static, for the
+ * `lint:lib-statics` ceiling.
+ */
+function heldBy(host: Stuff | null): boolean {
+  if (host === null) return false;
+  const probe = host as unknown as Partial<SpoilageHolding>;
+  return typeof probe.holdsSpoilage === 'function' && probe.holdsSpoilage();
 }
 
 /**
@@ -1018,7 +1061,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       }
 
       const elapsed = nowS - this.freshnessClockStamp;
-      if (elapsed <= 0) {
+      if (elapsed <= 0 || heldBy(this as unknown as Stuff)) {
         this.freshnessClockStamp = nowS;
         return;
       }

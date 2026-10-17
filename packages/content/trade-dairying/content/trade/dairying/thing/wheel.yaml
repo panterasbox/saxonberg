@@ -1,0 +1,20 @@
+# A wheel of cheese (dairy D9, D10) — what a hoop's curd sets into. ⭐ ONE
+# row for every cheese: the set stamps its material (soft or hard cheese,
+# whatever the curd became) and what it was made from (the milk), so this
+# row authors no material of its own. It ripens on a cool shelf and is
+# split into wedges with a knife.
+#
+# ⚠ `_materialPath` names the soft cheese as a PLACEHOLDER the set
+# overwrites — `lint:perishable` and `lint:mass` read authored rows, and a
+# wheel row with no material would be a Provision of nothing.
+class: /trade/dairying/thing/Wheel
+data:
+  shortDescription: wheel of cheese
+  keywords: [wheel, cheese, "wheel of cheese"]
+  register: indefinite
+  longDescription: >-
+    A squat round of cheese, the marks of the hoop's staves pressed into
+    its sides.
+  _materialPath: /trade/dairying/idea/material/soft-cheese
+  wedgesPerWheel: 8
+  mass: 1

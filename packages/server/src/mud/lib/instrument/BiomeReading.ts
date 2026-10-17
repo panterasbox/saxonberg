@@ -43,6 +43,25 @@ export default abstract class BiomeReading extends Reading {
     detail: string | undefined,
   ): Promise<Quantity<Unit>>;
 
+  /**
+   * The value this channel reads off `target` — the biome chain at a
+   * place by default. A channel whose quantity a THING also has (a vat's
+   * own temperature) overrides it; `null` means there is nothing here to
+   * read.
+   *
+   * @hook
+   */
+  protected async subjectValue(
+    target: Stuff | null,
+    param: string,
+  ): Promise<Quantity<Unit> | null> {
+    if (!target || !MixinApi.isContainer(target)) return null;
+    return this.resolve(
+      target as Stuff & Container,
+      param === '' ? undefined : param,
+    );
+  }
+
   protected override async measure(
     context: CommandContext,
     target: Stuff | null,
@@ -50,8 +69,9 @@ export default abstract class BiomeReading extends Reading {
     band: CompetenceBandName,
     param: string,
   ): Promise<void> {
-    const scope = target && MixinApi.isContainer(target) ? target : null;
-    if (!scope) {
+    const value = await this.subjectValue(target, param);
+    const scope = target;
+    if (!value || !scope) {
       this.decline(
         context,
         Mml.compose`You aren't anywhere to measure.`,
@@ -59,10 +79,6 @@ export default abstract class BiomeReading extends Reading {
       );
       return;
     }
-    const value = await this.resolve(
-      scope as Stuff & Container,
-      param === '' ? undefined : param,
-    );
     // ⭐⭐ The figure is the world's and is the SAME for everybody; what
     // the band decides is the bracket around it. The tag is unbracketed
     // on purpose — *hot* is a judgement about the reading, not a second
@@ -84,8 +100,7 @@ export default abstract class BiomeReading extends Reading {
   }
 
   public override async truth(target: Stuff | null): Promise<number | null> {
-    if (!target || !MixinApi.isContainer(target)) return null;
-    const value = await this.resolve(target as Stuff & Container, undefined);
-    return value.rawValue();
+    const value = await this.subjectValue(target, '');
+    return value ? value.rawValue() : null;
   }
 }

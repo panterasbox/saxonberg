@@ -92,6 +92,14 @@ export interface ButcheryYield {
    * scale).
    */
   conditioned?: boolean;
+  /**
+   * ⭐ **This line comes off a YOUNG body only** (dairy D8): the vell — a
+   * calf's fourth stomach, the source of rennet — is only worth taking
+   * before the animal is weaned onto grass. Game-days; a body older than
+   * this yields nothing on the line. Absent ⇒ every age. An age the
+   * caller does not know keeps the line (unmodelled is open).
+   */
+  maxAgeDays?: number;
 }
 
 /**
@@ -483,6 +491,17 @@ export interface TapSpec {
    * meaningful value — an instant take.
    */
   takeMs?: number;
+  /**
+   * ⭐ **The sex that gives this** (dairy D12). A bull is not milked and a
+   * cockerel lays nothing — a species fact about the tap, read against the
+   * host's own sex. Absent ⇒ either sex (wool, honey, sap).
+   */
+  sex?: 'female' | 'male';
+  /**
+   * ⭐ Game-days a dried-off `expire` tap RESTS before it may come back
+   * (dairy D12) — a cow's dry period. Absent ⇒ no rest modelled.
+   */
+  restDays?: number;
 }
 
 /**
@@ -552,7 +571,13 @@ export type TapClosedReason =
   | 'warm'
   | 'dried-off'
   | 'brooding'
-  | 'no-forage';
+  | 'no-forage'
+  /**
+   * ⭐ Not a season at all (dairy D12): the tap is the other sex's. Never
+   * answered by `tapWindow` — `planTap` asks it first, so the host's own
+   * voice can say *a bull does not milk*.
+   */
+  | 'wrong-sex';
 
 /**
  * ⭐ **Breeding: a photoperiod SEASON, not a date** (D26, D11).
@@ -1239,13 +1264,27 @@ export default class Species extends SingletonMixin(
      * numbers and no world. The butcher has the exemplars in hand anyway.
      */
     claims?: ReadonlyMap<string, readonly string[]>;
+    /**
+     * The body's age in game-days — a line authoring `maxAgeDays` comes
+     * off only a body younger than that. Absent ⇒ every line is kept.
+     */
+    ageDays?: number;
   }): DressedLine[] {
     const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
     const finish = finishFactor(
       Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
     );
     const out: DressedLine[] = [];
+    const age = Number.isFinite(args.ageDays ?? NaN) ? (args.ageDays as number) : null;
     for (const line of this.butcheryYield) {
+      if (
+        age !== null &&
+        line.maxAgeDays !== undefined &&
+        Number.isFinite(line.maxAgeDays) &&
+        age > line.maxAgeDays
+      ) {
+        continue;
+      }
       const units = Math.max(1, Math.round(line.units));
       const claimed = args.claims?.get(line.cut) ?? [];
       // ⭐⭐⭐ **A claiming line's share DERIVES from the muscles it

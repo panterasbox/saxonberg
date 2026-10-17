@@ -64,6 +64,9 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import type { Thermal } from '@saxonberg/server/mud/lib/thermal/Thermal';
 
 const TOPIC = 'act.deed';
 const SMELTING = 'smelting';
@@ -470,6 +473,33 @@ async function runCharge(
     ? await ferrousMaterialFor(carbon, liquid, inheritedCarbon, sour)
     : metal.getTemplatePath() ?? '';
 
+  // ⭐⭐ (dairy D19) **Molten metal goes where molten metal goes in a
+  // furnace: into the crucible standing in it.** The engine picks no mould
+  // — the player put a crucible in the fire, and pouring it into a mould is
+  // the player's next act (`pour crucible into mould`). With no crucible
+  // the metal pools on the hearth and sets as a lump in the furnace.
+  if (liquid) {
+    const run = await runIntoCrucible(furnace, productMaterial, metalKg, heldK, owner);
+    await pour(furnace, SLAG_ROW, Math.max(chargeKg - metalKg, 0), owner);
+    consume();
+    if (!watching) return;
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`${tapScene(metal, ferrous, liquid, false, carbon, metalKg, chargeKg, heldK, run)}`,
+      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} taps the furnace.`)
+      .send();
+    if (MixinApi.isAdvancing(giver)) {
+      await giver.creditDeed({
+        discipline: SMELTING,
+        difficulty: 'standard',
+        outcome: ferrous ? 'partial' : 'success',
+      });
+    }
+    return;
+  }
+
   const row = await productRowFor(productMaterial);
   if (!row) {
     // ⚠ A reachability failure, not a game outcome — and it fails LOUDLY
@@ -530,7 +560,7 @@ async function runCharge(
   MessageApi.scene(giver)
     .topic(TOPIC)
     .toSelf(
-      Mml.compose`${tapScene(metal, ferrous, liquid, bloom, carbon, metalKg, chargeKg, heldK)}${fluxLine}${sourLine}`,
+      Mml.compose`${tapScene(metal, ferrous, liquid, bloom, carbon, metalKg, chargeKg, heldK, 'solid')}${fluxLine}${sourLine}`,
     )
     .toPeers(Mml.compose`${Mml.actor(giver)} taps the furnace.`)
     .send();
@@ -559,15 +589,25 @@ function tapScene(
   metalKg: number,
   chargeKg: number,
   heldK: number,
+  run: CrucibleRun,
 ): ReturnType<typeof Mml.compose> {
   const pct = (carbon * 100).toFixed(2);
+  // ⭐ Where the melt went — the crucible you set in the fire, or the
+  // hearth because there was none. Said, because what you do next depends
+  // on it: a crucible is poured, a lump is remelted.
+  const where =
+    run === 'crucible'
+      ? 'into the crucible, bright as a coal'
+      : run === 'spilled'
+        ? 'into the crucible until it brims, and the rest over onto the hearth'
+        : 'onto the hearth, where it pools and starts to stiffen — there was no crucible in the fire to catch it';
   if (!ferrous) {
-    return Mml.compose`You tap the furnace. Red metal runs into the sand and stiffens as you watch — ${metalKg.toFixed(2)} kg of ${metal.getName()} out of ${chargeKg.toFixed(2)} kg of rock, and a heap of slag for the rest.`;
+    return Mml.compose`You tap the furnace. Red metal runs ${where} — ${metalKg.toFixed(2)} kg of ${metal.getName()} out of ${chargeKg.toFixed(2)} kg of rock, and a heap of slag for the rest.`;
   }
   if (liquid) {
     // ⭐ It ran EASIER, and the prose says so, because that is the trap:
     // the failure looks like the success.
-    return Mml.compose`It runs. You were expecting to rake a mass out of the bottom and instead the furnace pours, easily, a grey stream into the sand — ${metalKg.toFixed(2)} kg of it. Too much charcoal: at ${pct}% carbon this melted at ${String(Math.round(meltingPointOf(carbon)))} K instead of ${String(T_FE)}, and what is cooling there is hard, grey and good for nothing you can hammer.`;
+    return Mml.compose`It runs. You were expecting to rake a mass out of the bottom and instead the furnace pours, easily, a grey stream ${where} — ${metalKg.toFixed(2)} kg of it. Too much charcoal: at ${pct}% carbon this melted at ${String(Math.round(meltingPointOf(carbon)))} K instead of ${String(T_FE)}, and what it will set into is hard, grey and good for nothing you can hammer.`;
   }
   if (bloom) {
     return Mml.compose`Nothing pours. You rake the bottom of the shaft and drag out a mass the size of a loaf, glowing dull and shot through with glass — ${metalKg.toFixed(2)} kg of iron out of ${chargeKg.toFixed(2)} kg of rock, at ${pct}% carbon, and it never melted at all. It will not be a bar until it has been beaten into one.`;
@@ -724,6 +764,125 @@ async function productRowFor(materialPath: string): Promise<string | null> {
     if (data['_materialPath'] === materialPath) return tpl.path;
   }
   return null;
+}
+
+/** Where a molten run went. `solid` is a bloom or a bar — no run at all. */
+type CrucibleRun = 'crucible' | 'spilled' | 'hearth' | 'solid';
+
+/** The transient source a bulk run is poured out of (the `pourTake` shape). */
+const UNBOUNDED_RECEPTACLE = '/platform/thing/UnboundedReceptacle';
+
+/**
+ * ⭐ The crucible standing IN the furnace — the first plain bulk vessel the
+ * player set in the fire that is not a mould and holds nothing or this
+ * same metal. A furnace has one crucible; that is a content fact, so the
+ * first is taken and nothing is chosen.
+ */
+function crucibleIn(
+  furnace: Stuff & Container,
+  metalPath: string,
+): (Stuff & Bulkable & Thermal) | null {
+  for (const item of furnace.getContents()) {
+    const s = item as unknown as Stuff;
+    if (!MixinApi.isBulkable(s) || !MixinApi.isThermal(s)) continue;
+    if (MixinApi.isMould(s)) continue;
+    if (!s.hasInteriorBulk()) continue;
+    const held = s.getBulkMaterialPath('interior');
+    if (held !== null && held !== metalPath) continue;
+    return s as Stuff & Bulkable & Thermal;
+  }
+  return null;
+}
+
+/**
+ * Run `kg` of molten metal into the crucible in the furnace, as BULK at the
+ * furnace's held heat; what will not fit, or all of it with no crucible,
+ * pools on the hearth and sets as a lump IN the furnace (the metal's own
+ * fallback shape). Mass is conserved on every path.
+ */
+async function runIntoCrucible(
+  furnace: Stuff & Container,
+  metalPath: string,
+  kg: number,
+  heldK: number,
+  madeFrom: readonly Stuff[],
+): Promise<CrucibleRun> {
+  const metal = StuffApi.findByTemplatePath<Material>(metalPath) ?? null;
+  if (metal === null || kg <= 0) return 'hearth';
+  const density = metal.getDensity().rawValue() || 8000;
+  const litres = (kg / density) * 1000;
+  const crucible = crucibleIn(furnace, metalPath);
+  let keptL = 0;
+  if (crucible !== null) {
+    // ⭐ Both ends of the run are at the furnace's heat BEFORE the metal
+    // moves. The pot has stood in the lit furnace, but its temperature is
+    // read lazily: one nobody looked at since it went in cold still holds
+    // that cold stamp, the run blends down to it, and copper that far under
+    // its melting point clears the latent plateau in one step and sets in
+    // the pot (dropped beside it as a lump). The source below is the same
+    // trap — a fresh receptacle reads the ambient, 268 K in winter. Which
+    // one fired turned on the wall clock, so the live drive found it in
+    // three runs of four: "There's nothing to pour".
+    // ⭐ And its cached AMBIENT is re-resolved first: a body learns its
+    // surroundings only at a restamp, and a furnace that went out in the
+    // preheat and came back with the charge left the pot drifting toward
+    // the cold room inside a lit furnace — the run set after it was kept,
+    // slower boxes worst (runs 40 and 41). Lit and fuelled now, the
+    // restamp hands it the furnace's heat.
+    await crucible.restamp();
+    crucible.setContentsTemperature(heldK);
+    const to = BulkableApi.slotFor(crucible, undefined);
+    const source = await StuffApi.clone<Stuff & Bulkable & Thermal>(
+      UNBOUNDED_RECEPTACLE,
+    );
+    try {
+      source.setContentsTemperature(heldK);
+      source.setBulkMaterial('interior', metal);
+      source.setContentsTemperature(heldK);
+      const from = BulkableApi.slotFor(source, undefined);
+      if (from && to) {
+        const cap = crucible.getBulkCapacity('interior')?.rawValue() ?? 0;
+        const room = Math.max(0, cap - crucible.getBulkAmount('interior').rawValue());
+        const result = BulkableApi.transfer(from, to, {
+          kind: 'measure',
+          litres: Math.min(litres, room),
+          mode: 'lenient',
+        });
+        keptL = result.applied ?? 0;
+      }
+    } finally {
+      StuffApi.destruct(source);
+    }
+    // The metal arrives at the furnace's heat, and the furnace holds it.
+    if (keptL > 0) crucible.setContentsTemperature(heldK);
+  }
+  const spilledKg = ((litres - keptL) / 1000) * density;
+  if (spilledKg > 0.001) await hearthLump(furnace, metal, spilledKg, madeFrom);
+  if (keptL <= 0) return 'hearth';
+  return spilledKg > 0.001 ? 'spilled' : 'crucible';
+}
+
+/** A pool on the hearth, set: the metal's own fallback shape, in the furnace. */
+async function hearthLump(
+  furnace: Stuff & Container,
+  metal: Material,
+  kg: number,
+  madeFrom: readonly Stuff[],
+): Promise<void> {
+  // Shaped BEFORE it moves, so the capture the move takes is of the lump.
+  await pour(furnace, metal.getCastTemplate(), kg, madeFrom, (lump) => {
+    const t = lump as unknown as {
+      getMaterial?(): Material | null;
+      setMaterial?(m: Material): void;
+      setShortDescription?(s: string): void;
+      setKeywords?(k: string[]): void;
+    };
+    if (!t.getMaterial?.()) {
+      t.setMaterial?.(metal);
+      t.setShortDescription?.(`cast lump of ${metal.getName()}`);
+      t.setKeywords?.(['lump', 'cast', ...metal.getName().split(/\s+/)]);
+    }
+  });
 }
 
 /**

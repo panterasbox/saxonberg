@@ -407,3 +407,26 @@ says a cross-field rule lives in the host's `onCreate`.
 gas oil does not, so a cold column gives the light ends and stops. That
 is the seam this doc's own header predicted *a refinery column is built
 on and a pot still never exercises.*
+
+## The dairy build (2026-10): a rest, a derived residue, and the column that never ran
+
+**`restDays`** (schedule, default 0) + **`chargedAtS`** (host, persistent):
+a charge runs when heat is reached AND it has stood its rest — a setting
+pan's cream rises over a few hours, and drawn before then the pan gives
+back the milk it was given (the shipped cold-charge rule). `look` says
+*"It stands; nothing has separated yet"* / *"It has stood, and separated"*
+for a schedule with a rest. A dev DB's pre-existing still reads `0` —
+"charged long ago" — so no migration.
+
+**`residueShare`** — a `CompositionShare` evaluated against the CHARGE
+material once, at the charge (`runResidueFraction`); every boundary is
+scaled so the last lands at `1 − residue`. Cream is the fat that rose, so
+ewe's milk leaves twice the cow's cream from one `milk-setting` row.
+
+⭐ **A shipped defect, fixed: a `separation: fractions` run never began.**
+`beginRun` returned unless the schedule named a live `productMaterial`, and
+a column authors `''` by design (the shipped `crude.yaml`) — so a charged
+barrel warned and never ran. Had it run, the run's own reconcile read the
+SPAN material through the read override and took it for a fresh charge on
+every read. Now a fractions run keeps the **charge** as its stored material
+(no swap) and the override is skipped inside the run's own reconcile.

@@ -27,6 +27,10 @@ args:
   - name: head
     type: string
     required: true
+  # ⚠ `from`, as the help has always promised (`draft <n> [from <herd>]`)
+  # — and it never bound until a room held TWO books (the dairy's byre:
+  # the herd book and the calf register), where the shape fell through.
   - name: herd
     type: string
     required: false
+    prepositions: [from]

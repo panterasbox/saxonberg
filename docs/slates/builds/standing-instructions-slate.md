@@ -1,8 +1,10 @@
 # Standing instructions — may a player automate labour at all?
 
-**Status:** design question, unopened. **Left:** the whole of it.
-**Size:** unknown until the first question is answered, because a *no*
-is a legitimate and cheap answer.
+> **Status: UNBUILT** — a design question, unopened.
+> **Left:** the whole of it — first, *may a player automate labour at
+> all?*
+> **Size:** a build if the answer is *yes*; ⚠ unknown until the first
+> question is answered, because a *no* is a legitimate and cheap answer.
 
 ⭐⭐⭐ **This slate exists because a build answered a question it had no
 business answering.** The taps build (2026-10-01) shipped

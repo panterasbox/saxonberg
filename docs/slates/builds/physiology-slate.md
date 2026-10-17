@@ -36,7 +36,7 @@
 > § Part 8d) was cut: the shipped `assess` does the opposite (full fidelity
 > on self) — see the ledger.
 > ⭐ **Blood, transfusion and consent moved OUT (2026-09-15)** →
-> [blood-slate](./blood-slate.md). This slate keeps the blood-loss
+> [blood-slate](../tails/blood-slate.md). This slate keeps the blood-loss
 > *axis* (`bloodVolume` is a vital sign); blood owns the substance.
 > **Size:** a build
 
@@ -974,7 +974,7 @@ v1**; noted as a refinement.)*
 > types (the *DO* reversal), the summons, the blood-purity inversion, the
 > economy, shelf life, the sell-blood legislative question, consent, and
 > the field-medic/clinic sequencing all now live in
-> [blood-slate](./blood-slate.md) § *Absorbed from physiology-slate
+> [blood-slate](../tails/blood-slate.md) § *Absorbed from physiology-slate
 > § Part 7e*.
 >
 > ⭐ **The split is principled, not arbitrary:** `bloodVolume` is a vital

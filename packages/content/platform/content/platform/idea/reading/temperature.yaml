@@ -9,7 +9,11 @@ class: /platform/idea/reading/TemperatureReading
 data:
   channel: temperature
   kind: fact
-  scope: [here]
+  # ⭐ A thermometer reads a THING too (dairy): `measure temperature vat`
+  # reads the milk. `[here]` alone made a named subject fall back to the
+  # room's air, silently.
+  scope: [subject, here]
+  subjectRequires: [ThermalMixin]
   discipline: awareness
   instrument: thermometry
   instrumentNoun: a thermometer

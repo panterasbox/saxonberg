@@ -1165,7 +1165,7 @@ commentary is later about.
 ## 9a. ⭐⭐⭐ The counter is the description
 
 Added 2026-10-09, from the tourism pass
-([tourism-and-sport-slate](./slates/builds/tourism-and-sport-slate.md)
+([tourism-and-sport-slate](./slates/tails/tourism-and-sport-slate.md)
 § 2). A cheap authoring tool that § 9's cultural-content rule implies and
 nobody had stated.
 

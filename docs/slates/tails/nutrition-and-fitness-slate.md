@@ -524,7 +524,7 @@ below is a clean attach point, not a stub.
 - **Protein → healing** — harm's healing rate reading the `protein`
   reserve. → the disease/healing slate.
 - **Sweat as body soiling** — `depositWorkHeat` is where an exertion
-  deposits on a `Soilable` body. → [rendering-slate § 8](../builds/rendering-slate.md).
+  deposits on a `Soilable` body. → [rendering-slate § 8](./rendering-slate.md).
 - **The beauty canon** — the `Character` body augmenter is the attach
   point. → [cosmetics-slate § Beauty](cosmetics-slate.md).
 

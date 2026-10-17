@@ -1,0 +1,23 @@
+# Ricotta — "cooked again": the whey's last protein, coaxed out by heat
+# (dairy D15, the `ricotta` recipe). What a cheesemaker does with the whey
+# the pigs would otherwise get.
+class: /platform/idea/material/Material
+data:
+  name: "ricotta"
+  keywords: [ricotta, curd]
+  appearance: soft, white and grainy
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 100000, protein: 110000, sugar: 30000, water: 740000 }
+  spoilActivationEnergy: 70000
+  waterActivity: 0.98
+  toxicity: []
+  tags: ["food", "dairy", "perishable", "cheese", "ricotta"]
+  composition: []

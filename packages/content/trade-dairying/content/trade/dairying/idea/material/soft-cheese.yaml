@@ -1,0 +1,24 @@
+# Soft cheese — what soft curd SETS into in a hoop (the drain set's
+# `becomes`, D9b), and what the `soft-cheese` ripening profile keys on: it
+# ripens in about a week on a cool shelf and goes over after a few days
+# more. Its keeping is its water, which the hoop decided.
+class: /platform/idea/material/Material
+data:
+  name: "soft cheese"
+  keywords: [cheese, "soft cheese"]
+  appearance: pale, with a bloomed rind
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 240000, protein: 200000, sugar: 10000, water: 500000 }
+  spoilActivationEnergy: 70000
+  waterActivity: 0.97
+  toxicity: []
+  tags: ["food", "dairy", "perishable", "cheese", "soft-cheese"]
+  composition: []

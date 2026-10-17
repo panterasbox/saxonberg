@@ -1,0 +1,31 @@
+# The dairy yard — the valley's dairy farm, down on the flats south of the
+# gate (dairy D14). ⭐ A real dairy in the community it belongs to: cows
+# want water meadow and the flats have it.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: dairy yard
+  keywords: [yard, dairy, farm, cows]
+  register: definite
+  _address: terminus/hearts-delight/dairy/yard
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A muddy yard on the flats with a long low byre along one side of it and water meadow running away behind to the willows on the river. The gate is chained back. There is a smell of cows and wet straw and, faintly, of the river.
+
+    The byre door stands open to the east.
+  coords: { x: 0, y: -6, z: 0 }
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/location/valley-gate
+      media: [ground]
+      edgeMinutes: 6
+    east:
+      destination: /world/terminus/hearts-delight/dairy/location/byre
+      media: [ground]
+      edgeMinutes: 1
+  details:
+    meadow:
+      keywords: [meadow, water-meadow, grass, river, willows]
+      description: |
+        Lush, flat, and wet underfoot at the low end — the kind of grass a cow will give milk on and a sheep will rot its feet in.

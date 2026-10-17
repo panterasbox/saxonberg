@@ -64,7 +64,8 @@ export default class TemperatureReading extends BiomeReading {
     _handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
-    if (!target || !MixinApi.isContainer(target)) {
+    const value = await this.subjectValue(target, param);
+    if (!value) {
       this.decline(
         context,
         Mml.compose`You aren't anywhere to judge the air.`,
@@ -72,10 +73,6 @@ export default class TemperatureReading extends BiomeReading {
       );
       return;
     }
-    const value = await this.resolve(
-      target as Stuff & Container,
-      param === '' ? undefined : param,
-    );
     const kelvin = value.rawValue();
     const coarse = CompetenceBand.atOrAbove(band, 'novice')
       ? feelOf(kelvin)
@@ -85,6 +82,24 @@ export default class TemperatureReading extends BiomeReading {
       lines.push(keepsOf(kelvin));
     }
     this.report(context, Mml.compose`${lines.join(' ')}\n`);
+  }
+
+  /**
+   * ⭐ A THING has a temperature too (dairy, found by the drive): a
+   * thermometer dipped in a vat reads the milk, not the room. Until this
+   * the channel read only places, and `measure temperature vat` SILENTLY
+   * read the creamery's air — the row declared `scope: [here]`, so a named
+   * subject fell back to the place. A Thermal subject reads its own
+   * temperature; a place reads the biome chain, as before.
+   */
+  protected override async subjectValue(
+    target: Stuff | null,
+    param: string,
+  ): Promise<Quantity<Unit> | null> {
+    if (target && MixinApi.isThermal(target)) {
+      return target.getTemperature() as unknown as Quantity<Unit>;
+    }
+    return super.subjectValue(target, param);
   }
 
   protected label(): string {

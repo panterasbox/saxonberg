@@ -1,0 +1,23 @@
+# The dairy (dairy D14) — the household that keeps the herd, so the herd
+# is somebody's. One position that fulfils nothing: staffing the tap is
+# the ranching slate's cadence question, deliberately not built here.
+class: /platform/idea/Business
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/agent/dairywoman
+  call: rota
+  positions:
+    - key: dairyhand
+      noun: dairyhand
+      label: in the byre
+      wageRate: 3
+  rosterSlots:
+    - positionKey: dairyhand
+      assignee: /world/terminus/hearts-delight/agent/dairy-lad
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/dairy/location/yard
+    - /world/terminus/hearts-delight/dairy/location/byre

@@ -1,0 +1,26 @@
+# Butter — the residue of a churning (dairy D5), and ⭐ a FAT: it carries
+# the `fat` tag, so every recipe that takes `category: fat` fries in it
+# with nothing edited (the kitchen takes dairy by category — D15).
+#
+# ⚠ Authors no spoilage constants and no melting point. A pound of butter
+# goes rancid slowly enough that the game does not model it, and butter is
+# kept as soft stock in a crock — a melting point would have it set out of
+# the crock as a lump.
+class: /platform/idea/material/Material
+data:
+  name: "butter"
+  keywords: [butter]
+  appearance: pale gold and close-grained
+  density: 911
+  specificHeat: 2000
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "water"]
+  nutrientAmounts: { fat: 820000, protein: 8000, water: 160000 }
+  toxicity: []
+  tags: ["food", "dairy", "fat", "cooking-fat", "butter"]
+  composition: []

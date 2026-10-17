@@ -700,7 +700,7 @@ function tryInoculate(
   if (applied <= 0) return { applied: 0, status: 'declined', notes };
   from.debit(applied);
   to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
-  toHolder.applyForeignPour(kind, strain, applied);
+  toHolder.applyForeignPour(kind, strain, applied, material);
   return { applied, notes };
 }
 

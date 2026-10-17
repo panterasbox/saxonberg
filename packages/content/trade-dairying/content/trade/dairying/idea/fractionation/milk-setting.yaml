@@ -1,0 +1,31 @@
+# Setting milk for cream (dairy D4) — ⭐ a wide pan with a plug at the
+# bottom, which is `separation: fractions` exactly: the SKIM drains first
+# and you stop when the cream comes. The charge must STAND before anything
+# separates (`restDays` — cream rises over hours); poured before then, the
+# pan gives back the milk it was given.
+#
+# ⭐ The cream left behind is a share of the charge DERIVED from its fat
+# (`residueShare`), so ewe's milk leaves twice the cream a cow's does from
+# this one row.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: milk-setting
+  inputCategory: milk
+  separation: fractions
+  discipline: dairying
+  requiresHeatK: 0
+  # A few game hours: in a shallow pan the cream is up by the afternoon.
+  restDays: 0.15
+  productMaterial: ''
+  residueMaterial: /trade/dairying/idea/material/cream
+  residueShare: { nutrients: { fat: 2.5 } }
+  readBlur: 0.02
+  gradeStretch: 0
+  fractions:
+    - key: skim
+      upTo: 0.9
+      material: /trade/dairying/idea/material/skim-milk
+      character: >-
+        Thin and blue-white, running clean from under the cream. Watch for
+        the first yellow thread.
+      gradeBand: fine

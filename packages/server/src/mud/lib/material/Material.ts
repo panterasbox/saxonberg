@@ -123,6 +123,20 @@ export interface ElementChemistry {
 }
 
 /**
+ * ⭐ The authored shape of a drain set (dairy D9b): over `days` unloaded
+ * the matter gives up its free water and sets; a weight on the mould of
+ * `poolKg × loadRef` doubles the rate and drives the moisture from
+ * `unloaded` to `loaded`. `becomes` is the material the set thing IS
+ * (curd → cheese); absent ⇒ the pool's own material.
+ */
+export interface DrainSetting {
+  days: number;
+  becomes?: string;
+  moisture: { unloaded: number; loaded: number };
+  loadRef: number;
+}
+
+/**
  * Link from a biological Material to the Species it came from, plus
  * the kind of tissue (`'wood'`, `'flesh'`, `'leaf'`, `'fruit'`, …).
  * Bidirectional with `Species._defaultMaterialPath` — the species
@@ -502,9 +516,60 @@ export default class Material extends SingletonMixin(
    */
   public ruinedByFreezing: boolean = false;
 
+  /**
+   * ⭐ **How this matter sets by losing water** (dairy D9b) — curd drains
+   * its whey in a hoop and becomes cheese, faster and drier under a weight.
+   * `null` for every material that does not (the default; freezing is the
+   * other set process, and it is `meltingPoint`'s). Read only by a mould's
+   * `reconcileSetting`: the MATERIAL says how it sets, the MOULD says what
+   * shape it takes.
+   */
+  public drainSetting: DrainSetting | null = null;
+
   /** The identity path a frozen pool of this becomes. */
   public getCastTemplate(): string {
     return this.castTemplate;
+  }
+
+  /** How this matter sets by draining, or `null` when it does not. */
+  public getDrainSetting(): DrainSetting | null {
+    return this.drainSetting;
+  }
+  public setDrainSetting(value: DrainSetting | null): void {
+    if (value === null || value === undefined) {
+      this.drainSetting = null;
+      return;
+    }
+    // ⚠ No local `const` here: `wiki-spoiler-fields.snapshot` labels each
+    // field by the nearest `class`/`const` above this class's `fieldMeta`,
+    // which sits after the methods — a `const ok` filed every Material
+    // field under `ok`.
+    if (
+      !(
+        Number.isFinite(value.days) &&
+        value.days > 0 &&
+        value.moisture !== null &&
+        typeof value.moisture === 'object' &&
+        value.moisture.unloaded > 0 &&
+        value.moisture.unloaded <= 1 &&
+        value.moisture.loaded > 0 &&
+        value.moisture.loaded <= value.moisture.unloaded &&
+        Number.isFinite(value.loadRef) &&
+        value.loadRef > 0 &&
+        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== ''))
+      )
+    ) {
+      throw new RangeError(
+        'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
+          'loadRef > 0, and becomes a path or absent',
+      );
+    }
+    this.drainSetting = {
+      days: value.days,
+      moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
+      loadRef: value.loadRef,
+      ...(value.becomes ? { becomes: value.becomes } : {}),
+    };
   }
   /** Whether freezing ruins this material (blood) rather than casting it. */
   public isRuinedByFreezing(): boolean {
@@ -857,6 +922,7 @@ export default class Material extends SingletonMixin(
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
     castTemplate: { persistent: true, authorable: true },
+    drainSetting: { persistent: true, authorable: true },
     ruinedByFreezing: { persistent: true, authorable: true },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },

@@ -49,6 +49,10 @@ import { BlendLabel } from '../../lib/metabolism/BlendLabel';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
+import { Freshness } from '../../lib/material/Freshness';
+import { MixinApi } from '../../api/mixin';
+import type { MarkupAugmenter } from '../../api/mml';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -120,7 +124,26 @@ const CraftVesselBase = ContaminableMixin(
   ),
 );
 
+/**
+ * ⭐ What the vessel's CONTENTS say about their spoilage — to `look` and
+ * `smell` (dairy, found by the drive: a jug of milk left a day in the
+ * warm said nothing, because only discrete food spoke its band).
+ */
+function contentsFreshnessAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+  opts?: { filter?: readonly string[] },
+): string {
+  if (!MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
+  const line = new Freshness(host.getBulk('interior')).senseLine(opts?.filter);
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export default class CraftVessel extends CraftVesselBase {
+  static markupAugmenters: MarkupAugmenter[] = [contentsFreshnessAugmenter];
+
   static fieldMeta: FieldMeta = {
     iceKg: { persistent: true, runtimeState: true },
     iceForm: { persistent: true, runtimeState: true },

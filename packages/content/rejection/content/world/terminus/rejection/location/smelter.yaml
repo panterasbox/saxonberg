@@ -27,6 +27,12 @@ data:
       destination: /world/terminus/rejection/location/fuel-yard
   props:
     - /trade/smelting/thing/furnace
+    # ⭐ (dairy D19) The smelt runs molten metal into a crucible standing in
+    # the furnace — `put crucible in furnace` first — and the smelter pours
+    # it into the mould. ⚠ Propped in the room, not in the furnace: a
+    # placement key needs a Placing host and the furnace is a container.
+    - /trade/smelting/thing/crucible
+    - /trade/smelting/thing/ingot-mould
     - /trade/mining/thing/tongs
     - /trade/smelting/thing/slag
     # ⭐ The bloomery's own hammer. A bloom comes out of that shaft as a

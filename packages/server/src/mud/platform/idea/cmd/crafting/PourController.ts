@@ -71,7 +71,12 @@ export default class PourController extends ManualBuildController<PourModel> {
         MixinApi.isTangible(bottle) &&
         bottle.getMaterial() !== null &&
         !MixinApi.isTool(bottle) &&
-        !MixinApi.isCrafted(bottle)
+        // ⭐ Matter, not mark (farming A4's rule, found again by the dairy
+        // drive): a `Provision` is Crafted — it carries a maker — so this
+        // guard, written before provisions were, refused every food item
+        // and no by-hand dish could take roots. A crafted thing is an
+        // ingredient when it is FOOD; a finished tool or good is not.
+        (!MixinApi.isCrafted(bottle) || bottle.getMaterial()!.getEdibility())
       ) {
         this.addIngredient(context, bottle, vessel);
         return;

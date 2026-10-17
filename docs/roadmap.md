@@ -331,7 +331,7 @@ remains in the near-term Track A queue:
 >   ([calendar.md](./subsystems/calendar.md)). The **blood-BANK economy**
 >   — the civic donated-blood window, the gift credit, NPC restock, and the
 >   `transfusion` service — SHIPPED in the **blood-economy build**
->   (2026-10-05, MR !333; → [blood-slate](./slates/builds/blood-slate.md)
+>   (2026-10-05, MR !333; → [blood-slate](./slates/tails/blood-slate.md)
 >   for the deferred tail). Still deferred: the
 >   *general* / instrument-mediated assess + measure-on-patient, the
 >   diagnostic **labs** vertical (→

@@ -1,0 +1,21 @@
+# The starter crock (dairy D7) — a crock of WHEY, which is a living lactic
+# culture: pour some into a vat of milk to pitch it, pour milk into the
+# crock to feed it, and keep it from getting warm. Opens with a litre in it
+# (the barm-jar precedent); a creamery that lets it die starts over from
+# the whey of a soured pail.
+class: /platform/thing/Vat
+data:
+  shortDescription: starter crock
+  keywords: [crock, "starter crock", starter, whey]
+  register: indefinite
+  longDescription: >-
+    A lidded stoneware crock with a sour, clean smell. Whatever is in it is
+    alive, and the cheesemaker would rather you did not let it get warm.
+  category: culture-jar
+  interiorBulk: true
+  interiorCapacity: 3
+  interiorMaterial: /trade/dairying/idea/material/whey
+  interiorAmount: 1
+  open: true
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 2
