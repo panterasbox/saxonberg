@@ -30,3 +30,8 @@ settings:
   # open food lying in the room — pests come. Sweep up, and they go.
   - key: cleanliness.pests.debrisAt
     value: "0.4"
+
+  # The row a hearth's grate is raked out into (`sweep hearth`) — the
+  # lye-maker's ash. The fuel trade's ash.
+  - key: cleanliness.ashTemplate
+    value: "/trade/fuel/thing/ash"

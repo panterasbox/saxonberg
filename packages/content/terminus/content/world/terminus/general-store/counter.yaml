@@ -254,6 +254,11 @@ data:
     - { itemTemplatePath: /trade/chandlery/thing/hopper, par: 1 }
     - { itemTemplatePath: /trade/chandlery/thing/soap-kettle, par: 1 }
     - { itemTemplatePath: /trade/chandlery/thing/soap-frame, par: 1 }
+    - { itemTemplatePath: /stuff/thing/gear/broom, par: 3 }
+    - { itemTemplatePath: /stuff/thing/gear/flue-brush, par: 1 }
+    - { itemTemplatePath: /stuff/thing/rushes, par: 6 }
+    - { itemTemplatePath: /stuff/thing/furnishing/rug, par: 2 }
+    - { itemTemplatePath: /stuff/thing/fixture/clothes-line, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/colander, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/thermos, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/basket, par: 4 }
@@ -363,6 +368,11 @@ data:
     /trade/chandlery/thing/hopper: 12
     /trade/chandlery/thing/soap-kettle: 20
     /trade/chandlery/thing/soap-frame: 6
+    /stuff/thing/gear/broom: 2
+    /stuff/thing/gear/flue-brush: 6
+    /stuff/thing/rushes: 1
+    /stuff/thing/furnishing/rug: 8
+    /stuff/thing/fixture/clothes-line: 3
     # ⭐⭐ **A JOINT costs four times TRIM**, and that price gap is the
     # butchery chain's whole economic argument standing in one place: the
     # same animal is worth four times as much cut well, which is why a

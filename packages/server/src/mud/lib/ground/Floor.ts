@@ -111,6 +111,12 @@ const CLEANING_METHODS: Record<GroundKind, CleaningMethod> = {
 /** The debris kinds a floor gathers and a sweep takes up (D15, D17). */
 const DEBRIS_KINDS = new Set(['crumbs', 'manure', 'soot', 'ash', 'flour']);
 
+/** The films a strewn absorbent drinks up, swept with it (D15). */
+const ABSORBED_KINDS = new Set(['blood', 'grease', 'milk']);
+
+/** Kilograms in a heap per unit of load swept (D15). */
+const SWEPT_KG_PER_LOAD = 2;
+
 /** Manure a stalled head drops on the byre floor per day (D20). */
 const MANURE_PER_HEAD_DAY = 0.15;
 
@@ -250,6 +256,16 @@ export interface Floor {
   reconcileStalls(): void;
   /** Debris on it AND open food in the room — the pests come (D17). */
   hasPests(): boolean;
+  /**
+   * ⭐ SWEEP it (cleanliness D15): take up what a broom takes — on a floor
+   * kept by strewing and sweeping, everything on it and the old strewing;
+   * on a scrubbed floor, the debris and whatever the strewing soaked up;
+   * and the dust out of the air. Returns the kilograms taken up and the
+   * kinds by load, for the heap; the floor is that much cleaner.
+   */
+  sweepUp(): { kg: number; kinds: Record<string, number> };
+  /** The row a sweep heaps what it takes into (`sweepsInto`). */
+  getSweepsInto(): string;
   /**
    * Standing water in the surface slot. Read for exactly one kind
    * (`mire`); public because the puddle summary and the conduction walk
@@ -412,7 +428,50 @@ export function FloorMixin<
       strewn: { persistent: true, runtimeState: true },
       stalls: { persistent: true, authorable: true },
       stallsStamp: { persistent: true, runtimeState: true },
+      sweepsInto: { persistent: true, authorable: true },
     };
+
+    /**
+     * ⭐ What a sweep of THIS floor heaps up (cleanliness D20) — sweepings
+     * by default; a byre floor authors its muck heap (manure).
+     */
+    public sweepsInto = '/stuff/thing/sweepings';
+
+    public getSweepsInto(): string {
+      return this.sweepsInto;
+    }
+
+    public sweepUp(): { kg: number; kinds: Record<string, number> } {
+      this.reconcileStalls();
+      const self = this as unknown as Stuff;
+      const kinds: Record<string, number> = {};
+      let load = 0;
+      const strewing = this.cleaningMethod() === 'strew and sweep';
+      if (MixinApi.isSoilable(self)) {
+        for (const kind of self.soilKinds('')) {
+          const absorbed = this.strewn !== null && ABSORBED_KINDS.has(kind);
+          if (!strewing && !DEBRIS_KINDS.has(kind) && !absorbed) continue;
+          const got = self.removeSoil(kind, 1, '');
+          if (got > 0) {
+            kinds[kind] = got;
+            load += got;
+          }
+        }
+      }
+      // ⭐ The dust in the air comes down onto the broom (D22).
+      const room = this.hostOf() as unknown as Stuff | null;
+      if (room && MixinApi.isAtmospheric(room)) {
+        for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
+          const m = StuffApi.findByTemplatePath<Material>(c.type);
+          if (!m?.hasTag('dust')) continue;
+          room.drawAtmosphereContent(c.type, Infinity);
+          kinds.flour = (kinds.flour ?? 0) + 0.05;
+          load += 0.05;
+        }
+      }
+      const strewn = this.takeStrewn();
+      return { kg: load * SWEPT_KG_PER_LOAD + (strewn?.kg ?? 0), kinds };
+    }
 
     /** What is strewn on the floor (cleanliness D15), or `null`. */
     public strewn: { materialPath: string; kg: number } | null = null;

@@ -1,0 +1,29 @@
+verbs: [dispose]
+controller: /platform/idea/cmd/inventory/DisposeController
+description: "Throw sweepings or muck on the midden"
+help: |
+  `dispose sweepings` — put a heap of sweepings, muck or refuse on the
+  midden, where it rots down. ⭐ A midden's rotted heap is what a farmer
+  spreads on a field (`feed`), so what the house sweeps out the field
+  takes back.
+examples:
+  - cmd: dispose heap
+    note: Throw the heap on the midden
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: heap
+    type: object
+    required: true
+    scope: "reachable"
+    requires: any
+  - name: midden
+    type: object
+    required: false
+    greedy: true
+    prepositions: [in, on, onto, into]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

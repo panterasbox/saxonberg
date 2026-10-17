@@ -1,0 +1,11 @@
+# A flue brush — a stiff round brush on jointed rods (cleanliness D18), for
+# sweeping a chimney before it catches.
+class: /platform/thing/Tool
+data:
+  shortDescription: flue brush
+  keywords: [brush, "flue brush", rods, "chimney brush", sweep]
+  register: indefinite
+  longDescription: A round brush of stiff bristle on a bundle of jointed cane rods.
+  capabilities: [flue-brushing]
+  _materialPath: /stuff/idea/material/wood/hazel
+  mass: 2

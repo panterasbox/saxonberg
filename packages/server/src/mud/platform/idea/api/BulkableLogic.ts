@@ -36,6 +36,8 @@ import type {
   TransferResult,
   TransferStatus,
 } from '../../../api/bulk';
+// The `hardnessDgh` payload field is declared by Hardness's merge.
+import type {} from '../../../lib/cleanliness/Hardness';
 
 const BULK_FIELD = 'bulk';
 

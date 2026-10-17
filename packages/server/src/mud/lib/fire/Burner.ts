@@ -155,6 +155,10 @@ export interface Burner extends Pumpable {
    * the light and the exhaust all read.
    */
   completeness(): number;
+  /** The ash in the grate, kg (cleanliness D24). */
+  getAshKg(): number;
+  /** Rake the grate: the ash's kg, and the grate left clean. */
+  takeAsh(): number;
   /** The temperature (K) the furnace holds while lit + fuelled. */
   getHeldTemperatureK(): number;
   /** Is the bellows working (boosting the held temperature)? */

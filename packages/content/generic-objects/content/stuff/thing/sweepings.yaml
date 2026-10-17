@@ -1,0 +1,11 @@
+# A heap of sweepings — what `sweep` takes up (cleanliness D15). Carry it to
+# the midden (`dispose`), where it rots down for the field.
+class: /platform/thing/Scrap
+data:
+  shortDescription: heap of sweepings
+  keywords: [sweepings, heap, pile, "heap of sweepings"]
+  register: indefinite
+  longDescription: A grey heap of floor sweepings — grit, crumbs, old straw and worse.
+  _materialPath: /stuff/idea/material/bulk/sweepings
+  mass: 0.1
+  quantity: 1

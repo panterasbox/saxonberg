@@ -19,6 +19,8 @@ data:
 
     A three-legged stool stands by the first stall, worn dark on the seat. By the door, a scrubbed block and a knife on a nail: a dairy's bull calves do not go out to grass.
   coords: { x: 1, y: -6, z: 0 }
+  # ⭐ Its own floor row: the stalls foul by the animal-day (cleanliness D20).
+  floor: { template: /world/terminus/hearts-delight/dairy/thing/byre-floor }
   exits:
     west:
       destination: /world/terminus/hearts-delight/dairy/location/yard

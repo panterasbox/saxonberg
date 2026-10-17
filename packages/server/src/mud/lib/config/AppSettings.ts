@@ -2287,6 +2287,8 @@ export const AppSettingKeys = {
   /** Cleanliness — the debris load on a floor at which, with open food in
    * the room, pests come (cleanliness D17). */
   cleanlinessPestsDebrisAt: "cleanliness.pests.debrisAt",
+  /** Cleanliness — the row a hearth's raked-out ash is minted as. */
+  cleanlinessAshTemplate: "cleanliness.ashTemplate",
 } as const;
 
 export type AppSettingKey =

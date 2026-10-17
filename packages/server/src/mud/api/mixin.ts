@@ -93,6 +93,7 @@ import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { Soilable } from '../lib/cleanliness/Soilable';
+import type { Flued } from '../lib/fire/Flued';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
@@ -1364,6 +1365,11 @@ export class MixinApi {
    * body (per part), a floor, a pane, a pot (cleanliness D1). */
   public static isSoilable(obj: Stuff): obj is Stuff & Soilable {
     return this.hasMixin(obj, Mixins.Soilable);
+  }
+
+  /** A built-in fire with a flue that soots (cleanliness D18). */
+  public static isFlued(obj: Stuff): obj is Stuff & Flued & Burner {
+    return this.hasMixin(obj, Mixins.Flued);
   }
 
   /**

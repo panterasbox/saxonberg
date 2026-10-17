@@ -1,0 +1,9 @@
+# A bundle of rushes — for strewing an earth floor (cleanliness D15).
+class: /platform/thing/Good
+data:
+  shortDescription: bundle of rushes
+  keywords: [rushes, bundle, "bundle of rushes", strewing]
+  register: indefinite
+  longDescription: A tied bundle of dry rushes, smelling faintly of hay and the river.
+  _materialPath: /stuff/idea/material/bulk/rushes
+  mass: 2

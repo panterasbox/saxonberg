@@ -1,0 +1,17 @@
+verbs: [beat]
+controller: /platform/idea/cmd/inventory/BeatController
+description: "Beat the dust and grit out of a rug"
+help: |
+  `beat rug` — take a rug out and beat it: the crumbs and grit in it come
+  out, by time and effort alone. A rug is not swept and not scrubbed.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    greedy: true
+    scope: "reachable"
+    requires: SoilableMixin

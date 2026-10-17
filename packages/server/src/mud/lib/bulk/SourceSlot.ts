@@ -23,6 +23,8 @@ import type Material from '../material/Material';
 import type { WaterRead } from '../location/WaterSource';
 import { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
+// The `hardnessDgh` payload field is declared by Hardness's merge.
+import type {} from '../cleanliness/Hardness';
 
 /** What a source slot reads its water through — the shore's own surface. */
 export interface SourceSlotPlace {

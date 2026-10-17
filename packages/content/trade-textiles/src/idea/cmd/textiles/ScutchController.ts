@@ -179,6 +179,17 @@ async function finish(
     /* the source went away mid-step; the mint below is still honest */
   }
 
+  // ⭐ (cleanliness D22) Scutching beats the woody shive off the fibre and
+  // fills a shut room with flax dust — which, like a mill's flour, flashes
+  // on a spark if it is let build.
+  const room = context.location ?? null;
+  if (room && MixinApi.isAtmospheric(room) && charge > 0) {
+    room.addAtmosphereContent('/stuff/idea/material/gas/flax-dust', charge * 10);
+  }
+  if (watching && MixinApi.isAttired(giver)) {
+    giver.soilFrom([{ kind: 'dust', amount: 0.15, where: 'hands' }]);
+  }
+
   const made: string[] = [];
   for (const [row, units, label] of [
     [LINE_ROW, out.line, 'line'],
