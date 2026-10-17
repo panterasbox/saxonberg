@@ -374,6 +374,10 @@ export const AppSettingKeys = {
    * shelf asks base × (1 + e), a shelf at par asks base.
    */
   retailStockingElasticity: "retail.stockingElasticity",
+  /** Retail — the days of supply at which a store-fed `stocking` line asks
+   * its base price (storage-and-ice D8): fewer days left in the store, a
+   * dearer counter; at or past the horizon, base. */
+  retailStockingHorizonDays: "retail.stockingHorizonDays",
   /**
    * Retail — the margin a shop asks over a supplier's price on a terms
    * good it has not priced itself (a fraction).

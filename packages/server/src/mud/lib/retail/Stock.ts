@@ -46,6 +46,7 @@ import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { FieldMeta } from "../mixin";
+import type { Store } from "../storage/Store";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../config/AppSettings";
 import { EmploymentApi } from "../../api/employment";
@@ -87,6 +88,15 @@ export interface StockLine {
   supplier?: string;
   /** How the line is priced; `fixed` by default. */
   pricing?: StockPricing;
+  /**
+   * ⭐ The STORE this line is brought up from (a store's template path,
+   * storage-and-ice D8) — the third source, beside a supplier and an
+   * import. A sourced line is never cloned and never bought: the counter
+   * draws `par − onHand` units from the store ON THE HOUSE'S CLAIM,
+   * whenever the sweep runs and the moment somebody asks for one — to
+   * order. An empty claim leaves the shelf bare.
+   */
+  source?: string;
 }
 
 // One counter is BOTH the house's shelf and a brokerage shelf (libations
@@ -181,6 +191,17 @@ export default class Stock extends StockBase {
     }
     if (line?.pricing !== "stocking" || line.par <= 0) return base;
     const e = Stock.dial(AppSettingKeys.retailStockingElasticity, 0.5);
+    // ⭐ A store-fed line prices on the STORE's days of supply (D8): the
+    // shelf holds one block at a time, so its own depth says nothing.
+    if (line.source) {
+      const store = this.sourceStore(line);
+      if (store !== null) {
+        const days = store.daysOfSupply(line.itemTemplatePath);
+        const horizon = Stock.dial(AppSettingKeys.retailStockingHorizonDays, 120) || 120;
+        const scarcity = Math.min(1, Math.max(0, 1 - days / horizon));
+        return Math.max(1, Math.round(base * (1 + e * scarcity)));
+      }
+    }
     const onHand = this.onHand(key);
     return Math.max(1, Math.round(base * (1 + e * (1 - onHand / line.par))));
   }
@@ -297,6 +318,11 @@ export default class Stock extends StockBase {
       // terms. Only the import lines — goods nobody produces — come from
       // nothing.
       if (line.supplier) continue;
+      // ⭐ A STORE-FED line is brought up from the store, never cloned.
+      if (line.source) {
+        await this.bringUp(line.itemTemplatePath);
+        continue;
+      }
       const need = line.par - this.onHand(line.itemTemplatePath);
       for (let i = 0; i < need; i++) {
         const item = await StuffApi.clone<Stuff & Containable>(
@@ -305,6 +331,49 @@ export default class Stock extends StockBase {
         ContainmentApi.move(item, this as unknown as Stuff & Container);
       }
     }
+  }
+
+  /**
+   * ⭐ Bring a store-fed line up to par from its store, on the house's
+   * claim (D8). Returns how many came up — 0 when the house holds no
+   * claim or the store is empty: *an empty store means an empty counter*.
+   */
+  public async bringUp(itemTemplatePath: string): Promise<number> {
+    const line = this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath && l.source);
+    if (!line) return 0;
+    const store = this.sourceStore(line);
+    if (store === null) return 0;
+    const need = line.par - this.onHand(itemTemplatePath);
+    if (need < 1) return 0;
+    const goods = await store.drawForHouse(itemTemplatePath, need);
+    for (const g of goods) {
+      if (MixinApi.isContainable(g)) ContainmentApi.move(g, this as unknown as Stuff & Container);
+    }
+    return goods.length;
+  }
+
+  /**
+   * Bring up the store-fed line a buyer's word names — `buy block` as well
+   * as `buy ice-block` — before the counter says it is bare. Returns how
+   * many came up.
+   */
+  public async bringUpFor(keyword: string): Promise<number> {
+    const want = keyword.trim().toLowerCase().replace(/[-_]/g, " ");
+    if (want === "") return 0;
+    let n = 0;
+    for (const line of this.stockLines) {
+      if (!line.source) continue;
+      const leaf = (line.itemTemplatePath.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
+      if (leaf === want || leaf.split(" ").includes(want)) n += await this.bringUp(line.itemTemplatePath);
+    }
+    return n;
+  }
+
+  /** The live store a sourced line draws from, or null. */
+  private sourceStore(line: StockLine): (Stuff & Store) | null {
+    if (!line.source) return null;
+    const s = StuffApi.findByTemplatePath<Stuff>(line.source);
+    return s && MixinApi.isStore(s) ? s : null;
   }
 
   /** The shop restocks while browsed — repop-ing a watched room is fine. */

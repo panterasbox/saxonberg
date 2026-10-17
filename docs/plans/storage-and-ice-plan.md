@@ -1652,6 +1652,30 @@ bailee store) now; the ice company in W9.
   tests use `MqlOneResult` fixtures (`ref()`), never a bare Stuff.
 - Commit: `build(storage-and-ice W3): custody — receipts, deposit and
   withdraw through the keeper, the stocktake, the depot's withdraw`.
+- ✅ **Done (build, 2026-10-17).** `lib/storage/{Receipt,StoreBook}.ts`,
+  the custody block on `StoreMixin` (`deposit` = keeper check →
+  `receive`; `withdraw` with the payout rule; `drawForHouse`;
+  `receiptsFor`/`claimsOn`/`allClaims` + a `cachedClaims` the book's
+  `look` reads synchronously), `Employed.isOnShiftFor`,
+  `platform/thing/StoreBook.ts`, the `custody` views + controllers,
+  `StockReading` + `stock.yaml`. **Decisions:** (1) the store takes
+  unique goods LIVE when `acceptsLiveGoods` (the depot), keyed
+  `live:<chattelId>`, one receipt each. (2) The depot keeps a programmatic
+  intake below the custody act, `Warehouse.depositFor(goods, depositor)`
+  (renamed from `deposit`, whose signature the store now owns);
+  `WaybillRegistry.issueReceipt` is DELETED (the store files the receipt;
+  `receiptsOf` reads `good` as well as `goodsPath`), its two tests moved
+  to `Depot.test.ts`, which also gains the withdraw (a crate back to its
+  depositor while the warehouseman is on shift). (3) `withdraw <what>` is
+  ONE greedy string (`3 ice`), parsed by the controller; the book args are
+  `greedy: true` (`lint:reachability`'s article-shape arm). (4) The
+  house's claim rises on a staff `put` (the veto captures the putter);
+  a staff `get` is off the books like anyone's. (5) The fee is settled
+  only for a non-staff withdrawal. `storePath` and `stockLines.source`
+  are censused (`lint:census`) and cited (`lint:reachability`); kernel
+  refusal phrases for `StoreBookMixin` / `StoreMixin`. The stocktake has
+  no unit test of its own (the reading needs a command context); the
+  drive's `measure stock` is its test.
 
 ### W4 — Retail from a store
 
@@ -1666,6 +1690,14 @@ Implements D8.
   bare and the refusal `sold-out`; price rises as days of supply fall.
 - Commit: `build(storage-and-ice W4): a counter fed from a store, priced
   by the store's days of supply`.
+- ✅ **Done (build, 2026-10-17).** `StockLine.source`, `Stock.bringUp`,
+  `reset()` brings a sourced line up instead of cloning, `priceFor` reads
+  the store's `daysOfSupply` against `retail.stockingHorizonDays` (120).
+  **Decision:** `buy` brings up TO ORDER through `Stock.bringUpFor(word)`,
+  which matches the line's leaf OR any word of it — `buy block` as well
+  as `buy ice-block` — because `carriesLine` matches the whole leaf only
+  and the drive types `block`. `stockSheetForImpl` needed no change: it
+  reads only `supplier` lines.
 
 ### W5 — Cold water, the water's surface as a floor, support
 
