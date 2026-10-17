@@ -1413,8 +1413,10 @@ each sibling's own § Parallel builds (`git show origin/reqs/<x>:docs/plans/<x>-
 
 ### Expected landing order, and what the siblings answered
 
-Read the same way by repair and storage (2026-10-17): **storage-and-ice
-and repair W0–W6 (either order) → rubber → cleanliness → repair W7.**
+Read the same way by repair and storage, and **confirmed by the owner
+2026-10-17** (relayed by repair; it supersedes rubber's note's earlier
+fixed order): **storage-and-ice and repair W0–W6 (either order) →
+rubber → cleanliness; repair W7 after rubber as its own MR.**
 ⚠ Cleanliness should **not** land before rubber: our new rooms author
 rubber's `enclosure:`/`roof:` shapes. The pre-rubber fallbacks below
 stay in the plan as insurance, not as the intended path.
@@ -1634,8 +1636,9 @@ Run these against `origin/master` and record the answers in § Grounding:
   the season clock; `check-openings` overlap arm season-aware;
   `unpackIntoCold` carried whole into `receiveBench`; `perceivedGoods`
   never descends into a shut Sealable; storage's `SEASONS` declared; the
-  `BOOT_ENTRY_CEILING` (83) rises only with the owner's sign-off
-  (storage's two entries); the icehouse rooms are
+  `BOOT_ENTRY_CEILING` 83 → **85, approved by the owner 2026-10-17**
+  for storage's two entries (cleanliness adds NONE — both catalogues
+  warm lazily — so at our merge the ceiling is master's, unchanged); the icehouse rooms are
   `SingletonCartesianLocation` (`lint:location-classes`).
 
 ---
