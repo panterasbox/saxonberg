@@ -42,7 +42,7 @@ play while you watch is [card-sizes](card-sizes-slate.md). This slate
 is the rungs in between.
 
 Related: the [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)
-(the destination), `pbox-stream`'s `PLAN.md` §2 (the two frames — the
+(the destination), Rodney's `PLAN.md` §2 (the two frames — the
 studio is the Show frame's *The World* scene made literal) and §7
 (viewer interactivity, Phase 7 inbound viewer commands — the chat
 command path below is that phase), [display.md](../../subsystems/display.md),
@@ -235,7 +235,7 @@ for now.
 - **Binding votes** — the docket is advice; the Compact is elsewhere.
 - **Native Twitch polls and predictions** — the outbound platform-action
   family is the registry slate's deferral.
-- **The Agent Board and World Ticker** — `pbox-stream` Phase 4.
+- **The Agent Board and World Ticker** — Rodney's plan, Phase 4.
 
 ## Open questions
 

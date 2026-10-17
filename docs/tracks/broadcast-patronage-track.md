@@ -54,7 +54,7 @@ The track inherits a real head start:
   (gated by `BROADCAST_TOKEN`), the `streamers` access axis
   (`AccessApi.isStreamer` / `requiresStreamer`, seeded from
   `STREAMER_PLAYER_IDS`), and the `stream away`/`back` verb. The OBS-side
-  overlay lives in the sibling **`pbox-stream`** repo. See
+  overlay is **Rodney**, `packages/rodney` (the sibling `pbox-stream` repo until 2026-10-17). See
   [livestream.md](../subsystems/livestream.md).
 - **Realtime engagement.** Channels + acoustic/implant comms
   (`say`/`whisper`/`shout`/`dm`/`tell`/`broadcast`) are shipped — enough
@@ -107,7 +107,7 @@ plumbing. Three phases.
   / camera-focus state on the feed, public chat forwarding over the
   broadcast feed (so the overlay can show in-game + Twitch chat),
   optional streamer-mode affordances.
-- **Outcome:** the OBS overlay (in `pbox-stream`) has richer state to
+- **Outcome:** the OBS overlay (Rodney, `packages/rodney`) has richer state to
   render; the broadcast looks and behaves like a production stream.
 
 ### Queued — "Capital → stake" (next push, scoped but not started)

@@ -1,7 +1,7 @@
 # Livestream
 
-The livestream subsystem is the server half of the **pbox-stream**
-overlay integration — the read-only **broadcast feed** that pushes
+The livestream subsystem is the server half of the **Rodney**
+overlay integration (`packages/rodney`) — the read-only **broadcast feed** that pushes
 public stream state to OBS browser-source overlays, plus the
 `stream` operator verb that drives it. Phase 1 is deliberately minimal:
 the smallest end-to-end proof of the overlay↔saxonberg loop (auth +
@@ -111,7 +111,7 @@ See [streaming.md](./streaming.md) for the full picture; the wire seam is:
   tuning a *different* channel never matches, so nothing leaks) and pushes a
   **`RelayChatEnvelope`** (`{type:'relay-chat', frameId, service,
   channelHandle, speaker, text}` in `@saxonberg/types`) to every broadcast
-  socket. The `pbox-stream` overlay renders it; this repo ships only the
+  socket. The Rodney overlay renders it; this repo ships only the
   wire contract + the forwarding.
 - The read is **overlay-presence-gated**: `addConnection`'s 0→1 edge calls
   `StreamApi.setOverlayReading(true)` (1→0 → `false`), which sentinel-tunes
@@ -165,8 +165,10 @@ the gate.
   control plane (Phase 3).
 - **`@saxonberg/mml` extraction** for prose-rich overlays (Phase 5).
 
-The overlay (client) half lives in the sibling `pbox-stream` repo; the
-full phased roadmap is in its `PLAN.md` and `docs/phase-1-server-spec.md`.
+The overlay (client) half is **Rodney**, `packages/rodney` — imported
+from the sibling `pbox-stream` repo with its history on 2026-10-17. Its
+`PLAN.md` and `docs/phase-1-server-spec.md` are the historical roadmap;
+the live design is [broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md).
 
 ## Cross-references
 
