@@ -133,11 +133,29 @@ plan relies on it). What exists, what it does, what it does NOT do.
   = `PersistableMixin(OpenWorkingMixin(SingletonCartesianLocation))`,
   restored through `singleton()`. `HydrateOutcome` is
   hydrated/skipped/unreachable (`S/lib/persistence/PersistenceSlice.ts:372–375`).
-- **Capacity.** `Placing.canPlace(item, name): VetoResult`
-  (`S/lib/spatial/Placing.ts:109, 302–320`), called by
-  `ContainmentLogic.placeOn` (l.197) and `PutController.ts:241`.
-  `Container` fires `onContainableAdded(thing)` / `onContainableRemoved(thing)`
-  (`S/lib/spatial/Container.ts:104–106`).
+- **Put, get and where a placed thing lives** (re-verified after the
+  dairy merge, 2026-10-17). ⚠ `ContainmentApi.place(item, 'on', host)`
+  → `ContainmentLogic.placeOn` moves the item into the host's
+  ENVIRONMENT (the room) and stamps the placement pair — `moveCore(item,
+  targetEnv)` then `item._setPlacement(host, name)` — and `Placing.getPlaced()`
+  is a lazy filter over the room's contents. A thing placed `on` a host
+  is never one of the host's contents, so a host's
+  `onContainableAdded/Removed` never fires for it. `PutController` has
+  two branches: `mode === 'zero'` (the container's own interior) asks
+  the target's optional `canAddContainable(item): VetoResult`
+  (`S/lib/spatial/Container.ts:100`) FIRST, in the host's own words,
+  then `ContainmentApi.move` — which fires `onContainableAdded(thing)` /
+  `onContainableRemoved(thing)` (`Container.ts:104–106`); the placement
+  branch asks `Placing.canPlace`. **`get.yaml` has no `from`
+  preposition** (one greedy `targets` arg over `peers`, requires
+  Visible+Containable); `peers` reaches one level into an OPEN container
+  standing in the room (`api/mql/scope-walk.ts:133–163`,
+  `MixinApi.isOpenContainer`), and `GetController` takes whatever
+  `PerceptionApi.reachableAmong` grants, skipping `fixedInPlace` things
+  (l.68–96). So `get block` picks a block out of an open holder in the
+  room — exactly how `get block` takes a set block out of an open ice
+  pan (`mould.md`: *"a plain `get` reaches into an open mould; `get X
+  from Y` has no `from` and takes the mould as well"*).
 - **Stackable** (`S/lib/stuff/Stackable.ts:214–285`): `canMergeWith`
   requires same templatePath, no shadow/adornment, untitled, equal
   `stackIdentity` fields, unlabelled, same appearance; then
@@ -192,8 +210,9 @@ plan relies on it). What exists, what it does, what it does NOT do.
 - Textiles' shipped law, `S/lib/slot/Wearable.ts:413–427`: `soak =
   wetness × min(1, capacity / dial(textiles.clo.absorptionReference,
   40))`, `kVoid = K_AIR·(1 − soak) + K_WATER·soak` (0.026 / 0.6).
-  `Material.getWaterAbsorptionCapacity()` exists (`Material.ts:1061`,
-  field at l.380–391, persistent + spoiler). There is no `permeability`
+  `Material.getWaterAbsorptionCapacity()` exists (field at
+  `Material.ts:394`, persistent + spoiler; dairy's `DrainSetting` at
+  l.132 and `drainSetting` at l.527–565 shifted the file). There is no `permeability`
   on `Material` and no `MaterialApi` wet method (`S/api/material.ts`
   has `findByTag`, `materialScale`, `resistanceTo`, …).
 - The rubber plan (build-1, `docs/plans/rubber-plan.md` D12.1) agrees
@@ -355,18 +374,42 @@ plan relies on it). What exists, what it does, what it does NOT do.
 - `S/platform/thing/Casting.ts` = `AlloyedMixin(MeltableMixin(ThermalMixin(Good)))`.
   `AlloyedMixin` (`S/lib/material/Alloyed.ts:99–178`) carries
   `alloying: CompositionEntry[]` + `temper: 'none'|'hardened'`, both
-  persistent/authorable/spoiler. Mint sites: off-spec lump
-  (`CraftingLogic.ts:2657–2690`, copies alloying + temper); salvage
-  (l.3440–3475: metal at `salvageRate`, meltable non-metal at 1.0 with
-  `setAlloying`); glass crack/moil (`C/trade-glass/src/idea/cmd/glass/CrackController.ts:30, 104–141`,
+  persistent/authorable/spoiler. Mint sites (lines after the dairy
+  merge): `WORKED_LUMP_TEMPLATE = '/stuff/thing/Casting'`
+  (`CraftingLogic.ts:111`); the off-spec lump (l.2673–2705, copies
+  alloying + temper, `madeFrom: workpiece`); salvage (l.3462–3500: metal
+  at `salvageRate`, meltable non-metal at 1.0 with `setAlloying`); glass
+  crack/moil (`C/trade-glass/src/idea/cmd/glass/CrackController.ts:30, 104–141`,
   `thing/Gather.ts:40`, `CULLET_ROW = '/stuff/thing/Casting'`);
-  `reconcileBulkPhase`. Rows: `C/generic-objects/content/stuff/thing/{Casting,ice-block}.yaml`.
+  `reconcileBulkPhase` (`Thermal.ts:1313–1415`). Rows:
+  `C/generic-objects/content/stuff/thing/{Casting,ice-block,ice-lump}.yaml`.
   `alloying:` is authored on two glass rows (`C/trade-glass/.../thing/{melt,amber-melt}.yaml`).
+- ⭐ **Moulds (the dairy build, merged `b18743d80`):** `docs/subsystems/mould.md`;
+  `S/lib/mould/Mould.ts` (`MouldMixin`, `Mould {castTemplateFor(material),
+  castInto(pool: SetPool)}`, `SetPool`, `MadeFromHolding`); the twin
+  `S/platform/thing/Mould.ts` = `MouldMixin(Durable(Crafted(Thermal(Bulkable(Container(Good))))))`.
+  *The container decides; the material sets*: at the set site
+  `template = mould?.castTemplateFor(material) ?? material.getCastTemplate()`,
+  destination = the mould itself else the vessel's scope.
+  `reconcileBulkPhase` (`Thermal.ts:1386–1399`) now calls
+  `v.castInto({material, massKg, payload, stampMaterial:
+  !mat.hasTag('liquid')})` when `MixinApi.isMould(v)`, else the old
+  path (`mat.getCastTemplate()` cloned beside the vessel, l.1401–1415).
+  **Water's `castTemplate` is now `/stuff/thing/ice-lump`**
+  (`base-library/.../bulk/water.yaml:28`): a pail frozen sets a LUMP
+  beside it; **`ice-pan.yaml` is `class: /platform/thing/Mould` with
+  `castTemplate: /stuff/thing/ice-block`**: the squared block sets INSIDE
+  the pan. New row `ice-lump.yaml`: `class: /platform/thing/Casting`,
+  `_materialPath: /trade/bottling/idea/material/ice`, mass 1, 268 K. The
+  ingot mould casts an `Ingot` (Alloyed) the same way. Dairy's
+  `trade-dairying` and the Hearts Delight creamery use no ice: no new
+  consumer, no collision. `mould.md § Deferred` names *"the pool's
+  payload onto a non-food cast (dirty water → a dirty block)"*.
 - The ice material: `C/trade-bottling/content/trade/bottling/idea/material/ice.yaml`
   (917, k 2.2, c 2100, melting 273, L 334 000, tags `[solid, ice,
-  frozen]`, `edibility: true`). Referenced by `ice-block.yaml:30`,
-  `C/trade-hospitality/.../ice-bin.yaml:12`, `C/trade-bottling/.../ice-bag.yaml:12`,
-  `S/world/__tests__/libations-annexes.test.ts`.
+  frozen]`, `edibility: true`). Referenced by `ice-block.yaml`,
+  `ice-lump.yaml`, `C/trade-hospitality/.../ice-bin.yaml:12`,
+  `C/trade-bottling/.../ice-bag.yaml:12`, `S/world/__tests__/libations-annexes.test.ts`.
 - `SawController` (`C/trade-carpentry/src/idea/cmd/carpentry/SawController.ts`):
   `BOARD_KG 6`, `QUARTER_YIELD 2/3`, `boardsFrom` (l.298–302);
   `finishSaw` (l.313–365) clones one Stackable board of quantity
@@ -459,15 +502,30 @@ quantity on one object. Four files:
 
 Kernel `Mixins` gains `Store`, `Poolable`; `MixinApi.isStore`,
 `isPoolable`. Instanceable twin: `S/platform/thing/Stockpile.ts` =
-`PersistableMixin(StoreMixin(PlacingMixin(Holder)))` — a fixed
-holder that offers one placement member `on` (the stack). The name is a
-noun for what it IS (a stockpile), never an adjective.
+`PersistableMixin(StoreMixin(Holder))` — a fixed, OPEN holder whose
+contents are the faces (D3); no `PlacingMixin`, because a thing placed
+`on` a host lives in the room, not in the host (Grounding). The name is
+a noun for what it IS (a stockpile), never an adjective.
 
 **D2 — Poolability is the good's declaration, as instance methods on
 `PoolableMixin`, mirroring `Stackable`'s `canMergeWith`/`onMerged`.**
 The store calls them on a line's **face** (D3), which always exists
 while the line has stock; when a face has just destructed, the store
-re-faces before it reconciles.
+re-faces before it reconciles. **A line is keyed by `poolKey()` alone,
+and a `poolKey` names the GOOD by what it is, not by its row**: ice's
+is `ice|<quality>` whether the object is `/stuff/thing/ice-block` or
+`/stuff/thing/ice-lump` — a lump of pan ice and a squared block of pan
+ice are the same matter at the same grade, and pooling them is lens 1
+(the store holds frozen water by quality; shape is not a property the
+melt or the receipt cares about) and lens 2 (a keeper never has to
+author a second line because a bucket froze instead of a pan). The
+line's `goodPath` is the template of the FIRST deposit and is what a
+withdrawal or a bring-up rematerializes; the house's seeded line names
+the block. So a house that took in lumps pays out blocks of the same
+grade at the same mass per unit — honest, because a cut block and a
+pan lump at 0 °C are indistinguishable as ice, and the alternative (a
+line per row) would let a depositor demand "my lumps back" from a
+commingled pool, which is exactly what commingling means they cannot.
 
 ```ts
 interface Poolable {
@@ -489,34 +547,46 @@ here (the timber yard migration is deferred by the requirements).
 
 **D3 — The face: a store holds counts, and shows exactly one real
 object per line — the top of the stack.** `get`/`put` are platform
-verbs that bind real objects (`get.yaml` binds `targets` over `peers`;
-`put.yaml` binds a `ContainerMixin|PlacingMixin` target), and a count
-cannot be bound. So for every line with `amountKg > 0` the store keeps
-ONE materialized exemplar in its own contents, placed `on` it: a clone
-of the line's `goodPath` at `unitMassKg` carrying the line's state
-(`applyPoolState`). The line's `amountKg` INCLUDES the face.
+verbs that bind real objects (`get.yaml` binds one greedy `targets`
+over `peers`, which reaches into an open holder in the room and has no
+`from`; `put.yaml` binds a `ContainerMixin|PlacingMixin` target), and a
+count cannot be bound. So for every line with `amountKg > 0` the store
+keeps ONE materialized exemplar **in its own contents** — the stockpile
+is an open `Holder`, as an open ice pan is a `Mould` whose set block
+you `get` out of it — a clone of the line's `goodPath` at `unitMassKg`
+carrying the line's state (`applyPoolState`). The line's `amountKg`
+INCLUDES the face.
 
-- `put <good> on <stack>` → `canPlace` (capacity, D7; the item must be
-  Poolable and its `poolKey()` must be one the store accepts or the
-  store accepts any — `acceptsPoolKeys: string[] | null` authored, null
-  = any) → `onContainableAdded(item)`: if a face for that key already
-  exists, **absorb** (`line.amountKg += mass`, `state = mergePoolState`,
-  `unitMassKg` mass-weighted, destruct the item); else the item BECOMES
-  the face (a new line is opened from it). The putter is read in
-  `canPlace` while the item is still in their hands
-  (`item.getContainer()`), kept in a transient `pendingPutters:
-  Map<stuffId, identityPath>` and consumed by `onContainableAdded` — the
-  only way an actor reaches the hook, since `ContainmentApi.place`
-  carries none. The house's claim rises iff the putter is on shift for
-  the store's business (D6); otherwise the stock rises and no claim
-  does — pilferage in reverse, which is also honest.
-- `get <good> from <stack>` takes the face → `onContainableRemoved(face)`:
+- `put <good> in <stack>` (`in`/`into` — the container's own interior,
+  `PutController`'s `zero` branch; the stack row's keywords carry
+  `stack`, `pile`, `ice` so the target binds) → the stockpile's
+  `canAddContainable(item)` (capacity, D7; the item must be Poolable and
+  its `poolKey()` one the store accepts or the store accepts any —
+  `acceptsPoolKeys: string[] | null` authored, null = any; refused in
+  the host's words) → `ContainmentApi.move` → `onContainableAdded(item)`:
+  if a face for that key already exists, **absorb** (`line.amountKg +=
+  mass`, `state = mergePoolState`, `unitMassKg` mass-weighted, destruct
+  the item); else the item BECOMES the face (a new line is opened from
+  it). The putter is read in `canAddContainable` while the item is still
+  in their hands (`item.getContainer()`), kept in a transient
+  `pendingPutters: Map<stuffId, identityPath>` and consumed by
+  `onContainableAdded` — the only way an actor reaches the hook, since
+  `ContainmentApi.move` carries none. The house's claim rises iff the
+  putter is on shift for the store's business (D6); otherwise the stock
+  rises and no claim does — pilferage in reverse, which is also honest.
+  ⚠ `put <good> on <stack>` is refused by the verb (the holder offers no
+  `on` region); the help text and the stack's description say *in*.
+- `get <good>` (plain; a word the face answers to — `block`, `ice`,
+  `sawdust`) takes the face out of the open holder → `onContainableRemoved(face)`:
   if `!face.isDestroyed()` the line's `amountKg −= face mass` and no
   receipt changes (off the books); then `void this.reface(key)`
   (fire-and-forget clone, the `reconcileBulkPhase` precedent). If the
   face DESTRUCTED (an ice face that melted away as an object between
   reconciles) the line is NOT debited again — the line's own physics
-  already took it — only re-faced.
+  already took it — only re-faced. ⚠ With a face in the house AND a
+  loose block on the floor, `get block` binds both and `get 1 block`
+  picks one; the drive uses `get 1 block` where it matters and asserts
+  the stack's count.
 - Every `reconcile()` re-stamps each face from its line (mass to
   `unitMassKg`, `applyPoolState(line.state)`), discarding whatever the
   face's own object clock did meanwhile; the face is a VIEW of the
@@ -530,7 +600,7 @@ of the line's `goodPath` at `unitMassKg` carrying the line's state
 **D4 — The lazy reconcile, and where the conditions come from.**
 `StoreMixin.reconcile()` runs on every read of the store (`look`,
 `measure`/`analyze stock`, `deposit`, `withdraw`, `drawForHouse`,
-`canPlace`) and integrates each line from `lastReconciledS` to now:
+`canAddContainable`) and integrates each line from `lastReconciledS` to now:
 
 1. **The outside air over the gap** comes from the weather walk, not
    from the room's stale `envelopeOutsideK`: the store asks
@@ -685,12 +755,15 @@ the keeper is a seat.**
   else the trade-coopering row path the build finds by
   `grep -rn "capabilities:.*gauging" packages/content`).
 
-**D7 — Capacity is mass at `canPlace`.** `Stockpile.canPlace(item,
-'on')`: `Σ lines.amountKg + item mass ≤ capacityKg` (authored), refused
-`{ok: false, reason: 'full'}` → `PutController` prints its
-`cannot-rest` form with the reason text *"the house is full"*. A full
-store is a legitimate world state, refused at the validator;
-`ContainmentApi.move` is untouched.
+**D7 — Capacity is mass at the container's own veto.**
+`Stockpile.canAddContainable(item)` (the optional `Container` witness
+`PutController` asks first and `ContainmentApi.move` asserts): `Σ
+lines.amountKg + item mass ≤ capacityKg` (authored), refused `{ok:
+false, reason: 'The house is full.'}` — `PutController` prints the
+reason in the host's words (`refused-by-container`). A full store is a
+legitimate world state, refused at the verb; `ContainmentApi.move`'s
+own assertion of the same hook is what stops a brain's forced put
+overfilling it.
 
 **D8 — Retail: a third stock source, "brought up to order".**
 `StockLine.source?: string` (a store's template path) on
@@ -1038,24 +1111,31 @@ is tagged `metal` (copies alloying AND temper) else `Casting`
 (composition only); salvage's metal branch clones `MetalCasting`, its
 meltable non-metal branch `Casting` with `setAlloying` (glass keeps its
 iron); glass crack/moil keep `CULLET_ROW = '/stuff/thing/Casting'`;
-`reconcileBulkPhase` is unchanged. The ice block: new
-`S/platform/thing/IceBlock.ts` = `PoolableMixin(Casting)` with field
-`iceQuality: 'black' | 'snow-ice' | 'cloudy'` (persistent, authorable;
-**default `cloudy`** — a block not cut from a sheet is pan ice, so the
-freeze needs no kernel hook), `poolKey() = `ice|${iceQuality}``,
-`poolState() = {temperatureK}`, mass-weighted merge, and
-`reconcileInStore` (the plateau physics: below the plateau the line
-relaxes toward `ambientK` with `τ = m·c/G`; at the plateau `heat =
-surface × (ambientK − 273.15) / (depth/k + rFilms)` and `melt =
+`reconcileBulkPhase` is unchanged in both branches: the mould branch
+asks `castTemplateFor` (an ingot mould → the `Ingot` row, which is
+`AlloyedMixin` and keeps both claims; the ice pan → `ice-block`), and
+the vessel branch asks `getCastTemplate()`, where the new rule sends a
+`metal` pool to `metal-casting` and water to its own `ice-lump`. The
+ice family: new `S/platform/thing/IceBlock.ts` = `PoolableMixin(Casting)`
+with field `iceQuality: 'black' | 'snow-ice' | 'cloudy'` (persistent,
+authorable; **default `cloudy`** — a block or lump not cut from a sheet
+is pan ice, whether it set in a pan or in a pail, so the freeze needs
+no kernel hook), `poolKey() = `ice|${iceQuality}`` (D2: lumps and
+blocks pool by grade), `poolState() = {temperatureK}`, mass-weighted
+merge, and `reconcileInStore` (the plateau physics: below the plateau
+the line relaxes toward `ambientK` with `τ = m·c/G`; at the plateau
+`heat = surface × (ambientK − 273.15) / (depth/k + rFilms)` and `melt =
 heat·dt/L`, using the material's `latentHeatOfFusion` and
-`meltingPoint`, no literal). The ice material moves to
+`meltingPoint`, no literal). **Both rows join it**: `ice-block.yaml`
+and dairy's `ice-lump.yaml` become `class: /platform/thing/IceBlock`
+(a lump is ice: it claims no temper, melts as ice and pools), each
+`_materialPath` re-pointed. The ice material moves to
 `C/base-library/content/stuff/idea/material/bulk/ice.yaml`
-(`/stuff/idea/material/bulk/ice`, beside water; `castTemplate` on water
-already names the block); the bottling row is deleted; `ice-block.yaml`
-(`class: /platform/thing/IceBlock`, `_materialPath` re-pointed),
-`ice-bin.yaml`, `ice-bag.yaml`, `libations-annexes.test.ts` re-pointed.
-Rubber's `lightAbsorption` lands on whichever path exists when they
-land.
+(`/stuff/idea/material/bulk/ice`, beside water; water's `castTemplate`
+keeps naming `ice-lump`, the pan's keeps naming `ice-block`); the
+bottling row is deleted; `ice-bin.yaml`, `ice-bag.yaml`,
+`libations-annexes.test.ts` re-pointed. Rubber's `lightAbsorption`
+lands on whichever path exists when they land.
 
 **D18 — Sawdust by kerf.** Material
 `C/base-library/content/stuff/idea/material/wood/sawdust.yaml` (bulk
@@ -1159,11 +1239,11 @@ room (its counter is a ConsignmentShelf, which `counterRoomOf` finds).
 mechanism only: tools (D19), the reading, `scrape`/`mark`, the
 Discipline, three brains (`src/behavior/harvests.ts` — crew: on shift,
 walk to the pool, `scrape`, `mark`, `cut`, `get`, carry to the house,
-`put block on stack`; `bosses.ts` — the ice boss: `analyze ice` and
+`put block in stack`; `bosses.ts` — the ice boss: `analyze ice` and
 only when the sheet bears a person with margin does the crew's go-ahead
 exist, which it signals by marking the first patch itself;
 `keeps-house.ts` — the keeper: `measure stock` each shift and, when the
-packing reads soaked, `get sawdust from stack` and drop it in the spoil
+packing reads soaked, `get sawdust` (the wet face) and drop it in the spoil
 heap), and the store rows that are the icehouse KIND
 (`content/trade/ice/thing/stack.yaml` → `class: /platform/thing/Stockpile`,
 `stackShapeFactor: 5`, `drainage: 0.5`, `acceptsPoolKeys: null`,
@@ -1363,14 +1443,19 @@ kernel check first.
   (verify `isAlloyed` narrowings still pass for a composition-only
   cullet — change them to `isComposition`).
 - `S/platform/thing/IceBlock.ts` (Poolable arrives in W2; here it is
-  `Casting` + `iceQuality`; W2 adds the mixin), `ice-block.yaml` →
-  `class: /platform/thing/IceBlock`; the ice material to
-  `C/base-library/.../material/bulk/ice.yaml`; re-point `ice-bin.yaml`,
-  `ice-bag.yaml`, `libations-annexes.test.ts`; delete the bottling row.
-- Tests: `Alloyed.test`/`Casting` split; `Thermal.freeze.test.ts` (the
-  freeze still mints an `IceBlock` reading `cloudy`); glass `Crack`
-  tests (cullet keeps iron); smelting's off-spec test (iron keeps
-  temper); a `MetalCasting` row census.
+  `Casting` + `iceQuality`; W2 adds the mixin), `ice-block.yaml` AND
+  `ice-lump.yaml` → `class: /platform/thing/IceBlock`; the ice material
+  to `C/base-library/.../material/bulk/ice.yaml`; re-point both ice
+  rows, `ice-bin.yaml`, `ice-bag.yaml`, `libations-annexes.test.ts`;
+  delete the bottling row.
+- Tests: `Alloyed.test`/`Casting` split; `Thermal.freeze.test.ts` —
+  a pail (plain vessel) freeze mints an `ice-lump` that is an `IceBlock`
+  reading `cloudy` beside the pail; an ice-pan (`Mould`) freeze sets an
+  `ice-block` INSIDE the pan reading `cloudy`; an ingot-mould pour still
+  casts an `Ingot` with alloying and temper; a metal pool in a plain
+  crucible casts `metal-casting`; glass `Crack` tests (cullet keeps
+  iron); smelting's off-spec test (iron keeps temper); a `MetalCasting`
+  row census; dairy's own `Mould` tests green.
 - Acceptance: `look` at an ice block / glass lump shows composition and
   no temper; an iron lump shows both; smelting, smithing and glass
   packs' suites green.
@@ -1416,9 +1501,13 @@ Implements D1–D5, D7; composes `PoolableMixin` onto `IceBlock` and
   per-segment after reconcile.
 - Tests: the icehouse arithmetic (D4's three inequalities, the room
   temperature, the spiral: a soaked packing melts faster than dry);
-  face lifecycle (put absorbs / becomes the face; get debits; a
-  destructed face does not double-debit; reface); capacity refusal;
-  persistence round-trip through `materialize`.
+  face lifecycle through the REAL verbs' paths — `ContainmentApi.move`
+  into the holder absorbs / becomes the face and fires
+  `onContainableAdded`; a lump and a block of one grade land on one
+  line; moving the face out debits and refaces; a destructed face does
+  not double-debit; `canAddContainable` refuses a full house and a
+  non-poolable good in its own words, and `put X on stack` is refused
+  by the verb; persistence round-trip through `materialize`.
 - Acceptance: the unit numbers above; `lint:family` green with the new
   mixins named.
 - Commit: `build(storage-and-ice W2): the store — lines, the face, the
@@ -1628,7 +1717,7 @@ link fails closed and silent.
 | deposit at a house | `platform/cmd/custody/deposit.yaml` | `StoreBook.commandContributions.peers` | a `StoreBook` row in the room naming `storePath`; the stack row naming `businessPath`, `keeperPositions`, terms | the business and the house booted (unobserved economy); the keeper a live Cast | `thing: inventory, ContainableMixin`; `book: default reachable:[mixin.StoreBookMixin]` |
 | withdraw | `withdraw.yaml` | same | receipts under `<business>/warehouse-receipts/` | same | `good: string`; `n: number optional` |
 | stocktake | kernel `measure`/`analyze` | `Avatar` affords `measure` | `platform/idea/reading/stock.yaml`; a `gauging` tool in reach | `ReadingCatalogue` warms rows by path | `subjectRequires: StoreMixin`; the Reading narrows tools by `gauging` |
-| put on / get from the stack | platform `put`/`get` | platform | the stack is `PlacingMixin` (`on`) with a face | — | `put` target `ContainerMixin|PlacingMixin`; `get` targets Visible+Containable (the face) — ⚠ the house must be LIT (author `ambientIntensity`) or the face reads *something* |
+| put in / get from the stack | platform `put <good> in <stack>` / plain `get <good>` | platform | the stack is an open `Holder` whose contents are the faces; its row's keywords (`stack`, `pile`, `ice`) | — | `put` target `ContainerMixin` (`zero` branch → `canAddContainable`); `get` binds the face through `peers`' one-level reach into an open container (no `from`); `get 1 block` when a loose block is also in the room — ⚠ the house must be LIT (author `ambientIntensity`) or the face reads *something* |
 | buy ice at the platform | platform `buy` | `Stock.commandContributions.peers` | `stockLines[].source`, `pricing: stocking`; `businessPath`; the company lists the counter in `operatingLocations` | the company booted | the line's leaf `ice-block` is what `buy ice-block` matches; `buy block` must also match → author the row's keywords and verify `carriesLine` |
 | measure / analyze ice | kernel `measure`/`analyze` | `Avatar` | `trade/ice/idea/reading/ice.yaml` + `IceReading` class; a `spudding` tool | catalogue warm | `scope: [here]`; the reading takes the room's floor and narrows it by shape; subject raw = patch word |
 | scrape | `trade/ice/cmd/ice/scrape.yaml` | `Scraper` (`environment`+`peers`) | scraper row `capabilities: [scraping]` | — | `tool default me:i:[capability.scraping]`; `patch: string`; the floor must support the actor |
@@ -1744,8 +1833,13 @@ recorded in D15 and D19.
     Step 12's two-house comparison reads both stacks with `measure
     stock` as the keeper (the drive's character is appointed keeper for
     that checkpoint — `appoint` is shipped) and the repack is performed
-    on the large house by hand (`get sawdust from stack`, `put sawdust
-    on stack` with fresh sawdust bought at the sawmill); step 16 posts
+    on the large house by hand (`get sawdust` takes the wet face out of
+    the stack — asserted by the stack's sawdust line falling and a wet
+    heap in hand — then `put sawdust in stack` with fresh sawdust bought
+    at the sawmill); step 10's house hand does `put block in stack`
+    (the house's claim rises) and step 14's stranger does `get 1 block`
+    (the line falls, no receipt changes — asserted by `measure stock`
+    against `look book`); step 16 posts
     the job by advancing the cook's beat and then `job`/`buy`/`fulfill`
     as the hauler; step 21 restarts the world with assembly's exact
     sequence (wait 8 s for saves, `dev-preflight.mjs`, `bootOwnedWorld`,
@@ -1873,6 +1967,17 @@ Clean attach points, each with the slate it leaves as:
 - **Climate's crossings brought onto the pool model** (the Circle and
   the north cross the ice without standing on it) → a later pass;
   recorded in the climate slate by the sweep.
+- **Natural-ice contamination** — `mould.md § Deferred` names *"the
+  pool's payload onto a non-food cast (dirty water → a dirty block)"*,
+  which is this trade's typhoid history (sewage-fouled river ice, the
+  1890s scare that handed the trade to plant ice). Attach: the cut
+  stamps nothing of the water today; the seam is `cutBlock` reading the
+  reach's `waterStateAt` contamination (the water pack's `contamination
+  by kind`, watershed.md) onto the block's `ContaminableMixin` the way
+  `castInto` carries a payload onto a cast that can hold it; the store
+  line's state would then carry a load the way sawdust carries
+  saturation. → cold-chain-slate (the cold chain's purity rung) with a
+  pointer from the ice-trade-slate.
 
 ---
 
@@ -1882,14 +1987,17 @@ Read first, in this order, with the lines cited in § Grounding:
 
 1. `docs/requirements/storage-and-ice-requirements.md`
 2. `packages/server/src/mud/lib/retail/Stock.ts`, `lib/stuff/Stackable.ts`,
-   `lib/spatial/Placing.ts`, `lib/spatial/Container.ts`
+   `lib/spatial/Container.ts` (58–106), `platform/idea/api/ContainmentLogic.ts`
+   (`placeOn`), `platform/idea/cmd/inventory/{Put,Get}Controller.ts`,
+   `api/mql/scope-walk.ts` (133–163), `docs/subsystems/mould.md`,
+   `lib/mould/Mould.ts`, `platform/thing/Mould.ts`
 3. `packages/content/terminus/src/market/thing/MarketStalls.ts` (the
    persistence shape); `packages/content/trade-quarrying/src/location/OpenWorking.ts`
 4. `packages/server/src/mud/lib/biome/Atmospheric.ts` (1182–1300,
    1379–1430), `lib/thermal/SpaceHeating.ts`, `lib/thermal/Thermal.ts`
-   (405–430, 1305–1410), `platform/idea/api/BiomeLogic.ts` (~1196)
+   (416–424, 1062, 1313–1415), `platform/idea/api/BiomeLogic.ts` (~1196)
 5. `packages/server/src/mud/lib/slot/Wearable.ts` (380–431),
-   `lib/material/Material.ts` (380–391, 485–500, 1061)
+   `lib/material/Material.ts` (132, 394, 507–565)
 6. `packages/server/src/mud/lib/thermal/ThermalRegulation.ts` (500–610),
    `lib/locomotion/Swimmable.ts`, `platform/location/Pool.ts`,
    `lib/location/Shore.ts`, `lib/spatial/Mobile.ts` (100–112, 395–470,
@@ -1915,7 +2023,9 @@ Read first, in this order, with the lines cited in § Grounding:
    `src/thing/CuttingTool.ts`, `packages/server/src/mud/platform/idea/cmd/crafting/ManualBuildController.ts`
 10. `packages/server/src/mud/platform/thing/Casting.ts`,
     `lib/material/Alloyed.ts`, `platform/idea/api/CraftingLogic.ts`
-    (105–115, 2650–2695, 3440–3475), `packages/content/trade-glass/src/idea/cmd/glass/CrackController.ts`
+    (105–115, 2665–2705, 3455–3500), `packages/content/trade-glass/src/idea/cmd/glass/CrackController.ts`,
+    `packages/content/generic-objects/content/stuff/thing/{ice-block,ice-lump,ice-pan}.yaml`,
+    `packages/content/base-library/content/stuff/idea/material/bulk/water.yaml`
 11. `packages/content/trade-carpentry/src/idea/cmd/carpentry/SawController.ts`
     (290–370)
 12. `packages/server/src/mud/lib/employment/{Roster,Employed}.ts`,

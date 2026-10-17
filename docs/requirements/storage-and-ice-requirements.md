@@ -288,7 +288,7 @@ Object physics stays as it is. Lenses 1 and 2: the real mechanism, and new kinds
   - the keeper issues and honours **receipts** on printed terms;
   - no keeper present means the store is shut to depositors.
 - **Retail (front of house):** a customer buys at a counter that tops itself up from the house's claim. A customer never touches the store or a receipt.
-- **Off the books:** anyone in the room can `get` from or `put` on the stack physically, and no claim changes. That's how pilferage happens, invisibly, and stocktake is how it's found. The keeper defends the stock with locks, watchmen and presence, never an engine rule (lens 3b).
+- **Off the books:** anyone in the room can physically `get` a block off the stack or `put` goods in it, and no claim changes. That's how pilferage happens, invisibly, and stocktake is how it's found. The keeper defends the stock with locks, watchmen and presence, never an engine rule (lens 3b).
 
 ### Who eats the loss
 - **Ordinary loss within the printed shrinkage allowance is nobody's fault.**
@@ -463,12 +463,12 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
 8. **Fishing.** `fish` through the solid field is refused in words. `cut hole` with the ice saw and `fish` through it. Go into the water at the harvest channel, then `stand`: you are back on ice that bears you.
 9. **Try to `mark` with a horse and the ice plough on ice that bears a person but not a horse.** The horse can't go out. Wait until the ice thickens, and it can.
 10. **`get` the block and carry it to the icehouse.**
-   - On shift as a house hand, `put` it on the stack. The house's stock rises.
+   - On shift as a house hand, `put` it in the stack. The house's stock rises.
    - Then, as an outside depositor, on the icehouse **platform**, `deposit` a block **with the keeper**. A receipt in your name is issued, showing its terms.
 
 **Sawdust**
 
-11. **At the Heart's Delight sawmill, `saw` a log.** Sawdust appears on the floor, in an amount that follows the number of boards cut. Gather it, carry it to the icehouse, and put it with the stack.
+11. **At the Heart's Delight sawmill, `saw` a log.** Sawdust appears on the floor, in an amount that follows the number of boards cut. Gather it, carry it to the icehouse, and `put` it in the stack.
 
 **Summer**
 
@@ -483,7 +483,7 @@ Run in a world where the Circle is in winter. Travel between placeholder places 
     - A house that was never repacked has lost more than one whose keeper dug out the wet sawdust and repacked mid-season.
     - The dug-out sawdust reads as wet.
 13. **The house room is colder than an empty shed beside it.**
-14. **A second character, with no claim and no shift, `get`s a block from the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
+14. **A second character, with no claim and no shift, `get`s a block off the stack.** No receipt changes. The keeper's next `measure stock` falls short of the claims by more than the melt explains.
 15. **At the ice company's counter on the platform, `buy` a block.** It is brought up from the house: the house's stock falls by one block.
     - It is dearer now than it was just after the harvest.
     - Empty the house's own claim: the counter sells out and does not refill.
