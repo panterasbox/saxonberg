@@ -33,8 +33,8 @@ the show*.
 spine they share is a ladder from watching to playing:
 
 > watch the stream → talk in chat → `!join` → standing in the studio as
-> a guest → give, and sign in to have it count → playing, while still
-> watching
+> a guest → link the account you already give on, and your standing
+> appears → playing, while still watching
 
 The giving rung is [giving-slate](giving-slate.md). The watching rung
 is [broadcast-ready](broadcast-ready-slate.md). The client that lets you
@@ -85,7 +85,7 @@ creation, no tutorial between the click and the room.
 
 - A guest persists nothing and the front door says so; that does not
   change. What changes is that a guest has a **reason to sign in**:
-  giving that counts, a docket vote that sticks, a character that keeps
+  standing for patronage they already give, a docket vote that sticks, a character that keeps
   its name. Twitch login is one click and already exists.
 - ⚠ **The front door's honesty rule binds here.** Nothing on the join
   path may imply the guest's session carries over. The conversion is an

@@ -119,9 +119,10 @@ first push by choice.
 - ⚠ **Reopened 2026-10-17 → [giving-slate](../slates/builds/giving-slate.md).**
   *"The worst thing in the world is to have people that want to give you
   money and not having a channel for them to do that."* Giving moves
-  forward and widens: give-in-the-game (attributed by construction) +
-  Twitch + YouTube, platform gifts held as claims until the giver signs
-  in. The original decision, kept for the record:
+  forward and widens — and the platform still takes no payments: it
+  READS Twitch, YouTube and Patreon (Kick later), converts at **net**
+  (what reached the commons, the platform's cut shown), and holds each
+  gift as a claim until the giver signs in with or links that account. The original decision, kept for the record:
 - **Decision (was locked):** intake is **Twitch-native only** — ingest
   Twitch **EventSub** events (subscriptions, bits/cheers) over the same
   token plumbing the relay uses. No external processor (Patreon/Stripe)
