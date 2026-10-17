@@ -1833,6 +1833,16 @@ back; `refusedFor` is blind to `command-rejected`. Restart last.
 > owners (a proprietor's house never shuts; a consigned good at a `props:`
 > counter is not placed after a restart). Drive 11 (building upkeep) is
 > W7's and lands with it.
+>
+> ⚠ **The full suite found two W1 regressions the drive could not**
+> (`76b715056`): `Receptacle` composing `CraftedMixin` made every plain
+> jug of water a "product" that `wash`/`rinse`/`cool` skip (on a bulk
+> holder Crafted means the BATCH's identity — Receptacle is Durable and
+> Assembled only now); and the folded `AssembledChair`'s `min(1, …)` cap
+> flattened every bed and cot to a stool's rest quality. The lesson for
+> W1-shaped work: composing a mixin onto a family changes what every
+> `isX` site means for that family — grep the predicate's callers, not
+> only the mixin's methods.
 
 ### W7 — building upkeep (⏸ gated: the rubber build on master)
 
@@ -2415,3 +2425,10 @@ consigned pick gone after the restart — the crash above). 9: the same,
 a real shutdown — finding 7. ⭐ **11: 13/13 green** (1291 s; drive 10
 reclaims, drive 12 restarts gracefully and reads the pick, the keen
 billhook and *Hollin* back).
+
+**After the suite's two W1 fixes (`76b715056`):** 12: 12/13 — drive 1's
+`buy pick haft` waited out the wire's 30 s while a sibling worktree's
+world booted beside it (load ~30); every later checkpoint, which uses
+that pick, passed. 13: abandoned — four ~3 GB worlds on a 15 GB box and
+this one was OOM-killed at drive 7 (exit 137). A clean final-code run is
+owed once the box is free.
