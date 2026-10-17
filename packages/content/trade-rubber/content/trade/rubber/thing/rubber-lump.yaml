@@ -10,3 +10,6 @@ data:
     once and bounces if you drop it.
   _materialPath: /stuff/idea/material/organic/rubber
   mass: 0.5
+  # A cast that has cooled: it is handled at the room's temperature
+  # (a Casting otherwise starts at its pour heat and scalds the hand).
+  stampedTemperatureK: 290

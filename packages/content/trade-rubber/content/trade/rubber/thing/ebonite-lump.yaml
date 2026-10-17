@@ -10,3 +10,6 @@ data:
     rings like horn.
   _materialPath: /stuff/idea/material/organic/ebonite
   mass: 0.5
+  # A cast that has cooled: it is handled at the room's temperature
+  # (a Casting otherwise starts at its pour heat and scalds the hand).
+  stampedTemperatureK: 290

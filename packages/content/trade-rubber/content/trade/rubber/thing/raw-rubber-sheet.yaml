@@ -12,3 +12,6 @@ data:
     in a cold one.
   _materialPath: /stuff/idea/material/organic/raw-rubber
   mass: 1
+  # A cast that has cooled: it is handled at the room's temperature
+  # (a Casting otherwise starts at its pour heat and scalds the hand).
+  stampedTemperatureK: 290
