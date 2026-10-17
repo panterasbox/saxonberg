@@ -14,9 +14,12 @@
 > on air · tab-away reported · the streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
 > the Stream Deck: Elgato's OBS plugin for the hard cuts, pblive revived
-> for game commands behind a scoped control credential
-> **Size:** a build — one build across three repos (`saxonberg`,
-> `pbox-stream`, `pblive`), so three MRs that land together
+> for game commands behind a scoped control credential · multistreaming
+> to YouTube and Twitch from OBS, and YouTube live detection under the
+> streamer's own login
+> **Size:** a build — the saxonberg MR (which now includes the overlay,
+> Rodney, at `packages/rodney`) plus a small `pblive` change in its own
+> repo
 
 **Captured 2026-10-17.** The founder wants a weekly stream of a couple
 of hours walking through the week's work on the platform. The hardware
@@ -34,7 +37,7 @@ contract (the table this build fills in), [streamer-registry-slate.md](streamer-
 [client-shell-slate.md](../tails/client-shell-slate.md) § public
 read-only surface (default-deny projection), the
 [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)
-Phase 3 (this build is it), and `pbox-stream`'s `PLAN.md` §2 (the two
+Phase 3 (this build is it), and Rodney's `PLAN.md` §2 (`packages/rodney`, historical) (the two
 frames) and §8 Phase 3 (the control plane).
 
 ---
@@ -46,7 +49,7 @@ frames) and §8 Phase 3 (the control plane).
 | `StreamState` (`/platform/idea/StreamState`) | `mode: live\|standby`, `awayUntil`. **In memory** — a restart resets to `live` |
 | `stream away <dur>` / `stream back` | the whole control plane; gated `requiresStreamer` |
 | the `?broadcast=<token>` feed | pushes `stream-state`; forwards the owner's Twitch/YouTube chat as `relay-chat` |
-| `pbox-stream` | ONE scene, Standby: the monastery, the banner, the countdown. Reads `stream-state`; **ignores `relay-chat`**; no OBS link |
+| Rodney (`packages/rodney`, was the sibling repo `pbox-stream`) | ONE scene, Standby: the monastery, the banner, the countdown. Reads `stream-state`; **ignores `relay-chat`**; no OBS link |
 | `StreamerDeck` (client) | a scaffold: every chip dimmed, none sends, the live/viewers/uptime readout is fake |
 | `pblive` + `pblive-streamdeck` | 2021; drives the office light; needs AWS SSM to boot; no OBS, no game link |
 | OBS ↔ anything | nothing |
@@ -218,7 +221,7 @@ ships.
 
 ---
 
-## The overlay (`pbox-stream`)
+## The overlay (Rodney, `packages/rodney`)
 
 ### Scenes
 
@@ -277,6 +280,36 @@ Two paths for two kinds of button:
 
 ---
 
+## Multistreaming — YouTube and Twitch from day one
+
+The founder streams to **YouTube and Twitch** at once; Kick stays off at
+first (*"I dont wanna dilute my audience"*) and costs nothing to keep
+ready — its login and chat reader already ship, so turning it on is a
+setting.
+
+- **OBS sends both directly**, with the multiple-RTMP-outputs plugin
+  sharing one encode. The founder's upstream is ~70 Mbps; two 1080p60
+  outputs need ~12–16 Mbps, so there is room for a third and no reason
+  to pay a restreaming service.
+- ⚠ **Check Twitch's current simulcasting terms before the first show.**
+  Twitch relaxed its exclusivity rule for Affiliates and Partners in
+  2023, with conditions; read the current agreement rather than trusting
+  memory.
+- ⭐ **Saxonberg is the unified chat.** Relay chat already merges
+  Twitch, YouTube and Kick with platform glyphs — the thing multistreamers
+  usually pay a third party for, on screen as a demo of the platform.
+- ⚠⚠ **YouTube live detection moves onto the streamer's own login.** The
+  overlay finds the live broadcast with `search.list` (100 units of the
+  10,000-a-day default quota, polled every 15 minutes — roughly one
+  channel's whole day). With YouTube a primary platform that is too
+  close to the edge: read the streamer's own broadcasts under their
+  YouTube authorization instead (about 1 unit a call). It needs the
+  YouTube channel linking [giving](giving-slate.md) also needs, so the
+  two builds share it — whichever lands first builds it. Confirm the
+  live-chat read's own quota cost at the same time.
+- Alerts arrive per platform (giving-slate reads them); the overlay
+  shows them in one style with the platform glyph.
+
 ## The drive
 
 The exit criterion, run against the real stack with OBS open:
@@ -324,9 +357,11 @@ The exit criterion, run against the real stack with OBS open:
   a public, claimable thing.
 - **Card sizes, the arrangement region for the camera, focal facts** —
   [card-sizes-slate](card-sizes-slate.md).
-- **Alerts** (follows, subs, bits) — the track's Phase 4 payment intake.
-- **The World Ticker and the Agent Board** — `pbox-stream` Phase 4.
-- **Viewer interactivity / the HUD** — `pbox-stream` Phases 6–7.
+- **Reading patronage** (subs, bits, memberships, Super Chats, Patreon)
+  and turning it into standing — [giving-slate](giving-slate.md). This
+  build renders the alerts it hands over.
+- **The World Ticker and the Agent Board** — Rodney's plan, Phase 4.
+- **Viewer interactivity / the HUD** — Rodney's plan, Phases 6–7.
 - **Moderation, rewards, penalties** on the deck — no slate builds the
   verbs.
 
@@ -336,8 +371,7 @@ The exit criterion, run against the real stack with OBS open:
    before the show (`stream rundown …`) that Starting Soon displays and
    `stream next` steps through?
 2. **`ending` → `offline`** — on a timer, or only by `stream off`?
-3. **Twitch, YouTube, or both** — `pbox-stream`'s open decision; relay
-   chat already reads both, so it only affects which platform the
-   overlay brands.
+3. ~~**Twitch, YouTube, or both**~~ — **both**, decided 2026-10-17 (see
+   § multistreaming); Kick later.
 4. **Private channels** — confirm what the server stamps on a private
    channel's frames before trusting redaction with them.
