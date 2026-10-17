@@ -23,12 +23,102 @@ and the drive file. W8 is stretch, first to cut.
 > `reqs/rubber` caught up (`a2e688ff1`); D10 and D13.2 are re-grounded on
 > its merged mould code. The sibling plans have settled and agree:
 > **storage-and-ice** (build-4) puts the wet law on `Material` as instance
-> methods and adds `Attired.immerse()` — this plan now uses both shapes
-> (D12.1), whichever lands first; **repair** (build-3) W7 (building upkeep,
+> methods and adds `Attired.immerse()` — this plan consumes both shapes
+> (D12.1); ice OWNS them and merges first (§ Parallel builds, below); **repair** (build-3) W7 (building upkeep,
 > D20–D27) is gated on THIS build and consumes D1a/D2/D4 exactly as
 > written — ⚠ so `getEnclosure()`/`getRoof()` returning a spec, a list,
 > `'none'` or `null`, and materials never on `Structure`, are now a
 > **contract with another build**: do not reshape them without telling it.
+
+## ⚠⚠ Parallel builds — owners, merge order, conflict map (2026-10-17)
+
+Four builds run in parallel from master: **rubber** (build-1,
+`reqs/rubber`, this plan), **cleanliness** (build-2,
+`origin/reqs/cleanliness`, `docs/plans/cleanliness-plan.md`), **repair**
+(build-3, `origin/reqs/repair`, `repair-plan.md`), **storage-and-ice**
+(build-4, `origin/reqs/storage-and-ice`, `storage-and-ice-plan.md`). The
+user declined a shared-foundation MR. **"Whichever lands first" is dead:
+every shared piece has ONE named owner.** A non-owner that needs an
+owner's piece before it merges writes a byte-compatible local copy to
+the owner's published signature, marks it in code
+`// DROP AT MERGE — owned by <build>`, and deletes it when it merges
+master. All four sessions read this section.
+
+### Merge order (fixed)
+
+**ice → rubber → repair → cleanliness.** Why: rubber consumes ice's wet
+law (`Material.permeability()/wetProperty()`), ice's `Attired.immerse()`
+and ice's envelope heat protocol (`RoomHeatExchange`,
+`envelopeSteadyStateK`); repair W7 (building upkeep) and cleanliness
+consume rubber's `roof:`, `Exposure` and `lint:biome-sky`; cleanliness's
+new rooms author `roof:` and its vitriol cleanser reads rubber's narrowed
+`corrosiveTo`. Repair W0–W6 need nothing of rubber's but land after it
+so that its `AssembledGarment` deletion and `castDiscipline` meet
+rubber's one-piece goods and mould seam on a settled tree.
+
+### Owner table
+
+| piece | owner | signature / path | what non-owners do |
+|---|---|---|---|
+| the wet law: `Material.permeability(): number` (0 when `wAC ≤ dial('wetness.impermeableBelowPct', 2)`, else `min(1, wAC / dial('textiles.clo.absorptionReference', 40))`), `Material.wetProperty(dry, fluid, saturation): number` (`dry + saturation × permeability() × (fluid − dry)`); the setting `wetness.impermeableBelowPct` (2) + its `AppSettings` key; cloth's `k_void` migration in `Wearable.getClo` | **ice** (its W1) | `lib/material/Material.ts`; `settings/wetness.yaml` | rubber: a local DROP-AT-MERGE copy of the two methods + the setting if W5 needs them before ice merges; **never touch `getClo`**. cleanliness consumes. |
+| `Attired.immerse(parts?)` — WITH an optional part filter that also limits the body's wetting to those parts (ice's plan has no filter: rubber has asked ice to add the optional param) | **ice** (its D11) | `lib/slot/Attired.ts` | rubber's flooded cell calls `immerse(foot parts)`; until ice adds the filter rubber's copy is DROP-AT-MERGE. cleanliness's `bathe` calls it. |
+| the envelope heat formula: `lib/thermal/RoomHeatExchange.ts` `{ fixedW, conductanceWperK, anchorK }` summed in `reconcileEnvelope`, and `AtmosphericMixin.envelopeSteadyStateK(outsideK, atS)` as the ONE formula `T_ss = (U_ext·T_out + Σ fixedW + driveW + Σ G_j·anchor_j) / (U_ext + Σ G_j)`, `τ = C / (same denominator)` | **ice** (its W2) | `lib/biome/Atmospheric.ts`, `lib/thermal/RoomHeatExchange.ts` | rubber builds W2/W3 on that shape from the start: D6 solar is a `fixedW` contribution per segment (evaluated at `atS`); D7 interior faces are `{ conductanceWperK: U_i, anchorK: neighbour.envelopeTemperatureLast() }` contributions. Local DROP-AT-MERGE copy of the protocol plumbing if ice has not merged. ⚠ **Merge-time step for rubber:** ice's `envelopeSteadyStateK` must fold in rubber's two term kinds after both land; re-run ice's icehouse arithmetic and rubber's hothouse tests. |
+| the ice material at `/stuff/idea/material/bulk/ice` (moved from bottling) | **ice** (its W0) | `base-library/.../material/bulk/ice.yaml` | rubber's `lightAbsorption ≈ 2/m` on ice is a MERGE-TIME one-liner on whichever path exists; rubber does not edit the ice row in its waves. |
+| `/stuff/idea/material/ceramic/brick` and `/stuff/idea/material/textile/canvas` (honest k/ρ/c/wAC) | **rubber** (W0) | `base-library/.../material/{ceramic/brick, textile/canvas}.yaml` | repair W7 adds `weatheringDays`/`laying` to them after (brick stays `weathers: false`). Stone: nobody — cleanliness uses `rock/granite` or `rock/limestone`. |
+| `/stuff/idea/material/mineral/sulfur`, authoring `heatOfCombustion` (≈ 9.3 MJ/kg) and `autoignitionTemperature` (≈ 505 K) honestly — rubber's bellowsed oven ≈ 482 K < 505, so the charge does not ignite | **rubber** (W4) | `base-library/.../material/mineral/sulfur.yaml` | cleanliness later adds `combustionProducts` (SO₂) to the same row. |
+| `Attired.exposeToRain(delta)` (rain on the outer layer) | **rubber** (W5) | `lib/slot/Attired.ts` | cleanliness reads it. |
+| ONE named per-face transmission method on `Exposure` — `faceTransmittance(face): number` — that `skyLightFraction()` AND the solar term both call | **rubber** (W2) | `lib/spatial/Exposure.ts` | cleanliness multiplies grime into it later (its deferred Risk 6). |
+| `lint:biome-sky` + its ceiling list | **rubber** (W0) | `packages/server/scripts/check-biome-sky.ts` | every other build's new interiors author BOTH `enclosure:` and `roof:` (or, outdoors, carry a sky `_biomePath` / `none`+`none`) and re-census at merge; repair W7 and cleanliness edit the ceiling list. |
+| the rubber goods rows `/trade/rubber/thing/{rubber-boots, rubber-gloves, rubber-apron, rubberized-coat, rubber-sheet, packing, hose}` | **rubber** (W7) | `packages/content/trade-rubber/content/trade/rubber/thing/` | cleanliness reads those exact paths (gloves/apron in its doffing). |
+
+### Conflict map — every file two or more builds touch
+
+| file / region | owner of the region | merge rule |
+|---|---|---|
+| `lib/material/Material.ts` fieldMeta + getters | all four append (ice `getCastTemplate`/wet law; rubber `lightAbsorption`, `elasticity`, `crosslinking`; cleanliness `ashFraction`, `combustionProducts`, `flammableLimit`, `vapourLPerLPerHour`; repair `weathers`, `weatheringDays`, `laying`) | keep all; the wet methods exist ONCE (ice's) |
+| `lib/slot/Attired.ts` | rubber `exposeToRain`; ice `immerse`; cleanliness `doff` + a soil clause in the impression | keep all; ONE `immerse` (ice's, with the part filter) |
+| `lib/slot/Wearable.ts` | ice `getClo` migration; rubber `fitOn` stretch (W8); cleanliness shrink stamps | separate regions. ⭐ NOTE: rubber's stretch term ABSORBS cleanliness's wool shrink (a shrunk knit that still stretches fits) — an intended interaction, recorded, not a bug |
+| `lib/biome/Atmospheric.ts` `reconcileEnvelope` | **ice owns the formula**; rubber contributes terms by the protocol | fold rubber's `fixedW`/conductance terms into `envelopeSteadyStateK` at rubber's merge |
+| `platform/idea/cmd/device/FireController.ts` | rubber (`runFiring` hold + mould seam + crosslink branch); ice W0's `Alloyed` → `isComposition` split may touch `:325–362` | ice keeps rubber's merge-block shape; rubber re-applies the `isComposition` swap inside its rewritten `runFiring` if it lands after ice's edit |
+| `lib/mould/Mould.ts` | rubber `holdsCast`; repair `carryPayload` (`castDiscipline`) | separate hunks; keep both; re-run `Mould.test.ts`; rubber's mould-shape test asserts `castDiscipline` once repair lands |
+| `lib/ground/Floor.ts` (+ `platform/thing/Floor.ts`) | rubber `isOnGrade`/snow gate/`floorDefaults`; ice `bears`/`supportIsSlotted` + `WaterSurface`/`IceSheet`; cleanliness soil/strewn | adjacent; ⚠ ice's `IceSheet` snow override must NOT call rubber's `rainReaches()` gate (a sheet on a mere is open sky by its own rule) |
+| `platform/idea/cmd/perception/SurveyController.ts` | rubber `waysideSpaces`; repair holding/fabric lines; cleanliness floor line | separate methods; one readout block per room; the last lander adds a test that all appear |
+| `lib/husbandry/Producing.ts` | rubber the `weather` window's air read; cleanliness `stampTheHand` | separate regions |
+| `lib/config/AppSettings.ts` + settings yamls | separate families; ONE `wetness.impermeableBelowPct` (ice's) | keep all; second skips the shared key |
+| `platform/idea/api/BiomeLogic.ts` | rubber (the six sky gates, `outsideKFor`, `resolveEnvelopeTemperature`); ice near `:1196` (`outsideSegmentsSince`) | adjacent; keep both |
+| `scripts/check-light-sources.ts` | rubber rewrites `isSkyExposedRow`; cleanliness adds SKYLIT list rows | keep both |
+| `scripts/check-biome-sky.ts` | rubber creates; repair W7 + cleanliness edit the ceiling list | union of additions minus union of removals; re-run the script |
+| `scripts/__fixtures__/field-meta-golden.json` + the wiki-spoiler snapshot | generated | **REGENERATE, never hand-merge** (`pnpm -C packages/server lint:field-meta --snapshot`; the wiki snapshot with `-u` once every build's review-log entry is in); rubber regenerates in W0, W2, W4 |
+| `terminus/.../general-store/counter.yaml` | rubber/repair/cleanliness append stock lines + prices | keep all |
+| `terminus/.../market/square.yaml` exits | rubber's awning = `east`; cleanliness's bathhouse = `north` (existing: northeast, south, west) | keep both |
+| `rejection/.../idea/deposit/quarry-hill.yaml` | rubber: coal −9…−10, sulfur −10…−10.4, halite −10.4…−12; cleanliness's chalk / fuller's earth go ABOVE coal and must not move coal or anything below −10 | keep both bands; rubber's quarry test digs −10.2 (sulfur) and −11 (salt) |
+| `base-library/.../material/bulk/vitriol.yaml` | rubber narrows `corrosiveTo`; cleanliness adds a `vitriol` tag on the `tags:` line | keep both |
+| root `package.json` + `terminus/package.json` + `pnpm-lock.yaml` | rubber adds the `trade-rubber` importer + terminus dep; ice adds `trade-ice`/`hollow-mere`; repair needs terminus→trade-forestry; cleanliness terminus→trade-fuel | keep all deps; **lockfile: re-run `pnpm install`, never hand-merge** |
+| docs (`thermal.md`, `ground.md`, `mould.md`, `crafting.md`, `textiles.md`, `light.md`, `glass.md`, `fire.md`, `content-packs.md` pack count, `structures-slate.md`, `slates/README.md`, `CLAUDE.md` map) | each adds | section by section; `/finalize` sweeps resolve |
+
+### Shared ratchets
+
+`lint:biome-sky`'s list, `PURE_REPEAT_CEILING` (⚠ rubber's three Hevea
+stems use `count:`/`as:` on one props line, never three near-identical
+rows), `lint:lib-statics`, `lint:unconsumed-seams`, `lint:boot-entries`
+(rubber adds none), `CLOSED_VOCABULARY_CEILING`. Each branch green alone
+may fail after a merge; the merging build re-counts and writes the
+merged tree's ACTUAL count, ≤ master's — it never raises a ceiling
+without a caller audit.
+
+### Known cross-feature interactions to keep (not bugs)
+
+- cleanliness narrows the `Wet` far-past guard to bodies, so **worn
+  garments DRY across rubber's 6 h drive steps** — rubber's drive asserts
+  wetness within the step in which it rains, never a step later.
+- washed leather boots conduct in the brine cell (the wet law, both
+  readers).
+- a mould charged with solids reads *holding* per rubber's `holdsCast`
+  fix, and a cast rubber good carries repair's `castDiscipline:
+  chemistry` — the cobbler quotes rubber boots as beyond him.
+- cleanliness's `Flued` soot on `Hearth`/`Oven` applies to rubber's works
+  oven and both stoves.
+- rubber's stretch (W8) absorbs cleanliness's wool shrink (above).
 
 ## Grounding
 
@@ -387,8 +477,13 @@ argued *enclosure* over *walls* (a fence is not a wall) and seven rows
 author it; renaming buys nothing. Both specs are the same closed shape
 `{ material?, thicknessM? }`; the literal `none` means *no such part*
 (an awning has `enclosure: none`; a roofless yard-within-a-building has
-`roof: none`). `lint:envelope` clause (e) grows to hold `roof` shut the
-same way. ⚠ `Enclosed.ts`'s *"No `roofed`"* paragraph is rewritten: the
+`roof: none`). **The type is the same for BOTH parts:** `EnclosureSpec |
+EnclosureSpec[] | 'none'` (D1a), and `getEnclosure()` / `getRoof()`
+return the RAW authored form — a spec, a list, `'none'`, or `null` when
+the row authors nothing — never a resolved or normalised shape; that
+return contract is what repair W7 reads (`LayerState` seeds from it),
+so it does not change without telling repair. `lint:envelope` clause (e)
+grows to hold `roof` shut the same way. ⚠ `Enclosed.ts`'s *"No `roofed`"* paragraph is rewritten: the
 roof is now a declared part because the sky bit is leaving the biome.
 
 **D1a — A part is ONE layer or a LIST of layers, outside-in (added
@@ -509,19 +604,25 @@ one that has walls or a roof of its own. Concretely, for a place `R`
 - **walls** — four faces of the cube cell (`side = ∛V`). **Openings are
   exits; there is no per-wall vocabulary.** A face is *interior* for each
   distinct same-storey member of `S` reachable by an obvious exit (it
-  carries that exit); a face is an *open side* for each doorless obvious
-  exit to a place that is not an enclosed member (a three-sided shed, an
-  open-fronted barn); the remaining faces are *exterior walls* of the
-  place's own enclosure (`max(0, 4 − interior − openSides)`). A doored
-  exterior exit is a wall with a door in it: shut, it is the wall; open,
-  the shipped `U_open` term already counts it and it lets the wind in. A
-  window is a `Window` boundary and passes light by its own
-  transmissivity (leg (d)), as today. ⚠ A stated abstraction: the engine
-  has no room geometry, so *which wall is shared* is answered by *who is
-  next door through an exit*; two members side by side with no exit
-  between them are not detected as sharing a wall (each keeps that face
-  exterior). A stair or ladder to another storey is an interior face too
-  (it couples heat, D7) but consumes no wall.
+  carries that exit, and it appears in `walls[]` with `exterior: false`
+  — `interiorFaces()` is that filter); a face is an *open side* for each
+  doorless obvious exit whose far place is **outside** — `far.exposure().
+  isOutside()`, or no `Atmospheric` scope at all (a three-sided shed, an
+  open-fronted barn); ⚠ a doorless exit to another ENCLOSED place is not
+  an exterior opening: same structure ⇒ an interior coupling, another
+  structure or none ⇒ the face stays a solid exterior wall as today. The
+  remaining faces are *exterior walls* of the place's own enclosure
+  (`max(0, 4 − interior − openSides)`), and `exteriorAreaM2()` = Σ of
+  exactly those exterior wall faces plus the roof face when `top ===
+  'roof'`. A doored exterior exit is a wall with a door in it: shut, it
+  is the wall; open, the shipped `U_open` term already counts it and it
+  lets the wind in. A window is a `Window` boundary and passes light by
+  its own transmissivity (leg (d)), as today. ⚠ A stated abstraction: the
+  engine has no room geometry, so *which wall is shared* is answered by
+  *who is next door through an exit*; two members side by side with no
+  exit between them are not detected as sharing a wall (each keeps that
+  face exterior). A stair or ladder to another storey is an interior face
+  too (it couples heat, D7) but consumes no wall.
 - **floor** — never a loss face (the ground, or the place below), as
   today. **`onGrade`**: in a structure, true iff `R`'s storey has no
   `on`; a place in no structure keeps today's rule (an open top ⇒ true;
@@ -559,9 +660,15 @@ thickness `t` passes `e^(−α·t)`; a face passes the PRODUCT over its
 layers (D1a); a material authoring nothing passes 0, so one opaque layer
 makes the face opaque.
 Rows that author it this build: `glass/glass.yaml` (α ≈ 8/m: 4 mm clear
-glass passes 0.97), `bulk/water` (≈ 0.5/m), the ice cast's material
-(≈ 2/m), `organic/horn` if it exists (≈ 200/m), and nothing else — every
-opaque row is opaque by omission, which is the honest default.
+glass passes 0.97), `bulk/water` (≈ 0.5/m), `organic/horn` if it exists
+(≈ 200/m), and nothing else — every opaque row is opaque by omission,
+which is the honest default. ⚠ Ice (≈ 2/m) is a **merge-time one-liner**
+on `/stuff/idea/material/bulk/ice` (ice's W0 moves the row there; rubber
+does not edit the ice row in its waves — § Parallel builds).
+⭐ **One named method, `Exposure.faceTransmittance(face): number`** — the
+product over the face's layers — is the only place a face's
+transmittance is computed; `skyLightFraction()` and the solar term (D6)
+both call it, and cleanliness multiplies grime into it later.
 `Exposure.skyLightFraction()` = `min(1, T_top + w_side · Σ T_wall_i)`
 for exterior faces, `w_side = light.solar.sideWeight` (0.25): an opaque-
 walled glass-roofed hall is lit by its roof; a glass-walled lean-to
@@ -582,9 +689,13 @@ a horizontal surface, ⚠ the one calibration constant, and it is a
 setting not a plan decision), `skyFactor(t)` the pure-geometry
 `CelestialApi.skyIlluminanceFactor` at the realm's profile and latitude
 (sync), `weatherDim` the scope's cached dim factor, `w_top = 1`,
-`w_wall = light.solar.sideWeight`, and `T_i` each face's layer product
-(D1a). Folded into `reconcileEnvelope`'s
-`heatW` **per segment**: a gap is split into at most
+`w_wall = light.solar.sideWeight`, and `T_i = faceTransmittance(face)`
+(D5). ⭐ **Delivered through ice's protocol, never a second formula:** the
+solar term is a `RoomHeatExchange` contribution `{ fixedW: P_solar(atS),
+conductanceWperK: 0, anchorK: 0 }` that `reconcileEnvelope` sums with the
+occupants' exchanges and `envelopeSteadyStateK(outsideK, atS)` folds in
+(ice owns both; rubber keeps a DROP-AT-MERGE copy of the plumbing if ice
+has not merged — § Parallel builds). Evaluated **per segment**: a gap is split into at most
 `envelope.solarSegmentsMax` (48) equal segments, each no longer than a
 game hour, with the sky factor sampled at the segment's midpoint; a room
 with no transmitting exterior face (every opaque building) skips the
@@ -600,15 +711,23 @@ exit's boundary state decides how strongly.** For each `Face` in
 chosen by the exit that joins the two places — an honest, simple rule,
 stated once: **shut ⇒ conduction, open ⇒ flow.** A doored exit whose
 door is shut (or a `Window` boundary) couples by conduction through the
-party wall, `U_i = A_i / (Σ t/k over the place's own wall layers +
-R_films)` (D1a; a party wall is the place's walls — a `partition:` spec
-is deliberately NOT a third vocabulary, see Deferred seams); a doorless
-exit, an open door or an open gate couples by air exchange at the same
-flow constant an open exterior opening already uses, `U_i =
-envelope.openingUPerM3 · V` (an open stair between kitchen and loft is
-the inside air moving, not a wall conducting — which is why the loft
-warms within the hour and a shut door between them makes it an
-afternoon). `T_i = neighbour.envelopeTemperatureLast()`. The steady state becomes
+party wall — and ⚠ **the conductance must be SYMMETRIC** so heat is
+conserved between the two rooms (ice's icehouse platform and house are
+the first case): `U_i = A_i / (Σ t/k over BOTH places' own wall layers +
+R_films)`, the series sum of the two sides' walls, so each side computes
+the same number from the same two rows (D1a; a party wall is the two
+places' walls back to back — a `partition:` spec is deliberately NOT a
+third vocabulary, see Deferred seams); a doorless exit, an open door or
+an open gate couples by air exchange at the same flow constant an open
+exterior opening already uses, `U_i = envelope.openingUPerM3 ·
+min(V_this, V_far)` (symmetric by the `min`; an open stair between
+kitchen and loft is the inside air moving, not a wall conducting — which
+is why the loft warms within the hour and a shut door between them makes
+it an afternoon). `T_i = neighbour.envelopeTemperatureLast()`. ⭐ Each
+interior face is delivered as a `RoomHeatExchange` contribution
+`{ fixedW: 0, conductanceWperK: U_i, anchorK: T_i }` into ice's
+`envelopeSteadyStateK` (§ Parallel builds) — the protocol's `G_j·anchor_j`
+term IS the neighbour coupling; nothing else is added to the formula. The steady state becomes
 `(U_ext·T_out + Σ U_i·T_i + P) / (U_ext + Σ U_i)` and `τ = C / (U_ext +
 Σ U_i)`; a neighbour whose `Last` is `null` (never resolved) contributes
 no term (adiabatic, not exterior). **Bounded and recursion-free:** the
@@ -793,10 +912,9 @@ the question.**
    `material.permeability(): number` and `material.wetProperty(dry,
    fluid, saturation): number` (verbs on objects; the law is about a
    material) — with the setting `wetness.impermeableBelowPct` (2) and the
-   hoisted `textiles.clo.absorptionReference` (40). Whichever build lands
-   first adds them and migrates cloth's `k_void` (byte-identical by test);
-   the second consumes them. This supersedes the `MaterialLogic`-hosted
-   form below. `MaterialApi.contactResistance(material, wet?)` gains
+   hoisted `textiles.clo.absorptionReference` (40). **Ice owns them** (its
+   W1) and migrates cloth's `k_void`; rubber consumes (the owner note
+   below). `MaterialApi.contactResistance(material, wet?)` gains
    an optional `{ saturation, fluidSigma }` and `MaterialLogic.
    contactResistanceImpl` computes `σ_eff = material.wetProperty(σ_mat,
    fluidSigma, saturation)`, i.e. `σ_mat + saturation ·
@@ -810,54 +928,46 @@ the question.**
    not wet garments.** storage-and-ice's plan D11 adds `Attired.immerse()`
    (the body and every layer at every exterior part get `wet(1)`), called
    when a body goes INTO water. Wading is the same act below a water line:
-   whichever build lands first gives it an optional part filter
-   (`immerse(parts?: (partKey) => boolean)`), and the flooded cell's
-   entry calls `immerse(foot parts)` — the electricity walk then only
-   READS each layer's `getWetness()`. One wetting method, two callers. Leather (wAC 15 ⇒
+   **ice owns `immerse(parts?)`** and has been asked to add the optional
+   part filter (`parts?: (partKey) => boolean`, which also limits the
+   BODY's wetting to those parts); the flooded cell's entry calls
+   `immerse(foot parts)` — the electricity walk then only READS each
+   layer's `getWetness()`. Until ice adds the filter, rubber's copy is
+   `// DROP AT MERGE — owned by storage-and-ice`. One wetting method, two callers. Leather (wAC 15 ⇒
    permeability 0.375) soaked in salt water (≈ 5 S/m) reads ≈ 1.9 S/m —
    a conductor; rubber stays 1e-13.
-   ⭐⭐ **ONE wet law, two readers (added 2026-10-16, coordinated with
-   build-4's storage-and-ice build).** Water in a material's pores
-   replaces air; that is the whole mechanism, and it changes more than
-   one property. So the law is stated ONCE, on `MaterialLogic` (surfaced
-   through `MaterialApi`), as *the effective value of a property for a
-   material at a saturation, given the fluid in its pores*:
-   `p_eff = p_dry + saturation · permeability(material) · (p_fluid −
-   p_dry)` with the same `permeability` as above. Two readers:
-   **electrical conductivity** (this build — the boots; fluid = the pool
-   or fresh water) and **thermal conductivity** (build-4 — the icehouse's
-   sawdust soaked by its meltwater; fluid = water, ≈ 0.6 W/m·K, ~23×
-   air). ⚠ **Whichever build lands second consumes the other's law, never
-   a second copy.** If build-4 lands first with its own form, this build
-   folds `contactResistance`'s wet term onto it; if this lands first,
-   build-4 reads it. The plan's `contactResistance(material, wet?)`
-   becomes a caller of the shared law, not its owner.
-   ⭐⭐⭐ **THREE readers, and one already ships** (build-4's reply,
-   2026-10-16, verified): textiles' wet cloth on master is this law —
-   `k_void = k_air·(1 − s) + k_water·s`, `s = wetness × min(1, wAC /
-   ABS_REF)` (thermal.md § worn insulation; `lib/slot/Wearable.ts` ~423,
-   `CLO_DEFAULTS.ABSORPTION_REFERENCE` = 40, setting
-   `textiles.clo.absorptionReference`). So **whichever build lands first
-   GENERALIZES THE SHIPPED LAW onto the material and migrates cloth onto
-   it**; the second consumes it. Concretely, if this build is first:
-   - `permeability(material) = 0` when `wAC ≤ wetness.impermeableBelowPct`
-     (2), else `min(1, wAC / absorptionReference)` — ⚠ **hoist the ONE
-     existing setting**; never a second `40`;
-   - the cutoff is NEW and NECESSARY: without it a rubber boot (wAC 0.5)
-     soaked in 5 S/m brine reads ≈ 0.06 S/m, above the 0.001 insulator
-     cutoff, and the boots fail. Verified 2026-10-16: **no shipped
-     textile/leather/hide row has wAC ≤ 2**, so the cutoff changes no
-     shipped cloth outcome — a test asserts cloth's `k_void` is
-     byte-identical before and after the migration;
-   - `Wearable`'s clo arithmetic calls the shared law for `k_void`
-     (thermal reader, shipped), `MaterialLogic.contactResistanceImpl` for
-     σ (electrical, this build), build-4's packing for k (thermal, theirs).
+   ⭐⭐⭐ **ONE wet law, THREE readers, ONE OWNER — ice (2026-10-17; see
+   § Parallel builds).** Water in a material's pores replaces air; that is
+   the whole mechanism, and it changes more than one property. The law
+   is `Material.permeability()` / `Material.wetProperty(dry, fluid,
+   saturation)` on the material row, with the setting
+   `wetness.impermeableBelowPct` (2) and the hoisted
+   `textiles.clo.absorptionReference` (40 — the ONE existing setting,
+   never a second `40`). Its three readers: **thermal conductivity in
+   cloth** — already shipped as `k_void = k_air·(1 − s) + k_water·s` in
+   `Wearable.getClo` (`lib/slot/Wearable.ts` ~423) and **migrated onto the
+   law by ice's W1** (byte-identical by ice's test); **thermal
+   conductivity in packing** (ice — the icehouse's soaked sawdust, fluid
+   ≈ 0.6 W/m·K); **electrical conductivity** (this build — the boots;
+   fluid = the pool or fresh water). ⛔ **Rubber does not own, write or
+   migrate any of it.** `MaterialLogic.contactResistanceImpl` is a CALLER:
+   `σ_eff = material.wetProperty(σ_mat, fluidSigma, saturation)`. If W5
+   runs before ice has merged, rubber writes a local copy of exactly the
+   two methods and the setting, to ice's published signatures above,
+   marked `// DROP AT MERGE — owned by storage-and-ice`, and deletes it
+   when it merges master; it **never touches `getClo`**. The cutoff is
+   what makes the boots work: without it a rubber boot (wAC 0.5) soaked
+   in 5 S/m brine reads ≈ 0.06 S/m, above the 0.001 insulator cutoff
+   (verified 2026-10-16: no shipped textile/leather/hide row has wAC ≤
+   2, so the cutoff changes no shipped cloth outcome).
 2. *The outermost layer sheds rain.* `Attired.exposeToRain(delta)` (a
-   method on the wearer — verbs on objects): for each body part by
-   surface share, the outermost covering takes `delta` (it is `Wet`), and
-   the body takes `delta · share · passThrough`, `passThrough =
-   permeability(outer material) · saturation(outer after)`; a bare part
-   passes 1. `WeatherLogic.wetOccupants` calls `exposeToRain` for an
+   method on the wearer — verbs on objects): **each DISTINCT outermost
+   garment is wetted ONCE**, by `delta · (the surface share of the parts
+   it is outermost on)` — a coat that is outermost on torso and both arms
+   takes one `wet()` call at the summed share, never one call per part —
+   and the body takes `Σ_parts delta · share · passThrough`,
+   `passThrough = permeability(outer material) · saturation(outer
+   after)`; a bare part passes 1. `WeatherLogic.wetOccupants` calls `exposeToRain` for an
    `Attired` occupant and `wet` for anything else. Wool (0.825 × its
    saturation) soaks through as it saturates; rubberized cloth
    (permeability 0) passes nothing; oilskin (linseed-oiled linen row, if
@@ -899,7 +1009,9 @@ the whole season, which is what a stove house is. The tree row
 `/trade/rubber/thing/plant/hevea-standard.yaml` names `class:
 /trade/forestry/thing/SapStandard` (`trade-rubber` depends on
 `trade-forestry`; the `tap` affordance is that class's static, so the
-verb reaches a Hevea with no rubber code). Three mature stems
+verb reaches a Hevea with no rubber code). Three mature stems (⚠ ONE
+`props:` line with `count: 3` / `as:`, never three near-identical rows —
+`PURE_REPEAT_CEILING`, § Parallel builds)
 (`extends:` the standard, `growthStage: mature`) are `props:` of the
 stove house, the hanging-wood maples' shape. **⚠ The `weather` window
 reads the AIR at the host's place, not the host's body** — a 290 kg
@@ -970,7 +1082,11 @@ in Risks & opens 4.
 
 **D13.4 — Sulfur is caprock.** `base-library` gains
 `/stuff/idea/material/mineral/sulfur.yaml` (tags `[sulfur, mineral]`,
-density 2070, meltingPoint 388, k 0.2, yellow); `trade-quarrying` gains
+density 2070, meltingPoint 388, k 0.2, yellow, and — rubber owns this
+row — `heatOfCombustion: 9.3` MJ/kg and `autoignitionTemperature: 505`
+authored honestly: the works' bellowsed oven holds ≈ 482 K < 505, so a
+sulfur charge does not ignite in it; cleanliness later adds
+`combustionProducts` (SO₂) to the same row); `trade-quarrying` gains
 the won row `/trade/quarrying/thing/sulfur.yaml` (the coal row's shape,
 mass 2); the Hill Quarry column inserts `{ toZ: -10.4, host:
 /stuff/idea/material/mineral/sulfur, wins: /trade/quarrying/thing/sulfur }`
@@ -993,14 +1109,37 @@ comes from the biome are a counted, falling number.**
   imported — no dependency needed; drop if nothing imports),
   `trade-tailoring` (the apron/coat rows the rubberized versions
   `extends:`). `src/` holds **nothing** unless a wave needs a class: the
-  moulds are dairy `Mould` rows (D10), the oven an `Oven` row, the goods `Garment`/
-  `AssembledGarment` rows, the lump a `Thing` row. If the build finds it
-  needs a class, it is `src/thing/<Name>.ts` and nothing else.
+  moulds are dairy `Mould` rows (D10), the oven an `Oven` row, the goods
+  **one-piece `Garment` rows** (below), the lump a `Thing` row. If the
+  build finds it needs a class, it is `src/thing/<Name>.ts` and nothing
+  else.
+- ⭐ **The rubber goods are ONE-PIECE CASTS** (agreed with repair, § Parallel
+  builds): `rubber-boots`, `rubber-gloves`, `rubber-apron` (and the sheet,
+  packing and hose) are standalone rows, `class:
+  /platform/thing/equipment/Garment` (exists on master; repair's W1 folds
+  `AssembledGarment` into it — verify post-repair), with **no `bill:` and
+  no `extends: leather-boots`** — a moulded boot is one piece, so it takes
+  repair's monolith mend path and its discipline comes from the mould's
+  `castDiscipline` (`chemistry`), never from a recipe. Each carries a
+  covering `constructionForm` so the corrosion fold and the shock walk
+  (both narrow on `isConstructed` + `isCovering()`) see them: **`hide`** —
+  the honest pick from the closed resist set (`plate · mail · padded ·
+  quilted · hide`), because a cast sheet is a continuous, unwoven,
+  loft-less layer that resists like a hide and not at all like a weave or
+  a plate. `rubberized-coat` `extends:` tailoring's `coat` (a sewn cloth
+  garment, so it keeps its construction) with material
+  `textile/rubberized-cloth`.
 - Materials are commons rows in `base-library`: `organic/latex`
   (bulk, tag `latex`), `organic/raw-rubber`,
-  `organic/ebonite`, `organic/rubber-scorched`, `mineral/sulfur`;
-  `organic/rubber.yaml` gains `elasticity` and `crosslinking`
-  stays on raw-rubber.
+  `organic/ebonite`, `organic/rubber-scorched`, `mineral/sulfur` (D13.4),
+  `textile/rubberized-cloth` (⚠ carries RUBBER's tags — `[organic,
+  elastomer, insulating, polymer]` — NOT linen's `cellulose`, so the
+  narrowed vitriol list and cleanliness's vitriol cleanser do not eat it;
+  wAC 0.5), and — rubber owns them for all four builds — `ceramic/brick`
+  (k ≈ 0.7, ρ 1800, c 840, wAC 12) and `textile/canvas` (k ≈ 0.05, ρ 600,
+  c 1300, wAC 25) with honest numbers, authored in W0 because the works,
+  the terminal and the awning name them; `organic/rubber.yaml` gains
+  `elasticity` and `crosslinking` stays on raw-rubber.
 - The works and stove house: `packages/content/terminus/content/world/
   terminus/goods-yards/rubber-works/` — `structure.yaml`
   (`/platform/idea/Structure`, `extent: …/rubber-works`, the storeys of
@@ -1112,10 +1251,10 @@ material when one is present, else the bulk material. Cut this wave and
 | `Exposure` | `lib/spatial/Exposure.ts`, a value object | nothing composes it; it is computed and cached. |
 | `lightAbsorption`, `elasticity`, `crosslinking` | `lib/material/Material.ts` | every material may be transparent, may stretch, may crosslink. All three default to the honest zero (opaque, rigid, inert), so every shipped row is byte-identical until it authors one. |
 | `CrosslinkSpec` + `Crosslinking` | `lib/material/Crosslinking.ts`, a value object | nothing composes it; `FireController` and the test call it. |
-| `consumed?` on `RecipeInputSlot` | `lib/craft/Recipe.ts` | every recipe may name an input it keeps — a mould, a form, a last. True of crafting generally; craft-resolve honours it for free. |
 | `for <duration>` | `fire.yaml` + `FireController` | every chamber may be held for a stated time. True of a kiln, a lime clamp, a glass pot. |
 | `exposeToRain(delta)` | `lib/slot/Attired.ts` (`AttiredMixin`, on `Creature`) | every body that wears things sheds rain through them. True; a creature wearing nothing passes everything, as today. ⚠ NOT on `Wet` (a cloak is Wet and has no layers) and NOT in `WeatherLogic` (the walk belongs to the body that owns the slots — the three-copies lesson in `Attired.ts`'s header). |
-| wet term on `contactResistance` | `MaterialApi`/`MaterialLogic` (exists) | an optional argument; dry callers are byte-identical. |
+| wet term on `contactResistance` | `MaterialApi`/`MaterialLogic` (exists) — a CALLER of ice's `Material.wetProperty()`; rubber owns no wet law | an optional argument; dry callers are byte-identical. |
+| `faceTransmittance(face)` | `lib/spatial/Exposure.ts` (the value object) | one method, two callers (sky light, solar); a third (grime) is cleanliness's. |
 | `wearFactor` | `lib/pump/Pumping.ts` (`PumpingMixin`) | every pump wears its packing by the packing's material. True by construction. |
 | `lint:biome-sky` | `packages/server/scripts/check-biome-sky.ts` | a gate, not a host. |
 | the `weather` window's air read | `lib/husbandry/Producing.ts` | every weather-windowed tap reads the air at its place. True of birch, Hevea, any future row. |
@@ -1144,8 +1283,7 @@ Checked at plan time against the current tree, not recalled:
   `SingletonCartesianLocation` rows joining a `CartesianZone` by
   `coords:` (the oilworks' shape). `FurnishableRoom` is not used.
 - **`<root>/<branch>/`** — pack rows at `/trade/rubber/{thing,idea}/…`,
-  recipes in `content/recipes/`, maturation under `idea/maturation/`
-  (the catalogue's infix), the works under `/world/terminus/goods-yards/
+  recipes in `content/recipes/`, the works under `/world/terminus/goods-yards/
   rubber-works/…` in the terminus pack (trade = mechanism, locality =
   expression), materials and the species under `/stuff/…` in
   `base-library` / the pack's own `/stuff/idea/species/…` (species rows
@@ -1167,9 +1305,9 @@ Checked at plan time against the current tree, not recalled:
 - **Verbs on objects** — `exposeToRain` on the wearer; `exposure()` on
   the scope; `wearPacking` on the pump; `outcome()` on the spec.
 - **Methods-only inter-stuff** — a neighbour's temperature is read by
-  `envelopeTemperatureLast()`; a structure's construction by
-  `getEnclosure()`/`getRoof()`/`getStoreys()`; the foot coverings by
-  `coveringAt`.
+  `envelopeTemperatureLast()`; a place's construction by its own
+  `getEnclosure()`/`getRoof()` (raw authored form, D1) and a structure's
+  relations by `getStoreys()`; the foot coverings by `coveringAt`.
 - **Api ↔ Logic** — the only Api surface touched is
   `MaterialApi.contactResistance` (an optional argument on an existing
   pair) and, if needed, `BiomeApi.exposureOf(scope)` forwarding to
@@ -1231,6 +1369,12 @@ Files:
   (keys, `on`, extents inside the structure's; nothing about openness).
 - `packages/server/scripts/check-biome-sky.ts` — NEW; `package.json`
   `lint:biome-sky`.
+- `base-library/.../material/{ceramic/brick, textile/canvas}.yaml` — NEW
+  commons rows rubber owns for all four builds (D14).
+- Generated artefacts: `pnpm -C packages/server lint:field-meta
+  --snapshot` (fields `roof`, `storeys`) and this build's review-log
+  entry in `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` +
+  regenerated `.snap` — never hand-merged (§ Parallel builds).
 - Tests: `lib/spatial/__tests__/Exposure.test.ts` (a fixture structure
   with the D3 tree: works floor → ceiling; stove house → roof; wing →
   ceiling; loft → roof; terrace → open, floor is the loft's roof; a
@@ -1318,11 +1462,16 @@ Implements D5, D6.
 
 Files: `lib/quantity.ts` (`'1/m'`), `lib/material/Material.ts`
 (`lightAbsorption`), `base-library` material rows (`glass`, `bulk/water`,
-the ice material, `organic/horn` if present), `lib/spatial/Exposure.ts`
-(`skyLightFraction`, per-face transmittance), `AmbientLit.ts`/
+`organic/horn` if present — ⚠ NOT the ice row: that is a merge-time
+one-liner on ice's `bulk/ice`), `lib/spatial/Exposure.ts`
+(`faceTransmittance(face)`, `skyLightFraction`), `AmbientLit.ts`/
 `VisionModality.ts` (the fraction now bites), `Atmospheric.ts`
-(`solarGainW(t)` + the hourly segmentation in `reconcileEnvelope`;
-`envelopeCoefficients` untouched), `lib/config/AppSettings.ts` +
+(`solarGainW(atS)` delivered as a `RoomHeatExchange` `fixedW` contribution
+per segment into ice's `envelopeSteadyStateK(outsideK, atS)` — with a
+`// DROP AT MERGE — owned by storage-and-ice` copy of
+`lib/thermal/RoomHeatExchange.ts` and the plumbing if ice has not
+merged; `envelopeCoefficients` untouched), the field-meta golden +
+wiki-spoiler entry regenerated (`lightAbsorption`), `lib/config/AppSettings.ts` +
 `packages/content/platform/content/settings/envelope.yaml` (`light.solar.
 noonIrradianceWm2`, `light.solar.sideWeight`, `envelope.solarSegmentsMax`),
 `lint:envelope` clause (b) sibling: a transparent `roof`/`enclosure`
@@ -1342,11 +1491,15 @@ Commit: `feat(light): matter passes light by Beer–Lambert; the sun warms a roo
 
 Implements D7.
 
-Files: `Atmospheric.ts` (`reconcileEnvelope` interior-face terms,
-`envelopeCoefficients` returns `uInteriorWperK` beside `uWperK`;
-`traceOf`/the `feel` cause line names the warmest neighbour), `BiomeLogic.
-resolveEnvelopeTemperature` (neighbours' outside resolved one hop),
-`Exposure.ts` (`interiorFaces()` carries the neighbour). Tests:
+Files: `Atmospheric.ts` (each interior face delivered as a
+`RoomHeatExchange` `{ conductanceWperK: U_i, anchorK: T_i }` contribution
+into ice's `envelopeSteadyStateK` — the DROP-AT-MERGE copy of the
+protocol if ice has not merged, as in W2; `envelopeCoefficients` returns
+`uInteriorWperK` beside `uWperK`; `traceOf`/the `feel` cause line names
+the warmest neighbour), `BiomeLogic.resolveEnvelopeTemperature`
+(neighbours' outside resolved one hop), `Exposure.ts` (`interiorFaces()`
+carries the neighbour and the joining exit; the symmetric partition
+conductance of D7). Tests:
 `Atmospheric.coupling.test.ts` — two rooms of one fixture structure, a
 `SpaceHeating` stove lit in the lower: the upper's `Last` rises within a
 game hour and sits above an identical unheated control; **the same pair
@@ -1379,7 +1532,12 @@ raw-rubber/ebonite), `lib/material/__tests__/Crosslinking.test.ts`
 for 600 s → under; 25 % for 3600 s → ebonite; 3 % at 470 K → scorched),
 `FireController.mould-shape.test.ts` (D10's four-case contract), `FireController` tests (a recipe
 with `holdS` runs its hold; `for 2 hours` runs two game hours; a glass
-batch is byte-identical).
+batch is byte-identical), the field-meta golden + wiki-spoiler entry
+regenerated (`elasticity`, `crosslinking`). ⚠ The mould seam's owner
+comment: `moulding-slate` lives on the repair branch; if repair has not
+merged when rubber does, the comment cites it by branch path
+(`origin/reqs/repair:docs/slates/builds/moulding-slate.md § 5`) and is
+re-pointed to the master path at repair's merge.
 
 Acceptance: AC 2 and 3 in unit tests with a fixture oven and mould;
 `pnpm lint:closed-vocabularies` unchanged; `lint:unconsumed-seams`:
@@ -1387,16 +1545,21 @@ Acceptance: AC 2 and 3 in unit tests with a fixture oven and mould;
 W5's pump is; the field lands here and the gate's ceiling is checked,
 not raised: if it trips, `elasticity` moves to W5).
 
-Commit: `feat(cure): a hold on fire; the crosslink curve as data on the feedstock; the mould is a slot the firing keeps`
+Commit: `feat(cure): a hold on fire; the crosslink curve as data on the feedstock; a firing asks the mould for its shape`
 
 ### W5 — the four corrections
 
 Implements D12.
 
 Files: `api/material.ts` + `platform/idea/api/MaterialLogic.ts`
-(`contactResistance(material, wet?)`, `permeability`), `platform/idea/api/
-ElectricityLogic.ts` (`groundContactInsulated`, `pathResistance`,
-`isWet` wets foot coverings), `lib/slot/Attired.ts` (`exposeToRain`),
+(`contactResistance(material, wet?)` as a CALLER of ice's
+`Material.wetProperty()` — if ice has not merged, a local copy of
+`permeability()`/`wetProperty()` + the `wetness.impermeableBelowPct`
+setting to ice's signatures, marked `// DROP AT MERGE — owned by
+storage-and-ice`; `getClo` untouched), `platform/idea/api/
+ElectricityLogic.ts` (`groundContactInsulated`, `pathResistance`; the
+flooded cell's entry calls ice's `Attired.immerse(foot parts)` — the
+same DROP-AT-MERGE rule for the part filter), `lib/slot/Attired.ts` (`exposeToRain`),
 `platform/idea/api/WeatherLogic.ts` (`wetOccupants`), `lib/pump/
 Pumping.ts` (`wearFactor`), `packages/content/platform/content/settings/
 {pump,wetness,electricity}.yaml` (`pump.referenceToughness`,
@@ -1454,20 +1617,30 @@ D14, the oven `/trade/rubber/thing/oven` — an `Oven` row,
 `burnTemperatureK: 430`, `bellowsMultiplier: 1.12` so the bellows is
 how you scorch — five dairy `Mould` rows (one per shape, D10) and the coagulating pan, a
 `stove` prop in the stove house, a stove in the works floor, the three
-stems, the raw-rubber lump's cast row, the goods rows `/trade/rubber/
-thing/{rubber-boots (extends leather-boots, material rubber, bill parts
-rubber), rubber-gloves, rubber-sheet, packing, hose, rubber-apron
-(extends tailoring's apron), rubberized-coat (extends coat; material a
-new `textile/rubberized-cloth` row: linen with wAC 0.5)}`; the terminal
-hall's glass roof + the other five terminal rooms' brick and slate; the
-awning as a lone place off the square; the coach's `_materialPath`; the general
+stems (one props line, `count: 3`), the raw-rubber lump's cast row, the
+goods rows `/trade/rubber/thing/{rubber-boots, rubber-gloves, rubber-apron,
+rubber-sheet, packing, hose}` — **one-piece `Garment`/`Tool` casts, no
+bill, no `extends:`, `constructionForm: hide` on the three garments**
+(D14) — and `rubberized-coat` (`extends:` tailoring's `coat`, material
+`textile/rubberized-cloth` with rubber's tags); the terminal hall's glass
+roof + the other five terminal rooms' brick and slate; the awning as a
+lone place off the square (exit `east` from the square — cleanliness's
+bathhouse takes `north`); the coach's `_materialPath`; the general
 store's two stock lines; the gas bladder's material →
 `rubberized-cloth`; deletion of the two cafeteria biome rows;
+**`check-light-sources.ts`'s lists** (the terminal hall now reads skylit
+through its roof — its row-side mirror and any `SKYLIT_INTERIORS` entry
+agree); **root `package.json` (the `@saxonberg/content-trade-rubber`
+importer) + `terminus/package.json` (the terminus → trade-rubber dep) +
+`pnpm install`** (the lockfile is regenerated, never hand-edited);
 `packages/wire/tests/rubber.dirty.wire.test.ts` (steps 1–22).
-`trade-rubber/README.md`. `docs/subsystems/construction.md` (NEW — the
-model's permanent home; thermal.md § The envelope, biome.md §
+`trade-rubber/README.md`. Docs: `docs/subsystems/construction.md` (NEW —
+the model's permanent home; thermal.md § The envelope, biome.md §
 SkyExposedMixin, light.md § The sky, ground.md § onGrade each gain a
-pointer paragraph) and `docs/subsystems/rubber.md` (NEW).
+pointer paragraph), `docs/subsystems/rubber.md` (NEW), `glass.md` (the
+grey `lightAbsorption` term beside `Tinted`'s colour), `fire.md` (`fire …
+for <duration>`), `mould.md` (`holdsCast` + the firing seam),
+`content-packs.md` (the pack count).
 
 Acceptance: `lint:reachability` arm R zero (every new row reached by a
 prop, a stock line, a recipe output or a `wins`); `lint:biome-sky`
@@ -1662,9 +1835,11 @@ Each leaves as a slate line, not a plan section.
 - **A `cure` discovery loop / the published curve** → inquiry-slate.
 - **Compression moulding** (a load on the rubber charge in its mould), a
   failed cure pour, consumed moulds, the *cure* set process for plaster →
-  moulding build (`moulding-slate`, repair branch). Rubber's seam
-  (D10) is the call site those extend; the latex drain (D13.2) is
-  already on the shipped set hook and needs nothing.
+  moulding build (`moulding-slate`, on the repair branch until repair
+  merges: `origin/reqs/repair:docs/slates/builds/moulding-slate.md`; the
+  seam's code comment cites that path and is re-pointed at repair's
+  merge). Rubber's seam (D10) is the call site those extend; the latex
+  drain (D13.2) is already on the shipped set hook and needs nothing.
 - **A pressed coagulating pan** (a stone on the setting latex) — the
   platform `Mould` composes no `PlacingMixin`; a pressing pan is a pack
   class like dairy's `Hoop` → moulding build.
