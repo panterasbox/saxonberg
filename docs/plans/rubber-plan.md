@@ -185,6 +185,55 @@ From `origin/reqs/cleanliness:docs/plans/cleanliness-note-to-siblings.md`
 14. **Regenerate `field-meta-golden.json`** and add a wiki-spoiler
     review-log entry for `crosslinking` (and the other new fields).
 
+### Accepted from storage-and-ice (build-4), 2026-10-17
+
+From `docs/plans/storage-and-ice-note-to-rubber-2026-10-17.md` (committed
+here) and `origin/reqs/storage-and-ice:docs/plans/storage-and-ice-note-to-siblings.md`
+§ To rubber. All accepted. Ice lands before rubber, so in every "whoever
+lands second" case below **rubber is second** and does the fold.
+
+1. **One steady-state formula, ice's:** `AtmosphericMixin.
+   envelopeSteadyStateK(outsideK, atS)` —
+   `T_ss = (U_ext·T_out + ΣU_i·T_i + ΣfixedW + driveW + P_solar(t) +
+   ΣG_j·anchor_j) / (U_ext + ΣU_i + ΣG_j)`, `τ = C /` the same
+   denominator; the occupant term is the `RoomHeatExchange` protocol
+   (`SpaceHeating` +, the store −), replacing the `isSpaceHeating` sum.
+   Rubber's D6 supplies `P_solar(t)` (via `faceTransmittance`) and D7 the
+   `ΣU_i·T_i` interior faces; at rubber's merge, its terms fold into
+   ice's version and any local copy is deleted.
+2. **`Attired.immerse(parts?: (partKey: string) => boolean)`** — ice
+   adopted the optional filter; side-effect only (it wets). Rubber's
+   flooded cell calls `immerse(foot parts)`; its local copy, if any, is
+   DROP AT MERGE.
+3. **The wet law** is exactly D12.1's — `Material.permeability()`,
+   `Material.wetProperty(dry, fluid, saturation)`,
+   `wetness.impermeableBelowPct` = 2, `textiles.clo.absorptionReference`
+   hoisted. Ice writes it; rubber skips it (local DROP-AT-MERGE copy only
+   if W5 needs it before ice merges). `MaterialLogic.contactResistanceImpl`
+   stays only as the electrical CALLER.
+4. **The ice material** moves to `/stuff/idea/material/bulk/ice`
+   (base-library) and the bottling row is deleted; rubber authors
+   `lightAbsorption ≈ 2/m` on the new row at its merge.
+5. **`lint:biome-sky` and the icehouse rooms** — they author `enclosure:`
+   (0.4 m sawdust fill; pine) without `roof:`. At rubber's merge, rubber
+   **authors `roof:` on them** (an opaque, honestly thick roof) rather
+   than letting the census ceiling rise. The platform and house share one
+   Structure, so they couple through their shared wall under D7
+   (symmetric conductance); the control shed is a Structure of its own.
+6. **`FireController.runFiring`** — ice's W0 turns the alloy-merge
+   narrowings (`:340`, `:360`) into `isComposition`; rubber KEEPS that
+   when it rewrites `runFiring` (its crosslink branch and mould seam sit
+   beside it, and a composition-only lump keeps its fractions).
+7. **Also shared:** `Material.ts` fieldMeta (keep all; regenerate the
+   field-meta golden, never hand-merge), `Wearable.getClo` (ice's
+   migration — rubber never touches it), `Floor.ts` (ice's `bears` /
+   `supportIsSlotted` and the `WaterSurface`/`IceSheet` subclasses beside
+   rubber's isOnGrade/snow changes; the `IceSheet` row authors
+   `onGrade: false`, and its snow override stays self-contained).
+8. **The shared-file rule:** the build that lands second merges
+   `origin/master` first, resolves by hand, then re-runs the named tests
+   and drives.
+
 ## Grounding
 
 Every fact below was verified by opening the file this cycle
