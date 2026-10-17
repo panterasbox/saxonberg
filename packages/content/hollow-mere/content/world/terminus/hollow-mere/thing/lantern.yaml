@@ -1,0 +1,9 @@
+# The icehouse lantern — a lit lantern hung from a beam: the light a
+# windowless house is worked by (a dark house would hide the stack's face).
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: icehouse lantern
+  keywords: [lantern, lamp, light]
+  on: true
+  emittedIntensity: 600

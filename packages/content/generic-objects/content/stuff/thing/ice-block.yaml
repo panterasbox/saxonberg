@@ -14,7 +14,7 @@
 class: /platform/thing/IceBlock
 data:
   shortDescription: block of ice
-  keywords: [ice, block, ice-block]
+  keywords: [ice, block, ice-block, "block of ice"]
   register: indefinite
   longDescription: |
     A four-kilo block of ice, clouded white at the heart and sweating along every edge.

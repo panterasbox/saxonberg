@@ -1928,6 +1928,29 @@ Implements D21, D22 (the venue half).
   a boot of a fresh DB with the pack installed.
 - Commit: `build(storage-and-ice W9): Hollow Mere — the mere, the
   icehouses, the ice company, and the cookhouse's ice`.
+- ✅ **Done (build, 2026-10-17).** The `hollow-mere` venue pack (no `src/`
+  beyond its test): the zone (lat −58, continentality 1, 300 m), the road ·
+  shore · pool · far-bank rooms (the pool's `floor:` is the water pack's
+  sheet row), the large and small icehouses and the shed, the ice company
+  (keeper / house-hand / crew / ice-boss, winter seats on the crew and the
+  boss), four agents, the Locality and the Watercourse. The crossroads
+  gains an `east` exit to the mere road. The cookhouse: the ice par line,
+  the cook's `cold:` icebox, `restocks`' `isSolidIce` + `unpackIntoCold`
+  (pinned by a test: a delivered block lands IN the shut icebox), and
+  `perceivedGoods` reading into a shut Coolbox.
+  **Decisions:** (1) A seeded line credits the HOUSE's claim
+  (`Store.seedFromRow`) — otherwise the counter has nothing of its own to
+  sell (drive 15) and every seeded kg is unclaimed shrink. (2) No offstage
+  room: `lint:location-graph` refuses an unreachable one, and a summer
+  seat that is simply not rostered needs nowhere to stand. (3) Lanterns in
+  the icehouse rooms — an unlit interior is pitch black and the stack
+  would read "something". (4) `keeps-house` brain sits on the house hand,
+  not the keeper — the keeper keeps the book and the receipts; the hand
+  moves ice. (5) `climateOffsetK −12` tuned so the field bears 80 kg by
+  day 2–3 and thaws near day 280 (the pinned test). (6) Gates touched:
+  `check-boot-entries` ceiling 83 → 85 (owner-approved per D22, a dated comment; one new pack's
+  two boot entries, caller-audited), census reads `seedLines.goodPath`,
+  reachability classifies `goodPath` as a faucet and `cold` as a citation.
 
 ### W10 — The drive
 

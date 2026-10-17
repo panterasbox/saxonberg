@@ -1,0 +1,62 @@
+# The Hollow Mere ice company (storage-and-ice D22). The keeper keeps the
+# book on the platform; the house hand keeps the house; the crew and the
+# ice boss are WINTER seats — rostered and paid only while the mere is
+# frozen enough to work, which a southern site's season says (D20).
+class: /platform/idea/Business
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hollow-mere/agent/keeper
+  call: rota
+  positions:
+    - key: keeper
+      noun: keeper
+      label: keeping the icehouse book
+      wageRate: 4
+      fulfills: [appraisal]
+    - key: house-hand
+      noun: hand
+      label: working the house
+      wageRate: 3
+      fulfills: [ice-harvesting]
+    - key: crew
+      noun: cutter
+      label: cutting ice
+      wageRate: 4
+      headcount: 2
+      fulfills: [ice-harvesting]
+    - key: ice-boss
+      noun: boss
+      label: running the harvest
+      wageRate: 6
+      fulfills: [ice-harvesting]
+  rosterSlots:
+    - positionKey: keeper
+      assignee: /world/terminus/hollow-mere/agent/keeper
+      station: /world/terminus/hollow-mere/icehouse/location/platform
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+    - positionKey: house-hand
+      assignee: /world/terminus/hollow-mere/agent/house-hand
+      station: /world/terminus/hollow-mere/icehouse/location/house
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 17] }
+    - positionKey: crew
+      assignee: /world/terminus/hollow-mere/agent/cutter
+      station: /world/terminus/hollow-mere/location/pool
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [8, 16], season: [winter] }
+    - positionKey: ice-boss
+      assignee: /world/terminus/hollow-mere/agent/ice-boss
+      station: /world/terminus/hollow-mere/location/pool
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [7, 16], season: [winter] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hollow-mere/icehouse/location/platform
+    - /world/terminus/hollow-mere/icehouse/thing/counter
+    - /world/terminus/hollow-mere/icehouse/location/house
+    - /world/terminus/hollow-mere/icehouse/thing/stack
+    - /world/terminus/hollow-mere/small-house/location/house
+    - /world/terminus/hollow-mere/small-house/thing/stack
+    - /world/terminus/hollow-mere/location/pool

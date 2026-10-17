@@ -55,8 +55,15 @@ export const CENSUS_AT_LANDING = { entries: 128, uncited: 71 };
  * par-sheet `restocks` beat with nobody present (the hall board had no
  * work at world start). By the requirements' own rule they are the
  * unobserved economy's, so they and their rooms stay booted.
+ *
+ * ⚠ 83 → 85 on 2026-10-17, approved by the owner (storage-and-ice D22,
+ * recorded in its plan and in the repair build's § Parallel builds): the
+ * Hollow Mere ice company and its icehouse house. The crew works the ice
+ * and the house hand keeps the house with nobody present, and the stack
+ * melts by its own physics — the unobserved economy, both `reason`s say
+ * so. No sibling build adds a boot entry.
  */
-export const BOOT_ENTRY_CEILING = 83;
+export const BOOT_ENTRY_CEILING = 85;
 
 /**
  * ⭐ Content entries whose reason does not cite the unobserved economy —

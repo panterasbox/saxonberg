@@ -638,6 +638,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * deposit and refuses every one with "There is no book here".
    */
   push('storePath', data.storePath);
+  // ⭐ A store's authored seed (storage-and-ice W2): the goods its ledger
+  // is seeded with — a mistyped one is a house that boots empty.
+  if (Array.isArray(data.seedLines)) {
+    for (const line of data.seedLines) {
+      if (line && typeof line === 'object') push('seedLines.goodPath', (line as Record<string, unknown>).goodPath);
+    }
+  }
   /*
    * The warren's own citation: the working TYPE it clones per cell.
    *

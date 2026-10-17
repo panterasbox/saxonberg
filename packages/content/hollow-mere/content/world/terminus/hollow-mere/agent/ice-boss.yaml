@@ -1,0 +1,19 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Hedda
+  keywords: [hedda, boss]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Hedda the ice boss
+  register: proper
+  longDescription: |
+    A big woman in a sheepskin with a spud in her fist, who looks at the ice a long time before she lets anybody out on it.
+  archetype: labourer
+  competence:
+    - { discipline: ice-harvesting, asserting: proficient }
+  behaviors:
+    - brain: /trade/ice/behavior/bosses
+      trigger: candidate
+      config: { marginKg: 200 }

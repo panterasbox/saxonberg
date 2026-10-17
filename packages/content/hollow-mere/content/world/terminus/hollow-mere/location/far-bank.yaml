@@ -1,0 +1,20 @@
+class: /platform/location/Shore
+data:
+  shortDescription: far bank
+  keywords: [bank, reeds, alder, shore]
+  register: definite
+  _address: terminus/hollow-mere/far-bank
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 30000
+  ambientColorTemperature: 5800
+  longDescription: |
+    The far bank of the mere, a fringe of reeds and a stand of alder on wet black ground. Across the water the icehouses stand dark against the hill.
+  coords: { x: 0, y: 3, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/hollow-mere/location/pool
+      media: [ground, water]
+      edgeMinutes: 6
+      conditional: true
+  waters:
+    mere: hollowmere:mere

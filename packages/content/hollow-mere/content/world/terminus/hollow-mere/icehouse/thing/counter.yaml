@@ -1,0 +1,21 @@
+# The ice counter (storage-and-ice D8, D22): one block on show, brought up
+# from the house TO ORDER on the house's own claim, and priced on the
+# house's days of supply — cheap after the harvest, dear in late summer.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: ice counter
+  keywords: [counter, ice, till]
+  register: definite
+  longDescription: |
+    A plank counter at the end of the platform, wet at one end where a block has been standing, a pair of tongs hung on a nail.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 60
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [keeper]
+  businessPath: /world/terminus/hollow-mere/idea/ice-company
+  stockLines:
+    - { itemTemplatePath: /stuff/thing/ice-block, par: 1, source: /world/terminus/hollow-mere/icehouse/thing/stack, pricing: stocking }
+  prices:
+    /stuff/thing/ice-block: 6

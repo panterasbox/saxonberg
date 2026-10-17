@@ -1,0 +1,31 @@
+# The mere itself — ONE place, summer and winter (storage-and-ice D12). Its
+# floor is the venue's ice sheet: in winter you stand on it while it bears
+# you, and in summer it is open water you swim.
+class: /platform/location/Pool
+data:
+  shortDescription: Hollow Mere
+  keywords: [mere, pool, water, ice]
+  register: proper
+  _address: terminus/hollow-mere/pool
+  _biomePath: /stuff/idea/biome/water/open
+  ambientIntensity: 30000
+  ambientColorTemperature: 5800
+  longDescription: |
+    Out on the mere itself, the hollow of the hills all round and the sky very wide over it. The shore is a few strokes behind you to the south, the far bank of reeds across the water to the north.
+  coords: { x: 0, y: 2, z: 0 }
+  floor: { template: /world/terminus/hollow-mere/thing/sheet }
+  waters:
+    mere: hollowmere:mere
+  exits:
+    south:
+      destination: /world/terminus/hollow-mere/location/shore
+      media: [ground, water]
+      edgeMinutes: 1
+      conditional: true
+    north:
+      destination: /world/terminus/hollow-mere/location/far-bank
+      media: [ground, water]
+      edgeMinutes: 6
+      conditional: true
+  props:
+    - /system/water/thing/pool-bottom

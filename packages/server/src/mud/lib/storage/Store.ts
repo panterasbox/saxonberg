@@ -561,6 +561,19 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           this._minting = false;
         }
       }
+      // ⭐ A store's seed is the HOUSE's own stock: its running claim on
+      // each stock line is credited, so the counter can bring it up.
+      if (this.businessPath) {
+        for (const line of this.lines) {
+          if (line.role === 'stock' && line.amountKg > LINE_EPSILON_KG) {
+            try {
+              await this.creditHouse(line, line.amountKg);
+            } catch (err) {
+              console.warn('StoreMixin: could not credit the house with its seed', err);
+            }
+          }
+        }
+      }
       await this.captureSelf();
       return this.lines.length > 0;
     }

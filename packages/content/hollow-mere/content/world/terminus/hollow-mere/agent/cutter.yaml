@@ -1,0 +1,18 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Bryn
+  keywords: [bryn, cutter]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Bryn the ice cutter
+  register: proper
+  longDescription: |
+    A wiry man in oiled boots with an ice saw over his shoulder, who has been through the ice once and talks about it more than once.
+  archetype: labourer
+  competence:
+    - { discipline: ice-harvesting, asserting: competent }
+  behaviors:
+    - brain: /trade/ice/behavior/harvests
+      trigger: candidate

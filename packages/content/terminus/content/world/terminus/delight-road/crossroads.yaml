@@ -55,6 +55,12 @@ data:
       media: [ground]
       edgeMinutes: 10
       wheelPassable: true
+    # ⭐ The eastern road, up into the hills to Hollow Mere (the ice trade's
+    # venue — storage-and-ice). ⚠ Placeholder geography.
+    east:
+      destination: /world/terminus/hollow-mere/location/road
+      media: [ground]
+      edgeMinutes: 30
   details:
     stone:
       keywords: [stone, inscription, marker, slab]

@@ -819,7 +819,10 @@ function perceivedGoods(viewer: Stuff): Stuff[] {
       if (item !== viewer && !PerceptionApi.perceives(viewer, item)) continue;
       out.push(item);
       const closed = MixinApi.isSealable(item) && !item.isOpen();
-      if (!closed) walk(item);
+      // ⭐ A cold box is shut to KEEP, not to hide (storage-and-ice D21):
+      // its contents are the house's cold stock, so the sheet reads into
+      // it. A shut larder or cupboard stays invisible.
+      if (!closed || MixinApi.isCoolbox(item)) walk(item);
     }
   };
   walk(viewer);

@@ -522,6 +522,7 @@ export function articleShapesOf(doc: {
  * value is a `thing` path (54 fields), not from memory.
  */
 const FAUCETS: Record<string, string> = {
+  goodPath: "a store's seed line — the exemplar minted as the line's face (storage-and-ice)",
   props: "born-with placement — the row is cloned into the place",
   template: "the `{template, as}` entry form of props/cast, and floor/residue entries",
   cast: "born-with agents; kept here so an agent-shaped thing row still counts",
@@ -609,6 +610,7 @@ const CITATIONS: Record<string, string> = {
   bench: "as `shelf`",
   rack: "as `shelf`",
   bin: "as `shelf`",
+  cold: "as `shelf` — the cold box a cook unpacks ice into (storage-and-ice)",
   window: "as `shelf`",
   shore: "as `shelf` — the fisher's reach",
   floor: "a brain's room, or a location's own floor citation",

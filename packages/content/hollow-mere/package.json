@@ -1,0 +1,30 @@
+{
+  "name": "@saxonberg/content-hollow-mere",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hollow Mere — the mere, the ice company, the icehouses.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-carpentry": "workspace:*",
+    "@saxonberg/content-trade-coopering": "workspace:*",
+    "@saxonberg/content-trade-ice": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}
