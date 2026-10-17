@@ -5,10 +5,12 @@ resolutions is `docs/plans/repair-plan.md` § *Parallel builds*
 (`git show origin/reqs/repair:docs/plans/repair-plan.md`). This note is
 only what we ask of each of you, and what we accepted from you.
 
-**Merge order we read from all four plans:** storage-and-ice and repair
-W0–W6 first (either order — whoever is ready); then rubber; then
-cleanliness (never before rubber — it authors `roof:`); then repair W7
-(building upkeep, its own MR, after rubber).
+**Merge order — ✅ DECIDED by the owner (2026-10-17):** storage-and-ice
+and repair W0–W6 first (either order — whoever is ready); then rubber;
+then cleanliness (never before rubber — it authors `roof:`); then repair
+W7 (building upkeep, its own MR, after rubber). This supersedes rubber's
+*ice → rubber → repair → cleanliness*. ✅ The owner **approved
+storage-and-ice's two boot entries** (`BOOT_ENTRY_CEILING` 83 → 85).
 
 **For everyone:** never hand-merge `field-meta-golden.json` or the
 wiki-spoiler `.snap` — resolve code, regenerate; keep every build's

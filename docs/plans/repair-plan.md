@@ -1965,7 +1965,15 @@ Four builds start together from the same master in four worktrees:
 `docs/plans/repair-note-to-siblings.md` (the asks we sent) and each
 sibling's own § Parallel builds / note files.
 
-### Merge order (agreed reading of all four plans)
+### Merge order — ✅ DECIDED by the owner (2026-10-17)
+
+> **storage-and-ice and repair (W0–W6) first, in either order; then
+> rubber; then cleanliness; repair W7 after rubber, its own MR.** This
+> supersedes rubber's note's fixed *ice → rubber → repair → cleanliness*.
+> ✅ The owner also **approved storage-and-ice's two boot entries**
+> (`BOOT_ENTRY_CEILING` 83 → 85, a dated line naming ice); repair still
+> adds none.
+
 
 1. **storage-and-ice** and **repair W0–W6** — either first; whichever is
    ready. Neither needs the other's code.
@@ -1989,7 +1997,7 @@ generated file.
 | `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` + `.snap` | keep EVERY build's review-log entry, in landing order; regenerate the `.snap` with `-u` only once each new field has its entry. Repair's entry: `Durable.mends`, `Assembled.seatName/nameGrant`, the `PartLine` additions, `Crafted.castDiscipline`, W7's `weathers/weatheringDays/laying/fabric` — ⚠ decide in the entry whether an un-revealed heirloom's `seatName` is a spoiler |
 | list ratchets (`lint:biome-sky` list, `AUTHORED_TEMPERATURES`, …) | union of additions minus union of removals, re-run the script |
 | numeric ceilings (`LIB_STATICS_CEILING`, `SEAM_CEILING`, `CLOSED_VOCABULARY_CEILING`, …) | write the merged tree's ACTUAL count, ≤ master's; if not, fix code, never the number |
-| `BOOT_ENTRY_CEILING` (83) | rises only with the owner's sign-off — **repair adds none** (P9) |
+| `BOOT_ENTRY_CEILING` (83) | rises only with the owner's sign-off — ✅ **approved +2 for storage-and-ice** (→ 85, a dated line); **repair adds none** (P9) |
 | `Mixins` / `MixinApi`, `CLOSED_BY_DESIGN`, `AppSettings`, settings yaml, the general store's `counter.yaml`, `Material.ts` fieldMeta | take both; one copy of anything two builds both add (`wetness.impermeableBelowPct`, `permeability()/wetProperty()`) |
 | root/pack `package.json`, `pnpm-lock.yaml` | take both; `pnpm install` regenerates the lock |
 | `docs/slates/README.md` | `./tools/slate-index` |
@@ -2027,7 +2035,7 @@ generated file.
 9. **Accepted.** W5 adds `trade-forestry` to `terminus/package.json` (the tinker's billhook prop) and re-runs `pnpm install`; `Mould.ts` separate hunks; counter keep-all; goldens regenerated.
 10. **Noted.** `moulding-slate.md` lands with repair; rubber fixes its citation at its own merge if repair has landed, else repair does at its.
 
-⚠ **Merge order — the one open disagreement.** Rubber's note fixes **ice → rubber → repair → cleanliness** (repair whole, after rubber). Storage-and-ice and cleanliness both recorded **storage + repair W0–W6 (either), rubber, cleanliness, repair W7**. Repair W0–W6 needs nothing of rubber's (rubber's pieces repair uses — brick, layers, `exposure()`, `lint:biome-sky` — are all W7's), so either order is safe for the code; repair is happy to land W0–W6 after rubber if that is the agreed order. The owner decides; until then, the owner rule stands (one named owner per shared piece, `// DROP AT MERGE` local copies).
+✅ **Merge order — resolved by the owner (2026-10-17): ice and repair W0–W6 first (either), then rubber** (see § Merge order). Was: Rubber's note fixes **ice → rubber → repair → cleanliness** (repair whole, after rubber). Storage-and-ice and cleanliness both recorded **storage + repair W0–W6 (either), rubber, cleanliness, repair W7**. Repair W0–W6 needs nothing of rubber's (rubber's pieces repair uses — brick, layers, `exposure()`, `lint:biome-sky` — are all W7's), so either order is safe for the code; repair is happy to land W0–W6 after rubber if that is the agreed order. The owner decides; until then, the owner rule stands (one named owner per shared piece, `// DROP AT MERGE` local copies).
 
 | shared | resolution |
 |---|---|
