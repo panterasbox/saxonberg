@@ -191,6 +191,22 @@ async function feel(s: Session): Promise<string> {
   return say(s, 'feel here');
 }
 
+/**
+ * Put something on or take it off and let the act FINISH: dressing is an
+ * engaged act, and the next command meets "Your hands are busy" (or the
+ * walk interrupts it). Returns everything said meanwhile.
+ */
+async function dress(s: Session, line: string): Promise<string> {
+  const r = await s.cmd(line);
+  const said = squash(plain(await r.said()));
+  expect(understood(said), `'${line}' was not understood: ${said}`).toBe(true);
+  // The completion line ("You put on …") arrives on the act's own clock.
+  const later = squash(await s.listen(8_000));
+  // eslint-disable-next-line no-console -- the drive's own record
+  console.log(`  [drive] ${s.handle.slice(0, 18)} > ${line}\n          ${said} ${later}`.slice(0, 500));
+  return `${said} ${later}`;
+}
+
 /** The figure a carried thermometer reads, K or °C as it prints. */
 async function thermometer(s: Session): Promise<number> {
   return (await reading(s)).k;
@@ -247,14 +263,14 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
     expectOk(await bank.cmd('bank deposit coins'));
     bank.close();
     const s = await at(handle, SHOP);
-    await say(s, 'remove trousers'); // intake dressed them in a sturdy pair
+    await dress(s, 'remove trousers'); // intake dressed them in a sturdy pair
     await buyOne(s, 'breeches');
-    const plain = await say(s, 'wear breeches');
+    const plain = await dress(s, 'wear breeches');
     expect(plain, `wear breeches: ${plain}`).toMatch(/you put on/i);
     expect(plain).toMatch(/tight/i);
-    await say(s, 'remove breeches');
+    await dress(s, 'remove breeches');
     await buyOne(s, 'elastic');
-    const elastic = await say(s, 'wear elastic');
+    const elastic = await dress(s, 'wear elastic');
     expect(elastic, `wear elastic: ${elastic}`).toMatch(/you put on/i);
     expect(elastic).not.toMatch(/tight|loose/i);
   }, 600_000);
@@ -478,10 +494,8 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     // everything "something". Dressing is engaged — let it finish.
     for (const w of [buyer, seller]) {
       // ⚠ Intake shod them in canvas shoes: the feet are taken.
-      await say(w, 'remove shoes');
-      await say(w, 'wear boots');
-      await new Promise((r) => setTimeout(r, 6_000));
-      await w.drainProse();
+      await dress(w, 'remove shoes');
+      await dress(w, 'wear boots');
       const worn = await say(w, 'inventory');
       expect(worn, 'the boots are on').toMatch(/wearing:[^.]*boots/i);
     }
