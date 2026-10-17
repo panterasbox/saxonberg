@@ -508,7 +508,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     if (hit !== undefined) return hit;
 
     const water = await this.waterStateAt(ref, nowS);
-    const still = dial('water.ice.stillWaterMps', 0.1);
+    const still = dial('water.ice.stillWaterMps', 0.5);
     const record: IceRecord =
       water !== null && water.currentMps >= still
         ? {

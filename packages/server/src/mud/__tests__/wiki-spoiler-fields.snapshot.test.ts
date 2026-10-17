@@ -58,6 +58,7 @@
  *     `acceptsLiveGoods`, `StoreBookMixin.storePath` — level 0: who keeps
  *     a house, who may take a deposit and the terms printed on every
  *     receipt are posted at the door; that is what makes them terms.
+ *   - W5: `WaterSurface.areaM2` — level 0: how big a pool is, you see.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

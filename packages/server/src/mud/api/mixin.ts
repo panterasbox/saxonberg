@@ -115,6 +115,7 @@ import type { Tempered } from '../lib/material/Tempered';
 import type { Store } from '../lib/storage/Store';
 import type { Poolable } from '../lib/storage/Poolable';
 import type { StoreBook } from '../lib/storage/StoreBook';
+import type { Swimmable } from '../lib/locomotion/Swimmable';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1529,6 +1530,14 @@ export class MixinApi {
   /** A good a store may hold as an amount, pooling by its own rule. */
   public static isPoolable(obj: Stuff): obj is Stuff & Poolable {
     return this.hasMixin(obj, Mixins.Poolable);
+  }
+
+  /**
+   * A place you swim in (a `Pool`) — which knows who is in its water and
+   * how cold it is (storage-and-ice D10).
+   */
+  public static isSwimmable(obj: Stuff): obj is Stuff & Swimmable {
+    return this.hasMixin(obj, Mixins.Swimmable);
   }
 
   /** The house's book — the custody instrument that names a store. */

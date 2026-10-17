@@ -1234,6 +1234,7 @@ WaterActivityMixin._solute = 0
 WaterActivityMixin.dryness = 0
 WaterActivityMixin.waterClockStamp = 0
 WaterFixture.suppliedBy = 0
+WaterSurface.areaM2 = 0
 Weapon.balanceFactor = 0
 Weapon.exercises = 0
 Weapon.length = 0

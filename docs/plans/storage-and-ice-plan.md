@@ -1736,6 +1736,40 @@ adds the sheet.
 - Commit: `build(storage-and-ice W5): a swimmer's body reads the water;
   the water's surface is a pool's floor; going in soaks you; the
   still-water threshold`.
+- ✅ **Done (build, 2026-10-17).** `FloorMixin` gained the whole support
+  protocol as base answers (`bears` true, `supportIsSlotted` false,
+  `supports`, `supportLoadKgOf`, `openWaterAreaM2` 0, `giveWay` no-op,
+  `reconcileSupport` no-op) so the pool, `stand`, `swim`, the shore gate
+  and the horse read ONE typed protocol, never shapes. `WaterSurface`,
+  its row, `TemplatePaths.waterSurface`; `Pool`'s floor default + hooks;
+  `SwimmableMixin.immersionOf` / `waterTemperatureK`; `MixinApi.isSwimmable`;
+  `Attired.immerse(parts?)`; `Beast.beforeTraverse`; bare `stand` onto a
+  slotted floor; `swim` with no target. **Decisions:** (1) ⭐ the posture
+  transfer reported a slot the host refused as *"… is occupied"*, so
+  `Slotted.canOccupyReason(candidate, slot)` (base `null`) lets the host
+  refuse in its own words — the water surface says *"There is nothing
+  here to stand on but water."* (2) ⭐⭐ **The water fold is a gap below a
+  NEUTRAL water temperature** (`thermal.waterNeutralK` 297 K, counted
+  once more in water), not the shipped half-gap-to-setpoint fold plus the
+  wet amplifier: that fold chilled a 290 K summer swim hard, and the
+  requirements say *a summer swim chills nobody* while *a mountain mere
+  chills a swimmer even in summer* — the neutral threshold is the shape
+  both sentences need (lens 1). The wet amplifier stays an in-air term
+  (the water IS the wetness). Measured: 274 K water cools a body 2.4× as
+  fast as 274 K air over half an hour; the unit test asserts ≥ 2×
+  ("several"), not the plan's 3×. `exchangeWithWater(waterK, dtS)` with
+  `dtS > 0` re-anchors the regulation on the water for the next step (the
+  integration is the regulation's own lazy reconcile). (3) A plain water
+  surface over water that reads FROZEN bears you and has no open water —
+  no thickness to model, and the pool is simply not swum (the old
+  behaviour); a harvest pool names an ice sheet. (4) An unsupported body
+  arriving by swim is soaked; one walking in is occupied onto the floor
+  if it bears, else given way. (5) `restamp`'s re-immerse guards a host
+  destroyed mid-await (found by `test:near`: combat's dead loser). The
+  still-water threshold moved without re-pinning any `Ice.test.ts`
+  fixture (the `running` fixture is a fast beck). Not unit-tested here
+  (the drive is their test): bare `stand` onto ice, `swim` with no target,
+  worn layers soaked.
 
 ### W6 — The ice sheet
 

@@ -89,6 +89,12 @@ export interface ThermalRegulation {
   /** Game-time (seconds) of the last regulation reconcile; 0 = unseeded. */
   thermalRegStamp: number;
   /**
+   * ⭐ The ONE immersion fold: what a body in water at `waterK` drifts
+   * toward (and, with `dtS > 0`, re-anchoring the body on it for the next
+   * `dtS`). Shared by a swim and a bath (storage-and-ice D10a).
+   */
+  exchangeWithWater(waterK: number, dtS: number): number;
+  /**
    * ⭐⭐ **Heat the body is carrying that did not come from the weather** —
    * joules, absorbed by an internal source and not yet shed.
    *
@@ -532,6 +538,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       }
       this.cachedHumidity = humidity;
 
+      // ⭐⭐ IN THE WATER (storage-and-ice D10): a swimmable place says who
+      // is in its water (whoever its floor is not holding up) and how cold
+      // it is; the body then takes the water's exchange, not the air's.
+      if (scope !== null && MixinApi.isSwimmable(scope as unknown as Stuff)) {
+        const im = (scope as unknown as Stuff & { immersionOf(o: Stuff): { temperatureK: number } | null })
+          .immersionOf(host as unknown as Stuff);
+        if (im) return Quantity.of(Math.max(0, this.exchangeWithWater(im.temperatureK, 0)), "K");
+      }
+
       // Occupied warming-slot warmth (a campfire log-seat). Read like
       // metabolism reads restQuality — `isSlottable` narrows in place.
       let warmth = 0;
@@ -588,6 +603,42 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     /**
+     * ⭐⭐ **The ONE immersion fold** (storage-and-ice D10a): what a body in
+     * water at `waterK` drifts toward — water conducts ~23× better than
+     * air, so the gap below the water a swimmer is comfortable in
+     * (`thermal.waterNeutralK`, 297 K) is counted again. Returns the
+     * effective ambient, K.
+     *
+     * Called by the body's own ambient read when its place says it is in
+     * the water, and by anything that puts a body in water for a step (a
+     * bath, a river shore): with `dtS > 0` the core is brought current
+     * under the old ambient and re-anchored on the water's, so the next
+     * `dtS` the body integrates is spent in the water. No second formula
+     * anywhere.
+     */
+    public exchangeWithWater(waterK: number, dtS: number): number {
+      const immersion =
+        BiomeApi.conductivityOf("water").rawValue() /
+        BiomeApi.conductivityOf("air").rawValue();
+      // ⭐ The gap below the water a swimmer is comfortable in, counted
+      // AGAIN for a medium that conducts this much better than air. No wet
+      // amplifier: the water IS the wetness — that term is a wet body's
+      // extra loss in AIR. A summer swim (water at or above neutral) costs
+      // nothing; a near-freezing pool reads far colder than the same air.
+      const neutralK = readDial(AppSettingKeys.thermalWaterNeutralK, 297);
+      let ambientK = waterK;
+      if (immersion > 2 && waterK < neutralK) ambientK -= neutralK - waterK;
+      ambientK = Math.max(0, ambientK);
+      if (dtS > 0) {
+        this.reconcileThermalRegulation();
+        this.effectiveAmbientK = ambientK;
+        const nowS = this.regNowSeconds();
+        if (nowS !== null) this.thermalRegStamp = nowS;
+      }
+      return ambientK;
+    }
+
+    /**
      * The wet heat-loss amplifier (weather Wave 2): `saturation *
      * thermal.wetHeatLossFactor`, or `0` when the body is dry / carries no
      * wetness gauge. Read synchronously off the stored gauge at re-stamp.
@@ -621,6 +672,18 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       // the first `undefined` rather than read `.rawValue()` off nothing.
       if (eff === undefined) return;
       this.effectiveAmbientK = eff.rawValue();
+      // ⭐ Still in the water: still soaked — the drain does not dry a
+      // swimmer (storage-and-ice D11).
+      // ⚠ A host destructed during the awaits above answers `undefined`
+      // to every method (see the bail just above) — read it by shape.
+      const regHost = this.regHost as unknown as { getContainer?: () => unknown } | undefined;
+      const getContainer = regHost?.getContainer;
+      const place = typeof getContainer === 'function' ? (getContainer.call(regHost) as Stuff | null) : null;
+      if (place && MixinApi.isSwimmable(place as unknown as Stuff)) {
+        const host = this.regHost as unknown as Stuff;
+        const im = (place as unknown as Stuff & { immersionOf(o: Stuff): unknown | null }).immersionOf(host);
+        if (im && MixinApi.isAttired(host)) host.immerse();
+      }
       // ⭐⭐ Remember how far the transforms moved the raw room
       // temperature — the warming slot, the wind chill, the immersion,
       // the wetness. That OFFSET is what lets a room whose own

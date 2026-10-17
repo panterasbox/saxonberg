@@ -1698,6 +1698,12 @@ export const AppSettingKeys = {
    * saturation the cold-side wind-chill / immersion term is scaled by
    * `1 + wetHeatLossFactor`. */
   thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
+  /** Thermal — ⭐ the water temperature (K) an active swimmer is comfortable
+   * in (storage-and-ice D10a): water at or above it costs nothing, and
+   * water below it pulls a body's effective ambient down by the gap AGAIN
+   * — water conducts ~23× better than air, so a near-freezing pool reads
+   * far colder than near-freezing air, and a summer swim reads warm. */
+  thermalWaterNeutralK: "thermal.waterNeutralK",
 
   /* ────────────────────────── fire (combustion) ────────────────────────── */
   /** Fire — fuel consumed per game-minute while burning (`%`-points of the

@@ -7,10 +7,33 @@ import { LocomotionControllerBase, type LocomotionModel } from './LocomotionCont
 import type { CommandContext } from '../../../../api/command';
 import type { LocomotionMode } from '../../LocomotionMode';
 import type { TraversalGuard } from '../../../../lib/boundary/Exit';
+import type { CommandModel } from '../../../../api/command';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../../api/mixin';
 
 export default class SwimController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
     return 'swim';
+  }
+
+  /**
+   * ⭐ `swim` with no target — *swim here* (storage-and-ice D12): let go of
+   * the floor and go into the water where you are. The floor decides: one
+   * with open water drops you in, gently; one with none refuses. With a
+   * target it is the shipped crossing.
+   */
+  override async execute(model: LocomotionModel & CommandModel, context: CommandContext): Promise<void> {
+    if (model.target && model.target.stuff !== null) return super.execute(model, context);
+    const giver = context.commandGiver as unknown as Stuff;
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() as Stuff | null;
+    if (!floor || !MixinApi.isFloor(floor) || !floor.supportIsSlotted() || !(floor.openWaterAreaM2() > 0)) {
+      return this.refuse(context, 'act.deed', 'There is no open water here to swim in.', 'no-open-water');
+    }
+    if (!floor.supports(giver)) {
+      return this.refuse(context, 'act.deed', 'You are already in the water.', 'already-in-water');
+    }
+    floor.giveWay(giver, true);
   }
 
   protected override composeRejection(

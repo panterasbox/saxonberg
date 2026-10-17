@@ -5,3 +5,10 @@ settings:
   # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
   - key: thermal.wetHeatLossFactor
     value: "1.5"
+
+  # ⭐ The water an active swimmer is comfortable in, K (24 °C — a pool's
+  # temperature). Colder water pulls a body down by the gap AGAIN (water
+  # conducts ~23× better than air): a near-freezing pool reads far colder
+  # than near-freezing air, and a summer swim chills nobody (storage-and-ice).
+  - key: thermal.waterNeutralK
+    value: "297"
