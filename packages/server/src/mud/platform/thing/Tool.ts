@@ -45,6 +45,7 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 import { ConstructedMixin } from '../../lib/material/Constructed';
 import { KeenMixin } from '../../lib/material/Keen';
 import { AssembledMixin } from '../../lib/craft/Assembled';
+import { NamedMixin } from '../../lib/description/Named';
 
 // CraftedMixin closes the tools-make-tools loop: a Tool can be a
 // recipe output (smithing makes the hammer smithing needs); the mark
@@ -66,8 +67,15 @@ import { AssembledMixin } from '../../lib/craft/Assembled';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
+//
+// ⭐ Named BENEATH Assembled (repair D18): a tool may bear a proper name —
+// the grandfather's axe, a sword's blade lying loose — and an assembly's
+// name lives in the part that bears it, so `Assembled.getName` reads the
+// named part before this field.
 const ToolBase = AssembledMixin(
-  KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good))))),
+  NamedMixin(
+    KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good))))),
+  ),
 );
 
 export default class Tool extends ToolBase {}

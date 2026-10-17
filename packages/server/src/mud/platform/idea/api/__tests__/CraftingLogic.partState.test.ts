@@ -25,6 +25,7 @@ import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import { DurableMixin } from '../../../../lib/material/Durable';
 import type { MendRecord } from '../../../../lib/material/Durable';
 import { ConstructedMixin } from '../../../../lib/material/Constructed';
+import { NamedMixin } from '../../../../lib/description/Named';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
@@ -40,10 +41,13 @@ import {
 
 /** A family-shaped part: an edge, a name seat, mends, a recipe mark. */
 class TestPart extends AssembledMixin(
-  KeenMixin(CraftedMixin(DurableMixin(ConstructedMixin(Good)))),
+  NamedMixin(KeenMixin(CraftedMixin(DurableMixin(ConstructedMixin(Good))))),
 ) {
   static _mixinName = 'TestPartState';
 }
+/** A pail's shape: assembled, durable, never named. */
+class TestPail extends AssembledMixin(DurableMixin(Good)) {}
+
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomPartState';
 }
@@ -225,7 +229,7 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     const head = part(HEAD, IRON, ['axe-head', 'head'], 'bladed');
     head.setCondition(0.4);
     head.setKeenness(0.3);
-    head.setSeatName('Brightwater');
+    head.setName('Brightwater');
     head.recordMend(MEND);
     head.setRecipe('axe-head');
     ContainmentApi.move(head, smith);
@@ -238,7 +242,7 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     expect(line.mends).toEqual([MEND]);
     expect(line.recipe).toBe('axe-head');
     // The whole bears the name and the edge of its part.
-    expect(axe.getSeatName()).toBe('Brightwater');
+    expect(axe.getName()).toBe('Brightwater');
     expect(axe.getKeenness()).toBeCloseTo(0.3, 9);
     expect(axe.getMends()).toEqual([MEND]);
 
@@ -250,7 +254,7 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     expect(back).toBeDefined();
     expect(back.getCondition()).toBeCloseTo(0.4, 9);
     expect(back.getKeenness()).toBeCloseTo(0.3, 9);
-    expect(back.getSeatName()).toBe('Brightwater');
+    expect(back.getName()).toBe('Brightwater');
     expect(back.getMends()).toEqual([MEND]);
     expect(back.getRecipe()).toBe('axe-head');
     // ⛔ never a self-record on a loose part
@@ -259,7 +263,7 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
 
   it('⭐ a crafted whole is NAMELESS — the bill\'s found-default name is never read by the mint', async () => {
     const axe = await makeAxe();
-    expect(axe.getSeatName()).toBe('');
+    expect(axe.getName()).toBe('');
     expect(axe.getLine('head')!.form).toBe('bladed');
   });
 
@@ -283,9 +287,11 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
       ],
     });
     found.setShortDescription('an old sword');
-    expect(found.getSeatName()).toBe('Brightwater');
+    expect(found.getName()).toBe('Brightwater');
+    // The name is `Named`'s, so it is the presentation — which is what a
+    // typed `Brightwater` binds against (the scope walk scores the name).
+    expect(MixinApi.isNamed(found)).toBe(true);
     expect(found.getPresentation()).toBe('Brightwater');
-    expect(found.hasKeyword('brightwater')).toBe(true);
     expect(found.edgedLines().map((l) => l.part)).toEqual(['blade']);
   });
 
@@ -295,9 +301,16 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     expect(knife.isOnePiece()).toBe(true);
     expect(knife.getParts()).toEqual([]);
     expect(knife.getMarkupLong(knife)).toMatch(/It is one piece\./);
-    knife.setSeatName('Sting');
-    expect(knife.getSeatName()).toBe('Sting');
+    knife.setName('Sting');
+    expect(knife.getName()).toBe('Sting');
     expect(knife.getPresentation()).toBe('Sting');
     expect(MixinApi.isAssembled(knife)).toBe(true);
+  });
+
+  it('⚠ a host that does not compose Named bears no name, and naming it is a no-op', () => {
+    const pail = makeStuff(() => new TestPail());
+    pail.setName('Bucket Bess');
+    expect(pail.getName()).toBe('');
+    expect(MixinApi.isNamed(pail)).toBe(false);
   });
 });

@@ -39,6 +39,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Assembled } from '../../../../lib/craft/Assembled';
+import type { Named } from '../../../../lib/description/Named';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -55,18 +56,18 @@ interface NameModel extends CommandModel {
 
 export default class NameController extends CommandController<NameModel> {
   /**
-   * Name a thing whose name was taken by a reforge — once, by the hand
-   * that re-made it (repair D9, D18). Anyone else, or a thing nobody
-   * re-made, is not something you can name.
+   * Name a thing whose name was taken by a reforge — by the hand that
+   * re-made it (repair D9, D18). The thing answers whether this hand may
+   * (`canBeNamedBy`, read off its mend history); the name is `Named`'s.
+   * Anyone else, or a thing nobody re-made, is not something you can name.
    */
   private async nameThing(
-    thing: Stuff & Assembled,
+    thing: Stuff & Assembled & Named,
     wanted: string,
     context: CommandContext,
   ): Promise<void> {
     const actor = context.commandGiver;
-    const grant = thing.getNameGrant();
-    if (!grant || grant !== actor.getIdentityPath()) {
+    if (!thing.canBeNamedBy(actor.getIdentityPath() ?? '')) {
       this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
       return;
     }
@@ -74,8 +75,7 @@ export default class NameController extends CommandController<NameModel> {
       this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
       return;
     }
-    thing.setSeatName(wanted);
-    thing.setNameGrant('');
+    thing.setName(wanted);
     try {
       await PersistableApi.captureHostOf(thing);
     } catch (err) {
@@ -97,7 +97,7 @@ export default class NameController extends CommandController<NameModel> {
     // part (repair D18, Narsil's rule): both arms are checked HERE, since
     // the view's arg takes anything (`requires: any` — an alternation of
     // mixins in the view would delete one of the checks).
-    if (animal && MixinApi.isAssembled(animal)) {
+    if (animal && MixinApi.isAssembled(animal) && MixinApi.isNamed(animal)) {
       await this.nameThing(animal, wanted, context);
       return;
     }

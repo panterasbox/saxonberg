@@ -1041,6 +1041,20 @@ clear the grant, capture; `name.yaml`'s `target` arg becomes
 name.*; the memory rule: alternation deletes a check, so both arms are
 checked in code).
 
+> ⚠ **D18 revised in review (2026-10-17, owner): the name is `Named`'s.**
+> The seat/grant above was a second proper-name concept beside
+> `NamedMixin`, whose own header lists *named artifacts*. Now: `Tool` and
+> `Weapon` compose `NamedMixin` beneath `AssembledMixin`; the part's name
+> still rides its line (a fitted part is no object of its own), and
+> `Assembled.getName/setName` read and write the named part before the
+> host's `Named` field (a host without `Named` — a pail — bears none).
+> The `seatName`/`nameGrant` fields, the `identityPhrase` rung and the
+> `hasKeyword` override are gone: the name IS the presentation, which is
+> what a typed word binds against. The grant is DERIVED —
+> `MendRecord.nameLost` records what a reforge took, and
+> `canBeNamedBy(hand)` reads it (no name now; the latest name-taking mend
+> was this hand's).
+
 **D19 — Removals.** The infirmary tariff loses `repair`; the Rejection
 `mending-slate.yaml` is re-authored as the tinker's and moved from the
 provisioning shed's props to the smelter's (AC 7).

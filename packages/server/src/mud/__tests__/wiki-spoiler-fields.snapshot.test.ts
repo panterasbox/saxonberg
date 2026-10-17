@@ -40,7 +40,7 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
- * **Repair — assemblies part two (6 fields, and a relabel).** Every one
+ * **Repair — assemblies part two (4 fields, and a relabel).** Every one
  * level 0, and why:
  *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
  *     been mended (by Berta)* and `analyze condition` reads the rest by
@@ -48,13 +48,16 @@
  *   - `CraftedMixin.castDiscipline` — the trade of the mould a thing set
  *     in. It is which trade MENDS it, and the mend's own refusal names
  *     that trade; nothing to hide.
- *   - `AssembledMixin.seatName` / `.nameGrant` — ⭐ the question this
- *     build was asked to settle: is an un-revealed heirloom's name a
- *     spoiler? No. A thing's name is what it is CALLED — the heirloom is
- *     *Brightwater* on `look`, in the room and in your hands, and the
- *     name is how you ask for it. What a name may hide (where it came
- *     from, who carried it) is the row's prose, not this field. The grant
- *     is who may name a reforged part once — the reforger is told so.
+ *   - ⭐ The question this build was asked to settle — is an un-revealed
+ *     heirloom's name a spoiler? — answered with NO new field: a thing's
+ *     proper name is `NamedMixin.name` (already level 0, now composed on
+ *     Tool and Weapon), and a part's rides its line. A name is what a
+ *     thing is CALLED — *Hollin* on `look`, in the room and in your hands,
+ *     and how you ask for it. What a name may hide (where it came from,
+ *     who carried it) is the row's prose. The first cut added
+ *     `AssembledMixin.seatName`/`.nameGrant`, a second name concept; it
+ *     was folded onto `Named` in review, the grant derived from the
+ *     reforge's mend record (`MendRecord.nameLost`).
  *   - `Vat.emptySince` (was `Cask.emptySince`) and `Timber.condition` —
  *     the fold-back: the cask's drying clock moved onto every vat, and a
  *     stave's wear is stack identity. Runtime state, read out in words.

@@ -2,9 +2,11 @@
  * `name <thing> <name>` — the reforger's one naming (repair W5, D9, D18).
  *
  * A blade that bore a name loses it when it is broken and reforged; the
- * hand that re-made it may name it ONCE. Anybody else, or a thing nobody
- * re-made, is "not something you can name". The animal arm is untouched
- * (its own suite).
+ * hand that re-made it may name it — a right READ off the reforge's mend
+ * record (`nameLost`), never stored. Once named it bears a name, so the
+ * right is spent. Anybody else, or a thing nobody re-made, is "not
+ * something you can name". The name is `Named`'s. The animal arm is
+ * untouched (its own suite).
  */
 
 import '../../../../../../test-bootstrap';
@@ -31,7 +33,7 @@ function ctx(actor: unknown): CommandContext {
   } as unknown as CommandContext;
 }
 
-function blade(grant: string): Tool {
+function blade(reforgedBy: string): Tool {
   const t = makeStuff(() => new Tool());
   t.setBill({
     parts: [
@@ -40,8 +42,13 @@ function blade(grant: string): Tool {
     ],
   });
   t.ensureParts();
-  // A reforge leaves the grant on the LINE it re-made (`mendLine`).
-  if (grant) t.getLine('blade')!.nameGrant = grant;
+  // A reforge records the name it took on the LINE it re-made (`mendLine`).
+  if (reforgedBy) {
+    t.recordLineMend('blade', {
+      at: 1, by: reforgedBy, byName: 'Berta', band: 'expert', discipline: 'smithing',
+      part: 'blade', kind: 'reforged', result: 'sound', nameLost: 'Hollin',
+    });
+  }
   return t;
 }
 
@@ -78,16 +85,15 @@ afterEach(() => {
 });
 
 describe('naming a reforged blade', () => {
-  it('⭐ the reforger names it once — the name is the blade\'s, and the grant is spent', async () => {
+  it('⭐ the reforger names it — the name is the blade\'s, and having one, it cannot be renamed', async () => {
     const sword = blade(smith.getIdentityPath()!);
     await name(smith, sword, 'Dawnbreaker');
     expect(sword.getLine('blade')!.name).toBe('Dawnbreaker');
-    expect(sword.getSeatName()).toBe('Dawnbreaker');
-    expect(sword.getNameGrant()).toBe('');
+    expect(sword.getName()).toBe('Dawnbreaker');
     expect(said.join(' ')).toMatch(/Dawnbreaker/);
-    // Once: the grant is gone.
+    // It bears a name now: the right is spent.
     await name(smith, sword, 'Other');
-    expect(sword.getSeatName()).toBe('Dawnbreaker');
+    expect(sword.getName()).toBe('Dawnbreaker');
     expect(notes.some((n) => n.reason === 'not-nameable')).toBe(true);
   });
 
@@ -96,10 +102,10 @@ describe('naming a reforged blade', () => {
     stampTemplatePathForTest(stranger, '/x/agent/stranger');
     const sword = blade(smith.getIdentityPath()!);
     await name(stranger, sword, 'Mine');
-    expect(sword.getSeatName()).toBe('');
+    expect(sword.getName()).toBe('');
     const plain = blade('');
     await name(smith, plain, 'Shiny');
-    expect(plain.getSeatName()).toBe('');
+    expect(plain.getName()).toBe('');
     expect(notes.filter((n) => n.reason === 'not-nameable')).toHaveLength(2);
   });
 });

@@ -3793,12 +3793,15 @@ async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void
       if (how.instrument) grade = applyControlFloor(grade, [how.instrument], [how.capability]);
       item.setGrade(grade);
     }
-    // ⭐ Narsil's rule on a thing of one piece: re-made, it loses its name.
-    if (reforge && MixinApi.isAssembled(item) && item.getSeatName()) {
-      item.clearSeatName();
-      item.setNameGrant(m.handPath);
+    // ⭐ Narsil's rule on a thing of one piece: re-made, it loses its name,
+    // and the mend records which — the reforger's right to name it again
+    // is read off that record (`canBeNamedBy`), never granted.
+    const record = mendRecord(m, band, discipline, action, result);
+    if (reforge && MixinApi.isNamed(item) && item.getName()) {
+      record.nameLost = item.getName();
+      item.setName('');
     }
-    item.recordMend(mendRecord(m, band, discipline, action, result));
+    item.recordMend(record);
   }
   m.faults.push({
     part: '', kind, named: 'it', action, discipline, band, mendable: true, result, stockKg: needKg,
@@ -4306,10 +4309,7 @@ async function mintMember(
     if (line.mends && MixinApi.isDurable(out)) {
       for (const m of line.mends) out.recordMend(m);
     }
-    if (MixinApi.isAssembled(out)) {
-      if (line.name) out.setSeatName(line.name);
-      if (line.nameGrant) out.setNameGrant(line.nameGrant);
-    }
+    if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
     if (MixinApi.isCrafted(out)) {
       if (line.recipe) out.setRecipe(line.recipe);
       if (line.castDiscipline) out.setCastDiscipline(line.castDiscipline);
@@ -4321,7 +4321,7 @@ async function mintMember(
 
 /**
  * ⭐ What a loose part carries into a line (repair D2) — its edge, its
- * name and grant, its mends, and the recipe and mould that made it. The
+ * name, its mends, and the recipe and mould that made it. The
  * same fields `mintMember` writes back out, read off the part's own
  * mixins; absent ones are left absent.
  */
@@ -4331,11 +4331,11 @@ function carriedState(part: Stuff): Partial<PartLine> {
     const k = part.getKeenness();
     if (k < 1) out.keenness = k;
   }
-  if (MixinApi.isAssembled(part) && part.isOnePiece()) {
-    const name = part.getSeatName();
+  // A loose part's own `Named` name. A part of parts keeps its name on
+  // its own named line, which rides in with `parts`.
+  if (MixinApi.isNamed(part) && !(MixinApi.isAssembled(part) && !part.isOnePiece())) {
+    const name = part.getName();
     if (name) out.name = name;
-    const grant = part.getNameGrant();
-    if (grant) out.nameGrant = grant;
   }
   if (MixinApi.isDurable(part)) {
     const mends = part.getMends();

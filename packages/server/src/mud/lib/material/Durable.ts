@@ -77,6 +77,13 @@ export interface MendRecord {
   kind: 'mended' | 'reforged' | 'tightened';
   /** Whether it came back sound or short of it. */
   result: 'sound' | 'short';
+  /**
+   * ⭐ The name a reforge took (Narsil's rule, repair D9): a named part
+   * re-made is not the part that bore the name. History, not a grant —
+   * the hand on the latest such mend may name it again, and that right
+   * is DERIVED from this record (`Assembled.canBeNamedBy`), never stored.
+   */
+  nameLost?: string;
 }
 
 /** Default per-use wear when a consumer doesn't specify. */

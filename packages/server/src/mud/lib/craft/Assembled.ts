@@ -66,6 +66,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { WorldClockApi } from '../../api/worldclock';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type JointCatalogue from '../../platform/idea/JointCatalogue';
 import type { JointDescriptor } from '../../platform/idea/Joint';
 
@@ -166,13 +167,13 @@ export interface PartLine {
    * reads keen. It is the loose part's own `keenness`, carried in.
    */
   keenness?: number;
-  /** ⭐ The name this part bears — the seat of the whole's name (D18). */
-  name?: string;
   /**
-   * Identity path of whoever may NAME this part once — the hand that
-   * reforged a named part, which took its name (Narsil's rule, D9).
+   * ⭐ The name this part bears (D18). A fitted part is not an object of
+   * its own, so its `Named` name rides its line here; the whole answers
+   * to it (`getName`), and a part drawn out carries it back onto the
+   * loose part's own `Named` field.
    */
-  nameGrant?: string;
+  name?: string;
   /** Every mend this part has had (repair D10), carried in and out. */
   mends?: MendRecord[];
   /** The recipe that made the member, when one did (repair D1). */
@@ -195,7 +196,6 @@ export interface FittedMember {
   condition?: number;
   keenness?: number;
   name?: string;
-  nameGrant?: string;
   mends?: MendRecord[];
   recipe?: string;
   castDiscipline?: string;
@@ -285,17 +285,22 @@ export interface Assembled {
   /** Dull one line's edge by `amount`. */
   dullLine(part: string, amount: number): void;
   /**
-   * The name the thing bears — the named line's, else its own (a
-   * one-piece thing's). Empty when it bears none.
+   * ⭐ The name it bears (`Named`'s, repair D18): the named part's, else
+   * its own. On a host that does not compose `NamedMixin` it is always
+   * `''` and naming it is a no-op — a pail bears no name.
    */
-  getSeatName(): string;
-  /** Name it: the named line when it has one, else the thing itself. */
-  setSeatName(value: string): void;
-  /** Take the name away (a reforge), from the line that bears it. */
-  clearSeatName(): void;
-  /** Who may name it once — the hand that reforged its named part. */
-  getNameGrant(): string;
-  setNameGrant(value: string): void;
+  getName(): string;
+  /**
+   * Name it: the part that bears the name, or the part a reforge took a
+   * name from, else the thing itself (a one-piece thing's `Named` field).
+   */
+  setName(value: string): void;
+  /**
+   * May this hand name it? Derived, never stored: it bears no name now,
+   * and the latest mend that took a name (`MendRecord.nameLost`) was
+   * this hand's — Narsil's rule, the reforger names the re-made blade.
+   */
+  canBeNamedBy(handPath: string): boolean;
   /** Append a mend to one line's record. */
   recordLineMend(part: string, record: MendRecord): void;
   /**
@@ -564,10 +569,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       joints: { persistent: true, runtimeState: true },
       gauge: { persistent: true, runtimeState: true },
       hands: { persistent: true, runtimeState: true },
-      // ⭐ A one-piece thing's own name and its grant (repair D18) — a
-      // thing of parts keeps both on the line that bears them.
-      seatName: { persistent: true, runtimeState: true },
-      nameGrant: { persistent: true, runtimeState: true },
     };
 
     // ⚠ Below `fieldMeta`, never above it: the wiki-spoiler audit's owner
@@ -593,11 +594,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
      * so the work still says whose it is when they are not in the world.
      */
     public hands: Record<string, string> = {};
-
-    /** A one-piece thing's own name — `''` when it bears none (D18). */
-    public seatName: string = '';
-    /** Who may name a one-piece thing once — the hand that reforged it. */
-    public nameGrant: string = '';
 
     /** Remember the name a hand goes by, while it can be read. */
     private noteHand(path: string | undefined): void {
@@ -884,7 +880,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         line.failed = 0;
         setOrDelete(line, 'keenness', fitted.keenness);
         setOrDelete(line, 'name', fitted.name || undefined);
-        setOrDelete(line, 'nameGrant', fitted.nameGrant || undefined);
         setOrDelete(
           line,
           'mends',
@@ -985,40 +980,57 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.setLineKeenness(part, this.lineKeenness(part) - amount);
     }
 
-    getSeatName(): string {
-      const named = this.getParts().find((l) => l.name);
-      return named?.name ?? this.seatName;
+    // ------------------------------------------------- the name (Named's)
+    //
+    // ⭐ A proper name is `NamedMixin`'s and nobody else's (repair D18).
+    // What an assembly adds is WHERE it lives: in the part that bears it,
+    // so a drawn blade keeps it and a re-hilted sword answers to it. A
+    // host composes `NamedMixin` BENEATH this mixin (Weapon, Tool) for
+    // these to reach its own field; on a host without it (a pail) the
+    // name is always empty and naming is a no-op.
+
+    getName(): string {
+      const seat = this.getParts().find((l) => l.name);
+      if (seat?.name) return seat.name;
+      const own = (Base.prototype as unknown as { getName?: () => string }).getName;
+      return own ? own.call(this) : '';
     }
 
-    setSeatName(value: string): void {
+    setName(value: string): void {
+      const own = (Base.prototype as unknown as { setName?: (v: string) => void })
+        .setName;
+      if (!own) return;
       this.ensureParts();
-      // ⭐ The name lives in the part that bears it, or the part that may
-      // be named (its grant), else the thing itself (a one-piece thing).
-      const seat =
-        this.parts.find((l) => l.name) ?? this.parts.find((l) => l.nameGrant);
-      if (seat) seat.name = value;
-      else this.seatName = value;
+      const seat = this.parts.find((l) => l.name) ?? this.seatThatLostItsName();
+      if (!seat) {
+        own.call(this, value);
+        return;
+      }
+      const before = seat.name ?? '';
+      if (value) seat.name = value;
+      else delete seat.name;
+      // The live read (`Named.subscribableFields`) hears it as `name`.
+      MqlSubscriptionApi.fireFieldChange(this, 'name', before, value);
     }
 
-    clearSeatName(): void {
-      this.ensureParts();
-      for (const l of this.parts) delete l.name;
-      this.seatName = '';
+    canBeNamedBy(handPath: string): boolean {
+      if (!handPath || this.getName()) return false;
+      return this.latestNameLoss()?.by === handPath;
     }
 
-    getNameGrant(): string {
-      const granted = this.getParts().find((l) => l.nameGrant);
-      return granted?.nameGrant ?? this.nameGrant;
+    /** The latest mend that took a name, part's or its own. */
+    private latestNameLoss(): MendRecord | undefined {
+      const mends = this.getMends();
+      for (let i = mends.length - 1; i >= 0; i--) {
+        if (mends[i]!.nameLost) return mends[i];
+      }
+      return undefined;
     }
 
-    setNameGrant(value: string): void {
-      this.ensureParts();
-      const seat =
-        this.parts.find((l) => l.nameGrant) ?? this.parts.find((l) => l.name);
-      if (seat) {
-        if (value) seat.nameGrant = value;
-        else delete seat.nameGrant;
-      } else this.nameGrant = value;
+    /** The line a reforge took a name from — where a new one goes. */
+    private seatThatLostItsName(): PartLine | undefined {
+      const lost = this.latestNameLoss();
+      return lost?.part ? this.parts.find((l) => l.part === lost.part) : undefined;
     }
 
     recordLineMend(part: string, record: MendRecord): void {
@@ -1035,15 +1047,17 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const line = this.parts.find((l) => l.part === part);
       if (!line) return;
       const ceiling = Math.max(0, Math.min(1, mend.ceiling));
+      let record = mend.record;
       if (mend.reforged) {
         line.failed = 0;
         delete line.warped;
         line.condition = ceiling;
         // ⭐ Narsil's rule (repair D9, AC 14): a named part re-made loses
-        // its name, and the hand that re-made it may name it once.
+        // its name — and the mend says which, so the hand that re-made it
+        // may name it again (`canBeNamedBy`, derived from this record).
         if (line.name) {
+          record = { ...record, nameLost: line.name };
           delete line.name;
-          if (mend.record.by) line.nameGrant = mend.record.by;
         }
       } else {
         line.condition = Math.max(line.condition, ceiling);
@@ -1062,19 +1076,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
       }
-      this.recordLineMend(part, mend.record);
-    }
-
-    /**
-     * ⭐ A thing answers to the name it bears — `get Brightwater` finds the
-     * sword whose blade is named (repair D18).
-     */
-    hasKeyword(keyword: string): boolean {
-      const own = (Base.prototype as unknown as { hasKeyword?: (k: string) => boolean })
-        .hasKeyword;
-      if (own && own.call(this, keyword)) return true;
-      const name = this.getSeatName();
-      return !!name && name.toLowerCase() === keyword.toLowerCase();
+      this.recordLineMend(part, record);
     }
 
     // ---------------------------------------------- the Durable overrides

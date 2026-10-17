@@ -282,7 +282,7 @@ describe('repair W2 — the band decides, never a roll', () => {
     const p = pick();
     p.getLine('head')!.failed = 1;
     ContainmentApi.move(p, room);
-    expect(p.getSeatName()).toBe('Old Bess');
+    expect(p.getName()).toBe('Old Bess');
     // A fire that mends a worn head (900 K) is not enough to re-make one (1200 K).
     const warm = makeStuff(() => {
       const f = new Forge();
@@ -299,8 +299,15 @@ describe('repair W2 — the band decides, never a roll', () => {
     if (!out.ok) return;
     expect(out.rung).toBe('reforged');
     expect(p.getLine('head')).toMatchObject({ failed: 0, condition: 1 });
-    expect(p.getSeatName()).toBe('');
-    expect(p.getNameGrant()).toBe(berta.getIdentityPath());
+    expect(p.getName()).toBe('');
+    // The right to name it again is the mend's record, not a grant.
+    expect(p.getLine('head')!.mends?.at(-1)).toMatchObject({ kind: 'reforged', nameLost: 'Old Bess' });
+    expect(p.canBeNamedBy(berta.getIdentityPath()!)).toBe(true);
+    expect(p.canBeNamedBy('/somebody/else')).toBe(false);
+    // Named again, it bears it on the head that lost the old one.
+    p.setName('Young Bess');
+    expect(p.getLine('head')!.name).toBe('Young Bess');
+    expect(p.canBeNamedBy(berta.getIdentityPath()!)).toBe(false);
   });
 
   it('⭐ a one-piece thing is mended under its own recipe\'s trade, and remembers who', async () => {

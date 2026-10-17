@@ -170,14 +170,14 @@ edge and name and mends are the host's own fields, `fit x to it` refuses
 
 | class | composition | parts or one piece |
 |---|---|---|
-| `platform/thing/Tool` | `AssembledMixin(KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good))))))` | pick, felling axe, froe, drawknife, croze, inshave, plough · every other tool one piece |
-| `equipment/Weapon` (→ `Launcher`) | `Wieldable(Slottable(Keen(Assembled(Crafted(Durable(Constructed(Good)))))))` — Keen OUTSIDE (it reads outward to edged lines) | spear/mace/warhammer/flail, hunting bow · dagger, sword-as-shipped one piece |
+| `platform/thing/Tool` | `AssembledMixin(NamedMixin(KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good)))))))` | pick, felling axe, froe, drawknife, croze, inshave, plough · every other tool one piece |
+| `equipment/Weapon` (→ `Launcher`) | `Wieldable(Slottable(Keen(Assembled(Named(Crafted(Durable(Constructed(Good))))))))` — Keen OUTSIDE (it reads outward to edged lines) | spear/mace/warhammer/flail, hunting bow · dagger, sword-as-shipped one piece |
 | `equipment/Garment` | `Wearable(Slottable(Assembled(Crafted(Durable(Constructed(Dyed(Good)))))))` | leather boots · every other garment |
 | `equipment/Shield` | composes it directly | every shield row is a face over boards |
 | `platform/thing/Vat` | `Assembled(Durable(VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable(Good))))))))` | cask, dry-cask and its `extends:` · carboy, culture jar, crock |
 | `platform/thing/Lamp` | `Assembled(Crafted(Durable(Burner(LightSource(Bulkable(Thermal(Good)))))))` | lantern · torch |
 | `platform/thing/Chair` | `Assembled(Crafted(Durable(Postured(Slotted(Good)))))` | armchair, bed · stool, tub |
-| `platform/thing/Receptacle` | `Assembled(Crafted(Durable(Thermal(Bulkable(Good)))))` | every receptacle one piece today |
+| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — ⚠ NOT Crafted: on a bulk holder Crafted is the BATCH's identity (`wash`/`rinse`/`cool` skip a crafted holder; a pour carries maker and recipe holder to holder) | every receptacle one piece today |
 | `platform/thing/Assembly` | `AssembledMixin(CraftedMixin(DurableMixin(Good)))` | the made-of-parts thing with no other capability: cask head, frame, cushion, mattress, bellows. A noun — the twin of `Good` on this axis |
 | `platform/thing/Barrel` | `AssembledMixin(DurableMixin(CraftedMixin(SealableMixin(ContainerMixin(Good)))))` | `slack-barrel` — a container of staves, not a vessel |
 | pack: `CookPot` (cooking) — a recipe output that wears | `Assembled(ManualBuild(ToolMixin(Durable(ServingVessel))))` | one piece |
@@ -206,6 +206,27 @@ derivable.
 (`fit`/`repair`/`salvage`) are collected from the mixin chain regardless —
 which is why, with the mixin deep inside the family, no subclass restates
 anything. (The narrow twins had to: `AssembledLauncher` restated `shoot`.)
+
+### ⭐ A name — `Named`'s, living in the part that bears it
+
+A proper name is `NamedMixin`'s and nothing else's (repair D18, folded
+onto `Named` in review). `Tool` and `Weapon` compose it BENEATH the
+mixin — a sword may be *Hollin*, a grandfather's axe may have a name; a
+pail bears none. What an assembly adds is WHERE it lives: a fitted part is
+not an object of its own, so its name rides its line (`PartLine.name`),
+and `Assembled.getName()` reads the named part before the host's own
+field. So a drawn blade carries the name onto the loose blade's `Named`
+field, a re-hilted sword answers to it, and because the name IS the
+presentation, a typed `Hollin` binds by the scope walk's name score — no
+keyword is added. A found thing names its part from the bill
+(`BillPart.name`); a crafted one is nameless.
+
+⭐ **Narsil's rule is history, not a grant.** A named part re-made by a
+reforge loses its name, and the reforge's `MendRecord` says which
+(`nameLost`). `canBeNamedBy(hand)` is DERIVED from that record: the thing
+bears no name now, and the latest mend that took one was this hand's. The
+name a reforger gives goes on the part that lost the old one. Once it
+bears a name the right is spent — there is no field to clear.
 
 ## Wear — routed to the part that answers it
 
@@ -295,8 +316,9 @@ not (`RepairSuccess.mended` / `.skipped`); it is a refusal only when
 nothing was mended:
 
 1. **A failed member** — metal is RE-MADE at its recipe's heat and tools
-   (`requiresHeatK`, `toolCapabilities`; a named part loses its name and
-   the reforger holds a `nameGrant`); anything else is skipped as
+   (`requiresHeatK`, `toolCapabilities`; a named part loses its name, and
+   the mend records it — `nameLost`, from which the reforger's right to
+   name it again is read); anything else is skipped as
    `part-failed`, naming the part (below the joint's band, *something
    about the staves*). The cure is `fit`.
 2. **Slack joints** are tightened, consuming nothing — never round a
