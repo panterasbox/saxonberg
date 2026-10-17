@@ -1,9 +1,58 @@
-> ⏸ **ON HOLD (owner, 2026-10-16): do not `/build` until dairy (build-2)
-> has merged** — it ships the kernel mould system, and moulds' place in
-> crafting/assembly is to be decided first; re-ground W1 and D17 against it.
+> ✅ **Dairy has merged (`b18743d80`, 2026-10-17) and this plan was
+> re-grounded against it (below).** W0–W6 may `/build`.
 > ⏸ **W7 (building upkeep, D20–D27) is gated SEPARATELY on the rubber
 > build reaching master** — see § W7 and § Risks 12. If it has not, W0–W6
-> open the MR and W7 ships as its own follow-up MR.
+> open the MR and W7 ships as its own follow-up MR. As of 2026-10-17
+> `origin/reqs/rubber` is still docs only (8 files; see § W7 Gate).
+
+> **Re-ground 2026-10-17** — what changed in SUBSTANCE on master since
+> the assembly merge (`72fc1681e..b18743d80`, 267 files: the dairy build,
+> the slate cleanup, the stewardship doc). Line shifts are fixed in place
+> and not listed.
+> 1. **The kernel MOULD system exists** (`lib/mould/Mould.ts`,
+>    `platform/thing/Mould`, dairy's `Hoop`, `docs/subsystems/mould.md`).
+>    D1's third read is now written against its real names (a cast
+>    carries the mould's `maker` and grade already; it carries NO
+>    discipline — the pour credits it and forgets — so the build stamps
+>    one more value at the same place). D4 decides `Mould` is **not** a
+>    family in this build (no recipe makes one); the moulding build adds
+>    it with the two-piece mould. § Grounding gains *The mould system*.
+> 2. **`StagedMixin` already composes on bodies**: Katie, Walter and the
+>    Realtor are `CastMixin(StagedMixin(NPC))` in their packs, and
+>    `Gus.ts`'s header names the kernel split that blocks a general
+>    *person with a loadout* (`props:` is bundled with `cast:`). **D14 is
+>    revised** to that shipped shape — a `Tinker` class in the terminus
+>    pack, no kernel claim on every NPC; the split leaves as a seam.
+> 3. **The `lint:bills` arm-8 census was wrong**: 17 bill-part templates
+>    have no recipe today (not 5), and the plough's share is
+>    `/trade/smithing/thing/plough-share`, which HAS one. D7 opens the
+>    ceiling at 17 and drives it to 15. D7 also gains **arm 7d** — the
+>    owner's rule made checkable (*a recipe output's class that wears
+>    composes Assembled*), which is what caught `CookPot`: a cast pot with
+>    a smithing recipe that is Durable and not Assembled. It joins D4's
+>    families (a pack one-liner).
+> 4. **`ToolMixin` does not bundle `Durable`** — the grounding's Durable
+>    composer list was wrong (Sawmill, Still, Tap, GristMill… are not
+>    Durable; `CookPot`, `Mould`, `Hoop` are). No decision changes; the
+>    host-placement table's inherited list is corrected.
+> 5. **Row counts moved**: `Vat` 16 (dairy's cheese vat, rennet jar and
+>    starter crock are kernel `Vat` rows — D5/D6 reach them, vacuously),
+>    `Tool` 67, `Receptacle` 18 (the pail is a `CraftVessel` now),
+>    `Mould` 2. Rejection's smelter now props a **crucible and an ingot
+>    mould** beside the furnace and anvil (dairy D19) — the tinker's stop
+>    is unchanged. The valley gate gained two dairy exits.
+> 6. **The anvil ladder's taken list** was partly wrong in § Grounding
+>    (no `driver`; `shield-boss` is `poor`); D17's four new heats were
+>    re-checked against the real list and are free.
+> 7. The caller's *wiki-spoiler snapshot* exists after all —
+>    `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` enumerates
+>    every `fieldMeta` field with its reveal level and demands a
+>    review-log entry per new field; every new field in this build
+>    churns it (§ Convention conformance).
+> 8. Slate cleanup: `clinical-medicine`, `assembly`, `trade-roster` and
+>    `magic-items` slates now live under `docs/slates/tails/`; this plan's
+>    one link (`repair-slate`) is unmoved. ⚠ The requirements doc links
+>    `clinical-medicine-slate` under `builds/` — stale, listed in § Risks.
 
 # Repair — assemblies, part two — implementation plan
 
@@ -30,24 +79,26 @@ on its own commit; `pnpm test` runs once, before the MR.
 
 ## Grounding
 
-Verified by opening the files, 2026-10-16 (paths under `packages/`).
+Verified by opening the files, 2026-10-16; **re-verified against
+`b18743d80` (master after dairy) on 2026-10-17** — every line number
+below is the current tree's (paths under `packages/`).
 
 ### The mend today
 
-- `server/src/mud/platform/idea/api/CraftingLogic.ts:3209 repairImpl` —
+- `server/src/mud/platform/idea/api/CraftingLogic.ts:3222 repairImpl` —
   maker = `ExecutionContextApi.getActingAuthor()` else
   `req.makerPath`; refuses a non-Durable; an Assembled item runs
-  `repairAssemblyRungs` (`:3615`) first — failed part refused and named
+  `repairAssemblyRungs` (`:3628`) first — failed part refused and named
   (below the joint's band, *"something about the staves"*), slack joints
-  tightened under `jointGate` (`:3576`), a spent cask re-fired — then the
+  tightened under `jointGate` (`:3590`), a spent cask re-fired — then the
   wear rung: the WHOLE's material decides the gate (`hasTag('metal')` →
   `maker.reachableHeatK() ≥ crafting.repair.metalHeatK` 900 + an `anvil`
   in the gather; else a `mending` tool); cost `mass × deficit ×
   crafting.repair.costFactor` 0.6 (× `brokenFactor` 2); draws same-tag
   stock; `item.setCondition(1)`; `applyControlFloor` on the grade.
   ⚠ **No band is read on the wear path; no `captureHostOf` after.**
-- `bandIn(who, discipline)` `:3566` (Advancing → `competenceBandFor`,
-  else `CompetenceBand.FLOOR`); `RECOVERY_BY_BAND` `:3535`
+- `bandIn(who, discipline)` `:3580` (Advancing → `competenceBandFor`,
+  else `CompetenceBand.FLOOR`); `RECOVERY_BY_BAND` `:3548`
   (0.5/0.7/0.85/0.95/1.05) is salvage's band table — the shape to copy.
 - Types in `server/src/mud/api/crafting.ts`: `RepairRequest {item,
   makerPath?}` `:204`, `RepairDeclineReason` `:218`, `RepairSuccess
@@ -73,10 +124,11 @@ Verified by opening the files, 2026-10-16 (paths under `packages/`).
   parts?, joints?, plural?}` `:117` — **no keenness, no name, no mends,
   no recipe**. `JointState` `:155`. fieldMeta `:444`: `bill`
   authorable; `parts`/`joints`/`gauge`/`hands` `{persistent,
-  runtimeState}` — a new line field persists free. `billLines()` `:558`
+  runtimeState}` — a new line field persists free. `billLines()` `:596`
   reads a FOUND thing's lines at defaults (material from the bill or the
-  whole; grade `fair`; condition 1; **no form**). `getParts()` `:506`
-  answers `billLines()` while `parts` is empty; `ensureParts()`
+  whole; grade `fair`; condition 1; **no form**). `getParts()` `:516`
+  answers `billLines()` while `parts` is empty; `getLine(part)` `:558`;
+  `ensureParts()` `:589`
   materializes on the first mutating act. `wear(amount, channel)` `:869`
   → `lineGivingFirst`; `wearLine` `:689` fails a member at the broken
   dial; `getCondition()` `:825` = min(own, every line), 0 on a failed
@@ -84,37 +136,39 @@ Verified by opening the files, 2026-10-16 (paths under `packages/`).
   `replaceMembers()` `:725` sets the fitted line's condition to **1
   regardless of the part's own**; `restoreAll` `:799`;
   `assemblyAugmenter` `:311` (made of…, failed, slack, *the work of A
-  and B*) — no condition word, no grade, no mend. `__validateComposition__`
-  requires Durable. `commandContributions` `fit/repair/salvage` in
-  `environment` + `peers`.
-- `applyAssembledOutput` (`CraftingLogic.ts:2286`) — one line per
+  and B*; registered at `static markupAugmenters` `:401`) — no condition
+  word, no grade, no mend. `__validateComposition__` `:434`
+  requires Durable. `commandContributions` `:410` `fit/repair/salvage` in
+  `environment` + `peers`. (Unchanged by dairy — 907 lines.)
+- `applyAssembledOutput` (`CraftingLogic.ts:2299`) — one line per
   recipe slot: template, material, weakest grade, mean condition,
   makers (the consumed part's `Crafted.maker`), form, green/cupped,
   nested record. **The consumed part's `Crafted.recipe` is not copied.**
   Bill parts no slot supplied read at defaults. With no bill and < 2
   slots: a one-slot craft of an assembly carries the record across;
   otherwise no record.
-- `fitImpl` `:3700` — raise arm gates the bill's joints then
+- `fitImpl` `:3716` — raise arm gates the bill's joints then
   `craftImpl`; replace arm matches a line by row lineage or keyword,
   reads the part's material/grade/form/green/cupped/nested, **drops its
   condition and keenness**, mints a sound count-1 member back
   (`mintMember`), `replaceMembers`, whole's grade = worst line,
   `captureHostOf(whole)`.
-- `mintMember` `:3851` — clones `line.template` with `madeFrom`, sets
+- `mintMember` `:3857` — clones `line.template` with `madeFrom`, sets
   material, grade (−1 if `gradeDown`), **condition** (if Durable),
   form, nested record, quantity. Not keenness, not a name, not mends.
-- `salvageByJoints` `:3885` reads `RECOVERY_BY_BAND` per joint.
+- `salvageByJoints` `:3894` reads `RECOVERY_BY_BAND` per joint.
 - `server/scripts/check-bills.ts` — arms 1–7; **arm 7 (`:219–240`) is
   `bill ⇔ composes AssembledMixin`, both ways**, and its header forbids
   the mixin on a broad family. Helpers from `scripts/pack-roots.ts`:
   `inheritanceIndex`, `effectiveRow`, `composesMixin`, `packSources`.
 - `isAssembled` callers (all empty-safe when `getParts()` is `[]`):
   `RepairController:55`, `FitController:88,156` (`wholeFor` → no lines →
-  null), `CraftingLogic:2291,2301,2352,3075,3232,3398,3744,3799,3868`,
+  null), `CraftingLogic:2304,2314,2365,3088,3245,3411,3757,3812,3881`,
   `ConditionLogic:1201,1260`, `Assembled.ts:312`,
   `trade-coopering/src/idea/reading/CapacityReading.ts:99`,
   `trade-farming/src/idea/cmd/farming/PloughController.ts:88`. `fit`
-  on an empty record refuses `no-line`.
+  on an empty record refuses `no-line`. (Recounted 2026-10-17: the same
+  seventeen sites; dairy added none.)
 
 ### Keen, Durable, Constructed, Tool
 
@@ -126,19 +180,30 @@ Verified by opening the files, 2026-10-16 (paths under `packages/`).
   Readers: `CombatLogic:2301,2355` (edge/point only),
   `ResponseReading:135` (`!armor && isKeen` — prints *edge* for a mace
   too), `WeaponReading:99` (edge/point only), `SharpenController`.
-- `server/src/mud/lib/material/Durable.ts` — `condition`, `wear`,
-  `isBroken`; **no augmenter, no history**. Composers: `Tool`,
-  `Weapon`, `Garment`, `Shield`, `Assembly`, `Barrel`, `Cask`,
-  `Lantern`, `AssembledChair`, every `ToolMixin(…)` composer (`Sawmill`,
-  `CookPot`, `Still`, `Tap`, `GristMill`, `MeasureBook`, `WateringCan`,
-  `CocktailShaker`), `arcana/Conduit`, apiculture `Frame`/`Smoker`.
+- `server/src/mud/lib/material/Durable.ts` — `condition` (`:77`),
+  `wear` (`:95`, `WEAR_PER_USE` 0.01 `:48`), `isBroken`; **no augmenter,
+  no history**. ⚠ **`ToolMixin` does NOT bundle Durable** (`lib/craft/
+  Tooled.ts:14`: *at the use site, never bundled here*) — so the
+  composer list is exactly the `DurableMixin(` sites: kernel `Tool`
+  (`:53`, hence every `extends Tool`), `Weapon`, `Garment`, `Shield`,
+  `Assembly`, `Barrel`, `Cask`, `Lantern`, `AssembledChair`,
+  **`Mould`** (dairy); packs `arcana/Conduit`, apiculture
+  `Frame`/`Smoker` (both already Assembled), cooking `CookPot`
+  (`ManualBuild(ToolMixin(Durable(ServingVessel)))` — a **recipe output**,
+  Durable, NOT Assembled), dairying `Hoop`. `Sawmill`, `Still`, `Tap`,
+  `GristMill`, `WateringCan`, `CocktailShaker` are `ToolMixin` composers
+  with **no** Durable (nothing wears them; `repair` does not afford).
 - `server/src/mud/platform/thing/Tool.ts:53` =
   `Crafted(ToolMixin(Durable(Good)))` — **no Constructed, no Keen**.
-  Subclasses: kernel `Spade`, `LoadDevice`, `MendingTool`; packs
-  `SurveyInstrument` (mining), `SpinningTool` (textiles), `Whetstone`,
-  `Rod`, `Trap`, `KitchenTool`, `SutureKit`, `AssayKit`, `Bailer`,
-  `Derrick`, `GrozingPliers`, `Blowpipe`, `ScribingWheel`, `Strainer`,
-  `Muddler`, `HouseholdersKit`, `SoilKit`.
+  `extends Tool` today: kernel `Spade`, `LoadDevice`, `MendingTool`;
+  packs `SurveyInstrument`, `AssayKit`, `AssayBench`, `TimberSet`
+  (mining), `SpinningTool`, `Loom`, `ScutchingBoard` (textiles),
+  `Whetstone`, `Anvil` (smithing), `Rod`, fishing `Trap`, `KitchenTool`,
+  `SutureKit`, `Bailer`, `Derrick`, `GrozingPliers`, `Blowpipe`,
+  `ScribingWheel`, `Strainer`, `Muddler`, `HouseholdersKit`, `SoilKit`,
+  `CuttingTool` (tailoring). (`Whetstone`/`SutureKit` are
+  `AudibleMixin(Tool)`, `Blowpipe` `ContainerMixin(Tool)`, the fishing
+  `Trap` `Bulkable(Container(Tool))` — mixin statics union through.)
 - `lib/material/Construction.ts` — `WEAPON_DELIVERY_FORMS = bladed ·
   pointed · hafted · flail · whip · blunted` (`:100`); `bladed` delivers
   edge primary; `isWeapon()` = a delivery form; `STOCK_FORMS` `:127`.
@@ -163,15 +228,30 @@ brewing/cask, distilling/cask, charred-cask) · `Lantern` 1 ·
 `AssembledSurveyInstrument` 1 (compass; `SurveyInstrument extends Tool`,
 restates `commandContributions`) · `AssembledSpinningTool` 1
 (drop-spindle; `SpinningTool extends Tool`) · `Barrel` 1 · `Shield` 1.
-Families: `Tool` 66 rows, `Garment` 21, `Receptacle` 19
-(`Thermal(Bulkable(Good))`, no Durable/Crafted; `WateringCan` extends
-it), `Vat` 13 (`VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable
-(Good))))))`, no Durable), `Weapon` 7 plain, `Lamp` 3
+Families (recounted 2026-10-17): `Tool` 67 rows, `Garment` 21,
+`Receptacle` 18 (`Thermal(Bulkable(Good))`, no Durable/Crafted;
+`WateringCan` extends it; the commons **pail is a `CraftVessel`** since
+dairy), `Vat` 16 (`VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable
+(Good))))))`, no Durable — dairy added three kernel-`Vat` rows:
+`/trade/dairying/thing/{cheese-vat, rennet-jar, starter-crock}`; the
+rest are brewing/winemaking/distilling vats, culture jars, the carboy,
+the honey jar, the sap pan, the salt pan and the malting floor),
+`Weapon` 7 plain, `Lamp` 3
 (`Burner(LightSource(Bulkable(Thermal(Good))))`, no Durable/Crafted),
 `Chair` 3 (`Postured(Slotted(Good))`, no Durable/Crafted), `Launcher` 1
-(musket). `Cask.ts` carries `emptySince` + `reconcileDrying` +
+(musket), **`Mould` 2** (`ice-pan`, `ingot-mould` — see *The mould
+system*). The twins' exact chains, for the fold-back: `Cask` =
+`Assembled(Durable(Vat))`; `Lantern` =
+`Assembled(Crafted(Durable(Lamp)))`; `AssembledChair` =
+`Assembled(Crafted(Durable(Chair)))`; `AssembledTool` =
+`Assembled(Tool)`; `AssembledWeapon` = `Assembled(Weapon)`; `Assembly` =
+`Assembled(Crafted(Durable(Good)))`; `Barrel` =
+`Assembled(Durable(Crafted(Sealable(Container(Good)))))`; `Shield` =
+`Wieldable(Slottable(Assembled(Crafted(Durable(Constructed(Good))))))`.
+`Cask.ts` carries `emptySince` + `reconcileDrying` +
 `getClosure` (open while `leaks()`); `Lantern.ts` scales flux by failed
-facing panes; `AssembledChair.ts` scales `getRestQuality`.
+facing panes; `AssembledChair.ts` scales `getRestQuality`. None of
+these files changed in dairy.
 
 ### Recipes and disciplines
 
@@ -182,21 +262,39 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   band} | null`; `wedged`/`friction`/`seated`/`glued` are hand joints
   (null), `riveted` is tool `striking` + smithing, `stitched` tool
   `mending` + tailoring, `pegged` carpentry novice.
-- Bill-part rows with a recipe that makes them: stave, cask-head, hoop,
-  cushion, mattress, frame, handle, pick-head, drawknife-blade,
-  froe-blade, axe-haft, shield-boss, rivet (1 each). **Without one:**
-  `/trade/farming/thing/share`, `/trade/tanning/thing/hide-face`,
-  `/trade/apiculture/thing/bellows`, **`/trade/tanning/thing/sole`,
-  `/trade/tailoring/thing/boot-upper`** (both plain `Tool` rows; recipe
-  dirs: tanning `packing`, `salt-hide`; tailoring `cushion`,
-  `leather-boots`, `leather-jerkin`, `mattress`).
+- **Bill-part templates: 51 distinct, 34 with a recipe that makes
+  them** (recomputed 2026-10-17 from every `{ part: …, template: … }`
+  bill line against every `recipes/*.yaml` `outputTemplate`). ⚠ The
+  plough's share is `/trade/smithing/thing/plough-share` and HAS a
+  recipe (`forgeable×3 fair @1250`). **Without one (17):**
+  `/stuff/thing/arms/nock`, `/trade/apiculture/thing/bellows`,
+  `/trade/carpentry/thing/board`, `/trade/chandlery/thing/wick`,
+  `/trade/glass/thing/pane`, `/trade/mining/thing/{compass-housing,
+  compass-needle, compass-rose}`, `/trade/smithing/thing/canister`,
+  **`/trade/tailoring/thing/boot-upper`**, `/trade/tailoring/thing/
+  {cushion-cover, stuffing}`, `/trade/tanning/thing/bellows-gusset`,
+  `/trade/tanning/thing/hide-face`, **`/trade/tanning/thing/sole`**,
+  `/trade/textiles/thing/{bowstring, whorl}`. Sole and boot-upper are
+  plain `Tool` rows (recipe dirs: tanning `packing`, `salt-hide`;
+  tailoring `cushion`, `leather-boots`, `leather-jerkin`, `mattress`).
+  Some of the 17 are made by a verb that is not a recipe (a pane by the
+  glass bench, a board by the saw) — the arm cannot know that, which is
+  why it is a ceiling and not a zero.
 - Anvil recipes discriminate on the exact slot signature
   (`content/trade-smithing/src/__tests__/anvil-ladder.test.ts:68` —
-  `category×count:minGrade… @heat`); taken 1-slot `forgeable` signatures
-  include `1:fair@1200` (pick-head, tongs, driver poor, shield-boss
-  poor), `1:fair@1100` (pinch-bar), `1:fair@1150` (adze-blade),
-  `1:poor@1050` (rivet), `2:fair@1450` (sword), `1:fair@1400`
-  (belt-knife). The sword recipe (`trade-smithing/content/recipes/sword.yaml`)
+  `category×count:minGrade… @heat`; `KNOWN_TIES` `:37` =
+  `assay-kit+miners-dial`, `pick-head+tongs`). The taken list, computed
+  2026-10-17 over smithing + mining + smelting (29 anvil recipes):
+  `1:fair@` 800 smiths-hammer · 1100 pinch-bar · 1150 adze-blade ·
+  **1200 pick-head + tongs** · 1250 froe-blade · 1300 table-knife ·
+  1350 drawknife-blade · 1400 belt-knife · 1450 dagger; `1:good@1450`
+  spear-head; `1:poor@` 700 fire-poker · 800 cook-pot · 1050 rivet ·
+  1150 hoop · 1200 shield-boss; `2:fair@` 1150 warhammer-head · 1200
+  axe-head · 1400 mace-head · **1450 sword**; `2:poor@` 700 barbell ·
+  1250 flail-head; `3:fair@` 1100 mail-hauberk · 1250 plough-share;
+  `4:fair@1350` breastplate; plus the `wood` two-slot ones (shovel,
+  sledge, assay-kit, miners-dial). Dairy added no anvil recipe. The
+  sword recipe (`trade-smithing/content/recipes/sword.yaml`)
   is one slot `forgeable×2 @1450`, hard, smithing; the row
   (`generic-objects/content/stuff/thing/arms/sword.yaml`) is a `Weapon`,
   `bladed`, `fine`, no bill.
@@ -212,9 +310,73 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   mining, silviculture… `appraisal` specializes `retail-sales`;
   **nothing in code reads it**.
 
+### The mould system (dairy, on master since 2026-10-17)
+
+- `server/src/mud/lib/mould/Mould.ts` (434 lines) — `MouldMixin`,
+  `_mixinName 'MouldMixin'` (`Mixins.Mould`, `MixinApi.isMould`). Fields
+  (fieldMeta): `castTemplate` `{persistent, authorable, ref:
+  'identity:kind'}`, `reusable` (default true), `wearPerCast` (default
+  `WEAR_PER_USE` 0.01, imported from `Durable.ts`), **`discipline`**
+  (`authorable`; `getMouldDiscipline()` / `setDiscipline()`),
+  `setProgress`/`setStamp`/`setPressed` (runtime state).
+  `__validateComposition__` requires `Bulkable`, `Thermal`, `Container`
+  — NOT Durable; Durable is read by probe (`castTemplateFor` casts the
+  material's own lump while `isDurable(self) && isBroken()`; `castInto`
+  wears a reusable Durable mould by `wearPerCast`, destructs a consumed
+  one). `castInto(pool: SetPool)` is the one cast path (freeze from
+  `Thermal.reconcileBulkPhase`, drain from `reconcileSetting()`):
+  clones `castTemplateFor(material)`, stamps material/mass, then
+  module-private **`carryPayload(cast, pool, mould)`** — `if
+  isCrafted(cast)`: `setMaker(payload.maker || mould's Crafted.maker)`
+  and, `if isGraded(mould)`, `cast.setGrade(mould.getGrade())`; then
+  freshness, pathogens, water state, `madeFrom` by duck-probe. ⭐ **The
+  cast records WHO and HOW WELL but not WHICH TRADE**: the discipline
+  is credited to the pourer at the fill (`platform/idea/cmd/bulk/
+  PourController.ts:130–146`: `isMould(target) && getMouldDiscipline()`
+  → `giver.creditDeed({discipline, difficulty: 'standard'})`) and is
+  then forgotten. No recipe is involved anywhere (`mould.md § No verb`).
+  `mouldAugmenter` prints *filled · setting · set* on `look`.
+- `platform/thing/Mould.ts` = `Mould(Durable(Crafted(Thermal(Bulkable
+  (Container(Good))))))` — rows `generic-objects/…/vessel/ice-pan.yaml`
+  (no discipline) and `trade-smelting/…/thing/ingot-mould.yaml`
+  (`discipline: smelting`, `castTemplate: /trade/smelting/thing/ingot`,
+  ceramic, 6 kg). `trade-dairying/src/thing/Hoop.ts` =
+  `Placing(Mould(Durable(CraftVessel)))` — row `hoop.yaml`
+  (`discipline: dairying`, `castTemplate: …/wheel`, beech, keywords
+  `hoop · cheese hoop · mould · mold`). **No recipe outputs a `Mould`,
+  a `Hoop` or an ice pan** (the smithing `hoop` recipe outputs the CASK
+  hoop `/trade/smithing/thing/hoop`). Both compose Durable, so
+  `repair` already affords on them and the shipped wear rung mends them
+  by material (ceramic/wood → a `mending` tool).
+- **What a cast IS today**: `/platform/thing/Ingot` =
+  `Alloyed(ManualBuild(Meltable(Thermal(Good))))`, `/platform/thing/
+  Casting` = `Alloyed(Meltable(Thermal(Good)))` — neither Crafted nor
+  Durable, so `carryPayload` tells an ingot nothing (`mould.md`: *an
+  ingot composes none of these*). The `Wheel` is `Ripening(Provision)`
+  (Crafted via `Provision`). **No bill part in the realm is cast**, and
+  no Durable thing is; D1's third read therefore has no content consumer
+  in this build and is proven by a unit fixture.
+- `Crafted.ts` fields: `maker` (`:122`), `recipe` (`:126`), `craftedAt`;
+  fieldMeta `:113` (`{persistent, runtimeState}` both). `MadeFromHolding`
+  (`Mould.ts`) is the duck-probed `getMadeFrom/setMadeFrom` pair
+  `CraftingLogic.ts:1904–1912` now also copies across a transform.
+- `docs/subsystems/mould.md` — *Reusable and consumed* says `repair`
+  mends a mould; *Deferred* lists other moulded goods, dry/cure/bake as
+  set processes, the consumed mould, the pool's payload onto a non-food
+  cast. The moulding slate (`docs/slates/builds/moulding-slate.md § 0`,
+  owner 2026-10-16) rules *this is its own build, after repair; repair
+  takes one seam now — a cast part is mended under the discipline its
+  mould credits* and (§ 7) *the two-piece mould is an assembly — cope
+  and drag under a joint*.
+- The `wiki-spoiler-fields` audit (`src/mud/__tests__/
+  wiki-spoiler-fields.snapshot.test.ts` + `__snapshots__/*.snap`, 1,375
+  lines) enumerates every `fieldMeta` field with its reveal level and
+  its header carries a per-build review log (dairy's: *24 fields, and a
+  relabel*). `DurableMixin.condition = 0` is at `:410`.
+
 ### The paid service
 
-- `platform/idea/cmd/retail/OrderController.ts:208 doService` →
+- `platform/idea/cmd/retail/OrderController.ts:207 doService` →
   `ensureOperatorAt(venuePath)` → `performService` repair arm
   (`:350–367`): `CraftingApi.repair({item})` — **no hand**: the acting
   author (the customer) is the maker; then `tariff.collect(key)`.
@@ -261,7 +423,8 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `responsePipsAugmenter` folds grade/condition into pips silently.
   **No condition-word function for goods.** Augmenters are
   `static markupAugmenters` on a class or mixin (`Visible.ts:174`,
-  `Detailed.ts:301`, `Assembled.ts:280`) and union through the chain.
+  `Detailed.ts:301`, `Assembled.ts:401`, `Mould.ts`'s `mouldAugmenter`)
+  and union through the chain.
 - `lib/instrument/Reading.ts:641 bandOf(actor)`, `ceilingOf`, `lower`,
   `observe`, `bracketed` — the detail-not-access ladder; a channel is a
   row `<root>/idea/reading/<channel>` + a class extending `Reading`,
@@ -302,18 +465,35 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   arriving anywhere a house operates stands it up.
 - A `cast:` member spawns when its host room stands up; cast is
   conserved-live and reseeded on restore (`lib/stuff/Staged.ts`,
-  `Persistable.reseedCast`). **`NPC` = `Costumed(Behaved(Character))`
-  — `costume:` accepts `Wearable` only; an NPC cannot be born holding
-  kit** (`StagedMixin` composes on `Pump`, `Well`, `GardenBed`,
-  `FurnishableRoom`, never on a body). `lint:boot-entries` admits a
-  content boot row whose reason cites `unobserved-economy-slate`
-  (terminus `pack.yaml:104–134` has eleven such producer entries).
-- `reachableHeatK()` (`lib/thermal/Thermal.ts:1188`) scans the maker's
-  **container** for burners; the `Forge` row ships `lit: false`
+  `Persistable.reseedCast`). **`NPC` = `Costumed(Behaved(Character))`**
+  (`lib/npc/NPC.ts:32`) — `costume:` accepts `Wearable` only, so a bare
+  NPC row cannot author held kit. ⭐ **But a pack class can, and three
+  do** (corrected 2026-10-17): `eternal-university/src/duncan-hall/agent/
+  Katie.ts:38`, `terminus/src/mayfield-row/agent/Walter.ts:34` and
+  `terminus/src/realty/agent/Realtor.ts:64` are all
+  `CastMixin(StagedMixin(NPC))`, and their rows author `props:` (Katie's
+  kit + master ring, `katie.yaml:28`). `platform/agent/Gus.ts:14–26`
+  names this the *fourth receipt* and the honest fix — *a superclass
+  meaning a person who boots with a loadout* — as **blocked on a kernel
+  split: `StagedMixin` bundles `props:` WITH `cast:`, so composing it
+  on a person claims that person contains a cast.** `StagedMixin`
+  otherwise composes on `Pump`, `Well`, `GardenBed`, `PlantPot`,
+  `FurnishableRoom`, `CartesianLocation`, the cold stores. The `props:`
+  / `cast:` keys carry a `Behaved` gate both ways (a `Behaved` prop
+  throws at hydrate). `lint:boot-entries` admits a content boot row
+  whose reason cites `unobserved-economy-slate` (terminus
+  `pack.yaml:104–134` has eleven such producer entries).
+- `reachableHeatK()` (`lib/thermal/Thermal.ts:732` → `reachableHeatForImpl`
+  `:1207`; `reachableHeatSource()` `:1188` is the burner itself) scans the
+  maker's **container** for burners; the `Forge` row ships `lit: false`
   (`burnTemperatureK` 1300, bellows ×1.6) — the assembly drive stokes
   and lights it (`assembly.dirty.wire.test.ts:483`). The gather walk
+  (`gatherMatter`, `CraftingLogic.ts:699`; its contract `:686–698`)
   reads the maker's **direct** inventory + the room + open room
-  containers (`CraftingLogic.ts:686–735`).
+  containers. Dairy's `heat` gained a placing arm (a Thermal,
+  Containable, non-build vessel is set ON the lit `Placing` fire via
+  `reachableHeatSource()`) — it reads the vat, not the maker; the
+  fold-back must keep `Vat` Containable (it is a `Good`).
 - Roads: wharfside `bank` → (west) valley-road towpath; `delight-road/ford`
   north → `wharfside/bank`, south → `milestone` → `drove` → `flats` →
   `crossroads` (north flats, west `rejection/kestrel-road/lower-climb`,
@@ -321,7 +501,13 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `upper-climb` → `the-pass` → `tips` → `yard-gate` (northeast
   `rejection/location/pithead-yard`). Rejection's heat + anvil are at
   `rejection/location/smelter.yaml` (`/trade/smelting/thing/furnace`,
-  `/trade/smithing/thing/anvil`); the provisioning shed has none.
+  `/trade/smithing/thing/anvil`, the smith's hammer, two charcoal; since
+  dairy D19 also a `crucible` and an `ingot-mould` — the smelt pours
+  molten metal into the mould, which is not this build's concern but IS
+  in the room the tinker works in); the provisioning shed has none.
+  `hearts-delight/location/valley-gate.yaml` gained `south` (the dairy
+  yard) and `southwest` (the creamery) exits in dairy — the tinker's
+  stop there is unchanged.
 - Venue exemplar: `terminus/content/world/terminus/mayfield-row/tailor.yaml`
   (CartesianZone) · `tailor/location/shop.yaml` · `tailor/idea/outfit.yaml`
   (Business, `requires {discipline, band}`, `headcount 2`) ·
@@ -334,7 +520,10 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `mending`). General store counter stock lines
   (`general-store/counter.yaml:31–58,323`) sell torch, rations,
   clasp-knife, lantern, whetstone, boots, pick-haft; the pick is at
-  `rejection/thing/store-counter.yaml:23`; **no billhook anywhere**.
+  `rejection/thing/store-counter.yaml:23`; **no billhook is SOLD
+  anywhere** (one is propped at Rejection's `location/fuel-yard.yaml:47`
+  — a starting condition, not a supply; the drive buys at the general
+  store).
 - Wire harness: `packages/wire/tests/assembly.dirty.wire.test.ts`
   (`say`, `examine` by projection, `inReach`, `cloneHere`, `newPlayer`
   via a 400-coin reserve override, `goTo`, `buy`, `untilRestocked`,
@@ -386,7 +575,7 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `BusinessMixin extends OrganizationMixin` (`platform/idea/
   Business.ts:145–160`).
 - **The buying seam** — `Position.purchases` (`lib/employment/
-  Position.ts:160`); `issueHouseCardImpl` (`EmploymentLogic.ts:574`)
+  Position.ts:9,112`); `issueHouseCardImpl` (`EmploymentLogic.ts:571`)
   deals a non-Avatar `purchases` holder a `PaymentCard` on the house's
   account **from the roster tick** (`:1678`), so an authored-roster NPC
   gets one if the house `banksAt`. `lib/behavior/restocks.ts` is the
@@ -415,11 +604,12 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `ExitableVessel` and the apiculture `Hive`
   (`trade-apiculture/…/thick-hive.yaml` authors `enclosure:`) — **a
   Thing, a GOOD.**
-- **`Material`** — `lib/material/Material.ts` fieldMeta `:808–872`:
-  `density`, `thermalConductivity`, `waterAbsorptionCapacity`,
-  `hardness`, `seasoningDays` (`:846`, the precedent for a time
-  constant on a Material), `tags`; **no weathering rate, no laying
-  trade.** Rows: `rock/slate`, `rock/granite`, `wood/*`, `glass/glass`,
+- **`Material`** — `lib/material/Material.ts` fieldMeta `:873–953`
+  (dairy added `castTemplate` `:924` and `drainSetting` `:925`, both
+  `authorable`, plus `transforms`; +66 lines): `density`,
+  `thermalConductivity`, `waterAbsorptionCapacity`, `hardness`,
+  `seasoningDays` (`:911`, the precedent for a time constant on a
+  Material), `tags`; **no weathering rate, no laying trade.** Rows: `rock/slate`, `rock/granite`, `wood/*`, `glass/glass`,
   `caustic/quicklime`; **no thatch, lime plaster, brick or sawdust**
   (brick is rubber's content pass; sawdust the ice build's). The
   library is a closed vocabulary (`race.md`). Discipline rows: the
@@ -432,52 +622,80 @@ facing panes; `AssembledChair.ts` scales `getRestQuality`.
   `reconcileShell()` → dilapidated, `tool.getCondition()` unchanged);
   `:366` the stamp-honest decline; `:528/:547` maintain restores /
   refuses without a kit.
-- ⚠⚠ **The rubber build is a PLAN, not code** (`origin/reqs/rubber`: 8
-  docs files; `origin/reqs/storage-and-ice` likewise). The seams W7
-  plans against, **as rubber's plan defines them** (`git show
-  origin/reqs/rubber:docs/plans/rubber-plan.md`): **D1** `roof:` as
-  `enclosure:`'s sibling on the place, `none` legal; **D1a** each is one
-  `{material, thicknessM}` or a LIST outermost first, `ResolvedEnclosure`
-  a list of resolved layers — rubber names it *the seam a building's
-  bill of goods would read (material × face area × thickness)* and
-  defers that to structures-slate (`:421`, `:1583`); **D2** the place
-  owns every material (`AtmosphericMixin` gains `roof` +
-  `roofDefaults()`; a `Structure` carries neither); **D4**
-  `lib/spatial/Exposure.ts`, `exposure()` per room — `top: 'open' |
-  'roof' | 'ceiling'`, `roof: Face | null`, `walls: Face[]`, `Face
-  {material, areaM2, exterior}`, `exteriorAreaM2()`; **D14** the census
-  of interiors lacking `enclosure:` or `roof:` ratchets down. Rubber's
-  W0 lands the vocabulary + `Exposure`, its W7 the content pass (the
-  works authors `enclosure: brick 0.23`, `roof: slate 0.01` — brick
-  arrives with it). **Nothing in rubber weathers, wears or costs a
-  layer.**
+- ⚠⚠ **The rubber build is a PLAN, not code** — re-checked 2026-10-17:
+  `origin/reqs/rubber` at `a2e688ff1` (master-after-dairy merged in)
+  still carries **8 docs files and no `packages/` change**; its latest
+  commits re-plan its moulds onto dairy's system and add a BUILD GATE
+  (`rubber-plan.md:22–35`) that waits on THIS plan and storage-and-ice
+  settling, then asks repair to *confirm its plan does not put materials
+  on `Structure`* — it does not (D20: the layers' state is the
+  programme's, the materials the place's). `origin/reqs/storage-and-ice`
+  (`5cf06785a`) is likewise docs only. The seams W7 plans against, **as
+  rubber's plan defines them** (`git show
+  origin/reqs/rubber:docs/plans/rubber-plan.md`): **D1** (`:388`) `roof:`
+  as `enclosure:`'s sibling on the place, `none` legal; **D1a** (`:398`)
+  each is one `{material, thicknessM}` or a LIST outermost first,
+  `ResolvedEnclosure` a list of resolved layers — rubber names it *the
+  seam a building's bill of goods would read (material × face area ×
+  thickness)* and defers that to structures-slate (`:411`, deferred
+  seams `:1578–1615`); **D2** (`:415`) the place owns every material
+  (`AtmosphericMixin` gains `roof` + `roofDefaults()`; a `Structure`
+  carries neither); **D3** storeys as relations on the structure; **D4**
+  (`:466`) `lib/spatial/Exposure.ts`, `exposure()` per room — `top:
+  'open' | 'roof' | 'ceiling'`, `roof: Face | null`, `walls: Face[]`,
+  `Face {material, areaM2, exterior, neighbour?, exit?}`,
+  `exteriorAreaM2()`; **D14** the census of interiors lacking
+  `enclosure:` or `roof:` ratchets down. Rubber's W0 (`:1148`) lands the
+  vocabulary + `Exposure`, its W7 the content pass (the works authors
+  `enclosure: brick 0.23`, `roof: slate 0.01` — brick arrives with it).
+  **Nothing in rubber weathers, wears or costs a layer.**
 
 ---
 
 ## Plan-level decisions
 
-**D1 — A part's discipline is derived, in two reads, both load-on-use.**
+**D1 — A part's discipline is derived, in three reads, all load-on-use.**
 `PartLine.recipe?` is copied from the consumed part's `Crafted.recipe`
 at the mint and the fit; `RecipeCatalogue.recipeFor(outputTemplate)` is
 a derived index (built in `warm()`, a `Map`, never a scan) read when a
-line has no recipe — a found thing's lines, a stocked pick. Discipline =
+line has no recipe — a found thing's lines, a stocked pick. ⭐ **The
+third read is the mould's** (the moulding slate's one seam, owner
+2026-10-16, written against the merged `lib/mould/Mould.ts`): a cast
+part has no recipe, and today the cast remembers its maker and the
+mould's grade but not the trade — the pour credits the pourer and
+forgets. So **`CraftedMixin` gains one field, `castDiscipline: string`**
+(`{persistent, runtimeState}`, `''` default; `getCastDiscipline()` /
+`setCastDiscipline()`), written in exactly one place: `Mould.ts`'s
+module-private `carryPayload`, in the existing `if
+(MixinApi.isCrafted(cast))` block beside `setMaker` and `setGrade` —
+`cast.setCastDiscipline(mould.getMouldDiscipline())` (⚠ the mould's own
+`getMouldDiscipline()`, not the payload: the trade is the mould row's
+fact, the maker the pourer's). A VALUE and not a mark pointing at the
+mould row, because a consumed mould is destructed at the cast and a
+kind-identity row has no live singleton to resolve — the same shape as
+the grade, which also rides as a value. `PartLine.castDiscipline?` is
+copied beside `recipe?` at the mint and the fit and written back by
+`mintMember`. Discipline =
 `getRecipe(line.recipe)?.discipline ?? recipeFor(line.template)?.discipline
-?? <the discipline the MOULD that cast it credits> ?? ''` — ⭐ the third read
-is the moulding slate's first seam (owner, 2026-10-16): a part that came out
-of a mould (dairy's `MouldMixin`) has no recipe; record the casting mould's
-discipline on the line (or the loose cast) at the set, and read it here.
-⚠ Re-ground against dairy's merged `lib/mould/Mould.ts` before building. No `discipline:` on the bill part (a third declaration of one
-fact). A line with no discipline resolvable (a found stone, a part no
-recipe makes) is mended **as if competent** — nothing can be known
+?? line.castDiscipline ?? ''`; a monolith reads its own `Crafted` fields
+the same way. No `discipline:` on the bill part (a third declaration of
+one fact). ⚠ No shipped cast composes Crafted except the dairy `Wheel`
+(a Provision, never mended), and no bill part is cast — the read's
+content consumer is the moulding build's (a cast pommel, a two-piece
+mould); here it is proven by a unit fixture (a Crafted+Durable test
+class cast in a mould authoring `discipline: smelting` →
+`disciplineOf` = `smelting`; `wheel` reads `dairying` for free).
+A line with no discipline resolvable (a found stone, a part no recipe
+makes) is mended **as if competent** — nothing can be known
 better or worse about it (lens 1: no skill, no lesson); `lint:bills`
-arm 8 (D14) is what makes that honest by naming every such part at
+arm 8 (D7) is what makes that honest by naming every such part at
 build time. Lens 1 decided: the trade that made it is the one fact the
 world already holds.
 
 **D2 — The per-line state is the loose part's own fields, and the
 whole's line is the same state.** `PartLine` gains `keenness?`
 (0..1), `name?` (the seat), `nameGrant?` (identity path), `mends?:
-MendRecord[]`, `recipe?`; `BillPart` gains `form?` and `name?` (found
+MendRecord[]`, `recipe?`, `castDiscipline?` (D1); `BillPart` gains `form?` and `name?` (found
 defaults, like `material`). `mintMember` writes the line onto the
 minted part's own fields (Durable condition — already; Keen keenness;
 Assembled `seatName`/`nameGrant`; Durable `mends`); `fitImpl` reads
@@ -522,6 +740,34 @@ none and melts (shipped). The owner's ruling (slate § 0) decided it.
 family for a made part with no other capability (cask head, frame,
 cushion), beside nothing — not a twin.
 
+⭐ **The rule, computed (2026-10-17):** *the families we write recipes
+for* = the classes of every recipe's `outputTemplate` that compose
+Durable. Over today's 179 recipes that is the ten above, their `Tool`
+subclasses (`Spade`, `LoadDevice`, `SurveyInstrument`, `AssayKit`,
+`TimberSet`, `Bailer`), apiculture's `Frame` (already Assembled) — and
+**one more: `trade-cooking`'s `CookPot`** (`ManualBuild(ToolMixin(
+Durable(ServingVessel)))`, the smithing `cook-pot` recipe; the
+requirements' own *a cast pot* is one piece). It joins: `Assembled(
+ManualBuild(ToolMixin(Durable(ServingVessel))))`, one pack line, no
+guard. D7's arm 7d is that computation as a gate.
+
+**`Mould` is NOT a family in this build** — decided per the owner's
+rule, not by taste: no recipe outputs a `Mould`, a `Hoop` or an ice pan
+(§ Grounding), so nothing we write recipes for is a mould yet; it is
+Durable and Crafted already, `repair` affords on it, and D8's monolith
+path mends it under its own fields (its discipline: no recipe →
+`recipeFor(ingot-mould)` → none → as if competent). The moulding slate
+§ 7's *two-piece mould is an assembly* is the moulding build's — when it
+writes the cope-and-drag recipe, arm 7d fires and the answer is one
+line on `platform/thing/Mould`. Lens 2 decided (the ordinary case with
+no code: a mould row today is a one-piece vessel and already answers
+`repair`, `look`, `pour`, `get`; lens 5's test — *does the new object
+answer the same commands* — holds without the composition). `Hoop`
+likewise (it is Durable by its own line). ⛔ `CraftVessel` stays out: it
+is not Durable, nothing wears a glass, and a recipe FILLS one rather
+than making it — the thirty-one `ServingVessel`/`CraftVessel` recipe
+outputs are pours, not makes.
+
 **D5 — Durable is added to `Vat`, `Lamp`, `Chair`, `Receptacle`,
 `Timber`; Crafted to `Vat`(has), `Lamp`, `Chair`, `Receptacle`.** The
 claim, stated per host in § Host placement: every one of these wears
@@ -539,7 +785,14 @@ at once with no joints; `emptySince` persists on every vat (0 = wet).
 `Lamp.getEmittedFlux()` scales by failed facing lines (none → ×1).
 `Chair.getRestQuality()` scales by structural lines (none → unchanged).
 No guard anywhere narrows the host set; the row's bill is what makes
-the branch do anything.
+the branch do anything. (Re-checked 2026-10-17: dairy did not touch
+`Vat.ts`, `Cask.ts`, `Lamp.ts`, `Lantern.ts`, `Chair.ts` or
+`AssembledChair.ts`; its three new kernel-`Vat` rows — the cheese vat,
+the rennet jar, the starter crock — take `emptySince` and Durable
+vacuously like the carboy; dairy's `heat` placing arm sets a vat ON a
+fire through `reachableHeatSource()` and reads nothing the fold-back
+moves. Dairy's `Hoop` composes `Durable` on its own line and is NOT a
+`Vat`; the mould rows are `platform/thing/Mould`, outside D5/D6.)
 
 **D7 — `lint:bills` arm 7 becomes two honest claims; arm 8 is a
 census-then-ratchet.** 7a (kept): a bill on a class that does not
@@ -548,11 +801,21 @@ Assembled and whose recipe has **two or more distinct item slots** must
 carry a bill — the mint would otherwise record a thing of parts nobody
 declared (the billhook today). 7c (replaces *composes ⇒ billed*): a
 row with a bill whose class composes Assembled passes; a composing
-class's billless row is one piece and passes. Arm 8 (new): every bill
+class's billless row is one piece and passes. **7d (new, the owner's
+rule as a gate): a recipe's `outputTemplate` whose row's class composes
+`DurableMixin` must compose `AssembledMixin`** — census-then-ratchet,
+opening at **1** (`CookPot`) and closed to **0** in W1; it is what
+answers *is a mould a family?* mechanically the day a recipe makes one.
+Arm 8 (new): every bill
 part `template` is the `outputTemplate` of some shipped recipe; the
-census opens at **5** (share, hide-face, bellows, sole, upper) and the
-build drives it to **3** (sole and upper gain recipes); the three stay
-named in the script with a reason. The arm-7 header is rewritten: the
+census opens at **17** (the list in § Grounding — recomputed 2026-10-17;
+the plan's earlier *5* missed twelve and mis-named the plough's share)
+and the build drives it to **15** (sole and boot-upper gain recipes);
+the fifteen stay named in the script with a reason each (a pane and a
+board are made by a verb that is not a recipe; the compass's three, the
+bellows' two, the bow's nock and string, the cushion's cover and
+stuffing, the spindle's whorl, the canister, the wick and the hide-face
+have no maker at all). The arm-7 header is rewritten: the
 mixin composes on the families, a monolith is one piece, and the gate
 that keeps the guard from coming back is *every method total*.
 
@@ -580,7 +843,14 @@ to `slackThreshold − 0.01`; a `MendRecord` is appended to the line;
 the hand joins `line.makers`. A second untrained mend loses another
 band — the compounding IS the grade loss (AC 1, 2). A monolith is one
 line: the host's own fields, the discipline from `Crafted.recipe` else
-`recipeFor(own template)`. The whole mends every line it can and
+`recipeFor(own template)` else `Crafted.castDiscipline` (D1). ⭐ That
+monolith path is keyed on *is there a record* (`!isAssembled(item) ||
+item.isOnePiece()`), so it also serves every Durable host that does
+not compose Assembled — a `Mould`, a `Hoop`, arcana's `Conduit`, a
+pack's one-off — exactly as the shipped wear rung does today
+(`repair.yaml` `requires: DurableMixin`, nothing narrower). Not a
+guard: it is the found-vs-materialized seam the mixin already owns,
+read once at the top of the ladder. The whole mends every line it can and
 reports what it could not (`RepairSuccess.mended[] / skipped[]`); it is
 a refusal only when nothing was mended. `captureHostOf(item)` ends
 every successful repair. Lens 1 decided the shape; the numbers are the
@@ -668,15 +938,24 @@ Overlapping on-slots for one assignee take the first in file order
 (`lint:openings` gains a refusal of two overlapping on-windows for one
 assignee at one house).
 
-**D14 — An NPC may be born holding things: `StagedMixin` composes on
-`NPC`.** `props:` on a Cast row is what the person carries (the Staged
-doc's own words: *anything inanimate the host is born holding*; an NPC
-is a Container). Claim: every NPC may author kit; cast is reseeded on
-restore so the kit is re-minted with the body. This is the honest
-general mechanism the tinker (a billhook, a whetstone, a sewing kit, a
-mending slate he sets down) and every future itinerant need, and it is
-a composition on an existing class — no new category. ⚠ Flagged in
-§ Risks for the user's eye.
+**D14 — The tinker is born holding his kit the way Katie is: a pack
+class `CastMixin(StagedMixin(NPC))`, and NO kernel change** (revised
+2026-10-17). The first draft composed `StagedMixin` on `NPC` itself;
+re-grounding found the shipped shape — `Katie.ts`, `Walter.ts`,
+`Realtor.ts` are each `CastMixin(StagedMixin(NPC))` in their packs, and
+`Gus.ts`'s header (`:14–26`) explains why the kernel composition is
+WRONG as a claim: *`StagedMixin` bundles `props:` WITH `cast:`, so
+composing it on a person claims that person contains a cast.* Putting
+it on `NPC` would be the `Freshness off every Thing` shape — a base
+class quietly claiming every NPC may carry a cast of people. So:
+`terminus/src/wharfside/agent/Tinker.ts` = `CastMixin(StagedMixin(NPC))`
+(the Katie file, renamed; `props:` on his row), the fifth receipt for
+Gus's split. `props:` is reseeded on restore so the kit is re-minted
+with the body (shipped). ⚠ The split itself — a `props`-only half of
+Staged that a *person with a loadout* composes, making Gus and the
+four pack classes ROWS — is cross-cutting and leaves as a seam (memory's
+rule: never solve a cross-cutting capability in a trade build). § Risks
+3 names it for the owner.
 
 **D15 — The tinker.** A Cast at a booted home yard
 (`/world/terminus/wharfside/tinker/location/yard`, exits to the bank),
@@ -735,7 +1014,13 @@ smithing, standard). The billhook follows the same split
 blade + handle `wedged`) — required by D7 7b and by drive 4. The scythe
 stays one piece with an edge (grain; the snath is the carpentry slate's).
 Anvil signatures are checked by `anvil-ladder.test.ts`; the heats above
-are chosen off the taken list and must be re-checked at build.
+were re-checked 2026-10-17 against the computed list in § Grounding and
+are all free: `2:fair@1450` is the retiring `sword`'s own (`sword-blade`
+inherits it, `sword` becomes a no-heat fit and leaves the anvil set);
+`1:fair@1175` sits between adze-blade 1150 and pick-head 1200;
+`1:poor@1000` between cook-pot 800 and rivet 1050; `1:fair@1225`
+between pick-head 1200 and froe-blade 1250. Dairy added no anvil
+recipe; `KNOWN_TIES` stays at its two. Re-run the test at build anyway.
 
 **D18 — The heirloom.** `/world/terminus/hearthworks/thing/heirloom`
 extends `/stuff/thing/arms/sword`: its own short/long description (the
@@ -935,11 +1220,13 @@ weathers a roof it does not have; grain, Deferred seams.
 
 | what | host | what composing it claims about every other composer |
 |---|---|---|
-| `AssembledMixin` | `Tool`, `Weapon`, `Garment`, `Shield`, `Vat`, `Lamp`, `Chair`, `Receptacle`, `Assembly`, `Barrel` | every row of the family is parts or one piece; every method is total on an empty record (D4). Pack subclasses (`SurveyInstrument`, `SpinningTool`, `Whetstone`, `Rod`, `Trap`, `KitchenTool`, `SutureKit`, `AssayKit`, `Bailer`, `Derrick`, `GrozingPliers`, `Blowpipe`, `ScribingWheel`, `Strainer`, `Muddler`, `HouseholdersKit`, `SoilKit`, `Spade`, `LoadDevice`, `MendingTool`, `WateringCan`, `DisguiseGarment`, `Launcher`, `FoldingChair`) inherit it and need no restatement: mixin statics union. ⛔ Not on `Good`, `Thing`, `Fitting`, `Chest`, `Bottle`, `Provision`, the hive rows. |
+| `AssembledMixin` | `Tool`, `Weapon`, `Garment`, `Shield`, `Vat`, `Lamp`, `Chair`, `Receptacle`, `Assembly`, `Barrel` | every row of the family is parts or one piece; every method is total on an empty record (D4). Pack subclasses (`SurveyInstrument`, `SpinningTool`, `Whetstone`, `Rod`, `Trap`, `KitchenTool`, `SutureKit`, `AssayKit`, `Bailer`, `Derrick`, `GrozingPliers`, `Blowpipe`, `ScribingWheel`, `Strainer`, `Muddler`, `HouseholdersKit`, `SoilKit`, `Spade`, `LoadDevice`, `MendingTool`, `TimberSet`, `AssayBench`, `Anvil`, `Loom`, `ScutchingBoard`, `CuttingTool`, `WateringCan`, `DisguiseGarment`, `Launcher`, `FoldingChair`) inherit it and need no restatement: mixin statics union. **Plus `trade-cooking`'s `CookPot`** (a recipe output that wears — D4's computed rule, arm 7d). ⛔ Not on `Good`, `Thing`, `Fitting`, `Chest`, `Bottle`, `Provision`, `CraftVessel`, the hive rows; **not on `Mould`/`Hoop` in this build** (no recipe makes one — the moulding build's one line). |
+| `castDiscipline: string` | `CraftedMixin` (kernel) | every made thing MAY record the trade of the mould it set in; `''` for everything a recipe made or nothing made. Written only by `Mould.ts`'s `carryPayload`; read only by `disciplineOf` (D1). The wheel reads `dairying`, an ingot composes nothing and is told nothing. |
+| `PartLine.castDiscipline?` | the record | copied beside `recipe?` — the same fact a loose cast part carries (D1, D2). |
 | `DurableMixin` (new) | `Vat`, `Lamp`, `Chair`, `Receptacle`, `Timber` | a carboy, a torch, a stool, a sack, a stave wears on use and is `repair`able; nothing wears them yet, so they read sound. `Timber`'s condition is stack identity (D5). |
 | `CraftedMixin` (new) | `Lamp`, `Chair`, `Receptacle` | a torch, a cot, a pail has a grade (`fair`) and may be a recipe output. |
 | `ConstructedMixin` + `KeenMixin` (new) | `Tool` | a tool has a form word (optional) and an edge gauge; the edge is inert unless the form delivers edge/point (D3) — exactly `Weapon`'s claim. |
-| `StagedMixin` (new) | `NPC` | an NPC may be born holding kit (D14). |
+| `StagedMixin` | `terminus/src/wharfside/agent/Tinker.ts` = `CastMixin(StagedMixin(NPC))` — the Katie/Walter/Realtor chain, a pack class | THIS person boots with a loadout (D14). ⛔ Not on `NPC`: `Staged` bundles `cast:` with `props:`, so the kernel composition would claim every NPC contains a cast (`Gus.ts:14–26`). The `props`-only split is a seam. |
 | `PartLine.{keenness, name, nameGrant, mends, recipe}`, `BillPart.{form, name}` | the record / the bill | a line carries the same state its loose part carries (D2). |
 | `seatName`, `nameGrant` (host fields) | `AssembledMixin` | a one-piece thing may bear an authored or granted name (D18). |
 | `mends: MendRecord[]`, `durableAugmenter` | `DurableMixin` | everything that wears remembers its mends and shows its condition word (D10). |
@@ -1014,10 +1301,23 @@ Checked at plan time against `CLAUDE.md` and the current tree:
   `lit:`), `mass` (every new row states `mass`), `counters` (no new
   counter class — `Tariff` is kernel), `instrument-args`, `verb-collisions`
   (no new verbs), `test-bootstrap`, `authored-prose`, `controller-rows`,
-  `template-scans`, `get-or-create`, `inert-weapon`. ⚠ The caller's
-  "wiki-spoiler snapshot" was not found under that name; the golden
-  this build churns is `lint:field-meta`'s
-  (`scripts/__fixtures__/field-meta-golden.json`, `--snapshot`).
+  `template-scans`, `get-or-create`, `inert-weapon`. All of these are in
+  the derived roster (`lint:family --list`, **79 gates** on
+  2026-10-17; dairy added none — it extended `envelope`'s held-room
+  allowlist, `light-sources` and `census`). **Two goldens churn, not
+  one**: `lint:field-meta`'s (`scripts/__fixtures__/field-meta-golden.json`,
+  `--snapshot`) AND the **wiki-spoiler audit**
+  (`src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` — a vitest
+  snapshot of every `fieldMeta` field with its reveal level). The
+  second is the one the caller meant: every new field here
+  (`DurableMixin.mends`, `AssembledMixin.seatName/nameGrant`,
+  `CraftedMixin.castDiscipline`, W7's `Material.weatheringDays/laying`,
+  `HoldingWarren.fabric`) appears as a diff, and the file's rule is a
+  **review-log entry in its header** answering *is this a spoiler?*
+  per field (dairy's entry is the template: *24 fields, and a relabel*).
+  None of this build's is — mend history, a seat name, a laying trade
+  are what `look`, `analyze` and `survey` say in words; `mends` and
+  `fabric` are runtime state. Write the entry, then bless.
 - **W7 additionally**: `envelope` (rubber's clause (e) validates every
   layer; the dorm/Seznick/Hinkley rows must pass it), `field-meta`
   (re-snapshot: `Material.weatheringDays/laying`,
@@ -1046,7 +1346,7 @@ Implements D1, D2, D3 (the Keen routing half), D10 (fields only), D18
 
 **Files.**
 - `server/src/mud/lib/craft/Assembled.ts` — `BillPart.form?/name?`;
-  `PartLine.keenness?/name?/nameGrant?/mends?/recipe?`; host fields
+  `PartLine.keenness?/name?/nameGrant?/mends?/recipe?/castDiscipline?`; host fields
   `seatName: string`, `nameGrant: string` (`{persistent, runtimeState}`);
   `billLines()` copies `form`, `name`; `replaceMembers(part, k,
   fitted)` takes `condition?`, `keenness?`, `name?`, `nameGrant?`,
@@ -1060,13 +1360,23 @@ Implements D1, D2, D3 (the Keen routing half), D10 (fields only), D18
   name); the augmenter adds *It is one piece.* when billless.
 - `server/src/mud/lib/material/Durable.ts` — `MendRecord`, `mends`,
   `recordMend`, `getMends` (the augmenter lands in W2).
+- `server/src/mud/lib/craft/Crafted.ts` — `castDiscipline` field +
+  fieldMeta `{persistent, runtimeState}` + `getCastDiscipline` /
+  `setCastDiscipline` (D1).
+- `server/src/mud/lib/mould/Mould.ts` — ONE line in `carryPayload`'s
+  `isCrafted(cast)` block: `cast.setCastDiscipline(mouldDisc)` where
+  `mouldDisc = MixinApi.isMould(mould) ? mould.getMouldDiscipline() : ''`
+  (the mould is passed in already). Nothing else in the file.
+  `lib/mould/__tests__/Mould.test.ts` gains the fixture case (a
+  Crafted+Durable cast in a `discipline: smelting` mould reads it).
 - `server/src/mud/lib/material/Keen.ts` — outward routing to
   `edgedLines()` (D3).
 - `server/src/mud/platform/idea/RecipeCatalogue.ts` — `recipeFor(path)`.
 - `server/src/mud/platform/idea/api/CraftingLogic.ts` —
-  `applyAssembledOutput` copies form/recipe/keenness/name/nameGrant/mends
-  from consumed parts; `fitImpl` reads condition/keenness/name/grant/
-  mends/recipe off the part; `mintMember` writes them onto the minted
+  `applyAssembledOutput` copies form/recipe/castDiscipline/keenness/name/
+  nameGrant/mends from consumed parts; `fitImpl` reads condition/keenness/
+  name/grant/mends/recipe/castDiscipline off the part; `mintMember` writes
+  them onto the minted
   part; a module-private `disciplineOf(line)` (D1).
 - `server/src/mud/lib/stuff/Stuff.ts` — the seat-name rung in
   `identityPhrase`.
@@ -1086,10 +1396,11 @@ the pick-head recipe and `disciplineOf` a stocked pick's head line is
 ### W1 — the fold-back: one kind of thing, one class
 
 **Goal.** The families compose Assembled; Durable/Crafted/Constructed/Keen
-where D3–D6 say; the nine twins retire and 24 rows re-point; `lint:bills`
-arms 7–8; NPC may hold props. Every shipped assembly still lists its
-parts and still fits, mends, salvages (AC 12, 13). Implements D3 (host
-half), D4, D5, D6, D7, D14.
+where D3–D6 say; the nine twins retire and 24 rows re-point; the cook
+pot joins the families; `lint:bills` arms 7–8. Every shipped assembly
+still lists its parts and still fits, mends, salvages (AC 12, 13).
+Implements D3 (host half), D4, D5, D6, D7. (D14 lands in W5 with the
+tinker's rows.)
 
 **Files.**
 - Rewrite: `platform/thing/Tool.ts`, `Vat.ts` (absorb `Cask.ts`),
@@ -1115,12 +1426,18 @@ half), D4, D5, D6, D7, D14.
   `/trade/textiles/thing/SpinningTool`. Grep every `AssembledTool|Cask|
   Lantern|AssembledChair|AssembledWeapon|AssembledLauncher|AssembledGarment`
   mention in `packages/**` (tests, docs, help, wire) and fix.
-- `server/scripts/check-bills.ts` — arms 7a/7b/7c + arm 8 (census 5 →
-  ceiling 3 after W5; land the arm with the ceiling at the current
-  count and lower it in W5); header rewritten.
-- `server/src/mud/lib/npc/NPC.ts` — `Costumed(Staged(Behaved(Character)))`
-  + a test (a Cast row with `props:` is born holding them; a Behaved
-  prop still throws).
+- `server/scripts/check-bills.ts` — arms 7a/7b/7c + **7d** (recipe
+  output's Durable class composes Assembled; census 1 → 0 in this wave)
+  + arm 8 (census **17** → ceiling **15** after W5; land the arm with
+  the ceiling at the current count and lower it in W5); header
+  rewritten. ⚠ Arm 7d needs the recipe corpus (`recipes/*.yaml` across
+  packs — `anvil-ladder.test.ts:52` shows the walk) joined to the row
+  index `effectiveRow` already builds.
+- `content/trade-cooking/src/thing/CookPot.ts` —
+  `AssembledMixin(ManualBuild(ToolMixin(Durable(ServingVessel))))` (D4;
+  the cook pot is one piece; its suite green).
+- ⛔ `lib/npc/NPC.ts` is NOT touched (D14 revised) — the tinker's class
+  lands in W5 with his rows.
 - `server/src/mud/platform/idea/reading/ResponseReading.ts:135` — edge
   line only on an edge/point form.
 - `pnpm -C packages/server lint:field-meta --snapshot`.
@@ -1134,9 +1451,10 @@ half), D4, D5, D6, D7, D14.
 green against the family classes; `lint:bills` green with arm 8 at its
 census; `lint:instanceable` green; `fit haft to whetstone` → `no-line`
 /`one-piece`; `look whetstone` → *It is one piece.*; a found felling
-axe's lines carry `form: bladed` for the head (bill `form:`); `pnpm
-test:near` on `lib/craft`, `platform/thing`, `lib/npc`, every touched
-pack's vitest.
+axe's lines carry `form: bladed` for the head (bill `form:`); `look
+cook-pot` → *It is one piece.*; arm 7d at 0; `pnpm
+test:near` on `lib/craft`, `platform/thing`, `trade-cooking`, every
+touched pack's vitest.
 
 **Commit.** `refactor(assembly): the mixin composes on the FAMILIES — a monolith is one piece; the Assembled* twins retire (repair W1)`
 
@@ -1250,7 +1568,8 @@ and moves station by the hour. Implements D13.
 ### W5 — content: edges, the sword, soles, the cobbler, the tinker, the heirloom
 
 **Goal.** Everything the requirements name in the world. Implements
-D15–D18, the edge rows, AC 7–10, 12, 14 (content half).
+D14 (the tinker's class), D15–D18, the edge rows, AC 7–10, 12, 14
+(content half).
 
 **Files.**
 - Edges: `trade-farming/…/scythe.yaml`, `trade-smithing/…/{axe-head,
@@ -1281,7 +1600,10 @@ D15–D18, the edge rows, AC 7–10, 12, 14 (content half).
 - Tinker (D15): `terminus/content/world/terminus/wharfside/tinker.yaml`
   (zone), `tinker/location/yard.yaml` (exit `bank` ↔ a new `yard` exit
   on `wharfside/bank.yaml`; `cast: [agent/tinker]`),
-  `tinker/location/offstage.yaml`, `tinker/agent/tinker.yaml` (dossier;
+  `tinker/location/offstage.yaml`, **`terminus/src/wharfside/agent/
+  Tinker.ts`** (`CastMixin(StagedMixin(NPC))` — copy `Walter.ts`'s
+  shape; D14) and `tinker/agent/tinker.yaml` (`class:
+  /world/terminus/wharfside/agent/Tinker`; dossier;
   `props: [/trade/forestry/thing/billhook,
   /world/terminus/general-store/thing/whetstone,
   /world/terminus/general-store/thing/sewing-kit]`), `tinker/idea/round.yaml`
@@ -1299,7 +1621,8 @@ D15–D18, the edge rows, AC 7–10, 12, 14 (content half).
   `world/<venue>/__tests__/`), `lint:dossiers`, `lint:menu-staff`,
   `lint:openings`, `lint:boot-entries`, `lint:mass`, `lint:bills`.
 - Docs: `vocations.md` cooper/carpenter rows refreshed (the
-  requirements flag them stale); `content-packs.md` one line (NPC `props:`).
+  requirements flag them stale); `Gus.ts`'s header gains the fifth
+  receipt (one line: the tinker).
 
 **Acceptance.** `lint:family` green; every pack suite touched green;
 `pnpm test:near`; the content tests prove: the cobbler's house calls,
@@ -1343,7 +1666,13 @@ shows a commit). **If rubber has not merged when W6 is done, W6 opens
 the MR without this wave and W7 ships as its own follow-up MR** off the
 merged repair branch, adding drive step 11 to the same wire file (the
 requirements' Placement). ⚠ That is the EXPECTED path — rubber is a
-plan with no code today.
+plan with no code today. **State on 2026-10-17:** `origin/reqs/rubber`
+= `a2e688ff1` (dairy merged in), 8 docs files, zero `packages/`
+changes; its plan now carries its own BUILD GATE waiting on this plan
+and storage-and-ice to settle before it builds, and its re-plan moved
+its moulds onto dairy's system (nothing W7 reads changed: D1/D1a/D2/D4
+as cited in § Grounding). `origin/reqs/storage-and-ice` = `5cf06785a`,
+likewise docs only. Re-run the `git log` check before starting W7.
 
 **Re-ground first** — write the findings into § Grounding before any
 code: `getEnclosure()` / `getRoof()` return shapes and `roofDefaults()`
@@ -1514,12 +1843,15 @@ Nothing unmapped.
    The hourly teleport is the shipped presence mechanism (Berta); a
    watched tinker vanishing from the crossroads is a lens 3a cost this
    plan accepts and names as a deferred seam. Say if that is wrong.
-3. **D14 widens `NPC` with `StagedMixin`** so a Cast row may author
-   `props:`. A composition, not a new category — but it is a kernel
-   claim about every NPC, so it is here for sign-off. The alternative
-   (a kit propped at each stop room) lies when the tinker is absent.
-4. **D3 adds `ConstructedMixin` + `KeenMixin` to `Tool`** — 66 rows and
-   ~20 subclasses gain an inert edge gauge and an optional form.
+3. **D14 (revised 2026-10-17) follows the Katie chain instead of
+   widening `NPC`** — a fifth `CastMixin(StagedMixin(NPC))` pack class.
+   Owner's eye on the shape it leaves behind: `Gus.ts` already calls
+   for the kernel split (`props:` apart from `cast:`, so a *person with
+   a loadout* is a row and not a class), and this build makes it five
+   receipts. Deferred seams names it; nothing here depends on it.
+4. **D3 adds `ConstructedMixin` + `KeenMixin` to `Tool`** — 67 rows and
+   ~25 subclasses (the anvil, the loom, the assay bench among them)
+   gain an inert edge gauge and an optional form.
    `responsePipsAugmenter` prints delivery pips on a billhook; a
    hammer's `analyze response` line must not read *edge* (fixed in W1).
    If a gate (`lint:inert-weapon`, `lint:capabilities`) objects to a
@@ -1528,8 +1860,9 @@ Nothing unmapped.
    a worn haft never merges; a sound one merges as today. Confirm no
    test asserts stacks merge regardless of condition.
 6. **Anvil signatures** for the four new blade/hilt recipes are chosen
-   off today's list; `anvil-ladder.test.ts` is the gate — adjust heats,
-   never duplicate.
+   off the list computed 2026-10-17 (§ Grounding) and are free;
+   `anvil-ladder.test.ts` is the gate — adjust heats, never duplicate,
+   never add to `KNOWN_TIES`.
 7. **`Receptacle` composing Assembled/Durable/Crafted** reaches odd
    rows (`air-compressor`, `flask-of-vitriol`, the `spent-grain`
    sacks). They read sound and one piece; honest, slightly silly. The
@@ -1541,7 +1874,14 @@ Nothing unmapped.
    name and the bill part; drawknife's bill already uses `blade` — the
    gather matches *a thing that IS that part (its row, or its keyword)*,
    so a drawknife blade in reach could answer a sword's `blade` slot by
-   keyword. Name the sword's part `sword-blade` to be safe.)
+   keyword. Name the sword's part `sword-blade` to be safe.) ⚠ The same
+   seam, found at re-ground: dairy's cheese `hoop` row carries the
+   keyword `hoop`, and the cask's bill part is `hoop` — a cheese hoop
+   in reach of a cask raise could be drawn as a cask hoop by keyword.
+   Not this build's defect (the fold-back changes no matching), but W1's
+   cask tests should add the one case: a `/trade/dairying/thing/hoop`
+   in the room does not satisfy the cask's `hoop` slot (row lineage
+   wins; keyword is the fallback — verify which the gather tries first).
 9. **The cobbler's `requires: {leatherwork, novice}`** — the drive's
    player must `practise leatherwork` to apply; `lint:menu-staff` rule
    on dossiers vs offered difficulty does not apply (no menu).
@@ -1556,14 +1896,23 @@ Nothing unmapped.
     therefore props a `/trade/tailoring/thing/needle-case` beside the
     last-and-awl so `sew` is sayable there (D16).
 12. **The rubber dependency is a PLAN, not code** (W7). `reqs/rubber`
-    is docs only; the seams W7 needs have not been started. Expect W7
+    is docs only (re-checked 2026-10-17 at `a2e688ff1`; its own build
+    gate now waits on THIS plan settling, so the two cannot both be
+    waiting — repair goes first, W7 follows rubber). Expect W7
     as the follow-up MR; re-ground against the merged files, treating
     § Grounding's rubber paragraph as the contract to re-check when
     shapes drift.
-13. **Requirements wording, listed not absorbed.** *What already
+13. **Requirements wording, listed not absorbed.** (a) *What already
     exists* calls layered walls *the rubber build (in flight)*; rubber
     is PLANNED, not built, so the fallback (W7 as its own MR) is the
-    likely path. Owner's eye; no plan change.
+    likely path. (b) The requirements' Non-goals link
+    `../slates/builds/clinical-medicine-slate.md`, which the 2026-10-16
+    slate cleanup moved to `docs/slates/tails/`; `assembly-slate` is
+    linked correctly under `tails/`. (c) § 5 names *a cast pot* as one
+    piece — true of `CookPot` only once D4 reaches it (it does now);
+    and it says *vessel … container* broadly, which this plan reads as
+    the Durable families (a glass is not mended). Owner's eye on all
+    three; no plan change beyond D4's `CookPot`.
 14. **Katie's and Walter's "employers" are Organizations with no
     money.** D26 makes both Businesses with an account; the economic
     bootstrap must FUND them (re-ground how the tailor's shop's account
@@ -1578,8 +1927,10 @@ Nothing unmapped.
     plaster) are vocabulary decisions under the closed-library rule —
     properties differ from everything shipped; owner's eye.
 16. **Two new Discipline rows** (`masonry`, `thatching`) with no trade
-    pack; check `DisciplineCatalogue.yaml` / `lint:dossiers` for a list
-    to extend at re-ground.
+    pack. Re-ground 2026-10-17: there is no list — `DisciplineCatalogue`
+    warms every row under an `/idea/Discipline/` path (the platform's
+    37, forty-odd pack rows incl. dairy's `dairying`); two files in
+    `content/platform/idea/Discipline/` beside `smithing.yaml` suffice.
 17. **`HouseholdersKit` → `UpkeepTool`** is a pack-internal class rename
     (one row's `class:`, the suite's import, `holding.md`); no
     migration. If the owner keeps the kit's name, the trowel and leggett
@@ -1609,9 +1960,22 @@ Nothing unmapped.
   (requirements non-goal).
 - **Treatment and burial by an on-shift hand** → clinical-medicine /
   end-of-life slates.
-- **Three bill parts no recipe makes** (share, hide-face, bellows) —
-  `lint:bills` arm 8 holds the ceiling at 3 and names them → farming,
-  tanning, apiculture tails.
+- **Fifteen bill parts no recipe makes** (§ Grounding's list less sole
+  and boot-upper) — `lint:bills` arm 8 holds the ceiling at 15 and
+  names them → the owning trades' tails (apiculture's bellows and
+  gusset, tanning's hide-face, the compass's three, the bow's nock and
+  string, the spindle's whorl, chandlery's wick, the canister, the
+  cushion's cover and stuffing; a pane and a board are made by verbs
+  that are not recipes — the glass and forestry docs may want to say so
+  where the arm names them).
+- **`StagedMixin`'s `props`/`cast` split** — a `props`-only half a
+  *person with a loadout* composes, making Gus, Katie, Walter, the
+  Realtor and the tinker ROWS over one kernel class (`Gus.ts:14–26`'s
+  filed fix, now five receipts) → `content-declaration-slate` /
+  `object-taxonomy-slate` (kernel; cross-cutting).
+- **`Mould` as a family** (compose `AssembledMixin` the day a recipe
+  makes a mould; the cope-and-drag two-piece mould) → `moulding-slate`
+  § 7; arm 7d fires on its own when that recipe lands.
 - **Erecting a building** from its bill of goods (D20's layers summed
   over a structure's members × area × thickness × density) →
   `structures-slate` § building materials (owner: upkeep only).
@@ -1640,14 +2004,15 @@ Read first, in this order:
 
 1. `docs/subsystems/assembly.md`, `docs/subsystems/crafting.md § The lifecycle`
 2. `packages/server/src/mud/lib/craft/Assembled.ts`
-3. `packages/server/src/mud/platform/idea/api/CraftingLogic.ts:2286–2400, 3200–3990`
+3. `packages/server/src/mud/platform/idea/api/CraftingLogic.ts:2299–2410, 3215–4000` (dairy's +13 lines sit at `:1898–1912`, above both ranges)
 4. `packages/server/src/mud/api/crafting.ts:36–270`
 5. `packages/server/src/mud/lib/material/{Durable,Keen,Construction}.ts`
 6. `packages/server/src/mud/platform/thing/{Tool,Vat,Cask,Lamp,Lantern,Chair,AssembledChair,Receptacle,Timber}.ts`, `equipment/{Weapon,Garment,AssembledLauncher}.ts`
 7. `packages/server/scripts/check-bills.ts`, `scripts/pack-roots.ts`
 8. `packages/server/src/mud/platform/idea/cmd/retail/OrderController.ts`, `platform/thing/Tariff.ts`, `lib/commerce/PricedOffer.ts`
 9. `packages/server/src/mud/platform/idea/api/EmploymentLogic.ts:925–1010, 1630–1730, 2030–2110`, `lib/employment/{Roster,Employed}.ts`
-10. `packages/server/src/mud/lib/stuff/{Staged,Stuff}.ts`, `lib/npc/NPC.ts`
+10. `packages/server/src/mud/lib/stuff/{Staged,Stuff}.ts`, `lib/npc/NPC.ts`, `platform/agent/Gus.ts:1–40` (the Staged split, filed), `packages/content/terminus/src/mayfield-row/agent/Walter.ts` (the chain the tinker copies)
+10a. **The mould system**: `packages/server/src/mud/lib/mould/Mould.ts` (`carryPayload` — D1's one-line write site), `platform/thing/Mould.ts`, `packages/content/trade-dairying/src/thing/Hoop.ts`, `docs/subsystems/mould.md`, `docs/slates/builds/moulding-slate.md § 0, § 7`, `packages/content/trade-cooking/src/thing/CookPot.ts` (D4's one pack line)
 11. `packages/server/src/mud/lib/instrument/Reading.ts`, `platform/idea/reading/PumpReading.ts`
 12. `packages/server/src/mud/platform/idea/cmd/social/NameController.ts`
 13. `packages/content/trade-smithing/src/idea/cmd/crafting/SharpenController.ts`

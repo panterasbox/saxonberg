@@ -50,7 +50,7 @@ touches it.
 | **NPCs on the road** | ⚠ **none walks a round.** The carter journeys on demand for bounties; nothing keeps a timetable. The roads exist: Terminus → Delight Road → the crossroads → Hearts' Delight, the crossroads → Kestrel Road → Rejection, Terminus → Valley Road → Hinkley Hills. |
 | **Disciplines** | smithing, carpentry, coopering, tailoring, leatherwork, glasswork, textiles, appraisal (*a merchant's eye*). **No mending Discipline, and none is wanted** (§ Surface decisions 1). |
 | **building upkeep** | ships for **holdings** (the residence pack): a holding's shell weathers on the calendar (*sound · weathered · worn · shabby · dilapidated*, a cause line, no number); `survey` reads it and who owes it (the dorm's is the university's, a let unit's shell the landlord's, a bought house the owner's); `maintain` with a householder's kit puts it back to sound for anyone — ⚠ **costing no materials, asking no trade**; the dorm and the Seznick shell are kept by NPCs (Katie, Walter) on a cadence. ⚠ **Two clocks never touch**: a shell weathers on the calendar, a good only with use. |
-| **walls and roofs as layers** | ⚠ **not on master** — the rubber build (in flight) gives every place its walls and roof as a material and a thickness, or several layers outermost first; a structure says which places stand together, never what they are made of. The structures slate (on both in-flight branches) names *a building's bill of goods derived from those layers* as the next step, after rubber. |
+| **walls and roofs as layers** | ⚠ **not on master** — the rubber build (planned, no code yet) gives every place its walls and roof as a material and a thickness, or several layers outermost first; a structure says which places stand together, never what they are made of. The structures slate (on both in-flight branches) names *a building's bill of goods derived from those layers* as the next step, after rubber. |
 | **overlapping slates** | sanitation (scavenger, salvage yard, the lemons problem), freight (the roadmender's on-shift repair), patina (seasoned tools worth more), auction / warranty / insurance (second-hand title), trade-roster (a pedlar), textiles (the cordwainer). |
 
 ⭐ **Therefore what is genuinely new here is:** a building whose upkeep
@@ -123,7 +123,7 @@ named thing whose name lives in one of its parts.
   item. ⚠ Recorded here so it is not mistaken for forgotten.
 - **Treatment and burial performed by an on-shift hand** — the same
   defect as repair's on the infirmary's and the necropolis's counters →
-  [clinical-medicine-slate](../slates/builds/clinical-medicine-slate.md)
+  [clinical-medicine-slate](../slates/tails/clinical-medicine-slate.md)
   and [end-of-life-slate](../slates/builds/end-of-life-slate.md); this
   build fixes the repair arm only.
 - **A player founding their own repair business** (their own tariff,
@@ -263,7 +263,8 @@ work."* A hand who cannot diagnose a part quotes only what they can see.
 
 ### 5. Parts or one piece
 Every made tool, weapon, garment, vessel, lamp, seat, container and
-shield is made of parts or made in one piece. A one-piece thing (a
+shield **that wears** is made of parts or made in one piece (a glass or a
+pail that nothing wears is neither, and is never mended). A one-piece thing (a
 whetstone, a cast pot, a fired bowl, a rivet) is mended as a whole, comes
 apart only by melting, and refuses a part: *"It is one piece."* A found
 thing in those families (a stone picked up to use as a hammer) is one
