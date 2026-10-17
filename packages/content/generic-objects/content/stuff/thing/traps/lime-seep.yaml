@@ -36,5 +36,5 @@ data:
     energy: 1.5
     # The agent's chemistry, authored beside its magnitude: what the lime
     # eats. A corrosion delivery naming nothing attacks nothing.
-    corrosiveTo: [organic, tissue, leather, textile]
+    corrosiveTo: [tissue, leather, textile, once-living]
     siteSelector: [body.leg.left.foot, body.leg.right.foot]

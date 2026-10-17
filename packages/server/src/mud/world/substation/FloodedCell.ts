@@ -40,13 +40,28 @@ export default class FloodedCell extends SingletonCartesianLocation {
    * inflicts each. Faction-blind (allies included), grounding/insulation
    * emergent. A no-op if no source is present or all are de-energized.
    */
-  public onEntered(_mover: Stuff, _exit: unknown): void {
+  public onEntered(mover: Stuff, _exit: unknown): void {
     const self = this as unknown as Stuff & Container;
+    // ⭐ (rubber build) Wading soaks the feet and what is on them, BEFORE
+    // the walk reads them — so a leather boot conducts (the wet law) and
+    // a rubber one, which takes in nothing, does not.
+    if (MixinApi.isAttired(mover) && this.floorPoolLitres() > 0) {
+      mover.immerse((part) => part.includes('foot'));
+    }
     for (const content of self.getContents()) {
       // `isEnergized` narrows the containable to `Stuff & Energized`.
       if (MixinApi.isEnergized(content)) {
         content.conduct();
       }
     }
+  }
+
+  /** Litres standing on this cell's floor — the water you wade. */
+  private floorPoolLitres(): number {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isAdornable(self)) return 0;
+    const floor = self.getFloor() as unknown as Stuff | null;
+    if (!floor || !MixinApi.isBulkable(floor)) return 0;
+    return floor.getBulkAmount('surface').rawValue();
   }
 }

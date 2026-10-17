@@ -1318,6 +1318,12 @@ export const AppSettingKeys = {
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
+  /**
+   * ⚠ DROP AT MERGE — owned by storage-and-ice. Wetness — the water
+   * absorption capacity (%) at or below which a material is impermeable
+   * to the wet law: its pores take in nothing (rubber, glass, metal).
+   */
+  wetnessImpermeableBelowPct: "wetness.impermeableBelowPct",
   /** Wetness — saturation at/above which the band reads `damp`. */
   wetnessBandDampAt: "wetness.band.dampAt",
   /** Wetness — saturation at/above which the band reads `wet`. */
@@ -2263,6 +2269,16 @@ export const AppSettingKeys = {
   exertionCombatExchangeS: "exertion.combatExchangeS",
   /** Pump — packing condition one spell at the handle wears off (0..1). */
   pumpWearPerStroke: "pump.wearPerStroke",
+  /**
+   * Pump — the packing toughness (MJ/m³) wear is measured against: leather's
+   * 10. A tougher packing wears slower in proportion (rubber build).
+   */
+  pumpReferenceToughness: "pump.referenceToughness",
+  /**
+   * Pump — how much a springy packing's elasticity spares it: at rubber's
+   * 500 % and 0.5 relief, half the wear (rubber build).
+   */
+  pumpElasticityWearRelief: "pump.elasticityWearRelief",
   /** Pump — packing condition one RUNNING hour of a powered pump wears
    * off; integrated over the supply's trajectory, never sampled. */
   pumpWearPerRunningHour: "pump.wearPerRunningHour",

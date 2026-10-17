@@ -20,6 +20,13 @@ settings:
   - key: wetness.immersionSaturation
     value: "1"
 
+  # ⚠ DROP AT MERGE — owned by storage-and-ice. The water absorption
+  # capacity (%) at or below which a material is impermeable to the wet
+  # law (rubber 0.5, glass 0.1, metal 0): a soaked rubber boot conducts
+  # exactly as a dry one.
+  - key: wetness.impermeableBelowPct
+    value: "2"
+
   - key: wetness.band.dampAt
     value: "0.15"
 

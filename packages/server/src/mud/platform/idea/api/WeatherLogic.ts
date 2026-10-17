@@ -1346,7 +1346,14 @@ function wetOccupants(room: Stuff & Container): void {
   const hours = WEATHER_DEFAULTS.SEGMENT_LENGTH_S / 3600;
   const delta = perHour * hours;
   for (const occ of room.getContents()) {
-    if (MixinApi.isWet(occ as unknown as Stuff)) {
+    const s = occ as unknown as Stuff;
+    // ⭐ (rubber build) A dressed body is rained on THROUGH what it wears:
+    // the outer layer takes it, and the body only what that layer passes.
+    if (MixinApi.isAttired(s)) {
+      s.exposeToRain(delta);
+      continue;
+    }
+    if (MixinApi.isWet(s)) {
       (occ as unknown as { wet(n: number): void }).wet(delta);
     }
   }

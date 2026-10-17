@@ -50,6 +50,8 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -1201,6 +1203,49 @@ export default class Material extends SingletonMixin(
   /** Set light absorption. Strict on `Quantity<'1/m'>`; `null` = opaque. */
   public setLightAbsorption(value: Quantity<'1/m'> | null): void {
     this.lightAbsorption = value;
+  }
+
+  // ───────────── the wet law (DROP AT MERGE — owned by storage-and-ice) ─────────────
+  //
+  // ⚠⚠ storage-and-ice OWNS these two methods (its W1, D9) and migrates
+  // cloth's `k_void` onto them. This is a byte-compatible copy of its
+  // published signatures so the rubber build's electrical reader can call
+  // them before ice merges; at rubber's merge, ice's win and this block is
+  // deleted. Rubber never touches `Wearable.getClo`.
+
+  /**
+   * ⭐ How much water this material's pores take in, 0..1: 0 when it
+   * absorbs nothing to speak of (`waterAbsorptionCapacity ≤
+   * wetness.impermeableBelowPct`, 2 % — rubber, glass, metal), else its
+   * capacity against the textiles absorption reference (40 %).
+   */
+  public permeability(): number {
+    const wac = this._waterAbsorptionCapacity.rawValue();
+    if (wac <= Material.dial(AppSettingKeys.wetnessImpermeableBelowPct, 2)) return 0;
+    return Math.min(1, wac / Material.dial(AppSettingKeys.textilesCloAbsorptionReference, 40));
+  }
+
+  /**
+   * ⭐⭐ ONE law for every property water changes in a porous material:
+   * water in the pores replaces air, so a property moves from its dry
+   * value toward the fluid's by `saturation × permeability`.
+   * `dry + saturation · permeability · (fluid − dry)`.
+   */
+  public wetProperty(dry: number, fluid: number, saturation: number): number {
+    const s = Math.max(0, Math.min(1, saturation));
+    return dry + s * this.permeability() * (fluid - dry);
+  }
+
+  /** A numeric setting, falling back to its seeded literal. */
+  private static dial(key: string, fallback: number): number {
+    try {
+      const raw = AppApi.setting(key);
+      if (raw === '' || raw == null) return fallback;
+      const n = Number.parseFloat(raw);
+      return Number.isFinite(n) ? n : fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   /** Read elasticity — the strain it springs back from (`%`; `0` = rigid). */

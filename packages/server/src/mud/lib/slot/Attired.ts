@@ -169,6 +169,21 @@ export interface Attired {
   windproofing(): number;
 
   /**
+   * ⭐ Rain on a dressed body (rubber build): each DISTINCT outermost
+   * garment takes the rain once, at the summed surface share of the
+   * parts it is outermost on; the body takes what each part's outer
+   * layer passes — `permeability × saturation` of it, a bare part 1.
+   */
+  exposeToRain(delta: number): void;
+
+  /**
+   * ⚠ DROP AT MERGE — owned by storage-and-ice (its D11). Going into
+   * water: the body and every layer at every exterior part get soaked —
+   * only the parts `parts` admits, when given (wading soaks the feet).
+   */
+  immerse(parts?: (partKey: string) => boolean): void;
+
+  /**
    * How the worn stack shifts this host's own conspicuity, in
    * **concealment-band ranks** — negative hides, positive advertises.
    *
@@ -670,6 +685,72 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         weighted += share * density * (1 - wetness);
       }
       return weighted < 0 ? 0 : weighted > 1 ? 1 : weighted;
+    }
+
+    public exposeToRain(this: Stuff & Slotted & Attired, delta: number): void {
+      if (!(delta > 0)) return;
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) {
+        if (MixinApi.isWet(self as unknown as Stuff)) (self as unknown as { wet(n: number): void }).wet(delta);
+        return;
+      }
+      // ⭐ ONE wet() per distinct outermost garment, at its summed share —
+      // a coat outermost on torso and both arms is rained on once.
+      const outerShare = new Map<Stuff, number>();
+      const bareShare: number[] = [];
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key)) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        const outer = this.outermostAt(part.key) as unknown as Stuff | null;
+        if (outer === null) {
+          bareShare.push(share);
+          continue;
+        }
+        outerShare.set(outer, (outerShare.get(outer) ?? 0) + share);
+      }
+      let toBody = bareShare.reduce((a, b) => a + b, 0) * delta;
+      for (const [garment, share] of outerShare) {
+        if (MixinApi.isWet(garment)) garment.wet(delta * share);
+        const mat = MixinApi.isTangible(garment) ? garment.getMaterial() : null;
+        const saturation = MixinApi.isWet(garment) ? garment.getWetness() : 1;
+        const pass = mat ? mat.permeability() * saturation : 1;
+        toBody += delta * share * pass;
+      }
+      if (toBody > 0 && MixinApi.isWet(self as unknown as Stuff)) {
+        (self as unknown as { wet(n: number): void }).wet(toBody);
+      }
+    }
+
+    public immerse(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+    ): void {
+      // ⚠ DROP AT MERGE — owned by storage-and-ice. A copy of its
+      // published shape: the body (at the admitted parts' share) and
+      // every layer at every admitted exterior part get `wet(1)`.
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return;
+      const saturation = dial(AppSettingKeys.wetnessImmersionSaturation, 1);
+      const seen = new Set<Stuff>();
+      let share = 0;
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key)) continue;
+        if (parts && !parts(part.key)) continue;
+        share += plan.getPartSurfaceFraction(part.key);
+        for (const layer of this.coveringAt(part.key)) {
+          const asStuff = layer as unknown as Stuff;
+          if (seen.has(asStuff)) continue;
+          seen.add(asStuff);
+          if (MixinApi.isWet(asStuff)) asStuff.wet(saturation);
+        }
+      }
+      const body = self as unknown as Stuff;
+      if (share > 0 && MixinApi.isWet(body)) {
+        (body as unknown as { wet(n: number): void }).wet(saturation * (parts ? Math.min(1, share) : 1));
+      }
     }
 
     public concealmentOffset(this: Stuff & Slotted & Attired): number {

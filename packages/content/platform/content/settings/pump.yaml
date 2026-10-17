@@ -14,6 +14,16 @@ settings:
   - key: pump.wearPerStroke
     value: "0.06"
 
+  # ⭐ (rubber build) Wear reads the packing's material: a stroke wears it
+  # by `wearPerStroke × (referenceToughness / toughness) × (1 − spring)`,
+  # where spring = min(0.8, elasticity/500 × relief). Leather (toughness
+  # 10) is the reference; rubber (20, elasticity 500) wears a quarter.
+  - key: pump.referenceToughness
+    value: "10"
+
+  - key: pump.elasticityWearRelief
+    value: "0.5"
+
   # Packing condition one RUNNING hour of a powered pump wears off —
   # integrated over the supply's trajectory, never sampled.
   # ⚠ ZERO until the keeper exists. A powered pump's packing is two
