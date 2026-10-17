@@ -1856,6 +1856,17 @@ recorded in D15 and D19.
 
 ## Risks & opens
 
+0. **The repair build (build-3, `reqs/repair`) edits the same kernel
+   files, unmerged.** Its W0–W2 rework `CraftingLogic` (`repairImpl`,
+   `applyAssembledOutput`, `salvageByJoints`, the mint) beside this
+   build's W0 salvage/off-spec edits, and its W7 adds `weatheringDays` /
+   `laying` to `Material.ts` beside this build's W0/W1 additions. No
+   design conflict (verified against its plan, 2026-10-17); a textual
+   one is likely. Whichever lands second merges master first and re-runs
+   the W0 freeze/salvage tests and the smelting and glass drives. Its
+   moulding seam (a cast's maker = the discipline the mould credits)
+   does not touch the ice pan: it authors no discipline.
+
 1. **The sheet's own record.** A floor is a fixture with no container,
    so it must establish its own `(scope, key)` record keyed by its pool
    (D12). If `restoreOrSeed` on a fixture turns out awkward (the
@@ -1957,7 +1968,7 @@ Clean attach points, each with the slate it leaves as:
   expanse.
 - **Going under the water; recovering what sank** → underwater-slate.
   Attach: `PoolBottom` is the holder; diving is the verb that opens it.
-- **The building's bill of goods** → structures-slate, after rubber.
+- **The building's upkeep** → the repair build's W7 (`reqs/repair`, build-3: layers weather by `Material.weatheringDays`, `maintain` lays them under the layer's `laying` trade; buildings and materials opt in by declaration; the icehouse and sawdust are OFF there until a supply reaches the icehouse). The erection bill of goods → structures-slate.
 - **Night-sky radiation (pan ice)** → the weather slate; rubber's roof
   face is the attach point.
 - **NPC restocking unobserved** → unobserved-economy-slate; the

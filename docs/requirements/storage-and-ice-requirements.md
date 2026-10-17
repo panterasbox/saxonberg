@@ -156,7 +156,7 @@ Seeding slates:
 
 **Storage beyond this build**
 - **Damp, spontaneous combustion and vermin in stores** → storage-slate's next pass, with the granary and the haymow. ⚠ **One exception is in this build: meltwater soaking an icehouse's packing** (see Surface decisions).
-- **Building materials, erection and upkeep** (a building's bill of goods to erect and maintain it, paid in RGO outputs; the icehouse's wall fill would be one line of its bill, its settling and rot the upkeep) → [structures-slate](../slates/builds/structures-slate.md), **after the rubber build lands**.
+- **Building materials, erection and upkeep** (a building's bill of goods to erect and maintain it, paid in RGO outputs; the icehouse's wall fill would be one line of its bill, its settling and rot the upkeep) → ⭐ **the repair build's building-upkeep wave** (build-3, `reqs/repair` W7, gated on rubber): each layer of a place's walls and roof weathers at its material's pace and is maintained with the materials themselves. A building and a material each **opt in by declaration**; the icehouse and sawdust are deliberately OFF there until a supply reaches the icehouse. This build ships the sawdust; the haul that carries it is placeholder, so the icehouse's opt-in waits on freight. The erection half (a bill of goods to build) stays [structures-slate](../slates/builds/structures-slate.md)'s.
   - Decided 2026-10-16, after reading rubber beside this: rubber's layered walls are the seam the bill derives from (each layer's material × area × thickness), so it is built on that and in neither build.
   - **Until then, walls are authored construction**, and they wear nothing.
 - **Moving the timber yard onto a store** → storage-slate, as a candidate.

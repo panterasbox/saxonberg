@@ -265,6 +265,11 @@ Left as a line here rather than in a retired plan.
 > *"We've said maybe structures have a bill of goods you need to erect /
 > maintain them and it's paid in RGO outputs."* — user
 
+> ⭐ **The UPKEEP half is now designed — the repair build's W7** (`reqs/repair`,
+> build-3, gated on rubber): layers weather by material, `maintain` lays them
+> under each layer's trade, buildings and materials opt in. What stays here is
+> the ERECTION half: the bill of goods to put a building up.
+
 **Not designed anywhere yet** (there is no bill of goods in structures, towns
 or property). The shape the owner described: **a building has a bill of goods to
 erect it and an upkeep to keep it standing, both paid in RGO outputs** — stone,
