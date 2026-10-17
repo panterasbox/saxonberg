@@ -45,8 +45,3 @@ data:
     # are the precedent): a starting condition, not a supply. What
     # restocks it is the trade that makes it.
     - { template: /stuff/thing/items/dry-log, count: 3 }
-  details:
-    window:
-      keywords: [window, glass, light]
-      description: |
-        A small window over the sink, looking out at the back of the next lot.

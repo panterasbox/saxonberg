@@ -179,8 +179,3 @@ data:
   cast:
     - /world/terminus/hearthworks/agent/cook
     - /world/terminus/hearthworks/agent/cookhand
-  details:
-    window:
-      keywords: [window, glass, light]
-      description: |
-        A wide unglazed window over the wash bench, shuttered at night and open to the yard by day.

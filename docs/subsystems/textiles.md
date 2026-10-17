@@ -328,10 +328,15 @@ Textiles owns the **layering model**, so it answers *which layer takes
 the stain*: `wearer.outermostAt(partKey)`. That is the whole seam, and
 the covering stack needed the method anyway.
 
-**Out of scope, and asserted absent:** the gauge, its bands, its
-attributed deposit log — those belong to
-[room-condition](../slates/builds/room-condition-design-pack.md), and a
-second gauge would be a third parallel representation of one idea.
+⭐ **Lit by the cleanliness build (2026-10-17).** The gauge, its bands and
+the deposits are `SoilableMixin`'s now — see
+[cleanliness.md](./cleanliness.md). Textiles still answers *which layer
+takes the stain* (`outermostAt`); the act names the dirt and the wearer
+lands it there. What WASHING does to cloth is the garment's override of
+the wash: boiling felts wool (and shrinks the cut), hot water shrinks a
+fibre, a corrosive cleanser eats the fibre its material names, an unfast
+dye bleeds onto everything in the same water, the sun fades and yellows,
+and a washed garment comes out wet.
 
 ⚠⚠ **And no `soil.*` event either.** The plan proposed one; it was wrong
 three times over. Room-condition's *"attributed events"* are **ledger
@@ -345,9 +350,8 @@ local interaction is a call, not a broadcast.**
 does not get dirty. Soiling is not time-integrated, and there is no
 clock stamp anywhere in this build.
 
-⭐ **The apron is designed and seamed now and lights up when
-room-condition lands** — it is content only: cheap, outermost band, wide
-`slotClaims`. Until then it is an honest, cheap, ugly garment.
+⭐ **The apron is lit:** butchery bloodies and greases the apron, not the
+shirt under it (cleanliness D6).
 
 ---
 

@@ -950,3 +950,10 @@ and run out of.
 - [docs/antipatterns.md](../antipatterns.md) — pre-asserted casts,
   redundant casts, scalar-default rule, instanceof vs. virtual
   vs. cast-by-invariant.
+
+## Grime (2026-10-17)
+
+A grimed `Window` passes less (`transmissivity()` × `1 − 0.6 × band/3`).
+⭐ A sky-lit room's named `ambientOpening` may be a one-sided pane in the
+room: `AmbientLit.openingTransmissivity()` scales the sky leg by it, so
+grime and shutters darken the room. See [cleanliness.md](./cleanliness.md).

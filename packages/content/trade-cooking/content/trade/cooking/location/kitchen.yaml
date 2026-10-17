@@ -85,8 +85,3 @@ data:
     # are the precedent): a starting condition, not a supply. What
     # restocks it is the trade that makes it.
     - { template: /stuff/thing/items/dry-log, count: 3 }
-  details:
-    window:
-      keywords: [window, glass, light]
-      description: |
-        A window over the work bench — a cook needs daylight to tell a good onion from a bad one.

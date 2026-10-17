@@ -574,16 +574,20 @@ db.domain.findOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed
 - **Condition / stewardship** — what a room's state *means*, and the
   `restQuality` aggregation from bedding freshness and tidiness. Needs the
   condition model.
-- **Room-general cadences** — energy (on the fixture), debris (a
-  room-level field), air quality (the shipped `AtmosphericMixin`), and
-  **pests, which get no field at all** because they are emergent from
-  debris plus food.
+- **Room-general cadences** — energy (on the fixture) and air quality (the
+  shipped `AtmosphericMixin`). ⭐ Debris and pests SHIPPED with the
+  cleanliness build, on the floor rather than a room field: debris is a
+  `debris`-form deposit on the floor, and pests are still no field — a
+  derived read of debris plus open food (see
+  [cleanliness.md](./cleanliness.md)). Rest reads as kept
+  (`restQualityAsKept`).
 - **Spoilage / preservation** — `ptomaine.yaml` ships a food-poisoning
   condition with no producer, and keeps having none. Spoilage belongs to
   the food and its container.
-- **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
-  `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
-  v1") are the two seams. Handwashing *is* the chain of infection.
+- **Washing / sterility** — ⭐ shipped with the cleanliness build: a
+  dressing's quality is its derived clean tier, and the hands that dress a
+  wound seed it as they are kept ([cleanliness.md](./cleanliness.md)).
+  `Condition.contagion` ("reserved, no consumer v1") is still a seam.
 - **Further dorm "dedupe" — checked, and there is none.** The bed **is**
   done (below). The rest turned out not to be duplication at all, and this
   is recorded so the next reader does not go looking:

@@ -1012,3 +1012,13 @@ temperature-sensitive as real milk pathogens, so a flash pasteurization
 (72 °C for seconds) under-kills here; a batch hold at ~63 °C behaves
 honestly. A retune of the kill's activation energy is this subsystem's,
 not dairy's.
+
+## Cleanliness: pests and the kitchen (2026-10-17)
+
+- **Pests** add `cleanliness.pests.ratePerHour` to an open food's growth
+  while the room's floor has them — derived from debris over
+  `cleanliness.pests.debrisAt` plus open food, never a field; sampled once
+  per reconcile beside light-strike.
+- **The kitchen tier** — a board, knife or hand short of *sanitised*
+  inoculates the food it touches with `staph-aureus` before the working's
+  kill (perishable inputs only). See [cleanliness.md](./cleanliness.md).

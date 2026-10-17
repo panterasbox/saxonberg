@@ -517,7 +517,23 @@ function lint(): void {
       details && typeof details === "object"
         ? Object.keys(details as Record<string, unknown>)
         : [];
-    if (!ids.includes(opening)) {
+    // ⭐ …or a PANE in the room (cleanliness B18): a prop whose row answers
+    // to the opening's word and composes the light conduit a Window is — a
+    // thing you can look at, wash and shutter, which is a stronger claim
+    // than a detail.
+    const placed = Array.isArray(r.row.data.props) ? (r.row.data.props as unknown[]) : [];
+    const paneIsTheOpening = placed.some((p) => {
+      const path = typeof p === "string" ? p : ((p as { template?: string })?.template ?? null);
+      const target = path ? rows.get(path) : undefined;
+      const kw = target?.data.keywords;
+      return (
+        !!target &&
+        target.class === "/platform/thing/Window" &&
+        Array.isArray(kw) &&
+        kw.includes(opening)
+      );
+    });
+    if (!ids.includes(opening) && !paneIsTheOpening) {
       failures.push(
         `${r.row.file}: \`ambientOpening: ${opening}\` names no detail on ` +
           `this row (has: ${ids.join(", ") || "none"}). The opening must be ` +

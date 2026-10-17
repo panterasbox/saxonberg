@@ -530,7 +530,9 @@ command category plus `assess` in `perception`.
 
 - **Dressing is a capability, not a class.** `DressingMixin` (`lib/vitals/`,
   `Mixins.Dressing` + `MixinApi.isDressing`, the `ToolMixin` pattern)
-  carries a 0..1 `dressingQuality` and is **single-use**. `Bandage =
+  carries a 0..1 dressing quality — ⭐ DERIVED from its clean tier since
+  the cleanliness build (raw 0.3, washed 0.6, sanitised 0.8, boiled 1;
+  [cleanliness.md](./cleanliness.md)) — and is **single-use**. `Bandage =
   DressingMixin(Good)` (`obj/Bandage.ts`, the `Coin`
   precedent) is the canonical concrete one; any dressing-capable item
   (gauze, a rag) qualifies. `treat`/`undress` gate on `isDressing`, **never
@@ -542,9 +544,12 @@ command category plus `assess` in `perception`.
   dressing (`StuffApi.destruct`) and calling the trauma's `resolve` (sets
   `dressed`, arrests the bleed); the dressed wound heals to clear on the
   next read (reconcile-on-read — no tick to re-arm). Outcome quality = the
-  dressing's `dressingQuality`
+  dressing's quality (its clean tier)
   × the treater's `medicine` competence band; difficulty is derived from
-  the wound (a world-measurement, not a tag). A graded outcome mints an
+  the wound (a world-measurement, not a tag). ⭐ The dressing's TIER is also
+passed (`TreatmentOpts.dressingTier`), and `operate`/`suture` pass the
+instrument's (`instrumentTier`): sepsis seeds from the worst of hands,
+dressing and instrument. A graded outcome mints an
   `ActSignature` (`creditDeed`) into the treater's
   Transcript — consuming the advancement API, reshaping nothing in it.
 - **`undress`** (a distinct verb from the wearable-slot `remove`) is the
@@ -739,10 +744,11 @@ is at stake is the **evidence** rather than the patient. See
 
 ### Hygiene and the festering wound
 
-`HygieneMixin` (on `Creature`) is one `washedAt` stamp with a derived
-`handsCleanliness()` that decays over `HYGIENE_SOIL_SEC`; `scrub()` cleans
-(bare `wash` at water drives it), `soil()` dirties (treating a bleed soils
-the treater). **Wound sepsis**
+⭐ **`HygieneMixin` is DELETED** (the cleanliness build): there is no
+hands clock. `handCleanliness()` is derived from what the hands — or the
+gloves over them — carry (`AttiredMixin`, [cleanliness.md](./cleanliness.md));
+bare `wash` at water washes the outermost layer at each hand, and treating
+a bleed bloodies the treater's hands with the patient's blood. **Wound sepsis**
 (`Condition/pathogen/wound-sepsis`, `reach: infect`) is the shipped
 in-host infection arm with a new SOURCE: `applyTreatment` seeds it when a
 bleed-family wound is dressed with dirty hands or poor care, and the harm

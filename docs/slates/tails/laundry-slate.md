@@ -404,3 +404,20 @@ and the company, never in relief from a penalty.
 - [measurement.md](../../measurement.md) ·
   [belief.md](../../subsystems/belief.md) ·
   [presentation.md](../../subsystems/presentation.md)
+
+## Left by the cleanliness build (2026-10-17)
+
+The lavoir, the laundress, the bathhouse and the wash chemistry shipped
+(`docs/subsystems/cleanliness.md`). Still open:
+
+- **The house mends it** — a ruined garment is wear-damaged; the tailor's
+  mend is the second remedy beside the cash cover.
+- **An appraisal** — the house pays its posted cover, not the garment's
+  value.
+- **The house's soap is not spent by a paid wash**, and no `restocks`
+  brain keeps the laundress's or the attendant's par — the par loop.
+- **A cash customer is told the house owes them**; the coin payout from
+  the till is not built.
+- **Stale urine's collection** (who fills the tub) → sanitation.
+- **Chlorine, detergent, the machine** — the next epochs of the same
+  verbs.

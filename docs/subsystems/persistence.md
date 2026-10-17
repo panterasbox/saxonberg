@@ -1546,3 +1546,9 @@ The troupe's durable home is the authored `cast:` data, exactly like the
 born-with seed; only its *liveness* is transient. Proven in
 `lib/persistence/__tests__/CastReseed.test.ts` and the designation gate in
 `lib/stuff/__tests__/Staged.test.ts`.
+
+## Kept places (2026-10-17)
+
+`PersistentCartesianLocation` keeps a place's floor, fire and fixtures
+across a restart through `AdornableMixin`'s fixture slice;
+`captureHostOf` walks fixture → host. See [cleanliness.md](./cleanliness.md).

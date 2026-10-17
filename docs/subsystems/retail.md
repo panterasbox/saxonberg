@@ -445,3 +445,14 @@ window's house, not the practice sharing the ward; (b) `OrderController`
 **scans every reachable `Tariff`** when the bound counter does not price
 the key, before falling through to the menu. See `blood.md`,
 `employment.md`.
+
+## ⭐ A priced service performed by a person — wash and bath (2026-10-17)
+
+The cleanliness build added two service kinds, `wash` and `bath`, on the
+seam a priced service is performed by a person: `CraftingApi.fulfillingHand`
+(restricted to the tariff's own house, and to `Tariff.serviceDisciplines`
+when the row names one), `Tariff.quoteFor`, `PricedOffer.canSettle` before
+the act, one collector, and piece-rate pay by the seat's basis. A ruined
+wash is paid back by the house's posted `cover` through
+`BankingApi.indemnify` — never to one of the house's own seats. `bath` is
+durative on the customer. See [cleanliness.md](./cleanliness.md).
