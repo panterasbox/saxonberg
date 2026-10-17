@@ -46,6 +46,7 @@ import { BiomeLogic } from '../platform/idea/api/BiomeLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { ClimateSite } from '../lib/weather/WeatherType';
+import type { Exposure } from '../lib/spatial/Exposure';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by
@@ -433,13 +434,29 @@ export class BiomeApi {
   // ---------- Wave 5 — sky exposure ----------
 
   /**
-   * Walk outward through containment ancestors and return whether
-   * the nearest atmospheric-ancestor's biome composes
-   * `SkyExposedMixin`. Returns `false` when no biome resolves (the
-   * scope has no atmospheric ancestor with a biome ref).
+   * ⚠ **The LEGACY biome discriminator** — walk outward through
+   * containment ancestors and return whether the nearest
+   * atmospheric-ancestor's biome composes `SkyExposedMixin`; `false` when
+   * no biome resolves.
+   *
+   * ⭐ Readers do not ask this any more (rubber build): rain, light, sky
+   * view, wind and heat ask {@link exposureOf}, which answers from what a
+   * place says it is made of. This stays for the one question it still
+   * owns — what an UNDECLARED place (no `roof:`) is over — and retires
+   * with `SkyExposedBiome` when `lint:biome-sky` reaches zero.
    */
   public static isSkyExposed(scope: Stuff): boolean {
     return logic().isSkyExposed(scope);
+  }
+
+  /**
+   * ⭐⭐ **What is over and around the place `scope` is in** — the
+   * innermost atmospheric scope (`scope` itself, or the first one
+   * outward: a body's room, a passenger's coach) and its
+   * {@link Exposure}. `null` when nothing atmospheric encloses it.
+   */
+  public static exposureOf(scope: Stuff): Exposure | null {
+    return logic().exposureOf(scope);
   }
 
   /**

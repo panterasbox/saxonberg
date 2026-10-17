@@ -319,6 +319,19 @@ function isSkyExposedRow(
   rows: Map<string, Row>,
   sources: readonly PackSource[],
 ): boolean {
+  // ⭐ (rubber build) A row that says what is over it answers from that:
+  // `roof: none` is open; a roof whose every layer's material authors a
+  // `lightAbsorption` passes the sky (glass); any other roof is opaque.
+  // Only a row with no `roof:` falls back to the legacy biome walk.
+  const roof = row.data.roof;
+  if (roof === "none") return true;
+  if (roof !== undefined && roof !== null) {
+    const layers = Array.isArray(roof) ? roof : [roof];
+    return layers.every((l) => {
+      const m = (l as { material?: unknown })?.material;
+      return typeof m === "string" && rows.get(m)?.data.lightAbsorption !== undefined;
+    });
+  }
   const biome = row.data._biomePath;
   if (typeof biome !== "string") return false;
   return isSkyBiome(biome, rows, sources);

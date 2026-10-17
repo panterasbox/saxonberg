@@ -424,7 +424,13 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
   // weather, exactly as before.
   if (MixinApi.isAmbientLit(loc)) {
     const ambientFlux = loc.isSkyLit()
-      ? loc.skyNoonFlux() * skyFactor * loc.getWeatherDimFactor()
+      ? loc.skyNoonFlux() *
+        skyFactor *
+        loc.getWeatherDimFactor() *
+        // ⭐ What the roof and walls let through (rubber build): 1 under
+        // the open sky and for an authored `sky` rung, a glass roof's
+        // Beer–Lambert transmittance under glass.
+        loc.skyLightFraction()
       : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();

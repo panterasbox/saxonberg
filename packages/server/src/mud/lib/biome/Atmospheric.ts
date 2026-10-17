@@ -898,10 +898,10 @@ export function AtmosphericMixin<
       if (!(litres > 0)) return 0;
       const volumeL = this.mediumLitres();
       if (volumeL === null) return 0;
-      const self = this as unknown as Stuff;
       // Open to the sky: it goes up, and that is the whole lesson of
-      // running a fire outdoors.
-      if (BiomeApi.isSkyExposed(self)) return 0;
+      // running a fire outdoors. An open top or no walls holds nothing:
+      // it is the outside air.
+      if (!this.exposure().holdsAir()) return 0;
       this.reconcileAtmosphereContents();
       const headroom = Math.max(0, 1 - this.contentsSum());
       const wanted = litres / volumeL;
@@ -1040,8 +1040,8 @@ export function AtmosphericMixin<
      * room's air mixes with the next room's long before its heat does.
      */
     public airChangesPerHour(): number {
-      const self = this as unknown as Stuff;
-      if (BiomeApi.isSkyExposed(self)) return Infinity;
+      // ⭐ An awning or a lavoir does not hold gas like a shut room.
+      if (!this.exposure().holdsAir()) return Infinity;
       const { exterior, interior } = this.openingsByKind();
       const perOpening = envelopeDial(AppSettingKeys.fireAirAchPerOpening, 4);
       const perInterior = envelopeDial(AppSettingKeys.fireAirAchInterior, 1);
@@ -1110,10 +1110,9 @@ export function AtmosphericMixin<
      *    an envelope would have it drift toward itself.
      */
     public envelopeApplies(): boolean {
-      const self = this as unknown as Stuff;
       if (this.getVolume() === null) return false;
       if (this._temperature !== null) return false;
-      return !BiomeApi.isSkyExposed(self);
+      return this.exposure().holdsAir();
     }
 
     /**
@@ -1169,7 +1168,11 @@ export function AtmosphericMixin<
      *   per obvious exit on a read that sits on the thermal hot path.
      */
     protected isThreshold(far: Stuff): boolean {
-      return BiomeApi.isSkyExposed(far);
+      // ⭐ The far side holds no air of its own — a street, a yard, an
+      // awning. An enclosed neighbour is interior whether or not it is
+      // of the same structure (a party threshold couples nothing yet).
+      const e = BiomeApi.exposureOf(far);
+      return e === null ? false : !e.holdsAir();
     }
 
     /**
@@ -1306,13 +1309,7 @@ export function AtmosphericMixin<
       if (declaredRoof !== null) {
         return { walls, roof: declaredRoof, declared: true };
       }
-      let sky = false;
-      try {
-        sky = BiomeApi.isSkyExposed(this as unknown as Stuff);
-      } catch {
-        sky = false;
-      }
-      if (sky) {
+      if (AtmosphericMixin.legacySky(this as unknown as Stuff)) {
         const none = this.resolvePart('none', 'none');
         return {
           walls: this.getEnclosure() === null ? none : walls,
@@ -1354,6 +1351,12 @@ export function AtmosphericMixin<
         : [];
       let key = structure?.stuffId ?? '';
       for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
+      // ⚠ An UNDECLARED place's answer is its biome's, and a biome
+      // resolves after the room materializes (the Floor snow lesson) — so
+      // the legacy bit is part of the key, re-read every call.
+      if (this.resolveDeclaredRoof() === null) {
+        key += AtmosphericMixin.legacySky(self) ? '|sky' : '|in';
+      }
       if (this._exposure !== null && this._exposureKey === key) {
         return this._exposure;
       }
@@ -1419,6 +1422,10 @@ export function AtmosphericMixin<
         if (vertical || exit.getDoor() !== null) continue;
         // ⚠ A doorless exit to another ENCLOSED place is not an opening:
         // the face stays a solid exterior wall, as it always has.
+        // ⚠ Only a DECLARED place has open sides: an undeclared interior
+        // keeps today's one material on five faces (its doorway is the
+        // shipped `U_open` term, never a missing wall).
+        if (!own.declared) continue;
         if (!MixinApi.isAtmospheric(dest) || !enclosed(dest)) openSides += 1;
       }
       wallsShared = Math.min(wallsShared, 4);
@@ -1466,6 +1473,15 @@ export function AtmosphericMixin<
         openOpenings: () => this.openExteriorOpenings(),
         sideWeight: envelopeDial(AppSettingKeys.lightSolarSideWeight, 0.25),
       });
+    }
+
+    /** The legacy biome discriminator, guarded (no biome reads `false`). */
+    private static legacySky(scope: Stuff): boolean {
+      try {
+        return BiomeApi.isSkyExposed(scope);
+      } catch {
+        return false;
+      }
     }
 
     /** An exit up or down a storey couples, but consumes no wall. */
@@ -1694,6 +1710,12 @@ export function AtmosphericMixin<
      *   here — it would move a shipped temperature the drive asserts on.
      */
     protected envelopeExposedAreaM2(volumeM3: number): number {
+      // ⭐ The construction answers it now (rubber build): the exterior
+      // walls and the roof when it is one. A place in no structure is
+      // five faces, exactly as before; a member's faces onto an enclosed
+      // member are interior and lose nothing to the weather.
+      const area = this.exposure().exteriorAreaM2();
+      if (area > 0 || this.getVolume() !== null) return area;
       const side = Math.cbrt(volumeM3);
       return 5 * side * side;
     }

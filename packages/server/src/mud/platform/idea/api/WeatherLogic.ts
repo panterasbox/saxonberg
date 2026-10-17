@@ -757,22 +757,43 @@ function nowSecondsOrNull(): number | null {
  * consulted on the no-pin branch, so an authored indoor pin never triggers
  * the walk's cost path for the common case.
  */
+/**
+ * ⭐ What the construction lets in (rubber build): whether the sky field
+ * reaches the AIR here (no air of its own — a street, a pen, an awning),
+ * and whether the RAIN reaches the floor (an open top). Under an awning
+ * the first is true and the second false; in a glasshouse, both false.
+ */
+interface SkyReach {
+  air: boolean;
+  rain: boolean;
+}
+
+function skyReachOf(
+  exposure: { holdsAir(): boolean; rainReaches(): boolean } | null,
+): SkyReach {
+  if (exposure === null) return { air: false, rain: false };
+  return { air: !exposure.holdsAir(), rain: exposure.rainReaches() };
+}
+
 function computeResolved(
   scope: Stuff & Container,
   locality: Locality | null,
   nowS: number,
-  skyExposed: boolean,
+  reach: SkyReach,
   site: ClimateSite | null = null,
 ): ResolvedWeather {
+  const skyExposed = reach.air;
   const pin = resolveWeatherPin(scope, locality);
   if (pin !== null) {
     const sample = pinnedSample(pin, locality, nowS, site);
     return {
       sample,
       provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
-      precipitationHere: skyExposed
+      precipitationHere: reach.rain
         ? phaseHere(sample, site, nowS)
-        : sample.precipitation,
+        : reach.air
+          ? 'none'
+          : sample.precipitation,
       cloudForm: cloudFormFor(sample.type, []),
     };
   }
@@ -793,7 +814,7 @@ function computeResolved(
   return {
     sample,
     provenance: leaned ? 'climate-leaned' : 'procgen',
-    precipitationHere: phaseHere(sample, site, nowS),
+    precipitationHere: reach.rain ? phaseHere(sample, site, nowS) : 'none',
     cloudForm: cloudFormFor(sample.type, []),
   };
 }
@@ -902,9 +923,11 @@ async function runBoundaryFanout(): Promise<void> {
     if (visited.has(room.stuffId)) continue;
     visited.add(room.stuffId);
 
-    const sky = BiomeApi.isSkyExposed(room);
-    // Thermal restamp (Wave 1): SkyExposed only — the field deviation stays
-    // sky-gated. The now-weathered ambient re-resolves on each Thermal read.
+    const reach = skyReachOf(BiomeApi.exposureOf(room));
+    const sky = reach.air;
+    // Thermal restamp (Wave 1): the outside air only — the field deviation
+    // stays gated on it. The now-weathered ambient re-resolves on each
+    // Thermal read.
     if (sky) BiomeApi.restampThermalContentsOf(room);
 
     // ⭐ An ENCLOSED room's outside follows the front too (the envelope
@@ -921,7 +944,7 @@ async function runBoundaryFanout(): Promise<void> {
     if (nowS === null) continue;
     const locality = await localityOf(room);
     const site = await siteOfRoom(room);
-    const resolved = computeResolved(room, locality, nowS, sky, site);
+    const resolved = computeResolved(room, locality, nowS, reach, site);
 
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
@@ -953,7 +976,7 @@ async function runBoundaryFanout(): Promise<void> {
       // town, so the dim term asks for the exposed sample explicitly.
       const skySample = sky
         ? resolved.sample
-        : computeResolved(room, locality, nowS, true, site).sample;
+        : computeResolved(room, locality, nowS, { air: true, rain: true }, site).sample;
       const dimFactor = dial(AppSettingKeys.weatherCloudDimFactor, 0.6);
       const dim = Math.max(0, 1 - dimFactor * skySample.cloud);
       (room as unknown as AmbientLit).setWeatherDimFactor(dim);
@@ -1417,9 +1440,17 @@ async function runStormFanout(): Promise<void> {
     if (room === null || !MixinApi.isContainer(room)) continue;
     if (visited.has(room.stuffId)) continue;
     visited.add(room.stuffId);
-    if (!BiomeApi.isSkyExposed(room)) continue;
+    // A strike needs open sky over the place: under any roof, no.
+    const exposure = BiomeApi.exposureOf(room);
+    if (exposure === null || exposure.top !== 'open') continue;
     const locality = await localityOf(room);
-    const resolved = computeResolved(room, locality, nowS, true, await siteOfRoom(room));
+    const resolved = computeResolved(
+      room,
+      locality,
+      nowS,
+      skyReachOf(exposure),
+      await siteOfRoom(room),
+    );
     if (resolved.sample.type !== 'storm') continue;
     // ⭐ D13: every occupant that answers to a storm is called — an overhead
     // LineAccess pole faults here (presence-gated, like every weather
@@ -1602,10 +1633,10 @@ export class WeatherLogic extends ApiLogic {
     // biome-free (the runBoundaryFanout precedent). Module cache makes
     // this ~free after the first call.
     const { BiomeApi } = await import('../../../api/biome');
-    const sky = BiomeApi.isSkyExposed(scope);
+    const reach = skyReachOf(BiomeApi.exposureOf(scope));
     const site = await ZoneApi.climateSiteFor(scope);
     siteByScope.set(scope.stuffId, site);
-    return computeResolved(scope, locality, nowS, sky, site);
+    return computeResolved(scope, locality, nowS, reach, site);
   }
 
   /** See {@link WeatherApi.peekSkyType}. SYNC over the cached Locality. */
@@ -1625,7 +1656,13 @@ export class WeatherLogic extends ApiLogic {
     }
     const locality = localityByScope.get(scope.stuffId) ?? null;
     const site = siteByScope.get(scope.stuffId) ?? null;
-    return computeResolved(scope, locality, nowS, biomeApi.isSkyExposed(scope), site).sample.type;
+    return computeResolved(
+      scope,
+      locality,
+      nowS,
+      skyReachOf(biomeApi.exposureOf(scope)),
+      site,
+    ).sample.type;
   }
 
   /** See {@link WeatherApi.skyReadFor}. Async — resolves locality + forecast. */

@@ -270,3 +270,41 @@ describe('a structure with no member places is still a structure', () => {
     expect(s.membersOf('anything')).toHaveLength(0);
   });
 });
+
+describe('W1 — the readers answer from the construction', () => {
+  type Air = Room & {
+    airChangesPerHour(): number;
+    envelopeApplies(): boolean;
+    addAtmosphereContent(path: string, litres: number): number;
+    isSkyLit(): boolean;
+  };
+
+  it('an awning holds no air: infinite air changes, no envelope, nothing accumulates', () => {
+    const awning = place('/world/_exp/awning', {
+      enclosure: 'none',
+      roof: { material: SLATE, thicknessM: 0.002 },
+      biome: OUTDOOR,
+    }) as Air;
+    expect(awning.airChangesPerHour()).toBe(Infinity);
+    expect(awning.envelopeApplies()).toBe(false);
+    expect(awning.addAtmosphereContent('/stuff/idea/material/gas/smoke', 10)).toBe(0);
+  });
+
+  it('a walled hut under the sky biome holds air of its own — the biome no longer decides', () => {
+    const hut = place('/world/_exp/hut', { enclosure: brick, roof: slate, biome: OUTDOOR }) as Air;
+    expect(hut.envelopeApplies()).toBe(true);
+    expect(Number.isFinite(hut.airChangesPerHour())).toBe(true);
+    expect(hut.isSkyLit()).toBe(false);
+  });
+
+  it('a row that says nothing reads exactly as its biome did', () => {
+    const street = place('/world/_exp/street', { biome: OUTDOOR }) as Air;
+    const shop = place('/world/_exp/shop', { biome: INDOOR }) as Air;
+    expect(street.envelopeApplies()).toBe(false);
+    expect(street.isSkyLit()).toBe(true);
+    expect(shop.envelopeApplies()).toBe(true);
+    expect(shop.isSkyLit()).toBe(false);
+    expect(BiomeApi.exposureOf(shop)?.rainReaches()).toBe(false);
+    expect(BiomeApi.exposureOf(street)?.rainReaches()).toBe(true);
+  });
+});
