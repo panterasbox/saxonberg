@@ -282,8 +282,9 @@ requirements or a sibling's assumption.
   charges nothing); `performService` arms per kind; nothing needs a hand
   on shift today. `PricedOfferMixin.collect` (payer = acting principal).
 - Repair (sibling) D12 reshapes `order repair`: `callHouse(giver,
-  candidates)` module-private in `CraftingLogic`, `presentFulfillers(giver)`
-  **with no discipline filter** (`CraftingLogic.ts:312`), quote →
+  candidates)` module-private in `CraftingLogic`, `presentFulfillers(giver,
+  discipline?)` (the filter exists on master, `CraftingLogic.ts:312`;
+  repair passes none), quote →
   `context.interactive?.promptConfirm` → act as the hand →
   `PricedOfferMixin.collectMinor(amount, reason)` → `settlePiecework` for
   a `per-settlement` seat. `Employed.isFulfilling(discipline?)`
@@ -329,31 +330,68 @@ requirements or a sibling's assumption.
   `Exposure` value object off `AtmosphericMixin.exposure()`; per-face
   transmittance by `Material.lightAbsorption` (D5) — ⚠ **no single named
   face-transmission method**; a `Window` boundary keeps its own
-  `transmissivity()`. One wet law on `Material` instance methods
+  `transmissivity()` — rubber has ONE derived figure per resolved face
+  (`ResolvedEnclosure.transmittance = Π e^(−αt)`), read by
+  `skyLightFraction()` and the solar-gain sum, but no METHOD a per-place
+  factor could multiply into. One wet law on `Material` instance methods
   `permeability()` / `wetProperty()` (D12.1, shared with storage D9).
-  `Attired.exposeToRain(delta)`. Sulfur `/stuff/idea/material/mineral/sulfur`
-  (tags `[sulfur, mineral]`, mp 388, **no burn product**) + the won row.
-  Vitriol/quicklime `corrosiveTo` narrow to honest tags; rubber resists.
-  `lint:biome-sky`: every new interior authors BOTH keys. Rubber does not
-  touch `wash`, hearths, chimneys, the infirmary or the chandlery.
+  `Attired.exposeToRain(delta)`; `immerse(parts?: (partKey) => boolean)`
+  (storage's, with rubber's part filter). Sulfur `/stuff/idea/material/mineral/sulfur`
+  (tags `[sulfur, mineral]`, mp 388, **no burn product, no
+  `heatOfCombustion`, no `autoignitionTemperature`** — `stoke` refuses a
+  fuel without `heatOfCombustion > 0`, `Burner.ts:868`) + the won row
+  `/trade/quarrying/thing/sulfur` (the coal row's shape) + the Hill
+  Quarry band `{toZ: −10.4}` (halite → −10.4…−12). Vitriol/quicklime
+  `corrosiveTo` narrow to honest tags (`cellulose`, `protein`, …); rubber
+  resists. `lint:biome-sky`: every new interior authors BOTH keys;
+  `enclosure: none` is a legal declared value (the market awning:
+  `enclosure: none` + `roof: {material: canvas, thicknessM: 0.002}`); a
+  layer is `{material, thicknessM}` and nothing else (`check-envelope.ts:102`).
+  Rubber's `onGrade` default moves onto `exposure().onGrade` (a
+  structure member's ground storey), which `getGroundKind()` reads.
+  Rubber adds an `Oven` row (`/trade/rubber/thing/oven`) and two `stove`
+  props (`class: /platform/thing/Hearth`) — they gain flues here. The
+  market awning is `market/location/under-the-awning`, **`east` off the
+  square**. Rubber does not touch `wash`, the infirmary or the chandlery.
 - **Repair** (`origin/reqs/repair`): D12 (above); D14 the tinker is a pack
   `CastMixin(StagedMixin(NPC))` — **`NPC` is not widened**, so an NPC born
   holding kit needs its own pack class; D20 the shell's layer clock stays
   on `HoldingWarren` (an Idea) — two clocks; `survey` reads the residence
   pack duck-typed, W7 adds `fabricReport()` (gated on rubber, may ship as
   a follow-up MR); "condition" means three things already — **this plan
-  never uses the word for soiling**. Hotspots: OrderController, Tariff,
-  PricedOffer, SurveyController, CraftingLogic, Garment, Receptacle,
-  general-store counter, infirmary tariff, the field-meta golden.
+  never uses the word for soiling**. ⚠ Corrections from repair's final
+  plan: `presentFulfillers(giver, discipline?)` ALREADY takes the filter
+  on master (`CraftingLogic.ts:312`) — repair's `diagnose` deliberately
+  passes none; repair W3 exposes **`CraftingApi.fulfillingHand(giver,
+  venue, discipline?)`** (public; the optional discipline comes from the
+  Tariff row's `serviceDisciplines: {wash: textiles}`), makes
+  **`Tariff.quoteFor(lines: {key, label, qty}[]) → Quote`** generic, and
+  names ONE shared refusal constant for *"There's nobody here to do the
+  work."*; repair W1 **deletes `Lantern.ts`, `AssembledChair.ts`,
+  `AssembledGarment.ts`, `Cask.ts`** and recomposes `Lamp`, `Chair`,
+  `Garment`, `Receptacle`, `Vat`, `Tool`, `Weapon` with `AssembledMixin`
+  (`Lamp.getEmittedFlux` keeps the failed-facing factor); the bank gains a
+  **named `yard` exit**; the cobbler shop and tinker yard stay
+  `SingletonCartesianLocation`. Hotspots: OrderController, Tariff,
+  PricedOffer, SurveyController, CraftingLogic, Garment, Chair, Lamp,
+  Timber, general-store counter, the field-meta golden, the wiki-spoiler
+  snapshot.
 - **Storage-and-ice** (`origin/reqs/storage-and-ice`): D9 the wet law (as
   rubber); D10 `SwimmableMixin.immersionOf()` — **Pools only; rivers and
   shores are not Pools**; D11 `Attired.immerse()`; D15 the frozen-water
   refusal in `FishingController.reachFor` (shore `peekWaterRead(key)?.frozen`
   and `room.getFloor().openWaterAreaM2() > 0`, by shape); D18 sawdust =
   material `/stuff/idea/material/wood/sawdust` + `C/trade-carpentry/src/thing/Sawdust.ts`
-  (`Poolable(Stackable(Good))`, qty = kg, keywords `sawdust, dust, heap`),
-  ONE Stackable lying in the room — **no floor-debris model**; the
-  cookhouse business gains an ice par line (merge by hand).
+  (`Poolable(Stackable(Good))`, qty = kg, keywords `sawdust, dust, heap`;
+  material tags **`[wood, organic, granular, flammable, absorbent,
+  sawdust]`** — storage added the last two for this build), ONE
+  Stackable lying in the room — **no floor-debris model**; `FloorMixin`
+  gains `bears(loadKg)` (base `true`) and `supportIsSlotted()` (base
+  `false`; `WaterSurface`/`IceSheet` answer `true`); the eleventh ground
+  kind `ice`; `Employed.isOnShiftFor(org)`; `SEASONS`; the cookhouse
+  edits are **disjoint files** (storage: `idea/business.yaml`,
+  `agent/cook.yaml`; this build: `location/cookhouse.yaml`) — no hand
+  merge; `water.ice.stillWaterMps` 0.1 → 0.5 (more reaches freeze).
 
 ---
 
@@ -374,8 +412,10 @@ heat: HeatStamp | null;             // {peakK, heldS, atS} — the last sterilis
 sunYellow: number;                  // 0..1, protein fibres in daylight (D21)
 ```
 
-Methods (the contract; verbs on the object): `deposit(kind, amount, by,
-site='')` (the ONE writer; clears `heat`), `soilAt(site)`,
+Methods (the contract; verbs on the object): `soil(kind, amount, by,
+site='')` (the ONE writer; clears `heat` — named `soil`, not `deposit`:
+storage's `StoreMixin.deposit(item, actor)` and `BankingLogic.deposit`
+already exist, and `soil` is freed by Hygiene's deletion), `soilAt(site)`,
 `soilBand(site): 'clean'|'marked'|'soiled'|'filthy'` (dials
 `cleanliness.band.{markedAt 0.1, soiledAt 0.4, filthyAt 1}`),
 `soilKinds(site)`, `removeSoil(kind, fraction, site)`, `wash(spec):
@@ -412,9 +452,9 @@ settles its water first — the warm happens there; every other reader is
 
 | Cleanser | |
 |---|---|
-| `key`, `agent` (a **material tag** the cleanser item/bulk carries: `soap`, `lye`, `washing-soda`, `vinegar`, `neutral-spirit`, `naphtha`, `fullers-earth`, `chalk`, `silica`, `sawdust`, `vitriol`, `sour-milk`; `sunlight` and `sulfur-fume` are the two AMBIENT agents read from the room, D21) | how the wash finds it |
+| `key`, `agent` (a **material tag** the cleanser item/bulk carries: `soap`, `lye`, `washing-soda`, `vinegar`, `neutral-spirit`, `naphtha`, `fullers-earth`, `chalk`, `silica`, `sawdust` (storage's tag), **`acid`** (vitriol's real tags are `[liquid, caustic, acid]` — no `vitriol` tag is added; rubber edits that row), `buttermilk`; `sunlight` and `sulfur-fume` are the two AMBIENT agents read from the room, D21) | how the wash finds it |
 | `action: Action` | `surfactant · alkali-mild · alkali-strong · acid-mild · acid-strong · solvent · absorbent · abrasive · oxidiser-slow · oxidiser` |
-| `damages: [{fibreTag, effect: felts \| rots \| scratches \| burns \| yellows, aboveK?}]` | lye on `protein` → `rots` (lye destroys wool); sand on `glass` → `scratches`; vitriol on `cellulose` → `burns` |
+| `damages: [{fibreTag, effect: felts \| scratches \| yellows, aboveK?}]` | authored only for NON-corrosive effects: sand on `glass` → `scratches`; sun on `protein` → `yellows`. ⭐ **`burns`/`rots` are DERIVED from the agent material's `corrosiveTo` ∩ the fibre's tags** (one fact — vitriol burns `cellulose` because its row says so; lye rots `protein` because lye's `corrosiveTo` names it), so rubber's narrowing of vitriol/quicklime can never disagree with a wash |
 | `hardWaterPenalty: boolean`, `softens: boolean` | soap scums; soda softens |
 | `consumesPerWash` (count or litres) | a bar is spent slowly, lye by the litre |
 | `skinHarshness: 0..1` | the clinic hand washed raw (D23) |
@@ -423,16 +463,22 @@ settles its water first — the warm happens there; every other reader is
 — a pack adds a cleanser ROW, never a mechanism nobody models), declared in
 `check-closed-vocabularies.ts`' `CLOSED_BY_DESIGN` with that reason so the
 ceiling does not move. The kernel ships its own rows in the platform pack:
-twelve DirtKinds (`blood · grease · mud · sweat · soot · manure · ash ·
+ten DirtKinds (`blood · grease · mud · sweat · soot · manure · ash ·
 flour · milk` as films — `milk` is what the milker's apron takes, a film
-water and time remove — plus `crumbs`, `shavings`, `sawdust` as debris
-forms) and the fourteen
-Cleansers of requirements § 6. A trade adds a stain or a cleanser with one
-file.
+water and time remove — plus `crumbs` as the one debris form; ⛔ no
+`sawdust` DirtKind — loose sawdust is storage's `Sawdust` GOOD, and a
+strewn absorbent is the floor's `strewn` layer, so nothing would ever
+write the row; ⛔ no `shavings` — carve's shavings are carpentry-slate's)
+and the fourteen Cleansers of requirements § 6. A trade adds a stain or a
+cleanser with one file. Lye's row: `corrosiveTo: [protein, tissue]` —
+**never `organic` or `textile`** (rubber's gloves must stay outside it;
+if rubber tags leather `protein`, lye rots leather, which is true and
+which the tests expect).
 
 **D3 — The hosts.** See § Host placement. The short list: `Garment`,
 `Creature` (per body part), the `Floor` twin, `Window`, `Chair` (seats and
-beds), `Lantern`, `Bandage`, `CraftVessel`, trade-cooking's `KitchenTool`
+beds), `Lamp` (repair W1 deletes `Lantern.ts` and folds it into `Lamp`;
+the soot dims only the glazed share, D18), `Bandage`, `CraftVessel`, trade-cooking's `KitchenTool`
 and `ButcherBlock`, trade-medicine's `SurgicalKit`, and the new `Rug`.
 ⛔ Not `Thing`, not `Good`, not `Tool` (the felling axe and the sledge
 would be soilable for nobody), not `Firebox` (soot in a flue is D18's own
@@ -444,10 +490,10 @@ its deposits, through its gloves.** `HygieneMixin` is deleted (`Mixins.Hygiene`,
 `Creature` composes `SoilableMixin` (per part site) and gains two total
 methods: `handCleanliness(): number` = `1 − min(1, worstHandLoad)` read off
 `outermostAt(handPart)` when that layer is Soilable (gloves) else the bare
-hand site, and `depositOnHands(kind, amount, by)` which lands on the
+hand site, and `soilHands(kind, amount, by)` which lands on the
 outermost layer (a glove) or the bare hand — the soiling seam's first
 consumer (AC 2, 3). The four readers migrate: `Vitals.applyTreatment`
-(`treater.handCleanliness()`; `treater.soil()` → `treater.depositOnHands('blood',
+(`treater.handCleanliness()`; `treater.soil()` → `treater.soilHands('blood',
 HAND_BLOOD_PER_DRESSING, patient)`), `TreatController`, `stampTheHand`
 (dairy; a dirty milker's inoculum reads the new number), the nurses brain
 (`host.scrub()` → a `wash` through the ward's basin with the ward's soap —
@@ -475,7 +521,7 @@ a row field.** The one choke for cook/bake/render/brew/dip is
 `CraftingLogic` at the maker-resolution site (`:3135–3162`): a new
 authorable `Recipe.soils: [{kind, amount, where: hands | apron | floor}]`
 (`S/lib/craft/Recipe.ts`, validated at read like `volatiles`) is applied
-there via `maker.depositOnHands` / the maker's `outermostAt('body.torso')`
+there via `maker.soilHands` / the maker's `outermostAt('body.torso')`
 / the room's floor. Rows: `render-tallow` (grease, hands + apron),
 cooking's stews and roasts (grease, soot), baking (flour, hands + floor),
 `melt-wax` (grease). Each per-verb producer is one call at a named site:
@@ -484,7 +530,7 @@ cooking's stews and roasts (grease, soot), baking (flour, hands + floor),
 |---|---|---|
 | butcher | `ButcherController.ts` after `spillGut` (:476) | `blood` + `grease` on the maker's hands and the torso's outermost layer (the apron); `blood` with the carcass's sample on the block and the floor; the `vessel` arg catching blood stays the spill seam |
 | slaughter | `C/trade-ranching/…/SlaughterController.ts` (read it first) | `blood` as above |
-| milk / any tap | `Producing.stampTheHand` | reads `handCleanliness()`; the act deposits `manure` on hands (a cow's flank) and `milk` on the apron |
+| milk / any tap | `Producing.stampTheHand` — ⚠ it runs for EVERY tap (`pourTake :909`): milk, maple and birch sap, rubber's Hevea latex | reads `handCleanliness()`; the deposit is the TAP's own row field — **`TapSpec.soils: [{kind, amount, where}]`** (`S/platform/idea/species/Species.ts:440`, the `Recipe.soils` shape, validated at read); the cow species row authors `manure` (hands) + `milk` (apron); maple, birch and Hevea author none. Test: tapping a Hevea or the maple fixture deposits nothing |
 | dig / split | `WorkedActController.land` after `completeWork` (:153) | `mud` on hands, feet, legs |
 | hew | `HewController.winOre` (:222) | `dust` (a DirtKind row the mining pack adds — the AC 23 test, done once here) |
 | tan | `TanController` put-in (:130) and lift-out (:183) | `grease` + `manure` (the bate) on hands and apron |
@@ -492,16 +538,28 @@ cooking's stews and roasts (grease, soot), baking (flour, hands + floor),
 | combat hit | `CombatLogic.ts:2550` after `inflict`, when `outcome.afflicted && BLEED_FAMILY.has(trauma.type)` | `blood` with the **target's** sample on the target's `outermostAt(site)` and on the attacker's hands/weapon arm; the person key is `getIdentityPath()`, never `resolveInflicter`'s template path |
 | walking | `Mobile.crossExit` after the move (:929) — `destination.getFloor()?.receiveTraffic(mover)` then `sourceFloor.soilFeetOf(mover)` | mire / standing water / wet earth → `mud` on the feet and legs' outermost layers; the destination floor takes a fraction of what is on the mover's feet (D15). Shop floors soil with their customers by this alone |
 | stoke / tend | `StokeController.ts:120` after `burner.stoke(item)` | `ash` + `soot` on hands |
-| fire exhaust | `FireLogic.emitExhaustInto` (:503–528) when incomplete | `soot` onto every Soilable fixture and prop in the room (windows, the floor, a lantern) proportional to smoke kg — D19/D20 |
+| fire exhaust | `FireLogic.emitExhaustInto` (:503–528) when incomplete | `soot` onto every Soilable fixture and prop in the room (windows, the floor, a lamp; rubber's rubber goods lying in a sooty works — honest) proportional to smoke kg — D19/D20 |
+| fired recipes | `FireController.runFiring` after the output lands (rubber rewrites this method; its version is the base when it lands first) | the recipe's `soils` applied to the firer (else `soils:` on a glass, lime or vulcanize recipe is silently dead), and `recordHeat(heldK, holdS)` on every Soilable chamber content — the oven hold IS dry-heat sterilisation (D14's second heat writer) |
 | mill / scutch | `finishGrind` (:384); textiles' scutching completion | dust into the room's air (D22) + `flour` on hands/apron |
-| saw | storage's heap | nothing new: the sawdust heap IS the debris (D16) |
+| eating / serving | `EatController` after the portion is consumed (:107–121); trade-cooking's `PlateController` completion | `crumbs` (debris) on the room's floor — the one producer of the one debris kind; what the pests read (D17) |
+| saw | storage's `finishSaw` | nothing new: the sawdust heap is storage's `Sawdust` GOOD lying on the floor; it is never a deposit (D15) |
+| forging, a mend | `craftImpl` for the anvil recipes (content: `soils: soot` on smithing rows once the field exists); `repairImpl` deposits nothing | noted, not built |
 | treating a bleed | `applyTreatment` | `blood` on the treater's hands (D4) |
 
-**D7 — Rain and swimming wet but do not soil** — rubber's
-`exposeToRain` and storage's `immerse`, read unchanged. If storage has
-not landed when W2 starts, `Attired.immerse()` is built here in D11's
-exact shape (`wet(1)` on the body and every layer at every exterior
-part) and storage consumes it.
+**D7 — Rain and swimming wet; immersion also RINSES.** Rain on what
+you wear is rubber's `Attired.exposeToRain(delta)`; going into water is
+storage's `Attired.immerse(parts?: (partKey: string) => boolean)` (the
+optional part filter is rubber's flooded cell's; no filter = every
+part). Both are read, never copied. If storage has not landed when W2
+starts, `immerse(parts?)` is built here in storage's D11 shape (`wet(1)`
+on the body and on every `coveringAt(part.key)` layer of every body part
+the filter admits; a non-Attired Wet thing gets `wet(1)`), and storage
+then deletes its copy and keeps its callers. ⭐ **Immersion rinses**
+(lens 1, lens 3a — climbing out of a river still caked in mud is the
+fiction betraying itself): inside `immerse()`, every immersed Soilable
+site and layer runs `wash({waterK, cleanser: null, effortS: minimal})`:
+mud and sweat lift at the water-only rate, grease and a set stain stay.
+This build owns that line in either landing order.
 
 **D8 — Blood is a sample.** A `blood` deposit carries a `StainRecord`
 built from the bleeder's `bloodSystemOf()`/`bloodType()` (TRUE values,
@@ -549,27 +607,53 @@ through `Durable`; `launder()` for the dye; **bleed** = the strength
 onto every co-washed `Dyed` garment with a lower-fastness source — the
 stack already supports it; `wet(1)`), **`CraftVessel.wash`** (the shipped
 tipping + `clearContamination`; sanitised/disinfected via D14),
-**`Creature.wash`** (sites; `skinHarshness` → D23). `textiles` band gates
+**`Creature.wash`** (sites; `skinHarshness` → D23). Three rules from the
+siblings' read: **felting shrinks for real** — a felted garment scales
+its stamp by `textiles.wash.feltShrink` (0.85), not the 0.97 hot-water
+shrink, so a *felted, shrunk* jumper no longer fits even once rubber's
+D16 stretch term lands (and that term must read the `felted` form as
+non-stretching — asked of rubber); **wear takes a channel** — bleach rot
+and vitriol burns call `wear(textiles.wash.rotDose, 'corrosion')`
+(repair's Assembled `wear(amount, channel)` routes it to the line that
+gives first by material; on master the channel is ignored; the dose is a
+dial; the single-line limit is written into `cleanliness.md`); **an
+impermeable garment comes out damp, not soaked** — the wet outcome is
+`wet(material.permeability())` (the one wet law: rubber gloves 0,
+wool 0.825), consumed from whichever sibling lands it; hot water shrinks
+only `textile`/`protein`/`cellulose`-tagged fibres, never rubber. `textiles` band gates
 nothing and **reads before**: a competent hand is told *wool — it will felt
 if boiled* in the begin line (lens 1: resolution, not access).
 
-**D11 — `dry` moves to the platform and takes a wet garment.** The view
-and controller move from trade-cooking to
-`C/platform/content/platform/cmd/crafting/dry.yaml` +
-`S/platform/idea/cmd/crafting/DryController.ts` (the rule: platform keeps
-the verbs any trade's instrument confers; the cooking pack's copy is
-deleted — `lint:verb-collisions`). The controller branches: `isWaterActive`
+**D11 — `dry` moves to the platform with its rack, and takes a wet
+garment.** The view, the controller AND the class that affords the verb
+move from trade-cooking to the platform: `C/platform/content/platform/cmd/crafting/dry.yaml`,
+`S/platform/idea/cmd/crafting/DryController.ts`, **`S/platform/thing/DryingRack.ts`**
+(`extends Fitting`, byte-identical; the cooking pack's `drying-rack` row
+re-points its `class:`; the rule is *the class that affords a platform
+verb belongs with the verb* — a commons `clothes-line` row may not name
+a trade pack's class). The cooking pack's view and controller are
+deleted (`lint:verb-collisions`). The controller branches: `isWaterActive`
 → the shipped rate (unchanged); else `isWet && getWetness() > 0` → place
 it on the rack/line (a `Placing` host; `reachable:[class.DryingRack]`
-stays the default — a class name, no import) with the shipped exposure
-fraction, so the Wet reconcile dries it at the rack's air. A
-`/stuff/thing/fixture/clothes-line` row (class
-`/trade/cooking/thing/DryingRack`, exposure 1, `on`) for the lavoir's
-drying ground and the Hinkley yard; a wet garment also dries worn or
-dropped, slower. ⚠ **The Wet far-past guard is narrowed to bodies**: the
-4 h drop applies when the host `isHasInteractive` (absence = logout);
-a Thing integrates its whole gap at its stamp rate (a shirt left on the
-line overnight is dry in the morning). AC 5.
+stays the default) with the shipped exposure fraction, so the Wet
+reconcile dries it at the rack's air; **wind** — when the scope answers
+`exposure()` (rubber landed), `windEnters()` multiplies the rack's
+exposure fraction by `wetness.windFactor` (1.5): a line on the open
+drying ground dries faster than one in a shut room; before rubber the
+factor is 1. A `/stuff/thing/fixture/clothes-line` row (class
+`/platform/thing/DryingRack`, exposure 1, `on`) for the lavoir's drying
+ground and the Hinkley yard; a wet garment also dries worn or dropped,
+slower. ⚠ **The Wet far-past guard is narrowed by the HOLDER CHAIN**:
+the 4 h drop (and the linkdead freeze) apply when the host's holder
+chain — `getContainer()` and the worn-slot host, walked to the outermost
+holder — reaches an `isHasInteractive` body; so a logged-out swimmer's
+body AND shirt stay frozen together (storage's *wet clothes keep
+chilling* holds), while a shirt on a line, a heap of sawdust or a dropped
+cloak integrates its whole gap at its stamp rate (a shirt left out
+overnight is dry in the morning). Test: a soaked swimmer logs out; after
+8 h body and shirt are unchanged; the same shirt on the line is dry.
+⚠ Storage's drive reads a dug-out heap's wetness before any clock jump
+(asked of storage). AC 5.
 
 **D12 — Hardness rides the water.** `WaterDraw` gains `hardnessDgh?:
 number` (kernel `WaterSource.ts`); the water pack's reach read fills it
@@ -589,11 +673,24 @@ twice is two cleansers — the `cleanser` arg is `objects`) sets `dgh = 2`.
 `rinse.yaml` gains the shore default `wash` already has (`rinse` at a
 river works). AC 9.
 
-**D13 — Frozen water.** `wash`/`bathe` at a shore copy storage's D15 gate
-verbatim in `WashController.findWater`: `peekWaterRead(key)?.frozen` and
-the room's floor offers no `openWaterAreaM2() > 0` → *"The water is frozen
-over; you would need a hole."* If storage has not landed, the gate reads
-`frozen` alone (the floor shape is theirs to add).
+**D13 — Frozen water, and the water under it: ONE shore method.**
+`ShoreMixin.drawAt(key, room): {draw: WaterDraw} | {refusal: 'frozen',
+line}` (kernel `S/lib/location/Shore.ts`): not frozen → `read.draw`;
+frozen and the room's floor offers `openWaterAreaM2() > 0` (storage's
+hole, read off the kernel `WaterSurface` once storage lands, by shape
+before) → the **under-ice draw** (`WaterRead.underIce?: WaterDraw`,
+`{materialPath (fresh or fouled), temperatureK: 274, hardnessDgh}`, built
+in the water pack's read builder beside the `hardnessDgh` fill — a
+frozen read's `draw` is null today, so a copied gate would pass and
+then find no water); else the refusal *"The water is frozen over; you
+would need a hole."* Callers: `WashController.findWater`, `bathe`,
+`rinse`, and **`FishingController.reachFor` is refactored onto it** (one
+edit in trade-fishing; storage's gate is then one sentence in one place
+whichever lands first). The controller uses the async `waterRefFor`
+(which warms the read) before deciding — `peekWaterRead` is a 6 h memo
+and a cold memo would fall open. Fallback with storage absent: `drawAt`
+reads `frozen` alone and refuses. Test: wash at a frozen shore refused;
+with a hole, washed in 274 K water at the reach's hardness.
 
 ### The tiers (D14)
 
@@ -644,44 +741,90 @@ a dead field). Readers (AC 18):
 ### Places (D15–D20)
 
 **D15 — The floor carries its own soil and debris; traffic is a floor
-method; the ten kinds decide the cleaning method.** The `Floor` twin
-(`S/platform/thing/Floor.ts`) composes `SoilableMixin`; `FloorMixin`
-gains `receiveTraffic(mover)` (takes `cleanliness.traffic.trackIn` (0.2)
-of the mover's foot-layer loads per crossing), `soilFeetOf(mover)`
-(`mire`/standing-water/wet `earth` → `mud` on the feet and legs'
-outermost layers), `strewn: {materialPath, kg} | null` (persistent,
-runtimeState — fresh rushes or sawdust), `cleaningMethod()` (from
-`getGroundKind()`: `earth · loose · mire · beaten-floor` → *strew and
-sweep*; `set-paving · slab · rock · plate` → *scrub*; `boards` → *scrub or
-sand*; `contrived` → *scrub*), and a third markup augmenter `soilAugmenter`
-after snow (*"The boards are greasy and crumbed; a litter of sawdust lies
-over a dark stain."*). `scrub` (the wash alias, D10) on a floor removes
-film kinds by the kind's method: a `strew`-kind floor refuses *scrub*
-in its own words (*"you would only make mud"*) and wants `strew` + `sweep`.
-**Debris** is deposits of `form: debris`; a strewn absorbent converts
-`absorbedBy` films (blood, grease) into debris at `strew`. **`sweep`**
-(new platform verb, category `inventory` — it moves matter)
-gathers every debris kind on the floor into ONE `/stuff/thing/sweepings`
-Stackable (a plain `StackableMixin(Good)` row with
-material `/stuff/idea/material/bulk/sweepings` tagged `[organic, compost,
-refuse]`, mass = kg swept, keywords `sweepings, heap, pile`), merging with
-a heap already lying there; ⭐ **storage's sawdust heap is the same
-heap**: a `Sawdust` stack lying on the floor is swept INTO the sweepings
-(the sweepings' `canMergeWith` accepts a `sawdust` material, mass-added;
-a `get sawdust` before sweeping keeps it pure for the icehouse). A broom
-is the instrument (`/stuff/thing/tools/broom`, `Tool` with `capabilities:
-[sweeping]`, declared as the view's `tool` arg — `lint:instrument-args`);
-bare hands sweep at a third the rate. **`dispose <heap> [in <midden>]`**
-moves refuse into a reachable container that `accepts: refuse` (a
-`/stuff/thing/fixture/midden` row, `Container`, `fixedInPlace`, at the
-byre yard, the lavoir and the Hinkley yard; the campus midden row re-pointed
-to it) — the sweepings rot there as compost and `feed` spreads them; with
-no midden in reach it refuses in words. **`strew <material> on floor`**
-(`strew.yaml`, `inventory`) lays a carried `granular, absorbent`-tagged
-stack (rushes, sawdust) as the floor's `strewn`. **`beat <rug>`** removes
-debris from a `Rug` (`/stuff/thing/furnishing/rug`, `Soilable(Good)`,
-placed `on` a floor) by time alone. A `/stuff/thing/rushes` stack is sold
-at the general store (the honest earth-floor cleanser). AC 12.
+method; the ground kind decides the cleaning method; a water surface
+takes none of it.** The `Floor` twin (`S/platform/thing/Floor.ts`)
+composes `SoilableMixin`; `FloorMixin` gains:
+
+- **`takesSoil(): boolean` = `!supportIsSlotted()`** — ONE predicate,
+  no class check: every ordinary floor (storage's base `false`) takes
+  soil; storage's `WaterSurface` and `IceSheet` (`supportIsSlotted()
+  true`) take none — mud is not tracked onto a mere, blood does not
+  pool on a sheet, a swimmer climbing out is wet, not muddy (D7 rinses
+  them). `soil()`, `receiveTraffic`, `soilFeetOf` and `strew` all read
+  it; `strew` on such a floor refuses in words. If storage has not
+  landed, `supportIsSlotted()` is added here with the base `false`, in
+  storage's shape.
+- `receiveTraffic(mover)` — takes `cleanliness.traffic.trackIn` (0.2)
+  of the mover's foot-layer loads per crossing (so a shop floor soils
+  with what its customers bring in; a dry paved town brings in little).
+- `soilFeetOf(mover)` — standing water or wetness on an **earth-class**
+  kind (`mire`, wet `earth`, wet `loose`) → `mud` on the feet and legs'
+  outermost layers; standing water on `slab`/`contrived`/`set-paving`
+  (the flooded substation) wets and never muds; `ice` → nothing.
+- `strewn: {materialPath, kg} | null` (persistent, runtimeState) — fresh
+  rushes or sawdust laid by `strew`; a strewn absorbent converts
+  `absorbedBy` films (blood, grease) into debris at the strew. ⚠ After
+  rubber, pin by test that `getGroundKind()` of every floor the drive
+  scrubs or strews (Hinkley kitchen, cookhouse, shop floor, byre) is
+  unchanged by rubber's `onGrade` rewiring; if a building's ground floor
+  flips to earth, author `floor: {material}` on that row, never adapt
+  the method.
+- `cleaningMethod(): CleaningMethod` — an **exhaustive
+  `Record<GroundKind, CleaningMethod>`** so tsc fails the moment
+  storage's eleventh kind lands unmapped: `earth · loose · mire ·
+  beaten-floor` → *strew and sweep*; `set-paving · slab · rock · plate ·
+  contrived` → *scrub*; `boards` → *scrub or sand*; **`ice`** → *nothing
+  to keep — snow is scraped, not swept* (names storage's `scrape`;
+  reachable by `look`/`survey`, never by `soil()`).
+- `soilAugmenter` — the THIRD markup augmenter, after `snowAugmenter`
+  (`markupAugmenters = [floorAugmenter, snowAugmenter, soilAugmenter]`,
+  so soil reads after both ground and snow), masked under knee-deep or
+  deep snow exactly as `floorAugmenter` is (`Floor.ts:287–297`): *"The
+  boards are greasy and crumbed; a litter of sawdust lies over a dark
+  stain."*
+
+`scrub` (the wash alias, D10) on a floor removes film kinds by the kind's
+method; a *strew*-kind floor refuses *scrub* in its own words (*"you
+would only make mud"*) and wants `strew` + `sweep`. **Debris** is
+deposits of `form: debris` (`crumbs`, and what a strewn absorbent
+became). **`sweep`** (new platform verb, category `inventory` — it moves
+matter; `verbs: [sweep, muck]`) gathers every debris deposit and the used
+`strewn` layer on the floor into ONE `/stuff/thing/sweepings` Stackable
+(a plain `StackableMixin(Good)` row, no class: it merges only with
+sweepings by the base same-template rule — merge-on-arrival needs
+MUTUAL `canMergeWith`, `api/stackable.ts:208`, so a one-sided override
+never worked; material `/stuff/idea/material/bulk/sweepings` tagged
+`[organic, compost, refuse]`, mass = kg swept, keywords `sweepings, heap,
+pile`, prose naming the dominant content — drive 4's *bloodied sawdust*
+is the strewn sawdust swept up with the blood it absorbed). ⭐ **Sweep
+never touches a `Sawdust` good** (storage's ask, accepted): a loose
+`Sawdust` stack lying on the floor is already a heap and stays one — the
+icehouse keeper's `get sawdust`, the store's pool key and the timber
+yard's par line all need the template; sawdust becomes sweepings only
+by being STREWN first (`strew` consumes the stack into `floor.strewn`).
+On an `IceSheet` the sweep refusal for snow names `scrape` (one act, one
+verb). A broom is the instrument (`/stuff/thing/tools/broom`, `Tool`
+with `capabilities: [sweeping]`, declared as the view's `tool` arg —
+`lint:instrument-args`); bare hands sweep at a third the rate.
+**`dispose <heap> [in <midden>]`** moves refuse into a reachable container
+that `accepts: refuse` (a `/stuff/thing/fixture/midden` row, `Container`,
+`fixedInPlace`, at the byre yard, the lavoir and the Hinkley yard; the
+campus midden row re-pointed to it) — the sweepings rot there as compost
+and `feed` spreads them (storage's spent wet packing goes the same way
+once both land); with no midden in reach it refuses in words. **`strew
+<material> on floor`** (`strew.yaml`, `inventory`) lays a carried
+`granular, absorbent`-tagged stack (rushes; storage's sawdust, whose
+material carries both tags) as the floor's `strewn`, consuming the
+stack. **`beat <rug>`** removes debris from a `Rug` (`/stuff/thing/furnishing/rug`,
+`Soilable(Good)`, placed `on` a floor) by time alone. A `/stuff/thing/rushes`
+stack is sold at the general store (the honest earth-floor cleanser).
+If storage has not landed when W4 starts, the sawdust the drive strews
+is created here at storage's exact paths and numbers (material
+`/stuff/idea/material/wood/sawdust`, ρ 200, k 0.06, c 2000, wAC 100,
+tags `[wood, organic, granular, flammable, absorbent, sawdust]`; a plain
+`StackableMixin(Good)` row at `/trade/carpentry/thing/sawdust`, mass 1,
+keywords `sawdust, dust, heap`, stocked at the general store) and
+storage re-classes the row to `Sawdust`. AC 12.
 
 **D16 — Rest reads the bed and the room as kept; the archetype reads the
 furniture.** `Chair` composes `SoilableMixin`; `PosturedMixin` gains
@@ -691,7 +834,11 @@ furniture.** `Chair` composes `SoilableMixin`; `PosturedMixin` gains
 `Metabolic.currentRestQuality` and `Vitals`' wound recovery read
 `restQualityAsKept()` × the ROOM's factor (`host.getContainer()?.getFloor()`
 band). `Archetype`'s `rest` need keeps `getRestQuality()` — a filthy bed is
-still a bed. Never a punishment: the floor is 0.6 (AC 15).
+still a bed **as far as soil goes** (repair's broken structural line may
+still un-bedroom a room through `getRestQuality()`; that is repair's
+call). After repair the soil factor sits OUTSIDE repair's structural
+factor (Soilable composed outermost on `Chair`). Never a punishment: the
+floor is 0.6 (AC 15).
 
 **D17 — Pests are a derived threshold, never a field.** A floor
 `hasPests()` when its debris load ≥ `cleanliness.pests.debrisAt` (0.4)
@@ -705,28 +852,41 @@ Clean up and the term is zero (AC 15).
 **D18 — A built-in fire that burns indoors has a flue; soot is the
 act's deposit; a sooted flue catches by the shipped ignition.**
 `FluedMixin` (`S/lib/fire/Flued.ts`) composes on **`Hearth` and `Oven`**
-only (⛔ not `Firebox`: `Campfire` extends it and has no flue; `Forge` and
+(⛔ not `Firebox`: `Campfire` extends it and has no flue; `Forge` and
 `Kiln` have stacks of their own and are deferred → structures-slate).
-Field `flueSoot` kg (persistent, runtimeState). `consumeFuel` is wrapped
-(Flued outermost): `flueSoot += kg × (1 − completeness()) ×
-fire.flue.sootFraction` (0.02 — a winter's bad fires, a few hundred
-grams). **The chimney fire**: in the same wrap, when `flueSoot ≥
-fire.flue.ignitesAtKg` (0.5) and `burnPowerW ≥ 0.7 × maxBurnPowerW`
-(a roaring fire draws the flue hot), `catchFlue()`: the soot burns as a
-`Combustible` charge — `FireApi.emitExhaust` of the soot mass (smoke
-into the room), `depositHeat(soot × heatOfCombustion(soot) × 0.3)` onto
-the room's thermal mass and `tryAutoignite` over the room's contents
-(the shipped spread), a scene (*"a roar in the chimney, and sparks"*),
-`flueSoot = 0`, and `wear()` on the host when it is Durable. **`sweep
-<hearth>`** with a brush (`/stuff/thing/tools/flue-brush`, `Tool`,
-`capabilities: [flue-brushing]`, declared as the sweep view's tool) →
-`flueSoot = 0` and `soot` debris on the floor; without the brush the
-same verb rakes the GRATE instead — `Burner.takeAsh()` (D24.1) mints the
-hearth's `ash` into your hands — and the scene names the brush as what
-the flue would want. A lamp's glass: `Lantern` composes Soilable;
-`exhaustTick` incomplete → `deposit('soot')` on itself;
-`getEmittedFlux()` × `(1 − 0.5 × bandRank/3)`; `wash lantern` restores it.
-AC 14.
+⚠ `/stuff/thing/brazier` and the ward's brazier are `class: Hearth` today
+and a brazier has no flue: a sibling class **`platform/thing/Brazier`**
+= `SpaceHeating(Placing(Firebox))` (Hearth's chain without Flued — a
+flueless hearth you can carry) is added and the brazier rows re-point
+to it; its exhaust goes to the room, which is what *"burn sulfur in a
+shut room"* (D22) needs. Rubber's `/trade/rubber/thing/oven` and its two
+`stove` props (class `Hearth`) gain flues with no rubber edit (asked of
+rubber: check `flueSoot` across its drive's cures). Field `flueSoot` kg
+(persistent, runtimeState). `consumeFuel` is wrapped (Flued outermost):
+`flueSoot += kg × (1 − completeness()) × fire.flue.sootFraction` (0.02 —
+a winter's bad fires, a few hundred grams). **The chimney fire**: in the
+same wrap, when `flueSoot ≥ fire.flue.ignitesAtKg` (0.5) and
+`burnPowerW ≥ 0.7 × maxBurnPowerW` (a roaring fire draws the flue hot),
+`catchFlue()`: the soot burns as a charge — `FireApi.emitExhaust` of the
+soot mass (smoke into the room), the flash's own shape
+(`FireLogic.ts:604–620`): `depositHeat(soot × heatOfCombustion(soot) ×
+0.3)` onto every **Thermal content of the room** and `tryAutoignite`
+over the room's contents (the shipped spread — ⛔ never an energy term
+in `reconcileEnvelope`: rooms are not Thermal, and that method is
+rubber's and storage's hottest merge), a scene (*"a roar in the chimney,
+and sparks"*), `flueSoot = 0`. No `wear()` on the host — `Hearth`/`Oven`
+are not Durable in any plan. **`sweep <hearth>`** with a brush
+(`/stuff/thing/tools/flue-brush`, `Tool`, `capabilities: [flue-brushing]`,
+declared as the sweep view's tool) → `flueSoot = 0` and `soot` debris on
+the floor; without the brush the same verb rakes the GRATE instead —
+`Burner.takeAsh()` (D24.1) mints the hearth's `ash` into your hands —
+and the scene names the brush as what the flue would want. **A lamp's
+glass**: `Lamp` composes Soilable (repair folds `Lantern` into it);
+`exhaustTick` incomplete → `soil('soot')` on itself; **`Lamp.getEmittedFlux`
+is the ONE funnel for pane state** — repair's failed-facing factor and
+this build's soot both scale it, and the soot dims only the GLAZED share
+(facing lines whose material is glass): a torch or a flare soots and
+does not dim, total, no guard; `wash lamp` restores it. AC 14.
 
 **D19 — Grime is a factor inside `Window.transmissivity()`; the one
 funnel this build ships is the Window object.** `Window` composes
@@ -734,27 +894,42 @@ funnel this build ships is the Window object.** `Window` composes
 (a filthy pane passes 40 %); the walk's leg (d) reads it with no change
 (AC 13). Soot reaches windows through D6's fire-exhaust deposit onto the
 room's Soilable fixtures (a `BoundaryAnchor` fixture → its `Window`).
-⚠ **Rubber's construction glass faces (a hothouse roof) have no object
-and rubber exposes no single face-transmission method** (its D5): this
-build does NOT add a per-place grime number to `AtmosphericMixin` (a
-field on every scope with air, for the one glass roof in the realm) —
-the attach point is named in Deferred seams and the note to rubber's
-item 4 is answered there, not in code. Homes: a window that is a prose
-detail cannot grime; the drive's home is **Hinkley** and its kitchen gains
-a real `Window` row over the counter window (`kitchen ↔ yard`, both
-FurnishableRoom; `baseTransmissivity 0.85`, keywords `window, glass`);
-the Seznick main room's two tall windows and the dorm's stay prose
-(`ambientOpening`) and are listed as content to author later.
+⚠ **Rubber's construction glass faces (a hothouse roof) have no object**:
+rubber has ONE derived figure per face (`ResolvedEnclosure.transmittance`)
+but no METHOD a per-place factor could multiply into, and no per-place
+grime state exists — this build does NOT add a grime number to
+`AtmosphericMixin` (a field on every scope with air, for the one glass
+roof in the realm); the attach point (`Face.transmittance()` /
+`Exposure.faceTransmittance(face)`, asked of rubber) is named in Deferred
+seams, and the stove house — a sooty stove inside a glasshouse whose
+grimed roof would cool the latex tap — is its first consumer. Homes: a
+window that is a prose detail cannot grime; the drive's home is
+**Hinkley** and its kitchen gains a real `Window` row over the counter
+window (`kitchen ↔ yard`, both FurnishableRoom; `baseTransmissivity 0.85`,
+keywords `window, glass`) **and drops `ambientSource: sky` /
+`ambientOpening: window`** from `lots/kitchen.yaml` — the ambient rung
+does not pass through the object, so keeping it would let grime dim only
+the leg-(d) share and make AC 13 negligible (check `lint:light-sources`
+accepts a Window-lit room; if it does not, the row keeps a small
+authored `ambientIntensity` for the hearth-glow and the Window carries
+the daylight); the Seznick main room's two tall windows and the dorm's
+stay prose (`ambientOpening`) and are listed as content to author later.
 
 **D20 — Stalls foul by the animal-day; the manure is a heap; nitrogen
 is read by the instrument.** The byre's floor accrues `manure` by
 `herd.tally × days` since the last muck-out — ⭐ **the one calendar accrual
 in this build**, allowed by doctrine § 3a (*a continuous physical process
 with a legible local cause* — the cows are there) and declared on the
-row: the byre authors `stalls: { herdbook: /world/terminus/hearts-delight/dairy/thing/dairy-book }`
-(load-on-use: the floor's reconcile follows the authored reference,
-never a search); `FloorMixin.reconcileStalls()` runs on read when
-`stalls` is set, stamping `stallsStamp`. `muck` is an alias of `sweep`
+row — ⚠ `FloorSpec` is CLOSED (`{template, material, onGrade, worked}`,
+`Location.ts:52–60`), so `stalls:` cannot ride the room's `floor:`
+block: a **floor ROW** `C/hearts-delight/…/dairy/thing/byre-floor.yaml`
+(class `/platform/thing/Floor`, keywords incl. `floor, ground` for
+`lint:ground` (d), `stalls: { herdbook: /world/terminus/hearts-delight/dairy/thing/dairy-book }`)
+named by `byre.yaml`'s `floor: {template: …/byre-floor}` — storage's own
+sheet-row pattern (`areaM2` on the ice-sheet row for the same reason).
+Load-on-use: the floor's reconcile follows the authored reference, never
+a search; `FloorMixin.reconcileStalls()` runs on read when `stalls` is
+set, stamping `stallsStamp`. `muck` is an alias of `sweep`
 (`verbs: [sweep, muck]` — one act) and a `manure` debris sweeps into a
 `/trade/ranching/thing/manure` Stackable (material
 `/trade/ranching/idea/material/manure`, tags `[organic, compost,
@@ -771,8 +946,11 @@ garment, driven by what it hangs in.** `Soilable.reconcileAiring()` —
 stamped (`airingStamp`), run from the garment's read points (`look`,
 `get`, `wash`, the `dry` placement): samples ONCE per reconcile (the
 light-strike fidelity rule) the daylight at its scope
-(`CelestialApi.daylightFractionAt` × `BiomeApi.isSkyExposed(scope)` or the
-scope's `exposure().skyLightFraction()` once rubber lands) and the
+(`CelestialApi.daylightFractionAt` × the scope's sky share — **feature-
+detected, not merge-order prose**: `typeof scope.exposure === 'function'
+? scope.exposure().skyLightFraction() : (BiomeApi.isSkyExposed(scope) ? 1 : 0)`,
+the fallback call site marked `// rubber: migrate` so rubber's merge grep
+finds the new caller of the legacy walk) and the
 scope's `sulfur-dioxide` air content, integrates an **oxidiser dose** over
 the gap, and applies it: set stains and film stains fade by the
 `oxidiser-slow`/`oxidiser` Cleanser rows (`sunlight`, `sulfur-fume` — the
@@ -795,16 +973,35 @@ copying `carbonMonoxide`'s shape; respiration delivers them, a door
 clears them — AC 11). Sources: (a) **`Material.combustionProducts?:
 [{material, litresPerKg}]`** (new authorable field) read by
 `FireLogic.emitExhaustInto` beside CO₂/smoke — authored on **rubber's
-sulfur row** (the note's item 2; if rubber has not landed, the row is
-created here at rubber's path and rubber adopts it); `stoke brazier with
-sulfur` then fumes a shut room. (b) **`MaturationProfile.offGas?:
+sulfur row** TOGETHER WITH `heatOfCombustion: 9.2` (MJ/kg) and
+`autoignitionTemperature: 505` (K): without `heatOfCombustion > 0`
+`stoke` refuses the lump as *not fuel* (`Burner.ts:868`), so
+`combustionProducts` alone does nothing; 505 K sits above rubber's
+bellows oven (~482 K), and rubber tests that a firing never ignites its
+own charge. If rubber has not landed when W3 starts, the fallback
+creates the material at rubber's path with rubber's numbers (tags
+`[sulfur, mineral]`, ρ 2070, mp 388, k 0.2) plus these three, **and** the
+won row `/trade/quarrying/thing/sulfur` (the coal row's shape, `class:
+/platform/thing/Firewood` so it stokes) **and** the Hill Quarry band
+`{toZ: −10.4, host: mineral/sulfur, wins: quarrying/thing/sulfur}`
+exactly per rubber D13.4 (halite → −10.4…−12); rubber then adopts the
+rows. Drive step 11's sulfur is **bought**: a `brimstone` stock line at
+the chandlery counter (chandlers sold it; par mints) serves both drives
+without a ten-metre dig. `stoke brazier with sulfur` (a `Brazier`, D18 —
+no flue, the exhaust goes to the room) then fumes a shut room. (b) **`MaturationProfile.offGas?:
 {material, litresPerLitrePerDay}`** replacing the hardcoded CO₂ in
 `Maturing.ts:132–157` (the ferment rows author `carbon-dioxide`; a
 census test asserts every shipped profile's gas is byte-identical) —
 a `chemical` profile `urine → stale-urine` (tags `[liquid, ammonia-source]`)
 off-gases `ammonia`; its source is the laundress's piss-tub
 (`/world/terminus/wharfside/lavoir/thing/urine-tub`, a `Vat` row seeded
-with 20 L of `urine`; refilling it is sanitation-slate's). (c)
+with 20 L of `urine`; refilling it is sanitation-slate's) — propped in
+the **laundry** (her shut back room, D27), never under the lavoir's open
+roof: an open-sided place must ventilate as outside (asked of rubber,
+whose `airChangesPerHour` rewiring decides it), and until that is
+confirmed the ammonia is meant to build where a door can let it out.
+A test asserts the lavoir's own ACH is ≥ the outdoor answer once rubber
+lands. (c)
 **`Material.flammableLimit?`** (a volume fraction) read by
 `flammableMediumCheck` in place of the global dial when authored:
 `flour-dust` and `flax-dust` gas rows (`heatOfCombustion 15`, limit 0.01,
@@ -826,9 +1023,9 @@ emits its vapour into the room on the vessel's thermal reconcile
 `vapourLPerLPerHour`); a naphtha rag by the hearth is then the flash
 (AC 11). Mill house (D-user): the grist mill moves indoors — a new
 `/world/terminus/hearts-delight/location/mill-house.yaml`
-(`PersistentCartesianLocation`, `enclosure:` + `roof:` authored, props the
-grist-mill + toll-bin, exits to/from the millsite, the miller's station
-moves). AC 16.
+(`PersistentCartesianLocation`; construction in **rubber's exact valid
+shape**, see D27 for the pre-/post-rubber rule; props the grist-mill +
+toll-bin, exits to/from the millsite, the miller's station moves). AC 16.
 
 **D23 — Lye in the eyes, lye on skin, over-washed skin.** A splash at the
 hopper is an **epistemic draw** (seeded on the act, `uncertainty.md`): `BulkableLogic`'s bungled-pour path (`:805`
@@ -905,8 +1102,14 @@ shipped verbs": `put`, `pour`, `light`/`stoke`, `get`; the requirements'
    `Placing`): a drain set runs unloaded at `1/days` (mould.md § draining),
    and a soap frame takes no press, so dairy's `Hoop` (which adds
    `Placing` for the press stone) is the wrong class and no new class is
-   needed; it sets by draining (the nigre is the
-   whey); `get bar from frame` mints `/trade/chandlery/thing/soap-bar`
+   needed; it sets by draining (the nigre is the whey); the frame row
+   authors `discipline: chemistry` (the pour credits it) and the
+   `hard-soap-curd` material authors **`castTemplate:
+   /trade/chandlery/thing/soap-bar`** explicitly — storage's new
+   `getCastTemplate()` default sends any unauthored material to
+   `/stuff/thing/Casting`, so an unstated cast would be a Casting in
+   either landing order (test: the frame's drain set yields a `SoapBar`);
+   `get bar from frame` mints `/trade/chandlery/thing/soap-bar`
    (`SeasoningMixin(Good)` via `C/trade-chandlery/src/thing/SoapBar.ts`,
    material `hard-soap` with `seasoningDays: 28`, tags `[soap, surfactant,
    cleanser]`).
@@ -940,10 +1143,16 @@ makers.** `washing-soda` (material + thing in **trade-fuel**, tags
 its making — lye evaporated to a solid — is one `evaporative` profile
 row `soda-from-lye.yaml` in trade-fuel over the shipped `Vat`, copying
 the brine-pan precedent (`trade-quarrying/…/maturation/brine.yaml`: an
-evaporative profile whose product is the solid left behind)). `fullers-earth` and `chalk` (materials + won rows in
-**trade-quarrying**, one `wins:` band each in the Hill Quarry column
-between clay and coal — ⚠ rubber edits the same column; whichever lands
-second merges by hand; also stocked at the general store). `sand` reads
+evaporative profile whose product is the solid left behind)). `fullers-earth` and `chalk`: the MATERIALS in
+`base-library` (`/stuff/idea/material/{earth/fullers-earth, rock/chalk}` —
+the column's commons convention, as rubber's sulfur), the won rows in
+**trade-quarrying**, and two Hill Quarry bands that **split nothing
+shipped**: fuller's earth `−1.6 … −2` inside the clay band (clay becomes
+`−1 … −1.6`), chalk `−6 … −6.5` at the top of the limestone (limestone
+becomes `−6.5 … −9`); ⛔ nothing at or below −10 — rubber's sulfur sits
+at −10 … −10.4 and its test digs −10.2 and −11; ⚠ rubber edits the same
+list, the second lander hand-merges the `stratigraphy` in `toZ` order;
+both are also stocked at the general store. `sand` reads
 its shipped `silica` tag. `vinegar`/`neutral-spirit` need no material
 edit (their Cleanser rows name `vinegar` / `neutral-spirit`). `vitriol`
 reads its row. `sour-milk` = dairy's `buttermilk` tag (a Cleanser row
@@ -956,114 +1165,190 @@ scrub at half rate).
 ### People, venues, services (D26–D31)
 
 **D26 — Two new service kinds, `wash` and `bath`; the laundress's arm
-copies repair's D12 shape with a discipline filter.** `SERVICE_KINDS`
-gains both (a declared closed vocabulary; the ceiling is untouched);
-`OrderController.performService` gains two arms; `order.yaml` help gains
-two lines; `MenuController` lists them for free. `order wash <garment>`:
-`ensureOperatorAt(venue)` → `presentFulfillers(giver, 'textiles')` (⚠
-repair's call passes no discipline; this build adds the optional
-parameter repair's signature already has) → `callHouse` (repair's;
-if repair has not landed, factor it here from `resolveMaker`'s tail in
-the exact shape and repair consumes it) → no hand ⇒ *"There's nobody here
-to do the work."* → the hand reads the garment (`Garment.describeForLaundress()`:
-fibre, construction, kinds and bands, what she will do to it at HER band)
-→ `Tariff.quoteFor` (repair's; here the lines are `wash` × kinds, +
-`hot-wash`, `bleach`) → `promptConfirm` → `Garment.wash(spec)` with the
-spec the hand's **textiles band chooses** (`WashPolicy.forBand(band,
-garment, kinds)` — a value object in `S/lib/cleanliness/WashPolicy.ts`:
-untrained boils everything and uses lye; competent reads the fibre;
-expert never ruins) → `collectMinor` → `settlePiecework` for a
-`per-settlement` seat. **Ruin** = the outcome's `damage` non-empty
-(felted · shrunk · rotted · bled onto): the house pays the customer the
-tariff's posted cover (`prices.cover`, grain 20; ⚠ no appraisal mechanism
-exists — § discrepancies) through **`BankingApi.indemnify(houseAccountId,
-payeeKey, amount, memo)`** → `BankingLogic.indemnifyImpl` (the `payWage`
-body under a new `PnlCategory` `'damages'`, employer balance required, the
-payee's primary account; a cash-only customer is paid in coin from the
-house's till through the shipped `takeCoins`/`moveCoins` when the house
-holds coin, else told *the house owes you* and the deed records the debt)
-and `hand.recordDeed({kind: 'ruined', what, for: customer})` (AC 19).
+rides repair's PUBLIC service seam with no discipline hard-coded.**
+`SERVICE_KINDS` gains both (a declared closed vocabulary; the ceiling is
+untouched); `order.yaml` help gains two lines; `MenuController` lists
+them for free. **The seam (repair W3, consumed here; built here in
+repair's shape if repair has not landed):** `performService` arms return
+`{ok, detail, charge?}` and ONE collector does `charge !== undefined ?
+collectMinor(charge) : collect(key)`; ONE `doDurativeService` serves
+transfusion and `bath`; the hand comes from **`CraftingApi.fulfillingHand(giver,
+venue, discipline?)`** (public — the wrapper over `presentFulfillers` →
+`houseOf` → `callHouse`, candidates **restricted to the tariff's own
+house**, since the lavoir and the bathhouse are two-house rooms), where
+the optional discipline is **read off the Tariff row**
+(`serviceDisciplines: {wash: textiles}` on the lavoir's tariff; the
+bathhouse's tariff names none, so its `personal-services` attendant
+washes your clothes too — a hard-coded `textiles` would have lost her);
+no hand ⇒ the ONE shared refusal constant *"There's nobody here to do the
+work."*; `Tariff.quoteFor(lines: {key, label, qty}[]) → Quote` (generic;
+the wash lines are `wash` × kinds + `hot-wash` + `bleach`; an unpriced
+key is null, never derived; **`cover` is never a quote line** — it is a
+payout); `context.interactive?.promptConfirm(...)` (no interactive ⇒
+declined); **the customer's ability to pay is checked BEFORE the act**
+(`PricedOffer.canSettle(charge)` — pay-after-perform gave a free wash and
+possibly an indemnity); the house account is **the one `collect`
+resolved** (`PricedOffer.houseAccount()`, repair's self-first walk —
+never re-walked here). `order wash <garment>`: the hand reads the
+garment — `Garment.describeForLaundress(band)` obeys repair's *quote
+only what you can see*: she names fibre and kinds only at a band that
+resolves them, and says *"I'll boil it"* without the consequence she
+cannot foresee — → quote → confirm → **inputs from the HAND's reach**
+(repair's rule: the wash spec is built from the water slot and the
+cleanser in HER reach — the trough, the house's soap at par — consumed
+as in a self-wash; absent soap ⇒ a water wash, said so) →
+`Garment.wash(spec)` with the spec **her textiles band chooses**
+(`WashPolicy.forBand(band, garment, kinds)` — a value object in
+`S/lib/cleanliness/WashPolicy.ts`: untrained boils everything and reaches
+for lye; competent reads the fibre; expert never ruins) → `collectMinor`
+→ `settlePiecework` for a `per-settlement` seat. **Ruin** = the
+outcome's `damage` non-empty (felted · shrunk · rotted · bled onto): the
+house pays the customer the tariff's posted cover (`prices.cover`, grain
+20; ⚠ no appraisal mechanism exists — § discrepancies) through
+**`BankingApi.indemnify(houseAccountId, payeeKey, amount, memo)`** →
+`BankingLogic.indemnifyImpl` (the `payWage` body under a new
+`PnlCategory 'damages'`, named generically so repair's warranty and
+insurance slates inherit it; employer balance required; the payee's
+primary account; a cash-only customer is paid in coin from the house's
+till through the shipped `takeCoins`/`moveCoins` when the house holds
+coin, else told *the house owes you* and the deed records the debt).
+⛔ **`indemnify` refuses self-dealing**: `payee === hand`, or the payee
+holds a seat at the paying house — a player holding the laundress seat
+alone could otherwise `order wash` their own cheap jumper, boil it, and
+be paid the cover from the house account. `hand.recordDeed({kind:
+'ruined', what, for: customer})` (AC 19). A ruined garment is also
+`wear`-damaged (D10), so a tailor can mend it under repair's band table —
+*the house mends it* is a named seam, not built.
 
 **D27 — The lavoir is civic rows; the laundress is a Business with a
 Tariff fixture in the same room (two houses in one room, shipped).**
 `C/terminus/content/world/terminus/wharfside/lavoir/`: `location/lavoir.yaml`
-(`PersistentCartesianLocation`, roofed: `enclosure: none` on the open
-sides is NOT allowed by `lint:biome-sky` — author `enclosure: [stone
-piers]`, `roof: [slate]`; `ambientSource: sky`, `ambientOpening: arches`;
-props a `/stuff/thing/fixture/trough` (`WaterFixture`, `suppliedBy:
-/world/terminus/wharfside/thing/cold-fell-aqueduct` — soft, running), two
-`/stuff/thing/fixture/washboard` (Fitting, `scrubbing` capability, `peers`
-affords `scrub`), a `clothes-line` ×2, a `midden`, the `urine-tub`, the
-laundress's `tariff`; `cast:` two washerwomen (plain `Cast` with
-`greets`-style lines) so *others are there washing*), `location/drying-ground.yaml`
-(sky-exposed, lines), `idea/laundry.yaml` (Business: position `laundress`,
-`fulfills: [textiles]`, `requires: {discipline: textiles, band: novice}`,
+(`PersistentCartesianLocation`, roofed and open-sided; `ambientSource:
+sky`, `ambientOpening: arches`; props a `/stuff/thing/fixture/trough`
+(`WaterFixture`, `suppliedBy: /world/terminus/wharfside/thing/cold-fell-aqueduct`
+— soft, running), two `/stuff/thing/fixture/washboard` (Fitting,
+`scrubbing` capability, `peers` affords `scrub`), a `clothes-line` ×2, a
+`midden`, the laundress's `tariff`; `cast:` two washerwomen (plain `Cast`
+with `greets`-style lines) so *others are there washing*),
+`location/laundry.yaml` (her shut back room: the copper, the `urine-tub`
+(D22), shelves — `enclosure` + `roof` in full), `location/drying-ground.yaml`
+(outdoor: **authors `_biomePath: /stuff/idea/biome/outdoor/baseline`**,
+the square's, so the legacy walk and `lint:biome-sky` both read it as
+open; post-rubber `enclosure: none` + `roof: none` says the same),
+`idea/laundry.yaml` (Business: position `laundress`, `fulfills:
+[textiles]`, `requires: {discipline: textiles, band: novice}`,
 `headcount: 2`, `compensation: {basis: per-settlement, rate: 1}`, `call:
-rota`, `rosterSlots` the NPC laundress 7–17, `operatingLocations` the lavoir
-+ the tariff; `banksAt: goodkin`; `parLines: soap` from the chandlery
-outfit), `thing/tariff.yaml` (`services: {wash: wash}`, `prices: {wash: 2,
-hot-wash: 1, bleach: 2, cover: 20}`), `agent/laundress.yaml` (textiles
-`competent`; her low-band twin for the drive is a player at `novice`). Exits
-from the Quay (`wharfside/bank.yaml` gains `southwest → lavoir`). Free:
-the trough and boards afford `wash`/`scrub` to anyone. A second lavoir is
-these rows again (AC 23).
+rota`, `rosterSlots` the NPC laundress 7–17, `operatingLocations` the
+lavoir + the laundry + the tariff; `banksAt: goodkin`; `parLines: soap`
+from the chandlery outfit — and a `restocks` brain on her so the par is
+not inert, authored against storage's `restocks` config shape),
+`thing/tariff.yaml` (`services: {wash: wash}`, `serviceDisciplines:
+{wash: textiles}`, `prices: {wash: 2, hot-wash: 1, bleach: 2, cover: 20}`),
+`agent/laundress.yaml` (textiles `competent`; her low-band twin for the
+drive is a player at `novice`). **The construction, in rubber's exact
+valid shape.** ⚠ `lint:biome-sky` counts rows LACKING a key; `enclosure:
+none` is a legal declared value, and a layer is `{material, thicknessM}`
+— never a bare word or a list of words. Post-rubber the lavoir authors
+`enclosure: none` + `roof: {material: /stuff/idea/material/rock/slate,
+thicknessM: 0.02}` (the awning's shape). **Pre-rubber** `none` and a
+layer LIST fail shipped clause (e) and an unknown `roof:` key is
+silently dropped by the applier: so until rubber lands every new
+interior authors a single-layer `enclosure: {material: <path>,
+thicknessM}` plus `roof: {material, thicknessM}` (dropped now, valid
+later), and the lavoir's open sides are converted to `none` at the
+rubber merge. Same rule for the laundry, the bathhouse rooms and the
+mill house. Exits: `wharfside/bank.yaml` gains a **named exit `lavoir`**
+(⚠ `southwest` is the dyehouse's, `bank.yaml:87`; every diagonal and
+`down` are taken — repair uses the same named-exit shape for its `yard`).
+Free: the trough and boards afford `wash`/`scrub` to anyone. A second
+lavoir is these rows again (AC 23).
 
 **D28 — The bathhouse is a hospitality venue off the market; the gym
 shares its door.** `C/terminus/content/world/terminus/market/bathhouse/`:
-`location/{vestibule, baths, gym}.yaml` (Persistent…; `enclosure`+`roof`;
-the baths room props a `/stuff/thing/Hearth` + fuel, a **copper**
-(`/stuff/thing/fixture/copper` — a `Receptacle` row 100 L `fixedInPlace`,
-`seatIn:` the hearth's hob so `heatContents` warms it; `suppliedBy:` the
-city main fills it), three **tubs**, a `midden`, soap at par, the
-`tariff`; the gym props the barbell (`/trade/smithing/thing/barbell` —
-its first prop), a `mat` surface, a basin), `idea/business.yaml`
-(position `attendant`, `fulfills: [personal-services]`, `purchases`,
-`call: rota`, parLines `soap` (chandlery) and `fuel` (the collier), the
-usual), `thing/tariff.yaml` (`services: {bath: bath, wash: wash}`,
-`prices: {bath: 3, wash: 2, cover: 20}`), `agent/attendant.yaml`. **The
-tub** becomes a thing that holds water: `S/platform/thing/Tub.ts` =
-`SoilableMixin(BulkableMixin(ThermalMixin(Chair)))` (a seat you lie in
-with a bulk interior; `fixture/tub.yaml` re-classed; the bathroom
-archetype's `water` need is unchanged — the basin carries it). **`bathe`**
-(new platform verb, `crafting` beside `wash`; `bathe [in <tub|water>]`):
-needs a `Tub` holding ≥ 60 L of water in reach OR a `Shore`/`Pool` (the
-frozen gate, D13); engages the body for `BATHE_S` (120); at completion
-`Creature.bathe(waterK, cleanser)`: every body site `wash`ed (hair is the
-head site), `immerse()` (wet, garments and all — bathing dressed is the
-player's problem; the scene says so), and the thermal half: in a `Pool`
-the shipped immersion fold already runs; at a shore or in a tub the act
-deposits `−h·A·(coreK − waterK)·BATHE_S` through `ThermalMixin.depositHeat`
-(a winter river chills, a copper-fed tub warms — storage's cold water read
-once, not copied). `order bath` is the transfusion-shaped arm: the
+`location/{vestibule, baths, gym}.yaml` (Persistent…; construction per
+D27's rule; the baths room props a `/stuff/thing/Hearth` + fuel, a
+**copper** (`/stuff/thing/fixture/copper` — a `Receptacle` row 100 L
+`fixedInPlace`, `seatIn:` the hearth's hob so `heatContents` warms it;
+`suppliedBy:` the city main fills it; after repair a Receptacle is
+Assembled/Durable/Crafted and reads *one piece* — honest), three
+**tubs**, a `midden`, soap at par, the `tariff`; the gym props the
+barbell (`/trade/smithing/thing/barbell` — its first prop), a `mat`
+surface, a basin), `structure.yaml` (a `Structure` row over the three
+rooms, no storeys, no materials — so rubber's D7 warms the vestibule and
+gym from the baths' hearth for free; `Structure` ships today),
+`idea/business.yaml` (position `attendant`, `fulfills:
+[personal-services]`, `purchases`, `compensation` time-based, `call:
+rota`, parLines `soap` (chandlery) and `fuel` (the collier) with a
+`restocks` brain, the usual), `thing/tariff.yaml` (`services: {bath:
+bath, wash: wash}`, no `serviceDisciplines`, `prices: {bath: 3, wash: 2,
+cover: 20}`), `agent/attendant.yaml`. Exit: **`north` off the market
+square** (free today: the square uses `northeast`, `south`, `west`;
+rubber's awning takes `east`), with market-zone `coords` that do not
+collide with rubber's awning cell. **The tub** becomes a thing that holds
+water: `S/platform/thing/Tub.ts` = **`BulkableMixin(ThermalMixin(Chair))`**
+— Soilable arrives through `Chair` (W0) and is NOT composed twice; a seat
+you lie in with a bulk interior; `fixture/tub.yaml` re-classed; the
+bathroom archetype's `water` need is unchanged (the basin carries it).
+**`bathe`** (new platform verb, `crafting` beside `wash`; `bathe [in
+<tub|water>]`): needs a `Tub` holding ≥ 60 L of water in reach, OR a
+shore/pool's water through `ShoreMixin.drawAt` (D13 — the frozen gate and
+the under-ice draw for free); engages the body for `BATHE_S` (120); at
+completion `Creature.bathe(waterK, cleanser)`: every body site `wash`ed
+(hair is the head site), then the wetting — **in a `Pool` where
+`MixinApi.isSwimmable(scope) && scope.immersionOf(body) != null`** the
+bather is already in storage's support state (they went in through
+`giveWay`/the swim engagement, not through `immerse()` directly) and the
+shipped immersion fold chills them; **otherwise** (a tub, a shore, a
+bather supported on ice at a hole) `immerse()` wets body and garments
+(bathing dressed is the player's problem; the scene says so) and the
+cold is **storage's ONE law**, not a second formula: the body's immersion
+exchange (`ThermalRegulation.exchangeWithWater(waterK, dtS)`, the
+arithmetic `effectiveAmbient` folds — asked of storage; built here beside
+that fold in the same shape if storage has not exposed it) is called
+once for `BATHE_S` — a winter river chills by the law a pool swim does, a
+copper-fed tub warms. **`order bath`** rides the shared durative arm: the
 attendant on shift, the copper's water ≥ 310 K (else *"the water is not
-hot yet"*), the house's soap at par (none → a water bath, said so), engage
-the customer, `bathe` at completion, `collect`. The attendant washes your
-clothes = `order wash` at the same tariff (AC 20's second half, § 15).
+hot yet"*), the house's soap at par (none → a water bath, said so),
+engage the customer, `bathe` at completion, the flat `collect`; a
+`per-settlement` attendant seat is paid by `settlePiecework` like the
+laundress's. The attendant washes your clothes = `order wash` at the
+same tariff (no discipline named, so the `personal-services` hand
+answers; her textiles band — untrained — decides the outcome through
+`WashPolicy`, which is the honest bathhouse laundry). ⚠ Winter reaches:
+storage raises `water.ice.stillWaterMps` to 0.5, so more Terminus
+reaches freeze; the drive's winter bathe is pinned to a reach that stays
+`running` or expects the frozen refusal (AC 20's second half, § 15).
 
 **D29 — The doorman is a judgment the exit asks for; the criterion is
-data on his brain; the refusal is his words.** A new exit kind row
-`/stuff/idea/exits/kept-door` over `S/platform/idea/KeptDoor.ts` (an
-`Exit` subclass, the `FordExit`/`AshoreExit` precedent of a mover-reading
-async `canTraverse`): it finds a `Behaved` occupant on EITHER side running
-the `doorman` brain (`S/lib/behavior/doorman.ts` — kernel commons; a
-doorman is a second-venue thing) and asks `brain.judge(host, mover)` →
-`{admit: true} | {admit: false, reason}`; no doorman present → open. The
-brain's `config.dressCode`: `{turnsAway: [{outer: [garment keywords or
-template paths], where: torso}, {soiledAbove: 'marked'}, {bare: [torso]}],
-greets: [...]}` — he reads `mover.outermostAt('body.torso')`'s keywords/
-material/form and its `soilBand()`; regard ≥ `config.regardAdmits` (grain
-60) waives it (*someone who does not care*). Lens 7: criterion named on
-the row, appeal = the alternatives (a borrowed coat, a bath, the hall's
-other business, the bank's own officer who can `dispatch` you in), tier C.
-The Goodkin hall's north arch becomes `kind: /stuff/idea/exits/kept-door`;
-`counting-houses/agent/doorman.yaml` (`Cast`, costume a frock coat,
-brain `doorman` + `greets`) stands in the hall. ⛔ No `isWizard`, no gauge,
-no `canEnter` on the room (the room would then need the brain's config —
-the exit asking the person is the honest shape). **The wharfside remark**:
-`S/lib/behavior/remarks.ts` — a `greets`-shaped arrival brain whose lines
-are keyed by the arriver's outer torso garment (`lines: [{outer: [coat,
-frock], say: "..."}]`); the fisher and the pilot get one line each.
-AC 20.
+data on his brain; he judges only ON SHIFT; the refusal is his words.**
+A new exit kind row `/stuff/idea/exits/kept-door` over
+`S/platform/idea/KeptDoor.ts` (an `Exit` subclass, the `FordExit`/`AshoreExit`
+precedent of a mover-reading async `canTraverse`): it finds, on EITHER
+side, a `Behaved` occupant running the `doorman` brain **who
+`isOnShiftFor(<the business the exit row names>)` in a `doorman`
+position** (storage's `Employed.isOnShiftFor(org)`, consumed; the
+one-liner is added here in storage's shape if storage has not landed —
+the answer is a SEAT, never presence: an off-shift doorman standing in
+the hall is a man in a coat) and asks `brain.judge(host, mover)` →
+`{admit: true} | {admit: false, reason}`; no doorman on shift → open.
+The brain's `config.dressCode`: `{turnsAway: [{outer: [garment keywords
+or template paths], where: torso}, {soiledAbove: 'marked'}, {bare:
+[torso]}], greets: [...]}` — he reads `mover.outermostAt('body.torso')`'s
+keywords/material/form and its `soilBand()`; regard ≥
+`config.regardAdmits` (grain 60) waives it (*someone who does not care*).
+Lens 7: criterion named on the row, appeal = the alternatives (a borrowed
+coat, a bath, the hall's other business, the bank's own officer who can
+`dispatch` you in), tier C. The Goodkin hall's north arch becomes
+`kind: /stuff/idea/exits/kept-door` naming `/world/terminus/counting-houses/business`;
+that Business gains a `doorman` position (8–18, time-based) and
+`counting-houses/agent/doorman.yaml` (`Cast`, costume a frock coat, brain
+`doorman` + `greets`) holds it and stands in the hall. ⛔ No `isWizard`,
+no gauge, no `canEnter` on the room (the room would then need the
+brain's config — the exit asking the person is the honest shape). **The
+wharfside remark**: `S/lib/behavior/remarks.ts` — a `greets`-shaped
+arrival brain whose lines are keyed by the arriver's outer torso garment
+(`lines: [{outer: [coat, frock], say: "..."}]`); the fisher and the pilot
+get one line each. AC 20.
 
 **D30 — Cleaning as a gig: a `clean` condition template.**
 `CONDITION_TEMPLATES` gains `'clean'` (`ConditionData.subject:
@@ -1088,7 +1373,10 @@ cookhouse, the byre, the chandlery floor, the textile mill floor, the
 glazier's hut, the infirmary ward, the general-store shop floor, the
 Circle parlor (the doorman's room — its fire is prose; no state; left as
 is), and every new room. (b) **Fixture state**: `AdornableMixin.captureSlice`
-captures, for each non-chattel fixture, the fixture's own persistent
+captures, for each non-chattel fixture **that is not itself
+Persistable** (`MixinApi.isPersistable(fixture)` ⇒ skipped: it keeps its
+own `(scope, key)` record — storage's `IceSheet` and its log; a test
+with a stub persistable fixture pins it), the fixture's own persistent
 `runtimeState` slice under `fixtures: {<slotName>: fields}`, and
 `materialize` applies it onto the fixture the row re-minted into that
 slot (the floor's `deposits`/`strewn`/`stallsStamp`, a Window's
@@ -1106,6 +1394,177 @@ ancestor step). Drive step 23 (AC 24).
 
 ---
 
+## ⭐⭐ Parallel builds — shared files, contracts, merge conflicts
+
+Four builds start together off one master and land **one at a time in
+an order nobody can promise** (this one probably last): **rubber**
+(build-1, `reqs/rubber`), **repair** (build-3, `reqs/repair`),
+**storage-and-ice** (build-4, `reqs/storage-and-ice`), and this one.
+Every shared piece below works whichever lands first. Read beside
+`docs/plans/cleanliness-note-to-siblings.md` (what we asked of each) and
+each sibling's own § Parallel builds (`git show origin/reqs/<x>:docs/plans/<x>-plan.md`).
+
+### The merge rule
+
+The build that lands **second** on any shared file: (1) merges
+`origin/master` into its branch first; (2) resolves every conflict **by
+hand, as the row below says** — never "theirs" or "ours" wholesale;
+(3) **regenerates every generated artifact** rather than merging it —
+`pnpm -C packages/server lint:field-meta --snapshot` (the field-meta
+golden, `field-tags-golden.json`, `unconsumed-seam-shapes.ts.txt`), the
+wiki-spoiler `.snap` (`-u`, keeping EVERY build's review-log paragraph,
+in landing order), `pnpm install` (the lockfile), `./tools/slate-index`
+(`docs/slates/README.md`); (4) recomputes a numeric ceiling on the merged
+tree (≤ master's; never summed, never raised — fix code instead);
+(5) re-runs the tests and drive named in the row, and `lint:family`;
+(6) a sibling's drive is re-run after ours lands where a row says so.
+
+### Files both edit — rubber × cleanliness
+
+| file | rubber | ours | kind | resolution |
+|---|---|---|---|---|
+| `S/lib/material/Material.ts` (fields, `fieldMeta`, getters) | `lightAbsorption` (`1/m`), `elasticity`, `crosslinking`; the wet law `permeability()`/`wetProperty()` (if first) | `combustionProducts`, `flammableLimit`, `vapourLPerLPerHour`, `ashFraction` | textual | keep both; append `fieldMeta` keys, never reorder; ⚠ `combustionImparts` (food aroma) already exists — never "unify"; then regenerate the golden |
+| `S/lib/slot/Attired.ts` | `exposeToRain(delta)`; `immerse(parts?)` (storage's, if rubber lands it) | `doff(garment, {careful})`; the soil clause in the impression (:251–276); the rinse inside `immerse()`; the whole `immerse(parts?)` only if nobody has | textual | three methods, one file: keep all; ONE `immerse(parts?: (partKey) => boolean)`; our rinse line is added inside it in either order |
+| `S/lib/slot/Wearable.ts` | W8 stretch term in `fitOn`; `getClo` k_void migration (if first) | shrink = scale the `cutTo*` stamp; `feltShrink` 0.85 | textual + ⚠ meaning | separate regions; rubber reads the `felted` form as non-stretching (asked); re-run rubber's fit test and our `Garment.wash` test |
+| `S/lib/ground/Floor.ts` | `isOnGrade()` default → `exposure().onGrade`; snow gated on `rainReaches()`; terrace defaults | `takesSoil`, `receiveTraffic`, `soilFeetOf`, `strewn`, `stalls`, `cleaningMethod`, `hasPests`, `soilAugmenter`, `fieldMeta` | textual + ⚠ meaning (`getGroundKind()` reads `isOnGrade()`) | different methods; the `markupAugmenters` line is ours; after rubber, pin the drive floors' ground kinds (D15); if a building floor flips to earth, author `floor: {material}` on the row |
+| `S/lib/husbandry/Producing.ts` | `:383–390` the `weather` window reads the air | `stampTheHand` (`:1184`) applies `TapSpec.soils` | textual + meaning | distant hunks; rubber's Hevea row authors no `soils` so latex leaves nothing on the hands (test) |
+| `S/lib/config/AppSettings.ts` + `C/platform/content/settings/*.yaml` | `light.solar.*`, `envelope.solarSegmentsMax`, `pump.*`, `wetness.impermeableBelowPct` | `cleanliness.*` (new `cleanliness.yaml`), `fire.flue.*`, `textiles.wash.*`, `kitchen.surfaceInoculum`, `lye.ashKgPerL`, `wetness.windFactor` | textual | append in each owner's section; `wetness.yaml` gets both keys |
+| `C/base-library/…/material/mineral/sulfur.yaml` | **creates** (tags, ρ, mp, k, colour) | adds `combustionProducts`, `heatOfCombustion 9.2`, `autoignitionTemperature 505`; creates the row at rubber's path if absent | add/add if we are first | rubber keeps our three keys and its values; rubber tests a firing never ignites its charge |
+| `C/trade-quarrying/…/thing/sulfur.yaml`, `C/rejection/…/idea/deposit/quarry-hill.yaml` | the won row (`Firewood`), the band `{toZ: −10.4}` (halite → −10.4…−12) | fuller's earth `−1.6…−2`, chalk `−6…−6.5`; the sulfur row + band only in the fallback | textual (two list inserts) | second lander hand-merges `stratigraphy` in `toZ` order; nothing of ours at or below −10; rubber's test digs −10.2 (sulfur) and −11 (salt) |
+| `C/base-library/…/material/bulk/vitriol.yaml`, `caustic/quicklime.yaml` | `corrosiveTo` loses `organic`, gains honest tags | nothing (Cleanser `agent: acid`; `burns` derived from `corrosiveTo`) | — | no textual collision; rubber publishes the tag words it adds (`cellulose`, `protein`, …) in the commit |
+| `C/base-library/…/material/wood/*.yaml` and other `organic` rows | honest tags where vitriol must still catch | `ashFraction` on the log materials (oak, pine; ⚠ never `wood/ash.yaml`, the tree) | textual | keep both keys |
+| `C/terminus/…/general-store/counter.yaml` | `rubber-boots`, `rubber-gloves` + prices | soap, soda, scrub-brush, broom, rushes, hopper, kettle, ash, fuller's earth, chalk + prices | textual | union of lines and prices (repair adds too); `lint:reachability` R + `lint:mass` after |
+| `C/terminus/…/market/square.yaml` + the market zone's cells | `under-the-awning` **`east`** off the square | the bathhouse **`north`** off the square | direction/cell | never the same compass word or `coords` cell; today the square uses `northeast`, `south`, `west` |
+| `C/terminus/package.json`, `pnpm-lock.yaml` | `@saxonberg/content-trade-rubber` | maybe trade-smithing (the barbell prop) | textual | union the deps; `pnpm install` regenerates the lock |
+| `S/platform/idea/cmd/device/FireController.ts` (`runFiring`) | `for <duration>` hold, crosslink branch, the mould seam | one call after the output lands: the recipe's `soils` + `recordHeat` on Soilable chamber contents | textual | rubber's rewrite is the base; ours is one call appended (storage re-applies its `isComposition` swap in the same method) |
+| `S/lib/mould/Mould.ts` | `holdsCast()` | reads (the soap frame row) | — | the frame's cast is `soap-bar`, so `holdsCast` reads true |
+| `S/lib/craft/Recipe.ts` | (`consumed?` on `RecipeInputSlot` is DROPPED per rubber D10; its host table still lists it) | `soils` | textual only if rubber keeps `consumed?` | keep both |
+| `S/lib/biome/Atmospheric.ts`, `S/platform/idea/api/WeatherLogic.ts`, `AmbientLit.ts`, `VisionModality.ts` | `roof`, `exposure()`, solar gain, ventilation and sky rewiring | **nothing** (we read `addAtmosphereContent`, `drawAtmosphereContent`, leg (d)) | — + ⚠ meaning | none textual; three of rubber's answers move our baselines (Risk 12) — asked of rubber |
+| `S/platform/thing/Window.ts` | reads `transmissivity` | Soilable + the grime factor | — | none |
+| `scripts/check-envelope.ts`, `check-biome-sky.ts` (+ its list), `check-biome.ts`, `check-light-sources.ts` | creates/extends | our rows must pass them | — | rows in rubber's exact shape (D27); if we author BOTH keys on a LISTED interior we also delete it from the list |
+| `S/lib/mixin.ts`, `S/api/mixin.ts`, `check-closed-vocabularies.ts`, `check-template-scans.ts` | none expected | `Soilable`, `Flued`, −`Hygiene`; `Action` declared; +2 `LAZY_DICT` | — | none |
+| `lint:lib-statics` / `lint:object-verbs` ceilings | neither raises | neither raises | textual if a number moves | recompute on the merged tree; never raise |
+| docs: `ground.md`, `textiles.md`, `fire.md`, `mould.md`, `light.md`/`glass.md`, slates (`structures`, `glass`, `standing-instructions`, `biome-normalization`, `weather`) | its sections | ours | textual | different sections; dedupe the identical structures-slate lines (air mixing; the flue as an object) at the second sweep |
+
+### Files both edit — repair × cleanliness
+
+| file | repair | ours | kind | resolution |
+|---|---|---|---|---|
+| `S/platform/thing/Lantern.ts` → `Lamp.ts` | W1 **deletes `Lantern.ts`**; the failed-facing flux factor moves to `Lamp.getEmittedFlux`; the lantern row re-points to `Lamp` | Soilable on `Lamp`; the soot term in the same `getEmittedFlux`, glazed share only | delete + meaning | if repair is first: we compose on `Lamp`; if we are first (we composed on `Lamp` from W0 regardless): repair carries our composition and factor across when it folds `Lantern` in |
+| `S/platform/thing/Chair.ts` (+ `AssembledChair.ts` deleted) | `Chair` = `Assembled(Crafted(Durable(Postured(Slotted(Good)))))`, `getRestQuality()` scales by structural lines | Soilable OUTERMOST; `restQualityAsKept` on top | textual + benign meaning | the two multipliers compose (test: failed cushion AND filthy seat); the bed and armchair rows move to `Chair` and stay Soilable |
+| `S/platform/thing/equipment/Garment.ts` (+ `AssembledGarment.ts` deleted) | composes `AssembledMixin`; `leather-boots` re-points to `Garment` | `Labelled(Soilable(…))` outermost; `wash()` override; `describeForLaundress()` | textual + meaning | keep repair's chain, ours outermost, our class-body methods; `wear(dose, 'corrosion')` routes to the line that gives first |
+| `S/platform/thing/Timber.ts` | `Seasoning(Stackable(Durable(Constructed(Crafted(Good)))))`, `condition` as stack identity | the `seasonPhrase()` override (wood prose) | textual | keep repair's chain, add our method; re-run the byte-identity test |
+| `S/platform/thing/{Tool,Vat,Receptacle}.ts` | recomposed (Assembled/Keen/Durable/Crafted) | **no edit** (`Hopper extends Vat`; our brushes are `Tool` rows; the copper a `Receptacle` row) | — | re-run `Hopper` tests after repair; the copper and jars read *one piece* — accepted |
+| `S/platform/idea/api/CraftingLogic.ts` | `callHouse` factored from `resolveMaker` (:352–400); `diagnoseImpl`; `repairImpl` rewritten (:3222+); `applyAssembledOutput` | `Recipe.soils` at `craftImpl`'s output-stamp site (:3135–3162); `contaminateFromKit` beside `contaminateTools` (:958) | textual, adjacent hunks | expect clean merges; re-read if hunks touch; storage's template-choice helper sits in the same file |
+| `S/api/crafting.ts` | `diagnose`, **`fulfillingHand(giver, venue, discipline?)`** (public) | consumes `fulfillingHand`; adds it in repair's shape only if absent | meaning | ONE public seam; the second lander deletes its copy |
+| `S/platform/thing/Tariff.ts` | `quoteFor(lines: {key, label, qty}[]) → Quote` (generic) | `SERVICE_KINDS += wash, bath`; `serviceDisciplines`; `disciplineFor(kind)` | textual + meaning | the quote is generic (an unpriced key is null, never derived); `cover` is never a line |
+| `S/lib/commerce/PricedOffer.ts` | `collectMinor(amount, reason)` | consumes it; `houseAccount()`, `canSettle(charge)` (added here if repair has not) | meaning | whoever is second adopts the other's body verbatim; the house account is the one `collect` resolved, never re-walked |
+| `S/platform/idea/cmd/retail/OrderController.ts` | the repair arm; `performService` → `{ok, detail, charge?}`; one collector; one durative helper | the `wash` and `bath` arms on that seam; `performService`'s kind type excludes `bath` | **hotspot** | the first lander builds the seam, the second rebases its arms onto it — never a parallel collect path |
+| `order.yaml` help | repair is a quote | +2 lines | textual | union |
+| `S/lib/mixin.ts` / `S/api/mixin.ts` | maybe `Weathering` (W7) | `Soilable`, `Flued`, −`Hygiene` | textual | union; `lint:mixin-names` |
+| `S/lib/material/Material.ts` fieldMeta, `C/base-library/…/wood/oak.yaml` | W7 `weathers`, `weatheringDays`, `laying` | our four fields; `ashFraction 0.01` on oak | textual | union of keys |
+| `S/platform/idea/cmd/perception/SurveyController.ts` | W7 `fabricReport()` lines, no digits | one floor line | textual | order: holding → fabric → floor; the digit regex covers both; repair W7 likely lands AFTER us and adds beside our line |
+| `C/hinkley-hills/…/lots/kitchen.yaml`, `lots/yard.yaml` | W7 `enclosure`/`roof` on the house-programme's rooms (⚠ `yard` is outdoors — asked of repair to exclude it) | the Window, −`ambientSource: sky`, clothes-line + midden in the yard | textual | union of keys; repair rebases on our Window if we landed first |
+| `C/terminus/…/wharfside/bank.yaml` | a named `yard` exit | a named `lavoir` exit | textual | union; both named (every compass word and `down` are taken) |
+| `C/terminus/…/general-store/counter.yaml` | billhook (W5); reed-bundle, slates, lime-sack (W7) | our ten lines | textual | union |
+| `scripts/__fixtures__/field-meta-golden.json`, `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` + `.snap` | re-snapshot; its review-log entry | re-snapshot; our entry (`stains` is the spoiler) | textual | regenerate; keep every entry |
+| `scripts/check-closed-vocabularies.ts` | none planned | `Action` in `CLOSED_BY_DESIGN`; `SERVICE_KINDS`+2, `CONDITION_TEMPLATES`+1 | textual | re-run the gate |
+| docs: `retail.md`, `employment.md`, `behavior.md`, `mould.md`, `vocations.md`, `crafting.md`, `race.md` | its sections | ours | textual | `retail.md`: **extend** repair's *a priced service is performed by a person* section, one description of the arm seam |
+
+### Files both edit — storage-and-ice × cleanliness
+
+| file | storage | ours | kind | resolution |
+|---|---|---|---|---|
+| `S/lib/material/Material.ts` | W0 `getCastTemplate()` default rule; W1 `permeability()`/`wetProperty()` | our four fields | textual | keep all; the `hard-soap-curd` material authors `castTemplate` explicitly (D24.3) so the new default never fires on the bar |
+| `S/lib/slot/Wearable.ts` | `getClo` → `wetProperty` + byte-identity test | the shrink (separate region) | textual | re-run storage's clo test AND our shrink test; our "getClo untouched" check asserts clo VALUES, not source text |
+| `S/lib/slot/Attired.ts` | `immerse(parts?)` | `doff`; the rinse inside `immerse()`; the whole `immerse(parts?)` only if nobody has | textual | ONE `immerse(parts?)`; if we are first storage deletes its copy and keeps its callers (`Pool.onEntered`, `giveWay`, `restamp`) |
+| `S/lib/wetness/Wet.ts` | none | the far-past guard narrowed by holder chain | meaning | storage's drive reads the dug-out heap's wetness before any clock jump (asked); our test holds a logged-out swimmer's shirt frozen |
+| `S/lib/thermal/ThermalRegulation.ts` | `effectiveAmbient` reads `immersionOf`; `restamp` re-immerses | consumes `exchangeWithWater(waterK, dtS)`; adds it beside the fold, in storage's arithmetic, only if storage has not exposed it | meaning | ONE cold-water law; a river bathe and a pool swim chill alike |
+| `S/lib/ground/Floor.ts` (`FloorMixin`) + `S/platform/thing/Floor.ts` (twin) | `bears`, `supportIsSlotted` (base false); `WaterSurface`, `IceSheet` extend the twin | `takesSoil() = !supportIsSlotted()` and everything in D15; Soilable on the twin (so the surfaces inherit it and answer `takesSoil() false`) | textual (high) + meaning | second lander hand-merges both member sets; fieldMeta grows only by ours; `supportIsSlotted` exists ONCE (we add the base only if storage is absent) |
+| `S/lib/ground/GroundKind.ts` | the eleventh kind `ice` | `cleaningMethod` typed `Record<GroundKind, …>` | meaning | tsc fails if `ice` is unmapped; our value: *scraped, not swept* |
+| `S/lib/boundary/Adornable.ts`, `S/platform/idea/api/PersistableLogic.ts` | its fallback (the sheet captured through the room) would be our slice | the fixture-state slice (skips Persistable fixtures); `captureHostOf` walks fixture → host after the self check | meaning | ONE slice in D31b's shape; the sheet keeps its own record so the slice skips it; the self check in `nearestPersistableHost` (:418) stays first |
+| `S/lib/location/{Shore,WaterSource}.ts`, `C/water/src/idea/WatercourseCatalogue.ts`, `C/trade-fishing/…/FishingController.ts` | the frozen gate in `reachFor`; `iceAt`; `stillWaterMps` 0.5 | `ShoreMixin.drawAt` + `WaterRead.underIce` + `hardnessDgh`; `reachFor` refactored onto `drawAt` | meaning | ONE gate method; whoever is second refactors fishing onto it; the under-ice draw is built where the hardness is filled; our winter reaches pinned against 0.5 m/s |
+| `S/lib/employment/Employed.ts` | `isOnShiftFor(org)` | consumed by `KeptDoor` (added in storage's shape only if absent) | meaning | one method |
+| `C/base-library/…/material/wood/sawdust.yaml`, `C/trade-carpentry/src/thing/Sawdust.ts` + row | material tags `[wood, organic, granular, flammable, absorbent, sawdust]`; `Poolable(Stackable(Good))` | consumed (`strew`, the `sawdust` Cleanser); created at storage's paths as a plain Stackable only if absent | meaning | sweep NEVER touches a `Sawdust` good; strew consumes it into `strewn`; storage re-classes our fallback row |
+| `S/platform/location/Pool.ts` | the floor default, the support hooks, `immersionOf`'s temperature | nothing in the file (`bathe` reads `isSwimmable && immersionOf != null`) | — | our `bathe` never re-implements support |
+| `S/platform/idea/api/CraftingLogic.ts` | the template-choice helper (off-spec lump, salvage) | ours (above) | textual | regions do not overlap |
+| `C/hearthworks/…` | `idea/business.yaml` (ice par), `agent/cook.yaml` | `location/cookhouse.yaml` (the re-class) | — | **disjoint files**; after ours lands the icebox's contents persist with the room — storage re-runs its steps 16 and 21 on a fresh DB (⚠ a bought ice block is titled chattel: verify `fulfill` re-titles it to the business or a restart moves it owner-side) |
+| `S/lib/mixin.ts`, `S/api/mixin.ts`, `AppSettings.ts`, `check-closed-vocabularies.ts` (`SEASONS` — storage declares it), `check-ground.ts`, `check-location-classes.ts` | its additions | ours | textual | union; re-run each gate |
+| new verbs (`lint:verb-collisions`) | `deposit`, `withdraw` (category `custody`), `scrape`, `mark`, kernel `cut` | `sweep`/`muck`, `strew`, `dispose`, `beat`, `bathe`, `scrub`, moved `dry` | none | verified: no word is claimed twice; on a sheet `sweep` points at `scrape` for snow (one act, one verb) |
+| docs: `ground.md`, `watershed.md`, `retail.md`, `employment.md`, `persistence.md`, `textiles.md`, `crafting.md`, `content-packs.md` | its | ours | textual | `ground.md` merged section by section; neither writes a pack count |
+
+### Shared contracts — one owner each, the exact names
+
+| concept | owner | the names both sides use |
+|---|---|---|
+| the one wet law | first lander (rubber D12.1 ≡ storage D9) | `Material.permeability(): number`, `Material.wetProperty(dry, fluid, saturation): number`; setting `wetness.impermeableBelowPct` (2); `textiles.clo.absorptionReference` hoisted. We only READ it (`Garment.wash`'s `wet(permeability())`) |
+| immersion | storage | `Attired.immerse(parts?: (partKey: string) => boolean)` (rubber's filter); `SwimmableMixin.immersionOf(occupant): {mediumTag, temperatureK} \| null` (Pools only). Our rinse runs INSIDE `immerse()`; a pool bather enters through `giveWay`/the swim engagement, never `immerse()` directly |
+| the cold-water exchange | storage | `ThermalRegulation.exchangeWithWater(waterK, dtS)` — the arithmetic `effectiveAmbient` folds; our tub/shore bathe calls it once per `BATHE_S` |
+| the frozen gate + the water you can reach | **ours** (kernel `ShoreMixin`) | `ShoreMixin.drawAt(key, room): {draw} \| {refusal: 'frozen', line}`; `WaterRead.underIce?: WaterDraw` (274 K, the reach's hardness; built by the water pack); fishing's `reachFor`, wash, bathe, rinse call it |
+| floors | storage (base), ours (soil) | `FloorMixin.bears(loadKg)` (base true), `supportIsSlotted()` (base false; `WaterSurface`/`IceSheet` true); **`takesSoil() = !supportIsSlotted()`** (ours); `GROUND_KINDS` + `ice`; `cleaningMethod: Record<GroundKind, …>`; `markupAugmenters = [floorAugmenter, snowAugmenter, soilAugmenter]` |
+| sawdust | storage | material `/stuff/idea/material/wood/sawdust` tags `[wood, organic, granular, flammable, absorbent, sawdust]`; good `/trade/carpentry/thing/sawdust` (`Poolable(Stackable(Good))`, qty = kg, `poolKey = sawdust\|<wetnessBand>`). Sweep never touches it; strew consumes it; no `sawdust` DirtKind |
+| sulfur | rubber | `/stuff/idea/material/mineral/sulfur` (+ our `combustionProducts`, `heatOfCombustion 9.2`, `autoignitionTemperature 505`); won row `/trade/quarrying/thing/sulfur` (`Firewood`); band `{toZ: −10.4}`; our `brimstone` stock line at the chandlery |
+| rubber's wearables | rubber | `/trade/rubber/thing/{rubber-gloves, rubber-apron, rubber-boots}` — standalone `Garment` rows (repair's ask), so Soilable/Labelled reach them untouched; `permeability() = 0` makes them come out of a wash damp, not soaked, and keeps lye out |
+| the construction answer | rubber | `enclosure: none \| {material, thicknessM} \| [layers]`, `roof:` the same; `AtmosphericMixin.exposure(): Exposure` (`skyLightFraction()`, `skyVisible()`, `windEnters()`, `isOutside()`, `wallsNone`, `onGrade`); `lint:biome-sky`. Pre-rubber we author one `{material, thicknessM}` layer each; `none` and lists only post-rubber |
+| the paid service | repair | `CraftingApi.fulfillingHand(giver, venue, discipline?)` (candidates restricted to the tariff's house); `Tariff.quoteFor(lines: {key, label, qty}[]) → Quote`; `PricedOffer.collectMinor(amount, reason)`, `houseAccount()`, `canSettle(charge)`; `performService → {ok, detail, charge?}`; one durative helper; one refusal constant. Ours on top: `Tariff.serviceDisciplines`, `BankingApi.indemnify`, `PnlCategory 'damages'` |
+| lamps | repair (the fold) | `platform/thing/Lamp` (no `Lantern`); `Lamp.getEmittedFlux` the one pane funnel: failed facing lines × our soot, glazed share only |
+| chairs and garments | repair (the chains) | `Chair = Assembled(Crafted(Durable(Postured(Slotted(Good)))))`; `Garment = Assembled(…)`; ours OUTERMOST: `Soilable` on Chair, `Labelled(Soilable(…))` on Garment; `Tub = Bulkable(Thermal(Chair))` |
+| `Material` fieldMeta union | each its own keys | rubber `lightAbsorption, elasticity, crosslinking`; storage `permeability(), wetProperty()` (methods); repair W7 `weathers, weatheringDays, laying`; ours `combustionProducts, flammableLimit, vapourLPerLPerHour, ashFraction`; `TapSpec.soils`, `Recipe.soils` ours |
+| closed vocabularies | each declares its own | `SERVICE_KINDS += wash, bath` (ours), `CONDITION_TEMPLATES += clean` (ours), `Action` (ours, `CLOSED_BY_DESIGN`), `SEASONS` (storage, `CLOSED_BY_DESIGN`); `CLOSED_VOCABULARY_CEILING` stays 5 |
+| Terminus exits and cells | by name | the square: rubber `east` (awning), ours `north` (bathhouse); the Quay: repair named `yard`, ours named `lavoir`; distinct market-zone `coords` |
+| the cookhouse | disjoint | storage `idea/business.yaml` + `agent/cook.yaml`; ours `location/cookhouse.yaml` |
+
+### Re-check before each wave (what has landed, which fallback branch)
+
+Run these against `origin/master` and record the answers in § Grounding:
+
+| before | probe | if present | if absent |
+|---|---|---|---|
+| W0 | `git log origin/master -- packages/server/src/mud/platform/thing/Lantern.ts` shows a deletion; `-- platform/thing/Chair.ts` shows repair's recomposition | re-ground W0 on repair's chains; compose ours outermost | compose on `Lamp` anyway; `Chair`/`Garment` as master has them; repair carries ours across |
+| W0 | `git log origin/master -- packages/server/src/mud/lib/ground/Floor.ts` shows `supportIsSlotted` | `takesSoil` reads it | add `supportIsSlotted()` base `false` in storage's shape |
+| W0 | `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` header | add our review-log paragraph after theirs | add ours first |
+| W2 | `git log origin/master -- packages/server/src/mud/lib/slot/Attired.ts` shows `immerse(` | add the rinse line inside it | build `immerse(parts?)` in storage's shape |
+| W2 | `git grep -n permeability packages/server/src/mud/lib/material/Material.ts` | read it | read nothing (the wash wets by `wet(1)` until the law lands; note it) |
+| W2 | `git log origin/master -- packages/content/trade-fishing/src/idea/cmd/fishing/FishingController.ts` shows the frozen gate | refactor it onto `drawAt` | build `drawAt` reading `frozen` alone; fishing untouched |
+| W3 | `git log origin/master -- packages/content/base-library/content/stuff/idea/material/mineral/sulfur.yaml` | add our three keys | create material + won row + band at rubber's paths |
+| W3 | `quarry-hill.yaml` has the −10.4 band | insert ours above −10 in `toZ` order | insert ours; leave −10…−12 untouched |
+| W3 | `git grep -n getCastTemplate packages/server/src/mud/lib/material/Material.ts` shows storage's default | author `castTemplate` on `hard-soap-curd` (do it regardless) | same |
+| W4 | `git log origin/master -- packages/server/src/mud/lib/spatial/Exposure.ts` | author `enclosure: none` + `roof: {…}` on the lavoir; `windEnters()` in `dry`; `exposure()` in airing; pin the drive floors' ground kinds | one `{material, thicknessM}` layer per key on every new interior; `_biomePath` sky on the drying ground; the `// rubber: migrate` fallback |
+| W4 | `git log origin/master -- packages/server/src/mud/lib/ground/GroundKind.ts` shows `ice` | the exhaustive map already has it (tsc) | the map covers ten; tsc catches the eleventh later |
+| W4 | `git log origin/master -- packages/content/base-library/content/stuff/idea/material/wood/sawdust.yaml` | strew storage's good | create the fallback material + plain row at storage's paths |
+| W6 | `git grep -n fulfillingHand packages/server/src/mud/api/crafting.ts` | consume it, `quoteFor(lines)`, `collectMinor`, `houseAccount` | build the seam in repair's shape; repair deletes its copy |
+| W6 | `git grep -n isOnShiftFor packages/server/src/mud/lib/employment/Employed.ts` | consume | add the one-liner in storage's shape |
+| W6 | `git grep -n exchangeWithWater packages/server/src/mud/lib/thermal/ThermalRegulation.ts` | consume | add it beside `effectiveAmbient`'s fold, same arithmetic |
+| W6 | `market/square.yaml` has rubber's `east` exit; `bank.yaml` has repair's `yard` | take `north` / named `lavoir` | the same words regardless |
+| W7 | every sibling that landed: re-run ITS drive once ours is merged where a row above says so (storage 16/21 on a fresh DB; rubber's flue soot across its cures; repair's `order repair` on the shared seam) | — | — |
+
+### Between the siblings (not ours; named so everyone sees them)
+
+- **rubber × storage**: ONE steady-state envelope formula in storage's
+  `envelopeSteadyStateK(outsideK, atS)` — rubber folds interior faces and
+  solar into it; `FireController.runFiring` — storage's `isComposition`
+  swap re-applied inside rubber's rewrite; the wet law and
+  `wetness.impermeableBelowPct` one copy; the ice material's move
+  (`bulk/ice.yaml`) carries rubber's `lightAbsorption`; the four
+  hollow-mere interiors need `roof:`; `WaterSurface` turns off rain
+  puddling; stale `MaterialLogic` wording in rubber's D12.1 / W5 /
+  host table.
+- **rubber × repair**: rubber boots/gloves standalone `Garment` rows, no
+  bill, no `extends: leather-boots`; brick is rubber's row and stays
+  `weathers: false`; `Mould.ts` — `holdsCast` (rubber) vs `carryPayload`
+  (repair); `lint:biome-sky` pays repair's cobbler shop and tinker yard;
+  `LayerState` stores `areaM2` + exterior so repair W7 never needs a
+  standing structure; `SurveyController` three-way order.
+- **repair × storage**: `tickBusiness` grouping evaluates per slot with
+  the season clock; `check-openings` overlap arm season-aware;
+  `unpackIntoCold` carried whole into `receiveBench`; `perceivedGoods`
+  never descends into a shut Sealable; storage's `SEASONS` declared; the
+  `BOOT_ENTRY_CEILING` (83) rises only with the owner's sign-off
+  (storage's two entries); the icehouse rooms are
+  `SingletonCartesianLocation` (`lint:location-classes`).
+
+---
+
 ## ⭐⭐ Host placement
 
 | new thing | host | what composing it claims about everything already on that host | narrowing check |
@@ -1114,19 +1573,21 @@ ancestor step). Drive step 23 (AC 24).
 | | `Creature` (per body-part site) | every body that wears things can be dirty where it was touched — true of a person, a cow, a dog (a muddy dog is honest); `Corpse` is NOT a Creature (Thing branch) — a body's dirt dies with it; the garments carry the evidence | no guard: a site-less read is the whole-body band |
 | | the `Floor` twin (`platform/thing/Floor`) | every room's ground may be soiled, strewn, swept — true of a street (mud is weather's, left alone) and a hall alike | the cleaning METHOD narrows by ground kind — a method on the floor, never a guard in a verb |
 | | `Window` | every pane may grime and pass less light | — |
-| | `Chair` (and so `AssembledChair`, the bed, the cot, `Tub`) | every seat and bed may be filthy and rest you worse | `Floor` is Postured but not a Chair; `restQualityAsKept` is total on Postured (band `clean` when not Soilable) |
-| | `Lantern` | a glassed lamp soots and dims | `Lamp` (no glass) does not compose it |
+| | `Chair` (and so the bed, the cot, `Tub`; after repair W1 `Chair` = `Assembled(Crafted(Durable(Postured(Slotted(Good)))))` and `AssembledChair.ts` is gone) | every seat and bed may be filthy and rest you worse | Soilable composed OUTERMOST, so its factor sits outside repair's structural factor; `Floor` is Postured but not a Chair; `restQualityAsKept` is total on Postured (band `clean` when not Soilable) |
+| | `Lamp` (repair deletes `Lantern`) | every lamp may soot; only its GLAZED share dims (facing lines of glass) | total: a billless torch or flare soots and does not dim — no guard |
 | | `Bandage` | a dressing may be dirty, washed, boiled | — |
 | | `CraftVessel` | a pot, glass, pail or kettle may be greasy as well as *used*; the tiers read both | `Serviceable.soiled` keeps its *used* meaning; two facts, two fields |
 | | `KitchenTool`, `ButcherBlock` (trade-cooking), `SurgicalKit` (trade-medicine) | the kit the tiers read | pack classes; `Tool` itself stays unsoilable — a sledge is soilable for nobody |
 | | `Rug` (new `platform/thing/Rug`, `Soilable(Good)`) | a textile floor covering that is beaten | — |
-| `handCleanliness()`, `depositOnHands()`, `bathe()`, `wash()`, `perceivedBandModifier` override | `Creature` | every body answers how clean its hands are through what covers them | replaces `HygieneMixin` (deleted) |
+| `handCleanliness()`, `soilHands()`, `bathe()`, `wash()`, `perceivedBandModifier` override | `Creature` | every body answers how clean its hands are through what covers them | replaces `HygieneMixin` (deleted) |
 | `doff(garment, {careful})` | `Attired` (on `Creature`) | the wearer owns the transfer between its layers — the three-copies lesson in `Attired.ts` | — |
 | `ContaminableMixin`, `ThermalMixin` | `Bandage`; `ContaminableMixin` on `SurgicalKit` | a dressing and a kit can carry microbes, be boiled, be flamed | the kernel `Tool` and `Good` stay as they are |
 | `LabelledMixin` | `Garment` | every garment may be marked — true | — |
-| `receiveTraffic`, `soilFeetOf`, `strewn`, `cleaningMethod`, `reconcileStalls` + `stalls` field, `hasPests`, `soilAugmenter` | `FloorMixin` (`lib/ground/Floor.ts`) | every floor takes traffic and names its method; `stalls` is null everywhere but the byre | the stall accrual runs only when the row authors `stalls:` — a declared capability, not a guard |
+| `takesSoil()` (= `!supportIsSlotted()`), `receiveTraffic`, `soilFeetOf`, `strewn`, `cleaningMethod` (exhaustive over `GroundKind`, `ice` included), `reconcileStalls` + `stalls` field, `hasPests`, `soilAugmenter` | `FloorMixin` (`lib/ground/Floor.ts`) | every floor says whether it takes soil (storage's water surface and ice sheet say no, by the same predicate that says standing on them is a slot), takes traffic and names its method; `stalls` is null everywhere but the byre floor row | ONE predicate, no class check; the stall accrual runs only when the row authors `stalls:` — a declared capability, not a guard |
 | `restQualityAsKept()` | `PosturedMixin` | every rest surface can say how it rests you AS KEPT | — |
-| `FluedMixin` (`lib/fire/Flued.ts`: `flueSoot`, `catchFlue`, `sweepFlue`) | `Hearth`, `Oven` | a hearth and an oven burning indoors have a flue that soots and can catch | ⛔ not `Firebox` (Campfire extends it); `Forge`/`Kiln` deferred |
+| `FluedMixin` (`lib/fire/Flued.ts`: `flueSoot`, `catchFlue`, `sweepFlue`) | `Hearth`, `Oven` (so rubber's oven and stoves too) | a hearth and an oven burning indoors have a flue that soots and can catch | ⛔ not `Firebox` (Campfire extends it); `Forge`/`Kiln` deferred; the brazier gets its own flueless sibling |
+| `Brazier` (new `platform/thing/Brazier` = `SpaceHeating(Placing(Firebox))`) | the brazier rows (`/stuff/thing/brazier`, the ward's) | a flueless hearth you can carry; its exhaust goes to the room | a sibling, not a subclass of Hearth — no `flued: false` flag |
+| `DryingRack` (moved from trade-cooking to `platform/thing/DryingRack`, byte-identical) | the rack rows, the `clothes-line` | the class that affords a platform verb lives with the verb | the cooking row re-points `class:`; no commons row names a trade class |
 | `combustionProducts`, `flammableLimit`, `vapourLPerLPerHour`, `ashFraction` | `Material` | any material may say what it gives off burning, at what share its vapour flashes, how fast it evaporates, what ash it leaves; the honest zero/null default leaves every shipped row byte-identical | — |
 | `offGas` | `MaturationProfile` | any profile may name its gas (replaces the CO₂ hardcode) | a census test pins every shipped profile |
 | `soils` | `Recipe` | any recipe may say what making it dirties | — |
@@ -1136,12 +1597,16 @@ ancestor step). Drive step 23 (AC 24).
 | `WashPolicy`, `WashSpec`/`WashOutcome`, `Hardness`, `StainRecord` | `lib/cleanliness/` value objects | nothing composes them | instance-shaped (`lint:lib-statics` at ceiling) |
 | `PersistentCartesianLocation` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not FurnishableRoom (coords; warren claims) |
 | fixture-state slice | `AdornableMixin.captureSlice`/materialize | a persistable host remembers its non-chattel fixtures' runtime state | — |
-| `Tub` (`Soilable(Bulkable(Thermal(Chair)))`) | `platform/thing/Tub` | a seat you lie in that holds water | the `fixture/tub` row re-classed; the bathroom archetype unchanged |
-| `KeptDoor` (Exit subclass) + `kept-door` kind row | `platform/idea/` | an exit that asks a doorman present | no doorman → open; never a gauge |
+| `Tub` (`Bulkable(Thermal(Chair))` — Soilable comes through `Chair`, never composed twice) | `platform/thing/Tub` | a seat you lie in that holds water | the `fixture/tub` row re-classed; the bathroom archetype unchanged |
+| `KeptDoor` (Exit subclass) + `kept-door` kind row | `platform/idea/` | an exit that asks a doorman ON SHIFT at the business the row names | no doorman on shift → open; never a gauge; a seat, never presence |
+| `drawAt(key, room)` + `WaterRead.underIce?` | `ShoreMixin` (kernel) + the water pack's read builder | every shore answers *what water can I have here, now* — open, through a hole, or not at all | fishing, wash, bathe, rinse all call it; one sentence in one place |
+| `exchangeWithWater(waterK, dtS)` | `ThermalRegulation` (storage's fold exposed as a method) | a body in water loses or gains heat by one law whether it swims or bathes | consumed; built here in storage's shape only if absent |
+| `soils` | `TapSpec` (`platform/idea/species/Species.ts`) | any tap may say what taking it dirties; the cow's does, the Hevea's does not | the deposit comes from the row, never from `stampTheHand` |
 | `doorman`, `remarks` brains | `lib/behavior/` | commons brains any venue configures | — |
 | `Hopper` (Vat subclass), `SoapKettle` (CraftVessel + Maturing), `SoapBar` (`Seasoning(Good)`) | `trade-chandlery/src/thing/` | the chandler's vessels; one profile-seam override each; the soap frame is a ROW over the kernel `Mould` twin | pack classes under the pack root |
 | `seasonPhrase()` hook (wood prose moved to `Timber`) | `SeasoningMixin` | the mixin speaks for *a solid drying in air*; the composer speaks for itself | name-the-substrate fix; Timber byte-identical by test |
-| `indemnify` | `BankingApi`/`BankingLogic` (+ `PnlCategory 'damages'`) | a house may pay a person it owes | the conservation chokepoint is `postTransaction`, unchanged |
+| `indemnify` | `BankingApi`/`BankingLogic` (+ `PnlCategory 'damages'`, named generically) | a house may pay a person it owes | the conservation chokepoint is `postTransaction`, unchanged; refuses `payee === hand` or a payee seated at the paying house |
+| `fulfillingHand`, `quoteFor(lines)`, `houseAccount()`, `canSettle`, the shared refusal constant | repair W3's (`CraftingApi`, `Tariff`, `PricedOffer`) | consumed; built here in repair's exact shape only if repair has not landed | the second lander deletes its copy |
 | `SERVICE_KINDS += wash, bath`; `CONDITION_TEMPLATES += clean` | `Tariff`, `Condition` | declared closed vocabularies grow by two and one | ceiling untouched |
 | `Sweepings`, `Manure`, `Ash` stacks; `broom`, `flue-brush`, `scrub-brush`, `washboard`, `copper`, `trough`, `clothes-line`, `midden`, `rushes`, `urine-tub` rows | content (commons / trades / Terminus) | rows over shipped classes | — |
 
@@ -1178,7 +1643,7 @@ passes its hand parts, everything else passes `''`.
   effect registry is gone with the Washer; no module-scope registration.
 - **Import boundary** — no `fs`/`path` in the mudlib; packs import the
   kernel by specifier; the water pack's draw change is in the water pack.
-- **Verbs on objects** — `wash/bathe/deposit` on the thing, `doff` on the
+- **Verbs on objects** — `wash/bathe/soil` on the thing, `doff` on the
   wearer, `receiveTraffic` on the floor, `catchFlue` on the hearth,
   `judge` on the brain, `indemnify` on the Api as an orchestration.
   `lint:object-verbs` stays at zero.
@@ -1211,7 +1676,20 @@ passes its hand parts, everything else passes `''`.
   read), `lint:on-create` (no new `onCreate` work), `lint:conditions` /
   `lint:condition-arms` (the two toxin rows), `lint:unconsumed-seams`,
   `lint:untitled` (new subtrees under `/world/terminus` are covered by
-  the locality title), `lint:schema` (untouched).
+  the locality title), `lint:schema` (untouched), **`lint:bills`** (no new
+  recipe output here, but rows over `Tool`, `Receptacle` and `Mould` meet
+  its arms 7b/7d once repair lands — confirm green), **`lint:location-classes`**
+  (`PersistentCartesianLocation` extends `SingletonCartesianLocation`, so
+  `extendsAny` finds it; every authored place is a singleton). ⭐ **And
+  the wiki-spoiler audit** (`src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts`
+  + `.snap`, a vitest, not a `lint:*`): every new `fieldMeta` field needs
+  a review-log paragraph in the header and a bless; this build's one real
+  spoiler is **`SoilableMixin.stains[]`** (the bleeder's TRUE blood type and
+  `donorIdentityPath` — exactly what `analyze blood` gates): tag it
+  `spoiler: 2` and never surface `donorIdentityPath`; `deposits`,
+  `washes`, `heat`, `strewn`, `flueSoot`, `ashKg` and the Material fields
+  are level 0 (read out in words). Keep every sibling's entry; regenerate
+  the `.snap` with `-u` only after each field has its entry.
 
 ---
 
@@ -1234,13 +1712,17 @@ Implements D1–D4, D9, D31.
   removed), `S/api/mixin.ts` (`isSoilable`; `isHygiene` removed).
 - `S/platform/idea/{DirtKind,DirtKindCatalogue,Cleanser,CleanserCatalogue}.ts`
   + `C/platform/content/platform/idea/{DirtKindCatalogue,CleanserCatalogue}.yaml`
-  + rows `C/platform/content/platform/idea/DirtKind/*.yaml` (12),
+  + rows `C/platform/content/platform/idea/DirtKind/*.yaml` (10),
   `…/Cleanser/*.yaml` (14); `scripts/check-template-scans.ts` (+2);
   `scripts/check-closed-vocabularies.ts` (`Action` declared).
 - Hosts: `S/platform/thing/equipment/Garment.ts` (+Soilable, +Labelled),
   `S/lib/creature/Creature.ts` (Hygiene → Soilable; `handCleanliness`,
-  `depositOnHands`), `S/platform/thing/Floor.ts`, `S/platform/thing/Window.ts`,
-  `S/platform/thing/Chair.ts`, `S/platform/thing/Lantern.ts`,
+  `soilHands`), `S/platform/thing/Floor.ts` (+ `takesSoil`;
+  `supportIsSlotted` base `false` if storage is absent), `S/platform/thing/Window.ts`,
+  `S/platform/thing/Chair.ts` (Soilable OUTERMOST on whatever chain repair
+  left), `S/platform/thing/Lamp.ts` (not `Lantern` — repair deletes it;
+  if `Lantern.ts` still exists at W0 it composes nothing here and `Lamp`
+  carries the soot funnel from the start),
   `S/platform/thing/Bandage.ts` (+Soilable, Contaminable, Thermal),
   `S/platform/thing/CraftVessel.ts`, `S/platform/thing/Rug.ts` (new) +
   `C/generic-objects/content/stuff/thing/furnishing/rug.yaml`,
@@ -1265,9 +1747,10 @@ Implements D1–D4, D9, D31.
   `look hands` / `look <person>` (the Attired impression's upkeep clause,
   `Attired.ts:251–276`, gains the soil clause), the floor's `soilAugmenter`.
 - Golden: `scripts/__fixtures__/field-meta-golden.json` (`lint:field-meta
-  --snapshot`). ⚠ Hotspot with repair and storage — regenerate, never
+  --snapshot`) and the wiki-spoiler `.snap` + review-log entry (`stains`
+  is the spoiler). ⚠ Hotspots with every sibling — regenerate, never
   hand-merge.
-- Tests: `Soilable.test.ts` (deposit/band/remove; no clock — a day of
+- Tests: `Soilable.test.ts` (soil/band/remove; no clock — a day of
   idling changes nothing, AC 1), `DirtKindCatalogue.test.ts` /
   `CleanserCatalogue.test.ts` (a malformed row skipped and named; a
   pack-root row found), `Creature.hands.test.ts` (glove vs bare; the
@@ -1292,7 +1775,14 @@ bloodies and his shirt does not; gloves take the dirt and give it back
 carelessly. Implements D5, D6, D7, D8 (the stain record).
 
 **Files.** `S/lib/craft/Recipe.ts` (`soils`), `S/platform/idea/api/CraftingLogic.ts`
-(apply `soils` at the maker site), recipe rows (`render-tallow`,
+(apply `soils` at the **output-stamp site in `craftImpl`**, beside
+`contaminateTools` at `:3135–3162` — not `resolveMaker`, which is
+repair's hunk), `S/platform/idea/cmd/device/FireController.ts`
+(`runFiring`: `soils` + `recordHeat` after the output lands; rubber's
+version is the base when it landed first), `S/platform/idea/species/Species.ts`
+(`TapSpec.soils`) + `S/lib/husbandry/Producing.ts` (`stampTheHand` applies
+the tap's own) + the cow species row, `S/platform/idea/cmd/bulk/EatController.ts`
++ trade-cooking's `PlateController` (`crumbs`), recipe rows (`render-tallow`,
 cooking's, baking's, `melt-wax`); `C/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`,
 `C/trade-ranching/…/SlaughterController.ts`, `S/platform/idea/cmd/ground/WorkedActController.ts`,
 `C/trade-mining/…/HewController.ts` (+ the mining pack's `dust` DirtKind
@@ -1308,7 +1798,8 @@ Tests: per producer (a butcher's apron reads *bloodied*, the shirt clean;
 `look hands` after butchering bare; quick doff dirties, careful does not;
 walking the mire muddies boots not shirt; a shop floor after N muddy
 customers reads *marked*; a combat bleed stains the victim's coat with
-the victim's type).
+the victim's type; tapping a Hevea or the maple fixture deposits
+nothing; a water surface takes no traffic).
 
 **Acceptance.** AC 2, 3; drive steps 1–4 pass in a unit harness;
 `lint:family`; `test:near` on every touched pack.
@@ -1327,22 +1818,29 @@ arg, help), `scrub.yaml` + `ScrubController.ts` (new),
 (`wash`), `Garment.ts` (`wash` override: felt/shrink/rot/bleed/wet),
 `CraftVessel.ts` (`wash` override chains the shipped tipping),
 `S/lib/material/Dyed.ts` (`bleed` helper on `launder`'s loss),
-`S/lib/slot/Wearable.ts` (shrink = scale the stamp), `S/lib/wetness/Wet.ts`
-(the guard narrowed to bodies), `dry.yaml` + `DryController.ts` moved to
-platform (trade-cooking's deleted; `C/trade-cooking/pack.yaml` loses the
-view), `C/generic-objects/…/fixture/clothes-line.yaml`,
+`S/lib/slot/Wearable.ts` (shrink = scale the stamp; the felt shrink),
+`S/lib/wetness/Wet.ts` (the guard narrowed by holder chain), `dry.yaml`
++ `DryController.ts` + **`DryingRack.ts`** moved to platform
+(trade-cooking's view/controller deleted, its `drying-rack` row
+re-pointed; `C/trade-cooking/pack.yaml` loses the view),
+`C/generic-objects/…/fixture/clothes-line.yaml`, `S/lib/location/Shore.ts`
+(`drawAt`) + `C/trade-fishing/…/FishingController.ts` (`reachFor` onto
+it),
 `S/lib/location/WaterSource.ts` (`hardnessDgh`), `C/water/src/idea/WatercourseCatalogue.ts`
 (fill it; `hardnessWords` → `Hardness`), `S/lib/bulk/Bulkable.ts` /
 `BulkableLogic.ts` (payload blend of `hardnessDgh`),
 `S/platform/thing/WaterFixture.ts` (the soft/hard line; the supply's
 hardness), `rinse.yaml` (shore default), `C/trade-medicine/src/idea/reading/BloodReading.ts`
-(the stain branch), `label.yaml` help. If storage has not landed:
-`Attired.immerse()` built here (D7).
+(the stain branch), `label.yaml` help; `S/lib/slot/Attired.ts`
+(`immerse()`'s rinse line — and the whole `immerse(parts?)` if storage
+has not landed, D7).
 Tests: `Soilable.wash.test.ts` (grease vs water vs soap; blood cold vs
 hot → set; set answers to oxidiser only; hard 12 vs soft 5; soda narrows
 it), `Garment.wash.test.ts` (boiled wool felts; hot linen shrinks the
 stamp; harsh bleach wears; red + white → pink; comes out `soaked`),
-`Wet.test.ts` (a Thing dries over 8 h; a body still drops the gap),
+`Wet.test.ts` (a Thing dries over 8 h; a logged-out swimmer's body AND
+worn shirt both hold; a rubber glove comes out damp, wool soaked),
+`Shore.drawAt.test.ts` (open / hole / frozen; fishing unchanged),
 `DryController.test.ts` (a garment on a line; a hide as before),
 `BloodReading.stain.test.ts`, `WaterFixture.hardness.test.ts` (a tap off
 the Cold Fell main reads soft; the Quay hard).
@@ -1386,9 +1884,13 @@ column band — ⚠ rubber hotspot `quarry-hill.yaml`); rubber's sulfur row
 gains `combustionProducts` (or is created at rubber's path if absent);
 `generic-objects` `tools/{scrub-brush,broom,flue-brush}.yaml`,
 `urine-tub`; general-store `counter.yaml` lines (soap, soda, scrub-brush,
-broom, rushes, hopper, kettle, ash) — ⚠ hotspot with rubber (boots,
-gloves) and repair; `wash.yaml` cleanser narrowing reads the Cleanser
-rows. `cleanser` Discipline credit: `chemistry` on the profiles.
+broom, rushes, hopper, kettle, ash, fuller's earth, chalk) — ⚠ hotspot
+with rubber (boots, gloves) and repair (billhook; W7 reed/slates/lime);
+the chandlery counter's `brimstone` line; `S/platform/thing/Brazier.ts`
+(new) + the brazier rows re-pointed; `wash.yaml` cleanser narrowing reads
+the Cleanser rows. ⚠ Sulfur fallback (if rubber is absent): the
+material WITH `heatOfCombustion`/`autoignitionTemperature`, the won row
+(`Firewood`), the −10.4 band — all at rubber's paths. `cleanser` Discipline credit: `chemistry` on the profiles.
 Tests: the soap chain end to end in a unit harness (ash + water → lye in
 half a day; lye + tallow at 373 K → soft soap + glycerin lees; salt →
 curd; frame → bar; 28 days → mild; a 3-day bar *harsh*), `Seasoning`
@@ -1416,7 +1918,8 @@ house, D30.
 (`restQualityAsKept`), `S/lib/metabolism/Metabolic.ts`, `S/lib/vitals/Vitals.ts`
 (the rest readers), `S/lib/material/Freshness.ts` (`pestRatePerHour`),
 `S/lib/fire/Flued.ts` (new) + `S/platform/thing/{Hearth,Oven}.ts`,
-`S/platform/thing/Lantern.ts` (soot flux), `S/platform/thing/Window.ts`
+`S/platform/thing/Lamp.ts` (the soot term in the one `getEmittedFlux`
+funnel, glazed share only), `S/platform/thing/Window.ts`
 (grime factor), views + controllers (platform `inventory`): `sweep.yaml`
 (`verbs: [sweep, muck]`, tool arg broom/flue-brush) + `SweepController.ts`,
 `strew.yaml` + `StrewController.ts`, `dispose.yaml` + `DisposeController.ts`,
@@ -1427,15 +1930,23 @@ house, D30.
 (`finishGrind` dust), `C/trade-textiles/…/ScutchController.ts` (flax
 dust), `C/hearts-delight/…/location/mill-house.yaml` (new, enclosed) +
 `millsite.yaml` (props/exit/miller station moved) + `agent/miller.yaml`;
-`byre.yaml` (`stalls:`, a midden in the yard), `C/trade-farming/src/idea/reading/SoilSurveyReading.ts`
-(the nitrogen line); Hinkley: `lots/kitchen.yaml` + `lots/yard.yaml` +
-`thing/kitchen-window.yaml` (the Window row, both anchors), a
+`C/hearts-delight/…/dairy/thing/byre-floor.yaml` (new; `stalls:`) +
+`byre.yaml` (`floor: {template}`, a midden in the yard), `C/trade-farming/src/idea/reading/SoilSurveyReading.ts`
+(the nitrogen line); Hinkley: `lots/kitchen.yaml` (+ the Window, −
+`ambientSource: sky`) + `lots/yard.yaml` + `thing/kitchen-window.yaml`
+(the Window row, both anchors), a
 `clothes-line` in the yard, a `midden`; `S/platform/idea/cmd/perception/SurveyController.ts`
-(one room line: *"The floor is <band>; <method> would see to it."* — ⚠
-repair hotspot; read its `fabricReport` shape and add beside it);
+(one room line: *"The floor is <band>; <method> would see to it."* —
+repair W7 is likely to land AFTER this build: leave a clean slot, the
+agreed order is holding → fabric → floor, no digits);
 contracts: `S/lib/employment/Condition.ts` (`clean`), `JobController.ts`
-+ `job.yaml`, `ContractLogic.ts`. Tests: traffic (a shop floor), sweep →
-one heap merging storage's sawdust, strew converts blood to debris,
++ `job.yaml`, `ContractLogic.ts`. Tests: traffic (a shop floor; none on
+a water surface or an ice sheet), sweep gathers debris and the used
+strewn layer into ONE sweepings heap and **leaves a loose `Sawdust`
+stack alone**, strew consumes the sawdust stack and converts blood to
+debris, `cleaningMethod` is exhaustive (a compile-time test over
+`GROUND_KINDS`), the ground kind of every drive floor is unchanged after
+rubber (post-merge pin),
 dispose → midden → `feed` raises nitrogen (read by `analyze soil`), the
 flue soots per kg burnt × incompleteness and catches at the threshold
 with a roaring fire, a swept one does not, a grimed Window passes less
@@ -1483,10 +1994,14 @@ unwashed hands → the sepsis seed differs (AC 18); a flamed kit is
 
 **Goal.** Somebody is paid for all of it. Implements D26–D29.
 
-**Files.** `Tariff.ts` (`wash`, `bath`), `OrderController.ts` (two arms —
-⚠ repair hotspot: build on repair's `callHouse`/`quoteFor`/`collectMinor`;
-if absent, factor them here in repair's shape), `CraftingLogic.ts`
-(`presentFulfillers(giver, discipline)`), `order.yaml`, `S/lib/cleanliness/WashPolicy.ts`,
+**Files.** `Tariff.ts` (`wash`, `bath`; `serviceDisciplines`),
+`OrderController.ts` (two arms on repair W3's seam — `fulfillingHand`,
+`quoteFor(lines)`, the `{ok, detail, charge?}` collector, the one
+durative helper, `canSettle` before the act; ⚠ if repair has not
+landed, build that seam here in repair's exact shape and repair deletes
+its copy), `S/api/crafting.ts` (`fulfillingHand` if absent),
+`S/lib/commerce/PricedOffer.ts` (`houseAccount()`, `canSettle` if
+absent), `order.yaml`, `S/lib/cleanliness/WashPolicy.ts`,
 `Garment.ts` (`describeForLaundress`), `S/api/banking.ts` +
 `BankingLogic.ts` (`indemnify`; `PnlCategory 'damages'`), `S/platform/thing/Tub.ts`
 (new) + `fixture/tub.yaml` re-classed, `bathe.yaml` + `BatheController.ts`
@@ -1497,16 +2012,26 @@ Terminus content: `wharfside/lavoir/**`, `market/bathhouse/**`,
 `wharfside/agent/{fisher,pilot}.yaml` (a `remarks` line), `wharfside/bank.yaml`
 (the lavoir exit), `market/square.yaml` (the bathhouse exit),
 `generic-objects` `fixture/{trough,washboard,copper}.yaml`,
-`smithing/thing/barbell.yaml` propped. Tests: `OrderController.wash.test.ts`
+`smithing/thing/barbell.yaml` propped, `market/bathhouse/structure.yaml`,
+`counting-houses/business.yaml` (the `doorman` position),
+`S/lib/employment/Employed.ts` (`isOnShiftFor` if storage is absent),
+`S/lib/thermal/ThermalRegulation.ts` (`exchangeWithWater` if storage has
+not exposed it). Tests: `OrderController.wash.test.ts`
 (no hand → refusal; the quote names fibre, kinds, price; `yes` → washed
 at the hand's band; a novice hand boils a **wool jumper** and felts it
 (silk is not in the game — the user's decision); the house pays the cover
-to the customer's account and the deed is on the hand; off shift refused;
+to the customer's account and the deed is on the hand; `indemnify`
+refuses when the customer IS the hand or holds a seat there; a customer
+who cannot pay is refused before the wash; the bathhouse's attendant
+answers `order wash` and ruins it at untrained; off shift refused;
 a player holding the seat is paid piecework), `bathe.test.ts` (a tub of
 hot water: clean and warm; a winter shore: clean, soaked and chilled;
-frozen refused), `order bath` (the copper cold → refused; hot → engaged,
-collected at completion), `KeptDoor.test.ts` (tannery apron refused in
-words; a coat admits the same person; no doorman → open; regard waives),
+frozen refused; through a hole, 274 K; a pool bather chills by the same
+law as a swimmer), `order bath` (the copper cold → refused; hot →
+engaged, collected at completion; a per-settlement attendant is paid),
+`KeptDoor.test.ts` (tannery apron refused in words; a coat admits the
+same person; no doorman ON SHIFT → open, an off-shift doorman in the
+hall judges nothing; regard waives),
 `remarks.test.ts`, `lint:menu-staff`/`lint:openings` green on both
 houses.
 
@@ -1534,12 +2059,20 @@ flue, products, limits), `furnishing.md` (debris, rest, pests no longer
 "deliberately not here"), `retail.md` / `employment.md` (the two service
 kinds; the laundress; indemnity), `contract.md` (`clean`), `persistence.md`
 (the fixture slice; `PersistentCartesianLocation`), `maturation.md`
-(`offGas`; soap), `ground.md` (the floor's soil), `watershed.md`
-(hardness travels), `behavior.md` (doorman, remarks), `mould.md`,
-`vocations.md` (laundress, bath attendant, sweep: demand with supply),
-`content-packs.md` (pack count unchanged — no new pack; the chandlery
-grew), `CLAUDE.md` map line for `cleanliness.md` **left to the sweep**
-(index files are swept, not raced). Then `pnpm test` once, push, MR.
+(`offGas`; soap), `ground.md` (the floor's soil, `takesSoil`; merged
+with storage's water-surface/`ice`/`bears` sections), `watershed.md`
+(hardness travels; the under-ice draw), `behavior.md` (doorman, remarks),
+`mould.md`, `vocations.md` (laundress, bath attendant, sweep: demand with
+supply), **`race.md`** (the four Material fields), **`crafting.md`**
+(`Recipe.soils`, `TapSpec.soils`, `contaminateFromKit`), **`light.md` /
+`glass.md`** (the Window grime factor; the construction-face seam),
+`retail.md` / `employment.md` — **extend repair's *a priced service is
+performed by a person* section**, never a parallel one; `content-packs.md`
+— **write no pack count** (rubber and storage change it; the chandlery
+grew, no new pack here); slate appends deduped against rubber's identical
+structures-slate lines (air mixing; the flue as an object); `CLAUDE.md`
+map line for `cleanliness.md` **left to the sweep** (index files are
+swept, not raced). Then `pnpm test` once, push, MR.
 
 **Commit.** `drive(cleanliness): <what driving found>` then the MR.
 
@@ -1552,7 +2085,7 @@ grew), `CLAUDE.md` map line for `cleanliness.md` **left to the sweep**
 | soil on a thing | `look` | — | the DirtKind rows | `DirtKindCatalogue.peek` (lazy; `look` never warms — `describeSoil` falls back to the key word cold) | — |
 | `wash`/`scrub` a soilable | platform `crafting` views | `WaterFixture` peers (shipped), `Shore` (shipped), washboard peers | Cleanser rows | `CleanserCatalogue.warmed` in `execute` (async, before the step) | `target requires: SoilableMixin` — every W0 host composes it; `cleanser requires: any`, controller-narrowed by tag |
 | bare `wash` (hands) | same | same | — | — | no target → sites |
-| `dry` a garment | platform (moved) | `DryingRack` environment (shipped) | `clothes-line` row | — | `target requires: any`; refusal in words |
+| `dry` a garment | platform (moved) | `DryingRack` (moved to the platform) environment | `clothes-line` row; the cooking rack row re-pointed | — | `target requires: any`; refusal in words |
 | `remove … carefully` | `remove.yaml` | shipped | — | — | `manner` optional word |
 | `analyze blood <shirt>` | shipped `analyze` | the Reading row (shipped) | — | `ReadingCatalogue` (shipped) | `BloodReading` branch |
 | `label shirt` | shipped | `LabelledMixin` contributes `label.yaml` (shipped) | — | — | `requires: LabelledMixin` — Garment now composes it |
@@ -1561,8 +2094,9 @@ grew), `CLAUDE.md` map line for `cleanliness.md` **left to the sweep**
 | the flue, and the grate's ash | `sweep <hearth>` (brush → flue; bare → ash) | the hearth's peers bucket gains the sweep view | `fire.flue.*` settings; `Material.ashFraction` | — | `requires: FluedMixin` on the hearth arm; the tool arg decides which |
 | dust → flash | shipped `strike`/`light` | — | three gas rows with `flammableLimit` | `MaterialCatalogue` (booted) | — |
 | `bathe` | platform view | `Tub` peers, `Shore` peers (the wash precedent) | tub rows re-classed | — | controller-narrowed water |
-| `order wash` / `order bath` | shipped `order` | Tariff peers (shipped) | the two tariffs, two businesses, `call:` | the houses load with their rooms | the hand: `presentFulfillers(giver, discipline)` → `callFor` |
-| the doorman | movement | the exit kind row | the brain config | — | `KeptDoor.canTraverse` |
+| `order wash` / `order bath` | shipped `order` | Tariff peers (shipped) | the two tariffs (`serviceDisciplines` on the lavoir's), two businesses, `call:` | the houses load with their rooms | the hand: `CraftingApi.fulfillingHand(giver, venue, tariff.disciplineFor(kind))`, restricted to the tariff's house |
+| `bathe`/`wash` at a frozen shore | same views | shore peers | the water pack's `underIce` draw | — | `ShoreMixin.drawAt` refuses or hands over the under-ice draw |
+| the doorman | movement | the exit kind row naming the business | the brain config; the `doorman` position | — | `KeptDoor.canTraverse` → a doorman `isOnShiftFor` that business |
 | `job post clean …` | shipped `job` | shipped | — | — | the phrase |
 | a pack's new dirt / cleanser | — | — | ONE row under its root | the lazy warm finds it by class | — |
 
@@ -1623,16 +2157,26 @@ in order.
   before the MR opens and at `/finalize`** — never between (size is not
   the trigger; the moment is). A green run stays valid until a source
   file changes.
-- **Hotspots to merge by hand when a sibling lands first**: `OrderController.ts`,
-  `Tariff.ts`, `PricedOffer.ts`, `CraftingLogic.ts` (`callHouse`,
-  `presentFulfillers`), `SurveyController.ts`, `Garment.ts`,
-  `Receptacle.ts` (repair adds Durable/Crafted — the copper row names it),
-  `Attired.ts` (`exposeToRain` / `immerse` / `doff` — three methods, one
-  file), `Material.ts` fieldMeta (rubber's three fields, storage's two
-  methods, this build's four fields), general-store `counter.yaml`,
-  infirmary `tariff.yaml`, `hearthworks/idea/business.yaml` (storage's
-  ice line), `quarry-hill.yaml` (rubber's sulfur band), the field-meta
-  golden (regenerate), `Mixins`/`MixinApi`.
+- **Hotspots to merge by hand when a sibling lands first** — the full
+  per-file table is § Parallel builds: `OrderController.ts`, `Tariff.ts`,
+  `PricedOffer.ts`, `CraftingLogic.ts` (`craftImpl`'s stamp site,
+  `contaminateTools`; repair's `callHouse`/`fulfillingHand`; storage's
+  template-choice helper), `SurveyController.ts`, `Garment.ts`, `Chair.ts`,
+  `Lamp.ts`, `Timber.ts`, `Attired.ts` (`exposeToRain` / `immerse` /
+  `doff`), `Wearable.ts`, `Floor.ts` (rubber's onGrade/snow; storage's
+  `bears`/`supportIsSlotted`), `GroundKind.ts`, `Material.ts` fieldMeta
+  (rubber's three fields, storage's two methods, repair W7's three, this
+  build's four), `Producing.ts` (rubber's weather window),
+  `WatercourseCatalogue.ts`, `FishingController.ts`, `wood/oak.yaml`
+  (repair's `laying`, this build's `ashFraction` — ⚠ `wood/ash.yaml` is the
+  TREE), general-store `counter.yaml`, `market/square.yaml`,
+  `wharfside/bank.yaml`, `hinkley-hills/lots/kitchen.yaml`,
+  `quarry-hill.yaml` (the `toZ` order), the field-meta golden and the
+  wiki-spoiler `.snap` (regenerate), `pnpm-lock.yaml` (`pnpm install`,
+  never by hand), `Mixins`/`MixinApi`, `check-closed-vocabularies.ts`.
+  Not hotspots after all: `Receptacle.ts` (no edit here), the infirmary
+  `tariff.yaml` (no edit here), `hearthworks/idea/business.yaml`
+  (storage's; this build touches only `cookhouse.yaml`).
 
 ---
 
@@ -1727,10 +2271,11 @@ kept as the record.
 5. **The over-washed-skin wound** rides the `graze` behaviour; if no
    bleed-free surface trauma exists, use `abrasion` or report — do not
    mint a trauma type.
-6. **Rubber's construction glass faces** take no grime this build (D19);
-   the note to rubber promised a grimed hothouse roof *when one funnel
-   exists*. Named in Deferred seams; the user may prefer a per-place
-   number now (a field on `AtmosphericMixin` — this plan declines it).
+6. **Rubber's construction glass faces** take no grime this build (D19):
+   rubber has one figure per face but no method and this build adds no
+   per-place grime state. Named in Deferred seams with the attach point
+   (`Face.transmittance()`); the user may prefer a per-place number now
+   (a field on `AtmosphericMixin` — this plan declines it).
 7. **The remark brain and the doorman read keywords/forms** — "dressed
    for the room" has no station tag (textiles.md: purpose emerges). A
    realm authors the criterion as garment keywords; coarse but honest and
@@ -1742,9 +2287,32 @@ kept as the record.
    mixin; Timber byte-identity by test.
 10. **The nurses brain boiling bandages** adds a `forceCommand` branch;
     if it fights the triage cadence, drop it — the player drives step 16.
-11. **Merge order.** Each shared piece has a fallback; the build agent
-    runs the § Critical files item 0 check before W0 and again before W2,
-    W3, W6.
+11. **Merge order.** The four builds run in parallel and land in an
+    order nobody can promise; each shared piece has a fallback for either
+    order (§ Parallel builds); the build agent runs the per-wave re-check
+    list there before W0, W2, W3, W4, W6.
+12. **Three rubber rewirings this build only READS, and which could move
+    its baselines** (asked of rubber, § Parallel builds): (a) `onGrade`
+    → `exposure().onGrade` may re-floor a structure's ground storey and
+    every ship cabin from boards to earth, which changes
+    `cleaningMethod` and `soilFeetOf` (pin the drive floors' kinds);
+    (b) whether an AUTHORED `ambientSource: sky` rung is multiplied by
+    `skyLightFraction()` — 19 window-lit interiors incl. the Hinkley
+    kitchen, cookhouse and byre would go dark and drive steps 12, 16, 17
+    lose their light; (c) whether an open-sided roofed place
+    (`wallsNone`) ventilates as outside — else the lavoir holds gas like
+    a shut room (the urine tub is kept out of it until confirmed).
+13. **Stretch vs shrink.** Rubber's D16 (`fitOn` allowance from
+    `elasticity`) would let a shrunk jumper still fit; this build shrinks
+    felted wool by 0.85 and asks rubber to read the `felted` form as
+    non-stretching. If neither lands, drive 8's fit consequence is weak
+    and the plan says so in the record.
+14. **The soil factor on a `Chair` after repair's structural factor** —
+    two multipliers compose; the order (Soilable outermost) is asserted
+    by a test with a failed cushion AND a filthy seat.
+15. **Dirty wire worlds**: repair's drive buys out the general store's
+    billhook, this one its soap and brushes — if the dirty files share a
+    boot, each re-stocks (`untilRestocked`); verify isolation first.
 
 ---
 
@@ -1757,9 +2325,23 @@ Each leaves as a slate line, never a plan section.
   is the dialogue-effect registry (`BankCounter.onCreate`'s shape) and a
   maintained index at `beginDying`/`stabilize`/`expireDying`.
 - **Grime on a construction glass face** (rubber's hothouse roof) →
-  `glass-slate`: when one named per-face transmittance method exists on
-  `Exposure`, a face multiplies by the place's floor-side soot the way a
-  `Window` does; no per-place field until then.
+  `glass-slate`: the attach point is rubber's `Face.transmittance()` /
+  `Exposure.faceTransmittance(face)` (asked of rubber — today its two
+  readers each read the cached figure); a face then multiplies by a
+  per-place soot term the way a `Window` does; no per-place field until
+  then. The stove house (a sooty stove under glass; a grimed roof → less
+  solar gain → a colder house → the latex tap closes) is the first
+  consumer. ⭐ Beside it: repair W7 weathers a *glazing layer* (putty)
+  while this build grimes a *Window object* — different objects until a
+  Window is a face of `Exposure`; note both in glass-slate.
+- **The house mends it** — a laundress-rotted garment is `wear`-damaged,
+  so the tailor's mend (repair's band table) is the second remedy beside
+  the cash cover → `retail`/`contract` slates with the appraisal line.
+- **Wind on the drying line, pests in a store, sawdust strewn on ice for
+  footing** — `windEnters()` is consumed once rubber lands (D11); storage's
+  `StoreConditions` reads `Floor.hasPests()` when the granary arrives
+  (storage-slate names it); strewn sand on a sheet clears at thaw (storage's
+  `clearSurface` hook) — all later.
 - **A flue on the forge and the kiln; a building's shared stack; air
   mixing between rooms** → `structures-slate`.
 - **Dirt from the calendar** (road dust, damp, mildew) →
@@ -1790,12 +2372,10 @@ Each leaves as a slate line, never a plan section.
 
 Read first, in this order.
 
-0. **Re-ground the siblings before W0** (and again before W2, W3, W6):
-   `git log origin/master -- packages/server/src/mud/lib/spatial/Exposure.ts`
-   (rubber), `-- packages/server/src/mud/lib/storage/Store.ts` (storage),
-   `-- packages/server/src/mud/lib/commerce/PricedOffer.ts` (repair's
-   `collectMinor`); `git show origin/reqs/<x>:docs/plans/<x>-plan.md` for
-   whichever has not landed. Record the state in § Grounding.
+0. **Re-ground the siblings before W0** (and again before W2, W3, W4,
+   W6) with the probes in § Parallel builds › *Re-check before each wave*;
+   `git show origin/reqs/<x>:docs/plans/<x>-plan.md` for whichever has
+   not landed. Record the state in § Grounding.
 1. `docs/requirements/cleanliness-requirements.md` (at `4f6650636`+).
 2. `docs/subsystems/textiles.md § The soiling seam`, `spoilage.md § The
    silent population`, `persistence.md § captureHostOf` and `§ The
@@ -1817,7 +2397,8 @@ Read first, in this order.
    `S/lib/mould/Mould.ts`, `C/trade-dairying/src/thing/{SettingPan,Wheel,Hoop}.ts`,
    `C/trade-chandlery/src/**`, `C/trade-textiles/src/thing/BleachingGreen.ts`.
 7. `S/platform/idea/api/FireLogic.ts:500–640`, `S/lib/fire/Burner.ts:895–1000`,
-   `S/platform/thing/{Hearth,Oven,Campfire,Lantern,Window}.ts`,
+   `S/platform/thing/{Hearth,Oven,Campfire,Lamp,Window}.ts` (`Lantern.ts`
+   until repair deletes it),
    `S/platform/idea/modalities/VisionModality.ts:339–450`.
 8. `S/platform/idea/api/CraftingLogic.ts:300–420, 955–1130, 3130–3170`,
    `S/lib/craft/Recipe.ts`, `S/lib/vitals/Vitals.ts:314–330, 3175–3215`,

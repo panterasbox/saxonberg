@@ -64,7 +64,7 @@ there, with who owns it).
 | **chandlery** | ships: `dip` candles from tallow or beeswax; a chandlery shop in Terminus wharfside. **No Discipline, by decision.** |
 | **places** | the infirmary ward (with a basin), the Hearthworks cookhouse and the cooking pack's kitchen, the wharfside mill floor, the Delight Road **ford**, the estuary strand (a shore), the Goodkin bank (counting-houses), the chandlery shop; dairy brings a byre and yard to Hearts' Delight. **No authored gym room** (the archetype only). |
 | **Disciplines** | textiles, dyeing, tailoring, chemistry, cooking, medicine, nursing, butchery, services and personal-services exist. **No housekeeping, hygiene or chandlery Discipline.** |
-| **in flight beside this build** | **rubber** (build-1): rain stops at the outer layer by its material, a wet material conducts, rubber gloves, boots and apron, native **sulfur** in the Hill Quarry, places say what their walls and roof are made of (glass faces pass light), every walled room must stand in a building. **storage-and-ice** (build-4): sawdust left where a log is sawn and gathered from a heap, going into water soaks you and what you wear, cold water chills a swimmer, frozen water reached only through a hole. Both share **one wet law** (water filling a material's pores) with textiles' shipped wet cloth. |
+| **in flight beside this build** | **rubber** (build-1): rain stops at the outer layer by its material, a wet material conducts, rubber gloves, boots and apron, native **sulfur** in the Hill Quarry, places say what their walls and roof are made of (glass faces pass light; every new interior authors BOTH `enclosure:` and `roof:` — `lint:biome-sky`; a lone place is complete). **storage-and-ice** (build-4): sawdust left where a log is sawn and gathered from a heap, going into water soaks you and what you wear, cold water chills a swimmer, frozen water reached only through a hole. Both share **one wet law** (water filling a material's pores) with textiles' shipped wet cloth. |
 | **slates** | laundry, room-condition, rendering § 9, bathroom, sanitation, disease, cosmetics, pharma (soap vs water for oily irritants — a ready consumer), surgery-specialty (the sterile field), structures (the flue as an object). |
 
 ⭐ **Therefore what is genuinely new here is:** dirt that acts deposit,
@@ -235,10 +235,15 @@ bathhouse and a doorman.
   - **Rubber gloves, boots and apron** are rubber's goods; this build
     reads them as gloves and aprons that keep caustics off and wash
     clean.
-  - **Glass faces** on rubber's buildings take grime like a window.
-  - ⚠ **Every new walled room must stand in a building** (rubber's gate
-    against rooms outside any building): the lavoir, the bathhouse and
-    the laundress's room are authored as buildings.
+  - **Glass faces** on rubber's buildings take grime like a window
+    (when rubber exposes one face-transmittance method; until then the
+    `Window` object is the one funnel).
+  - ⚠ **Every new interior authors BOTH `enclosure:` and `roof:`**
+    (rubber's `lint:biome-sky`; `enclosure: none` is a legal answer for
+    an open-sided lavoir): a lone place with its own walls and roof is
+    complete — it need not stand in a building, and a `Structure` row
+    never authors a material. The lavoir, the bathhouse rooms, the
+    laundress's room and the mill house all say what they are made of.
 - **Storage-and-ice** (build-4, in parallel) — ⚠ shared pieces:
   - **Sawdust** is matter there, a heap where a log is sawn; here it is
     debris of one kind, swept, strewn or gathered — **one heap**.

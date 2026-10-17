@@ -1,3 +1,5 @@
+> ⚠ **Superseded 2026-10-17 by [`cleanliness-note-to-siblings.md`](./cleanliness-note-to-siblings.md)** — the four builds now run in parallel; item 5 below ("every walled room must stand in a building") is stale (the gate is `lint:biome-sky`: author BOTH `enclosure:` and `roof:`; a lone place is complete).
+
 # Note from the cleanliness build to rubber (build-1) and storage-and-ice (build-4)
 
 Read side by side on 2026-10-17. Cleanliness's requirements are
