@@ -41,7 +41,7 @@ import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
   'buys out picks, billhooks, whetstones, hafts and boots, clones iron, ' +
-  'parts and a lamp into the Hearthworks smithy (nothing collects them), ' +
+  'parts into the Hearthworks smithy (nothing collects them), ' +
   'fills the cobbler’s second seat with a player, consigns a pick on ' +
   'the general store’s shelf, and moves the world clock by hours';
 
@@ -203,7 +203,9 @@ async function orderAnswering(s: Session, line: string, yes: boolean): Promise<s
   // order waited out the timeout (runs 2–5 of this drive).
   const frame = prompt as unknown as { promptId?: string; payload?: { promptId?: string } } | null;
   const id = frame?.promptId ?? frame?.payload?.promptId;
-  if (id) s.answerPrompt(id, yes);
+  // The response is a STRING — `'yes'` for a confirm; a boolean is dropped
+  // at the inbound handler without a word.
+  if (id) s.answerPrompt(id, yes ? 'yes' : 'no');
   const said = (await (await pending).said()).trim();
   await s.drainProse();
   console.log(`[repair drive] ${line} → ${said}`);
@@ -377,7 +379,9 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
       // ⚠ Not a bare `look` here: it asked "which target?" between the
       // furnace and the smelter. The projection says who is present.
       const here = await examine(at, 'tinker');
-      expect(here, `the smelter at three: ${here}`).toMatch(/tinker/i);
+      // The examine reads his description (a grinding wheel on his back),
+      // not his job noun — present is what is asserted.
+      expect(here, `the smelter at three: ${here}`).toMatch(/grinding wheel/i);
       const said = await orderAnswering(at, 'order repair miners-pick', true);
       expect(said, `tinker: ${said}`).toMatch(/haft has failed/i);
       expect(said).toMatch(/head is worn/i);
@@ -432,32 +436,50 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
   }, 300_000);
 
   it('⭐ drive 8 — a player takes the second seat and is paid by the pair, at THEIR band', async () => {
-    const hand = await newPlayer('cobbler', COBBLER);
-    await practise(hand, 'leatherwork', 3);
-    const applied = await say(hand, 'apply for cobbler');
+    const first = await newPlayer('cobbler', COBBLER);
+    const handle = first.handle;
+    await practise(first, 'leatherwork', 3);
+    const applied = await say(first, 'apply for cobbler');
     console.log(`[repair drive] apply → ${applied}`);
     expect(applied, `apply: ${applied}`).toMatch(/cobbler/i);
+    first.close();
+    // ⚠ A balance is read at the bank, and opening a session there MOVES
+    // the character: read it before the hand goes back to the last, never
+    // while the order needs them on the floor (run 7: the hand was at the
+    // bank and the order found nobody).
+    const before = await balanceOf(handle);
     await toHour(19); // Ottilie is off; the player is the only hand
+    let hand = await goTo(handle, COBBLER);
     try {
-    const on = await say(hand, 'clock on');
-    console.log(`[repair drive] clock on → ${on}`);
-    expect(on, `clock on: ${on}`).not.toMatch(/can'?t|cannot|not/i);
-    const before = await balanceOf(hand.handle);
-    const customer = await goTo(wearer, COBBLER);
-    try {
-      await say(customer, 'drop boots');
-      await evalOn(COBBLER, 'boots', "(this.wearLine('sole', 0.4), this.getCondition())");
-      await say(customer, 'get boots');
-      const said = await orderAnswering(customer, 'order repair boots', true);
-      expect(said, `the player's mend: ${said}`).toMatch(/serviceable|sound/i);
-      const boots = await examine(customer, 'boots');
-      expect(boots, `mended by the player: ${boots}`).toMatch(/mended by/i);
-    } finally {
-      customer.close();
-    }
-    const after = await balanceOf(hand.handle);
-    expect(after, `the wage landed: ${before} → ${after}`).not.toBe(before);
-    await say(hand, 'clock off');
+      const on = await say(hand, 'clock on');
+      console.log(`[repair drive] clock on → ${on}`);
+      expect(on, `clock on: ${on}`).not.toMatch(/can'?t|cannot|not/i);
+      const customer = await goTo(wearer, COBBLER);
+      try {
+        await say(customer, 'drop boots');
+        await evalOn(COBBLER, 'boots', "(this.wearLine('sole', 0.4), this.getCondition())");
+        // Who the shop floor holds, and whether each is a hand here — the
+        // record of a failure if the order finds nobody.
+        const floor = await evalOn(
+          COBBLER,
+          'boots',
+          "this.getContainer().getContents().filter(c => MixinApi.isEmployed(c)).map(c => [c.getPresentation(), c.isFulfilling('leatherwork'), JSON.stringify(c.employments)].join(' ; ')).join(' // ')",
+        );
+        console.log(`[repair drive] the cobbler's floor: ${floor}`);
+        await say(customer, 'get boots');
+        const said = await orderAnswering(customer, 'order repair boots', true);
+        expect(said, `the player's mend: ${said}`).toMatch(/serviceable|sound/i);
+        const boots = await examine(customer, 'boots');
+        expect(boots, `mended by the player: ${boots}`).toMatch(/mended by/i);
+      } finally {
+        customer.close();
+      }
+      hand.close();
+      const after = await balanceOf(handle);
+      console.log(`[repair drive] the hand's balance: ${before} → ${after}`);
+      expect(after, `the wage landed: ${before} → ${after}`).not.toBe(before);
+      hand = await goTo(handle, COBBLER);
+      await say(hand, 'clock off');
     } finally {
       hand.close();
       await toHour(12);
