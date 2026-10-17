@@ -17,7 +17,7 @@ import { WorldClockApi } from "../../../../api/worldclock";
 import { ContainmentApi } from "../../../../api/containment";
 import { AppSettings } from "../../../../lib/config/AppSettings";
 import { Quantity } from "../../../../lib/quantity";
-import { installStore, type Doc } from "../../../../world/lounge/__tests__/lounge-fixtures";
+import { installStore, type Doc } from "../../../../lib/persistence/__tests__/backend-store";
 import TemplateApplier from "../../TemplateApplier";
 import Location from "../../../../lib/stuff/Location";
 import Tariff from "../../../thing/Tariff";
@@ -34,13 +34,13 @@ class Worker extends EmployedMixin(MobileMixin(ContainerMixin(ContainableMixin(I
 }
 
 const PH = TemplateApplier.templatePath;
-const BIZ = "/world/test/fh/business";
-const SMITH = "/world/test/fh/smith";
-const ROOM = "/world/test/fh/smithy";
-const TARIFF = "/world/test/fh/tariff";
-const CUSTOMER = "/world/test/fh/customer";
+const BIZ = "/test/fh/business";
+const SMITH = "/test/fh/smith";
+const ROOM = "/test/fh/smithy";
+const TARIFF = "/test/fh/tariff";
+const CUSTOMER = "/test/fh/customer";
 
-const COOK = "/world/test/fh/cook";
+const COOK = "/test/fh/cook";
 
 function docs(proprietor: boolean, cook = false): Doc[] {
   return [
