@@ -453,6 +453,7 @@ Fabric.drape = 0
 Fabric.key = 0
 Fabric.layerBand = 0
 Fabric.loft = 0
+Fabric.stretch = 0
 Fabric.weaveDensity = 0
 FeederMixin.feederKind = 0
 FeederMixin.lastFilledBy = 0

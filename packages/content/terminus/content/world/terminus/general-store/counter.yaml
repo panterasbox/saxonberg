@@ -61,6 +61,11 @@ data:
     - { itemTemplatePath: /trade/rubber/thing/rubber-boots, par: 2 }
     - { itemTemplatePath: /trade/rubber/thing/rubber-gloves, par: 2 }
     - { itemTemplatePath: /trade/rubber/thing/rubberized-coat, par: 1 }
+    # ⭐ (rubber build, D16) Off-the-rack trousers, plain and elastic, side
+    # by side: the plain pair is cut for the average body and the elastic
+    # one gives. The tailor still cuts you a pair that fits.
+    - { itemTemplatePath: /trade/tailoring/thing/trousers, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/elastic-trousers, par: 2 }
     # ⭐⭐ **Past the medieval.** A bow and a musket on the same shelf,
     # priced so the choice between them is a real one rather than a
     # ladder you climb: the musket carries thirty times the energy and
@@ -384,6 +389,8 @@ data:
     /trade/rubber/thing/rubber-boots: 11
     /trade/rubber/thing/rubber-gloves: 6
     /trade/rubber/thing/rubberized-coat: 18
+    /trade/tailoring/thing/trousers: 8
+    /trade/rubber/thing/elastic-trousers: 10
     /stuff/thing/armor/hide-jerkin: 12
     /stuff/thing/armor/padded-gambeson: 14
     /stuff/thing/armor/mail-hauberk: 40

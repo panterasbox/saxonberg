@@ -90,4 +90,11 @@ the loft). A second works is rows.
 Synthetic rubber and tyres (destructive-distillation-slate); compression
 moulding, a pressed pan and consumed moulds (moulding-slate); the stove
 house's stoker brain (standing-instructions-slate); a published cure curve
-(inquiry-slate); stretch on fit (W8, cut-first).
+(inquiry-slate).
+
+## Stretch
+
+The fourth reader of `elasticity`: a garment gives round the body by its
+material (the waist's, when one is set). The general store stocks plain
+and elastic-waisted trousers side by side, and `wear` says which one is
+tight on you. Arithmetic: [textiles.md](./textiles.md) § *Fit*.

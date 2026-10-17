@@ -1936,6 +1936,25 @@ Commit: `feat(rubber): the works and its stove house in the goods yards; the dri
 
 ### W8 — stretch (first to cut)
 
+> ✅ **BUILT, not cut** (the no-scope-splits rule: scope stays in, only
+> order varies). Decided: (1) **the give is round the body** — the
+> allowance takes up the GIRTH term of the misfit, both ways, and so the
+> refusal distance too; a tall body is still short in the leg. (2) **Worn
+> at a fraction of the spring-back strain** — `elasticity/100` at face
+> value gave rubber a 500 % allowance (every body in one waist), so the
+> allowance is `elasticity × textiles.fit.stretchWornFraction (0.04) ×
+> form stretch`: rubber 0.2, knitted wool 0.017, linen 0.001. (3) **Form
+> stretch is a FABRIC ROW field** (`stretch`, absent = 1; felted 0, knit
+> 1.45), not a kernel list of form words — a pack must never need a kernel
+> list edit. (4) **`wear` says how it sits** — "It is tight on you." /
+> "It hangs loose on you." past 0.05 — because fit already costs (burden,
+> seam wear, the air gap) and nothing said so; that line is what makes AC
+> 14 observable. (5) The garment is `/trade/rubber/thing/elastic-trousers`
+> (`extends:` the tailor's trousers, waist detail rubber), stocked beside
+> a plain stock pair at the general store (8 and 10 — a newcomer's twenty
+> buys both). The drive's body is a **half-orc** walked through intake
+> (92 kg / 1.88 m: plain 0.09 tight, elastic 0.04).
+
 Implements D16. Files: `lib/slot/Wearable.ts` (`fitOn` stretch term),
 an elastic-waisted stock garment row in `trade-rubber` (or tailoring),
 drive step 23, `Wearable.stretch.test.ts`. Acceptance: AC 14. Cut

@@ -2149,6 +2149,10 @@ export const AppSettingKeys = {
   /** Textiles — the fit distance above which a garment simply will not
    * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
   textilesFitRefuseAbove: "textiles.fit.refuseAbove",
+  /** Textiles — the share of a material's spring-back strain a garment
+   * is WORN at (rubber build, D16): the give that fit takes up is
+   * `elasticity × this × the form's stretch`. */
+  textilesFitStretchWornFraction: "textiles.fit.stretchWornFraction",
 
   /*
    * ⭐⭐ Dressing DIALS. Getting a garment on is an engaged act whose

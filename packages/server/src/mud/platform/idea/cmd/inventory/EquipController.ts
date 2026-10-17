@@ -78,6 +78,8 @@ import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
 
 const TOPIC = 'sense.survey';
+/** A misfit (signed, `0..`) under this reads as a fit and says nothing. */
+const FIT_WORDS_ABOVE = 0.05;
 
 interface EquipModel extends CommandModel {
   /** Absent for bare `equip` — the whole-kit form. */
@@ -243,7 +245,7 @@ export default class EquipController extends CommandController<EquipModel> {
         .toSelf(
           held
             ? Mml.compose`You wield ${Mml.thing(one)}.`
-            : Mml.compose`You put on ${Mml.thing(one)}.`,
+            : Mml.compose`You put on ${Mml.thing(one)}.${this.fitWords(one, giver)}`,
         )
         .toPeers(
           held
@@ -252,6 +254,21 @@ export default class EquipController extends CommandController<EquipModel> {
         )
         .send();
     });
+  }
+
+  /**
+   * ⭐ How it sits on you, said at the moment you put it on (rubber build,
+   * D16). A tight or a loose fit already costs — burden, seam wear, the
+   * air gap's warmth — and a cost nobody is told about is the feed, not
+   * the mirror. Within a garment's stretch there is nothing to say.
+   */
+  private fitWords(item: Stuff, giver: Stuff): string {
+    if (!MixinApi.isWearable(item)) return '';
+    const fit = item.fitOn(giver);
+    if (!fit.measurable) return '';
+    if (fit.tightness > FIT_WORDS_ABOVE) return ' It is tight on you.';
+    if (fit.looseness > FIT_WORDS_ABOVE) return ' It hangs loose on you.';
+    return '';
   }
 
   /**
