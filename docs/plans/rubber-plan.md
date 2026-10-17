@@ -2217,4 +2217,10 @@ runs found, in the order they found it (✔ = fixed and committed):
 | 7 | step 18's rubber boots were cloned — refused (step 22's pair is live); dressing is engaged and `down` straight after it walked in barefoot | ✔ bought; dressing waited out |
 | 7 | the rain hook (ten logins) ran out of its 15 minutes on a loaded machine | ✔ 30 minutes |
 | 8 | a newcomer's Arrival Note does not cover a counter price on its own (*"You can't cover …"*) — economic-bootstrap's shape, not rubber's | ✔ step 23 banks and funds the half-orc |
+| 8 | ✅ steps 16 (ebonite) and 17 (burnt) pass; the oven says *"about 430 K"* | — |
+| 8 | ⭐⭐ **two readers of one room disagreed**: the thermometer (`resolveTemperatureFor`) refreshes the room's OUTSIDE temperature before integrating; the envelope's sync read integrates against the outside it last fetched. A tree asked at dawn, after a night nobody measured, used the afternoon's outside air — 283 K on the thermometer, open to the tree | ✔ `Producing.bringTapAirCurrent()`, awaited by `planTap` before the window is read |
+| 8 | step 15 read the WRONG boots: `get` has no `from` — its tail is one greedy object list — so `get boots from boot-mould` also lifted step 14's pair off the floor | ✔ the drive names insides with MQL (`here:boot-mould:i:boots`) |
+| 8 | by early afternoon the sun AND the stove take the glass past 309 K, where Hevea shuts down in the heat — honest, and the step tapped into it | ✔ step 9 lights the stove at dawn |
+| 8 | intake shoes every newcomer in canvas shoes, so `wear boots` found the feet taken | ✔ the waders take them off first |
+| 8 | the machine is swapping (3.5 of 4 GB, three ~3 GB worlds from sibling worktrees): logins and dispatches stall for minutes | the drive's per-step budgets are 10 minutes; recorded, not a code defect |
 

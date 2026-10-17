@@ -148,13 +148,18 @@ async function at(handle: string, where: string): Promise<Session> {
   return s;
 }
 
-async function funded(tag: string, where: string, existing?: string): Promise<Session> {
-  const handle = existing ?? uniqueHandle(tag);
+async function funded(
+  tag: string,
+  where: string,
+  existing?: { handle: string; name: string },
+): Promise<Session> {
+  const handle = existing?.handle ?? uniqueHandle(tag);
+  const who = existing?.name ?? handle;
   const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
-    expectOk(await gov.cmd(`reserve override 400 to ${handle} "wire: rubber drive"`));
+    expectOk(await gov.cmd(`reserve override 400 to ${who} "wire: rubber drive"`));
   } finally {
     gov.close();
   }
@@ -231,9 +236,11 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
     // like every other buyer here (the Arrival Note does not cover a
     // counter's price on its own).
     const handle = uniqueHandle('half-orc');
-    const arrival = await Session.embody(handle, { species: 'half-orc' });
+    // ⚠ An embodied character is called by its NAME, not the handle.
+    const name = `Orc${Math.random().toString(36).replace(/[^a-z]/g, '').slice(0, 6)}`;
+    const arrival = await Session.embody(handle, { species: 'half-orc', name });
     arrival.close();
-    const s = await funded('half-orc', SHOP, handle);
+    const s = await funded('half-orc', SHOP, { handle, name });
     await say(s, 'remove trousers'); // intake dressed them in a sturdy pair
     await buyOne(s, 'breeches');
     const plain = await say(s, 'wear breeches');
@@ -291,10 +298,11 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await s.drainProse();
     // ⚠ `get` has no `from`: the whole tail is one greedy object list, so
     // `get boots from boot-mould` took every pair in reach. Name the
-    // inside with MQL's chain instead.
-    await say(s, 'get here:oven:i:boot-mould');
+    // inside with MQL's chain (`here:i` is the room's THINGS; a bare
+    // `here:x` would be a detail of the room).
+    await say(s, 'get here:i:oven:i:boot-mould');
     await say(s, 'drop boot-mould');
-    const got = await say(s, 'get here:boot-mould:i:boots');
+    const got = await say(s, 'get here:i:boot-mould:i:boots');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
     await s.drainProse();
     return examine(s, 'me:i:boots');
@@ -373,11 +381,12 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await say(s, 'stoke coal into stove');
     await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
-    await advanceWorldClock('2 hours');
+    // From a ~270 K dawn the stove alone takes hours; the morning sun joins.
+    await advanceWorldClock('4 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const warm = await thermometer(s);
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] stove house, stove lit 2 h: ${warm.toFixed(1)} K`);
+    console.log(`  [drive] stove house, stove lit 4 h: ${warm.toFixed(1)} K`);
     expect(warm).toBeGreaterThan(291);
     // Let the cuts run a while in the warm before anybody taps them.
     // ⚠ While the stove still burns: the window is sampled at the read,
@@ -399,7 +408,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(s, 'pan');
     expect(pan).toMatch(/set/i);
-    const got = await say(s, 'get here:pan:i:sheet');
+    const got = await say(s, 'get here:i:pan:i:sheet');
     expect(got).toMatch(/sheet/i);
     const sheet = await examine(s, 'sheet');
     expect(sheet).toMatch(/raw rubber|tacky|stiff/i);

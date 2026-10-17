@@ -485,16 +485,24 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         // reads a stale envelope taps in a house the thermometer beside
         // it calls cold (found by the rubber drive, 284 K before dawn).
         const air = place as Stuff & Atmospheric;
-        const own = air.envelopeTemperatureSync() ?? air.getOwnTemperatureK();
-        if (own !== null) return own;
+        // ⚠ Only a finite NUMBER is a temperature: a proxy no-op answers
+        // `undefined`, which passes `!== null` and compares false against
+        // both bounds — a window read as OPEN by an answer that is no answer.
+        const finite = (v: unknown): v is number =>
+          typeof v === 'number' && Number.isFinite(v);
+        const synced = air.envelopeTemperatureSync();
+        if (finite(synced)) return synced;
+        const own = air.getOwnTemperatureK();
+        if (finite(own)) return own;
         try {
-          return BiomeApi.airFor(place).tempK;
+          const k = BiomeApi.airFor(place).tempK;
+          if (finite(k)) return k;
         } catch {
           // fall through to the host's own body
         }
       }
-      if (MixinApi.isThermal(self)) return self.getTemperature()?.rawValue() ?? null;
-      return null;
+      const body = MixinApi.isThermal(self) ? self.getTemperature()?.rawValue() : null;
+      return typeof body === 'number' && Number.isFinite(body) ? body : null;
     }
 
     /**
@@ -531,8 +539,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (place === null) return;
       try {
         await BiomeApi.resolveTemperatureFor(place);
-      } catch {
-        // an unresolvable place reads as before
+      } catch (err) {
+        // An unresolvable place reads as before — said, never silent.
+        console.warn(
+          `Producing.bringTapAirCurrent: ${place.getTemplatePath() ?? '?'} did not resolve:`,
+          err,
+        );
       }
     }
 
