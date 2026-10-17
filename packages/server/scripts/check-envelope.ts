@@ -393,6 +393,15 @@ function lint(): void {
       );
       continue;
     }
+    // A thin layer is honest only if it is meant to pass light (glass,
+    // horn): an opaque 4 mm wall is a tin shed, said without meaning it.
+    const t = Number(enclosure.thicknessM);
+    if (t > 0 && t <= 0.005 && material.data.lightAbsorption === undefined) {
+      console.warn(
+        `  ⚠ ${row.file}: \`${part}\` is ${t} m of '${materialPath}', which ` +
+          `passes no light — is that meant to be glass?`,
+      );
+    }
     const k = material.data.thermalConductivity;
     const kValue =
       typeof k === "number"

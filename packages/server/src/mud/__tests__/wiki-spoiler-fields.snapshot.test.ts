@@ -46,6 +46,8 @@
  *     can walk in and look up at.
  *   - `Structure.storeys` — which of a building's places stand on which;
  *     you learn it by climbing the stair.
+ *   - (W2) `Material.lightAbsorption` — how much light a thickness of it
+ *     passes: you hold a pane up to the sky and see.
  *
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a

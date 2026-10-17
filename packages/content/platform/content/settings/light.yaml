@@ -19,6 +19,12 @@ settings:
   - key: light.solar.sideWeight
     value: "0.25"
 
+  # ⭐ The sun's irradiance on a horizontal surface at a clear noon, W/m²
+  # (rubber build). A clear temperate noon; the one calibration constant
+  # of solar gain — the lux scale is the MUD's, so heat has its own.
+  - key: light.solar.noonIrradianceWm2
+    value: "700"
+
   # What a full moon at the zenith contributes, as a fraction of a clear
   # noon sun. 0.03 puts a full moon high in a clear sky at ~2 lux on a
   # 9 m² cell — `very-dim`: move, find a door, see that somebody is there;

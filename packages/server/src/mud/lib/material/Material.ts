@@ -463,6 +463,22 @@ export default class Material extends SingletonMixin(
    * then flows the mass to a `Bulkable` liquid. `0` = does not melt in the
    * modelled range.
    */
+  // ⭐ Light through matter (rubber build, D5): Beer–Lambert's α in 1/m. A
+  // layer of thickness t passes e^(−α·t). ABSENT means opaque — the honest
+  // default for every row that is not glass, water or ice.
+  private _lightAbsorption: Quantity<'1/m'> | null = null;
+  protected get lightAbsorption(): Quantity<'1/m'> | null {
+    return this._lightAbsorption;
+  }
+  protected set lightAbsorption(value: Quantity<'1/m'> | null) {
+    if (value !== null && !(value instanceof Quantity && value.unit === '1/m')) {
+      throw new TypeError(
+        `Material.lightAbsorption must be a Quantity<'1/m'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._lightAbsorption = value;
+  }
+
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
 
   protected get meltingPoint(): Quantity<'K'> {
@@ -918,6 +934,7 @@ export default class Material extends SingletonMixin(
     autoignitionTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     heatOfCombustion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1147,6 +1164,18 @@ export default class Material extends SingletonMixin(
   /** Set heat of combustion. Strict on `Quantity<'MJ/kg'>`. */
   public setHeatOfCombustion(value: Quantity<'MJ/kg'>): void {
     this.heatOfCombustion = value;
+  }
+
+  /**
+   * Read the light absorption coefficient (Beer–Lambert α, 1/m), or
+   * `null` — opaque. A layer `t` thick passes `e^(−α·t)`.
+   */
+  public getLightAbsorption(): Quantity<'1/m'> | null {
+    return this._lightAbsorption;
+  }
+  /** Set light absorption. Strict on `Quantity<'1/m'>`; `null` = opaque. */
+  public setLightAbsorption(value: Quantity<'1/m'> | null): void {
+    this.lightAbsorption = value;
   }
 
   /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */

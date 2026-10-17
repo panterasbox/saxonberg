@@ -68,6 +68,8 @@ import { Decay } from '../Decay';
 import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
 import { NavigationApi } from '../../api/navigation';
 import { Exposure, type Face } from '../spatial/Exposure';
+import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
+import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
 import type Structure from '../../platform/idea/Structure';
 
@@ -316,6 +318,10 @@ export interface Atmospheric {
   construction(): Construction;
   /** ⭐⭐ What is over and around this place — see {@link Exposure}. */
   exposure(): Exposure;
+  /** ⭐ The sun through a transparent face, W, at game-time `atS`. */
+  solarGainW(atS: number): number;
+  /** ⭐ What this scope would settle at for a given outside, at `atS`. */
+  envelopeSteadyStateK(outsideK: number, atS: number): number | null;
 
   envelopeApplies(): boolean;
 
@@ -1255,19 +1261,23 @@ export function AtmosphericMixin<
       defaults: EnclosureDefaults,
     ): ResolvedLayer {
       const materialPath = spec.material ?? defaults.materialPath;
-      const thicknessM =
+      const authored =
         typeof spec.thicknessM === 'number'
           ? spec.thicknessM
           : defaults.thicknessM;
+      const thicknessM = authored > 0 ? authored : 0.3;
       const material =
         StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
+      const alpha = material?.getLightAbsorption()?.rawValue();
       return {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,
         cJkgK: material?.getSpecificHeat().rawValue() || 900,
-        thicknessM: thicknessM > 0 ? thicknessM : 0.3,
+        thicknessM,
         materialPath,
-        transmittance: 0,
+        transmittance:
+          typeof alpha === 'number' && alpha >= 0 ? Math.exp(-alpha * thicknessM) : 0,
       };
     }
 
@@ -1548,47 +1558,69 @@ export function AtmosphericMixin<
           heatW += occupant.spaceHeatOutputW();
         }
 
-        const tau = coeff.capacityJPerK / coeff.uWperK;
         const setpoint = this.climateSetpointK();
         const ring = new TrajectoryLog(this.envelopeLog);
         const startStamp = now - elapsed;
 
         // Integrate one segment of the gap under a fixed supply state,
         // recording a breakpoint so bodies can read the curve back.
+        // ⭐ (rubber build) A room with a transparent exterior face follows
+        // the sun: the segment is split into pieces no longer than a game
+        // hour, each with the sun at its midpoint. Every opaque room has no
+        // solar term and integrates the segment whole, exactly as before.
+        const solar = this.hasSolarFaces();
+        const maxPieces = Math.max(
+          1,
+          Math.floor(envelopeDial(AppSettingKeys.envelopeSolarSegmentsMax, 48)),
+        );
         const integrateSegment = (
           powered: boolean,
           segStartS: number,
           segDur: number,
         ): void => {
-          // ⭐ A driven term — a cooler/heater the scope hosts
-          // (`ClimateControlMixin` answers a negative capacity while
-          // supplied and above setpoint; the base is 0). Folded into the
-          // heat budget so the envelope needs no second time constant.
-          const driveW = this.envelopeDriveW(
-            this.envelopeTemperatureK as number,
-            powered,
-          );
-          let steadyState = outside + (heatW + driveW) / coeff.uWperK;
-          // ⭐ A thermostat does not sail past its dial: a cooling drive
-          // clamps the steady state from below, a heating drive from above,
-          // so an over-strong unit HOLDS the setpoint rather than
-          // overshooting it.
-          if (setpoint !== null) {
-            if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
-            if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+          const pieces = solar
+            ? Math.min(maxPieces, Math.max(1, Math.ceil(segDur / 3600)))
+            : 1;
+          const pieceS = segDur / pieces;
+          for (let i = 0; i < pieces; i++) {
+            const pieceStartS = segStartS + i * pieceS;
+            // ⭐ A driven term — a cooler/heater the scope hosts
+            // (`ClimateControlMixin` answers a negative capacity while
+            // supplied and above setpoint; the base is 0). Folded into the
+            // heat budget so the envelope needs no second time constant.
+            const driveW = this.envelopeDriveW(
+              this.envelopeTemperatureK as number,
+              powered,
+            );
+            const { steadyK, conductanceWperK } = this.steadyStateOf(
+              outside,
+              coeff.uWperK,
+              heatW + driveW,
+              this.envelopeExchanges(pieceStartS + pieceS / 2),
+            );
+            let steadyState = steadyK;
+            // ⭐ A thermostat does not sail past its dial: a cooling drive
+            // clamps the steady state from below, a heating drive from
+            // above, so an over-strong unit HOLDS the setpoint rather than
+            // overshooting it.
+            if (setpoint !== null) {
+              if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
+              if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+            }
+            const pieceTau = coeff.capacityJPerK / conductanceWperK;
+            ring.record(
+              pieceStartS,
+              this.envelopeTemperatureK as number,
+              steadyState,
+              pieceTau,
+            );
+            this.envelopeTemperatureK = Decay.toward(
+              this.envelopeTemperatureK as number,
+              steadyState,
+              pieceS,
+              pieceTau,
+            );
           }
-          ring.record(
-            segStartS,
-            this.envelopeTemperatureK as number,
-            steadyState,
-            tau,
-          );
-          this.envelopeTemperatureK = Decay.toward(
-            this.envelopeTemperatureK as number,
-            steadyState,
-            segDur,
-            tau,
-          );
         };
 
         // ⭐ If the scope draws a supply that can be cut (a `ColdStore` /
@@ -1610,6 +1642,101 @@ export function AtmosphericMixin<
       } finally {
         this._envelopeReconciling = false;
       }
+    }
+
+    /**
+     * ⭐⭐ The one closed-form steady state: `T_ss = (U·T_out + P + Σ
+     * fixedW + Σ G_j·anchor_j) / (U + Σ G_j)`, and the denominator, which
+     * is also τ's (`τ = C / denominator`).
+     */
+    private steadyStateOf(
+      outsideK: number,
+      uWperK: number,
+      powerW: number,
+      exchanges: readonly RoomHeatExchange[],
+    ): { steadyK: number; conductanceWperK: number } {
+      let num = uWperK * outsideK + powerW;
+      let den = uWperK;
+      for (const x of exchanges) {
+        num += x.fixedW + x.conductanceWperK * x.anchorK;
+        den += x.conductanceWperK;
+      }
+      return { steadyK: num / den, conductanceWperK: den };
+    }
+
+    /**
+     * ⭐ What this room is exchanging heat with besides its outside and
+     * its occupants, at game-time `atS` — each a {@link RoomHeatExchange}
+     * term: the sun through a transparent face (D6). Neighbours of the
+     * same building join in W3.
+     */
+    protected envelopeExchanges(atS: number): RoomHeatExchange[] {
+      const out: RoomHeatExchange[] = [];
+      const solarW = this.solarGainW(atS);
+      if (solarW > 0) out.push({ fixedW: solarW, conductanceWperK: 0, anchorK: 0 });
+      return out;
+    }
+
+    /** Σ T·A·w over the transparent exterior faces; 0 when there are none. */
+    private solarAperture(): number {
+      const e = this.exposure();
+      if (!e.declared) return 0;
+      let a = 0;
+      if (e.top === 'roof' && e.roof) a += e.faceTransmittance(e.roof) * e.roof.areaM2;
+      const side = envelopeDial(AppSettingKeys.lightSolarSideWeight, 0.25);
+      for (const w of e.walls) {
+        if (!w.exterior || w.material === null) continue;
+        a += side * e.faceTransmittance(w) * w.areaM2;
+      }
+      return a;
+    }
+
+    /** Does the sun reach this room's air through any face? */
+    private hasSolarFaces(): boolean {
+      return this.solarAperture() > 0;
+    }
+
+    /**
+     * ⭐⭐ **The sun through a transparent face, in W, at game-time `atS`**
+     * (rubber build, D6): `I_noon · skyFactor(t) · weatherDim · Σ T·A·w`.
+     * The sky factor is the light walk's own curve; the dim is the scope's
+     * cached cloud factor; `I_noon` is the one calibration dial. 0 for
+     * every room with no transparent exterior face.
+     */
+    public solarGainW(atS: number): number {
+      const aperture = this.solarAperture();
+      if (!(aperture > 0)) return 0;
+      const irradiance = envelopeDial(AppSettingKeys.lightSolarNoonIrradianceWm2, 700);
+      let sky = 0;
+      try {
+        sky = CelestialApi.skyFactorAt(atS, this.climateSite().latitudeDeg);
+      } catch {
+        sky = 0;
+      }
+      const self = this as unknown as Stuff;
+      const dim = MixinApi.isAmbientLit(self) ? self.getWeatherDimFactor() : 1;
+      return irradiance * sky * dim * aperture;
+    }
+
+    /**
+     * ⭐ What this scope would settle at for a given outside, at `atS`.
+     *
+     * ⚠ DROP AT MERGE — owned by storage-and-ice (its W2: the ONE
+     * steady-state formula, `envelopeSteadyStateK(outsideK, atS)`). This
+     * copy carries the same signature and folds in rubber's terms; at
+     * rubber's merge, ice's body wins and {@link envelopeExchanges} is
+     * folded into it.
+     */
+    public envelopeSteadyStateK(outsideK: number, atS: number): number | null {
+      const coeff = this.envelopeCoefficients();
+      if (coeff === null) return null;
+      let heatW = 0;
+      for (const occupant of this.occupants()) {
+        if (MixinApi.isSpaceHeating(occupant)) heatW += occupant.spaceHeatOutputW();
+      }
+      const driveW = this.envelopeDriveW(this.envelopeTemperatureK ?? outsideK, false);
+      return this.steadyStateOf(outsideK, coeff.uWperK, heatW + driveW, this.envelopeExchanges(atS))
+        .steadyK;
     }
 
     /**

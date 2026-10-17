@@ -1599,6 +1599,19 @@ export const AppSettingKeys = {
    * of that is the bright half.
    */
   lightSolarSideWeight: "light.solar.sideWeight",
+  /**
+   * ⭐ Light — the sun's irradiance on a horizontal surface at a clear
+   * noon, W/m² (rubber build, D6). The ONE calibration constant of solar
+   * gain: the lux scale is a MUD scale (`light.sky.noonLux` is 80), so
+   * heat has its own number and shares only the sky factor and the dim.
+   */
+  lightSolarNoonIrradianceWm2: "light.solar.noonIrradianceWm2",
+  /**
+   * Envelope — the most pieces one reconcile splits a gap into to follow
+   * the sun through a transparent face (each at most a game hour). A room
+   * with no transmitting exterior face never splits.
+   */
+  envelopeSolarSegmentsMax: "envelope.solarSegmentsMax",
 
   /* ────────────────────────── light (the sky, envelope D1/D2/D4) ────────────────────────── */
   /** Light — degrees of sun depression per factor-of-ten twilight falloff

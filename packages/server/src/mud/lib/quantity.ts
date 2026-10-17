@@ -117,6 +117,9 @@ export type Unit =
   | 'm/s'
   // Ratio (humidity, etc.) — bare percent string
   | '%'
+  // Attenuation per metre — Beer–Lambert's `α` (rubber build): a layer of
+  // thickness t passes e^(−α·t) of the light falling on it.
+  | '1/m'
   // Electricity (electricity subsystem) — real, tabulated. `S/m` =
   // electrical conductivity (the material property the shock model reads,
   // sibling of `hardness`/`toughness`); `V`/`A`/`Ω` = the Ohm's-law triple
@@ -218,6 +221,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   clo: ARITHMETIC_OPS,
   'm/s': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
+  '1/m': ARITHMETIC_OPS,
   pt: ARITHMETIC_OPS,
   bpm: ARITHMETIC_OPS,
   mmHg: ARITHMETIC_OPS,
