@@ -823,6 +823,13 @@ async function runIntoCrucible(
     // trap — a fresh receptacle reads the ambient, 268 K in winter. Which
     // one fired turned on the wall clock, so the live drive found it in
     // three runs of four: "There's nothing to pour".
+    // ⭐ And its cached AMBIENT is re-resolved first: a body learns its
+    // surroundings only at a restamp, and a furnace that went out in the
+    // preheat and came back with the charge left the pot drifting toward
+    // the cold room inside a lit furnace — the run set after it was kept,
+    // slower boxes worst (runs 40 and 41). Lit and fuelled now, the
+    // restamp hands it the furnace's heat.
+    await crucible.restamp();
     crucible.setContentsTemperature(heldK);
     const to = BulkableApi.slotFor(crucible, undefined);
     const source = await StuffApi.clone<Stuff & Bulkable & Thermal>(
