@@ -1684,6 +1684,17 @@ and moves station by the hour. Implements D13.
 
 **Commit.** `feat(employment): a round is roster slots — one shift, a station per hour (repair W4)`
 
+> ✅ **W4 done (2026-10-17).** The grouping key is assignee + seat (one
+> person in two seats is two shifts, as before). ⭐ The station cache is
+> `{slot, at}` — the slot index and the path the move LANDED on — not
+> "the station": the first cut recorded the slot's station whenever a move
+> returned, and a stop that was not standing had fallen back to the
+> house's room and counted as reached, so it was never retried (the
+> "taken on the next pass" test caught it). `moveForShift` now returns the
+> path it reached. The overlap arm lives in `check-openings.ts` (all 62
+> houses pass); it has no fixture test of its own — the script is
+> main-level code, not a pure function.
+
 ### W5 — content: edges, the sword, soles, the cobbler, the tinker, the heirloom
 
 **Goal.** Everything the requirements name in the world. Implements

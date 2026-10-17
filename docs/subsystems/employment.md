@@ -672,6 +672,21 @@ retired.
   config — four rows all saying `offstage: /world/lounge/location/offstage`
   — which is the shape that lets one of them say something different by
   accident.
+- ⭐⭐ **A ROUND is roster slots** (repair D13, 2026-10-17). One assignee
+  holding one seat on several slots is ONE shift: `tickBusiness` groups
+  the slots by assignee + seat, is on while any slot's window is (the
+  first in file order — `lint:openings` refuses two that overlap, days ×
+  hours × seasons), begins the shift once, ends it once, and moves the
+  assignee to the current slot's `station` when the hour moves the round
+  on. `Roster.evaluate` per slot stays the one on-test. Where each round
+  last LANDED is a cache on the logic (`shiftStations`: the slot and the
+  path it reached), so a stop that is not standing — the hourly move is
+  live-only — falls back to the house's room and is taken on a later
+  pass, and a restart re-moves once. ⚠ Evaluated per slot, a later
+  slot's off-turn used to end the shift an earlier slot had just begun.
+  The tinker's round (five stops) is the shipped one; a postman's or a
+  roadmender's is the same rows. Walking between stops when watched is
+  a deferred seam (`trade-roster-slate`).
 - **`Offstage`** — the off-shift parking role (content packs wave 4b,
   graduated out of the lounge): `OffstageMixin` in `lib/employment/`
   (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,

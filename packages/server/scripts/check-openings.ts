@@ -195,6 +195,51 @@ for (const row of rows) {
     ? (data.rosterSlots as Array<Record<string, unknown>>)
     : [];
 
+  // ⭐ A ROUND is roster slots (repair D13): one assignee may hold one
+  // seat on several slots, and they must not overlap — two windows that
+  // both say "on" at one hour leave the station to file order. Windows
+  // overlap only when their days, hours AND seasons all meet (absent
+  // seasons = every season): a winter-only slot and a summer-only one at
+  // the same hours do not (repair P4, ice's seasonal slots).
+  {
+    type Window = { days: number[]; hours: [number, number]; seasons: string[] | null; slot: number };
+    const rounds = new Map<string, Window[]>();
+    roster.forEach((slot, i) => {
+      const k = `${String(slot.assignee ?? '')} as ${String(slot.positionKey ?? '')}`;
+      const list = rounds.get(k) ?? [];
+      for (const e of Array.isArray(slot.schedule) ? (slot.schedule as Record<string, unknown>[]) : []) {
+        const hours = Array.isArray(e.hours) ? (e.hours as number[]) : [0, 0];
+        list.push({
+          days: Array.isArray(e.days) ? (e.days as number[]).map(Number) : [],
+          hours: [Number(hours[0] ?? 0), Number(hours[1] ?? 0)],
+          seasons: Array.isArray(e.seasons) ? (e.seasons as unknown[]).map(String) : null,
+          slot: i,
+        });
+      }
+      rounds.set(k, list);
+    });
+    for (const [who, windows] of rounds) {
+      for (let a = 0; a < windows.length; a++) {
+        for (let b = a + 1; b < windows.length; b++) {
+          const x = windows[a]!;
+          const y = windows[b]!;
+          if (x.slot === y.slot) continue;
+          const days = x.days.some((d) => y.days.includes(d));
+          const hours = x.hours[0] < y.hours[1] && y.hours[0] < x.hours[1];
+          const seasons = !x.seasons || !y.seasons || x.seasons.some((s) => y.seasons!.includes(s));
+          if (days && hours && seasons) {
+            say(
+              row,
+              `${who}: roster slots ${x.slot} and ${y.slot} are both on at hours ` +
+                `${Math.max(x.hours[0], y.hours[0])}–${Math.min(x.hours[1], y.hours[1])} — ` +
+                `a round's stops must not overlap (repair D13)`,
+            );
+          }
+        }
+      }
+    }
+  }
+
   for (const p of positions) {
     const key = String(p.key ?? '(no key)');
 
