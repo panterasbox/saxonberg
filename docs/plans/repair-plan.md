@@ -1214,7 +1214,7 @@ yard; `pane` from the glass trade. ⚠ No RGO behind reed, lime or slate
 [{slate 0.008}, {oak 0.025}]`; `lobby`, `corridor`, `steps`, `cistern`
 likewise so the hall leaves rubber's census. Seznick `hall/main/
 bedroom`: `[brick 0.23]`, `roof: [{slate 0.008}, {pine 0.02}]`. Hinkley
-`house-programme`'s rooms: lime over brick, `roof: [{thatch 0.3}]` —
+`house-programme`'s **enclosed** rooms (⛔ not `lots/yard` — it is outdoors; cleanliness, 2026-10-17): lime over brick, `roof: [{thatch 0.3}]` —
 where thatch lives in the world (AC 15's *slate and thatch on one
 calendar* is a unit test; the drive's home is the dorm, where the lime
 goes before the slate). Without a `Structure`'s storeys every room's
@@ -2024,6 +2024,16 @@ generated file.
 | docs | rubber fixes its `structures-slate`/`biome-normalization-slate` notes (places own materials; **upkeep → repair W7**; erection → structures-slate) and re-points its cobbler non-goal (mending → repair; *making* boots → textiles-slate); `moulding-slate.md` lands with repair, so rubber's D10 link resolves once repair merges. |
 
 ### Repair × cleanliness
+
+✅ **Cleanliness's asks (2026-10-17, `origin/reqs/cleanliness:docs/plans/cleanliness-note-to-siblings.md` § To repair) — answered:**
+1. **Accepted.** `CraftingApi.fulfillingHand(giver, tariff, discipline?)` is public and resolves candidates **only within the Tariff's own house** (its `businessPath` / the house `collect` attributes to) — the lavoir and bathhouse are multi-house rooms. `diagnose` uses it.
+2. **Accepted.** `Tariff.quoteFor(lines)` takes priced lines; the Diagnosis → lines mapping stays in repair's arm.
+3. **Accepted.** `PricedOfferMixin` exposes `houseAccount()` and `canSettle(amount)`; repair's arm calls `canSettle(quote.total)` **before** mending (no mend that cannot be paid for — today's *on the house* failure is not a free repair), which is also its reader.
+4. **Accepted in part.** One `doService` shape: every arm returns `{ok, detail, charge?}` and `doService` settles `charge` (or the row's price) once. ⚠ The **durative helper** (transfusion, later bath) is NOT extracted here: in repair's branch it would have one consumer (transfusion); whoever adds the second durative arm (cleanliness's `bath`) extracts it from transfusion's shape (*a hook needs more than one implementer*).
+5. **Accepted, conditional.** If cleanliness lands first, repair's W1 fold-back carries `Soilable` (+ `Labelled` on Garment) onto the recomposed `Chair`/`Garment`/`Lamp` and keeps the soot-dims-the-glass factor (facing share only) inside `Lamp.getEmittedFlux`.
+6. **Accepted.** `SurveyController`: the holding line, then repair's `fabricReport` lines, then cleanliness's room line.
+7. **Accepted.** The wiki-spoiler review log: one paragraph per build, so both entries merge.
+8. **Accepted (a correction).** Hinkley `lots/yard` is outdoors — excluded from W7's `enclosure:`/`roof:` (D27).
 
 | shared | resolution |
 |---|---|
