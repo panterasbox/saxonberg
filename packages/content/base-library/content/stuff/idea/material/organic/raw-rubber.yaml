@@ -1,0 +1,43 @@
+# Raw rubber — coagulated latex, or the rubber floated off milled
+# dandelion root: tacky when warm, stiff when cold, and it creeps under a
+# load. Useful as it is for very little; cured with sulfur it becomes the
+# most useful material of the age.
+#
+# ⭐⭐ THE CURE IS DATA ON THIS ROW (rubber build, D9). `fire` reads the
+# `crosslinking` spec below and decides, from the sulfur fraction of the
+# charge, the heat it was held at and how long, which of four materials
+# comes out. There is no knowledge gate and no table in any controller:
+# anybody may try, and the window is narrow.
+class: /platform/idea/material/Material
+data:
+  name: raw rubber
+  keywords: [rubber, "raw rubber", gum, caoutchouc]
+  appearance: tacky, weeping raw rubber, stiff in the cold
+  density: 920
+  specificHeat: 1900
+  thermalConductivity: 0.14
+  hardness: 1
+  toughness: 4
+  electricalConductivity: 1.0e-12
+  waterAbsorptionCapacity: 0.5
+  elasticity: 300
+  castTemplate: /trade/rubber/thing/raw-rubber
+  crosslinking:
+    agent: sulfur
+    referenceK: 418
+    zK: 12
+    fullDoseS: 1800
+    agentOptimum: 0.03
+    agentOver: 0.20
+    scorchAboveK: 455
+    products:
+      under: /stuff/idea/material/organic/raw-rubber
+      cured: /stuff/idea/material/organic/rubber
+      over: /stuff/idea/material/organic/ebonite
+      scorched: /stuff/idea/material/organic/rubber-scorched
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # `elastomer-raw` is the tag a cure's input slot matches.
+  tags: ["organic", "elastomer", "elastomer-raw", "insulating", "polymer"]
+  composition: []

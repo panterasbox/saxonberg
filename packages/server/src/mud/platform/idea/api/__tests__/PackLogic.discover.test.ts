@@ -114,7 +114,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `trade-coopering`; 60 → 61: the dairy build adds `trade-dairying`
     // (⚠ the hazard above: a sibling branch adding a pack merges clean and
     // lands red — this one merged with a conflict instead).
-    expect(ids).toHaveLength(61);
+    // 61 → 62: the rubber build adds `trade-rubber`. ⚠⚠ It is built in
+    // PARALLEL with storage-and-ice (which adds its own packs) — at the
+    // second merge the number is the SUM, whatever git says.
+    expect(ids).toHaveLength(62);
     expect(ids[0]).toBe('platform');
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).

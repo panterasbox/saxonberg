@@ -48,6 +48,11 @@
  *     you learn it by climbing the stair.
  *   - (W2) `Material.lightAbsorption` — how much light a thickness of it
  *     passes: you hold a pane up to the sky and see.
+ *   - (W4) `Material.elasticity` — how far it stretches and springs back:
+ *     you pull it. `Material.crosslinking` — ⚠ arguably a spoiler (it is
+ *     the cure's whole curve), and deliberately level 0: the trade is a
+ *     curve you find by firing, and the requirements rule there is no
+ *     knowledge gate; a published curve is inquiry-slate's.
  *
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a

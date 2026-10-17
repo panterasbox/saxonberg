@@ -67,6 +67,9 @@ import { SchedulerApi } from '../../../../api/scheduler';
 import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
 import { Quantity } from '../../../../lib/quantity';
 import type { CompositionEntry } from '../../../../lib/material/Material';
+import type Material from '../../../../lib/material/Material';
+import type { Mould } from '../../../../lib/mould/Mould';
+import type { CrosslinkOutcome } from '../../../../lib/material/Crosslinking';
 
 const TOPIC = 'act.deed';
 
@@ -81,6 +84,8 @@ const FIRE_EFFORT_W = 420;
 
 export interface FireModel extends CommandModel {
   kiln?: MqlOneResult;
+  /** `for 30 minutes` — how long to hold the chamber at heat. */
+  hold?: string;
 }
 
 /** One matched slot: the recipe's demand, and the items that answer it. */
@@ -95,6 +100,16 @@ interface Firing {
   matched: MatchedSlot[];
   /** How many whole output units the charge supports. */
   batches: number;
+  /** The mould the charge stands in, when it stands in one. */
+  mould: (Stuff & Mould) | null;
+}
+
+/** What `runFiring` is told about the act beyond the recipe. */
+interface FiringAct {
+  /** Game-seconds the chamber is held at heat. */
+  holdS: number;
+  /** The temperature it was holding when the firing began, K. */
+  heldK: number;
 }
 
 export default class FireController extends CommandController<FireModel> {
@@ -112,7 +127,33 @@ export default class FireController extends CommandController<FireModel> {
     }
     const kiln = bound as Stuff & Container & Burner;
 
-    const charge = kiln.getContents().filter((c) => MixinApi.isTangible(c));
+    // ⭐ The charge is what the chamber holds — and, one level down, what a
+    // MOULD standing in it holds (the firing asks the mould for its shape).
+    // A mould is the only container this reaches into, and it asks
+    // `isMould`, never a class.
+    const loaded: Stuff[] = kiln.getContents().filter((c) => MixinApi.isTangible(c));
+    const moulds: Array<Stuff & Container & Mould> = [];
+    for (const c of loaded) {
+      if (MixinApi.isMould(c) && MixinApi.isContainer(c)) {
+        moulds.push(c as Stuff & Container & Mould);
+      }
+    }
+    const charged = moulds.filter((m) =>
+      m.getContents().some((c: Stuff) => MixinApi.isTangible(c)),
+    );
+    if (charged.length > 1) {
+      this.decline(
+        context,
+        Mml.compose`There is a charge in more than one mould in ${Mml.thing(kiln)}. Fire one mould at a time.`,
+        'mixed-charge',
+      );
+      return;
+    }
+    const mould = charged[0] ?? null;
+    const charge: Stuff[] =
+      mould !== null
+        ? mould.getContents().filter((c: Stuff) => MixinApi.isTangible(c))
+        : loaded.filter((c) => !MixinApi.isMould(c));
     if (charge.length === 0) {
       this.decline(
         context,
@@ -122,7 +163,21 @@ export default class FireController extends CommandController<FireModel> {
       return;
     }
 
-    const firings = await this.firingsFor(charge);
+    // `for <how long>` — the world clock's own grammar.
+    let holdOverrideS: number | null = null;
+    if (typeof model.hold === 'string' && model.hold.trim() !== '') {
+      holdOverrideS = FireController.parseHoldS(model.hold);
+      if (holdOverrideS === null) {
+        this.decline(
+          context,
+          Mml.compose`Fire it for how long? Say it the way a clock does — "for 30 minutes", "for 2 hours".`,
+          'bad-duration',
+        );
+        return;
+      }
+    }
+
+    const firings = await this.firingsFor(charge, mould);
     if (firings.length === 0) {
       this.decline(
         context,
@@ -172,14 +227,19 @@ export default class FireController extends CommandController<FireModel> {
       return;
     }
 
-    this.engage(context, () => {
+    // ⭐ The hold: the one you named, else the recipe's own, else a minute.
+    const authoredHoldS = firing.recipe.getAuthoredHoldS();
+    const holdS =
+      holdOverrideS ?? (authoredHoldS > 0 ? authoredHoldS : FIRE_MS / 1000);
+    const act: FiringAct = { holdS, heldK: held };
+    this.engage(context, holdS * 1000, () => {
       // ⚠⚠ A module function over captured locals, never `this.<method>`: a
       // controller is one ephemeral clone per execution and is destructed the
       // moment `execute` returns, while a firing holds the chamber at heat
       // for a game minute. A completion calling back into it would run on a
       // destroyed Stuff and the proxy would answer with a silent no-op — the
       // charge would go in and nothing would ever come out.
-      void runFiring(context, kiln, firing);
+      void runFiring(context, kiln, firing, act);
     });
   }
 
@@ -195,7 +255,10 @@ export default class FireController extends CommandController<FireModel> {
    * transform of solids in a chamber, and a bulk slot means the recipe wants
    * a vessel and a measure, which is somebody else's act.
    */
-  private async firingsFor(charge: readonly Stuff[]): Promise<Firing[]> {
+  private async firingsFor(
+    charge: readonly Stuff[],
+    mould: (Stuff & Mould) | null,
+  ): Promise<Firing[]> {
     const catalogue = StuffApi.findByTemplatePath<RecipeCatalogue>(CATALOGUE_PATH);
     if (catalogue === null || catalogue === undefined) return [];
     const out: Firing[] = [];
@@ -226,17 +289,39 @@ export default class FireController extends CommandController<FireModel> {
         batches = Math.min(batches, Math.floor(items.length / per));
       }
       if (!ok || !(batches >= 1)) continue;
-      out.push({ recipe, matched, batches });
+      out.push({ recipe, matched, batches, mould });
     }
     return out;
   }
 
-  /** Hold the chamber at heat over game time — the smelt's engagement. */
-  private engage(context: CommandContext, onDone: () => void): void {
+  /**
+   * `"30 minutes"`, `"2 hours"`, `"1 day"` → game-seconds; `null` when it
+   * is not a duration. The world clock's own grammar.
+   */
+  private static parseHoldS(text: string): number | null {
+    const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/i.exec(text);
+    if (!m) return null;
+    const n = Number(m[1]);
+    const unit = (m[2] ?? '').toLowerCase();
+    const per = unit === 'second' ? 1 : unit === 'minute' ? 60 : unit === 'hour' ? 3600 : 86_400;
+    const s = n * per;
+    return s > 0 ? s : null;
+  }
+
+  /**
+   * Hold the chamber at heat over game time — the smelt's engagement.
+   *
+   * ⭐ A long hold is SEALED DOWN and watched, not worked: the tending is
+   * a minute's stoking spread over the hold, so the effort is the same
+   * whatever the hold, and a two-hour cure does not exhaust anybody.
+   */
+  private engage(context: CommandContext, holdMs: number, onDone: () => void): void {
     const giver = context.commandGiver;
+    const durationMs = Math.max(FIRE_MS, holdMs);
+    const effortW = (FIRE_EFFORT_W * FIRE_MS) / durationMs;
     if (
       MixinApi.isExerting(giver) &&
-      !giver.canExert(FIRE_EFFORT_W, FIRE_MS / 1000)
+      !giver.canExert(effortW, durationMs / 1000)
     ) {
       this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
       return;
@@ -248,8 +333,8 @@ export default class FireController extends CommandController<FireModel> {
     const step = new ManualBuildStep({
       actor: giver,
       slots: ['attention'],
-      durationMs: FIRE_MS,
-      effortW: FIRE_EFFORT_W,
+      durationMs,
+      effortW,
       onComplete: onDone,
     });
     const result = SchedulerApi.start(step);
@@ -301,10 +386,56 @@ function emitIntoScope(from: Stuff, materialPath: string, litres: number): void 
   }
 }
 
+/**
+ * ⭐ The cure's own grade on a cast — the weaker of the cure's and the
+ * mould's (weakest link: a fine mould cannot rescue a scorched cure, and a
+ * cracked mould spoils a fine one) — and who made it.
+ */
+function stampCure(cast: Stuff, cure: CrosslinkOutcome | null, makerPath: string): void {
+  if (MixinApi.isCrafted(cast) && makerPath !== '' && cast.getMaker() === '') {
+    cast.setMaker(makerPath);
+  }
+  if (cure === null || !MixinApi.isGraded(cast)) return;
+  cast.setGrade(cast.getGrade().min(cure.grade));
+}
+
+/** The material a tangible is made of, or `null`. */
+function materialOf(s: Stuff): Material | null {
+  if (!MixinApi.isTangible(s)) return null;
+  return (s as Stuff & { getMaterial(): Material | null }).getMaterial() ?? null;
+}
+
+/**
+ * ⭐⭐ The cure (rubber build, D9): when a consumed input's MATERIAL carries
+ * a `crosslinking` spec, the charge's agent fraction (the agent-tagged
+ * mass over the whole consumed mass — what the player weighed), the heat
+ * held and the time held decide which material comes out. No table, no
+ * rubber word: a material with no spec never enters this.
+ */
+function cureOf(consumed: readonly Stuff[], act: FiringAct): CrosslinkOutcome | null {
+  const feed = consumed.map(materialOf).find((m) => m?.getCrosslinking()) ?? null;
+  const spec = feed?.getCrosslinking() ?? null;
+  if (spec === null) return null;
+  let total = 0;
+  let agent = 0;
+  for (const c of consumed) {
+    if (!MixinApi.isTangible(c)) continue;
+    const kg = c.getMass().rawValue();
+    total += kg;
+    if (c.hasMaterialTag(spec.getAgent())) agent += kg;
+  }
+  return spec.outcome({
+    agentFraction: total > 0 ? agent / total : 0,
+    heldK: act.heldK,
+    holdS: act.holdS,
+  });
+}
+
 async function runFiring(
   context: CommandContext,
   kiln: Stuff & Container & Burner,
   firing: Firing,
+  act: FiringAct,
 ): Promise<void> {
   const giver = context.commandGiver;
   const watching = !giver.isDestroyed();
@@ -312,10 +443,20 @@ async function runFiring(
   // Consume exactly `batches × count` out of each slot, and no more: a
   // charge of seven where the firing takes two yields three and leaves one,
   // which is what a lime-burner's odd stone actually does.
+  //
+  // ⭐ Except a CURE, which is one piece: everything the slots matched is
+  // the charge, because the agent fraction is what the player weighed into
+  // it, and a counted batch would decide it for them.
   const consumed: Stuff[] = [];
-  for (const m of firing.matched) {
-    const per = Math.max(1, m.slot.count ?? 1);
-    consumed.push(...m.items.slice(0, per * firing.batches));
+  const allMatched = firing.matched.flatMap((m) => m.items);
+  const cure = cureOf(allMatched, act);
+  if (cure !== null) {
+    consumed.push(...allMatched);
+  } else {
+    for (const m of firing.matched) {
+      const per = Math.max(1, m.slot.count ?? 1);
+      consumed.push(...m.items.slice(0, per * firing.batches));
+    }
   }
   // ⭐ The firing CARRIES its charge (D6). Two intensive/extensive facts
   // the output inherits when the recipe authors them, and nothing more:
@@ -349,7 +490,65 @@ async function runFiring(
   }
 
   const outputs: Stuff[] = [];
-  for (let i = 0; i < firing.batches; i += 1) {
+  const cureMaterial =
+    cure !== null ? StuffApi.findByTemplatePath<Material>(cure.materialPath) ?? null : null;
+  const makerPath = giver.isDestroyed() ? '' : giver.getIdentityPath() ?? '';
+  const castKg = massYield > 0 ? totalConsumedKg * massYield : totalConsumedKg;
+
+  // ⭐⭐ THE MOULD SEAM (rubber build, D10; owned by moulding-slate § 5 —
+  // origin/reqs/repair:docs/slates/builds/moulding-slate.md until repair
+  // merges). A charge that stood in a mould comes out in the MOULD's
+  // shape: the firing hands the mould a pool and the mould mints the cast,
+  // exactly as the freeze edge does — shape, material, mass, wear and its
+  // grade all ride the mould's one path. No rubber word here: bread in a
+  // tin and a fired brick take the same branch.
+  if (firing.mould !== null) {
+    const material =
+      cureMaterial ??
+      (firing.recipe.getOutputMaterial()
+        ? StuffApi.findByTemplatePath<Material>(firing.recipe.getOutputMaterial()) ?? null
+        : null) ??
+      materialOf(consumed[0] as Stuff);
+    if (material === null) {
+      console.error(`FireController: no material to cast for '${firing.recipe.getRecipeId()}'`);
+      return;
+    }
+    const cast = await firing.mould.castInto({
+      material,
+      massKg: castKg,
+      payload: null,
+      stampMaterial: true,
+    });
+    if (cast === null) {
+      if (watching) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`The firing comes to nothing — and that is a fault in the books, not in your work.`)
+          .send();
+      }
+      return;
+    }
+    stampCure(cast, cure, makerPath);
+    outputs.push(cast);
+  } else if (cure !== null) {
+    // No mould: the cure comes out as its material's own lump.
+    const lump = cureMaterial?.getCastTemplate() || firing.recipe.getOutputTemplate();
+    try {
+      const made = await StuffApi.clone<Stuff>(lump);
+      if (cureMaterial !== null) {
+        (made as Stuff & { setMaterial?(m: Material): void }).setMaterial?.(cureMaterial);
+      }
+      if (MixinApi.isTangible(made)) made.setMass(Quantity.of(castKg, 'kg'));
+      stampCure(made, cure, makerPath);
+      if (MixinApi.isContainable(made)) ContainmentApi.move(made as Stuff & Containable, kiln);
+      outputs.push(made);
+    } catch {
+      console.error(`FireController: cure lump '${lump}' did not resolve`);
+      return;
+    }
+  }
+  const shapedOrCured = outputs.length > 0;
+  for (let i = 0; !shapedOrCured && i < firing.batches; i += 1) {
     try {
       const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate());
       if (massYield > 0 && MixinApi.isTangible(made)) {

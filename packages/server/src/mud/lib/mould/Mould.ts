@@ -225,8 +225,26 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this.castTemplate || material.getCastTemplate();
     }
 
+    /**
+     * ⭐ True while a CAST sits in the mould — a thing of this mould's
+     * shape, or the lump a cracked mould casts (a thing that is its own
+     * material's cast). ⚠ Not "anything in it" (rubber build): a mould
+     * charged with solids waiting to be fired — raw rubber and sulfur —
+     * holds a charge, not a cast, and must not read *"what was poured in
+     * has set"*. Moulding's pressing (a plastic charge in a cavity) needs
+     * the same answer.
+     */
     public holdsCast(): boolean {
-      return this.getContents().length > 0;
+      for (const c of this.getContents()) {
+        const path = (c as Stuff).getTemplatePath();
+        if (path === null) continue;
+        if (this.castTemplate !== '' && path === this.castTemplate) return true;
+        const m = MixinApi.isTangible(c as Stuff)
+          ? ((c as unknown as { getMaterial(): Material | null }).getMaterial() ?? null)
+          : null;
+        if (m !== null && m.getCastTemplate() === path) return true;
+      }
+      return false;
     }
 
     public loadKg(): number {

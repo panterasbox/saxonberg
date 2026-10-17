@@ -17,6 +17,8 @@ data:
   electricalConductivity: 1.0e-9
   # Water absorption capacity (% of dry mass, ASTM D570): leather takes water moderately.
   waterAbsorptionCapacity: 15
+  # Elasticity (% strain it springs back from; rubber build).
+  elasticity: 10
   edibility: false
   nutrients: []
   toxicity: []

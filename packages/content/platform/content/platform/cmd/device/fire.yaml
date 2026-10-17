@@ -19,11 +19,18 @@ help: |
 
   ⚠ One firing at a time: a chamber holding two things that want different
   heats is told so rather than averaged.
+
+  ⭐ **`for <how long>` holds it** (`fire the oven for 30 minutes`). A
+  cure is heat × time: without it the firing holds as long as its recipe
+  says, else a minute. A charge loaded INTO a mould standing in the
+  chamber comes out in the mould's shape.
 examples:
   - cmd: fire the kiln
     note: Run whatever is loaded in it
   - cmd: burn lime
     note: The lime-burner's own words for the same act
+  - cmd: fire the oven for 30 minutes
+    note: Hold the charge at heat for a stated time — a cure is heat and time
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -42,3 +49,11 @@ args:
     requires: [BurnerMixin]
     validators:
       - /lib/command/validators/canReach
+  # ⭐ HOW LONG to hold it — `for 30 minutes`, `for 2 hours` (the world
+  # clock's own grammar). Optional: a recipe's `holdS`, else a minute.
+  # ⚠ `greedy: true` — "2 hours" is two tokens and one duration.
+  - name: hold
+    type: string
+    required: false
+    greedy: true
+    prepositions: [for]

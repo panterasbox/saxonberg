@@ -1,0 +1,15 @@
+# A lump of raw rubber — coagulated latex or the rubber floated off milled
+# dandelion root, as it comes: tacky when it is warm and stiff when it is
+# cold. Raw rubber's own cast shape (its material's `castTemplate`), so an
+# under-cured charge fired with no mould comes out as one of these.
+# Mass is stamped by whatever made it.
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of raw rubber
+  keywords: [rubber, "raw rubber", lump, gum]
+  register: indefinite
+  longDescription: |
+    A pale brown lump of raw rubber, tacky where it is warm and stiff where
+    it has gone cold, that gives under your thumb and slowly creeps back.
+  _materialPath: /stuff/idea/material/organic/raw-rubber
+  mass: 0.5

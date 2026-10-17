@@ -1,0 +1,13 @@
+# Burnt (scorched) rubber — a good charge held too hot: blistered, brittle-skinned
+# and short of its spring. The cure's fourth outcome (rubber build, D9):
+# a ROW rather than a flag on every crafted thing, so it says what it is
+# through its own material.
+extends: /stuff/idea/material/organic/rubber
+data:
+  name: burnt rubber
+  keywords: [rubber, "burnt rubber"]
+  appearance: blistered, brittle-skinned rubber that smells of burning
+  hardness: 12
+  toughness: 8
+  elasticity: 120
+  tags: ["organic", "elastomer", "insulating", "polymer", "synthetic", "scorched"]

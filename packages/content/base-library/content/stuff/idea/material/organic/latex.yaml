@@ -1,0 +1,34 @@
+# Latex — the milky sap a rubber tree bleeds when its bark is cut: a
+# colloid of rubber particles in water, about 60 % water by mass.
+#
+# ⭐ It sets the way curd does (rubber build, D13.2): left standing in a
+# coagulating pan it coagulates and gives up its serum, and what is left
+# is a sheet of raw rubber. The physics is the dairy's drain set — the
+# same hook, the same numbers — so nothing about latex is new code.
+# ⚠ It sets only in a MOULD (a coagulating pan): a cup of it left
+# standing stays latex. That is a stated abstraction.
+class: /platform/idea/material/Material
+data:
+  name: latex
+  keywords: [latex, sap, "rubber sap"]
+  appearance: thick white milk that smells faintly of ammonia
+  density: 980
+  specificHeat: 3600
+  thermalConductivity: 0.5
+  electricalConductivity: 0.05
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: false
+  nutrients: ["water"]
+  # ⚠ The drain's mass loss reads the water share: without it the sheet
+  # would keep the whole pool's mass.
+  nutrientAmounts: { water: 600000 }
+  toxicity: []
+  tags: ["latex", "organic", "colloid", "once-living"]
+  drainSetting:
+    days: 1
+    becomes: /stuff/idea/material/organic/raw-rubber
+    moisture: { unloaded: 0.6, loaded: 0.4 }
+    loadRef: 2
+  composition: []
