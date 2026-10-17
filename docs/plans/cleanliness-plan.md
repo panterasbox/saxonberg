@@ -2740,7 +2740,34 @@ Read first, in this order.
 - **B33 — The fisher remarks on a coat; the pilot does not** (she has no
   behaviours to add a line to). The washerwoman is an `Extra` answering to
   the laundry (`institution:`), per `lint:identity`.
+- **B34 — The opening IS the pane.** The three kitchens' prose `window`
+  detail is gone (it made `wash window` ambiguous against the real pane);
+  `lint:light-sources` accepts a Window prop whose keywords carry the
+  opening's word as the thing you can look at.
 
 ## Drive record
 
 *(appended at build time, not at plan time)*
+
+`packages/wire/tests/cleanliness.dirty.wire.test.ts`, `WIRE_BOOT=1
+WIRE_PORT=2013`. Runs, and what each found:
+
+- **Run 1 (smoke)** — 3/3: the lavoir off the bank, the bathhouse north of
+  the square, the cookhouse window and its survey line.
+- **Run 2** (fresh DB) — 3/18. The drive's own mistakes: `clone` refuses a
+  row with a live instance on ground the founder holds no title to
+  (gloves, sulfur, a flue brush are BOUGHT now). And two real defects:
+  - ⚠ **a served dish dropped no crumbs** — `EatController`'s dish path
+    (a stew in a bowl) never reached the crumbs; both paths share
+    `leaveCrumbs` now;
+  - ⚠ **the stalls stamped on first READ** — a fresh world's byre began
+    fouling from the first look; `setStalls` starts the clock when the row
+    applies it.
+- **Run 3** — the doorman refuses in his own words (*"not in that state —
+  there's a bathhouse off the market"*). The drive's own mistakes:
+  `butcher first carcass` parses `first` as the body (no ordinal in that
+  binder) — the drive answers the ambiguity prompt instead; `heat surgical
+  kit` is two words for a one-token arg; a fresh avatar wears no shirt.
+  Found: the free `analyze atmosphere` names only what is OBVIOUS (8 %),
+  and flour flashes at 1 % — honest (*you cannot see a flammable share*),
+  so the drive reads it with a trained nose.

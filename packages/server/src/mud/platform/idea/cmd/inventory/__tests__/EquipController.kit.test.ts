@@ -267,6 +267,20 @@ describe('`unequip`', () => {
     expect(worn(body)).toEqual([]);
   });
 
+  it('⚠ `remove apron` with no apron on is a refusal, never a strip (the drive)', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const c = ctx(body, loc, 'remove');
+    await makeStuff(() => new UnequipController()).execute({ manner: 'apron' } as never, c);
+    await settle();
+    expect(worn(body)).toEqual(['shirt']);
+    expect(
+      c.getNotes().some((n) => (n as { reason?: string }).reason === 'not-worn'),
+    ).toBe(true);
+  });
+
   it('refuses readably with nothing on', async () => {
     const { body, loc } = standUp();
     const c = ctx(body, loc);

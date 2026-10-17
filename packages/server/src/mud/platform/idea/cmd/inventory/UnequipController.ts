@@ -61,8 +61,22 @@ export default class UnequipController extends CommandController<UnequipModel> {
         `UnequipController: requiresSlotted should have caught ${giver.stuffId}`,
       );
     }
+    // ⚠ Found by the drive: `remove apron` with no apron on bound the word
+    // as the MANNER, left no target, and fell through to the strip below —
+    // the player stood naked in the hall. A manner word that is not a
+    // manner, or a manner with nothing to take off, is a refusal.
+    const manner = (model.manner ?? '').trim();
+    if (manner !== '' && (!model.target?.stuff || !/^(careful|quick|hast)/i.test(manner))) {
+      const what = manner;
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You aren't wearing ${what}.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'not-worn', detail: what });
+      return;
+    }
     if (model.target?.stuff) {
-      const careful = /^careful/i.test((model.manner ?? '').trim());
+      const careful = /^careful/i.test(manner);
       await this.takeOff(model.target.stuff, context, giver, false, careful);
       return;
     }

@@ -774,6 +774,23 @@ export function FloorMixin<
       return s;
     }
 
+    /**
+     * ⭐ The row's `stalls` (the applier's `set<Field>`), and the clock
+     * starts with it — found by the drive: stamped only at the first READ,
+     * a fresh world's byre began fouling from the first look rather than
+     * from when the herd was there.
+     */
+    public setStalls(value: { herdbook: string } | null): void {
+      this.stalls = value;
+      if (value && this.stallsStamp === 0) {
+        try {
+          this.stallsStamp = WorldClockApi.getNow().rawValue();
+        } catch {
+          // No clock yet (a bare construction): the first read stamps.
+        }
+      }
+    }
+
     public reconcileStalls(): void {
       if (!this.stalls) return;
       const self = this as unknown as Stuff;

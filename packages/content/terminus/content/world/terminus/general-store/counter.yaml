@@ -137,6 +137,8 @@ data:
     - { itemTemplatePath: /trade/apiculture/thing/honey-jar, par: 4 }
     - { itemTemplatePath: /stuff/thing/clothes/bee-veil, par: 2 }
     - { itemTemplatePath: /stuff/thing/clothes/work-gloves, par: 3 }
+    # ⭐ A wool jumper (cleanliness D26) — what the wash teaches with.
+    - { itemTemplatePath: /stuff/thing/clothes/jumper, par: 3 }
     # ⚠⚠ **ONE labelled faucet: the bees themselves.** A new beekeeping
     # district really does start by importing a colony, and after the
     # first one splits and swarms supply themselves — so this is one line
@@ -578,6 +580,7 @@ data:
     /trade/apiculture/thing/honey-jar: 2
     /stuff/thing/clothes/bee-veil: 5
     /stuff/thing/clothes/work-gloves: 4
+    /stuff/thing/clothes/jumper: 6
     # ⚠ The one faucet, and the dearest thing on the shelf under the
     # musket. Bees are cheap to keep and expensive to start.
     /trade/apiculture/thing/nuc: 45
