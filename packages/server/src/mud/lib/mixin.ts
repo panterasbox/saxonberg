@@ -555,6 +555,8 @@ export const Mixins = {
   // line — and the good's own declaration of how it pools.
   Store: 'StoreMixin',
   Poolable: 'PoolableMixin',
+  // The house's book — the instrument that affords deposit/withdraw.
+  StoreBook: 'StoreBookMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.
@@ -936,6 +938,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // you can work" tells somebody what to go and find.
   AlloyedMixin: "{} isn't metal stock you can work",
   CompositionMixin: "{} has no make-up to read",
+  StoreBookMixin: "{} isn't the book a store is kept in",
+  StoreMixin: "{} isn't a store you could take stock of",
   TemperedMixin: "{} can't be tempered",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",

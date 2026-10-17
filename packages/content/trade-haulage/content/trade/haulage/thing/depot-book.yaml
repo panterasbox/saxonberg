@@ -1,0 +1,15 @@
+# The depot book — the ledger on the counter that the goods shed's
+# receipts are written in and drawn against (storage-and-ice W3). The
+# INSTRUMENT custody is done with: it affords `deposit` and `withdraw` to
+# whoever stands at the counter, and `look book` reads who is owed what.
+class: /platform/thing/StoreBook
+data:
+  shortDescription: depot book
+  keywords: [book, ledger, "depot book", receipts]
+  register: definite
+  longDescription: |
+    A fat canvas-bound ledger chained to the counter rail, its pages ruled for date, depositor, goods and bay, half of them already filled in a clerk's cramped hand.
+  storePath: /trade/haulage/thing/warehouse
+  fixedInPlace: true
+  mass: 3
+  _materialPath: /stuff/idea/material/textile/linen

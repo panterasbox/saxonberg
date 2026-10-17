@@ -260,6 +260,8 @@ export interface Employed {
   getEmployments(): readonly Employment[];
   /** The record at `organizationPath`, or undefined. */
   getEmployment(organizationPath: string): Employment | undefined;
+  /** On shift for this one organization (any shift elsewhere does not count). */
+  isOnShiftFor(organizationPath: string): boolean;
   /** The first still-active (not quit/fired) employment, or undefined. */
   getActiveEmployment(): Employment | undefined;
   /**
@@ -421,6 +423,16 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public isOnShift(): boolean {
       return (this.employments ?? []).some((e) => e.status === 'on-shift');
+    }
+
+    /**
+     * On shift for ONE organization — the read a store asks before it lets
+     * staff act on the house's claim (storage-and-ice D6). `isOnShift()`
+     * answers for any employment; a cook on shift at the cookhouse is not
+     * on shift at the icehouse.
+     */
+    public isOnShiftFor(organizationPath: string): boolean {
+      return this.getEmployment(organizationPath)?.isOnShift() ?? false;
     }
 
     public isFulfilling(discipline?: string): boolean {

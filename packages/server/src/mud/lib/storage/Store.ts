@@ -51,6 +51,8 @@ import type { Atmospheric } from '../biome/Atmospheric';
 import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import type { Poolable, StoreConditions } from './Poolable';
 import type { StoreLine, StoreSeedLine } from './StoreLine';
+import type { ReceiptTerms, StoreReceipt } from './Receipt';
+import type { Business } from '../../platform/idea/Business';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -62,6 +64,9 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { DocumentApi } from '../../api/document';
+import { EmploymentApi } from '../../api/employment';
+import { SecurityApi } from '../../api/security';
 
 /** A face is any pooled good the store holds as a line's exemplar. */
 type PoolableStuff = Stuff & Containable & Poolable;
@@ -83,6 +88,26 @@ interface Arrival {
   /** Who held it as it was offered, when that was an actor. */
   putter: Stuff | null;
 }
+
+/** What a custody act answers: the receipt it wrote, or a refusal in words. */
+export type CustodyOutcome =
+  | {
+      ok: true;
+      receipt: StoreReceipt;
+      receiptPath: string;
+      /** Kilograms moved by the act (deposited or paid out). */
+      amountKg: number;
+      /** The goods handed over by a withdrawal. */
+      goods: Stuff[];
+      /** The fee charged, minor units (withdrawal only). */
+      feeMinor: number;
+    }
+  | { ok: false; reason: string; line: string };
+
+/** The kind every store receipt is filed as (the closed business-paper three). */
+const RECEIPT_KIND = 'warehouse-receipt';
+/** Where a business's receipts live under its branch. */
+const RECEIPTS_DIR = 'warehouse-receipts';
 
 /** The smallest line worth keeping, kg. */
 const LINE_EPSILON_KG = 1e-6;
@@ -116,6 +141,36 @@ export interface Store {
   roomHeatExchange(): RoomHeatExchange;
   /** Days the stock of `goodPath` lasts at its current loss + draw. */
   daysOfSupply(goodPath: string): number;
+
+  // ── custody (D6) ──
+  /** The business that keeps this store (the bailee). */
+  getBusinessPath(): string;
+  /** The printed terms. */
+  getTerms(): ReceiptTerms;
+  /** Is `actor` on shift for the house that keeps this store? */
+  isStaffOnShift(actor: Stuff): boolean;
+  /** The keeper on shift in `room`, or `null` — who can take a deposit. */
+  custodianIn(room: Stuff | null): Stuff | null;
+  /** Take a good in on a receipt. */
+  deposit(item: Stuff & Containable, actor: Stuff): Promise<CustodyOutcome>;
+  /**
+   * Receive a good on a receipt in `depositor`'s name — the intake BELOW
+   * the custody act (no keeper check): what `deposit` runs once the keeper
+   * is satisfied, and what a depot's programmatic intake calls.
+   */
+  receive(item: Stuff & Containable, depositor: string): Promise<CustodyOutcome>;
+  /** Pay `units` of `good` out against the actor's (or the house's) receipt. */
+  withdraw(actor: Stuff, good: string, units?: number): Promise<CustodyOutcome>;
+  /** Draw `units` of a good on the HOUSE's claim (a counter bringing stock up). */
+  drawForHouse(goodPath: string, units: number): Promise<Stuff[]>;
+  /** Every outstanding receipt of `depositor` here. */
+  receiptsFor(depositor: string): Promise<StoreReceipt[]>;
+  /** Every outstanding receipt on a line. */
+  claimsOn(poolKey: string): Promise<StoreReceipt[]>;
+  /** Every outstanding receipt in this store. */
+  allClaims(): Promise<StoreReceipt[]>;
+  /** The claims as last read (sync — what the book shows). */
+  cachedClaims(): StoreReceipt[];
 }
 
 export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -134,6 +189,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // content; once the ledger exists it is play (the
       // `MarketStalls.pitches` rule).
       seedLines: { authorable: true },
+      // ── custody (D6) ──
+      businessPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+      keeperPositions: { persistent: true, authorable: true },
+      terms: { persistent: true, authorable: true },
+      acceptsLiveGoods: { persistent: true, authorable: true },
     };
 
     /** The ledger. */
@@ -148,6 +208,18 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public acceptsPoolKeys: string[] | null = null;
     /** What the row seeds the ledger with on first creation. */
     public seedLines: StoreSeedLine[] = [];
+    /** The business that keeps this store — the bailee on every receipt. */
+    public businessPath = '';
+    /** The positions whose holders may take a deposit (the Stock `serverPositionKeys` shape). */
+    public keeperPositions: string[] = [];
+    /** The terms printed on every receipt. */
+    public terms: ReceiptTerms = { allowancePct: 10, feeMinorPerKg: 0 };
+    /** Whether this store holds unique goods live (a depot's crates), one receipt each. */
+    public acceptsLiveGoods = false;
+    /** Transient: the claims as last read from the document tree. */
+    private _claimsCache: StoreReceipt[] = [];
+    /** Transient: arrivals a custody act is booking itself (no house credit). */
+    private _booked = new Set<string>();
 
     /** Transient: stuffId of each face → the line key it shows. */
     private _faces = new Map<string, string>();
@@ -223,6 +295,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this._pendingPutters.set(item.stuffId, holder);
       }
       if (!MixinApi.isPoolable(item)) {
+        if (this.acceptsLiveGoods) return { ok: true };
         return { ok: false, reason: 'That does not go in a stack like this.' };
       }
       const key = item.poolKey();
@@ -327,6 +400,12 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           }
         }
         line.amountKg += a.massKg;
+        // ⭐ Staff on shift putting stock on the stack put it on the HOUSE's
+        // claim; anyone else adds stock and no claim — off the books.
+        const booked = this._booked.delete(a.item.stuffId);
+        if (!booked && a.putter && this.isStaffOnShift(a.putter)) {
+          await this.creditHouse(line, a.massKg);
+        }
         if (a.item.isDestroyed()) continue;
         if (this.faceFor(a.key) === null) {
           this._faces.set(a.item.stuffId, a.key);
@@ -548,6 +627,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       this.restampFaces();
       await this.captureSelf();
+      await this.allClaims();
     }
 
     /** Every face shows its line again — the face is a VIEW. */
@@ -652,6 +732,355 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
     }
 
+    // ─────────────────────────── custody (D6) ───────────────────────────
+
+    public getBusinessPath(): string {
+      return this.businessPath;
+    }
+
+    public getTerms(): ReceiptTerms {
+      return { ...this.terms };
+    }
+
+    public isStaffOnShift(actor: Stuff): boolean {
+      if (!this.businessPath || !MixinApi.isEmployed(actor)) return false;
+      return actor.isOnShiftFor(this.businessPath);
+    }
+
+    /**
+     * The keeper on shift in `room`: an occupant employed by the house, on
+     * shift, in one of the keeper positions (any position when none are
+     * authored).
+     */
+    public custodianIn(room: Stuff | null): Stuff | null {
+      if (room === null || !MixinApi.isContainer(room) || !this.businessPath) return null;
+      for (const occ of room.getContents()) {
+        if (!MixinApi.isEmployed(occ)) continue;
+        const e = occ.getEmployment(this.businessPath);
+        if (!e || !e.isOnShift()) continue;
+        if (this.keeperPositions.length > 0 && !this.keeperPositions.includes(e.positionKey)) {
+          continue;
+        }
+        return occ;
+      }
+      return null;
+    }
+
+    /**
+     * ⭐ Take a good in on a receipt. The mixin owns the sequence:
+     * reconcile → the keeper (or staff on shift, who need none) → move it
+     * in (the container's own veto refuses a full house) → absorb → issue
+     * or increment the receipt in the depositor's name (the house's, for
+     * staff on shift). Refusals are returned, in words.
+     */
+    public async deposit(item: Stuff & Containable, actor: Stuff): Promise<CustodyOutcome> {
+      await this.reconcile();
+      const business = await this.resolveBusiness();
+      if (business === null) {
+        return { ok: false, reason: 'no-bailee', line: 'Nobody keeps this store.' };
+      }
+      const staff = this.isStaffOnShift(actor);
+      const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      if (!staff && this.custodianIn(room) === null) {
+        return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
+      }
+      const depositor = staff ? this.businessPath : actor.getIdentityPath() ?? '';
+      return this.receive(item, depositor);
+    }
+
+    public async receive(item: Stuff & Containable, depositor: string): Promise<CustodyOutcome> {
+      const business = await this.resolveBusiness();
+      if (business === null) {
+        return { ok: false, reason: 'no-bailee', line: 'Nobody keeps this store.' };
+      }
+      if (!depositor) return { ok: false, reason: 'no-depositor', line: 'There is nobody to write the receipt to.' };
+      const veto = this.canAddContainable(item);
+      if (!veto.ok) {
+        return { ok: false, reason: 'refused', line: veto.reason ?? 'The store will not take that.' };
+      }
+      const what = item.getPresentation();
+
+      if (!MixinApi.isPoolable(item)) {
+        // A unique good is held LIVE: one receipt, for one.
+        const goodPath = item.getTemplatePath() ?? '';
+        const id = liveIdOf(item);
+        ContainmentApi.move(item, this as unknown as Stuff & Container);
+        const receipt = this.newReceipt(depositor, goodPath, `live:${id}`, 'count', 1, 1, what);
+        const receiptPath = await this.fileReceipt(business, receipt);
+        await this.captureSelf();
+        return { ok: true, receipt, receiptPath, amountKg: 1, goods: [], feeMinor: 0 };
+      }
+
+      const key = item.poolKey();
+      const massKg = massKgOf(item);
+      const unitKg = unitMassKgOf(item);
+      const goodPath = item.getTemplatePath() ?? '';
+      this._booked.add(item.stuffId);
+      ContainmentApi.move(item, this as unknown as Stuff & Container);
+      await this.whenSettled();
+      const line = this.lines.find((l) => l.poolKey === key);
+      const receipt = await this.creditClaim(business, depositor, line?.goodPath || goodPath, key, massKg, unitKg, what);
+      return { ok: true, receipt: receipt.receipt, receiptPath: receipt.path, amountKg: massKg, goods: [], feeMinor: 0 };
+    }
+
+    /**
+     * ⭐ Pay a good out against a claim. The payout rule (D6): for the line,
+     * `S` = what is on it and `C` = every claim on it (the house's
+     * included — pooled goods are owned in common); `f = min(1, S/C)`. A
+     * withdrawal pays `min(want, claim × f)` in whole units, and the claim
+     * is debited by what was CLAIMED (`paid / f`), so a run pays everyone
+     * pro rata. The fee is charged at the store; the goods are handed over.
+     */
+    public async withdraw(actor: Stuff, good: string, units = 1): Promise<CustodyOutcome> {
+      await this.reconcile();
+      const business = await this.resolveBusiness();
+      if (business === null) {
+        return { ok: false, reason: 'no-bailee', line: 'Nobody keeps this store.' };
+      }
+      const staff = this.isStaffOnShift(actor);
+      const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      if (!staff && this.custodianIn(room) === null) {
+        return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
+      }
+      const depositor = staff ? this.businessPath : actor.getIdentityPath() ?? '';
+      const mine = (await this.allClaims()).filter((r) => r.depositor === depositor);
+      const word = good.trim().toLowerCase();
+
+      // A unique good first: the depot's crate comes back as itself.
+      for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
+        const live = this.liveGood(r.poolKey);
+        if (live === null) continue;
+        ContainmentApi.move(live, actor as unknown as Stuff & Container);
+        r.amountKg = 0;
+        r.settledAtS = nowS();
+        const receiptPath = await this.fileReceipt(business, r);
+        await this.captureSelf();
+        return { ok: true, receipt: r, receiptPath, amountKg: 1, goods: [live], feeMinor: 0 };
+      }
+
+      const claim = mine.find((r) => r.unit === 'kg' && r.amountKg > LINE_EPSILON_KG && matchesGood(r, word));
+      if (!claim) {
+        return { ok: false, reason: 'no-claim', line: 'You hold no receipt for that here.' };
+      }
+      const line = this.lines.find((l) => l.poolKey === claim.poolKey);
+      if (!line || !(line.amountKg > LINE_EPSILON_KG)) {
+        return { ok: false, reason: 'empty', line: 'There is none of that left in the store.' };
+      }
+      const claimed = (await this.claimsOn(claim.poolKey)).reduce((n, r) => n + r.amountKg, 0);
+      const f = claimed > 0 ? Math.min(1, line.amountKg / claimed) : 1;
+      const unitKg = line.unitMassKg > 0 ? line.unitMassKg : claim.unitMassKg;
+      const wantKg = Math.max(1, Math.floor(units)) * unitKg;
+      const payableKg = Math.min(wantKg, claim.amountKg * f, line.amountKg);
+      const n = Math.floor((payableKg + 1e-9) / unitKg);
+      if (n < 1) {
+        return { ok: false, reason: 'short', line: 'What is left on your claim would not make a whole one.' };
+      }
+      const paidKg = n * unitKg;
+      const goods = await this.payOut(line, n, actor);
+      if (goods.length === 0) {
+        return { ok: false, reason: 'no-goods', line: 'The keeper cannot lay hands on any.' };
+      }
+      claim.amountKg = Math.max(0, claim.amountKg - paidKg / f);
+      if (claim.amountKg <= LINE_EPSILON_KG) {
+        claim.amountKg = 0;
+        claim.settledAtS = nowS();
+        claim.shortfallPct = Math.round((1 - f) * 1000) / 10;
+        claim.withinAllowance = 1 - f <= claim.terms.allowancePct / 100 + 1e-9;
+      }
+      const receiptPath = await this.fileReceipt(business, claim);
+      const feeMinor = Math.round(paidKg * claim.terms.feeMinorPerKg);
+      if (feeMinor > 0 && !staff) {
+        try {
+          await EmploymentApi.settleSale(this.storeVenuePath(), feeMinor, feeMinor, 'storage fee');
+        } catch (err) {
+          console.warn('StoreMixin: storage fee settle failed', err);
+        }
+      }
+      return { ok: true, receipt: claim, receiptPath, amountKg: paidKg, goods, feeMinor };
+    }
+
+    /**
+     * Draw `units` of `goodPath` on the HOUSE's claim — the counter's
+     * bring-up (D8). Returns the goods minted (empty when the house holds
+     * no claim or the stock is gone — *an empty store means an empty
+     * counter*).
+     */
+    public async drawForHouse(goodPath: string, units: number): Promise<Stuff[]> {
+      await this.reconcile();
+      if (!(units >= 1) || !this.businessPath) return [];
+      const business = await this.resolveBusiness();
+      if (business === null) return [];
+      const house = (await this.allClaims()).filter(
+        (r) => r.depositor === this.businessPath && r.unit === 'kg' && r.good === goodPath && r.amountKg > LINE_EPSILON_KG,
+      );
+      const out: Stuff[] = [];
+      let left = Math.floor(units);
+      for (const claim of house) {
+        if (left < 1) break;
+        const line = this.lines.find((l) => l.poolKey === claim.poolKey);
+        if (!line || !(line.amountKg > LINE_EPSILON_KG)) continue;
+        const unitKg = line.unitMassKg > 0 ? line.unitMassKg : claim.unitMassKg;
+        const n = Math.min(left, Math.floor((Math.min(claim.amountKg, line.amountKg) + 1e-9) / unitKg));
+        if (n < 1) continue;
+        const goods = await this.payOut(line, n, null);
+        out.push(...goods);
+        claim.amountKg = Math.max(0, claim.amountKg - n * unitKg);
+        await this.fileReceipt(business, claim);
+        left -= n;
+      }
+      return out;
+    }
+
+    public async receiptsFor(depositor: string): Promise<StoreReceipt[]> {
+      return (await this.allClaims()).filter((r) => r.depositor === depositor);
+    }
+
+    public async claimsOn(poolKey: string): Promise<StoreReceipt[]> {
+      return (await this.allClaims()).filter((r) => r.poolKey === poolKey);
+    }
+
+    public async allClaims(): Promise<StoreReceipt[]> {
+      if (!this.businessPath) return [];
+      const store = (this as unknown as Stuff).getTemplatePath() ?? '';
+      let docs: { getData(): Record<string, unknown> }[] = [];
+      try {
+        docs = await DocumentApi.list(`${this.businessPath}/${RECEIPTS_DIR}/`);
+      } catch {
+        return [];
+      }
+      const claims = docs
+        .map((d) => d.getData() as unknown as StoreReceipt)
+        .filter((r) => r && r.store === store && typeof r.amountKg === 'number' && r.amountKg > LINE_EPSILON_KG)
+        .sort((a, b) => a.filedAtS - b.filedAtS);
+      this._claimsCache = claims.map((c) => ({ ...c, terms: { ...c.terms } }));
+      return claims;
+    }
+
+    public cachedClaims(): StoreReceipt[] {
+      return this._claimsCache.map((c) => ({ ...c, terms: { ...c.terms } }));
+    }
+
+    /** Mint `n` units off a line, debit it, note the draw, hand them to `to` (or leave loose). */
+    private async payOut(line: StoreLine, n: number, to: Stuff | null): Promise<Stuff[]> {
+      const goods: Stuff[] = [];
+      const face = this.faceFor(line.poolKey);
+      const stackable = face !== null && MixinApi.isStackable(face);
+      const batches = stackable ? [n] : Array.from({ length: n }, () => 1);
+      for (const units of batches) {
+        const unit = await this.mintUnit(line, units);
+        if (unit === null) break;
+        goods.push(unit);
+      }
+      const paidKg = goods.reduce((sum, g) => sum + massKgOf(g), 0);
+      line.amountKg = Math.max(0, line.amountKg - paidKg);
+      this.noteDraw(line, paidKg);
+      if (to !== null && MixinApi.isContainer(to)) {
+        for (const g of goods) if (MixinApi.isContainable(g)) ContainmentApi.move(g, to);
+      }
+      if (line.amountKg <= LINE_EPSILON_KG) {
+        const key = line.poolKey;
+        this.dropEmptyLines();
+        const stale = this.faceFor(key);
+        if (stale !== null) {
+          this._faces.delete(stale.stuffId);
+          await StuffApi.destruct(stale);
+        }
+      }
+      await this.captureSelf();
+      return goods;
+    }
+
+    /** The house's running receipt on a line rises (staff put on shift). */
+    private async creditHouse(line: StoreLine, kg: number): Promise<void> {
+      const business = await this.resolveBusiness();
+      if (business === null) return;
+      await this.creditClaim(business, this.businessPath, line.goodPath, line.poolKey, kg, line.unitMassKg, 'the house stock');
+    }
+
+    /**
+     * Increment the depositor's open receipt on a line, or file a new one.
+     * The HOUSE keeps one running receipt per pool key; a depositor keeps
+     * one per line too (a second deposit of the same grade adds to it).
+     */
+    private async creditClaim(
+      business: Stuff & Business,
+      depositor: string,
+      goodPath: string,
+      poolKey: string,
+      kg: number,
+      unitKg: number,
+      what: string,
+    ): Promise<{ receipt: StoreReceipt; path: string }> {
+      const open = (await this.allClaims()).find(
+        (r) => r.depositor === depositor && r.poolKey === poolKey && r.unit === 'kg',
+      );
+      if (open) {
+        open.amountKg += kg;
+        open.originalAmountKg += kg;
+        const path = await this.fileReceipt(business, open);
+        return { receipt: open, path };
+      }
+      const receipt = this.newReceipt(depositor, goodPath, poolKey, 'kg', kg, unitKg, what);
+      const path = await this.fileReceipt(business, receipt);
+      return { receipt, path };
+    }
+
+    private newReceipt(
+      depositor: string,
+      good: string,
+      poolKey: string,
+      unit: 'kg' | 'count',
+      amountKg: number,
+      unitMassKg: number,
+      what: string,
+    ): StoreReceipt {
+      return {
+        receiptId: SecurityApi.uuid(),
+        bailee: this.businessPath,
+        store: (this as unknown as Stuff).getTemplatePath() ?? '',
+        depositor,
+        good,
+        poolKey,
+        unit,
+        amountKg,
+        originalAmountKg: amountKg,
+        unitMassKg,
+        terms: { ...this.terms },
+        what,
+        filedAtS: nowS(),
+      };
+    }
+
+    private async fileReceipt(business: Stuff & Business, receipt: StoreReceipt): Promise<string> {
+      const path = `${this.businessPath}/${RECEIPTS_DIR}/${receipt.receiptId}`;
+      await DocumentApi.saveAsBusiness(
+        business,
+        path,
+        RECEIPT_KIND,
+        receipt as unknown as Record<string, unknown>,
+      );
+      return path;
+    }
+
+    private async resolveBusiness(): Promise<(Stuff & Business) | null> {
+      if (!this.businessPath) return null;
+      const biz = await StuffApi.singleton<Stuff>(this.businessPath).catch(() => null);
+      return biz && MixinApi.isBusiness(biz) ? (biz as Stuff & Business) : null;
+    }
+
+    /** The venue a fee is settled at: this store (an operating location of the house). */
+    private storeVenuePath(): string | null {
+      return (this as unknown as Stuff).getIdentityPath() ?? null;
+    }
+
+    /** The unique good a `live:` key names, still in the store. */
+    private liveGood(poolKey: string): (Stuff & Containable) | null {
+      const id = poolKey.startsWith('live:') ? poolKey.slice(5) : '';
+      if (!id) return null;
+      for (const c of this.storeContents()) if (liveIdOf(c) === id) return c;
+      return null;
+    }
+
     // ─────────────────────── the heat sink (D5) ───────────────────────
 
     /**
@@ -691,6 +1120,27 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 }
 
 // ───────────────────────────── module helpers ─────────────────────────────
+
+/** A unique good's durable id: its chattel id, else its stuff id. */
+function liveIdOf(item: Stuff): string {
+  const c = item as unknown as { getChattelId?(): string | null };
+  return (typeof c.getChattelId === 'function' ? c.getChattelId() : null) || item.stuffId;
+}
+
+/** Does a receipt answer to the word a withdrawer typed? */
+function matchesGood(r: StoreReceipt, word: string): boolean {
+  if (!word) return true;
+  const leaf = (r.good.split('/').pop() ?? '').toLowerCase();
+  const kind = (r.poolKey.split('|')[0] ?? '').toLowerCase();
+  const what = r.what.toLowerCase();
+  return (
+    leaf === word ||
+    leaf.split('-').includes(word) ||
+    kind === word ||
+    r.poolKey.toLowerCase() === word ||
+    what.split(/\s+/).includes(word)
+  );
+}
 
 /** True inside the persistence spine's restore frame. */
 function restoring(): boolean {

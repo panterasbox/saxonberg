@@ -114,6 +114,7 @@ import type { Composition } from '../lib/material/Composition';
 import type { Tempered } from '../lib/material/Tempered';
 import type { Store } from '../lib/storage/Store';
 import type { Poolable } from '../lib/storage/Poolable';
+import type { StoreBook } from '../lib/storage/StoreBook';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1528,6 +1529,11 @@ export class MixinApi {
   /** A good a store may hold as an amount, pooling by its own rule. */
   public static isPoolable(obj: Stuff): obj is Stuff & Poolable {
     return this.hasMixin(obj, Mixins.Poolable);
+  }
+
+  /** The house's book — the custody instrument that names a store. */
+  public static isStoreBook(obj: Stuff): obj is Stuff & StoreBook {
+    return this.hasMixin(obj, Mixins.StoreBook);
   }
 
   /**

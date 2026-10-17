@@ -54,6 +54,10 @@
  *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `seedLines` —
  *     level 0: the size of a house, the shape of a stack, its floor, what
  *     it takes and what it was built with are seen by walking in.
+ *   - W3: `StoreMixin.businessPath` / `keeperPositions` / `terms` /
+ *     `acceptsLiveGoods`, `StoreBookMixin.storePath` — level 0: who keeps
+ *     a house, who may take a deposit and the terms printed on every
+ *     receipt are posted at the door; that is what makes them terms.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

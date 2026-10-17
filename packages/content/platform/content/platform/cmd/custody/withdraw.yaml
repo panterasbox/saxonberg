@@ -1,0 +1,32 @@
+verbs: [withdraw]
+controller: /platform/idea/cmd/custody/WithdrawController
+description: "Take goods back out of a store against your receipt"
+help: |
+  Take what you left back out — `withdraw ice`, `withdraw 3 ice`,
+  `withdraw crate`. The keeper pays out against your receipt, in whole
+  units of the grade you deposited, and charges the fee printed on it.
+
+  ⭐ A pooled store pays everybody pro rata. If the stack has shrunk below
+  what is claimed on it, every withdrawal is short by the same share, and
+  the receipt says whether that shortfall was within the allowance printed
+  on it — an ordinary loss — or beyond it.
+
+  Somebody has to be keeping the book.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # What and how many, as you would say it: `ice`, `3 ice`, `crate`.
+  - name: what
+    type: string
+    required: true
+    greedy: true
+  - name: book
+    type: object
+    required: false
+    greedy: true
+    prepositions: [from, at]
+    default: "reachable:[mixin.StoreBookMixin]"
+    scope: [reachable]
+    requires: [StoreBookMixin]

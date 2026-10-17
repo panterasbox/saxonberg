@@ -633,6 +633,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push(f, data[f]);
   }
   /*
+   * ⭐ A store book's citation (storage-and-ice W3): the STORE it keeps.
+   * Resolved live by `getStore()`; a mistyped one is a book that affords
+   * deposit and refuses every one with "There is no book here".
+   */
+  push('storePath', data.storePath);
+  /*
    * The warren's own citation: the working TYPE it clones per cell.
    *
    * ⚠ `typeRows` is a plain map of kind → path, which clause (d)'s
@@ -674,6 +680,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const line of stockLines) {
       if (line && typeof line === 'object') {
         push('stockLines.itemTemplatePath', (line as Record<string, unknown>).itemTemplatePath);
+        // ⭐ A store-fed line's store (storage-and-ice D8).
+        push('stockLines.source', (line as Record<string, unknown>).source);
       }
     }
   }

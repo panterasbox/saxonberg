@@ -614,6 +614,7 @@ const CITATIONS: Record<string, string> = {
   floor: "a brain's room, or a location's own floor citation",
   room: "a brain's room / a floorplan's location row (not a thing)",
   holdPath: "the warehouse a depot counter books into",
+  storePath: "the store a store book keeps — resolved live, propped by its room (storage-and-ice)",
   projectileTemplate: "what a launcher ACCEPTS — matched against what you carry",
   _vaultPaths: "a donation bank's vaults, filtered live to live Containers",
   value: "a setting's value",
