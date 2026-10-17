@@ -44,17 +44,20 @@ the owner's published signature, marks it in code
 `// DROP AT MERGE — owned by <build>`, and deletes it when it merges
 master. All four sessions read this section.
 
-### Merge order (fixed)
+### Merge order (fixed — as all four sessions read it, 2026-10-17)
 
-**ice → rubber → repair → cleanliness.** Why: rubber consumes ice's wet
-law (`Material.permeability()/wetProperty()`), ice's `Attired.immerse()`
-and ice's envelope heat protocol (`RoomHeatExchange`,
-`envelopeSteadyStateK`); repair W7 (building upkeep) and cleanliness
-consume rubber's `roof:`, `Exposure` and `lint:biome-sky`; cleanliness's
-new rooms author `roof:` and its vitriol cleanser reads rubber's narrowed
-`corrosiveTo`. Repair W0–W6 need nothing of rubber's but land after it
-so that its `AssembledGarment` deletion and `castDiscipline` meet
-rubber's one-piece goods and mould seam on a settled tree.
+**storage-and-ice + repair W0–W6 → rubber → cleanliness → repair W7.**
+Repair lands as two MRs: its W0–W6 need nothing of rubber's and go
+first beside ice; its W7 (building upkeep) consumes rubber's `roof:`,
+`Exposure` and `lint:biome-sky` and lands last. Rubber consumes ice's wet
+law (`Material.permeability()/wetProperty()`), `Attired.immerse()` and
+the envelope heat protocol (`RoomHeatExchange`, `envelopeSteadyStateK`);
+cleanliness consumes rubber's `roof:`/`Exposure`/`lint:biome-sky` and its
+narrowed `corrosiveTo`. ⚠ Because repair W0–W6 lands BEFORE rubber, rubber
+merges master over repair's `AssembledGarment` deletion and its
+`castDiscipline` on `carryPayload`: rubber's goods are one-piece
+`Garment` casts (never `AssembledGarment`) and its moulds get
+`castDiscipline` for free — re-verify both at rubber's merge.
 
 ### Owner table
 
@@ -119,6 +122,68 @@ without a caller audit.
 - cleanliness's `Flued` soot on `Hearth`/`Oven` applies to rubber's works
   oven and both stoves.
 - rubber's stretch (W8) absorbs cleanliness's wool shrink (above).
+
+### Accepted from cleanliness (build-2), 2026-10-17
+
+From `origin/reqs/cleanliness:docs/plans/cleanliness-note-to-siblings.md`
+§ To rubber. All accepted; each is a decision this build implements.
+
+1. **The floor's MATERIAL does not move (amends D4/W1's `onGrade`).**
+   `Floor.isOnGrade()` keeps today's derivation for floor-material
+   resolution (rung 3 ground-beneath, rung 4 `floorDefaults`); W1 does
+   NOT route it through `exposure().onGrade`. The only floor `Exposure`
+   changes is an `on:` storey's — a roof terrace's floor is the roof
+   below. A test pins the ground kind byte-identical for every shipped
+   structure member (the terminal's six rooms, every `Ship` cabin).
+2. **An authored `ambientSource` rung is NOT multiplied by
+   `skyLightFraction()` (amends D4/D5/W1).** `AmbientLit.isSkyLit()`
+   keeps `ambientSource: sky`/`glow`/`none` exactly as today (the 19
+   window-lit interiors); `skyLightFraction()` decides only a place that
+   authors no `ambientSource`. **Open sides transmit daylight**: an
+   exterior wall face with no wall (`wallsNone`, or an open side through a
+   doorless exit to the outside) has transmittance 1 in
+   `faceTransmittance`, weighted by `light.solar.sideWeight`.
+3. **Ventilation (amends D4/W1).** `airChangesPerHour` returns the outdoor
+   answer (∞) when `exposure().isOutside()` OR `wallsNone` — an awning or
+   a lavoir does not hold gas like a shut room; `addAtmosphereContent`
+   likewise returns 0 there.
+4. **One face-transmission method** — `Exposure.faceTransmittance(face)`
+   (already D5): `skyLightFraction()` and the solar-gain sum both call it;
+   cleanliness multiplies grime into it; the stove house is its first
+   consumer.
+5. **Sulfur (amends D13.4).** `mineral/sulfur` authors
+   `heatOfCombustion: 9.2` (MJ/kg) and `autoignitionTemperature: 505`
+   (cleanliness adds `combustionProducts` to the same row); the won row
+   `/trade/quarrying/thing/sulfur` is `class: /platform/thing/Firewood`
+   (coal's shape) so `stoke` takes it. A test asserts the vulcanize
+   recipe's `maxHeatK` (455) and the works oven bellowsed (≈482 K) both
+   stay below 505 K.
+6. **Stretch (amends D16).** The construction form contributes: `felted`
+   (and any fulled or boiled form) gives ~zero stretch whatever the
+   fibre; the allowance is `elasticity/100 · formStretch`, with
+   `formStretch` 0 for felted, 1 + loft for knitted, 1 otherwise.
+7. **The wet law has ONE home** — `Material.permeability()` /
+   `wetProperty()`, owned by ice; no `MaterialLogic` copy (fixed in D12.1,
+   W5 and Host placement).
+8. **`roof` is authored-only and `_exposure` is transient** — never in
+   `runtimeState`; cleanliness's `PersistentCartesianLocation`
+   round-trips every runtimeState field of a venue room.
+9. **At rubber's merge, re-grep `BiomeApi.isSkyExposed` callers** —
+   cleanliness may add one (`Soilable.reconcileAiring`, marked `// rubber:
+   migrate`) if it lands first; migrate each to `exposure()`.
+10. **Terminus exits** — awning `east` off the market square; the
+    bathhouse `north`.
+11. **`consumed?` on `RecipeInputSlot` is struck** (D10 dropped it);
+    cleanliness adds `Recipe.soils` to the same file.
+12. **After cleanliness lands**, the works oven and the stove-house stove
+    gain flues that soot (`fire.flue.ignitesAtKg` 0.5): cleanliness's
+    merge re-runs rubber's drive and checks `flueSoot` stays under the
+    threshold across the cures and the stoked nights (or the drive
+    sweeps).
+13. **The Hevea row authors no `TapSpec.soils`** (latex on the hands is
+    not wanted).
+14. **Regenerate `field-meta-golden.json`** and add a wiki-spoiler
+    review-log entry for `crosslinking` (and the other new fields).
 
 ## Grounding
 
