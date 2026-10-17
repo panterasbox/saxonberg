@@ -876,6 +876,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  SoilableMixin: "{} is not something you can wash",
   PrescriptionMixin: "{} isn't a prescription",
   PostmortemMixin: "{} is not a body you can examine",
   /*

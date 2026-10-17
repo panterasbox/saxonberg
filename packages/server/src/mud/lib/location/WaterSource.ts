@@ -29,6 +29,11 @@ export interface WaterDraw {
   materialPath: string;
   /** The water's temperature, K. */
   temperatureK: number;
+  /**
+   * The water's hardness, °dH (cleanliness D12) — the source's own,
+   * carried by what is drawn. Absent ⇒ the source does not say.
+   */
+  hardnessDgh?: number;
 }
 
 /**
@@ -49,6 +54,12 @@ export interface WaterRead {
   frozen: boolean;
   /** What a vessel drawn from it holds, or `null` when nothing comes up. */
   draw: WaterDraw | null;
+  /**
+   * ⭐ The liquid UNDER the ice when it is frozen (cleanliness D13 —
+   * storage-and-ice's contract): what a hole in the ice reaches. Absent
+   * when the water is open, or the source does not model it.
+   */
+  underIce?: WaterDraw;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
 }

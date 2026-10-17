@@ -72,7 +72,8 @@ export default class RinseController extends CommandController<RinseModel> {
     // ⭐ Water in reach, before anything else — the refusal a player can
     // act on ("find water") comes before the one they cannot ("you have
     // no caustic"), and before the fight-opening side of anything.
-    const water = this.findWater(model.water);
+    const water = await this.findWater(model.water, context);
+    if (typeof water === 'string') return this.fail(context, water, 'frozen');
     if (water === null) {
       return this.fail(
         context,
@@ -127,19 +128,34 @@ export default class RinseController extends CommandController<RinseModel> {
    * be an Api static taking a world object, the OO antipattern
    * `lint:object-verbs` holds at zero.
    */
-  private findWater(bound: MqlManyResult | undefined): Stuff | null {
+  private async findWater(
+    bound: MqlManyResult | undefined,
+    context: CommandContext,
+  ): Promise<Stuff | string | null> {
+    let frozen: string | null = null;
     // ⭐ A NARROWING, not a search — `rinse.yaml` declares `water` with a
     // `[mixin.BulkableMixin]` default, so what arrives is every reachable
     // vessel and the only question left is what is IN it, which no
     // predicate asks (`lint:instrument-args`). The same read `wash` makes.
     for (const c of bound?.stuff ?? []) {
+      // ⭐ A shore's water through the shore's one answer (cleanliness
+      // D13): open water, a hole in the ice, or the frozen refusal.
+      if (MixinApi.isShore(c)) {
+        const pick = c.waterFor();
+        if ('refusal' in pick) continue;
+        const drawn = await c.drawAt(pick.key, context.location ?? null);
+        if ('draw' in drawn) return c;
+        if (drawn.refusal === 'frozen') frozen = drawn.line;
+        continue;
+      }
       if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
+      await BulkableApi.slotFor(c, undefined)?.settle();
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot || slot.isEmpty()) continue;
       const m = slot.getMaterial();
       if (m?.hasTag('water')) return c;
     }
-    return null;
+    return frozen;
   }
 
   private fail(

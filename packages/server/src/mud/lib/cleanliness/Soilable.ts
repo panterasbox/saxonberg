@@ -108,6 +108,8 @@ export interface HeatStamp {
 export interface WashCleanser {
   row: CleanserDescriptor;
   materialPath: string | null;
+  /** The thing it came from (a bar, a flask) — what a wash spends. */
+  source?: Stuff;
 }
 
 /**
@@ -411,8 +413,8 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const dgh = softened ? Math.min(spec.hardnessDgh, 2) : spec.hardnessDgh;
       const scums = spec.cleansers.some((c) => c.row.hardWaterPenalty);
       const fHard = scums ? 1 - 0.6 * clamp01((dgh - 6) / 12) : 1;
-      // Heat: cold water does half what warm does; boiling a little more.
-      const fT = 0.5 + 0.7 * clamp01((spec.waterK - 283) / 80);
+      // Heat: cold water does most of what warm does; hot water more.
+      const fT = 0.8 + 0.4 * clamp01((spec.waterK - 283) / 60);
       // Effort: a scrub (3) does more than a dip (1); never a full clean
       // on time alone.
       const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, spec.effort));
@@ -428,10 +430,17 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         const answers = set ? (row?.setAnswersTo ?? []) : (row?.answersTo ?? []);
         const water = set ? 0.02 : (row?.waterLifts ?? 0.3);
         const helped = actions.some((a) => answers.includes(a));
-        const base = helped ? Math.max(water, 0.85) : water;
+        const base = helped ? Math.max(water, 0.9) : water;
         const fraction = clamp01(base * fT * fEffort * (helped ? fHard : 1));
         const got = this.removeSoil(kind, fraction, site);
         if (got > 0) removed[kind] = got;
+      }
+      // ⭐ Washing REMOVES microbes from a surface (the shipped rule): a
+      // knife, a board, a kit — anything that carries them. Heat is what
+      // KILLS them (D14).
+      const self = this as unknown as Stuff;
+      if (site === WHOLE_SITE && MixinApi.isContaminable(self)) {
+        self.clearContamination();
       }
       const first = spec.cleansers[0]?.row ?? null;
       this.recordWash(site, {

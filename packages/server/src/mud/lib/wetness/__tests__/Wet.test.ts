@@ -10,6 +10,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainmentApi } from '../../../api/containment';
 import Location from '../../stuff/Location';
 import { Idea } from '../../stuff/Idea';
 import { ThermalMixin } from '../../thermal/Thermal';
@@ -24,7 +28,12 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class WetThing extends Good {}
+class WetThing extends ContainableMixin(Good) {}
+/** A person-shaped holder: the far-past guard is about a body's absence. */
+class Person extends HasInteractiveMixin(ContainerMixin(Agent)) {
+  protected handleMessage(): void {}
+  protected handleEnvelope(): void {}
+}
 class WarmWetThing extends ThermalMixin(Good) {
   static _mixinName = 'WarmWetThing';
 }
@@ -126,11 +135,22 @@ describe('WetMixin — the wetness gauge', () => {
     expect(t.getWetness()).toBe(0);
   });
 
-  it('presence-freeze: a far-past gap integrates nothing (drops it)', () => {
+  it('presence-freeze: on a BODY, a far-past gap integrates nothing (drops it)', () => {
+    // ⭐ (cleanliness D11) The absence rule is a body's: a shirt on a
+    // logged-out swimmer stays as wet as she does.
+    const body = makeStuff(() => new Person());
     const t = makeStuff(() => new WetThing());
+    ContainmentApi.move(t, body);
     t.wet(1); // stamp at 0
     setNow(5 * HOUR); // gap > 4h far-past guard
     expect(t.getWetness()).toBe(1); // no drying across an absence
+  });
+
+  it('⭐ a thing NOBODY holds dries across the whole gap — a shirt left out overnight', () => {
+    const t = makeStuff(() => new WetThing());
+    t.wet(1); // stamp at 0
+    setNow(8 * HOUR);
+    expect(t.getWetness()).toBeLessThan(1);
   });
 
   it('warmth dries faster than cold', () => {

@@ -85,6 +85,14 @@ export interface Seasoning {
   isCupped(): boolean;
   /** Set the seasoned fraction directly (a mint, a test, a sale of dry stock). */
   setSeasonedFraction(f: number): void;
+  /**
+   * @hook The line `look` reads for how far it has dried — neutral words
+   * by default (*green · drying · seasoned*); a composer says what IT looks
+   * like doing it (a board's end grain, a soap bar's harshness).
+   */
+  seasonPhrase(fraction: number): string;
+  /** @hook How it was made, read off its form — `''` by default. */
+  seasonGrainLine(): string;
 }
 
 function dial(key: string, fallback: number): number {
@@ -98,59 +106,22 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * The seasoning line, in words — the no-gauge rule. ⭐ The WORDS are the
+ * composer's ({@link Seasoning.seasonPhrase}, {@link Seasoning.seasonGrainLine}):
+ * the mixin speaks for *a solid drying in air*, and a board or a bar of
+ * soap says what it looks like doing it.
+ */
 function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isSeasoning(host)) return text;
   const days = MixinApi.isTangible(host)
     ? (host.getMaterial()?.getSeasoningDays() ?? 0)
     : 0;
   if (days <= 0) return text;
-  const f = host.getSeasonedFraction();
-  // In words — the no-gauge rule. You read wood by its weight and its
-  // ends, not off a number.
-  const line =
-    f >= 0.95
-      ? 'It is well seasoned — light in the hand and dry at the ends.'
-      : host.isSeasoned()
-        ? 'It is seasoned enough to work.'
-        : f >= 0.4
-          ? 'It is still drying; worked now, it would move.'
-          : f >= 0.15
-            ? 'It has begun to dry — lighter than it was, the end grain paling — but it is still green.'
-            : 'It is green — heavy, cool, and wet at the end grain.';
-  const grain = grainLine(host);
+  const line = host.seasonPhrase(host.getSeasonedFraction());
+  const grain = host.seasonGrainLine();
   const both = grain ? `${grain} ${line}` : line;
   return text && text.length > 0 ? `${text}\n\n${both}` : both;
-}
-
-/**
- * ⭐ How it was opened, read off the end grain — in words, because it is
- * the trade's whole lesson and a player must be able to SEE it: riven
- * stock does not snap across (the fibres were followed), sawn stock has
- * them cut; a through-sawn board cups as it dries, a quartered one stays
- * flat. `''` for a piece with no stock form.
- */
-function grainLine(host: Stuff & Seasoning): string {
-  if (!MixinApi.isConstructed(host)) return '';
-  switch (host.getConstructionForm()) {
-    case 'riven':
-      return 'It was split along the grain, and the fibres run unbroken the length of it.';
-    case 'hewn':
-      return 'It was hewn with an axe — along the grain mostly, torn in places.';
-    case 'sawn':
-      // A narrow piece has no face to cup across — what the saw did to it
-      // is cut its fibres.
-      if (!host.isWideFace()) {
-        return 'It was sawn: the saw ran across its fibres wherever the grain wandered.';
-      }
-      if (host.isQuarterSawn()) {
-        return 'It was sawn on the quarter: the rings run straight through it, edge to edge, and it has stayed flat.';
-      }
-      return host.isCupped()
-        ? 'It was sawn through: the rings arc across its end, and as it dried its face has cupped hollow.'
-        : 'It was sawn through: the rings arc across its end, and it will cup as it dries.';
-    default:
-      return '';
-  }
 }
 
 export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -170,6 +141,20 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       // cup), which is why it is a field and not derived from the form.
       wideFace: { persistent: true, authorable: true },
     };
+
+    public seasonPhrase(fraction: number): string {
+      return fraction >= 0.95
+        ? 'It is fully seasoned.'
+        : this.isSeasoned()
+          ? 'It is seasoned.'
+          : fraction >= 0.15
+            ? 'It is still drying.'
+            : 'It is green.';
+    }
+
+    public seasonGrainLine(): string {
+      return '';
+    }
 
     public seasonedFraction = 0;
     public seasonClockStamp = 0;

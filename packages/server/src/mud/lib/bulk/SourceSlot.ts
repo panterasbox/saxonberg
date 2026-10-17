@@ -111,9 +111,22 @@ export class SourceSlot extends BulkSlot {
     return null;
   }
 
+  /**
+   * ⭐ What a pail drawn here carries of the water beyond its matter — its
+   * hardness (cleanliness D12), so the Kestrel's water is hard in the
+   * copper too.
+   */
   public override payloadForDraw(litres: number): BulkPayload | null {
     void litres;
-    return null;
+    const dgh = this.getHardnessDgh();
+    return dgh === null ? null : { hardnessDgh: dgh };
+  }
+
+  /** The water's own hardness, as its read says. */
+  public override getHardnessDgh(): number | null {
+    if (this.whyEmpty() !== null) return null;
+    const dgh = this.read()?.draw?.hardnessDgh;
+    return typeof dgh === 'number' && Number.isFinite(dgh) ? dgh : null;
   }
 
   public override setPayload(payload: BulkPayload | null): void {

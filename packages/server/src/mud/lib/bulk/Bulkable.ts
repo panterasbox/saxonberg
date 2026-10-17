@@ -286,11 +286,22 @@ export class BulkSlot {
 
   /**
    * Wait until this slot can say what it holds. Resolved at once for a
-   * vessel; a source slot reads its water (async) first. A controller
-   * about to draw awaits it.
+   * vessel; a source slot reads its water (async) first; a holder that
+   * learns something about its water from elsewhere (a tap from its main)
+   * answers through its own `settleBulk` hook. A controller about to draw
+   * awaits it.
    */
   settle(): Promise<void> {
-    return Promise.resolve();
+    return this.host.settleBulk(this.affordance);
+  }
+
+  /**
+   * ⭐ The water's hardness, °dH, or `null` when nobody says (cleanliness
+   * D12) — what the payload carries; a source slot answers its water's.
+   */
+  getHardnessDgh(): number | null {
+    const dgh = this.getPayload()?.hardnessDgh;
+    return typeof dgh === 'number' && Number.isFinite(dgh) ? dgh : null;
   }
 
   /** Material-path ref (`null` ⇒ empty slot). */
@@ -440,6 +451,11 @@ export interface Bulkable {
   getBulkMaterial(affordance: BulkAffordance): Material | null;
   setBulkMaterial(affordance: BulkAffordance, material: Material | null): void;
   getBulkPayload(affordance: BulkAffordance): BulkPayload | null;
+  /**
+   * @hook Settle a slot before it is read — a no-op on an ordinary vessel;
+   * a tap pulls its main's hardness into its payload (cleanliness D12).
+   */
+  settleBulk(affordance: BulkAffordance): Promise<void>;
   setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void;
   /**
    * Policy seam: the payload `litres` drawn now would carry. Base impl
@@ -854,6 +870,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         this.surfaceMaterial = path;
         if (path === null) this.surfacePayload = null;
       }
+    }
+
+    public settleBulk(_affordance: BulkAffordance): Promise<void> {
+      return Promise.resolve();
     }
 
     public getBulkPayload(affordance: BulkAffordance): BulkPayload | null {

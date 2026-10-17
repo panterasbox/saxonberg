@@ -1,0 +1,51 @@
+verbs: [scrub]
+controller: /platform/idea/cmd/crafting/ScrubController
+description: "Scrub something hard at water — a floor, a board, a pot, your hands"
+help: |
+  `scrub` is `wash`, harder: three times as long and much more effort,
+  and it shifts what a quick wash leaves — baked-on grease, a grimed pane,
+  a stained board, the floor of a busy shop. Everything `wash` says about
+  water, heat and cleansers holds.
+
+  Bare `scrub` scrubs your hands.
+examples:
+  - cmd: scrub board in basin with soap
+    note: Scrub a chopping board with soap
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ OPTIONAL and PLURAL (cleanliness D10). Named, we wash those things —
+  # in ONE water, which is what lets an unfast dye bleed from one onto
+  # another; bare, we wash your hands. ONE mixin, no alternation: every
+  # washable thing composes Soilable (garments, vessels, kit, bandages,
+  # floors, panes, lamps, seats).
+  - name: target
+    type: objects
+    required: false
+    scope: "reachable"
+    requires: SoilableMixin
+  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`). A
+  # vessel of water, or the water a shore is beside — `wash shirt in
+  # river`. The controller's narrowing (water or brine) is the check, and
+  # a frozen water is refused unless there is a hole in it.
+  - name: water
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [in, under, at]
+    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    scope: ["reachable"]
+    requires: any
+  # ⭐ WHAT WITH — a cleanser: anything whose material a Cleanser row's
+  # agent tag names (soap, lye, washing soda, fuller's earth, vinegar…).
+  # Two may be used at once (`with soap and soda`). A thing that is no
+  # cleanser is refused in words.
+  - name: cleanser
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    scope: ["reachable"]
+    requires: any

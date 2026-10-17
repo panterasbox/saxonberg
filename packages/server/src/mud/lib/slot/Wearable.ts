@@ -77,6 +77,14 @@ export interface Wearable extends Slottable {
    * and is the thing that fits or does not; the wearer is the argument.
    */
   fitOn(wearer: Stuff): FitReading;
+  /**
+   * ⭐ The garment SHRANK (cleanliness D10) — hot water, or felting. Its cut
+   * scales by `factor` (`0.97` hot water, `0.85` felted); a STOCK garment
+   * (no stamp) is first stamped with the plan-average body it was cut for,
+   * so it shrinks out of fitting somebody it fitted. Fit is two numbers and
+   * the act moves them; nothing else does.
+   */
+  shrinkCut(factor: number): void;
 
   /** The measurements this garment was cut to (`''` plan = stock). */
   getCutTo(): FitReading['cut'];
@@ -327,6 +335,24 @@ export function WearableMixin<
      * is exactly what off-the-rack clothing does, and it needs no
      * authored fallback.
      */
+    public shrinkCut(factor: number): void {
+      if (!(factor > 0) || factor >= 1) return;
+      if (this.cutToBodyPlan === '') {
+        const planPath = Object.keys(this.slotClaims)[0] ?? '';
+        const plan = planPath
+          ? StuffApi.findByTemplatePath<BodyPlan>(planPath)
+          : null;
+        const stature = plan?.getBaseStature() ?? 0;
+        const mass = plan?.getBaseMass() ?? 0;
+        if (!(stature > 0) || !(mass > 0)) return;
+        this.cutToBodyPlan = planPath;
+        this.cutToStature = stature;
+        this.cutToGirth = Math.sqrt(mass / stature);
+      }
+      this.cutToStature *= factor;
+      this.cutToGirth *= factor;
+    }
+
     public fitOn(wearer: Stuff): FitReading {
       if (!MixinApi.isOrganism(wearer)) return UNMEASURABLE;
       const species = wearer.getSpecies();

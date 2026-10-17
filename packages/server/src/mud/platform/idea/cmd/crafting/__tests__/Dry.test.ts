@@ -21,40 +21,40 @@
  *      gets *nothing will dry in this air*, and neither is a number.
  */
 
-import '@saxonberg/server/test-bootstrap';
+import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import DryController, { type DryModel } from '../idea/cmd/crafting/DryController';
-import DryingRack from '../thing/DryingRack';
-import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
-import Placement from '@saxonberg/server/mud/platform/idea/Placement';
-import PlacementCatalogue from '@saxonberg/server/mud/platform/idea/PlacementCatalogue';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
-import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Provision from '@saxonberg/server/mud/platform/thing/Provision';
-import Material from '@saxonberg/server/mud/lib/material/Material';
-import { Agent } from '@saxonberg/server/mud/lib/stuff/Agent';
-import { AetherMixin } from '@saxonberg/server/mud/lib/message/Aether';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
-import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
-import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import DryController, { type DryModel } from '../DryController';
+import DryingRack from '../../../../thing/DryingRack';
+import Fitting from '../../../../../platform/thing/Fitting';
+import Placement from '../../../../../platform/idea/Placement';
+import PlacementCatalogue from '../../../../../platform/idea/PlacementCatalogue';
+import { Template } from '../../../../../lib/stuff/Template';
+import Good from '../../../../../lib/stuff/Good';
+import Provision from '../../../../../platform/thing/Provision';
+import Material from '../../../../../lib/material/Material';
+import { Agent } from '../../../../../lib/stuff/Agent';
+import { AetherMixin } from '../../../../../lib/message/Aether';
+import { ContainerMixin } from '../../../../../lib/spatial/Container';
+import { ContainableMixin } from '../../../../../lib/spatial/Containable';
+import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
+import { SensorMixin } from '../../../../../lib/message/Sensor';
+import { NamedMixin } from '../../../../../lib/description/Named';
+import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import { StuffApi } from '../../../../../api/stuff';
+import { ContainmentApi } from '../../../../../api/containment';
+import { MixinApi } from '../../../../../api/mixin';
+import { Quantity } from '../../../../../lib/quantity';
+import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
   type CommandContext,
-} from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+} from '../../../../../api/command';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '../../../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Cook extends AetherMixin(
   SensorMixin(

@@ -50,6 +50,7 @@ import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { WashOutcome, WashSpec } from '../../lib/cleanliness/Soilable';
 import { Freshness } from '../../lib/material/Freshness';
 import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -211,6 +212,17 @@ export default class CraftVessel extends CraftVesselBase {
     // through the verb.
     this.clearContamination();
     super.wash();
+  }
+
+  /**
+   * ⭐ The wash at water (cleanliness D10): the service wash above (the
+   * dregs out, the surface cleared, back to the pool) AND the dirt by kind
+   * the chemistry lifts — a pot can be greasy as well as used. One act,
+   * both facts.
+   */
+  override washSite(spec: WashSpec, site: string = ''): WashOutcome {
+    this.wash();
+    return super.washSite(spec, site);
   }
 
   /** Clean AND empty AND iceless — claimable for a fill. */

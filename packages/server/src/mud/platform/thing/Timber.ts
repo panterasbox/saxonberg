@@ -37,6 +37,53 @@ const TimberBase = SeasoningMixin(
 );
 
 export default class Timber extends TimberBase {
+  /**
+   * ⭐ Wood says how far it has dried by its weight and its ends — the
+   * words the seasoning mixin used to carry for every host, which are
+   * wood's (cleanliness D24: the mixin speaks for any solid drying in air).
+   */
+  public override seasonPhrase(f: number): string {
+    return f >= 0.95
+      ? 'It is well seasoned — light in the hand and dry at the ends.'
+      : this.isSeasoned()
+        ? 'It is seasoned enough to work.'
+        : f >= 0.4
+          ? 'It is still drying; worked now, it would move.'
+          : f >= 0.15
+            ? 'It has begun to dry — lighter than it was, the end grain paling — but it is still green.'
+            : 'It is green — heavy, cool, and wet at the end grain.';
+  }
+
+  /**
+   * ⭐ How it was opened, read off the end grain — in words, because it is
+   * the trade's whole lesson and a player must be able to SEE it: riven
+   * stock does not snap across (the fibres were followed), sawn stock has
+   * them cut; a through-sawn board cups as it dries, a quartered one stays
+   * flat. `''` for a piece with no stock form.
+   */
+  public override seasonGrainLine(): string {
+    switch (this.getConstructionForm()) {
+      case 'riven':
+        return 'It was split along the grain, and the fibres run unbroken the length of it.';
+      case 'hewn':
+        return 'It was hewn with an axe — along the grain mostly, torn in places.';
+      case 'sawn':
+        // A narrow piece has no face to cup across — what the saw did to it
+        // is cut its fibres.
+        if (!this.isWideFace()) {
+          return 'It was sawn: the saw ran across its fibres wherever the grain wandered.';
+        }
+        if (this.isQuarterSawn()) {
+          return 'It was sawn on the quarter: the rings run straight through it, edge to edge, and it has stayed flat.';
+        }
+        return this.isCupped()
+          ? 'It was sawn through: the rings arc across its end, and as it dried its face has cupped hollow.'
+          : 'It was sawn through: the rings arc across its end, and it will cup as it dries.';
+      default:
+        return '';
+    }
+  }
+
   static fieldMeta: FieldMeta = {
     // Riven and sawn stock never merge into one stack.
     constructionForm: { persistent: true, authorable: true, stackIdentity: true },

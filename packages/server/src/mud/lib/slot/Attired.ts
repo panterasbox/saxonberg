@@ -81,6 +81,7 @@ import { Impression, type ImpressionClause } from './Impression';
 import { SOIL_BANDS } from '../cleanliness/Soilable';
 import type { Soilable } from '../cleanliness/Soilable';
 import type { SoilSpec } from '../cleanliness/SoilSpec';
+import type { WashSpec } from '../cleanliness/Soilable';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -162,9 +163,10 @@ export interface Attired {
   handCleanliness(): number;
   /**
    * Wash the layer at each hand — a glove when one is worn (the gloves
-   * come clean, the hands under them untouched, D5), else the bare hand.
+   * come clean, the hands under them untouched, D5), else the bare hand —
+   * by the wash's chemistry (`spec`), or plainly clean with none.
    */
-  washHands(): void;
+  washHands(spec?: WashSpec): void;
   /**
    * ⭐ Land a row's `soils:` (a recipe's, a tap's) on this body and the
    * floor it stands on — `hands`, `apron` (whatever covers the trunk),
@@ -173,6 +175,15 @@ export interface Attired {
   soilFrom(specs: readonly SoilSpec[], by?: Stuff | null): void;
   /** The trunk part — the root of the body plan (`body.torso`). */
   trunkSite(): string | null;
+  /**
+   * ⭐ The body goes INTO water (storage-and-ice's contract, built here in
+   * its shape — cleanliness D7): the body and every layer at every part
+   * the filter admits are soaked (`wet(1)`; no filter = every part) — and
+   * ⭐ RINSED: each soaked Soilable site takes a water-only wash at the
+   * water's temperature, so climbing out of a river you are wet, not
+   * still caked in mud; grease and a set stain stay. Side-effect only.
+   */
+  immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
   /**
    * ⭐ The doffing problem (cleanliness D5): a garment came off. Taken off
    * in a hurry, a dirty one leaves `cleanliness.doff.transfer` of what is
@@ -730,17 +741,30 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 1 - Math.min(1, worst);
     }
 
-    public washHands(this: Stuff & Slotted & Attired): void {
+    public washHands(this: Stuff & Slotted & Attired, spec?: WashSpec): void {
       const self = this as unknown as Stuff;
-      if (this.handSites().length === 0 && MixinApi.isSoilable(self)) {
-        for (const kind of self.soilKinds('')) self.removeSoil(kind, 1, '');
+      const wash = (target: Stuff, site: string): void => {
+        if (!MixinApi.isSoilable(target)) return;
+        if (spec) {
+          target.washSite(spec, site);
+          return;
+        }
+        for (const kind of target.soilKinds(site)) target.removeSoil(kind, 1, site);
+      };
+      if (this.handSites().length === 0) {
+        wash(self, '');
+        return;
       }
+      const done = new Set<Stuff>();
       for (const hand of this.handSites()) {
         const layer = this.outermostAt(hand);
-        const target: Stuff = layer ?? self;
-        const site = layer ? '' : hand;
-        if (!MixinApi.isSoilable(target)) continue;
-        for (const kind of target.soilKinds(site)) target.removeSoil(kind, 1, site);
+        if (layer) {
+          if (done.has(layer)) continue;
+          done.add(layer);
+          wash(layer, '');
+        } else {
+          wash(self, hand);
+        }
       }
     }
 
@@ -782,6 +806,34 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
             break;
           }
         }
+      }
+    }
+
+    public immerse(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+      waterK = 283,
+    ): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isWet(self)) self.wet(1);
+      const rinse: WashSpec = { waterK, hardnessDgh: 8, cleansers: [], effort: 0 };
+      const plan = bodyPlanOf(self);
+      const keys = plan
+        ? plan
+            .getBodyParts()
+            .filter((p) => (p.governs ?? []).length === 0)
+            .map((p) => p.key)
+        : [];
+      const done = new Set<Stuff>();
+      for (const key of keys) {
+        if (parts && !parts(key)) continue;
+        for (const layer of this.coveringAt(key)) {
+          if (done.has(layer)) continue;
+          done.add(layer);
+          if (MixinApi.isWet(layer)) layer.wet(1);
+          if (MixinApi.isSoilable(layer)) layer.washSite(rinse, '');
+        }
+        if (MixinApi.isSoilable(self)) self.washSite(rinse, key);
       }
     }
 

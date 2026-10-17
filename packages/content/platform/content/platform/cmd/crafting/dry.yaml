@@ -10,7 +10,7 @@
 # something. `hang` is still the right word in the PROSE, which is where
 # it belongs: *you hang a cut up to dry.*
 verbs: [dry]
-controller: /trade/cooking/idea/cmd/crafting/DryController
+controller: /platform/idea/cmd/crafting/DryController
 description: "Hang something up where the air can dry it"
 help: |
   `dry <thing> [on <rack>]` — hang something up where the air can get at

@@ -129,6 +129,12 @@ export interface SupplyReporting {
 export interface SupplyServing {
   /** Why this supply is not delivering right now, or `null` if it is. */
   supplyStateNow(): SupplyState | null;
+  /**
+   * ⭐ How hard the water it delivers is, °dH — its SOURCE's (cleanliness
+   * D12): every tap off the Cold Fell aqueduct runs soft because the fell
+   * does. Optional: a supply that carries no water (a feeder) has none.
+   */
+  readWaterHardnessDgh?(): Promise<number | null>;
 }
 
 /**

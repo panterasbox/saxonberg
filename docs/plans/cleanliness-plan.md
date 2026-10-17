@@ -1910,6 +1910,14 @@ nothing; a water surface takes no traffic).
 
 ### W2 — Washing, drying, hardness, the forensic stain
 
+> ✅ **Done — `c77081bcc` + its follow-up.** The chemistry is
+> `washSite` (B8); `immerse` built in storage's shape with the rinse inside
+> (storage absent); `drawAt` reads `frozen` and a hole by SHAPE
+> (`openWaterAreaM2`), fishing untouched (storage's gate not on master);
+> the wind term deferred (B9). The calibration: heat `0.8 → 1.2` over
+> 283–343 K, a cleanser that answers a kind lifts ≥ 0.9 of it per wash.
+> No `BloodReading` unit test — drive step 5 is its proof.
+
 **Goal.** `wash` cleans by chemistry and can ruin; a washed garment is
 wet and dries; hard water scums; blood reads off a shirt. Implements
 D10–D13, D8 (the reading), D9 (label verb reaches a garment).
@@ -2564,6 +2572,17 @@ Read first, in this order.
   `wash(spec)`: `ServiceableMixin.wash()` is the shipped no-arg service wash
   (tip the dregs) on every CraftVessel, and the two must not shadow each
   other. The verb calls both where both apply.
+- **B9 — The rack class moved with `dry`;** the WIND term on a line waits
+  for rubber (`windEnters()`): reading the biome from `Wet` closed an import
+  cycle that left `WetMixin` undefined where `Thing` composes it.
+- **B10 — Hardness reaches a tap through its main** (`SupplyServing.
+  readWaterHardnessDgh`, the Conduit reads its reach) pulled into the tap's
+  payload at `settle()` (`Bulkable.settleBulk` hook). A tap that is its own
+  source may author `hardnessDgh`. Unknown water washes as 8 °dH.
+- **B11 — Five Material fields, not four:** `vapourMaterial` names the gas
+  a volatile liquid's vapour is (naphtha → naphtha-vapour).
+- **B12 — Cleansers are spent by use**: a bar's MASS by the row's kg per
+  wash (a bar worn to nothing is gone), a flask's litres.
 
 ## Drive record
 

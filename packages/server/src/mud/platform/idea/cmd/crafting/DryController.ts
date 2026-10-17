@@ -28,21 +28,21 @@
  * the same air and the same arithmetic.
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import { CommandController } from '../../../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-} from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { BiomeApi } from '@saxonberg/server/mud/api/biome';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
-import { Mml } from '@saxonberg/server/mud/api/mml';
+} from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Container } from '../../../../lib/spatial/Container';
+import { ContainmentApi } from '../../../../api/containment';
+import { MixinApi } from '../../../../api/mixin';
+import { MessageApi } from '../../../../api/message';
+import { BiomeApi } from '../../../../api/biome';
+import { AppApi } from '../../../../api/app';
+import { AppSettingKeys } from '../../../../lib/config/AppSettings';
+import { Mml } from '../../../../api/mml';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'cooking';
@@ -75,9 +75,14 @@ export default class DryController extends CommandController<DryModel> {
     }
 
     // ⭐ The refusal names the PROPERTY, not a class list: a thing dries
-    // if it has a water state. A fish, a hide and a turf all qualify the
-    // day somebody ships one, with no edit here.
-    if (!MixinApi.isWaterActive(target)) {
+    // if it has a water state (a cut, a hide, a turf) — or if it is simply
+    // WET (cleanliness D11: a washed shirt, a cloak out of the rain). A
+    // fish, a hide and a turf all qualify the day somebody ships one.
+    const wetThing =
+      !MixinApi.isWaterActive(target) &&
+      MixinApi.isWet(target) &&
+      target.getWetness() > 0.01;
+    if (!MixinApi.isWaterActive(target) && !wetThing) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -145,11 +150,17 @@ export default class DryController extends CommandController<DryModel> {
     }
 
     const scope = this.scopeOf(target);
-    const prospect = scope === null ? null : this.prospectFor(target, scope);
+    const prospect =
+      scope === null
+        ? null
+        : wetThing
+          ? this.wetProspect(scope)
+          : this.prospectFor(target, scope);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
-        discipline: DISCIPLINE,
+        // A shirt on the line is laundry; a ham on the rack is the larder.
+        discipline: wetThing ? 'textiles' : DISCIPLINE,
         difficulty: 'easy',
         outcome: 'success',
       });
@@ -219,6 +230,19 @@ export default class DryController extends CommandController<DryModel> {
       Math.log((moisture - equilibrium) / (driedAt - equilibrium)) / k;
     if (!Number.isFinite(hours) || hours <= 0) return 'It is dry already.';
     return `In this air it will take about ${this.span(hours)}.`;
+  }
+
+  /**
+   * ⭐ A wet thing's prospect, in words (cleanliness D11): it dries by the
+   * shipped wet law at its stamp rate — warmth and a support the air can
+   * reach speed it; under the open sky the wind takes it faster still.
+   */
+  protected wetProspect(scope: Stuff & Container): string {
+    const air = BiomeApi.airFor(scope);
+    if (air.humidityPct >= 95) return 'Nothing will dry in this air.';
+    return BiomeApi.isSkyExposed(scope)
+      ? 'Out in the air like this, it will be dry before long.'
+      : 'It will dry, slowly, indoors.';
   }
 
   /** How much of the target the air reaches — the support's own claim. */

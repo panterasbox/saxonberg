@@ -2143,6 +2143,20 @@ export const AppSettingKeys = {
   /** Textiles — application strength below which a colour no longer
    * reads at all, and the thing is undyed again. */
   textilesDyeLegibleAt: "textiles.dye.legibleAt",
+  /** Textiles — the water temperature (K) at or above which a fibre
+   * garment shrinks in the wash (cleanliness D10). */
+  textilesWashShrinkAboveK: "textiles.wash.shrinkAboveK",
+  /** Textiles — the cut a hot wash shrinks a fibre garment to (× each). */
+  textilesWashHotShrink: "textiles.wash.hotShrink",
+  /** Textiles — the cut a FELTED garment shrinks to (× each): boiled wool
+   * does not come back. */
+  textilesWashFeltShrink: "textiles.wash.feltShrink",
+  /** Textiles — the share of the colour an unfast dye loses in a wash that
+   * goes onto whatever else is in the water with it. */
+  textilesWashBleedFraction: "textiles.wash.bleedFraction",
+  /** Textiles — wear done by a wash the cleanser's chemistry eats the
+   * fibre in (a harsh bleach on linen, lye on wool, vitriol on cotton). */
+  textilesWashRotDose: "textiles.wash.rotDose",
 
   /* ────────────────────────── body (the stocks) ────────────────────────── */
   /**

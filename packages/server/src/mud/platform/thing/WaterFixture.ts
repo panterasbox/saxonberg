@@ -50,6 +50,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MarkupAugmenter } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
+import { Hardness } from '../../lib/cleanliness/Hardness';
 import {
   SUPPLY_STATE_GLOSS,
   type SupplyReport,
@@ -57,6 +58,17 @@ import {
   type SupplyServing,
   type SupplyState,
 } from '../../lib/supply/SupplyState';
+
+/**
+ * ⭐ *The water is soft.* (cleanliness D12) — what a hand at the basin
+ * feels, said with the shipped river's own rule. Nothing when unknown.
+ */
+function hardnessAugmenter(text: string, host: Stuff): string {
+  if (!(host instanceof WaterFixture)) return text;
+  const dgh = host.getWaterHardnessDgh();
+  if (dgh === null) return text;
+  return `${text}\n\nThe water is ${new Hardness(dgh).word()}.`;
+}
 
 /**
  * ⭐ Says why nothing comes out of a tap whose main is not delivering — in
@@ -86,11 +98,46 @@ export default class WaterFixture
    */
   protected suppliedBy = '';
 
+  /**
+   * ⭐ How hard this tap's water is when it is its own source (a well, a
+   * spring) — `null` when it does not say. A tap on a main answers the
+   * main's (cleanliness D12).
+   */
+  protected hardnessDgh: number | null = null;
+
   static fieldMeta: FieldMeta = {
     suppliedBy: { persistent: true, authorable: true, ref: 'identity:relation' },
+    hardnessDgh: { persistent: true, authorable: true },
   };
 
-  static markupAugmenters: MarkupAugmenter[] = [supplyAugmenter];
+  static markupAugmenters: MarkupAugmenter[] = [supplyAugmenter, hardnessAugmenter];
+
+  /**
+   * ⭐ Settle the water before it is read (cleanliness D12): the main's
+   * hardness — its source's — is pulled into the tap's own water, so a
+   * pail filled here and carried away is soft or hard as the tap is.
+   */
+  public override async settleBulk(affordance: BulkAffordance): Promise<void> {
+    await super.settleBulk(affordance);
+    if (affordance !== 'interior') return;
+    const main = this.mainOf();
+    const fromMain =
+      main && typeof main.readWaterHardnessDgh === 'function'
+        ? await main.readWaterHardnessDgh().catch(() => null)
+        : null;
+    const dgh = fromMain ?? this.hardnessDgh;
+    if (dgh === null) return;
+    this.setBulkPayload('interior', {
+      ...(this.getBulkPayload('interior') ?? {}),
+      hardnessDgh: dgh,
+    });
+  }
+
+  /** The water's hardness as last settled, or `null`. */
+  public getWaterHardnessDgh(): number | null {
+    const dgh = this.getBulkPayload('interior')?.hardnessDgh;
+    return typeof dgh === 'number' ? dgh : this.hardnessDgh;
+  }
 
   /** Has the unresolved-main warning already been logged? */
   private _warnedUnresolved = false;
@@ -169,6 +216,8 @@ export default class WaterFixture
   static commandContributions: CommandContributions = {
     peers: [
       'platform/cmd/crafting/wash.yaml',
+      // ⭐ …and `scrub`, the same act harder (cleanliness D10).
+      'platform/cmd/crafting/scrub.yaml',
       // ⭐ You learn `rinse` the same way you learn `wash`: by standing
       // at water. A separate verb rather than a second `wash` stanza —
       // `wash`'s arg is a CRAFTED thing, and widening it to also accept a

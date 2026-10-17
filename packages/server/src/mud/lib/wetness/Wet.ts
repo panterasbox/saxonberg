@@ -53,6 +53,42 @@ const WET_DEFAULTS = {
   SECONDS_PER_HOUR: 3600,
 } as const;
 
+/**
+ * The person this thing is, or is held by — walked up the holder chain
+ * (a shirt on a body, a flask in a pack on a body). `null` when nobody
+ * holds it: on a line, on a floor, in a room.
+ */
+function interactiveHolderOf(
+  stuff: Stuff,
+): (Stuff & { isLinkdead(): boolean }) | null {
+  let cur: Stuff | null = stuff;
+  for (let hops = 0; cur && hops < 16; hops++) {
+    if (MixinApi.isHasInteractive(cur)) return cur;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return null;
+}
+
+/**
+ * ⭐ How much of a thing the air reaches, against lying on the ground
+ * (cleanliness D11): hung on a rack or a line it dries by the support's
+ * own `airExposure` over the ground's share; worn, carried, or lying about
+ * it dries at the plain rate.
+ *
+ * ⚠ The WIND on the line (`wetness.windFactor`) waits for the
+ * construction answer (rubber's `exposure().windEnters()`): read off the
+ * biome here it closes an import cycle that leaves this mixin undefined
+ * where `Thing` composes it. Until then the factor is 1, as planned.
+ */
+function airReachOf(stuff: Stuff, held: boolean): number {
+  if (held || !MixinApi.isContainable(stuff)) return 1;
+  const support = stuff.getPlacement()?.host ?? null;
+  if (support === null) return 1;
+  const ground = dial(AppSettingKeys.cureGroundExposure, 0.35);
+  const reach = ground > 0 ? support.getAirExposure() / ground : 1;
+  return Math.max(1, reach);
+}
+
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {
   try {
@@ -176,9 +212,16 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return;
       }
 
-      // Linkdead freeze — the body lingers but its clock is paused.
+      // ⭐ The absence rules are a BODY's (cleanliness D11): they apply when
+      // this thing is a person or is held by one — worn or carried, up the
+      // holder chain — so a logged-out swimmer and the shirt on her stay
+      // as they were, together. A shirt on a line, a heap of sawdust, a
+      // dropped cloak has no absence to honour: it dries over its whole gap.
       const self = this as unknown as Stuff;
-      if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
+      const body = interactiveHolderOf(self);
+
+      // Linkdead freeze — the body lingers but its clock is paused.
+      if (body !== null && body.isLinkdead()) {
         this.wetnessClockStamp = nowS;
         return;
       }
@@ -188,8 +231,8 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.wetnessClockStamp = nowS;
         return;
       }
-      // Far-past guard: a gap this long is absence — drop it.
-      if (elapsed > WET_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+      // Far-past guard: on a body a gap this long is absence — drop it.
+      if (body !== null && elapsed > WET_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
         this.wetnessClockStamp = nowS;
         return;
       }
@@ -203,7 +246,10 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this._reconcilingWet = true;
       try {
         const hours = elapsed / WET_DEFAULTS.SECONDS_PER_HOUR;
-        const rate = this.dryRatePerHour() * this.warmthMultiplier();
+        const rate =
+          this.dryRatePerHour() *
+          this.warmthMultiplier() *
+          airReachOf(self, body !== null);
         this._saturation = clamp01(this._saturation - rate * hours);
         this.wetnessClockStamp = nowS;
       } finally {

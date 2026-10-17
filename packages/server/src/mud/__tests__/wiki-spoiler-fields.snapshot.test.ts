@@ -57,6 +57,14 @@
  *     called and what lifts it; what a cleanser does and to what. The
  *     requirements' own table (§ 6) is the content; the chemistry is the
  *     lesson, and the textiles band reads it before a wash.
+ *   - `Material.combustionProducts` / `.flammableLimit` /
+ *     `.vapourLPerLPerHour` / `.vapourMaterial` / `.ashFraction` —
+ *     `spoiler: 1, spoilerName: 0`, the tag `heatOfCombustion` and
+ *     `toxicity` carry: that sulfur burns to something, that a dust can
+ *     flash, that a fuel leaves ash is public; the figures are measured.
+ *   - `MaturationProfile.offGas` — level 0: what a vat breathes is what
+ *     the nose and a shut room tell you; `WaterFixture.hardnessDgh` —
+ *     level 0: the tap's own look line says *soft* or *hard*.
  *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a

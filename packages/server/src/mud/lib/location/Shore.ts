@@ -31,7 +31,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { WaterRead, WaterSource } from './WaterSource';
+import type { WaterDraw, WaterRead, WaterSource } from './WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -73,13 +73,28 @@ export interface Shore {
   settleWater(key: string): Promise<WaterRead | null>;
   peekWaterRead(key: string): WaterRead | null;
   waterSlot(via?: MqlMatchVia): SourceSlot;
+  /**
+   * ⭐⭐ THE answer to *what water can I have here, now* (cleanliness D13 —
+   * the frozen gate, one sentence in one place): the open water's draw;
+   * through a hole in the ice (the floor offers open water), the water
+   * under it; frozen with no hole, the refusal in words. Wash, bathe,
+   * rinse and fishing all ask it.
+   */
+  drawAt(key: string, room?: Stuff | null): Promise<ShoreDraw>;
 }
+
+/** What {@link Shore.drawAt} answers. */
+export type ShoreDraw =
+  | { draw: WaterDraw }
+  | { refusal: 'frozen' | 'none'; line: string };
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
 const DRAW_VERBS = [
   'platform/cmd/bulk/fill.yaml',
   'platform/cmd/bulk/drink.yaml',
   'platform/cmd/crafting/wash.yaml',
+  'platform/cmd/crafting/scrub.yaml',
+  'platform/cmd/medical/rinse.yaml',
   // ⭐ Swimming is SAYABLE beside any water; whether a way is swimmable
   // is the gate's (the place you are in, or the place an exit leads into,
   // must BE the water — a `Pool`). A riverbank or a deck affords the verb
@@ -254,6 +269,31 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if ('refusal' in pick) return new SourceSlot(self, null, pick.refusal);
       void this.refreshWater(pick.key, false);
       return new SourceSlot(self, pick.key);
+    }
+
+    public async drawAt(key: string, room: Stuff | null = null): Promise<ShoreDraw> {
+      const read = await this.settleWater(key);
+      if (read === null || read.pending) {
+        return { refusal: 'none', line: 'The water is hard to read yet.' };
+      }
+      if (!read.frozen) {
+        return read.draw !== null
+          ? { draw: read.draw }
+          : { refusal: 'none', line: 'Nothing comes up.' };
+      }
+      // ⭐ Frozen: a hole is the floor offering open water (the ice
+      // build's sheet), read by shape so the gate holds before it lands.
+      const floor =
+        room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown) : null;
+      const opening = (floor as { openWaterAreaM2?: () => number } | null)
+        ?.openWaterAreaM2;
+      const hole =
+        typeof opening === 'function' && opening.call(floor) > 0;
+      if (hole && read.underIce) return { draw: read.underIce };
+      return {
+        refusal: 'frozen',
+        line: 'The water is frozen over; you would need a hole.',
+      };
     }
 
     /** The read as it stands, kicking a refresh when it is stale. */
