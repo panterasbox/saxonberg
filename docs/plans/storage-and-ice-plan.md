@@ -2591,3 +2591,26 @@ black right through…"*). Found:
    spud's bracket. The advantage under snow is `IceSheet.test.ts`'s; the
    drive asserts the scraped patch is black and never thinner. **For the
    user's eye**: a venue whose sky varies is where scraping becomes a skill.
+
+**Run 6 — 22/22.** Every checkpoint. The one thing it surfaced: in summer
+`look ground` read *"the sheet of ice — A wide sheet of ice over the water,
+ringing faintly under the cold. It is open water."* The sheet now says what
+it is now (its short and long descriptions follow the field) — **run 7**
+re-drives the fix: **22/22**.
+
+**Not driven, and where each is proven** (the drive's own header says so
+too):
+
+| drive step | why not | proven by |
+|---|---|---|
+| 9 — the horse on the ice | no horse stands at the mere | `IceSheet.test.ts` (a person stands on ice a horse goes through), `ice-trade.test.ts` (no draft animal → the plough refused); the drive asserts the plough's mass (153 kg on 123 kg of ice → the walker goes in) |
+| 10 — the house hand's `put` on shift | the drive has no path that seats a player on the roster | `Custody.test.ts` (staff on shift put it on the house's claim) |
+| 5 — scraped thicker than the field | Hollow Mere's sky is pinned clear; no snow lies to scrape | `IceSheet.test.ts` (under snow) |
+| 12 — the floating block | a 6 kg block melts in summer water long before day 290 | ⚠ **not proven** — the drive asserts the iron spud SANK (gone from reach); a floating good at the thaw is a gap |
+| 12 — the repack, wet dug-out sawdust | no repack act is driven or tested | ⚠ **not proven** — `Store.test.ts` proves soaked packing melts faster than dry; digging out and repacking is a gap |
+| 14 — the keeper's short stocktake | the gauge is bracketed | `Custody.test.ts` (taking the face by hand changes no receipt — only a stocktake shows it) |
+| 16 — the cookhouse icebox and its supply job | a Hearthworks cook's job cycle is hours of drive on its own | `restocks.test.ts` (a delivered block lands IN the shut icebox) |
+| 17 — two depositors pro rata | one depositor in the drive | `Custody.test.ts` (a shortfall shared pro rata, inside or beyond the allowance) |
+| 19 — glass cullet, the iron lump | the glass and metallurgy drives own those rooms | the regression drives (`glass`, `metallurgy`) |
+| 20 — the winter swim's chill | the estuary is temperate in the drive's window | `WaterSurface.test.ts` (274 K water cools a body 2.4× as fast as air) |
+| 21 — restart | the harness cannot restart the world it booted | `Store.test.ts` (a captured store restores its lines); the receipts are documents. ⚠ The sheet's patch log rides its `(scope, poolKey)` record, and **no test round-trips it** — a gap |
