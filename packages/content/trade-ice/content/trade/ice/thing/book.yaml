@@ -1,0 +1,14 @@
+# An icehouse book — where the house writes what it holds for whom
+# (storage-and-ice D22). A venue's book extends this row and names its
+# stack (`storePath`). It affords `deposit` and `withdraw`.
+class: /platform/thing/StoreBook
+data:
+  shortDescription: icehouse book
+  keywords: [book, ledger, "ice book", receipts]
+  register: definite
+  longDescription: >-
+    A damp-swollen ledger on a shelf by the door, ruled for date, depositor,
+    grade and weight.
+  fixedInPlace: true
+  mass: 2
+  _materialPath: /stuff/idea/material/textile/linen

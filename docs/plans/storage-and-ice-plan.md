@@ -1883,6 +1883,30 @@ Implements D19, D20, D22 (the trade half).
   `lint:instrument-args` green for the pack.
 - Commit: `build(storage-and-ice W8): the ice trade — tools, readings,
   scrape and mark, the seats and their season`.
+- ✅ **Done (build, 2026-10-17).** `ShiftEntry.season`, `RosterClock.season`,
+  `SEASONS` (declared `CLOSED_BY_DESIGN`), `Roster.evaluate`, the season
+  on `tickBusiness`'s clock; the `trade-ice` pack (tools `IceSaw` /
+  `Scraper` / `IceMarker` + rows, `scrape` / `mark` over a shared
+  `IceActController` base, `IceReading` + `ice.yaml`, the Discipline,
+  a HelpConcept, the `stack` and `book` KIND rows, the three brains).
+  **Decisions:** (1) ⭐ NO `CelestialApi.seasonAt` — the kernel already
+  had `CelestialApi.seasonFor(profile, t, latitudeDeg)`, pure, taking a
+  latitude and flipping the south; a second season function would be the
+  duplication. So the vocabulary is the shipped `Season` type: `spring ·
+  summer · fall · winter` (`fall`, not the plan's `autumn`). (2) A zone's
+  climate site is ASYNC and the tick is sync, so `EmploymentLogic`
+  caches each house's latitude + celestial profile, resolved off-band from
+  its first operating location; ⭐ until it is known a season-bound window
+  reads OFF — a winter seat never draws a wage on a guess, and every
+  unseasoned roster is untouched. (3) The acts' controllers import the
+  water pack's `IceSheet` class (trade-ice depends on water) and hand the
+  act to its methods. (4) The brains are one act a beat through
+  `forceCommand`: the boss marks the first patch when the field bears his
+  margin (200 kg) — the crew's go-ahead; the crew then scrapes / marks /
+  cuts; the keeper takes stock and digs out sodden packing. Carrying
+  blocks to the house is a person's (the drive's house hand), not a brain's.
+  ⚠ `lint:reachability` arm R is red (the nine rows the W9 venue
+  reaches) at this commit by construction.
 
 ### W9 — Hollow Mere, the icehouses, the company, the cookhouse's ice
 

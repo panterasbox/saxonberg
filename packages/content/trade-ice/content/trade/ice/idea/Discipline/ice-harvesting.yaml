@@ -1,0 +1,12 @@
+class: /platform/idea/Discipline
+data:
+  key: ice-harvesting
+  channel: skill
+  label: Ice harvesting
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: >-
+    Cutting natural ice and keeping it. Reading a sheet for what it will
+    bear, keeping the snow off so it freezes black, marking and cutting
+    blocks of one size, and packing a house so the ice outlasts the
+    summer. Improves by doing, and by going through the ice once.
+  requires: []

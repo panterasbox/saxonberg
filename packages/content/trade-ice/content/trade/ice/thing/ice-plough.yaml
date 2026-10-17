@@ -1,0 +1,18 @@
+# The ice plough — the marker's capital rung: a horse-drawn plough of
+# toothed blades scoring a 56-centimetre grid, the size of block the
+# icehouses stacked. Refused unless a draft horse is out on the ice with
+# you — and the horse will not go out on ice too thin to bear it.
+class: /trade/ice/thing/IceMarker
+data:
+  keywords: [plough, "ice plough", "ice plow", marker]
+  shortDescription: ice plough
+  register: indefinite
+  longDescription: >-
+    A low iron frame on runners, a gang of toothed blades set under it and
+    a pair of shafts for a horse; behind it the ice is scored in straight
+    deep lines.
+  mass: 60
+  capabilities: ["marking"]
+  gridM: 0.56
+  draught: horse
+  _materialPath: /stuff/idea/material/element/iron

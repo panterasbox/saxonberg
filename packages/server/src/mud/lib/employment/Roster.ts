@@ -12,12 +12,27 @@
  * materializes / updates the assignees' {@link Employment} records.
  */
 
+import type { Season } from '../time/CelestialProfile';
+
+/**
+ * ⭐ The four quarters of the orbit a shift may be bound to (storage-and-ice
+ * D20) — the celestial model's own words, so a seasonal seat reads the same
+ * season the sky does (a southern house's winter is the northern summer).
+ */
+export const SEASONS: readonly Season[] = ['spring', 'summer', 'fall', 'winter'];
+
 /** One shift window: which weekdays, and the `[startHour, endHour)` span. */
 export interface ShiftEntry {
   /** Weekday indices this window covers (0-based, calendar-defined). */
   days: number[];
   /** Half-open hour span `[start, end)` in calendar hours. */
   hours: [number, number];
+  /**
+   * ⭐ The seasons this window runs in (storage-and-ice D20) — an ice crew
+   * works the winter. Absent: every season (every shipped roster). A
+   * season-bound window is OFF while the house's season is not yet known.
+   */
+  season?: Season[];
 }
 
 /** One assignment: an assignee holding a Position on a schedule. */
@@ -44,6 +59,8 @@ export interface RosterClock {
   weekday: number;
   /** Hour of day (0–23). */
   hour: number;
+  /** The house's local season, when known (read only by season-bound windows). */
+  season?: Season;
 }
 
 export class Roster {
@@ -82,7 +99,8 @@ export class Roster {
         e.days.includes(date.weekday) &&
         Array.isArray(e.hours) &&
         date.hour >= e.hours[0] &&
-        date.hour < e.hours[1],
+        date.hour < e.hours[1] &&
+        (!e.season || (date.season !== undefined && e.season.includes(date.season))),
     );
     return match ? 'on-shift' : 'off-shift';
   }
@@ -101,12 +119,16 @@ function coerceAssignment(raw: unknown): RosterAssignment {
     schedule: schedule.map((e) => {
       const entry = (e ?? {}) as Partial<ShiftEntry>;
       const hours = Array.isArray(entry.hours) ? entry.hours : [0, 0];
+      const season = Array.isArray(entry.season)
+        ? entry.season.filter((x): x is Season => SEASONS.includes(x as Season))
+        : null;
       return {
         days: Array.isArray(entry.days) ? entry.days.map(Number) : [],
         hours: [Number(hours[0] ?? 0), Number(hours[1] ?? 0)] as [
           number,
           number,
         ],
+        ...(season && season.length > 0 ? { season } : {}),
       };
     }),
   };

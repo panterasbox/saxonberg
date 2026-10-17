@@ -1,0 +1,23 @@
+# An icehouse stack — the KIND (storage-and-ice D22): a kernel store whose
+# stock is ice held as an amount by grade, packed in sawdust. A venue's
+# stack extends this row and authors its own size, keeper and seed.
+#
+# `put block in stack` puts a block on it (`in` — a stack takes things
+# IN); `get 1 block` takes the top block off — off the books. `deposit`
+# and `withdraw` at the house's book are the custody acts. `look stack`
+# reads the stack in words; `measure stock stack` gauges it.
+class: /platform/thing/Stockpile
+data:
+  shortDescription: stack of ice
+  keywords: [stack, pile, ice, "ice stack"]
+  register: definite
+  longDescription: >-
+    Blocks of ice stacked tier on tier to the rafters, each tier bedded in
+    sawdust and the whole stack buried in it at the walls.
+  fixedInPlace: true
+  stackShapeFactor: 5
+  drainage: 0.5
+  keeperPositions: [keeper]
+  terms: { allowancePct: 10, feeMinorPerKg: 1 }
+  mass: 1
+  _materialPath: /stuff/idea/material/wood/sawdust

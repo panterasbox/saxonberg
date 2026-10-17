@@ -6,6 +6,9 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CelestialApi } from '../../../api/celestial';
+import { ZoneApi } from '../../../api/zone';
+import type { CelestialProfile, Season } from '../../../lib/time/CelestialProfile';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { Opening } from '../../../lib/employment/Opening';
@@ -1653,6 +1656,9 @@ export class EmploymentLogic extends ApiLogic {
     // absence — the roster stands, nobody is put on it.
     if (business.isClosed()) return;
     const roster = business.getRoster();
+    // ⭐ The house's local season rides the clock (storage-and-ice D20):
+    // read only by a season-bound window, so every other roster is as it was.
+    const clock = { ...date, season: this.seasonOf(business, nowRaw) };
     for (const assignment of roster.getAssignments()) {
       const actor = StuffApi.findByTemplatePath(assignment.assignee);
       if (!actor || !MixinApi.isEmployed(actor)) {
@@ -1685,7 +1691,7 @@ export class EmploymentLogic extends ApiLogic {
       }
       if (TERMINAL.includes(emp.status)) continue;
 
-      const desired = roster.evaluate(assignment, date);
+      const desired = roster.evaluate(assignment, clock);
       const currentlyOn = emp.status === 'on-shift';
       if (desired === 'on-shift' && !currentlyOn) {
         business.beginShift(employed, nowRaw);
@@ -2102,6 +2108,40 @@ export class EmploymentLogic extends ApiLogic {
 
   /** organizationPath → the game hour its last one-house pass ran in. */
   private passedAt = new Map<string, number>();
+
+  /** organizationPath → its first operating location's latitude + sky (resolved off-band). */
+  private skies = new Map<string, { latitudeDeg: number; profile: CelestialProfile }>();
+  private skiesResolving = new Set<string>();
+
+  /**
+   * The house's local season at `nowRaw`, or `undefined` while its place
+   * is still being read (a season-bound window is then off — a winter seat
+   * never draws a wage on a guess).
+   */
+  private seasonOf(business: BusinessStuff, nowRaw: number): Season | undefined {
+    const key = business.getOrganizationPath();
+    if (!key) return undefined;
+    const sky = this.skies.get(key);
+    if (sky) return CelestialApi.seasonFor(sky.profile, nowRaw, sky.latitudeDeg);
+    if (!this.skiesResolving.has(key)) {
+      this.skiesResolving.add(key);
+      void this.resolveSky(business, key).finally(() => this.skiesResolving.delete(key));
+    }
+    return undefined;
+  }
+
+  private async resolveSky(business: BusinessStuff, key: string): Promise<void> {
+    const where = business.getOperatingLocations()[0];
+    const place = where ? StuffApi.findByTemplatePath<Stuff>(where) : null;
+    if (!place) return;
+    try {
+      const site = await ZoneApi.climateSiteFor(place);
+      const profile = await CelestialApi.profileFor(place);
+      this.skies.set(key, { latitudeDeg: site.latitudeDeg, profile });
+    } catch (err) {
+      console.warn('EmploymentLogic: could not read the season of', key, err);
+    }
+  }
 
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)
