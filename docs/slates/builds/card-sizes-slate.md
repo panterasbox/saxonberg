@@ -27,8 +27,11 @@
 > reference step, a `catalogue` command) behind one gate on the Idea,
 > and a unified catalogue interface; the Shadow card — unperceived by
 > default, its impression derived from the HOST mixins it overrides, the
-> veil badge on the host's composition chips, five tiers of who may know
-> — `score` still to detail
+> veil badge on the host's composition chips, five tiers of who may know;
+> the mode sidebar — `chat · explore · watch · build · govern` (`play`
+> renamed, no study mode), a mode rail + a per-mode panel + a *you*
+> corner, chat mode as Discord over one filtered terminal, the room as a
+> channel — `score` still to detail
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -800,12 +803,91 @@ impression a tone and give MQL something to filter on
 - **Sizes** — glance *an enchantment · on your sword*; feed header,
   host, the facets it alters; focal everything you may know.
 
+### The mode sidebar — chat mode is Discord
+
+**Decided 2026-10-17.** The modes are **`chat · explore · watch · build
+· govern`** — `play` is renamed **`explore`** (it was always vague; the
+navigation content makes it concrete), and there is **no study mode**.
+A mode is still **a view, never a gate** (cockpit.md — a test enforces
+it): it decides which arrangements ship, which you land in, and which
+card kinds it summons. Today the modes hide in a Views menu; they move
+to a sidebar.
+
+⭐⭐ **We compete directly with Discord, so chat mode IS Discord** — stick
+with what works.
+
+#### Two columns
+
+```
+| ▣ rail | mode panel    | terminal (~100 ch) | card rail |
+|  chat  | (per mode,    |                    |           |
+| explore|  collapsible) |                    |           |
+|  watch |               |                    |           |
+|  build |               |                    |           |
+| govern |               |                    |           |
+|  ····  |               |                    |           |
+|  you   |               |                    |           |
+```
+
+1. **The mode rail** (icons, ~56 px) — one icon per mode with a
+   **badge** (unread and mentions for chat, new map claims for explore,
+   live streams for watch). A click sends `cockpit mode <name>`: still
+   the command bus, still no client-only state.
+2. **The mode panel** (~240 px, collapsible) — **a list that
+   navigates**, Discord's channel column. It is **chrome, not a card**
+   (cockpit.md's rule: a panel has no subject; it lists subjects);
+   choosing an entry opens that subject's card.
+3. **The bottom of the rail is *you*** — your name and status
+   (authorable), `score`, switching character, settings. Discord's user
+   corner; it absorbs most of the top bar (#77 — identity, connection,
+   settings).
+
+#### Chat mode, mapped onto Discord
+
+| Discord | chat mode |
+|---|---|
+| server list (far left) | the **mode rail**, chat one icon of it |
+| channel list | the **chat panel** — the **room you are in** (local speech), channels, tells/DMs, relayed stream chats, each with **unread** and **mention** badges |
+| message pane | **the terminal, filtered to the selected channel** |
+| member list (right) | **the card rail** — who is in that channel or room, as agent cards at glance size, with the person marker |
+| user corner (bottom left) | **you** |
+| threads | forum threads, opening as cards (the decomposed forum) |
+
+- ⭐ **One terminal, never a second stream.** Every channel is the same
+  frame store filtered, so nothing is said twice and `recall` finds
+  everything; frames stay in arrival order (#49).
+- ⭐ **The room is a channel.** Local speech is just another
+  conversation in the panel (*Dave's Bar*), and moving changes which
+  room entry is live. The Chat tab (#75) and chat mode turn out to be
+  the same thing.
+
+#### Per mode
+
+| mode | panel lists | stage |
+|---|---|---|
+| **chat** | the room, channels, tells/DMs, relayed stream chats — with unread/mentions | the terminal filtered to the selection, full height; the member rail |
+| **explore** | **the navigator** — current zone, minimap, compass, known places, a route in progress | the terminal + the room's cards |
+| **watch** | live streams, what you are tuned to, screens in reach | the video card at focal |
+| **build** | the CMS file tree, git, diagnostics | file cards at full size (the decomposed CMS) |
+| **govern** | offices you hold, open motions, the Compact | unbuilt — still falls back, visibly |
+
+#### Rules
+
+- **The terminal never goes away** — it is the place of record: full in
+  explore, filtered in chat, a strip under focal cards in build.
+- **Maximizing works the same in every mode** (focal takes the
+  terminal's column; full takes terminal and card rail); **the panel
+  collapses first** when space runs short.
+- **Mobile** — the rail becomes a bottom tab bar, the panel a drawer;
+  the regions are unchanged.
+- The `play` → `explore` rename is code (the mode vocabulary in
+  `@saxonberg/types`, the client's mode registry, the saved-arrangement
+  mapping) — tracked as #84.
+
 ### Still to detail
 
-`score` (your own sheet); the set card's lenses per
-flag beyond `--mixin`; per-kind Idea bodies as they are needed; how the
-modes (the Discord-style sidebar, with **chat** and **explore** as their
-own modes) place these cards.
+`score` (your own sheet); the set card's lenses per flag beyond
+`--mixin`; per-kind Idea bodies as they are needed.
 
 ---
 
