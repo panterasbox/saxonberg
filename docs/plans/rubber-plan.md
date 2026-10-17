@@ -1485,6 +1485,31 @@ lint family, at a commit. `pnpm test` runs once before the MR.
 
 ### W0 — the construction vocabulary and the `Exposure` answer (behaviour-preserving)
 
+> ✅ **DONE `aa8294069`.** Decided in the build: (1) **the census is 103,
+> not ~170** — rows that author no `_biomePath` are counted (the runtime
+> walk reads them as interiors, so they are debt, the crossroads meadows
+> included), `Offstage` rows are not (no volume), and every row whose
+> CLASS overrides `roofDefaults()` is never undeclared — derived by
+> scanning sources, not listed: `ExitableVessel`, `Hive`, `ColdStore`,
+> `SealedCellar` (a cellar's roof is its metre of granite), all four
+> given the hook here. (2) `Exposure.holdsAir()` (top not open AND walls
+> not none) is added beside `isOutside()`: it is the predicate the air
+> readers want (a walled pen and an awning both hold no air of their own,
+> and neither is "outside" by the plan's `isOutside`). (3) `windEnters()`
+> does NOT count an open top — the plan's own pen test says a walled pen
+> is sheltered. (4) A doorless exit to a non-enclosed place is an open
+> side (`walls none ∧ roof none`, read shallowly so two adjacent yards
+> cannot recurse). (5) `skyLightFraction()` is 0 for an undeclared
+> interior, so a shop with a doorless doorway does not turn sky-lit before
+> its row says what it is (cleanliness #2 applies to declared places).
+> (6) `ExitableVessel.enclosureDefaults()` answers `none` for an open boat,
+> so the hook's return type widens to `EnclosureDefaults | 'none'`.
+> (7) `getObviousNeighbours` gains `doors: 'all'` (a shut door is still a
+> doorway between two places). (8) The field-meta golden did not move
+> (it records statics shape only); the wiki-spoiler snapshot did.
+> (9) The memberless-structure case is covered in `Exposure.test.ts`
+> rather than a separate `Structure.storeys.test.ts`.
+
 Implements D1, D1a, D2, D3, D4, D14 (the census).
 
 Files:
