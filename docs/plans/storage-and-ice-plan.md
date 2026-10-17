@@ -1697,7 +1697,7 @@ Implements D21, D22 (the venue half).
 - The watercourse's `offsetK` pinned by a unit test in the pack:
   bears 80 kg between day 1 and day 3, thaws (field thickness 0) before
   day 150, open water through day 300.
-- Cookhouse: the par line, `perceivedGoods` Coolbox rule, `restocks`
+- Cookhouse (⚠ `unpackIntoCold` is PINNED by a unit test — a delivered ice block lands IN the shut icebox — so a branch dropped in repair's W7 move fails loudly): the par line, `perceivedGoods` Coolbox rule, `restocks`
   `cold:` + the icebox unpack; the cook's row.
 - Acceptance: every lint gate; `pnpm -C packages/content/hollow-mere test`;
   a boot of a fresh DB with the pack installed.
@@ -1807,6 +1807,7 @@ recorded in D15 and D19.
   `test-bootstrap`.
 - **Between waves:** `pnpm test:near`, every touched pack's `vitest
   run`, and `pnpm -C packages/server lint:family`. Not the full suite.
+- ⚠ **The wiki-spoiler review log gets an entry** for the store's TRUE lines (`StoreMixin` lines are the world's exact stock — a spoiler a `measure stock` reading only brackets) and the ice sheet's `log` (W2, W6).
 - **The two golden snapshots** (`scripts/__fixtures__/field-meta-golden.json`
   via `lint:field-meta --snapshot`, and
   `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` with a
@@ -1991,6 +1992,8 @@ repair's W7 (gated on rubber).
 | `C/trade-bottling/.../material/ice.yaml` → `C/base-library/.../material/bulk/ice.yaml` | W0 moves it, deletes the bottling row | rubber W2 authors `lightAbsorption ≈ 2/m` on it | modify/delete: if we land first rubber authors on `bulk/ice.yaml`; if rubber lands first we carry its line into the moved row |
 | `C/hearthworks/...` | `idea/business.yaml` (ice par), `agent/cook.yaml` (`cold:`) | cleanliness re-classes `location/cookhouse.yaml` (persistent room); repair edits `thing/smithy-tariff.yaml`, `location/smithy.yaml`, a heirloom row | different files; once cleanliness lands, the icebox's contents persist with the room (harmless) |
 | registries: `Mixins`/`MixinApi`, `check-closed-vocabularies.ts`, root `package.json` pack list, `scripts/__fixtures__/field-meta-golden.json`, `src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts` | Store, Poolable, Composition, Tempered, StoreBook, `isSwimmable`; `SEASONS`; trade-ice, hollow-mere; new fields (`iceQuality`, the stockpile's, `kerfM`, `seedLines`) | every sibling appends | list-append conflicts; **re-snapshot both golden files after the merge** and keep every build's review-log entry (W0, W2, W6, W8 regenerate them in this build: `lint:field-meta --snapshot` + the wiki-spoiler entry) |
+| `S/platform/idea/cmd/crafting/FireController.ts` `runFiring` | W0: the alloy-merge narrowings (`:340`, `:360`) become `isComposition` so a composition-only lump keeps its fractions | **rubber** rewrites `runFiring` (the alloy merge + its mould seam) | if rubber lands first, re-apply the `isComposition` swap INSIDE its rewritten `runFiring`; if we land first, rubber keeps it |
+| `S/platform/location/Pool.ts` | W5: the floor default (`WaterSurface`), the support hooks (`onEntered`/`onExited`/`onContainableAdded/Removed`/`canExit`/`canEngageAxis`/`canBeEngagedBy`), the temperature override for `immersionOf` | **cleanliness** adds `bathe` on the pool | separate members; cleanliness's `bathe` calls our `immerse()` and must not re-implement the support state |
 | docs at the sweep | `thermal.md`, `ground.md`, `crafting.md`, `employment.md`, `retail.md`, `watershed.md`, `CLAUDE.md` verb list | all siblings | trivial; sweep last |
 
 ### Concepts two builds share (one owner each)

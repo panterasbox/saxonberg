@@ -219,6 +219,12 @@ legitimate world state, refused at the validator.
 - **Damp, spontaneous combustion, vermin** → this slate's next pass, with
   the granary and the haymow as consumers.
 - **A navigable warehouse interior** → nowhere for now (procgen).
+- ⚠ **A Durable poolable** (repair's Timber, with `condition` as stack
+  identity) must key its **condition band** into `poolKey()`, so a store
+  pools a sound board only with sound boards. **A store never calls
+  `wear()`**: wear is a use's, not time's (what time does to stock is
+  the good's `reconcileInStore`). Recorded for the timber-yard migration
+  (repair build, 2026-10-17).
 - **Migrating the timber yard** (a Stock counter of seasoning stacks
   today) → a candidate, not done here.
 - **Transferable receipts** (futures; a receipt as collateral, which
