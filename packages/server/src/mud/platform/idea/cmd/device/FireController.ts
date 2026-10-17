@@ -529,6 +529,18 @@ async function runFiring(
       return;
     }
     stampCure(cast, cure, makerPath);
+    // ⭐ A mould's shape row is authored for the GOOD cure (boots are
+    // rubber boots); a charge that came out as something else says so in
+    // its own words — the material's appearance (found by the drive: an
+    // under-cured boot read exactly like a good one).
+    if (cure !== null && cure.kind !== 'cured' && cureMaterial !== null) {
+      const v = cast as Stuff & { getLongDescription?(): string; setLongDescription?(s: string): void };
+      const looks = cureMaterial.getAppearance() || cureMaterial.getName();
+      if (typeof v.setLongDescription === 'function' && looks) {
+        const was = v.getLongDescription?.() ?? '';
+        v.setLongDescription(`${was.trimEnd()}\n\nIt is ${looks}.`);
+      }
+    }
     outputs.push(cast);
   } else if (cure !== null) {
     // No mould: the cure comes out as its material's own lump.

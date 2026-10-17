@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: boot mould
-  keywords: [mould, mold, "boot mould", "boot mold"]
+  keywords: [mould, mold, boot-mould, "boot mould", "boot mold"]
   register: indefinite
   longDescription: >-
     A pair of heavy bronze lasts and their shells, hinged, the cavity a boot's shape between them.

@@ -44,4 +44,4 @@ data:
     - /stuff/thing/stove
     # Fuel in reach of the fires (the fire build's rule): a starting
     # condition, not a supply.
-    - { template: /trade/quarrying/thing/coal, count: 6 }
+    - { template: /trade/quarrying/thing/coal, count: 12 }

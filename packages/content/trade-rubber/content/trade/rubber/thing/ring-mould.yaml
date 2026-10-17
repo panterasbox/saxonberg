@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: ring mould
-  keywords: [mould, mold, "ring mould", "ring mold", "packing mould"]
+  keywords: [mould, mold, ring-mould, "ring mould", "ring mold", "packing mould"]
   register: indefinite
   longDescription: >-
     A small bronze ring-cavity the size of a pump's plunger, for casting a packing cup.

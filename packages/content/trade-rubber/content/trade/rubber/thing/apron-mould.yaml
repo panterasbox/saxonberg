@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: apron mould
-  keywords: [mould, mold, "apron mould", "apron mold"]
+  keywords: [mould, mold, apron-mould, "apron mould", "apron mold"]
   register: indefinite
   longDescription: >-
     A broad bronze plate cut to an apron's outline, with a clamped lid.

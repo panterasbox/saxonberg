@@ -87,12 +87,14 @@ function understood(said: string): boolean {
 }
 
 async function say(s: Session, line: string): Promise<string> {
+  const t0 = Date.now();
   const r = await s.cmd(line);
+  const ms = Date.now() - t0;
   const said = squash(plain(await r.said()));
   expect(understood(said), `'${line}' was not understood: ${said}`).toBe(true);
   await s.drainProse();
   // eslint-disable-next-line no-console -- the drive's own record
-  console.log(`  [drive] ${s.handle.slice(0, 18)} > ${line}\n          ${said.slice(0, 400)}`);
+  console.log(`  [drive] ${s.handle.slice(0, 18)} > ${line} (${ms} ms)\n          ${said.slice(0, 400)}`);
   return said;
 }
 
@@ -120,16 +122,23 @@ async function cloneHere(where: string, path: string, count = 1): Promise<void> 
   }
 }
 
-/** Into a player's hands, by the founder. */
-async function cloneInto(where: string, handle: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
-  try {
-    expectOk(
-      await f.cmd(`clone ${path} --into ${handle}${count > 1 ? ` --count ${count}` : ''}`),
-    );
-  } finally {
-    f.close();
-  }
+/**
+ * Into a player's hands: the founder stands it up in the room and the player
+ * picks it up. ⚠ Never `clone … --into <handle>` — a handle is not a name the
+ * resolver knows, so the clone falls back to the FOUNDER's hands, and a live
+ * instance there makes the row unclonable for the rest of the world's life
+ * (the clone gate reads the first live instance's zone).
+ */
+async function cloneInto(
+  where: string,
+  s: Session,
+  path: string,
+  keyword: string,
+  count = 1,
+): Promise<void> {
+  await cloneHere(where, path, count);
+  const got = await say(s, `get ${count} ${keyword}`);
+  expect(got, `get ${keyword}: ${got}`).toMatch(/you pick up/i);
 }
 
 async function at(handle: string, where: string): Promise<Session> {
@@ -191,6 +200,8 @@ async function thermometer(s: Session): Promise<number> {
   return m![2] === 'K' ? v : v + 273.15;
 }
 
+let thermoHandle = '';
+
 afterAll(() => {
   for (const s of open) s?.close();
 });
@@ -220,10 +231,14 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     s = await funded('vulcanizer', WORKS);
     // ⭐ A fresh character, knowing nothing: there is no gate to pass.
     // The works floor carries its own coal (props): pick it up, stoke it.
-    for (let i = 0; i < 4; i++) await say(s, 'get coal');
-    await say(s, 'stoke oven with coal');
+    await say(s, 'get 4 coal'); // bare `get coal` takes every lump in reach
+    await say(s, 'stoke coal into oven');
     const lit = await say(s, 'light oven');
     expect(lit, `light oven: ${lit}`).not.toMatch(/no fuel|stoke it first/i);
+    // ⚠ Every charge's stock up front: once a lump is live in a player's
+    // hands, the clone gate reads THAT zone and refuses the founder.
+    await cloneInto(WORKS, s, ROW.raw, 'raw-rubber', 10);
+    await cloneInto(WORKS, s, ROW.sulfur, 'sulfur', 6);
   }, 300_000);
 
   async function cure(
@@ -233,25 +248,27 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     holdS: number,
     bellows = false,
   ): Promise<string> {
-    await cloneInto(WORKS, s.handle, ROW.raw, raw);
-    await cloneInto(WORKS, s.handle, ROW.sulfur, sulfur);
     // ⚠ `put` takes from your hands into something standing in the room:
     // charge the mould on the floor, THEN carry it into the oven.
-    for (let i = 0; i < raw; i++) await say(s, 'put raw rubber in boot mould');
-    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in boot mould');
-    await say(s, 'get boot mould');
-    await say(s, 'put boot mould in oven');
+    for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in boot-mould');
+    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in boot-mould');
+    await say(s, 'get boot-mould');
+    await say(s, 'put boot-mould in oven');
     if (bellows) await say(s, 'pump oven');
     const fired = await say(s, `fire oven for ${hold}`);
     expect(fired, `fire: ${fired}`).not.toMatch(/nothing in|matches no|stone cold|is empty/i);
     await advanceWorldClock(`${Math.ceil(holdS / 60) + 2} minutes`);
     await new Promise((r) => setTimeout(r, 8_000));
     await s.drainProse();
-    await say(s, 'get boot mould from oven');
-    await say(s, 'drop boot mould');
-    const got = await say(s, 'get boots from boot mould');
+    await say(s, 'get boot-mould from oven');
+    await say(s, 'drop boot-mould');
+    const got = await say(s, 'get boots from boot-mould');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
-    return examine(s, 'boots');
+    // ⚠ `get boots from boot-mould` also binds the mould ('boot' is in its
+    // name) — put it back on the floor for the next charge.
+    await s.cmd('drop boot-mould');
+    await s.drainProse();
+    return examine(s, 'me:i:boots');
   }
 
   it('14 — a short low-sulfur cure: still raw rubber, tacky and weeping', async () => {
@@ -318,8 +335,9 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
   }, 300_000);
 
   it('9 — light the stove and wait: the house warms, and the tap opens', async () => {
-    for (let i = 0; i < 3; i++) await say(s, 'get coal');
-    await say(s, 'stoke stove with coal');
+    thermoHandle = s.handle;
+    await say(s, 'get 2 coal');
+    await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
     await advanceWorldClock('2 hours');
     await new Promise((r) => setTimeout(r, 3_000));
@@ -327,10 +345,13 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] stove house, stove lit 2 h: ${warm.toFixed(1)} K`);
     expect(warm).toBeGreaterThan(291);
+    // Let the cuts run a while in the warm before anybody taps them.
+    await advanceWorldClock('10 hours');
+    await new Promise((r) => setTimeout(r, 3_000));
   }, 300_000);
 
   it('11 — tap latex into a cup, pour it in the pan; a day later, a sheet of raw rubber', async () => {
-    await say(s, 'get cup');
+    await say(s, 'get 1 cup');
     const tapped = await say(s, 'tap tree into cup');
     expect(tapped).not.toMatch(/too cold|nothing/i);
     await new Promise((r) => setTimeout(r, 5_000));
@@ -353,16 +374,16 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
 
 suite('⭐ 4 — the works stove warms the loft above it (AC 7)', () => {
   it('light the stove on the works floor: within the hour the loft reads warmer', async () => {
-    const s = await funded('stoker', LOBBY);
-    await say(s, 'get thermometer');
-    const handle = s.handle;
-    s.close();
+    // ⚠ The realm has ONE thermometer to hand (Duncan Hall's); the tapper
+    // carries it, so the tapper reads the loft.
+    expect(thermoHandle, 'the tapper never got the thermometer').not.toBe('');
+    const handle = thermoHandle;
     const loft = await at(handle, LOFT);
     const before = await thermometer(loft);
     loft.close();
     const floor = await at(handle, WORKS);
-    for (let i = 0; i < 2; i++) await say(floor, 'get coal');
-    await say(floor, 'stoke stove with coal');
+    await say(floor, 'get 2 coal');
+    await say(floor, 'stoke coal into stove');
     await say(floor, 'light stove');
     await advanceWorldClock('1 hour');
     floor.close();
@@ -380,18 +401,23 @@ suite('⭐ 4 — the works stove warms the loft above it (AC 7)', () => {
 // ───────────────────────── the substation (18) ─────────────────────────
 
 suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
+  beforeAll(async () => {
+    await toHour(10, 14);
+  }, 300_000);
   it('in leather boots they soak through and you are shocked; in rubber boots, unharmed', async () => {
     // ⚠ /stuff rows cannot be cloned by anybody (no title over the
     // commons), so the leather boots are bought, as a player would.
     const buyer = await funded('wader-leather', SHOP);
-    await buyOne(buyer, '"leather boots"');
+    // ⚠ `buy "leather boots"` answers "bare" — the phrase does not
+    // match the printed "pair of stout leather boots" (a retail finding).
+    await buyOne(buyer, 'leather');
     const lh = buyer.handle;
     buyer.close();
     const leather = await at(lh, CATWALK);
     await say(leather, 'wear boots');
     const inL = await say(leather, 'down');
     const rubber = await at(uniqueHandle('wader-rubber'), CATWALK);
-    await cloneInto(CATWALK, rubber.handle, '/trade/rubber/thing/rubber-boots');
+    await cloneInto(CATWALK, rubber, '/trade/rubber/thing/rubber-boots', 'boots');
     await say(rubber, 'wear boots');
     const inR = await say(rubber, 'down');
     await new Promise((r) => setTimeout(r, 3_000));
@@ -409,10 +435,10 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
 suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', () => {
   it('splash each wearer; the linen is eaten', async () => {
     const t = await at(uniqueHandle('linen-apron'), YARD);
-    await cloneInto(YARD, t.handle, ROW.linenApron);
+    await cloneInto(YARD, t, ROW.linenApron, 'apron');
     await say(t, 'wear apron');
     const u = await at(uniqueHandle('rubber-apron'), YARD);
-    await cloneInto(YARD, u.handle, ROW.rubberApron);
+    await cloneInto(YARD, u, ROW.rubberApron, 'apron');
     await say(u, 'wear apron');
     const tb = await funded('thrower', SHOP);
     await buyOne(tb, 'vitriol');
@@ -457,7 +483,7 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     await say(streetWool, 'remove all');
     await say(streetWool, 'wear hoodie');
     streetRubber = await at(uniqueHandle('rubber-coat'), YARD);
-    await cloneInto(YARD, streetRubber.handle, ROW.rubberCoat);
+    await cloneInto(YARD, streetRubber, ROW.rubberCoat, 'mackintosh');
     await say(streetRubber, 'remove all');
     await say(streetRubber, 'wear coat');
   }, 900_000);

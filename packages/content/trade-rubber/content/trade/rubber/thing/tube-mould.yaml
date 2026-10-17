@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: tube mould
-  keywords: [mould, mold, "tube mould", "tube mold", "hose mould"]
+  keywords: [mould, mold, tube-mould, "tube mould", "tube mold", "hose mould"]
   register: indefinite
   longDescription: >-
     A long split bronze cylinder with a mandrel down its middle, for casting a length of hose.

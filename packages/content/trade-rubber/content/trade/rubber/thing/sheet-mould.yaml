@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: sheet mould
-  keywords: [mould, mold, "sheet mould", "sheet mold"]
+  keywords: [mould, mold, sheet-mould, "sheet mould", "sheet mold"]
   register: indefinite
   longDescription: >-
     A shallow bronze tray with a lid that clamps down flat, for pressing a sheet.

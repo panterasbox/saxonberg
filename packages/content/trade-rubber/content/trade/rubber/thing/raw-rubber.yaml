@@ -6,7 +6,7 @@
 class: /platform/thing/Casting
 data:
   shortDescription: lump of raw rubber
-  keywords: [rubber, "raw rubber", lump, gum]
+  keywords: [rubber, "raw rubber", raw-rubber, lump, gum]
   register: indefinite
   longDescription: |
     A pale brown lump of raw rubber, tacky where it is warm and stiff where

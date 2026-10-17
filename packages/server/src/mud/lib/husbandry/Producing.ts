@@ -477,7 +477,15 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private windowAirK(): number | null {
       const self = this as unknown as Stuff;
-      let cursor: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
+      // ⚠ A planted tree stands in its pot's SLOT, not its contents: step
+      // out through whichever holds it (found by the rubber drive — the
+      // stove house's trees read their own bodies, not the house).
+      const outward = (s: Stuff): Stuff | null => {
+        const c = MixinApi.isContainable(s) ? s.getContainer() : null;
+        if (c !== null) return c;
+        return MixinApi.isSlottable(s) ? s.getOccupiedHost() : null;
+      };
+      let cursor: Stuff | null = outward(self);
       let depth = 16;
       while (cursor !== null && depth-- > 0) {
         if (MixinApi.isAtmospheric(cursor)) {
@@ -489,7 +497,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             break;
           }
         }
-        cursor = MixinApi.isContainable(cursor) ? cursor.getContainer() : null;
+        cursor = outward(cursor);
       }
       if (MixinApi.isThermal(self)) return self.getTemperature()?.rawValue() ?? null;
       return null;

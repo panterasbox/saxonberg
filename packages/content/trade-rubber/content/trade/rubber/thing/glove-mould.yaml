@@ -7,7 +7,7 @@
 class: /platform/thing/Mould
 data:
   shortDescription: glove mould
-  keywords: [mould, mold, "glove mould", "glove mold"]
+  keywords: [mould, mold, glove-mould, "glove mould", "glove mold"]
   register: indefinite
   longDescription: >-
     A pair of bronze hand-forms in a hinged case, fingers spread, for casting gloves round.
