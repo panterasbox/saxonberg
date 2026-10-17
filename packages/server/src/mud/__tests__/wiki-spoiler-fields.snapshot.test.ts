@@ -69,7 +69,9 @@
  *     `FluedMixin.flueSoot`, `FloorMixin.strewn` / `.stallsStamp` —
  *     runtime state, read out in words (*yellowed*, *caked with soot*,
  *     *rushes strewn*); `FloorMixin.stalls` — level 0, an authored
- *     reference to the herd book whose beasts foul the floor.
+ *     reference to the herd book whose beasts foul the floor;
+ *     `FloorMixin.sweepsInto` — level 0, the row a broom heaps into
+ *     (sweepings, the byre's muck): what you get is what you hold.
  *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a

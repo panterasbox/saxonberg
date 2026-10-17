@@ -571,6 +571,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   push('vapourMaterial', data.vapourMaterial);
+  // A floor's sweep heaps into this row (cleanliness D15).
+  push('sweepsInto', data.sweepsInto);
   /*
    * ⭐⭐ The deposit's FLUID bodies (the drilling build) — each one names
    * the material that comes up it.

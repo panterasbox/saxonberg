@@ -31,6 +31,11 @@ settings:
   - key: cleanliness.pests.debrisAt
     value: "0.4"
 
+  # What pests add to an open food's spoilage rate, per hour, while they
+  # are at it (a warm loaf grows at ~0.05/h; pests about treble it).
+  - key: cleanliness.pests.ratePerHour
+    value: "0.1"
+
   # The row a hearth's grate is raked out into (`sweep hearth`) — the
   # lye-maker's ash. The fuel trade's ash.
   - key: cleanliness.ashTemplate

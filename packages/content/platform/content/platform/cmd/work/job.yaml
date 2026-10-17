@@ -43,6 +43,8 @@ subcommands:
         job post deliver <thing> to <place> for <reward>
         job post supply <n> <kind> to <place> for <reward>
         job post supply <n> litres of <what> to <place> for <reward>
+        job post clean <place> for <reward>
+        job post clean <thing> at <place> for <reward>
 
       ⭐ `deliver` is one named thing arriving somewhere — point at it,
       and if it is marked as yours the gig means THAT one. `supply` is a
@@ -56,6 +58,12 @@ subcommands:
       demijohn, a keg, or eight bottles, whichever the courier can get.
       Name a kind instead (`supply 10 iron-ore`) when it is the thing
       itself you want counted.
+
+      ⭐ `clean` is a place, or a thing at it, being clean when the work
+      is turned in: a room means its floor, a hearth its flue, a marked
+      shirt that shirt. The engine cannot see that you took care — it can
+      see that the floor is clean now, and that is what a cleaner sells.
+      A thing that is already clean cannot be posted.
 
       ⚠ Only work the engine can CHECK can be posted, because the reward
       is real money held in escrow from the moment it goes up. "Deliver
@@ -72,6 +80,10 @@ subcommands:
         note: Ten of a kind — however the courier comes by them
       - cmd: job post supply 6 litres of gin to the bench for 30 --bounty --business
         note: A bar ordering its rail in — any vessel, so long as it is six litres
+      - cmd: job post clean here for 5
+        note: The floor of the room you stand in, swept or scrubbed clean
+      - cmd: job post clean hearth at the cookhouse for 12
+        note: A chimney swept before it catches
       - cmd: job post deliver crate to the depot for 30 --from the brewing floor
         note: Name where the goods are collected, so a hauler can find the backhaul
     args:

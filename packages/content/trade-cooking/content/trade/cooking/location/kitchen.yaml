@@ -56,6 +56,8 @@ data:
   # on it (the dorm's desk-then-pot precedent).
   props:
     - /stuff/thing/fixture/range
+    # ⭐ The window the basin sits under, as a real pane (cleanliness D19).
+    - /stuff/thing/fixture/window
     - /stuff/thing/fixture/counter
     - /stuff/thing/fixture/larder
     # ⭐ Seeded SHUT — it holds cold by being shut, which is the exact

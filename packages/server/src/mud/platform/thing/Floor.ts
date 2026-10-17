@@ -84,6 +84,19 @@ export default class Floor extends FloorBase {
   }
 
   /**
+   * ⭐ An earth floor is not scrubbed: water on it makes mud. It is strewn
+   * and swept (cleanliness D15) — and a floor that takes no soil has
+   * nothing on it to wash.
+   */
+  public override washRefusal(): string | null {
+    if (!this.takesSoil()) return 'There is nothing on it a wash would take.';
+    if (this.cleaningMethod() === 'strew and sweep') {
+      return 'Water on a floor like this only makes mud — it wants strewing and sweeping.';
+    }
+    return super.washRefusal();
+  }
+
+  /**
    * ⭐ The floor's own soil sentence (cleanliness D15) — after the ground
    * and the snow; masked under snow knee-deep or worse, as the ground
    * sentence is. *The floor is soiled, muddy and crumbed. Fresh rushes are

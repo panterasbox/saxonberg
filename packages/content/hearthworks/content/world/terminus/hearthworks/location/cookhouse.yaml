@@ -43,6 +43,9 @@ data:
     z: 0
   props:
     - /stuff/thing/Oven
+    # ⭐ The opening the daylight comes in by, as a real pane: the hearth's
+    # soot greys it and the room darkens (cleanliness D19).
+    - /stuff/thing/fixture/window
     - /trade/cooking/thing/cook-pot
     # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
     # `medium: water` and must MATCH an input carrying the water tag, so a

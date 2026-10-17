@@ -2030,6 +2030,20 @@ rinse restores), `fumes.test.ts` (a shut room poisons; a door clears).
 
 ### W4 — Places: floors, debris, the flue, dust, stalls, rest, pests, windows
 
+> ✅ **Done — `ec8386825` + the W4 commit.** Siblings still absent. The
+> floor carries traffic, strewing, the sweep, the stalls and the pests; the
+> verbs `sweep`/`muck`, `strew`, `dispose`, `beat` ship in `inventory`; the
+> flue soots and catches; the Hearts' Delight mill house holds the stones
+> (the dust flashes); the byre floor is a row with `stalls`. ⚠ The window
+> premise was wrong for homes — see **B18**: a sky room's opening is now a
+> one-sided pane in the room, so the cookhouse, the Hinkley kitchen and
+> the cooking kitchen archetype each carry `/stuff/thing/fixture/window`
+> and keep their `ambientSource: sky`. The scrub refusal is a returned
+> `Soilable.washRefusal()` hook the Floor overrides (B19); the `clean`
+> contract is `clean <place>` / `clean <thing> at <place>` (B20). Surprise:
+> a pack's tsc could not see the Hardness payload merge (nothing in its
+> import closure loaded it) — the three readers import it by type now.
+
 **Goal.** A place is kept as well as it is used; the dangerous
 cleanable catches; the mill explodes; the byre is mucked out onto a
 field; rest and pests read the room. Implements D15–D20, D22's mill
@@ -2618,6 +2632,29 @@ Read first, in this order.
   by the look verb; a garment's override walks daylight in 2-hour steps
   with `CelestialApi.isDayAt`). Only a garment lying in a ROOM airs —
   worn or carried, it is not hung out.
+
+- **B18 — A sky room's daylight comes through a pane IN the room.** D19
+  put a two-sided `Window` between the Hinkley kitchen and yard, but both
+  are minted per lot, so `attachedHosts` (template paths) cannot name
+  them. Instead `AmbientLit.openingTransmissivity()` finds the Window among
+  a `'sky'` room's contents whose keyword is its `ambientOpening`, and the
+  vision walk multiplies the sky leg by it: grime and shutters darken the
+  room, and a home kitchen gets one as a plain prop. *Lens 2: every house
+  minted from the archetype carries it with no wiring.* The drive's step 12
+  runs at the Hearthworks cookhouse (a persistent singleton with a hearth
+  and the same window row); the Seznick room and the dorm stay prose.
+- **B19 — The scrub refusal is the floor's** (`Soilable.washRefusal()`,
+  a returned string, `null` by default): an earth floor answers *water
+  only makes mud — it wants strewing and sweeping*; a floor that takes no
+  soil has nothing to wash. `wash`/`scrub` render it.
+- **B20 — `job post clean <place>` / `clean <thing> at <place>`.** A
+  place means its floor (`soilBand() === 'clean'`); a thing found at the
+  place means that thing (a Flued host: soot under a fifth of the catch);
+  a marked thing binds by chattel. Post refuses a subject already clean
+  (the shipped *already holds* rule). A pointed-at floor means its room.
+- **B21 — Pests add `cleanliness.pests.ratePerHour` (0.1/h)** to an open
+  food's growth while the floor has them, beside light-strike; only food
+  lying loose in a room is reached.
 
 ## Drive record
 

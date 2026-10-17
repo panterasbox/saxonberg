@@ -47,8 +47,8 @@ data:
       media: [ground]
       edgeMinutes: 2
     # ⭐ The stones are indoors now (cleanliness D22): the mill house, at
-    # the top of the wheel shaft.
-    in:
+    # the top of the wheel shaft, west of the race.
+    west:
       destination: /world/terminus/hearts-delight/location/mill-house
       media: [ground]
       edgeMinutes: 1

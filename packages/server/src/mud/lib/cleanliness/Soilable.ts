@@ -44,6 +44,7 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
+import { Contamination } from '../material/Contaminable';
 import type DirtKindCatalogue from '../../platform/idea/DirtKindCatalogue';
 import type { DirtKindDescriptor } from '../../platform/idea/DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
@@ -51,6 +52,23 @@ import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cle
 /** The four soil bands, cleanest first — words, ordinal. */
 export const SOIL_BANDS = ['clean', 'marked', 'soiled', 'filthy'] as const;
 export type SoilBand = (typeof SOIL_BANDS)[number];
+
+/**
+ * ⭐ The clean tiers (cleanliness D14), lowest first — a DERIVED word,
+ * never stored: what was done to a thing since its last deposit. Washing
+ * removes (`clean`), hot water with a soap or an alkali sanitises, a boil
+ * held long enough disinfects, a dry heat or a flame past 433 K sterilises.
+ * `dirty` is below presentable: the thing shows its soil or a film.
+ */
+export const CLEAN_TIERS = [
+  'dirty',
+  'presentable',
+  'clean',
+  'sanitised',
+  'disinfected',
+  'sterile',
+] as const;
+export type CleanTier = (typeof CLEAN_TIERS)[number];
 
 /** The whole-thing site — a garment, a floor, a pot, a pane. */
 export const WHOLE_SITE = '';
@@ -182,6 +200,12 @@ export interface Soilable {
   stainsOf(kind?: string): StainRecord[];
   /** Stamp a sterilising heat the act reached (boil, flame, oven hold). */
   recordHeat(peakK: number, heldS: number): void;
+  /**
+   * ⭐ How clean, in the tiers a kitchen, a clinic and a surgery read
+   * (cleanliness D14) — derived on read from the band, the last wash and
+   * the last heat since the last deposit.
+   */
+  cleanTier(site?: string): CleanTier;
   getHeatStamp(): HeatStamp | null;
   /** The last wash at `site`, or null. */
   getWashStamp(site?: string): WashStamp | null;
@@ -202,6 +226,12 @@ export interface Soilable {
    * no-op by default; an async read point (`look`, `wash`) awaits it.
    */
   reconcileAiring(): Promise<void>;
+  /**
+   * @hook Why this thing is NOT washed in water — in words — or `null` when
+   * it is. A floor kept by strewing is swept, not scrubbed (cleanliness
+   * D15). The verb renders the refusal; the thing decides it.
+   */
+  washRefusal(): string | null;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -382,6 +412,44 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         .map((s) => ({ ...s }));
     }
 
+    public cleanTier(site: string = WHOLE_SITE): CleanTier {
+      const band = this.soilBand(site);
+      const filmed = this.soilKinds(site).some(
+        (k) => this.soilLoad(k, site) > 0 && dirtRow(k)?.form === 'film',
+      );
+      if (band !== 'clean') {
+        return band === 'marked' && !filmed ? 'presentable' : 'dirty';
+      }
+      const heat = this.heat;
+      const wash = this.washes[site] ?? null;
+      // ⭐ Raw — clean to look at, never washed or heated since it was made
+      // or last touched — is only presentable: nobody has made it clean.
+      if (heat === null && wash === null) return 'presentable';
+      const boiled = heat !== null && heat.peakK >= 373 && heat.heldS >= 300;
+      const self = this as unknown as Stuff;
+      const germFree =
+        !MixinApi.isContaminable(self) ||
+        Contamination.isClean(self.getPathogenLoads());
+      if (boiled && germFree) {
+        return heat.peakK >= 433 && heat.heldS >= 60 ? 'sterile' : 'disinfected';
+      }
+      // A dry heat or a flame past 433 K for a minute sterilises too, with
+      // no boil held first (the kit in the flame).
+      if (heat !== null && heat.peakK >= 433 && heat.heldS >= 60 && germFree) {
+        return 'sterile';
+      }
+      if (
+        wash !== null &&
+        wash.waterK >= 333 &&
+        (wash.action === 'surfactant' ||
+          wash.action === 'alkali-mild' ||
+          wash.action === 'alkali-strong')
+      ) {
+        return 'sanitised';
+      }
+      return 'clean';
+    }
+
     public recordHeat(peakK: number, heldS: number): void {
       if (!(peakK > 0) || !(heldS > 0)) return;
       const prior = this.heat;
@@ -411,6 +479,10 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public reconcileAiring(): Promise<void> {
       return Promise.resolve();
+    }
+
+    public washRefusal(): string | null {
+      return null;
     }
 
     public washSite(spec: WashSpec, site: string = WHOLE_SITE): WashOutcome {

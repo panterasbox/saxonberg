@@ -18,7 +18,9 @@ data:
     A low timbered room at the top of the wheel shaft, loud with the stones and the water under the floor. Everything in it is dusted white — the beams, the bins, the sacks, the miller — and the air in the light from the little windows is thick with it.
   coords: { x: -14, y: -6, z: 4 }
   exits:
-    out:
+    # ⭐ East, back out to the millsite: one zone, so a compass exit (a
+    # named `out` throws at hydrate inside a zone — `lint:locations`).
+    east:
       destination: /world/terminus/hearts-delight/location/millsite
       media: [ground]
       edgeMinutes: 1

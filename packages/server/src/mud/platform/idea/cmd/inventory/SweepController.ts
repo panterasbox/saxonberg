@@ -38,14 +38,13 @@ interface SweepModel extends CommandModel {
 export default class SweepController extends ManualBuildController<SweepModel> {
   async execute(model: SweepModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const tools = model.tool?.stuff ?? [];
-    const has = (cap: string): boolean =>
-      tools.some((t) => MixinApi.isTool(t) && t.hasCapability(cap));
+    const brush = this.bestInstrument(model.tool, 'flue-brushing') !== null;
+    const broom = this.bestInstrument(model.tool, 'sweeping') !== null;
     const target = model.target?.stuff ?? null;
     const room = context.location ?? null;
 
     if (target !== null && MixinApi.isFlued(target)) {
-      return this.sweepHearth(target, has('flue-brushing'), room, context);
+      return this.sweepHearth(target, brush, room, context);
     }
     const floor =
       target !== null && MixinApi.isFloor(target)
@@ -67,7 +66,6 @@ export default class SweepController extends ManualBuildController<SweepModel> {
       this.declineStep(context, Mml.compose`There is nothing here a broom could take up.`, 'nothing-to-sweep');
       return;
     }
-    const broom = has('sweeping');
     this.engageStep(context, {
       durationMs: SWEEP_MS * (broom ? 1 : 3),
       effortW: 250,

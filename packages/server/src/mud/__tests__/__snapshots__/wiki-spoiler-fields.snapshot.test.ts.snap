@@ -479,6 +479,7 @@ FloorMixin.onGrade = 0
 FloorMixin.stalls = 0
 FloorMixin.stallsStamp = 0
 FloorMixin.strewn = 0
+FloorMixin.sweepsInto = 0
 FloorMixin.worked = 0
 FluedMixin.flueSoot = 0
 FlyableMixin.axes = 0

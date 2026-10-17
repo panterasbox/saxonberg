@@ -424,7 +424,10 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
   // weather, exactly as before.
   if (MixinApi.isAmbientLit(loc)) {
     const ambientFlux = loc.isSkyLit()
-      ? loc.skyNoonFlux() * skyFactor * loc.getWeatherDimFactor()
+      ? loc.skyNoonFlux() *
+        skyFactor *
+        loc.getWeatherDimFactor() *
+        loc.openingTransmissivity()
       : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();

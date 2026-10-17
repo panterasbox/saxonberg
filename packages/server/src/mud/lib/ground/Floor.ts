@@ -465,7 +465,8 @@ export function FloorMixin<
           const m = StuffApi.findByTemplatePath<Material>(c.type);
           if (!m?.hasTag('dust')) continue;
           room.drawAtmosphereContent(c.type, Infinity);
-          kinds.flour = (kinds.flour ?? 0) + 0.05;
+          const dust = c.type.split('/').pop() ?? 'dust';
+          kinds[dust] = (kinds[dust] ?? 0) + 0.05;
           load += 0.05;
         }
       }

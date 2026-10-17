@@ -125,12 +125,22 @@ export default class WashController extends ManualBuildController<WashModel> {
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    const washable = targets.filter((t) => MixinApi.isSoilable(t));
+    const soilable = targets.filter((t) => MixinApi.isSoilable(t));
+    // ⭐ The thing says why it is not washed (a strewn earth floor); the
+    // verb only renders it.
+    const refusals = soilable
+      .map((t) => (MixinApi.isSoilable(t) ? t.washRefusal() : null))
+      .filter((r): r is string => r !== null);
+    const washable = soilable.filter(
+      (t) => MixinApi.isSoilable(t) && t.washRefusal() === null,
+    );
     if (washable.length === 0) {
       this.declineStep(
         context,
-        Mml.compose`You can't wash ${Mml.thing(targets[0]!)} clean.`,
-        "not-washable",
+        refusals.length > 0
+          ? Mml.compose`${refusals[0]!}`
+          : Mml.compose`You can't wash ${Mml.thing(targets[0]!)} clean.`,
+        refusals.length > 0 ? "not-washed-so" : "not-washable",
       );
       return;
     }

@@ -833,7 +833,8 @@ function advanceFreshnessOverHost(
   // the gap — a stated fidelity limit (a bottle carried sun → cellar ages at
   // the cellar's light for the whole stretch; see spoilage.md). The same
   // extra rate is applied to every thermal sub-step below.
-  const extra = lightStrikeRatePerHour(host, material);
+  const extra =
+    lightStrikeRatePerHour(host, material) + pestRatePerHour(host, material);
   if (host !== null && MixinApi.isThermal(host)) {
     const pw = host.temperatureTrajectory(stampS, nowS);
     let l = load;
@@ -891,6 +892,24 @@ function lightStrikeRatePerHour(
   const ratePerHour = dial(AppSettingKeys.freshnessLightStrikeRatePerHour, 30);
   const refLux = dial(AppSettingKeys.freshnessLightStrikeReferenceLux, 50000);
   return ratePerHour * Math.min(lux / refLux, 1) * blue;
+}
+
+/**
+ * ⭐ The rate (per hour) pests add to an open food lying in a room whose
+ * floor has them (cleanliness D17) — a derived threshold, never a field:
+ * the floor answers `hasPests()` from its crumbs and the open food in the
+ * room, and sweeping up makes this zero. Only food lying loose in the ROOM
+ * is reached; a loaf in a crock or a sack is not. Sampled once per
+ * reconcile, like light-strike. A module function for the
+ * `lint:lib-statics` ceiling (the `lightStrikeRatePerHour` precedent).
+ */
+function pestRatePerHour(host: Stuff | null, material: Material | null): number {
+  if (host === null || material === null) return 0;
+  const room = lightScopeOf(host);
+  if (room === null || !MixinApi.isAdornable(room)) return 0;
+  const floor = room.getFloor() as unknown as Stuff | null;
+  if (floor === null || !MixinApi.isFloor(floor) || !floor.hasPests()) return 0;
+  return dial(AppSettingKeys.cleanlinessPestsRatePerHour, 0.1);
 }
 
 /** The container scope whose light reaches the holder, or null. */

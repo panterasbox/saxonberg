@@ -180,6 +180,7 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * also authors as a detail you can look at.
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
+  '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
   '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
   '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row

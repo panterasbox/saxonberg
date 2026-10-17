@@ -24,6 +24,9 @@ data:
   # it is the same opening that lights the room.
   props:
     - /stuff/thing/fixture/range
+    # ⭐ The window over the counter, as a real pane — the range's soot
+    # greys it and the kitchen darkens until it is washed (cleanliness D19).
+    - /stuff/thing/fixture/window
     - /stuff/thing/fixture/counter
     - /stuff/thing/fixture/larder
     # ⭐ Seeded SHUT — it holds cold by being shut, which is the exact

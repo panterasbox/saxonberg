@@ -114,7 +114,9 @@ export default class GristMill extends GristMillBase {
       if (duck && typeof duck.generationW === 'function' && typeof duck.getReachRef === 'function') {
         return duck as PowerTake;
       }
-      if (!named) void StuffApi.singleton<Stuff>(this.powerFrom).catch(() => {});
+      // ⚠ Never minted from here: the race is a prop of its OWN room and
+      // lives when that room does (a singleton clone would be a second,
+      // unplaced race). Not resident = nothing driving the stones yet.
       return null;
     }
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
