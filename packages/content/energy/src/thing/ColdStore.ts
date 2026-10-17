@@ -31,7 +31,7 @@ import { ClimateControlMixin } from '@saxonberg/server/mud/lib/thermal/ClimateCo
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { EnclosureDefaults } from '@saxonberg/server/mud/lib/spatial/Enclosed';
+import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { GridPoweredMixin } from '../lib/GridPowered';
 
@@ -79,6 +79,16 @@ export default class ColdStore extends ColdStoreBase {
    */
   public enclosureDefaults(): EnclosureDefaults {
     return { materialPath: '/stuff/idea/material/wood/pine', thicknessM: 0.08 };
+  }
+
+  /**
+   * ⭐ A box has a lid: it is roofed by the same panel as its walls, and
+   * never asks the room it stands in about the sky.
+   */
+  public roofDefaults(): RoofSpec | null {
+    const walls = this.getEnclosure();
+    if (walls !== null && walls !== 'none') return walls;
+    return { material: '/stuff/idea/material/wood/pine', thicknessM: 0.08 };
   }
 
   /** The live state sentence, read off the host. */

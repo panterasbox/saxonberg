@@ -40,6 +40,13 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **The rubber build (construction, W0: 2 fields).** Both level 0:
+ *   - `AtmosphericMixin.roof` — what is over a place, as its sibling
+ *     `enclosure` is what is around it: a material and a thickness you
+ *     can walk in and look up at.
+ *   - `Structure.storeys` — which of a building's places stand on which;
+ *     you learn it by climbing the stair.
+ *
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

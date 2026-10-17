@@ -1592,6 +1592,14 @@ export const AppSettingKeys = {
    */
   envelopeActiveDepthM: "envelope.activeDepthM",
 
+  /**
+   * Light — how much a wall face counts against the roof when the sky
+   * lights a place through its construction (and, for heat, the solar
+   * gain through it). A quarter: a wall sees half the sky, and only part
+   * of that is the bright half.
+   */
+  lightSolarSideWeight: "light.solar.sideWeight",
+
   /* ────────────────────────── light (the sky, envelope D1/D2/D4) ────────────────────────── */
   /** Light — degrees of sun depression per factor-of-ten twilight falloff
    * in the sky illuminance curve. Larger = a longer, gentler dusk. */

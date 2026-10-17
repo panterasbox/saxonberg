@@ -21,7 +21,7 @@
  */
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
-import type { EnclosureDefaults } from '@saxonberg/server/mud/lib/spatial/Enclosed';
+import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 
 export default class SealedCellar extends SingletonCartesianLocation {
   /**
@@ -46,5 +46,14 @@ export default class SealedCellar extends SingletonCartesianLocation {
       materialPath: '/stuff/idea/material/rock/granite',
       thicknessM: 1.0,
     };
+  }
+
+  /**
+   * ⭐ And the rock is over it too: a cellar's roof is the same metre of
+   * granite as its walls. Declared by the class, so no cellar row is
+   * ever undeclared.
+   */
+  public override roofDefaults(): RoofSpec | null {
+    return { material: '/stuff/idea/material/rock/granite', thicknessM: 1.0 };
   }
 }

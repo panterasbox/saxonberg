@@ -55,6 +55,9 @@ import type {
   Enclosed,
   EnclosureSpec,
   EnclosureDefaults,
+  EnclosurePartSpec,
+  RoofSpec,
+  ResolvedLayer,
   ResolvedEnclosure,
 } from '../spatial/Enclosed';
 import { AppApi } from '../../api/app';
@@ -63,6 +66,10 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
+import { NavigationApi } from '../../api/navigation';
+import { Exposure, type Face } from '../spatial/Exposure';
+import type Exit from '../boundary/Exit';
+import type Structure from '../../platform/idea/Structure';
 
 export interface Atmospheric {
   // ---------- biome reference ----------
@@ -292,11 +299,23 @@ export interface Atmospheric {
    * Inert everywhere else with no guard needed: `Offstage` and a plain
    * `Location` have no volume, so the geometry answers.
    */
-  /** What this scope's row says it is built of, or `null`. */
-  getEnclosure(): EnclosureSpec | null;
-  setEnclosure(value: EnclosureSpec | null): void;
+  /** What this scope's row says it is built of — raw, or `null`. */
+  getEnclosure(): EnclosurePartSpec | null;
+  setEnclosure(value: EnclosurePartSpec | null): void;
   /** What a scope of this KIND is built of when its row says nothing. */
-  enclosureDefaults(): EnclosureDefaults;
+  enclosureDefaults(): EnclosureDefaults | 'none';
+  /** What this scope's row says is over it — raw, or `null`. */
+  getRoof(): RoofSpec | null;
+  setRoof(value: RoofSpec | null): void;
+  /** What is over a scope of this KIND; `null` = undeclared. */
+  roofDefaults(): RoofSpec | null;
+  /**
+   * ⭐ The walls and the roof as resolved, with the legacy biome
+   * discriminator answering for a scope whose roof is undeclared.
+   */
+  construction(): Construction;
+  /** ⭐⭐ What is over and around this place — see {@link Exposure}. */
+  exposure(): Exposure;
 
   envelopeApplies(): boolean;
 
@@ -382,6 +401,18 @@ export interface Atmospheric {
 }
 
 /**
+ * ⭐ A scope's two parts, resolved. `declared` is false when the ROOF came
+ * from neither the row nor the class hook — the legacy biome
+ * discriminator answered, and the scope is an interior `lint:biome-sky`
+ * still counts (or an outdoor row, which is never debt).
+ */
+export interface Construction {
+  walls: ResolvedEnclosure;
+  roof: ResolvedEnclosure;
+  declared: boolean;
+}
+
+/**
  * What the fabric ladder resolved to, cached transiently on the host.
  * Every number is read off a `Material` row; none of it is authored as
  * an effect.
@@ -420,6 +451,7 @@ export function AtmosphericMixin<
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
       enclosure: { persistent: true, authorable: true },
+      roof: { persistent: true, authorable: true },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -505,14 +537,52 @@ export function AtmosphericMixin<
      * else. `null` — the ordinary case — falls through to
      * {@link enclosureDefaults}.
      */
-    protected enclosure: EnclosureSpec | null = null;
+    protected enclosure: EnclosurePartSpec | null = null;
 
-    public getEnclosure(): EnclosureSpec | null {
+    /**
+     * What this place says is over it — one layer, a list outermost
+     * first, or `none`. `null` — today's ordinary case — is UNDECLARED:
+     * the legacy biome discriminator answers (see {@link construction}).
+     * Authored-only: never runtime state.
+     */
+    protected roof: RoofSpec | null = null;
+
+    /** Transient: the resolved roof. */
+    private _resolvedRoof: ResolvedEnclosure | null = null;
+    /** Transient: the last {@link exposure}, and what it was built against. */
+    private _exposure: Exposure | null = null;
+    private _exposureKey = '';
+
+    /** ⭐ The RAW authored form — a contract with the repair build. */
+    public getEnclosure(): EnclosurePartSpec | null {
       return this.enclosure;
     }
-    public setEnclosure(value: EnclosureSpec | null): void {
+    public setEnclosure(value: EnclosurePartSpec | null): void {
       this.enclosure = value;
       this._resolvedEnclosure = null;
+      this._resolvedRoof = null;
+      this._exposure = null;
+    }
+
+    /** ⭐ The RAW authored form — a contract with the repair build. */
+    public getRoof(): RoofSpec | null {
+      return this.roof;
+    }
+    public setRoof(value: RoofSpec | null): void {
+      this.roof = value;
+      this._resolvedRoof = null;
+      this._exposure = null;
+    }
+
+    /**
+     * What is over a scope of this KIND when its row says nothing.
+     * `null` here: a `Location` that authors no `roof:` is undeclared.
+     *
+     * @hook A `Vessel` answers its own material when it declares an
+     *   interior, and `'none'` when it does not.
+     */
+    public roofDefaults(): RoofSpec | null {
+      return null;
     }
 
     /**
@@ -524,7 +594,7 @@ export function AtmosphericMixin<
      *   The row still wins: a `fabric:` on the row beats this, and this
      *   beats the universe default.
      */
-    public enclosureDefaults(): EnclosureDefaults {
+    public enclosureDefaults(): EnclosureDefaults | 'none' {
       return {
         materialPath: envelopeDialStr(
           AppSettingKeys.enclosureDefaultMaterial,
@@ -1129,26 +1199,278 @@ export function AtmosphericMixin<
      */
     public resolveEnclosure(): ResolvedEnclosure {
       if (this._resolvedEnclosure !== null) return this._resolvedEnclosure;
+      const resolved = this.resolvePart(
+        this.getEnclosure(),
+        this.enclosureDefaults(),
+      );
+      this._resolvedEnclosure = resolved;
+      return resolved;
+    }
 
-      const spec = this.getEnclosure();
-      const defaults = this.enclosureDefaults();
-      const materialPath = spec?.material ?? defaults.materialPath;
+    /**
+     * Resolve one part — a single layer, a list outermost first, or
+     * `none` — falling back to `defaults` for anything a layer leaves
+     * out. ⭐ The flat fields describe the INNERMOST layer.
+     */
+    private resolvePart(
+      spec: EnclosurePartSpec | null,
+      defaults: EnclosureDefaults | 'none',
+    ): ResolvedEnclosure {
+      const base =
+        defaults === 'none' ? AtmosphericMixin.universeEnclosure() : defaults;
+      const effective: EnclosurePartSpec =
+        spec ?? (defaults === 'none' ? 'none' : {});
+      if (effective === 'none') {
+        const skin = AtmosphericMixin.resolveLayer({}, base);
+        return {
+          ...skin,
+          layers: [],
+          none: true,
+          resistanceM2KW: 0,
+          transmittance: 1,
+        };
+      }
+      const specs: readonly EnclosureSpec[] = Array.isArray(effective)
+        ? effective
+        : [effective as EnclosureSpec];
+      const layers = (specs.length > 0 ? specs : [{}]).map((l) =>
+        AtmosphericMixin.resolveLayer(l, base),
+      );
+      const inner = layers[layers.length - 1] as ResolvedLayer;
+      return {
+        ...inner,
+        layers,
+        none: false,
+        resistanceM2KW: layers.reduce((r, l) => r + l.thicknessM / l.kWmK, 0),
+        transmittance: layers.reduce((t, l) => t * l.transmittance, 1),
+      };
+    }
+
+    /** One layer off its `Material` row. */
+    private static resolveLayer(
+      spec: EnclosureSpec,
+      defaults: EnclosureDefaults,
+    ): ResolvedLayer {
+      const materialPath = spec.material ?? defaults.materialPath;
       const thicknessM =
-        typeof spec?.thicknessM === 'number'
+        typeof spec.thicknessM === 'number'
           ? spec.thicknessM
           : defaults.thicknessM;
-
       const material =
         StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
-      const resolved: ResolvedEnclosure = {
+      return {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,
         cJkgK: material?.getSpecificHeat().rawValue() || 900,
         thicknessM: thicknessM > 0 ? thicknessM : 0.3,
         materialPath,
+        transmittance: 0,
       };
-      this._resolvedEnclosure = resolved;
-      return resolved;
+    }
+
+    /** The universe default — what a part with nothing authored is made of. */
+    private static universeEnclosure(): EnclosureDefaults {
+      return {
+        materialPath: envelopeDialStr(
+          AppSettingKeys.enclosureDefaultMaterial,
+          '/stuff/idea/material/rock/granite',
+        ),
+        thicknessM: envelopeDial(
+          AppSettingKeys.enclosureDefaultThicknessM,
+          0.3,
+        ),
+      };
+    }
+
+    /** The roof as declared: row → class hook → `null` (undeclared). */
+    private resolveDeclaredRoof(): ResolvedEnclosure | null {
+      if (this._resolvedRoof !== null) return this._resolvedRoof;
+      const spec = this.getRoof() ?? this.roofDefaults();
+      if (spec === null) return null;
+      this._resolvedRoof = this.resolvePart(spec, this.enclosureDefaults());
+      return this._resolvedRoof;
+    }
+
+    /**
+     * ⭐⭐ The walls and the roof as they stand — and, for a place whose
+     * roof is UNDECLARED, the legacy answer exactly as the biome gave it:
+     * a sky biome is open (no roof, and no walls unless the row authors
+     * them), anything else is its walls' material on five faces.
+     *
+     * ⚠ The legacy branch is the counted transition (`lint:biome-sky`):
+     * at ceiling zero both `Location` defaults become `none` and it goes.
+     */
+    public construction(): Construction {
+      const declaredRoof = this.resolveDeclaredRoof();
+      const walls = this.resolveEnclosure();
+      if (declaredRoof !== null) {
+        return { walls, roof: declaredRoof, declared: true };
+      }
+      let sky = false;
+      try {
+        sky = BiomeApi.isSkyExposed(this as unknown as Stuff);
+      } catch {
+        sky = false;
+      }
+      if (sky) {
+        const none = this.resolvePart('none', 'none');
+        return {
+          walls: this.getEnclosure() === null ? none : walls,
+          roof: none,
+          declared: false,
+        };
+      }
+      const roof = walls.none
+        ? this.resolvePart(null, AtmosphericMixin.universeEnclosure())
+        : walls;
+      return { walls, roof, declared: false };
+    }
+
+    /**
+     * ⭐⭐⭐ **What is over and around this place** — the one rule, applied
+     * once: *a face is exterior unless the space across it is an enclosed
+     * place of the same structure.* See {@link Exposure}.
+     *
+     * Cached transiently and rebuilt when the structure this place
+     * belongs to, or its resident neighbours, change: a structure stands
+     * up asynchronously after its rooms, and a memo taken before it stood
+     * would say *no structure* forever (the Floor snow precedent — re-run
+     * until the place answers). Door state is never cached; it is read
+     * live.
+     */
+    public exposure(): Exposure {
+      const self = this as unknown as Stuff;
+      const path = self.getTemplatePath();
+      let structure: Structure | null = null;
+      if (path) {
+        try {
+          structure = NavigationApi.structureAtNow(path);
+        } catch {
+          structure = null;
+        }
+      }
+      const neighbours = MixinApi.isExitable(self)
+        ? self.getObviousNeighbours({ doors: 'all' })
+        : [];
+      let key = structure?.stuffId ?? '';
+      for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
+      if (this._exposure !== null && this._exposureKey === key) {
+        return this._exposure;
+      }
+      const built = this.buildExposure(path, structure, neighbours);
+      this._exposure = built;
+      this._exposureKey = key;
+      return built;
+    }
+
+    private buildExposure(
+      path: string | null,
+      structure: Structure | null,
+      neighbours: ReadonlyArray<{ exit: Exit; dest: Stuff }>,
+    ): Exposure {
+      const self = this as unknown as Stuff;
+      const own = this.construction();
+      const volume = this.getVolume()?.rawValue() ?? 0;
+      const side = volume > 0 ? Math.cbrt(volume) : 0;
+      const faceArea = side * side;
+
+      const storey =
+        structure !== null && path !== null ? structure.storeyOf(path) : null;
+      const enclosed = (m: Stuff): boolean => {
+        if (!MixinApi.isAtmospheric(m)) return false;
+        const c = m.construction();
+        return !c.walls.none || !c.roof.none;
+      };
+
+      // ── the top ──
+      let top: 'open' | 'roof' | 'ceiling' = own.roof.none ? 'open' : 'roof';
+      if (structure !== null && storey !== null) {
+        for (const above of structure.storeysStandingOn(storey.key)) {
+          if (structure.membersOf(above.key).some(enclosed)) {
+            top = 'ceiling';
+            break;
+          }
+        }
+      }
+
+      // ── the walls: openings are exits ──
+      const walls: Face[] = [];
+      const seen = new Set<string>();
+      let openSides = 0;
+      let wallsShared = 0;
+      for (const { exit, dest } of neighbours) {
+        const vertical = AtmosphericMixin.isVertical(exit.getDirection());
+        const destPath = dest.getTemplatePath();
+        const sameStructure =
+          structure !== null && destPath !== null && structure.hasMember(destPath);
+        if (sameStructure && enclosed(dest)) {
+          if (seen.has(dest.stuffId)) continue;
+          seen.add(dest.stuffId);
+          walls.push({
+            material: own.walls.none ? null : own.walls,
+            areaM2: faceArea,
+            exterior: false,
+            neighbour: dest,
+            exit,
+          });
+          if (!vertical) wallsShared += 1;
+          continue;
+        }
+        if (vertical || exit.getDoor() !== null) continue;
+        // ⚠ A doorless exit to another ENCLOSED place is not an opening:
+        // the face stays a solid exterior wall, as it always has.
+        if (!MixinApi.isAtmospheric(dest) || !enclosed(dest)) openSides += 1;
+      }
+      wallsShared = Math.min(wallsShared, 4);
+      openSides = Math.min(openSides, 4 - wallsShared);
+      if (!own.walls.none) {
+        const exteriorWalls = 4 - wallsShared - openSides;
+        for (let i = 0; i < exteriorWalls; i++) {
+          walls.push({ material: own.walls, areaM2: faceArea, exterior: true });
+        }
+      }
+
+      // ── the floor ──
+      let floorIsRoofOf: Stuff | null = null;
+      let onGrade: boolean;
+      if (structure !== null) {
+        onGrade = storey === null || !storey.on;
+        if (storey?.on) {
+          const below = structure.membersOf(storey.on);
+          floorIsRoofOf =
+            below.find((b) => neighbours.some((n) => n.dest === b)) ??
+            below[0] ??
+            null;
+        }
+      } else {
+        const coords = (self as unknown as {
+          getCoordinates?: () => readonly number[] | null;
+        }).getCoordinates?.();
+        onGrade = top === 'open' || (coords != null && (coords[2] ?? 0) < 0);
+      }
+
+      return new Exposure({
+        structure,
+        storey: storey?.key ?? null,
+        declared: own.declared,
+        top,
+        roof:
+          top === 'roof'
+            ? { material: own.roof, areaM2: faceArea, exterior: true }
+            : null,
+        walls,
+        wallsNone: own.walls.none,
+        openSides,
+        onGrade,
+        floorIsRoofOf,
+        openOpenings: () => this.openExteriorOpenings(),
+        sideWeight: envelopeDial(AppSettingKeys.lightSolarSideWeight, 0.25),
+      });
+    }
+
+    /** An exit up or down a storey couples, but consumes no wall. */
+    private static isVertical(direction: string): boolean {
+      return direction === 'up' || direction === 'down';
     }
 
     /**
@@ -1407,7 +1729,9 @@ export function AtmosphericMixin<
         AppSettingKeys.envelopeSurfaceResistanceM2KPerW,
         0.17,
       );
-      const rWall = enclosure.thicknessM / enclosure.kWmK + rFilms;
+      // ⭐ Layers in series (D1a): Σ t/k, then the films. One layer is
+      // exactly today's t/k.
+      const rWall = enclosure.resistanceM2KW + rFilms;
       const uFabric = area / rWall;
       const uOpen =
         envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) *

@@ -54,6 +54,7 @@
     "lint:drive-scripts": "tsx scripts/check-drive-scripts.ts",
     "lint:family": "tsx scripts/lint-family.ts",
     "lint:biome": "tsx scripts/check-biome.ts",
+    "lint:biome-sky": "tsx scripts/check-biome-sky.ts",
     "lint:envelope": "tsx scripts/check-envelope.ts",
     "lint:field-meta": "tsx scripts/check-field-meta.ts --lint",
     "lint:fraction-schedules": "tsx scripts/check-fraction-schedules.ts",
