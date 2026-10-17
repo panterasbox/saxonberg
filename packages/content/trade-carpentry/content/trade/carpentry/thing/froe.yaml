@@ -25,7 +25,7 @@ data:
   _materialPath: /stuff/idea/material/element/iron
   bill:
     parts:
-      - { part: blade, template: /trade/smithing/thing/froe-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: blade, template: /trade/smithing/thing/froe-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron, form: bladed }
       - { part: handle, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
       - { key: hafting, method: wedged, members: [blade, handle] }

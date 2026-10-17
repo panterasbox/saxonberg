@@ -93,7 +93,6 @@ const ROLES = new Set(["structural", "fastener", "wear", "facing"]);
  * Each is its trade's to declare; it may shrink, never grow.
  */
 export const UNDECLARED_ASSEMBLIES: ReadonlyMap<string, string> = new Map([
-  ["/trade/forestry/thing/billhook", "blade + handle — declared in repair W5"],
   ["/trade/mining/thing/shovel", "a blade forged and hafted in one recipe — mining's to declare"],
   ["/trade/mining/thing/sledge", "a head forged and hafted in one recipe — mining's to declare"],
   ["/trade/mining/thing/assay-kit", "a balance in a case — mining's to declare"],
@@ -118,12 +117,10 @@ export const UNMADE_PARTS: ReadonlyMap<string, string> = new Map([
   ["/trade/mining/thing/compass-needle", "the compass's needle — no maker"],
   ["/trade/mining/thing/compass-rose", "the compass's rose — no maker"],
   ["/trade/smithing/thing/canister", "the smoker's canister — no maker"],
-  ["/trade/tailoring/thing/boot-upper", "the boot's upper — gains a recipe in repair W5"],
   ["/trade/tailoring/thing/cushion-cover", "the cushion's cover — no maker"],
   ["/trade/tailoring/thing/stuffing", "the cushion's stuffing — no maker"],
   ["/trade/tanning/thing/bellows-gusset", "the bellows' gusset — no maker"],
   ["/trade/tanning/thing/hide-face", "the hide-faced shield's face — no maker"],
-  ["/trade/tanning/thing/sole", "the boot's sole — gains a recipe in repair W5"],
   ["/trade/textiles/thing/bowstring", "the bow's string — no maker"],
   ["/trade/textiles/thing/whorl", "the spindle's whorl — no maker"],
 ]);

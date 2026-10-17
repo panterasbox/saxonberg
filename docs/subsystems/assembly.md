@@ -135,7 +135,7 @@ Discipline, which must exist when the row ships** (`lint:bills` arm 5):
 
 | pack | rows |
 |---|---|
-| `platform` | `friction`, `wedged`, `seated`, `glued` (hand, no competence) · `riveted` (tool `striking`, smithing) · `soldered` (premises, no instrument — there is no `heat` capability — smithing) |
+| `platform` | `friction`, `wedged`, `seated`, `glued` (hand, no competence) · `riveted` (tool `striking`, smithing, `never`) · ⭐ `peened` (tool `striking`, smithing novice, **`effort`** — a sword's tang hammered over its pommel: the one joint a smith EXPECTS to undo, so a blade outlives its hilts; the pommel is lost; repair D17) · `soldered` (premises, no instrument — there is no `heat` capability — smithing) |
 | `trade-tailoring` | `stitched` (tool `mending`, tailoring) |
 | `trade-carpentry` | `pegged` (tool `driving`, carpentry novice) |
 | `trade-coopering` | `slack-hooped` novice · `hooped` competent · `tight-hooped` proficient (tool `driving`) |

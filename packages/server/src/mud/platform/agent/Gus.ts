@@ -22,7 +22,8 @@
  * person who boots with a loadout*, and it is blocked on a kernel split:
  * `StagedMixin` bundles `props:` WITH `cast:`, so composing it on a
  * person claims that person contains a cast. Filed with its four
- * receipts; Gus becomes a ROW the day it lands.
+ * receipts — five since the repair build's Tinker (2026-10-17); Gus
+ * becomes a ROW the day it lands.
  *
  * WHY A CLASS (and not pure seed data), as of when this was written:
  * there was no declarative seed path to

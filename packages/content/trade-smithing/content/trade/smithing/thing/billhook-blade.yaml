@@ -1,0 +1,16 @@
+# A billhook's BLADE (repair D17): forged on its own, then wedged into a
+# handle — so a woodsman's hook is a blade and a handle, and the blade is
+# what a whetstone and a smith tend.
+class: /platform/thing/Tool
+data:
+  keywords: [blade, billhook-blade, "billhook blade", hook]
+  shortDescription: billhook blade
+  register: indefinite
+  longDescription: >-
+    A broad iron blade that curves into a hook at its end, ground on the
+    inside of the curve, with a short spike of tang at its heel for a
+    handle.
+  mass: 0.85
+  capabilities: []
+  constructionForm: bladed
+  _materialPath: /stuff/idea/material/element/iron

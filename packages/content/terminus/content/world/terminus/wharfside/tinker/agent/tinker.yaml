@@ -1,0 +1,38 @@
+# Abel Thorne — the tinker (repair D15). He walks a round and mends what
+# is brought to him: iron well, wood and leather only well enough, and he
+# tells you which before he takes your money.
+class: /world/terminus/wharfside/agent/Tinker
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/tweed-jacket
+  name: Abel Thorne
+  keywords: [tinker, abel, thorne, mender]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["abel", "thorne"]
+  shortDescription: "tinker with a grinding wheel on his back and soot to the elbow"
+  register: indefinite
+  longDescription: |
+    A wiry man with soot to the elbow and a grinding wheel strapped to his back in a frame, as if he expected to be asked to sharpen something at any moment, which he is. He looks at whatever you are carrying before he looks at you.
+  dispositions:
+    - { disposition: diligence, valence: 50 }
+  # ⭐ Born holding his kit (repair D14) — the props a Tinker composes
+  # `StagedMixin` for. A hook for wood, a stone for edges, a kit for
+  # leather: what he mends with on the road, where there is no forge.
+  props:
+    - /trade/forestry/thing/billhook
+    - /world/terminus/general-store/thing/whetstone
+    - /world/terminus/general-store/thing/sewing-kit
+  # ── the dossier (`lint:dossiers`) ───────────────────────────────
+  # ⭐ A competent smith and a learner at everything else: at a stop with
+  # a fire he mends iron well; anywhere he mends wood and leather only to
+  # serviceable — and says so in the quote.
+  archetype: smith
+  competence:
+    - { discipline: smithing, asserting: competent }
+    - { discipline: carpentry, asserting: novice }
+    - { discipline: tailoring, asserting: novice }
+    - { discipline: leatherwork, asserting: novice }
+    - { discipline: appraisal, asserting: competent }

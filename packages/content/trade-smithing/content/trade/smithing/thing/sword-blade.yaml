@@ -1,0 +1,17 @@
+# A sword's BLADE (repair D17) — the part a sword's name lives in, and the
+# one a smith re-hilts rather than re-makes. Forged at the old sword's
+# heat and signature (`forgeable×2 fair @1450`, hard): the blade was always
+# the sword.
+class: /platform/thing/Tool
+data:
+  keywords: [blade, sword-blade, "sword blade"]
+  shortDescription: sword blade
+  register: indefinite
+  longDescription: >-
+    A straight double-edged blade drawn down to a narrow tang, the tang
+    longer than your hand and threaded at its end. Without a hilt it is
+    not a weapon so much as a dare.
+  mass: 0.55
+  capabilities: []
+  constructionForm: bladed
+  _materialPath: /stuff/idea/material/alloy/steel

@@ -1,0 +1,14 @@
+# The cobbler's last and awl (repair D16) — the instrument a mend of
+# leather is paced by (`mending`). Bolted to the bench; you work at it.
+class: /platform/thing/MendingTool
+data:
+  shortDescription: last and awl
+  keywords: [last, awl, "last and awl", bench]
+  register: indefinite
+  longDescription: |
+    An iron last shaped like a foot standing on its toe, bolted to the bench, with an awl and a ball of waxed thread hanging off it on a string.
+  capabilities:
+    - { kind: mending }
+  fixedInPlace: true
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 3

@@ -38,6 +38,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Assembled } from '../../../../lib/craft/Assembled';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -53,11 +54,53 @@ interface NameModel extends CommandModel {
 }
 
 export default class NameController extends CommandController<NameModel> {
+  /**
+   * Name a thing whose name was taken by a reforge — once, by the hand
+   * that re-made it (repair D9, D18). Anyone else, or a thing nobody
+   * re-made, is not something you can name.
+   */
+  private async nameThing(
+    thing: Stuff & Assembled,
+    wanted: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
+    const grant = thing.getNameGrant();
+    if (!grant || grant !== actor.getIdentityPath()) {
+      this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
+      return;
+    }
+    if (!wanted) {
+      this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
+      return;
+    }
+    thing.setSeatName(wanted);
+    thing.setNameGrant('');
+    try {
+      await PersistableApi.captureHostOf(thing);
+    } catch (err) {
+      console.warn('NameController: capture after naming failed:', err);
+    }
+    MessageApi.scene(actor)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You give the blade its name: ${wanted}. It will answer to it.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} names ${Mml.thing(thing)} ${wanted}.`)
+      .send();
+  }
+
   async execute(model: NameModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const animal = model.target?.stuff;
     const wanted = (model.animalName ?? '').trim();
 
+    // ⭐ A THING may be named once by the hand that reforged its named
+    // part (repair D18, Narsil's rule): both arms are checked HERE, since
+    // the view's arg takes anything (`requires: any` — an alternation of
+    // mixins in the view would delete one of the checks).
+    if (animal && MixinApi.isAssembled(animal)) {
+      await this.nameThing(animal, wanted, context);
+      return;
+    }
     if (!animal || !MixinApi.isBonded(animal) || !MixinApi.isNamed(animal)) {
       this.refuse(context, TOPIC, `That isn't an animal you can name.`, 'not-nameable');
       return;

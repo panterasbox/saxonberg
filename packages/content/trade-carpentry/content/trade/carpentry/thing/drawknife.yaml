@@ -16,7 +16,7 @@ data:
   _materialPath: /stuff/idea/material/alloy/steel
   bill:
     parts:
-      - { part: blade, template: /trade/smithing/thing/drawknife-blade, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: blade, template: /trade/smithing/thing/drawknife-blade, count: 1, role: structural, material: /stuff/idea/material/alloy/steel, form: bladed }
       - { part: handle, plural: handles, template: /trade/carpentry/thing/handle, count: 2, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
       - { key: hafting, method: wedged, members: [blade, handle] }

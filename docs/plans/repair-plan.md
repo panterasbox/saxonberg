@@ -1761,6 +1761,44 @@ heirloom's blade line is named, the sword's bill weighs ≤ 1.0 kg.
 
 **Commit.** `content(repair): edges, the sword in four parts, soles, the cobbler, the tinker's round, the heirloom (repair W5)`
 
+> ✅ **W5 done (2026-10-17).** Decisions the build made, for review:
+> - ⭐ **A new Joint row, `peened`** (platform pack; tool `striking`,
+>   smithing novice, **`reversible: effort`**, pommel lost). D17 named
+>   `riveted`, which is `reversible: never` — a riveted sword could never be
+>   taken apart, and drive 9 / AC 14 (*draw the blade, re-hilt it*) need
+>   exactly that. A sword's tang peened over its pommel is the one joint a
+>   smith expects to undo.
+> - **The sword's parts are `blade · guard · grip · pommel`** — AC 12's own
+>   words — not the plan's `sword-blade`/`crossguard` part names (the ROWS
+>   are `sword-blade`, `crossguard`, `pommel`). ⚠ Risk 8 stands: a billed
+>   slot takes a thing by row OR keyword, and a drawknife blade answers
+>   `blade`; harmless unless someone fits one to a sword.
+> - **The grip is carpentry's existing `handle` row** (*a short grip of
+>   wood, shaved round and bored for a tang*), so no `grip` row or recipe;
+>   masses: blade 0.55 + guard 0.12 + grip 0.2 + pommel 0.13 = the sword's
+>   1.0 kg.
+> - **The sword is fitted COLD** (`toolCapabilities: []`, no heat) like the
+>   spear/mace/warhammer/flail/shield — `anvil-ladder.test.ts` holds that
+>   every fitted arm is so; the peened joint gates the hammer. The test now
+>   lists `sword` among the assembled arms and `sword-blade` among the
+>   forged.
+> - The billhook's `stock` slot became `blade` (arm 3: slot = part name);
+>   the billhook recipe moved from mining to carpentry (the hafting), the
+>   blade to smithing. `UNDECLARED_ASSEMBLIES` 7 → 6, `UNMADE_PARTS`
+>   17 → 15.
+> - The tinker's dossier `archetype: smith` (archetypes are rows; there is
+>   no `tradesman`), and his seat `fulfills` leatherwork too (his kit is a
+>   sewing kit; a boot on the road is his).
+> - ⭐ **`lint:location-graph` no longer counts an `Offstage` as a walkable
+>   place** — its invariant is that nothing leads there, so every venue
+>   with an offstage read as an "unreachable room" by construction (the
+>   market's was called news in the first run). The ceiling FELL 13 → 12;
+>   the cobbler's and tinker's offstages are not counted.
+> - The general-store tests' pack-prefix tables gained `/trade/forestry/`
+>   (the billhook); `terminus/package.json` gained `trade-forestry`.
+> - The yard slate is propped in the yard (it was only in
+>   `operatingLocations`; `lint:openings` and arm R caught it).
+
 ### W6 — the drive, the suite, the MR
 
 **Goal.** `packages/wire/tests/repair.dirty.wire.test.ts` runs the

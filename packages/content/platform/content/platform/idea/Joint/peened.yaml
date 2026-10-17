@@ -1,0 +1,22 @@
+# Peened — a sword's hilt: the blade's tang passed through guard and grip,
+# the pommel threaded on, and the end of the tang hammered over it (repair
+# D17). It holds the hilt as hard as a rivet, but it is the one joint a
+# smith EXPECTS to undo: grind off the peen and the hilt comes away, the
+# blade whole — which is how a sword is re-hilted, and how an heirloom
+# blade outlives every hilt it has worn. The pommel does not survive it.
+#
+# ⭐ Not `riveted`: a rivet is `reversible: never` (you do not take a
+# shield apart, you break it). A peened tang is undone on purpose.
+class: /platform/idea/Joint
+data:
+  key: peened
+  label: peened
+  portability: tool
+  instrument: striking
+  competence: { discipline: smithing, band: novice }
+  reversible: effort
+  strength: 0.8
+  structuralRecovery: 1.0
+  fastenerRecovery: 0.0
+  tightenable: false
+  failure: parted

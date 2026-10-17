@@ -1,0 +1,40 @@
+# The cobbler's — a Business (repair D16).
+#
+# ⭐⭐ The seat is PIECE-RATE: a cobbler was paid by the pair, and that is
+# what lets a player who takes the seat SEE the wage land the moment a
+# mend is paid for (`compensation: per-settlement`, `order repair` pays
+# the hand one piece out of the house). Two places; the second is open,
+# and it asks for a novice's hand at leatherwork — practise, and apply.
+class: /platform/idea/Business
+data:
+  name: "the cobbler's"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  # Several hands may be on shift; the house takes turns.
+  call: rota
+  positions:
+    - key: cobbler
+      noun: cobbler
+      label: at the last
+      wageRate: 4
+      headcount: 2
+      # ⭐ What the seat mends: leather (soles, uppers) and the stitching
+      # that holds a boot together.
+      fulfills: [leatherwork, tailoring]
+      compensation:
+        basis: per-settlement
+        rate: 4
+      requires:
+        discipline: leatherwork
+        band: novice
+  rosterSlots:
+    - positionKey: cobbler
+      assignee: /world/terminus/mayfield-row/cobbler/agent/cobbler
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/mayfield-row/cobbler/location/shop
+    - /world/terminus/mayfield-row/cobbler/thing/slate
+  offstage: /world/terminus/mayfield-row/cobbler/location/offstage

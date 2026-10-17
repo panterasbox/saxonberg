@@ -1,0 +1,9 @@
+# Offstage — where the tinker is between rounds (the Hearthworks'
+# precedent). Materialized on demand; players cannot reach it.
+class: /platform/location/Offstage
+data:
+  shortDescription: The Tinker's — Lean-to
+  keywords: [room, tinker, lean-to]
+  register: proper
+  longDescription: |
+    A lean-to against the yard wall with a cot in it and the cart's tarpaulin over the top.

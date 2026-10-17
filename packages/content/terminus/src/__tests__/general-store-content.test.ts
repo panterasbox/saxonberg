@@ -67,6 +67,9 @@ const FISHING_DIR = fileURLToPath(
 const CARPENTRY_DIR = fileURLToPath(
   new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url),
 );
+const FORESTRY_DIR = fileURLToPath(
+  new URL("../../../trade-forestry/content/trade/forestry/", import.meta.url),
+);
 const MEDICINE_DIR = fileURLToPath(
   new URL("../../../trade-medicine/content/trade/medicine/", import.meta.url),
 );
@@ -132,6 +135,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
+  // The billhook (repair W5) — the forestry pack's tool, sold here.
+  { prefix: "/trade/forestry/", dir: () => FORESTRY_DIR },
   // ⭐ The beekeeper's kit. It is stocked HERE rather than in the valley
   // because a general store's job IS importing — and the one line that
   // mints life (the nucleus) belongs in a shop for the same reason.

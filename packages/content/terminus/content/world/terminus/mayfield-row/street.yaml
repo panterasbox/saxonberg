@@ -56,6 +56,10 @@ data:
     # answer differs at each end of it.
     tailor:
       destination: /world/terminus/mayfield-row/tailor/location/shop
+    # ⭐ The cobbler's, beside the tailor (repair D16) — mending boots is a
+    # city trade with a door; the shop declares `row` back.
+    cobbler:
+      destination: /world/terminus/mayfield-row/cobbler/location/shop
   props:
     # ⭐ The Mayfield spur's manhole (energy build) — the residential turning's
     # access to its BURIED branch of the main (storm-safe; the overhead/buried
