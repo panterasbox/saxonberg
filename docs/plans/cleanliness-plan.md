@@ -600,7 +600,11 @@ f_hard`, blood sets at `waterK ≥ setsAboveK`, a set stain answers only to
 (fibre damage from the Cleanser row's `damages` and the water: `boiling
 felts wool` = `waterK ≥ 363 && hasTag('protein')` → `setConstructionForm('felted')`;
 `hot water shrinks` = `waterK ≥ textiles.wash.shrinkAboveK` (333) →
-`cutToStature/cutToGirth × 0.97` after materialising a stock stamp; `harsh
+`cutToStature/cutToGirth × 0.97` after materialising a stock stamp —
+⚠ both shrink and felting apply only when the garment's material carries
+the `fibre` tag **and** water reaches it (`material.permeability() > 0`,
+the one wet law): rubber, rubberized cloth (wAC 0.5) and leather do not
+shrink in hot water (repair's read, 2026-10-17); `harsh
 bleaching rots linen` = `oxidiser` on `cellulose` at full dose → `wear()`
 through `Durable`; `launder()` for the dye; **bleed** = the strength
 `launder()` removed × `textiles.wash.bleedFraction` applied by `applyDye`
@@ -1172,7 +1176,10 @@ them for free. **The seam (repair W3, consumed here; built here in
 repair's shape if repair has not landed):** `performService` arms return
 `{ok, detail, charge?}` and ONE collector does `charge !== undefined ?
 collectMinor(charge) : collect(key)`; ONE `doDurativeService` serves
-transfusion and `bath`; the hand comes from **`CraftingApi.fulfillingHand(giver,
+transfusion and `bath` — ⚠ repair builds the `{ok, detail, charge?}`
+seam but does NOT extract the durative helper (one consumer on its
+branch); **this build extracts it from transfusion's arm** when it adds
+`bath`, whichever lands first; the hand comes from **`CraftingApi.fulfillingHand(giver,
 venue, discipline?)`** (public — the wrapper over `presentFulfillers` →
 `houseOf` → `callHouse`, candidates **restricted to the tariff's own
 house**, since the lavoir and the bathhouse are two-house rooms), where
@@ -1403,6 +1410,29 @@ an order nobody can promise** (this one probably last): **rubber**
 Every shared piece below works whichever lands first. Read beside
 `docs/plans/cleanliness-note-to-siblings.md` (what we asked of each) and
 each sibling's own § Parallel builds (`git show origin/reqs/<x>:docs/plans/<x>-plan.md`).
+
+### Expected landing order, and what the siblings answered
+
+Read the same way by repair and storage (2026-10-17): **storage-and-ice
+and repair W0–W6 (either order) → rubber → cleanliness → repair W7.**
+⚠ Cleanliness should **not** land before rubber: our new rooms author
+rubber's `enclosure:`/`roof:` shapes. The pre-rubber fallbacks below
+stay in the plan as insurance, not as the intended path.
+
+- **Repair** (`origin/reqs/repair` § Parallel builds → *Repair ×
+  cleanliness*) accepted: `CraftingApi.fulfillingHand(giver, tariff,
+  discipline?)`, public, candidates only from the tariff's own house;
+  `Tariff.quoteFor(lines)`; `PricedOffer.houseAccount()` +
+  `canSettle(amount)`; if we land first, its fold-back carries our
+  `Soilable` (+`Labelled`) onto Chair/Garment/Lamp and our soot factor
+  inside `Lamp.getEmittedFlux` (glazed share); survey order holding line
+  → `fabricReport` → our room line; one wiki-spoiler paragraph per build;
+  Hinkley `lots/yard` out of its W7. Accepted in part: one `doService`
+  shape, but **we** extract the durative helper (above). Repair's name
+  for our floor predicate was `takesTraffic()`; ours is `takesSoil()`.
+- **Storage-and-ice**: we accepted all seven of its asks (see the
+  Storage table); our asks of it are in the note, awaiting its answer.
+- **Rubber**: not yet answered.
 
 ### The merge rule
 
