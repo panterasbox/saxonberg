@@ -323,6 +323,17 @@ consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient
 shelf would drop it).
 
+⚠ **A relog, not a restart — unless the counter establishes its own
+record** (found by the repair drive, 2026-10-17). A `props:` counter like
+the general store's is cloned fresh at every boot and has no persistence
+key, so it never captures at shutdown and never materializes — and the
+owner overlay that would put a consigned good back runs only on
+materialize. The good is not lost (its owner's estate keeps it, placed
+at the counter); it is never placed. `MarketStalls.hydrationSource` is
+the fix on the market square; whether every `Stock` should carry one
+(a boot-time read per counter, and a keyless restore on a rented stall
+before it is keyed) is open.
+
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
 The bar buys from a **distributor**, never from a `props:` line.

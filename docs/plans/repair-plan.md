@@ -1826,6 +1826,14 @@ back; `refusedFor` is blind to `command-rejected`. Restart last.
 
 **Commit.** `drive(repair): the requirements' drive, 1–10 + the restart, on the real socket` then the MR.
 
+> ✅ **W6 done (2026-10-17).** The drive is green, 13/13 (§ Drive
+> record): five game defects fixed on the way (the whole-bar stock bound,
+> the proprietor's own shift read as a cover, house identity by path,
+> leather the cobbler could cut, a doubled price), two recorded for their
+> owners (a proprietor's house never shuts; a consigned good at a `props:`
+> counter is not placed after a restart). Drive 11 (building upkeep) is
+> W7's and lands with it.
+
 ### W7 — building upkeep (⏸ gated: the rubber build on master)
 
 **Gate.** Do not start until rubber's W0 is on `origin/master` (`git
@@ -2336,3 +2344,74 @@ For W7, additionally:
 drive 1–10 + 12 on the real socket (and 11 + 12 again when W7 lands),
 the count, and what each failure was.
 Precedent: `farming-plan.md § Checkpoint A`.)*
+
+`packages/wire/tests/repair.dirty.wire.test.ts`, `WIRE_BOOT=1
+WIRE_PORT=2016 WIRE_BOOT_TIMEOUT=900000`, a fresh `saxonberg_build3`
+per run. Thirteen checkpoints (drive 1–10 + 12; drive 7 carries the
+off-shift check, drive 6 the notice). Eight runs.
+
+**What the drive found in the GAME (each fixed, its own commit):**
+
+1. ⭐ **A whole bar could not serve a mend** (`25ccad0f8`). The stock
+   draw judged a discrete donor's overshoot against what was LEFT to
+   draw, so an iron head needing 0.3 kg refused a 1 kg bar outright —
+   and the smithy holds only bars. The bound is now the WHOLE need
+   (`needKg − remaining + unitKg ≤ 2·needKg`).
+2. ⭐⭐ **The Hearthworks smith lost her job at the first tick**
+   (`dea1f3334`). Berta is the house's proprietor AND its rostered
+   smith; the cover pass read her own rostered shift as a cover, and
+   ended it (`endCover` drops the house's record) whenever anybody else
+   was on. She stood at the anvil employed by nobody. A proprietor's own
+   rostered shift is no longer a cover (`ownSlotOn`).
+3. **`fulfillingHand` compared houses by object identity** — Berta on
+   shift, "nobody here". By organization PATH now.
+4. **The cobbler had no leather a sole could be cut from** — the shop
+   gained `leather-offcuts` (trade-tanning, `Scrap`).
+5. **A quote said each price twice** (`8d0d88070`).
+6. **Recorded, not changed:** a proprietor covers her own house whenever
+   no rostered hand is on, so the Hearthworks smithy never shuts —
+   drive 6's off-shift check moved to the cobbler's, whose proprietor is
+   nobody's hand. Whether a house should be able to close on its
+   proprietor is the employment slate's question.
+7. ⭐ **Recorded, not changed — retail's: a good consigned at the general
+   store does not come back after a restart.** Run 10 restarted
+   gracefully (SIGTERM; *shutdown captured 54 persistable hosts*), the
+   mender's estate held the pick at `/world/terminus/general-store/counter`
+   with every mend, and the world never placed it: the counter is a
+   `Persistable` `Stock` that never establishes a record of its own (no
+   key → no shutdown capture, no materialize → the owner overlay never
+   runs). `MarketStalls.hydrationSource` is the shipped fix for exactly
+   this on the market square (its own docstring: *the market's produce
+   vanished at every boot*). Not moved onto `Stock` here: that puts a
+   boot-time read on every counter and a keyless restore on every rented
+   stall before it is keyed — retail's decision. The good is not lost
+   (its owner's record keeps it); it is unplaced. Drive 10 now reclaims
+   the pick, and drive 12 reads its mends in the owner's hands.
+
+**What it found in the SCRIPT (the harness facts worth keeping):** a
+prompt's id is on the frame, not under `payload`; ⚠⚠ a confirm's
+response is the STRING `'yes'` — a boolean is dropped at the inbound
+handler with no word and the command waits out its timeout, then every
+later command on that session is poisoned; ⚠ `Session.open` for a
+handle that is already in the world MOVES the character (drive 8's hand
+was at the bank when the order came); `eval --on` binds through
+perception, so the founder carries a light; `|` in eval text pipes;
+`-t "drive 1"` also matches 10 and 12; clone is refused over a live
+instance where the founder holds no title (steel/cast-iron, not the
+smithy's iron); a drive world is ~3 GB and a sibling's world on the same
+box OOM-killed it twice (exit 137); ⚠⚠ the harness's `stopOwnedWorld`
+SIGTERMs `pnpm exec`, which does not forward it, and the preflight
+SIGKILLs after two seconds — so every "restart" in a drive was a CRASH,
+with no shutdown capture. Drive 12 signals the listening server directly
+and waits (the harness fix is the wire build's: signal the server, not
+the wrapper).
+
+**Runs.** 1–5: the fixes above, one by one. 6: 7/13 (the confirm
+answered with a boolean). 7: 11/13 (drive 8 the bank move; drive 10 the
+server OOM-killed mid-test — drive 12's restart then passed, only
+because the store had sat empty long enough to be swept). 8: 12/13 (the
+consigned pick gone after the restart — the crash above). 9: the same,
+`stopOwnedWorld` added (it never reached the server). 10: the same, with
+a real shutdown — finding 7. ⭐ **11: 13/13 green** (1291 s; drive 10
+reclaims, drive 12 restarts gracefully and reads the pick, the keen
+billhook and *Hollin* back).
