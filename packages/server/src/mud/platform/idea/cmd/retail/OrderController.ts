@@ -9,7 +9,10 @@
 
 import { CraftController } from '../crafting/CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import { CraftingApi } from '../../../../api/crafting';
+import { CraftingApi, NOBODY_TO_WORK, type Fault } from '../../../../api/crafting';
+import { BankingApi } from '../../../../api/banking';
+import { GrammarApi } from '../../../../api/grammar';
+import { Money } from '../../../../lib/banking/Money';
 import { ContainmentApi } from '../../../../api/containment';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
@@ -23,7 +26,7 @@ import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import Tariff, { type ServiceKind } from '../../../thing/Tariff';
+import Tariff, { type ServiceKind, type QuoteRequestLine } from '../../../thing/Tariff';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
@@ -228,6 +231,14 @@ export default class OrderController extends CraftController<OrderModel> {
     }
 
     const done = await this.performService(tariff, kind, subjectRaw, context);
+    if (done.ok && done.declined) {
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.fromMarkup(Mml.escape(done.detail)))
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'declined', detail: done.detail });
+      return;
+    }
     if (!done.ok) {
       MessageApi.scene(giver)
         .topic(SERVICE_TOPIC)
@@ -240,13 +251,39 @@ export default class OrderController extends CraftController<OrderModel> {
       });
       return;
     }
-    const collected = await tariff.collect(key, `a ${kind}`);
+    // ⭐ ONE settlement for every arm (repair P1): a computed charge (a
+    // quote by diagnosis) when the arm made one, else the row's price.
+    const collected =
+      done.charge !== undefined
+        ? await tariff.collectMinor(done.charge, `a ${kind}`)
+        : await tariff.collect(key, `a ${kind}`);
+    // ⭐ The hand is paid by the seat's basis (repair D12): a piece-rate
+    // seat is paid for this piece, out of the house the fee just went to;
+    // a time-wage seat is paid by the shift and is not paid twice.
+    if (collected.paid && done.hand) await this.payPiecework(tariff, done.hand);
     const tail = collected.note ? ` ${collected.note}` : '';
     MessageApi.scene(giver)
       .topic(SERVICE_TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(`${done.detail}${tail}`)))
       .toPeers(Mml.compose`${Mml.actor(giver)} is seen to.`)
       .send();
+  }
+
+  /** Pay a piece-rate hand for one piece, out of the offer's house. */
+  private async payPiecework(tariff: Tariff, hand: Stuff): Promise<void> {
+    const house = await tariff.house();
+    const key = hand.getIdentityPath();
+    if (!house || !key || !MixinApi.isEmployed(hand)) return;
+    const housePath = (house as unknown as Stuff).getTemplatePath();
+    const job = hand
+      .getActiveEmployments()
+      .find((e) => e.organizationPath === housePath);
+    if (!job || house.getPosition(job.positionKey)?.basis() !== 'per-settlement') return;
+    try {
+      await EmploymentApi.settlePiecework(house, key, 1);
+    } catch (err) {
+      console.warn('OrderController: piecework not paid:', err);
+    }
   }
 
   /**
@@ -342,29 +379,11 @@ export default class OrderController extends CraftController<OrderModel> {
     kind: Exclude<ServiceKind, 'transfusion'>,
     subjectRaw: string,
     context: CommandContext,
-  ): Promise<
-    { ok: true; detail: string } | { ok: false; reason: string; detail: string }
-  > {
+  ): Promise<ServiceResult> {
     const giver = context.commandGiver;
     switch (kind) {
-      case 'repair': {
-        const item = this.resolveSubject(subjectRaw, context);
-        if (!item) {
-          return {
-            ok: false,
-            reason: 'no-subject',
-            detail: 'Name the thing you want mended.',
-          };
-        }
-        const outcome = await CraftingApi.repair({ item });
-        return outcome.ok
-          ? { ok: true, detail: `${item.getPresentation()} is made good.` }
-          : {
-              ok: false,
-              reason: outcome.reason ?? 'repair-failed',
-              detail: outcome.detail ?? 'It cannot be mended here.',
-            };
-      }
+      case 'repair':
+        return this.repairService(tariff, subjectRaw, context);
       case 'treatment': {
         // ⭐ The clinic's product: the house treats what is wrong with
         // you. The customer and the patient are the SAME body, which is
@@ -422,6 +441,81 @@ export default class OrderController extends CraftController<OrderModel> {
             };
       }
     }
+  }
+
+  /**
+   * ⭐⭐ The paid mend is somebody's WORK (repair D12): the on-shift hand
+   * looks it over, names each fault and its price BEFORE any money is
+   * taken, the customer says yes or no, and the hand mends it at THEIR
+   * band — their name on the mend, their wage for the piece. Nobody on
+   * shift is a refusal in words, never a free repair; a quote the customer
+   * cannot pay is refused before the work, not done on the house.
+   */
+  private async repairService(
+    tariff: Tariff,
+    subjectRaw: string,
+    context: CommandContext,
+  ): Promise<ServiceResult> {
+    const giver = context.commandGiver;
+    const item = this.resolveSubject(subjectRaw, context);
+    if (!item) {
+      return { ok: false, reason: 'no-subject', detail: 'Name the thing you want mended.' };
+    }
+    const hand = await CraftingApi.fulfillingHand(giver, tariff);
+    if (!hand) return { ok: false, reason: 'no-hand', detail: NOBODY_TO_WORK };
+    const look = await CraftingApi.diagnose({ item, hand });
+    if (!look.ok) {
+      return { ok: false, reason: look.reason, detail: 'It cannot be mended here.' };
+    }
+    const who = hand.getPresentation() ?? 'They';
+    const mendable = look.faults.filter((f) => f.mendable);
+    const said = look.faults.map((f) => faultSentence(f));
+    if (mendable.length === 0) {
+      const body = said.length > 0 ? said.join(' ') : 'There is nothing wrong with it.';
+      return {
+        ok: false,
+        reason: said.length > 0 ? 'nothing-mendable' : 'nothing-to-repair',
+        detail: `${who} looks it over. ${body}`,
+      };
+    }
+    const quote = tariff.quoteFor(mendable.map(quoteLine));
+    const priced = quote.lines.map(
+      (l, i) => `${faultSentence(mendable[i]!)}${l.price !== null ? ` — ${money(l.price)}` : ''}`,
+    );
+    const unmended = look.faults.filter((f) => !f.mendable).map((f) => faultSentence(f));
+    const lot = quote.total > 0 ? ` ${GrammarApi.cap(money(quote.total))} for the lot.` : '';
+    MessageApi.scene(giver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(
+        Mml.fromMarkup(
+          Mml.escape(`${who} looks it over. ${[...priced, ...unmended].join(' ')}${lot}`),
+        ),
+      )
+      .send();
+    if (!tariff.canSettle(quote.total)) {
+      return { ok: false, reason: 'cannot-pay', detail: "You haven't the money for that." };
+    }
+    // No interactive (a scripted caller) answers no: money is never taken
+    // on a question nobody was asked.
+    const yes = context.interactive
+      ? await context.interactive
+          .promptConfirm(`Have it done for ${money(quote.total)}?`, 'no')
+          .catch(() => false)
+      : false;
+    if (!yes) return { ok: true, declined: true, detail: 'You keep your coin, and it stays as it is.' };
+    const outcome = await CraftingApi.repair({ item, hand });
+    if (!outcome.ok) {
+      return { ok: false, reason: outcome.reason, detail: 'It cannot be mended here after all.' };
+    }
+    const short = outcome.mended.some((o) => o.result === 'short');
+    return {
+      ok: true,
+      detail: short
+        ? `${who} mends ${item.getPresentation()} as well as they can — serviceable, not what it was.`
+        : `${who} mends ${item.getPresentation()}; it is sound.`,
+      charge: quote.total,
+      hand,
+    };
   }
 
   /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
@@ -498,3 +592,70 @@ export default class OrderController extends CraftController<OrderModel> {
     return null;
   }
 }
+
+/** What a service arm reports to the one settlement in `doService`. */
+type ServiceResult =
+  | {
+      ok: true;
+      detail: string;
+      /** A computed charge (minor units) — else the row's price. */
+      charge?: number;
+      /** The hand who did the work, paid by their seat's basis. */
+      hand?: Stuff;
+      /** The customer said no: nothing done, nothing charged. */
+      declined?: boolean;
+    }
+  | { ok: false; reason: string; detail: string };
+
+/** A fault as a hand would say it, and what it would cost to put right. */
+function faultSentence(f: Fault): string {
+  const the = f.part ? `The ${f.named}` : 'It';
+  const short = f.mendable && f.result === 'short' ? ' — serviceable is the best I can do' : '';
+  switch (f.kind) {
+    case 'worn':
+      if (!f.mendable) return `${the} is worn, and wants ${cureFor(f)}.`;
+      return `${the} is worn${short}.`;
+    case 'failed':
+      if (!f.mendable) {
+        return f.reason === 'part-failed'
+          ? f.named.startsWith('something about')
+            ? `There is ${f.named} that wants replacing.`
+            : `${the} has failed — it wants a new one fitted.`
+          : `${the} has failed, and re-making it wants ${cureFor(f)}.`;
+      }
+      return `${the} has failed; it wants re-forging${short}.`;
+    case 'slack':
+      return f.mendable ? `${the} has gone slack.` : `${the} has gone slack, and wants ${cureFor(f)}.`;
+    case 'spent':
+      return f.mendable ? 'It has given all it had; it wants re-firing.' : `It has given all it had, and re-firing wants ${cureFor(f)}.`;
+  }
+}
+
+/** What would cure a fault this hand cannot mend here. */
+function cureFor(f: Fault): string {
+  switch (f.reason) {
+    case 'insufficient-heat':
+      return 'a fire hotter than any here';
+    case 'missing-tool':
+      return f.detail === 'cutting' ? 'an edge to work it' : f.detail === 'mending' ? 'a mending kit' : `a ${f.detail ?? 'tool'}`;
+    case 'insufficient-input':
+      return `${f.detail === 'metal' ? 'iron' : (f.detail ?? 'stock')} to mend it with`;
+    case 'not-skilled':
+      return 'a surer hand';
+    default:
+      return 'more than can be done here';
+  }
+}
+
+/** The priced line a mendable fault is quoted under (repair D12). */
+function quoteLine(f: Fault): QuoteRequestLine {
+  const key =
+    f.action === 'reforged' ? 'reforge' : f.action === 'tightened' ? 'tighten' : f.action === 'refired' ? 'refire' : 'repair';
+  return { key, label: f.named, qty: 1 };
+}
+
+/** A sum of money, as the house would say it. */
+function money(minor: number): string {
+  return Money.of(minor, BankingApi.compactCurrency()).render();
+}
+

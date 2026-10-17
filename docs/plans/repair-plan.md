@@ -1633,6 +1633,35 @@ infirmary line and the Rejection slate go. Implements D12, D19, AC 5–7.
 
 **Commit.** `feat(retail): a paid mend is the on-shift hand's work — diagnosis, quote, confirm, their band (repair W3)`
 
+> ✅ **W3 done (2026-10-17).** Built to § Parallel builds' P1 shape:
+> `CraftingApi.fulfillingHand(giver, tariff, discipline?)` (only the
+> Tariff's own house's hands — `PricedOfferMixin.house()`, self-first, the
+> same walk `collect` uses), `Tariff.quoteFor(lines)` generic
+> (`{key, label, qty}` → `{lines[{…, price|null}], total}`; repair keys
+> derive from `repair`, any other unpriced key stays null),
+> `NOBODY_TO_WORK` exported from `api/crafting.ts`, `PricedOfferMixin`
+> gains `house()`, `houseAccount()`, `canSettle(amount)` and
+> `collectMinor(amount, reason)` (`collect(key)` is now a call to it), and
+> every `performService` arm returns `{ok, detail, charge?, hand?,
+> declined?}` that `doService` settles ONCE. Decisions the build made:
+> - **`BankingApi.canSettle(amount)`** is new (read-only: the routing
+>   credential's balance, else coin in hand) — `canSettle` needed a payer
+>   question the banking surface did not answer; `settle` answered it only
+>   by trying.
+> - **The Rejection slate MOVED to the smelter instead of being deleted
+>   and re-created in W5** — same end state, no row churn; until W5 it
+>   refuses honestly (*nobody here to do the work*).
+> - The hearthworks tariff prices `tighten: 1` and `reforge: 12` outright
+>   (a broken head at Berta's should cost more than its derived 10).
+> - A customer saying no (or no interactive at all) is `declined`: nothing
+>   done, nothing charged, a `controller-rejected` note `declined`.
+> - The quote's prose is module-private in `OrderController`
+>   (`faultSentence`, `cureFor`) — `Fault.result === 'short'` is what lets
+>   the tinker say *serviceable is the best I can do* before money (AC 9).
+> - `fulfillingHand` has no unit test of its own: it is a filter over the
+>   shipped `presentFulfillers` + `callFor`; `OrderRepair.test.ts` stubs it
+>   and drive 5–8 prove it live.
+
 ### W4 — the roster keeps a round
 
 **Goal.** One assignee with several slots at one house holds one shift

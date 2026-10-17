@@ -439,6 +439,20 @@ which is predictable rather than right — two cooks in one kitchen wants a
 queue. That is arbitration and belongs to the crew substrate
 ([call-slate](../slates/builds/call-slate.md)).
 
+### ⭐ A fulfilling hand MENDS (repair, 2026-10-17)
+
+`fulfills` is also what puts a person behind a priced SERVICE: `order
+repair <thing>` asks `CraftingApi.fulfillingHand(giver, tariff)` for an
+on-shift hand of the house the Tariff's money goes to (no discipline — the
+hand's own bands per part decide the result, not the seat), and the mend
+is THEIRS: their reach, their heat, their band in each part's trade, their
+name on it. A `per-settlement` seat (`compensation: {basis:
+per-settlement, rate}`) is paid one piece per paid mend
+(`settlePiecework`, out of the house the fee went to) — the cobbler's
+seat is the shipped one; a time-wage seat is paid by its shift. Nobody on
+shift is the refusal *"There's nobody here to do the work."* See
+[retail.md § A priced service is performed by a PERSON](./retail.md).
+
 ### ⚠ What this replaced, and why
 
 Until the trades-and-labor build a Position carried `confers: string[]` —

@@ -7,17 +7,21 @@
 #
 # ⚠ Dearer than the hearthworks smithy (7 against 5) and that is the
 # point of a price rather than a rule: the diggings are a long way from
-# anywhere, the store's forge is a corner of a provisioning shed, and
-# convenience costs. A player who does the sums walks their gear down the
-# Delight.
+# anywhere, and convenience costs. A player who does the sums walks their
+# gear down the Delight.
+#
+# ⭐ It stands at the SMELTER (repair D19) and it is the TINKER's (D15):
+# his round brings him here at two, where there is a fire, and iron is
+# mended well. Outside his hours there is nobody to do the work.
 class: /platform/thing/Tariff
 data:
   shortDescription: mending slate
   keywords: [mending, slate, repairs, tariff]
   register: indefinite
   longDescription: |
-    A slate propped against the counter's end, chalked in a hand that gave up on neatness some years ago. MENDING, it says, and a figure. Underneath, smaller: NO CREDIT.
+    A slate propped against the anvil's block, chalked in a hand that gave up on neatness some years ago. MENDING, it says, and a figure. Underneath, smaller: NO CREDIT.
   prices:
     repair: 7
+    tighten: 2
   services:
     repair: repair

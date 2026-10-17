@@ -36,9 +36,8 @@ data:
   # store's shop floor props exactly two things and both are fixtures.
   props:
     - /world/terminus/rejection/thing/store-counter
-    # ⭐ The second repair shop, and it is ONE `props:` line plus one row.
-    # That is the second-instance test: a service the kernel orchestrates,
-    # priced by content, in a town whose pack ships no code for it.
-    - /world/terminus/rejection/thing/mending-slate
+    # ⚠ The mending slate moved to the SMELTER (repair D19): the shed has
+    # no fire and nobody whose work a mend is. The tinker's round mends
+    # there, by the furnace and the anvil, at its hour.
   cast:
     - /world/terminus/rejection/agent/storekeeper

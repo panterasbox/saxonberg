@@ -15,7 +15,7 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Charge } from "../../api/banking";
 import { BankingApi } from "../../api/banking";
-import { EmploymentApi } from "../../api/employment";
+import { EmploymentApi, type BusinessStuff } from "../../api/employment";
 import { MixinApi } from "../../api/mixin";
 import { Money } from "../banking/Money";
 import { Currency } from "../banking/Currency";
@@ -47,6 +47,27 @@ export interface PricedOffer {
    * pricing a thing and being paid for it are one act.
    */
   collect(key: string, reason: string): Promise<Collected>;
+  /**
+   * ⭐ Take a COMPUTED charge (minor units) — a quote by diagnosis, not a
+   * row's flat price (repair D12). `collect(key)` is this with the key's
+   * price. The same house, the same settlement, the same "on the house"
+   * on any failure.
+   */
+  collectMinor(amount: number, reason: string): Promise<Collected>;
+  /**
+   * The house this offer's money goes to — the fixture's own operator
+   * first (a blood window), else whoever operates the room it stands in.
+   * Null when nobody does.
+   */
+  house(): Promise<BusinessStuff | null>;
+  /** The house's operating account, or null when there is none. */
+  houseAccount(): Promise<string | null>;
+  /**
+   * ⭐ Can the person asking pay `amount` (minor units) — by credential or
+   * coin? Asked BEFORE a service is performed (repair P1): a mend nobody
+   * can pay for is refused, not done on the house.
+   */
+  canSettle(amount: number): boolean;
 }
 
 export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -114,6 +135,30 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
     public async collect(key: string, reason: string): Promise<Collected> {
       const price = this.priceFor(key);
       if (price === null || price <= 0) return { paid: false, note: null };
+      return this.collectMinor(price, reason);
+    }
+
+    public async house(): Promise<BusinessStuff | null> {
+      return (await this.houseAndVenue())?.business ?? null;
+    }
+
+    public async houseAccount(): Promise<string | null> {
+      const business = await this.house();
+      if (!business) return null;
+      try {
+        return await EmploymentApi.operatingAccountOf(business);
+      } catch {
+        return null;
+      }
+    }
+
+    public canSettle(amount: number): boolean {
+      if (amount <= 0) return true;
+      return BankingApi.canSettle(Money.of(amount, BankingApi.compactCurrency()));
+    }
+
+    /** The house, and the place the fee is attributed to. */
+    private async houseAndVenue(): Promise<{ business: BusinessStuff; venue: Stuff } | null> {
       const self = this as unknown as Stuff;
       // ⭐ Self-first (blood build D6): when the priced fixture is ITSELF an
       // operating location (a blood window whose Business names the fixture,
@@ -123,18 +168,21 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the window keeps its counter). Fall back to the container otherwise,
       // byte-identical for every single-house room.
       const selfPath = self.getIdentityPath() ?? self.getTemplatePath();
-      let business = selfPath
-        ? await EmploymentApi.ensureOperatorAt(selfPath)
-        : null;
-      let venue: Stuff | null = business ? self : null;
-      if (!business) {
-        const container = MixinApi.isContainable(self) ? self.getContainer() : null;
-        const venuePath = container?.getTemplatePath();
-        if (!venuePath) return { paid: false, note: null };
-        business = await EmploymentApi.ensureOperatorAt(venuePath);
-        venue = container;
-      }
-      if (!business) return { paid: false, note: null };
+      const own = selfPath ? await EmploymentApi.ensureOperatorAt(selfPath) : null;
+      if (own) return { business: own, venue: self };
+      const container = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const venuePath = container?.getTemplatePath();
+      if (!container || !venuePath) return null;
+      const business = await EmploymentApi.ensureOperatorAt(venuePath);
+      return business ? { business, venue: container } : null;
+    }
+
+    public async collectMinor(amount: number, reason: string): Promise<Collected> {
+      if (!Number.isFinite(amount) || amount <= 0) return { paid: false, note: null };
+      const price = Math.round(amount);
+      const found = await this.houseAndVenue();
+      if (!found) return { paid: false, note: null };
+      const { business, venue } = found;
       let venueAccount: string;
       try {
         venueAccount = await EmploymentApi.operatingAccountOf(business);

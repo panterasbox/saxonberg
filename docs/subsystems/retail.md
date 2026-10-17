@@ -40,11 +40,49 @@ that owns the capability** and inlines nothing: `repair` →
 pack code: a venue that could define its own service kinds would need
 pack code, and then a second venue would too. ⭐ **A second clinic is a
 `Tariff` row and a `Business` row** — the shipped proof is a repair tariff
-at the hearthworks smithy and a second one, at a different price, in the
-Rejection provisioning shed.
+at the hearthworks smithy and a second one, at a different price, at the
+Rejection smelter (it stood in the provisioning shed until the repair
+build — a shed with no fire and nobody whose trade a mend is).
+
+### ⭐⭐ A priced service is performed by a PERSON (repair, 2026-10-17)
+
+Until the repair build the `repair` arm mended as the CUSTOMER — at their
+band, with nobody in the shop — and `collect` took the money: a priced
+service with no worker in it. Now:
+
+1. **The hand.** `CraftingApi.fulfillingHand(giver, tariff, discipline?)`
+   — someone on shift in the room whose seat `fulfills` the work (any,
+   when no discipline is named; a Tariff row may name one per service),
+   working for the house the Tariff's money goes to (`tariff.house()`:
+   the fixture's own operator first, else the room's — so a shared room
+   never sends another house's hand), chosen by that house's `call` rule.
+   ⛔ Nobody is a refusal in words — `NOBODY_TO_WORK`, *"There's nobody
+   here to do the work."* — one sentence for every service, never a free
+   service.
+2. **The quote, before the money.** The hand looks it over
+   (`CraftingApi.diagnose`, read-only — the same ladder the mend runs) and
+   names each fault and its price: `Tariff.quoteFor(lines)` prices `{key,
+   label, qty}` lines, a repair key the row does not price (`tighten`,
+   `reforge`, `refire`) deriving from `repair` (×¼, ×2, ×1, grain), any
+   other unpriced key staying unpriced (null — never derived). A fault the
+   hand cannot mend here is said with its cure and not priced; a hand who
+   can only make a part serviceable says so.
+3. **Can you pay?** `PricedOfferMixin.canSettle(amount)` (`BankingApi
+   .canSettle` — credential balance, else coin in hand) BEFORE the work: a
+   mend nobody can pay for is refused, not done on the house.
+4. **Yes or no.** `context.interactive.promptConfirm` (`prompt-confirm` on
+   the wire); no interactive — a scripted caller — answers no.
+5. **The mend is the hand's**: `CraftingApi.repair({item, hand})` — their
+   reach, heat and bands; their name on the `MendRecord`.
+6. **One settlement.** Every arm returns `{ok, detail, charge?, hand?}`;
+   `doService` settles once — `collectMinor(charge)` for a computed quote,
+   else `collect(key)` — and pays a `per-settlement` hand
+   (`EmploymentApi.settlePiecework`, one piece) out of the house the fee
+   went to; a time-wage hand is paid by the shift and not twice.
 
 `PricedOfferMixin.collect(key, reason)` is the one settlement path for a
-SERVICE, so a `Menu` and a `Tariff` share it. A SALE (a stock good, a
+SERVICE (`collectMinor(amount, reason)` its computed-charge form), so a
+`Menu` and a `Tariff` share it. A SALE (a stock good, a
 consignment line, a priced menu recipe) settles through
 `EmploymentApi.settleSale(venuePath, amount, taxable, reason, splits?)` —
 the single path `buy` and `order` both run (it replaced a hand-rolled copy

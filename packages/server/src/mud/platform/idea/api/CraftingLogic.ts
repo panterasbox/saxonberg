@@ -57,6 +57,7 @@ import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BlendPart,
   BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
+import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
 import type { Durable, MendRecord } from '../../../lib/material/Durable';
 import type { GradeBand } from '../../../lib/craft/Grade';
@@ -3333,6 +3334,33 @@ async function diagnoseImpl(req: DiagnoseRequest): Promise<DiagnoseOutcome> {
   return { ok: true, item: run.item, hand: run.m.hand, faults: run.m.faults };
 }
 
+/**
+ * ⭐ The hand that does a paid service's work (repair D12, P1): someone on
+ * shift in the room whose seat fulfils the work (any work, when the offer
+ * names no discipline) — but only for the house the OFFER's money goes to,
+ * so a shared room (the lavoir, the bathhouse) never sends another house's
+ * hand. The house's own call rule picks among several. `null` when there
+ * is nobody — which is a refusal in words, never a free service.
+ */
+async function fulfillingHandImpl(
+  giver: Stuff,
+  offer: Stuff & PricedOffer,
+  discipline?: string,
+): Promise<Stuff | null> {
+  const house = await offer.house();
+  if (!house) return null;
+  const candidates = presentFulfillers(giver, discipline).filter(
+    (c) =>
+      MixinApi.isEmployed(c) &&
+      c.getActiveEmployments().some(
+        (e) => StuffApi.findByTemplatePath(e.organizationPath) === (house as unknown as Stuff),
+      ),
+  );
+  if (candidates.length === 0) return null;
+  const verdict = house.callFor({ patron: giver, candidates });
+  return verdict.ok ? verdict.chosen : null;
+}
+
 /** The hand a mend is done by: the request's, else whoever is acting. */
 function mendHand(req: RepairRequest): Stuff | null {
   // The engaged repair completes outside the command frame — prefer the
@@ -4471,6 +4499,16 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async repair(request: RepairRequest): Promise<RepairOutcome> {
     return repairImpl(request);
+  }
+
+  /** See {@link CraftingApi.fulfillingHand}. */
+  @CallSecurity(CraftingApiCallers)
+  public async fulfillingHand(
+    giver: Stuff,
+    offer: Stuff & PricedOffer,
+    discipline?: string,
+  ): Promise<Stuff | null> {
+    return fulfillingHandImpl(giver, offer, discipline);
   }
 
   /** See {@link CraftingApi.diagnose}. */

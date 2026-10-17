@@ -22,6 +22,7 @@
  * {@link CraftingLogic} singleton at `/platform/idea/api/crafting`.
  */
 
+import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Grade } from '../lib/craft/Grade';
 import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
@@ -256,6 +257,12 @@ export interface SkippedPart {
   /** The heat, the tool, the stock, the trade — what would cure it. */
   detail?: string;
 }
+
+/**
+ * ⭐ The refusal for a priced service with nobody on shift to do it — one
+ * sentence, shared by every service arm (repair P1).
+ */
+export const NOBODY_TO_WORK = "There's nobody here to do the work.";
 
 /**
  * ⭐ One fault a hand finds in a thing (repair D12) — what the paid mend
@@ -498,6 +505,22 @@ export class CraftingApi {
    */
   public static async repair(request: RepairRequest): Promise<RepairOutcome> {
     return logic().repair(request);
+  }
+
+  /**
+   * ⭐ Who does a paid service's work (repair D12): someone on shift in the
+   * room whose seat fulfils `discipline` (any, when absent — a Tariff row
+   * may name one per service), working for the house `offer`'s money goes
+   * to, chosen by that house's own call rule. `null` when nobody is — the
+   * service is refused in words (`NOBODY_TO_WORK`), never done free.
+   * See {@link CraftingLogic.fulfillingHand}.
+   */
+  public static async fulfillingHand(
+    giver: Stuff,
+    offer: Stuff & PricedOffer,
+    discipline?: string,
+  ): Promise<Stuff | null> {
+    return logic().fulfillingHand(giver, offer, discipline);
   }
 
   /**
