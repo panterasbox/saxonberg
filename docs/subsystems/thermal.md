@@ -472,6 +472,15 @@ Honest engineering numbers, game-tuned — not CFD.
 
 ## ⭐⭐ The envelope — a room holds a state different from its outside
 
+> ⭐ **Since the rubber build (2026-10) the envelope reads the
+> construction** — [construction.md](./construction.md): a place's own
+> `enclosure:`/`roof:` (one layer, a list in series, or `none`), its loss
+> area from `Exposure.exteriorAreaM2()` (a face onto an enclosed member of
+> its structure loses nothing to the weather), solar gain through a
+> transparent face, and heat shared with its neighbours (shut ⇒
+> conduction, open ⇒ flow), all as terms of one closed form. The prose
+> below describes the base it extends.
+
 The envelope build (2026-09-24). Indoor temperature used to be a
 **decree**: one biome row authored 294 K and every interior in the realm
 inherited it, in January, at 4 a.m., with the door standing open.

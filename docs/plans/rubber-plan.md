@@ -1837,6 +1837,15 @@ Commit: `fix(garments): wet matter conducts, the outer layer sheds rain, wear re
 
 ### W6 — supply
 
+> ✅ **DONE `81d641992`.** Decided: (1) the caprock band is a FULL METRE
+> (−10 … −11; halite −11 … −12), so a dig from the coal floor reaches it.
+> (2) The won nodule is 50 g — a cure is weighed by COUNTING nodules against
+> rubber (3 lumps of 0.5 kg + 1 nodule = 3.2 %). (3) The air read is
+> `Producing.windowAirK`: the enclosing scope's own temperature (envelope
+> last or authored) else `BiomeApi.airFor(scope).tempK`, the body only when
+> nothing encloses it. (4) The stand, pan and sheet rows moved to W7 with
+> the stove house (reachability ceiling 0).
+
 Implements D13.
 
 Files: `lib/husbandry/Producing.ts` (the `weather` window's air read;
@@ -1862,6 +1871,25 @@ AC 4's tap half by test.
 Commit: `feat(rubber): latex from a Hevea under glass, rubber roots from a field, sulfur from the caprock`
 
 ### W7 — the works, the content pass, the goods, the drive
+
+> ✅ **Content DONE `3194f1fac`; the drive is being run.** Decided:
+> (1) **the Hevea stand in TUBS** — an unpotted plant has no soil, so
+> `satWater` is 0 and a tree would wither over ~44 game days with nothing a
+> player could do: a time bomb. `hevea-tub` (a `PlantPot`, the starter
+> pot's shape, the tree in its own `props:`) holds 8 L and wants watering —
+> tending is the fuel contest's second chore. (2) The stems ship MATURE
+> with two cuts open (`spiles: 2`), so `tap` draws without an auger/spile
+> (rows only). (3) The stove house's vent is a ONE-WAY door onto the yard —
+> the yard's only free direction (`west`) is the works floor's door.
+> (4) The substation gains a CATWALK room above the cell: the cell's hazard
+> fires on a crossing and the only way in was a teleport (no crossing).
+> (5) The coach already authored `_materialPath` (oak) — nothing to do.
+> (6) The rubberized coat is stocked at the general store (reachability),
+> beside rubber boots and gloves; the gas bladder is rubberized cloth.
+> (7) The scorched material is NAMED burnt rubber (a spellbook descriptor
+> collision). (8) Doc pointers: thermal, biome, light, ground, fire, mould,
+> glass; `content-packs.md`'s pack COUNT is left to the finalize sweep (it
+> was already stale at "fifty-eight").
 
 Implements D14, D15 (and the general-store and gas-bladder collisions).
 

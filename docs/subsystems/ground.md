@@ -60,6 +60,10 @@ working, so an author can invent matter without a kernel MR.
 
 ## The two questions that are NOT the same question
 
+> (rubber build) A storey standing `on:` another — a roof terrace — has
+> the roof of the place below for a floor: `isOnGrade()` answers `false`
+> there. Every other floor keeps the derivation below unchanged.
+
 1. **Is there a floor here at all** — is this place *standable*?
    `noDefaultFloor`. Defaults to yes.
 2. **Does the ground continue beneath it** — `onGrade`? Tri-state, `null`
