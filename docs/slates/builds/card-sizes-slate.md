@@ -12,9 +12,9 @@
 > cards · the one `cms` card broken into tree / file / diagnostics / git
 > cards · video as a card about a watch target (retires `cockpit.watch`)
 > and about a SCREEN (watching is not tuning) · the streamer deck as a
-> streamer-only card that holds the camera region · the article card
-> (hypertext the server fetches and reads) · tab-away as a fact the
-> client reports · the broadcast contract: which client facts the overlay
+> streamer-only card that holds the camera region · the web as
+> content: the browser's own tab, and tab-away as a fact the client
+> reports · the broadcast contract: which client facts the overlay
 > feed carries
 > **Size:** a build
 
@@ -55,9 +55,6 @@ The doctrine is already here and the code is not:
   `noProse`, `singleton`. The whole editor, tree and diagnostics pane
   ride one card the `BuilderLayout` mounts dominant. Decomposing the
   CMS is breaking up a card, not inventing one.
-- **Hypertext in a card already exists.** `wiki` and `help` are
-  `payload` cards rendering a page body with links. An article from the
-  web is that card with a different producer.
 - **Video is not a card.** `watch` writes the `cockpit.watch` client
   state key and only the `watch` mode's layouts read it, so `watch` in
   `play` changes nothing you can see. A shared screen writes the same
@@ -124,7 +121,7 @@ for. So:
 ### Panels stay panels
 
 The summoned-panel tier is not swept in. **The test is whether the thing
-is ABOUT something.** A thread, a file, a stream, a screen, an article
+is ABOUT something.** A thread, a file, a stream, a screen
 have a subject; settings and the notification preferences are chrome
 with no subject, no lifetime and no reason to be pinned. The card build
 already refused to rename panels to cards for exactly this reason.
@@ -237,63 +234,38 @@ scaffold goes. Its corner size is the **camera region** (below).
 
 ---
 
-## ⭐⭐ The article card — reading the web inside the client
+## ⭐⭐ The web as content — the browser's tab, not a card
 
-The case: on stream, browse to an article and read it without leaving
-the client. It is not video; it is hypertext.
+The case: on stream, browse to an article and read it. **The web's own
+render is the point** — the page as its publisher made it — so anything
+that re-renders it (a reader extraction, a sanitized body in a card) is
+a different thing and was rejected on that ground.
 
-**An iframe cannot do it.** Most publishers send `X-Frame-Options:
-DENY` or a `frame-ancestors` CSP, so an embedded page is a blank box —
-and the ones that do frame are a full third-party page running in the
-client (trackers, autoplay, layout that ignores the theme). A client
-`fetch` of the page fails on CORS. Neither problem is fixable from our
-side.
+**And the page cannot come inside the client.** Most publishers send
+`X-Frame-Options: DENY` or a `frame-ancestors` CSP, so an iframe card
+is a blank box; the pages that do frame are a minority you cannot
+predict. Nothing on our side can override a header the publisher sends.
+The only ways to put an arbitrary page inside our window are a desktop
+shell with a privileged web view (Electron's `<webview>`) or a remote
+browser streamed in as video — each a new product to carry for one
+use, and neither on the table.
 
-**The server reads it instead.** `read <url>` (verb name open): the
-server fetches the page, extracts the article (title, byline, body,
-images — the reader-mode extraction every browser ships), sanitizes it
-to the hypertext the `wiki` card already renders, and pushes an
-**article card**. CORS never applies, because the browser never asks a
-foreign origin for anything but images. Links inside it open another
-article card; *open in a tab* is always offered for the page that does
-not extract.
+**So the web is a browser tab, and the integration is what makes that
+good.** When the streamer switches tabs the browser tells the page
+(`visibilitychange`), and the client reports it on the bus as a
+streamer-only fact: *client hidden*. The overlay switches to a scene
+built for "not the client" — the window capture framed rather than full
+screen, with the chat and the camera laid out by the overlay instead of
+by the client's corner region. Coming back flips it. The capture source
+does not change at all: OBS keeps capturing the same browser window,
+which is now showing the other tab.
 
-What it must get right:
-
-- ⚠⚠ **It is a server-side fetch of a player-supplied URL — the SSRF
-  shape.** Refuse private, loopback and link-local addresses *after*
-  DNS resolution and again on every redirect; cap size, time and
-  redirect count; fetch `http(s)` only. This is the part to get right
-  first, not last.
-- **Interface tier, never in-world.** Like streams, reading the web is a
-  real-world feature for a real audience; it may never be gated by
-  progression. Whether it
-  is offered to every player or to streamers first is an open question —
-  the SSRF guard is needed either way.
-- **Not a cache, not a mirror.** The extracted body lives on the card
-  and nowhere else — no collection, no document, no help index. It is
-  a reading of a page, the same way a `look` card is a reading of a room.
-- **Performance** is one fetch and one extraction per open, on the
-  server; the client renders text it already knows how to render.
-
-**The fallback is honest:** a page that will not extract (a web app, a
-paywall, a video page) says so and offers the tab. Which is why the
-next section exists.
-
----
-
-## ⭐⭐ Leaving the client is a fact the client can report
-
-When the streamer switches browser tabs, the capture is no longer the
-client. The browser tells the page (`visibilitychange`) and the client
-reports it on the bus as a streamer-only fact: *client hidden*. The
-overlay then switches to a scene built for "not the client" — the
-capture windowed rather than full screen, with the chat and the camera
-laid out by the overlay instead of by the client's corner region. Coming
-back flips it.
-
-That makes "I'll just switch tabs" a supported path rather than a broken
-one, which matters because the article card will never read everything.
+⚠ What the client can say is *I am hidden*, never *what is showing
+instead* — the page has no right to know the other tab, and the scene
+does not need it. A second window (rather than a tab) reads the same
+way, provided the client window is covered or minimized; a client left
+visible beside a browser window is still "visible", and that layout is
+a scene the streamer picks by hand.
 
 ---
 
@@ -353,8 +325,9 @@ already knows; the client does not guess.
    workspace is something they compose.
 3. **Immersion / participation** — screens: watching is joining, not
    being pushed; tuning is the contested act the bar TV is for.
-4. **Values** — redaction while live and the SSRF guard are both "the
-   viewer did not consent to this" answers.
+4. **Values** — redaction while live is a "the people in your tells did
+   not consent to an audience" answer; tab-away reports *hidden*, never
+   *what instead*.
 5. **Continuity** — a card that answers the same commands whether it
    came from the implant or a phone is the continuity test passed on the
    client.
@@ -376,15 +349,17 @@ already knows; the client does not guess.
   the same frame.
 - **Claude on stream.** pbox-stream's plan has an agent board; try that
   for a few streams before building anything into the client.
-- **A browser.** The article card reads articles; it does not run web
-  apps.
+- **The web inside the client.** No iframe card (publishers forbid
+  it), no reader card (the render is the point), no desktop shell or
+  remote browser. The web is a tab.
 
 ## Open questions
 
 1. **Size names and the verbs** — `glance · feed · focal · full`, and
    `cockpit card focus|full|…` vs a single `cockpit card size`.
-2. **Who gets `read <url>`** — everyone (rate-limited) or streamers
-   first.
+2. **Tab-away for everyone or streamers only** — the fact is only
+   reported to the feed for a streamer, but should a viewer's client
+   also pause a focal video when hidden?
 3. **The tuning verb** — `switch tv to X`, `put X on tv`, or keep
    `watch X on tv`; run the collision ladder against `tune`.
 4. **Liveness fallback** — does a feed card ever stay live when nothing
