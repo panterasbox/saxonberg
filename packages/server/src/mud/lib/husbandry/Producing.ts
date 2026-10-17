@@ -71,6 +71,7 @@ import type {
 } from '../../platform/idea/species/Species';
 import { CelestialApi } from '../../api/celestial';
 import { WeatherApi } from '../../api/weather';
+import { BiomeApi } from '../../api/biome';
 import type { Atmospheric } from '../biome/Atmospheric';
 import { EARTH_LIKE } from '../time/CelestialProfile';
 import {
@@ -388,15 +389,14 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
               }
             }
           }
-          // The temperature term, when the host has one to read. Absent
-          // is unmodelled, which is open.
-          const self = this as unknown as Stuff;
-          if (MixinApi.isThermal(self)) {
-            const k = self.getTemperature()?.rawValue();
-            if (k !== undefined) {
-              if (k < spec.minK) return { open: false, reason: 'cold' };
-              if (k > spec.maxK) return { open: false, reason: 'warm' };
-            }
+          // ⭐ The temperature term reads the AIR at the host's place
+          // (rubber build, D13.1): a 290 kg stem's own body lags its house
+          // by hours, and a tree's xylem follows the air — the reason
+          // `freeze-thaw` already reads it. Absent is unmodelled: open.
+          const k = this.windowAirK();
+          if (k !== null) {
+            if (k < spec.minK) return { open: false, reason: 'cold' };
+            if (k > spec.maxK) return { open: false, reason: 'warm' };
           }
           return OPEN;
         }
@@ -469,6 +469,32 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * The `biome` window's hook. Default open — a producer whose supply
      * is the land around it overrides (a hive reads its forage census).
      */
+    /**
+     * The air temperature at this host's place, K: the enclosing
+     * scope's own (an envelope's last value, or an authored one), else
+     * the sync chain's air there; the host's own body only when nothing
+     * encloses it; `null` when nothing answers.
+     */
+    private windowAirK(): number | null {
+      const self = this as unknown as Stuff;
+      let cursor: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
+      let depth = 16;
+      while (cursor !== null && depth-- > 0) {
+        if (MixinApi.isAtmospheric(cursor)) {
+          const own = (cursor as Stuff & Atmospheric).getOwnTemperatureK();
+          if (own !== null) return own;
+          try {
+            return BiomeApi.airFor(cursor).tempK;
+          } catch {
+            break;
+          }
+        }
+        cursor = MixinApi.isContainable(cursor) ? cursor.getContainer() : null;
+      }
+      if (MixinApi.isThermal(self)) return self.getTemperature()?.rawValue() ?? null;
+      return null;
+    }
+
     public biomeWindowOpen(_spec: TapSpec): boolean {
       return true;
     }

@@ -22,7 +22,9 @@
 #  −6 … −9   limestone  the smelt's missing flux, and the kiln's raw stone
 #  −9 … −10  coal       a hearth and kiln fuel; ruins iron, which is why
 #                       coke had to be invented
-# −10 … −12  halite     rock salt, won as BULK into a vessel
+# −10 … −11  sulfur     the CAPROCK a salt dome wears: native sulfur, the
+#                       rubber cure's agent (rubber build, D13.4)
+# −11 … −12  halite     rock salt, won as BULK into a vessel
 #      below  granite   country rock, and nothing worth the swing
 #
 # **The water table at −12 is the scope boundary.** The floor stops there,
@@ -43,6 +45,10 @@ data:
     - { toZ: -6, host: /stuff/idea/material/rock/granite, wins: /trade/quarrying/thing/block }
     - { toZ: -9, host: /stuff/idea/material/rock/limestone, wins: /trade/quarrying/thing/limestone }
     - { toZ: -10, host: /stuff/idea/material/mineral/coal, wins: /trade/quarrying/thing/coal }
+    # ⭐ The caprock: a salt dome's crust of native sulfur, between the
+    # coal and the salt. A full metre, so a dig that reaches the coal floor
+    # reaches it before the salt (rubber build).
+    - { toZ: -11, host: /stuff/idea/material/mineral/sulfur, wins: /trade/quarrying/thing/sulfur }
     # ⚠ Won as BULK — the `/idea/material/` infix is what says so, and it is
     # why `cure` runs on salt from a face exactly as on salt from a pan.
     - { toZ: -12, host: /stuff/idea/material/mineral/halite, wins: /stuff/idea/material/food/salt }

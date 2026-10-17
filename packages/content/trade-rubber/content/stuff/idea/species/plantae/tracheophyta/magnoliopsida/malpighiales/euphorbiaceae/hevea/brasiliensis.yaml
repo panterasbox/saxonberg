@@ -1,0 +1,47 @@
+# Hevea brasiliensis — the rubber tree. A tropical tree, and in this realm
+# a tree of the GLASS: three stems in the rubber works' stove house, kept
+# alive by sun through the glass and a stove on the cold nights.
+#
+# ⭐ Its latex runs on WARMTH, and the window says so as data
+# (`TapWindowSpec` kind `weather`): open while the air at the tree's own
+# place sits between 291 and 309 K, all year — a stove house has no
+# season but its temperature. Below that "it is too cold for anything to
+# run"; above it the tree shuts down in the heat. ⭐ The window reads the
+# AIR of the place, not the stem's body: a 290 kg stem lags its house by
+# hours, and a tree's xylem follows the air (rubber build, D13.1).
+#
+# ⚠ Grain, not law: an author who plants a Hevea outdoors in a warm
+# realm gets a tree that runs whenever the weather is warm — the same
+# row, no code.
+class: /platform/idea/species/Species
+data:
+  binomial: Hevea brasiliensis
+  commonNames: ["rubber tree", "hevea", "para rubber tree"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 100
+  circadianBand: aperiodic
+  diet: photosynthesis
+  production:
+    # ⭐ A third of a litre a game day a cut, standing two days before it
+    # skins over — latex is a slow, steady bleed, not a spring run.
+    - key: latex
+      yieldRow: /stuff/idea/material/organic/latex
+      perGameDay: 0.3
+      behaviour: accrue
+      windowDays: 2
+      yieldShape: volume
+      window:
+        kind: weather
+        daylightFrom: 0
+        daylightTo: 1
+        minK: 291
+        maxK: 309
+  longDescription: >-
+    A slender, smooth-barked tree with glossy three-lobed leaves. Where the
+    bark has been cut in a sloping line, a white milk wells up and runs.

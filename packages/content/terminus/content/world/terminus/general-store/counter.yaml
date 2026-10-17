@@ -164,6 +164,8 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/weld, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/woad, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/madder, par: 2 }
+    # ⭐ (rubber build) The rubber dandelion — a temperate rubber from a field.
+    - { itemTemplatePath: /trade/farming/thing/seed/kok-saghyz, par: 2 }
     # The homebrew line (fermentation D15/P13): the whole kit on the
     # stipend — carboy, small press, small mash tun, culture jar, and
     # the small pot still, sold openly (D11's fire is the deterrent;
@@ -401,6 +403,7 @@ data:
     /trade/farming/thing/seed/weld: 5
     /trade/farming/thing/seed/woad: 7
     /trade/farming/thing/seed/madder: 14
+    /trade/farming/thing/seed/kok-saghyz: 8
     /trade/farming/thing/seed/lime: 6
     /trade/farming/thing/seed/lemon: 6
     /trade/farming/thing/seed/orange: 6

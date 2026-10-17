@@ -1,0 +1,20 @@
+# Dandelion pulp — russian-dandelion root milled to a wet mash, the
+# rubber still in it as fine threads. Washed in water, the rubber floats
+# off and is skimmed as a lump of raw rubber (`raw-rubber-from-pulp`).
+class: /platform/idea/material/Material
+data:
+  name: dandelion pulp
+  keywords: [pulp, "dandelion pulp", mash]
+  appearance: a wet grey-brown mash, stringy with white threads
+  density: 1050
+  thermalConductivity: 0.45
+  specificHeat: 3400
+  hardness: 0
+  toughness: 0
+  electricalConductivity: 0.01
+  waterAbsorptionCapacity: 0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["rubber-pulp", "plant", "organic", "once-living"]
+  composition: []

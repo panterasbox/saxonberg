@@ -1,0 +1,19 @@
+# Taraxacum kok-saghyz — the Russian dandelion. A dandelion whose ROOT
+# carries rubber: up to a tenth of its dry weight, in milky threads you
+# can see when you snap it. A temperate rubber, grown in a field and dug
+# in its first autumn — the farmer's answer to a tree that only lives
+# under glass (rubber build).
+class: /platform/idea/species/Species
+data:
+  binomial: Taraxacum kok-saghyz
+  commonNames: ["russian dandelion", "rubber dandelion", "kok-saghyz"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2
+  circadianBand: aperiodic
+  diet: photosynthesis

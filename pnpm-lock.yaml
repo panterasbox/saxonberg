@@ -1813,6 +1813,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,20 @@
+# Russian dandelion root — the root that carries rubber. `rubber-root` is
+# the tag the milling recipe's slot matches.
+class: /platform/idea/material/Material
+data:
+  name: dandelion root
+  keywords: [dandelion, "dandelion root", kok-saghyz]
+  appearance: pale fleshy root threaded with white
+  density: 800
+  thermalConductivity: 0.3
+  hardness: 1
+  toughness: 1
+  specificHeat: 3200
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["rubber-root", "plant", "organic", "once-living"]
+  composition: []
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/asterales/asteraceae/taraxacum/kok-saghyz, tissueType: root }
