@@ -1993,6 +1993,8 @@ generated file.
 
 ### Repair × storage-and-ice (ice's six asks — all accepted)
 
+✅ Both directions settled: ice applied repair's four asks back (`origin/reqs/storage-and-ice` 48fbdb199 — FireController + Pool.ts in its table, `unpackIntoCold` pinned by a W9 test, the storage-slate poolKey seam, its wiki-spoiler entries) and agrees the merge order.
+
 | shared | resolution (both builds follow) |
 |---|---|
 | `CraftingLogic.ts` | ice W0's template-choice helper (an off-spec lump by `metal` tag → `MetalCasting`) sits inside repair's `:3215–4000`; the second to land re-applies it. Ice's salvage test uses a `Tool`, so it passes Assembled or not. |
