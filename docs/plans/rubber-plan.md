@@ -1571,6 +1571,22 @@ Commit: `feat(construction): a place says what bounds it, a structure says what 
 
 ### W1 — the five readers move onto the construction
 
+> ✅ **DONE `551ae88cd`.** Decided: (1) the air/weather gates read
+> `holdsAir()` (no air of its own), not `isOutside()` — under the plan's
+> `isOutside` a walled pen or an awning would lose the weather's deviation;
+> `isOutside()` is kept for the wayside survey ("outdoor ground").
+> (2) `computeResolved` takes `{air, rain}` — two answers, as planned.
+> (3) `BiomeApi.isSkyExposed` stays as the LEGACY discriminator with two
+> readers only: `construction()`'s undeclared branch and `Floor.isOnGrade`'s
+> shipped derivation (cleanliness #1). (4) An undeclared interior has no
+> open sides (its doorway stays the `U_open` term) so every legacy shop's
+> heat is byte-identical. (5) The exposure cache keys on the legacy sky bit
+> — the Floor snow test caught a memo taken before the biome resolved.
+> (6) `isThreshold(far)` = the far side holds no air; a doorway to another
+> structure's enclosed room stays interior (no party threshold yet).
+> ⚠ The shipped wire drives (envelope, climate, fire, glass, taps) are run
+> once after W3 rather than per wave — W1–W3 all move the envelope.
+
 Implements D4's second half; the biome stops deciding the sky for every
 place that has said what is over it (which, until W7, is only the
 vessels — so this wave is behaviour-preserving for every Location row,
