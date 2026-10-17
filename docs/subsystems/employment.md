@@ -721,6 +721,19 @@ retired.
   governs the proprietor). `endCover` drops it when a rostered bartender is
   back on. A house with **no** fulfilling seat is never covered — there is
   nothing to cover.
+  ⚠⚠ **A proprietor may ALSO hold a rostered slot** (the Hearthworks: Berta
+  owns the smithy and is its smith). A cover record and a rostered one are
+  the same shape, so "the proprietor is on shift" is NOT "the proprietor is
+  covering": inside her own rostered window her record is her shift, and
+  only outside it is it a cover. Until the repair build's drive
+  (2026-10-17) the reconcile read her own shift as a cover and, whenever
+  the cook was on, ended it — and `endCover` drops the house's whole
+  record, so she stood at her own forge employed by nobody and every
+  `order` for smithing found no hand. ⚠ The other half stands, as shipped:
+  outside her hours, with nobody rostered on, she COVERS — a house whose
+  owner is its only smith never shuts. That is cover's design, not a
+  defect; a venue that must close at night is one whose appointing
+  authority is not a person standing in it.
   Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
   (the move, the station, the missing `offstage`, cover both ways), plus
   one content test per venue beside its rows

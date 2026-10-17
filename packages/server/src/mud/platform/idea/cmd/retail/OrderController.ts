@@ -479,9 +479,11 @@ export default class OrderController extends CraftController<OrderModel> {
       };
     }
     const quote = tariff.quoteFor(mendable.map(quoteLine));
-    const priced = quote.lines.map(
-      (l, i) => `${faultSentence(mendable[i]!)}${l.price !== null ? ` — ${money(l.price)}` : ''}`,
-    );
+    // "The head is worn — 5 zorkmids." — the price inside the sentence.
+    const priced = quote.lines.map((l, i) => {
+      const said = faultSentence(mendable[i]!);
+      return l.price !== null ? `${said.replace(/\.$/, '')} — ${money(l.price)}.` : said;
+    });
     const unmended = look.faults.filter((f) => !f.mendable).map((f) => faultSentence(f));
     const lot = quote.total > 0 ? ` ${GrammarApi.cap(money(quote.total))} for the lot.` : '';
     MessageApi.scene(giver)
