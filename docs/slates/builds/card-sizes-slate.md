@@ -31,7 +31,10 @@
 > the mode sidebar — `chat · explore · watch · build · govern` (`play`
 > renamed, no study mode), a mode rail + a per-mode panel + a *you*
 > corner, chat mode as Discord over one filtered terminal, the room as a
-> channel — `score` still to detail
+> channel; the `score` card — your own sheet by the measurement doctrine
+> (complete by B3, numbers for performance, never a gauge for a declared
+> standard, what changed first, self only), its glance tier the
+> you-corner chips that replace the top-bar widgets
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -884,10 +887,56 @@ with what works.
   `@saxonberg/types`, the client's mode registry, the saved-arrangement
   mapping) — tracked as #84.
 
+### The `score` card — your own sheet, by the measurement doctrine
+
+`look` is never a sheet; **`score`** is — your own, and nobody else's.
+[measurement.md](../../measurement.md) already decides almost everything
+it may show:
+
+1. **"Any measurement the platform makes of you is one you can read"**
+   (B3). If the engine counts it, `score` shows it — hiding a
+   measurement from its subject is Mara's shape. So `score` is
+   **complete by principle**, not curated.
+2. **Performance is readable, numerically, routinely** (Part 6 rule 4)
+   — competence, hours, quantities, money, the body's stocks. *"The
+   scale in the bathroom."*
+3. ⛔ **A declared standard is never a gauge** (rule 3) — disposition,
+   traits, faith: bands and **your recent acts** in words, never a
+   position, no meter, no streak. *"You'd not have done that a year
+   ago."*
+4. **Evidence, not praise** (Part 5) — show **what changed**, never a
+   judgment of who you are.
+
+| section | contents | form |
+|---|---|---|
+| **You** | name, rung, species, home, household | facts |
+| **Body** | condition and wounds; the five slow stocks (lean · protein · wind · vitamin C · alcohol tolerance, exertion.md); burden against capacity; hunger, thirst, warmth | **numbers** with words — it is the scale |
+| **Competence** | each discipline — band, hours, recent change — from your transcript | **numbers** |
+| **Standing** | the three chambers (*make · fund · play*, the front door's own words), renown by scope, participation | **numbers** — measurements of you |
+| **Character** | traits and dispositions | ⛔ **bands and narrated recent acts only — never a position** |
+| **Holdings** | money and accounts, debts (the Arrival Note), property, chattel, positions and wages | numbers |
+| **Record** | chronicle deeds, contracts, what is coming on your calendar | lists |
+
+- **Every section leads with what changed since you last looked** — the
+  evidence-not-praise rule made routine.
+- **The card** — subject: you; opens at **focal or full** (a sheet wants
+  room); **sections are lazy** (collapsed headers that fetch only when
+  opened); the same flag vocabulary (`score --body`, `score
+  --competence`, `score --all`).
+- ⛔ **Self only, always** — nobody reads another person's score, staff
+  included. The doctrine is about measurements *of you*, for you.
+- ⭐⭐ **Its glance tier is the *you* corner.** The top-bar widgets
+  (*PLAY dormant · RENOWN — · SKILL — · BODY fresh*, #77) are score
+  fragments nobody can decode. They become **chips in the you-corner**,
+  each a link into its section of `score` — and **which chips ride there
+  is your choice**, because the doctrine's middle layer is that *the
+  subject decides what is worth watching*. That closes #77 rather than
+  restyling the jargon.
+
 ### Still to detail
 
-`score` (your own sheet); the set card's lenses per flag beyond
-`--mixin`; per-kind Idea bodies as they are needed.
+The set card's lenses per flag beyond `--mixin`; per-kind Idea bodies as
+they are needed.
 
 ---
 
