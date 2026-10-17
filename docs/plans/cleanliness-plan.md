@@ -1447,7 +1447,37 @@ stay in the plan as insurance, not as the intended path.
   packing's `dispose`; makes no `CLAUDE.md` edits. **If we land first**
   with our own `drawAt` or `exchangeWithWater`, storage folds into the
   one method.
-- **Rubber**: not yet answered.
+- **Rubber** (`origin/reqs/rubber` 416aef8d5, plan § Parallel builds →
+  *Accepted from cleanliness*; its notes to us in
+  `rubber-notes-to-parallel-builds.md` § To cleanliness) accepted all
+  thirteen: floor material resolution keeps today's derivation and a test
+  pins every structure member's ground kind; an authored `ambientSource`
+  is never multiplied by `skyLightFraction()` (open sides transmit at
+  `light.solar.sideWeight`); `airChangesPerHour = ∞` and
+  `addAtmosphereContent = 0` when `isOutside()` or `wallsNone`;
+  **`Exposure.faceTransmittance(face)`** is the one face method (our
+  deferred glass grime attaches there); `mineral/sulfur` authors
+  `heatOfCombustion 9.2` + `autoignitionTemperature 505`, the won row is
+  `Firewood`-class, and we add `combustionProducts`; stretch reads the
+  form (felted ≈ 0); the wet law lives only on `Material`; `roof`
+  authored-only, `_exposure` transient; rubber re-greps
+  `isSkyExposed` callers at its merge; awning `east`, bathhouse `north`;
+  `consumed?` struck; Hevea authors no `TapSpec.soils`.
+  ⚠ **Two checks rubber leaves to OUR merge** (we land after it):
+  (1) re-run rubber's drive and confirm `flueSoot` on its works oven and
+  two stoves stays under `fire.flue.ignitesAtKg`, or have that drive
+  sweep; (2) rubber's stretch allowance can absorb a 0.97 hot-water
+  shrink, so AC 5's *hot water shrinks* is tested on **linen**
+  (`Garment.wash.test`), and wool's case is the felting (stretch ≈ 0).
+  Rubber's other notes are already in this plan: `lint:biome-sky` (not
+  `unhoused`), layers as `{material, thicknessM}` objects
+  (`rock/granite`/`rock/limestone`, never "stone"), D21 reading
+  `exposure().skyLightFraction()`, Cleanser `damages` derived from
+  `corrosiveTo` with rubber's honest tags (never `organic`/`elastomer`),
+  and `rubberized-cloth` carrying rubber's tags so no vitriol eats it.
+  Lone places warm only themselves: the bathhouse's baths hearth does
+  not warm the vestibule unless a Structure row names them — accepted
+  as is (the vestibule is a cold lobby).
 
 ### The merge rule
 
@@ -1480,7 +1510,7 @@ tree (≤ master's; never summed, never raised — fix code instead);
 | `C/base-library/…/material/wood/*.yaml` and other `organic` rows | honest tags where vitriol must still catch | `ashFraction` on the log materials (oak, pine; ⚠ never `wood/ash.yaml`, the tree) | textual | keep both keys |
 | `C/terminus/…/general-store/counter.yaml` | `rubber-boots`, `rubber-gloves` + prices | soap, soda, scrub-brush, broom, rushes, hopper, kettle, ash, fuller's earth, chalk + prices | textual | union of lines and prices (repair adds too); `lint:reachability` R + `lint:mass` after |
 | `C/terminus/…/market/square.yaml` + the market zone's cells | `under-the-awning` **`east`** off the square | the bathhouse **`north`** off the square | direction/cell | never the same compass word or `coords` cell; today the square uses `northeast`, `south`, `west` |
-| `C/terminus/package.json`, `pnpm-lock.yaml` | `@saxonberg/content-trade-rubber` | maybe trade-smithing (the barbell prop) | textual | union the deps; `pnpm install` regenerates the lock |
+| `C/terminus/package.json`, `pnpm-lock.yaml` | `@saxonberg/content-trade-rubber` | **`@saxonberg/content-trade-fuel`** (the general store's washing soda and ash lines; terminus does not depend on it today) and maybe trade-smithing (the barbell prop) | textual | union the deps; `pnpm install` regenerates the lock |
 | `S/platform/idea/cmd/device/FireController.ts` (`runFiring`) | `for <duration>` hold, crosslink branch, the mould seam | one call after the output lands: the recipe's `soils` + `recordHeat` on Soilable chamber contents | textual | rubber's rewrite is the base; ours is one call appended (storage re-applies its `isComposition` swap in the same method) |
 | `S/lib/mould/Mould.ts` | `holdsCast()` | reads (the soap frame row) | — | the frame's cast is `soap-bar`, so `holdsCast` reads true |
 | `S/lib/craft/Recipe.ts` | (`consumed?` on `RecipeInputSlot` is DROPPED per rubber D10; its host table still lists it) | `soils` | textual only if rubber keeps `consumed?` | keep both |
