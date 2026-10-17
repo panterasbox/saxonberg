@@ -153,6 +153,21 @@ async function funded(tag: string, where: string): Promise<Session> {
   return at(handle, where);
 }
 
+/**
+ * Buy one; a bare shelf (an earlier dirty run bought it out) is restocked by
+ * the residency sweep a clock jump fires — wait for it rather than assume.
+ */
+async function buyOne(s: Session, item: string): Promise<void> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const said = await say(s, `buy ${item}`);
+    if (/you buy/i.test(said)) return;
+    expect(said, `buy ${item}: ${said}`).toMatch(/bare|none of it/i);
+    await advanceWorldClock('1 day');
+    await new Promise((r) => setTimeout(r, 20_000));
+  }
+  throw new Error(`the store never restocked ${item}`);
+}
+
 /** Jump to the next game-time with the hour of day in [fromH, toH). */
 async function toHour(fromH: number, toH: number): Promise<void> {
   const { after } = await advanceWorldClock('0 seconds');
@@ -204,9 +219,11 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await toHour(10, 14);
     s = await funded('vulcanizer', WORKS);
     // ⭐ A fresh character, knowing nothing: there is no gate to pass.
-    await cloneHere(WORKS, ROW.coal, 4);
-    await say(s, 'stoke oven');
-    await say(s, 'light oven');
+    // The works floor carries its own coal (props): pick it up, stoke it.
+    for (let i = 0; i < 4; i++) await say(s, 'get coal');
+    await say(s, 'stoke oven with coal');
+    const lit = await say(s, 'light oven');
+    expect(lit, `light oven: ${lit}`).not.toMatch(/no fuel|stoke it first/i);
   }, 300_000);
 
   async function cure(
@@ -218,18 +235,22 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
   ): Promise<string> {
     await cloneInto(WORKS, s.handle, ROW.raw, raw);
     await cloneInto(WORKS, s.handle, ROW.sulfur, sulfur);
-    await say(s, 'put boot mould in oven');
+    // ⚠ `put` takes from your hands into something standing in the room:
+    // charge the mould on the floor, THEN carry it into the oven.
     for (let i = 0; i < raw; i++) await say(s, 'put raw rubber in boot mould');
     for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in boot mould');
+    await say(s, 'get boot mould');
+    await say(s, 'put boot mould in oven');
     if (bellows) await say(s, 'pump oven');
     const fired = await say(s, `fire oven for ${hold}`);
-    expect(fired, `fire: ${fired}`).not.toMatch(/nothing in|matches no|stone cold/i);
+    expect(fired, `fire: ${fired}`).not.toMatch(/nothing in|matches no|stone cold|is empty/i);
     await advanceWorldClock(`${Math.ceil(holdS / 60) + 2} minutes`);
     await new Promise((r) => setTimeout(r, 8_000));
     await s.drainProse();
+    await say(s, 'get boot mould from oven');
+    await say(s, 'drop boot mould');
     const got = await say(s, 'get boots from boot mould');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
-    await say(s, 'get boot mould from oven');
     return examine(s, 'boots');
   }
 
@@ -297,8 +318,8 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
   }, 300_000);
 
   it('9 — light the stove and wait: the house warms, and the tap opens', async () => {
-    await cloneHere(STOVE_HOUSE, ROW.coal, 4);
-    await say(s, 'stoke stove');
+    for (let i = 0; i < 3; i++) await say(s, 'get coal');
+    await say(s, 'stoke stove with coal');
     await say(s, 'light stove');
     await advanceWorldClock('2 hours');
     await new Promise((r) => setTimeout(r, 3_000));
@@ -340,8 +361,8 @@ suite('⭐ 4 — the works stove warms the loft above it (AC 7)', () => {
     const before = await thermometer(loft);
     loft.close();
     const floor = await at(handle, WORKS);
-    await cloneHere(WORKS, ROW.coal, 4);
-    await say(floor, 'stoke stove');
+    for (let i = 0; i < 2; i++) await say(floor, 'get coal');
+    await say(floor, 'stoke stove with coal');
     await say(floor, 'light stove');
     await advanceWorldClock('1 hour');
     floor.close();
@@ -363,7 +384,7 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     // ⚠ /stuff rows cannot be cloned by anybody (no title over the
     // commons), so the leather boots are bought, as a player would.
     const buyer = await funded('wader-leather', SHOP);
-    expect(await say(buyer, 'buy "leather boots"')).toMatch(/you buy/i);
+    await buyOne(buyer, '"leather boots"');
     const lh = buyer.handle;
     buyer.close();
     const leather = await at(lh, CATWALK);
@@ -394,8 +415,8 @@ suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', 
     await cloneInto(YARD, u.handle, ROW.rubberApron);
     await say(u, 'wear apron');
     const tb = await funded('thrower', SHOP);
-    expect(await say(tb, 'buy vitriol')).toMatch(/you buy/i);
-    expect(await say(tb, 'buy vitriol')).toMatch(/you buy/i);
+    await buyOne(tb, 'vitriol');
+    await buyOne(tb, 'vitriol');
     const th = tb.handle;
     tb.close();
     const thrower = await at(th, YARD);
@@ -426,10 +447,10 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     places.street = await at(uniqueHandle('in-street'), SQUARE);
     places.coach = await at(uniqueHandle('in-coach'), SQUARE);
     await cloneHere(SQUARE, ROW.coach);
-    await say(places.coach, 'go coach');
+    await say(places.coach!, 'go coach');
     // ⚠ The wool garment is the store's lab hoodie (a `/stuff` row: bought).
     const wb = await funded('wool-coat', SHOP);
-    expect(await say(wb, 'buy "lab hoodie"')).toMatch(/you buy/i);
+    await buyOne(wb, '"lab hoodie"');
     const wh = wb.handle;
     wb.close();
     streetWool = await at(wh, YARD);
@@ -452,12 +473,12 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     for (let i = 0; i < 40 && !raining; i++) {
       await advanceWorldClock('6 hours');
       await new Promise((r) => setTimeout(r, 2_000));
-      const w = await say(places.street, 'analyze weather');
+      const w = await say(places.street!, 'analyze weather');
       raining = /rain|drizzle|shower|downpour|storm/i.test(w) && !/no rain|dry/i.test(w.split('.')[0] ?? '');
       if (raining) {
         // one more segment IN the rain, so the fan-out has wetted who stands in it
         await advanceWorldClock('6 hours');
-        const again = await say(places.street, 'analyze weather');
+        const again = await say(places.street!, 'analyze weather');
         raining = /rain|drizzle|shower|downpour|storm/i.test(again);
       }
     }
@@ -465,15 +486,15 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
   }, 1_800_000);
 
   it('5 — the street and the roof terrace are wet', async () => {
-    expect(await wetness(places.street)).not.toBe('dry');
-    expect(await wetness(places.terrace)).not.toBe('dry');
+    expect(await wetness(places.street!)).not.toBe('dry');
+    expect(await wetness(places.terrace!)).not.toBe('dry');
   }, 120_000);
 
   it('1–3 — the terminal hall, the awning, the coach and the loft are dry', async () => {
-    expect(await wetness(places.hall)).toBe('dry');
-    expect(await wetness(places.awning)).toBe('dry');
-    expect(await wetness(places.coach)).toBe('dry');
-    expect(await wetness(places.loft)).toBe('dry');
+    expect(await wetness(places.hall!)).toBe('dry');
+    expect(await wetness(places.awning!)).toBe('dry');
+    expect(await wetness(places.coach!)).toBe('dry');
+    expect(await wetness(places.loft!)).toBe('dry');
   }, 120_000);
 
   it('19 — in the rain, a wool coat lets the wet through; a rubberized coat does not', async () => {
@@ -486,13 +507,13 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
 
   it('1 — the hall sees the sky through its glass roof: daylight, by day', async () => {
     await toHour(11, 14);
-    const lit = await say(places.hall, 'analyze light');
+    const lit = await say(places.hall!, 'analyze light');
     expect(lit).not.toMatch(/pitch dark/i);
   }, 300_000);
 
   it('6 — the room under the tower is covered; the terrace is under the open sky', async () => {
-    const store = await say(places.store, 'analyze weather');
-    const terrace = await say(places.terrace, 'analyze weather');
+    const store = await say(places.store!, 'analyze weather');
+    const terrace = await say(places.terrace!, 'analyze weather');
     expect(terrace.length).toBeGreaterThan(0);
     expect(store.length).toBeGreaterThan(0);
   }, 120_000);
