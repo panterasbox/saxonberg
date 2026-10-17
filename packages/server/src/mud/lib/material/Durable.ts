@@ -21,6 +21,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Channel } from './Channel';
+import type { MarkupAugmenter } from '../../api/mml';
+import type { Stuff } from '../stuff/Stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 
@@ -49,6 +51,8 @@ export interface Durable {
   getMends(): MendRecord[];
   /** Append one mend — written only by a mend, never by wear. */
   recordMend(record: MendRecord): void;
+  /** The condition as a word anyone can see (repair D10). */
+  getConditionWord(): ConditionWord;
 }
 
 /**
@@ -94,9 +98,47 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * ⭐ The condition WORD (repair D10) — what anyone can see of a thing's
+ * wear, and never a number: sound · worn · badly worn · broken.
+ */
+export type ConditionWord = 'sound' | 'worn' | 'badly worn' | 'broken';
+
+/** The word for a condition, against the broken dial. */
+function conditionWord(condition: number, broken: boolean): ConditionWord {
+  if (broken) return 'broken';
+  if (condition >= 0.8) return 'sound';
+  if (condition >= 0.4) return 'worn';
+  return 'badly worn';
+}
+
+/**
+ * ⭐ The look line (repair D10): how worn it is, in a word, and whether it
+ * has been mended — by whom, the last time. A sound, unmended thing says
+ * nothing. The detail (how often, how well, by which hands) is the
+ * appraiser's: `analyze condition`.
+ */
+function durableAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  const d = host as unknown as Partial<Durable>;
+  if (typeof d.getCondition !== 'function' || typeof d.getMends !== 'function') return text;
+  const sentences: string[] = [];
+  const word = conditionWord(d.getCondition!(), d.isBroken?.() ?? false);
+  if (word !== 'sound') sentences.push(`It is ${word}.`);
+  const mends = d.getMends!();
+  const last = mends[mends.length - 1];
+  if (last) {
+    sentences.push(last.byName ? `It has been mended by ${last.byName}.` : 'It has been mended.');
+  }
+  if (sentences.length === 0) return text;
+  const line = sentences.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class DurableMixin extends Base implements Durable {
     static _mixinName = 'DurableMixin';
+
+    static markupAugmenters: MarkupAugmenter[] = [durableAugmenter];
 
     static fieldMeta: FieldMeta = {
       condition: { persistent: true, runtimeState: true },
@@ -137,6 +179,10 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getMends(): MendRecord[] {
       return this.mends.map((m) => ({ ...m }));
+    }
+
+    getConditionWord(): ConditionWord {
+      return conditionWord(this.getCondition(), this.isBroken());
     }
 
     recordMend(record: MendRecord): void {

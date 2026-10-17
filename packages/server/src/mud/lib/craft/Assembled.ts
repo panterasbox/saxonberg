@@ -298,6 +298,28 @@ export interface Assembled {
   setNameGrant(value: string): void;
   /** Append a mend to one line's record. */
   recordLineMend(part: string, record: MendRecord): void;
+  /**
+   * ⭐ Mend one line (repair D8, D9) — the ONE write a mend makes to a
+   * line: its wear up to the hand's ceiling (never down), its grade down by
+   * what the hand loses, its joints slackened by an untrained hand, the
+   * mend remembered, the hand among its makers. A `reforged` line is
+   * re-made: its failures cleared, and a name it bore is TAKEN — the
+   * reforger may name it once (Narsil's rule).
+   */
+  mendLine(part: string, mend: LineMend): void;
+}
+
+/** What a mend does to one line — the terms the hand's band set. */
+export interface LineMend {
+  /** The condition the hand can bring it to. */
+  ceiling: number;
+  /** Grade bands lost to the hand. */
+  gradeLoss: number;
+  /** An unpractised hand leaves the joints it touched slack. */
+  slackens: boolean;
+  record: MendRecord;
+  /** The line was failed and is re-made (a reforge). */
+  reforged?: boolean;
 }
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -1004,6 +1026,43 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const line = this.parts.find((l) => l.part === part);
       if (!line) return;
       line.mends = [...(line.mends ?? []), { ...record }];
+      if (record.by && !line.makers.includes(record.by)) line.makers.push(record.by);
+      this.noteHand(record.by);
+    }
+
+    mendLine(part: string, mend: LineMend): void {
+      this.ensureParts();
+      const line = this.parts.find((l) => l.part === part);
+      if (!line) return;
+      const ceiling = Math.max(0, Math.min(1, mend.ceiling));
+      if (mend.reforged) {
+        line.failed = 0;
+        delete line.warped;
+        line.condition = ceiling;
+        // ⭐ Narsil's rule (repair D9, AC 14): a named part re-made loses
+        // its name, and the hand that re-made it may name it once.
+        if (line.name) {
+          delete line.name;
+          if (mend.record.by) line.nameGrant = mend.record.by;
+        }
+      } else {
+        line.condition = Math.max(line.condition, ceiling);
+      }
+      if (mend.gradeLoss > 0) {
+        line.grade = Grade.fromOrdinal(
+          Grade.of(line.grade).getOrdinal() - mend.gradeLoss,
+        ).getBand();
+      }
+      if (mend.slackens) {
+        // An unpractised hand leaves what it touched just short of tight.
+        const slack = dial(AppSettingKeys.craftingJointSlackThreshold, 0.5) - 0.01;
+        for (const j of this.joints) {
+          if (j.members.includes(part) || j.fastener === part) {
+            j.tension = Math.min(j.tension, slack);
+          }
+        }
+      }
+      this.recordLineMend(part, mend.record);
     }
 
     /**

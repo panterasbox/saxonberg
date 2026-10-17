@@ -213,7 +213,94 @@ export interface RepairRequest {
    * fallback, never a wire value.
    */
   makerPath?: string;
+  /**
+   * ⭐ The hand that does the work, when it is not the person asking —
+   * the on-shift smith at a paid mend (repair D12). World state resolved
+   * by the service, never a wire value: the hand's bands, reach and heat
+   * decide the result, and the mend records the hand.
+   */
+  hand?: Stuff;
 }
+
+/**
+ * ⭐ One part a mend reached (repair D8). `part` is absent for a thing of
+ * one piece. `result` is `short` when the hand could not bring it back
+ * sound — an unpractised hand's mend.
+ */
+export interface MendOutcome {
+  part?: string;
+  kind: 'mended' | 'reforged' | 'tightened' | 'refired';
+  /** The trade it was mended under (`''` when none could be known). */
+  discipline: string;
+  /** The hand's band in that trade. */
+  band: string;
+  result: 'sound' | 'short';
+}
+
+/**
+ * ⭐ What a hand's band makes of a mend (repair D8): the condition it can
+ * bring a part to, the grade bands it costs, whether it leaves the joints
+ * it touched slack, and the share of the stock it needs.
+ */
+export interface MendTerms {
+  ceiling: number;
+  gradeLoss: number;
+  slackens: boolean;
+  stock: number;
+}
+
+/** One part a mend could NOT reach, and why — said back in words. */
+export interface SkippedPart {
+  part: string;
+  reason: RepairDeclineReason;
+  /** The heat, the tool, the stock, the trade — what would cure it. */
+  detail?: string;
+}
+
+/**
+ * ⭐ One fault a hand finds in a thing (repair D12) — what the paid mend
+ * quotes from and what `repair` would do. Read-only: finding a fault
+ * changes nothing.
+ */
+export interface Fault {
+  /** The part (`''` for a thing of one piece), or the joint for `slack`. */
+  part: string;
+  kind: 'worn' | 'failed' | 'slack' | 'spent';
+  /** What the hand can call it — below a joint's band, *something about the staves*. */
+  named: string;
+  /** What mending it would be. */
+  action: MendOutcome['kind'];
+  discipline: string;
+  /** The hand's band in that trade. */
+  band: string;
+  /** Can THIS hand mend it here, now? */
+  mendable: boolean;
+  /** How it would come back, when mendable. */
+  result?: 'sound' | 'short';
+  /** Why not, when not — and the cure, in `detail`. */
+  reason?: RepairDeclineReason;
+  detail?: string;
+  /** The stock it would draw (kg). */
+  stockKg: number;
+}
+
+/** What a hand finds in a thing — every fault, mendable or not. */
+export interface Diagnosis {
+  ok: true;
+  item: Stuff;
+  /** The hand that looked it over. */
+  hand: Stuff;
+  faults: Fault[];
+}
+
+/** Ask a hand to look a thing over (repair D12). */
+export interface DiagnoseRequest {
+  item: Stuff;
+  /** The hand; absent, the person asking. */
+  hand?: Stuff;
+}
+
+export type DiagnoseOutcome = Diagnosis | RepairFailure;
 
 /** Why a repair was infeasible (rendered diegetically). */
 export type RepairDeclineReason =
@@ -245,9 +332,16 @@ export interface RepairSuccess {
    * slack joint (consumes nothing), `refired` a spent cask, or `restored`
    * wear with material. Absent on a thing that is not made of parts.
    */
-  rung?: 'tightened' | 'refired' | 'restored';
+  rung?: 'tightened' | 'refired' | 'restored' | 'reforged';
   /** What the rung acted on — the joints tightened, in words. */
   named?: string;
+  /**
+   * ⭐ Every part the mend reached, in the order the ladder took them
+   * (repair D8) — a whole mends every line it can.
+   */
+  mended: MendOutcome[];
+  /** Every part it could not, and what would cure each. */
+  skipped: SkippedPart[];
 }
 
 export interface RepairFailure {
@@ -404,6 +498,17 @@ export class CraftingApi {
    */
   public static async repair(request: RepairRequest): Promise<RepairOutcome> {
     return logic().repair(request);
+  }
+
+  /**
+   * ⭐ A hand looks a thing over (repair D12): every fault — a worn part, a
+   * failed one, a slack joint, a spent cask — whether this hand can mend
+   * it here and now, how it would come back, and the stock it would draw.
+   * Read-only: finding a fault changes nothing. The hand defaults to the
+   * person asking. See {@link CraftingLogic.diagnose}.
+   */
+  public static async diagnose(request: DiagnoseRequest): Promise<DiagnoseOutcome> {
+    return logic().diagnose(request);
   }
 
   /**

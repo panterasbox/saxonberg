@@ -1561,6 +1561,38 @@ part inside a whole. Implements D8, D9, D10 (augmenter), D11, D3
 
 **Commit.** `feat(crafting): a mend can be done badly — per part, by the trade that made it, at the hand's band (repair W2)`
 
+> ✅ **W2 done (2026-10-17).** Decisions the build made, for review:
+> - **`diagnose` landed in W2, not W3**, and it is the SAME ladder run
+>   without committing (`runMendLadder(item, hand, commit)`). The reason:
+>   `RepairController` answered a failed part up front by CALLING `repair`
+>   — harmless while a failed part always refused, a silent instant mend
+>   once a failed iron head can be reforged. The controller now reads the
+>   diagnosis and refuses before the spell of work only when nothing is
+>   mendable (it also refuses *nothing to repair* up front now). W3's
+>   quote reads the same faults, so the quote and the mend cannot disagree.
+> - Decline reasons stay the shipped ones (`insufficient-heat`,
+>   `missing-tool`, `insufficient-input`, `part-failed`, `not-skilled`) —
+>   the plan's `wants-fire`/`wants-tool` would have been synonyms with
+>   prose already written; `one-piece` lives on `fit` (W1).
+> - **The anvil is not a new gate for metal**: the shipped wear rung gated
+>   on the fire only and used the anvil as the control instrument when
+>   present; kept (the tinker's stop and Berta's smithy both have one).
+>   Wood now wants a `cutting` tool (D8) — a shipped wooden monolith
+>   needed a mending kit before.
+> - **A broken metal monolith is reforged too** (at its recipe's heat; a
+>   named one-piece thing loses its name) — D9 applied to the one-line
+>   case, so a one-piece sword and a four-part one obey one rule.
+> - A line reforged this pass is not also "mended" by rung (4) (an
+>   untrained reforge to 0.6 would otherwise have lost a second grade).
+> - `Keen.hasEdge()` (its own edge form, or edged parts) is what `sharpen`
+>   asks — the controller decides nothing.
+> - The skipped-part prose is module-private in `RepairController` (a
+>   `CraftingDecline` static raised `lint:lib-statics`; its one caller is
+>   the controller).
+> - `crafting-lifecycle.acceptance` (smithing) now proves the band: one
+>   knife made is a novice smith, whose mend is 0.75; a competent one's
+>   is sound.
+
 ### W3 — the paid mend is somebody's work
 
 **Goal.** `order repair <thing>` resolves the on-shift hand, diagnoses,

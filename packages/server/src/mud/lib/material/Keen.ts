@@ -66,6 +66,12 @@ export interface Keen {
   /** Restore the edge to fully keen — `sharpen`'s completion effect. */
   hone(): void;
   /**
+   * ⭐ Whether there is an EDGE here to hold a hone (repair D3): its own
+   * form cuts or pierces (a billhook, a dagger), or some part of it does
+   * (the axe's head). A hammer and a mace have none.
+   */
+  hasEdge(): boolean;
+  /**
    * The edge/point delivery scale this edge contributes:
    * `lerp(crafting.keenness.deliveryFloor, 1, keenness)` — a blunted
    * blade still lands (floored), a keen one lands full.
@@ -148,6 +154,16 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     hone(): void {
       this.setKeenness(1);
+    }
+
+    hasEdge(): boolean {
+      if (this.edgedParts().length > 0) return true;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isConstructed(self)) return false;
+      const c = self.getConstruction();
+      if (!c?.isWeapon()) return false;
+      const p = c.primaryChannel();
+      return p === 'edge' || p === 'point';
     }
 
     keennessDeliveryFactor(): number {

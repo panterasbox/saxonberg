@@ -286,24 +286,32 @@ slack. ⭐ Everything downstream reads those and nothing else:
   nothing else answers to: four colliding keywords were removed (`whorl`,
   `needle`, `bellows`, `wick`, and `pick`/`handle` off the haft).
 
-### `repair` — the ladder (`repairAssemblyRungs`, before the wear rung)
+### `repair` — the ladder (`mendAssembly`, one pass)
 
-1. ⭐ **a failed part** — refused, naming the part and so the cure (*the
-   haft is split*). This comes FIRST: tightening the joints round a
-   warped haft once called the pick mended. Below the joint's band the
-   name is the SET (*something about the staves*) — the diagnosis rung.
-2. **a slack joint** — tightened if `tightenable`, gated on the joint's
-   instrument and band; consumes nothing (`rung: 'tightened'`).
-3. **a spent character** (a Maturing host, `isSpent()`) — the cooper's
-   re-fire: reachable heat ≥ `crafting.refireHeatK` (573), a `shaving`
-   tool, and the band of the vessel's OWN joints (never a Discipline the
-   kernel names).
-4. **wear** — the shipped material-priced restore; `setCondition` on an
-   assembly restores every line's wear, never its failures.
+(Rewritten by repair W2, 2026-10-17 — a mend is per part and can be done
+badly; the numbers are `crafting.md § The lifecycle`.) One pass, every
+rung, and the whole mends every line it can and reports what it could
+not (`RepairSuccess.mended` / `.skipped`); it is a refusal only when
+nothing was mended:
 
-⚠ `repair.yaml` gates on `requires: DurableMixin` — which is why every
-narrow class composes Durable beneath Assembled (a cask was not Durable,
-and `repair <cask>` died at the binder with every controller test green).
+1. **A failed member** — metal is RE-MADE at its recipe's heat and tools
+   (`requiresHeatK`, `toolCapabilities`; a named part loses its name and
+   the reforger holds a `nameGrant`); anything else is skipped as
+   `part-failed`, naming the part (below the joint's band, *something
+   about the staves*). The cure is `fit`.
+2. **Slack joints** are tightened, consuming nothing — never round a
+   member that is still failed.
+3. **A spent cask** is re-fired (unchanged).
+4. **Every worn line** is mended by its own material's instrument under
+   its own trade at the hand's band (`Assembled.mendLine` — the ONE write:
+   condition up to the ceiling, grade down, joints slackened by an
+   untrained hand, the `MendRecord` on the line, the hand among its
+   makers).
+
+The whole's grade is then its worst line's. ⭐ `CraftingApi.diagnose` is
+this ladder run without committing — what the paid mend quotes from, and
+what `repair` reads up front so a thing with nothing mendable is refused
+before the spell of work, not after it.
 
 ### `salvage` — by the joints, then the melt
 

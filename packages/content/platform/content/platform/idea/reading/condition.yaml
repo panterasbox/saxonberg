@@ -1,0 +1,25 @@
+# condition — what a trained eye can tell about a thing's wear and its
+# mends (repair D11).
+#
+# ⭐ An eye rung only (`instrument: ""`, `eyeCeiling: expert`): the
+# appraiser's band unfolds DETAIL, never access — the word and whether it
+# was mended for anyone; how often for a novice; the worst hand in it and
+# the grade for a competent eye; part by part, then the menders by name.
+#
+# The first code reader of `appraisal`. `subjectRequires: [DurableMixin]`
+# — anything that wears.
+class: /platform/idea/reading/ConditionReading
+data:
+  channel: condition
+  kind: fact
+  scope: [subject]
+  subjectRequires: [DurableMixin]
+  discipline: appraisal
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether a second-hand tool is worth its price, and whose hand to send
+    it back to
+  stakes: >-
+    a pick bought sound that was mended twice by somebody who could not;
+    a blade that snaps on the first hard day

@@ -1189,18 +1189,42 @@ about 83 % of a steel one on an edge, which is what makes the metal
 chain's whole question worth asking. See
 [materials-response.md](./materials-response.md).
 
-**`repair <item>`** (`CraftingApi.repair` — deficit-priced
-reverse-craft): cost mass = `item mass × (1 − condition) ×
-crafting.repair.costFactor`, **doubled broken**
-(`crafting.repair.brokenFactor`); domain-gated by matter — `metal`
-wants reachable heat ≥ `crafting.repair.metalHeatK` (the forge),
-soft goods a reachable `mending` tool (the sewing kit — the whetstone
-is *sharpening's* tool, never repair's); stock drawn by the same
-gather walk (a glob debits partially; a discrete donor is consumed
-whole only when its mass ≤ 2× the need). Restores to full —
-**ceiling-free** (the maintenance-relationship thesis: gear never
-obsoletes, it asks for care; scarcity is the material cost, not decay
-ratchets).
+**`repair <item>`** (`CraftingApi.repair`) — ⭐⭐ **a mend can be done
+badly** (repair D8, 2026-10-17). Per part, under the trade that MADE the
+part, at the HAND's band in that trade, by `MEND_BY_BAND` — derived,
+never rolled (`uncertainty.md`: *roll to decide what the world is, never
+what your action did*):
+
+| band | ceiling | grade | joints | stock |
+|---|---|---|---|---|
+| untrained | 0.60 | −1 | left just slack | ×1 |
+| novice | 0.75 | −1 | — | ×1 |
+| competent | sound | — | — | ×1 |
+| proficient | sound | — | — | ×0.85 |
+| expert | sound | — | — | ×0.70 |
+
+The condition comes up to the ceiling, never down; the grade loss
+COMPOUNDS (a second untrained mend loses another band). The trade is
+`disciplineOf(line)` — the recipe that made the member, else the recipe
+that makes its row (`RecipeCatalogue.recipeFor`, `tangible` recipes
+only), else the trade of the mould it was cast in (`Crafted.castDiscipline`);
+a part with no knowable trade is mended as if competent (`lint:bills`
+arm 8 names every such part). The instrument is the PART's material's:
+metal at reachable heat ≥ `crafting.repair.metalHeatK` (the anvil, when
+present, is the control instrument), wood a `cutting` tool, anything else
+a `mending` kit. Cost mass = `part mass × (1 − condition) ×
+crafting.repair.costFactor × stock(band)`, doubled broken
+(`crafting.repair.brokenFactor`), drawn from stock of the part's own
+material first, then a family tag, ⛔ never `organic`. A thing of parts
+runs the ladder in `assembly.md § repair`; a thing of one piece is one
+line on its own fields. ⭐ A FAILED metal part is **re-made** at its
+recipe's heat and tools (a broken pick-head wants 1200 K, a worn one
+900 K) — and a part that bore a name loses it, and the reforger may name
+it once (Narsil's rule). Every mend appends a `MendRecord` (`Durable.mends`
+— who, their band, the trade, sound or short); `look` prints the condition
+WORD and *mended by …*, and `analyze condition` is the appraiser's
+detail. `CraftingApi.diagnose` runs the same ladder without committing —
+every fault, whether this hand can mend it here, and what it would draw.
 
 **`salvage <item>`** (`CraftingApi.salvage` — the one generic lossy
 melt-down, the entropy sink): flatten the item's Material composition;
