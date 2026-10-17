@@ -1602,6 +1602,31 @@ Implements D1–D5, D7; composes `PoolableMixin` onto `IceBlock` and
   mixins named.
 - Commit: `build(storage-and-ice W2): the store — lines, the face, the
   stack's physics and the heat it pulls from its room`.
+- ✅ **Done (build, 2026-10-17).** `lib/storage/{StoreLine,Poolable,Store}.ts`
+  (`Receipt.ts` lands with W3, its first reader), `lib/thermal/RoomHeatExchange.ts`,
+  `platform/thing/Stockpile.ts`; `IceBlock` + `Sawdust` compose
+  `PoolableMixin`; `Tangible.getDryMass()` (the ledger counts matter, not
+  the water it soaked up). Unit numbers (`Store.test.ts`): 20 t in 2 t of
+  dry sawdust in a 48 m³ shed at 20 °C loses 23.6 kg/day with the house
+  settling at 10.4 °C; thin packing 38 kg/day; soaked 43 kg/day (the
+  soaked house pulls its own room colder, which narrows the gap — less
+  than the packing's 10× conductivity suggests); 2 t in an 8 m³ house
+  loses a share several times larger. **Decisions:** (1) arrivals settle
+  in a scheduled step AFTER the move completes, because the shipped stack
+  merge-on-arrival folds an arriving sawdust heap into the face before the
+  store could see it — the arrival's mass is recorded at arrival and the
+  face normalised to one unit. (2) A face is debited only when it LEFT to a
+  container (a `get`); one whose container is gone was destructed and its
+  line's physics already took it. (3) ⚠ A restore re-adds the faces as
+  contents: the store skips arrival accounting inside the spine's
+  `persistenceRestore` frame and adopts faces by key — found by the
+  round-trip test (+1 kg per restart otherwise). (4) Seeding runs in
+  `Stockpile.hydrateFromSource` after `materialize` (no `onCreate`: the
+  on-create ratchet, and whether the world remembered the house is the
+  hydration source's question). (5) `Poolable` gained `applyPoolKey` (a
+  line's grade onto a fresh unit) and `storeAnchorK(state)` (a line's
+  thermal anchor while it exchanges — ice at its plateau), so the store
+  never names ice. The custody hooks move to W3 (their consumer).
 
 ### W3 — Custody: receipts, deposit, withdraw, the stocktake, the depot
 

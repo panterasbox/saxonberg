@@ -9,21 +9,52 @@
  * a keeper sees and what the store's pool key (from W2) keys on. Within a
  * band the survivor keeps its own saturation.
  *
- * W2 composes `PoolableMixin` on top: the icehouse holds sawdust as its
- * packing, a line by wetness band.
+ * ⭐ `PoolableMixin` (storage-and-ice W2): the icehouse holds sawdust as
+ * its PACKING, a line by wetness band (`sawdust|dry`, `sawdust|soaked`),
+ * keeping its saturation — so packing dug out of a wet house comes out
+ * reading wet, and the store's own physics soaks it with meltwater.
  */
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
+import { PoolableMixin } from '@saxonberg/server/mud/lib/storage/Poolable';
+import type { PoolRole } from '@saxonberg/server/mud/lib/storage/StoreLine';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
-const SawdustBase = StackableMixin(Good);
+// ⚠ Poolable OVER Stackable: the store pools heaps by band, and the stack
+// substrate still merges two loose heaps on a floor.
+const SawdustBase = PoolableMixin(StackableMixin(Good));
 
 export default class Sawdust extends SawdustBase {
   /** Kilograms of sawdust in this heap (one unit a kilogram). */
   public getKg(): number {
     return this.getQuantity();
+  }
+
+  /** ⭐ Sawdust pools by its wetness band: wet packing is its own line. */
+  public override poolKey(): string {
+    const self = this as unknown as Stuff;
+    const band = MixinApi.isWet(self) ? self.getWetnessBand() : 'dry';
+    return `sawdust|${band}`;
+  }
+
+  public override poolState(): Record<string, number> {
+    const self = this as unknown as Stuff;
+    return { saturation: MixinApi.isWet(self) ? self.getWetness() : 0 };
+  }
+
+  /** Stamp a line's saturation onto a heap (a dry stamp, then wetted to it). */
+  public override applyPoolState(state: Record<string, number>): void {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isWet(self)) return;
+    const target = Math.max(0, Math.min(1, state.saturation ?? 0));
+    self.wet(target - self.getWetness());
+  }
+
+  /** Sawdust is what a store keeps its stock IN. */
+  public override poolRole(): PoolRole {
+    return 'packing';
   }
 
   public override canMergeWith(other: Stuff): boolean {

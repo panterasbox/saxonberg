@@ -550,6 +550,11 @@ export const Mixins = {
   // left (true of metal only). Alloyed is the two together.
   Composition: 'CompositionMixin',
   Tempered: 'TemperedMixin',
+  // ⭐ STORAGE (storage-and-ice D1): a holder whose contents are a LEDGER
+  // — goods held as an amount by grade, one real exemplar (the face) per
+  // line — and the good's own declaration of how it pools.
+  Store: 'StoreMixin',
+  Poolable: 'PoolableMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.

@@ -112,6 +112,8 @@ import type { WaterActive } from '../lib/material/WaterActivity';
 import type { Alloyed } from '../lib/material/Alloyed';
 import type { Composition } from '../lib/material/Composition';
 import type { Tempered } from '../lib/material/Tempered';
+import type { Store } from '../lib/storage/Store';
+import type { Poolable } from '../lib/storage/Poolable';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1513,6 +1515,19 @@ export class MixinApi {
   /** A piece a heat treatment can leave something in — metal only. */
   public static isTempered(obj: Stuff): obj is Stuff & Tempered {
     return this.hasMixin(obj, Mixins.Tempered);
+  }
+
+  /**
+   * A store — a holder whose contents are a ledger: goods held as an
+   * amount per grade, one face per line (storage-and-ice D1).
+   */
+  public static isStore(obj: Stuff): obj is Stuff & Store {
+    return this.hasMixin(obj, Mixins.Store);
+  }
+
+  /** A good a store may hold as an amount, pooling by its own rule. */
+  public static isPoolable(obj: Stuff): obj is Stuff & Poolable {
+    return this.hasMixin(obj, Mixins.Poolable);
   }
 
   /**

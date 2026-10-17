@@ -47,6 +47,13 @@
  *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
  *     black ice is clear and white ice is white, and the trade sold by
  *     it in the open.
+ *   - W2: `StoreMixin.lines` — **level 1**. The ledger is the world's
+ *     EXACT stock; how much is really in a house is what a stocktake
+ *     (`measure stock`) earns by competence, bracketed — the keeper's
+ *     book is a claim, the lines are the truth. `capacityKg`,
+ *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `seedLines` —
+ *     level 0: the size of a house, the shape of a stack, its floor, what
+ *     it takes and what it was built with are seen by walking in.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and
