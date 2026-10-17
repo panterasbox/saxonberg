@@ -1861,6 +1861,17 @@ pack is found with no code); `lint:family`; `pnpm test:near` on
 
 ### W1 — The producers, gloves and doffing
 
+> ✅ **Done — `765137f1c`.** Every D6 producer landed except plating
+> (B6 — plating drops no crumbs; eating does). Worked acts carry their dirt
+> on `WorkResult.soils` — the GROUND's answer, like its credit (B7): the
+> plan's "dig/split → mud" was one line in a verb that also splits stone
+> and hive frames. The tap's soils land in `completeTap`, after the draw,
+> for every yield shape, not inside `stampTheHand` (milk only). The doff
+> moves dirt to whatever is now on the hands (bare once the gloves are
+> off); it copies rather than moves (contact spreads). Combat and the
+> treatment/slaughter deposits key the stain on the LIVE bleeder (a corpse
+> composes no Vitals, so a carcass's blood carries no sample).
+
 **Goal.** Every act in D6 deposits where it should; the butcher's apron
 bloodies and his shirt does not; gloves take the dirt and give it back
 carelessly. Implements D5, D6, D7, D8 (the stain record).
@@ -2542,6 +2553,17 @@ Read first, in this order.
   detect them (their refusals are returned strings, or a throw it does not
   pair), and the lint refuses a declaration it cannot see. Each one's
   closure is argued at its declaration instead.
+
+- **B6 — No crumbs at plating** (`PlateController` untouched): eating is the
+  act that drops them, so the one debris producer is `eat`.
+- **B7 — A worked act's dirt is the subject's `WorkResult.soils`**, landed
+  by `WorkedActController.land` — quarry earth muds hands and feet, rock
+  and a split block dust the hands, a hive or a wheel leaves none. The verb
+  lands it and never decides it (mixin authoritative).
+- **B8 — The wash chemistry is `Soilable.washSite(spec, site)`**, not
+  `wash(spec)`: `ServiceableMixin.wash()` is the shipped no-arg service wash
+  (tip the dregs) on every CraftVessel, and the two must not shadow each
+  other. The verb calls both where both apply.
 
 ## Drive record
 
