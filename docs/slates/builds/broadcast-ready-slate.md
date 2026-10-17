@@ -7,7 +7,9 @@
 > [streaming.md](../../subsystems/streaming.md)
 > **Left:** the stream's phases (offline · starting · live · standby ·
 > ending) and standby *reasons* as rows · stream state that survives a
-> restart and fails closed · the segment lower third · the streamer
+> restart and fails closed, held by each streamer rather than the
+> server · a per-streamer overlay token · the on-air marker bystanders
+> can see · the segment lower third · the streamer
 > controls in the client (a corner the camera covers) · redaction while
 > on air · tab-away reported · the streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
@@ -74,12 +76,15 @@ there is a broadcast at all).
 
 - **`stream away 15m` keeps working** (a bare duration is the
   `generic` reason) — the shipped grammar stays valid.
-- **The streamer is whoever started it.** `StreamState` records the
-  starter's identity path (`getIdentityPath()`, never the template
-  path), and every client fact below is read off *that* player's
-  client. One streamer at a time is the honest scope until the registry
-  build; a second `stream start` by someone else is refused, naming who
-  is live.
+- ⭐⭐ **Stream state belongs to the streamer, not the server.** The
+  shipped `StreamState` is a server-wide singleton, so two streamers
+  would share one standby screen. Here it moves onto **each streamer's
+  own character** — every `stream` verb acts on the caller's own state,
+  and the client facts below are read off that player's client. Several
+  streamers live at once is then the ordinary case rather than a
+  feature: nothing is shared to collide over. The singleton retires.
+  (Keyed by `getIdentityPath()` wherever it is keyed at all — every
+  player shares one template path.)
 
 ### ⭐ Reasons are rows
 
@@ -99,9 +104,12 @@ mid-show is one `clone` away*.
 
 ### ⚠⚠ Durable, and fail closed
 
-- **StreamState persists** through the self-persistence spine (a
-  singleton capture, no new collection). A restart restores the phase,
-  the reason and the timers.
+- **Stream state persists with the streamer's character**, through
+  the self-persistence spine that already saves them — no singleton
+  capture, no new collection. A restart restores the phase, the reason
+  and the timers. This costs the same as making the singleton durable,
+  which is why the per-streamer shape is taken now rather than
+  retrofitted.
 - **The overlay holds its last scene when the feed drops.** It never
   falls back to *live* on its own; reconnecting delivers the current
   snapshot, which is now the durable one.
@@ -145,6 +153,16 @@ normally, which is what a privacy standby is *for*.
 The rule keys on what the server stamped, never on a client guess, and
 it applies to the streamer's own client only.
 
+### ⭐ The on-air marker — bystanders know
+
+Redaction protects the streamer's private frames. It does nothing for
+the **other players** a broadcast shows: anyone in the room the streamer
+is in appears on stream doing public things, and today has no way to
+know. So while a streamer is on air, **the streamer's presence line says
+so** (*"…, broadcasting"*) and the room line carries a marker that a
+broadcast is reaching it. It is a statement, not a gate — a public room
+stays public — but nobody is on camera without being told.
+
 ### Tab-away
 
 `visibilitychange` → the client reports *hidden* / *visible* on the bus
@@ -156,6 +174,31 @@ a browser tab, and the overlay changes scene around it
 ---
 
 ## The feed — what crosses to the overlay
+
+### ⭐ One token per streamer
+
+The shipped feed has one `BROADCAST_TOKEN` and pushes the same state to
+every overlay. Here **an overlay token names a player**: a streamer
+issues their own (a `stream token` subcommand, shown once, rotatable),
+and a socket opened with it receives **that streamer's** state, client
+facts and chat — nothing of anyone else's. Several streamers' overlays
+connect to one server side by side.
+
+- The owner's chat still comes from `OVERLAY_TWITCH_LOGIN` /
+  `OVERLAY_YOUTUBE_CHANNEL` for the founder; for anyone else, the
+  channels are a field on the streamer an operator sets, until the
+  registry's claim-by-proof replaces both.
+- `BROADCAST_TOKEN` keeps working as the founder's token during the
+  changeover, then retires.
+- ⚠ **YouTube is the real multi-streamer limit, not the server.** The
+  owner's live broadcast is found with `search.list` — 100 units of the
+  default 10,000-a-day quota, polled every 15 minutes: about one
+  channel's worth. A second YouTube streamer exhausts it. The fix is
+  reading each streamer's broadcasts under their own YouTube login
+  (about 1 unit), which is the registry's YouTube proof — so that proof
+  is a prerequisite for YouTube at scale, and not this build's.
+
+### What crosses
 
 Every field is an allowlist entry on the default-deny projection, added
 on purpose:
@@ -169,7 +212,7 @@ on purpose:
 | `client.hidden` | the browsing scene |
 | `relay-chat` (shipped) | the chat overlay |
 
-Not on it: anything about any player but the streamer, the streamer's
+Not on it: anything about any player but the token's streamer, the streamer's
 private frames, card contents. `client.focal` joins when card-sizes
 ships.
 
@@ -250,7 +293,11 @@ The exit criterion, run against the real stack with OBS open:
 7. Toggle the terminal's relay-chat filter off → the chat layer appears.
 8. Elgato privacy button with the server stopped → the desktop leaves
    the stream.
-9. `stream end` → Ending → offline; redaction is off.
+9. A second player in the room sees the on-air marker on the streamer
+   and the room; it clears when the stream ends.
+10. **A second streamer** issues a token and goes `stream away food` on
+    their own overlay → the founder's overlay does not move.
+11. `stream end` → Ending → offline; redaction is off.
 
 ## Lens pass
 
@@ -260,8 +307,9 @@ The exit criterion, run against the real stack with OBS open:
 3. **Immersion / participation** — interface tier, outside the fiction
    entirely; it may never gate on anything in-world.
 4. **Values** ⭐ — decides redaction (*the people in your tells did not
-   consent to an audience*), the timerless privacy standby, and fail
-   closed over fail open.
+   consent to an audience*), the on-air marker (*nor did the people in
+   your room*), the timerless privacy standby, and fail closed over fail
+   open.
 5. **Continuity** — `stream away 15m` still means what it meant.
 6. **Economy** — none.
 7. **Governance** — the streamer axis and the scoped control token; no
@@ -269,8 +317,11 @@ The exit criterion, run against the real stack with OBS open:
 
 ## Non-goals
 
-- **Per-streamer state, the registry, other people's overlays** —
-  [streamer-registry-slate](streamer-registry-slate.md). One streamer.
+- **The registry** — the persisted `Streamer` record, claim-by-proof,
+  the YouTube proof, the public directory, third-party overlays over
+  REST — [streamer-registry-slate](streamer-registry-slate.md). This
+  build makes state and tokens per-streamer; it does not make streamers
+  a public, claimable thing.
 - **Card sizes, the arrangement region for the camera, focal facts** —
   [card-sizes-slate](card-sizes-slate.md).
 - **Alerts** (follows, subs, bits) — the track's Phase 4 payment intake.
