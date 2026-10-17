@@ -116,7 +116,13 @@ The monetization milestone. Sequenced and decided; deferred out of the
 first push by choice.
 
 #### Phase 4 — Twitch-native payment intake
-- **Decision (locked):** intake is **Twitch-native only** — ingest
+- ⚠ **Reopened 2026-10-17 → [giving-slate](../slates/builds/giving-slate.md).**
+  *"The worst thing in the world is to have people that want to give you
+  money and not having a channel for them to do that."* Giving moves
+  forward and widens: give-in-the-game (attributed by construction) +
+  Twitch + YouTube, platform gifts held as claims until the giver signs
+  in. The original decision, kept for the record:
+- **Decision (was locked):** intake is **Twitch-native only** — ingest
   Twitch **EventSub** events (subscriptions, bits/cheers) over the same
   token plumbing the relay uses. No external processor (Patreon/Stripe)
   in scope; revisit only if off-platform capital becomes a real need.
@@ -175,7 +181,7 @@ first push by choice.
 - **Phase 1 includes account linking** (slate Waves 1+2), not just Twitch
   login — so a Saxonberg↔Twitch identity binding exists ahead of the
   funding push. Chat scopes remain deferred.
-- **Payment intake** = **Twitch-native only** (EventSub subs/bits). No
+- **Payment intake** ~~= **Twitch-native only**~~ → reopened 2026-10-17, see [giving-slate](../slates/builds/giving-slate.md). Was: **Twitch-native only** (EventSub subs/bits). No
   external processor for now.
 - **Track artifact** = this standalone doc (not a Build-10 entry in the
   slate index).
