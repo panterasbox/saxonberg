@@ -1083,9 +1083,26 @@ async function reconcileCover(
     }
   }
 
+  // ⚠⚠ A proprietor may ALSO hold a rostered slot here (the Hearthworks'
+  // smith owns the smithy). Inside her own window her on-shift record IS
+  // her shift, and a cover record is the same shape — so "on shift" is not
+  // "covering". Read as a cover, the pass ended it whenever anybody else
+  // was on (`endCover` drops the house's record), and the smith stood at
+  // her own forge with no employment at all (the repair drive, 2026-10-17).
+  const date = DefaultCalendar.singleton().decompose(Quantity.of(nowRaw, 's'));
+  const ownSlotOn = business
+    .getRoster()
+    .getAssignments()
+    .some(
+      (a) =>
+        a.assignee === proprietorKey &&
+        business.getRoster().evaluate(a, date) === 'on-shift',
+    );
   const covering =
-    proprietor.getEmployment(businessPath)?.status === 'on-shift';
-  if (!rosteredOnShift && !covering) {
+    !ownSlotOn && proprietor.getEmployment(businessPath)?.status === 'on-shift';
+  const onOwnShift =
+    ownSlotOn && proprietor.getEmployment(businessPath)?.status === 'on-shift';
+  if (!rosteredOnShift && !covering && !onOwnShift) {
     business.beginCover(proprietor as EmployedActor, nowRaw);
     // A cover is a shift: stand where the work is.
     await moveForShift(

@@ -274,7 +274,7 @@ export default class OrderController extends CraftController<OrderModel> {
     const house = await tariff.house();
     const key = hand.getIdentityPath();
     if (!house || !key || !MixinApi.isEmployed(hand)) return;
-    const housePath = (house as unknown as Stuff).getTemplatePath();
+    const housePath = house.getOrganizationPath();
     const job = hand
       .getActiveEmployments()
       .find((e) => e.organizationPath === housePath);

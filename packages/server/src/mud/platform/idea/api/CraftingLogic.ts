@@ -3349,12 +3349,14 @@ async function fulfillingHandImpl(
 ): Promise<Stuff | null> {
   const house = await offer.house();
   if (!house) return null;
+  // ⚠ By PATH, never by object identity: the house the offer resolves and
+  // the house a lookup of the employment's path returns need not be the
+  // same reference (the live drive's first run: Berta on shift, "nobody").
+  const housePath = house.getOrganizationPath();
   const candidates = presentFulfillers(giver, discipline).filter(
     (c) =>
       MixinApi.isEmployed(c) &&
-      c.getActiveEmployments().some(
-        (e) => StuffApi.findByTemplatePath(e.organizationPath) === (house as unknown as Stuff),
-      ),
+      c.getActiveEmployments().some((e) => e.organizationPath === housePath),
   );
   if (candidates.length === 0) return null;
   const verdict = house.callFor({ patron: giver, candidates });

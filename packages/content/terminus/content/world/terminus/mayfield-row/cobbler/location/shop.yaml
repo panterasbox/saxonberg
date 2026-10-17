@@ -31,6 +31,8 @@ data:
     # Leather to mend with, and soles and uppers cut ready — a re-soling
     # draws a sole, a patch draws hide.
     - { template: /stuff/thing/items/hide-stock, count: 2 }
+    # ⭐ What a patch is CUT from — a mend draws offcuts by weight.
+    - /trade/tanning/thing/leather-offcuts
     - { template: /trade/tanning/thing/sole, count: 4 }
     - { template: /trade/tailoring/thing/boot-upper, count: 2 }
   cast:
