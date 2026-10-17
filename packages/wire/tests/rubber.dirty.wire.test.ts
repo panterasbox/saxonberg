@@ -522,10 +522,10 @@ suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', 
   it('splash each wearer; the linen is eaten', async () => {
     const t = await at(uniqueHandle('linen-apron'), YARD);
     await cloneInto(YARD, t, ROW.linenApron, 'apron');
-    await say(t, 'wear apron');
+    await dress(t, 'wear apron');
     const u = await at(uniqueHandle('rubber-apron'), YARD);
     await cloneInto(YARD, u, ROW.rubberApron, 'apron');
-    await say(u, 'wear apron');
+    await dress(u, 'wear apron');
     const tb = await funded('thrower', SHOP);
     await buyOne(tb, 'vitriol');
     await buyOne(tb, 'vitriol');
@@ -566,12 +566,12 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     const wh = wb.handle;
     wb.close();
     streetWool = await at(wh, YARD);
-    await say(streetWool, 'remove all');
-    await say(streetWool, 'wear hoodie');
+    await dress(streetWool, 'remove all');
+    await dress(streetWool, 'wear hoodie');
     streetRubber = await at(uniqueHandle('rubber-coat'), YARD);
     await cloneInto(YARD, streetRubber, ROW.rubberCoat, 'mackintosh');
-    await say(streetRubber, 'remove all');
-    await say(streetRubber, 'wear coat');
+    await dress(streetRubber, 'remove all');
+    await dress(streetRubber, 'wear coat');
     // ⚠ Ten sessions: under a loaded machine each login can take a minute.
   }, 1_800_000);
 

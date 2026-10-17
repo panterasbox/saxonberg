@@ -409,6 +409,7 @@ function pathResistance(
   bodyResistanceOhms: number,
   victim: Stuff,
   fluidSigma = FRESH_WATER_SIGMA,
+  throughParts?: readonly string[],
 ): number {
   const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
   const insulatorMax = dial(
@@ -420,7 +421,15 @@ function pathResistance(
     0.15,
   );
   let r = bodyResistanceOhms;
-  for (const layer of wornConstructedLayers(victim)) {
+  // ⭐ (rubber build) Only what the current passes THROUGH is in series: a
+  // body bridged through a pool is bridged at its FEET, so its dry shirt is
+  // not between it and the water (found by the drive — intake's student
+  // shirt and trousers insulated a wader in soaked leather boots down to
+  // 0.4 µA). A contact device passes no `throughParts` and keeps the stack.
+  const layers = throughParts
+    ? layersCovering(victim, throughParts)
+    : wornConstructedLayers(victim);
+  for (const layer of layers) {
     const mat = MixinApi.isTangible(layer) ? layer.getMaterial() : null;
     // ⭐ (rubber build) the layer as it is — a soaked one by the wet law.
     const sigma = effectiveSigma(layer, fluidSigma);
@@ -437,6 +446,20 @@ function pathResistance(
     }
   }
   return r;
+}
+
+/** The worn `Constructed` layers covering any of `parts`, each once. */
+function layersCovering(body: Stuff, parts: readonly string[]): Stuff[] {
+  if (!MixinApi.isAttired(body)) return [];
+  const seen = new Set<Stuff>();
+  for (const part of parts) {
+    for (const occ of body.coveringAt(part)) {
+      const asStuff = occ as unknown as Stuff;
+      if (!MixinApi.isConstructed(asStuff) || !MixinApi.isWearable(asStuff)) continue;
+      seen.add(asStuff);
+    }
+  }
+  return [...seen];
 }
 
 /** The worn `Constructed` armor layers — the series-resistance path
@@ -480,7 +503,10 @@ function divideCurrent(
     MixinApi.isTangible(victim) ? victim.getMaterial() : null,
     wet,
   ).rawValue();
-  const rPath = Quantity.of(pathResistance(bodyR, victim, graph.fluidSigma), 'Ω');
+  const rPath = Quantity.of(
+    pathResistance(bodyR, victim, graph.fluidSigma, footPartsOf(victim)),
+    'Ω',
+  );
   return MaterialApi.ohmsCurrent(v, rPath);
 }
 
