@@ -94,7 +94,7 @@ future endowments: metabolic quirks, allergies, and handedness pass
 
 **Genotype is stored; phenotype derives** — the house pattern one level
 down, identical in shape to `transcripts → Competence`. See
-[blood-slate](./blood-slate.md) § *Blood type* for the worked case.
+[blood-slate](../tails/blood-slate.md) § *Blood type* for the worked case.
 
 ---
 
@@ -1212,7 +1212,7 @@ recording now so it is not designed by accident:
 - **⚠⚠ The distributional question is the point, not a bug.** A world
   where the rich stay vigorous and the poor decline is loaded, live, and
   exactly the political economy this platform teaches — the direct
-  sibling of [blood-slate](./blood-slate.md)'s allocation problem. It
+  sibling of [blood-slate](../tails/blood-slate.md)'s allocation problem. It
   should be designed **as a policy surface the Compact can legislate**,
   not discovered later as an inequality nobody meant.
 
@@ -1753,7 +1753,7 @@ than re-opened.
 
 - **The advancement prior itself** — [antecedents-slate](./antecedents-slate.md)
   owns the effort→prior mapping; this doc only supplies a source for it.
-- **Blood type mechanics** — [blood-slate](./blood-slate.md).
+- **Blood type mechanics** — [blood-slate](../tails/blood-slate.md).
 - **Reproduction in play.** Inheritance here is *backward-looking* only:
   choosing where you came from, never producing children.
 - **The longevity industry.** Recorded above as constraints, designed
@@ -1797,7 +1797,7 @@ than re-opened.
   the upbringing mechanism
 - [antecedents-slate](./antecedents-slate.md) — the background prior, and
   the authored-acquaintance gap the gallery partly closes
-- [blood-slate](./blood-slate.md) — the first endowed value
+- [blood-slate](../tails/blood-slate.md) — the first endowed value
 - [banking.md](../../subsystems/banking.md) — `bank_supply`, the
   conservation chokepoint the capital sink draws from
 - [magic.md](../../subsystems/magic.md) — `facultyProfile`, mana as a

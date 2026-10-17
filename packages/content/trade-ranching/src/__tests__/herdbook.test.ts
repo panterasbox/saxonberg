@@ -545,3 +545,58 @@ describe('the register transport is nameless and structural', () => {
     ).toThrow(/denied/i);
   });
 });
+
+/**
+ * ⭐ (dairy D12) A herd has a SEX MIX and remembers a DRY PERIOD — both
+ * herd facts, kept in the record rather than on an animal that is
+ * destructed when it is returned.
+ */
+describe('the herd’s sex mix and dry periods', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('a filed femaleFraction round-trips, and an old record reads the default', async () => {
+    const r = registry();
+    await r.file({ ...HERD, herdId: 'ox-team', femaleFraction: 0 });
+    await r.file({ ...HERD, herdId: 'old-flock' });
+    expect((await r.read('ox-team'))?.femaleFraction).toBe(0);
+    expect((await r.read('old-flock'))?.femaleFraction).toBeUndefined();
+  });
+
+  it('the book files its authored femaleFraction', async () => {
+    const reg = registry();
+    const b = makeStuffAtPath(() => new Herdbook(), '/world/test/thing/oxbook') as Herdbook;
+    b.setHerdId('oxen');
+    b.setSpeciesPath('/stuff/idea/species/_test/cow');
+    b.setTally(2);
+    b.setHolderRef('organization:/stuff/idea/Government/x');
+    b.setHomeExtent('/world/test/field');
+    b.setFemaleFraction(0);
+    await b.onCreate();
+    expect((await reg.read('oxen'))?.femaleFraction).toBe(0);
+  });
+
+  it('a register of bullocks seeds no cows, a dairy book nearly all', () => {
+    const oxen = { herdId: 'oxen', meanAgeDays: 900, femaleFraction: 0 };
+    const dairy = { herdId: 'dairy', meanAgeDays: 900, femaleFraction: 0.95 };
+    const ox = Array.from({ length: 20 }, (_, i) => HeadSeed.sample(oxen, i));
+    const cows = Array.from({ length: 40 }, (_, i) => HeadSeed.sample(dairy, i));
+    expect(ox.every((h) => h.sex === 'male')).toBe(true);
+    expect(cows.filter((h) => h.sex === 'female').length).toBeGreaterThan(34);
+  });
+
+  it('a dry-off stamp folds into the head’s overlay on return', async () => {
+    const r = registry();
+    await r.file(HERD);
+    await r.draft('kestrel-flock', 5);
+    await r.returnHead('kestrel-flock', 5, { driedOffAt: { milk: 123_456 } });
+    expect((await r.overlayFor('kestrel-flock', 5))?.driedOffAt).toEqual({ milk: 123_456 });
+  });
+});

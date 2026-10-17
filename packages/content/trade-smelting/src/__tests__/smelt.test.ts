@@ -205,8 +205,12 @@ describe('⭐ the metal faucets are closed', () => {
         (doc.class === '/platform/thing/Ingot' || doc.class === '/platform/thing/Casting') &&
         /copper/i.test(JSON.stringify(doc.data ?? {})),
     );
-    expect(ingots.map((i) => i.file)).toEqual([
+    // ⭐ (dairy D19) …and the generic `ingot`, whose copper is a
+    // PLACEHOLDER the set overwrites: it is minted only by an ingot
+    // mould's set, from a pool somebody smelted — the same producer.
+    expect(ingots.map((i) => i.file).sort()).toEqual([
       'trade-smelting/content/trade/smelting/thing/copper-ingot.yaml',
+      'trade-smelting/content/trade/smelting/thing/ingot.yaml',
     ]);
   });
 

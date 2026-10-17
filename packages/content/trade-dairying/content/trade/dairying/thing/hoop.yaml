@@ -1,0 +1,25 @@
+# A cheese hoop (dairy D9) — ⭐ a MOULD. Curd poured into it sets in its
+# shape by draining its whey, faster and drier with a press stone on it
+# (`put stone on hoop`), and the wheel stays in it until you take it out
+# (`get wheel from hoop`). A fill into it is the cheesemaker's act and
+# credits dairying; it wears with each wheel and `repair` mends it.
+class: /trade/dairying/thing/Hoop
+data:
+  shortDescription: cheese hoop
+  keywords: [hoop, "cheese hoop", mould, mold]
+  register: indefinite
+  longDescription: >-
+    A ring of beech staves bound with willow, open at the top, standing on
+    a slatted board. Whey has stained the wood the colour of weak tea.
+  interiorBulk: true
+  interiorCapacity: 4
+  # ⚠ liquidTight: the whey leaves by the SET (the curd's drain clock), not
+  # through the drain-through arm, which would empty the curd onto the
+  # floor the way the pail once emptied its milk.
+  closure: liquidTight
+  castTemplate: /trade/dairying/thing/wheel
+  reusable: true
+  discipline: dairying
+  placements: [on]
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 1.5

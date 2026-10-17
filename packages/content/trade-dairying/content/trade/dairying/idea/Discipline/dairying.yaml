@@ -1,0 +1,24 @@
+# Dairying — ⭐ the discipline of making milk keep (dairy D16).
+#
+# A specialization of fermenting: most of what a dairy does is keep a
+# culture working (a starter crock, a vat, a rind) and read where it has
+# got to — and the rest is judgment against a clock that milk sets: when
+# the cream has risen, whether the churn is warm enough to come, how hot
+# is pasteurized and how hot is scalded, how long a wheel stands in the
+# hoop and whether it is pressed. Competence grades, it does not gate.
+class: /platform/idea/Discipline
+data:
+  key: dairying
+  channel: skill
+  label: Dairying
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: >-
+    Making milk keep. Setting milk for cream and knowing when it has
+    risen, churning at the warmth that brings butter, keeping a starter
+    alive, setting a soft curd or a firm one, drawing the whey, filling
+    and pressing a hoop, and bringing a wheel on a cold shelf from young
+    to ripe without letting it go over.
+  requires: [recipe-knowledge]
+  specializes: [fermenting]
+  synergizes: [stockmanship, cooking]
+  conferrals: []

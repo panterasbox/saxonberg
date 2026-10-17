@@ -1,0 +1,26 @@
+# The creamery's fire (dairy D6) — a closed brick firebox with an iron
+# trivet over it, for warming the vat: set the vat on it (`heat vat`) to
+# scald the milk, take it off to cool. ⭐ An `Oven`-class firebox, NOT a
+# space-heating hearth — and the drive is why: a lit `Hearth` warms the
+# ROOM, and the creamery read 301 K with the fire in, too warm for butter
+# to come or a curd to keep. A dairy's fire heats the vat and leaves the
+# room cool. It holds a gentle heat — a dairy fire, not a bread oven.
+class: /platform/thing/Oven
+data:
+  shortDescription: low hearth
+  keywords: [hearth, fire, firebox, trivet]
+  register: definite
+  longDescription: >-
+    A low brick firebox with an iron trivet over the fire, set well away
+    from the shelves and shut with an iron door so it heats the vat and
+    not the room. The bricks are black above it and the trivet is worn
+    bright where the vat's feet go.
+  lit: true
+  burnTemperatureK: 520
+  maxBurnPowerW: 4000
+  fuelCapacityKg: 30
+  fuelBed:
+    /stuff/idea/material/wood/oak: 30
+  placements: [on]
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 400

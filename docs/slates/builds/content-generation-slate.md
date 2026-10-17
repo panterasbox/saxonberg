@@ -281,12 +281,12 @@ established that institutions are allowed to be unfair.
    a ruin is structure's; an estate passing is credit's. Three copies of
    one pattern ⇒ the third instance is the promote signal.
 5. **Does a generated row carry a marker** beyond an absent `sourcePack`
-   (→ [pack-boundary](./pack-boundary-slate.md) open Q2)?
+   (→ [pack-boundary](../tails/pack-boundary-slate.md) open Q2)?
 
 ---
 
 See also: [household-lifecycle](./household-lifecycle-slate.md) (the case
-that forced this) · [pack-boundary](./pack-boundary-slate.md) (where
+that forced this) · [pack-boundary](../tails/pack-boundary-slate.md) (where
 generated rows live) ·
 [land-use-covenant](./land-use-covenant-slate.md) (**the capacity term**)
 · [mortality.md](../../subsystems/mortality.md) (the succession

@@ -1,0 +1,18 @@
+# A plunger churn (dairy D5) — a tall staved barrel with a dasher through
+# the lid. Cream goes in; `churn churn` works it, and at the right warmth
+# it breaks into butter and buttermilk. The buttermilk draws off (`pour
+# churn into jug`); the butter is what stays.
+class: /trade/dairying/thing/Churn
+data:
+  shortDescription: butter churn
+  keywords: [churn, "butter churn", dasher]
+  register: indefinite
+  longDescription: >-
+    A tall oak barrel bound in iron, narrower at the top, with a long
+    dasher standing up through a hole in the lid. Its staves smell of old
+    butter however often it is scalded.
+  interiorBulk: true
+  interiorCapacity: 8
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 9

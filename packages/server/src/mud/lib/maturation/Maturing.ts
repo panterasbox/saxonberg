@@ -93,7 +93,6 @@ export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
 /** A batch phase — one of {@link FERMENT_PHASES}. */
 export type MaturationPhase = (typeof FERMENT_PHASES)[number];
 
-
 /**
  * Grams of sugar per litre consumed per 1% ABV produced (≈16.8 in the
  * real stoichiometry; 17 is the teachable round figure — the mass
@@ -207,14 +206,34 @@ export interface Maturing {
   getViability(): number;
   /** Litres of lees under the rack floor (reconciles first). */
   getLeesVolumeL(): number;
-  /** Classify a cross-material pour: pitch, feed, or a plain mismatch. */
+  /** Classify a cross-material pour: pitch, feed, transform, or a plain mismatch. */
   classifyForeignPour(
     material: Material,
     strain: string,
-  ): 'pitch' | 'feed' | null;
+  ): ForeignPourKind | null;
   /** Apply a classified foreign pour (the transfer seam calls this). */
-  applyForeignPour(kind: 'pitch' | 'feed', strain: string, litres: number): void;
+  applyForeignPour(
+    kind: ForeignPourKind,
+    strain: string,
+    litres: number,
+    material?: Material,
+  ): void;
+  /**
+   * ⭐ The hottest the batch has been since the fill (dairy D6) — the
+   * scald mark. Kept across a rekey; reset by a fresh fill.
+   */
+  getBatchPeakK(): number;
+  /** True while a working culture holds spoilage off (dairy D2). */
+  holdsSpoilage(): boolean;
 }
+
+/**
+ * What a cross-material pour into a working vessel IS. `pitch` brings a
+ * strain to a sterile batch; `feed` brings sugar to a culture; ⭐
+ * `transform` changes what the batch IS (dairy D7 — rennet into milk makes
+ * it a renneted batch, whatever the order of rennet and starter).
+ */
+export type ForeignPourKind = 'pitch' | 'feed' | 'transform';
 
 /**
  * `MarkupAugmenter` for the batch's sensory face (D5 — senses first,
@@ -358,6 +377,13 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
     }
   } else if (phase === 'finished') {
     line = lines.finished;
+    // ⭐ The scald mark, in words (dairy D6): a batch taken past its
+    // profile's `scaldAboveK` before it set sets BADLY, and the vat says
+    // so — the grade is the number, this is what a cheesemaker sees.
+    const scald = profile?.getScaldAboveK() ?? null;
+    if (scald !== null && host.getBatchPeakK() > scald) {
+      line = `${line} The curd has set badly, though — slack and grainy; it was taken too hot before it set.`;
+    }
   } else if (phase === 'turned') {
     line = lines.turned;
   }
@@ -390,16 +416,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'MaturingMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter, characterAugmenter];
-
-    static __validateComposition__(ctor: AnyConstructor): void {
-      const name = (ctor as { name?: string }).name ?? 'class';
-      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
-        throw new Error(
-          `${name} composes MaturingMixin without BulkableMixin; ` +
-            `the transform rides the vessel's interior bulk slot (D2).`,
-        );
-      }
-    }
 
     static fieldMeta: FieldMeta = {
       maturationClockStamp: { persistent: true, runtimeState: true },
@@ -442,7 +458,27 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       charLevel: { persistent: true, runtimeState: true, authorable: true },
       charredImparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
       batchDays: { persistent: true, runtimeState: true },
+      batchPeakK: { persistent: true, runtimeState: true },
     };
+
+    static __validateComposition__(ctor: AnyConstructor): void {
+      const name = (ctor as { name?: string }).name ?? 'class';
+      if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
+        throw new Error(
+          `${name} composes MaturingMixin without BulkableMixin; ` +
+            `the transform rides the vessel's interior bulk slot (D2).`,
+        );
+      }
+    }
+
+    /**
+     * ⭐ **The scald mark** (dairy D6) — the hottest the batch has been since
+     * the fill, folded from every reconcile's trajectory samples (the
+     * `peakK` the kill check already computes). A profile authoring
+     * `scaldAboveK` caps the batch's band at `poor` past it: milk boiled
+     * before the set makes a curd that sets badly. `0` = never sampled.
+     */
+    public batchPeakK = 0;
 
     /**
      * ⭐⭐⭐ **What this VESSEL gives its contents over a batch**, mg/L at
@@ -675,6 +711,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
             // at ANY sample kills (peak temperature over the gap).
             const killK = profile.getKillK();
             const peakK = tempSamples.reduce((m, s) => Math.max(m, s.value), 0);
+            if (peakK > this.batchPeakK) this.batchPeakK = peakK;
             if (killK !== null && peakK > killK) {
               this.batchStrain = '';
               this.wildLagDays = 0;
@@ -757,7 +794,8 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
             }
             if (this.fractionConverted >= 1) {
               this.maturationPhase = 'finished';
-              this.leesVolumeL = amount * profile.getLeesFraction();
+              this.leesVolumeL =
+                amount * profile.getLeesFractionFor(this.batchInputMaterial());
               this.ensureInteriorMaterial(profile.getProductMaterial());
             }
           }
@@ -860,6 +898,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.leesVolumeL = 0;
       this.impartedFraction = 0;
       this.batchDays = 0;
+      this.batchPeakK = 0;
       this.maturationClockStamp = nowS;
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
@@ -870,6 +909,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       this.batchMaterialPath = materialPath;
+      this.stampMadeFrom(materialPath);
       const profile = MaturationProfileRef.forMaterial(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
@@ -1000,6 +1040,15 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // conversion, where `maturityBand` is `masterful` and `min` leaves
       // the other two terms untouched — so this cannot change any
       // behaviour that was not opted into by a row.
+      // ⭐ **The scald — a fourth weakest link** (dairy D6). A profile
+      // authoring `scaldAboveK` sets badly past it whatever else went
+      // right; vacuous for every profile that authors none.
+      const scald =
+        MaturationProfileRef.byKey(this.maturationProfileKey)?.getScaldAboveK() ??
+        null;
+      if (scald !== null && this.batchPeakK > scald) {
+        band = band.min(Grade.of('poor'));
+      }
       const p = this.productAtFractionForBatch();
       if (p < 1) {
         const along =
@@ -1156,6 +1205,25 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐⭐ **The material read reconciles too** (found by the dairy build's
+     * vat test) — the Fractionating lesson, one subsystem over.
+     * `BulkableApi.transfer` reads the source's MATERIAL first and stamps
+     * the destination with it; the batch only advanced when a later seam
+     * (`getBulkAvailable`) asked. So a vat nobody had looked at since its
+     * curd set poured its WHEY into a pail labelled *milk*. Reconciling here
+     * makes the first read the true one. Guarded: the reconcile reads this
+     * same field.
+     */
+    // ⚠ No `override` keyword: the returned class extends a GENERIC
+    // `Base` (TS4112). It overrides `Bulkable`'s at runtime.
+    public getBulkMaterialPath(affordance: BulkAffordance): string | null {
+      if (affordance === 'interior' && !this._reconcilingFerment) {
+        this.reconcileFerment();
+      }
+      return super.getBulkMaterialPath(affordance);
+    }
+
+    /**
      * The rack floor: past `finished`, the lees stay behind — a pour
      * draws product only down to them (P12's derived split; no second
      * bulk slot). Shadows the Bulkable base read the transfer clamps
@@ -1185,10 +1253,20 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public classifyForeignPour(
       material: Material,
       strain: string,
-    ): 'pitch' | 'feed' | null {
+    ): ForeignPourKind | null {
       this.reconcileFerment();
       const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
       if (!profile) return null;
+      // ⭐ A declared transform is checked FIRST (dairy D7): rennet into a
+      // working milk batch changes what it is, whether or not it has been
+      // pitched yet. Only a WORKING batch — rennet into finished whey is
+      // just a mismatch.
+      if (
+        this.maturationPhase === 'active' &&
+        profile.transformFor(material) !== null
+      ) {
+        return 'transform';
+      }
       if (profile.getKind() === 'culture') {
         const sugary =
           (material.getNutrientAmounts()['sugar'] ?? 0) > 0 ||
@@ -1212,11 +1290,19 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * a living culture's viability; a dead culture stays dead.
      */
     public applyForeignPour(
-      kind: 'pitch' | 'feed',
+      kind: ForeignPourKind,
       strain: string,
       _litres: number,
+      material?: Material,
     ): void {
       this.reconcileFerment();
+      if (kind === 'transform') {
+        const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+        const becomes =
+          material !== undefined ? profile?.transformFor(material) ?? null : null;
+        if (becomes !== null) this.rekeyBatch(becomes);
+        return;
+      }
       if (kind === 'feed') {
         if (this.viability > 0) {
           this.viability = Math.min(1, this.viability + FEED_RESTORE);
@@ -1386,6 +1472,76 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this.viability <= 0) this.batchStrain = '';
     }
 
+    /**
+     * ⭐ **Rekey the batch in place** (dairy D7): the interior becomes
+     * `materialPath` and the profile is re-matched against it, while
+     * everything the batch has BEEN — its strain, its days, its worst
+     * stretch, its input band, its mark, its scald — is kept. A fresh
+     * fill resets all of that; a rekey is the same batch become something
+     * else, which is what renneting milk is.
+     */
+    public rekeyBatch(materialPath: string): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+      const material = StuffApi.findByTemplatePath<Material>(materialPath);
+      if (!material) return;
+      self.setBulkMaterial('interior', material);
+      this.batchMaterialPath = materialPath;
+      const profile = MaturationProfileRef.forMaterial(material);
+      this.maturationProfileKey = profile?.getKey() ?? '';
+      this.maturationPhase = profile !== null ? 'active' : 'idle';
+      if (profile !== null) this.stampBatchMark(profile, this.maturationClockStamp);
+    }
+
+    public getBatchPeakK(): number {
+      this.reconcileFerment();
+      return this.batchPeakK;
+    }
+
+    /**
+     * ⭐ **A working culture IS the flora** (dairy D2): while a batch with a
+     * strain is converting — or a culture is alive — the spoilage
+     * organisms are out-competed, and `Freshness` asks this before it
+     * grows a load. A sterile fill, a stuck batch, a finished product and a
+     * dead starter are not held. ⚠ Contamination never asks.
+     */
+    public holdsSpoilage(): boolean {
+      this.reconcileFerment();
+      if (this.maturationPhase !== 'active') return false;
+      if (this.batchStrain === '') return false;
+      const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
+      if (profile === null) return false;
+      return profile.getKind() !== 'culture' || this.viability > 0;
+    }
+
+    /**
+     * The material the batch was MADE from — the interior payload's
+     * `madeFrom`, else the batch's own key. What a composition share is
+     * evaluated against: the curd a litre of ewe's milk gives is a fact
+     * about the ewe's milk, not about the renneted batch it became.
+     */
+    private batchInputMaterial(): Material | null {
+      const self = this as unknown as Stuff;
+      const path =
+        (MixinApi.isBulkable(self)
+          ? self.getBulkPayload('interior')?.madeFrom
+          : undefined) ?? this.batchMaterialPath;
+      return path ? StuffApi.findByTemplatePath<Material>(path) ?? null : null;
+    }
+
+    /**
+     * Record what this batch was made from on its interior payload, ONCE —
+     * a lees split or a rekey is the same matter, and must keep the milk
+     * it came from (dairy D3: *a batch remembers what it was made from*).
+     */
+    private stampMadeFrom(materialPath: string): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+      const payload = self.getBulkPayload('interior');
+      if (payload?.madeFrom) return;
+      self.setBulkPayload('interior', { ...(payload ?? {}), madeFrom: materialPath });
+    }
+
     /** The kill ceiling of `strain`'s culture profile (pitch check). */
     private cultureKillKFor(strain: string): number {
       const culture = MaturationProfileRef.cultureForStrain(strain);
@@ -1416,5 +1572,12 @@ declare module '../bulk/Bulkable' {
      * the youngest thing in the bottle. Absent on matter no cask aged.
      */
     maturedDays?: number;
+    /**
+     * ⭐ The material a batch was MADE from (dairy D3) — written once at
+     * the batch's first fill and kept across a lees split and a rekey, so
+     * a curd knows it was ewe's milk and a wheel set from it can say so.
+     * Carried onto a cast at the set site. Absent on matter no batch made.
+     */
+    madeFrom?: string;
   }
 }

@@ -210,6 +210,13 @@ export default class Livestock extends LivestockBase {
     if (reason === 'dried-off') {
       return 'She has dried off for this season. Nothing will come of it until she freshens again.';
     }
+    // ⭐ (dairy D12) The other sex's tap, in the animal's own terms.
+    if (reason === 'wrong-sex' && key === 'milk') {
+      return 'He has nothing to give you — a male does not milk.';
+    }
+    if (reason === 'wrong-sex' && key === 'eggs') {
+      return 'A cockerel lays nothing, however long you feel under him.';
+    }
     if (reason === 'brooding') {
       return 'She is sitting tight on the clutch and will not be shifted. Take the eggs and she will start again.';
     }

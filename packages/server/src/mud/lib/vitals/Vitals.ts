@@ -750,6 +750,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       bloodGenotype: { persistent: true, authorable: true, runtimeState: true },
       // Somebody has tested this body's blood (the label is known).
       bloodTyped: { persistent: true, runtimeState: true },
+      vitalsSeededFor: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
@@ -781,6 +782,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodVolume.baseline,
       'L',
     );
+
+    /**
+     * ⭐ The species the stocks above were seeded for (dairy, found by the
+     * drive). The fields are constructed at the UNIVERSE defaults before
+     * any species is known, and nothing re-seeded them: a drafted cow was
+     * minted with 5 L of blood against a 40 L baseline and a 30 L floor —
+     * dying of exsanguination from her first read, and dead within a day.
+     * Every horse and cow shipped with the same defect. A body whose
+     * species is not the one it was seeded for takes that species' resting
+     * values at its next read.
+     */
+    public vitalsSeededFor: string | null = null;
 
     public causeOfDeath: string | null = null;
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
@@ -836,6 +849,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- vital signs ----------
 
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
+      this.seedFromSpecies();
       // A blood-volume read must reflect any in-flight bleed; a heart-rate
       // read must reflect a fibrillating shock (the electrocution death seam
       // — the previously-undriven heartRate is armed here).
@@ -847,8 +861,31 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       ]!;
     }
 
+    /**
+     * Take the species' resting values, once per species (see
+     * {@link vitalsSeededFor}). A body with no species keeps the universe
+     * defaults it was built with; a dead one is not re-seeded.
+     */
+    private seedFromSpecies(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const species = self.getSpecies();
+      const path = species?.getTemplatePath() ?? null;
+      if (path === null || path === this.vitalsSeededFor) return;
+      if (self.getLifecycleState() === 'dead') return;
+      const profile = species!.getVitalProfile() ?? UNIVERSE_DEFAULT_VITAL_PROFILE;
+      for (const sign of VITAL_SIGNS) {
+        (this as unknown as Record<string, Quantity<Unit>>)[VITAL_FIELD[sign]] =
+          Quantity.of(Math.max(0, profile[sign].baseline), VITAL_UNITS[sign]);
+      }
+      this.vitalsSeededFor = path;
+    }
+
     public setVitalSign(sign: VitalSign, value: Quantity<Unit>): void {
       assertVitalQuantity(value, sign);
+      // Seed first, so a value written after the species is known is the
+      // one that stands — never overwritten at the next read.
+      this.seedFromSpecies();
       (this as unknown as Record<string, Quantity<Unit>>)[VITAL_FIELD[sign]] =
         value;
     }
@@ -2447,6 +2484,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._reconcilingConditions) return;
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
+      this.seedFromSpecies();
       // A corpse doesn't bleed — nothing left to progress.
       if (self.getLifecycleState() === 'dead') return;
 
@@ -2845,7 +2883,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // blood volume as `unconscious`, so the conscious → unconscious
         // waypoint falls out for free — harm writes only the death sign.
         const floor = this.getVitalBand('bloodVolume').survivableMin;
-        if (this._bloodVolume.rawValue() <= floor) {
+        // A body with no blood (D22's construct) cannot bleed out.
+        if (this.hasVitalSign('bloodVolume') && this._bloodVolume.rawValue() <= floor) {
           if (MixinApi.isOrganism(self) && !self.isDead()) {
             // Enter the window, don't end it — the clock kills from here,
             // which is what makes a medic able to matter.

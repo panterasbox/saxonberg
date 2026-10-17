@@ -176,7 +176,7 @@ file-is-the-object reflex will mint a class per noun and blow the
 taxonomy up in a week.
 
 ⭐ **The lesson compresses to one sentence: your idea is almost always a
-row.** See [object-taxonomy-slate.md](./object-taxonomy-slate.md) for the
+row.** See [object-taxonomy-slate.md](../tails/object-taxonomy-slate.md) for the
 mechanism side.
 
 ## 6. Teach by substitution — the reflex they arrive with
@@ -402,7 +402,7 @@ exotic extra, it is the main event.
   actually *use* your work and can be wrong about it is an honest
   reception signal that is not a popularity contest.
 - **The TA — ⭐ a mode cartridge.** Not a second thing:
-  [automata-slate](./automata-slate.md) already has modes as slotted
+  [automata-slate](../tails/automata-slate.md) already has modes as slotted
   `Slottable` Ideas, and mode cartridges are already named as an
   intermediate good in the wizard supply chain. The university ships a
   tutor cartridge, issued on enrolment. ⚠ And it attaches to **the
@@ -498,11 +498,11 @@ entrenchment tier. All three have homes; none is written.
 - [college-slate.md](./college-slate.md) — the academic apparatus. ⛔ Its
   taxonomy decision is corrected here (§ 10).
 - [wizardry-slate.md](./wizardry-slate.md) — the Discipline this teaches.
-- [object-taxonomy-slate.md](./object-taxonomy-slate.md) — the mechanism
+- [object-taxonomy-slate.md](../tails/object-taxonomy-slate.md) — the mechanism
   half of § 5: naming, collapse, and what a non-wizard may mint.
 - [eternal-university-slate.md](./eternal-university-slate.md) — the
   campus this furnishes.
-- [automata-slate.md](./automata-slate.md) — the TA, as a mode cartridge.
+- [automata-slate.md](../tails/automata-slate.md) — the TA, as a mode cartridge.
 - [../../eotl-craft.md](../../eotl-craft.md) +
   [../../eotl-census.md](../../eotl-census.md) — ⭐⭐⭐ the reference the
   whole slate judges against.

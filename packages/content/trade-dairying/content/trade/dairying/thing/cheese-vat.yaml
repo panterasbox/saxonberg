@@ -1,0 +1,19 @@
+# A cheese vat (dairy D7) — ⭐ the kernel's own `Vat`: the curd profiles
+# do the work. Milk goes in; set it on the fire (`heat vat`) to scald it,
+# take it off to cool, pitch it from the whey crock, rennet it for a firm
+# curd, and when it has set, draw the whey off down to the curd and pour
+# the curd into a hoop.
+class: /platform/thing/Vat
+data:
+  shortDescription: cheese vat
+  keywords: [vat, "cheese vat", kettle]
+  register: indefinite
+  longDescription: >-
+    A broad copper vat on three short legs, its rim worn bright where it
+    has been tipped. The inside is scoured clean and smells faintly sour.
+  category: cheese-vat
+  interiorBulk: true
+  interiorCapacity: 25
+  open: true
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 8

@@ -1,0 +1,36 @@
+# The cheese room (dairy D14) — below the creamery, cut into the bank:
+# cold and still, where the wheels ripen. ⭐ Its temperature IS the
+# ripening — a wheel on these racks is in the profiles' happy band; carry
+# one upstairs into the warm and it goes over, or dies.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: cheese room
+  keywords: [cellar, "cheese room", cave, store]
+  register: definite
+  _address: terminus/hearts-delight/creamery/cheese-room
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientSource: sky
+  ambientOpening: grating
+  ambientIntensity: 8000
+  ambientColorTemperature: 4800
+  _temperature: 284
+  longDescription: |
+    A low vaulted cellar cut into the bank, its walls sweating faintly, the air cold and still and smelling of rind. Slatted racks run the length of both walls at shoulder height, and on them the wheels sit in rows, each one turned a little differently from its neighbour. A long cheese knife hangs on a peg by the steps, beside a small lantern turned low.
+  coords: { x: -4, y: -4, z: -1 }
+  exits:
+    up:
+      destination: /world/terminus/hearts-delight/creamery/location/floor
+      media: [ground]
+      edgeMinutes: 1
+  # Hung, not set down: a lamp lights a room fixture-side, and one left
+  # loose in its contents lights nothing (the night browser walk).
+  adornments:
+    - { template: /world/terminus/hearts-delight/creamery/thing/cellar-lantern, slot: lamp:cellar }
+  props:
+    - /world/terminus/hearts-delight/creamery/thing/cheese-rack
+    - /world/terminus/hearts-delight/creamery/thing/cheese-knife
+  details:
+    grating:
+      keywords: [grating, light, vent]
+      description: |
+        An iron grating at the top of the far wall lets in a grey light and a breath of air from the bank above.

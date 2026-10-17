@@ -1,0 +1,16 @@
+# Ripening a HARD cheese (dairy D9) — two game months on a cool shelf to
+# ripe, worth more the longer it goes, and it authors no turn: a pressed,
+# salted wheel simply keeps. Kept too warm the rind dies (`killK`).
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: hard-cheese
+  inputCategory: hard-cheese
+  mechanism: microbial
+  stallBelowK: 275
+  happyK: 284
+  damageAboveK: 291
+  killK: 300
+  ratePerDay: 0.0167
+  productMaterial: /trade/dairying/idea/material/hard-cheese
+  productAtFraction: 0.3
+  wildStrain: ''

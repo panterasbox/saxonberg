@@ -700,7 +700,10 @@ nothing, and the slot empties before the cast mints. ⚠ The engine banks
 the undershoot it FINDS at a read, not the heat extracted over the gap,
 so one long unread gap banks one cooling's worth (≈ 96 of the 334 kJ a
 litre needs); a watched jug freezes over a few reads. Pre-existing, and
-the melt shares it → thermal-slate.
+the melt shares it → thermal-slate. ⭐ The same driver sets molten metal
+in a crucible or an ingot mould (the dairy build's moulds, which had
+narrowed an earlier freeze driver to non-`liquid` pools to spare tallow
+crocks — superseded by this one at the merge; see `mould.md`).
 
 ⚠⚠ **The phase pass has its own reentry guard (`_phaseReconciling`).**
 It runs after `_thermalReconciling` is released, and it READS the
@@ -839,3 +842,30 @@ the entire mechanism. See [apiculture.md](./apiculture.md).
 
 The deferred half is a `feel hive` reading, which wants the exposure rule
 for a Vessel outdoors — a thermal-slate item.
+
+## ⭐⭐ The set site asks the container first (the dairy build, 2026-10)
+
+The solidify edge of `reconcileBulkPhase` no longer always clones the
+material's `castTemplate` beside the vessel. It asks `MixinApi.isMould(v)`
+first: a **mould** keeps what set in it, in its own shape, inside it
+(`castInto`); any other vessel falls back to the material's fallback shape
+dropped beside it, exactly as before. Water's fallback is now
+`/stuff/thing/ice-lump` (*a lump of ice*); the ice pan is a mould and gives
+the squared `ice-block`. See [mould.md](./mould.md).
+
+⭐ **A molten pool sets because it has cooled** — the same post-drift
+driver that freezes a winter jug (climate D7, above) sets molten metal, so
+a crucible left to cool holds a lump and a filled ingot mould holds an
+ingot. ⓘ The dairy build first shipped a narrower driver for
+non-`liquid` pools only (to spare tallow crocks); the climate build's
+general rule superseded it at the merge, and the chandlery's own suite
+passes under it.
+
+- **2026-10-16 (dairy build, the smelt).** ⚠ *A cached ambient is stale
+  until a restamp.* A crucible put into an unlit furnace caches the room
+  as its ambient; a furnace that later went out in a preheat and came
+  back alight with the charge left the pot drifting toward the cold room
+  inside a lit furnace, and the copper run into it set before the pour.
+  `SmeltController.runIntoCrucible` now restamps the crucible and sets
+  both ends of the run to the furnace's heat before the transfer. Which
+  path back to *lit* skips `restampHeated` is not traced.

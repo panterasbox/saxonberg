@@ -1,0 +1,16 @@
+# The cheese room's knife — a long two-handled blade for cutting a wheel
+# into wedges (dairy D10). A cutting TOOL: what lets it split a wheel is
+# that it cuts (the wheel asks for the `cutting` capability or a bladed
+# construction). ⚠ Not a `Weapon` like the other knives: the `split`
+# view's tool must compose `ToolMixin`, which no weapon does (the drive).
+class: /platform/thing/Tool
+data:
+  shortDescription: cheese knife
+  keywords: [knife, "cheese knife", cheese-knife, blade]
+  register: indefinite
+  longDescription: |
+    A long, thin steel blade with a wooden grip at each end, so the cut goes down through the wheel square and even. It hangs on a peg by the racks.
+  _materialPath: /stuff/idea/material/alloy/steel
+  capabilities: ["cutting"]
+  epoch: medieval
+  mass: 0.3

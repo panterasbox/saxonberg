@@ -1,0 +1,24 @@
+# Drawing a churning (dairy D5) — the churn has broken the cream; what
+# drains off is BUTTERMILK and what stays is the butter, the residue,
+# poured out to a crock as soft stock. The butter's share derives from the
+# cream's own fat.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: churning
+  inputCategory: churned-cream
+  separation: fractions
+  discipline: dairying
+  requiresHeatK: 0
+  productMaterial: ''
+  residueMaterial: /trade/dairying/idea/material/butter
+  residueShare: { nutrients: { fat: 1.15 } }
+  readBlur: 0.02
+  gradeStretch: 0
+  fractions:
+    - key: buttermilk
+      upTo: 0.5
+      material: /trade/dairying/idea/material/buttermilk
+      character: >-
+        Thin and white and flecked with yellow — the buttermilk, running
+        off the grains. When it stops running, what is left is butter.
+      gradeBand: fine

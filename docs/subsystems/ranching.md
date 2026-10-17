@@ -658,3 +658,29 @@ phosphorus and the soil has no such reserve; `bone-meal` carries
 it back at both ends") is intact; the nutrient named was wrong.
 
 Full model: [butchery.md](./butchery.md).
+
+## History — the dairy build (2026-10)
+
+- **`femaleFraction`** is a herd fact: authorable on the `Herdbook`,
+  filed on the `HerdRecord` (optional; a record filed before it reads
+  `DEFAULT_FEMALE_FRACTION` 0.85, the old literal). The ox register authors
+  `0`, the dairy book `0.95`, the calf register `0.5`, the goat book `1`.
+  ⚠ A warm DB keeps its old records (get-or-create).
+- **The draft applies the seeded sex** (`setSex`, in a `try` — a species
+  with no sex system leaves it unrecorded). It never had: `HeadSeed`
+  computed a sex for every head and nothing applied it.
+- **`HeadOverlay.driedOffAt`** — `return` stamps every dried-off `expire`
+  tap (keeping an earlier stamp still inside its rest, so turning a dry
+  cow in twice does not restart her clock); a redraft inside the species'
+  `restDays` calls `dryOff`. Returning and redrafting cannot launder a dry
+  cow. The draft also starts the head's production clock (it used to wait
+  for the first read).
+- **`draft <n> from <herd>` binds** — the help always promised `from` and
+  the view never declared it; it surfaced the day a room held two books.
+  `HerdRegistry.named` also answers to a WORD of a herd's name when exactly
+  one herd has it (*from calves*).
+- ⚠ **Finding, recorded not fixed:** a drafted head's keywords are every
+  one of the species' common names, and its short description the first —
+  so a bull calf reads *"a cow"* and answers to `cow`, `bull` and `calf`
+  alike. Names by sex and life stage want structure the `commonNames` list
+  does not have.

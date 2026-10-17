@@ -360,7 +360,7 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 > has any claim on it.
 >
 > ⚠ **Two consequences the boundary needs and does not yet have** —
-> → [pack-boundary-slate](../slates/builds/pack-boundary-slate.md):
+> → [pack-boundary-slate](../slates/tails/pack-boundary-slate.md):
 > **(a)** a pack must not ship a row naming a **realm-local identity**
 > (it would point at an avatar the receiving database does not have —
 > broken by construction, so a lint rather than a policy, and the same

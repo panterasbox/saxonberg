@@ -1,0 +1,21 @@
+# A jar of rennet (dairy D8) — the extract of a dried vell in brine. A
+# little poured into a working vat of milk turns it to a firm curd. Opens
+# filled (the barm-jar precedent); the `rennet` recipe makes more from a
+# calf's vell.
+#
+# ⚠ A `Vat` only so it can be authored full and pour like the other
+# culture jars; rennet matches no profile, so it idles.
+class: /platform/thing/Vat
+data:
+  shortDescription: jar of rennet
+  keywords: [jar, rennet, "rennet jar"]
+  register: indefinite
+  longDescription: A small corked jar of clear brown liquid, smelling of salt and something animal.
+  category: rennet-jar
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/dairying/idea/material/rennet
+  interiorAmount: 0.5
+  open: true
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 0.5

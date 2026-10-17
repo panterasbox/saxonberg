@@ -1,0 +1,24 @@
+# Vell — the young ruminant's fourth stomach, as a material (dairy D8).
+#
+# Gut-like in spoilage (the gut row's own constants: 50 kJ/mol at a_w
+# 0.99) — it goes off while you are holding it, which is why it is dried.
+# The `vell` tag is what the dairying trade's rennet recipe asks for.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: vell
+  keywords: [vell, stomach]
+  density: 1050
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 2
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 30
+  edibility: true
+  tastes: [sour]
+  spoilActivationEnergy: 50000
+  waterActivity: 0.99
+  nutrients: [protein, water]
+  nutrientAmounts:
+    protein: 15000
+  tags: [food, offal, vell, perishable, once-living, organic, raw]

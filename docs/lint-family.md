@@ -248,7 +248,7 @@ at **339, three below where the build found it.**
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
-  [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
+  [value-object-statics-slate](./slates/tails/value-object-statics-slate.md).
 
   ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
   documented failure class** (*a ratchet with a hole in it*; *gates ship

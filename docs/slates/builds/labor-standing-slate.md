@@ -10,8 +10,8 @@
 > · the contributor set as a **declared fact** · the role × magnitude
 > vocabularies · the renewing obligation + non-redistributive lapse · the
 > six-ledger audit **join**
-> **Size:** ⭐ **two one-line-ish fixes get most of it**; the contributor
-> set is a tail; the join is a build.
+> **Size:** a build (the join) — ⭐ but **two one-line-ish fixes get
+> most of it**, and the contributor set is a tail.
 
 **Captured 2026-10-04.**
 
@@ -398,7 +398,7 @@ of day… but published is a different story."*
   recommendation, and the declared/derived pattern reused here.
 - [committee-slate.md](./committee-slate.md) — who attests, the facade,
   and why the commons never audits a contributor declaration.
-- [contribution-slate.md](./contribution-slate.md) — where the
+- [contribution-slate.md](../tails/contribution-slate.md) — where the
   declaration is made, and why landing is the recording act.
 - [feedback-slate.md](./feedback-slate.md) — the share-never-a-transfer
   property § 7 reuses, and template-as-Subject.

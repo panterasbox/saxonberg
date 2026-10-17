@@ -1,0 +1,18 @@
+# A setting pan — a wide, shallow earthenware pan with a wooden plug in
+# the bottom (dairy D4). Milk stands in it overnight, the cream rises, and
+# pulling the plug (`pour pan into pail`) lets the skim run out from under
+# it and stops at the cream. See `milk-setting.yaml`.
+class: /trade/dairying/thing/SettingPan
+data:
+  shortDescription: setting pan
+  keywords: [pan, setting-pan, "setting pan"]
+  register: indefinite
+  longDescription: >-
+    A wide, shallow pan of brown-glazed earthenware with a wooden plug
+    stopping a hole in the bottom. It is made to hold milk still while the
+    cream comes up.
+  interiorBulk: true
+  interiorCapacity: 10
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 3

@@ -60,6 +60,20 @@ data:
       behaviour: continuous
       windowDays: 0
       capUnits: 4
+    # ⭐ Ewe's milk is a SEASON (dairy D13): a short-day breeder lambs in
+    # late winter, so she milks as the days lengthen past it and is done
+    # by midsummer. `photoperiod` rather than `event` — nobody freshens a
+    # ewe; the orbit does. Her milk is twice the cow's in fat and gives
+    # twice the curd, which the material row says and nothing here does.
+    - key: milk
+      yieldRow: /stuff/idea/material/food/ewe-milk
+      perGameDay: 1.2
+      behaviour: expire
+      windowDays: 0.6
+      yieldShape: volume
+      sex: female
+      restDays: 3
+      window: { kind: photoperiod, daylightFrom: 0.46, daylightTo: 0.62 }
   # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
   #
   # Until the carcass-chain build the game had two `butcher` verbs with two
@@ -92,6 +106,7 @@ data:
   - { cut: /stuff/thing/items/offal,         units: 2, fraction: 0.10 }
   - { cut: /trade/ranching/thing/suet,          units: 1, fraction: 0.04 }
   - { cut: /trade/cooking/thing/gut,           units: 1, fraction: 0.02 }
+  - { cut: /trade/cooking/thing/vell,          units: 1, fraction: 0.004, maxAgeDays: 30 }
   - { cut: /trade/ranching/thing/hide,          units: 1, fraction: 0.08, conditioned: false }
   - { cut: /trade/ranching/thing/bone,          units: 2, fraction: 0.12, conditioned: false }
   longDescription: >-

@@ -359,3 +359,30 @@ The design question lives at
 [activity.md](./activity.md) · [maturation.md](./maturation.md) ·
 [time.md](./time.md) · [textiles.md](./textiles.md) ·
 [crafting.md](./crafting.md) (the sweetener vocabulary)
+
+## The dairy build (2026-10): a tap has a sex and a rest, and the hand is on the milk
+
+- **`TapSpec.sex`** (`'female' | 'male'`) — the tap is the other sex's
+  fact about the species. `planTap` asks it **after `no-such-tap` and
+  before the window** (*is this the animal that gives it* precedes *is it
+  the season*), refusing `wrong-sex` in the host's voice (*"He has nothing
+  to give you — a male does not milk"*); `productionRead` skips a tap the
+  body cannot have. An unrecorded sex is OPEN (the tri-state rule). The cow,
+  ewe and goat milk taps and the hen's eggs author `female`.
+- **`TapSpec.restDays`** — an `expire` tap's dry period before it may come
+  back; read by ranching's draft (see [ranching.md](./ranching.md)).
+- **`dryOff(key)`** — the reconcile's own write, exposed so a drafter can
+  restore a recorded dry period.
+- ⭐ **The milker's hand** (`pourTake` → `stampTheHand`): the slot payload's
+  `maker` is the milker's IDENTITY path (the harm ledger's key), and hands
+  below `HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD` (six game-hours unwashed)
+  put an `e-coli` inoculum of `(1 − cleanliness) × 0.3` into the milk and
+  onto a `Contaminable` pail's surface (the commons pail is a `CraftVessel`
+  now, so `wash pail` clears it). Hygiene's own deferred producer; no
+  sense reports it.
+- ⚠ **Found by the dairy drive:** a drafted head's production clock
+  started at its first READ, so a cow drafted and left for hours before
+  anybody looked at her had nothing in her. The draft now starts it.
+- ⚠ **Found by the drive too:** the `UnboundedReceptacle` row `pourTake`
+  pours through had no interior, so every volume take kept nothing (*"it
+  all goes on the floor"*) — see [bulk.md](./bulk.md).

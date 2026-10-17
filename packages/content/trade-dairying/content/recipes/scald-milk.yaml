@@ -1,0 +1,25 @@
+# Scalded milk (dairy D7) — milk taken to just short of the boil in a pot
+# and held there a few minutes. What a yoghurt maker does first: it kills
+# what was in the milk and changes the protein so the yoghurt sets thick.
+# ⚠ Past the boil it scorches — `maxHeatK`.
+recipeId: scald-milk
+name: Scalded milk
+keywords:
+- scald-milk
+- scalded-milk
+inputSlots:
+- slot: milk
+  category: milk
+  minGrade: poor
+  measureL: 1
+toolCapabilities:
+- pot
+outputTemplate: /trade/dairying/thing/jug
+outputAppearance: hot milk with a skin on it
+outputApplication: bulk
+outputMaterial: /trade/dairying/idea/material/scalded-milk
+requiresHeatK: 358
+holdS: 300
+maxHeatK: 373
+difficulty: easy
+discipline: dairying
