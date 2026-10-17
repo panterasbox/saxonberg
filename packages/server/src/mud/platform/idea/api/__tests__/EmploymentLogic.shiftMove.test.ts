@@ -229,6 +229,35 @@ describe('cover, on demand', () => {
     expect(dave.getEmployment(BUSINESS)?.status).not.toBe('on-shift');
   });
 
+  it('⭐⭐ a proprietor who holds a roster seat is never "stood down" — their shift is not a cover (storage-and-ice drive)', async () => {
+    const { business, rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    // Dave keeps the book on a seat of his own; Mara tends the bar.
+    business.positions = [
+      ...business.positions,
+      { key: 'keeper', label: 'keeping the book', wageRate: 4, fulfills: ['appraisal'] },
+    ];
+    business.rosterSlots = [
+      ...business.rosterSlots,
+      { positionKey: 'keeper', assignee: DAVE, schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 20] }] },
+    ];
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    const dave = makeStuffAtPath(() => new Worker(), DAVE);
+    ContainmentApi.move(mara as never, rooms.get(BAR) as never);
+    ContainmentApi.move(dave as never, rooms.get(BAR) as never);
+
+    atClock(2, 10); // both windows open
+    EmploymentApi.tickRoster();
+    await settle();
+    EmploymentApi.tickRoster();
+    await settle();
+
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('on-shift');
+    // ⚠ Before the fix the second pass saw Mara on shift and Dave "covering",
+    // and `endCover` deleted Dave's employment outright.
+    expect(dave.getEmployment(BUSINESS)?.positionKey).toBe('keeper');
+    expect(dave.getEmployment(BUSINESS)?.status).toBe('on-shift');
+  });
+
   it('⚠ a house with no fulfilling seat is never covered — there is nothing to cover', async () => {
     const { business, rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
     business.positions = [

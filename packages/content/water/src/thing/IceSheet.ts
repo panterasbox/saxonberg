@@ -118,8 +118,9 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
   /** The ice of one patch, now — `null` when the reach is not resolved. */
   public iceOf(patch: PatchRecord): IceRecord | null {
     const cat = this.catalogue();
-    if (cat === null || this.reachRef === null) return null;
-    return cat.iceAtSync(this.reachRef, nowS(), historyOf(patch));
+    const ref = this.bindReach();
+    if (cat === null || ref === null) return null;
+    return cat.iceAtSync(ref, nowS(), historyOf(patch));
   }
 
   /** A patch by the word a player uses for it. */
@@ -149,7 +150,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** ⭐ Some patch still bears the load (and is not rotten). */
   public override bears(loadKg: number): boolean {
-    if (this.reachRef === null) return super.bears(loadKg);
+    if (this.bindReach() === null) return super.bears(loadKg);
     for (const p of this.ensureLog()) {
       if (!(p.areaM2 > 0)) continue;
       const ice = this.iceOf(p);
@@ -161,7 +162,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** Open water in the sheet: every patch that reads no ice (cuts, holes, a thawed field). */
   public override openWaterAreaM2(): number {
-    if (this.reachRef === null) return super.openWaterAreaM2();
+    if (this.bindReach() === null) return super.openWaterAreaM2();
     let open = 0;
     for (const p of this.ensureLog()) {
       const ice = this.iceOf(p);
@@ -176,7 +177,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    * in the log. A deliberate entry (`swim` at a hole) breaks nothing.
    */
   public override giveWay(occupant: Stuff, deliberate = false): boolean {
-    if (!deliberate && this.reachRef !== null) {
+    if (!deliberate && this.bindReach() !== null) {
       const load = this.supportLoadKgOf(occupant);
       const failed = this.ensureLog()
         .filter((p) => p.areaM2 >= this.patchFootprintM2)
@@ -206,7 +207,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    * that address them.
    */
   public override groundPhrase(): string | null {
-    if (this.reachRef === null) return super.groundPhrase();
+    if (this.bindReach() === null) return super.groundPhrase();
     const log = this.ensureLog();
     const field = log.find((p) => p.kind === 'field');
     const fieldIce = field ? this.iceOf(field) : null;
@@ -232,7 +233,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** Snow lies on ice whatever the grade (the sheet is not on grade). */
   public override getSnowDepthM(): number {
-    if (this.reachRef === null || !WeatherApi.isActive()) return 0;
+    if (this.bindReach() === null || !WeatherApi.isActive()) return 0;
     const room = this.room();
     if (room === null) return 0;
     const site = (room as unknown as { climateSite?(): unknown }).climateSite?.();
@@ -386,18 +387,12 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     const room = this.room();
     if (room === null) return;
     this.poolKey = room.getTemplatePath() ?? room.stuffId;
-    if (MixinApi.isShore(room)) {
-      try {
-        const pick = await room.waterRefFor();
-        if ('ref' in pick) this.reachRef = pick.ref;
-      } catch {
-        this.reachRef = null;
-      }
-    }
+    this.bindReach();
     const cat = this.catalogue();
-    if (cat !== null && this.reachRef !== null) {
+    const ref = this.bindReach();
+    if (cat !== null && ref !== null) {
       try {
-        await cat.iceAt(this.reachRef, nowS());
+        await cat.iceAt(ref, nowS());
       } catch {
         /* the sync read falls back to the plain surface */
       }
@@ -416,6 +411,30 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   private room(): Stuff | null {
     return (this as unknown as { getAdornedTo?(): Stuff | null }).getAdornedTo?.() ?? null;
+  }
+
+  /**
+   * ⭐ The reach this sheet is the ice of — bound from the pool's CITATION,
+   * synchronously, the first time anything asks. ⚠ Not from the settled
+   * read (`waterRefFor`): at boot the fixture attaches before the water has
+   * been read, the read refused as *unread*, and the sheet ran reachless
+   * for the life of the world — every walker went through ice that the
+   * reach itself said would bear them (the drive, run 3). A still water's
+   * ref is its citation (`currentWaterRef`), so no read is needed; the
+   * catalogue is warmed alongside so the sync ice read answers.
+   */
+  private bindReach(): string | null {
+    if (this.reachRef !== null) return this.reachRef;
+    const room = this.room();
+    if (room === null || !MixinApi.isShore(room)) return null;
+    const pick = room.waterFor();
+    if (!('key' in pick)) return null;
+    const cat = this.catalogue();
+    const ref = cat !== null ? cat.currentWaterRef(pick.citation, room) : pick.citation;
+    if (!ref) return null;
+    this.reachRef = ref;
+    if (cat !== null) void cat.iceAt(ref, nowS()).catch(() => undefined);
+    return ref;
   }
 
   private catalogue(): WatercourseCatalogue | null {
@@ -474,7 +493,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    * the ice floats or sinks.
    */
   private reconcileThaw(): void {
-    if (this.thawing || this.reachRef === null) return;
+    if (this.thawing || this.bindReach() === null) return;
     const field = this.ensureLog().find((p) => p.kind === 'field');
     if (!field) return;
     const ice = this.iceOf(field);

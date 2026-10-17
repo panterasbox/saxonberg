@@ -201,8 +201,14 @@ async function cloneHere(where: string, path: string): Promise<void> {
 }
 
 async function nextDays(n: number): Promise<void> {
-  const { before, after } = await advanceWorldClock(`${n} days`);
-  expect(after - before, `the clock did not move ${n} days`).toBeGreaterThan(DAY * n * 0.9);
+  // ⚠ In chunks: a 287-day jump on a loaded box outran the fetch's
+  // headers timeout (300 s) while the server was still walking the year.
+  const start = await worldClockNow();
+  for (let left = n; left > 0; left -= 60) {
+    await advanceWorldClock(`${Math.min(60, left)} days`);
+  }
+  const moved = (await worldClockNow()) - start;
+  expect(moved, `the clock did not move ${n} days`).toBeGreaterThan(DAY * n * 0.9);
   await new Promise((r) => setTimeout(r, 500));
 }
 

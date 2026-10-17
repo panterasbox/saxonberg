@@ -1071,6 +1071,13 @@ async function reconcileCover(
   if (!proprietorKey) return;
   const proprietor = StuffApi.findByTemplatePath(proprietorKey);
   if (!proprietor || !MixinApi.isEmployed(proprietor)) return;
+  // ⭐ A proprietor who holds a seat on this house's OWN roster is the
+  // roster's: their employment is a shift, not a cover, and standing a
+  // "cover" down deletes the house's employment outright (`endCover`). The
+  // storage-and-ice drive found it — the ice company's keeper is also its
+  // proprietor, and every pass that found the house hand on shift erased
+  // her, so nobody was ever keeping the book.
+  if (business.getRoster().getAssignments().some((a) => a.assignee === proprietorKey)) return;
 
   let rosteredOnShift = false;
   for (const assignment of business.getRoster().getAssignments()) {

@@ -16,5 +16,13 @@ data:
       media: [ground, water]
       edgeMinutes: 6
       conditional: true
+  # ⚠ A cited water must be a FEATURE of the place — a `waters:` key with
+  # no `details:` entry is cited by nothing (the drive, run 3: the pool's
+  # sheet never bound its reach and `fish` found no water).
+  details:
+    mere:
+      keywords: [mere, water]
+      description: |
+        The mere, from its reedy side: the icehouses dark across it.
   waters:
     mere: hollowmere:mere

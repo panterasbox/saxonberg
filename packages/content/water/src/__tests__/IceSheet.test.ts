@@ -259,3 +259,19 @@ describe('the thaw', () => {
     expect(sheet.supports(w as unknown as Stuff)).toBe(false);
   });
 });
+
+describe('⭐ the sheet binds its reach from the pool it floors', () => {
+  it('reads the pool\'s citation itself — no settled read, no hand-set ref (the drive, run 3)', async () => {
+    const pool = makeStuff(() => new Pool());
+    pool.setWaters({ mere: REF });
+    // A cited water is a FEATURE of the place (the shore's own rule).
+    (pool as unknown as { details: Map<string, unknown> }).details = new Map([['mere', { keywords: ['mere'] }]]);
+    const sheet = makeStuff(() => new IceSheet());
+    sheet.areaM2 = 4000;
+    pool.addFixture(sheet as never, 'floor');
+    await cat.iceAt(REF, now);
+    // T0's ice bears a person; a reachless sheet would read as bare water.
+    expect(sheet.bears(80)).toBe(true);
+    expect(sheet.iceOf(sheet.patchByWord('field')!)).not.toBeNull();
+  });
+});

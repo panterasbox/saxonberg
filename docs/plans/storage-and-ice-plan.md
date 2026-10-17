@@ -2475,3 +2475,39 @@ clock; a clock jump of 280 days outran the 300 s default):
    stand on broken ice, refused to walk out of the water, swam to shore,
    soaked; the counter's price rose from 6 to 9 over the summer (days of
    supply); the estuary swim wets you; the crossroads road links.
+
+**Run 2 — 10/22.** With the seed laid down: the large house lost a twelfth
+of its ice over the summer (18.4 t of 20 t left), the small house two-thirds
+(649 kg of 2 000 kg) with its packing *sodden*; the house read colder than
+the shed; a second character took a block off the stack; the counter
+brought a block up and sold it; in summer neither the crew nor the boss
+stood on the ice. Found:
+
+1. **The keeper's shift lagged the clock** — off at noon, on at midnight,
+   because a shift flips on the roster pass and a quiet stretch has none.
+   `deposit` / `withdraw` now bring the house current
+   (`EmploymentApi.ensureOperatorAt`) before asking who keeps the book —
+   the counter's own rule before a sale.
+2. ⭐ **`put` crashed on a merge.** A sawdust heap put on a stack that
+   already holds sawdust merges into the face and is destroyed; the scene
+   rendered a late-bound reference to it. PutController now names the
+   item before the move, as GetController already did (the assembly
+   drive's pegs found it there).
+3. `IceActController` — an abstract base — sat in `idea/cmd/` and the boot
+   reported it as dead pack code; it is the pack's `lib/` now.
+4. Drive-side: the founder may not `clone` fishing tackle (the rod is
+   bought); the sheet bears 92 kg on day 2 and the cutter carries 93 kg,
+   so the walk-out is day 3 — **physics, not a defect**; a crossing longer
+   than a minute is engaged and arrives after the command returns.
+5. ⭐ **Decision — the plough's horse rung is not driven.** No horse stands
+   at the mere; the plough (60 kg) cannot be lifted by a person, which is
+   the checkpoint the drive asserts; the refusal of a plough with no draft
+   animal on the ice is `ice-trade.test.ts`.
+6. ⭐⭐ **Decision — the late-summer price.** The counter prices on the
+   store's days of supply against `retail.stockingHorizonDays` (120). A
+   house still nine-tenths full with no town drawing on it has years of
+   supply, so its price stays at base (6) through the summer — and run 1,
+   whose store had emptied, priced 9. The rule is right; the AC's *"dearer
+   in late summer"* holds for a house that is running down. The drive
+   asserts never-cheaper and logs both. **For the user's eye**: whether
+   the horizon should instead be *days until the next harvest*.
