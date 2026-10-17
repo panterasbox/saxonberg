@@ -2540,3 +2540,54 @@ probes removed):
    lifted it) — not a checkpoint; the drive no longer asserts it.
 4. A 287-day clock jump outran the fetch's 300 s headers timeout on the
    loaded box; the drive jumps in 60-day chunks.
+
+**Run 4 — 12/22.** The ice half now holds: the day-0 break-through, the
+day-3 walk-out and crossing, `measure ice` *"6.5 cm ± 0.5 cm of clear black
+ice"* on day 3 and 15 cm on day 11, scrape, mark, cut, the sawdust, the
+deposit (*"You leave a block of ice in the store's keeping. The book
+records 5.8 kg to your name — an allowance of 10% for shrinkage, and 1 a
+kilogram to take it out."*), the stacks, the shed, the theft, the sale,
+the withdrawal and the night refusal (*"Nobody is keeping the book just
+now."*). Found:
+
+1. **Every ice block described itself as "a four-kilo block, clouded
+   white"** — the row's prose. `IceBlock.getLong()` now says its grade and
+   heft in words (no number, `look`'s rule).
+2. **The winter crew stood in the mere all summer** — in the water once it
+   opened — because the house had no `offstage`. The company's shed is its
+   offstage now (W9's "no offstage" was about an unreachable room; the shed
+   is reachable and operated).
+3. **Four traversal guards reported as `exit-mode`** — `encumbrance`,
+   `locked`, `unbuilt`, `unpublished` fell to the gate mapper's default.
+   The note vocabulary carries their own word now (types + the mapper).
+4. **`swim north` at a bank with no north** said *"There is no open water
+   here to swim in"* (the bare-swim branch caught a typed way that bound
+   nothing); a typed way is now the crossing, refused as *"You can't swim
+   that way."*
+5. Drive-side, each a checkpoint that did not own its state: fishing the
+   solid field must be asked before any cut (a cut channel IS open water —
+   fishing there correctly works); `mark` grids the scraped patch, so a
+   second scrape follows the cut for the day-11 reading; the patches are
+   read off `look ground`, not `look`; the receipt is the BOOK's record,
+   not a carried paper.
+
+**Run 5 — 18/22.** Every checkpoint through the deposit and the sawdust
+passes; so do the stacks, the shed, the theft, the sale, the withdrawal,
+the night refusal and the block's own words (*"A block of ice, clear and
+black right through…"*). Found:
+
+1. ⭐ **The newly-mapped gate spoke at once**: *"You're carrying too much
+   to swim."* — the summer cutter holds the tools, a gauging rod and the
+   blocks they bought and withdrew. It had read as `exit-mode` for three
+   runs. The drive puts its gear down before each summer swim (a swimmer
+   swims light) and asserts the refusal where it happens.
+2. ⭐⭐ **Decision — the scrape's advantage is not driven at Hollow Mere.**
+   The venue's sky is pinned clear so its timeline repeats (no person on
+   day 0, a person on day 3), and with no snow on the field a scraping has
+   nothing to clear: both read 16.2 cm of black ice. A `snow` pin bears a
+   person on day 0 and re-covers a scraping at once (it is bare *until the
+   next snow*); an unpinned sky (deterministic: the seed is the Locality's
+   address) puts the walk-out past day 8 and the advantage inside the
+   spud's bracket. The advantage under snow is `IceSheet.test.ts`'s; the
+   drive asserts the scraped patch is black and never thinner. **For the
+   user's eye**: a venue whose sky varies is where scraping becomes a skill.

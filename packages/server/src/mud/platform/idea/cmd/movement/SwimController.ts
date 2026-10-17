@@ -23,7 +23,11 @@ export default class SwimController extends LocomotionControllerBase {
    * target it is the shipped crossing.
    */
   override async execute(model: LocomotionModel & CommandModel, context: CommandContext): Promise<void> {
-    if (model.target && model.target.stuff !== null) return super.execute(model, context);
+    // A way that was TYPED is the crossing even when it names no exit —
+    // `swim north` at a bank with no north said "no open water here"
+    // (the storage-and-ice drive); the crossing's refusal names the way.
+    const typed = (model.target as { raw?: string } | null | undefined)?.raw?.trim() ?? '';
+    if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() as Stuff | null;

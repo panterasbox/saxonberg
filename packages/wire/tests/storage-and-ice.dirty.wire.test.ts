@@ -151,6 +151,18 @@ async function arrive(re: RegExp, budgetMs = 180_000): Promise<string> {
   return at;
 }
 
+/**
+ * ⭐ A swimmer swims LIGHT: put down everything the drive has picked up
+ * (run 5: *"You're carrying too much to swim."* — the encumbrance gate,
+ * honestly). Each word is tried; what is not carried is simply not there.
+ */
+async function lighten(): Promise<void> {
+  for (const w of ['saw', 'marker', 'scraper', 'block', 'block', 'block', 'rod', 'rod', 'worm', 'glowcap']) {
+    if (new RegExp(w, 'i').test(await carried())) await k.cmd(`drop ${w}`);
+  }
+  await k.drainProse();
+}
+
 /** What is in reach, by display name. */
 async function inReach(s: Session = k): Promise<string> {
   const rows = await s.query('reachable', { fields: 'detail' });
@@ -459,7 +471,13 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(scraped, scraped).toMatch(/black/i);
     const cm = (s: string): number => Number(/(\d+(?:\.\d+)?)\s*cm/.exec(s)?.[1] ?? NaN);
     expect(Number.isFinite(cm(field)) && Number.isFinite(cm(scraped)), `${field} | ${scraped}`).toBe(true);
-    expect(cm(scraped)).toBeGreaterThan(cm(field));
+    // ⚠ Run 5: Hollow Mere's sky is PINNED clear (the timeline must
+    // repeat: no person on day 0, a person on day 3), so no snow lies on
+    // the field and a scraping has nothing to clear — scraped and field
+    // read the same black ice. The advantage under snow is the unit's
+    // (`IceSheet.test.ts`: a scraped patch grows thicker and black under
+    // snow). Here: the scraped patch is black and never thinner.
+    expect(cm(scraped)).toBeGreaterThanOrEqual(cm(field));
     // Leave an iron tool on the field for the thaw (drive 12).
     await say('drop spud');
     expectOk(await k.cmd('south'));
@@ -469,13 +487,14 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     await goto(SHORE);
     await nextDays(280);
     await goto(SHORE);
+    await lighten();
     const water = await k.prose('analyze water');
     console.info(`  analyze water (day 290): ${water.replace(/\n/g, ' | ').slice(0, 300)}`);
     const into = await k.cmd('swim north');
     expect(refusal(into), JSON.stringify(into.notes)).toBeNull();
     expect(await here()).toMatch(/Hollow Mere/i);
-    const look = await k.prose('look');
-    console.info(`  look (pool, summer): ${look.replace(/\n/g, ' | ').slice(0, 400)}`);
+    const look = await k.prose('look ground');
+    console.info(`  look ground (pool, summer): ${look.replace(/\n/g, ' | ').slice(0, 400)}`);
     expect(look, look).toMatch(/open water/i);
     expect(look, look).not.toMatch(/cut channel|scraped|marked grid/i);
     const reach = await inReach();
@@ -552,6 +571,16 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
 
   it('⭐ 16. the ice company\'s seasonal seats: in summer the crew and the boss are not on the ice', async () => {
     await goto(SHORE);
+    // ⭐ Laden with the summer's purchases, the water refuses you in words.
+    const laden = await k.cmd('swim north');
+    console.info(`  swim north, laden (16): ${refusal(laden)} — ${(await laden.said()).replace(/\n/g, ' | ').slice(0, 300)}`);
+    if (refusal(laden) !== null) {
+      expect(refusal(laden)).toBe('gate:encumbrance');
+      await lighten();
+    } else {
+      expectOk(await k.cmd('swim south'));
+      await lighten();
+    }
     const into = await k.cmd('swim north');
     console.info(`  swim north (16): ${refusal(into)} — ${(await into.said()).replace(/\n/g, ' | ').slice(0, 300)}`);
     expect(refusal(into), JSON.stringify(into.notes)).toBeNull();
@@ -595,6 +624,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
 
   it('⭐ 20. the estuary pool in summer: you come out wet', async () => {
     await goto(ESTUARY_STRAND);
+    await lighten();
     expectOk(await k.cmd('swim east'));
     expectOk(await k.cmd('swim west'));
     const me = await examine('me');
