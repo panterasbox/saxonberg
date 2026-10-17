@@ -5,14 +5,14 @@
 > that practises, hygiene + sepsis, the mend spell, labour-priced care, and
 > scars + re-injury. Durable behaviour is in
 > [harm.md](../../subsystems/harm.md) / [vitals.md](../../subsystems/vitals.md).
-> **Left:** the deferred lens-tails, each now its own slate — prosthetics → [augmentation-slate](../tails/augmentation-slate.md) · the absent body → [absent-body-slate](../tails/absent-body-slate.md) · surgery + blood (transfusion / donation) → the [clinical-medicine-slate](./clinical-medicine-slate.md) umbrella (which pulls in [blood-slate](./blood-slate.md) for the deep blood economy).
+> **Left:** the deferred lens-tails, each now its own slate — prosthetics → [augmentation-slate](../tails/augmentation-slate.md) · the absent body → [absent-body-slate](../tails/absent-body-slate.md) · surgery + blood (transfusion / donation) → the [clinical-medicine-slate](../tails/clinical-medicine-slate.md) umbrella (which pulls in [blood-slate](../tails/blood-slate.md) for the deep blood economy).
 > **Size:** a build — the remainder (surgery + blood, one build) plus small tails.
 
 ⭐ **The next build is surgery + blood** (user direction, 2026-09-24),
-scoped as the [clinical-medicine-slate](./clinical-medicine-slate.md) umbrella:
+scoped as the [clinical-medicine-slate](../tails/clinical-medicine-slate.md) umbrella:
 concrete operations (not the theatre-as-a-concept) + blood donation /
 transfusion + the nurse/doctor profession split, pulling in
-[blood-slate](./blood-slate.md) for the deferred deep blood economy. ⚠ The
+[blood-slate](../tails/blood-slate.md) for the deferred deep blood economy. ⚠ The
 recovery build deliberately left `PLASMA_RESTORE_CEILING_FRAC` at **0.85**
 (rest restores lost blood only part-way) so transfusion keeps its reason to
 exist — that ceiling is blood-slate's premise; do NOT raise it.
@@ -305,7 +305,7 @@ Physiology's proof, made concrete and lens-maxed:
 - Boundary owners: [medic-judgment-slate](./medic-judgment-slate.md),
   [health-vertical-slate](./health-vertical-slate.md),
   [pharma-slate](./pharma-slate.md),
-  [blood-slate](./blood-slate.md),
+  [blood-slate](../tails/blood-slate.md),
   [disease-slate](./disease-slate.md)
 - Consumed seams: [bathroom-slate](./bathroom-slate.md) (washing state),
   [metabolism-slate](../tails/metabolism-slate.md) (`restQuality`, protein→healing,

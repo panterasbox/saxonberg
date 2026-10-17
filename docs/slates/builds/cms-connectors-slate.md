@@ -189,7 +189,7 @@ editing.
 
 > ⭐⭐⭐ **So resist building a great EDITOR in the CMS; build a great
 > BROWSER-AND-STARTER.** Which is the same conclusion
-> [contribution-slate § 7](./contribution-slate.md) reaches from the other
+> [contribution-slate § 7](../tails/contribution-slate.md) reaches from the other
 > side: *the on-ramp's success criterion is that **leaving is possible**,
 > not that staying is sufficient.*
 
@@ -216,7 +216,7 @@ genuinely absent in-engine and arguably should be.
 
 > ⭐⭐⭐ **The real gap list is two items, both already slated:**
 > **validation** ([authoring-intelligence-slate](./authoring-intelligence-slate.md))
-> and **export** ([contribution-slate § 3](./contribution-slate.md)).
+> and **export** ([contribution-slate § 3](../tails/contribution-slate.md)).
 
 ### ⭐⭐ One property worth keeping
 

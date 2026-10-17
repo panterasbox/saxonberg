@@ -2,9 +2,9 @@
 
 > **Status: PARTIAL** — the chain shipped 2026-09-03 (MR !236) →
 > [textiles.md](../../subsystems/textiles.md)
-> **Left:** leatherwork + tanning (blocked on a hide faucet) · wool and
-> its left edge — felting, fulling, knitting, scouring (blocked on
-> ranching) · cotton and silk · synthetics, mills, mass production ·
+> **Left:** leather into the covering ladder (tanning ships —
+> `trade-tanning`, `tan`) · wool and its left edge — felting, fulling,
+> knitting, scouring (unblocked: `shear` ships with ranching) · cotton and silk · synthetics, mills, mass production ·
 > patterned weaving · piece bleaching · player-designable patterns as
 > artifacts · livery · the maker's authored garment prose (the
 > customization product) · magic garments (a garment as an item host;
@@ -561,7 +561,7 @@ is the one kernel addition. Its first consumers: the sustained `run`
 
 **The cordwainer** is leather's biggest customer — the *fourth* trade
 downstream of the knacker after tanner, chandler and glue
-([rendering-slate](./rendering-slate.md)), and the reason *"leather is a
+([rendering-slate](../tails/rendering-slate.md)), and the reason *"leather is a
 sink with no source"* matters: shoes are where most of a hide goes.
 Same blocker as leatherwork above; same pack question (rendering's
 § 6, one pack or three — now one or four).

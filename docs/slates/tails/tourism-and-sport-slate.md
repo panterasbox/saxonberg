@@ -13,7 +13,7 @@
 > exercises it.
 
 Designed 2026-10-09 out of the water-trade audit
-([navigable-water-slate](./navigable-water-slate.md) § 5c, *tourism and
+([navigable-water-slate](../builds/navigable-water-slate.md) § 5c, *tourism and
 watersports*). ⚠ Opened with the wrong question — *what is sport* — and
 the owner's correction is the frame:
 
@@ -150,7 +150,7 @@ trending list, no *popular this week*, no engagement ranking. Discovery
 is **diegetic and authored by a person**:
 
 - ⭐ **the guidebook** — a document somebody wrote, and ⭐⭐ **the same
-  object as the fallible chart** ([navigable-water-slate](./navigable-water-slate.md)
+  object as the fallible chart** ([navigable-water-slate](../builds/navigable-water-slate.md)
   § 3b): out of date, wrong, or paid for, with nothing correcting it.
   **A guidebook that is wrong is content.**
 - **the guide, or the tout** — pilotage for tourists; local knowledge
@@ -298,7 +298,7 @@ says *"work produces goods and a body; a gym produces only the body."*
   there — and a university is exactly where rules get **written down.**
 - **Watersports** is where the halves meet: rowing, swimming, sailing,
   diving. ⭐ **A regatta is a navigation contest**, so it rides
-  [navigable-water-slate](./navigable-water-slate.md) § 3b directly.
+  [navigable-water-slate](../builds/navigable-water-slate.md) § 3b directly.
 
 ### ⭐⭐ And the governance reading, which is not decoration
 
@@ -339,7 +339,7 @@ A resort is a place whose product is **being somewhere else**: staffed by
 regulars, visited by first-contact traffic, with sport as the activity,
 a season, a lodge, and a cycle (§ 4). ⭐⭐ **And skiing is the content that
 consumes the entire cold stack at once** —
-[climate-slate](./climate-slate.md)'s latitude and lapse rate, snow depth,
+[climate-slate](../builds/climate-slate.md)'s latitude and lapse rate, snow depth,
 the ground-condition locomotion axis, avalanche off the watershed's
 `snowpackMm`, thermal, textiles' `clo`, the lodge as a warming house, and
 this slate's tourism. **It is the integration test for the whole winter
@@ -376,9 +376,9 @@ consumer between them.
   § *The counter is the description*
 - [settlement-model.md](../../settlement-model.md) — the specialization
   gradient, the sixteen needs, zoning by density
-- [navigable-water-slate](./navigable-water-slate.md) § 3b (the fallible
+- [navigable-water-slate](../builds/navigable-water-slate.md) § 3b (the fallible
   chart, the regatta) · § 5c (where this was raised)
-- [climate-slate](./climate-slate.md) — the cold stack skiing consumes
+- [climate-slate](../builds/climate-slate.md) — the cold stack skiing consumes
 - [vocations.md](../../vocations.md) · [renown.md](../../subsystems/renown.md)
   · [provenance.md](../../subsystems/provenance.md) ·
   [employment.md](../../subsystems/employment.md) ·

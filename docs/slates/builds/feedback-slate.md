@@ -11,7 +11,7 @@
 > narrowing `CreditRouting` from the zone to the path · the
 > contributor-set weight vector · the committee's composition, cadence
 > and decay (all values questions, § 10)
-> **Size:** **two builds.** The fixed axis + the Subject promotion is
+> **Size:** a build, twice. The fixed axis + the Subject promotion is
 > one; the committee/allocation half is the other and belongs with
 > [scarcity-slate](./scarcity-slate.md)'s meter.
 

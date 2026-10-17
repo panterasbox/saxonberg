@@ -347,5 +347,5 @@ which is the only grain at which the unevenness finding is actionable.**
   the Discipline. This closes its § 10.1 and § 10.2.
 - [slates/builds/wizardry-curriculum-slate.md](./slates/builds/wizardry-curriculum-slate.md)
   — the teaching. § 2 here is its progress instrument.
-- [slates/builds/object-taxonomy-slate.md](./slates/builds/object-taxonomy-slate.md)
+- [slates/builds/object-taxonomy-slate.md](./slates/tails/object-taxonomy-slate.md)
   — `composition` and `taxonomy`'s instruments.

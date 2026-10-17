@@ -9,7 +9,7 @@
 > overnight digest + the decaying pyramid · mode slots on the automaton ·
 > the frame filter predicate · ⭐ **the minimum experiment (§ 12)**
 > **Size:** ⭐ **the experiment is a tail. The feature is a build**, and
-> its economics are [llm-economy-slate](./llm-economy-slate.md)'s.
+> its economics are [llm-economy-slate](../builds/llm-economy-slate.md)'s.
 
 **Captured 2026-10-04.** The player's own agent: *"an 'automata' that
 experiences everything the player experiences… the player can consult
@@ -94,7 +94,7 @@ it a prosthesis instead of a replacement** (§ 5).
 
 ## 3. The context — and the brain/automata split
 
-| | **the brain** ([llm-content](./llm-content-slate.md)) | **the automata** |
+| | **the brain** ([llm-content](../builds/llm-content-slate.md)) | **the automata** |
 |---|---|---|
 | whose perception | the NPC's | **yours** |
 | ⭐⭐⭐ what it emits | **actions on the bus** | **language to one person** |
@@ -461,7 +461,7 @@ reads almost everything at 0.1×.
 against a stock cannot bound a flow. Coin rations *within* it and makes a
 consult a real choice; slots and fade-rate are what coin buys. Full
 mechanism, caps and breakers:
-[llm-economy-slate](./llm-economy-slate.md).
+[llm-economy-slate](../builds/llm-economy-slate.md).
 
 ⭐ Two gates, each doing what the other cannot: **the entitlement bounds
 the person; the price makes it a choice.**
@@ -486,7 +486,7 @@ the person; the price makes it a choice.**
 
 ## 12. ⭐⭐⭐ The minimum experiment
 
-Everything in [llm-economy-slate](./llm-economy-slate.md) gates the
+Everything in [llm-economy-slate](../builds/llm-economy-slate.md) gates the
 **feature**. It does not gate the **experiment** — `llm-content` set that
 precedent deliberately: *one NPC, operator-funded, no metering, no budget
 system.*
@@ -506,9 +506,9 @@ It answers the four things discussion cannot:
 
 ## Cross-refs
 
-- [llm-economy-slate.md](./llm-economy-slate.md) — the allowance, quota,
+- [llm-economy-slate.md](../builds/llm-economy-slate.md) — the allowance, quota,
   caps, breakers, and the three budget lines.
-- [llm-content-slate.md](./llm-content-slate.md) — the brain: the
+- [llm-content-slate.md](../builds/llm-content-slate.md) — the brain: the
   director, the four axes, the parity floor, graceful narrowing.
 - [record-layer.md](../../subsystems/record-layer.md) +
   `schema/player_frames.yaml` — the memory, and the seam that makes the

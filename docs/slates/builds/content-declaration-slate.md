@@ -11,7 +11,8 @@
 > aether-carrier ladder · ⭐ the **network schedule as a takeable prop**
 > (§6.3 — the one squarely buildable item here) · night as a **shift
 > change** rather than a description (§1) · the solvability check
-> **Size:** several builds; the covenant row is the smallest useful one
+> **Size:** a build, several times over; the covenant row is the
+> smallest useful one
 
 **Captured 2026-10-01**, out of a long reading of the EotL corpus
 ([eotl-craft.md](../../eotl-craft.md),

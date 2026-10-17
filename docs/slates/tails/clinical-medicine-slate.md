@@ -1,6 +1,7 @@
 # Clinical medicine — blood, the operating table, and the two hands of care
 
-> **Status: SHIPPED — clinical-medicine build, MR !290 (2026-09).** All
+> **Status: PARTIAL** — ✅ shipped as the clinical-medicine build, MR !290
+> (2026-09); what remains is the retirement. All
 > three legs landed: the **blood loop** (type/draw/store/transfuse + the
 > `marrow` reserve → [blood.md](../../subsystems/blood.md)), the **operation
 > catalogue** over a durative `operate` + the foreign-body wound
@@ -8,17 +9,20 @@
 > profession split + the nurse seat; plus `prescribe`→`administer`, a
 > personal `calendar` ([calendar.md](../../subsystems/calendar.md)), and the
 > autarky supply (physic garden → simples → `steep`).
-> **Left (deferred to child slates):** the blood-BANK economy →
-> [blood-slate](./blood-slate.md); cold storage →
-> [cold-chain-slate](./cold-chain-slate.md); the full surgery build →
-> [surgery-specialty-slate](./surgery-specialty-slate.md); the diagnostic
-> **labs** vertical → [sampling-and-labs-slate](./sampling-and-labs-slate.md);
-> pharma-as-a-process → [pharma-slate](./pharma-slate.md); the full calendar
-> → [personal-calendar-slate](./personal-calendar-slate.md). Still this
-> slate's own to steward: **veterinary** (a `health` Discipline branch, not a
-> trade), the **study.com/NGN pedagogy anchor**, and the **SBAR handoff /
-> deteriorating-patient scenario** layer.
-> **Size:** shipped a build; the residual threads above are each their own.
+> **Left:** only this slate's retirement — every residual thread now has
+> another home: the blood-bank economy → [blood-slate](./blood-slate.md)
+> (itself mostly shipped); cold storage →
+> [cold-chain-slate](../builds/cold-chain-slate.md); surgery →
+> [surgery-specialty-slate](../builds/surgery-specialty-slate.md); labs →
+> [sampling-and-labs-slate](../builds/sampling-and-labs-slate.md); pharma →
+> [pharma-slate](../builds/pharma-slate.md); the calendar →
+> [personal-calendar-slate](../builds/personal-calendar-slate.md); **veterinary** →
+> [health-vertical-slate](../builds/health-vertical-slate.md); the **NGN anchor**
+> and the **SBAR / deteriorating patient** →
+> [medic-judgment-slate](../builds/medic-judgment-slate.md). Salvage § Open
+> questions and § Adjacent verticals into their homes, repoint the three
+> inbound links, then delete.
+> **Size:** a tail — the retirement.
 
 The recovery build made a body that heals and a clinic that treats. It left
 two holes it deliberately did not fill: a **rupture bleeds you out with only
@@ -82,7 +86,7 @@ Three claims that make this one build, not three:
   cost curve, screening, gift-credits, the blood-bank shortage economy). This
   umbrella takes the **combat/clinical core** from it and DEFERS the deep
   economy back to it (see Leg 1).
-- **[medic-judgment-slate](./medic-judgment-slate.md)** — diagnosis as the
+- **[medic-judgment-slate](../builds/medic-judgment-slate.md)** — diagnosis as the
   graded act. Stays its own thread; this build consumes its `assess` surface,
   does not re-own it.
 - **The `nurses.ts` brain** — currently used by the *physician* NPC. The
@@ -224,7 +228,7 @@ pack; the pack only holds the acts and the instruments.
 4. **Values & self-improvement** — consent to operate (the unconscious
    emergency exception → [accountability.md](../../subsystems/accountability.md));
    the wrong-type transfusion as a real harm; who is licensed to cut (the
-   College of Physic, [health-vertical](./health-vertical-slate.md)); giving
+   College of Physic, [health-vertical](../builds/health-vertical-slate.md)); giving
    blood as a cost borne for another.
 5. **Technology & magic (epochs)** — blood transfusion and asepsis are
    modern markers; the arcane fork already exists (the `mend` spell). The
@@ -250,11 +254,11 @@ pack; the pack only holds the acts and the instruments.
 - **augmentation** ([augmentation-slate](../tails/augmentation-slate.md)) —
   amputation is the removal seam; that build owns the replacement
   (prosthetics). We stop at the stump.
-- **[medic-judgment-slate](./medic-judgment-slate.md)** — diagnosis stays
+- **[medic-judgment-slate](../builds/medic-judgment-slate.md)** — diagnosis stays
   its own thread; we consume `assess`.
 - **The infirmary Business** (Terminus) — gains the nurse position + the
   blood-bank dimension; a first venue, not a new place.
-- **[mind-slate](./mind-slate.md) / [psychology-slate](./psychology-slate.md)**
+- **[mind-slate](../builds/mind-slate.md) / [psychology-slate](../builds/psychology-slate.md)**
   — mental health is explicitly OUT of this thread (less physiological). The
   only future bridge is combat trauma.
 
@@ -306,15 +310,15 @@ pack; the pack only holds the acts and the instruments.
 ## Cross-references
 
 - [blood-slate](./blood-slate.md) — the deep blood design (deferred economy).
-- [recovery-slate](./recovery-slate.md) — where `operate`, the carer/treater
+- [recovery-slate](../builds/recovery-slate.md) — where `operate`, the carer/treater
   seam, `medicine`, and the 0.85 plasma ceiling shipped.
-- [health-vertical-slate](./health-vertical-slate.md) — the College of
+- [health-vertical-slate](../builds/health-vertical-slate.md) — the College of
   Physic (who may cut), public health, the teaching theatre.
-- [medic-judgment-slate](./medic-judgment-slate.md) — diagnosis (not this
+- [medic-judgment-slate](../builds/medic-judgment-slate.md) — diagnosis (not this
   build's).
 - [augmentation-slate](../tails/augmentation-slate.md) — the prosthetics the
   amputation seam feeds.
-- [physiology-slate](./physiology-slate.md) — the body's function/intervention
+- [physiology-slate](../builds/physiology-slate.md) — the body's function/intervention
   substrate.
 - [harm.md](../../subsystems/harm.md) · [vitals.md](../../subsystems/vitals.md)
   · [mortality.md](../../subsystems/mortality.md) — the body.

@@ -2,7 +2,7 @@
 
 > **Status: UNBUILT** — and ⚠ **blocked on a producer, not on itself**:
 > `SoilableMixin` does not ship. `textiles.md` defers soiling's gauge and
-> bands to [room-condition](./room-condition-design-pack.md), so **there
+> bands to [room-condition](../builds/room-condition-design-pack.md), so **there
 > is currently no dirt for a laundry to remove.**
 > **Left:** the **congruence** read (not a cleanliness score) · the
 > doorman as the refusal surface · soap as a chain (fat + wood ash) ·
@@ -15,7 +15,7 @@
 > room-condition lands.
 
 Designed 2026-10-08, out of the water-trade audit
-([navigable-water-slate](./navigable-water-slate.md) § 5c). ⭐ Raised as
+([navigable-water-slate](../builds/navigable-water-slate.md) § 5c). ⭐ Raised as
 "cheap and social", and it is neither: **a five-input trade with a
 liability gate, a shipped-but-inverted verb, and the cleanest instance of
 *engine measures, subject values* in the game.**
@@ -145,7 +145,7 @@ trade destroys the cloth.**
   weeks. So bleaching is **deliberate fade** — and fade **already
   ships**, gaining a second, *intentional* driver. ⭐ Gated on daylight,
   so **you cannot bleach in a polar winter**
-  ([climate-slate](./climate-slate.md)).
+  ([climate-slate](../builds/climate-slate.md)).
 
 ### Lens 2 — creative expression
 
@@ -348,14 +348,14 @@ Two more real details worth having:
 
 - [textiles.md](../../subsystems/textiles.md) — the layering model, the
   dye/wash/fade loop, the soiling seam, and the refusal this slate answers
-- [room-condition-design-pack](./room-condition-design-pack.md) — owns
+- [room-condition-design-pack](../builds/room-condition-design-pack.md) — owns
   the gauge, the bands and the attributed deposit log
 - [stewardship-doctrine.md](../../stewardship-doctrine.md) — the pillar,
   and the anti-treadmill survey
-- [navigable-water-slate](./navigable-water-slate.md) § 5c — where this
+- [navigable-water-slate](../builds/navigable-water-slate.md) § 5c — where this
   was raised
-- [climate-slate](./climate-slate.md) — the fuel draw, and why nothing
+- [climate-slate](../builds/climate-slate.md) — the fuel draw, and why nothing
   dries in winter
-- [measurement.md](../../subsystems/measurement.md) ·
+- [measurement.md](../../measurement.md) ·
   [belief.md](../../subsystems/belief.md) ·
   [presentation.md](../../subsystems/presentation.md)

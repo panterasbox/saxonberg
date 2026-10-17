@@ -388,7 +388,7 @@ lens's answer to "who says so."
 
 Beauty is the *market* this slate's vocations already exist for: the
 dye chain, the tailor's cut and fit, the barber's graded cut, scented
-soap and glycerin ([rendering § 8](../builds/rendering-slate.md)), and — the
+soap and glycerin ([rendering § 8](./rendering-slate.md)), and — the
 part the nutrition build adds — the body itself, which now has an input
 (work, food, the gym) and a visible output. A canon is what makes those
 purchases *mean* something to a viewer, and two canons are what make

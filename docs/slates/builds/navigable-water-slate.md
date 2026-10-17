@@ -924,7 +924,7 @@ possible.
 > it; the room's own feature is what you look at, fish and draw from.
 > The prop defect below closes because the read is the water's own look,
 > by the place's name for it — never appended to the room's prose. See
-> [shore-as-place-slate](./shore-as-place-slate.md) and
+> [shore-as-place-slate](../tails/shore-as-place-slate.md) and
 > [fishing.md](../../subsystems/fishing.md) § the shore.
 
 The seam between this model and the land model — and **it already
@@ -1427,9 +1427,9 @@ value**).
   other waits for a consumer*) — turbine shipped, pump did not. **Now
   three consumers deep (mine, quarry, diver) and the cheapest unblock on
   the board.**
-- ⭐⭐ **Laundry** — own slate: [laundry-slate](./laundry-slate.md).
+- ⭐⭐ **Laundry** — own slate: [laundry-slate](../tails/laundry-slate.md).
 - ⭐⭐ **Tourism and sport — own slate:**
-  [tourism-and-sport-slate](./tourism-and-sport-slate.md). Worked
+  [tourism-and-sport-slate](../tails/tourism-and-sport-slate.md). Worked
   2026-10-09: **catering is a choice of whose taste you serve** (range ×
   whose taste, where *visitors* is one option among several) · the district
   needs a **taste** · ⭐⭐⭐ **tourism is content discovery wearing a
@@ -1739,7 +1739,7 @@ one.
 **So the whole intra-boat design is two widenings to a shipped spec** —
 agents placeable in a `Chamber`, and a host-declared cost on
 re-placement — plus one genuinely new mechanism, which is **not spatial**:
-[cooperative-effort-slate](./cooperative-effort-slate.md).
+[cooperative-effort-slate](../tails/cooperative-effort-slate.md).
 
 ### ⭐⭐⭐ The berth — and two shipped invariants force it
 
@@ -1977,7 +1977,7 @@ routing straight into the man-overboard machinery
 
 Six men: a **boatheader** (steers), a **harpooneer** (throws), and four
 who pull. ⭐⭐⭐ **Four of six are pure effort** — and
-[cooperative-effort-slate](./cooperative-effort-slate.md)'s pooled draw
+[cooperative-effort-slate](../tails/cooperative-effort-slate.md)'s pooled draw
 works identically whether the exerter is a player or an NPC.
 
 > **Two players and four hired hands is a complete boat. One player and

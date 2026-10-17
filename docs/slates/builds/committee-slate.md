@@ -255,7 +255,7 @@ over a row-extensible vocabulary**:
 - ⭐⭐ [labor-standing-slate.md](./labor-standing-slate.md) — the
   **attestation** facade question (b) governs, and why the commons never
   audits a contributor's declaration.
-- ⭐ [contribution-slate.md](./contribution-slate.md) — an **export binds
+- ⭐ [contribution-slate.md](../tails/contribution-slate.md) — an **export binds
   a group**, which is facade (b)'s first consumer outside the client
   committee.
 - [feedback-slate.md](./feedback-slate.md) — parcel committees as

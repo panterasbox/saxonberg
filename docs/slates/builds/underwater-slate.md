@@ -645,7 +645,7 @@ backwards gives three answers, ranked:
    wreck, not the shell** — *salvage first, harvest second.*
 2. ⭐ **Buttons and inlay** — tailoring and textiles ship.
 3. **Sponges are a cleaning tool** — couples to
-   [laundry-slate](./laundry-slate.md) and room-condition.
+   [laundry-slate](../tails/laundry-slate.md) and room-condition.
 
 ---
 

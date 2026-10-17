@@ -449,7 +449,7 @@ another one. The pass has to answer *where does a genuinely generic,
 system-less utility live?* first. Three candidates, none obviously right:
 fold into the one consumer and stop pretending it is shared; a single
 `lib/` module of value-class statics now that
-[value-object-statics-slate](./value-object-statics-slate.md)
+[value-object-statics-slate](../tails/value-object-statics-slate.md)
 makes those visible; or a named exception in the discipline registry.
 
 ## 6.4 Two findings that are just bugs

@@ -383,7 +383,7 @@ And the honest limit on renaming generally:
 - **Surname semantics** — marriage / adoption / business names changing a
   surname is a lighter act than a full identity change and should
   probably cost less. Needs the lineage substrate
-  ([blood-slate](../builds/blood-slate.md)) first.
+  ([blood-slate](./blood-slate.md)) first.
 
 ---
 

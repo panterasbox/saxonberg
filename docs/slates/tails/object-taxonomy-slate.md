@@ -387,7 +387,7 @@ your name.
 
 ## Cross-refs
 
-- [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) — the
+- [wizardry-curriculum-slate.md](../builds/wizardry-curriculum-slate.md) — the
   curriculum half; § 5 there is this slate's § 8 taught.
 - [../../subsystems/command-routing.md](../../subsystems/command-routing.md)
   — ⛔ the one record of verb affordances, the five removal reasons, the
@@ -400,6 +400,6 @@ your name.
 - [../../subsystems/mixins.md](../../subsystems/mixins.md) — composition
   order, `_mixinName`, pack mixin registration.
 - [../../lint-family.md](../../lint-family.md) — census-then-ratchet.
-- [cms-slate.md](./cms-slate.md) +
-  [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) —
+- [cms-slate.md](../builds/cms-slate.md) +
+  [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md) —
   the two catalogues the Studio was the first build of.

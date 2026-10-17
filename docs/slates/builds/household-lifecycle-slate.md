@@ -11,7 +11,7 @@
 > the terminal event with **no reclaim** · the NPC-never-names-a-
 > beneficiary rule · vacancy → decay → **ruin** · the necropolis as the
 > one permanent residue · ⚠ blocked on
-> [pack-boundary](./pack-boundary-slate.md) for the vanish case.
+> [pack-boundary](../tails/pack-boundary-slate.md) for the vanish case.
 > **Size:** a build.
 
 Opened 2026-09-25. The premise is the user's:
@@ -87,7 +87,7 @@ identically **because it is an authored NPC** — authored by a generator.
 > writing rows a wizard could have written.
 
 ⚠ It writes **unstamped** rows — realm-local, never a pack's. See
-[pack-boundary-slate](./pack-boundary-slate.md), which this conversation
+[pack-boundary-slate](../tails/pack-boundary-slate.md), which this conversation
 forced out.
 
 ---
@@ -300,12 +300,12 @@ the most.
    [land-use-covenant](./land-use-covenant-slate.md) § the second
    dimension, and [content-generation](./content-generation-slate.md).
 6. ⚠ **Blocked**: the vanish-with-dependents case
-   ([pack-boundary](./pack-boundary-slate.md)) — a pack shipping the plat
+   ([pack-boundary](../tails/pack-boundary-slate.md)) — a pack shipping the plat
    that realm-local households sit in.
 
 ---
 
-See also: [pack-boundary-slate](./pack-boundary-slate.md) (**forced by
+See also: [pack-boundary-slate](../tails/pack-boundary-slate.md) (**forced by
 this**, and blocks it) · [lineage-slate](./lineage-slate.md) (parents as
 person records) · [credit.md](../../subsystems/credit.md) (the estate
 machine) · [settlement-model.md](../../settlement-model.md) (the plat,

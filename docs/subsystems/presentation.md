@@ -41,7 +41,7 @@ mechanical: the author-surface projection admits public **Api statics**
 and public **instance methods**, so a static on a `lib/` class is
 *callable by anyone and visible to nobody*. ⭐ 24 other value classes in
 this tree still break that; see
-[value-object-statics-slate](../slates/builds/value-object-statics-slate.md).
+[value-object-statics-slate](../slates/tails/value-object-statics-slate.md).
 
 `Stuff.getPresentation()` is `presentationPhrase().render()`. Its
 signature never changed, so all ~265 callers, the wire's `displayName`,

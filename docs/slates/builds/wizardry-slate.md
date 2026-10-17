@@ -345,12 +345,12 @@ mechanism.
 
 - [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) — ⭐⭐⭐
   how the Discipline is taught, and why it is the first curriculum.
-- [object-taxonomy-slate.md](./object-taxonomy-slate.md) — what a
+- [object-taxonomy-slate.md](../tails/object-taxonomy-slate.md) — what a
   non-wizard may mint, and where the apex licence stops being needed.
 - [labor-standing-slate.md](./labor-standing-slate.md) — the work item
   that stays **non-diegetic**, and the credit this Discipline sits beside
   without duplicating.
-- [contribution-slate.md](./contribution-slate.md) — the paths authoring
+- [contribution-slate.md](../tails/contribution-slate.md) — the paths authoring
   actually happens through, and why the CMS needs an exit.
 - [advancement.md](../../subsystems/advancement.md) — the Discipline
   catalogue, Transcript and derive-on-read bands this would join.

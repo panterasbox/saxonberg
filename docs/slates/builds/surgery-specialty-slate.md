@@ -69,7 +69,7 @@ build:
 
 ## Cross-references
 
-- [clinical-medicine-slate](./clinical-medicine-slate.md) — the umbrella;
+- [clinical-medicine-slate](../tails/clinical-medicine-slate.md) — the umbrella;
   where the surgical trunk shipped.
 - `docs/subsystems/harm.md` — the ten trauma behaviors + the operation
   catalogue; the surgical-only resolutions (`surgery`, `extraction`).

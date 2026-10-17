@@ -13,7 +13,7 @@
 > next twenty builds will either follow or violate.
 
 Opened 2026-09-25 out of a design conversation about minting NPC
-households ([household-lifecycle-slate](./household-lifecycle-slate.md)),
+households ([household-lifecycle-slate](../builds/household-lifecycle-slate.md)),
 when the user drew a line that turned out to already exist in the
 substrate:
 
@@ -177,7 +177,7 @@ cites, and a locality whose rooms hold a player's furniture.
 ---
 
 See also: [content-packs.md](../../subsystems/content-packs.md) ·
-[household-lifecycle-slate](./household-lifecycle-slate.md) (the case
+[household-lifecycle-slate](../builds/household-lifecycle-slate.md) (the case
 that forced it) ·
 [document-store-tiering](../tails/document-store-tiering-slate.md) (the
 same two-population shape, one store over) ·

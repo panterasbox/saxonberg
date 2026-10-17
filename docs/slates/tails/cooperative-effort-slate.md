@@ -10,7 +10,7 @@
 > **Size:** a tail — `exertion.md` ships the per-body half.
 
 Designed 2026-10-09 out of
-[navigable-water-slate](./navigable-water-slate.md) § 7a. ⭐ It arrived by
+[navigable-water-slate](../builds/navigable-water-slate.md) § 7a. ⭐ It arrived by
 subtraction: an intra-space linear-position primitive ("the strip") was
 proposed for a whaleboat's stations and **refused by the owner as a shape
 with invented consumers** — and when that was cleared away, the thing
@@ -108,6 +108,6 @@ else, which is the strongest signal in the list.
   that ships, and *every limit soft*
 - [conveyance.md](../../subsystems/conveyance.md) — `Mountable`/`Drivable`
   and the one-driver assumption this widens
-- [navigable-water-slate](./navigable-water-slate.md) § 7a — the vessel
+- [navigable-water-slate](../builds/navigable-water-slate.md) § 7a — the vessel
   decision, the station model, and the refused spatial primitive
 - [tourism-and-sport-slate](./tourism-and-sport-slate.md) — the crew boat

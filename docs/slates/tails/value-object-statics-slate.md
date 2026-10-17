@@ -67,7 +67,7 @@ out to be the second question; **who calls it** is the first.)*
 
 # The 123, one family at a time — and why almost none of them moved
 
-*Decided in the build and recorded at the sites: the bulk-payload accessors stay (`bulk.md`), the record finders stay (`TemplateApi`'s docstring), the knowledge adapters stay in crafting, the cross-controller helpers resolved (`lib/craft/CraftingDecline.ts` — vocabulary, not a verb; `isBuildingAgent` → `AccessLogic.isAgentOf`), `VisionModality.canSee` is an instance method (its disagreement with `PerceptionApi.perceives` is the [concealment slate](../tails/concealment-detection-slate.md)'s), `SchedulerApi` → `ActivityApi` is [api-normalization](./api-normalization-slate.md) § 6.6's. ⚠ The `Lock` row's "stay" was later REVERSED — `mintKeyway` moved to `BoundaryApi` (minting is an act on the world; issuing is the lock answering about itself), and `boundary.md:59` still says `Lock.mintKeyway()`.*
+*Decided in the build and recorded at the sites: the bulk-payload accessors stay (`bulk.md`), the record finders stay (`TemplateApi`'s docstring), the knowledge adapters stay in crafting, the cross-controller helpers resolved (`lib/craft/CraftingDecline.ts` — vocabulary, not a verb; `isBuildingAgent` → `AccessLogic.isAgentOf`), `VisionModality.canSee` is an instance method (its disagreement with `PerceptionApi.perceives` is the [concealment slate](../tails/concealment-detection-slate.md)'s), `SchedulerApi` → `ActivityApi` is [api-normalization](../builds/api-normalization-slate.md) § 6.6's. ⚠ The `Lock` row's "stay" was later REVERSED — `mintKeyway` moved to `BoundaryApi` (minting is an act on the world; issuing is the lock answering about itself), and `boundary.md:59` still says `Lock.mintKeyway()`.*
 
 ---
 

@@ -265,7 +265,7 @@ persuade in a way descriptions cannot.
 # ⚠⚠ Axis hygiene — `requiresWizard` is doing work that is not its job
 
 **Captured 2026-08-04**, found while designing
-[credit-slate](../tails/credit-slate.md).
+[credit-slate](./credit-slate.md).
 
 > **Merged 2026-09-21 (cluster pass):** the rule as the user stated it,
 > the `reserve` precedent, the per-site classification table and the

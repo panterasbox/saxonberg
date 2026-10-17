@@ -1,6 +1,6 @@
 # The shore as a place — the water citation moves onto the room
 
-> **Status: BUILT** in maritime revision 3 (MR !358, 2026-10-11) — the place names its water, the fishing verbs bind the place, drawing water ships. **Tail kept:** a waterside place of another class (a dyehouse, a mill race) needs its own composed class; a general way for any place to be made waterside from its own row is the open design. Originally raised in the climate build's review (2026-10-11),
+> **Status: PARTIAL** — built in maritime revision 3 (MR !358, 2026-10-11) — the place names its water, the fishing verbs bind the place, drawing water ships. **Tail kept:** a waterside place of another class (a dyehouse, a mill race) needs its own composed class; a general way for any place to be made waterside from its own row is the open design. Originally raised in the climate build's review (2026-10-11),
 > handed to the maritime build (`maritime-space`, build-1) to do in its MR.
 > **Left:** only the tail — a waterside place of another class (a
 > riverside dyehouse, a mill race) needs its own composed class, and a
@@ -157,7 +157,7 @@ moor's `heath-mere` (`holloway:head`), and the climate build's `blackmere`,
 
 ## Cross-references
 
-- [navigable-water-slate.md § 5a](./navigable-water-slate.md) — the coast
+- [navigable-water-slate.md § 5a](../builds/navigable-water-slate.md) — the coast
   ruling this keeps
 - [fishing.md](../../subsystems/fishing.md) — the read, the bite, the
   prop defect

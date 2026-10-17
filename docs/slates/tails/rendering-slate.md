@@ -39,8 +39,8 @@ Substrate: [crafting](../../subsystems/crafting.md) ·
 [light](../../subsystems/light.md) ·
 [thermal](../../subsystems/thermal.md) ·
 [fire](../../subsystems/fire.md)
-Siblings: [ranching](./ranching-slate.md) (**the gate**) ·
-[zoning](./zoning-slate.md) (⭐ the nuisance trades) ·
+Siblings: [ranching](../builds/ranching-slate.md) (**the gate**) ·
+[zoning](../builds/zoning-slate.md) (⭐ the nuisance trades) ·
 [preservation](../tails/preservation-slate.md) ·
 [textiles](../tails/cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
 [../../settlement-model.md](../../settlement-model.md) § 1
@@ -83,7 +83,7 @@ Terminus separates `commercial` from `industrial`
 ([settlement-model § 4](../../settlement-model.md)), and
 [vocations.md](../../vocations.md) already groups these as *"miller ·
 tanner — **the classic nuisance trades**."* The tannery sits in
-[zoning-slate](./zoning-slate.md)'s own LULU list beside the powder
+[zoning-slate](../builds/zoning-slate.md)'s own LULU list beside the powder
 magazine and the rendering works.
 
 > **Until there is a trade that stinks, the industrial land use is a
@@ -150,7 +150,7 @@ grade of the leather). Chandling probably does not.
 
 - **The cut** (§ 6).
 - **Where does soap go?** It is a rendering output and a hygiene input —
-  which touches [disease](./disease-slate.md) and the *care* need, and
+  which touches [disease](../builds/disease-slate.md) and the *care* need, and
   could easily become fabricated demand if hygiene is made an obligation
   rather than an advantage.
 - **Is leather textiles' business or this pack's?** ⚠ Leather is **not**
@@ -215,16 +215,16 @@ costs the boiler a burn if he is careless, and time in every case.
 glass). What soap acts *on* has been decided in three places and built
 in none:
 
-- [room-condition](./room-condition-design-pack.md) — **`Soilable`**:
+- [room-condition](../builds/room-condition-design-pack.md) — **`Soilable`**:
   grease, grime, dirty hands, on items, surfaces *and bodies*; an
   act-deposited band (`clean / soiled / filthy`) that **freezes in
   absence**, cleared by `wash` / `wipe` / `bathe`.
-- [bathroom](./bathroom-slate.md) — washing **decided as state,
+- [bathroom](../builds/bathroom-slate.md) — washing **decided as state,
   "enabling, never a decay meter"**: filth never nags; washing opens
   doors (the physician's *wash your hands*, scent and the stealth
   systems, food service). The bathhouse as a venue.
-- [disease](./disease-design-pack.md) — hygiene as the fomite route: *a
-  dirty hand from room-condition is a fomite*. [Food safety](./food-safety-slate.md)
+- [disease](../builds/disease-slate.md) — hygiene as the fomite route: *a
+  dirty hand from room-condition is a fomite*. [Food safety](../builds/food-safety-slate.md)
   explicitly declined to put hands on `Creature` (*"every meal a hygiene
   chore for no new mechanism"*) and named the disease build the consumer.
 
