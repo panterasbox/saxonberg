@@ -148,18 +148,13 @@ async function at(handle: string, where: string): Promise<Session> {
   return s;
 }
 
-async function funded(
-  tag: string,
-  where: string,
-  existing?: { handle: string; name: string },
-): Promise<Session> {
-  const handle = existing?.handle ?? uniqueHandle(tag);
-  const who = existing?.name ?? handle;
+async function funded(tag: string, where: string): Promise<Session> {
+  const handle = uniqueHandle(tag);
   const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
-    expectOk(await gov.cmd(`reserve override 400 to ${who} "wire: rubber drive"`));
+    expectOk(await gov.cmd(`reserve override 400 to ${handle} "wire: rubber drive"`));
   } finally {
     gov.close();
   }
@@ -198,11 +193,20 @@ async function feel(s: Session): Promise<string> {
 
 /** The figure a carried thermometer reads, K or °C as it prints. */
 async function thermometer(s: Session): Promise<number> {
+  return (await reading(s)).k;
+}
+
+/**
+ * The figure AND its bracket: a novice's reading is a seeded guess within
+ * ± the bracket (instrumentation.md), so a threshold is only decided when
+ * the whole bracket sits on one side of it.
+ */
+async function reading(s: Session): Promise<{ k: number; pm: number }> {
   const said = await say(s, 'measure temperature');
-  const m = /(-?\d+(?:\.\d+)?)\s*(K|°C|C)\b/.exec(said);
+  const m = /(-?\d+(?:\.\d+)?)\s*(K|°C|C)\b(?:\s*±\s*(\d+(?:\.\d+)?))?/.exec(said);
   expect(m, `measure temperature named no figure: ${said}`).not.toBeNull();
   const v = Number(m![1]);
-  return m![2] === 'K' ? v : v + 273.15;
+  return { k: m![2] === 'K' ? v : v + 273.15, pm: Number(m![3] ?? 0) };
 }
 
 let thermoHandle = '';
@@ -232,15 +236,17 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
   it('a half-orc buys both pairs: the plain one is tight, the elastic one is not', async () => {
     await toHour(10, 14);
     // ⭐ A real newcomer, walked through intake as a half-orc (92 kg,
-    // 1.88 m against the plan's 70 kg / 1.75 m), then banked and funded
-    // like every other buyer here (the Arrival Note does not cover a
-    // counter's price on its own).
+    // 1.88 m against the plan's 70 kg / 1.75 m), who does what a newcomer
+    // does with the Arrival Note's twenty in coin: banks it (a counter
+    // takes the account, not loose coin — "You can't cover …"), then shops.
     const handle = uniqueHandle('half-orc');
-    // ⚠ An embodied character is called by its NAME, not the handle.
-    const name = `Orc${Math.random().toString(36).replace(/[^a-z]/g, '').slice(0, 6)}`;
-    const arrival = await Session.embody(handle, { species: 'half-orc', name });
+    const arrival = await Session.embody(handle, { species: 'half-orc' });
     arrival.close();
-    const s = await funded('half-orc', SHOP, { handle, name });
+    const bank = await at(handle, BANK_HALL);
+    expectOk(await bank.cmd('bank open'));
+    expectOk(await bank.cmd('bank deposit coins'));
+    bank.close();
+    const s = await at(handle, SHOP);
     await say(s, 'remove trousers'); // intake dressed them in a sturdy pair
     await buyOne(s, 'breeches');
     const plain = await say(s, 'wear breeches');
@@ -349,11 +355,16 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
   it('8 — before dawn, stove out: cold, and the tree refuses — too cold', async () => {
     await toHour(4, 6);
     await new Promise((r) => setTimeout(r, 3_000));
-    const inside = await thermometer(s);
+    const inside = await reading(s);
     const refused = await say(s, 'tap tree');
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] stove house before dawn: ${inside.toFixed(1)} K`);
-    if (inside < 291) expect(refused).toMatch(/cold/i);
+    console.log(`  [drive] stove house before dawn: ${inside.k.toFixed(1)} ± ${inside.pm} K`);
+    // ⚠ The glass holds the night well — a dawn house can sit at the line.
+    // A reading whose bracket straddles 291 decides nothing; say so.
+    if (inside.k + inside.pm < 291) expect(refused).toMatch(/cold/i);
+    else if (inside.k - inside.pm > 291) expect(refused).not.toMatch(/cold/i);
+    // eslint-disable-next-line no-console -- the drive's own record
+    else console.log('  [drive] the dawn house is AT the line: step 8 undecided this run');
   }, 600_000);
 
   it('7 — a clear afternoon, stove out: warmer than the yard — the sun did it', async () => {
@@ -381,12 +392,14 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await say(s, 'stoke coal into stove');
     await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
-    // From a ~270 K dawn the stove alone takes hours; the morning sun joins.
-    await advanceWorldClock('4 hours');
+    // From a ~270 K dawn the stove alone takes hours and the morning sun
+    // joins it: two hours left the glass at 286 K, four at 312 (past the
+    // tree's 309). Three aims at the middle of the band.
+    await advanceWorldClock('3 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const warm = await thermometer(s);
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] stove house, stove lit 4 h: ${warm.toFixed(1)} K`);
+    console.log(`  [drive] stove house, stove lit 3 h: ${warm.toFixed(1)} K`);
     expect(warm).toBeGreaterThan(291);
     // Let the cuts run a while in the warm before anybody taps them.
     // ⚠ While the stove still burns: the window is sampled at the read,
@@ -457,18 +470,13 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     // match the printed "pair of stout leather boots" (a retail finding).
     await buyOne(buyer, 'leather');
     const lh = buyer.handle;
-    buyer.close();
     // ⚠ Bought, not cloned: step 22's boots are live, and the clone gate
     // reads the first live instance's zone (the shop) and refuses.
     const seller = await funded('wader-rubber', SHOP);
     await buyOne(seller, '"rubber boots"');
-    const rh = seller.handle;
-    seller.close();
-    const leather = await at(lh, CATWALK);
-    const rubber = await at(rh, CATWALK);
-    // ⚠ Dressing is an engaged act: let it finish before stepping down,
-    // or the walk interrupts it and the wader goes in barefoot.
-    for (const w of [leather, rubber]) {
+    // ⚠ Dress in the LIT shop: in the substation's dark `inventory` names
+    // everything "something". Dressing is engaged — let it finish.
+    for (const w of [buyer, seller]) {
       // ⚠ Intake shod them in canvas shoes: the feet are taken.
       await say(w, 'remove shoes');
       await say(w, 'wear boots');
@@ -477,6 +485,11 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
       const worn = await say(w, 'inventory');
       expect(worn, 'the boots are on').toMatch(/wearing:[^.]*boots/i);
     }
+    const rh = seller.handle;
+    buyer.close();
+    seller.close();
+    const leather = await at(lh, CATWALK);
+    const rubber = await at(rh, CATWALK);
     const inL = await say(leather, 'down');
     const inR = await say(rubber, 'down');
     await new Promise((r) => setTimeout(r, 3_000));

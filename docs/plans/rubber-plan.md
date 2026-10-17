@@ -2223,4 +2223,13 @@ runs found, in the order they found it (✔ = fixed and committed):
 | 8 | by early afternoon the sun AND the stove take the glass past 309 K, where Hevea shuts down in the heat — honest, and the step tapped into it | ✔ step 9 lights the stove at dawn |
 | 8 | intake shoes every newcomer in canvas shoes, so `wear boots` found the feet taken | ✔ the waders take them off first |
 | 8 | the machine is swapping (3.5 of 4 GB, three ~3 GB worlds from sibling worktrees): logins and dispatches stall for minutes | the drive's per-step budgets are 10 minutes; recorded, not a code defect |
+| 9 | `here:oven:i:…` named nothing: a bareword after `here` is a DETAIL of the room; the room's THINGS are `here:i` | ✔ `here:i:<thing>:i:<thing>` (probed live: `here:i:tub:i` lists the three trees) |
+| 9 | an embodied character is called by its NAME — `reserve override … to <handle>` found nobody | ✔ the half-orc is named and funded by name |
+| 9 | from a ~270 K dawn the stove alone holds the glass at 286 K after two hours | ✔ step 9 warms four hours, the morning sun joining |
+| 9 | ⭐ the window still opened at 273 K once; probed live it reads right — but the read had a hole: every rung tested `!== null`, and a proxy no-op answers `undefined`, which compares false against both bounds and reads OPEN | ✔ only a finite number is a temperature; a failed refresh now says so in the log |
+| 10 | ✅ **all four cures pass** — under-cured, cured in the boot's shape, ebonite, burnt (steps 14–17) | — |
+| 10 | a novice's thermometer is a seeded guess within its bracket (±1 to ±8 K seen): a dawn house AT the tree's 291 K line decides nothing | ✔ step 8 asserts only when the whole bracket is on one side, and says when it is not |
+| 10 | four hours of stove and morning sun took the glass to 312 K, past the tree's 309 | ✔ three hours |
+| 10 | in the substation's dark `inventory` names everything "something" | ✔ the waders dress in the lit shop |
+| 10 | a counter takes the account, not loose coin: the half-orc's twenty must be banked first (`bank deposit coins`) | ✔ step 23 walks the newcomer's real path |
 
