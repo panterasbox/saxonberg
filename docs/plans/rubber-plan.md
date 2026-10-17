@@ -1731,6 +1731,29 @@ Commit: `feat(envelope): rooms of one building share heat through their interior
 
 ### W4 — materials, the hold, and the cure
 
+> ✅ **DONE `db90d0a97`.** Decided: (1) **the cure consumes the WHOLE
+> matched charge** (one product, its agent fraction the weighed one) —
+> counted batches would decide the fraction for the player. (2) The
+> vulcanize recipe DOES name an `outputTemplate` (`rubber-lump`): the
+> Recipe contract refuses a row without one, and the no-mould fallback is
+> the outcome material's own `castTemplate` lump anyway (`fire` reads that
+> first). (3) A long hold is sealed down: the effort is a minute's stoking
+> spread over the hold, so a two-hour cure exhausts nobody. (4) `for
+> <duration>` parses the world clock's grammar (`N second|minute|hour|day`)
+> in a private static on the controller (PressController's precedent).
+> (5) `maxHeatK` is authored and NOT read by `fire` — the bellows scorching
+> past 455 K is the point. (6) The scorched material is NAMED **burnt
+> rubber** (`rubber-scorched` path): `scorched` is a spellbook descriptor
+> word, and `lint:descriptors` refuses a material name that collides.
+> (7) `holdsCast()` = a thing of the mould's shape OR its material's own
+> cast (a cracked mould's lump); the dairy/mould test stubs now stamp the
+> template path a real clone carries. (8) The moulds, the goods and the
+> pan's sheet are NOT in W4: `lint:reachability` (ceiling 0) refuses a row
+> nothing places, so they land with the works in W7. (9) `rubber.yaml`'s
+> orphan `chemistry: null` came off (burnt rubber would inherit it):
+> orphan-key ceiling 387 → 386. Pack count 61 → 62 (⚠ ice adds packs too:
+> at the second merge the number is the SUM).
+
 Implements D8, D9, D10, D11.
 
 Files: `lib/material/Material.ts` (`elasticity`, `crosslinking` with a
@@ -1765,6 +1788,20 @@ not raised: if it trips, `elasticity` moves to W5).
 Commit: `feat(cure): a hold on fire; the crosslink curve as data on the feedstock; a firing asks the mould for its shape`
 
 ### W5 — the four corrections
+
+> ✅ **DONE `efc201c33`.** Decided: (1) the vitriol/quicklime narrowing uses
+> **`once-living`** — the biological-origin tag 26 of the caught rows
+> already carried — and fifteen rows the old `organic` entry caught gain it
+> (peat, gut, herbs, the tars, charcoal/coke/ash, puddings, leaf fat);
+> `corrosion-narrowing.test` reads every shipped row and proves the caught
+> sets are unchanged bar the four elastomers (seven FOODS are newly named —
+> sap, milk, eggs, fat — which no covering is made of, so no outcome
+> moves). The `analyze` preview's reference agent follows lime. (2) The
+> wet law, `immerse(parts?)` and `wetness.impermeableBelowPct` are
+> DROP-AT-MERGE copies (ice had no code); rubber never touched `getClo`.
+> (3) Electricity reads each LAYER (its own wetness), not each material.
+> (4) Wading is the flooded cell's `onEntered`: it immerses the foot parts
+> before the walk reads them, only when the floor holds water.
 
 Implements D12.
 
