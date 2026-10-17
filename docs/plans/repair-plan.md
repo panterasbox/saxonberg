@@ -1404,6 +1404,18 @@ the pick-head recipe and `disciplineOf` a stocked pick's head line is
 
 **Commit.** `feat(assembly): a part's own state rides its line — keenness, name, mends, recipe (repair W0)`
 
+> ✅ **W0 done (2026-10-17).** As planned. Notes for review: (1) the fit
+> read the part's condition AFTER consuming it (a destructed part reads
+> 1) — it is read first now, which the round-trip test caught. (2) A
+> crafted whole's line copies `castDiscipline`/`keenness`/`name`/`mends`
+> only from a ONE-member slot (`carriedState`); a thirty-stave line takes
+> the recipe mark alone. (3) `AssembledMixin.__validateComposition__`
+> moved below `fieldMeta` — the dairy's `name.*` owner-scan glitch had
+> filed every assembly field under `name.*` in the wiki-spoiler audit;
+> repair's review-log entry records the relabel and answers the heirloom
+> question (a name is what a thing is CALLED — level 0). (4)
+> `disciplineOf` lands unused; W2's mend is its first reader.
+
 ### W1 — the fold-back: one kind of thing, one class
 
 **Goal.** The families compose Assembled; Durable/Crafted/Constructed/Keen

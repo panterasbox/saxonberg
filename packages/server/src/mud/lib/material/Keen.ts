@@ -14,13 +14,22 @@
  *     edge/point *delivery*, fully restorable by the owner, anywhere,
  *     via `sharpen` (cheap, frequent, personal).
  *
- * Composed on `Weapon` this build (blades only — seasoning/tuning is the
- * named unbuilt seam for other working surfaces); reads are inert for
- * non-edge forms (the delivery factor only joins edge/point channels).
- * Narrow via `MixinApi.isKeen`.
+ * Composed on `Weapon` and `Tool` (repair D3) — a family where a mace or
+ * a hammer has no edge, so the edge is DERIVED from the form, never a
+ * predicate on the host set; reads are inert for non-edge forms (the
+ * delivery factor only joins edge/point channels).
+ *
+ * ⭐ **The edge is the PART's** (repair D3, AC 11). When the host is made
+ * of parts and some of its lines cut, the gauge routes outward: the
+ * whole's keenness is its edged lines' minimum, and `dull`/`hone` work on
+ * those lines — so a head honed loose and fitted keeps its edge, and a
+ * blade drawn from its hilt takes its edge with it. A thing of one piece
+ * reads its own field. Narrow via `MixinApi.isKeen`.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 
@@ -85,18 +94,39 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._keenness = Math.max(0, Math.min(1, value));
     }
 
+    /**
+     * The edged parts of a whole, when this host is one — the lines the
+     * gauge routes to. Empty for a thing of one piece (its own field).
+     */
+    private edgedParts(): string[] {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(self)) return [];
+      return self.edgedLines().map((l) => l.part);
+    }
+
     getKeenness(): number {
-      return this._keenness;
+      const parts = this.edgedParts();
+      if (parts.length === 0) return this._keenness;
+      const whole = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(whole)) return this._keenness;
+      return Math.min(...parts.map((p) => whole.lineKeenness(p)));
     }
 
     setKeenness(value: number): void {
+      const parts = this.edgedParts();
+      const whole = this as unknown as Stuff;
+      if (parts.length > 0 && MixinApi.isAssembled(whole)) {
+        for (const p of parts) whole.setLineKeenness(p, value);
+        return;
+      }
       this.keenness = value;
     }
 
     getKeennessBand(): KeennessBand {
-      if (this._keenness >= 0.85) return 'keen';
-      if (this._keenness >= 0.55) return 'serviceable';
-      if (this._keenness >= 0.25) return 'dulled';
+      const k = this.getKeenness();
+      if (k >= 0.85) return 'keen';
+      if (k >= 0.55) return 'serviceable';
+      if (k >= 0.25) return 'dulled';
       return 'blunted';
     }
 
@@ -107,11 +137,17 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
       ),
     ): void {
       if (!Number.isFinite(amount) || amount < 0) return;
+      const parts = this.edgedParts();
+      const whole = this as unknown as Stuff;
+      if (parts.length > 0 && MixinApi.isAssembled(whole)) {
+        for (const p of parts) whole.dullLine(p, amount);
+        return;
+      }
       this.keenness = this._keenness - amount;
     }
 
     hone(): void {
-      this.keenness = 1;
+      this.setKeenness(1);
     }
 
     keennessDeliveryFactor(): number {
@@ -119,7 +155,7 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
         AppSettingKeys.craftingKeennessDeliveryFloor,
         KEEN_DEFAULTS.DELIVERY_FLOOR,
       );
-      return floor + (1 - floor) * this._keenness;
+      return floor + (1 - floor) * this.getKeenness();
     }
   };
 }

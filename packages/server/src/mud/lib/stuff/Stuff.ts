@@ -431,6 +431,13 @@ export abstract class Stuff {
         const name = this.getName();
         if (name) return GrammarApi.properPhrase(name);
       }
+      // ⭐ A THING that bears a name — the heirloom whose blade is named,
+      // a one-piece thing someone named (repair D18). The name lives in
+      // the part, so a re-hilted sword is still called by it.
+      if (MixinApi.isAssembled(this)) {
+        const seat = this.getSeatName();
+        if (seat) return GrammarApi.properPhrase(seat);
+      }
     }
     if (MixinApi.isVisible(this)) {
       const short = this.getShortDescription();

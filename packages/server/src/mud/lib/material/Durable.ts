@@ -42,6 +42,37 @@ export interface Durable {
    * weapon's delivery is floored; repair (at a steeper cost) reverses it.
    */
   isBroken(): boolean;
+  /**
+   * Every mend this thing has had, oldest first (repair D10). On a thing
+   * made of parts, the union of its lines' records and its own.
+   */
+  getMends(): MendRecord[];
+  /** Append one mend — written only by a mend, never by wear. */
+  recordMend(record: MendRecord): void;
+}
+
+/**
+ * ⭐ One mend, remembered (repair D10). Written by `repair` and the paid
+ * service at the moment a hand mends something; never by wear. A whole
+ * keeps these per part (`PartLine.mends`), a one-piece thing on itself,
+ * and a part taken out of a whole carries its own away with it.
+ */
+export interface MendRecord {
+  /** Game-clock seconds. */
+  at: number;
+  /** Identity path of the hand that mended it. */
+  by: string;
+  /** The name that hand went by when it did the work. */
+  byName: string;
+  /** The hand's band in the discipline, when it mended. */
+  band: string;
+  /** The trade the mend was done under (`''` when none could be known). */
+  discipline: string;
+  /** The part mended, when the thing is made of parts. */
+  part?: string;
+  kind: 'mended' | 'reforged' | 'tightened';
+  /** Whether it came back sound or short of it. */
+  result: 'sound' | 'short';
 }
 
 /** Default per-use wear when a consumer doesn't specify. */
@@ -69,12 +100,19 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       condition: { persistent: true, runtimeState: true },
+      mends: { persistent: true, runtimeState: true },
     };
 
     /**
      * 0..1 wear gauge; default pristine.
      */
     private _condition: number = 1;
+
+    /**
+     * Every mend, oldest first — a plain array of plain records, so it
+     * persists with the host and needs no marshaller (repair D10).
+     */
+    public mends: MendRecord[] = [];
 
     protected get condition(): number {
       return this._condition;
@@ -95,6 +133,14 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     wear(amount: number = WEAR_PER_USE, _channel?: Channel): void {
       if (!Number.isFinite(amount) || amount < 0) return;
       this.condition = this._condition - amount;
+    }
+
+    getMends(): MendRecord[] {
+      return this.mends.map((m) => ({ ...m }));
+    }
+
+    recordMend(record: MendRecord): void {
+      this.mends = [...this.mends, { ...record }];
     }
 
     isBroken(): boolean {

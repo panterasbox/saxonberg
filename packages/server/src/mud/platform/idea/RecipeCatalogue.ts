@@ -51,6 +51,12 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   /** Lowercase keyword/name/id → recipeId. */
   private byKeyword: Map<string, string> = new Map();
 
+  /**
+   * outputTemplate → recipeId, the first by id when several recipes make
+   * one row (repair D1). Built in `warm`, never a scan at the read.
+   */
+  private byOutput: Map<string, string> = new Map();
+
   /** Resolve a recipe by its canonical id, or null. */
   public getRecipe(recipeId: string): Recipe | null {
     this.ensureCache();
@@ -67,6 +73,18 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       if (recipe.matchesKeyword(keyword)) return recipe;
     }
     return null;
+  }
+
+  /**
+   * ⭐ The recipe that MAKES `outputTemplate`, or null — how a part with no
+   * recorded recipe (a found thing's line, a stocked pick) still knows the
+   * trade that made it (repair D1). Deterministic: the lowest recipe id
+   * when several make the same row.
+   */
+  public recipeFor(outputTemplate: string): Recipe | null {
+    this.ensureCache();
+    const id = this.byOutput.get(outputTemplate);
+    return id ? (this.cache!.get(id) ?? null) : null;
   }
 
   /** Every known recipe. */
@@ -93,6 +111,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   public invalidateCache(): void {
     this.cache = null;
     this.byKeyword = new Map();
+    this.byOutput = new Map();
   }
 
   /** (Re)build the cache + keyword index from `documents {kind: recipe}`. */
@@ -109,6 +128,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     }
     const cache = new Map<string, Recipe>();
     const byKeyword = new Map<string, string>();
+    const byOutput = new Map<string, string>();
     for (const recipe of recipes) {
       const id = recipe.getRecipeId();
       if (!id) continue;
@@ -119,9 +139,13 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       for (const kw of recipe.getKeywords()) {
         byKeyword.set(kw.toLowerCase(), id);
       }
+      const out = recipe.getOutputTemplate();
+      const prior = out ? byOutput.get(out) : undefined;
+      if (out && (prior === undefined || id < prior)) byOutput.set(out, id);
     }
     this.cache = cache;
     this.byKeyword = byKeyword;
+    this.byOutput = byOutput;
   }
 
   private ensureCache(): void {

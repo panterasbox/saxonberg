@@ -54,7 +54,7 @@ import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
-import type { Durable } from '../material/Durable';
+import type { Durable, MendRecord } from '../material/Durable';
 import type Material from '../material/Material';
 import { Construction } from '../material/Construction';
 import type { Channel } from '../material/Channel';
@@ -91,6 +91,18 @@ export interface BillPart {
    * A crafted thing never reads it: its record is what actually went in.
    */
   material?: string;
+  /**
+   * What SHAPE a found thing's part is (`bladed` on an axe's head) — the
+   * edge a found tool has to be honed. A crafted thing's line reads the
+   * consumed part's own form instead.
+   */
+  form?: string;
+  /**
+   * ⭐ The name a FOUND thing's part bears (repair D18, the heirloom): the
+   * name lives in the part, so a re-hilted blade keeps it. Only a found
+   * thing reads it — a crafted sword is nameless.
+   */
+  name?: string;
 }
 
 /** One joint of a kind's bill: which parts it holds, by which method. */
@@ -149,6 +161,44 @@ export interface PartLine {
   joints?: JointState[];
   /** Its plural noun, carried from the bill. */
   plural?: string;
+  /**
+   * 0..1 — the edge of a part whose form cuts or pierces (repair D3). Absent
+   * reads keen. It is the loose part's own `keenness`, carried in.
+   */
+  keenness?: number;
+  /** ⭐ The name this part bears — the seat of the whole's name (D18). */
+  name?: string;
+  /**
+   * Identity path of whoever may NAME this part once — the hand that
+   * reforged a named part, which took its name (Narsil's rule, D9).
+   */
+  nameGrant?: string;
+  /** Every mend this part has had (repair D10), carried in and out. */
+  mends?: MendRecord[];
+  /** The recipe that made the member, when one did (repair D1). */
+  recipe?: string;
+  /** The trade of the mould the member set in, when it was cast (D1). */
+  castDiscipline?: string;
+}
+
+/** What a part carries into a line when it is fitted (repair D2). */
+export interface FittedMember {
+  material: string;
+  grade: GradeBand;
+  form?: string;
+  green?: boolean;
+  cupped?: boolean;
+  maker: string;
+  parts?: PartLine[];
+  joints?: JointState[];
+  /** The part's own wear. Absent, a fitted member is sound. */
+  condition?: number;
+  keenness?: number;
+  name?: string;
+  nameGrant?: string;
+  mends?: MendRecord[];
+  recipe?: string;
+  castDiscipline?: string;
 }
 
 /** One joint's live state. */
@@ -212,17 +262,42 @@ export interface Assembled {
    * Replace `k` failed (or, when none failed, worn) members of a line with
    * newly fitted ones. Re-makes every joint the line is a member of.
    */
-  replaceMembers(
-    part: string,
-    k: number,
-    fitted: { material: string; grade: GradeBand; form?: string; green?: boolean; cupped?: boolean; maker: string; parts?: PartLine[]; joints?: JointState[] },
-  ): void;
+  replaceMembers(part: string, k: number, fitted: FittedMember): void;
   /** Restore every line's wear (not its failures) and every joint. */
   restoreAll(maker: string): void;
   getGauge(): GaugeRecord | null;
   /** The name a hand is shown by: as the world names it now, else as it was when it did the work. */
   handName(path: string): string | null;
   setGauge(record: GaugeRecord | null): void;
+  /**
+   * ⭐ No bill and no record — a thing of ONE piece (repair D4). Every
+   * method here is total on that: a monolith's wear, edge, name and mends
+   * are its own fields.
+   */
+  isOnePiece(): boolean;
+  /** The lines whose form cuts or pierces — the edges a whetstone reaches. */
+  edgedLines(): PartLine[];
+  /** One line's edge (1 when the line has none recorded). */
+  lineKeenness(part: string): number;
+  setLineKeenness(part: string, value: number): void;
+  /** Hone one line's edge to keen. */
+  honeLine(part: string): void;
+  /** Dull one line's edge by `amount`. */
+  dullLine(part: string, amount: number): void;
+  /**
+   * The name the thing bears — the named line's, else its own (a
+   * one-piece thing's). Empty when it bears none.
+   */
+  getSeatName(): string;
+  /** Name it: the named line when it has one, else the thing itself. */
+  setSeatName(value: string): void;
+  /** Take the name away (a reforge), from the line that bears it. */
+  clearSeatName(): void;
+  /** Who may name it once — the hand that reforged its named part. */
+  getNameGrant(): string;
+  setNameGrant(value: string): void;
+  /** Append a mend to one line's record. */
+  recordLineMend(part: string, record: MendRecord): void;
 }
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -290,6 +365,28 @@ function constructionOf(form: string | undefined): Construction | null {
   return Construction.of(form);
 }
 
+/**
+ * ⭐ Whether a form has an EDGE — it delivers a cut or a point as its
+ * primary channel (repair D3). An edge is a fact about shape, and shape is
+ * the form word: a mace has none, a billhook has one.
+ */
+function formCuts(form: string | undefined): boolean {
+  const c = constructionOf(form);
+  if (!c || !c.isWeapon()) return false;
+  const p = c.primaryChannel();
+  return p === 'edge' || p === 'point';
+}
+
+/** Write an optional field, or delete it when the value is absent. */
+function setOrDelete<K extends keyof PartLine>(
+  line: PartLine,
+  key: K,
+  value: PartLine[K] | undefined,
+): void {
+  if (value === undefined) delete line[key];
+  else line[key] = value;
+}
+
 function isBillPart(v: unknown): v is BillPart {
   if (!v || typeof v !== 'object') return false;
   const p = v as Record<string, unknown>;
@@ -310,6 +407,12 @@ function nounOf(line: { part: string; plural?: string }, n: number): string {
 /** The look line: what it is made of, what has failed, what is slack. */
 function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isAssembled(host)) return text;
+  // ⭐ A thing with no bill is ONE piece (repair D4) — said, so the lesson
+  // of `fit x to it` refusing is on the look before anyone tries.
+  if (host.isOnePiece()) {
+    const one = 'It is one piece.';
+    return text && text.length > 0 ? `${text}\n\n${one}` : one;
+  }
   const lines = host.getParts();
   if (lines.length === 0) return text;
   const describe = (l: PartLine): string => {
@@ -431,6 +534,23 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       ],
     };
 
+    static fieldMeta: FieldMeta = {
+      // ⭐ The KIND's declaration — authored on the row. Open knowledge: a
+      // cooper would tell you a cask is staves and hoops.
+      bill: { persistent: true, authorable: true },
+      parts: { persistent: true, runtimeState: true },
+      joints: { persistent: true, runtimeState: true },
+      gauge: { persistent: true, runtimeState: true },
+      hands: { persistent: true, runtimeState: true },
+      // ⭐ A one-piece thing's own name and its grant (repair D18) — a
+      // thing of parts keeps both on the line that bears them.
+      seatName: { persistent: true, runtimeState: true },
+      nameGrant: { persistent: true, runtimeState: true },
+    };
+
+    // ⚠ Below `fieldMeta`, never above it: the wiki-spoiler audit's owner
+    // scan files a field under the nearest `const` before it, and a
+    // `const name` here filed every field of this mixin under `name.*`.
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
       if (!MixinApi.hasMixin(ctor, Mixins.Durable)) {
@@ -440,16 +560,6 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
     }
-
-    static fieldMeta: FieldMeta = {
-      // ⭐ The KIND's declaration — authored on the row. Open knowledge: a
-      // cooper would tell you a cask is staves and hoops.
-      bill: { persistent: true, authorable: true },
-      parts: { persistent: true, runtimeState: true },
-      joints: { persistent: true, runtimeState: true },
-      gauge: { persistent: true, runtimeState: true },
-      hands: { persistent: true, runtimeState: true },
-    };
 
     public bill: Bill | null = null;
     public parts: PartLine[] = [];
@@ -461,6 +571,11 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
      * so the work still says whose it is when they are not in the world.
      */
     public hands: Record<string, string> = {};
+
+    /** A one-piece thing's own name — `''` when it bears none (D18). */
+    public seatName: string = '';
+    /** Who may name a one-piece thing once — the hand that reforged it. */
+    public nameGrant: string = '';
 
     /** Remember the name a hand goes by, while it can be read. */
     private noteHand(path: string | undefined): void {
@@ -614,6 +729,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         failed: 0,
         makers: [],
         ...(p.plural ? { plural: p.plural } : {}),
+        ...(p.form ? { form: p.form } : {}),
+        ...(p.name ? { name: p.name } : {}),
       }));
     }
 
@@ -722,36 +839,37 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.seatFlatJoints();
     }
 
-    replaceMembers(
-      part: string,
-      k: number,
-      fitted: {
-        material: string;
-        grade: GradeBand;
-        form?: string;
-        green?: boolean;
-        cupped?: boolean;
-        maker: string;
-        parts?: PartLine[];
-        joints?: JointState[];
-      },
-    ): void {
+    replaceMembers(part: string, k: number, fitted: FittedMember): void {
       this.ensureParts();
       const line = this.parts.find((l) => l.part === part);
       if (!line || k <= 0) return;
       const n = line.count;
       const take = Math.min(k, n);
+      // ⭐ A fitted member brings its OWN wear (repair D2): a worn haft
+      // fitted is a worn haft in the whole. Absent, it is sound.
+      const fittedCondition = Math.max(0, Math.min(1, fitted.condition ?? 1));
       // Failed members are replaced first; any remainder replaces the most
       // worn of the sound ones (the set's gauge is their average).
       const fromFailed = Math.min(take, line.failed);
       line.failed -= fromFailed;
-      line.condition = (line.condition * (n - take) + take) / n;
+      line.condition = (line.condition * (n - take) + take * fittedCondition) / n;
       if (n === 1 || take === n) {
-        // The whole line is the new member — it IS what was fitted now.
+        // The whole line is the new member — it IS what was fitted now,
+        // and carries what the part carried: its edge, its name, its mends.
         line.material = fitted.material;
         line.grade = fitted.grade;
-        line.condition = 1;
+        line.condition = fittedCondition;
         line.failed = 0;
+        setOrDelete(line, 'keenness', fitted.keenness);
+        setOrDelete(line, 'name', fitted.name || undefined);
+        setOrDelete(line, 'nameGrant', fitted.nameGrant || undefined);
+        setOrDelete(
+          line,
+          'mends',
+          fitted.mends && fitted.mends.length > 0 ? fitted.mends.map((m) => ({ ...m })) : undefined,
+        );
+        setOrDelete(line, 'recipe', fitted.recipe || undefined);
+        setOrDelete(line, 'castDiscipline', fitted.castDiscipline || undefined);
         if (fitted.form) line.form = fitted.form;
         else delete line.form;
         if (fitted.green) {
@@ -815,7 +933,99 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.gauge = record ? { ...record } : null;
     }
 
+    // ------------------------------------------- one piece, edges, names
+
+    isOnePiece(): boolean {
+      return this.bill === null && this.parts.length === 0;
+    }
+
+    edgedLines(): PartLine[] {
+      return this.getParts().filter((l) => formCuts(l.form));
+    }
+
+    lineKeenness(part: string): number {
+      return this.getLine(part)?.keenness ?? 1;
+    }
+
+    setLineKeenness(part: string, value: number): void {
+      this.ensureParts();
+      const line = this.parts.find((l) => l.part === part);
+      if (!line) return;
+      line.keenness = Math.max(0, Math.min(1, value));
+    }
+
+    honeLine(part: string): void {
+      this.setLineKeenness(part, 1);
+    }
+
+    dullLine(part: string, amount: number): void {
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      this.setLineKeenness(part, this.lineKeenness(part) - amount);
+    }
+
+    getSeatName(): string {
+      const named = this.getParts().find((l) => l.name);
+      return named?.name ?? this.seatName;
+    }
+
+    setSeatName(value: string): void {
+      this.ensureParts();
+      // ⭐ The name lives in the part that bears it, or the part that may
+      // be named (its grant), else the thing itself (a one-piece thing).
+      const seat =
+        this.parts.find((l) => l.name) ?? this.parts.find((l) => l.nameGrant);
+      if (seat) seat.name = value;
+      else this.seatName = value;
+    }
+
+    clearSeatName(): void {
+      this.ensureParts();
+      for (const l of this.parts) delete l.name;
+      this.seatName = '';
+    }
+
+    getNameGrant(): string {
+      const granted = this.getParts().find((l) => l.nameGrant);
+      return granted?.nameGrant ?? this.nameGrant;
+    }
+
+    setNameGrant(value: string): void {
+      this.ensureParts();
+      const seat =
+        this.parts.find((l) => l.nameGrant) ?? this.parts.find((l) => l.name);
+      if (seat) {
+        if (value) seat.nameGrant = value;
+        else delete seat.nameGrant;
+      } else this.nameGrant = value;
+    }
+
+    recordLineMend(part: string, record: MendRecord): void {
+      this.ensureParts();
+      const line = this.parts.find((l) => l.part === part);
+      if (!line) return;
+      line.mends = [...(line.mends ?? []), { ...record }];
+    }
+
+    /**
+     * ⭐ A thing answers to the name it bears — `get Brightwater` finds the
+     * sword whose blade is named (repair D18).
+     */
+    hasKeyword(keyword: string): boolean {
+      const own = (Base.prototype as unknown as { hasKeyword?: (k: string) => boolean })
+        .hasKeyword;
+      if (own && own.call(this, keyword)) return true;
+      const name = this.getSeatName();
+      return !!name && name.toLowerCase() === keyword.toLowerCase();
+    }
+
     // ---------------------------------------------- the Durable overrides
+
+    /** Its own mends, and every part's (repair D10). */
+    getMends(): MendRecord[] {
+      const own = (Base.prototype as unknown as Durable).getMends.call(this);
+      const lines = this.parts.flatMap((l) => (l.mends ?? []).map((m) => ({ ...m })));
+      return [...own, ...lines].sort((a, b) => a.at - b.at);
+    }
 
     /**
      * ⭐ An assembly is as sound as its worst line, and no sounder than a

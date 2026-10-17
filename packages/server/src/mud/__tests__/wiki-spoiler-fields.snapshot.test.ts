@@ -40,6 +40,25 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Repair — assemblies part two (4 fields, and a relabel).** Every one
+ * level 0, and why:
+ *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
+ *     been mended (by Berta)* and `analyze condition` reads the rest by
+ *     the appraiser's band; the panel shows what a look already does.
+ *   - `CraftedMixin.castDiscipline` — the trade of the mould a thing set
+ *     in. It is which trade MENDS it, and the mend's own refusal names
+ *     that trade; nothing to hide.
+ *   - `AssembledMixin.seatName` / `.nameGrant` — ⭐ the question this
+ *     build was asked to settle: is an un-revealed heirloom's name a
+ *     spoiler? No. A thing's name is what it is CALLED — the heirloom is
+ *     *Brightwater* on `look`, in the room and in your hands, and the
+ *     name is how you ask for it. What a name may hide (where it came
+ *     from, who carried it) is the row's prose, not this field. The grant
+ *     is who may name a reforged part once — the reforger is told so.
+ *   - ⚠ The relabel: `AssembledMixin.__validateComposition__` declared a
+ *     `const name` above `static fieldMeta` (the dairy's finding, missed
+ *     here), so `bill`/`parts`/`joints`/`gauge`/`hands` were filed under
+ *     `name.*`. The check sits below `fieldMeta` now.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

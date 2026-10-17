@@ -2362,9 +2362,18 @@ function applyAssembledOutput(
     if (ms.some((m) => MixinApi.isSeasoning(m.stuff) && m.stuff.isCupped())) {
       line.cupped = true;
     }
-    if (MixinApi.isAssembled(first.stuff)) {
+    if (MixinApi.isAssembled(first.stuff) && !first.stuff.isOnePiece()) {
       line.parts = first.stuff.getParts();
       line.joints = first.stuff.getJoints();
+    }
+    // ⭐ What the part carries, it carries in (repair D2): its edge, the
+    // recipe and mould that made it, its mends, and a name it bears. The
+    // bill's found-default name is never read here — a crafted thing is
+    // nameless unless one of its parts already was.
+    if (ms.length === 1) Object.assign(line, carriedState(first.stuff));
+    else {
+      const recipe = MixinApi.isCrafted(first.stuff) ? first.stuff.getRecipe() : '';
+      if (recipe) line.recipe = recipe;
     }
     lines.push(line);
   }
@@ -3809,9 +3818,14 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const green = MixinApi.isSeasoning(part) && part.isGreen();
   const cupped = MixinApi.isSeasoning(part) && part.isCupped();
   const nested =
-    MixinApi.isAssembled(part)
+    MixinApi.isAssembled(part) && !part.isOnePiece()
       ? { parts: part.getParts(), joints: part.getJoints() }
       : null;
+  // ⭐ The part's own state rides in (repair D2): a worn haft fitted is a
+  // worn haft in the whole, a honed head keeps its edge, a named blade
+  // keeps its name. Never forced sound.
+  const carried = carriedState(part);
+  const partCondition = MixinApi.isDurable(part) ? part.getCondition() : undefined;
   const makerId = maker.getIdentityPath() ?? '';
   consumeItemInputs([
     {
@@ -3830,6 +3844,8 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     ...(cupped ? { cupped } : {}),
     maker: makerId,
     ...(nested ? nested : {}),
+    ...(partCondition !== undefined ? { condition: partCondition } : {}),
+    ...carried,
   });
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
@@ -3879,8 +3895,75 @@ async function mintMember(
   if (MixinApi.isDurable(out)) out.setCondition(line.condition);
   if (line.form && MixinApi.isConstructed(out)) out.setConstructionForm(line.form);
   if (line.parts && MixinApi.isAssembled(out)) out.recordAssembly(line.parts, line.joints ?? []);
+  // ⭐ …and what the line carried goes out with the part (repair D2): a
+  // worn part removed is still worn, a keen edge still keen, a named blade
+  // still named, its mends still its own. Only a count-1 line is one part.
+  if (line.count === 1) {
+    if (line.keenness !== undefined && MixinApi.isKeen(out)) out.setKeenness(line.keenness);
+    if (line.mends && MixinApi.isDurable(out)) {
+      for (const m of line.mends) out.recordMend(m);
+    }
+    if (MixinApi.isAssembled(out)) {
+      if (line.name) out.setSeatName(line.name);
+      if (line.nameGrant) out.setNameGrant(line.nameGrant);
+    }
+    if (MixinApi.isCrafted(out)) {
+      if (line.recipe) out.setRecipe(line.recipe);
+      if (line.castDiscipline) out.setCastDiscipline(line.castDiscipline);
+    }
+  }
   if (MixinApi.isStackable(out)) out.setQuantity(n);
   return out;
+}
+
+/**
+ * ⭐ What a loose part carries into a line (repair D2) — its edge, its
+ * name and grant, its mends, and the recipe and mould that made it. The
+ * same fields `mintMember` writes back out, read off the part's own
+ * mixins; absent ones are left absent.
+ */
+function carriedState(part: Stuff): Partial<PartLine> {
+  const out: Partial<PartLine> = {};
+  if (MixinApi.isKeen(part) && !(MixinApi.isAssembled(part) && part.edgedLines().length > 0)) {
+    const k = part.getKeenness();
+    if (k < 1) out.keenness = k;
+  }
+  if (MixinApi.isAssembled(part) && part.isOnePiece()) {
+    const name = part.getSeatName();
+    if (name) out.name = name;
+    const grant = part.getNameGrant();
+    if (grant) out.nameGrant = grant;
+  }
+  if (MixinApi.isDurable(part)) {
+    const mends = part.getMends();
+    if (mends.length > 0) out.mends = mends;
+  }
+  if (MixinApi.isCrafted(part)) {
+    const recipe = part.getRecipe();
+    if (recipe) out.recipe = recipe;
+    const cast = part.getCastDiscipline();
+    if (cast) out.castDiscipline = cast;
+  }
+  return out;
+}
+
+/**
+ * ⭐⭐ The trade a line is mended under (repair D1) — derived, in three
+ * reads, all load-on-use: the recipe that made the member, else the recipe
+ * that makes its row (a found thing, a stocked pick), else the trade of
+ * the mould it was cast in. `''` when nothing can be known — a found
+ * stone, a part no recipe makes — and such a line is mended as if by a
+ * competent hand, since nothing better or worse can be known about it.
+ */
+function disciplineOf(
+  line: Pick<PartLine, 'recipe' | 'template' | 'castDiscipline'>,
+  catalogue: RecipeCatalogue,
+): string {
+  const made = line.recipe ? catalogue.getRecipe(line.recipe) : null;
+  if (made?.getDiscipline()) return made.getDiscipline();
+  const byRow = line.template ? catalogue.recipeFor(line.template) : null;
+  if (byRow?.getDiscipline()) return byRow.getDiscipline();
+  return line.castDiscipline ?? '';
 }
 
 /**
