@@ -1,0 +1,70 @@
+# The creamery (dairy D14) — the valley's co-op creamery, off the road
+# just inside the gate: where the farms bring their milk and where it
+# becomes something that keeps. ⭐ The second venue the trade proves —
+# every vessel here is a row over dairying's classes or the kernel's.
+class: /platform/location/SingletonCartesianLocation
+data:
+  # The room's own size: a whitewashed workroom some five metres across, not the Delight's
+  # 20 m cell: at 400 m² its lantern read `very-dim` after dark and every
+  # vessel was "something" (the night browser walk). 600 lm over 25 m² is
+  # `lit` — enough to read a thermometer by, as its prose says.
+  extent: 5
+  shortDescription: co-op creamery
+  keywords: [creamery, dairy, co-op, coop]
+  register: definite
+  _address: terminus/hearts-delight/creamery
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  # Held warm (lint:envelope's authored list says why).
+  _temperature: 293
+  ambientSource: sky
+  ambientOpening: windows
+  ambientIntensity: 12000
+  ambientColorTemperature: 4800
+  longDescription: |
+    A whitewashed room with a stone floor that slopes to a drain and slate shelves along two walls. A wide shallow pan stands on a shelf; a tall churn and a lidded milk can stand by the door; and in the middle of the room a copper vat squats on three legs near a low hearth. A hoop of beech staves stands on a pressing table, with a squared stone beside it, and a tin lantern hangs above it on a hook.
+
+    Everything smells of milk and of being scrubbed. A trap in the floor opens on steps going down to the cheese room.
+  coords: { x: -4, y: -4, z: 0 }
+  exits:
+    northeast:
+      destination: /world/terminus/hearts-delight/location/valley-gate
+      media: [ground]
+      edgeMinutes: 4
+    down:
+      destination: /world/terminus/hearts-delight/creamery/location/cheese-room
+      media: [ground]
+      edgeMinutes: 1
+  # Hung, not set down: a lamp lights a room fixture-side, and one left
+  # loose in its contents lights nothing (the night browser walk).
+  adornments:
+    - { template: /world/terminus/hearts-delight/creamery/thing/lantern, slot: lamp:creamery }
+  props:
+    # One pan: a second makes every `pour pan into …` ask which (the drive).
+    - /trade/dairying/thing/setting-pan
+    - /trade/dairying/thing/churn
+    - /trade/dairying/thing/cheese-vat
+    - /trade/dairying/thing/hoop
+    - /trade/dairying/thing/starter-crock
+    - /trade/dairying/thing/rennet-jar
+    - /trade/dairying/thing/butter-crock
+    - /trade/dairying/thing/jug
+    - /trade/dairying/thing/milk-can
+    - /world/terminus/hearts-delight/creamery/thing/hearth
+    - /stuff/thing/instrument/thermometer
+    - /stuff/thing/gear/press-stone
+    - /trade/cooking/thing/salt-sack
+    - /trade/cooking/thing/salting-trough
+    - /stuff/thing/fixture/water-butt
+    - /stuff/thing/fixture/table
+    - /world/terminus/hearts-delight/creamery/thing/shelf
+  cast:
+    - /world/terminus/hearts-delight/agent/creamery-keeper
+  details:
+    windows:
+      keywords: [windows, window, light, shutters]
+      description: |
+        High, north-facing and louvred, so the light comes in and the sun does not.
+    trap:
+      keywords: [trap, steps, hatch]
+      description: |
+        A wooden hatch propped open over stone steps. The air coming up them is cold.

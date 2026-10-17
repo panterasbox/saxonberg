@@ -1,0 +1,14 @@
+# A ricotta basket — a rush basket the cooked curd of whey is ladled into
+# to drain. ⭐ A `Receptacle` holding the ricotta as soft stock (the
+# `ricotta` recipe mints into it).
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: ricotta basket
+  keywords: [basket, "ricotta basket", ricotta]
+  register: indefinite
+  longDescription: A small round basket of woven rush, damp and faintly milky.
+  category: ricotta-basket
+  interiorBulk: true
+  interiorCapacity: 1
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 0.2

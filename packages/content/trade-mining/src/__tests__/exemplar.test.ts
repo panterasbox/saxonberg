@@ -102,7 +102,12 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           // ⭐ the old brine bore at the spring hollow (the pump build) —
           // drilling's `Wellhead`, authored rather than sited: somebody sank
           // it and walked away. Still no venue code; one more trade composed.
-          cls.startsWith('/trade/drilling/'),
+          cls.startsWith('/trade/drilling/') ||
+          // ⭐ the nannies' herd book (the dairy build) — ranching's
+          // `Herdbook`, and the goat pen's vessels are dairying's and
+          // the platform's. Still no venue code: two more trades composed.
+          cls.startsWith('/trade/ranching/') ||
+          cls.startsWith('/trade/dairying/'),
         // ⚠ Name the offender. This assertion failed on a class move and
         // said only `expected false to be true`, which is a sentence
         // nobody can act on.

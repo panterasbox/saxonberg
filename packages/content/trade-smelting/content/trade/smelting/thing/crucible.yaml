@@ -1,0 +1,18 @@
+# A crucible (dairy D19) — a thick refractory pot that stands IN the
+# furnace and catches the metal when it runs. ⭐ NOT a mould: what is left
+# to cool in it sets as a lump, and a lump wants remelting. Pour it into a
+# mould while it is bright. Bare-handed it burns (the shipped hot grab);
+# pouring it where it stands burns nobody.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: crucible
+  keywords: [crucible, pot]
+  register: indefinite
+  longDescription: >-
+    A thick-walled pot of grey refractory clay with a pinched lip, its
+    outside glazed in drips of old slag.
+  interiorBulk: true
+  interiorCapacity: 1.5
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 4

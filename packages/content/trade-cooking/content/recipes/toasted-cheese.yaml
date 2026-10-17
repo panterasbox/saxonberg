@@ -1,0 +1,27 @@
+# Toasted cheese (dairy D15) — bread and a wedge of cheese held to the
+# fire until the cheese runs. Any cheese (`category: cheese`), any bread.
+recipeId: toasted-cheese
+name: Toasted Cheese
+keywords:
+- toasted-cheese
+- rarebit
+inputSlots:
+- slot: bread
+  category: bread
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: cheese
+  category: cheese
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputTemplate: /stuff/thing/items/plated-dish
+outputAppearance: bread with cheese melted brown and bubbling across it
+outputApplication: edible
+outputPortionL: 0.3
+requiresHeatK: 450
+maxHeatK: 480
+difficulty: easy
+discipline: cooking

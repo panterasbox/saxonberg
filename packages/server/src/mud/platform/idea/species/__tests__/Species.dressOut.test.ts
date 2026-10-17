@@ -249,3 +249,20 @@ describe('⭐⭐⭐ a CLAIMING line derives its share from the muscles it takes'
     expect(thin.kgEach!).toBeLessThan(fat.kgEach!);
   });
 });
+
+describe('⭐ a line for a YOUNG body only (dairy D8 — the vell)', () => {
+  const VELL = '/trade/cooking/thing/vell';
+  it('yields at thirty days, not at four hundred, and with no age given', () => {
+    const s = species([
+      { cut: HIDE, units: 1, fraction: 0.07, conditioned: false },
+      { cut: VELL, units: 1, fraction: 0.004, maxAgeDays: 60 },
+    ]);
+    const young = s.dressOut({ liveKg: 120, ageDays: 30 }).map((l) => l.cut);
+    const old = s.dressOut({ liveKg: 120, ageDays: 400 }).map((l) => l.cut);
+    const unknown = s.dressOut({ liveKg: 120 }).map((l) => l.cut);
+    expect(young).toContain(VELL);
+    expect(old).not.toContain(VELL);
+    expect(old).toContain(HIDE);
+    expect(unknown).toContain(VELL);
+  });
+});

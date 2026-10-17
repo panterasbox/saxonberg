@@ -25,6 +25,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import HerdRegistry from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 import type Livestock from '../../../agent/Livestock';
@@ -57,10 +59,12 @@ export default class ReturnController extends CommandController<ReturnModel> {
 
     const registry = await this.registry();
     const flesh = target.getReserve('flesh');
+    const driedOffAt = await this.driedOffStamps(registry, herdId, index, target);
     const ok = await registry.returnHead(herdId, index, {
       flesh: flesh ? round1(flesh.current.rawValue()) : undefined,
       handling: round2(target.getHandling()),
       ageDays: round1(target.getAgeDays()),
+      ...(driedOffAt ? { driedOffAt } : {}),
     });
     if (!ok) {
       this.decline(
@@ -86,6 +90,31 @@ export default class ReturnController extends CommandController<ReturnModel> {
     // write has landed, so a failed write leaves the animal standing
     // rather than deleting a head nobody wrote down.
     StuffApi.destruct(target as unknown as Stuff);
+  }
+
+  /**
+   * ⭐ (dairy D12) When each `expire` tap that is dried off went dry — the
+   * dry period counts from the RETURN. A stamp already in the record and
+   * still inside its rest is kept, so turning her in twice does not
+   * restart the clock; one past its rest is replaced.
+   */
+  private async driedOffStamps(
+    registry: HerdRegistry,
+    herdId: string,
+    index: number,
+    target: Livestock,
+  ): Promise<Record<string, number> | null> {
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const prior = (await registry.overlayFor(herdId, index))?.driedOffAt ?? {};
+    const out: Record<string, number> = {};
+    for (const tap of target.taps()) {
+      if (tap.behaviour !== 'expire' || !target.isDriedOff(tap.key)) continue;
+      const was = prior[tap.key];
+      const rest = (tap.restDays ?? 0) * 86_400;
+      out[tap.key] = typeof was === 'number' && nowS - was < rest ? was : nowS;
+    }
+    return Object.keys(out).length > 0 ? out : null;
   }
 
   protected async registry(): Promise<HerdRegistry> {

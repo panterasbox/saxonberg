@@ -71,6 +71,22 @@ describe('VitalsMixin — composition + storage', () => {
     expect(creature.getVitalSign('bloodVolume').rawValue()).toBe(4.5);
   });
 
+  it('⭐ a body takes its species\' resting values — a cow is not built with a person\'s blood (dairy)', () => {
+    const cow = makeStuff(() => new Species());
+    cow.setVitalProfile({
+      ...UNIVERSE_DEFAULT_VITAL_PROFILE,
+      bloodVolume: { baseline: 40, survivableMin: 30, survivableMax: 48 },
+    });
+    stampTemplatePathForTest(cow, '/stuff/idea/species/test/cow');
+    const creature = makeStuff(() => new Creature());
+    creature.setSpecies(cow);
+    expect(creature.getVitalSign('bloodVolume').rawValue()).toBe(40);
+    expect(creature.isDying()).toBe(false);
+    // A value written after the species is known stands.
+    creature.setVitalSign('bloodVolume', Quantity.of(35, 'L'));
+    expect(creature.getVitalSign('bloodVolume').rawValue()).toBe(35);
+  });
+
   it('setVitalSign rejects a wrong-unit Quantity', () => {
     const creature = makeStuff(() => new Creature());
     expect(() =>

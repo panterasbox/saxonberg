@@ -48,6 +48,20 @@ requires:
       holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
       landUse: agricultural
       areaM2: 1200
+    # ⭐ (dairy D14) The dairy farm — titled to the dairy household, the
+    # close's precedent: the herd is demonstrably somebody's.
+    - extent: /world/terminus/hearts-delight/dairy
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/idea/dairy-business }
+      landUse: agricultural
+    # ⭐ The co-op creamery — titled to the CO-OP, a new organization row,
+    # because "the co-op" existed in the valley only as design prose.
+    - extent: /world/terminus/hearts-delight/creamery
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/idea/creamery-coop }
+      landUse: commercial
+      # The valley is lamp-oil country — no wire reaches the creamery.
+      powerBand: off-grid
 
 # ⭐⭐ **Nothing here is booted** (the scan sweep, 2026-10-14). The three
 # herdbooks are props of the farmstead yard, so arriving there stands

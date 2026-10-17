@@ -227,6 +227,24 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push('enclosure', (data.enclosure as Record<string, unknown>).material);
   }
 
+  // ⭐ `transforms[].becomes` (the dairy build) — what a working batch
+  // turns into when a declared pour lands (rennet into milk → renneted
+  // milk). Resolved live at the pour, and a rowless one would decline the
+  // rekey silently: the rennet goes in and nothing happens.
+  // ⭐ `drainSetting.becomes` — what curd sets into in a hoop. Resolved
+  // live at the set; a rowless one keeps the pool's own material, so a
+  // wheel of CURD would ripen as nothing.
+  if (Array.isArray(data.transforms)) {
+    for (const t of data.transforms) {
+      if (t && typeof t === 'object') {
+        push('transforms', (t as Record<string, unknown>).becomes);
+      }
+    }
+  }
+  if (data.drainSetting && typeof data.drainSetting === 'object') {
+    push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);
+  }
+
   // ⭐ `costume:` — the garments an authored person has on, the third
   // designation beside `props:` and `cast:`. It was `wears:` on `NPC`
   // until review (2026-09-25); this gate is the reason the rename is

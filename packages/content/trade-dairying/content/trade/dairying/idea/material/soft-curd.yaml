@@ -1,0 +1,30 @@
+# Soft curd — milk a lactic culture has set (dairy D7), the residual a
+# vat holds when the whey is drawn off. ⭐ It SETS in a hoop by draining
+# (`drainSetting`, D9b): unweighted it gives a soft cheese at nine-tenths
+# its water; pressed, a little drier. Its share of the milk derives from
+# the milk's fat and protein.
+class: /platform/idea/material/Material
+data:
+  name: "soft curd"
+  keywords: [curd, "soft curd"]
+  appearance: wet, white and trembling
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 80000, protein: 80000, sugar: 20000, water: 800000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "perishable", "curd", "soft-curd"]
+  drainSetting:
+    days: 0.5
+    becomes: /trade/dairying/idea/material/soft-cheese
+    moisture: { unloaded: 0.9, loaded: 0.75 }
+    loadRef: 2
+  composition: []

@@ -1,0 +1,17 @@
+# A press stone — a squared block of granite with an iron ring let into
+# the top. Its whole use is its weight: set on a cheese hoop
+# (`put stone on hoop`) it drives the whey out faster and further, and the
+# wheel that sets under it is drier and keeps longer (dairy D21).
+#
+# ⭐ Nothing reads it but a mould's `loadKg()`, by MASS — which is why a sack
+# of flour on the hoop works too. A weight is a weight.
+class: /platform/thing/Good
+data:
+  shortDescription: press stone
+  keywords: [stone, press-stone, weight]
+  register: indefinite
+  longDescription: |
+    A squared block of grey granite with an iron ring let into the top,
+    worn smooth where hands have lifted it.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 12

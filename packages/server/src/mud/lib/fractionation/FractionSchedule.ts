@@ -48,6 +48,10 @@ import { StuffApi } from '../../api/stuff';
 import type Material from '../material/Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { Grade } from '../craft/Grade';
+import {
+  CompositionShare,
+  type CompositionShareSpec,
+} from '../material/CompositionShare';
 import type { FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
@@ -203,6 +207,20 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   public gradeStretch = 0;
   /** The ordered fractions. Validated on set. */
   public fractions: FractionSpec[] = [];
+  /**
+   * ⭐ Game-days a charge must STAND before it separates (dairy D4) — a
+   * setting pan's cream rises overnight. A charge poured off before the
+   * rest has elapsed gives back what was charged (the shipped cold-charge
+   * rule). `0` — the default, and every shipped still — runs at once.
+   */
+  public restDays = 0;
+  /**
+   * ⭐ The residue share DERIVED from the charge's composition (dairy D3) —
+   * cream is the fat that rose, so ewe's milk leaves more than cow's. When
+   * set, the fractions' boundaries are scaled so the residue is this share
+   * of the charge; `null` = the literal last `upTo`.
+   */
+  public residueShare: CompositionShareSpec | null = null;
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
@@ -215,6 +233,8 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
     readBlur: { persistent: true, authorable: true },
     gradeStretch: { persistent: true, authorable: true },
     fractions: { persistent: true, authorable: true },
+    restDays: { persistent: true, authorable: true },
+    residueShare: { persistent: true, authorable: true },
   };
 
   /** Residency veto — reference data; a culled row matches nothing. */
@@ -462,6 +482,35 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
     return this.separation === 'fractions'
       ? (spec.material ?? '')
       : this.productMaterial;
+  }
+
+  getRestDays(): number {
+    return this.restDays;
+  }
+  setRestDays(value: number): void {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `FractionSchedule.setRestDays: days must be >= 0, got ${value}`,
+      );
+    }
+    this.restDays = value;
+  }
+
+  getResidueShare(): CompositionShareSpec | null {
+    return this.residueShare;
+  }
+  setResidueShare(value: CompositionShareSpec | null): void {
+    this.residueShare =
+      value === null ? null : new CompositionShare(value).toSpec();
+  }
+
+  /**
+   * The residue fraction for a charge of `material` — the derived share
+   * when the row authors one, else {@link getResidueFraction}.
+   */
+  getResidueFractionFor(material: Material | null): number {
+    if (this.residueShare === null) return this.getResidueFraction();
+    return new CompositionShare(this.residueShare).evaluate(material);
   }
 
   /** Cumulative fraction of the charge that is residue. */

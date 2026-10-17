@@ -1,0 +1,20 @@
+# An ingot — what molten metal sets into in an ingot mould (dairy D19).
+#
+# ⭐ ONE row for every metal: the mould's set stamps the pool's material,
+# so copper, tin and cast iron all set into this shape. An `Ingot` (a build
+# vessel), which is why a smith can `hammer` it and cannot hammer a lump —
+# a lump wants remelting and pouring, which is what `cast-bar` has always
+# described.
+#
+# ⚠ `_materialPath` is a PLACEHOLDER the set overwrites (`lint:mass` reads
+# authored rows); the copper-ingot row stays for `cast-bar`.
+class: /platform/thing/Ingot
+data:
+  shortDescription: ingot
+  keywords: [ingot, bar, billet]
+  register: indefinite
+  longDescription: >-
+    A squared bar of metal with a rounded top, the shape of the mould it
+    was poured into.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 0.5

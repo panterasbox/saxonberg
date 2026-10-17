@@ -1,9 +1,14 @@
 # Ice pan — a shallow tin tray a powered freezer freezes solid. Fill it
 # from a basin, put it in the freezer compartment, and the cold drives the
 # water below its melting point: the latent plateau banks the fusion heat
-# and the pool mints a block of ice (water's `castTemplate`). The electric
-# answer to "who makes the ice the iceboxes eat".
-class: /platform/thing/Receptacle
+# and the pool sets as a block of ice IN the pan. The electric answer to
+# "who makes the ice the iceboxes eat".
+#
+# ⭐ A MOULD (dairy D20): the pan decides the shape of what sets in it — a
+# square block, kept in the pan until you `get block from pan`. The same
+# water frozen in a pail sets as water's own fallback, a lump of ice
+# (`ice-lump`). Names no discipline: filling a tray credits nothing.
+class: /platform/thing/Mould
 data:
   shortDescription: ice pan
   keywords: [pan, ice-pan, tray, ice-tray]
@@ -13,4 +18,6 @@ data:
     filled with water and set in a freezer until it carries a block of ice.
   interiorBulk: true
   interiorCapacity: 4.0
+  closure: liquidTight
+  castTemplate: /stuff/thing/ice-block
   mass: 0.6

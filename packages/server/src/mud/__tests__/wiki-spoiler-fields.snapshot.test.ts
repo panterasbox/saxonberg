@@ -40,6 +40,27 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
+ *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
+ *     profile's curve facts, tagged as its siblings `killK` and
+ *     `damageAboveK` already are: the scald is what a thermometer and a
+ *     spoiled curd teach, and `transforms` (rennet makes renneted milk)
+ *     is the chemistry the trade's own prose states.
+ *   - `FractionSchedule.restDays` / `.residueShare` — how long a pan
+ *     stands and what share is left as cream: observable by waiting and
+ *     by looking at the pan, like `fractions`.
+ *   - `RipeningMixin` ×8, `MouldMixin` ×7, `MaturingMixin.batchPeakK`,
+ *     `FractionatingMixin.chargedAtS` / `.runResidueFraction`,
+ *     `VitalsMixin.vitalsSeededFor` — runtime state and its clocks,
+ *     read out in words (`young` · `coming on`; `filled · setting ·
+ *     set`) and never as figures.
+ *   - ⚠ The relabel: these mixins' `__validateComposition__` declared a
+ *     `const name` ABOVE `static fieldMeta`, so the owner scan filed
+ *     their fields — and Maturing's and Fractionating's shipped ones —
+ *     under `name.*`, and `Material.setDrainSetting`'s `const ok` filed
+ *     every Material field under `ok.*`. The composition checks now sit
+ *     below `fieldMeta` and the setter declares no local, so the labels
+ *     name their owners again.
  * **The grain chain (20 fields).** Every one level 0 except the recipe
  * ceiling, and here is why:
  *

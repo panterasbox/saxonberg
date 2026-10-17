@@ -1,0 +1,23 @@
+# Ripening a SOFT cheese (dairy D9) — read by the kernel's `RipeningMixin`
+# on a wheel, never by a vat (it keys on the `soft-cheese` tag, which only
+# a set wheel carries). About a week on a cool shelf to ripe; sellable,
+# young, from a third of the way; and it goes OVER a few days past ripe,
+# which is the soft cheese's whole commercial problem.
+#
+# ⚠ `turnedMaterial` names the soft cheese itself: going over is a phase
+# and a grade, not a different substance the game needs a row for.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: soft-cheese
+  inputCategory: soft-cheese
+  mechanism: microbial
+  stallBelowK: 275
+  happyK: 284
+  damageAboveK: 291
+  killK: 300
+  ratePerDay: 0.14
+  productMaterial: /trade/dairying/idea/material/soft-cheese
+  productAtFraction: 0.3
+  turnedMaterial: /trade/dairying/idea/material/soft-cheese
+  turnDays: 4
+  wildStrain: ''

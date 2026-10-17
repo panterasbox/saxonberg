@@ -1,0 +1,12 @@
+# The cheese room's lantern (the browser walk): a cellar cut into the bank
+# has no daylight to speak of, and the wheels on the racks read
+# "something" to anybody who went down after dark.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: cellar lantern
+  keywords: [lantern, lamp, light]
+  longDescription: |
+    A small horn-paned lantern on a nail at the foot of the steps, turned low so it warms nothing.
+  on: true
+  emittedIntensity: 400

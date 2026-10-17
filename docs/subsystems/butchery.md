@@ -318,3 +318,12 @@ world for every file. Recorded with its three fixes in
 [butchery-slate](../slates/tails/butchery-slate.md); it cannot be patched
 probe by probe, because with two ewes in the yard every noun the files
 share is ambiguous.
+
+## History — the dairy build (2026-10): a line for a young body only
+
+`ButcheryYield.maxAgeDays` — a line that comes off only a body younger
+than this (the **vell**, a calf's fourth stomach, the source of rennet:
+`maxAgeDays: 60` on the cow, 30 on the ewe and goat). `dressOut({…,
+ageDays})` skips it past that age; ⭐ an age the caller does not know keeps
+the line (unmodelled is open). The butcher passes the body's
+`getAgeDays()` (frozen at death), and `0` — no birthday — is unknown.

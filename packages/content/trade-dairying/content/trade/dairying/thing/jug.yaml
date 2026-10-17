@@ -1,0 +1,13 @@
+# A jug — an earthenware jug, the dairy's measure and its carrier for
+# buttermilk, whey and scalded milk.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: earthenware jug
+  keywords: [jug, "earthenware jug"]
+  register: indefinite
+  longDescription: A round-bellied earthenware jug with a lip for pouring.
+  category: jug
+  interiorBulk: true
+  interiorCapacity: 2
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 0.8

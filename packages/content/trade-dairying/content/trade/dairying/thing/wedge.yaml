@@ -1,0 +1,11 @@
+# A wedge of cheese (dairy D10) — what `split wheel` takes off a wheel. A
+# plain `Provision`: it carries the wheel's material, grade and state, and
+# spoils on its material's own clock — the ripening was the wheel's.
+class: /platform/thing/Provision
+data:
+  shortDescription: wedge of cheese
+  keywords: [wedge, cheese, "wedge of cheese"]
+  register: indefinite
+  longDescription: A wedge cut from a wheel of cheese, rind on the curved edge.
+  _materialPath: /trade/dairying/idea/material/soft-cheese
+  mass: 0.15

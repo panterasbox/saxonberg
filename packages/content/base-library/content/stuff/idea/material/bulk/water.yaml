@@ -21,11 +21,11 @@ data:
   latentHeatOfFusion: 334000
   boilingPoint: 373
   latentHeatOfVaporization: 2260000
-  # ⭐ What a frozen pool of water becomes — a carryable ice block (the good
-  # the iceboxes already consume). A powered freezer drives a pan of water
-  # below 273 K, the latent plateau banks the fusion heat, and the pool mints
-  # this. See docs/subsystems/thermal.md § Phase change both ways.
-  castTemplate: /stuff/thing/ice-block
+  # ⭐ What a frozen pool of water becomes in a vessel that is NOT a mould —
+  # a lump of ice (dairy D20). The ice pan is a mould and gives the squared
+  # block the iceboxes eat. See docs/subsystems/mould.md and thermal.md §
+  # Phase change both ways.
+  castTemplate: /stuff/thing/ice-lump
   edibility: true
   nutrients: [water]
   toxicity: []

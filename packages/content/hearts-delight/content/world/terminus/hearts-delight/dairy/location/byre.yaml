@@ -1,0 +1,48 @@
+# The byre (dairy D14) — where the cows are milked, and where the dairy
+# keeps its books: the herd and the calves. Lit by what comes through the
+# door; the milking is done by daylight.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: byre
+  keywords: [byre, shed, stalls]
+  register: definite
+  _address: terminus/hearts-delight/dairy/byre
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientSource: sky
+  ambientOpening: door
+  ambientIntensity: 10000
+  ambientColorTemperature: 5000
+  longDescription: |
+    A long whitewashed shed with a row of stalls down one side and a swept walk down the other, the floor sloping to a gutter. Three pails hang on pegs by the door beside a water butt, and the herd book and the calf register lie on a shelf where the light falls.
+
+    A three-legged stool stands by the first stall, worn dark on the seat. By the door, a scrubbed block and a knife on a nail: a dairy's bull calves do not go out to grass.
+  coords: { x: 1, y: -6, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/dairy/location/yard
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/dairy/thing/dairy-book
+    - /world/terminus/hearts-delight/dairy/thing/calf-register
+    # ⭐ Three pails: a dairy is worked by more than one pair of hands, and
+    # with ONE the first milker to carry it off left everybody else unable
+    # to milk (found by the browser walk). Take one with `get 1 pail`.
+    - { template: /stuff/thing/vessel/pail, count: 3 }
+    - /stuff/thing/fixture/water-butt
+    # ⭐ A dairy kills its bull calves young — and a calf's vell is the
+    # creamery's rennet (dairy D8). The block and the knife are why.
+    - /trade/cooking/thing/butcher-block
+    - /trade/cooking/thing/boning-knife
+  cast:
+    - /world/terminus/hearts-delight/agent/dairywoman
+    - /world/terminus/hearts-delight/agent/dairy-lad
+  details:
+    stool:
+      keywords: [stool, "milking stool"]
+      description: |
+        Three legs, so it sits on uneven ground. You milk from the cow's right, and you do it sitting down.
+    door:
+      keywords: [door, light]
+      description: |
+        Wide, and propped open. All the light in here comes through it.

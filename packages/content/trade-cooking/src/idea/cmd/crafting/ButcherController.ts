@@ -313,7 +313,17 @@ export default class ButcherController extends CraftController<ButcherModel> {
       }
     }
 
-    const dressed = species.dressOut({ liveKg, fleshPct, claims });
+    // ⭐ The body's age at the kill (dairy D8): a vell comes only off a
+    // head young enough to have one worth taking. `getAgeDays` reads the
+    // birthday the mint stamped and freezes at death; `0` means the body
+    // has no birthday, which is unknown — and unknown keeps every line.
+    const ageAt = MixinApi.isOrganism(body) ? body.getAgeDays() : 0;
+    const dressed = species.dressOut({
+      liveKg,
+      fleshPct,
+      claims,
+      ...(ageAt > 0 ? { ageDays: ageAt } : {}),
+    });
 
     // ⭐ What the tools in hand can reach. A knife is the floor (the verb
     // already gated on an edge); a saw opens the bone-in joints; a

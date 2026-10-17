@@ -154,6 +154,36 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
       "of the five, and the first to argue with if this list is ever " +
       "paid down.",
   },
+  {
+    path: "/world/terminus/hearts-delight/creamery/location/cheese-room",
+    reason:
+      "284 K — a cheese cave cut into the bank under the creamery (dairy " +
+      "D14). A cellar the same the year round is the case this list " +
+      "exists for, and here the temperature IS the product: the ripening " +
+      "profiles' happy band is 284 K, and a wheel carried up into the warm " +
+      "goes over or dies.",
+  },
+  {
+    path: "/world/terminus/hearts-delight/creamery/location/floor",
+    reason:
+      "293 K — a creamery workroom, held warm for the curd: renneted and " +
+      "soured milk is a maturation clock that stalls below 283 K, the " +
+      "brewery floor's case exactly. Found by the dairy drive when the " +
+      "climate build gave the Delight a winter: a 2.5 kW stove moved this " +
+      "room by a few kelvin (267–276 K lit), so the mechanism does not " +
+      "answer yet — sizing room heating is thermal's, and this entry is " +
+      "the first to pay down when it does.",
+  },
+  {
+    path: "/world/terminus/rejection/location/the-dry",
+    reason:
+      "293 K — the Dry, the drying room the miners keep warm by its stove " +
+      "(its prose: \"a stove in the middle that somebody keeps going\"); " +
+      "its warmth IS its trade, and it is the one room on the hill where " +
+      "a goat's milk can be set. The stove alone read 272–273 K under the " +
+      "climate build's winter (the dairy drive) — pay down with the " +
+      "creamery's.",
+  },
 ];
 
 /**

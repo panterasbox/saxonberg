@@ -9,6 +9,13 @@
 # ⚠ It lives in the COMMONS rather than under `/trade/ranching`, because
 # milk is a fact about mammals and not about the trade. A cow gives it
 # whether or not anybody is ranching.
+#
+# ⭐⭐ It SPOILS (dairy D2): `spoilActivationEnergy` 60 kJ/mol at a_w 0.99
+# puts the turn at about a game day in a warm room and several days in a
+# cool one — derived from the shipped growth dials, pinned by a test. The
+# `milk` tag is what every dairy process keys on, so a ewe's or a goat's
+# milk is a material row and a tap line, never a new profile; the
+# `cow-milk` tag says which animal.
 class: /platform/idea/material/Material
 data:
   name: milk
@@ -24,6 +31,8 @@ data:
   edibility: true
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 34000, protein: 33000, sugar: 48000, water: 870000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
   toxicity: []
-  tags: ["food", "dairy", "liquid", "perishable", "once-living"]
+  tags: ["food", "dairy", "liquid", "perishable", "once-living", "milk", "cow-milk"]
   composition: []

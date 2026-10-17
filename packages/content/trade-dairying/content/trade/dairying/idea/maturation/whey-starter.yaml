@@ -1,0 +1,18 @@
+# The whey starter — ⭐ a crock of whey IS a living lactic culture (dairy
+# D7). A pour of it into a vat of milk pitches the batch; a pour of milk
+# into it FEEDS it (the milk sugar); left unfed it starves in about a week,
+# and too warm it dies. Backslopping is the whole craft: the whey drained
+# off today's curd, poured back into the crock, is tomorrow's starter.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: whey-starter
+  inputCategory: whey
+  kind: culture
+  strain: lactic
+  mechanism: microbial
+  stallBelowK: 278
+  happyK: 300
+  damageAboveK: 312
+  ratePerDay: 1
+  killK: 318
+  starveDays: 6

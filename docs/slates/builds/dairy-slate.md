@@ -1,6 +1,15 @@
 # Dairy slate — the source with no sink, and the first business you cannot run alone
 
-> **Status: UNBUILT** — the *tap* ships: `milk` verb, `ProducingMixin`, the
+> **✅ Built (the dairy build, 2026-10)** — the trade, the Delight's dairy
+> farm and co-op creamery, Rejection's goats: see
+> [dairying.md](../../subsystems/dairying.md) and
+> [mould.md](../../subsystems/mould.md). **Still Left** (dairying.md §
+> Deferred): staffing the twice-a-day tap · NPC buyers · whey to pigs ·
+> calving as the lactation's cause · fluid milk and the separator (cold
+> chain) · salt in the hoop, rind care, `BulkPayload.peakK`. The text
+> below is the original capture.
+
+> **Status (before the build): UNBUILT** — the *tap* ships: `milk` verb, `ProducingMixin`, the
 > milk material and its expire-behaviour lactation
 > ([ranching.md § The taps](../../subsystems/ranching.md)). **Nothing
 > consumes milk** — verified, zero recipes take it.

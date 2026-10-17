@@ -1,0 +1,36 @@
+# Soft curd — milk in a cheese vat, set by a lactic culture (dairy D7).
+#
+# ⭐ The vat is the kernel's `Vat`; this row is the whole of what happens
+# in it. Pitch it from a crock of whey (`pour crock into vat`) and it sets
+# in a few hours at blood-warm; leave raw milk open a day and the wild
+# lactic flora set it anyway (clabber — "milk turns" made literal). The
+# set splits it: the vat holds WHEY (drawn off down to the curd) over a
+# curd whose share derives from the milk's own fat and protein.
+#
+# ⭐⭐ A pour of RENNET (`coagulant`) rekeys the batch to renneted milk —
+# the firm-curd profile — whatever the order of rennet and starter.
+#
+# ⚠ Heat: the culture dies past `killK` (pitch it cool), and milk taken
+# past `scaldAboveK` before it sets makes a curd that sets badly — a
+# pasteurizing hold at about 63 °C is safe; boiling it is not.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: soft-curd
+  inputCategory: milk
+  mechanism: microbial
+  stallBelowK: 283
+  happyK: 303
+  damageAboveK: 345
+  # Sets in about six game-hours at blood-warm.
+  ratePerDay: 4
+  productMaterial: /trade/dairying/idea/material/whey
+  requiresStrain: ''
+  wildStrain: lactic
+  spontaneousLagDays: 1
+  killK: 318
+  leesFraction: 0.15
+  leesMaterial: /trade/dairying/idea/material/soft-curd
+  leesShare: { nutrients: { fat: 2.4, protein: 2.4 } }
+  scaldAboveK: 355
+  transforms:
+    - { category: coagulant, becomes: /trade/dairying/idea/material/renneted-milk }
