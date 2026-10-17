@@ -5,7 +5,7 @@
 cleans, room condition and the clean tiers are engine; first consumers
 in this build: the butcher's apron, the milker's hands (dairy's), the
 infirmary's basin and its surgeons, a Terminus kitchen, a home's floor,
-hearth and window, the wharfside mill, a **chandler** making soap, a
+hearth and window, the two mills, a **chandler** making soap, a
 **laundress** and a public **lavoir**, a **bathhouse**, and a **doorman**
 at the bank.
 
@@ -57,12 +57,12 @@ there, with who owns it).
 | **bathrooms** | ship: a generic room with toilet, basin (real water) and tub (a seat, rest 1.4), used by the Seznick house and the Hinkley Hills houses. **No bathhouse, washhouse or laundry anywhere.** |
 | **paid services** | ship: `order repair · treatment · burial · transfusion` from a price board, ⚠ **none needing anybody on shift** (repair is changing that for repair, in parallel). Menu orders are made by the on-shift hand. |
 | **the contract board** | ships: a player can post paid work with a clause over a checkable condition and escrow — **player-hires-player already exists.** |
-| **inputs** | ship: wood ash (the collier's), quicklime, limestone, tallow and lard, olive oil, wine vinegar, neutral spirit, clay, sand, salt and brine, coal tar, milk, alum, beeswax. ⚠ **Not found:** lye, soap, potash, fuller's earth, chalk, slaked lime, sulfur, washing soda, ammonia/urine, naphtha, turpentine, buttermilk, glycerin. |
+| **inputs** | ship: wood ash (the collier's), quicklime, limestone, tallow, olive oil, wine vinegar, neutral spirit, clay, sand, salt and brine, coal tar, milk, alum, beeswax. ⚠ **Not found:** lye, soap, potash, fuller's earth, chalk, slaked lime, sulfur, washing soda, ammonia/urine, naphtha, turpentine, glycerin, **lard, silk**. (Buttermilk ships with dairy. Dye does **not** yet fade in the sun.) ⭐ Silk is an RGO nobody has thought through (user, 2026-10-17): this build washes wool where it would have washed silk. |
 | **water hardness** | ships as a *read only*: `look` at a river says *soft* or *hard*. Nothing uses it. |
 | **blood** | ships: a person's ABO type (seeded, readable once tested), typed units in the bank. ⚠ **Blood never lands on a garment or a body.** |
 | **surgery** | ships: `operate`, sutures. ⚠ **Reads no cleanliness at all**; nothing sterilises an instrument; every bandage is authored perfect. |
 | **chandlery** | ships: `dip` candles from tallow or beeswax; a chandlery shop in Terminus wharfside. **No Discipline, by decision.** |
-| **places** | the infirmary ward (with a basin), the Hearthworks cookhouse and the cooking pack's kitchen, the wharfside mill floor, the Delight Road **ford**, the estuary strand (a shore), the Goodkin bank (wharfside), the chandlery shop; dairy brings a byre and yard to Hearts' Delight. **No authored gym room** (the archetype only). |
+| **places** | the infirmary ward (with a basin), the Hearthworks cookhouse and the cooking pack's kitchen, the wharfside mill floor, the Delight Road **ford**, the estuary strand (a shore), the Goodkin bank (counting-houses), the chandlery shop; dairy brings a byre and yard to Hearts' Delight. **No authored gym room** (the archetype only). |
 | **Disciplines** | textiles, dyeing, tailoring, chemistry, cooking, medicine, nursing, butchery, services and personal-services exist. **No housekeeping, hygiene or chandlery Discipline.** |
 | **in flight beside this build** | **rubber** (build-1): rain stops at the outer layer by its material, a wet material conducts, rubber gloves, boots and apron, native **sulfur** in the Hill Quarry, places say what their walls and roof are made of (glass faces pass light), every walled room must stand in a building. **storage-and-ice** (build-4): sawdust left where a log is sawn and gathered from a heap, going into water soaks you and what you wear, cold water chills a swimmer, frozen water reached only through a hole. Both share **one wet law** (water filling a material's pores) with textiles' shipped wet cloth. |
 | **slates** | laundry, room-condition, rendering § 9, bathroom, sanitation, disease, cosmetics, pharma (soap vs water for oily irritants — a ready consumer), surgery-specialty (the sterile field), structures (the flue as an object). |
@@ -263,7 +263,10 @@ bathhouse and a doorman.
   instruments; its bandages are boiled or not.
 - **The Hearthworks cookhouse and the cooking kitchen** — read the
   kitchen tier; their stoves grease and their chimneys soot.
-- **The wharfside mill** — milling raises flour dust into the room air.
+- **The mills** — the Hearts' Delight millstones move into an enclosed
+  mill house, where milling raises flour dust into the room air; the
+  wharfside textile mill's scutching raises flax dust (user, 2026-10-17:
+  both).
 - **Homes: the Seznick house, the Hinkley Hills houses, the dorm** —
   floors, beds, hearths and windows now hold condition; the bathroom's
   tub is where `bathe` happens, and the basin washes hands.
@@ -271,7 +274,8 @@ bathhouse and a doorman.
   grime.
 - **Dairy's byre** — fouls, is mucked out, and its manure goes to the
   soil.
-- **The Goodkin bank** — gains a doorman at its back office.
+- **The Goodkin bank** (counting-houses) — gains a doorman at the arch to
+  its back room, the Circle parlor.
 - **The chandlery shop** — sells soap as well as candles.
 - **The general store** — stocks soap, washing soda and a brush.
 - **The contract board** — gains nothing; cleaning gigs are clauses over
@@ -290,7 +294,10 @@ soot · manure · ash · flour* — **how much**, **who** made it, and
 part it reaches (an apron takes the butcher's blood; bare hands take
 the milker's). Condition reads as bands — *clean · marked · soiled ·
 filthy* — in words, never a number. **Nothing soils in the absence of
-an act**, and nothing un-soils in it either. The hands clock is retired:
+an act**, and nothing un-soils in it either — with ONE named exception:
+a byre's stalls foul by the animal-day kept (§ 11), because the cows are
+there; stewardship doctrine § 3a's legible local process (user,
+2026-10-17). The hands clock is retired:
 lens 1 decided it — hands get dirty by touching things, which is the
 lesson germ theory teaches.
 
@@ -341,8 +348,8 @@ sees what is on every garment she takes in. Laundry marks are **labels**
 nobody can name.
 
 ### 6. Soap and the cleansers
-**Soap**: water `strain`ed through wood ash makes **lye** (the lye
-hopper); fat (tallow, lard, olive oil) `boil`ed with lye makes **soft
+**Soap**: water left to drip through wood ash in a hopper makes **lye**;
+fat (tallow, olive oil) kept at the boil with lye in a kettle makes **soft
 soap** and **glycerin**; salted out, a **hard bar**; cured weeks on a
 rack, a mild one — a bar cured short is harsh on skin and cloth. The
 cleansers, each a row saying **what it does and to what**:
@@ -369,8 +376,8 @@ damage (lye on wool, sand on glass).
 
 ### 7. Hard water
 Soap in **hard** water makes scum and washes worse; in soft water it
-lathers. The river's own read (*soft · hard*) is where a player learns
-it; washing soda softens it. ⭐ Your washing really is better in some
+lathers. The water's own read (*soft · hard*) — a river, a trough, a tap — is
+where a player learns it; washing soda softens it. ⭐ Your washing really is better in some
 towns.
 
 ### 8. The bleaching ladder (pre-industrial only)
@@ -408,8 +415,8 @@ read from whether things are put where they belong. **Rest** reads the
 bed's soiling and the room's condition — a filthy bed is a worse bed,
 never a punishment. **Pests** appear when debris and open food pass a
 threshold, and spoil open food faster; they leave when the cause does.
-⭐ **Every customer who walks into a shop soils its floor** — the
-commercial cleaning demand comes from trade, not the clock.
+⭐ **Every customer who walks into a shop brings in what is on their
+feet** — the commercial cleaning demand comes from trade, not the clock.
 
 ### 11. Cleanables with consequences
 - **Windows** grime with soot and weather-side dirt and **let less light
@@ -459,7 +466,8 @@ soap or a yard the ability to get clean. **The laundress** works there
 (her seat can be applied for): `order wash <garment>` — she looks it
 over, says what it is and what is on it and what it will cost, and
 washes it **at her textiles band**. If she ruins it, **the house pays
-you its value** and the ruin is on her record. ⭐ She is paid for an
+you its posted cover** (a garment's value is not appraisable yet — user,
+2026-10-17) and the ruin is on her record. ⭐ She is paid for an
 absence: the garment she did not ruin.
 
 ### 15. The bathhouse
@@ -472,7 +480,8 @@ what the bathhouse's hot water is for. ⭐ The
 gym and the bath share a door.
 
 ### 16. The doorman
-The Goodkin bank's back office has a doorman who reads **whether you are
+The Goodkin bank's back room (the Circle parlor, through the banking
+hall's arch) has a doorman who reads **whether you are
 dressed for the room** — not how clean you are: a tanner in tanning
 clothes is right in the tannery and wrong here. He refuses **in words,
 with the reason**; it is never the only way in (a borrowed coat, a bath,
@@ -551,7 +560,7 @@ A funded player, a fresh world after dairy, the real socket.
    water: `look shirt` — *a set stain*. `analyze shirt` reads the
    bleeder's blood type.
 6. At the chandlery buy soap; make **lye** at a hopper from ash and
-   water, boil tallow with it into soft soap, salt it into a bar, set it
+   water, keep tallow at the boil with it into soft soap, salt it into a bar, set it
    to cure. `look` at it before and after curing — harsh, then mild.
 7. Wash a greasy apron in water alone — still greasy. With soap — clean.
    Do it at a **hard-water** river (look the river: *hard*) — scum, a
@@ -573,11 +582,11 @@ A funded player, a fresh world after dairy, the real socket.
 13. Sleep in a filthy bed in a filthy room; sleep in a clean one —
     `look` reads the difference in your rest. Leave crumbs and open food
     out: pests appear and the food spoils faster; clean up and they go.
-14. Mill flour at the wharfside mill without sweeping until the air is
+14. Mill flour at the Hearts' Delight mill house without sweeping until the air is
     thick, and strike a light — the dust explodes. Mill again, damping
     and sweeping — it does not.
-15. Muck out dairy's byre; spread the manure on a field (`survey` the
-    soil's nitrogen before and after).
+15. Muck out dairy's byre; spread the manure on a field (`analyze soil` reads its
+    nitrogen before and after).
 16. At the infirmary: dress a wound with unwashed hands and a raw
     bandage, and with scrubbed hands and a **boiled** bandage — compare
     the wounds over a day. A surgeon operates with an instrument held in
@@ -586,13 +595,13 @@ A funded player, a fresh world after dairy, the real socket.
     one — `analyze` the food: contaminated vs not.
 18. At the lavoir, wash alongside others. `order wash shirt` with the
     laundress on shift: she names the fibre, the stain and the price;
-    `yes`; it comes back clean at her band. Give her a silk she ruins
-    (a low-band laundress) — the house pays you. Off shift — *nobody to
+    `yes`; it comes back clean at her band. Give her a wool jumper she ruins
+    (a low-band laundress boils it) — the house pays you. Off shift — *nobody to
     do the work*. `apply` for her seat, clock on, and wash another
     player's shirt through the counter at **your** band.
 19. Mark a shirt with `label`; find a body in a marked shirt and read
     the mark.
-20. Go to the bank's back office in the tannery clothes: the doorman
+20. Go to the bank's back room in the tannery clothes: the doorman
     refuses you, saying why. Bathe at the bathhouse (`order bath`),
     change, and he lets you in. Go to the wharfside in the banker's
     coat: they remark on it.
