@@ -1332,7 +1332,17 @@ on crew and boss; `operatingLocations`: platform, counter, house,
 stack; `banksAt: goodkin`; `parLines` sawdust from the sawmill's
 timber-yard counter — present but not driven), five Cast rows, and the
 boot entries the unobserved economy needs (the business and the house,
-as hearthworks does). A second icehouse, company or pool is rows.
+as hearthworks does). ⚠ **`lint:boot-entries` is a ratchet**
+(`server/scripts/check-boot-entries.ts`: `BOOT_ENTRY_CEILING = 83`, may
+fall, never rise; every content entry's `reason` must cite
+`unobserved-economy`). These two entries raise it to **85**, approved by
+the owner 2026-10-17 (relayed through the repair build; recorded in
+`origin/reqs/repair` § Parallel builds): W9 edits the constant to 85 with
+a dated comment naming storage-and-ice and the two entries, and both
+`reason`s cite `unobserved-economy` (the ice company's keeper restocks
+and the crew works with nobody present). No sibling adds boot entries
+(repair says so explicitly), so the constant has one writer. A second
+icehouse, company or pool is rows.
 
 ---
 
