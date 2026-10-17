@@ -15,7 +15,11 @@
 > streamer-only card that holds the camera region · the web as
 > content: the browser's own tab, and tab-away as a fact the client
 > reports · the broadcast contract: which client facts the overlay
-> feed carries
+> feed carries · ⭐ **card bodies** (2026-10-17): two base cards (subject,
+> set) with the re-run-touches and glance-on-expiry rules, the branch in
+> colour and icon, composition on every card, the place report and
+> cues, and the Location, Zone, navigator and Warren bodies — the
+> Agent, Thing, Idea and Shadow bodies still to detail
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -231,6 +235,210 @@ phone cost nothing on the client.
 The deck becomes a **streamer-only card** (visible to the `streamers`
 axis; size: corner or focal). Its chips send their commands — the dead
 scaffold goes. Its corner size is the **camera region** (below).
+
+---
+
+## ⭐⭐⭐ Card bodies — two shapes, and what each branch needs
+
+**Captured 2026-10-17**, in the live usability pass on the demo box
+(issues `origin::ux-pass-2026-10-17`, #48–#83). Read with #49 (terminal
+rules), #50 (card lifecycle), #51 (composition), #52 (the place report),
+#71 (query render), #74 (status lines), #78 (sense index), #79 (place
+surfaces).
+
+### Two base cards; everything else specializes
+
+card-surface.md already ships **one inspection card laid out by kind**,
+not one card per verb. This keeps that and names the second shape:
+
+- **The subject card — one thing.** Identity is the subject's id.
+  `look`, `sense`, `listen`, `smell`, `feel` and `taste` all open the
+  **same** card; the verb decides which **section** it opens on. The
+  header carries the **modality strip** (the sense index, #78): each
+  channel lit when it has authored content or a notable reading.
+- **The set card — one result set.** Identity is the normalized query
+  **plus its anchor**: `query peers` asked in Dave's Bar is *peers ·
+  Dave's Bar*, and stays about Dave's Bar after you leave. ⚠ This is
+  card-surface.md's costliest lesson (a relative query re-answers
+  against wherever you are now — the lounge card became a bar card),
+  applied to sets. Body: the grouped tree (#71) — header and count,
+  groups, identical items collapsed — expanding **in place**, unlike
+  the terminal. Members link to their subject cards; flags change the
+  header's lens, never the card type.
+
+The stock sheet is a set card; the wiki and help pages are subject
+cards about a document. The catalogue becomes *two shapes, many rows*.
+
+### Rules for both
+
+1. **Born only by a command** — the one birth path is unchanged.
+2. **One card per identity: re-running TOUCHES it** — brings it to the
+   bottom, focuses it, refreshes it — instead of stacking another.
+   ⚠ This reverses card-surface.md's *"the feed is a log"*: the
+   terminal is the log; cards are your working set of subjects. Two
+   identical weapons-rack cards (#50) are noise, not history.
+3. **× closes now; the pin keeps; everything else ages out** (#50).
+4. **An aged-out card shrinks to its glance chip** — a one-line title —
+   rather than staying a full-height husk that looks live. Closing the
+   chip removes it.
+5. **Live only where attention is** — focal, or the newest card when
+   nothing is focal; otherwise a snapshot with a time and a refresh.
+6. **Lazy, never collapsed-but-fetched.** A card holds only what has
+   been asked: the modality strip is the cheap index; each channel's
+   section is **empty until its verb runs**, and clicking a lit channel
+   *sends* that verb (clickables preview their command).
+7. **Composition on every card** (#51) — the mixin list, a one-line
+   chip at feed size and the full list at focal, each mixin a link to
+   its help topic. It is the most direct statement of what a thing can
+   do, and it is shown deliberately.
+
+### The branch is unmistakable
+
+Every card header, **and every link to a Stuff anywhere** — terminal,
+card, chip — carries its root branch in **colour AND icon** (never
+colour alone): **Agent** (a someone) · **Location** (a place) ·
+**Thing** (a something) · **Idea** (a concept) · **Shadow**, which is a
+layer riding a host rather than a peer of the others, so it also gets a
+different frame (dashed, a veil) and shows twice — as a marker on its
+host's card, and as its own card when inspected. MML already tags
+identity on links; this is a rendering rule, not new data. Each branch
+has its own body needs, below.
+
+### The place report — `look`, terminal and card alike
+
+`look` is the **place report**, not *the visual prose* (#52), and it is
+the arrival verb. Sections: the **heading** (the short — always), then
+**prose**, **exits**, **people**, **furnishings** (fixed), **things**
+(loose, summarized per #71), **cues**. Every section but the heading has
+an on/off option (`--prose/--no-prose`, `--exits`, `--cues`, …); the
+arrival look reads its defaults from settings (prose typically *first
+visit only*, because prose is the first thing a player turns off and
+the stateful sections are what they want every time). **`--horizon`**
+is a further section, off by default — the pull rule: nothing on the
+horizon is ever announced.
+
+**Cues** (#78) — every channel can hint at the others: a cue from A to B
+appears when something is notable in B and its **source is perceivable
+through A** (a visible rose with authored smell → `look` cues *smell ▸
+the rose*; hammering to the east → `listen` cues *look ▸ east*; a smell
+from a room you cannot see produces no cue from `look`; an ambient level
+with no source cues nothing). One `--cues` option on all five channel
+verbs; on for the arrival look. `sense` is the full index — every
+channel, every reason.
+
+### The Location card
+
+Its sections are **the place report's sections**, so terminal and card
+share one vocabulary; the card adds only what a terminal cannot (an
+image, live state, in-place expansion).
+
+- **Header** — the Location chip, the heading in heading case (#69),
+  the **zone chain** as an address trail (each step links its Zone
+  card), one small **coordinates** line linking the Zone card, a
+  **"part of ▸ <warren>"** link when the room belongs to a warren, and
+  the modality strip.
+- **Body** — illustration (collapsible) · prose (two lines in the feed,
+  full at focal; detail nouns linked) · **exits** as chips (direction,
+  the destination's name **only if you know it** — walked or seen, per
+  your map — and the door's state; click goes, secondaries `look north`
+  and the look-through form, #70) · **people** (status + chips, #74) ·
+  **furnishings** by surface (#79) · **things** (the #71 summary,
+  expanding in place) · **conditions** (light, temperature, weather if
+  under the sky, the floor — the derived half of the index, in word
+  bands) · **place facts** (who holds it — *Dave's Bar · Dave's house ·
+  open*; your relationship — home, lease, work; first visit vs known) ·
+  composition.
+- **Lifecycle** — identity is the location's id; arriving touches its
+  card; live while you are in it; leaving freezes it as *"what you last
+  saw"* and shrinks it to a glance chip, so recent rooms read as a trail
+  of one-line chips.
+- **Sizes** — glance *heading · head count · exit directions*; feed
+  *header, two prose lines, exits, people, things summary*; focal
+  *everything*.
+
+### The navigator (about YOU) and the Zone card (about a zone)
+
+*Does the Zone card follow movement or inspection?* splits into two
+cards, both properly anchored:
+
+- **The navigator — a card about you, your position.** Its subject is
+  the viewer, so following you IS its anchoring (no relative query).
+  It updates on every move; crossing into another zone changes what it
+  shows.
+- **The Zone card — a card about one zone**, opened by inspecting it. It
+  does not follow you.
+
+⛔ **The firewall shapes both.** A player's map is a CLAIM, not a view
+(location-graph.md): one document per player per locality, written only
+by what the player did. The world's index never reaches a client. So a
+zone is drawn **as you know it** — no total room counts (*12 places on
+your map*, never *12 of 40*), no rooms you have not learned, every claim
+with its channel and its date.
+
+⚠ **Zones have no geography relative to each other.** Parent and child
+is taxonomy, not space; a card must never imply a child sits somewhere
+inside its parent's map. Each map is one zone's grid or chart.
+
+| | navigator (about you) | Zone card (about the zone) |
+|---|---|---|
+| map | a window **centred on you** | the whole **known** zone |
+| position | known, in a grid; on an expanse, **your plot** — a reckoning with an uncertainty ring that grows as you sail and collapses on a fix, labelled as a reckoning; never the true position (*nothing fixes you by being seen*, expanse.md) | — |
+| horizon | your last `query horizon`, with its time — a button, never pushed | — |
+| compass, a `route` in progress | ✓ | — |
+| zone chain, coordinates line | ✓ | ✓ |
+| region facts | — | ✓ |
+| places of note | — | ✓ |
+| parent / children (a TREE, not a map) and **ways out** (the known cross-zone exits) | — | ✓ |
+
+**The Zone card's sections:**
+
+- **Header** — the Idea chip with a zone mark; the name; the kind in
+  words (*a gridded district*, *an open expanse*, *a folder*); the
+  chain.
+- **The map** — a grid of known rooms at their coordinates with known
+  exits, floors as tabs (Cartesian); or the chart — foci with a radius
+  on lat/lon, and bands (a current, a fog) in the chart's or pilot's own
+  words (spherical). The **channel shows in the drawing**: walked solid,
+  seen lighter, told/charted marked with who said so, **stale faded with
+  its date** (*rot is the feature*). A disagreement shows both claims
+  with their dates. Clicking a room you are not in opens **what you
+  know** — the claim — never the live room; clicking your own room
+  opens its Location card.
+- **Coordinates** — the system, the zone's extent, your position if you
+  are inside a grid; an expanse's origin.
+- **Region facts** (spatial zones only) — elevation, latitude, climate
+  now, the **address and locality**, the **jurisdiction** (whose writ
+  runs here, from civics), shown as inherited so a room's card can link
+  here to explain *why it is cold*.
+- **Places of note** — the houses, structures and institutions attached
+  to rooms **on your map**.
+- **Parent and children** as a tree; **ways out** as a list.
+- Composition.
+- **Sizes** — glance *University Avenue · 12 places known*; feed header,
+  a small map, one region line; focal everything; full the map fills the
+  space with toggles for floors, channels and staleness. Static by
+  default (a map changes only when you learn something); live only while
+  you are inside.
+
+**Non-spatial zones** (a folder, the wiki, a clade, `/home`) have no
+map: the card shows the tree of what is under them — a clade's card is
+the taxonomy, a folder's a directory.
+
+### The Warren card
+
+A warren is an Idea that owns an elastic group of instance rooms (the
+lounge and its satellites, dorm rooms, holdings), so it gets a card of
+its own, linked from its rooms' headers: what kind of warren it is and
+what it is for; its instances — host and satellites, occupancy each,
+**which one you are in**, **which one is yours**; and whether it is
+budding or merging now — which answers the otherwise baffling *"why are
+there other lounges?"*
+
+### Still to detail
+
+The **Agent**, **Thing**, **Idea** and **Shadow** bodies; the set card's
+lenses per flag; how the modes (the Discord-style sidebar, with **chat**
+and **explore** as their own modes) place these cards.
 
 ---
 
