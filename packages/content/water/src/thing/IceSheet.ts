@@ -231,6 +231,28 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     return `${parts.join('; ')}.`;
   }
 
+  /** The whole field has gone to open water (its summer). */
+  private isOpenWater(): boolean {
+    if (this.bindReach() === null) return false;
+    const field = this.ensureLog().find((p) => p.kind === 'field');
+    const ice = field ? this.iceOf(field) : null;
+    return ice !== null && ice.thicknessM <= OPEN_BELOW_M;
+  }
+
+  /**
+   * ⭐ The sheet says what it is NOW (lens 3a — the fiction cannot betray
+   * itself): in its summer it is open water, not *"a wide sheet of ice …
+   * ringing faintly under the cold"* above a line that says *"It is open
+   * water"* (the drive, run 6).
+   */
+  public override getShortDescription(): string {
+    return this.isOpenWater() ? 'open water' : super.getShortDescription();
+  }
+
+  public override getLong(): string {
+    return this.isOpenWater() ? 'Open water, still and dark — no ice on it anywhere.' : super.getLong();
+  }
+
   /** Snow lies on ice whatever the grade (the sheet is not on grade). */
   public override getSnowDepthM(): number {
     if (this.bindReach() === null || !WeatherApi.isActive()) return 0;

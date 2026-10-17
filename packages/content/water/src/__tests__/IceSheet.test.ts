@@ -275,3 +275,17 @@ describe('⭐ the sheet binds its reach from the pool it floors', () => {
     expect(sheet.iceOf(sheet.patchByWord('field')!)).not.toBeNull();
   });
 });
+
+describe('⭐ the sheet says what it is now', () => {
+  it('in its summer it is open water, in its winter a sheet of ice', async () => {
+    const { sheet } = await sheetIn();
+    const frozen = sheet.iceOf(sheet.patchByWord('field')!)!;
+    expect(frozen.thicknessM).toBeGreaterThan(0.005);
+    expect(sheet.getLong()).not.toMatch(/open water/i);
+    expect(sheet.getShortDescription()).not.toBe('open water');
+    // The field thawed: the same sheet, read off the same walk, now open.
+    vi.spyOn(cat, 'iceAtSync').mockReturnValue({ ...frozen, thicknessM: 0, bearsKg: 0 });
+    expect(sheet.getLong()).toMatch(/open water/i);
+    expect(sheet.getShortDescription()).toBe('open water');
+  });
+});

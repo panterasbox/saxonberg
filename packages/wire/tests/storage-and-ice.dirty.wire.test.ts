@@ -497,6 +497,9 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     console.info(`  look ground (pool, summer): ${look.replace(/\n/g, ' | ').slice(0, 400)}`);
     expect(look, look).toMatch(/open water/i);
     expect(look, look).not.toMatch(/cut channel|scraped|marked grid/i);
+    // Run 6: the summer floor said it was "a wide sheet of ice … ringing
+    // faintly under the cold" above "It is open water."
+    expect(look, look).not.toMatch(/sheet of ice|ringing faintly/i);
     const reach = await inReach();
     expect(reach, `the spud sank: ${reach}`).not.toMatch(/spud/i);
     const across = await k.cmd('swim north');
