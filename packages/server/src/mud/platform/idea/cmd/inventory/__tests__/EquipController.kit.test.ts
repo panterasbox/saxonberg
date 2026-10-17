@@ -267,6 +267,23 @@ describe('`unequip`', () => {
     expect(worn(body)).toEqual([]);
   });
 
+  it('⭐⭐ `wear` lands after the controller is gone (the dispatcher destructs it)', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    const ctrl = makeStuff(() => new EquipController());
+    await ctrl.execute(
+      { target: { stuff: shirt as never, raw: 'shirt' } } as never,
+      ctx(body, loc, 'wear'),
+    );
+    // ⚠ What `_executeOne` does in its `finally`, before any dressing
+    // step can complete: a completion that called back into the
+    // controller ran on a dead proxy and nothing went on.
+    StuffApi.destruct(ctrl);
+    await settle();
+    expect(worn(body)).toEqual(['shirt']);
+  });
+
   it('⚠ `remove apron` with no apron on is a refusal, never a strip (the drive)', async () => {
     const { body, loc, plan } = standUp();
     const shirt = garment(plan, 'woven', 'shirt');

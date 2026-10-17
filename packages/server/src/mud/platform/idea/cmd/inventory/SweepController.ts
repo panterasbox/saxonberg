@@ -73,12 +73,17 @@ export default class SweepController extends ManualBuildController<SweepModel> {
         ? Mml.compose`You set to with the broom.`
         : Mml.compose`You get down and sweep with your hands.`,
       onComplete: () => {
-        void this.finishFloor(giver, floor);
+        void SweepController.finishFloor(giver, floor);
       },
     });
   }
 
-  private async finishFloor(giver: Stuff, floor: Stuff): Promise<void> {
+  /**
+   * ⚠ STATIC, as everything an engaged step's completion calls must be:
+   * the controller clone is destructed when `execute` returns (found by
+   * the drive — the sweep finished on a dead proxy and took nothing up).
+   */
+  private static async finishFloor(giver: Stuff, floor: Stuff): Promise<void> {
     if (!MixinApi.isFloor(floor)) return;
     const { kg, kinds } = floor.sweepUp();
     await PersistableApi.captureHostOf(floor).catch(() => {});
@@ -87,7 +92,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You sweep, and there is nothing worth the name to take up.`).send();
       return;
     }
-    const heap = await this.mint(floor.getSweepsInto(), kg, giver);
+    const heap = await SweepController.mint(floor.getSweepsInto(), kg, giver);
     const what = Object.keys(kinds).slice(0, 3).join(', ');
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -146,7 +151,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
               .send();
             return;
           }
-          const ash = await this.mint(ashTemplate(), kg, giver);
+          const ash = await SweepController.mint(ashTemplate(), kg, giver);
           await PersistableApi.captureHostOf(hearth).catch(() => {});
           MessageApi.scene(giver)
             .topic(TOPIC)
@@ -163,7 +168,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
   }
 
   /** Mint `kg` of a heap row into the sweeper's hands (or at their feet). */
-  private async mint(template: string, kg: number, giver: Stuff): Promise<Stuff | null> {
+  private static async mint(template: string, kg: number, giver: Stuff): Promise<Stuff | null> {
     try {
       const heap = await StuffApi.clone<Stuff>(template);
       if (MixinApi.isStackable(heap)) {

@@ -102,7 +102,8 @@ export default class BatheController extends WashController {
           },
           BATHE_S,
         );
-        this.spend(cleansers, 1);
+        // Static: the controller is gone by the time the bath is done.
+        BatheController.spend(cleansers, 1);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${bathLine(water.waterK, cleansers.length > 0, dressed)}`)

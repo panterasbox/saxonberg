@@ -236,8 +236,17 @@ export default class EquipController extends CommandController<EquipModel> {
      * both and says neither.
      */
     const held = this.claimAs(one, mode) === 'wield';
+    // ⚠⚠ The slots are resolved NOW, and the completion only calls the
+    // wearer. The controller clone is destructed when `execute` returns, so
+    // a completion calling `this.put` ran on a dead proxy: over the wire
+    // `wear` ran its dressing step and nothing went on (the
+    // nutrition-fitness drive's "not-worn" finding; the cleanliness drive
+    // traced it).
+    const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
+    const as = this.claimAs(one, mode);
+    const slots = as === null ? [] : [...this.slotsFor(one, plan, as)];
     await this.engage(one, context, giver, () => {
-      this.put(one, giver, mode);
+      giver.occupyAll(one as Parameters<typeof giver.occupyAll>[0], slots);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(

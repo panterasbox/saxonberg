@@ -243,7 +243,7 @@ export default class WashController extends ManualBuildController<WashModel> {
    * named thing that is no cleanser is refused in words.
    */
   /** Spend what `washes` washes used of each cleanser (B12). */
-  protected spend(cleansers: WashCleanser[], washes: number): void {
+  protected static spend(cleansers: WashCleanser[], washes: number): void {
     spendCleansers(cleansers, washes);
   }
 

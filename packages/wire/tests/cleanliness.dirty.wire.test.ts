@@ -326,6 +326,14 @@ suite('⭐ the new places stand (the boot, and the five reachability links)', ()
   }, 300_000);
 });
 
+/**
+ * A thing the player holds or wears, read off THEM — ⚠ a bare keyword
+ * query resolves in the room first, where an earlier run's clones lie.
+ */
+async function mine(s: Session, keyword: string): Promise<string> {
+  return examine(s, `me:i:[keyword.${keyword}]`);
+}
+
 /** The player's own body as anyone reads it — the soil lines included. */
 async function body(s: Session): Promise<string> {
   return examine(s, 'me');
@@ -347,6 +355,7 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     await buy(cook, 'flue brush');
     await buy(cook, 'soap');
     for (let i = 0; i < 3; i++) await buy(cook, 'rations');
+    await buy(cook, 'rushes');
     await buy(cook, 'jumper');
     await buy(cook, 'jumper');
     cook.close();
@@ -367,9 +376,9 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     expect(before, `me, before: ${before}`).not.toMatch(/hands are .*blood/i);
     await act(cook, 'wear apron');
     await act(cook, 'butcher carcass', 180_000);
-    const apron = await examine(cook, 'apron');
+    const apron = await mine(cook, 'apron');
     expect(apron, `the apron: ${apron}`).toMatch(/blood/i);
-    const shirt = await examine(cook, 'shirt');
+    const shirt = await mine(cook, 'shirt');
     expect(shirt, `the shirt under it: ${shirt}`).not.toMatch(/blood/i);
     const me = await body(cook);
     expect(me, `bare hands: ${me}`).toMatch(/hands are .*blood/i);
@@ -380,10 +389,10 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     expect(await body(cook), 'washed hands').not.toMatch(/hands are .*blood/i);
     await act(cook, 'wear gloves');
     await act(cook, 'butcher carcass', 180_000);
-    const gloves = await examine(cook, 'gloves');
+    const gloves = await mine(cook, 'gloves');
     expect(gloves, `the gloves after butchering: ${gloves}`).toMatch(/blood/i);
     await act(cook, 'wash');
-    const washed = await examine(cook, 'gloves');
+    const washed = await mine(cook, 'gloves');
     expect(washed, `the gloves after a wash: ${washed}`).not.toMatch(/soiled|filthy/i);
   }, 300_000);
 
@@ -412,8 +421,6 @@ suite('⭐ drive 4 — strew and sweep a bloodied floor (AC 12)', () => {
   it('the floor is bloodied by the butchery; strewn and swept, the heap takes it up', async () => {
     const floor = await examine(cook, 'floor');
     expect(floor, `the cookhouse floor after butchering: ${floor}`).toMatch(/blood|marked|soiled/i);
-    await cloneHere(COOKHOUSE, T.rushes);
-    await say(cook, 'get rushes');
     const strewn = await say(cook, 'strew rushes');
     expect(strewn, `strew: ${strewn}`).toMatch(/strew/i);
     await act(cook, 'sweep with broom');
@@ -426,37 +433,37 @@ suite('⭐ drive 4 — strew and sweep a bloodied floor (AC 12)', () => {
 
 suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt dried (AC 4, 5, 6)', () => {
   it('⭐ drive 7 — the greasy apron does not wash out in water alone; with soap it does', async () => {
-    const apron = await examine(cook, 'apron');
+    const apron = await mine(cook, 'apron');
     expect(apron, `the apron: ${apron}`).toMatch(/greas/i);
     await act(cook, 'remove apron');
     await act(cook, 'wash apron');
-    expect(await examine(cook, 'apron'), 'water alone').toMatch(/greas/i);
+    expect(await mine(cook, 'apron'), 'water alone').toMatch(/greas/i);
     await act(cook, 'wash apron with soap');
-    expect(await examine(cook, 'apron'), 'with soap').not.toMatch(/greas/i);
+    expect(await mine(cook, 'apron'), 'with soap').not.toMatch(/greas/i);
   }, 300_000);
 
   it('⭐ drive 5 — butchered without the apron, the SHIRT takes the blood; washed hot it SETS, and the stain names the bleeder', async () => {
     await act(cook, 'butcher carcass', 180_000);
-    const shirt = await examine(cook, 'shirt');
+    const shirt = await mine(cook, 'shirt');
     expect(shirt, `the shirt: ${shirt}`).toMatch(/blood/i);
     const handle = cook.handle;
     cook.close();
     cook = await goTo(handle, LAUNDRY);
     await act(cook, 'wash shirt in copper');
-    const set = await examine(cook, 'shirt');
+    const set = await mine(cook, 'shirt');
     expect(set, `washed hot: ${set}`).toMatch(/set|stain|blood/i);
     const read = await say(cook, 'analyze shirt');
     expect(read, `analyze the shirt: ${read}`).toMatch(/blood|type|[ABO]{1,2}\b/i);
   }, 300_000);
 
   it('⭐ drive 9 — a washed shirt is wet; dried by the fire it is not', async () => {
-    const wet = await examine(cook, 'shirt');
+    const wet = await mine(cook, 'shirt');
     expect(wet, `after the wash: ${wet}`).toMatch(/wet|damp|sodden/i);
     const handle = cook.handle;
     cook.close();
     cook = await goTo(handle, COOKHOUSE);
     await act(cook, 'dry shirt');
-    const dry = await examine(cook, 'shirt');
+    const dry = await mine(cook, 'shirt');
     expect(dry, `dried: ${dry}`).not.toMatch(/sodden/i);
   }, 300_000);
 });
@@ -610,19 +617,21 @@ suite('⭐ drive 22 — a clean contract, posted, done and paid (AC 22)', () => 
     expect(posted, `job post clean: ${posted}`).toMatch(/post|gig|\[/i);
     const id = /\[([A-Za-z0-9_-]{4,})\]/.exec(posted)?.[1] ?? '';
     poster.close();
-    const hand = await newPlayer('sweeper', COOKHOUSE);
-    const list = `${await say(hand, 'job')} ${await hand.listen(2_000)}`;
+    const hand = await newPlayer('sweeper', STORE);
+    await buy(hand, 'rushes');
+    await buy(hand, 'broom');
+    hand.close();
+    const handHandle = hand.handle;
+    const sweeper = await goTo(handHandle, COOKHOUSE);
+    const list = `${await say(sweeper, 'job')} ${await sweeper.listen(2_000)}`;
     const gig = id || (/\[([A-Za-z0-9_-]{4,})\]\s+clean/.exec(list)?.[1] ?? '');
     expect(gig, `the clean gig on the board: ${list}`).not.toBe('');
-    await say(hand, `job claim ${gig}`);
-    await cloneHere(COOKHOUSE, T.rushes);
-    await say(hand, 'get rushes');
-    await say(hand, 'strew rushes');
-    await say(hand, 'get broom').catch(() => '');
-    await act(hand, 'sweep');
-    const paid = await say(hand, `job complete ${gig}`);
+    await say(sweeper, `job claim ${gig}`);
+    await say(sweeper, 'strew rushes');
+    await act(sweeper, 'sweep with broom');
+    const paid = await say(sweeper, `job complete ${gig}`);
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
-    hand.close();
+    sweeper.close();
   }, 600_000);
 });
 
@@ -651,9 +660,9 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     const s = await Session.open(cookHandle, { startLocation: COOKHOUSE, wizard: true });
     try {
-      const shirt = await examine(s, 'shirt');
+      const shirt = await mine(s, 'shirt');
       expect(shirt, `the shirt, after a restart: ${shirt}`).toMatch(/blood|stain/i);
-      const apron = await examine(s, 'apron');
+      const apron = await mine(s, 'apron');
       expect(apron, `the apron, after a restart: ${apron}`).toMatch(/apron/i);
     } finally {
       s.close();

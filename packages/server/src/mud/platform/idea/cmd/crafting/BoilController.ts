@@ -173,7 +173,9 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       beginSelf: Mml.compose`You set ${Mml.thing(target)} over the fire and bring it up to a boil.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} over the fire.`,
       onComplete: () => {
-        void this.applyBoil(
+        // Static: the controller clone is destructed when `execute`
+        // returns, long before the boil completes.
+        void BoilController.applyBoil(
           giver,
           target,
           build,
@@ -189,7 +191,7 @@ export default class BoilController extends ManualBuildController<BoilModel> {
    * Both consequences, in the order they are true: the build remembers
    * what happened to it, and the matter changes if the matter says so.
    */
-  private async applyBoil(
+  private static async applyBoil(
     giver: Stuff,
     target: Stuff,
     build: (Stuff & Builds) | null,

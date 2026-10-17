@@ -272,7 +272,7 @@ export default class OrderController extends CraftController<OrderModel> {
     // ⭐ The hand is paid by the seat's basis (repair D12): a piece-rate
     // seat is paid for this piece, out of the house the fee just went to;
     // a time-wage seat is paid by the shift and is not paid twice.
-    if (collected.paid && done.hand) await this.payPiecework(tariff, done.hand);
+    if (collected.paid && done.hand) await OrderController.payPiecework(tariff, done.hand);
     const tail = collected.note ? ` ${collected.note}` : '';
     MessageApi.scene(giver)
       .topic(SERVICE_TOPIC)
@@ -283,7 +283,7 @@ export default class OrderController extends CraftController<OrderModel> {
   }
 
   /** Pay a piece-rate hand for one piece, out of the offer's house. */
-  private async payPiecework(tariff: Tariff, hand: Stuff): Promise<void> {
+  private static async payPiecework(tariff: Tariff, hand: Stuff): Promise<void> {
     const house = await tariff.house();
     const key = hand.getIdentityPath();
     if (!house || !key || !MixinApi.isEmployed(hand)) return;
@@ -360,21 +360,21 @@ export default class OrderController extends CraftController<OrderModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isDonationBank(tariff)) {
-      return this.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
+      return OrderController.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
     }
     if (!MixinApi.isVitals(giver)) {
-      return this.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
+      return OrderController.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
     }
     // Up-front refusal: do not make a patient sit for 45s to be told no.
     if (!tariff.hasCompatibleUnitFor(giver as unknown as Stuff)) {
-      return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+      return OrderController.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
     }
     const issuer = this.resolveWindowIssuer(tariff, context);
     const effect = async (): Promise<void> => {
       const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
       if (!outcome) {
         // The last match went while they waited — honest, and unbilled.
-        return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+        return OrderController.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
       }
       const collected = await tariff.collect(key, 'a transfusion');
       const tail = collected.note ? ` ${collected.note}` : '';
@@ -401,7 +401,7 @@ export default class OrderController extends CraftController<OrderModel> {
   }
 
   /** A refused service: the scene line + the matching rejected note. */
-  private serviceFail(context: CommandContext, line: string, reason: string): void {
+  private static serviceFail(context: CommandContext, line: string, reason: string): void {
     MessageApi.scene(context.commandGiver)
       .topic(SERVICE_TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(line)))
@@ -639,30 +639,32 @@ export default class OrderController extends CraftController<OrderModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const hand = await CraftingApi.fulfillingHand(giver, tariff, tariff.disciplineFor(key));
-    if (!hand) return this.serviceFail(context, NOBODY_TO_WORK, 'no-hand');
+    if (!hand) return OrderController.serviceFail(context, NOBODY_TO_WORK, 'no-hand');
     if (!MixinApi.isAttired(giver)) {
-      return this.serviceFail(context, 'There is nobody here to bathe.', 'not-a-body');
+      return OrderController.serviceFail(context, 'There is nobody here to bathe.', 'not-a-body');
     }
     const copper = this.roomVessel(context, 'copper');
     const tub = this.roomVessel(context, 'tub');
     if (!copper || !tub) {
-      return this.serviceFail(context, 'There is nothing here to draw a bath in.', 'no-tub');
+      return OrderController.serviceFail(context, 'There is nothing here to draw a bath in.', 'no-tub');
     }
     const hot = BulkableApi.slotFor(copper, undefined);
     if (!hot || hot.isEmpty() || (hot.getTemperatureK() ?? 0) < 310) {
-      return this.serviceFail(context, 'The water is not hot yet.', 'not-hot');
+      return OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot');
     }
     const price = tariff.priceFor(key) ?? 0;
     if (!tariff.canSettle(price)) {
-      return this.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
+      return OrderController.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
     }
     const bath = BulkableApi.slotFor(tub, undefined);
-    if (!bath) return this.serviceFail(context, 'The tub will not hold water.', 'no-tub');
+    if (!bath) return OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
     BulkableApi.transfer(hot, bath, { kind: 'measure', litres: 80, mode: 'lenient' });
     const cleansers = await this.houseCleansers(context, 'soap');
     // Just drawn from the copper: the bath is at the copper's heat.
     const waterK = hot.getTemperatureK() ?? 310;
     const who = hand.getPresentation() ?? 'The attendant';
+    // ⚠ Read now: the effect lands after the controller is destructed.
+    const hardnessDgh = this.roomHardness(context);
     this.runDurativeService(
       context,
       12000,
@@ -673,11 +675,11 @@ export default class OrderController extends CraftController<OrderModel> {
       async () => {
         if (giver.isDestroyed() || !MixinApi.isAttired(giver)) return;
         giver.bathe(
-          { waterK, hardnessDgh: this.roomHardness(context), cleansers, effort: 2 },
+          { waterK, hardnessDgh, cleansers, effort: 2 },
           120,
         );
         const collected = await tariff.collect(key, 'a bath');
-        if (collected.paid) await this.payPiecework(tariff, hand);
+        if (collected.paid) await OrderController.payPiecework(tariff, hand);
         const tail = collected.note ? ` ${collected.note}` : '';
         MessageApi.scene(giver)
           .topic(SERVICE_TOPIC)

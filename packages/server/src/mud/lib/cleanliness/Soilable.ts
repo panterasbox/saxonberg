@@ -39,7 +39,6 @@ import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
-import { PerceptionApi } from '../../api/perception';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -675,6 +674,9 @@ function soilAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isSoilable(host)) return text;
   const line = host.soilLookLine(viewer);
   if (!line) return text;
-  if (!PerceptionApi.canMakeOutMarks(viewer, host)) return text;
+  // ⚠ Found by the drive: this was gated on `canMakeOutMarks` — the light
+  // to read FINE PRINT — so a bloodied apron in a dim cookhouse (≈4 lux at
+  // noon) read clean. Dirt is seen wherever the thing is; the description
+  // pipeline already masks what the viewer cannot see at all.
   return `${text}\n\n${line}`;
 }
