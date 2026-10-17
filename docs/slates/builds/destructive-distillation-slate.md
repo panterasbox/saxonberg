@@ -1,7 +1,7 @@
 # Destructive distillation slate — the half the collier throws away
 
-> ✅⭐⭐ **Status: STAGE A SHIPPED** (the fire build, merged 2026-10-08 in
-> `7745f1320`) — and it was indeed the cheapest door into the industrial
+> **Status: PARTIAL** — ✅⭐⭐ Stage A shipped (the fire build, merged
+> 2026-10-08 in `7745f1320`) — and it was indeed the cheapest door into the industrial
 > epoch. **The retort** (`trade-fuel`'s `Retort.ts` + `retort.yaml`, beside
 > the clamp and not replacing it), **the condenser**, **the gasometer**,
 > **coke**, **wood tar → pitch**, **coal tar** and ⭐⭐ **coal gas** — the
@@ -21,19 +21,15 @@
 > `CharcoalPit` clamp, the draught decision, and charcoal · ash · brands.
 > Coal and peat ship (MR !291). ⚠ **No tar, pitch, naphtha or creosote
 > material exists anywhere in the tree.**
-> **Left:** the retort as the clamp's capitalised sibling · the condenser
-> and the volatile fraction · wood tar → pitch · **coal tar** and its
-> cuts · ⭐⭐ **coal GAS** (the third product — the first gas that is a
-> good, and where the gas economy gets defined; `bulk.md`'s inert
-> `sealed` rung + the gasometer) · the first plastic (a thermoset from
-> coal-tar phenol) · the
-> `Law` extension from crosslinking to the polymer family.
-> ⭐⭐ **Blocked on NOTHING up to and including coal gas** — the retort is
-> knowledge-by-TRADITION; only the plastic needs the epoch on-ramp
-> (→ [inquiry-slate](./inquiry-slate.md)). See § *The on-ramp blocks the
-> plastic and nothing else* — resolved 2026-10-06.
-> **Size:** a build — Stage A (tar · coke · gas) buildable today, Stage B
-> (the thermoset) gated.
+> **Left:** Stage B — the first plastic (a thermoset from coal-tar
+> phenol) · the `Law` extension from crosslinking to the polymer family.
+> (Stage A — the retort, the condenser, wood tar → pitch, coal tar, coke,
+> ⭐⭐ coal gas and the gasometer — shipped; see the head of this block.)
+> ⚠ Stage B is gated on the epoch on-ramp
+> (→ [inquiry-slate](./inquiry-slate.md)); the retort itself never was —
+> it is knowledge-by-TRADITION. See § *The on-ramp blocks the plastic
+> and nothing else* — resolved 2026-10-06.
+> **Size:** a build — Stage B (the thermoset), gated.
 
 Opened 2026-09-25, out of *"after rubber is exhausted we can talk
 drilling, oil, and plastics."* Running that question turned up a

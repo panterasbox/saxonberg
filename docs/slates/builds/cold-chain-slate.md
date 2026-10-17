@@ -104,7 +104,7 @@ integrity story). Name the substrate for the chain, not for blood.
   the cached-ambient decision.
 - `docs/subsystems/spoilage.md` — freshness is already a temperature
   question; `docs/subsystems/blood.md` — the unit that spoils.
-- [blood-slate](./blood-slate.md) — the blood economy this eases at 12×.
+- [blood-slate](../tails/blood-slate.md) — the blood economy this eases at 12×.
 - `docs/subsystems/fire.md` — `BurnerMixin` + the fuel reserve, the shape
   to mirror.
 

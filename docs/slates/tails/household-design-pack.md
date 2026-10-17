@@ -37,7 +37,7 @@ structural answer**) · [residence](../../subsystems/residence.md) +
 [advancement](../../subsystems/advancement.md) (the individual half) ·
 [access](../../subsystems/access.md). Rulings honored:
 [diegetic-government §9](../../staging/diegetic-government.md) (**marriage**) ·
-[credit-slate](credit-slate.md) (the property floor) ·
+[credit-slate](../builds/credit-slate.md) (the property floor) ·
 [insurance-slate](../builds/insurance-slate.md) (the scrivener thesis) ·
 [gazette-slate](gazette-slate.md) (*aggregate, never report*) ·
 [motivation lens](../../lens-deck-salvage.md) (cheap exit).
@@ -294,7 +294,7 @@ access, and can evict is modeling something with a dark real-world version.
 existing guardrails are the right ones and should be treated as constraints
 rather than incidental properties:
 
-- the **property floor** — title is never seized ([credit-slate](credit-slate.md));
+- the **property floor** — title is never seized ([credit-slate](../builds/credit-slate.md));
 - the **cheap exit** — leaving is always one act;
 - **chattel survives eviction** (Part 5) — you can be put out, never stripped;
 - **no mechanical advantage** accrues to holding another player's tenure.

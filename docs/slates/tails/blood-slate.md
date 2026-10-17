@@ -1,20 +1,21 @@
 # Blood slate (working doc)
 
-> **Status: UNBUILT** — no blood type, no donation, no transfusion door
-> anywhere in the shipped vitals/harm/metabolism stack.
-> **Left:** the genotype/phenotype endowment (`untested` until tested,
-> per-`Species` allele frequencies + the provenance stamp) · the
-> compatibility cost curve (non-hierarchical across species · graded
-> failure · the volume-expander floor) · draw / store / transfuse over
-> `Bulkable` + the `introduceToxin` seam · donation cost on the biological
-> `Reserve` · the summons + the clinic as demand (named shortages · the
-> recipient→donor loop) · screening · the gift-only credits (chronicle
-> deed · disposition credit · the renown move) · the trait payoff · the
-> consent predicate (implied consent in an emergency) · a `test` for your
-> own type · the
-> Titmuss paid-market lever (designed-for, explicitly not v1). ⭐ Q6 is
-> answered and Q1 has a reader — see the consequence note below.
-> **Size:** a build
+> **Status: PARTIAL** — two builds shipped against this slate: the
+> **blood loop** in clinical-medicine (MR !290 — the seeded genotype,
+> type/draw/store/transfuse over `Bulkable`, the `marrow` reserve, the
+> graded transfusion reaction) and the **blood economy** (2026-10-04 —
+> `DonationBankMixin` + the `BloodWindow`, the gift credit, the summons,
+> `analyze blood`/`analyze bank`, the blood `system` replacing flat
+> cross-species incompatibility) → [blood.md](../../subsystems/blood.md).
+> ⚠ Restamped 2026-10-16: it read UNBUILT through both. Consent was cut,
+> not deferred (blood.md § The blood economy).
+> **Left:** the blood.md § Deferred list — contamination/screening of a
+> unit · Rh (a second axis) · player operation of the window · the
+> Titmuss paid-donor lever · the floor fee as a receivable (→ credit) ·
+> epoch-gated typing · ⭐ post-mortem body/organ donation as a standing
+> directive
+> **Size:** a wave — each rides the build that owns its neighbour
+> (screening with disease/labs, the receivable with credit).
 > ⭐ **Sole home for the transfusion design since 2026-09-15** — absorbed
 > physiology-slate § Part 7e (see the section of that name below).
 
@@ -82,7 +83,7 @@ compatibility check in front of it. The substrate is not the work here.
 Blood type is the platform's first value that is neither **derived** from
 a ledger nor **declared** by the player. It is **endowed**: assigned by a
 process the player does not control, fixed for life. See
-[lineage-slate](./lineage-slate.md) § *The four kinds of value* for the
+[lineage-slate](../builds/lineage-slate.md) § *The four kinds of value* for the
 category and its governing rule.
 
 The rule, restated because it is what makes blood type a *good*
@@ -125,7 +126,7 @@ Three things fall out free:
 A precedence chain, resolved at commit, then frozen:
 
 1. **author pin** — this NPC is O− because the story turns on it
-2. **lineage** — when parentage is known ([lineage-slate](./lineage-slate.md))
+2. **lineage** — when parentage is known ([lineage-slate](../builds/lineage-slate.md))
 3. **species allele frequencies** — declared on `Species`
 4. the roll
 
@@ -172,7 +173,7 @@ The dials, roughly by how much each buys:
    actual pressure-release valve.**
 3. **Clade threshold.** `race.md`'s Linnaean `Clade` tree already exists:
    compatible within clade, graded across. Same tree
-   [lineage](./lineage-slate.md) reads for reproductive compatibility, at
+   [lineage](../builds/lineage-slate.md) reads for reproductive compatibility, at
    its own threshold — no new vocabulary.
 4. **Frequency distributions.** Flatten the rare types so nobody is born
    into a permanent crisis.
@@ -209,7 +210,7 @@ someone who gives.*
 
 ⚠ **Renown is materialized.** Unlike competence and traits, appending to
 the log **does not move the figure** — see
-[antecedents-slate](./antecedents-slate.md) § *the materialized-standing
+[antecedents-slate](../builds/antecedents-slate.md) § *the materialized-standing
 trap*. A donation that should raise standing has to move the standing or
 force a recompute.
 
@@ -305,13 +306,13 @@ Consequences worth designing for:
 
 - **Four vocations off one substrate** — phlebotomist, bank registrar,
   screener, and a cold-chain courier (the [freight
-  slate](./freight-slate.md)'s perishable cargo). Per
+  slate](../builds/freight-slate.md)'s perishable cargo). Per
   [vocations.md](../../vocations.md), a vocation exists iff there is
   unmet demand; this creates four at once.
 - **A first-class legal object.** Gift-only / paid / unregulated is a
-  real legislative choice — see [legal-code-slate](./legal-code-slate.md).
+  real legislative choice — see [legal-code-slate](../builds/legal-code-slate.md).
 - **A black market if sale is banned**, which the [policing
-  slate](./policing-slate.md) already frames as unlicensed governance.
+  slate](../builds/policing-slate.md) already frames as unlicensed governance.
 - **Donation cost rides the biological `Reserve`** and recovers over game
   time (real donors wait ~8 weeks), so the anti-farming property is
   **biology rather than a quota**.
@@ -323,7 +324,7 @@ Consequences worth designing for:
 > **Merged on contact.** This design lived in two documents — the
 > *mechanism* here (genotype/phenotype, the compatibility graph,
 > `untested` until tested) and the *argument* in
-> [physiology-slate](./physiology-slate.md) § Part 7e. They agreed on
+> [physiology-slate](../builds/physiology-slate.md) § Part 7e. They agreed on
 > every point, including the load-bearing one (**type must not correlate
 > with species**), which is exactly how a duplicate pair survives long
 > enough to diverge. The blood-loss *axis* stays in physiology — it is a
@@ -395,7 +396,7 @@ and **true of real human blood types.**
 > the direction was backwards. **Orthogonality turns the same mechanic
 > from the bad note into the good one.**
 
-⚠ **Refined 2026-08-02 →** [species-slate](./species-slate.md). Independent
+⚠ **Refined 2026-08-02 →** [species-slate](../builds/species-slate.md). Independent
 -of-species is the **default**, not an absolute: a single authored species
 whose blood is incompatible with the common pool is **more FRAGILE, not
 purer** — a minority medical burden whose answer is **its own donor
@@ -567,7 +568,7 @@ and the time scale makes it urgent:
 
 - At **12×**, marrow regrows one unit's cost in **~28 REAL hours per donor**,
   and a WARM carried unit spoils in **~6 real hours** (cold storage is
-  deferred → [cold-chain-slate](./cold-chain-slate.md)). So **player
+  deferred → [cold-chain-slate](../builds/cold-chain-slate.md)). So **player
   donation cannot be the backbone of a combat blood supply** for anything
   but a large, coordinated community.
 - ⭐ **The lead item: NPC donors stand up the bank.** Use the shipped
@@ -606,7 +607,7 @@ this slate to honour when it builds the sector:
   and the knowledge the bank is low — a value, offered — never a
   notification that will not stop. See
   [social-graph.md](../../subsystems/social-graph.md) (NotifyPolicy —
-  attention is opt-in) and [measurement.md](../../subsystems/measurement.md).
+  attention is opt-in) and [measurement.md](../../measurement.md).
 
 ## Cross-references
 
@@ -619,9 +620,9 @@ this slate to honour when it builds the sector:
 - [reserve.md](../../subsystems/reserve.md) — donation cost and recovery
 - [trait.md](../../subsystems/trait.md) — the axes the thesis is written in
 - [race.md](../../subsystems/race.md) — `Species`, `Clade`, `vitalProfile`
-- [lineage-slate](./lineage-slate.md) — the endowment category, the
+- [lineage-slate](../builds/lineage-slate.md) — the endowment category, the
   genotype model, and where blood type is assigned
-- [antecedents-slate](./antecedents-slate.md) — the materialized-standing
+- [antecedents-slate](../builds/antecedents-slate.md) — the materialized-standing
   trap the renown reward hits
-- [species-slate](./species-slate.md) — costs-not-ranks, and why the
+- [species-slate](../builds/species-slate.md) — costs-not-ranks, and why the
   compatibility graph must not be a hierarchy
