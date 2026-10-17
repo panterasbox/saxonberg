@@ -181,6 +181,10 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
+  '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
+  '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs
+  '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell
+  '/world/terminus/wharfside/lavoir/location/laundry', // a low doorway onto the open lavoir, its only light
   '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
   '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row

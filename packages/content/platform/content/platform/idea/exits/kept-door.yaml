@@ -1,0 +1,9 @@
+# A door with somebody on it (cleanliness D29) — the `KeptDoor` kind. Name
+# it as an exit's `kind:` and give it the house whose doorman keeps it
+# (`keptBy`); on shift, he judges who passes by the dress code on his own
+# row, and says why when he turns you away. Off shift, it is a door.
+class: /platform/idea/KeptDoor
+data:
+  media: [ground]
+  messageOut: "{{ mover }} goes through, past the man on the door."
+  messageIn: "{{ mover }} comes through the door."

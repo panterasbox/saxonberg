@@ -72,7 +72,14 @@
  *     reference to the herd book whose beasts foul the floor;
  *     `FloorMixin.sweepsInto` — level 0, the row a broom heaps into
  *     (sweepings, the byre's muck): what you get is what you hold.
- *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted.
+ *   - `Tariff.serviceDisciplines` — level 0: which trade answers a paid
+ *     service is posted on the slate; `KeptDoor.keptBy` — level 0, the
+ *     house whose doorman keeps the door, which the doorman says himself;
+ *     `Copper.copperLit` / `.heatsToK` — level 0: a copper's steam and the
+ *     heat of what you draw from it are what anyone standing there feels.
+ *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted;
+ *     `DressingMixin.dressingQuality` — authored, now derived from the
+ *     dressing's clean tier (a row could claim a sterile bandage).
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

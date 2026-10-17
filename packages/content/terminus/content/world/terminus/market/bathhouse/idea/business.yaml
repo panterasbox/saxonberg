@@ -1,0 +1,28 @@
+# The bathhouse — a Business (cleanliness D28). The attendant draws baths
+# and takes in washing; she is paid by the hour.
+class: /platform/idea/Business
+data:
+  name: "the market bathhouse"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  call: rota
+  positions:
+    - key: attendant
+      noun: attendant
+      label: at the baths
+      wageRate: 3
+      headcount: 1
+      fulfills: [personal-services]
+  rosterSlots:
+    - positionKey: attendant
+      assignee: /world/terminus/market/bathhouse/agent/attendant
+      station: /world/terminus/market/bathhouse/location/vestibule
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/market/bathhouse/location/vestibule
+    - /world/terminus/market/bathhouse/location/baths
+    - /world/terminus/market/bathhouse/location/gym
+    - /world/terminus/market/bathhouse/thing/tariff

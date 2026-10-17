@@ -88,8 +88,42 @@ export const SERVICE_KINDS = [
   'treatment',
   'burial',
   'transfusion',
+  // ⭐ Cleanliness D26: the laundress washes what you bring her (`wash`),
+  // the bathhouse draws you a bath (`bath`).
+  'wash',
+  'bath',
 ] as const;
 export type ServiceKind = (typeof SERVICE_KINDS)[number];
+
+/**
+ * ⭐ A repair key a tariff need not price — derived from `repair` by this
+ * share (repair D12, grain): tightening a slack joint is a quarter of a
+ * mend, re-making a failed part twice one, re-firing a cask one.
+ */
+const REPAIR_KEY_SHARE: Record<string, number> = {
+  repair: 1,
+  tighten: 0.25,
+  reforge: 2,
+  refire: 1,
+};
+
+/** One line a quote is asked for: a priced key, said as `label`, `qty` times. */
+export interface QuoteRequestLine {
+  key: string;
+  label: string;
+  qty: number;
+}
+
+/** One line of a quote — `price` is null when the key is unpriced here. */
+export interface QuoteLine extends QuoteRequestLine {
+  price: number | null;
+}
+
+/** A quote: the priced lines and their total, in minor units. */
+export interface Quote {
+  lines: QuoteLine[];
+  total: number;
+}
 
 const TariffBase = PricedOfferMixin(Thing);
 
@@ -97,6 +131,7 @@ export default class Tariff extends TariffBase {
   static fieldMeta: FieldMeta = {
     services: { persistent: true, authorable: true },
     labourIndexed: { persistent: true, authorable: true },
+    serviceDisciplines: { persistent: true, authorable: true },
   };
 
   /**
@@ -106,6 +141,20 @@ export default class Tariff extends TariffBase {
    * silently declining.
    */
   public services: Record<string, string> = {};
+
+  /**
+   * ⭐ Which trade a service's hand must hold (cleanliness D26) — read off
+   * the ROW, never hard-coded: the lavoir's tariff names `{wash:
+   * textiles}`, so only a laundress answers; the bathhouse names none, so
+   * its attendant washes your clothes too, at whatever her textiles band
+   * is. Absent ⇒ any on-shift hand of this house.
+   */
+  public serviceDisciplines: Record<string, string> = {};
+
+  /** The discipline a service's hand must fulfil, or undefined for any. */
+  public disciplineFor(key: string): string | undefined {
+    return this.serviceDisciplines[key] || undefined;
+  }
 
   /**
    * ⭐⭐ **Price a treatment by the labour it restores** (D13). When true,
@@ -179,6 +228,29 @@ export default class Tariff extends TariffBase {
     return SERVICE_KINDS.includes(kind as ServiceKind)
       ? (kind as ServiceKind)
       : null;
+  }
+
+  /**
+   * ⭐ Price a list of lines — a quote BY DIAGNOSIS (repair D12, P1). Each
+   * line is its key's price × qty. A repair key the row does not price
+   * (`tighten`, `reforge`, `refire`) derives from `repair` by its share;
+   * any other unpriced key is unpriced — null, never derived — so a quote
+   * never invents a price for something the house did not set one for.
+   */
+  public quoteFor(lines: readonly QuoteRequestLine[]): Quote {
+    const out: QuoteLine[] = [];
+    let total = 0;
+    for (const l of lines) {
+      let unit = this.priceFor(l.key);
+      if (unit === null && l.key in REPAIR_KEY_SHARE) {
+        const base = this.priceFor('repair');
+        unit = base === null ? null : Math.max(1, Math.round(base * REPAIR_KEY_SHARE[l.key]!));
+      }
+      const price = unit === null ? null : unit * Math.max(1, l.qty);
+      if (price !== null) total += price;
+      out.push({ ...l, price });
+    }
+    return { lines: out, total };
   }
 
   /** Every priced key that names a real service. */

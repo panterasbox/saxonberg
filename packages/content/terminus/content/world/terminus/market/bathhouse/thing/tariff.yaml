@@ -1,0 +1,19 @@
+# The bathhouse slate (cleanliness D28): a bath, and washing — with no
+# trade named, so the attendant on shift washes your clothes too, at
+# whatever her own band is.
+class: /platform/thing/Tariff
+data:
+  shortDescription: bathhouse slate
+  keywords: [slate, tariff, prices, charges]
+  register: definite
+  longDescription: |
+    A slate by the inner door: HOT BATH 3. WASHING 2. And under it, in another hand: Not responsible for woollens.
+  mass: 2
+  prices:
+    bath: 3
+    wash: 2
+    hot-wash: 1
+    cover: 20
+  services:
+    bath: bath
+    wash: wash

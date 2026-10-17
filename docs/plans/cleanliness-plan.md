@@ -2101,6 +2101,17 @@ floor and refuses when it already holds.
 
 ### W5 — The tiers: kitchen, clinic, surgery
 
+> ✅ **Done — the W5 commit** (the `cleanTier` method itself rode W4's
+> commit, in `Soilable.ts`). Tiers derive on read; a dressing's quality is
+> its tier (the authored field is gone from four rows); `boil <cloth> in
+> <pot>` stamps a held boil and runs the kill law, `heat <kit>` holds an
+> instrument in the flame; `applyTreatment` seeds from the worst of hands,
+> dressing and instrument (surgery opens a wound whatever its type); the
+> nurse boils a raw bandage first when competent and a pot is in the ward;
+> the ward has a lit brazier and a cook pot (its prose always smelt of
+> boiled linen). The kitchen tier inoculates the INPUTS before the
+> working's kill (B24). See B22–B25.
+
 **Goal.** Semmelweis. Implements D14.
 
 **Files.** `S/lib/cleanliness/Soilable.ts` (`cleanTier`, `recordHeat`),
@@ -2127,6 +2138,23 @@ unwashed hands → the sepsis seed differs (AC 18); a flamed kit is
 **Commit.** `build(cleanliness W5): the clean tiers — washing removes, heat kills, only enough heat kills spores; the kitchen, the clinic and surgery read them`
 
 ### W6 — The people: laundress, lavoir, bathhouse, doorman
+
+> ✅ **Done — the W6 commit.** Repair and storage still absent, so their
+> seams are built here in their exact shapes (read off their branches):
+> repair's `PricedOffer.house/houseAccount/canSettle/collectMinor`,
+> `Tariff.quoteFor`, `BankingApi.canSettle`, `CraftingApi.fulfillingHand`
+> + `NOBODY_TO_WORK`, the `{ok, detail, charge?, hand?, declined?}`
+> collector and `payPiecework` (byte-identical hunks, so the merge is
+> clean); storage's `Employed.isOnShiftFor`. New here: `wash`/`bath`
+> service kinds, `Tariff.serviceDisciplines`, `WashPolicy`,
+> `Garment.describeForLaundress`, `BankingApi.indemnify` (`damages`),
+> `Tub`, `Copper`, `bathe` (+ `Attired.bathe`,
+> `ThermalRegulation.exchangeWithWater`), `KeptDoor` + the `doorman` and
+> `remarks` brains; the lavoir (three rooms, the laundry business, Bet the
+> laundress, a washerwoman) off the bank by a named exit, the bathhouse
+> (vestibule, baths, gym; Nell) north of the square, Mr Pruitt on the
+> Goodkin parlor arch. ⚠ `CraftingLogic`'s `fulfillingHand` rode the W5
+> commit (the file carried both). See B26–B33.
 
 **Goal.** Somebody is paid for all of it. Implements D26–D29.
 
@@ -2655,6 +2683,63 @@ Read first, in this order.
 - **B21 — Pests add `cleanliness.pests.ratePerHour` (0.1/h)** to an open
   food's growth while the floor has them, beside light-strike; only food
   lying loose in a room is reached.
+- **B22 — Raw is `presentable`.** A thing clean to look at but never
+  washed or heated since it was last touched reads `presentable`, not
+  `clean`: nobody has MADE it clean. So the shipped bandages dress at 0.3
+  until boiled or washed — the gap the drive's step 16 shows.
+- **B23 — An instrument outside surgery wants `disinfected`** (the suture
+  needle); surgery wants `sterile`. The plan read the instrument only for
+  surgery; a suture kit is an instrument too, so `SutureKit` composes
+  Soilable + Contaminable like the surgical kit. Surgery seeds whatever the
+  wound's type — the knife opens it.
+- **B24 — The kitchen tier inoculates the inputs before the kill.**
+  `contaminateFromKit` became `inoculateInputs` (bench path) and a
+  `kitInoculum` term into `buildMicrobialLoad` (by-hand path): each
+  Soilable tool short of sanitised, and the maker's dirty hands, put
+  `staph-aureus` on the FOOD (perishable inputs only — a dirty hand on gin
+  is a dirty bottle), so a stew boiled long enough is safe and a salad cut
+  on a dirty board is not.
+- **B25 — `boil` takes `in <pot>`** (a declared `[capability.pot]`
+  default) for a cloth or tool; `heat` holds a Soilable `Tool` in the flame
+  for 60 s. Both stamp `recordHeat` and run `Contamination.killOver`.
+- **B26 — `indemnify` takes the house's path** (`{houseAccountId,
+  housePath, payeeKey, amount, memo}`) and returns a reason rather than
+  throwing: `self-dealing` when the payee holds any seat at that house
+  (`EmploymentApi.employeesOf`, which covers the hand), `house-short`,
+  `no-account` (a cash customer is told the house owes them — the coin
+  payout from the till is not built), `nothing-owed`.
+- **B27 — The band chooses the METHOD, never the outcome**
+  (`WashPolicy`): untrained boils and reaches for lye, novice boils with
+  soap (the old way — the drive's "low-band laundress boils it"),
+  competent reads the fibre (wool lukewarm, blood cold, linen hot),
+  proficient+ never reaches the shrink line. The chemistry on the garment
+  decides what that does.
+- **B28 — The house's soap is not spent by a paid wash** (the bar on the
+  lavoir's shelf stays whole); `spendCleansers` is the wash verb's, and a
+  paid arm spending the house's stock is the par loop's job — deferred
+  with the par lines (no `restocks` brain was authored on Bet or Nell).
+- **B29 — `exchangeWithWater`**: hot water puts a tenth of `h·A·ΔT·dt`
+  into the body's heat load; cold water pulls the effective ambient to
+  the water until the next re-stamp and reconciles — the shipped fold
+  chills the core. Storage's own law replaces this at its merge.
+- **B30 — The copper is a `WaterFixture` over its own fire** (`Copper`:
+  `copperLit`, `heatsToK` 330): its water is hot while lit. The fire's
+  fuel is the house's abstraction (it still costs the house a wage). A
+  `heat copper` model would have needed a placement-at-boot the props
+  grammar does not have (`onto:` is a stale docstring, not a key).
+- **B31 — The doorman decides he is on duty** (`judge(host, mover,
+  config, door)` reads `door.getKeptBy()` and `isOnShiftFor`), not the
+  exit: the seat is HIS rule, and it gives `keptBy` a reader outside the
+  class (the seam census). No `conditional:` on the kind rows — the
+  orphan scan cannot see Exit's own fields through its lib import.
+- **B32 — The lavoir is outdoors** (`_biomePath` outdoor): it is open on
+  three sides; the laundry and the bathhouse rooms are sky-lit interiors
+  through a named doorway/windows (on `SKYLIT_INTERIORS`). The kind row is
+  `/platform/idea/exits/kept-door` (beside `ashore`), and the Goodkin arch
+  is its own row `counting-houses/exits/parlor-arch` naming the house.
+- **B33 — The fisher remarks on a coat; the pilot does not** (she has no
+  behaviours to add a line to). The washerwoman is an `Extra` answering to
+  the laundry (`institution:`), per `lint:identity`.
 
 ## Drive record
 

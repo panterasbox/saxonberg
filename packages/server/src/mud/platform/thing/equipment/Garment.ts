@@ -62,6 +62,7 @@ import { TemplatePaths } from '../../../lib/paths';
 import type { FieldMeta } from '../../../lib/mixin';
 import type DirtKindCatalogue from '../../idea/DirtKindCatalogue';
 import type { DirtKindDescriptor } from '../../idea/DirtKind';
+import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
 
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
@@ -124,6 +125,42 @@ export default class Garment extends GarmentBase {
    * rubberized cloth carries no `fibre` tag and neither shrinks nor felts
    * (the one wet law, when it lands, decides how wet it comes out).
    */
+  /**
+   * ⭐ What a laundress sees before it goes in the water (cleanliness
+   * D26), at her band — repair's *quote only what you can see*: a hand
+   * that reads cloth names the fibre and the stains; an untrained one sees
+   * a dirty shirt. Never the consequence: she says what she will do, not
+   * what it will do to it.
+   */
+  public describeForLaundress(policy: WashPolicy): {
+    said: string;
+    subject: WashSubject;
+    kinds: string[];
+  } {
+    const material = this.getMaterial();
+    const wool = !!material?.hasTag('protein') && !!material.hasTag('fibre');
+    const kinds = this.soilKinds();
+    const subject: WashSubject = { wool, blood: kinds.includes('blood') };
+    const name = this.getPresentation();
+    if (!policy.readsTheCloth()) {
+      return {
+        said: `"Your ${name}. ${policy.sayMethod(subject)}."`,
+        subject,
+        kinds,
+      };
+    }
+    const fibre = material?.getName() ?? 'cloth';
+    const dirt = this.describeSoil();
+    return {
+      said:
+        `"${fibre.charAt(0).toUpperCase()}${fibre.slice(1)}` +
+        (dirt ? `, and ${dirt}` : ', and not much on it') +
+        `. ${policy.sayMethod(subject)}."`,
+      subject,
+      kinds,
+    };
+  }
+
   public override washSite(spec: WashSpec, site: string = ''): WashOutcome {
     const outcome = super.washSite(spec, site);
     const damage = [...outcome.damage];

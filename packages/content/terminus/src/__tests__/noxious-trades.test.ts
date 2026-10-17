@@ -231,9 +231,17 @@ describe('the premises have what the trades need', () => {
     }[];
     // ⭐ …and wick by the length: a lantern's wear part (assembly AC 13)
     // is sold by whoever sells candles.
+    // ⭐ …and the soap-maker's goods (cleanliness W3): soap, soft soap,
+    // lye, glycerin; sulfur for the bleaching and ash for the lye.
     expect(lines.map((l) => l.itemTemplatePath)).toEqual([
       '/trade/chandlery/thing/candle',
       '/trade/chandlery/thing/wick',
+      '/trade/chandlery/thing/soap-bar',
+      '/trade/chandlery/thing/soft-soap-jar',
+      '/trade/chandlery/thing/lye-flask',
+      '/trade/chandlery/thing/glycerin-jar',
+      '/trade/quarrying/thing/sulfur',
+      '/trade/fuel/thing/ash',
     ]);
   });
 

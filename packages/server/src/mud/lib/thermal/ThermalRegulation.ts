@@ -53,6 +53,9 @@ import { THERMAL_DEFAULTS } from "./Thermal";
 import { METABOLIC_DEFAULTS } from "../metabolism/Metabolic";
 import { Decay } from "../Decay";
 
+/** The skin's temperature, K — what bath water is warmer or colder than. */
+const SKIN_K = 306;
+
 /** Numeric AppSetting read with a seeded-literal fallback (test/pre-warm safe). */
 function readDial(key: string, fallback: number): number {
   try {
@@ -111,6 +114,15 @@ export interface ThermalRegulation {
   setCachedHumidity(value: number): void;
   setThermalRegStamp(value: number): void;
   getSetpoint(): Quantity<"K">;
+  /**
+   * ⭐ A body in water for `dtS` (cleanliness D28; storage-and-ice's
+   * contract, built here in its shape): water warmer than the skin puts
+   * heat INTO the body (a hot bath — the convective law, the share the
+   * body keeps); water colder than the skin is the medium the body is
+   * losing heat to, so the effective ambient is pulled to it until the next
+   * re-stamp, and the reconcile chills the core by the shipped fold.
+   */
+  exchangeWithWater(waterK: number, dtS: number): void;
   setSetpoint(value: Quantity<"K">): void;
 
   /** Lazy reconcile — drive coreTemperature over elapsed game-time. */
@@ -145,6 +157,20 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     public thermalRegStamp = 0;
     /** Internal heat not yet shed (J) — see the interface. */
     public heatLoadJ = 0;
+
+    public exchangeWithWater(waterK: number, dtS: number): void {
+      if (!Number.isFinite(waterK) || !(dtS > 0)) return;
+      if (waterK > SKIN_K) {
+        // h ≈ 200 W/m²·K in still water, over ~1.8 m² of skin; the body
+        // keeps a tenth of it (the rest warms the skin and is shed).
+        this.absorbHeatLoad(200 * 1.8 * (waterK - SKIN_K) * dtS * 0.1);
+        return;
+      }
+      if (waterK < this.effectiveAmbientK) {
+        this.effectiveAmbientK = waterK;
+        this.reconcileThermalRegulation();
+      }
+    }
 
     public absorbHeatLoad(joules: number): void {
       if (!Number.isFinite(joules) || joules <= 0) return;

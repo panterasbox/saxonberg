@@ -97,6 +97,25 @@ function logic(): BankingLogic {
   );
 }
 
+/** What a house pays a customer for something it ruined. */
+export interface IndemnifyRequest {
+  /** The paying house's operating account. */
+  houseAccountId: string;
+  /** The paying house's organization path — whose seats may not be paid. */
+  housePath: string;
+  /** The customer's durable person key (`getIdentityPath()`). */
+  payeeKey: string;
+  amount: Money;
+  memo: string;
+}
+
+export type IndemnifyResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "self-dealing" | "house-short" | "no-account" | "nothing-owed" | "no-persistence";
+    };
+
 export class BankingApi {
   /**
    * Mint money into an account — the central-bank faucet. Supply grows by
@@ -445,6 +464,16 @@ export class BankingApi {
     return logic().settle(charge, method);
   }
 
+  /**
+   * ⭐ Could the person acting pay `amount` now — by their payment
+   * credential's balance, or by coin in hand? Read-only; asked BEFORE a
+   * service is performed, so a mend nobody can pay for is refused rather
+   * than done on the house (repair P1).
+   */
+  public static canSettle(amount: Money): boolean {
+    return logic().canSettle(amount);
+  }
+
   /** The acting owner's routing payment credential (implant-first), or null. */
   public static activeCredential(): PaymentCredential | null {
     return logic().activeCredential();
@@ -469,6 +498,17 @@ export class BankingApi {
   }
 
   /* ──────────────── wages + reporting ──────────────── */
+
+  /**
+   * ⭐ A house pays a customer for what it ruined (cleanliness D26) — the
+   * laundress's posted cover; named generically so a warranty or an
+   * insurer inherits it. Refused, in a reason, when the payee holds a seat
+   * at the paying house (self-dealing), the house is short, or the payee
+   * has no account.
+   */
+  public static async indemnify(req: IndemnifyRequest): Promise<IndemnifyResult> {
+    return logic().indemnify(req);
+  }
 
   /**
    * Pay a wage from an employer account to a worker's primary account — the

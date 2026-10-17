@@ -94,6 +94,8 @@ const DRAW_VERBS = [
   'platform/cmd/bulk/drink.yaml',
   'platform/cmd/crafting/wash.yaml',
   'platform/cmd/crafting/scrub.yaml',
+  // ⭐ …and `bathe` — the whole body in the river (cleanliness D28).
+  'platform/cmd/crafting/bathe.yaml',
   'platform/cmd/medical/rinse.yaml',
   // ⭐ Swimming is SAYABLE beside any water; whether a way is swimmable
   // is the gate's (the place you are in, or the place an exit leads into,

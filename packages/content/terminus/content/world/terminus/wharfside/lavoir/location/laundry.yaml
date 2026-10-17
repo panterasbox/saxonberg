@@ -1,0 +1,26 @@
+# The laundry — the laundress's back room (cleanliness D27): the copper,
+# the soap on its shelf, the lye in its flask. Shut and warm and steaming.
+class: /platform/location/PersistentCartesianLocation
+data:
+  coords: { x: -1, y: 0, z: 0 }
+  # ⭐ What light there is comes through from the lavoir's open side.
+  ambientSource: sky
+  ambientOpening: doorway
+  shortDescription: laundry
+  keywords: [laundry, wash-house, back-room]
+  register: definite
+  longDescription: |
+    A low back room full of steam, with a copper boiler set into brickwork in one corner and its fire door glowing. Shelves hold bars of soap curing in a row, a flask of lye with a rag round its neck, and folded washing waiting to go back to whoever it belongs to.
+  exits:
+    east:
+      destination: /world/terminus/wharfside/lavoir/location/lavoir
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /stuff/thing/fixture/copper
+    - /trade/chandlery/thing/soap-bar
+    - /trade/chandlery/thing/lye-flask
+  details:
+    doorway:
+      keywords: [doorway, door]
+      description: A low doorway onto the lavoir, the only light in here, grey with steam.

@@ -37,6 +37,7 @@ import { AddressApi } from "../../../api/address";
 // here has no dispatched frame, so it re-enters through the face to
 // acquire one before the registry-wide read.
 import { BankingApi } from "../../../api/banking";
+import type { IndemnifyRequest, IndemnifyResult } from "../../../api/banking";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
@@ -1240,6 +1241,21 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
 }
 
 /**
+ * ⭐ Could the acting principal settle `amount` now — by its routing
+ * credential's balance, or by coin on hand? The question `settle` answers
+ * by trying; asked first so a service nobody can pay for is refused
+ * before it is performed (repair P1). Read-only.
+ */
+function canSettleImpl(amount: Money): boolean {
+  const payer = actingPrincipal();
+  if (!payer) return false;
+  const cred = reachableCredential(payer);
+  const account = cred?.getActiveAccount() ?? null;
+  if (account && balanceMinor(account) >= amount.minor) return true;
+  return MixinApi.isContainer(payer) && cashOnHand(payer) >= amount.minor;
+}
+
+/**
  * The uniform settlement primitive: one Charge, one method-as-parameter,
  * polymorphic underneath (cash = coin handover off the governed ledger;
  * credential = a ledger debit/credit routed through the owning corpo bank).
@@ -1458,6 +1474,43 @@ async function payWageImpl(
     },
   ]);
   touchEstateOfAccount(workerAccount);
+}
+
+/**
+ * ⭐ A house pays for what it ruined (cleanliness D26) — the `payWage`
+ * body under the `damages` line, refused rather than thrown:
+ *
+ * - ⛔ **never to its own hands** — a payee who holds a seat at the paying
+ *   house could `order wash` their own cheap jumper, boil it, and be paid
+ *   the cover out of the till;
+ * - the house must hold it;
+ * - the payee must have an account (a cash customer is told the house owes
+ *   them; the deed on the hand records it).
+ */
+async function indemnifyImpl(req: IndemnifyRequest): Promise<IndemnifyResult> {
+  if (!active()) return { ok: false, reason: "no-persistence" };
+  if (req.amount.minor <= 0) return { ok: false, reason: "nothing-owed" };
+  try {
+    const { EmploymentApi } = await import("../../../api/employment");
+    if (EmploymentApi.employeesOf(req.housePath).includes(req.payeeKey)) {
+      return { ok: false, reason: "self-dealing" };
+    }
+  } catch {
+    // No employment engine (unit tests / pre-boot): no seats to hold.
+  }
+  if (balanceMinor(req.houseAccountId) < req.amount.minor) {
+    return { ok: false, reason: "house-short" };
+  }
+  const owned = await accountsOfImpl(req.payeeKey);
+  if (owned.length === 0) return { ok: false, reason: "no-account" };
+  await payWageImpl(
+    req.houseAccountId,
+    req.payeeKey,
+    req.amount,
+    "damages",
+    req.memo,
+  );
+  return { ok: true };
 }
 
 /* ─────────────────── escrow · draw · custodian restamp ─────────────────── */
@@ -2864,6 +2917,12 @@ export class BankingLogic extends ApiLogic {
     return settleImpl(charge, method);
   }
 
+  /** See {@link BankingApi.canSettle}. */
+  @CallSecurity(BankingApiCallers)
+  public canSettle(amount: Money): boolean {
+    return canSettleImpl(amount);
+  }
+
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
   public activeCredential(): PaymentCredential | null {
@@ -2882,6 +2941,12 @@ export class BankingLogic extends ApiLogic {
   }
 
   /* ──────────────── wages + reporting ──────────────── */
+
+  /** See {@link BankingApi.indemnify}. */
+  @CallSecurity(BankingApiCallers)
+  public async indemnify(req: IndemnifyRequest): Promise<IndemnifyResult> {
+    return indemnifyImpl(req);
+  }
 
   /** See {@link BankingApi.payWage}. Employer account → worker (labor line). */
   @CallSecurity(BankingApiCallers)

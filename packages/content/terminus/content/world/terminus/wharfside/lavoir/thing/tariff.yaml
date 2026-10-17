@@ -1,0 +1,20 @@
+# The laundress's slate (cleanliness D26): what she charges, and the cover
+# the house pays when it ruins what you brought. `serviceDisciplines`
+# names her trade, so only a laundress answers an `order wash` here.
+class: /platform/thing/Tariff
+data:
+  shortDescription: laundress's slate
+  keywords: [slate, tariff, prices, charges, laundress]
+  register: definite
+  longDescription: |
+    A slate on the end pillar, chalked in a round hand: WASHING 2 a piece, HOT 1 more, BLEACHING 2. Underneath, smaller: Spoiled goods made good — 20.
+  mass: 2
+  prices:
+    wash: 2
+    hot-wash: 1
+    bleach: 2
+    cover: 20
+  services:
+    wash: wash
+  serviceDisciplines:
+    wash: textiles

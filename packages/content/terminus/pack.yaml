@@ -46,6 +46,8 @@ requires:
     - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
     # The farmers market — the produce square off the counting-houses.
     - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square }
+    # ⭐ The bathhouse (cleanliness D28) — off the square, north.
+    - { extent: /world/terminus/market/bathhouse, parentParcel: /world/terminus/market, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square }
     - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.
@@ -99,6 +101,8 @@ requires:
     - { extent: /world/terminus/wharfside/knackers,  parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/wharfside/tannery,   parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
+    # ⭐ The lavoir (cleanliness D27) — the town's washing place on the bank.
+    - { extent: /world/terminus/wharfside/lavoir, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: commercial, powerBand: off-grid }
     - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
     - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
 boot:

@@ -185,6 +185,15 @@ export interface Attired {
    */
   immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
   /**
+   * ⭐ A bath (cleanliness D28): every part of the BODY is washed by the
+   * bath's chemistry (soap, the water's heat and hardness — the head site
+   * is the hair), then the body goes in (`immerse`) — so a bather who
+   * kept their clothes on soaks them, which is the bather's problem — and
+   * the water's heat is exchanged with the body by the one law
+   * (`exchangeWithWater`): a copper-fed tub warms, a winter river chills.
+   */
+  bathe(spec: WashSpec, durationS: number): void;
+  /**
    * ⭐ The doffing problem (cleanliness D5): a garment came off. Taken off
    * in a hurry, a dirty one leaves `cleanliness.doff.transfer` of what is
    * on it on the hands that pulled it — the bare hands once the gloves
@@ -834,6 +843,30 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (MixinApi.isSoilable(layer)) layer.washSite(rinse, '');
         }
         if (MixinApi.isSoilable(self)) self.washSite(rinse, key);
+      }
+    }
+
+    public bathe(
+      this: Stuff & Slotted & Attired,
+      spec: WashSpec,
+      durationS: number,
+    ): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isSoilable(self)) {
+        const plan = bodyPlanOf(self);
+        const keys = plan
+          ? plan
+              .getBodyParts()
+              .filter((p) => (p.governs ?? []).length === 0)
+              .map((p) => p.key)
+          : [];
+        // The bath washes the body, not what it has on: a covered part's
+        // soap goes on the cloth over it (immerse below soaks it).
+        for (const key of ['', ...keys]) self.washSite(spec, key);
+      }
+      this.immerse(undefined, spec.waterK);
+      if (MixinApi.isThermalRegulation(self)) {
+        self.exchangeWithWater(spec.waterK, durationS);
       }
     }
 

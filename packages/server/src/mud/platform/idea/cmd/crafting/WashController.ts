@@ -49,7 +49,7 @@ const UNKNOWN_WATER_K = 285;
 /** Hardness nobody has stated — moderately hard (the realm's default seed). */
 const UNKNOWN_HARDNESS_DGH = 8;
 
-interface WashModel extends CommandModel {
+export interface WashModel extends CommandModel {
   target?: MqlManyResult;
   water?: MqlManyResult;
   cleanser?: MqlManyResult;
@@ -58,7 +58,7 @@ interface WashModel extends CommandModel {
 }
 
 /** The water a wash is done in, read once. */
-interface WashWater {
+export interface WashWater {
   source: Stuff;
   waterK: number;
   hardnessDgh: number;
@@ -242,7 +242,12 @@ export default class WashController extends ManualBuildController<WashModel> {
    * of soap is soap because it is made of soap; a flask of lye is lye. A
    * named thing that is no cleanser is refused in words.
    */
-  private async findCleansers(
+  /** Spend what `washes` washes used of each cleanser (B12). */
+  protected spend(cleansers: WashCleanser[], washes: number): void {
+    spendCleansers(cleansers, washes);
+  }
+
+  protected async findCleansers(
     bound: MqlManyResult | undefined,
     catalogue: CleanserCatalogue,
   ): Promise<{ cleansers: WashCleanser[] } | { refusal: string }> {
@@ -263,7 +268,7 @@ export default class WashController extends ManualBuildController<WashModel> {
    * shore's one answer, which refuses a frozen water unless there is a
    * hole in it.
    */
-  private async findWater(
+  protected async findWater(
     bound: MqlManyResult | undefined,
     context: CommandContext,
   ): Promise<WashWater | { refusal: string; reason: string }> {

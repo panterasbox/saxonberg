@@ -1,0 +1,18 @@
+# The copper — ⭐ a wash boiler set in brick over its own fire (cleanliness
+# D28). The laundry's and the bathhouse's hot water: what you draw from it,
+# or a tub is filled from, comes hot while its fire is in.
+class: /platform/thing/Copper
+data:
+  shortDescription: copper
+  keywords: [copper, boiler, copper-boiler]
+  register: definite
+  longDescription: >-
+    A great copper pan set into a brick stand, with a fire door low in the
+    brickwork and a wooden lid on top. Steam leaks round the lid. The
+    water inside is never far off the boil.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  copperLit: true
+  heatsToK: 330
+  fixedInPlace: true
+  mass: 300

@@ -1,0 +1,12 @@
+# The Lavoir — ⭐ the town's washing place (cleanliness D27): a roofed,
+# open-sided shed over a stone trough of soft fell water, where anybody
+# may wash for nothing, and where the laundress takes in washing for a
+# fee. Civic rows; a second lavoir is these rows again (AC 23).
+#
+# On the bank, upstream of the noxious trades and fed from the fell, not
+# the river: the laundresses wash here because the water is SOFT.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Lavoir
+  cellSize: 4.0
+  horizon: []

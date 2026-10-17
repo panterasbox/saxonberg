@@ -1,0 +1,28 @@
+# The baths — the copper and the tubs (cleanliness D28). `order bath` and
+# the attendant fills one from the copper; or fill one yourself and
+# `bathe` in it.
+class: /platform/location/PersistentCartesianLocation
+data:
+  coords: { x: 0, y: 1, z: 0 }
+  # ⭐ Daylight through the high windows (the light-sources rule).
+  ambientSource: sky
+  ambientOpening: windows
+  shortDescription: baths
+  keywords: [baths, bath-room, tubs, steam]
+  register: definite
+  longDescription: |
+    A long steamy room with three deep tubs along the wall behind wooden screens, and at the end a great copper set into brickwork with its fire door glowing. The floor is slatted over a drain, and the walls run with condensation.
+  exits:
+    south:
+      destination: /world/terminus/market/bathhouse/location/vestibule
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /stuff/thing/fixture/copper
+    - { template: /stuff/thing/fixture/tub, count: 3 }
+    - /trade/chandlery/thing/soap-bar
+    - /stuff/thing/fixture/midden
+  details:
+    windows:
+      keywords: [windows, window]
+      description: High small windows, misted on the inside, letting in a grey daylight.

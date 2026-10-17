@@ -1,0 +1,25 @@
+# The gym — sharing the bathhouse's door (cleanliness D28): you work up a
+# sweat here and wash it off next door.
+class: /platform/location/PersistentCartesianLocation
+data:
+  coords: { x: 1, y: 0, z: 0 }
+  # ⭐ Daylight through the high windows (the light-sources rule).
+  ambientSource: sky
+  ambientOpening: windows
+  shortDescription: gymnasium
+  keywords: [gym, gymnasium, weights]
+  register: definite
+  longDescription: |
+    A bare boarded room with a rope hung from a beam, a mat in the corner and an iron barbell on its stand. The window is high and the air is close.
+  exits:
+    west:
+      destination: /world/terminus/market/bathhouse/location/vestibule
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /trade/smithing/thing/barbell
+    - /stuff/thing/fixture/basin
+  details:
+    windows:
+      keywords: [windows, window]
+      description: High small windows, misted on the inside, letting in a grey daylight.

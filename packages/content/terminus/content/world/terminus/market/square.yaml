@@ -71,6 +71,12 @@ data:
     # `west` was free.
     west:
       destination: /world/terminus/market/bakery
+    # ⭐ North to the bathhouse (cleanliness D28): hot baths, washing taken
+    # in, and a gym sharing the door. `north` was free.
+    north:
+      destination: /world/terminus/market/bathhouse/location/vestibule
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/market/stalls
     # ⭐ The fish stall — a second consignment counter (fishing D11),

@@ -1,0 +1,22 @@
+# Bet Holloway, the laundress (cleanliness D27) — a competent hand: she
+# reads the cloth, washes wool lukewarm and blood cold, and says so.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Bet Holloway
+  keywords: [bet, holloway, laundress, washerwoman]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Bet the laundress
+  register: proper
+  longDescription: |
+    A broad-armed woman with her sleeves rolled to the shoulder and her hands red to the wrist, who looks at what you are holding before she looks at you.
+  archetype: laundress
+  competence:
+    - { discipline: textiles, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 40 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
