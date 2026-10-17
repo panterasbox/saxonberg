@@ -1,0 +1,7 @@
+node_modules
+dist
+*.local
+.DS_Store
+.env
+# generated art is committed deliberately, but raw samples are not
+tools/samples/

@@ -273,7 +273,7 @@ through the readers (reusing the presence edge). The relay emits
 `OVERLAY_*` channels (by the configured handle — a viewer tuning a different
 channel never matches) and pushes a **`RelayChatEnvelope`** to the broadcast
 socket. The relay stays mud-pure (event bus only, no backend import); the
-overlay *render* lives in the sibling `pbox-stream` repo. One token / one
+overlay *render* is Rodney (`packages/rodney`). One token / one
 feed / one owner is preserved. Full seam in [livestream.md](./livestream.md).
 
 ## Presence-gating, invariants

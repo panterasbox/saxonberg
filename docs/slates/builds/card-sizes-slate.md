@@ -347,7 +347,7 @@ already knows; the client does not guess.
   layer).
 - **Frame-synced shared viewing.** Shared means the same channel, not
   the same frame.
-- **Claude on stream.** pbox-stream's plan has an agent board; try that
+- **Claude on stream.** Rodney's plan has an agent board; try that
   for a few streams before building anything into the client.
 - **The web inside the client.** No iframe card (publishers forbid
   it), no reader card (the render is the point), no desktop shell or
