@@ -19,20 +19,16 @@ and the drive file. W8 is stretch, first to cut.
 
 ---
 
-> ⚠⚠ **BUILD GATE (2026-10-16).** Start `/build` only after **dairy
-> (build-2) has merged** — D10 and D13.2 build on its mould system — and
-> after the **repair (build-3)** and **storage-and-ice (build-4)** plans
-> have settled. Then re-ground:
-> 1. **Moulds (D10, D13.2)** — re-verify every dairy name on master.
->    Rubber ships BEFORE the moulding build by the user's choice and takes
->    exactly one of its seams (a firing asks the mould for its shape),
->    written so moulding moves nothing (D10's four rules).
-> 2. **Bill of materials and building upkeep** may land in repair, which
->    was reopened on *"building upkeep, layer by layer"*. D1a's per-place
->    layers are its seam; confirm its plan does not put materials on
->    `Structure` (refused here, D2), and fold in whatever it settled.
-> 3. **storage-and-ice** — the shared wet law (D12.1) and the ice
->    material's light absorption; whichever lands first owns them.
+> ✅ **BUILD GATE CLEARED 2026-10-17.** Dairy merged (`b18743d80`) and
+> `reqs/rubber` caught up (`a2e688ff1`); D10 and D13.2 are re-grounded on
+> its merged mould code. The sibling plans have settled and agree:
+> **storage-and-ice** (build-4) puts the wet law on `Material` as instance
+> methods and adds `Attired.immerse()` — this plan now uses both shapes
+> (D12.1), whichever lands first; **repair** (build-3) W7 (building upkeep,
+> D20–D27) is gated on THIS build and consumes D1a/D2/D4 exactly as
+> written — ⚠ so `getEnclosure()`/`getRoof()` returning a spec, a list,
+> `'none'` or `null`, and materials never on `Structure`, are now a
+> **contract with another build**: do not reshape them without telling it.
 
 ## Grounding
 
@@ -704,11 +700,26 @@ processes) to moulding. ⛔ The earlier D10 (`Tool`-row moulds and a
 `RecipeInputSlot.consumed` flag) is **dropped**: it was a second mould
 concept beside dairy's.
 
-- **Prerequisite: dairy is merged.** It ships `lib/mould/Mould.ts`
-  (`MouldMixin`, `Mould` interface, `castTemplateFor(material)`,
-  `takeCast`, wear per cast, a broken mould casts a lump) and the
-  instanceable `platform/thing/Mould`. Re-verify every name against
-  master at W4 — the dairy plan's names are not grounding.
+- **Grounded on master after dairy merged (2026-10-17, `a2e688ff1`).**
+  `S/lib/mould/Mould.ts`: `MouldMixin` (:136); the `Mould` interface
+  (:87–106) is `castTemplateFor(material): string`, **`castInto(pool:
+  SetPool): Promise<Stuff|null>`** (it MINTS the cast: clones
+  `castTemplateFor(pool.material)`, stamps the material when
+  `stampMaterial` or when the row authors none, sets the mass,
+  `carryPayload` — maker from `payload.maker` else the mould's, the
+  MOULD's grade onto a Crafted cast, freshness/pathogens/moisture if the
+  cast composes them, `madeFrom` — then, reusable, moves the cast into
+  itself and `wear(wearPerCast)`, else breaks), `holdsCast()`,
+  `loadKg()` (needs `PlacingMixin`), `reconcileSetting()`,
+  `getMouldDiscipline()`, `setState()`. `SetPool = {material, massKg,
+  payload, moisture?, stampMaterial?}` (:58). A broken mould casts a lump
+  (:222). `platform/thing/Mould = MouldMixin(DurableMixin(CraftedMixin(
+  ThermalMixin(BulkableMixin(ContainerMixin(Good))))))` — **no Placing**.
+  `MixinApi.isMould` (`S/api/mixin.ts:1537`), `Mixins.Mould`. The freeze
+  edge asks the container first (`Thermal.ts:1386–1396`). ⚠ There is no
+  `takeCast`; nothing casts a SOLID charge; `FireController` is untouched
+  by dairy (`FIRE_MS` fixed at :77, charge = the chamber's direct
+  contents at :115, `firingsFor` :198, `runFiring` :304).
 - **The moulds are dairy `Mould` rows** in `trade-rubber` — `boot-mould`,
   `glove-mould`, `sheet-mould`, `ring-mould`, `tube-mould` — each naming
   its `castTemplate` (the boot, the glove…), reusable, crediting
@@ -724,17 +735,30 @@ concept beside dairy's.
   `FireController.runFiring` (and `firingsFor`, which must see a charge
   that sits one container down, inside a mould standing in the chamber)
   gains one branch: when the consumed charge stood in a `Mould`
-  (`MixinApi.isMould`), the output's template is
-  `mould.castTemplateFor(outcomeMaterial)` and the cast goes through
-  `mould.takeCast(cast)` (so wear, grade and maker ride exactly as dairy's
-  pour does); otherwise the recipe's `outputTemplate`, else the
-  material's lump. Rules that keep the moulding build's refactor trivial:
+  (`MixinApi.isMould`), the firing hands the mould a pool and lets the
+  mould mint the cast — `mould.castInto({ material: outcomeMaterial,
+  massKg: consumedMassKg, payload: { maker: firer, … }, stampMaterial:
+  true })` — exactly the call the freeze edge makes, so the shape, the
+  material stamp, the mass, the maker, the wear and the grade all ride
+  dairy's one path. ⚠ `carryPayload` writes the **mould's** grade onto the
+  cast; the cure has a grade of its own (D9), so after `castInto` the
+  firing lowers the cast's grade to the cure's when that is worse —
+  **weakest link** (the smallholding harvest precedent): a fine mould
+  cannot rescue a scorched cure, and a cracked mould spoils a fine one.
+  Otherwise (no mould) the recipe's `outputTemplate`, else the outcome
+  material's own `castTemplate` lump. Rules that keep the moulding build's refactor trivial:
   1. **No rubber word in the seam.** It reads *a mould* and *the outcome
      material*; the cure's `Crosslinking` outcome (D9) only chooses the
      material. Bread in a tin and fired brick use the same branch
      unchanged.
   2. **The seam asks the mould; the mould holds no firing logic.** Nothing
-     is added to `MouldMixin`. When moulding adds pressing (a load) or a
+     firing-specific is added to `MouldMixin`. ⚠ One generic correction
+     IS needed there: `holdsCast()` is `getContents().length > 0`, so a
+     mould charged with solids (raw rubber + sulfur waiting to be fired)
+     reads *"what was poured in has set"*. It becomes *holds a thing
+     whose template is this mould's cast* — true of every shipped case,
+     correct for a solid charge, and moulding's own pressing (a plastic
+     charge in a cavity) needs the same answer. When moulding adds pressing (a load) or a
      failed pour, they are reads the mould already answers (`loadKg`) or
      new answers from `castTemplateFor`; the call site does not move.
   3. **Named and pinned.** The branch carries a one-line comment naming
@@ -764,18 +788,32 @@ the same wave as the field or the next.
 **D12 — The four corrections, each on the host that already answers
 the question.**
 
-1. *Wet conducts.* `MaterialApi.contactResistance(material, wet?)` gains
+1. *Wet conducts.* ⭐ **Aligned with storage-and-ice's plan D9
+   (2026-10-17): the law lives on `Material` as INSTANCE methods** —
+   `material.permeability(): number` and `material.wetProperty(dry,
+   fluid, saturation): number` (verbs on objects; the law is about a
+   material) — with the setting `wetness.impermeableBelowPct` (2) and the
+   hoisted `textiles.clo.absorptionReference` (40). Whichever build lands
+   first adds them and migrates cloth's `k_void` (byte-identical by test);
+   the second consumes them. This supersedes the `MaterialLogic`-hosted
+   form below. `MaterialApi.contactResistance(material, wet?)` gains
    an optional `{ saturation, fluidSigma }` and `MaterialLogic.
-   contactResistanceImpl` computes `σ_eff = σ_mat + saturation ·
-   permeability(material) · fluidSigma`, where `permeability = 0` when
+   contactResistanceImpl` computes `σ_eff = material.wetProperty(σ_mat,
+   fluidSigma, saturation)`, i.e. `σ_mat + saturation ·
+   permeability · (fluidSigma − σ_mat)`, where `permeability = 0` when
    `waterAbsorptionCapacity ≤ wetness.impermeableBelowPct` (2 — rubber
    0.5, glass 0.1, metals 0) else `min(1, wAC / absorptionReference)` (the
    shipped textiles setting — see the THREE-readers note below). `ElectricityLogic.groundContactInsulated`
    and `pathResistance` pass each worn layer's own `getWetness()` and
    the pool's material conductivity when immersed (else fresh water's
-   0.01 S/m). `ElectricityLogic.isWet`, on immersion, also wets the
-   **foot coverings** (`body.coveringAt(part)` for the foot parts) so
-   boots wading brine soak as the body does. Leather (wAC 15 ⇒
+   0.01 S/m). Boots wading brine must soak as the feet do — ⭐ **but electricity does
+   not wet garments.** storage-and-ice's plan D11 adds `Attired.immerse()`
+   (the body and every layer at every exterior part get `wet(1)`), called
+   when a body goes INTO water. Wading is the same act below a water line:
+   whichever build lands first gives it an optional part filter
+   (`immerse(parts?: (partKey) => boolean)`), and the flooded cell's
+   entry calls `immerse(foot parts)` — the electricity walk then only
+   READS each layer's `getWetness()`. One wetting method, two callers. Leather (wAC 15 ⇒
    permeability 0.375) soaked in salt water (≈ 5 S/m) reads ≈ 1.9 S/m —
    a conductor; rubber stays 1e-13.
    ⭐⭐ **ONE wet law, two readers (added 2026-10-16, coordinated with
@@ -874,29 +912,44 @@ air answers. Birch outdoors reads the same number either way after its
 τ; a test asserts the birch's shipped season is unchanged on the
 equinox.
 
-**D13.2 (revised 2026-10-16) — Latex sets by DRAINING, on dairy's set
-hook: no new mechanism, nothing for moulding to refactor.** The earlier
-maturation-engine change (a solid `productTemplate`) is **dropped**.
-⭐ This is not a stand-in: latex coagulation is the same physics as curd —
-a colloid coagulates and gives up its serum (latex) or whey (milk) — and
-field latex sets on its own within a day as it sours. So the latex
-material row authors dairy's `drainSetting`
-(`{ days: 1, becomes: /stuff/idea/material/organic/raw-rubber, moisture:
-{ unloaded: 0.6, loaded: 0.4 }, loadRef: 2 }` — numbers to tune against
-the shipped field's real semantics at W6), and the coagulating pan is a
-dairy `Mould` row (`/trade/rubber/thing/coagulating-pan`, `castTemplate:
-/trade/rubber/thing/raw-rubber-sheet`). The acts are the shipped ones:
-`pour cup into pan`, wait (`look pan` — *filled · setting · set*), `get
-sheet from pan`. Pressing the sheet (a stone on it) drives more serum out
-by the load term dairy already ships. A cup left standing is a plain
-vessel and sets to a lump beside it (dairy's fallback) — honest.
-⚠ Re-verify `drainSetting`'s exact shape and the set hook against master
-at W6; if dairy merged it under another name, use that name — never a
-second field. The lump/sheet (`raw-rubber`, class `/platform/thing/Thing`,
-tag `elastomer-raw`) is `Thermal`, so `feel` gives its band and its
-description reads *tacky when warm, stiff when cold*; it never melts back
-to latex because raw rubber authors no melting point (moulding-slate § 6:
-*melts again, or does not* is derived from that field).
+**D13.2 (revised 2026-10-17, grounded on dairy's merged code) — Latex
+sets by DRAINING, on dairy's set hook, in a coagulating pan: no new
+mechanism, nothing for moulding to refactor.** The earlier
+maturation-engine change is **dropped**. ⭐ Latex coagulation is the same
+physics as curd — a colloid coagulates and gives up its serum (latex) or
+whey (milk). The latex material row (`/stuff/idea/material/organic/latex`)
+authors `drainSetting` (`S/lib/material/Material.ts:132`: `{days,
+becomes?, moisture: {unloaded, loaded}, loadRef}` — **`loadRef` is
+required**; the setter enforces `days > 0`, `0 < loaded ≤ unloaded ≤ 1`,
+`loadRef > 0`): `{ days: 1, becomes: …/organic/raw-rubber, moisture:
+{ unloaded: 0.6, loaded: 0.4 }, loadRef: 2 }`, and **`nutrientAmounts:
+{ water: 600000 }`** — the drain's mass loss reads
+`getNutrientAmounts().water / 1e6` (`Mould.ts:320–322`), so without it
+the sheet would keep the whole pool's mass (field latex is ~60 % water;
+dry rubber content ~35–40 %). The coagulating pan is a `Mould` row
+(`/trade/rubber/thing/coagulating-pan`, class `/platform/thing/Mould`,
+`interiorBulk: true`, `interiorCapacity: 2`, `closure: liquidTight`,
+`castTemplate: /trade/rubber/thing/raw-rubber-sheet`, `reusable: true`,
+`discipline: chemistry`, the ice pan's shape). Acts: `tap` into a cup,
+`pour cup into pan` (credits the pan's discipline, `PourController`
+:134–147), wait (`look pan` — *filled · setting · set*; the set advances
+on read and needs the world clock row), `get sheet from pan`.
+⚠ **Two corrections from the grounding:**
+- **A cup of latex left standing never sets** — the drain set runs only
+  in a mould (`reconcileSetting` returns unless the host is a Mould), and
+  the lump-beside-it fallback is the FREEZE edge's alone. Stated as the
+  abstraction: latex sets in a pan; the drive pours it into one.
+- **No press on the pan.** `loadKg()` needs `PlacingMixin`, which
+  `platform/thing/Mould` does not compose (only dairy's `Hoop` does, a
+  pack class). Pressing the sheet is not a requirement; the pan sets
+  unloaded (`moisture.unloaded`). A pressed sheet is a pack class like
+  `Hoop` and is left to the moulding build (Deferred seams). `trade-rubber`
+  keeps no `src/`.
+The sheet (`raw-rubber-sheet`, class `/platform/thing/Thing`, material
+raw-rubber, tag `elastomer-raw`) is `Thermal`, so `feel` gives its band
+and its description reads *tacky when warm, stiff when cold*; it never
+melts back to latex because raw rubber authors no melting point
+(moulding-slate § 6). The dandelion route (D13.3) still yields a lump.
 
 **D13.3 — Russian dandelion.** Rows in `trade-farming` (its title extent;
 Placement says *a farming crop row*): species
@@ -1314,7 +1367,8 @@ Files: `lib/material/Material.ts` (`elasticity`, `crosslinking` with a
 validating setter), `lib/material/Crosslinking.ts` (NEW), `platform/idea/cmd/device/FireController.ts`
 (the hold; the crosslink branch; **the mould seam** — `firingsFor`
 reaches one level into a `Mould` in the chamber, `runFiring` asks it for
-the shape and casts through `takeCast`, D10), `trade-rubber` mould rows
+the shape and has it mint the cast with `castInto`, D10; the
+`holdsCast` correction in `lib/mould/Mould.ts`), `trade-rubber` mould rows
 (dairy `Mould` rows, one per shape) + the one `vulcanize` recipe, `packages/content/
 platform/content/platform/cmd/device/fire.yaml` (the `for` arg + help),
 `base-library` rows
@@ -1379,7 +1433,8 @@ deposit/quarry-hill.yaml` (the band), `base-library` `mineral/sulfur`
 (if not landed in W4). Tests: `trade-rubber/src/__tests__/latex.test.ts`
 (a stem in a 300 K scope: open; at 285 K: `cold`; a cup of latex left a
 game day in the coagulating pan sets into a raw-rubber sheet in the pan;
-left in a plain cup it sets to a lump beside it; a warm sheet never melts
+left in a plain cup it does not set at all (the drain runs only in a
+mould); a warm sheet never melts
 back to latex), `trade-farming` row test (the crop
 mills to pulp; the `make` recipe mints the lump with water in reach),
 the quarry column test (`dig` at −10.2 wins sulfur; −11 wins salt).
@@ -1610,6 +1665,11 @@ Each leaves as a slate line, not a plan section.
   moulding build (`moulding-slate`, repair branch). Rubber's seam
   (D10) is the call site those extend; the latex drain (D13.2) is
   already on the shipped set hook and needs nothing.
+- **A pressed coagulating pan** (a stone on the setting latex) — the
+  platform `Mould` composes no `PlacingMixin`; a pressing pan is a pack
+  class like dairy's `Hoop` → moulding build.
+- **A cup of latex that sours and sets on its own** — the drain set runs
+  only in a mould; a set process for a plain vessel is moulding's.
 - **Radiation to a clear night sky** (ice in pans on clear nights; a
   hothouse losing heat faster under stars than under cloud) →
   weather-slate. ⭐ The attach point is this build's: an exterior top face

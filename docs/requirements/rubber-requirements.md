@@ -407,8 +407,9 @@ player must see; "not refused" is never success.
 
 **Supply**
 
-11. Tap latex into a cup; it sets into **raw rubber**, which reads tacky
-    when warm and stiff when cold.
+11. Tap latex into a cup and pour it into the **coagulating pan**; it
+    sets into a sheet of **raw rubber**, which reads tacky when warm and
+    stiff when cold.
 12. Dig Russian dandelion roots in autumn, mill and wash them, and get
     raw rubber the other way.
 13. Dig down the Hill Quarry through the caprock: a lump of **native
