@@ -3488,9 +3488,12 @@ class StockDraw {
         const take = Math.min(left, Math.ceil(remaining / unitKg));
         plan.push({ donor, take });
         remaining -= take * unitKg;
-      } else if (unitKg <= 2 * remaining) {
-        // A discrete donor is sacrificed whole — only when the overshoot
-        // is tolerable (≤ 2× the need); else it's not a repair, it's waste.
+      } else if (needKg - remaining + unitKg <= 2 * needKg) {
+        // A discrete donor is sacrificed whole — only when what the mend
+        // has drawn IN ALL stays within 2× the need; else it's not a
+        // repair, it's waste. ⚠ Against the WHOLE need, not what is left:
+        // a 0.54 kg mend takes one 0.5 kg ingot and must be able to take a
+        // second (the old per-remainder test refused it — repair drive).
         plan.push({ donor, take: 1 });
         remaining -= unitKg;
       }

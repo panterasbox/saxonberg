@@ -27,6 +27,7 @@ import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Tool from '../../../thing/Tool';
 import Timber from '../../../thing/Timber';
+import Ingot from '../../../thing/Ingot';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import JointCatalogue from '../../JointCatalogue';
 import { Template } from '../../../../lib/stuff/Template';
@@ -340,5 +341,21 @@ describe('repair W2 — the band decides, never a roll', () => {
     const meta = (Timber as unknown as { fieldMeta: Record<string, { stackIdentity?: boolean }> }).fieldMeta;
     expect(meta.condition?.stackIdentity).toBe(true);
     expect(a.getCondition()).not.toBe(b.getCondition());
+  });
+
+  it('⭐ whole bars serve a mend whose need they do not divide — the overshoot is judged against the WHOLE need', async () => {
+    ContainmentApi.move(hotForge(), room);
+    for (let n = 0; n < 2; n++) {
+      const bar = makeStuff(() => new Ingot());
+      bar.setMaterial(mat(IRON));
+      bar.setMass(Quantity.of(0.5, 'kg'));
+      ContainmentApi.move(bar, room);
+    }
+    const p = pick();
+    p.getLine('head')!.condition = 0.5; // 1.8 kg × 0.5 × 0.6 = 0.54 kg wanted
+    ContainmentApi.move(p, room);
+    const out = await mend(hand({ smithing: 'competent' }, 'cora'), p);
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    expect(p.getLine('head')!.condition).toBe(1);
   });
 });
