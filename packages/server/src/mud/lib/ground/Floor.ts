@@ -425,37 +425,6 @@ function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-/**
- * Mint `kg` of a heap row into `holder`'s hands (or at their feet), MADE
- * FROM `madeFrom` when given — so the fresh-title rule gives it to that
- * thing's owner (cleanliness B40).
- */
-async function mintHeapInto(
-  template: string,
-  kg: number,
-  holder: Stuff,
-  madeFrom?: Stuff,
-): Promise<Stuff | null> {
-  try {
-    const heap = await StuffApi.clone<Stuff>(template);
-    if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
-    if (MixinApi.isStackable(heap)) heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
-    else if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(kg, 'kg'));
-    const where = MixinApi.isContainer(holder)
-      ? holder
-      : MixinApi.isContainable(holder)
-        ? holder.getContainer()
-        : null;
-    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
-      ContainmentApi.move(heap, where);
-    }
-    return heap;
-  } catch (err) {
-    console.warn(`'${template}' did not resolve:`, err);
-    return null;
-  }
-}
-
 export function FloorMixin<
   TBase extends MixinConstructor<
     Stuff & Tangible & Slotted & Bulkable & Adornment & Visible
@@ -493,7 +462,12 @@ export function FloorMixin<
       const { kg, kinds } = this.sweepUp();
       await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => {});
       if (!(kg > 0.01)) return { kg, kinds, heap: null };
-      const heap = await mintHeapInto(this.getSweepsInto(), kg, sweeper);
+      const heap = await StuffApi.clone<Stuff>(this.getSweepsInto()).catch(() => null);
+      if (!heap) return { kg, kinds, heap: null };
+      if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(kg, 'kg'));
+      // Into the sweeper's hands (at their feet when they hold nothing).
+      const where = MixinApi.isContainer(sweeper) ? sweeper : MixinApi.isContainable(sweeper) ? sweeper.getContainer() : null;
+      if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) ContainmentApi.move(heap, where);
       return { kg, kinds, heap };
     }
 

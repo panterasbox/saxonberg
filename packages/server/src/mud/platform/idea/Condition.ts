@@ -33,8 +33,6 @@ import type { Channel } from '../../lib/material/Channel';
 import type { MagicProvenance } from '../../lib/magic/Grid';
 import type { ResistBand } from '../../lib/magic/Resist';
 import type { FieldMeta } from '../../lib/mixin';
-import { MixinApi } from '../../api/mixin';
-import type { Stuff } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 // ---------- the active-condition vocabulary ----------
@@ -961,30 +959,6 @@ function setBloodLitres(host: Vitals, litres: number): void {
 }
 
 /**
- * Lose `litres` of blood through wound `t`. ⭐ An EXTERNAL bleed stains
- * (cleanliness, review): the blood soaks the INNERMOST layer over the wound
- * site first (the bare skin when nothing covers it), the stain records the
- * bleeder — your own blood on your shirt is evidence you were hurt — and a
- * heavy bleed drips onto the floor. A rupture bleeds into the body and
- * stains nothing.
- */
-function bleedOut(host: Vitals, t: Trauma, litres: number, external: boolean): void {
-  if (!(litres > 0)) return;
-  setBloodLitres(host, bloodLitres(host) - litres);
-  if (!external) return;
-  const body = host as unknown as Stuff;
-  if (!MixinApi.isHygienic(body)) return;
-  const D = HARM_DEFAULTS;
-  const load = litres * D.BLOOD_STAIN_PER_L;
-  const drips = t.severity >= D.BLOOD_DRIP_SEVERITY;
-  const onBody = drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load;
-  body.soilBodyPart(t.site, 'blood', onBody, body, 'inner');
-  if (drips) {
-    body.soilFrom([{ kind: 'blood', amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
-  }
-}
-
-/**
  * The flagship — **laceration → bleed**, with the clot gate.
  *
  * - `onset` opens the bleed (`bleeding = true`).
@@ -1007,7 +981,7 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     // severity decay is the HEALING half and lives in `mend`, where the
     // convalescence factor scales it — see the split (D1).
     if (t.bleeding && !t.dressed) {
-      bleedOut(host, t, D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, true);
+      host.loseBlood(D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, { site: t.site, severity: t.severity, external: true });
     }
   },
   mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
@@ -1345,7 +1319,7 @@ export const RUPTURE_BEHAVIOR: TraumaBehavior = {
   // shirt.
   tick(host: Vitals, t: Trauma, elapsedSec: number): void {
     if (t.bleeding && !t.dressed) {
-      bleedOut(host, t, HARM_DEFAULTS.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, false);
+      host.loseBlood(HARM_DEFAULTS.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, { site: t.site, severity: t.severity, external: false });
     }
   },
   // ⭐ An interior bleed does not knit on its own — it is bleeding into a
@@ -1408,7 +1382,7 @@ export const FOREIGN_BODY_BEHAVIOR: TraumaBehavior = {
         HARM_DEFAULTS.FOREIGN_BODY_BLEED_SCALE *
         Math.max(0, t.severity) *
         elapsedSec;
-      bleedOut(host, t, lost, true);
+      host.loseBlood(lost, { site: t.site, severity: t.severity, external: true });
     }
   },
   // Nothing knits around an embedded object; once extracted (dressed), it

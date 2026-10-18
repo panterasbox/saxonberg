@@ -50,6 +50,7 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
+import { MaterialApi } from '../../api/material';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -486,6 +487,12 @@ export interface Bulkable {
   // empty / debit operations every slot has.
   getBulkAvailable(affordance: BulkAffordance): number;
   isBulkEmpty(affordance: BulkAffordance): boolean;
+  /**
+   * Does its interior hold something you could EAT — a bowl of stew, a
+   * plate of roast, a pot of porridge (the blend's edibility)? What `eat`
+   * asks of a vessel before serving from it.
+   */
+  holdsFood(): boolean;
   debitBulk(affordance: BulkAffordance, litres: number): void;
 
   getClosure(): ClosureLevel;
@@ -949,6 +956,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     // ---- slot-policy seams (overridable by capability mixins) ----
     public getBulkAvailable(affordance: BulkAffordance): number {
       return this.getBulkAmount(affordance).rawValue();
+    }
+
+    public holdsFood(): boolean {
+      if (!this.hasInteriorBulk() || this.isBulkEmpty('interior')) return false;
+      return MaterialApi.blendEdibility(
+        this.getBulkPayload('interior'),
+        this.getBulkMaterial('interior'),
+      );
     }
 
     public isBulkEmpty(affordance: BulkAffordance): boolean {

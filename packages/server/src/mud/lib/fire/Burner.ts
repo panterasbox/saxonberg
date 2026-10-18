@@ -300,37 +300,6 @@ function burnerAugmenter(
 /** At or below this draught a fire reads as banked. */
 const BANKED_LOOK_THRESHOLD = 0.1;
 
-/**
- * Mint `kg` of a heap row into `holder`'s hands (or at their feet), MADE
- * FROM `madeFrom` when given — so the fresh-title rule gives it to that
- * thing's owner (cleanliness B40).
- */
-async function mintHeapInto(
-  template: string,
-  kg: number,
-  holder: Stuff,
-  madeFrom?: Stuff,
-): Promise<Stuff | null> {
-  try {
-    const heap = await StuffApi.clone<Stuff>(template);
-    if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
-    if (MixinApi.isStackable(heap)) heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
-    else if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(kg, 'kg'));
-    const where = MixinApi.isContainer(holder)
-      ? holder
-      : MixinApi.isContainable(holder)
-        ? holder.getContainer()
-        : null;
-    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
-      ContainmentApi.move(heap, where);
-    }
-    return heap;
-  } catch (err) {
-    console.warn(`'${template}' did not resolve:`, err);
-    return null;
-  }
-}
-
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
@@ -441,7 +410,15 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
           return '/trade/fuel/thing/wood-ash';
         }
       })();
-      const ash = await mintHeapInto(template, kg, raker, self);
+      const ash = await StuffApi.clone<Stuff>(template).catch(() => null);
+      if (!ash) return { kg, ash: null };
+      // ⭐ MADE FROM this burner, so the fresh-title rule makes it the
+      // burner's owner's (B40).
+      if (MixinApi.isChattel(ash)) await ash.recordMadeFrom([self]);
+      if (MixinApi.isTangible(ash)) ash.setMass(Quantity.of(kg, 'kg'));
+      // Into the raker's hands (at their feet when they hold nothing).
+      const where = MixinApi.isContainer(raker) ? raker : MixinApi.isContainable(raker) ? raker.getContainer() : null;
+      if (where && MixinApi.isContainer(where) && MixinApi.isContainable(ash)) ContainmentApi.move(ash, where);
       await PersistableApi.captureHostOf(self).catch(() => {});
       return { kg, ash };
     }

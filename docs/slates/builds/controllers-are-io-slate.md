@@ -29,6 +29,16 @@ This is about **where logic lives**, not about anything being buggy.
   what a midden accepts, that a used spoon is dirtied and a finished bowl
   kept. An act returns an OUTCOME (`{ ok: true, … } | { ok: false, reason }`)
   the controller words; it never sends prose itself.
+- ⛔ **The act's internals are METHODS on the object, never module
+  functions in its file** (user, the same review: *"now I'm never gonna be
+  able to find this stuff — the only way is to go looking in controllers to
+  see what they call"*). A hidden function cannot be found from the class,
+  cannot be overridden, and is exactly as invisible as the controller code
+  it replaced. The first cut of B45 did this (`isServedDish`,
+  `claimUtensil`, `leaveCrumbs`, two copies of `mintHeapInto`, B44's
+  `bleedOut`); each became a method on the thing it is about
+  (`Bulkable.holdsFood`, `Metabolic.claimUtensil`/`leaveCrumbs`,
+  `Vitals.loseBlood`, inlined in `Floor.sweepInto`/`Burner.rakeGrate`).
 - **The test:** write a second controller for the same verb (or a brain that
   performs the act for an NPC) — it must get identical behaviour by calling
   the same methods.

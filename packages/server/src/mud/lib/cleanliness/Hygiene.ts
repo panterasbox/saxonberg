@@ -29,7 +29,6 @@ import { CleanserUse } from './CleanserUse';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import type BodyPlan from '../../platform/idea/species/BodyPlan';
 
 /** What a body that is kept clean can be asked. */
 export interface Hygiene {
@@ -84,11 +83,6 @@ export interface Hygiene {
     by?: Stuff | null,
     layer?: 'outer' | 'inner',
   ): void;
-}
-
-function bodyPlanOf(host: Stuff): BodyPlan | null {
-  if (!MixinApi.isOrganism(host)) return null;
-  return host.getSpecies()?.getBodyPlan() ?? null;
 }
 
 function dial(key: string, fallback: number): number {

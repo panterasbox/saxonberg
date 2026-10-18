@@ -2825,6 +2825,11 @@ Read first, in this order.
   flame = dry), `CleanserUse.spend` (one owner; a paid bath now spends the
   house's soap — the act's, not B28's wash abstraction). The rest of the
   tree is `controllers-are-io-slate` (132 of 341 controllers mutate).
+  ⚠ Corrected in review: the first cut put the acts' internals in
+  module functions (findable only by reading the controllers); they are
+  methods now — `Bulkable.holdsFood`, `Metabolic.claimUtensil`/
+  `leaveCrumbs`, `Vitals.loseBlood` (B44's bleed), the heap mint inlined
+  in `Floor.sweepInto` / `Burner.rakeGrate`.
 
 ## Drive record
 

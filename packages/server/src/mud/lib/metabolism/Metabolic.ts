@@ -525,51 +525,42 @@ function assertRecordOfNonNeg(value: Record<string, number>, what: string): void
   }
 }
 
-/** A vessel holding edible matter — a bowl of stew, a plate of roast. */
-function isServedDish(food: Stuff): boolean {
-  if (!MixinApi.isBulkable(food) || !food.hasInteriorBulk()) return false;
-  if (food.isBulkEmpty('interior')) return false;
-  return MaterialApi.blendEdibility(
-    food.getBulkPayload('interior'),
-    food.getBulkMaterial('interior'),
-  );
-}
-
-/**
- * The first clean utensil among those offered — in kind preference order,
- * the caller's order within a kind — used (dirtied) on the way out.
- * ⭐ Cutlery READS, it never gates: none is a perfectly good way to eat.
- */
-function claimUtensil(offered: readonly Stuff[]): UtensilKind | null {
-  for (const kind of UTENSIL_KINDS) {
-    for (const candidate of offered) {
-      if (!MixinApi.isCutlery(candidate)) continue;
-      if (candidate.getUtensilKind() !== kind) continue;
-      if (!MixinApi.isServiceable(candidate)) continue;
-      if (!candidate.isClaimable()) continue;
-      candidate.markUsed();
-      return kind;
-    }
-  }
-  return null;
-}
-
-/** ⭐ (cleanliness D6) Crumbs on the floor; with the fingers, grease too. */
-function leaveCrumbs(eater: Stuff, withCutlery: boolean): void {
-  if (!MixinApi.isHygienic(eater)) return;
-  eater.soilFrom(
-    withCutlery
-      ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
-      : [
-          { kind: 'crumbs', amount: 0.05, where: 'floor' },
-          { kind: 'grease', amount: 0.03, where: 'hands' },
-        ],
-  );
-}
-
 export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
+
+    /**
+     * The first clean utensil offered — in kind preference order, the
+     * caller's order within a kind — used (dirtied) on the way out.
+     * ⭐ Cutlery READS, it never gates: none is a perfectly good way to eat.
+     */
+    protected claimUtensil(offered: readonly Stuff[]): UtensilKind | null {
+      for (const kind of UTENSIL_KINDS) {
+        for (const candidate of offered) {
+          if (!MixinApi.isCutlery(candidate)) continue;
+          if (candidate.getUtensilKind() !== kind) continue;
+          if (!MixinApi.isServiceable(candidate)) continue;
+          if (!candidate.isClaimable()) continue;
+          candidate.markUsed();
+          return kind;
+        }
+      }
+      return null;
+    }
+
+    /** ⭐ (cleanliness D6) Crumbs on the floor; with the fingers, grease too. */
+    protected leaveCrumbs(withCutlery: boolean): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isHygienic(self)) return;
+      self.soilFrom(
+        withCutlery
+          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
+          : [
+              { kind: 'crumbs', amount: 0.05, where: 'floor' },
+              { kind: 'grease', amount: 0.03, where: 'hands' },
+            ],
+      );
+    }
 
     public async eat(food: Stuff, utensils: readonly Stuff[] = []): Promise<EatOutcome> {
       const self = this as unknown as Stuff;
@@ -577,7 +568,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ A cooked meal is a bulk blend in a claimed dish: serve from the
       // slot rather than swallowing the crockery, and EMPTY the dish — a
       // bowl you have finished is a bowl to wash.
-      if (isServedDish(food)) {
+      if (MixinApi.isBulkable(food) && food.holdsFood()) {
         const slot = BulkableApi.slotFor(food, undefined);
         if (!slot) return { ok: false, reason: 'not-edible' };
         const material = slot.getMaterial();
@@ -586,9 +577,9 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         const portion = Math.min(portionL, slot.getAmount().rawValue());
         const accepted = BulkableApi.ingestSolid(self, material, portion, payload);
         if (accepted < portion - 1e-9) return { ok: false, reason: 'too-full' };
-        const utensil = claimUtensil(utensils);
+        const utensil = this.claimUtensil(utensils);
         BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
-        leaveCrumbs(self, utensil !== null);
+        this.leaveCrumbs(utensil !== null);
         return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil };
       }
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
@@ -602,8 +593,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A discrete item is all-or-nothing: only a full portion consumes it.
       if (accepted < portionL - 1e-9) return { ok: false, reason: 'too-full' };
       const what = material.getAppearance() || material.getName() || 'it';
-      const utensil = claimUtensil(utensils);
-      leaveCrumbs(self, utensil !== null);
+      const utensil = this.claimUtensil(utensils);
+      this.leaveCrumbs(utensil !== null);
       const foodName = food.getPresentation();
       await StuffApi.destruct(food);
       return { ok: true, fromDish: false, what, foodName, utensil };

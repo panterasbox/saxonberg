@@ -348,6 +348,14 @@ export interface TreatmentResult {
 }
 
 export interface Vitals {
+  /**
+   * ⭐ Lose `litres` of blood (the bleed every wound type drains through).
+   * An EXTERNAL bleed stains (cleanliness B44): the innermost layer over
+   * `site` first (the bare skin when nothing covers it), the bleeder's own
+   * blood on the stain, and at `BLOOD_DRIP_SEVERITY` a share drips on the
+   * floor. An internal one (a rupture) stains nothing.
+   */
+  loseBlood(litres: number, opts: { site: string; severity: number; external: boolean }): void;
   // ---------- vital signs ----------
   getVitalSign(sign: VitalSign): Quantity<Unit>;
   setVitalSign(sign: VitalSign, value: Quantity<Unit>): void;
@@ -3248,6 +3256,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       return { treated: true, by: opts.by, seededInfection };
+    }
+
+    public loseBlood(
+      litres: number,
+      opts: { site: string; severity: number; external: boolean },
+    ): void {
+      if (!(litres > 0)) return;
+      const left = this.getVitalSign('bloodVolume').rawValue() - litres;
+      this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, left), 'L'));
+      if (!opts.external) return;
+      const body = this as unknown as Stuff;
+      if (!MixinApi.isHygienic(body)) return;
+      const D = HARM_DEFAULTS;
+      const load = litres * D.BLOOD_STAIN_PER_L;
+      const drips = opts.severity >= D.BLOOD_DRIP_SEVERITY;
+      body.soilBodyPart(opts.site, 'blood', drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load, body, 'inner');
+      if (drips) {
+        body.soilFrom([{ kind: 'blood', amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
+      }
     }
 
     public getScars(): readonly ScarRecord[] {
