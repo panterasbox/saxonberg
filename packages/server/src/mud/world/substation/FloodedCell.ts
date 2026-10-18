@@ -88,7 +88,8 @@ export default class FloodedCell extends SingletonCartesianLocation {
         : amps >= letGo
           ? Mml.compose`Current jolts up through your feet from the water and your legs lock — you cannot step out of it.`
           : Mml.compose`A tingle runs up through your feet from the water.`;
-    const scene = MessageApi.scene(victim).toSelf(self);
+    // `act.deed` — the topic every hazard's delivery speaks on.
+    const scene = MessageApi.scene(victim).topic('act.deed').toSelf(self);
     if (amps >= letGo) {
       scene.toPeers(Mml.compose`${Mml.actor(victim)} jerks rigid in the water.`);
     }
