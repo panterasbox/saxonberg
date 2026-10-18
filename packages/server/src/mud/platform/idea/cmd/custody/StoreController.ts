@@ -49,11 +49,13 @@ export default class StoreController extends CommandController<StoreModel> {
     }
   }
 
-  /** Bare `store` binds no book: the one where you stand (bare `bank`'s rule). */
+  /**
+   * Bare `store` binds no book: the book that AFFORDED the verb — it confers
+   * `store` on whoever shares its room — is the one meant (bare `bank`'s rule).
+   */
   private bookHere(context: CommandContext): Stuff | null {
-    const room = context.location as unknown as Stuff | null;
-    if (room === null || !MixinApi.isContainer(room)) return null;
-    return room.getContents().find((c) => MixinApi.isStoreBook(c)) ?? null;
+    const source = context.commandSource as Stuff | undefined;
+    return source && MixinApi.isStoreBook(source) ? source : null;
   }
 
   private async deposit(store: StoreStuff, model: StoreModel, context: CommandContext): Promise<void> {

@@ -126,6 +126,19 @@ dropped in a concrete grotto under an abstract surface becomes **flotsam
 on the reach**; a sinker dropped from a boat on an abstract reach lands in
 the concrete bed room that cites it.
 
+**What exists already (storage-and-ice, 2026-10-18) — an ABSTRACT bed,
+and one seam.** A `Pool` authors `bed: <row>` — a prop it holds (the water
+pack's `pool-bottom`, a sealed holder: kept, unseen, unreachable until a
+dive verb opens it). `Pool.sinks(thing)` is the read above (material
+density against `BiomeApi.densityOf('water')`; anything that acts, moves
+itself or is fixed never sinks), and `Pool.sink(thing)` sends it to the
+bed — on arrival in open water, and at the thaw for what was left on the
+ice (the ice sheet asks the pool; it never names the bed). ⭐ The pool is
+the ONE seam: a concrete bed room, or a reach-level bed for an abstract
+surface, changes `Pool.sink` and the row, nothing else. Floaters simply
+stay in the place (no flotsam-on-the-reach yet); hollow things are not
+modelled.
+
 **The one gap is hollow things.** A sealed steel vessel floats: its
 effective density is mass over *displaced* volume. `Bulkable` knows a
 vessel's capacity, so displacement is `capacity + shell` for vessels; a

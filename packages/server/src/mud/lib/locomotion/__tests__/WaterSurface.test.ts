@@ -24,6 +24,10 @@ import { Actor } from '../../creature/Actor';
 import Pool from '../../../platform/location/Pool';
 import WaterSurface from '../../../platform/thing/WaterSurface';
 import Floor from '../../../platform/thing/Floor';
+import Good from '../../../platform/thing/Good';
+import Holder from '../../stuff/Holder';
+import { ContainerMixin } from '../../spatial/Container';
+import { stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { Beast } from '../../../platform/agent/Beast';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -199,5 +203,65 @@ describe('the animal will not go out on it (Beast.beforeTraverse)', () => {
     expect(said.gate).toBe('blocked');
     const solid = { getDestination: () => ({ getFloor: () => makeStuff(() => new Floor()) }) } as unknown as Exit;
     expect(horse.beforeTraverse(solid).ok).toBe(true);
+  });
+});
+
+describe('⭐ what sinks goes to the pool\'s bed — the water names it, never the ice (the review)', () => {
+  const BED = '/test/pool/thing/bed';
+  class Bed extends ContainerMixin(Holder) {}
+  class Lump extends Good {}
+
+  function lump(densityKgM3: number): Lump {
+    const l = makeStuff(() => new Lump());
+    l.setMass(Quantity.of(5, 'kg'));
+    vi.spyOn(l, 'getMaterial').mockReturnValue({ getDensity: () => Quantity.of(densityKgM3, 'kg/m³') } as never);
+    return l;
+  }
+
+  async function bedded(): Promise<{ pool: Pool; bed: Bed }> {
+    const { pool: p } = await pool();
+    const bed = makeStuff(() => new Bed());
+    stampTemplatePathForTest(bed as unknown as Stuff, BED);
+    ContainmentApi.move(bed as never, p as never);
+    p.bed = BED;
+    return { pool: p, bed };
+  }
+  const settle = async (): Promise<void> => {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+
+  it('dropped into open water, an iron lump goes to the bed; a cork one stays at the surface', async () => {
+    const { pool: p, bed } = await bedded();
+    const iron = lump(7800);
+    const cork = lump(240);
+    ContainmentApi.move(iron as never, p as never);
+    ContainmentApi.move(cork as never, p as never);
+    await settle();
+    expect(iron.getContainer()).toBe(bed);
+    expect(cork.getContainer()).toBe(p);
+  });
+
+  it('a pool that authors no bed keeps the thing where it is', async () => {
+    const { pool: p } = await pool();
+    const iron = lump(7800);
+    ContainmentApi.move(iron as never, p as never);
+    await settle();
+    expect(iron.getContainer()).toBe(p);
+    expect(p.sink(iron as unknown as Stuff)).toBe(false);
+  });
+
+  it('the thaw route: `sinkWhatSinks` sends down only what sinks, and never the bed itself', async () => {
+    const { pool: p, bed } = await bedded();
+    const iron = lump(7800);
+    const cork = lump(240);
+    p.bed = ''; // as if they lay on ice: nothing sank on arrival
+    ContainmentApi.move(iron as never, p as never);
+    ContainmentApi.move(cork as never, p as never);
+    await settle();
+    p.bed = BED;
+    p.sinkWhatSinks();
+    expect(iron.getContainer()).toBe(bed);
+    expect(cork.getContainer()).toBe(p);
+    expect(bed.getContainer()).toBe(p);
   });
 });

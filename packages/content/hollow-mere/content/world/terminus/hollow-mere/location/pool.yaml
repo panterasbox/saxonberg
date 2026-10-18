@@ -35,5 +35,8 @@ data:
       media: [ground, water]
       edgeMinutes: 6
       conditional: true
+  # ⭐ The bed — where what sinks goes (the abstract bed layer; a dive verb
+  # opens it). The pool names it; the ice never does.
+  bed: /system/water/thing/pool-bottom
   props:
     - /system/water/thing/pool-bottom

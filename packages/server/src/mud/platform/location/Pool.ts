@@ -20,6 +20,13 @@
  *    a body swims iff it is in the water.
  *  - **a load change** — a thing dropped on the ice, or picked up, makes
  *    the floor reconcile who it still bears.
+ *  - **what sinks** — a thing denser than water goes to the pool's BED
+ *    (`bed:`, a row the place props: the abstract bed layer of the
+ *    underwater slate's three, kept and unreachable until a dive verb). It
+ *    sinks the moment it is in open water, and at the thaw for what was left
+ *    on the ice. ⭐ The WATER answers where sunk things go — the ice never
+ *    names the bed — so a concrete bed (a room under the pool) is a change
+ *    to this one seam and the row.
  *
  * No per-occupant flag anywhere: the floor's slot IS the support state, and
  * the shipped posture verbs move you on and off it.
@@ -37,17 +44,30 @@ import type { Slottable } from '../../lib/slot/Slottable';
 import type { VetoResult } from '../../lib/errors';
 import type Exit from '../../lib/boundary/Exit';
 import type { Floor } from '../../lib/ground/Floor';
+import type { Container } from '../../lib/spatial/Container';
+import type { FieldMeta } from '../../lib/mixin';
+import { ContainmentApi } from '../../api/containment';
+import { BiomeApi } from '../../api/biome';
 
 /** The water under the ice when nothing better is known, K. */
 const UNDER_ICE_K = 274;
 /** The posture-bearing slot a floor offers. */
 const GROUND_SLOT = 'ground:1';
+/** Water's density when the medium cannot be read, kg/m³. */
+const WATER_DENSITY = 1000;
 
 type FloorStuff = Stuff & Floor;
 
 export default class Pool extends SwimmableMixin(ShoreMixin(SingletonCartesianLocation)) {
+  static fieldMeta: FieldMeta = {
+    bed: { persistent: true, authorable: true },
+  };
+
   /** A pool is swum every way it opens; a row may narrow it. */
   public override axes: string[] = ['*'];
+
+  /** The row of the prop that is this pool's bed — where sunk things go. */
+  public bed = '';
 
   constructor() {
     super();
@@ -136,9 +156,56 @@ export default class Pool extends SwimmableMixin(ShoreMixin(SingletonCartesianLo
     return { ok: false, reason: 'You are in the water; swim for it.' };
   }
 
-  /** A load change — a thing dropped or taken — reconciles who the floor bears. */
-  public onContainableAdded(_thing: Stuff & Containable): void {
-    this.poolFloor()?.reconcileSupport();
+  /** A load change — a thing dropped or taken — reconciles who the floor bears; in open water, what sinks goes down. */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    const floor = this.poolFloor();
+    floor?.reconcileSupport();
+    // Open water (nothing underfoot bears even an empty load): a dense thing
+    // goes straight down. On ice it lies on the ice until the thaw. Deferred
+    // a tick: never move a thing from inside the hook of its own arrival.
+    if (floor !== null && floor.supportIsSlotted() && !floor.bears(0) && this.sinks(thing)) {
+      void Promise.resolve().then(() => this.sink(thing));
+    }
+  }
+
+  /** Does this thing go down in water — a still, dense, non-acting thing? */
+  public sinks(thing: Stuff): boolean {
+    if (thing.isAgent?.() || MixinApi.isMobile(thing)) return false;
+    if (!MixinApi.isTangible(thing)) return false;
+    if (MixinApi.isContainable(thing) && thing.isFixedInPlace?.()) return false;
+    const rho = thing.getMaterial()?.getDensity().rawValue() ?? 0;
+    // Buoyancy is a READ (the underwater slate § 3): the medium's own density.
+    let medium = WATER_DENSITY;
+    try {
+      medium = BiomeApi.densityOf('water').rawValue() || WATER_DENSITY;
+    } catch {
+      /* an unwarmed biome: fresh water */
+    }
+    return rho > medium;
+  }
+
+  /**
+   * ⭐ Send a thing to the bed. `false` when this pool authors no bed (or the
+   * bed is not here): the thing stays where it is.
+   */
+  public sink(thing: Stuff): boolean {
+    if (!this.bed || thing.isDestroyed()) return false;
+    const bed = this.getContents().find((c) => c.getTemplatePath() === this.bed) ?? null;
+    if (bed === null || !MixinApi.isContainer(bed) || !MixinApi.isContainable(thing)) return false;
+    try {
+      ContainmentApi.move(thing as Stuff & Containable, bed as Stuff & Container);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** At the thaw: everything here that sinks goes to the bed. */
+  public sinkWhatSinks(): void {
+    for (const c of [...this.getContents()]) {
+      if (c.getTemplatePath() === this.bed) continue;
+      if (this.sinks(c)) this.sink(c);
+    }
   }
 
   public onContainableRemoved(_thing: Stuff & Containable): void {

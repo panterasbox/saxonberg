@@ -50,7 +50,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CutPlan, CutRefusal, CutRequest, Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
-import PoolBottom from './PoolBottom';
 
 /** What a patch of the sheet has been through. */
 export type PatchKind = 'field' | 'scraped' | 'marked' | 'cut' | 'broken' | 'hole';
@@ -563,24 +562,9 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** What was left on the ice: floats stay at the surface, sinkers go to the bottom. */
   private sortFloatSink(): void {
-    const room = this.room();
-    if (room === null || !MixinApi.isContainer(room)) return;
-    const bottom = room.getContents().find((c) => c instanceof PoolBottom) as (Stuff & Container) | undefined;
-    if (!bottom) return;
-    for (const c of [...room.getContents()]) {
-      if (c === (bottom as unknown as Stuff)) continue;
-      if (c.isAgent?.() || MixinApi.isMobile(c)) continue;
-      if (!MixinApi.isTangible(c)) continue;
-      if (MixinApi.isContainable(c) && c.isFixedInPlace?.()) continue;
-      const rho = c.getMaterial()?.getDensity().rawValue() ?? 0;
-      if (rho > 1000) {
-        try {
-          ContainmentApi.move(c, bottom);
-        } catch {
-          /* a thing the bottom will not take stays where it is */
-        }
-      }
-    }
+    // ⭐ The WATER says where sunk things go (its `bed:`), never the ice.
+    const room = this.room() as unknown as { sinkWhatSinks?(): void } | null;
+    room?.sinkWhatSinks?.();
   }
 
   /** Why an actor cannot work the ice from where they are, or `null`. */

@@ -181,6 +181,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
+    // ⭐ `bed` (the storage-and-ice review) — a Pool's bed: the prop row it
+    // sinks dense things into, found among its contents by this path.
+    'bed',
     // ⭐ The pump citations (the pump build). `mechanism` names the
     // `PumpMechanism` row a pump is built on — resolved live on every
     // spell at the handle, and a rowless one is a pump with no law: it
