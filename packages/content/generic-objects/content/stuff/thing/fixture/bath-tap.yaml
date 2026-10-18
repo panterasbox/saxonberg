@@ -1,0 +1,18 @@
+# The bath tap — the tub's "brass tap at one end", made real (cleanliness,
+# review). A cold tap like the basin's: a `WaterFixture` on the house's
+# water, at that water's hardness, so `fill tub from bath tap` draws a
+# cold bath. ⭐ Hot water is not a tap's: a copper (a household one, or
+# the bathhouse's) is what heats it — `fill tub from copper`. A boiler on
+# the main is a later epoch's fixture answering the SAME `fill`.
+#
+# ⚠ TIER-AGNOSTIC like the basin: nothing here assumes municipal plumbing.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: brass bath tap
+  keywords: [tap, "bath tap", "bath-tap", brass, faucet]
+  register: indefinite
+  longDescription: |
+    A heavy brass tap at the end of the tub, its handle worn bright where hands turn it. It runs cold.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 3

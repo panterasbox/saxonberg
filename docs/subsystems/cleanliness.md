@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B40). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B41). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -182,6 +182,12 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   then `ThermalRegulation.exchangeWithWater` (B29). A `Tub` holds water; a
   `Copper` is a boiler over its own fire (B30); a shore answers through its
   one draw (frozen refuses).
+- **A bath at home** (B41) — the bathroom archetype's tub has a real brass
+  tap beside it (`bath-tap`, a cold `WaterFixture` on the house's water):
+  `fill tub from bath tap`, `bathe`. Hot water is a copper's, and whether a
+  house has one is the house's row — the Hinkley Hills houses' bathroom
+  (`lots/bathroom`) carries one: `fill tub from copper`. A boiler on the
+  main is a later epoch answering the same `fill`.
 - **The doorman** — a `KeptDoor` exit asks a keeper on either side with a
   door-judging brain (`doorman`); HE decides he is on duty (on shift for the
   door's `keptBy` house — a seat, never presence) and judges by the dress

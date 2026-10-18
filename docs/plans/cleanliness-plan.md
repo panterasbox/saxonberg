@@ -2776,6 +2776,14 @@ Read first, in this order.
   ash got its own row (`wood-ash`); the old row's prose was a failed
   clamp's. Big ash, quality, the potash works → `potash-slate`.
 
+- **B41 — A bath at home** (review). The bathroom tub's "brass tap" was
+  prose with nothing behind it (lens 3a); it is a real cold `WaterFixture`
+  prop now (`bath-tap`). Hot water stays a COPPER's, placed per house in
+  rows — the generic archetype is tier-agnostic by its own rule — and the
+  Hinkley Hills houses get one (`lots/bathroom`). Lens 5: the tap, the
+  copper and a later boiler all answer `fill tub from …`. Not a third bulk
+  slot on the tub: the slot vocabulary is closed (`interior | surface`).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

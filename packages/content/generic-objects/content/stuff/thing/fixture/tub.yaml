@@ -10,7 +10,8 @@
 # ⭐ And it HOLDS WATER (cleanliness D28): a `Tub` — a seat you lie in
 # with a bulk interior, at a real temperature. `bathe` washes you in it; a
 # tub filled from a copper is hot, one filled from a butt is not. Empty
-# until somebody fills it.
+# until somebody fills it — its brass tap is a real one now (`bath-tap`,
+# beside it in the bathroom): `fill tub from bath tap` runs it cold.
 class: /platform/thing/Tub
 data:
   shortDescription: bathtub

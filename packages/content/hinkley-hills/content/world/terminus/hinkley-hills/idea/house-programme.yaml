@@ -30,4 +30,4 @@ data:
       exits:
         - { to: bathroom, direction: east, opposite: west }
     - leaf: bathroom
-      room: /stuff/location/room/bathroom
+      room: /world/terminus/hinkley-hills/lots/bathroom

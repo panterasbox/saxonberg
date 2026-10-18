@@ -666,6 +666,30 @@ suite('⭐⭐ drive 20 — the doorman says why; a bath and a coat, and he lets 
   }, 600_000);
 });
 
+suite('⭐ drive 21 — a bath you draw yourself: cold from the tap, hot from a copper (review)', () => {
+  it('a tub and its brass tap run a cold bath; a copper draws a hot one', async () => {
+    // The home bathroom's fixtures, stood in a room the drive reaches (a
+    // Hinkley house is a bought lot; its rows are the hinkley-hills tests').
+    await cloneHere(COOKHOUSE, '/stuff/thing/fixture/tub');
+    await cloneHere(COOKHOUSE, '/stuff/thing/fixture/bath-tap');
+    const s = await goTo(cookHandle, COOKHOUSE);
+    const cold = await act(s, 'fill tub from bath tap');
+    expect(cold, `fill tub from bath tap: ${cold}`).toMatch(/fill|tub/i);
+    expect(cold, `the tap gives water: ${cold}`).not.toMatch(/can't|nothing to fill/i);
+    const coldBath = await act(s, 'bathe in tub');
+    expect(coldBath, `a cold bath: ${coldBath}`).toMatch(/tub|bath|water/i);
+    s.close();
+    // ⭐ Hot is a copper's: the bathhouse's here, a Hinkley house's at home.
+    const b = await goTo(cookHandle, BATHS);
+    const hot = await act(b, 'fill tub from copper');
+    expect(hot, `fill tub from copper: ${hot}`).toMatch(/fill|tub/i);
+    expect(hot, `the copper gives water: ${hot}`).not.toMatch(/can't|nothing to fill/i);
+    const hotBath = await act(b, 'bathe in tub');
+    expect(hotBath, `a hot bath: ${hotBath}`).toMatch(/tub|bath|water/i);
+    b.close();
+  }, 300_000);
+});
+
 suite('⭐ drive 22 — a clean contract, posted, done and paid (AC 22)', () => {
   it('the cookhouse floor is posted clean; a hand strews, sweeps and is paid', async () => {
     const poster = await goTo(cookHandle, COOKHOUSE);

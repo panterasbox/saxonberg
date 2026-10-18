@@ -214,11 +214,14 @@ describe("the kitchen — BUNDLE (D12)", () => {
 });
 
 describe("the bathroom — PRESENCE (D13)", () => {
-  it("three fixtures at three rungs of the LOD ladder", () => {
+  it("its fixtures at their rungs of the LOD ladder", () => {
     expect(read("bathroom").data?.props).toEqual([
       "/stuff/thing/fixture/toilet",
       "/stuff/thing/fixture/basin",
       "/stuff/thing/fixture/tub",
+      // The tub's brass tap, made real (cleanliness): cold water to fill
+      // it. Hot is a copper's, and a house that has one says so in rows.
+      "/stuff/thing/fixture/bath-tap",
     ]);
   });
 

@@ -3,13 +3,15 @@
 # every player will look for it, so it exists; what it is FOR is not
 # modelled, and that is deliberate.
 #
-# Its three fixtures sit at three different rungs of the LOD ladder — a
-# fixture is modelled to the depth at which the world actually reads it, and
-# no deeper:
+# Its fixtures sit at different rungs of the LOD ladder — a fixture is
+# modelled to the depth at which the world actually reads it, and no
+# deeper:
 #
-#   toilet -> prose only        (its function is not worth modelling)
-#   basin  -> real water        (filling and pouring are shipped acts)
-#   tub    -> a real affordance (restQuality + warmth, both already read)
+#   toilet   -> prose only        (its function is not worth modelling)
+#   basin    -> real water        (filling and pouring are shipped acts)
+#   tub      -> a real affordance (it holds water; `bathe` reads it)
+#   bath tap -> real cold water   (`fill tub from bath tap`; hot water is
+#                                  a copper's — a house that has one says so)
 #
 # Washing shipped with the cleanliness build: a dressing's quality is its
 # clean tier (washed, sanitised, boiled), and the hands that dress a wound
@@ -39,6 +41,7 @@ data:
     - /stuff/thing/fixture/toilet
     - /stuff/thing/fixture/basin
     - /stuff/thing/fixture/tub
+    - /stuff/thing/fixture/bath-tap
   details:
     window:
       keywords: [window, glass, light]

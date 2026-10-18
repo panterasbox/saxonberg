@@ -121,3 +121,21 @@ describe("one lot ships already sold", () => {
     }
   });
 });
+
+describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
+  it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
+    const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
+    const rooms = (programme.data?.floorplan ?? []) as Array<{ leaf?: string; room?: string }>;
+    const bath = rooms.find((r) => r.leaf === "bathroom");
+    expect(bath?.room).toBe(`/${HINKLEY}/lots/bathroom`);
+    const row = read(`${HINKLEY}/lots/bathroom.yaml`);
+    expect(row.class).toBe("/platform/location/FurnishableRoom");
+    expect(row.data?.props).toEqual(
+      expect.arrayContaining([
+        "/stuff/thing/fixture/tub",
+        "/stuff/thing/fixture/bath-tap",
+        "/stuff/thing/fixture/copper",
+      ]),
+    );
+  });
+});
