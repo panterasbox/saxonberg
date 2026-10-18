@@ -4,7 +4,7 @@
 > [textiles.md](../../subsystems/textiles.md)
 > **Left:** leather into the covering ladder (tanning ships —
 > `trade-tanning`, `tan`) · wool and its left edge — felting, fulling,
-> knitting, scouring (unblocked: `shear` ships with ranching) · cotton and silk · synthetics, mills, mass production ·
+> knitting, scouring (unblocked: `shear` ships with ranching) · cotton (silk → silk-slate) · synthetics, mills, mass production ·
 > patterned weaving · piece bleaching · player-designable patterns as
 > artifacts · livery · the maker's authored garment prose (the
 > customization product) · magic garments (a garment as an item host;
@@ -19,7 +19,7 @@
 > |---|---|---|
 > | **leatherwork and tanning** | a hide faucet (ranching, or a butchery) | ⭐ Not a scope cut but a DEPENDENCY. `trade-tailoring` already holds the `leather-jerkin` recipe, correct and unmakeable. `cut`/`sew` take hide the day it exists |
 > | **wool, and everything on its left edge** | ranching | ⭐ The launch story is *flax gives you woven cloth; wool gives you everything else* — felt, fulling, knitting, and saturated colour, because wool takes a metal mordant directly where cellulose needs tannin. Wool's arrival is a real event, not a second row |
-> | **cotton and silk** | nothing | a second cellulose fibre: more content, no new lesson |
+> | **cotton** | nothing | its own lesson (the gin, the mills, slavery). ⚠ Silk was listed here as *"a second cellulose fibre"* — wrong: it is protein. Silk → [silk-slate](./silk-slate.md) |
 > | **synthetics, mills, mass production** | demand | ⭐ The substrate CAN carry them (audited): kevlar needs no new construction form, the tool ladder already starts at rung zero, and a mill is a high `rate` plus a production brain. ⚠⚠ The jenny is what flips the bottleneck, not the wheel — the bench prints the rate it has to beat |
 > | **patterned weaving** (stripes, checks) | the loom holding two yarn colours | the yarn-dye stage's payoff, deferred |
 > | **piece bleaching** (laying the woven cloth out) | a durative gauge on a discrete object — a mixin, therefore kernel | ⚠ What ships bleaches the FIBRE, which is historically real and narrower than the picture |
