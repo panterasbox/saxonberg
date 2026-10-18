@@ -14,7 +14,7 @@ data:
   keywords: [eggs, "egg lot", lot, card, seed, silkworm, "silkworm eggs", "card of silkworm eggs"]
   register: indefinite
   longDescription: |
-    A stiff card speckled all over with tiny grey eggs, each no bigger than a poppy seed.
+    A stiff card dotted all over with tiny grey eggs, each no bigger than a poppy seed.
   _materialPath: /trade/sericulture/idea/material/silkworm-egg
   mass: 0.01
   _strainPath: /trade/sericulture/idea/strain/valley-gold

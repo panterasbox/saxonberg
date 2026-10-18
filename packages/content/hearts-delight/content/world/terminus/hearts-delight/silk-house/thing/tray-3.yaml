@@ -1,11 +1,12 @@
-# The third working tray — a lot just set out, still eggs.
+# The third working tray — authored in its fourth age, eating (it waits on
+# the season: an unheated loft in winter ages it not at all, honestly).
 class: /trade/sericulture/thing/HouseTray
 extends: /world/terminus/hearts-delight/silk-house/thing/tray
 data:
   keywords: [tray, "rearing tray", rearing, third, "third tray"]
-  rearingState: eggs
+  rearingState: feeding
   _strainPath: /trade/sericulture/idea/strain/valley-gold
   eggCount: 300
   lotGeneticMg: 380
   pebrineLoad: 0.25
-  degreeDays: 60
+  degreeDays: 180

@@ -241,7 +241,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
       return refusal('not-stifled', 'The moths are still alive in them. Stifle them first, or they will break the thread as you reel.');
     }
     const charge = dial('sericulture.reel.charge', REEL_CHARGE);
-    if (this.getQuantity() < charge) {
+    if (this.reelPool().reduce((n, c) => n + c.getQuantity(), 0) < charge) {
       return refusal('too-few', 'There are not enough cocoons there to keep a thread going.');
     }
     if (!tool || !tool.hasCapability('reeling')) {
@@ -268,6 +268,25 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
   }
 
   /**
+   * ⭐ The cocoons a reeling may draw on: this stack and every stack beside
+   * it in the same hands that would reel the same — stifled, whole, the
+   * same strain. ⚠ Bought cocoons arrive one titled unit at a time and a
+   * titled stack never merges (the chattel rule), so forty bought cocoons
+   * are forty stacks; a reel that counted only the stack named would
+   * refuse every one of them (found by the drive).
+   */
+  private reelPool(): Cocoons[] {
+    const holder = MixinApi.isContainable(this) ? this.getContainer() : null;
+    const pool: Cocoons[] = [this];
+    if (!holder || !MixinApi.isContainer(holder)) return pool;
+    for (const s of holder.getContents() as Stuff[]) {
+      if (!(s instanceof Cocoons) || (s as unknown) === (this as unknown)) continue;
+      if (s.isStifled() && !s.isPierced() && s.getStrainPath() === this._strainPath) pool.push(s);
+    }
+    return pool;
+  }
+
+  /**
    * ⭐ Do it: the cocoons are used, ONE skein of raw silk and a handful of
    * pupae are made, and the skein carries the reeler's mark and how even
    * their hands kept it.
@@ -289,10 +308,18 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
           0.04 * Math.max(0, 8 - t.count),
       ),
     );
-    const cocoonBand = this.getGradeBand();
-    const left = this.getQuantity() - t.charge;
-    if (left <= 0) StuffApi.destruct(this as unknown as Stuff);
-    else this.setQuantity(left);
+    // ⭐ Drawn across the pool, weakest grade first in the reckoning: the
+    // skein is no better than the worst cocoon that went into it.
+    const pool = this.reelPool();
+    const cocoonBand = pool.reduce((b, c) => lowerBand(b, c.getGradeBand()), this.getGradeBand());
+    let need = t.charge;
+    for (const c of pool) {
+      if (need <= 0) break;
+      const take = Math.min(need, c.getQuantity());
+      need -= take;
+      if (take >= c.getQuantity()) StuffApi.destruct(c as unknown as Stuff);
+      else c.setQuantity(c.getQuantity() - take);
+    }
 
     const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
     if (skein) {

@@ -538,7 +538,6 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
      */
     private finishSpinning(spunAt: number): void {
       if (this._minting) return;
-      this._minting = true;
       const strainPath = this._strainPath;
       const strain = strainPath ? StuffApi.findByTemplatePath(strainPath) : null;
       const sd = (strain as unknown as { getSdShellMg?(): number } | null)?.getSdShellMg?.() ?? 40;
@@ -562,11 +561,16 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
         maker: this.keeperPath,
       };
       // The rearing is over the moment they have spun; the stacks follow.
+      // ⚠ `_minting` is set only once everything that can throw has run —
+      // set first, one throw wedged the tray for good (found by the drive).
       this.rearingState = 'empty';
       this.degreeDays = 0;
-      void this.mintSpin(stacks, seedBase).finally(() => {
-        this._minting = false;
-      });
+      this._minting = true;
+      void this.mintSpin(stacks, seedBase)
+        .catch((err) => console.warn(`RearingMixin: the spin did not land: ${String(err)}`))
+        .finally(() => {
+          this._minting = false;
+        });
     }
 
     private async mintSpin(
@@ -577,9 +581,14 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
       for (const s of stacks) {
         if (s.count < 1) continue;
         let made: Stuff | null = null;
+        // ⚠ No `madeFrom`: the tray is a house fixture, not a titled input,
+        // and recording provenance against it threw for a chattel stack —
+        // silently, so a crop was frass and nothing else (found by the
+        // drive). Arrival in the tray titles the stack, as for any good.
         try {
-          made = await StuffApi.clone<Stuff>(COCOONS_ROW, undefined, { madeFrom: self });
-        } catch {
+          made = await StuffApi.clone<Stuff>(COCOONS_ROW);
+        } catch (err) {
+          console.warn(`RearingMixin: could not mint a cocoon stack: ${String(err)}`);
           made = null;
         }
         if (!made) continue;
@@ -594,7 +603,7 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
         }
       }
       try {
-        const frass = await StuffApi.clone<Stuff>(FRASS_ROW, undefined, { madeFrom: self });
+        const frass = await StuffApi.clone<Stuff>(FRASS_ROW);
         if (MixinApi.isContainable(frass)) ContainmentApi.move(frass as Stuff & Containable, self);
       } catch {
         // A rearing with no frass is untidy and harmless.

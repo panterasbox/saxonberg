@@ -45,6 +45,8 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -52,6 +54,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
@@ -92,6 +95,21 @@ function fuelOn(room: Stuff & Container, hand: Hand): Stuff | null {
   return null;
 }
 
+/**
+ * One step through a named exit — the `stocks` walker's shape, through
+ * `LocomotionApi` so the mode and engagement bookkeeping are everyone's.
+ * ⚠ A forced `west` does not walk an NPC (found by the drive); the
+ * locomotion layer does.
+ */
+async function step(hand: Hand, direction: string): Promise<boolean> {
+  const room = hand.getContainer();
+  if (!room || !MixinApi.isExitable(room)) return false;
+  const exit = (room as Stuff & Exitable).getExits().get(direction);
+  if (!exit) return false;
+  const moved = await LocomotionApi.traverseWithDefault(hand, exit);
+  return moved.ok;
+}
+
 /** Move by object, said aloud — the tray acts (see the header). */
 function handMoves(hand: Hand, thing: Stuff, to: Stuff & Container, line: string): void {
   if (!MixinApi.isContainable(thing)) return;
@@ -126,7 +144,10 @@ export const brain = class {
     const hand = host as Hand;
     const { floor: floorPath, walk: walkPath, counter: counterPath } = ctx.config;
     if (typeof floorPath !== 'string' || typeof walkPath !== 'string' || typeof counterPath !== 'string') return;
-    if (MixinApi.isEngaged(hand) && hand.hasEngagement('hands')) return;
+    // ⚠ Busy means a REAL act in progress. The beat itself claims this
+    // brain's slots before `act` runs, so `hasEngagement('hands')` is
+    // always true here and the brain never acted (found by the drive).
+    if (MixinApi.isEngaged(hand) && hand.getEngagements().some((e) => e.type !== BEHAVIOR_BEAT_TYPE)) return;
 
     const here = hand.getContainer();
     const at = here?.getTemplatePath() ?? '';
@@ -136,14 +157,14 @@ export const brain = class {
     if (at === walkPath) {
       const armfuls = carried.filter(isLeaf).length;
       if (armfuls >= ARMFULS) {
-        await hand.forceCommand('east');
+        await step(hand, 'east');
         return;
       }
       const before = armfuls;
       await hand.forceCommand('harvest mulberry');
       // Nothing came of it (every tree cut) — go back with what there is.
       if ((hand.getContents() as Stuff[]).filter(isLeaf).length <= before) {
-        await hand.forceCommand('east');
+        await step(hand, 'east');
       }
       return;
     }
@@ -217,6 +238,6 @@ export const brain = class {
       tray.noteKeeper(hand.getIdentityPath() ?? '');
       return;
     }
-    await hand.forceCommand('west');
+    await step(hand, 'west');
   }
 } satisfies BrainStatics;

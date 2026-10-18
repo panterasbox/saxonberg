@@ -18,4 +18,6 @@ data:
   pebrineLoad: 0.25
   degreeDays: 352
   fifthAgeSat: 1
-  spinStartS: 1
+  # ⚠ Before the epoch: a fresh world starts its clock at 0, so "since
+  # long ago" is a NEGATIVE game-second (found by the drive).
+  spinStartS: -300000

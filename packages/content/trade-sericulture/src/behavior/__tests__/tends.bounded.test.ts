@@ -144,10 +144,12 @@ describe('tends', () => {
     expect(said).toEqual([]);
   });
 
-  it('…and with no leaf in hand, the hand goes to the walk', async () => {
+  it('…and with no leaf in hand, the hand WALKS (no typed direction — a forced `west` does not walk an NPC)', async () => {
     tray('feeding', 60);
     await tends.act(ctx(TENDS));
-    expect(said).toEqual(['west']);
+    // The test floor has no exits, so the step simply does not happen; what
+    // matters is that nothing was typed for it.
+    expect(said).toEqual([]);
   });
 
   it('a wandering tray gets a brush off the floor', async () => {
@@ -187,7 +189,7 @@ describe('tends', () => {
     ContainmentApi.move(hand as never, walk as never);
     await tends.act(ctx(TENDS));
     // Nothing came of the (captured) harvest, so the hand goes back.
-    expect(said).toEqual(['harvest mulberry', 'east']);
+    expect(said).toEqual(['harvest mulberry']);
   });
 });
 

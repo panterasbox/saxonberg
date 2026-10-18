@@ -222,4 +222,26 @@ describe('reeling silk', () => {
     const s = makeStuff(() => new RawSilk());
     expect(s.getYarnCount()).toBe(0);
   });
+
+  it('⭐ bought cocoons are many one-unit stacks — a reeling draws across them all', async () => {
+    lightAFire();
+    stubMints();
+    band('competent');
+    // Titled units never merge, so forty bought cocoons are forty stacks.
+    const units: Cocoons[] = [];
+    for (let i = 0; i < 41; i++) {
+      const c = stack(1);
+      units.push(c);
+    }
+    const live = () => reeler.getContents().filter((s) => s instanceof Cocoons) as unknown as Cocoons[];
+    const total = () => live().reduce((n, c) => n + c.getQuantity(), 0);
+    const before = total();
+    expect(before).toBeGreaterThanOrEqual(40);
+    const first = live()[0]!;
+    const plan = await first.planReel(reeler, reel(1), 8);
+    expect(plan.kind).toBe('plan');
+    if (plan.kind !== 'plan') return;
+    await first.completeReel(reeler, reel(1), plan.token);
+    expect(total()).toBe(before - 40);
+  });
 });

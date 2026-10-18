@@ -7,7 +7,7 @@
 # for ever and reel.
 class: /trade/sericulture/thing/Cocoons
 data:
-  shortDescription: cocoons
+  shortDescription: cocoon
   keywords: [cocoons, cocoon]
   register: indefinite
   longDescription: |

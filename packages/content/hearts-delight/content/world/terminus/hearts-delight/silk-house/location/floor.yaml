@@ -12,7 +12,7 @@ class: /platform/location/SingletonCartesianLocation
 data:
   extent: 8
   shortDescription: silk house loft
-  keywords: [loft, "silk house", silkhouse, house, rearing]
+  keywords: [loft, "silk house", silkhouse, house]
   register: definite
   _address: terminus/hearts-delight/silk-house
   _biomePath: /stuff/idea/biome/indoor/baseline
@@ -50,6 +50,6 @@ data:
     - /world/terminus/hearts-delight/silk-house/agent/hand
   details:
     trays:
-      keywords: [racks, rack, trays]
+      keywords: [racks, rack, shelves]
       description: |
         Slatted racks four high, each shelf a shallow paper-lined tray. Most stand empty between crops; three are working.

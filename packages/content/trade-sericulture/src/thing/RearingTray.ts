@@ -69,8 +69,11 @@ export default class RearingTray extends RearingMixin(ThermalMixin(ContainerMixi
       }
       return { ok: true };
     }
+    // The crop and its leavings go back on a tray; tools and stock do not.
     const path = thing.getTemplatePath() ?? '';
-    if (path.startsWith('/trade/sericulture/thing/')) return { ok: true };
+    if (path === '/trade/sericulture/thing/cocoons' || path === '/trade/sericulture/thing/frass') {
+      return { ok: true };
+    }
     if (MixinApi.isTangible(thing)) {
       const m = thing.getMaterial();
       if (m?.hasTag('silkworm-fodder') || m?.hasTag('mounting')) return { ok: true };

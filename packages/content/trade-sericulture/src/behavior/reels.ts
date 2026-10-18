@@ -37,6 +37,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
@@ -103,7 +104,10 @@ export const brain = class {
     const floor = hand.getContainer();
     // Away on an errand — this beat is not the reeler's.
     if (!floor || floor.getTemplatePath() !== floorPath || !MixinApi.isContainer(floor)) return;
-    if (MixinApi.isEngaged(hand) && hand.hasEngagement('hands')) return;
+    // ⚠ Busy means a REAL act in progress. The beat itself claims this
+    // brain's slots before `act` runs, so `hasEngagement('hands')` is
+    // always true here and the brain never acted (found by the drive).
+    if (MixinApi.isEngaged(hand) && hand.getEngagements().some((e) => e.type !== BEHAVIOR_BEAT_TYPE)) return;
     const count =
       typeof ctx.config.count === 'number' && ctx.config.count > 0 ? Math.round(ctx.config.count) : DEFAULT_COUNT;
 
