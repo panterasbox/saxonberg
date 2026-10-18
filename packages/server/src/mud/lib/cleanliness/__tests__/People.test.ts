@@ -12,7 +12,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../../material/Material';
 import { Construction } from '../../material/Construction';
-import DirtKindCatalogue from '../../../platform/idea/DirtKindCatalogue';
 import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
@@ -27,7 +26,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { WashPolicy } from '../WashPolicy';
 import { MixinApi } from '../../../api/mixin';
 import { brain as doorman } from '../../behavior/doorman';
-import { soilBody, wear } from './soil-fixtures';
+import { soilBody, wear, installDirtKinds } from './soil-fixtures';
 
 const DIRT = [
   { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7 },
@@ -76,12 +75,7 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   Construction.registerFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
   Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/DirtKind'
-      ? (DIRT.map((data, i) => ({ path: `/t/DirtKind/${i}`, class: cls, data })) as never)
-      : ([] as never),
-  );
-  await makeStuffAtPath(() => new DirtKindCatalogue(), TemplatePaths.dirtKindCatalogue).allWarmed();
+  installDirtKinds(DIRT as Record<string, unknown>[]);
 });
 afterEach(() => {
   vi.restoreAllMocks();

@@ -24,6 +24,9 @@ data:
   thermalConductivity: 0.4
   specificHeat: 1380
   tags: [liquid, caustic, acid]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/vitriol
   corrosiveTo: [metal, organic, tissue, leather, textile]
   composition: []
   biologicalSource: null

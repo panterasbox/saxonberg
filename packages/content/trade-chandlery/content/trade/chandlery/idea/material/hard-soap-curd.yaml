@@ -15,6 +15,9 @@ data:
   nutrients: []
   toxicity: []
   tags: [liquid, soap, soap-curd]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/soap
   drainSetting:
     days: 1
     becomes: /trade/chandlery/idea/material/hard-soap

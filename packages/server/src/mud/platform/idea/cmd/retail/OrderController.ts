@@ -603,7 +603,7 @@ export default class OrderController extends CraftController<OrderModel> {
       hand,
       customer: giver,
       hardnessDgh: tariff.houseWaterHardness(),
-      cleansers: await tariff.houseCleansers(method.reachesFor),
+      cleansers: tariff.houseCleansers(method.reachesFor),
     });
     const what = item.getPresentation();
     if (ruined.length === 0) {
@@ -670,7 +670,7 @@ export default class OrderController extends CraftController<OrderModel> {
         ? OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot')
         : OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
     }
-    const cleansers = await tariff.houseCleansers('soap');
+    const cleansers = tariff.houseCleansers('soap');
     const waterK = drawn.waterK;
     const who = hand.getPresentation() ?? 'The attendant';
     // ⚠ Read now: the effect lands after the controller is destructed.

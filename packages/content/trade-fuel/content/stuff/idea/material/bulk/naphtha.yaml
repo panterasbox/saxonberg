@@ -20,5 +20,8 @@ data:
   nutrients: []
   toxicity: []
   tags: [liquid, fuel, volatile, naphtha]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/naphtha
   composition: []
   biologicalSource: null

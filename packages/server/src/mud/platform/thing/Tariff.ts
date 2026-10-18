@@ -47,7 +47,6 @@ import { TemplatePaths } from '../../lib/paths';
 import type { Container } from '../../lib/spatial/Container';
 import type { WashCleanser } from '../../lib/cleanliness/Soilable';
 import type { WashMethod } from '../../lib/cleanliness/WashPolicy';
-import type CleanserCatalogue from '../idea/CleanserCatalogue';
 
 /**
  * ⭐ **The labour index dials** (D13). `LABOUR_INDEX` is how strongly a
@@ -308,17 +307,16 @@ export default class Tariff extends TariffBase {
    * The house's cleanser in its room — what the hand reaches for (`lye`, or
    * `soap`), else soap, else nothing (a water wash).
    */
-  public async houseCleansers(reachesFor: 'lye' | 'soap'): Promise<WashCleanser[]> {
+  public houseCleansers(reachesFor: 'lye' | 'soap'): WashCleanser[] {
     const room = this.houseRoom();
     if (!room) return [];
-    const catalogue = await StuffApi.singleton<CleanserCatalogue>(TemplatePaths.cleanserCatalogue);
     const want = reachesFor === 'lye' ? 'alkali-strong' : 'surfactant';
     let soap: WashCleanser | null = null;
     for (const s of room.getContents()) {
       const c = s as unknown as Stuff;
       const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
       if (!m) continue;
-      const row = await catalogue.byTagsWarmed(m.getTags());
+      const row = m.getCleanser();
       if (!row) continue;
       const found = { row, materialPath: m.getTemplatePath() ?? null, source: c };
       if (row.action === want) return [found];

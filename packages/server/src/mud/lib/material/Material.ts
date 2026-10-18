@@ -62,6 +62,8 @@ import type { VetoResult } from '../errors';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import type Cleanser from '../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../../platform/idea/Cleanser';
 import { ConditionApi } from '../../api/condition';
 import { MixinApi } from '../../api/mixin';
 import type { MaterialComposition } from '../../api/material';
@@ -774,6 +776,15 @@ export default class Material extends SingletonMixin(
   protected vapourMaterial = '';
 
   /**
+   * ⭐ The CLEANSER this material is (cleanliness B50) — a bar of soap, a
+   * flask of lye: the `Cleanser` row a wash reads. Named by the material,
+   * so the row loads WITH it (`identity:constituent`) and the wash asks the
+   * thing in hand what it is — never a search of the cleanser rows by tag.
+   * `''` = not a cleanser.
+   */
+  protected cleanser = '';
+
+  /**
    * ⭐ The share of a solid fuel's burnt mass left as ASH in the grate
    * (cleanliness D24) — oak ≈ 1 %. What a hearth leaves for the sweep, and
    * the first input of lye. `0` for a fuel that leaves none.
@@ -981,6 +992,7 @@ export default class Material extends SingletonMixin(
     flammableLimit: { persistent: true, spoiler: 1, spoilerName: 0 },
     vapourLPerLPerHour: { persistent: true, spoiler: 1, spoilerName: 0 },
     vapourMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
+    cleanser: { persistent: true, authorable: true, ref: 'identity:constituent' },
     ashFraction: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
     // from two sides. "This water poisons you" and "boiling fixes it"
@@ -1101,6 +1113,17 @@ export default class Material extends SingletonMixin(
   }
   public setVapourMaterial(value: string): void {
     this.vapourMaterial = typeof value === 'string' ? value : '';
+  }
+  /** The cleanser this material acts as, as the wash reads it — or `null`. */
+  public getCleanser(): CleanserDescriptor | null {
+    if (!this.cleanser) return null;
+    return StuffApi.findByTemplatePath<Cleanser>(this.cleanser)?.descriptor() ?? null;
+  }
+  public getCleanserPath(): string {
+    return this.cleanser;
+  }
+  public setCleanser(value: string): void {
+    this.cleanser = typeof value === 'string' ? value : '';
   }
   /** The share of a burnt fuel's mass left as ash. */
   public getAshFraction(): number {

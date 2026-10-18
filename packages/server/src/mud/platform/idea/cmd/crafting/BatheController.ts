@@ -16,8 +16,6 @@ import type { CommandContext } from '../../../../api/command';
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { WashCleanser } from '../../../../lib/cleanliness/Soilable';
-import type CleanserCatalogue from '../../CleanserCatalogue';
-import type DirtKindCatalogue from '../../DirtKindCatalogue';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -43,13 +41,7 @@ export default class BatheController extends WashController {
     for (const c of model.water?.stuff ?? []) {
       await BulkableApi.slotFor(c, undefined)?.settle();
     }
-    const cleansers = await StuffApi.singleton<CleanserCatalogue>(
-      TemplatePaths.cleanserCatalogue,
-    );
-    await StuffApi.singleton<DirtKindCatalogue>(TemplatePaths.dirtKindCatalogue).then((c) =>
-      c.allWarmed(),
-    );
-    const found = await this.findCleansers(model.cleanser, cleansers);
+    const found = this.findCleansers(model.cleanser);
     if ('refusal' in found) {
       this.declineStep(context, Mml.compose`${found.refusal}`, 'not-a-cleanser');
       return;

@@ -11,8 +11,10 @@ import CraftVessel from '../../../platform/thing/CraftVessel';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import DirtKindCatalogue from '../../../platform/idea/DirtKindCatalogue';
-import CleanserCatalogue from '../../../platform/idea/CleanserCatalogue';
+import DirtKind, { DIRT_KIND_ROOT } from '../../../platform/idea/DirtKind';
+import Cleanser from '../../../platform/idea/Cleanser';
+import Material from '../../material/Material';
+import { installDirtKinds } from './soil-fixtures';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { StuffApi } from '../../../api/stuff';
@@ -38,22 +40,8 @@ const DIRT_ROWS = [
   { key: 'manure', adjective: 'dung-spattered', contaminates: { 'e-coli': 0.3 } },
 ];
 
-async function warmDirt(rows: unknown[] = DIRT_ROWS): Promise<DirtKindCatalogue> {
-  vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-    cls === '/platform/idea/DirtKind'
-      ? (rows.map((data, i) => ({
-          path: `/test/idea/DirtKind/${i}`,
-          class: cls,
-          data,
-        })) as never)
-      : ([] as never),
-  );
-  const cat = makeStuffAtPath(
-    () => new DirtKindCatalogue(),
-    TemplatePaths.dirtKindCatalogue,
-  );
-  await cat.allWarmed();
-  return cat;
+function warmDirt(rows: readonly Record<string, unknown>[] = DIRT_ROWS as Record<string, unknown>[]): void {
+  installDirtKinds(rows);
 }
 
 let seq = 0;
@@ -133,7 +121,7 @@ describe('a deposit — kind, amount, site, band', () => {
   });
 
   it('describes the kinds with their rows\' adjectives', async () => {
-    await warmDirt();
+    warmDirt();
     const apron = makeStuff(() => new Garment());
     apron.soil('blood', 0.5);
     apron.soil('grease', 0.5);
@@ -183,7 +171,7 @@ describe('a deposit — kind, amount, site, band', () => {
   });
 
   it('a row\'s `contaminates` seeds a Contaminable host', async () => {
-    await warmDirt();
+    warmDirt();
     // CraftVessel is the shipped Soilable + Contaminable host.
     const block = makeStuff(() => new CraftVessel());
     const spy = vi.spyOn(block, 'contaminate');
@@ -247,39 +235,31 @@ describe('the body — the layer an act reaches (D4, D5)', () => {
   });
 });
 
-describe('the two catalogues (D2, AC 23)', () => {
-  it('a row under any pack root is found, with no code', async () => {
-    const cat = await warmDirt([{ key: 'dust', adjective: 'dusty' }]);
-    expect((await cat.warmed('dust'))?.adjective).toBe('dusty');
-    expect(cat.peek('dust')?.form).toBe('film');
+describe('the rows read themselves (D2, AC 23; no catalogue — B50)', () => {
+  it('a dirt kind loads by path, and reads its own row', () => {
+    warmDirt([{ key: 'dust', adjective: 'dusty' }]);
+    const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'dust');
+    expect(row?.descriptor()?.adjective).toBe('dusty');
+    expect(row?.descriptor()?.form).toBe('film');
   });
 
-  it('a malformed row is skipped and named, never thrown', async () => {
+  it('a malformed row is named and answers null, never thrown', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const cat = await warmDirt([
-      { key: 'ok' },
-      { adjective: 'no key' },
-      { key: 'bad', form: 'puddle' },
-      { key: 'worse', answersTo: ['magic'] },
-    ]);
-    expect((await cat.allWarmed()).map((d) => d.key)).toEqual(['ok']);
-    expect(warn).toHaveBeenCalledTimes(3);
+    warmDirt([{ key: 'bad', form: 'puddle' }, { key: 'worse', answersTo: ['magic'] }]);
+    expect(StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'bad')?.descriptor()).toBeNull();
+    expect(StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + 'worse')?.descriptor()).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(2);
   });
 
-  it('a cleanser is found by the agent TAG its material carries', async () => {
-    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
-      cls === '/platform/idea/Cleanser'
-        ? ([
-            { path: '/t/Cleanser/soap', class: cls, data: { key: 'soap', agent: 'soap', action: 'surfactant', hardWaterPenalty: true } },
-            { path: '/t/Cleanser/sun', class: cls, data: { key: 'sunlight', agent: 'sunlight', action: 'oxidiser-slow', ambient: true } },
-            { path: '/t/Cleanser/bad', class: cls, data: { key: 'bad', agent: 'x', action: 'prayer' } },
-          ] as never)
-        : ([] as never),
+  it('⭐ a cleanser is what its MATERIAL names — no search by tag', () => {
+    makeStuffAtPath(
+      () => Object.assign(new Cleanser(), { key: 'soap', agent: 'soap', action: 'surfactant', hardWaterPenalty: true }),
+      '/platform/idea/Cleanser/soap',
     );
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const cat = makeStuffAtPath(() => new CleanserCatalogue(), TemplatePaths.cleanserCatalogue);
-    expect((await cat.byTagsWarmed(['bulk', 'soap']))?.key).toBe('soap');
-    expect(cat.peekByAgent('sunlight')?.ambient).toBe(true);
-    expect(await cat.warmed('bad')).toBeNull();
+    const soap = makeStuffAtPath(() => new Material(), '/stuff/idea/material/_test/soap');
+    soap.setCleanser('/platform/idea/Cleanser/soap');
+    expect(soap.getCleanser()?.action).toBe('surfactant');
+    const sand = makeStuffAtPath(() => new Material(), '/stuff/idea/material/_test/sand');
+    expect(sand.getCleanser()).toBeNull();
   });
 });

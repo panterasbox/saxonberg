@@ -10,8 +10,22 @@ import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Garment from '../../../platform/thing/equipment/Garment';
 import {
   makeStuff,
+  makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import DirtKind, { DIRT_KIND_ROOT } from '../../../platform/idea/DirtKind';
+
+/**
+ * Stand the dirt-kind rows up where the engine loads them from — BY PATH
+ * (`DIRT_KIND_ROOT + key`, cleanliness B50), the way `soil()` does in play.
+ */
+export function installDirtKinds(rows: readonly Record<string, unknown>[]): void {
+  for (const data of rows) {
+    const key = String(data.key ?? '');
+    if (!key) continue;
+    makeStuffAtPath(() => Object.assign(new DirtKind(), data), DIRT_KIND_ROOT + key);
+  }
+}
 
 let seq = 0;
 const planPaths = new WeakMap<Creature, string>();

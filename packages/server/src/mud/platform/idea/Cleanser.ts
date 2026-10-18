@@ -1,12 +1,12 @@
 /**
  * Cleanser — one thing you wash WITH, as a leaf Idea row (cleanliness D2).
  *
- * The `Joint` shape: authored under any pack root
- * (`<root>/idea/Cleanser/<key>.yaml`), read by `CleanserCatalogue` from
- * `template.data`, never cloned. A cleanser is found by the **material
- * tag** its agent carries (`soap`, `lye`, `acid`, `sawdust`…), so a bar of
- * soap, a jar of soft soap and a flask of lye are each a cleanser by what
- * they are made of, with no class of their own. Two agents are AMBIENT —
+ * ⭐ NAMED BY THE MATERIAL (cleanliness B50): a cleansing material's row
+ * carries `cleanser: /platform/idea/Cleanser/<key>` (`identity:constituent`
+ * — the row loads with the material), and the wash asks the thing in hand
+ * `material.getCleanser()`. So a bar of soap, a jar of soft soap and a
+ * flask of lye are each a cleanser by what they are made of, with no class
+ * of their own, and nothing searches the cleanser rows by tag. Two agents are AMBIENT —
  * `sunlight` and `sulfur-fume` are read from the room a thing hangs in,
  * not from a thing you hold (D21).
  *
@@ -96,4 +96,46 @@ export default class Cleanser extends Idea {
   public getKey(): string {
     return this.key;
   }
+
+  /**
+   * ⭐ This row as the wash reads it — validated, never thrown (a malformed
+   * row is NAMED and answers `null`). Read straight off the row a cleanser
+   * MATERIAL names (`Material.getCleanser`, cleanliness B50) — no
+   * catalogue, no search.
+   */
+  public descriptor(): CleanserDescriptor | null {
+    const why = (r: string): null => {
+      console.warn(`Cleanser '${this.getTemplatePath() ?? this.key}': ${r}`);
+      return null;
+    };
+    if (!this.key) return why("no key");
+    if (!this.agent) return why("no agent");
+    if (!(CLEANSER_ACTIONS as readonly string[]).includes(String(this.action))) {
+      return why(`action '${String(this.action)}' is not one of ${CLEANSER_ACTIONS.join("|")}`);
+    }
+    const damages: CleanserDamage[] = [];
+    for (const r of Array.isArray(this.damages) ? this.damages : []) {
+      if (!r || typeof r.fibreTag !== "string" || !r.fibreTag) return why("a damage names no fibreTag");
+      if (!(DAMAGE_EFFECTS as readonly string[]).includes(r.effect)) {
+        return why(`damage effect '${String(r.effect)}' is not one of ${DAMAGE_EFFECTS.join("|")}`);
+      }
+      damages.push({ fibreTag: r.fibreTag, effect: r.effect, aboveK: typeof r.aboveK === "number" ? r.aboveK : null });
+    }
+    const num = (v: unknown, fallback: number): number =>
+      typeof v === "number" && Number.isFinite(v) ? v : fallback;
+    return {
+      key: this.key,
+      agent: this.agent,
+      action: this.action,
+      damages,
+      hardWaterPenalty: this.hardWaterPenalty === true,
+      softens: this.softens === true,
+      consumesPerWash: Math.max(0, num(this.consumesPerWash, 0)),
+      skinHarshness: Math.max(0, Math.min(1, num(this.skinHarshness, 0))),
+      ambient: this.ambient === true,
+    };
+  }
 }
+
+/** The non-corrosive damages a row may author (burns/rots are derived). */
+const DAMAGE_EFFECTS: readonly CleanserDamage["effect"][] = ["felts", "scratches", "yellows"];

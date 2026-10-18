@@ -17,5 +17,8 @@ data:
   toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, alkali, lye]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/lye
   composition: []
   biologicalSource: null

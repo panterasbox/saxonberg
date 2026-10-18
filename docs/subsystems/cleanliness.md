@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B49). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B50). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -38,7 +38,7 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
 ### Two row families (no code to add one)
 
 - **`DirtKind`** (`/platform/idea/DirtKind`, rows at
-  `<root>/idea/DirtKind/<key>`): the adjective, the `form` (`film` washed,
+  `/platform/idea/DirtKind/<key>`, a closed set): the adjective, the `form` (`film` washed,
   `debris` swept, `stain` a film that can set), what cleanser `answersTo`,
   `setsAboveK`/`setAnswersTo` (blood: 318 K, then only a bleach),
   `waterLifts` (what plain water takes — mud 0.7, grease 0.05),
@@ -52,9 +52,12 @@ twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
   read from the room). ⭐ Burning and rotting are DERIVED from the agent
   material's `corrosiveTo` ∩ the fibre's tags, never authored twice.
 
-Both are read through lazy catalogues (`DirtKindCatalogue`,
-`CleanserCatalogue`): async warm on first miss, sync `peek` everywhere
-else. No boot list.
+⭐ **No catalogues** (B50 — the scan sweep's rule: load by an authored
+reference, never by searching). A dirt kind is a closed platform
+vocabulary at `/platform/idea/DirtKind/<key>`, loaded by path the first
+time something is soiled with it (`Soilable.dirtKind`). A cleanser is named
+by its MATERIAL (`cleanser:`, `identity:constituent`, loaded with it —
+`Material.getCleanser()`). Each row reads itself (`descriptor()`).
 
 ## The producers — every act names its deposit
 

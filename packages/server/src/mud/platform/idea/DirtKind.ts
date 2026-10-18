@@ -1,15 +1,16 @@
 /**
  * DirtKind — one KIND of dirt, as a leaf Idea row (cleanliness D2).
  *
- * The `Joint` shape exactly: pure data authored under any pack root
- * (`<root>/idea/DirtKind/<key>.yaml`), read by `DirtKindCatalogue` straight
- * from `template.data`, never cloned as live Stuff. What a dirt IS — the
+ * A CLOSED platform vocabulary (cleanliness B50): every row lives at
+ * `DIRT_KIND_ROOT + key` (`/platform/idea/DirtKind/<key>.yaml`), so a kind
+ * key IS its path — the row loads by path the first time something is
+ * soiled with it, with no catalogue and no scan. What a dirt IS — the
  * word for something carrying it, whether it is a film you wash or a
  * debris you sweep, which cleanser actions lift it, whether hot water sets
  * it — is data; what depositing and washing DO is `SoilableMixin`'s.
  *
- * ⭐ So a new dirt is a row: the mining pack ships `dust` under its own
- * root, and nothing in the engine changes.
+ * ⭐ So a new dirt is a row — in the platform pack, beside the other ten:
+ * nothing in the engine changes, and nothing searches for it.
  *
  * `key` is the durable join — a deposit is recorded against the key
  * (`blood`), never the template path.
@@ -17,7 +18,7 @@
 
 import { Idea } from "../../lib/stuff/Idea";
 import type { FieldMeta } from "../../lib/mixin";
-import type { CleanserAction } from "./Cleanser";
+import { CLEANSER_ACTIONS, type CleanserAction } from "./Cleanser";
 
 /**
  * What a dirt does on a surface — the three things the kernel does
@@ -84,4 +85,55 @@ export default class DirtKind extends Idea {
   public getKey(): string {
     return this.key;
   }
+
+  /**
+   * ⭐ This row as the chemistry and the look read it — validated, never
+   * thrown. Rows live at `DIRT_KIND_ROOT + key` (a closed platform
+   * vocabulary, cleanliness B50), so a kind loads BY PATH the first time
+   * something is soiled with it — no catalogue, no scan.
+   */
+  public descriptor(): DirtKindDescriptor | null {
+    const why = (r: string): null => {
+      console.warn(`DirtKind '${this.getTemplatePath() ?? this.key}': ${r}`);
+      return null;
+    };
+    if (!this.key) return why("no key");
+    if (!(DIRT_FORMS as readonly string[]).includes(String(this.form))) {
+      return why(`form '${String(this.form)}' is not one of ${DIRT_FORMS.join("|")}`);
+    }
+    const actions = (v: unknown, field: string): CleanserAction[] | null => {
+      if (!Array.isArray(v)) return [];
+      for (const a of v) {
+        if (!(CLEANSER_ACTIONS as readonly string[]).includes(String(a))) {
+          why(`${field} names '${String(a)}', not one of ${CLEANSER_ACTIONS.join("|")}`);
+          return null;
+        }
+      }
+      return [...(v as CleanserAction[])];
+    };
+    const answersTo = actions(this.answersTo, "answersTo");
+    const setAnswersTo = actions(this.setAnswersTo, "setAnswersTo");
+    if (!answersTo || !setAnswersTo) return null;
+    const contaminates: Record<string, number> = {};
+    for (const [k, v] of Object.entries(this.contaminates ?? {})) {
+      if (typeof v === "number" && v > 0) contaminates[k] = Math.min(1, v);
+    }
+    const unit = (v: unknown, fallback: number): number =>
+      typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : fallback;
+    return {
+      key: this.key,
+      adjective: this.adjective || this.key,
+      form: this.form,
+      answersTo,
+      setsAboveK: typeof this.setsAboveK === "number" && Number.isFinite(this.setsAboveK) ? this.setsAboveK : null,
+      setAnswersTo,
+      absorbedBy: this.absorbedBy === true,
+      contaminates,
+      waterLifts: unit(this.waterLifts, 0.3),
+      brushLifts: unit(this.brushLifts, 0),
+    };
+  }
 }
+
+/** Where every dirt kind's row lives: `DIRT_KIND_ROOT + key`. */
+export const DIRT_KIND_ROOT = "/platform/idea/DirtKind/";

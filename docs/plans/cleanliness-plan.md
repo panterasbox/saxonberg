@@ -2873,6 +2873,18 @@ Read first, in this order.
   (so mucking out the byre keeps the milker clean), a hand-drawn liquid
   splashes the apron as its own kind; a plant's tap dirties nothing.
 
+- **B50 — No catalogues** (review: *"we recently did a refactor over
+  catalogs to get rid of full scans and eager loading"*). `CleanserCatalogue`
+  answered a REVERSE question (which cleanser is this material? — a tag
+  search over every row): flipped — 13 material rows name their cleanser
+  (`cleanser:`, `identity:constituent`) and `Material.getCleanser()` reads
+  it. `DirtKindCatalogue` warmed every row by class (and `WashController`
+  called `allWarmed()` every wash): dirt kinds are a closed platform
+  vocabulary now, loaded by path when `soil()` first makes one
+  (`Soilable.dirtKind`, a method — `dirtRow`/`dirtRowFor` were module
+  functions). Each row reads itself (`descriptor()`). Template-table scans
+  42 → 40; both catalogue singletons and rows deleted.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

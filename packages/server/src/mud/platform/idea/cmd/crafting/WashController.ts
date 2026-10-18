@@ -39,8 +39,6 @@ import type {
   WashOutcome,
   WashSpec,
 } from "../../../../lib/cleanliness/Soilable";
-import type CleanserCatalogue from "../../CleanserCatalogue";
-import type DirtKindCatalogue from "../../DirtKindCatalogue";
 
 const TOPIC = "act.deed";
 /** One plain wash, real milliseconds; a scrub is three of them. */
@@ -92,18 +90,9 @@ export default class WashController extends ManualBuildController<WashModel> {
       const slot = BulkableApi.slotFor(c, undefined);
       if (slot) await bounded(slot.settle(), `settle ${c.getTemplatePath()}`);
     }
-    // The rows the chemistry reads, warmed once here — every later read is
-    // a sync `peek` (the catalogue rule).
-    const cleansers = await StuffApi.singleton<CleanserCatalogue>(
-      TemplatePaths.cleanserCatalogue,
-    );
-    await bounded(
-      StuffApi.singleton<DirtKindCatalogue>(TemplatePaths.dirtKindCatalogue).then((c) =>
-        c.allWarmed(),
-      ),
-      'dirt catalogue warm',
-    );
-    const found = await this.findCleansers(model.cleanser, cleansers);
+    // ⭐ No catalogue (B50): a cleanser is what its MATERIAL names, loaded
+    // with it; a dirt kind's row loaded when the dirt was made.
+    const found = this.findCleansers(model.cleanser);
     if ("refusal" in found) {
       this.declineStep(context, Mml.compose`${found.refusal}`, "not-a-cleanser");
       return;
@@ -243,15 +232,13 @@ export default class WashController extends ManualBuildController<WashModel> {
    * of soap is soap because it is made of soap; a flask of lye is lye. A
    * named thing that is no cleanser is refused in words.
    */
-  protected async findCleansers(
+  protected findCleansers(
     bound: MqlManyResult | undefined,
-    catalogue: CleanserCatalogue,
-  ): Promise<{ cleansers: WashCleanser[] } | { refusal: string }> {
+  ): { cleansers: WashCleanser[] } | { refusal: string } {
     const out: WashCleanser[] = [];
     for (const c of bound?.stuff ?? []) {
       const material = materialOf(c);
-      const tags = material?.getTags() ?? [];
-      const row = await catalogue.byTagsWarmed(tags);
+      const row = material?.getCleanser() ?? null;
       if (!row) return { refusal: `${c.getPresentation()} is no use for washing.` };
       out.push({ row, materialPath: material?.getTemplatePath() ?? null, source: c });
     }

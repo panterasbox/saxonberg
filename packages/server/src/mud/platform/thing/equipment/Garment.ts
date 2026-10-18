@@ -61,7 +61,6 @@ import { CelestialApi } from '../../../api/celestial';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { FieldMeta } from '../../../lib/mixin';
-import type DirtKindCatalogue from '../../idea/DirtKindCatalogue';
 import type { DirtKindDescriptor } from '../../idea/DirtKind';
 import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
 
@@ -311,7 +310,7 @@ export default class Garment extends GarmentBase {
 
     // Stains and films that answer to an oxidiser fade by the dose.
     for (const kind of this.soilKinds('')) {
-      const row = dirtRowFor(kind);
+      const row = this.dirtKind(kind);
       const answers = this.isSoilSet(kind, '') ? row?.setAnswersTo : row?.answersTo;
       const dose =
         (answers?.includes('oxidiser-slow') ? sunDose : 0) +
@@ -348,10 +347,3 @@ function dial(key: string, fallback: number): number {
   }
 }
 
-function dirtRowFor(kind: string): DirtKindDescriptor | null {
-  return (
-    StuffApi.findByTemplatePath<DirtKindCatalogue>(
-      TemplatePaths.dirtKindCatalogue,
-    )?.peek(kind) ?? null
-  );
-}

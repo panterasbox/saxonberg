@@ -17,5 +17,8 @@ data:
   nutrients: []
   toxicity: []
   tags: [earth, mineral, granular, absorbent, fullers-earth]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/fullers-earth
   composition: []
   biologicalSource: null

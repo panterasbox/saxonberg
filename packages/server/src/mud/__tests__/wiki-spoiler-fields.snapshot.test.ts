@@ -72,6 +72,8 @@
  *     reference to the herd book whose beasts foul the floor;
  *     `FloorMixin.sweepsInto` — level 0, the row a broom heaps into
  *     (sweepings, the byre's muck): what you get is what you hold.
+ *   - `Material.cleanser` — level 0: what a material washes AS (a bar of
+ *     soap is soap); the row it names loads with it (cleanliness B50).
  *   - `Tariff.serviceDisciplines` — level 0: which trade answers a paid
  *     service is posted on the slate; `KeptDoor.keptBy` — level 0, the
  *     house whose doorman keeps the door, which the doorman says himself;

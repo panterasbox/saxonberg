@@ -14,5 +14,8 @@ data:
   nutrients: []
   toxicity: []
   tags: [solid, mineral, alkali-mild, washing-soda]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/washing-soda
   composition: []
   biologicalSource: null

@@ -44,7 +44,8 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Contamination } from '../material/Contaminable';
-import type DirtKindCatalogue from '../../platform/idea/DirtKindCatalogue';
+import { DIRT_KIND_ROOT } from '../../platform/idea/DirtKind';
+import type DirtKind from '../../platform/idea/DirtKind';
 import type { DirtKindDescriptor } from '../../platform/idea/DirtKind';
 import type { CleanserAction, CleanserDescriptor } from '../../platform/idea/Cleanser';
 
@@ -297,6 +298,9 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       site: string = WHOLE_SITE,
     ): void {
       if (!kind || !(amount > 0)) return;
+      // ⭐ The act that makes a deposit loads its kind's row (by path),
+      // so every later read of it is resident.
+      this.dirtKind(kind);
       const key = depositKey(site, kind);
       const prior = this.deposits[key] ?? 0;
       const next = Math.min(SOIL_DEFAULTS.MAX_LOAD, prior + amount);
@@ -305,7 +309,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       if (by && kind === 'blood') this.keepSample(site, kind, by);
       const self = this as unknown as Stuff;
       if (MixinApi.isContaminable(self)) {
-        const row = dirtRow(kind);
+        const row = this.dirtKind(kind);
         for (const [pathogen, severity] of Object.entries(row?.contaminates ?? {})) {
           self.contaminate(pathogen, Math.min(1, severity * amount));
         }
@@ -405,7 +409,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const words: string[] = [];
       for (const kind of this.soilKinds(site)) {
         if (this.kindLoad(kind, site) < floor) continue;
-        const word = dirtRow(kind)?.adjective ?? kind;
+        const word = this.dirtKind(kind)?.adjective ?? kind;
         if (!words.includes(word)) words.push(word);
         if (words.length === 3) break;
       }
@@ -435,7 +439,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     public cleanTier(site: string = WHOLE_SITE): CleanTier {
       const band = this.soilBand(site);
       const filmed = this.soilKinds(site).some(
-        (k) => this.soilLoad(k, site) > 0 && dirtRow(k)?.form === 'film',
+        (k) => this.soilLoad(k, site) > 0 && this.dirtKind(k)?.form === 'film',
       );
       if (band !== 'clean') {
         return band === 'marked' && !filmed ? 'presentable' : 'dirty';
@@ -475,12 +479,25 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, effort));
       for (const kind of this.soilKinds(site)) {
         if (this.isSoilSet(kind, site)) continue;
-        const lifts = dirtRow(kind)?.brushLifts ?? 0;
+        const lifts = this.dirtKind(kind)?.brushLifts ?? 0;
         if (!(lifts > 0)) continue;
         const got = this.removeSoil(kind, clamp01(lifts * fEffort), site);
         if (got > 0) removed[kind] = got;
       }
       return removed;
+    }
+
+    /**
+     * The row for a dirt kind, synchronously — `look` cannot wait. ⭐ Loaded
+     * BY PATH (`DIRT_KIND_ROOT + kind`) when something is first soiled with
+     * it (`soil` kicks it), so by the time anything reads a deposit its row
+     * is resident; a cold read answers `null` (the key is then the word).
+     */
+    protected dirtKind(kind: string): DirtKindDescriptor | null {
+      const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
+      if (row) return row.descriptor();
+      void StuffApi.singleton(DIRT_KIND_ROOT + kind).catch(() => {});
+      return null;
     }
 
     public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {
@@ -548,7 +565,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       // on time alone.
       const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, spec.effort));
       for (const kind of this.soilKinds(site)) {
-        const row = dirtRow(kind);
+        const row = this.dirtKind(kind);
         const setsAt = row?.setsAboveK ?? null;
         // ⭐ Hot water SETS blood before it can lift it (D8).
         if (
@@ -686,31 +703,6 @@ function bandOf(load: number): SoilBand {
     return 'marked';
   }
   return 'clean';
-}
-
-/**
- * The dirt row for `kind`, synchronously — `look` cannot wait. ⭐ Loads on
- * first use: a cold catalogue is stood up and warmed in the background,
- * and this read answers `null` (the caller uses the key as the word).
- */
-/** One warning per process for a catalogue that will not stand up. */
-let warnedCold = false;
-
-function dirtRow(kind: string): DirtKindDescriptor | null {
-  const cat = StuffApi.findByTemplatePath<DirtKindCatalogue>(
-    TemplatePaths.dirtKindCatalogue,
-  );
-  if (!cat) {
-    void StuffApi.singleton<DirtKindCatalogue>(TemplatePaths.dirtKindCatalogue)
-      .then((c) => c.allWarmed())
-      .catch((err: unknown) => {
-        if (warnedCold) return;
-        warnedCold = true;
-        console.warn('Soilable: dirt catalogue load failed:', err);
-      });
-    return null;
-  }
-  return cat.peek(kind);
 }
 
 function joinWords(words: string[]): string {
