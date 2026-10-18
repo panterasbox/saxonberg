@@ -591,8 +591,11 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     const rh = rb.handle;
     wb.close();
     rb.close();
-    streetWool = await at(wh, YARD);
-    streetRubber = await at(rh, YARD);
+    // ⚠ On the SQUARE, where the rain loop reads the weather: the goods
+    // yard can sit in a boundary that fell as snow while the square's was
+    // rain (the whole-file run found the gambeson dry there).
+    streetWool = await at(wh, SQUARE);
+    streetRubber = await at(rh, SQUARE);
     // ⚠ Ten sessions: under a loaded machine each login can take a minute.
   }, 1_800_000);
 

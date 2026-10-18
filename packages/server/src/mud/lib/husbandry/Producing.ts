@@ -253,6 +253,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     public productionStamp = 0;
 
     protected _reconcilingProduction = false;
+    /**
+     * The air a tap just RESOLVED (the thermometer's own read), kept for
+     * the game minute it was taken — transient, never persisted. The
+     * window reads it in preference to any synchronous estimate.
+     */
+    protected _tapAir: { k: number; atS: number } | null = null;
 
     public taps(): readonly TapSpec[] {
       const self = this as unknown as Stuff;
@@ -479,6 +485,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private windowAirK(): number | null {
       const self = this as unknown as Stuff;
+      // ⭐ What the act just resolved, while it is current: the window
+      // reads exactly what a thermometer beside the tree reads.
+      const now = nowSeconds();
+      if (this._tapAir !== null && now !== null && Math.abs(now - this._tapAir.atS) < 60) {
+        return this._tapAir.k;
+      }
       const place = this.tapAirPlace();
       if (place !== null) {
         // ⚠ Brought CURRENT, not the last integrated figure: a tree that
@@ -533,12 +545,17 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * async resolve refreshes — so a tree asked at dawn, after a night
      * nobody measured, answered with the afternoon's outside air. The
      * act is async; the window is not; this is the seam between them.
+     * ⚠ The RESOLVED figure is kept and read back (`_tapAir`): a later
+     * synchronous estimate still drifted from the thermometer in the
+     * whole-file drive (the works floor next door had been firing).
      */
     public async bringTapAirCurrent(): Promise<void> {
       const place = this.tapAirPlace();
       if (place === null) return;
       try {
-        await BiomeApi.resolveTemperatureFor(place);
+        const k = (await BiomeApi.resolveTemperatureFor(place)).rawValue();
+        const atS = nowSeconds();
+        this._tapAir = Number.isFinite(k) && atS !== null ? { k, atS } : null;
       } catch (err) {
         // An unresolvable place reads as before — said, never silent.
         console.warn(
