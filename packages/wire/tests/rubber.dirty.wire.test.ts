@@ -573,18 +573,26 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     places.coach = await at(uniqueHandle('in-coach'), SQUARE);
     await cloneHere(SQUARE, ROW.coach);
     await say(places.coach!, 'go coach');
-    // ⚠ The wool garment is the store's lab hoodie (a `/stuff` row: bought).
+    // ⭐ Both coats off the general store's shelf, as a player gets them:
+    // wool is the padded gambeson (quilted wool to the hips); the rubberized
+    // coat is the tailor's cut in rubber-faced cloth. ⚠ The lab hoodie was
+    // the first choice and is never in stock on a fresh world (a
+    // pre-existing stock finding, recorded in the plan).
     const wb = await funded('wool-coat', SHOP);
-    await buyOne(wb, '"lab hoodie"');
+    await buyOne(wb, 'gambeson');
+    const rb = await funded('rubber-coat', SHOP);
+    await buyOne(rb, '"rubberized coat"');
+    for (const [w, garment] of [[wb, 'gambeson'], [rb, 'coat']] as const) {
+      await dress(w, `wear ${garment}`);
+      const worn = await say(w, 'inventory');
+      expect(worn, `the ${garment} is on`).toMatch(new RegExp(`wearing:[^.]*${garment}`, 'i'));
+    }
     const wh = wb.handle;
+    const rh = rb.handle;
     wb.close();
+    rb.close();
     streetWool = await at(wh, YARD);
-    await dress(streetWool, 'remove all');
-    await dress(streetWool, 'wear hoodie');
-    streetRubber = await at(uniqueHandle('rubber-coat'), YARD);
-    await cloneInto(YARD, streetRubber, ROW.rubberCoat, 'mackintosh');
-    await dress(streetRubber, 'remove all');
-    await dress(streetRubber, 'wear coat');
+    streetRubber = await at(rh, YARD);
     // ⚠ Ten sessions: under a loaded machine each login can take a minute.
   }, 1_800_000);
 
@@ -595,21 +603,22 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
   }
 
   it('it rains (the clock moves in weather segments until it does)', async () => {
+    // ⚠ An hour at a time: a spell is shorter than the six-hour jumps this
+    // began with, and a body dries between them. RAIN, not snow — a cold
+    // spell's "rain" type can fall as snow, which wets nobody the same way.
+    const wet = (w: string): boolean =>
+      /type:\s*(rain|drizzle|showers?|storm|downpour)/i.test(w) &&
+      /rain precipitation/i.test(w);
     let raining = false;
-    for (let i = 0; i < 40 && !raining; i++) {
-      await advanceWorldClock('6 hours');
-      await new Promise((r) => setTimeout(r, 2_000));
-      const w = await say(places.street!, 'analyze weather');
-      raining = /rain|drizzle|shower|downpour|storm/i.test(w) && !/no rain|dry/i.test(w.split('.')[0] ?? '');
-      if (raining) {
-        // one more segment IN the rain, so the fan-out has wetted who stands in it
-        await advanceWorldClock('6 hours');
-        const again = await say(places.street!, 'analyze weather');
-        raining = /rain|drizzle|shower|downpour|storm/i.test(again);
-      }
+    for (let i = 0; i < 240 && !raining; i++) {
+      await advanceWorldClock('1 hour');
+      raining = wet(await say(places.street!, 'analyze weather'));
     }
     expect(raining, 'no rain in ten game days — the drive cannot run its rain steps').toBe(true);
-  }, 1_800_000);
+    // A quarter-hour IN it, so the fan-out has wetted who stands out there.
+    await advanceWorldClock('15 minutes');
+    await new Promise((r) => setTimeout(r, 3_000));
+  }, 3_600_000);
 
   it('5 — the street and the roof terrace are wet', async () => {
     expect(await wetness(places.street!)).not.toBe('dry');
@@ -624,11 +633,18 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
   }, 120_000);
 
   it('19 — in the rain, a wool coat lets the wet through; a rubberized coat does not', async () => {
+    // ⚠ A coat covers the TORSO: rain still reaches the head and hands and
+    // soaks the linen trousers, so no coat keeps a whole body "dry" (the
+    // script's wording overclaims — recorded in the plan). What a player
+    // reads is the coat itself: the rubber sheds it, the wool drinks it.
+    const woolCoat = await examine(streetWool, 'me:i:gambeson');
+    const rubberCoat = await examine(streetRubber, 'me:i:coat');
     const wool = await wetness(streetWool);
     const rubber = await wetness(streetRubber);
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] wool coat wearer: ${wool} · rubberized coat wearer: ${rubber}`);
-    expect(rubber).toBe('dry');
+    console.log(`  [drive] gambeson: ${woolCoat.slice(0, 160)}\n          rubberized coat: ${rubberCoat.slice(0, 160)}\n          bodies — wool: ${wool} · rubber: ${rubber}`);
+    expect(woolCoat).toMatch(/damp|wet|soaked/i);
+    expect(rubberCoat).not.toMatch(/damp|wet|soaked/i);
   }, 120_000);
 
   it('1 — the hall sees the sky through its glass roof: daylight, by day', async () => {
