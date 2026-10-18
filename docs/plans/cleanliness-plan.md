@@ -2206,6 +2206,8 @@ drive steps 18, 20.
 
 ### W7 — The drive, the docs, the MR
 
+> ✅ **Done.** The drive is `packages/wire/tests/cleanliness.dirty.wire.test.ts`; 22 runs, the last 22/22 on a fresh DB including the restart. The docs: `docs/subsystems/cleanliness.md` + the appended sections. The MR carries B1–B39 and the drive's findings.
+
 **Goal.** `packages/wire/tests/cleanliness.dirty.wire.test.ts` runs the
 requirements' drive (steps 1–20, 22, 23; 21 cut) against the real socket
 on **`WIRE_PORT=2013`** (build-2's port — never the default), including
@@ -2884,3 +2886,11 @@ WIRE_PORT=2013`. Runs, and what each found:
     implant each login — the restored one lands in the pack, not the
     cranial slot, so `Avatar`'s loadout mints another (`Avatar.ts` loadout
     occupy). Three boots, three implants.
+- **Run 21** (fresh DB) — 21/22: the restart PASSES (the stained shirt
+  comes back from the kept cookhouse's rack). Drive 2's second `wear
+  gloves` was refused — *your hands are busy*: the knife from the
+  butchery was still in hand, which is the rule, not a defect. The drive
+  puts the knife up first. `lint:reachability`'s naming ratchet caught
+  the new jumper printing "wool jumper" without answering to it.
+- ⭐ **Run 22** (fresh DB, after the docs-only master merge) — **22/22,
+  restart included.** The exit criterion is met.
