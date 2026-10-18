@@ -68,7 +68,7 @@ inside `Hygiene.bathe`.
    `CrackController` 12, `ButcherController` 12, `SawController` 11; the
    kernel's `PutController` and `CloneController` 7 each.
 3. The cleanliness build cleared its own (B48): the co-wash is
-   `CleanlinessApi.washTogether`, the laundress is `Garment.launderBy` + the
+   `CraftingApi.wash` (beside `repair`), the laundress is `Garment.launderBy` + the
    `Tariff`'s house methods, the bath is `Tub.drawFrom`. ⚠ Left, named:
    `DryController.prospectFor` (the drying law — moved from trade-cooking),
    and `OrderController`'s pre-existing arms (treatment, repair are the

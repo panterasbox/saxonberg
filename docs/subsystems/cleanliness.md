@@ -246,7 +246,7 @@ undergoes it — `Soilable.washSite` / `brushOff` / `holdAtHeat`,
 `Tub.drawFrom`, `Wet.dryingOutlook`, `Vitals.loseBlood`, and the house's
 own on its `Tariff` (`houseVessel`, `houseWaterHardness`, `houseCleansers`,
 `quoteLaundry`, `payCover`). Only what NO one object owns is an Api static:
-`CleanlinessApi.washTogether({items, spec})` — several things in one water.
+`CraftingApi.wash({items, spec})` — several things in one water, beside `repair` (the upkeep twin: dirt where repair is wear); no Api of its own.
 No `lib/` statics, no module functions for an act's internals. The
 tree-wide rule is [controllers-are-io-slate](../slates/builds/controllers-are-io-slate.md).
 

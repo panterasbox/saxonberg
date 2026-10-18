@@ -2858,8 +2858,10 @@ Read first, in this order.
   `quoteLaundry` / `houseCleansers` / `houseWaterHardness` / `payCover`;
   `order bath` → `Tariff.houseVessel` + `Tub.drawFrom`; `dry`'s wet
   outlook → `Wet.dryingOutlook`; hands and bath spend their own soap; a
-  wash of several things in one water → `CleanlinessApi.washTogether` (the
-  one piece with no owner: items × water × cleansers). `DryController`'s
+  wash of several things in one water → `CraftingApi.wash` (the one piece
+  with no owner: items × water × cleansers) — first written as a new
+  `CleanlinessApi`, folded into CraftingApi in review: a one-method Api is
+  overkill, and washing is repair's upkeep twin (dirt where repair is wear). `DryController`'s
   `prospectFor` (the drying law, moved here from trade-cooking) is left
   for `controllers-are-io-slate` — not this build's to make worse or better.
 

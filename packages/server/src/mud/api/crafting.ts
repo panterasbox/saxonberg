@@ -24,6 +24,7 @@
 
 import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { WashOutcome, WashSpec } from '../lib/cleanliness/Soilable';
 import type { Grade } from '../lib/craft/Grade';
 import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
 import { StuffApi } from './stuff';
@@ -301,6 +302,22 @@ export interface Diagnosis {
 }
 
 /** Ask a hand to look a thing over (repair D12). */
+/**
+ * ⭐ Wash things together in ONE water (cleanliness D10, B48) — the
+ * upkeep twin of `repair`: dirt where repair is wear.
+ */
+export interface WashRequest {
+  items: readonly Stuff[];
+  /** The water, the cleansers, the effort; `coWashed` is filled in. */
+  spec: Omit<WashSpec, 'coWashed'>;
+}
+
+/** One washed thing and what the wash did to it. */
+export interface WashResult {
+  item: Stuff;
+  outcome: WashOutcome;
+}
+
 export interface DiagnoseRequest {
   item: Stuff;
   /** The hand; absent, the person asking. */
@@ -532,6 +549,17 @@ export class CraftingApi {
    */
   public static async diagnose(request: DiagnoseRequest): Promise<DiagnoseOutcome> {
     return logic().diagnose(request);
+  }
+
+  /**
+   * ⭐ Wash several things together in ONE water (cleanliness D10): each is
+   * washed by the spec with the rest as its co-wash — so an unfast dye
+   * bleeds onto the others — and the cleansers are spent once per thing.
+   * Each thing's wash is its own (`Soilable.washSite`); only the batch,
+   * which no one thing owns, is orchestrated here. See {@link CraftingLogic.wash}.
+   */
+  public static wash(request: WashRequest): WashResult[] {
+    return logic().wash(request);
   }
 
   /**

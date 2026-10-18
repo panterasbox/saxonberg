@@ -86,6 +86,8 @@ import type {
   SkippedPart,
   Fault,
   DiagnoseRequest,
+  WashRequest,
+  WashResult,
   DiagnoseOutcome,
   SalvageRequest,
   SalvageOutcome,
@@ -97,6 +99,7 @@ import { MaterialApi } from '../../../api/material';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { CLEAN_TIERS } from '../../../lib/cleanliness/Soilable';
+import { CleanserUse } from '../../../lib/cleanliness/CleanserUse';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
@@ -4623,6 +4626,20 @@ export class CraftingLogic extends ApiLogic {
     discipline?: string,
   ): Promise<Stuff | null> {
     return fulfillingHandImpl(giver, offer, discipline);
+  }
+
+  /** See {@link CraftingApi.wash}. */
+  @CallSecurity(CraftingApiCallers)
+  public wash(request: WashRequest): WashResult[] {
+    const items = request.items.filter((t) => !t.isDestroyed() && MixinApi.isSoilable(t));
+    const spec = { ...request.spec, coWashed: items };
+    const out: WashResult[] = [];
+    for (const item of items) {
+      if (!MixinApi.isSoilable(item)) continue;
+      out.push({ item, outcome: item.washSite(spec, '') });
+    }
+    new CleanserUse(request.spec.cleansers).spend(out.length);
+    return out;
   }
 
   /** See {@link CraftingApi.diagnose}. */

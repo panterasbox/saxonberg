@@ -27,7 +27,7 @@ import type { MqlManyResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
-import { CleanlinessApi } from '../../../../api/cleanliness';
+import { CraftingApi } from '../../../../api/crafting';
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
 import { StuffApi } from "../../../../api/stuff";
@@ -162,8 +162,8 @@ export default class WashController extends ManualBuildController<WashModel> {
       beginSelf: Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
       onComplete: () => {
         // ⭐ One water, several things: the orchestration no one thing
-        // owns (`CleanlinessApi.washTogether`) — each thing's own wash.
-        const results = CleanlinessApi.washTogether({
+        // owns (`CraftingApi.wash`, repair's upkeep twin) — each thing's own wash.
+        const results = CraftingApi.wash({
           items: washable,
           spec: { waterK: water.waterK, hardnessDgh: water.hardnessDgh, cleansers, effort },
         });
