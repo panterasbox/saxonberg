@@ -11,8 +11,8 @@
 > [contract.md](../../subsystems/contract.md),
 > [retail.md](../../subsystems/retail.md),
 > [employment.md](../../subsystems/employment.md)
-> **Left:** the **dealer** — one kind of business, the commodity a row,
-> bid and ask from its own book · **public spending** as the primary
+> **Left:** **dealing** — a BID on any counter's stock line, bid and
+> ask from the business's own book, a `sell` verb · **public spending** as the primary
 > faucet, through escrowed public-works gigs · **imports** — the engine's
 > backstop supply named honestly, a per-commodity per-town ceiling and a
 > possible sink · the **levers** as rows and settings · supply-gig
@@ -114,11 +114,24 @@ posting, so nobody can promise money they do not have.
   effect a standing gig. Hourly wages come later, when a business has
   revenue to cover them.
 
-## ⭐⭐ The dealer — one kind of business, the commodity a row
+## ⭐⭐ Dealing — a bid on a line, not a kind of business
 
-A **dealer** buys and sells one commodity on its own book. The commodity
-is a row; ice, grain, fuel (charcoal, lamp oil), salt, timber, ore, fish,
-hides and wool are the same dealer with a different row.
+⚠ **Corrected 2026-10-18.** The first draft made the dealer a separate
+kind of business. It is not: **a shop that deals is just a shop**. A
+counter already sets policy **per line** (`par`, a `supplier`, `pricing:
+stocking`); a **bid** is one more per-line property. Any counter can deal
+in any of its lines — the general store keeps selling tackle and buys
+firewood outright; the icehouse counter buys and sells ice. A *dealer*
+is only a shop where most lines bid. There is no separate business kind,
+archetype or brain.
+
+What is actually new: the **bid side of the stocking rule** (kernel
+substrate, beside the shelf rule), a **`sell` verb** at a counter whose
+line bids (none exists today; consigning stays as it is), and **imports**
+filling a short bid line when no player sells. Ice, grain, fuel
+(charcoal, lamp oil), salt, timber, ore, fish, hides and wool are the
+same mechanism on different lines. Below, *a dealer* means *a counter
+dealing in a line*.
 
 - **It is not the vendor-trash faucet the doctrine forbids.** That is an
   NPC buying anything, forever, with money from nowhere. A dealer
@@ -128,8 +141,9 @@ hides and wool are the same dealer with a different row.
   which is what makes it a *real* shop: a consignment shop brokers; a
   dealer owns stock and can lose money on it. The economy slate's
   *bounded, not infinite* covers it exactly.
-- **Its book**: cash, capacity, stock on hand, its sales rate, and its
-  own season-by-season history.
+- **Its book**: the **business's own account** (cash), the **line's**
+  capacity, stock on hand, its sales rate, and its own season-by-season
+  history — nothing new to hold.
 - **Its prices come only from its book** — *an offer, never an oracle*
   (credit.md), applied to the bid. The **bid** falls as stock fills,
   cash runs low, or spoilage or melt makes stock riskier; the **ask**
@@ -253,16 +267,15 @@ house's first wage come later, on revenue this creates.
 
 ## Open questions
 
-1. ~~**Where the dealer lives**~~ — **decided 2026-10-18: in
-   `trade-shopkeeping`, no new pack.** Dealing is the same trade —
-   selling over a counter, plus buying for stock. retail.md's
-   kernel/pack line places the halves: **the bid side of the stocking
-   rule is kernel substrate** (`lib/retail/Stock.ts`, never instanced),
-   because the kernel reads it — the price index, the credit ladder, the
-   Gazette's series — and a kernel module may never import a pack; the
-   pack ships the instanceable dealer counter, a `deals` brain beside
-   `stocks` and `consigns`, and a **`dealer` archetype** beside `shop`,
-   so a dealer in a new town is rows only.
+1. ~~**Where the dealer lives**~~ — **decided 2026-10-18: nowhere new.**
+   Dealing is a **bid on a line** of any counter (see *Dealing* above),
+   so it is the shopkeeping trade with one more line property. By
+   retail.md's kernel/pack line, **the bid side of the stocking rule is
+   kernel substrate** (`lib/retail/Stock.ts`, never instanced) because
+   the kernel reads it — the price index, the credit ladder, the
+   Gazette's series — and a kernel module may never import a pack;
+   `trade-shopkeeping` ships the `sell` verb's affordance on its counter
+   twin. No dealer class, archetype or brain.
 2. **The first public budget** — which institution and which commodity
    after ice (lamp oil is half-shipped already).
 3. **Piecework's first venue** — Dave's Bar, paid per drink served?
