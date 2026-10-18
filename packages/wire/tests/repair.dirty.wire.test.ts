@@ -420,9 +420,10 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
   }, 300_000);
 
   it('⭐ off shift there is nobody to do the work (AC 6) — the cobbler\'s, at night', async () => {
-    // ⚠ Not at the Hearthworks: Berta is the house's PROPRIETOR as well as
-    // its rostered smith, and a proprietor covers her own house when no
-    // rostered hand is on — so the smithy never shuts (a finding, recorded).
+    // At the cobbler's: a house whose owner is not on its roster, so the
+    // shut is the roster's alone. (The Hearthworks shuts at night too now —
+    // a proprietor who holds her own seat never covers — but this
+    // checkpoint was written while it did not.)
     await toHour(21);
     const at = await goTo(wearer, COBBLER);
     try {

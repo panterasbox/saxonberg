@@ -106,14 +106,15 @@ describe("the paid mend's hand, through the real roster", () => {
     expect(hand).toBe(smith);
   });
 
-  it("⚠ at night the PROPRIETOR covers her own house — the smithy whose smith is its owner never shuts", async () => {
-    // Shipped cover (agent coordination): a proprietor steps in when no
-    // rostered hand is on, and her own slot does not count as rostered.
-    // Recorded by the repair drive as a finding, not changed here.
+  it("⭐ at night the smithy SHUTS — a proprietor who holds her own seat is the roster's, never a cover", async () => {
+    // The rule storage-and-ice reached independently (its ice-company
+    // keeper is also its proprietor), adopted by the owner over repair's
+    // narrower one: a rostered proprietor works her shift and goes home.
+    // Before it, the smithy whose smith is its owner never shut.
     await world(true);
     atHour(23);
     await EmploymentApi.ensureOperatorAt(ROOM);
-    expect(await CraftingApi.fulfillingHand(customer as never, tariff as never)).toBe(smith);
+    expect(await CraftingApi.fulfillingHand(customer as never, tariff as never)).toBeNull();
   });
 
   it("off shift, with no proprietor to cover, there is nobody", async () => {

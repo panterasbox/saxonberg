@@ -2392,11 +2392,14 @@ off-shift check, drive 6 the notice). Eight runs.
 4. **The cobbler had no leather a sole could be cut from** — the shop
    gained `leather-offcuts` (trade-tanning, `Scrap`).
 5. **A quote said each price twice** (`8d0d88070`).
-6. **Recorded, not changed:** a proprietor covers her own house whenever
-   no rostered hand is on, so the Hearthworks smithy never shuts —
-   drive 6's off-shift check moved to the cobbler's, whose proprietor is
-   nobody's hand. Whether a house should be able to close on its
-   proprietor is the employment slate's question.
+6. **Recorded — then CHANGED in review (owner, 2026-10-17):** a
+   proprietor covered her own house whenever no rostered hand was on, so
+   the Hearthworks smithy never shut. Storage-and-ice had reached a
+   broader fix for the same defect (a proprietor who holds a seat on her
+   own roster never covers); the owner took it, verbatim, in place of
+   repair's `ownSlotOn` — so the two branches agree word for word when
+   they meet. The off-shift checkpoint had already moved to the
+   cobbler's, whose proprietor is nobody's hand, and stays there.
 7. ⭐ **Recorded, not changed — retail's: a good consigned at the general
    store does not come back after a restart.** Run 10 restarted
    gracefully (SIGTERM; *shutdown captured 54 persistable hosts*), the

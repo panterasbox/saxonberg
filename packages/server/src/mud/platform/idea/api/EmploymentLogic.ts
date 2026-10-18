@@ -1068,6 +1068,13 @@ async function reconcileCover(
   if (!proprietorKey) return;
   const proprietor = StuffApi.findByTemplatePath(proprietorKey);
   if (!proprietor || !MixinApi.isEmployed(proprietor)) return;
+  // ⭐ A proprietor who holds a seat on this house's OWN roster is the
+  // roster's: their employment is a shift, not a cover, and standing a
+  // "cover" down deletes the house's employment outright (`endCover`). The
+  // storage-and-ice drive found it — the ice company's keeper is also its
+  // proprietor, and every pass that found the house hand on shift erased
+  // her, so nobody was ever keeping the book.
+  if (business.getRoster().getAssignments().some((a) => a.assignee === proprietorKey)) return;
 
   let rosteredOnShift = false;
   for (const assignment of business.getRoster().getAssignments()) {
@@ -1083,26 +1090,9 @@ async function reconcileCover(
     }
   }
 
-  // ⚠⚠ A proprietor may ALSO hold a rostered slot here (the Hearthworks'
-  // smith owns the smithy). Inside her own window her on-shift record IS
-  // her shift, and a cover record is the same shape — so "on shift" is not
-  // "covering". Read as a cover, the pass ended it whenever anybody else
-  // was on (`endCover` drops the house's record), and the smith stood at
-  // her own forge with no employment at all (the repair drive, 2026-10-17).
-  const date = DefaultCalendar.singleton().decompose(Quantity.of(nowRaw, 's'));
-  const ownSlotOn = business
-    .getRoster()
-    .getAssignments()
-    .some(
-      (a) =>
-        a.assignee === proprietorKey &&
-        business.getRoster().evaluate(a, date) === 'on-shift',
-    );
   const covering =
-    !ownSlotOn && proprietor.getEmployment(businessPath)?.status === 'on-shift';
-  const onOwnShift =
-    ownSlotOn && proprietor.getEmployment(businessPath)?.status === 'on-shift';
-  if (!rosteredOnShift && !covering && !onOwnShift) {
+    proprietor.getEmployment(businessPath)?.status === 'on-shift';
+  if (!rosteredOnShift && !covering) {
     business.beginCover(proprietor as EmployedActor, nowRaw);
     // A cover is a shift: stand where the work is.
     await moveForShift(

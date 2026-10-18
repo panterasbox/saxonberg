@@ -721,19 +721,18 @@ retired.
   governs the proprietor). `endCover` drops it when a rostered bartender is
   back on. A house with **no** fulfilling seat is never covered — there is
   nothing to cover.
-  ⚠⚠ **A proprietor may ALSO hold a rostered slot** (the Hearthworks: Berta
-  owns the smithy and is its smith). A cover record and a rostered one are
-  the same shape, so "the proprietor is on shift" is NOT "the proprietor is
-  covering": inside her own rostered window her record is her shift, and
-  only outside it is it a cover. Until the repair build's drive
-  (2026-10-17) the reconcile read her own shift as a cover and, whenever
-  the cook was on, ended it — and `endCover` drops the house's whole
-  record, so she stood at her own forge employed by nobody and every
-  `order` for smithing found no hand. ⚠ The other half stands, as shipped:
-  outside her hours, with nobody rostered on, she COVERS — a house whose
-  owner is its only smith never shuts. That is cover's design, not a
-  defect; a venue that must close at night is one whose appointing
-  authority is not a person standing in it.
+  ⚠⚠ **A proprietor who holds a seat on her OWN roster never covers**
+  (owner's ruling, 2026-10-17). Two builds found the same defect the
+  same week — the Hearthworks (Berta owns the smithy and is its smith)
+  and storage-and-ice's ice company (its keeper is its proprietor): a
+  cover record and a rostered one are the same shape, so the reconcile
+  read her own shift as a cover and, whenever another hand was on, ended
+  it — and `endCover` drops the house's whole record, so she stood at
+  her own forge employed by nobody. `reconcileCover` now returns early
+  when the proprietor is an assignee on the house's roster: she is the
+  roster's, works her shift and goes home, and a house whose owner is its
+  only smith SHUTS outside her hours. Cover is for the proprietor who is
+  not on the roster (the bar's owner stepping behind an empty bar).
   Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
   (the move, the station, the missing `offstage`, cover both ways), plus
   one content test per venue beside its rows
