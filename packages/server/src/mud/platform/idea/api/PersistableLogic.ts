@@ -1228,7 +1228,12 @@ function reoccupyRestingHost(host: Stuff): void {
 async function captureHostOfImpl(stuff: Stuff): Promise<void> {
   const host = nearestPersistableHost(stuff);
   if (!host) return;
-  await captureImpl(host, stashedKey(host) ?? undefined);
+  // ⚠ Keyless: `captureImpl` reuses the stashed key itself. Passing it in
+  // as `key` told the stash it was EXPLICIT, so the first soiled floor
+  // turned a singleton kept place into a keyed holding — and an avatar
+  // captured inside it recorded a `#key` placement only a warren can
+  // resolve (the cleanliness drive's restart: the cook woke in the lounge).
+  await captureImpl(host);
 }
 
 /**

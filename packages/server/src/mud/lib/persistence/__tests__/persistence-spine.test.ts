@@ -636,6 +636,22 @@ describe("security (AC #8)", () => {
   });
 });
 
+describe("captureHostOf keeps a singleton singleton", () => {
+  it("⭐ re-capturing through a contained thing never marks the host's derived key explicit", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new ContentChest(), "/world/chest");
+    ContainmentApi.move(chest, room);
+    await PersistableApi.capture(room);
+    expect(room.isPersistenceKeyExplicit()).toBe(false);
+    // The cleanliness drive's restart: a soiled floor re-captured its room
+    // through this path, the room went "keyed", and a player captured in
+    // it woke in the lounge.
+    await PersistableApi.captureHostOf(chest);
+    expect(room.isPersistenceKeyExplicit()).toBe(false);
+  });
+});
+
 describe("eviction seam (AC #9)", () => {
   it("a persistable host with contents does NOT veto; a non-persistable one does", () => {
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");

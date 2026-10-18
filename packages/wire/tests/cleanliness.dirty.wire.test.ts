@@ -715,7 +715,18 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     const s = await Session.open(cookHandle, { startLocation: COOKHOUSE, wizard: true });
     try {
-      const shirt = await mine(s, 'shirt');
+      // ⚠ The body's inventory materializes behind the login: a query sent
+      // the instant the session opens can find nothing (run 19 — the saved
+      // snapshot held the stained shirt, the query saw no rows). Wait for
+      // it, and say how long it took.
+      const t0 = Date.now();
+      let shirt = await mine(s, 'shirt');
+      while (!shirt && Date.now() - t0 < 30_000) {
+        await new Promise((r) => setTimeout(r, 1_000));
+        shirt = await mine(s, 'shirt');
+      }
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] the shirt answered ${Date.now() - t0} ms after login: ${shirt.slice(0, 200)}`);
       expect(shirt, `the shirt, after a restart: ${shirt}`).toMatch(/blood|stain/i);
       const apron = await mine(s, 'apron');
       expect(apron, `the apron, after a restart: ${apron}`).toMatch(/apron/i);
