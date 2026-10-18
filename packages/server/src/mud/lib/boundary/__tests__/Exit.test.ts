@@ -136,6 +136,18 @@ describe('Exit', () => {
       expect(peerBTexts[0]).toContain('south');
     });
 
+    it('⭐ a ladder reads "leaves down" and "arrives from above", never "to the down"', async () => {
+      // Found driving the rubber build's flooded substation in a browser:
+      // "You leave to the down. You arrive from the up."
+      const exit = makeStuff(() => new Exit({ direction: 'down', source: locA, destination: locB }));
+      await mover.traverse(exit, 'walk');
+      const left = bodiesOf(peerInA.received)[0]!;
+      expect(left).toMatch(/leaves (<direction>)?down/);
+      expect(left).not.toContain('to the');
+      const came = bodiesOf(peerInB.received)[0]!;
+      expect(came).toContain('arrives from above');
+    });
+
     it('uses custom messageIn/messageOut when provided', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'north',

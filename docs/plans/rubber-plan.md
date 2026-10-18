@@ -2265,3 +2265,24 @@ runs found, in the order they found it (✔ = fixed and committed):
 | `taps` — 2–6 and 15–22 (the stand, the stems, the affordances) | ✅ 8/8 | ✅ 8/8 | identical |
 | `taps` — 1 (the kit) | ✗ the server DIES | (W3 note; testing.md) | pre-existing — the drive's `eval --parcel` mints the kit inside the sandbox and discards the promise; the hydration's `setCapabilities` is denied at the sandbox boundary and the UNHANDLED rejection kills the world. ⚠ A server-robustness finding: any eval whose discarded promise rejects takes the realm down |
 
+
+### The browser drive (review, 2026-10-18)
+
+One character walked in Chrome against a fresh world (`tess`, wizard for `goto`), with a founder session for money and a second character to load the substation. Steps 22, 23 (a human: the elastic pair is not tight), 7–11 (the stove house: the sun, the cold refusal, the stove, the tap into a cup, the pan, a sheet of raw rubber) and 18 (the shock's narration) driven live. Two **restarts** on the same DB, which the wire tier never does. Every fix below has a test that fails on the old code.
+
+| found | fixed |
+|---|---|
+| ⭐⭐ the store's slate prints `rubber-boots (11)`; `buy rubber-boots` said *"The shelf is bare … none of it today"* with a pair on the counter (`carriesLine` matched the leaf, `resolveBuy` only the keywords) | `Stock.resolveBuy` falls back to the leaf the slate prints |
+| ⭐⭐⭐ **a restart took off every owned garment and doubled the implant** (pre-existing on master since custody was derived in move): an owned good rides the estate, not the contents order, so the Slotted slice (worn items by content INDEX) dropped them; the implant lost its cranial slot and the loadout cloned a second | `SlottedSlice.wornOwned` names worn owned goods by chattel id, re-worn after the estate restores (restore pass 5); the loadout re-occupies a carried implant. ✅ verified live across a restart |
+| ⭐⭐ every exit DOOR read *"something"*: *"You open something."*; `look door` in the stove house offered *"something (1)" / "something (2)"* (a door is in no contents) | `VisionModality.canSee`: a door is seen in the light of the room whose exits carry it (one-way doors too). ✅ live: *"You open the vent door."* |
+| ⭐ `buy "rubber boots"` worked and the next `get "latex cup"` / `look "rubber boots"` died in the MQL parser on the quote mark | a trailing greedy `object`/`objects` field unquotes a lone quoted token (`say "…"` keeps its quotes). ✅ live |
+| ⭐ `get "latex cup"` took the three cups AND the coagulating pan ("latex pan") — scores ordered, never cut | `scoreCandidates`: a match naming every query word cuts the partials |
+| ⭐ a stove lit in a cold room was credited for every unread hour before it was lit (the envelope integrates lazily with the heaters as they are at the read) | `Burner.settleRoomAir`: a space heater reconciles its room before its lit state or draught changes |
+| the tap said *"It has gone too warm. The run is finished."* to a Hevea — but cooling the house reopens it (step 10's whole lesson); and *"You unhook the pail"* into a latex cup | *"…nothing will run until it cools."*; *"You hold it under the cut and let it run."* |
+| *"You leave to the down. You arrive from the up."* (the substation ladder) | the mover hands templates `toward` / `from` phrases: *leaves down*, *arrives from above* |
+| `go east` off the works floor (toward "a glass door at the side") went to the yard | the works floor and the stove house name their ways out |
+| sixteen `greets` lines were narration rendered inside `says to you, "…"` (`""Welcome in!" Pemby calls…""`) | the lines are speech |
+
+**Seen and left (pre-existing, not this build's):** `goto` cannot reach a room nobody has loaded (its target is an MQL read of live instances) and refuses the substation on title; the clone gate reads the first live instance's zone, so the founder could not clone raw rubber; a pending disambiguation prompt silently holds every typed command until cancelled; a bare `get cup` takes every cup (the `objects` binding); disambiguation choices `(1)`/`(2)` do not say where each is (worn, carried, on the counter); `feel` with a focused object reprints its description; the price slate lists ambiguous leaves (`small`, `large`, two `orange`); `inventory here` lists yourself as *"a human"*; *"You're shivering"* on entering a room `feel` calls comfortable.
+
+**Not driven live** (the wire record stands for them): 1–6, 13 (the quarry's sulfur), 14–17 (the cure — no sulfur to hand), 19–21. The machine swaps with three sibling worlds, about 20 s a command.
