@@ -2745,6 +2745,14 @@ Read first, in this order.
   `lint:light-sources` accepts a Window prop whose keywords carry the
   opening's word as the thing you can look at.
 
+- **B35 — A strew's capture rides behind the reply.** `strew` kept the
+  floor by awaiting `captureHostOf`; behind a busy world that wait was the
+  whole command. The capture is fire-and-forget.
+- **B36 — The mill house is 4 m a side** (`extent: 4`, the creamery
+  floor's precedent). A room takes its zone's cell unless it says
+  otherwise, and a stones' house is not a 20 m cell — lens 1: the flash
+  must be derivable from the room you stand in.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -2803,3 +2811,26 @@ WIRE_PORT=2013`. Runs, and what each found:
   — refused in words now. Plain cold water takes half the blood off the
   hands and a cold soap wash leaves grease marked: real chemistry, so the
   drive washes with soap and scrubs.
+- **Runs 11–17** — found, and fixed:
+  - ⚠ **a swept heap was a stack** ("24 heap of sweepingss", a tenth-kilo
+    each) — the sweepings and muck rows are `Good`s now, one heap;
+  - ⚠ **a paid bath had no hand in the room** — the bathhouse slate and
+    Nell stood in the vestibule while the tubs were in the baths; both
+    moved to the baths;
+  - ⚠ **a wash could hang the session** — its settle and warm wait on a
+    world draining a clock jump; both are bounded now and the slow one is
+    named in the log;
+  - the dead-proxy class got its ratchet (`lint:completion-this`,
+    census 8) rather than a ninth hand fix;
+  - the drive's own: an hour in the shut cellar's fumes killed the cook
+    (drive 11 has its own player); a bare keyword query reads the ROOM
+    first, so held things are queried `me:i:[keyword.X]`.
+- **Run 18** — smoke, drives 1–5, 7, 11, 12 (both halves), the muck, the
+  boil and the heated kit PASS; drive 5's `analyze blood shirt` reads the
+  bleeder's type. Found:
+  - `strew` and `order wash` waited on a world still draining the last
+    clock jump — the drive now settles after every jump, and a strew's
+    host capture is fire-and-forget (B35);
+  - ⚠ **the mill house never read flour** — it took the zone's 20 m cell,
+    8,000 m³; three grinds' ~800 L of dust is a hundredth of a percent in
+    that. It authors `extent: 4` (64 m³) now (B36).

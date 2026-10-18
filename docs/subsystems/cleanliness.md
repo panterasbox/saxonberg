@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B33). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B36). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -154,7 +154,9 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   rests worse, never to nothing (the archetype still calls it a bedroom).
 - **Dust** — the mill and the scutch put flour/flax dust in the room's
   air; a material's `flammableLimit` flashes on a flame; damped and swept
-  it does not. The Hearts' Delight stones moved indoors to the mill house.
+  it does not. The Hearts' Delight stones moved indoors to the mill house,
+  a 4 m room (`extent: 4`) — a dust share is per volume, so the room's
+  size is the dial (B36).
 
 ## People — somebody is paid for it
 
