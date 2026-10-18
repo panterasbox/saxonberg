@@ -21,7 +21,7 @@ fixture of the world, not a film set.
   south→north spine gate-to-gate, Silver Street east toward the
   Mere, Limbo Lane west to the Residential Quarter — wiring the
   already-built Duncan Hall onto its own campus. Road prose is
-  pulled from the EC source (`docs/eternal/`) per the map's
+  pulled from the EC source (`~/play/eotl/mudlib/zone/null/eternal/`) per the map's
   pull→polish→adapt method; road materials are real floors
   (adornments), so Silver rings and Limbo springs.
 - **The registrar's hall functions, not just ceremonies.**
@@ -1169,7 +1169,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
   [slates/builds/eternal-university-slate.md](../slates/builds/eternal-university-slate.md)
   (v1 roster, un-genred doctrine, services pattern),
   [staging/terminus-city.md](../staging/terminus-city.md) (the
-  city plan: campus at the north head, the rivers), `docs/eternal/`
+  city plan: campus at the north head, the rivers), `~/play/eotl/mudlib/zone/null/eternal/`
   (the EC source — road prose origins, the Heart)
 - Video briefs: [education-videos.md](../education-videos.md);
   wishbook loops: [staging/wishbook.md](../staging/wishbook.md)
