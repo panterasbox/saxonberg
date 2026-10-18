@@ -437,10 +437,13 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     // ⭐ The house BUYS a cutter's block (the review): back out for a
     // second block, and sell it — the bid paid into the account, the block
     // onto the stack on the house's claim.
+    // ⚠ No second `mark`: a grid survives a cut (the cut takes one block's
+    // area), and a `mark` here would grid the patch step 8 scraped for the
+    // day-11 reading.
     await goto(SHORE);
     expectOk(await k.cmd('north'));
-    await say('mark');
-    await say('cut marked');
+    const again = await say('cut marked');
+    console.info(`  cut marked (second block): ${again.slice(0, 200)}`);
     await new Promise((r) => setTimeout(r, 15_000));
     await k.drainProse();
     await say('get block');
