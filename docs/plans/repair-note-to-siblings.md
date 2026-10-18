@@ -143,3 +143,71 @@ we author nothing on it. Asks back:
 - Ice declares `SEASONS` in `CLOSED_BY_DESIGN` (`CLOSED_VOCABULARY_CEILING`
   is 5). Ice's two boot entries need the owner's sign-off to raise
   `BOOT_ENTRY_CEILING` (83).
+
+## ⭐ At merge — what repair's MR (!375) does to each of you (2026-10-18)
+
+Repair W0–W6 is finalized and merges first (the owner's order: ice and
+repair either way, then rubber, then cleanliness). Each of your branch
+tips was merged into repair in a throwaway worktree and the lint family
+run on the result. Per sibling: the textual conflicts and their
+resolution, then what repair changed under you that no conflict shows.
+
+### storage-and-ice — 3 conflicts, all mechanical
+
+- `EmploymentLogic.tickBusiness` — keep BOTH: your `const clock = { ...date,
+  season: this.seasonOf(business, nowRaw) }` above repair's `rounds` map,
+  and repair's per-slot on-test reads it:
+  `slots.find((a) => roster.evaluate(a, clock) === 'on-shift')`. Resolved
+  this way in the probe, the roster and employment tests pass (31/31) —
+  repair's rounds on your season clock. (`reconcileCover`'s early return
+  is already word-for-word YOURS on repair — the owner took your rule.)
+- `delight-road/crossroads.yaml` — keep both: your `east` exit inside
+  `exits:`, then repair's `props:` (the tinker's slate and notice).
+- `wiki-spoiler-fields.snapshot.test.ts` — the review log: keep both
+  builds' entries in landing order; regenerate the snapshot (`-u`).
+- ⚠ Not repair's, seen in the probe: `lint:instrument-args` fails on your
+  own tip (`StoreController.ts:56`, and `AssayController.ts:274`, ceiling 1).
+
+### rubber — 1 conflict, and one gate of yours repair's content trips
+
+- `wiki-spoiler-fields.snapshot.test.ts` — the review log, as above.
+- ⭐ **`lint:biome-sky` fails on the merge**: repair added an interior you
+  never saw — `/world/terminus/mayfield-row/cobbler/location/shop` (the
+  cobbler's). It needs `enclosure:` and `roof:` when you merge (a town
+  shop on Mayfield Row: brick or timber walls, a slate or tile roof —
+  your call, it is your vocabulary). Nothing else of repair's is an
+  interior: the tinker's yard is open air and the offstage rooms are
+  excluded.
+- Repair made every `Garment`, `Tool`, `Vat`, `Lamp`, `Chair` and
+  `Receptacle` Assembled (a billless one is ONE PIECE), so your new
+  rubber goods are Assembled with no change; `lint:bills` arm 7b will ask
+  for a bill only on a row a `tangible` recipe makes from two or more
+  distinct item slots — the probe found none of yours.
+
+### cleanliness — 9 files; the paid-service pieces, as the contract said
+
+- `Chair.ts`, `Lamp.ts`, `equipment/Garment.ts` — wrap repair's new
+  composition with your `SoilableMixin` OUTERMOST and keep both sides'
+  imports: `SoilableMixin(AssembledMixin(CraftedMixin(DurableMixin(...))))`.
+- ⭐ `Lantern.ts` — **deleted by repair** (the twin folded into `Lamp`).
+  Move your `glazedShare()` override into `Lamp` itself:
+  `return this.getParts().some((l) => l.role === 'facing') ? 1 : 0;` —
+  a lantern's panes are its `facing` line; a lamp of one piece has no
+  parts and reads 0, which is your base default.
+- ⭐ `OrderController.ts` (10 hunks) — take repair's `case 'repair': return
+  this.repairService(...)` and its whole `repairService` (your branch
+  still carries the OLD inline `CraftingApi.repair` arm — repair owns
+  that arm, P1); keep your `wash` arm and `washService`, your `key`
+  parameter on `performService`, and your static
+  `OrderController.payPiecework` / `serviceFail` (the dead-proxy fix
+  wins over repair's instance calls). Union the imports (repair needs
+  `type Fault` and `GrammarApi`).
+- `api/crafting.ts`, `CraftingLogic.ts` — keep repair's `diagnose`
+  (it sits beside where you edited).
+- `room-archetypes.test.ts` — take repair's side: `AssembledChair` no
+  longer exists; one `/platform/thing/Chair` class either way.
+- What changed under you: `Receptacle` is Assembled and Durable but
+  **NOT Crafted** (repair's suite found that a crafted bulk holder is a
+  "product" that `wash`/`rinse`/`cool` skip — so your tubs of wash water
+  are water, which is what you want). Your `KitchenTool`/`SurgicalKit`
+  over `Tool` inherit Assembled and `Named` — no change needed.
