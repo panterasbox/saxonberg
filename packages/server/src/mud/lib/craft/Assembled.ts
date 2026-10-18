@@ -1012,6 +1012,16 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const own = (Base.prototype as unknown as { setName?: (v: string) => void })
         .setName;
       if (!own) return;
+      // ⚠⚠ An EMPTY name only ever clears the host's own field. A part's
+      // name is taken by a reforge (`mendLine`, Narsil's rule) and by
+      // nothing else — because the Hydrator restores `Named.name` THROUGH
+      // this setter, and a sword whose name lives in its blade saved its
+      // own field as `''`: every restart wiped the blade's name (the
+      // finalize drive's restart check; the record still held it).
+      if (!value) {
+        own.call(this, value);
+        return;
+      }
       this.ensureParts();
       const seat = this.parts.find((l) => l.name) ?? this.seatThatLostItsName();
       if (!seat) {
@@ -1019,8 +1029,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       const before = seat.name ?? '';
-      if (value) seat.name = value;
-      else delete seat.name;
+      seat.name = value;
       // The live read (`Named.subscribableFields`) hears it as `name`.
       MqlSubscriptionApi.fireFieldChange(this, 'name', before, value);
     }

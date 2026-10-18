@@ -307,6 +307,23 @@ describe('repair W0 — a part carries its own state in and out of a whole', () 
     expect(MixinApi.isAssembled(knife)).toBe(true);
   });
 
+  it('⚠⚠ restoring the host\'s own empty name never wipes the PART\'s — the restart that lost Brightwater', () => {
+    // The Hydrator restores `Named.name` through `setName`. A sword whose
+    // name lives in its blade saves its own field as '' — and restoring
+    // that '' used to clear the blade's name on every restart.
+    const found = makeStuff(() => new TestPart());
+    found.setBill({
+      parts: [
+        { part: 'blade', template: HEAD, count: 1, role: 'structural', material: IRON, form: 'bladed', name: 'Brightwater' },
+        { part: 'grip', template: HAFT, count: 1, role: 'structural', material: ASH },
+      ],
+    });
+    found.ensureParts();
+    found.setName(''); // as the restore applies the saved own field
+    expect(found.getName()).toBe('Brightwater');
+    expect(found.getLine('blade')!.name).toBe('Brightwater');
+  });
+
   it('⚠ a host that does not compose Named bears no name, and naming it is a no-op', () => {
     const pail = makeStuff(() => new TestPail());
     pail.setName('Bucket Bess');
