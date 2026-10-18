@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B36). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B38). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -80,7 +80,7 @@ is the vessel service wash). A `WashSpec` is the water's heat and
 hardness, zero or more cleansers, and the effort (a scrub is 3). Per kind:
 what a cleanser's action answers to comes off, scaled by heat, effort and
 hardness (soap scums in hard water; soda softens it); blood washed hot
-SETS. A host adds what washing does to IT by override — a `Garment`
+SETS — in a thing that `holdsSetStains()`; skin does not (B37). A host adds what washing does to IT by override — a `Garment`
 felts (protein fibre at a boil), shrinks (≥ 333 K), rots or burns
 (`corrosiveTo`), fades and bleeds an unfast dye onto everything in the
 same water, comes out wet. Cleansers are spent by use (B12).
@@ -191,7 +191,8 @@ of the market square, the Goodkin parlor arch. A second of any is rows.
 
 `PersistentCartesianLocation` keeps a place's floor, fire and fixtures
 across a restart through Adornable's fixture slice (`captureHostOf` walks
-fixture → host). Kept places: the cookhouse, the chandlery, the glazier's
+fixture → host; ⚠ keyless, so a kept singleton never becomes a keyed holding —
+B38). Kept places: the cookhouse, the chandlery, the glazier's
 hut, the shop floor, the lavoir, the bathhouse rooms.
 
 ## Fidelity limits, stated

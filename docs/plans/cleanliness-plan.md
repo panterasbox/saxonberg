@@ -2753,6 +2753,14 @@ Read first, in this order.
   otherwise, and a stones' house is not a 20 m cell — lens 1: the flash
   must be derivable from the room you stand in.
 
+- **B37 — Skin holds no set stain** (`Soilable.holdsSetStains()`, default
+  true; `Creature` false). Setting is the fibre's — protein bound into a
+  weave — and a hot bath washes bloodied hands. One override today; the
+  hook is where a glazed board or a waxed apron would say the same.
+- **B38 — `captureHostOf` captures keyless** (kernel fix, regression
+  test): a re-capture reuses the stash inside `capture`, so a derived key
+  never becomes explicit.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -2834,3 +2842,23 @@ WIRE_PORT=2013`. Runs, and what each found:
   - ⚠ **the mill house never read flour** — it took the zone's 20 m cell,
     8,000 m³; three grinds' ~800 L of dust is a hundredth of a percent in
     that. It authors `extent: 4` (64 m³) now (B36).
+- **Run 19** (fresh DB) — 18/22: smoke, drives 1–5, 7, 9, 11, 12, 14 (the
+  mill house's flour now reads), 15, 16, 22 (the clean contract posted,
+  done and paid) PASS. Found:
+  - ⚠ **the drive had answered no prompt in nineteen runs.** Its answerer
+    read `promptId` under `payload`; a `PromptEnvelope` carries it at the
+    top level. Every earlier pass had dodged a question; `order wash`'s
+    confirm waited out the timeout. The answerer reads either shape and
+    logs before it gives up;
+  - ⚠ **a hot bath SET the blood on the bather's hands** — the copper is
+    ~330 K, over blood's 318 K set point, and only a bleach lifts a set
+    stain. Skin holds no set stain now (B37);
+  - ⚠⚠ **a player who logged out in the cookhouse woke in the lounge.**
+    `captureHostOf` passed the stashed key to `capture` as an explicit
+    one, so the first soiled floor made the singleton cookhouse a keyed
+    holding, and the avatar's placement recorded a `#key` only a warren
+    resolves. A kernel defect from the persistence Wave 2, first reached
+    by this build's kept places (B38);
+  - the record held the set-stain shirt, and the first query after the
+    restart came back empty — the drive waits for the inventory now and
+    logs how long it took.
