@@ -56,7 +56,9 @@
 
 # Repair — assemblies, part two — implementation plan
 
-Executes [repair-requirements](../requirements/repair-requirements.md)
+Executes `repair-requirements` (retired at the W0–W6 sweep, 2026-10-18 —
+W7's drive step and acceptance criteria are carried into § W7; the rest
+is in git history at `970c9cce2`)
 (kind: **feature**, leads from **kernel**; first consumers the pick, the
 axe and the sword; the Hearthworks smith; a tinker and a cobbler; one
 heirloom). Seeded by [repair-slate](../slates/builds/repair-slate.md).
