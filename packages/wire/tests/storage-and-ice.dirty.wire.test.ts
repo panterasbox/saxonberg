@@ -430,13 +430,16 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(await here()).toMatch(/platform/i);
     harvestPrice = await counterPrice();
     console.info(`  counter price after the harvest: ${harvestPrice}`);
-    const dep = await k.cmd('deposit block');
+    const dep = await k.cmd('store deposit block');
     const said = await dep.said();
     console.info(`  deposit block: ${refusal(dep)} — ${said.trim().slice(0, 300)}`);
     expect(refusal(dep), JSON.stringify(dep.notes)).toBeNull();
     // ⭐ The receipt is the BOOK's record, filed in your name with its terms.
     expect(said, said).toMatch(/book records .* to your name/i);
     expect(said, said).toMatch(/allowance of \d+%/i);
+    // Bare `store` reads the book: what it holds in your name.
+    const held = await k.prose('store');
+    expect(held, held).toMatch(/The book holds in your name: .*kg/i);
     // ⭐ The house BUYS a cutter's block (the review): back out for a
     // second block, and sell it — the bid paid into the account, the block
     // onto the stack on the house's claim.
@@ -621,7 +624,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
 
   it('⭐ 17. withdraw against the receipt: the block comes out near 0 °C, the fee is paid', async () => {
     await goto(PLATFORM);
-    const r = await k.cmd('withdraw ice');
+    const r = await k.cmd('store withdraw ice');
     const said = await r.said();
     console.info(`  withdraw ice: ${refusal(r)} — ${said.slice(0, 300)}`);
     expect(refusal(r), JSON.stringify(r.notes)).toBeNull();
@@ -634,7 +637,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     const toNight = sec <= 23 * 3600 ? 23 * 3600 - sec : DAY + 23 * 3600 - sec;
     await advanceWorldClock(`${Math.round(toNight / 60)} minutes`);
     await goto(PLATFORM);
-    const r = await k.cmd('withdraw ice');
+    const r = await k.cmd('store withdraw ice');
     const said = await r.said();
     console.info(`  withdraw at night: ${refusal(r)} — ${said.slice(0, 200)}`);
     expect(refusal(r)).toBe('no-keeper');

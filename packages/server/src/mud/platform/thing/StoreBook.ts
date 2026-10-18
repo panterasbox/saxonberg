@@ -3,7 +3,7 @@
  * counter: the instrument `deposit` and `withdraw` are done with
  * (storage-and-ice D6). See {@link StoreBookMixin}.
  *
- * Affords both custody views to whoever shares its room (`peers`) and to
+ * Affords the `store` verb to whoever shares its room (`peers`) and to
  * whoever holds it (`environment`).
  */
 
@@ -13,7 +13,7 @@ import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { StoreReceipt } from '../../lib/storage/Receipt';
 
-const CUSTODY_VIEWS = ['platform/cmd/custody/deposit.yaml', 'platform/cmd/custody/withdraw.yaml'];
+const CUSTODY_VIEWS = ['platform/cmd/custody/store.yaml'];
 
 export default class StoreBook extends StoreBookMixin(Thing) {
   static fieldMeta: FieldMeta = {};

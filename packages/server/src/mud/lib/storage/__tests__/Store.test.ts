@@ -445,7 +445,7 @@ describe('⭐ what a building is for, and what its house can sell (the storage-a
     expect(store.canAddContainable(block(4, BLOCK, 'cloudy')).ok).toBe(true);
     const refused = store.canAddContainable(dust(5));
     expect(refused.ok).toBe(false);
-    expect(refused.reason).toMatch(/does not take/);
+    expect(refused.ok ? '' : refused.reason).toMatch(/does not take/);
   });
 
   it('⭐ the house\'s days of supply: its claim, its share of the melt, its OWN draws', async () => {

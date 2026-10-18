@@ -2495,6 +2495,15 @@ clean was the line, and the economics had three strains. All in scope:
   block lands — `hew`'s rule: a hand on shift for the house that works the
   water cuts for the house; anyone else cuts their own. A failed stamp never
   loses the block.
+- **R8 — custody is one noun, `store`** (the reviewer: `bank withdraw` is a
+  subcommand, store withdrawal was a bare verb). The rule adopted: an act
+  on the world is a bare verb; a transaction with an institution's book is
+  a subcommand of the institution's noun. `store deposit <thing>`,
+  `store withdraw [<n>] <good>`, and bare `store` / `store receipts` (what
+  the book holds in your name — new). One view, one `StoreController`
+  (the `BankController` shape); the `deposit` / `withdraw` views and
+  controllers are gone. The verb-space refactor this implies is the
+  reviewer's follow-up MR: `docs/slates/builds/command-taxonomy-slate.md`.
 - Re-driving also found two drives broken before this review: **fishing**'s
   setup called `reserve issue` (gone since the economic bootstrap; it now
   funds by `reserve override`, as drilling does), and
