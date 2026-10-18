@@ -20,11 +20,14 @@ data:
     - { disposition: diligence, valence: 50 }
   # ⭐ Born holding his kit (repair D14) — the props a Tinker composes
   # `StagedMixin` for. A hook for wood, a stone for edges, a kit for
-  # leather: what he mends with on the road, where there is no forge.
+  # leather: what he mends with on the road, where there is no forge —
+  # and the iron he mends WITH where there is one (a mend draws on the
+  # hand's own pockets; the smelter's pigs are too much metal for a head).
   props:
     - /trade/forestry/thing/billhook
     - /world/terminus/general-store/thing/whetstone
     - /world/terminus/general-store/thing/sewing-kit
+    - /trade/smithing/thing/iron-offcuts
   # ── the dossier (`lint:dossiers`) ───────────────────────────────
   # ⭐ A competent smith and a learner at everything else: at a stop with
   # a fire he mends iron well; anywhere he mends wood and leather only to

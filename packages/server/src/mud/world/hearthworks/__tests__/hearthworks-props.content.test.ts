@@ -74,7 +74,7 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
     expect(missing).toEqual([]);
     // The re-cut, by path: the smithing trade's own rows, the commons, the venue's own.
     expect([...seen].filter((p) => p.startsWith('/trade/smithing/thing/')).sort()).toEqual([
-      '/trade/smithing/thing/anvil', '/trade/smithing/thing/iron-ingot', '/trade/smithing/thing/spare-ingot',
+      '/trade/smithing/thing/anvil', '/trade/smithing/thing/iron-ingot', '/trade/smithing/thing/iron-offcuts', '/trade/smithing/thing/spare-ingot',
       '/trade/smithing/thing/whetstone', '/trade/smithing/thing/workbench',
     ]);
     expect([...seen].filter((p) => p.startsWith('/stuff/thing/items/')).sort()).toEqual([

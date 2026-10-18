@@ -641,7 +641,7 @@ function cureFor(f: Fault): string {
     case 'missing-tool':
       return f.detail === 'cutting' ? 'an edge to work it' : f.detail === 'mending' ? 'a mending kit' : `a ${f.detail ?? 'tool'}`;
     case 'insufficient-input':
-      return `${f.detail === 'metal' ? 'iron' : (f.detail ?? 'stock')} to mend it with`;
+      return `${f.detail ?? 'stock'} to mend it with`;
     case 'not-skilled':
       return 'a surer hand';
     default:

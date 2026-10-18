@@ -307,9 +307,10 @@ export interface Assembled {
    * ⭐ Mend one line (repair D8, D9) — the ONE write a mend makes to a
    * line: its wear up to the hand's ceiling (never down), its grade down by
    * what the hand loses, its joints slackened by an untrained hand, the
-   * mend remembered, the hand among its makers. A `reforged` line is
-   * re-made: its failures cleared, and a name it bore is TAKEN — the
-   * reforger may name it once (Narsil's rule).
+   * mend remembered (a reforger — and only a reforger — among its
+   * makers). A `reforged` line is re-made: its failures cleared, and a
+   * name it bore is TAKEN, the mend recording which (`nameLost`), so the
+   * reforger may name it again (Narsil's rule).
    */
   mendLine(part: string, mend: LineMend): void;
 }
@@ -1038,7 +1039,13 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const line = this.parts.find((l) => l.part === part);
       if (!line) return;
       line.mends = [...(line.mends ?? []), { ...record }];
-      if (record.by && !line.makers.includes(record.by)) line.makers.push(record.by);
+      // ⭐ Only a REFORGE puts the hand among the line's makers — it re-made
+      // the member. A mend or a tightening is history (`mends`, read out as
+      // "mended by …"), not authorship: the browser walk read "It is the
+      // work of Berta" on a sword she had only mended.
+      if (record.kind === 'reforged' && record.by && !line.makers.includes(record.by)) {
+        line.makers.push(record.by);
+      }
       this.noteHand(record.by);
     }
 

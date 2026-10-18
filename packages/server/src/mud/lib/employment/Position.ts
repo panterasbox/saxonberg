@@ -27,6 +27,8 @@
 
 import type { CompBasis, CompensationData } from './Compensation';
 import { COMP_BASES } from './Compensation';
+import { Money } from '../banking/Money';
+import { BankingApi } from '../../api/banking';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 
@@ -332,6 +334,30 @@ export class Position {
   /** The pay basis — absent `compensation` reads as the shipped time-wage. */
   public basis(): CompBasis {
     return this.compensation?.basis ?? 'time';
+  }
+
+  /**
+   * ⭐ What the seat PAYS, in words, by its basis — *4 zorkmids a
+   * game-hour*, *4 zorkmids a piece*, *a 10% share* — or `''` when it pays
+   * nothing. The help-wanted sign and `clock on` both say it. ⚠ It read
+   * `wageRate` alone before, so the cobbler's piece-rate seat advertised
+   * *4 zorkmids a game-hour* for work paid by the pair (repair's walk).
+   */
+  public payPhrase(): string {
+    const money = (minor: number): string =>
+      Money.of(minor, BankingApi.compactCurrency()).render();
+    switch (this.basis()) {
+      case 'per-settlement': {
+        const rate = this.compensation?.rate ?? 0;
+        return rate > 0 ? `${money(rate)} a piece` : '';
+      }
+      case 'share-of-flow': {
+        const share = this.compensation?.share ?? 0;
+        return share > 0 ? `a ${String(Math.round(share * 100))}% share` : '';
+      }
+      default:
+        return this.wageRate > 0 ? `${money(this.wageRate)} a game-hour` : '';
+    }
   }
 
   /** The plain-data round-trip form. */

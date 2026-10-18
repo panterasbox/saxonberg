@@ -63,6 +63,10 @@ data:
     - /stuff/thing/gear/smiths-hammer
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
+    # ⭐ What a mend draws on: a bar is too much metal for a worn edge,
+    # and the whole-need bound will not burn one (the repair build's walk
+    # found Berta unable to mend a blade from her own bars).
+    - /trade/smithing/thing/iron-offcuts
     # ⭐ The mending slate — one `props:` line, and the smithy sells
     # repairs (by diagnosis, done by the smith on shift — repair D12).
     - /world/terminus/hearthworks/thing/smithy-tariff

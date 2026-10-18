@@ -199,7 +199,7 @@ function skippedPhrase(skip: SkippedPart): string {
     case 'missing-tool':
       return `${part} wants ${TOOL_WORDS[skip.detail ?? ''] ?? `a ${skip.detail ?? 'tool'}`}`;
     case 'insufficient-input':
-      return `there is no ${skip.detail === 'metal' ? 'iron' : (skip.detail ?? 'stock')} here to mend ${part} with`;
+      return `there is no ${skip.detail ?? 'stock'} here to mend ${part} with`;
     case 'part-failed':
       return skip.detail?.startsWith('something about')
         ? `there is ${skip.detail} that wants replacing`

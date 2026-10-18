@@ -75,13 +75,16 @@ describe('the tinker\'s round (D15)', () => {
     expect(props).toMatch(/tinkers-slate/);
   });
 
-  it('he is born holding his kit — a hook, a stone, a sewing kit (D14)', () => {
+  it('he is born holding his kit — a hook, a stone, a sewing kit, and the iron he mends with (D14)', () => {
     const tinker = row(TERMINUS, 'world/terminus/wharfside/tinker/agent/tinker.yaml');
     expect(tinker.class).toBe('/world/terminus/wharfside/agent/Tinker');
     expect(tinker.data!.props).toEqual([
       '/trade/forestry/thing/billhook',
       '/world/terminus/general-store/thing/whetstone',
       '/world/terminus/general-store/thing/sewing-kit',
+      // A mend draws on the hand's own pockets, and a pig is too much
+      // metal for a head (the whole-need bound) — the browser walk.
+      '/trade/smithing/thing/iron-offcuts',
     ]);
   });
 
