@@ -499,8 +499,10 @@ export default class Stock extends StockBase {
       const houseAccount = await EmploymentApi.operatingAccountOf(business);
       await BankingApi.payTerms(houseAccount, sellerAccount, Money.of(bid, BankingApi.compactCurrency()), `bought: ${item.getPresentation()}`);
     } catch {
+      this._shortOfMoney = true;
       return no("house-cannot-pay", "The house cannot pay for that just now.");
     }
+    this._shortOfMoney = false;
     if (store !== null) {
       const taken = await store.receive(item, store.getBusinessPath());
       if (taken.ok) return { ok: true, paidMinor: bid, intoStore: true };
@@ -526,8 +528,45 @@ export default class Stock extends StockBase {
         return price != null ? `${name} (${price})` : name;
       })
       .join(", ");
-    return lines.length > 0 ? `${base} On the shelves: ${lines}.` : base;
+    const shelves = lines.length > 0 ? `${base} On the shelves: ${lines}.` : base;
+    const buying = this.buyingWords();
+    return buying ? `${shelves} ${buying}` : shelves;
   }
+
+  /**
+   * ⭐ What the house BUYS, said before anybody makes the trip (the review:
+   * a newcomer's sale failed on a limit nobody could see). The bid; or that
+   * the store is full; or that the house turned a seller away for want of
+   * money (remembered from the last failed sale, cleared by the next good
+   * one — a counter cannot read its balance on a look).
+   */
+  private buyingWords(): string {
+    const parts: string[] = [];
+    for (const line of this.stockLines) {
+      if (line.buys !== true) continue;
+      const name = line.itemTemplatePath.split("/").pop() ?? line.itemTemplatePath;
+      const src = this.sourceOf(line);
+      const store = src.kind === "store" ? this.storeAt(src.store) : null;
+      if (store !== null) {
+        const cap = store.getCapacityKg();
+        const held = store.getLines().reduce((n, l) => n + l.amountKg, 0);
+        if (cap > 0 && held >= cap) {
+          parts.push(`The house is buying no ${name} — its store is full.`);
+          continue;
+        }
+      }
+      if (this._shortOfMoney) {
+        parts.push(`The house is buying no ${name} just now — it is short of money.`);
+        continue;
+      }
+      const bid = this.bidFor(line.itemTemplatePath);
+      if (bid !== null) parts.push(`The house buys ${name} at ${Money.of(bid, BankingApi.compactCurrency()).render()}.`);
+    }
+    return parts.join(" ");
+  }
+
+  /** Transient: the last sale to the house failed on its money (cleared by a good one). */
+  private _shortOfMoney = false;
 
   /**
    * The line `look` appends for a good on this counter (economic bootstrap

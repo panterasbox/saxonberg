@@ -2513,6 +2513,17 @@ clean was the line, and the economics had three strains. All in scope:
   is conserved; the latest marker's grid wins. Decided against: marks
   healing over (snow and refreeze filling the lines) — nothing a player
   does would change for it.
+- **R10 — many cutters, one pond** (the reviewer expects ice to be a
+  newcomer's living). Held: a shared field, per-block ownership, per-body
+  bearing, and a self-limiting market (the house's bid falls with its
+  supply, its money and its store run out). Fixed: (1) the ice counter
+  sells the trade's tools as imports (saw 20, spud 10, scraper 6, marker
+  8) — the shore's props are the company's kit, one of each; (2) the
+  counter SAYS what the house buys before anybody makes the trip — its
+  bid, or that the store is full, or that the house turned a seller away
+  for want of money (remembered from the last failed sale; a look cannot
+  read a balance). Slated: exclusivity as a use of the reach under the
+  shipped water rights (navigable-water-slate, last section).
 - Re-driving also found two drives broken before this review: **fishing**'s
   setup called `reserve issue` (gone since the economic bootstrap; it now
   funds by `reserve override`, as drilling does), and

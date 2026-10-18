@@ -202,6 +202,22 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
     expect(paid).toEqual([]);
   });
 
+  it("⭐ the counter says what the house buys before anybody makes the trip: its bid, full, or short of money", async () => {
+    days = 200;
+    vi.spyOn(store, "getCapacityKg").mockReturnValue(30_000);
+    vi.spyOn(store, "getLines").mockReturnValue([{ amountKg: 10_000 }] as never);
+    expect(counter.getLong()).toMatch(/The house buys ice-block at 8/);
+    // A sale fails on the house's money: the counter says so until a good one.
+    vi.spyOn(BankingApi, "payTerms").mockRejectedValueOnce(new Error("the shop holds less"));
+    await counter.buyFrom(seller, mine() as never);
+    expect(counter.getLong()).toMatch(/buying no ice-block just now — it is short of money/);
+    await counter.buyFrom(seller, mine() as never);
+    expect(counter.getLong()).toMatch(/The house buys ice-block at/);
+    // A full store buys nothing.
+    vi.spyOn(store, "getLines").mockReturnValue([{ amountKg: 30_000 }] as never);
+    expect(counter.getLong()).toMatch(/buying no ice-block — its store is full/);
+  });
+
   it("a house that cannot pay keeps its money and the seller keeps the good", async () => {
     vi.spyOn(BankingApi, "payTerms").mockRejectedValue(new Error("the shop holds less"));
     expect(await counter.buyFrom(seller, mine() as never)).toMatchObject({ ok: false, reason: "house-cannot-pay" });
