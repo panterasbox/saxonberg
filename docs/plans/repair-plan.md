@@ -2489,3 +2489,26 @@ player sees that the wire cannot:
   teleporting OUT; `get sword` takes every sword in reach; the
   cobbler's slate (a `Tariff`) is not `read`able, so its prices are
   learned from the quote alone.
+
+### The re-walk and the last drive (2026-10-18, after `stokes`)
+
+- **Drive run 16: 9/13** — a probe defect of the drive's own (`eval --on
+  furnace` matched two at the smelter, so it never read the fire), and a
+  cascade (drive 6 re-opened the shared session after its `finally`, so
+  its failure left drives 9 and 12 a closed one). Both fixed
+  (`675214fb1`). ⭐ **Run 17: 13/13** — the tinker lit the smelter's
+  furnace himself (`stokes`) and mended from his own offcuts; nobody else
+  lit anything, no pigs cloned.
+- **The re-walk** (fresh world, a new walker): with the clock at noon and
+  the walker standing in the smithy, Berta lit her own forge at the next
+  roster tick (*"Berta the smith sets a stone forge alight."* — the line
+  before it reads "someone… something" because the smithy is dark until
+  the fire catches). Then, with no help: the quote (*"The blade is worn —
+  5 zorkmids"*), the Yes/No prompt, *"Berta mends an arming sword; it is
+  sound"*, drawn from the smithy's own iron offcuts, and the card reading
+  *"It has been mended by Berta."* with no false maker's mark. The
+  cobbler's sign reads *"cobbler, 4 zorkmids a piece"*. Every walk
+  finding, verified fixed live.
+- ⚠ Harness fact for the next walk: a test-clock jump does not run the
+  roster tick — a rostered hand clocks on at the next game hour (≈5 real
+  minutes), so wait one before asking for her.
