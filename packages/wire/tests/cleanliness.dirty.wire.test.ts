@@ -357,6 +357,7 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     await buy(cook, 'broom');
     await buy(cook, 'flue brush');
     await buy(cook, 'soap');
+    await buy(cook, 'scrub brush');
     for (let i = 0; i < 3; i++) await buy(cook, 'rations');
     await buy(cook, 'rushes');
     await buy(cook, 'jumper');
@@ -390,12 +391,16 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
   it('⭐ drive 2 — bare `wash` washes the hands; gloved, it washes the GLOVES and not the hands under them', async () => {
     // Cold water alone takes about half of the blood (its row's
     // `waterLifts`); soap takes the rest.
+    // One cold soap wash takes about two thirds (0.9 × cold 0.8 × hard
+    // water 0.9); a second finishes what a butchering left.
+    await act(cook, 'wash with soap');
     await act(cook, 'wash with soap');
     expect(await body(cook), 'washed hands').not.toMatch(/hands are .*blood/i);
     await act(cook, 'wear gloves');
     await act(cook, 'butcher carcass', 180_000);
     const gloves = await mine(cook, 'gloves');
     expect(gloves, `the gloves after butchering: ${gloves}`).toMatch(/blood/i);
+    await act(cook, 'wash with soap');
     await act(cook, 'wash with soap');
     const washed = await mine(cook, 'gloves');
     expect(washed, `the gloves after a wash: ${washed}`).not.toMatch(/soiled|filthy/i);
@@ -431,7 +436,7 @@ suite('⭐ drive 4 — strew and sweep a bloodied floor (AC 12)', () => {
     await act(cook, 'sweep with broom');
     const after = await examine(cook, 'floor');
     expect(after, `the floor, swept: ${after}`).not.toMatch(/blood/i);
-    const heap = await examine(cook, 'sweepings');
+    const heap = await mine(cook, 'sweepings');
     expect(heap, `the heap: ${heap}`).toMatch(/sweepings/i);
   }, 300_000);
 });
@@ -444,7 +449,7 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
     await act(cook, 'wash apron');
     expect(await mine(cook, 'apron'), 'water alone').toMatch(/greas/i);
     // Grease in cold water wants work as well as soap: a scrub.
-    await act(cook, 'scrub apron with soap');
+    await act(cook, 'scrub apron with soap using brush');
     expect(await mine(cook, 'apron'), 'scrubbed with soap').not.toMatch(/greas/i);
   }, 300_000);
 
