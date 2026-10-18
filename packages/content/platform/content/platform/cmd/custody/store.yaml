@@ -33,18 +33,21 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
-args:
-  - name: book
-    type: object
-    required: false
-    greedy: true
-    prepositions: [at, in]
-    default: "reachable:[mixin.StoreBookMixin]"
-    scope: [reachable]
-    requires: [StoreBookMixin]
+# ⚠ No top-level `args:` — the command schema refuses them beside
+# `subcommands:`; bare `store` finds the book where you stand, as bare
+# `bank` finds the bank.
 subcommands:
   receipts:
     description: "Your receipts here (same as bare `store`)"
+    args:
+      - name: book
+        type: object
+        required: false
+        greedy: true
+        prepositions: [at, in]
+        default: "reachable:[mixin.StoreBookMixin]"
+        scope: [reachable]
+        requires: [StoreBookMixin]
   deposit:
     description: "Leave something in the store's keeping, on a receipt"
     validators:

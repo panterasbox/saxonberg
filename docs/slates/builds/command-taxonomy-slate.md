@@ -55,6 +55,14 @@ peers.
    one view + one controller per institution (the `BankController`
    shape), retiring the bare views (no aliases kept: nothing is legacy).
 
+5. **A gate that validates every command view against
+   `command.schema.json`.** Today only the pack installer checks it, at
+   boot: the storage-and-ice review shipped a view with top-level `args:`
+   beside `subcommands:` (the schema refuses that), the lint family passed,
+   and the platform pack — every verb in the game — failed to install on
+   the next boot. A sweep that moves dozens of verbs under subcommands
+   needs this gate FIRST.
+
 ## Open questions
 
 - Does `category:` replace the directory, or mirror it (with a gate that

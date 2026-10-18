@@ -34,7 +34,7 @@ type StoreStuff = Stuff & Store;
 
 export default class StoreController extends CommandController<StoreModel> {
   async execute(model: StoreModel, context: CommandContext): Promise<void> {
-    const book = (model.book?.stuff ?? null) as Stuff | null;
+    const book = (model.book?.stuff ?? null) as Stuff | null ?? this.bookHere(context);
     const store = book && MixinApi.isStoreBook(book) ? (book.getStore() as StoreStuff | null) : null;
     if (store === null) {
       return this.refuse(context, TOPIC, 'There is no book here to keep anything against.', 'no-book');
@@ -47,6 +47,13 @@ export default class StoreController extends CommandController<StoreModel> {
       default:
         return this.receipts(store, context);
     }
+  }
+
+  /** Bare `store` binds no book: the one where you stand (bare `bank`'s rule). */
+  private bookHere(context: CommandContext): Stuff | null {
+    const room = context.location as unknown as Stuff | null;
+    if (room === null || !MixinApi.isContainer(room)) return null;
+    return room.getContents().find((c) => MixinApi.isStoreBook(c)) ?? null;
   }
 
   private async deposit(store: StoreStuff, model: StoreModel, context: CommandContext): Promise<void> {
