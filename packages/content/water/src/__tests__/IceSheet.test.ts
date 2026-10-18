@@ -206,6 +206,27 @@ describe('the acts — scrape, mark, cut', () => {
     expect(sheet.getLog().some((p) => p.kind === 'cut' && p.areaM2 > 0)).toBe(true);
   });
 
+  it('⭐ a cutter who is nobody\'s hand cuts their OWN block — titled to them before it lands (the review)', async () => {
+    const { pool, sheet } = await sheetIn();
+    const w = walker(pool);
+    sheet.occupy(w as never, 'ground:1');
+    sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null);
+    const titled: unknown[] = [];
+    const clone = StuffApi.clone as unknown as { getMockImplementation(): ((p: string) => Promise<Stuff>) | undefined };
+    const make = clone.getMockImplementation()!;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      const b = await make(path);
+      vi.spyOn(b as never, 'stampChattel').mockImplementation((async (owner: unknown) => {
+        titled.push(owner);
+        return { ok: true, chattelId: 'c' };
+      }) as never);
+      return b;
+    }) as unknown as typeof StuffApi.clone);
+    const block = await sheet.cutBlock(w as unknown as Stuff, sheet.patchByWord('marked')!.id);
+    expect(block).not.toBeNull();
+    expect(titled).toEqual([w]);
+  });
+
   it('a cut is refused without a saw, and without a marked grid', async () => {
     const { pool, sheet } = await sheetIn();
     const w = walker(pool);

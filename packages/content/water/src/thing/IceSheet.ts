@@ -42,6 +42,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -378,6 +379,20 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
         block.setLastAmbientK(271);
       }
       const room = this.room();
+      // ⭐ Whose block it is — stamped BEFORE it lands (a titled good is not
+      // fresh, so its arrival derives nothing): a hand on shift for the
+      // house that works this water cuts for the house; anyone else cuts
+      // their own — `hew`'s rule for ore. Unstamped, a block fell back to
+      // its ROW's author, and its cutter could not sell it (the review).
+      const owner = this.cutterOwner(actor, room);
+      if (MixinApi.isChattel(block)) {
+        try {
+          await block.stampChattel(owner);
+        } catch (err) {
+          // A title that could not be written never loses the block.
+          console.warn('IceSheet: could not title the block', err);
+        }
+      }
       if (room !== null && MixinApi.isContainable(block) && MixinApi.isContainer(room)) {
         ContainmentApi.move(block as Stuff & Containable, room as Stuff & Container);
       }
@@ -387,6 +402,17 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     await this.captureSelf();
     this.reconcileSupport();
     return block;
+  }
+
+  /** The house a cutter on shift cuts for, else the cutter. */
+  private cutterOwner(actor: Stuff, room: Stuff | null): Stuff {
+    const roomPath = room?.getTemplatePath() ?? '';
+    const house = roomPath ? EmploymentApi.businessAt(roomPath) : null;
+    const housePath = (house as unknown as { getOrganizationPath?(): string } | null)?.getOrganizationPath?.() ?? '';
+    if (house && housePath && MixinApi.isEmployed(actor) && actor.isOnShiftFor(housePath)) {
+      return house as unknown as Stuff;
+    }
+    return actor;
   }
 
   /** A hole for a line: a small cut patch, no block. */

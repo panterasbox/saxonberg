@@ -2489,6 +2489,19 @@ clean was the line, and the economics had three strains. All in scope:
   ⭐ Decision: the bid is DERIVED (lens 4/6 — a price is never a
   percentage an author picks), and reusing the terms margin means one
   dial governs both directions of a shop's trade.
+- **R7 — a cut block has an owner** (found re-driving R6: the cutter's own
+  block was *"not yours to sell"*). The cut never stamped it, so its title
+  fell back to the ROW's author. `IceSheet.cutBlock` now stamps before the
+  block lands — `hew`'s rule: a hand on shift for the house that works the
+  water cuts for the house; anyone else cuts their own. A failed stamp never
+  loses the block.
+- Re-driving also found two drives broken before this review: **fishing**'s
+  setup called `reserve issue` (gone since the economic bootstrap; it now
+  funds by `reserve override`, as drilling does), and
+  **economic-bootstrap** fails at step 2 (the cash-and-carry's terms crate)
+  and step 5 (*"No business or member answers to 'bar'"*), cascading
+  through 3 and 7–12 — **the same failures on the pre-review commit**, run
+  in a scratch worktree. Not this build's; recorded for its owner.
 
 ## Drive record
 
