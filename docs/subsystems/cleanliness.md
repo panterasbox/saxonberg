@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B46). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B47). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -150,6 +150,9 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
 - **The stalls** — the ONE calendar accrual: a byre floor row names its
   herd book (`stalls: {herdbook}`) and fouls by head × days, reconciled on
   read, following the authored reference.
+- **Rot away** (B47) — rotten food left loose in a room three game days is
+  gone, as crumbs on the floor; a midden takes rotten food as refuse.
+  Where waste goes, and how: [waste-slate](../slates/builds/waste-slate.md).
 - **Pests** — derived, never a field: debris over
   `cleanliness.pests.debrisAt` and open food in the room. The floor says
   *something has been at the crumbs*; loose food spoils faster by

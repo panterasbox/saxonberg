@@ -2842,6 +2842,15 @@ Read first, in this order.
   floor is swept. `boil`'s rework (immersion takes the liquid's heat) and
   the narrow-verb audit → `verb-interfaces-slate`.
 
+- **B47 — Rotten food is refuse, and rots away** (review: *"where does
+  litter/trash go in this game?"*). A midden takes rotten food whatever its
+  material; food rotten three game days (`freshness.rotAwayAfterS`) lying
+  loose in a room is destroyed (deferred — a `look` must not destroy what
+  it walks), leaving crumbs on the floor (`Freshness.rottenSince`). Bounds
+  what a kept place collects of food. The route trash takes to being gone —
+  collection, transformation, the waste trades, abandoned ownership —
+  `waste-slate` (the user: the end is just destroying it).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

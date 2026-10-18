@@ -1,6 +1,7 @@
 /**
  * Midden — **where a house's sweepings and a byre's muck go** (cleanliness
- * D15, D20): refuse thrown on it rots down to compost for the field.
+ * D15, D20): refuse thrown on it — and rotten food — rots down to compost
+ * for the field.
  *
  * ⭐ The act is the midden's (`takeRefuse`) — what it will take (refuse or
  * compost by its MATERIAL, so a bark strip goes on as readily as a heap of
@@ -36,7 +37,10 @@ export default class Midden extends Receptacle {
   /** Throw `item` on: refuse only, while there is room; the item is gone. */
   public async takeRefuse(item: Stuff): Promise<RefuseOutcome> {
     const m = MixinApi.isTangible(item) ? item.getMaterial() : null;
-    if (!m || !(m.hasTag('refuse') || m.hasTag('compost'))) {
+    // ⭐ Rotten food is refuse whatever it was (review): the most obvious
+    // compost there is.
+    const rotten = MixinApi.isFresh(item) && item.getFreshnessBand() === 'rotten';
+    if (!rotten && (!m || !(m.hasTag('refuse') || m.hasTag('compost')))) {
       return { ok: false, reason: 'not-refuse' };
     }
     const kg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 1;

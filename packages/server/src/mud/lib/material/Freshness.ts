@@ -73,6 +73,8 @@ import { WaterActivity, type WaterState } from './WaterActivity';
 import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { ScheduleApi } from '../../api/schedule';
+import { PersistableApi } from '../../api/persistable';
 import { PerceptionApi } from '../../api/perception';
 import { WorldClockApi } from '../../api/worldclock';
 import type { Container } from '../spatial/Container';
@@ -943,6 +945,7 @@ export interface Fresh {
   // directly. Not the inter-Stuff contract (that's the method surface).
   _microbialLoad: number;
   freshnessClockStamp: number;
+  rottenSince: number;
 }
 
 export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
@@ -954,6 +957,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       _microbialLoad: { persistent: true },
       freshnessClockStamp: { persistent: true },
+      rottenSince: { persistent: true, runtimeState: true },
     };
 
     /** Derived spoilage band line appended to the host's long description. */
@@ -963,6 +967,8 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
     public _microbialLoad = 0;
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
     public freshnessClockStamp = 0;
+    /** Game-seconds it first read ROTTEN; `0` = it has not. */
+    public rottenSince = 0;
 
     /** Reentry guard — a reconcile must never recurse through a read. */
     private _reconcilingFreshness = false;
@@ -1097,9 +1103,45 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
           MixinApi.isWaterActive(self) ? self.getWaterState() : null,
         );
         this.freshnessClockStamp = nowS;
+        this.rotAwayIfLong(nowS);
       } finally {
         this._reconcilingFreshness = false;
       }
+    }
+
+    /**
+     * ⭐ Food left rotten long enough ROTS AWAY (cleanliness, review): loose
+     * in a room for `freshness.rotAwayAfterS` past going rotten, it is
+     * gone, and what is left of it is crumbs on the floor — debris the
+     * broom takes to the midden, and the pests come for until it does. In a
+     * pot, a pack or a hand it waits (only what is lying about rots away).
+     */
+    private rotAwayIfLong(nowS: number): void {
+      if (this.getFreshnessBand() !== 'rotten') {
+        this.rottenSince = 0;
+        return;
+      }
+      if (this.rottenSince === 0) {
+        this.rottenSince = nowS;
+        return;
+      }
+      const after = dial(AppSettingKeys.freshnessRotAwayAfterS, 3 * 24 * 3600);
+      if (nowS - this.rottenSince < after) return;
+      const self = this as unknown as Stuff;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!room || !room.isLocation()) return;
+      // Deferred: a read (a `look` walking the room) must not destroy what
+      // it is iterating.
+      ScheduleApi.schedule(0, () => {
+        if (self.isDestroyed()) return;
+        const floor = MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+        const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0.2;
+        if (floor && MixinApi.isSoilable(floor)) floor.soil('crumbs', Math.min(1, kg * 0.5));
+        void (async () => {
+          await StuffApi.destruct(self);
+          await PersistableApi.captureHostOf(room).catch(() => {});
+        })();
+      });
     }
 
     /** The Material whose constants govern this host's spoilage. */

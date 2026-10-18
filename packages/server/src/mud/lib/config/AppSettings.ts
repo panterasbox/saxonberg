@@ -1407,6 +1407,9 @@ export const AppSettingKeys = {
   freshnessBandSpoiledAt: "freshness.band.spoiledAt",
   /** Spoilage — load at/above which the band reads `rotten`. */
   freshnessBandRottenAt: "freshness.band.rottenAt",
+  /** Freshness — game-seconds food lies ROTTEN, loose in a room, before it
+   * rots away into crumbs on the floor (cleanliness). */
+  freshnessRotAwayAfterS: "freshness.rotAwayAfterS",
   /** Spoilage — load at/below which an ingest carries NO ptomaine dose. */
   freshnessDoseOnsetLoad: "freshness.dose.onsetLoad",
   /** Spoilage — the ptomaine dose (mg) a fully rotten serving carries; the

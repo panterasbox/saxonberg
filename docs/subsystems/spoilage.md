@@ -1022,3 +1022,13 @@ not dairy's.
 - **The kitchen tier** — a board, knife or hand short of *sanitised*
   inoculates the food it touches with `staph-aureus` before the working's
   kill (perishable inputs only). See [cleanliness.md](./cleanliness.md).
+
+## Rot away (cleanliness, 2026-10-18)
+
+Food that has read **rotten** for `freshness.rotAwayAfterS` (three game
+days), lying loose in a room, rots AWAY: it is destroyed, and what is left
+is crumbs on the floor (`rottenSince` is the one stamp). In a pot, a pack
+or a hand it waits. A midden takes rotten food as refuse whatever its
+material (`Midden.takeRefuse`). How waste gets to being gone is
+[waste-slate](../slates/builds/waste-slate.md).
+
