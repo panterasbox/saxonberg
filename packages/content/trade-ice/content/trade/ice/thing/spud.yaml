@@ -2,7 +2,7 @@
 # reading the thickness of the ice off its marks (`measure ice`).
 class: /platform/thing/Tool
 data:
-  keywords: [spud, chisel, "ice chisel"]
+  keywords: [spud, chisel, "ice spud", "ice chisel"]
   shortDescription: ice spud
   register: indefinite
   longDescription: >-
