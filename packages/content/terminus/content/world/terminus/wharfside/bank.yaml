@@ -58,6 +58,12 @@ data:
     # ⭐ The goods yards behind the working city — the one room D11's
     # switchover cost, and the way a hauler reaches every trade floor in
     # Terminus without any of their hands ever leaving their own floor.
+    # ⭐ The tinker's yard (repair D15), behind the warehouses — his round
+    # starts and ends here; the yard declares `bank` back.
+    tinkers:
+      destination: /world/terminus/wharfside/tinker/location/yard
+      media: [ground]
+      edgeMinutes: 1
     northwest:
       destination: /world/terminus/goods-yards/yard
       media: [ground]

@@ -23,7 +23,7 @@ import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
 import { EmploymentApi } from '../../../../api/employment';
-import { BankingApi, Money } from '../../../../api/banking';
+import { GrammarApi } from '../../../../api/grammar';
 import type { ClockResult } from '../../../../lib/employment/Employed';
 
 const TOPIC = 'act.deed';
@@ -69,9 +69,8 @@ export default class ClockController extends CommandController<ClockModel> {
       const grant = seat?.fulfills
         ? " You're the one an order here is served by now."
         : '';
-      const rate = seat?.wageRate
-        ? ` ${Money.of(seat.wageRate, BankingApi.compactCurrency()).render()} a game-hour.`
-        : '';
+      const terms = seat?.payPhrase() ?? '';
+      const rate = terms ? ` ${GrammarApi.cap(terms)}.` : '';
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}`)

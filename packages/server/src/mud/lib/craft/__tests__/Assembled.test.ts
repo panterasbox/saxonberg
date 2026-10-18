@@ -7,7 +7,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Tool from '../../../platform/thing/Tool';
-import AssembledTool from '../../../platform/thing/AssembledTool';
 import Assembly from '../../../platform/thing/Assembly';
 import Material from '../../material/Material';
 import { MaterialApi } from '../../../api/material';
@@ -52,8 +51,8 @@ function line(part: string, mat: string, over: Partial<PartLine> = {}): PartLine
   };
 }
 
-function pick(): AssembledTool {
-  const t = makeStuff(() => new AssembledTool());
+function pick(): Tool {
+  const t = makeStuff(() => new Tool());
   t.recordAssembly(
     [line('head', IRON), line('haft', ASH)],
     [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],
@@ -69,10 +68,11 @@ beforeEach(() => {
 afterEach(() => StuffApi.clearAll());
 
 describe('AssembledMixin', () => {
-  it('⭐ a one-material tool is not an assembly at all — the mixin is not composed there', () => {
+  it('⭐ a one-piece tool wears its own gauge — no record is made (repair D4)', () => {
     const knife = makeStuff(() => new Tool());
-    expect(MixinApi.isAssembled(knife)).toBe(false);
+    expect(knife.isOnePiece()).toBe(true);
     knife.wear(0.25);
+    expect(knife.getParts()).toEqual([]);
     expect(knife.getCondition()).toBeCloseTo(0.75, 6);
   });
 
@@ -134,7 +134,7 @@ describe('AssembledMixin', () => {
   });
 
   it('a FOUND thing reads its bill at defaults and materializes it on first use', () => {
-    const t = makeStuff(() => new AssembledTool());
+    const t = makeStuff(() => new Tool());
     t.setBill({
       parts: [
         { part: 'head', template: '/x/thing/head', count: 1, role: 'structural', material: IRON },
@@ -149,7 +149,7 @@ describe('AssembledMixin', () => {
   });
 
   it('refuses a malformed bill on the setter', () => {
-    const t = makeStuff(() => new AssembledTool());
+    const t = makeStuff(() => new Tool());
     expect(() => t.setBill({ parts: [{ part: 'x', template: '/x', count: 1, role: 'decorative' }] })).toThrow();
   });
 
@@ -195,9 +195,11 @@ describe('AssembledMixin', () => {
     WorldClockApi._resetForTesting();
   });
 
-  it('composes on the assembled classes, never on the broad family', () => {
-    expect(MixinApi.isAssembled(makeStuff(() => new AssembledTool()))).toBe(true);
-    expect(MixinApi.isAssembled(makeStuff(() => new Tool()))).toBe(false);
+  it('⭐ composes on the FAMILY — a tool with no bill is one piece (repair D4)', () => {
+    const knife = makeStuff(() => new Tool());
+    expect(MixinApi.isAssembled(knife)).toBe(true);
+    expect(knife.isOnePiece()).toBe(true);
+    expect(knife.getParts()).toEqual([]);
     expect(MixinApi.isAssembled(makeStuff(() => new Assembly()))).toBe(true);
   });
 });
@@ -260,7 +262,7 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
   });
 
   it('a pegged or wedged joint does not care whether its member cupped', () => {
-    const t = makeStuff(() => new AssembledTool());
+    const t = makeStuff(() => new Tool());
     t.recordAssembly(
       [line('head', IRON), line('haft', ASH, { form: 'sawn', cupped: true })],
       [{ key: 'hafting', method: 'wedged', members: ['head', 'haft'], tension: 1, maker: '' }],

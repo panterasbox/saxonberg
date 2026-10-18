@@ -10,4 +10,7 @@ data:
     A thick straight blade a foot long with a round eye forged at one end, sharp on one edge and broad on the back.
   mass: 1.1
   capabilities: []
+  # ⭐ An EDGE (repair D3): the form word is what makes it honable —
+  # `sharpen` reaches it loose, and through the whole it is fitted in.
+  constructionForm: bladed
   _materialPath: /stuff/idea/material/element/iron

@@ -60,6 +60,7 @@ const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 // ⭐ The pick haft (assembly drive 16) — a woodworker's wear part.
 const CARPENTRY_DIR = fileURLToPath(new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url));
+const FORESTRY_DIR = fileURLToPath(new URL("../../../trade-forestry/content/trade/forestry/", import.meta.url));
 // The wear-part line (assembly W6): a pane, a share, a sole, a cushion —
 // each from the pack whose trade makes it. The pane's `Sheet` class ships
 // in the glass pack's src/.
@@ -271,6 +272,8 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
+  // The billhook (repair W5).
+  { prefix: "/trade/forestry/", dir: () => FORESTRY_DIR },
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },

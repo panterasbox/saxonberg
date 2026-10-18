@@ -1240,6 +1240,21 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
 }
 
 /**
+ * ⭐ Could the acting principal settle `amount` now — by its routing
+ * credential's balance, or by coin on hand? The question `settle` answers
+ * by trying; asked first so a service nobody can pay for is refused
+ * before it is performed (repair P1). Read-only.
+ */
+function canSettleImpl(amount: Money): boolean {
+  const payer = actingPrincipal();
+  if (!payer) return false;
+  const cred = reachableCredential(payer);
+  const account = cred?.getActiveAccount() ?? null;
+  if (account && balanceMinor(account) >= amount.minor) return true;
+  return MixinApi.isContainer(payer) && cashOnHand(payer) >= amount.minor;
+}
+
+/**
  * The uniform settlement primitive: one Charge, one method-as-parameter,
  * polymorphic underneath (cash = coin handover off the governed ledger;
  * credential = a ledger debit/credit routed through the owning corpo bank).
@@ -2862,6 +2877,12 @@ export class BankingLogic extends ApiLogic {
     method: SettlementMethod,
   ): Promise<SettlementReceipt> {
     return settleImpl(charge, method);
+  }
+
+  /** See {@link BankingApi.canSettle}. */
+  @CallSecurity(BankingApiCallers)
+  public canSettle(amount: Money): boolean {
+    return canSettleImpl(amount);
   }
 
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */

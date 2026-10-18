@@ -131,8 +131,10 @@ export default class ResponseReading extends Reading {
       );
     }
     // The edge band (bands only) — the working-surface axis, distinct
-    // from structural condition.
-    if (!armor && MixinApi.isKeen(stuff)) {
+    // from structural condition. ⭐ Only when the form HAS an edge (repair
+    // D3): a mace and a hammer are Keen hosts too, and printed `edge:`.
+    const primary = construction.primaryChannel();
+    if (!armor && MixinApi.isKeen(stuff) && (primary === 'edge' || primary === 'point')) {
       const kb = stuff.getKeennessBand();
       lines.push(Mml.compose`  edge: ${kb}`);
     }

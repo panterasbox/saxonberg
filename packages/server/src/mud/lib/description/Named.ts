@@ -11,7 +11,10 @@
  * `CastMixin` (the *somebody* identity rung), `Avatar` (a player body,
  * whose name embody writes), and **any class that mints a proper name of
  * its own** — a pet, a named artefact, a named vessel. That is the whole
- * list, and adding to it is a deliberate act on one class.
+ * list, and adding to it is a deliberate act on one class. ⭐ The named
+ * artefacts are `Tool` and `Weapon` (repair D18): composed BENEATH
+ * `AssembledMixin`, whose `getName`/`setName` read and write the part
+ * that bears the name (a sword's is its blade's) before this field.
  *
  * ⚠ It sat on the **creature base** until 2026-09-10, which made it the
  * one composition in the tree that contradicted this file's own rule: a

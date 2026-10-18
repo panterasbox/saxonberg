@@ -26,20 +26,29 @@ import { StackableMixin } from '../../lib/stuff/Stackable';
 import { SeasoningMixin } from '../../lib/maturation/Seasoning';
 import { ConstructedMixin } from '../../lib/material/Constructed';
 import { CraftedMixin } from '../../lib/craft/Crafted';
+import { DurableMixin } from '../../lib/material/Durable';
 import type { FieldMeta } from '../../lib/mixin';
 import type { CommandContributions } from '../../api/command';
 
 // ⚠ Seasoning OUTSIDE Stackable: a merge's `onMerged` witness is
 // Stackable's, and the outer class's method is the one that runs — so the
 // seasoning (which takes the greener) must be the outer one and call down.
+//
+// ⭐ Durable INSIDE Stackable (repair D5, AC 11): a haft taken off a pick
+// worn is still worn, so a loose haft must carry a condition — and its
+// condition is STACK IDENTITY (below), so a worn haft never merges into a
+// sound one (the `constructionForm` precedent). Not Assembled: a stack of
+// staves is stock, not a whole — it goes INTO a thing of parts.
 const TimberBase = SeasoningMixin(
-  StackableMixin(ConstructedMixin(CraftedMixin(Good))),
+  StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good)))),
 );
 
 export default class Timber extends TimberBase {
   static fieldMeta: FieldMeta = {
     // Riven and sawn stock never merge into one stack.
     constructionForm: { persistent: true, authorable: true, stackIdentity: true },
+    // A worn haft and a sound one are not the same stock.
+    condition: { persistent: true, runtimeState: true, stackIdentity: true },
   };
 
   /**

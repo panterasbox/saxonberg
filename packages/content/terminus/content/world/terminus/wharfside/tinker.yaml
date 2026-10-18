@@ -1,0 +1,6 @@
+# The tinker's yard — the home of a mender who works the road (repair
+# D15). A sub-zone of the wharfside so the yard keeps its own coords.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Tinker's Yard
+  cellSize: 4.0

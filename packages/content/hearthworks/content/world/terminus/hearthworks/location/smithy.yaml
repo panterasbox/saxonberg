@@ -63,10 +63,17 @@ data:
     - /stuff/thing/gear/smiths-hammer
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
+    # ⭐ What a mend draws on: a bar is too much metal for a worn edge,
+    # and the whole-need bound will not burn one (the repair build's walk
+    # found Berta unable to mend a blade from her own bars).
+    - /trade/smithing/thing/iron-offcuts
     # ⭐ The mending slate — one `props:` line, and the smithy sells
-    # repairs. That is the second-instance test passing.
+    # repairs (by diagnosis, done by the smith on shift — repair D12).
     - /world/terminus/hearthworks/thing/smithy-tariff
     - /world/terminus/hearthworks/thing/smithy-menu
+    # ⭐ The heirloom over the hearth (repair D18) — a sword whose name
+    # lives in its blade, through three hilts.
+    - /world/terminus/hearthworks/thing/heirloom
     # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
     # fuel a BED somebody fills — before it, a `%` Reserve the row
     # authored once meant a forge arrived pre-fuelled and could never be

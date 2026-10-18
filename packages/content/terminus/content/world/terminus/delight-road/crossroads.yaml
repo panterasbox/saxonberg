@@ -55,6 +55,11 @@ data:
       media: [ground]
       edgeMinutes: 10
       wheelPassable: true
+  props:
+    # ⭐ The tinker's stop (repair D15): his slate, and his round on the
+    # fingerpost. He stands here at eight and at noon.
+    - /world/terminus/delight-road/thing/tinkers-slate
+    - /world/terminus/delight-road/thing/tinkers-notice
   details:
     stone:
       keywords: [stone, inscription, marker, slab]

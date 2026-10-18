@@ -1,0 +1,12 @@
+recipeId: pommel
+name: Pommel
+keywords: [pommel]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/smithing/thing/pommel
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1000
+difficulty: easy
+discipline: smithing

@@ -1,20 +1,17 @@
 # Assembly slate — build a thing from its parts, and the joint is the epoch
 
-> **Status: UNBUILT** — and ⭐ `crafting.md` already names the gap and
-> defers it **deliberately**: *"**Assembly** (output properties emerge from
-> components) is a genuinely different model, **still deferred — not
-> faked**."* What this slate adds is the **epoch argument**, which changes
-> the priority: ⭐⭐⭐ **you cannot build a factory until you can build a
-> thing from parts.**
-> **Left:** the `Joint` **ROW** vocabulary (condition · operation ·
-> strength · reversibility · signature) · `AssembledMixin` on the whole ·
-> the **bill on the KIND, history on the INSTANCE** split · **lossy
-> disassembly** · the derived-property rules (grade · composite material
-> response · **localized wear**) · one new verb · and ✅ **persistence
-> is RESOLVED** (§ 11): `captureHostOf` captures **the host**, not the
-> thing, and **loss is a legitimate outcome**.
-> **Size:** a build — and **the cask is its exemplar**, the way the
-> freezer compartment is `Chamber`'s first honest composer.
+> **Status: PARTIAL** — ✅ **built by the assembly build (MR !361,
+> 2026-10-15)**: `AssembledMixin`, the `Joint` row vocabulary, the bill on
+> the kind and the parts record on the instance, lossy disassembly,
+> localized wear, `fit`, the cask, the wood column (`rive`/`saw`/`carve`,
+> seasoning, the grain carry) and the compartment. The live model is
+> [assembly.md](../../subsystems/assembly.md); this slate stays open as
+> the record that **the factory's prerequisite is met**, and for its tail.
+> **Left:** the deferred seams in § *Left after the build* (the furniture
+> family's second half, casks that are not Vats, the threaded fastener,
+> humidity in seasoning, the sawmill's water right) + four small code
+> tidies the pre-merge audit recorded rather than fixed.
+> **Size:** a tail.
 
 Opened 2026-10-09 out of a coopering design pass that turned out not to be
 about barrels. The owner's framing:
@@ -769,3 +766,61 @@ parts.**
 - [destructive-distillation-slate](./destructive-distillation-slate.md) ·
   [navigable-water-slate](./navigable-water-slate.md) § 7 — what sits
   behind this
+
+---
+
+## Left after the build (from the assembly plan, retired 2026-10-15)
+
+Clean attach points, each with where it goes:
+
+- **`Fitting` and `Chest` as Assembled hosts** (the table, the wardrobe)
+  — *the furniture family's second half*; the `Assembly` class and the
+  bill shape are the attach point, and each needs its own NOUN subclass
+  (`lint:bills` refuses the mixin on a family).
+- **Casks that are not Vats** — the water-butt (a `WaterFixture` source by
+  class) and the fuel casks (`Bottle`s).
+- **The threaded fastener** → `content-declaration-slate` § `Epoch` (a
+  Joint row `threaded`, `portability: tool`, `reversible: freely`,
+  `interchangeable: true` — the field the vocabulary does not yet carry).
+- **The remaining makerless assemblies** (guns, clocks, looms, the
+  spinning wheel) → `vocations.md`'s gap matrix; each is rows over
+  `Assembly` + a recipe.
+- **Humidity in seasoning** (today air temperature and rain only) → the
+  climate lane: `SeasoningMixin` reads `airSegmentsFor`; when the weather
+  field carries humidity, the rate reads it there.
+- **The sawmill's water right** → `watershed.md`'s prior-appropriation
+  record; the race row is the attach point. ⚠ Two power takes on one reach
+  double-count today (the sawmill and the grist mill read the same
+  `flowAt(reach)`) — a coarseness of the water seam.
+- **A compartment's admission cost** (`admission:` on the `Chamber` row,
+  free today) → the maritime lane.
+- **Transport conversions** → the maritime/transport lane.
+- **The remaining `_detailMaterialPaths`** not promoted to parts — an
+  audit, row by row.
+- ⚠ **The price ceiling** — every spawned assembly caps its parts' prices
+  (requirements D12): recorded, not countered.
+
+### Code tidies the pre-merge audit recorded
+
+Not defects; each is a shape that would be cleaner:
+
+- `Sawmill` reads the race's `generationW` duck-typed rather than through
+  a narrowing predicate.
+- `SawController` exports a `boardsFrom` helper for its test — fold it
+  into the controller or the row.
+- The build added five more copies (`Cask`, `AssembledChair`, `Lantern`,
+  `Seasoning`, `Assembled`) of the numeric-`AppSetting`-with-fallback
+  `dial` helper ~70 files already carry — one `AppApi` read would serve
+  them all; a codebase sweep, not this tail's.
+- `SmeltController`'s structural casts around the mint's `madeFrom`.
+
+### Findings for other slates (the build's live walks)
+
+Reported, not this build's: the smithy reads dark even with a glowcap
+lit; substring matching takes `s-haft` for a haft; the focus card
+re-shows on every command; `goto` cannot reach an unloaded location; the
+pick-head row is copper; several wire drives never set daylight and read
+"pitch dark" cold on a reset world. The carpentry design questions (what
+`saw` and `carve` ask of a player) are
+[carpentry-slate](../builds/carpentry-slate.md).
+

@@ -1,6 +1,6 @@
 verbs: [name]
 controller: /platform/idea/cmd/social/NameController
-description: "Give an animal a name — and take responsibility for it"
+description: "Give an animal a name — or a reforged blade its new one"
 help: |
   `name <animal> <name>` names it, and that is the moment everything
   changes.
@@ -19,6 +19,11 @@ help: |
   you well, and it must have followed you home at least once. That second
   part cannot be bought with food. The animal adopts you, not the other
   way round.
+
+  ⭐ A THING may be named too, once, by the one who re-made it: a blade
+  that bore a name loses it when it breaks and is reforged, and the smith
+  who reforged it may name it again — `name blade Dawnbreaker`. Nobody
+  else may, and nothing else that is made can be named this way.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -27,7 +32,9 @@ args:
     type: object
     required: true
     scope: ["reachable"]
-    requires: BondedMixin
+    # ⭐ Anything: an animal OR a reforged thing — both arms are checked
+    # in the controller (an alternation here would delete a check).
+    requires: any
   - name: animalName
     type: string
     required: true

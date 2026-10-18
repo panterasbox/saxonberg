@@ -1,0 +1,8 @@
+# The Cobbler's — a city trade's premises (repair D16): the mending of
+# boots and shoes, under the `mayfield-row` district beside the tailor.
+# The MECHANISM — the mend, the band table, the paid service — is the
+# kernel's; this is rows. A second cobbler is a copy of this directory.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Cobbler's
+  cellSize: 3.0
