@@ -644,6 +644,9 @@ importers:
       '@saxonberg/content-trade-ranching':
         specifier: workspace:*
         version: link:../trade-ranching
+      '@saxonberg/content-trade-sericulture':
+        specifier: workspace:*
+        version: link:../trade-sericulture
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -940,6 +943,9 @@ importers:
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
+      '@saxonberg/content-trade-sericulture':
+        specifier: workspace:*
+        version: link:../trade-sericulture
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping

@@ -3,8 +3,6 @@
 # disease the house has never been able to see (the provenance lesson: the
 # house is honest and its eggs are not clean).
 class: /trade/sericulture/thing/EggLot
-# ⚠ Sold by the silk house (silk W5); held until its counter lands.
-unreachable: awaiting:silk-slate
 extends: /trade/sericulture/thing/egg-lot
 data:
   shortDescription: card of valley silkworm eggs

@@ -4,7 +4,7 @@
 class: /platform/thing/Crop
 data:
   shortDescription: armful of mulberry leaves
-  keywords: [leaf, leaves, mulberry, armful]
+  keywords: [leaf, leaves, mulberry, armful, "mulberry leaves", "armful of mulberry leaves"]
   register: indefinite
   longDescription: |
     Broad, glossy leaves stripped from the shoot, still cool from the tree.

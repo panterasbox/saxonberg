@@ -3,8 +3,6 @@
 # within ten minutes and will never scorch however long they are left,
 # which is the whole of its point: a kitchen range stifles them too, but
 # leaves you twenty minutes before it starts burning the silk.
-# ⚠ Reached by the silk house (W5) / the reel (W3); held until then.
-unreachable: awaiting:silk-slate
 class: /platform/thing/Oven
 data:
   shortDescription: stifling oven

@@ -4,7 +4,7 @@
 class: /trade/sericulture/thing/RawSilk
 data:
   shortDescription: skein of raw silk
-  keywords: [skein, silk, "raw silk", "skein of raw silk", thread]
+  keywords: [hank, skein, silk, "raw silk", "skein of raw silk", thread]
   register: indefinite
   longDescription: |
     A hank of thread so fine it is hard to see one strand, stiff and a little harsh, catching the light like wet glass.

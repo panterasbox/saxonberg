@@ -32,6 +32,14 @@ data:
       label: at the loom
       wageRate: 5
       purchases: true
+    # ⭐ The silk seat (silk W5) — paid least, because it is the bottleneck
+    # (the mill's own lesson). `headcount: 2` advertises a place.
+    - key: reeler
+      noun: reeler
+      label: at the basin
+      wageRate: 3
+      purchases: true
+      headcount: 2
   rosterSlots:
     - positionKey: spinner
       assignee: /world/terminus/wharfside/mill/agent/spinner
@@ -51,6 +59,10 @@ data:
         # parks off-shift cast in the venue's Offstage, so the street
         # genuinely empties.
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+    - positionKey: reeler
+      assignee: /world/terminus/wharfside/mill/agent/reeler
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/wharfside/mill/location/floor
@@ -58,3 +70,5 @@ data:
     # ⚠ AFTER the room: index 0 is where the house stands its people.
     # The counter is the one a sale settles at (lint:shopfronts).
     - /trade/textiles/thing/bale-store
+    - /world/terminus/wharfside/mill/thing/crib
+    - /world/terminus/wharfside/mill/thing/silk-stock

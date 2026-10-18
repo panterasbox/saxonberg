@@ -1,0 +1,23 @@
+# The mulberry walk — the silk house's leaf: four pollarded white
+# mulberries cut by hand twice a day in the fifth age, and a kermes oak
+# in the corner for the dyer, because a silk house is where the red dye
+# that silk was worth wearing in came from too.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: mulberry walk
+  keywords: [walk, mulberries, orchard, "mulberry walk"]
+  register: definite
+  _address: terminus/hearts-delight/silk-house/walk
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A short double row of mulberries kept low and wide, pollarded at shoulder height so a hand can strip them standing on the ground. In the corner a dense, prickly little oak grows by itself.
+  coords: { x: -14, y: 3, z: 6 }
+  exits:
+    east:
+      destination: /world/terminus/hearts-delight/silk-house/location/floor
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/silk-house/thing/walk

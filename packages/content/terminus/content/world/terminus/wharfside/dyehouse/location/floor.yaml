@@ -34,5 +34,7 @@ data:
     - /trade/textiles/thing/copper
     - /stuff/thing/brazier
     - { template: /stuff/thing/items/dry-log, count: 3 }
+    # …and water to fill it from: a dyehouse is a wet trade.
+    - /stuff/thing/fixture/water-butt
   cast:
     - /world/terminus/wharfside/dyehouse/agent/dyer

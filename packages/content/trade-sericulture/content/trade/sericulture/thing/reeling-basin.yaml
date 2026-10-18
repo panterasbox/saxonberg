@@ -2,8 +2,6 @@
 # near the simmer over a brazier, a croissure to twist the thread on
 # itself and squeeze out the water, and a big reel turned by a treadle.
 # Twice a hand reel's rate, and `control: fine` — it keeps a thread even.
-# ⚠ Propped at the Wharfside mill (silk W5); held until then.
-unreachable: awaiting:silk-slate
 class: /trade/sericulture/thing/ReelingTool
 data:
   shortDescription: reeling basin

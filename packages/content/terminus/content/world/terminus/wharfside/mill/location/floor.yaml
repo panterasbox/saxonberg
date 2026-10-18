@@ -40,6 +40,13 @@ data:
     - /trade/textiles/thing/spinning-wheel
     - /trade/textiles/thing/hand-loom
     - /trade/textiles/thing/broad-loom
+    # ⭐ The silk side (silk W5): a reeling basin over its own brazier, the
+    # charcoal to light it, the cocoon crib and the silk shelf.
+    - /trade/sericulture/thing/reeling-basin
+    - /stuff/thing/brazier
+    - { template: /trade/fuel/thing/charcoal, count: 2 }
+    - /world/terminus/wharfside/mill/thing/crib
+    - /world/terminus/wharfside/mill/thing/silk-stock
   # ⚠ The way back. The mill sits downstream of the bank on purpose —
   # see the exit on the bank's side for why.
   exits:
@@ -48,3 +55,4 @@ data:
   cast:
     - /world/terminus/wharfside/mill/agent/spinner
     - /world/terminus/wharfside/mill/agent/weaver
+    - /world/terminus/wharfside/mill/agent/reeler
