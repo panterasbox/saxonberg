@@ -41,7 +41,8 @@ export default class StockReading extends Reading {
     const seed = this.seedFor(this.actorOf(ctx), subject, param);
     const parts: Mml[] = [];
     lines.forEach((l, i) => {
-      const fig = this.bracketed(Quantity.of(l.amountKg, 'kg'), band, seed + i * 7.31);
+      const amount = Quantity.of(l.amountKg, 'kg');
+      const fig = this.bracketed(amount, band, seed + i * 7.31);
       parts.push(Mml.compose`${labelOf(l)}: ${fig}${packingNote(l)}`);
     });
     const body = parts.reduce((acc, p) => Mml.compose`${acc}; ${p}`);
