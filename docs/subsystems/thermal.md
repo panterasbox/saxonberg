@@ -869,3 +869,24 @@ passes under it.
   `SmeltController.runIntoCrucible` now restamps the crucible and sets
   both ends of the run to the furnace's heat before the transfer. Which
   path back to *lit* skips `restampHeated` is not traced.
+
+## The bath, and the boil (silk build, 2026-10-18)
+
+- ⭐ **The immersion rung.** `holderK` has a second rung after the shut
+  Coolbox: a body whose immediate holder is a `Bulkable` + `Thermal` +
+  `Container` with interior bulk reads that holder's
+  `getContentsTemperature()`. A bolt in a copper, a wheel in brine, a fish
+  in a keepnet is at the bath's temperature, not the room's air. Any
+  interior bulk counts (there is no cheap phase predicate; a body buried
+  in grain is at the grain's temperature too).
+- ⭐⭐ **The latent-heat plateau for a boiling vessel.**
+  `reconcileBulkPhase` used to flash a vessel's whole interior to steam
+  the instant it reached the boil, so every pot on every fire boiled dry
+  at 100 °C — despite `Material.latentHeatOfVaporization`'s own doc. The
+  heat above the boil now turns liquid to steam at that latent heat and
+  the liquid HOLDS at the boil while it lasts (the boil twin of
+  `reconcileMelt`); a material with no latent heat still flashes.
+- ⚠ Still open: the Newton model is τ = R·C with no burner POWER, so a
+  large vessel on a range heats slowly (30 L takes ~5 game hours to a
+  simmer); the copper is sized at 12 L for it. A power-limited heat
+  transfer is this subsystem's.

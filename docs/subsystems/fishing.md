@@ -390,3 +390,14 @@ pass) · the food web (`Habitat.role`) · the covenant reading
 underwater regime, the spear · fish-specific recipes, skin and bone ·
 the fisher's creel · a river you can fill a bowl from · a room-level
 prose contribution for a prop.
+
+## `reel` has a second instrument (silk build, 2026-10-18)
+
+`reel` stays ONE view, this pack's. With nothing bound it is the fishing
+act, unchanged. Bound to a target answering the `Reelable` shape
+(`src/lib/Reelable.ts` — the kernel's `WorkPrognosis`/`WorkResult`), the
+target plans, `ReelController` (now a `ManualBuildController`) engages,
+and the target completes and names the Discipline to credit — silk off a
+stack of stifled cocoons at a reeling basin ([sericulture.md](./sericulture.md)).
+A bound target that does not reel falls through to the fishing act.
+Bait from silkworm pupae is open: `BAIT_KINDS` is this pack's closed set.
