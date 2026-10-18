@@ -2539,3 +2539,38 @@ player sees that the wire cannot:
 - ⚠ Harness fact for the next walk: a test-clock jump does not run the
   roster tick — a rostered hand clocks on at the next game hour (≈5 real
   minutes), so wait one before asking for her.
+
+### The finalize drives (2026-10-18, runs 18–22)
+
+The sweep satisfied each acceptance criterion by OBSERVING it, and AC 14's
+second half — broken and reforged, the blade loses its name and its
+reforger names it — had only ever been unit-tested. Driving it found two
+defects no test could:
+
+1. ⭐⭐ **`name` was unreachable.** Only `Bonded` afforded it, so beside
+   the very sword its reforger could name, `name sword Brightwater` was
+   *"I don't understand 'name'"* — the controller test was handed a model
+   and skipped the binder (`37d43de52`). `AssembledMixin` affords `name`
+   now (`environment` + `peers`, beside fit/repair/salvage); a made thing
+   that bears no name is refused in the thing's words.
+2. ⭐⭐ **Every restart unnamed every named assembly.** The Hydrator
+   restores `Named.name` through `setName`; a sword whose name lives in
+   its blade saved its own field as `''`, and `Assembled.setName` routed
+   that `''` to the named line and deleted it (`f812066df`). An empty
+   name clears only the host's own field now. ⚠ The old drive-12 check
+   (*Hollin* after a restart) was a FALSE POSITIVE all along — the
+   heirloom row re-spawns in the smithy every boot, named by its bill.
+
+And the drive itself, made honest: drive 9 breaks the blade, waits for
+Berta's forge, works the bellows (the blade wants 1450 K; the forge holds
+1300 unworked), reforges, renames, finds it by the new name; drive 12
+reads *Brightwater* after the restart, after the inventory has answered.
+Drive 3 waits for Berta to light her forge instead of burning one of her
+two baskets (run 20 reached drive 9 with none left to relight with). The
+world settles after drive 6's 21-hour clock jump before drive 7 (`buy
+boots` timed out in runs 16 and 18 while the world caught up a day).
+
+Runs: 18 — 10/13 (the `name` verb); 19 — 12/13 (drive 9 passed; drive 12
+asked before the inventory restored); 20 — 11/13 (cold forge: charcoal);
+21 — 12/13 (drive 12: the restart wiped the name — defect 2); 22 —
+abandoned (a sibling world and load ~20, 1 GB free).
