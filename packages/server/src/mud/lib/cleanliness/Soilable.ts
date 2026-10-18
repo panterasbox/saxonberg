@@ -231,6 +231,12 @@ export interface Soilable {
    * D15). The verb renders the refusal; the thing decides it.
    */
   washRefusal(): string | null;
+  /**
+   * @hook Whether a stain can SET in this thing (blood washed hot). Cloth,
+   * a rug, a board's grain hold a set stain; skin does not — hot water on
+   * bloodied hands washes them. Default `true`.
+   */
+  holdsSetStains(): boolean;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -484,6 +490,10 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       return null;
     }
 
+    public holdsSetStains(): boolean {
+      return true;
+    }
+
     public washSite(spec: WashSpec, site: string = WHOLE_SITE): WashOutcome {
       const removed: Record<string, number> = {};
       const setNow: string[] = [];
@@ -503,7 +513,12 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         const row = dirtRow(kind);
         const setsAt = row?.setsAboveK ?? null;
         // ⭐ Hot water SETS blood before it can lift it (D8).
-        if (setsAt !== null && spec.waterK >= setsAt && !this.isSoilSet(kind, site)) {
+        if (
+          setsAt !== null &&
+          spec.waterK >= setsAt &&
+          this.holdsSetStains() &&
+          !this.isSoilSet(kind, site)
+        ) {
           this.setSoilSet(kind, site, true);
           setNow.push(kind);
         }

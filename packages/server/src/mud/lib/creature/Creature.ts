@@ -365,6 +365,15 @@ export class Creature extends CreatureBase {
   // this class only words what is on the bare skin.
 
   /**
+   * Skin holds no set stain: hot water on bloodied hands washes them (a
+   * bath from the copper is ~330 K, over blood's 318 K set point — it set
+   * the blood on the bather's hands, found by the drive).
+   */
+  public override holdsSetStains(): boolean {
+    return false;
+  }
+
+  /**
    * The soil on the BARE skin, by region — *Your hands are bloodied.* What
    * a garment carries is the garment's line (and the dressed impression's
    * upkeep clause), so only parts nothing covers are spoken for here.

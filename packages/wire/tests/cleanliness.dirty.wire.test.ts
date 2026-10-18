@@ -142,24 +142,28 @@ async function say(s: Session, line: string): Promise<string> {
  * with its first option, a yes/no with yes. ⚠ By KIND — answering an
  * object prompt with `yes` resolves to nothing and wedges the session.
  */
+type PromptBody = {
+  promptId?: string;
+  outcome?: {
+    notes?: {
+      kind?: string;
+      matches?: { stuffId?: string }[];
+      choices?: { response?: string }[];
+    }[];
+  };
+};
+
 function answer(s: Session, prompt: unknown): void {
-  const payload = (prompt as {
-    payload?: {
-      promptId?: string;
-      outcome?: {
-        notes?: {
-          kind?: string;
-          matches?: { stuffId?: string }[];
-          choices?: { response?: string }[];
-        }[];
-      };
-    };
-  }).payload;
-  const id = payload?.promptId;
-  if (!id) return;
-  const note = payload?.outcome?.notes?.find((n) => n.kind?.startsWith('prompt-'));
+  // ⚠ The envelope's body may ride under `payload` or at the top level —
+  // read either, and say so when there is no id at all (a silent return
+  // here left every question in this drive unanswered).
+  const frame = prompt as PromptBody & { payload?: PromptBody };
+  const payload = frame.payload?.promptId ? frame.payload : frame;
+  const id = payload.promptId;
+  const note = payload.outcome?.notes?.find((n) => n.kind?.startsWith('prompt-'));
   // eslint-disable-next-line no-console -- the drive's own record
-  console.log(`  [drive]   prompt: ${note?.kind}`);
+  console.log(`  [drive]   prompt: ${note?.kind ?? JSON.stringify(prompt).slice(0, 200)}`);
+  if (!id) return;
   switch (note?.kind) {
     case 'prompt-mql-object':
       s.answerPrompt(id, note.matches?.[0]?.stuffId ?? '');

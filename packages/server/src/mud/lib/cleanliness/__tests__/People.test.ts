@@ -176,4 +176,13 @@ describe('a bath (D28)', () => {
     expect(body.soilLoad('mud', 'body.leg.left.foot')).toBeLessThan(0.3);
     expect(shirt.getWetness()).toBeGreaterThan(0.5);
   });
+
+  it('⭐ a hot bath does not SET blood on the skin (the drive: bathed from the copper, hands still bloodied)', () => {
+    const body = soilBody();
+    const hand = body.handSites()[0]!;
+    body.soil('blood', 1, null, hand);
+    body.bathe({ waterK: 330, hardnessDgh: 4, cleansers: [SOAP], effort: 2 }, 120);
+    expect(body.isSoilSet('blood', hand)).toBe(false);
+    expect(body.soilLoad('blood', hand)).toBeLessThan(0.3);
+  });
 });
