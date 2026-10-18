@@ -139,6 +139,26 @@ surface, changes `Pool.sink` and the row, nothing else. Floaters simply
 stay in the place (no flotsam-on-the-reach yet); hollow things are not
 modelled.
 
+**Open at the live walk (storage-and-ice, 2026-10-18) — for this design
+to decide, not fixed there.**
+
+- *The bed is LISTED.* `pool-bottom` is an ordinary prop, so the pool's
+  `look` shows "the bottom of the pool" under HERE — in summer and on 7 cm
+  of black ice alike. Whether the bed is seen from the surface (clear
+  water, a sounding, never through ice) is this slate's visibility
+  question; the fix is the row or the pool's listing, not the ice.
+- *A swim through winter ice took a body down in SILENCE.* A cutter swam
+  out at day 0, went on the ice wet for three days, and every act then
+  refused "not conscious enough" while `assess` read "You look unhurt"
+  and the BODY cue "fresh". Cold, most likely (a dry cutter carrying the
+  same load was fine). The drivers are respiration/thermal's, not the
+  ice's — but cold water is this slate's medium, and the missing beat is
+  the player never being told they are going under.
+- *A break-through never heals.* The sheet's "broken where somebody went
+  through" patch still read so after three days of hard frost; a broken
+  patch should regrow like a cut one (the patch walk already does that
+  for `cut`).
+
 **The one gap is hollow things.** A sealed steel vessel floats: its
 effective density is mass over *displaced* volume. `Bulkable` knows a
 vessel's capacity, so displacement is `capacity + shell` for vessels; a
