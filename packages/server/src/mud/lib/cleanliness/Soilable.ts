@@ -200,6 +200,14 @@ export interface Soilable {
   /** Stamp a sterilising heat the act reached (boil, flame, oven hold). */
   recordHeat(peakK: number, heldS: number): void;
   /**
+   * ⭐ HOLD it at a heat (cleanliness D14) — the whole act a boil or a flame
+   * performs on a thing: the heat stamp the tiers read, and on a
+   * Contaminable host the kill law at that heat for that long — a WET heat
+   * (a boil, water activity ≈ 1) or a DRY one (a flame, ≈ 0.3), which is
+   * why spores survive one and not the other.
+   */
+  holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void;
+  /**
    * ⭐ How clean, in the tiers a kitchen, a clinic and a surgery read
    * (cleanliness D14) — derived on read from the band, the last wash and
    * the last heat since the last deposit.
@@ -453,6 +461,16 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         return 'sanitised';
       }
       return 'clean';
+    }
+
+    public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {
+      this.recordHeat(tempK, holdS);
+      const self = this as unknown as Stuff;
+      if (MixinApi.isContaminable(self)) {
+        self.setPathogenLoads(
+          Contamination.killOver(self.getPathogenLoads(), tempK, holdS, opts.wet ? 0.99 : 0.3),
+        );
+      }
     }
 
     public recordHeat(peakK: number, heldS: number): void {

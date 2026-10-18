@@ -25,6 +25,7 @@ import type { Attired } from '../slot/Attired';
 import { SOIL_BANDS } from './Soilable';
 import type { Soilable, WashSpec } from './Soilable';
 import type { SoilSpec } from './SoilSpec';
+import { CleanserUse } from './CleanserUse';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -211,6 +212,9 @@ export function HygieneMixin<
       if (MixinApi.isThermalRegulation(self)) {
         self.exchangeWithWater(spec.waterK, durationS);
       }
+      // ⭐ A bath spends its soap (B12) — the act's, so any controller for
+      // it (or the attendant's paid bath) spends alike.
+      new CleanserUse(spec.cleansers).spend(1);
     }
 
     public doff(

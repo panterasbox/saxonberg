@@ -2814,6 +2814,18 @@ Read first, in this order.
   the dress code and `analyze` read it with no further code. Dressings that
   stay on and are changed → `dressings-slate` (the medic vertical's).
 
+- **B45 — Controllers are input and output** (review: *"I don't like
+  controllers doing things that the stuff items they operate on should be
+  doing themselves"*). This build's own verbs moved their acts onto the
+  objects, each returning an outcome the verb words: `Metabolic.eat`,
+  `Floor.strewWith`, `Floor.sweepInto`, `Flued.sweepChimney`,
+  `Burner.rakeGrate`, `Midden.takeRefuse` (a `Midden` class again — it is
+  the receiver, and `peers` there restores bark's `dispose`, which B43's
+  heap-only affordance dropped), `Soilable.holdAtHeat` (boil = wet heat,
+  flame = dry), `CleanserUse.spend` (one owner; a paid bath now spends the
+  house's soap — the act's, not B28's wash abstraction). The rest of the
+  tree is `controllers-are-io-slate` (132 of 341 controllers mutate).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

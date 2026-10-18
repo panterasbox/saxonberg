@@ -23,16 +23,25 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from './Burner';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
+import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+
+/** Soot a swept flue drops, as a load on the floor per kg (D18). */
+const SOOT_LOAD_PER_KG = 0.8;
 
 export interface Flued {
   /** Soot in the flue, kg. */
   getFlueSoot(): number;
   /** Sweep the flue clean: the soot comes down, kg returned. */
   sweepFlue(): number;
+  /**
+   * ⭐ The whole chimney sweep (cleanliness D18): the soot comes down onto
+   * the room's floor and the sweeper's hands, the room kept.
+   */
+  sweepChimney(sweeper: Stuff): Promise<{ sootKg: number }>;
   /** Is the flue sooted enough to catch? */
   isFlueFoul(): boolean;
 }
@@ -83,6 +92,20 @@ export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
 
     public isFlueFoul(): boolean {
       return this.flueSoot >= dial(AppSettingKeys.fireFlueIgnitesAtKg, 0.5);
+    }
+
+    public async sweepChimney(sweeper: Stuff): Promise<{ sootKg: number }> {
+      const self = this as unknown as Stuff;
+      const soot = this.sweepFlue();
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const floor =
+        room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+      if (floor && MixinApi.isSoilable(floor) && soot > 0) {
+        floor.soil('soot', soot * SOOT_LOAD_PER_KG);
+      }
+      if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
+      await PersistableApi.captureHostOf(self).catch(() => {});
+      return { sootKg: soot };
     }
 
     public sweepFlue(): number {

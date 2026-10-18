@@ -57,6 +57,8 @@ import type Material from '../material/Material';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { PersistableApi } from '../../api/persistable';
+import { ContainmentApi } from '../../api/containment';
 import { BiomeApi } from '../../api/biome';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -159,6 +161,12 @@ export interface Burner extends Pumpable {
   getAshKg(): number;
   /** Rake the grate: the ash's kg, and the grate left clean. */
   takeAsh(): number;
+  /**
+   * ⭐ Rake the grate (cleanliness D24, B40): the ash into the raker's hands,
+   * MADE FROM this burner (so its owner's), ash on the raker's hands, the
+   * room kept. `ash` is `null` when there was hardly any.
+   */
+  rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }>;
   /**
    * What the ash in the grate does to the draught, `(0, 1]` — 1 while the
    * grate is clear. A deep ash bed starves the fire of air from below, so a
@@ -292,6 +300,37 @@ function burnerAugmenter(
 /** At or below this draught a fire reads as banked. */
 const BANKED_LOOK_THRESHOLD = 0.1;
 
+/**
+ * Mint `kg` of a heap row into `holder`'s hands (or at their feet), MADE
+ * FROM `madeFrom` when given — so the fresh-title rule gives it to that
+ * thing's owner (cleanliness B40).
+ */
+async function mintHeapInto(
+  template: string,
+  kg: number,
+  holder: Stuff,
+  madeFrom?: Stuff,
+): Promise<Stuff | null> {
+  try {
+    const heap = await StuffApi.clone<Stuff>(template);
+    if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
+    if (MixinApi.isStackable(heap)) heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
+    else if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(kg, 'kg'));
+    const where = MixinApi.isContainer(holder)
+      ? holder
+      : MixinApi.isContainable(holder)
+        ? holder.getContainer()
+        : null;
+    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
+      ContainmentApi.move(heap, where);
+    }
+    return heap;
+  } catch (err) {
+    console.warn(`'${template}' did not resolve:`, err);
+    return null;
+  }
+}
+
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
@@ -390,6 +429,23 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /** Rake the grate: hand back the ash's kg and leave it clean. */
+    public async rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }> {
+      const self = this as unknown as Stuff;
+      const kg = this.takeAsh();
+      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
+      if (!(kg > 0.01)) return { kg, ash: null };
+      const template = (() => {
+        try {
+          return AppApi.setting(AppSettingKeys.cleanlinessAshTemplate) || '/trade/fuel/thing/wood-ash';
+        } catch {
+          return '/trade/fuel/thing/wood-ash';
+        }
+      })();
+      const ash = await mintHeapInto(template, kg, raker, self);
+      await PersistableApi.captureHostOf(self).catch(() => {});
+      return { kg, ash };
+    }
+
     public takeAsh(): number {
       const kg = this.ashKg;
       this.ashKg = 0;

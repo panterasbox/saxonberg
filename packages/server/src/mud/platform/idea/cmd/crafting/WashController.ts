@@ -27,6 +27,7 @@ import type { MqlManyResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
+import { CleanserUse } from '../../../../lib/cleanliness/CleanserUse';
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
 import { StuffApi } from "../../../../api/stuff";
@@ -173,7 +174,7 @@ export default class WashController extends ManualBuildController<WashModel> {
           const outcome = t.washSite(spec, "");
           lines.push(describeOutcome(t.getPresentation(), outcome, act.self));
         }
-        spendCleansers(cleansers, washable.length);
+        new CleanserUse(cleansers).spend(washable.length);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${lines.join(" ")}`)
@@ -212,7 +213,7 @@ export default class WashController extends ManualBuildController<WashModel> {
           cleansers,
           effort,
         });
-        spendCleansers(cleansers, 1);
+        new CleanserUse(cleansers).spend(1);
         const clean = giver.handCleanliness() >= 0.9;
         const what = gloved ? "gloves" : "hands";
         MessageApi.scene(giver)
@@ -250,11 +251,6 @@ export default class WashController extends ManualBuildController<WashModel> {
    * of soap is soap because it is made of soap; a flask of lye is lye. A
    * named thing that is no cleanser is refused in words.
    */
-  /** Spend what `washes` washes used of each cleanser (B12). */
-  protected static spend(cleansers: WashCleanser[], washes: number): void {
-    spendCleansers(cleansers, washes);
-  }
-
   protected async findCleansers(
     bound: MqlManyResult | undefined,
     catalogue: CleanserCatalogue,
@@ -358,44 +354,6 @@ function withWords(cleansers: WashCleanser[]): string {
   return ` with ${keys.join(" and ")}`;
 }
 
-/**
- * ⭐ A cleanser is SPENT by use: a bar wears down (its mass, by the row's
- * kilograms per wash), a flask of lye is poured out by the litre. A bar
- * worn to nothing is gone.
- */
-function spendCleansers(cleansers: WashCleanser[], washes: number): void {
-  for (const c of cleansers) {
-    const src = c.source;
-    if (!src || src.isDestroyed()) continue;
-    const per = c.row.consumesPerWash * washes;
-    if (!(per > 0)) continue;
-    if (MixinApi.isBulkable(src)) {
-      const slot = BulkableApi.slotFor(src, undefined);
-      if (slot && !slot.isEmpty()) {
-        // ⭐ (cleanliness D22) A volatile cleanser spent in a wash goes into
-        // the room as vapour — naphtha by the hearth is a fire.
-        const m = slot.getMaterial();
-        const room = MixinApi.isContainable(src) ? src.getContainer() : null;
-        const outer = room && room.isAgent() && MixinApi.isContainable(room) ? room.getContainer() : room;
-        if (m && m.getVapourMaterial() && outer && MixinApi.isAtmospheric(outer)) {
-          outer.addAtmosphereContent(m.getVapourMaterial(), Math.min(per, slot.getAmount().rawValue()) * m.getVapourLPerLPerHour());
-        }
-        const left = Math.max(0, slot.getAmount().rawValue() - per);
-        slot.setAmount(Quantity.of(left, "L"));
-        if (left <= 0) {
-          slot.setMaterial(null);
-          slot.setPayload(null);
-        }
-        continue;
-      }
-    }
-    if (MixinApi.isTangible(src)) {
-      const left = src.getMass().rawValue() - per;
-      if (left <= 0.001) void StuffApi.destruct(src);
-      else src.setMass(Quantity.of(left, "kg"));
-    }
-  }
-}
 
 /** The outcome, in words — the only thing the verb decides. */
 function describeOutcome(name: string, o: WashOutcome, verb: string): string {

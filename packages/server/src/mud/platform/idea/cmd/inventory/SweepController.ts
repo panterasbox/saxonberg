@@ -17,18 +17,10 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import { ContainmentApi } from '../../../../api/containment';
-import { PersistableApi } from '../../../../api/persistable';
-import { AppApi } from '../../../../api/app';
-import { AppSettingKeys } from '../../../../lib/config/AppSettings';
-import { Quantity } from '../../../../lib/quantity';
 
 const TOPIC = 'act.deed';
 /** A floor's sweep with a broom; bare hands take three times as long. */
 const SWEEP_MS = 8000;
-/** Soot a swept flue drops, as a load on the floor per kg (D18). */
-const SOOT_LOAD_PER_KG = 0.8;
 
 interface SweepModel extends CommandModel {
   target?: MqlOneResult;
@@ -85,22 +77,17 @@ export default class SweepController extends ManualBuildController<SweepModel> {
    */
   private static async finishFloor(giver: Stuff, floor: Stuff): Promise<void> {
     if (!MixinApi.isFloor(floor)) return;
-    const { kg, kinds } = floor.sweepUp();
-    await PersistableApi.captureHostOf(floor).catch(() => {});
+    // ⭐ The sweep is the floor's (`sweepInto`): this words what it did.
+    const { kinds, heap } = await floor.sweepInto(giver);
     if (giver.isDestroyed()) return;
-    if (!(kg > 0.01)) {
+    if (!heap) {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You sweep, and there is nothing worth the name to take up.`).send();
       return;
     }
-    const heap = await SweepController.mint(floor.getSweepsInto(), kg, giver);
     const what = Object.keys(kinds).slice(0, 3).join(', ');
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(
-        heap
-          ? Mml.compose`You sweep the floor clean${what ? ` of ${what}` : ''}, into ${Mml.thing(heap)}.`
-          : Mml.compose`You sweep the floor clean.`,
-      )
+      .toSelf(Mml.compose`You sweep the floor clean${what ? ` of ${what}` : ''}, into ${Mml.thing(heap)}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the floor.`)
       .send();
   }
@@ -121,94 +108,42 @@ export default class SweepController extends ManualBuildController<SweepModel> {
         ? Mml.compose`You work the brush up into ${Mml.thing(hearth)}'s flue, rod by rod.`
         : Mml.compose`You rake out the grate of ${Mml.thing(hearth)}.`,
       onComplete: () => {
-        void (async () => {
-          if (brush) {
-            const soot = hearth.sweepFlue();
-            const floor =
-              room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
-            if (floor && MixinApi.isSoilable(floor) && soot > 0) {
-              floor.soil('soot', soot * SOOT_LOAD_PER_KG);
-            }
-            if (MixinApi.isHygienic(giver)) giver.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
-            await PersistableApi.captureHostOf(hearth).catch(() => {});
-            MessageApi.scene(giver)
-              .topic(TOPIC)
-              .toSelf(
-                soot > 0.05
-                  ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
-                  : Mml.compose`A little soot comes down. The flue was clean enough.`,
-              )
-              .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the chimney.`)
-              .send();
-            return;
-          }
-          const kg = hearth.takeAsh();
-          if (MixinApi.isHygienic(giver)) giver.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
-          if (!(kg > 0.01)) {
-            MessageApi.scene(giver)
-              .topic(TOPIC)
-              .toSelf(Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`)
-              .send();
-            return;
-          }
-          // ⭐ The ash is MADE FROM the hearth, so it is the hearth owner's (the
-          // shipped fresh-title rule: inputs first, then hands). Raking a
-          // stranger's grate leaves you holding their ash — the taking
-          // case, not a new rule. An untitled hearth falls to your hands.
-          const ash = await SweepController.mint(ashTemplate(), kg, giver, hearth);
-          await PersistableApi.captureHostOf(hearth).catch(() => {});
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(
-              ash
-                ? Mml.compose`You rake the grate out into ${Mml.thing(ash)}.`
-                : Mml.compose`You rake out the grate.`,
-            )
-            .toPeers(Mml.compose`${Mml.actor(giver)} rakes out the grate.`)
-            .send();
-        })();
+        void SweepController.finishHearth(giver, hearth, brush);
       },
     });
   }
 
-  /** Mint `kg` of a heap row into the sweeper's hands (or at their feet). */
-  private static async mint(
-    template: string,
-    kg: number,
-    giver: Stuff,
-    madeFrom?: Stuff,
-  ): Promise<Stuff | null> {
-    try {
-      const heap = await StuffApi.clone<Stuff>(template);
-      if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
-      if (MixinApi.isStackable(heap)) {
-        heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
-      } else if (MixinApi.isTangible(heap)) {
-        heap.setMass(Quantity.of(kg, 'kg'));
-      }
-      const where = MixinApi.isContainer(giver)
-        ? giver
-        : MixinApi.isContainable(giver)
-          ? giver.getContainer()
-          : null;
-      if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
-        ContainmentApi.move(heap, where);
-      }
-      return heap;
-    } catch (err) {
-      console.warn(`SweepController: '${template}' did not resolve:`, err);
-      return null;
+  /** ⚠ STATIC (completions run on a destructed controller). */
+  private static async finishHearth(giver: Stuff, hearth: Stuff, brush: boolean): Promise<void> {
+    if (!MixinApi.isFlued(hearth)) return;
+    if (brush) {
+      // ⭐ The chimney's own act: soot onto the floor and your hands.
+      const { sootKg } = await hearth.sweepChimney(giver);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          sootKg > 0.05
+            ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
+            : Mml.compose`A little soot comes down. The flue was clean enough.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the chimney.`)
+        .send();
+      return;
     }
+    // ⭐ The grate's own act: the ash into your hands, the hearth owner's.
+    const { ash } = await hearth.rakeGrate(giver);
+    if (!ash) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`)
+        .send();
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You rake the grate out into ${Mml.thing(ash)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} rakes out the grate.`)
+      .send();
   }
 }
 
-/** The row a grate's ash is raked into (`cleanliness.ashTemplate`). */
-function ashTemplate(): string {
-  try {
-    const v = AppApi.setting(AppSettingKeys.cleanlinessAshTemplate);
-    if (v) return v;
-  } catch {
-    // fall through
-  }
-  return '/trade/fuel/thing/ash';
-}

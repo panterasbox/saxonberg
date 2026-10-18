@@ -47,6 +47,8 @@
  */
 
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
+import { PersistableApi } from '../../api/persistable';
 import { AppApi } from '../../api/app';
 import { BiomeApi } from '../../api/biome';
 import { AddressApi } from '../../api/address';
@@ -245,6 +247,13 @@ export interface Floor {
    * soil. Returns whether it took.
    */
   strew(materialPath: string, kg: number): boolean;
+  /**
+   * ⭐ Strew a carried `item` over the floor (cleanliness D15) — the whole
+   * act: it must be dry and loose and soak things up (`granular` +
+   * `absorbent`); the floor must take it; the item is used up and the kept
+   * room recorded. The verb only words the outcome.
+   */
+  strewWith(item: Stuff): Promise<{ ok: true; name: string } | { ok: false; reason: 'not-absorbent' | 'floor-refuses' }>;
   /** Take up what is strewn (the sweep does). */
   takeStrewn(): { materialPath: string; kg: number } | null;
   /**
@@ -264,6 +273,12 @@ export interface Floor {
    * kinds by load, for the heap; the floor is that much cleaner.
    */
   sweepUp(): { kg: number; kinds: Record<string, number> };
+  /**
+   * ⭐ The whole sweep (cleanliness D15): take it up, put the heap
+   * (`getSweepsInto`) in the sweeper's hands, keep the room. `heap` is
+   * `null` when there was nothing worth the name.
+   */
+  sweepInto(sweeper: Stuff): Promise<{ kg: number; kinds: Record<string, number>; heap: Stuff | null }>;
   /** The row a sweep heaps what it takes into (`sweepsInto`). */
   getSweepsInto(): string;
   /**
@@ -410,6 +425,37 @@ function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/**
+ * Mint `kg` of a heap row into `holder`'s hands (or at their feet), MADE
+ * FROM `madeFrom` when given — so the fresh-title rule gives it to that
+ * thing's owner (cleanliness B40).
+ */
+async function mintHeapInto(
+  template: string,
+  kg: number,
+  holder: Stuff,
+  madeFrom?: Stuff,
+): Promise<Stuff | null> {
+  try {
+    const heap = await StuffApi.clone<Stuff>(template);
+    if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
+    if (MixinApi.isStackable(heap)) heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
+    else if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(kg, 'kg'));
+    const where = MixinApi.isContainer(holder)
+      ? holder
+      : MixinApi.isContainable(holder)
+        ? holder.getContainer()
+        : null;
+    if (where && MixinApi.isContainer(where) && MixinApi.isContainable(heap)) {
+      ContainmentApi.move(heap, where);
+    }
+    return heap;
+  } catch (err) {
+    console.warn(`'${template}' did not resolve:`, err);
+    return null;
+  }
+}
+
 export function FloorMixin<
   TBase extends MixinConstructor<
     Stuff & Tangible & Slotted & Bulkable & Adornment & Visible
@@ -439,6 +485,16 @@ export function FloorMixin<
 
     public getSweepsInto(): string {
       return this.sweepsInto;
+    }
+
+    public async sweepInto(
+      sweeper: Stuff,
+    ): Promise<{ kg: number; kinds: Record<string, number>; heap: Stuff | null }> {
+      const { kg, kinds } = this.sweepUp();
+      await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => {});
+      if (!(kg > 0.01)) return { kg, kinds, heap: null };
+      const heap = await mintHeapInto(this.getSweepsInto(), kg, sweeper);
+      return { kg, kinds, heap };
     }
 
     public sweepUp(): { kg: number; kinds: Record<string, number> } {
@@ -766,6 +822,23 @@ export function FloorMixin<
           ? { materialPath, kg: prior.kg + kg }
           : { materialPath, kg: (prior?.kg ?? 0) + kg };
       return true;
+    }
+
+    public async strewWith(
+      item: Stuff,
+    ): Promise<{ ok: true; name: string } | { ok: false; reason: 'not-absorbent' | 'floor-refuses' }> {
+      const m = MixinApi.isTangible(item) ? item.getMaterial() : null;
+      if (!m || !m.hasTag('granular') || !m.hasTag('absorbent')) {
+        return { ok: false, reason: 'not-absorbent' };
+      }
+      const kg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 1;
+      if (!this.strew(m.getTemplatePath() ?? '', kg)) return { ok: false, reason: 'floor-refuses' };
+      const name = item.getPresentation();
+      await StuffApi.destruct(item);
+      // ⚠ Not awaited (found by the drive, B35): the act answers now; the
+      // kept room's snapshot lands when it lands.
+      void PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => {});
+      return { ok: true, name };
     }
 
     public takeStrewn(): { materialPath: string; kg: number } | null {

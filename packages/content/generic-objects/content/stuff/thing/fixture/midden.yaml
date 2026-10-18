@@ -2,7 +2,7 @@
 # compost (cleanliness D15, D20). ⭐ The RETURN LEG of the nitrogen ledger:
 # `fill sack from midden`, `feed field with sack`. A bulk holder of compost
 # that `dispose` adds to.
-class: /platform/thing/Receptacle
+class: /platform/thing/Midden
 data:
   shortDescription: midden
   keywords: [midden, heap, dunghill, muck]

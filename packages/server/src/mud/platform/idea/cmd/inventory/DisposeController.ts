@@ -14,19 +14,11 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type Material from '../../../../lib/material/Material';
-import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import { Quantity } from '../../../../lib/quantity';
+import Midden from '../../../thing/Midden';
 
 const TOPIC = 'act.deed';
-/** The compost a heap rots down into. */
-const COMPOST = '/stuff/idea/material/bulk/compost';
-/** Litres of compost per kilogram of heap (it settles). */
-const LITRES_PER_KG = 1.5;
-
 interface DisposeModel extends CommandModel {
   heap?: MqlOneResult;
   midden?: MqlOneResult;
@@ -42,30 +34,19 @@ export default class DisposeController extends CommandController<DisposeModel> {
       context.note({ kind: 'controller-rejected', reason });
     };
     if (!heap) return decline(Mml.compose`Dispose of what?`, 'no-heap');
-    const m = MixinApi.isTangible(heap) ? heap.getMaterial() : null;
-    if (!m || !(m.hasTag('refuse') || m.hasTag('compost'))) {
-      return decline(Mml.compose`${Mml.thing(heap)} is not rubbish.`, 'not-refuse');
-    }
-    if (
-      midden === null ||
-      !MixinApi.isBulkable(midden) ||
-      !(midden.getTemplatePath() ?? '').endsWith('/midden')
-    ) {
+    if (!(midden instanceof Midden)) {
       return decline(Mml.compose`There is no midden here to throw it on.`, 'no-midden');
     }
-    const kg = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 1;
-    const held = midden.getBulkAmount('interior').rawValue();
-    const cap = midden.getBulkCapacity('interior')?.rawValue() ?? Infinity;
-    const litres = Math.min(kg * LITRES_PER_KG, Math.max(0, cap - held));
-    if (!(litres > 0)) return decline(Mml.compose`${Mml.thing(midden)} is heaped as high as it will go.`, 'midden-full');
-    const compost = StuffApi.findByTemplatePath<Material>(COMPOST);
-    if (compost) midden.setBulkMaterial('interior', compost);
-    midden.setBulkAmount('interior', Quantity.of(held + litres, 'L'));
-    const name = heap.getPresentation();
-    await StuffApi.destruct(heap);
+    // ⭐ The act is the midden's: what it takes, how much, and the heap gone.
+    const outcome = await midden.takeRefuse(heap);
+    if (!outcome.ok) {
+      return outcome.reason === 'not-refuse'
+        ? decline(Mml.compose`${Mml.thing(heap)} is not rubbish.`, 'not-refuse')
+        : decline(Mml.compose`${Mml.thing(midden)} is heaped as high as it will go.`, 'midden-full');
+    }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You throw ${name} on ${Mml.thing(midden)}. It will rot down for the field.`)
+      .toSelf(Mml.compose`You throw ${outcome.name} on ${Mml.thing(midden)}. It will rot down for the field.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} throws a heap on ${Mml.thing(midden)}.`)
       .send();
   }

@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B44). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B45). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -140,7 +140,9 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   sweepings, the byre's muck). Verbs: `sweep`/`muck`, `strew`, `dispose`
   (into a midden), `beat` (a rug) — ⭐ each conferred by what PERFORMS it
   (B43): `SweepingTool` (broom, flue brush), `Litter` (rushes), `Heap`
-  (sweepings, muck), never by the place. `survey` reads *the floor is soiled; to
+  (sweepings, muck) and the `Midden` itself, never by the place. ⭐ The acts
+  are the objects' (B45): `Floor.sweepInto` / `strewWith`,
+  `Flued.sweepChimney`, `Burner.rakeGrate`, `Midden.takeRefuse`. `survey` reads *the floor is soiled; to
   scrub it would see to it*.
 - **The stalls** — the ONE calendar accrual: a byre floor row names its
   herd book (`stalls: {herdbook}`) and fouls by head × days, reconciled on
@@ -223,5 +225,6 @@ hut, the shop floor, the lavoir, the bathhouse rooms.
   gases.
 - Airing samples daylight in two-hour steps at the read.
 - Light-strike and pests are sampled once per freshness reconcile.
-- The house's soap is not spent by a paid wash (B28); the copper's fire is
-  the house's abstraction (B30).
+- The house's soap is not spent by a paid wash (B28) — a paid BATH spends
+  it, the bath's own act (B45); the copper's fire is the house's
+  abstraction (B30).

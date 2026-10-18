@@ -60,7 +60,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
-import { Contamination } from '../../../../lib/material/Contaminable';
 
 const TOPIC = 'act.deed';
 const BOIL_MS = 6000;
@@ -277,20 +276,9 @@ export default class BoilController extends ManualBuildController<BoilModel> {
             .send();
           return;
         }
-        // Water boils at its boiling point however hot the fire is.
-        target.recordHeat(DEFAULT_BOIL_K, DISINFECT_HOLD_S);
-        // ⭐ The kill law, held for the boil (spores survive it — the
-        // shipped floor; only a dry heat or a flame past them sterilises).
-        if (MixinApi.isContaminable(target)) {
-          target.setPathogenLoads(
-            Contamination.killOver(
-              target.getPathogenLoads(),
-              DEFAULT_BOIL_K,
-              DISINFECT_HOLD_S,
-              0.99,
-            ),
-          );
-        }
+        // ⭐ The thing's own act (`holdAtHeat`): water boils at its boiling
+        // point however hot the fire is — a WET heat, so spores survive it.
+        target.holdAtHeat(DEFAULT_BOIL_K, DISINFECT_HOLD_S, { wet: true });
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You hold ${Mml.thing(target)} at a rolling boil, then fish it out steaming. Nothing that was living on it is living now.`)

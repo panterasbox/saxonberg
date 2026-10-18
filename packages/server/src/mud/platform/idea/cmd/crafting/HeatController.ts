@@ -23,7 +23,6 @@ import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { Contamination } from '../../../../lib/material/Contaminable';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -143,12 +142,8 @@ export default class HeatController extends ManualBuildController<HeatModel> {
         if (target.isDestroyed() || !MixinApi.isSoilable(target)) return;
         const finalK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
         if (finalK <= 0) return;
-        target.recordHeat(finalK, FLAME_HOLD_S);
-        if (MixinApi.isContaminable(target)) {
-          target.setPathogenLoads(
-            Contamination.killOver(target.getPathogenLoads(), finalK, FLAME_HOLD_S, 0.3),
-          );
-        }
+        // ⭐ The instrument's own act: a DRY heat — past the spores.
+        target.holdAtHeat(finalK, FLAME_HOLD_S, { wet: false });
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(
