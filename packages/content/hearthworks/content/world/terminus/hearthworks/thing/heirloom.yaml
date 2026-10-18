@@ -1,0 +1,29 @@
+# The heirloom (repair D18) — an old sword whose NAME LIVES IN ITS BLADE.
+#
+# ⭐⭐ The bill restates the sword's with a `name:` on the blade part — the
+# found default a spawned thing reads (it is propped, never crafted). So
+# the name is the blade's: re-hilt it and it is still Hollin; draw the
+# blade and the blade is Hollin and the hilt is a hilt; break the blade
+# and reforge it, and the name goes with the old iron — the smith who
+# re-made it may name it once (`name blade <name>`).
+class: /platform/thing/equipment/Weapon
+extends: /stuff/thing/arms/sword
+data:
+  shortDescription: old sword over the hearth
+  keywords: [sword, old, heirloom]
+  register: indefinite
+  longDescription: >
+    An old sword hung on two pegs over the hearth, where the heat has
+    darkened the grip and the smoke has left the blade alone. The blade
+    is older than everything else on it: the grip has been re-wrapped,
+    the guard is newer iron, and the pommel was plainly made by somebody
+    who did not much like the one before. Three hilts, the smith says, and
+    one blade, and the blade is the one with the name.
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/sword-blade, count: 1, role: structural, material: /stuff/idea/material/alloy/steel, form: bladed, name: Hollin }
+      - { part: guard, template: /trade/smithing/thing/crossguard, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: grip, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: pommel, template: /trade/smithing/thing/pommel, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: hilting, method: peened, members: [blade, guard, grip], fastener: pommel }

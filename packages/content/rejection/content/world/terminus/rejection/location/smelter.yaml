@@ -27,6 +27,9 @@ data:
       destination: /world/terminus/rejection/location/fuel-yard
   props:
     - /trade/smelting/thing/furnace
+    # ⭐ The mending slate (repair D19) — a mend is somebody's work, and
+    # here it is the tinker's, at his hour, by this fire.
+    - /world/terminus/rejection/thing/mending-slate
     # ⭐ (dairy D19) The smelt runs molten metal into a crucible standing in
     # the furnace — `put crucible in furnace` first — and the smelter pours
     # it into the mould. ⚠ Propped in the room, not in the furnace: a

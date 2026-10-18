@@ -110,16 +110,17 @@ const ZONE_ROOTS = [
  * reads as having no entrance. Eleven of the thirteen are that: trade
  * venue interiors and locality cellars. The rule still earns its place,
  * because the count may not GROW — a genuinely orphaned new room shows
- * up as a rise — and because the two real findings in the first run
- * (`/world/terminus/market/offstage`, and the `destination-is-a-kind`
- * pair) were both news.
+ * up as a rise — and because the real finding in the first run (the
+ * `destination-is-a-kind` pair) was news. (The market's OFFSTAGE was the
+ * other "finding": an Offstage is unreachable BY ITS INVARIANT, so it is
+ * no longer a node — 13 → 12, repair W5.)
  */
 export const CEILINGS: Readonly<Record<GraphRule, number | null>> = {
   "dangling-destination": null, // an error: no ceiling, ever
   "bidirectional-both-sides": null,
   "published-into-unpublished": null,
   "cross-zone-one-sided": 1,
-  "unreachable-from-entrance": 13,
+  "unreachable-from-entrance": 12,
   "asymmetric-edge": 4,
   "destination-is-a-kind": 2,
 };
@@ -287,6 +288,13 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
       continue;
     }
     if (!isLocationClass(eff.class)) continue;
+    // ⭐ An OFFSTAGE is not a place in the walkable graph: it is a holding
+    // room a roster parks off-shift cast in, and its one invariant is that
+    // NOTHING leads there (`OffstageMixin` — never `Exitable`). Counting
+    // it made every venue with an offstage an "unreachable room" — a
+    // finding by construction (repair W5, 2026-10-17; the market's was the
+    // first, called news in the first run).
+    if (composesMixin(eff.class, "OffstageMixin", packSources())) continue;
     if (isSingletonClass(eff.class)) places.push({ row, data: eff.data });
     else kinds.add(row.path);
   }

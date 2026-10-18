@@ -61,11 +61,14 @@ import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { DyedMixin } from '../../../lib/material/Dyed';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
+import { AssembledMixin } from '../../../lib/craft/Assembled';
 
+// ⭐ Parts or one piece (repair D4): a welted boot is two uppers and two
+// soles a cobbler re-soles; a shirt is one piece. One class.
 const GarmentBase = WearableMixin(
   SlottableMixin(
-    CraftedMixin(
-      DurableMixin(ConstructedMixin(DyedMixin(Good))),
+    AssembledMixin(
+      CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
 );

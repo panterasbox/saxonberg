@@ -13,6 +13,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Whetstone from '../../../../thing/Whetstone';
 import { Construction } from '@saxonberg/server/mud/lib/material/Construction';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
@@ -58,7 +59,7 @@ function boundStone(): { stuff: unknown; raw: string } | undefined {
   return found === undefined ? undefined : { stuff: found, raw: 'whetstone' };
 }
 
-async function sharpen(blade: Weapon): Promise<CommandContext> {
+async function sharpen(blade: Weapon | Tool): Promise<CommandContext> {
   const ctx = makeContext(actor, room, 'sharpen knife');
   const stone = boundStone();
   makeStuff(() => new SharpenController()).execute(
@@ -143,5 +144,41 @@ describe('sharpen', () => {
     await completeStep(SHARPEN_MS);
     expect(blade.getKeenness()).toBeCloseTo(0.4, 9);
     expect(stone.getCondition()).toBe(1);
+  });
+
+  it('⭐ every EDGED TOOL takes a hone — a billhook by its form (repair D3)', async () => {
+    const hook = makeStuff(() => new Tool());
+    hook.setConstruction(Construction.of('bladed'));
+    hook.setMass(Quantity.of(0.6, 'kg'));
+    hook.setKeenness(0.3);
+    ContainmentApi.move(hook, actor);
+    ContainmentApi.move(makeStone(), actor);
+    expect(rejected(await sharpen(hook))).toBe(false);
+    await completeStep(SHARPEN_MS);
+    expect(hook.getKeenness()).toBe(1);
+    // …and a hammer has none.
+    const hammer = makeStuff(() => new Tool());
+    ContainmentApi.move(hammer, actor);
+    expect(rejected(await sharpen(hammer))).toBe(true);
+  });
+
+  it('⭐⭐ a WHOLE hones its edged part — the axe\'s head, not its haft (AC 11)', async () => {
+    const axe = makeStuff(() => new Tool());
+    axe.setMass(Quantity.of(2.4, 'kg'));
+    axe.setBill({
+      parts: [
+        { part: 'head', template: '/x/axe-head', count: 1, role: 'structural', form: 'bladed' },
+        { part: 'helve', template: '/x/helve', count: 1, role: 'structural' },
+      ],
+    });
+    axe.ensureParts();
+    axe.setLineKeenness('head', 0.2);
+    ContainmentApi.move(axe, actor);
+    ContainmentApi.move(makeStone(), actor);
+    expect(axe.getKeennessBand()).toBe('blunted');
+    expect(rejected(await sharpen(axe))).toBe(false);
+    await completeStep(SHARPEN_MS);
+    expect(axe.lineKeenness('head')).toBe(1);
+    expect(axe.getLine('helve')!.keenness).toBeUndefined();
   });
 });

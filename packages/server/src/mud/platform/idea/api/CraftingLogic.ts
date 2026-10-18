@@ -57,8 +57,9 @@ import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BlendPart,
   BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
+import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
-import type { Durable } from '../../../lib/material/Durable';
+import type { Durable, MendRecord } from '../../../lib/material/Durable';
 import type { GradeBand } from '../../../lib/craft/Grade';
 import {
   CompetenceBand,
@@ -78,6 +79,14 @@ import type {
   BuildMintRequest,
   RepairRequest,
   RepairOutcome,
+  RepairSuccess,
+  RepairDeclineReason,
+  MendOutcome,
+  MendTerms,
+  SkippedPart,
+  Fault,
+  DiagnoseRequest,
+  DiagnoseOutcome,
   SalvageRequest,
   SalvageOutcome,
   Landing,
@@ -2362,9 +2371,18 @@ function applyAssembledOutput(
     if (ms.some((m) => MixinApi.isSeasoning(m.stuff) && m.stuff.isCupped())) {
       line.cupped = true;
     }
-    if (MixinApi.isAssembled(first.stuff)) {
+    if (MixinApi.isAssembled(first.stuff) && !first.stuff.isOnePiece()) {
       line.parts = first.stuff.getParts();
       line.joints = first.stuff.getJoints();
+    }
+    // ⭐ What the part carries, it carries in (repair D2): its edge, the
+    // recipe and mould that made it, its mends, and a name it bears. The
+    // bill's found-default name is never read here — a crafted thing is
+    // nameless unless one of its parts already was.
+    if (ms.length === 1) Object.assign(line, carriedState(first.stuff));
+    else {
+      const recipe = MixinApi.isCrafted(first.stuff) ? first.stuff.getRecipe() : '';
+      if (recipe) line.recipe = recipe;
     }
     lines.push(line);
   }
@@ -3208,155 +3226,639 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
 }
 
 /**
- * Repair (DECISION K) — the deficit-priced reverse-craft. Maker from
- * context; the deficit `1 − condition` prices the material cost
- * (`item mass × deficit × crafting.repair.costFactor`, doubled broken);
- * the domain gates by matter — `metal` wants forge-grade reachable heat,
- * soft goods a reachable `mending` tool; stock is drawn from the same
- * gather walk a craft uses (a stack debits partially; a discrete donor is
- * consumed whole only when its mass ≤ 2× the need). On success the
- * condition is restored to full — ceiling-free (gear never obsoletes, it
- * asks for care). Repair never touches keenness; `sharpen` never touches
+ * ⭐⭐ Repair (DECISION K → repair D8, D9) — a mend can be done BADLY.
+ *
+ * Per part, under the trade that made the part (`disciplineOf`), at the
+ * HAND's band in that trade, by {@link MEND_BY_BAND} — derived, never
+ * rolled: two hands of one band mending one part get one result, and an
+ * unpractised hand's mend comes back short and a grade down, and another
+ * one loses another grade (the compounding IS the grade loss).
+ *
+ * The ladder, for a thing of parts: (1) a FAILED metal member is re-made
+ * at its recipe's heat and tools (a reforge — a named part loses its name,
+ * Narsil's rule); a failed wooden or soft one is refused naming the cure;
+ * (2) slack joints are tightened (consuming nothing); (3) a spent cask is
+ * re-fired; (4) every worn line is mended by its own material's
+ * instrument — metal at forge heat, wood with an edge, the rest with a
+ * mending kit — from stock of the same material, then its family. The
+ * whole mends every line it can and reports what it could not; it is a
+ * refusal only when nothing was mended. A thing of ONE piece is one line:
+ * its own fields.
+ *
+ * ⭐ The SAME ladder is the diagnosis (`diagnoseImpl`): run without
+ * committing, it says what each fault is, whether this hand can mend it
+ * here, how it would come back and what it would draw — so the paid
+ * mend's quote and the mend itself can never disagree.
+ *
+ * Stock is drawn from the same gather walk a craft uses (a stack debits
+ * partially; a discrete donor is consumed whole only when its mass ≤ 2×
+ * the need). Repair never touches keenness; `sharpen` never touches
  * condition.
  */
 async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
+  const run = await runMendLadder(req.item, mendHand(req), true);
+  if (!run.ok) return run;
+  const { m, item, assembled, conditionBefore } = run;
+  const mended: MendOutcome[] = [];
+  const skipped: SkippedPart[] = [];
+  for (const f of m.faults) {
+    if (f.mendable) {
+      mended.push({
+        ...(f.part ? { part: f.part } : {}),
+        kind: f.action,
+        discipline: f.discipline,
+        band: f.band,
+        result: f.result ?? 'sound',
+      });
+    } else {
+      skipped.push({
+        part: f.part,
+        reason: f.reason ?? 'insufficient-input',
+        ...(f.detail !== undefined ? { detail: f.detail } : {}),
+      });
+    }
+  }
+  if (mended.length === 0) {
+    const first = skipped[0];
+    if (first) {
+      return {
+        ok: false,
+        reason: first.reason,
+        ...(first.detail !== undefined ? { detail: first.detail } : {}),
+      };
+    }
+    return { ok: false, reason: 'insufficient-input', detail: 'nothing-to-repair' };
+  }
+  consumeItemInputs(m.stock.draws());
+  // The whole is as good as its worst line (weakest link).
+  if (assembled && MixinApi.isAssembled(item) && MixinApi.isGraded(item)) {
+    const lines = item.getParts();
+    const worst = lines.reduce((g, l) => g.min(Grade.of(l.grade)), Grade.of(lines[0]!.grade));
+    item.setGrade(worst);
+  }
+  try {
+    await PersistableApi.captureHostOf(item);
+  } catch (err) {
+    console.warn('CraftingLogic: repair capture failed:', err);
+  }
+  const head = mended[0]!;
+  const rung: RepairSuccess['rung'] = !assembled
+    ? undefined
+    : head.kind === 'mended'
+      ? 'restored'
+      : head.kind;
+  const tightened = m.faults.filter((f) => f.mendable && f.action === 'tightened').map((f) => f.part);
+  return {
+    ok: true,
+    item,
+    conditionBefore,
+    costKg: m.stock.drawnKg(),
+    ...(rung ? { rung } : {}),
+    ...(head.kind === 'tightened' && tightened.length > 0
+      ? { named: GrammarApi.joinList(tightened) }
+      : {}),
+    mended,
+    skipped,
+  };
+}
+
+/**
+ * ⭐ A hand looks a thing over (repair D12) — the ladder, run without
+ * committing anything. Every fault, whether this hand can mend it here,
+ * how it would come back, and the stock it would draw.
+ */
+async function diagnoseImpl(req: DiagnoseRequest): Promise<DiagnoseOutcome> {
+  const hand = req.hand ?? ((ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null);
+  const run = await runMendLadder(req.item, hand, false);
+  if (!run.ok) return run;
+  return { ok: true, item: run.item, hand: run.m.hand, faults: run.m.faults };
+}
+
+/**
+ * ⭐ The hand that does a paid service's work (repair D12, P1): someone on
+ * shift in the room whose seat fulfils the work (any work, when the offer
+ * names no discipline) — but only for the house the OFFER's money goes to,
+ * so a shared room (the lavoir, the bathhouse) never sends another house's
+ * hand. The house's own call rule picks among several. `null` when there
+ * is nobody — which is a refusal in words, never a free service.
+ */
+async function fulfillingHandImpl(
+  giver: Stuff,
+  offer: Stuff & PricedOffer,
+  discipline?: string,
+): Promise<Stuff | null> {
+  const house = await offer.house();
+  if (!house) return null;
+  // ⚠ By PATH, never by object identity: the house the offer resolves and
+  // the house a lookup of the employment's path returns need not be the
+  // same reference (the live drive's first run: Berta on shift, "nobody").
+  const housePath = house.getOrganizationPath();
+  const candidates = presentFulfillers(giver, discipline).filter(
+    (c) =>
+      MixinApi.isEmployed(c) &&
+      c.getActiveEmployments().some((e) => e.organizationPath === housePath),
+  );
+  if (candidates.length === 0) return null;
+  const verdict = house.callFor({ patron: giver, candidates });
+  return verdict.ok ? verdict.chosen : null;
+}
+
+/** The hand a mend is done by: the request's, else whoever is acting. */
+function mendHand(req: RepairRequest): Stuff | null {
   // The engaged repair completes outside the command frame — prefer the
   // live acting author, fall back to the dispatch-captured makerPath
-  // (the BuildMintRequest.makerPath pattern).
-  const maker =
+  // (the BuildMintRequest.makerPath pattern). ⭐ A paid mend names its
+  // HAND: the on-shift smith, whose reach, heat and bands decide.
+  if (req.hand) return req.hand;
+  return (
     ((ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null) ??
-    (req.makerPath
-      ? (StuffApi.findByTemplatePath<Stuff>(req.makerPath) ?? null)
-      : null);
-  if (!maker || !MixinApi.isContainable(maker)) {
-    return { ok: false, reason: 'no-maker' };
-  }
-  const location = maker.getContainer();
-  if (!location) {
-    return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
-  }
-  const item = req.item;
+    (req.makerPath ? (StuffApi.findByTemplatePath<Stuff>(req.makerPath) ?? null) : null)
+  );
+}
+
+/** The ladder, once — committing (a mend) or not (a diagnosis). */
+async function runMendLadder(
+  item: Stuff,
+  hand: Stuff | null,
+  commit: boolean,
+): Promise<
+  | { ok: true; m: MendContext; item: Stuff & Durable; assembled: boolean; conditionBefore: number }
+  | { ok: false; reason: RepairDeclineReason; detail?: string }
+> {
+  if (!hand || !MixinApi.isContainable(hand)) return { ok: false, reason: 'no-maker' };
+  const location = hand.getContainer();
+  if (!location) return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   if (!MixinApi.isDurable(item)) {
     return { ok: false, reason: 'insufficient-input', detail: 'not-durable' };
   }
-  // ⭐⭐ The assembly rungs come FIRST (assembly D6): a slack hoop is not
-  // wear, so a sound cask whose hoops have slipped reads as "nothing to
-  // repair" to the wear rung below — and it weeps all the same.
-  const assembled = MixinApi.isAssembled(item);
-  if (assembled) {
-    const { tools: jointTools } = await gatherMatter(location, maker);
-    const rung = await repairAssemblyRungs(item, maker, jointTools);
-    if (rung) return rung;
-  }
+  const catalogue = await requireCatalogue();
+  const { tools, items } = await gatherMatter(location, hand);
+  const m: MendContext = {
+    hand,
+    handPath: hand.getIdentityPath() ?? '',
+    handName: hand.getPresentation() ?? '',
+    tools,
+    stock: new StockDraw(items, item),
+    catalogue,
+    commit,
+    faults: [],
+  };
   const conditionBefore = item.getCondition();
-  const deficit = 1 - conditionBefore;
-  if (deficit <= EPS) {
-    return {
-      ok: false,
-      reason: 'insufficient-input',
-      detail: 'nothing-to-repair',
-    };
-  }
-  const broken = item.isBroken();
-  const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
-  const metal = material?.hasTag('metal') ?? false;
+  // ⭐ A thing of ONE piece has no rungs — it is mended on its own fields
+  // (repair D8): the found-vs-materialized seam the mixin owns, read once
+  // here at the top of the ladder.
+  const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
+  if (MixinApi.isAssembled(item) && assembled) await mendAssembly(item, m);
+  else await mendOnePiece(item, m);
+  return { ok: true, m, item, assembled, conditionBefore };
+}
 
-  const { tools, items } = await gatherMatter(location, maker);
+/**
+ * ⭐⭐ How well a hand mends, by its band (repair D8) — the requirements'
+ * own numbers, grain, beside {@link RECOVERY_BY_BAND}. `ceiling` is the
+ * condition the hand can bring a part to; `gradeLoss` the bands it costs;
+ * `slackens` that an unpractised hand leaves the joints it touched just
+ * short of tight; `stock` the share of the material a hand needs (a
+ * master wastes less).
+ */
+const MEND_BY_BAND: Record<CompetenceBandName, MendTerms> = {
+  untrained: { ceiling: 0.6, gradeLoss: 1, slackens: true, stock: 1 },
+  novice: { ceiling: 0.75, gradeLoss: 1, slackens: false, stock: 1 },
+  competent: { ceiling: 1, gradeLoss: 0, slackens: false, stock: 1 },
+  proficient: { ceiling: 1, gradeLoss: 0, slackens: false, stock: 0.85 },
+  expert: { ceiling: 1, gradeLoss: 0, slackens: false, stock: 0.7 },
+};
 
-  // The domain gate: forge heat for metal restoration, `mending` for the
-  // soft goods. The whetstone is *sharpening's* tool, never repair's.
-  // The domain instrument (the mender; the anvil for metal — the kinds
-  // whose families confer `repair`) also carries any control floor.
-  let instrument: (Stuff & Tooled) | null = null;
-  if (metal) {
-    const heatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
-    if ((MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < heatK) {
-      return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
-    }
-    instrument = tools.find((t) => t.hasCapability('anvil')) ?? null;
-  } else {
-    const mender = tools.find((t) => t.hasCapability('mending'));
-    if (!mender) {
-      return { ok: false, reason: 'missing-tool', detail: 'mending' };
-    }
-    instrument = mender;
-  }
+/** The band a part with no knowable trade is mended at (repair D1). */
+const UNKNOWN_TRADE_BAND: CompetenceBandName = 'competent';
 
-  // The deficit-priced material cost.
-  const massKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
-  let needKg =
-    massKg * deficit * dial(AppSettingKeys.craftingRepairCostFactor, 0.6);
-  if (broken) needKg *= dial(AppSettingKeys.craftingRepairBrokenFactor, 2);
+/** One mend's working state, threaded through the ladder. */
+interface MendContext {
+  hand: Stuff;
+  handPath: string;
+  handName: string;
+  tools: (Stuff & Tooled)[];
+  stock: StockDraw;
+  catalogue: RecipeCatalogue;
+  /** False for a diagnosis: find every fault, change nothing. */
+  commit: boolean;
+  faults: Fault[];
+}
 
-  const draws: MatchedItemInput[] = [];
-  if (needKg > EPS) {
-    // Same-category stock: `metal` for metal; for soft goods, anything
-    // sharing a tag with the item's own matter (hide mends hide).
-    const wantTags = metal ? ['metal'] : [...(material?.getTags() ?? [])];
-    const donors = items.filter(
-      (i) => i.stuff !== item && wantTags.some((t) => i.material.hasTag(t)),
+/**
+ * The stock a mend draws, shared across every part it mends — so two
+ * lines never both count the same bar. A part's own material first, then
+ * its family (a tag it shares), ⛔ never `organic` (repair P3): hide mends
+ * hide and wood mends wood; nothing mends everything. Nothing is consumed
+ * here — the mend consumes `draws()` once, at the end.
+ */
+class StockDraw {
+  private readonly used = new Map<Stuff, number>();
+  private readonly taken: MatchedItemInput[] = [];
+  private kg = 0;
+
+  constructor(
+    private readonly items: ItemCandidate[],
+    private readonly self: Stuff,
+  ) {}
+
+  /** Draw `needKg` of `material`'s stock, or nothing (returns false). */
+  draw(material: Material | null, needKg: number): boolean {
+    if (needKg <= EPS) return true;
+    const path = material?.getTemplatePath() ?? '';
+    const metal = material?.hasTag('metal') ?? false;
+    const wants = metal ? ['metal'] : (material?.getTags() ?? []).filter((t) => t !== 'organic');
+    const own = (i: ItemCandidate): boolean => !!path && i.material.getTemplatePath() === path;
+    const donors = this.items.filter(
+      (i) => i.stuff !== this.self && (own(i) || wants.some((t) => i.material.hasTag(t))),
     );
-    // Stacks first (partial-mass debits waste nothing).
-    donors.sort((a, b) => Number(b.quantity > 1) - Number(a.quantity > 1));
+    // Its own material first; stacks first (a partial debit wastes nothing).
+    donors.sort(
+      (a, b) =>
+        Number(own(b)) - Number(own(a)) || Number(b.quantity > 1) - Number(a.quantity > 1),
+    );
+    const plan: { donor: ItemCandidate; take: number }[] = [];
     let remaining = needKg;
     for (const donor of donors) {
       if (remaining <= EPS) break;
       if (!MixinApi.isTangible(donor.stuff)) continue;
       const unitKg = donor.stuff.getMass().rawValue();
       if (unitKg <= 0) continue;
+      const left = donor.quantity - (this.used.get(donor.stuff) ?? 0);
+      if (left <= 0) continue;
       if (MixinApi.isStackable(donor.stuff)) {
-        const take = Math.min(donor.quantity, Math.ceil(remaining / unitKg));
-        draws.push({
-          stuff: donor.stuff,
-          count: take,
-          stack: true,
-          grade: donor.grade,
-          material: donor.material,
-        });
+        const take = Math.min(left, Math.ceil(remaining / unitKg));
+        plan.push({ donor, take });
         remaining -= take * unitKg;
-      } else if (unitKg <= 2 * remaining) {
-        // A discrete donor is sacrificed whole — only when the overshoot
-        // is tolerable (≤ 2× the need); else it's not a repair, it's
-        // waste.
-        draws.push({
-          stuff: donor.stuff,
-          count: 1,
-          stack: false,
-          grade: donor.grade,
-          material: donor.material,
-        });
+      } else if (needKg - remaining + unitKg <= 2 * needKg) {
+        // A discrete donor is sacrificed whole — only when what the mend
+        // has drawn IN ALL stays within 2× the need; else it's not a
+        // repair, it's waste. ⚠ Against the WHOLE need, not what is left:
+        // a 0.54 kg mend takes one 0.5 kg ingot and must be able to take a
+        // second (the old per-remainder test refused it — repair drive).
+        plan.push({ donor, take: 1 });
         remaining -= unitKg;
       }
     }
-    if (remaining > EPS) {
-      return {
-        ok: false,
-        reason: 'insufficient-input',
-        detail: metal ? 'metal' : 'stock',
-      };
+    if (remaining > EPS) return false;
+    for (const { donor, take } of plan) {
+      this.used.set(donor.stuff, (this.used.get(donor.stuff) ?? 0) + take);
+      this.taken.push({
+        stuff: donor.stuff,
+        count: take,
+        stack: MixinApi.isStackable(donor.stuff),
+        grade: donor.grade,
+        material: donor.material,
+      });
+    }
+    this.kg += needKg;
+    return true;
+  }
+
+  draws(): MatchedItemInput[] {
+    return this.taken;
+  }
+
+  drawnKg(): number {
+    return this.kg;
+  }
+}
+
+/** The terms a hand mends a part under: its band in the part's trade. */
+async function termsFor(
+  hand: Stuff,
+  discipline: string,
+): Promise<{ band: CompetenceBandName; terms: MendTerms }> {
+  const band = discipline ? await bandIn(hand, discipline) : UNKNOWN_TRADE_BAND;
+  return { band, terms: MEND_BY_BAND[band] };
+}
+
+/**
+ * The instrument a part's material wants (repair D8): metal at forge heat
+ * (the anvil, when it is there, is the control instrument), wood an edge
+ * (a `cutting` tool), anything else a mending kit. A refusal names the cure.
+ */
+function instrumentFor(
+  material: Material | null,
+  m: MendContext,
+  heatK: number,
+):
+  | { ok: true; instrument: (Stuff & Tooled) | null; capability: string }
+  | { ok: false; reason: RepairDeclineReason; detail: string } {
+  if (material?.hasTag('metal')) {
+    const reach = MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0;
+    if (reach < heatK) return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    return {
+      ok: true,
+      instrument: m.tools.find((t) => t.hasCapability('anvil')) ?? null,
+      capability: 'anvil',
+    };
+  }
+  const capability = material?.hasTag('wood') ? 'cutting' : 'mending';
+  const instrument = m.tools.find((t) => t.hasCapability(capability)) ?? null;
+  if (!instrument) return { ok: false, reason: 'missing-tool', detail: capability };
+  return { ok: true, instrument, capability };
+}
+
+/** A part row's unit mass, from its row (the salvage read). */
+async function unitMassOf(template: string, fallbackKg: number): Promise<number> {
+  const tpl = template ? await Template.findByPath(template) : null;
+  const unit = Number((tpl?.data as { mass?: unknown } | undefined)?.mass);
+  return Number.isFinite(unit) && unit > 0 ? unit : fallbackKg;
+}
+
+function materialAtPath(path: string): Material | null {
+  return path ? (StuffApi.findByTemplatePath<Material>(path) ?? null) : null;
+}
+
+function mendRecord(
+  m: MendContext,
+  band: CompetenceBandName,
+  discipline: string,
+  kind: MendRecord['kind'],
+  result: MendRecord['result'],
+  part?: string,
+): MendRecord {
+  return {
+    at: WorldClockApi.getNow().rawValue(),
+    by: m.handPath,
+    byName: m.handName,
+    band,
+    discipline,
+    ...(part ? { part } : {}),
+    kind,
+    result,
+  };
+}
+
+/** A fault this hand cannot mend here, and the cure. */
+function unmendable(
+  part: string,
+  kind: Fault['kind'],
+  action: Fault['action'],
+  named: string,
+  discipline: string,
+  band: string,
+  reason: RepairDeclineReason,
+  detail: string,
+): Fault {
+  return { part, kind, named, action, discipline, band, mendable: false, reason, detail, stockKg: 0 };
+}
+
+/** The whole's ladder: reforge · tighten · re-fire · mend each worn line. */
+async function mendAssembly(
+  item: Stuff & Assembled & Durable,
+  m: MendContext,
+): Promise<void> {
+  item.ensureParts();
+  const cat = await jointCatalogue();
+  const metalHeatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
+  const costFactor = dial(AppSettingKeys.craftingRepairCostFactor, 0.6);
+  const brokenFactor = dial(AppSettingKeys.craftingRepairBrokenFactor, 2);
+  const wholeKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+  const fallbackKg = wholeKg / Math.max(1, item.getParts().length);
+  const stillFailed = new Set<string>();
+  // A line re-made this pass is not mended again in rung (4).
+  const reforged = new Set<string>();
+
+  // (1) ⭐ A FAILED part first: tightening the joints round a split haft is
+  // no repair. Metal is re-made at its recipe's heat; anything else wants
+  // a new part, and the refusal names it.
+  for (const line of item.failedLines()) {
+    const material = materialAtPath(line.material);
+    const discipline = disciplineOf(line, m.catalogue);
+    const { band, terms } = await termsFor(m.hand, discipline);
+    const named = await failedName(item, line, m.hand, cat);
+    if (!material?.hasTag('metal')) {
+      stillFailed.add(line.part);
+      m.faults.push(unmendable(line.part, 'failed', 'reforged', named, discipline, band, 'part-failed', named));
+      continue;
+    }
+    const recipe =
+      (line.recipe ? m.catalogue.getRecipe(line.recipe) : null) ??
+      m.catalogue.recipeFor(line.template);
+    const heatK = recipe?.getRequiresHeatK() || metalHeatK;
+    const how = instrumentFor(material, m, heatK);
+    const missing = (recipe?.getToolCapabilities() ?? []).find(
+      (c) => !m.tools.some((t) => t.hasCapability(c)),
+    );
+    const unit = await unitMassOf(line.template, fallbackKg);
+    const needKg = unit * line.failed * costFactor * brokenFactor * terms.stock;
+    const refusal = !how.ok
+      ? { reason: how.reason, detail: how.detail }
+      : missing
+        ? { reason: 'missing-tool' as const, detail: missing }
+        : !m.stock.draw(material, needKg)
+          ? { reason: 'insufficient-input' as const, detail: 'metal' }
+          : null;
+    if (refusal) {
+      stillFailed.add(line.part);
+      m.faults.push(unmendable(line.part, 'failed', 'reforged', named, discipline, band, refusal.reason, refusal.detail));
+      continue;
+    }
+    const result = terms.ceiling >= 1 - EPS ? 'sound' : 'short';
+    reforged.add(line.part);
+    if (m.commit) {
+      item.mendLine(line.part, {
+        ceiling: terms.ceiling,
+        gradeLoss: terms.gradeLoss,
+        slackens: terms.slackens,
+        reforged: true,
+        record: mendRecord(m, band, discipline, 'reforged', result, line.part),
+      });
+    }
+    m.faults.push({
+      part: line.part, kind: 'failed', named, action: 'reforged', discipline, band,
+      mendable: true, result, stockKg: needKg,
+    });
+  }
+
+  // (2) A slack joint is TIGHTENED — it consumes nothing (a hoop driven
+  // back down). Never round a member that is still failed.
+  for (const j of item.slackJoints()) {
+    if (j.members.some((p) => stillFailed.has(p)) || (j.fastener && stillFailed.has(j.fastener))) continue;
+    const row = await cat.warmed(j.method);
+    if (!row || !row.tightenable) continue;
+    const discipline = row.competence?.discipline ?? '';
+    const band = discipline ? await bandIn(m.hand, discipline) : UNKNOWN_TRADE_BAND;
+    const gate = await jointGate(m.hand, row, m.tools);
+    if (gate) {
+      m.faults.push(unmendable(j.key, 'slack', 'tightened', j.key, discipline, band, gate.reason, gate.detail));
+      continue;
+    }
+    if (m.commit) item.tightenJoint(j.key, m.handPath);
+    m.faults.push({
+      part: j.key, kind: 'slack', named: j.key, action: 'tightened', discipline, band,
+      mendable: true, result: 'sound', stockKg: 0,
+    });
+  }
+
+  // (3) ⭐⭐ A SPENT character (assembly D6, D9, AC 23): a cask that has
+  // given everything is shaved back to clean wood and charred — a fire hot
+  // enough to char, a shaving tool, and the hand of the trade that made
+  // it, read off the vessel's own joints.
+  if (MixinApi.isMaturing(item) && item.isSpent() && stillFailed.size === 0) {
+    const refused = await refireGate(item, m, cat);
+    if (refused) {
+      m.faults.push(unmendable('', 'spent', 'refired', 'the char', '', UNKNOWN_TRADE_BAND, refused.reason, refused.detail));
+    } else {
+      if (m.commit) item.refire();
+      m.faults.push({
+        part: '', kind: 'spent', named: 'the char', action: 'refired', discipline: '',
+        band: UNKNOWN_TRADE_BAND, mendable: true, result: 'sound', stockKg: 0,
+      });
     }
   }
 
-  consumeItemInputs(draws);
-  item.setCondition(1); // ceiling-free — the maintenance relationship
-  // The control floor: work done on a control-bearing instrument never
-  // comes out below its band (floor only — a masterful piece is never
-  // lowered by a fine machine).
-  if (instrument && MixinApi.isGraded(item)) {
-    item.setGrade(
-      applyControlFloor(item.getGrade(), [instrument], [
-        metal ? 'anvil' : 'mending',
-      ]),
-    );
+  // (4) Every worn line, by its own material, under its own trade.
+  for (const line of item.getParts()) {
+    if (line.failed > 0 || reforged.has(line.part) || line.condition >= 1 - EPS) continue;
+    const material = materialAtPath(line.material);
+    const discipline = disciplineOf(line, m.catalogue);
+    const { band, terms } = await termsFor(m.hand, discipline);
+    const how = instrumentFor(material, m, metalHeatK);
+    if (!how.ok) {
+      m.faults.push(unmendable(line.part, 'worn', 'mended', line.part, discipline, band, how.reason, how.detail));
+      continue;
+    }
+    const unit = await unitMassOf(line.template, fallbackKg);
+    const needKg = unit * line.count * (1 - line.condition) * costFactor * terms.stock;
+    if (!m.stock.draw(material, needKg)) {
+      const stock = material?.hasTag('metal') ? 'metal' : (material?.getName() ?? 'stock');
+      m.faults.push(unmendable(line.part, 'worn', 'mended', line.part, discipline, band, 'insufficient-input', stock));
+      continue;
+    }
+    const result = Math.max(line.condition, terms.ceiling) >= 1 - EPS ? 'sound' : 'short';
+    if (m.commit) {
+      item.mendLine(line.part, {
+        ceiling: terms.ceiling,
+        gradeLoss: terms.gradeLoss,
+        slackens: terms.slackens,
+        record: mendRecord(m, band, discipline, 'mended', result, line.part),
+      });
+    }
+    m.faults.push({
+      part: line.part, kind: 'worn', named: line.part, action: 'mended', discipline, band,
+      mendable: true, result, stockKg: needKg,
+    });
   }
-  return {
-    ok: true,
-    item,
-    conditionBefore,
-    costKg: needKg,
-    ...(assembled ? { rung: 'restored' as const } : {}),
-  };
 }
+
+/** A thing of one piece is one line: its own fields (repair D8). */
+async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void> {
+  const before = item.getCondition();
+  if (1 - before <= EPS) return;
+  const broken = item.isBroken();
+  const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
+  const crafted = MixinApi.isCrafted(item);
+  const own = {
+    recipe: crafted ? item.getRecipe() : '',
+    template: item.getTemplatePath() ?? '',
+    castDiscipline: crafted ? item.getCastDiscipline() : '',
+  };
+  const discipline = disciplineOf(own, m.catalogue);
+  const { band, terms } = await termsFor(m.hand, discipline);
+  // ⭐ A BROKEN metal thing is re-made at its recipe's heat (D9), a worn
+  // one at forge heat.
+  const metalHeatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
+  const recipe =
+    (own.recipe ? m.catalogue.getRecipe(own.recipe) : null) ?? m.catalogue.recipeFor(own.template);
+  const reforge = broken && (material?.hasTag('metal') ?? false);
+  const heatK = reforge ? recipe?.getRequiresHeatK() || metalHeatK : metalHeatK;
+  const kind: Fault['kind'] = broken ? 'failed' : 'worn';
+  const action: Fault['action'] = reforge ? 'reforged' : 'mended';
+  const how = instrumentFor(material, m, heatK);
+  if (!how.ok) {
+    m.faults.push(unmendable('', kind, action, 'it', discipline, band, how.reason, how.detail));
+    return;
+  }
+  const massKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+  let needKg =
+    massKg * (1 - before) * dial(AppSettingKeys.craftingRepairCostFactor, 0.6) * terms.stock;
+  if (broken) needKg *= dial(AppSettingKeys.craftingRepairBrokenFactor, 2);
+  if (!m.stock.draw(material, needKg)) {
+    const stock = material?.hasTag('metal') ? 'metal' : 'stock';
+    m.faults.push(unmendable('', kind, action, 'it', discipline, band, 'insufficient-input', stock));
+    return;
+  }
+  const after = Math.max(before, terms.ceiling);
+  const result = after >= 1 - EPS ? 'sound' : 'short';
+  if (m.commit) {
+    item.setCondition(after);
+    if (MixinApi.isGraded(item)) {
+      let grade = item.getGrade();
+      if (terms.gradeLoss > 0) grade = Grade.fromOrdinal(grade.getOrdinal() - terms.gradeLoss);
+      // The control floor: work done on a control-bearing instrument never
+      // comes out below its band (floor only).
+      if (how.instrument) grade = applyControlFloor(grade, [how.instrument], [how.capability]);
+      item.setGrade(grade);
+    }
+    // ⭐ Narsil's rule on a thing of one piece: re-made, it loses its name,
+    // and the mend records which — the reforger's right to name it again
+    // is read off that record (`canBeNamedBy`), never granted.
+    const record = mendRecord(m, band, discipline, action, result);
+    if (reforge && MixinApi.isNamed(item) && item.getName()) {
+      record.nameLost = item.getName();
+      item.setName('');
+    }
+    item.recordMend(record);
+  }
+  m.faults.push({
+    part: '', kind, named: 'it', action, discipline, band, mendable: true, result, stockKg: needKg,
+  });
+}
+
+/**
+ * ⭐ The diagnosis rung (grain): below the joint's band a hand can tell
+ * something is wrong with the SET, not which member.
+ */
+async function failedName(
+  item: Stuff & Assembled,
+  failed: PartLine,
+  hand: Stuff,
+  cat: JointCatalogue,
+): Promise<string> {
+  if (failed.count <= 1) return failed.part;
+  let named = lineNoun(failed, failed.count);
+  for (const j of jointsOf(item, failed.part)) {
+    const row = await cat.warmed(j.method);
+    if (row?.competence) {
+      const band = await bandIn(hand, row.competence.discipline);
+      if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
+        named = `something about the ${lineNoun(failed, failed.count)}`;
+      }
+    }
+  }
+  return named;
+}
+
+/** Can this hand re-fire a spent cask here? `null` when it can. */
+async function refireGate(
+  item: Stuff & Assembled,
+  m: MendContext,
+  cat: JointCatalogue,
+): Promise<{ reason: RepairDeclineReason; detail: string } | null> {
+  const heatK = dial(AppSettingKeys.craftingRefireHeatK, 573);
+  if ((MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0) < heatK) {
+    return { reason: 'insufficient-heat', detail: `${heatK}` };
+  }
+  if (!m.tools.some((t) => t.hasCapability('shaving'))) {
+    return { reason: 'missing-tool', detail: 'shaving' };
+  }
+  for (const j of item.getJoints()) {
+    const row = await cat.warmed(j.method);
+    if (!row?.competence) continue;
+    const band = await bandIn(m.hand, row.competence.discipline);
+    if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
+      return {
+        reason: 'not-skilled',
+        detail: `re-firing wants ${row.competence.band} ${row.competence.discipline}`,
+      };
+    }
+  }
+  return null;
+}
+
 
 /**
  * Salvage (DECISION L) — the one generic lossy melt-down. Flatten the
@@ -3619,96 +4121,6 @@ function lineNoun(l: PartLine, n: number): string {
 }
 
 /**
- * Repair's assembly rungs (assembly D6), before wear: ⭐ a slack joint is
- * TIGHTENED (it consumes nothing — a hoop driven back down), and a failed
- * member is REFUSED with its name, because no repair mends a split haft —
- * fitting a new one does. `null` falls through to the material-priced
- * restore.
- */
-async function repairAssemblyRungs(
-  item: Stuff & Assembled & Durable,
-  maker: Stuff,
-  tools: (Stuff & Tooled)[],
-): Promise<RepairOutcome | null> {
-  item.ensureParts();
-  const cat = await jointCatalogue();
-  const conditionBefore = item.getCondition();
-  // ⭐ A FAILED part first: tightening the joints round a split haft is
-  // no repair — a warped member slackens its joint, and the old order
-  // tightened it and called the pick mended (the assembly drive).
-  const failed = item.failedLines()[0];
-  if (failed) {
-    // ⭐ The diagnosis rung (grain): below the joint's band you can tell
-    // something is wrong with the SET, not which member.
-    let named = failed.part;
-    if (failed.count > 1) {
-      named = lineNoun(failed, failed.count);
-      for (const j of jointsOf(item, failed.part)) {
-        const row = await cat.warmed(j.method);
-        if (row?.competence) {
-          const band = await bandIn(maker, row.competence.discipline);
-          if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
-            named = `something about the ${lineNoun(failed, failed.count)}`;
-          }
-        }
-      }
-    }
-    return { ok: false, reason: 'part-failed', detail: named };
-  }
-  const slack = item.slackJoints();
-  if (slack.length > 0) {
-    const tightened: string[] = [];
-    for (const j of slack) {
-      const row = await cat.warmed(j.method);
-      if (!row || !row.tightenable) continue;
-      const gate = await jointGate(maker, row, tools);
-      if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
-      item.tightenJoint(j.key, maker.getIdentityPath() ?? '');
-      tightened.push(j.key);
-    }
-    if (tightened.length > 0) {
-      return {
-        ok: true,
-        item,
-        conditionBefore,
-        costKg: 0,
-        rung: 'tightened',
-        named: GrammarApi.joinList(tightened),
-      };
-    }
-  }
-  // ⭐⭐ Rung 3 — a SPENT character (assembly D6, D9, AC 23): a cask that
-  // has given everything is shaved back to clean wood and charred. It wants
-  // a fire hot enough to char, a shaving tool, and the hand of the trade
-  // that made it — read off the vessel's own joints, never a Discipline
-  // the kernel names.
-  if (MixinApi.isMaturing(item) && item.isSpent()) {
-    const heatK = dial(AppSettingKeys.craftingRefireHeatK, 573);
-    if ((MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < heatK) {
-      return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
-    }
-    if (!tools.some((t) => t.hasCapability('shaving'))) {
-      return { ok: false, reason: 'missing-tool', detail: 'shaving' };
-    }
-    for (const j of item.getJoints()) {
-      const row = await cat.warmed(j.method);
-      if (!row?.competence) continue;
-      const band = await bandIn(maker, row.competence.discipline);
-      if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
-        return {
-          ok: false,
-          reason: 'not-skilled',
-          detail: `re-firing wants ${row.competence.band} ${row.competence.discipline}`,
-        };
-      }
-    }
-    item.refire();
-    return { ok: true, item, conditionBefore, costKg: 0, rung: 'refired' };
-  }
-  return null;
-}
-
-/**
  * ⭐⭐ Fit (assembly D5). The raise arm is an ordinary craft — its mint keeps
  * the parts' identity — after every joint the kind's bill names has been
  * gated. The replace arm amends one line of a whole.
@@ -3757,6 +4169,9 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (!MixinApi.isAssembled(whole)) {
     return { ok: false, reason: 'no-line', detail: 'not-an-assembly' };
   }
+  // ⭐ The mixin's own answer (repair D4): a thing with no bill is ONE
+  // piece, and there is no line in it to fit anything to.
+  if (whole.isOnePiece()) return { ok: false, reason: 'no-line', detail: 'one-piece' };
   whole.ensureParts();
   const tplPath = part.getTemplatePath() ?? '';
   // ⭐ A part fits a line when it is the same KIND of thing: the same row,
@@ -3809,9 +4224,14 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const green = MixinApi.isSeasoning(part) && part.isGreen();
   const cupped = MixinApi.isSeasoning(part) && part.isCupped();
   const nested =
-    MixinApi.isAssembled(part)
+    MixinApi.isAssembled(part) && !part.isOnePiece()
       ? { parts: part.getParts(), joints: part.getJoints() }
       : null;
+  // ⭐ The part's own state rides in (repair D2): a worn haft fitted is a
+  // worn haft in the whole, a honed head keeps its edge, a named blade
+  // keeps its name. Never forced sound.
+  const carried = carriedState(part);
+  const partCondition = MixinApi.isDurable(part) ? part.getCondition() : undefined;
   const makerId = maker.getIdentityPath() ?? '';
   consumeItemInputs([
     {
@@ -3830,6 +4250,8 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     ...(cupped ? { cupped } : {}),
     maker: makerId,
     ...(nested ? nested : {}),
+    ...(partCondition !== undefined ? { condition: partCondition } : {}),
+    ...carried,
   });
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
@@ -3879,8 +4301,72 @@ async function mintMember(
   if (MixinApi.isDurable(out)) out.setCondition(line.condition);
   if (line.form && MixinApi.isConstructed(out)) out.setConstructionForm(line.form);
   if (line.parts && MixinApi.isAssembled(out)) out.recordAssembly(line.parts, line.joints ?? []);
+  // ⭐ …and what the line carried goes out with the part (repair D2): a
+  // worn part removed is still worn, a keen edge still keen, a named blade
+  // still named, its mends still its own. Only a count-1 line is one part.
+  if (line.count === 1) {
+    if (line.keenness !== undefined && MixinApi.isKeen(out)) out.setKeenness(line.keenness);
+    if (line.mends && MixinApi.isDurable(out)) {
+      for (const m of line.mends) out.recordMend(m);
+    }
+    if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
+    if (MixinApi.isCrafted(out)) {
+      if (line.recipe) out.setRecipe(line.recipe);
+      if (line.castDiscipline) out.setCastDiscipline(line.castDiscipline);
+    }
+  }
   if (MixinApi.isStackable(out)) out.setQuantity(n);
   return out;
+}
+
+/**
+ * ⭐ What a loose part carries into a line (repair D2) — its edge, its
+ * name, its mends, and the recipe and mould that made it. The
+ * same fields `mintMember` writes back out, read off the part's own
+ * mixins; absent ones are left absent.
+ */
+function carriedState(part: Stuff): Partial<PartLine> {
+  const out: Partial<PartLine> = {};
+  if (MixinApi.isKeen(part) && !(MixinApi.isAssembled(part) && part.edgedLines().length > 0)) {
+    const k = part.getKeenness();
+    if (k < 1) out.keenness = k;
+  }
+  // A loose part's own `Named` name. A part of parts keeps its name on
+  // its own named line, which rides in with `parts`.
+  if (MixinApi.isNamed(part) && !(MixinApi.isAssembled(part) && !part.isOnePiece())) {
+    const name = part.getName();
+    if (name) out.name = name;
+  }
+  if (MixinApi.isDurable(part)) {
+    const mends = part.getMends();
+    if (mends.length > 0) out.mends = mends;
+  }
+  if (MixinApi.isCrafted(part)) {
+    const recipe = part.getRecipe();
+    if (recipe) out.recipe = recipe;
+    const cast = part.getCastDiscipline();
+    if (cast) out.castDiscipline = cast;
+  }
+  return out;
+}
+
+/**
+ * ⭐⭐ The trade a line is mended under (repair D1) — derived, in three
+ * reads, all load-on-use: the recipe that made the member, else the recipe
+ * that makes its row (a found thing, a stocked pick), else the trade of
+ * the mould it was cast in. `''` when nothing can be known — a found
+ * stone, a part no recipe makes — and such a line is mended as if by a
+ * competent hand, since nothing better or worse can be known about it.
+ */
+function disciplineOf(
+  line: Pick<PartLine, 'recipe' | 'template' | 'castDiscipline'>,
+  catalogue: RecipeCatalogue,
+): string {
+  const made = line.recipe ? catalogue.getRecipe(line.recipe) : null;
+  if (made?.getDiscipline()) return made.getDiscipline();
+  const byRow = line.template ? catalogue.recipeFor(line.template) : null;
+  if (byRow?.getDiscipline()) return byRow.getDiscipline();
+  return line.castDiscipline ?? '';
 }
 
 /**
@@ -4018,6 +4504,22 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async repair(request: RepairRequest): Promise<RepairOutcome> {
     return repairImpl(request);
+  }
+
+  /** See {@link CraftingApi.fulfillingHand}. */
+  @CallSecurity(CraftingApiCallers)
+  public async fulfillingHand(
+    giver: Stuff,
+    offer: Stuff & PricedOffer,
+    discipline?: string,
+  ): Promise<Stuff | null> {
+    return fulfillingHandImpl(giver, offer, discipline);
+  }
+
+  /** See {@link CraftingApi.diagnose}. */
+  @CallSecurity(CraftingApiCallers)
+  public async diagnose(request: DiagnoseRequest): Promise<DiagnoseOutcome> {
+    return diagnoseImpl(request);
   }
 
   /** See {@link CraftingApi.salvage}. */

@@ -10,7 +10,7 @@
 # competence). That is the by-hand rung making the hand-tool rung's
 # tools (assembly AC 21) — the knife carves the handle, the handle and
 # the blade are a froe, the froe rives the next blank.
-class: /platform/thing/AssembledTool
+class: /platform/thing/Tool
 data:
   keywords: [froe, frow, riving-knife, "riving knife"]
   shortDescription: froe
@@ -25,7 +25,7 @@ data:
   _materialPath: /stuff/idea/material/element/iron
   bill:
     parts:
-      - { part: blade, template: /trade/smithing/thing/froe-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: blade, template: /trade/smithing/thing/froe-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron, form: bladed }
       - { part: handle, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
       - { key: hafting, method: wedged, members: [blade, handle] }

@@ -31,6 +31,7 @@
     "@saxonberg/content-trade-dyeing": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-fishing": "workspace:*",
+    "@saxonberg/content-trade-forestry": "workspace:*",
     "@saxonberg/content-trade-haulage": "workspace:*",
     "@saxonberg/content-trade-malting": "workspace:*",
     "@saxonberg/content-trade-medicine": "workspace:*",

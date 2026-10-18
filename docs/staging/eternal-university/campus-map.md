@@ -92,7 +92,7 @@ the hour). Optional terminal #3.
 
 ## Prose method (for the rest)
 
-**Pull → polish → adapt.** Grep the road name in `docs/eternal/room*.c`, read
+**Pull → polish → adapt.** Grep the road name in `~/play/eotl/mudlib/zone/null/eternal/room*.c`, read
 the originals, **keep the aesthetic, improve the language, adapt the
 endpoints** to the campus (gate/terminal, the Quad instead of EC's Heart, the
 sourceless sky over the EC ground-finish). Never invent the finish — it comes

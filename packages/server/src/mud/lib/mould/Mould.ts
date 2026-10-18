@@ -426,6 +426,9 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
     const maker = p?.maker || mouldMaker;
     if (maker) cast.setMaker(maker);
     if (MixinApi.isGraded(mould)) cast.setGrade(mould.getGrade());
+    // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the
+    // pourer's — so a cast part is mended under the trade that cast it.
+    cast.setCastDiscipline(MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '');
   }
   if (p?.freshness && MixinApi.isFresh(cast)) {
     cast.setMicrobialLoad(p.freshness.load);

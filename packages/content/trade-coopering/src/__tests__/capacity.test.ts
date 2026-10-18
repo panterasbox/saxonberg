@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import CapacityReading from '../idea/reading/CapacityReading';
 import { driveMeasure, instrumentWith } from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
 import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
-import Cask from '@saxonberg/server/mud/platform/thing/Cask';
+import Vat from '@saxonberg/server/mud/platform/thing/Vat';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -51,12 +51,12 @@ function gov(over: Partial<GovernmentDescriptor> = {}): GovernmentDescriptor {
   };
 }
 
-async function gauge(litres: number, seated: boolean, polity = gov()): Promise<{ text: string; cask: Cask }> {
+async function gauge(litres: number, seated: boolean, polity = gov()): Promise<{ text: string; cask: Vat }> {
   const cellar = makeStuff(() => new Cellar());
   cellar.setAddress('/testtown/cellar');
   const who = makeStuff(() => new Person());
   ContainmentApi.move(who, cellar);
-  const cask = makeStuff(() => new Cask());
+  const cask = makeStuff(() => new Vat());
   cask.setInteriorCapacity(Quantity.of(litres, 'L'));
   ContainmentApi.move(cask, cellar);
   vi.spyOn(GovernmentApi, 'subjectTo').mockResolvedValue([polity]);

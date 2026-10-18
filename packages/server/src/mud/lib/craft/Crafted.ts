@@ -89,6 +89,9 @@ export interface Crafted extends Graded {
   setRecipe(value: string): void;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
+  /** The trade of the mould it set in, when it was cast (`''` otherwise). */
+  getCastDiscipline(): string;
+  setCastDiscipline(value: string): void;
   setCraftedAt(value: number): void;
   /** Stamp all four marks at once (the one mutator CraftingLogic calls). */
   stamp(spec: CraftedStamp): void;
@@ -114,6 +117,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       maker: { persistent: true, runtimeState: true },
       recipe: { persistent: true, runtimeState: true },
       craftedAt: { persistent: true, runtimeState: true },
+      castDiscipline: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -128,6 +132,14 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Game-clock seconds of the craft; 0 until stamped.
      */
     public craftedAt: number = 0;
+    /**
+     * ⭐ The trade of the MOULD this thing set in, when it was cast rather
+     * than made by a recipe (repair D1's third read). A value, not a mark
+     * pointing at the mould: a consumed mould is gone after the cast. `''`
+     * for everything a recipe made, or nothing made. Written only at the
+     * cast; read by a mend to know which trade mends it.
+     */
+    public castDiscipline: string = '';
 
     getMaker(): string {
       return this.maker;
@@ -141,6 +153,13 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
     setRecipe(value: string): void {
       this.recipe = value;
+    }
+
+    getCastDiscipline(): string {
+      return this.castDiscipline;
+    }
+    setCastDiscipline(value: string): void {
+      this.castDiscipline = value;
     }
 
     getCraftedAt(): number {

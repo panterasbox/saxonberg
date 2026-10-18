@@ -69,6 +69,10 @@ narrowing on the clone:
   which a fill into an empty mould carries in);
 - the mould's grade → the cast's grade (a scalded vat's `poor` rides into
   the wheel);
+- ⭐ the mould's `discipline` → `Crafted.castDiscipline` (repair D1,
+  2026-10-17): the cast remembers WHICH TRADE its mould is, because that
+  is the trade that mends it — the pour credits the pourer and forgets,
+  and a consumed mould is gone after the cast, so it rides as a value;
 - `freshness` → `Fresh.setMicrobialLoad`; `pathogens` → `Contaminable`;
 - a drain set's moisture → `WaterActive.setWaterState`;
 - `madeFrom` (the material a maturing batch was made from — maturation's

@@ -1,0 +1,15 @@
+# A boot's SOLE (repair D16) — cut from bend leather and shaped over the
+# last, so a cobbler can make what a re-soling wants rather than only fit
+# what somebody else made. `sew sole` with a needle at hand: tailoring's
+# verb runs it, and the sole credits the trade that made it, leatherwork.
+recipeId: sole
+name: Leather Sole
+keywords: [sole, soles]
+inputSlots:
+  - { slot: stock, category: leather, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [mending]
+outputTemplate: /trade/tanning/thing/sole
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: leatherwork

@@ -1,4 +1,4 @@
-class: /platform/thing/equipment/AssembledGarment
+class: /platform/thing/equipment/Garment
 data:
   shortDescription: pair of stout leather boots
   keywords: [boots, "leather boots", pair, stout, leather]

@@ -190,8 +190,21 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     );
     expect(rejected(repairCtx)).toBe(false);
     await completeStep(6000); // repair is an engaged act (REPAIR_MS)
-    expect(knife.getCondition()).toBe(1); // sound again
+    // ⭐ How well it comes back is the HAND's (repair D8): one knife made
+    // is a novice smith, whose mend is serviceable but short of sound.
+    expect(knife.getCondition()).toBeCloseTo(0.75, 9);
     expect(scrap.getQuantity()).toBeLessThan(10); // the material cost
+    // A competent smith brings it back sound.
+    vi.spyOn(smith, 'competenceBandFor').mockResolvedValue('competent');
+    const again = makeContext(smith, room, 'repair knife');
+    await executeAs(smith, () =>
+      makeStuff(() => new RepairController()).execute(
+        { item: ref(knife, 'knife'), kit: many(anvil) } as never,
+        again,
+      ),
+    );
+    await completeStep(6000);
+    expect(knife.getCondition()).toBe(1); // sound again
 
     // 7. Salvage yields LESS metal than the ingot that made it — the
     // entropy sink closes the loop.

@@ -2,11 +2,18 @@ verbs: [repair, mend]
 controller: /platform/idea/cmd/crafting/RepairController
 description: "Repair a worn or broken durable good"
 help: |
-  Restore a worn good — `repair knife`. The cost is material, priced by
-  the damage (a broken good costs double): metal work wants a hot forge
-  and metal stock in reach; soft goods want a mending kit and same-kind
-  stock. Restores fully — gear never obsoletes, it asks for care.
-  Repair fixes STRUCTURE; a dull edge just needs `sharpen`.
+  Mend a worn or broken good — `repair pick`. Each part is mended by the
+  trade that made it, and HOW WELL it comes back is your hand's: an
+  unpractised hand leaves a part serviceable but short of sound, and a
+  grade the worse for it (and again the next time); a practised hand
+  brings it back sound and wastes less stock. Nothing is left to chance —
+  the same hand gets the same result. Iron wants a fire hot enough to
+  work it (a broken part, the heat it was forged at), wood an edge, soft
+  goods a mending kit, and every part stock of its own kind. A thing of
+  parts mends every part it can and tells you what the rest want. A split
+  haft is not mended — fit a new one. A dull edge just needs `sharpen`.
+  Who mended a thing, and how well, is on it: `look`, and the appraiser's
+  `analyze condition`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -18,13 +25,13 @@ args:
     scope: "reachable"
     requires: DurableMixin
   # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:instrument-args`).
-  # Mending kit or an anvil both serve; bare, the binder hands over every
-  # reachable thing offering either and the controller takes the
-  # best-rated, kit before anvil.
+  # A mending kit, an anvil or an edge (wood is mended with a cutting
+  # tool) all serve; bare, the binder hands over every reachable thing
+  # offering any and the controller takes the best-rated, kit first.
   - name: kit
     type: objects
     required: false
     prepositions: [with, at, on]
-    default: "reachable:[capability.mending or capability.anvil]"
+    default: "reachable:[capability.mending or capability.anvil or capability.cutting]"
     scope: ["reachable"]
     requires: [ToolMixin]

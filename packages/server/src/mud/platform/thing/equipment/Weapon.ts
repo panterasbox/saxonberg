@@ -32,6 +32,8 @@ import Good from '../../../lib/stuff/Good';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { KeenMixin } from '../../../lib/material/Keen';
+import { AssembledMixin } from '../../../lib/craft/Assembled';
+import { NamedMixin } from '../../../lib/description/Named';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
@@ -73,10 +75,20 @@ import type { FieldMeta } from '../../../lib/mixin';
 // affordance of an edge (the verb, gated on `constructionForm: bladed`, so
 // any blade still opens a carcass), while **carrying** is a property of food
 // equipment. A blade does the cutting; it is not food kit.
+//
+// ⭐ Assembled INSIDE Keen (repair D3, D4): a sword is a blade, a guard, a
+// grip and a pommel, a dagger is one piece, and both are weapons. Keen
+// reads outward to the edged lines of a whole, so it sits outside.
+//
+// ⭐ Named BENEATH Assembled (repair D18): a weapon may bear a proper name
+// (*Hollin*), and a sword's lives in its blade — `Assembled.getName` reads
+// the named part before this field, so a re-hilted sword answers to it.
 const WeaponBase = WieldableMixin(
   SlottableMixin(
     KeenMixin(
-      CraftedMixin(DurableMixin(ConstructedMixin(Good))),
+      AssembledMixin(
+        NamedMixin(CraftedMixin(DurableMixin(ConstructedMixin(Good)))),
+      ),
     ),
   ),
 );

@@ -93,7 +93,7 @@ See also:
   obvious-fabrication stance is a design-philosophy-level claim** that
   should be elevated there as a principle (see open questions). And the
   vertical-neutral engine thesis it serves.
-- [docs/eternal/](../../staging/eternal-university/) — the **legacy Eternal City LPC source**:
+- [the EotL Eternal City source (`~/play/eotl/mudlib/zone/null/eternal/`)](../../staging/eternal-university/) — the **legacy Eternal City LPC source**:
   the mood-board. Borrow its *spirit* (named roads, material paving, the
   service-as-place pattern, the Guide wristcomp), **not** its prose verbatim.
 
@@ -376,7 +376,7 @@ The legacy descriptors are the **source to *update*, not replace** — we
 modernization, *not* a from-scratch rewrite — don't lose the feel). The
 roads come **from EC, names kept**: the real **Eternal Way / Tanelorn Road /
 Silver Street / Limbo Lane / Glass Way / Infinity Way / Dimension Drive /
-Old Road / Dark Alley** (per the legacy source + `docs/eternal/MAP.TXT`),
+Old Road / Dark Alley** (per the legacy source + `~/play/eotl/mudlib/zone/null/eternal/MAP.TXT`),
 each with its **original prose polished**, not invented. Keep the *spirit*:
 material specificity, day/night atmospheric layering, readable sign/object
 detail, and the **Guide wristcomp** — a carried object that gated

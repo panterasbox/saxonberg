@@ -1,0 +1,21 @@
+# Iron offcuts (repair, the browser walk) — what a smith mends a worn
+# edge or head from: the croppings off bar ends and the trimmings of
+# forgings, kept by weight in a box under the bench.
+#
+# ⭐ Not a bar: a mend that wants a quarter of a kilo must not burn a
+# half-kilo ingot (the whole-need bound refuses it), and a smith never did
+# — she drew a scrap down. Any metal serves a metal mend (the stock draw
+# reads the `metal` tag), so iron offcuts mend a steel blade too. The
+# leather offcuts are the cobbler's same answer.
+class: /platform/thing/Scrap
+data:
+  shortDescription: box of iron offcuts
+  keywords: [offcuts, iron, scraps, croppings, "iron offcuts"]
+  register: indefinite
+  longDescription: >-
+    A low iron-bound box of bar ends and forging croppings, black with
+    scale, the short pieces a smith keeps because a short piece is what a
+    mend wants.
+  mass: 0.1
+  quantity: 30
+  _materialPath: /stuff/idea/material/element/iron

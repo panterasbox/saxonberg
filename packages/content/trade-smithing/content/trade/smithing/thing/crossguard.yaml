@@ -1,0 +1,13 @@
+# A sword's GUARD (repair D17): a bar of iron slotted for the tang, set
+# hard against the shoulders of the blade.
+class: /platform/thing/Tool
+data:
+  keywords: [guard, crossguard, cross-guard]
+  shortDescription: crossguard
+  register: indefinite
+  longDescription: >-
+    A short straight bar of iron, thicker at the middle where a slot is
+    cut through it for a tang, the ends filed round.
+  mass: 0.12
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

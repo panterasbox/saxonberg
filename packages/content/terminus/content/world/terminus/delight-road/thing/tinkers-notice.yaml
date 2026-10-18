@@ -1,0 +1,17 @@
+# The tinker's notice (repair D15, AC 8) — the round, readable at the
+# crossroads: where he will be, and when. `read notice`.
+class: /platform/thing/Signpost
+data:
+  shortDescription: tinker's notice
+  keywords: [notice, tinker, "tinker's", round, board]
+  register: indefinite
+  longDescription: >-
+    A board nailed to the fingerpost at head height, painted over and
+    lettered again more than once.
+  markText: >-
+    MENDING — Abel Thorne, tinker. Yard by the bank at six. Here at eight.
+    The valley gate at ten. Here again at noon. The Rejection smelter at
+    two, where there is a fire: iron mended there. Edges ground anywhere.
+  markForm: inked
+  mass: 2
+  _materialPath: /stuff/idea/material/wood/pine

@@ -86,7 +86,11 @@ export class CraftingDecline {
         if (detail === 'not-raised-from-parts') {
           return "That isn't raised from parts — it's made another way (forged, carved, riven), not fitted.";
         }
-        if (detail === 'not-an-assembly') {
+        if (detail === 'one-piece') {
+          // ⭐ Repair D4 — a monolith is a thing of one piece, and says so.
+          return 'It is one piece — there is nothing in it to fit anything to.';
+        }
+                if (detail === 'not-an-assembly') {
           return "That isn't made of parts — there's nothing in it to fit anything to.";
         }
         return detail

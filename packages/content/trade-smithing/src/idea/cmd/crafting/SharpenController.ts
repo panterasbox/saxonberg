@@ -54,15 +54,9 @@ export default class SharpenController extends ManualBuildController<SharpenMode
       );
       return;
     }
-    // An edge to hold: Keen + an edge/point delivery form.
-    const channel =
-      MixinApi.isConstructed(blade) && blade.getConstruction()?.isWeapon()
-        ? blade.getConstruction()!.primaryChannel()
-        : null;
-    if (
-      !MixinApi.isKeen(blade) ||
-      (channel !== 'edge' && channel !== 'point')
-    ) {
+    // ⭐ An edge to hold — its own, or a part's (repair D3): the blade
+    // knows. A whole hones its edged parts (Keen routes to them).
+    if (!MixinApi.isKeen(blade) || !blade.hasEdge()) {
       this.declineStep(
         context,
         Mml.compose`${Mml.thing(blade)} has no edge to hold a hone.`,
