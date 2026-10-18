@@ -1,6 +1,6 @@
 # An icehouse book — where the house writes what it holds for whom
 # (storage-and-ice D22). A venue's book extends this row and names its
-# stack (`storePath`). It affords `deposit` and `withdraw`.
+# stack (`storePath`). It affords `store` (deposit · withdraw · receipts).
 class: /platform/thing/StoreBook
 data:
   shortDescription: icehouse book

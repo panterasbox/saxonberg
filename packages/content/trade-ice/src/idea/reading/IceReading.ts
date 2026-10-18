@@ -17,14 +17,19 @@ import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/Competence
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
 import type { IceRecord } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 
-/** What the sheet would bear, in words. */
+/**
+ * What the sheet would bear, in words — the same rule of thumb the help
+ * and the catalogue state (bearing ∝ h²: ~6 cm a person, 14 a horse of
+ * ~490 kg, 20 a loaded cart).
+ */
 function bearsWords(kg: number): string {
   if (kg >= 1000) return 'a loaded cart';
-  if (kg >= 700) return 'a horse';
+  if (kg >= 490) return 'a horse';
   if (kg >= 80) return 'a person';
   return 'nothing heavier than a dog';
 }
@@ -36,7 +41,7 @@ function gradeWords(ice: IceRecord): string {
 export default class IceReading extends Reading {
   /** The sheet underfoot and the patch named, or why not. */
   private sheetAndPatch(ctx: CommandContext, place: Stuff | null, param: string) {
-    const floor = (place as unknown as { getFloor?(): unknown } | null)?.getFloor?.() ?? null;
+    const floor = (place ? (MixinApi.isAdornable(place) ? place.getFloor() : null) : null);
     if (!(floor instanceof IceSheet)) {
       this.decline(ctx, Mml.compose`There is no ice here to read.`, 'no-ice');
       return null;

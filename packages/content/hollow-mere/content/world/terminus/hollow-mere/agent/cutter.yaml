@@ -13,6 +13,13 @@ data:
   archetype: labourer
   competence:
     - { discipline: ice-harvesting, asserting: competent }
+  # His own kit, born in his hands (an NPC's `props:` — the storage-and-ice
+  # sweep): the brain forces `scrape` / `mark` / `cut`, and those verbs bind
+  # a tool the cutter HOLDS. The shore's kit is the company's for anyone.
+  props:
+    - /trade/ice/thing/scraper
+    - /trade/ice/thing/hand-marker
+    - /trade/ice/thing/ice-saw
   behaviors:
     - brain: /trade/ice/behavior/harvests
       trigger: candidate

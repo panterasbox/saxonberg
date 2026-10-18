@@ -459,6 +459,8 @@ export const Mixins = {
   Flyable: 'FlyableMixin',
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
+  /** `props:` alone — a place's set dressing, a person's loadout (Staged.ts). */
+  Props: 'PropsMixin',
   Staged: 'StagedMixin',
   /** ⭐ The third designation beside `props:` and `cast:` — see Staged.ts. */
   Costumed: 'CostumedMixin',

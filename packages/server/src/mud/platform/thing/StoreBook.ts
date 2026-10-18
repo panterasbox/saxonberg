@@ -1,6 +1,6 @@
 /**
  * StoreBook — the house's book, standing on the platform beside the
- * counter: the instrument `deposit` and `withdraw` are done with
+ * counter: the instrument `store deposit` and `store withdraw` are done with
  * (storage-and-ice D6). See {@link StoreBookMixin}.
  *
  * Affords the `store` verb to whoever shares its room (`peers`) and to

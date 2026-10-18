@@ -275,6 +275,23 @@ describe('the acts — scrape, mark, cut', () => {
     );
   });
 
+  it('⭐ a REFUSED mark leaves the standing grid as it was — and an unknown word is refused, not the field (the audit)', async () => {
+    const { pool, sheet } = await sheetIn();
+    const w = walker(pool);
+    sheet.occupy(w as never, 'ground:1');
+    expect(sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null).ok).toBe(true);
+    const grid = (): number =>
+      sheet.getLog().filter((p) => p.kind === 'marked').reduce((n, p) => n + p.areaM2, 0);
+    const standing = grid();
+    expect(standing).toBeGreaterThan(0);
+    for (const word of ['hole', 'banana']) {
+      expect(sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, word).ok).toBe(false);
+      expect(grid()).toBeCloseTo(standing, 9);
+    }
+    // A bare re-mark still replaces the grid (the one-grid rule).
+    expect(sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null).ok).toBe(true);
+  });
+
   it('a cut is refused without a saw, and without a marked grid', async () => {
     const { pool, sheet } = await sheetIn();
     const w = walker(pool);

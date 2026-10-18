@@ -53,6 +53,6 @@ export const brain = class HarvestsBrain {
 
 function sheetUnder(host: Stuff): IceSheet | null {
   const room = MixinApi.isContainable(host) ? host.getContainer() : null;
-  const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() ?? null;
+  const floor = (room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null);
   return floor instanceof IceSheet ? floor : null;
 }

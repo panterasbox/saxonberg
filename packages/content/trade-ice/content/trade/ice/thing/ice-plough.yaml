@@ -4,7 +4,7 @@
 # you — and the horse will not go out on ice too thin to bear it.
 class: /trade/ice/thing/IceMarker
 data:
-  keywords: [plough, "ice plough", "ice plow", marker]
+  keywords: [plough, "ice plough", "ice plow"]
   shortDescription: ice plough
   register: indefinite
   longDescription: >-

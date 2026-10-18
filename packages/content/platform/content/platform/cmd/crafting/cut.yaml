@@ -20,7 +20,7 @@ help: |
   an unusual body badly. Offcuts fall on the floor — patchwork, quilting
   stock, rags.
 
-  **Ice** (`cut ice`, `cut marked`): standing on a frozen pool with an ice
+  **Ice** (`cut marked`): standing on a frozen pool with an ice
   saw, you cut a block along the grid you marked; its weight follows the
   ice's thickness and the grid. `cut hole` saws a hole for a line instead.
 validators:

@@ -48,11 +48,11 @@ import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { BiomeApi } from '../../api/biome';
+import { GROUND_SLOT } from '../thing/WaterSurface';
 
 /** The water under the ice when nothing better is known, K. */
 const UNDER_ICE_K = 274;
 /** The posture-bearing slot a floor offers. */
-const GROUND_SLOT = 'ground:1';
 /** Water's density when the medium cannot be read, kg/m³. */
 const WATER_DENSITY = 1000;
 

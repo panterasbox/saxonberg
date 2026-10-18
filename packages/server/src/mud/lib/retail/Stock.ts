@@ -488,7 +488,7 @@ export default class Stock extends StockBase {
     const store = src.kind === "store" ? this.storeAt(src.store) : null;
     if (src.kind === "store") {
       if (store === null) return no("no-store", "The house has nowhere to put it.");
-      const veto = (store as unknown as Stuff & Container).canAddContainable?.(item) ?? { ok: true };
+      const veto = (MixinApi.isContainer(store) ? store.canAddContainable?.(item) : undefined) ?? { ok: true };
       if (!veto.ok) return no("store-refuses", veto.reason ?? "The house has no room for it.");
     }
     const bid = this.bidFor(path);
@@ -503,6 +503,10 @@ export default class Stock extends StockBase {
       return no("house-cannot-pay", "The house cannot pay for that just now.");
     }
     this._shortOfMoney = false;
+    // The house's from the moment it is paid for — BEFORE the store can
+    // adopt it as a line's face, or the seller could `get` it back as
+    // theirs and sell it twice (the pre-merge audit).
+    if (MixinApi.isChattel(item)) await item.transferChattel(business);
     if (store !== null) {
       const taken = await store.receive(item, store.getBusinessPath());
       if (taken.ok) return { ok: true, paidMinor: bid, intoStore: true };
@@ -510,7 +514,6 @@ export default class Stock extends StockBase {
       // way — it goes on the counter rather than vanish.
     }
     ContainmentApi.move(item, this as unknown as Stuff & Container);
-    if (MixinApi.isChattel(item)) await item.transferChattel(business);
     return { ok: true, paidMinor: bid, intoStore: false };
   }
 
@@ -549,7 +552,7 @@ export default class Stock extends StockBase {
       const store = src.kind === "store" ? this.storeAt(src.store) : null;
       if (store !== null) {
         const cap = store.getCapacityKg();
-        const held = store.getLines().reduce((n, l) => n + l.amountKg, 0);
+        const held = store.totalKg();
         if (cap > 0 && held >= cap) {
           parts.push(`The house is buying no ${name} — its store is full.`);
           continue;

@@ -14,8 +14,9 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
+import IceMarker from '../thing/IceMarker';
 
-export const ICE_TOPIC = 'act.deed';
+const ICE_TOPIC = 'act.deed';
 
 export interface IceActModel extends CommandModel {
   patch?: string;
@@ -32,14 +33,16 @@ export abstract class IceActController extends CommandController<IceActModel> {
 
   async execute(model: IceActModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as unknown as Stuff;
-    const tool = (model.tool?.stuff ?? []).find(
-      (t) => MixinApi.isTool(t) && t.hasCapability(this.capability()),
-    ) as Stuff | undefined;
+    // ⭐ A hand tool before a draught one: a cutter holding both a hand
+    // marker and the plough marks by hand, rather than being refused for
+    // having no horse (the pre-merge audit).
+    const able = (model.tool?.stuff ?? []).filter((t) => MixinApi.isTool(t) && t.hasCapability(this.capability()));
+    const tool = (able.find((t) => !(t instanceof IceMarker) || t.getDraught() === 'hand') ?? able[0]) as Stuff | undefined;
     if (!tool) {
       return this.refuse(context, ICE_TOPIC, 'You have nothing to do that with.', 'no-tool');
     }
     const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
-    const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() ?? null;
+    const floor = (room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null);
     if (!(floor instanceof IceSheet)) {
       return this.refuse(context, ICE_TOPIC, 'There is no ice here to work.', 'no-ice');
     }

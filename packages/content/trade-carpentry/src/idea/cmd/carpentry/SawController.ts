@@ -94,9 +94,6 @@ export const SAWDUST_PATH = '/trade/carpentry/thing/sawdust';
 /** A board's thickness, m — what one kerf is measured against. */
 export const BOARD_THICKNESS_M = 0.025;
 
-/** A saw's kerf when its row authors none, m. */
-export const DEFAULT_KERF_M = 0.004;
-
 /**
  * Metabolic watts of working a pit saw — the top sawyer's half of it,
  * heavy and steady. The water rung costs nothing of yours.

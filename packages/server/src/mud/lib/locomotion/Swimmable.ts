@@ -75,7 +75,8 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public immersionOf(occupant: Stuff): Immersion | null {
-      const floor = (this as unknown as { getFloor?(): Stuff | null }).getFloor?.() ?? null;
+      const self = this as unknown as Stuff;
+      const floor = MixinApi.isAdornable(self) ? self.getFloor() : null;
       if (floor !== null && MixinApi.isFloor(floor) && floor.supports(occupant)) return null;
       return { mediumTag: 'water', temperatureK: this.waterTemperatureK() };
     }

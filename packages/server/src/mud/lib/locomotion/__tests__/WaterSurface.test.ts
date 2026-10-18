@@ -173,6 +173,19 @@ describe('the water surface is a pool\'s floor (D12)', () => {
     expect(p.immersionOf(b as unknown as Stuff)).not.toBeNull();
   });
 
+  it('⭐ the SURFACE decides bare `swim` — its refusals returned in its words', async () => {
+    await LocomotionApi.loadMode('swim').catch(() => null);
+    const { pool: p, floor } = await pool();
+    const b = walker();
+    ContainmentApi.move(b as unknown as Stuff & never, p as unknown as Stuff & never);
+    expect(floor.goIn(b as unknown as Stuff)).toMatchObject({ ok: false, reason: 'already-in-water' });
+    const bearing = vi.spyOn(floor, 'bears').mockReturnValue(true);
+    floor.occupy(b as never, 'ground:1');
+    bearing.mockReturnValue(false);
+    expect(floor.goIn(b as unknown as Stuff)).toEqual({ ok: true });
+    expect(floor.supports(b as unknown as Stuff)).toBe(false);
+  });
+
   it('⭐ a body in the water may leave only by swimming; one held up walks off', async () => {
     const { pool: p, floor } = await pool();
     const b = walker();

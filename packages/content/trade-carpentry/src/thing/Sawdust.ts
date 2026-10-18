@@ -27,11 +27,6 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 const SawdustBase = PoolableMixin(StackableMixin(Good));
 
 export default class Sawdust extends SawdustBase {
-  /** Kilograms of sawdust in this heap (one unit a kilogram). */
-  public getKg(): number {
-    return this.getQuantity();
-  }
-
   /** ⭐ Sawdust pools by its wetness band: wet packing is its own line. */
   public override poolKey(): string {
     const self = this as unknown as Stuff;

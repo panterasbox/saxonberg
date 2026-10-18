@@ -1,6 +1,6 @@
 # The depot book — the ledger on the counter that the goods shed's
 # receipts are written in and drawn against (storage-and-ice W3). The
-# INSTRUMENT custody is done with: it affords `deposit` and `withdraw` to
+# INSTRUMENT custody is done with: it affords `store deposit` and `store withdraw` to
 # whoever stands at the counter, and `look book` reads who is owed what.
 class: /platform/thing/StoreBook
 data:

@@ -13,6 +13,11 @@ data:
   archetype: labourer
   competence:
     - { discipline: ice-harvesting, asserting: proficient }
+  # Her own scraper and marker (an NPC's `props:`): the boss scrapes the
+  # first patch and scores the grid before she lets the crew on.
+  props:
+    - /trade/ice/thing/scraper
+    - /trade/ice/thing/hand-marker
   behaviors:
     - brain: /trade/ice/behavior/bosses
       trigger: candidate

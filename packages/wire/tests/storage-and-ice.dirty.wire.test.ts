@@ -324,6 +324,12 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(await arrive(/Hollow Mere/i)).toMatch(/Hollow Mere/i);
     const read = await say('measure ice');
     console.info(`  measure ice (day 3): ${read}`);
+    // ⭐ The winter crew is born holding its kit (an NPC's `props:` — the
+    // pre-merge audit found it dropped in silence: the brain's every
+    // `scrape` / `mark` / `cut` refused "nothing to do that with").
+    const bryn = await k.prose('look bryn');
+    console.info(`  look bryn (day 3): ${bryn.replace(/\n/g, ' | ').slice(0, 300)}`);
+    expect(bryn, bryn).toMatch(/ice saw/i);
     expect(read, read).toMatch(/read the ice at .* of (clear black ice|white snow-ice)/i);
     // ⭐ 8 (first half). Fishing frozen water is refused in words — asked
     // HERE, before any cut: a cut channel is open water (run 4).
@@ -591,7 +597,10 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     // horizon: a house still nine-tenths full has years of supply and
     // prices at base. It climbs when the store runs short (run 1, an empty
     // store: 6 → 9). Never cheaper than after the harvest.
-    if (Number.isFinite(late) && Number.isFinite(harvestPrice)) expect(late).toBeGreaterThanOrEqual(harvestPrice);
+    // ⚠ Both prices must PARSE — a guard that skipped the comparison when
+    // either did not was a checkpoint that could not fail (the audit).
+    expect(Number.isFinite(late) && Number.isFinite(harvestPrice), `${late} / ${harvestPrice}`).toBe(true);
+    expect(late).toBeGreaterThanOrEqual(harvestPrice);
     const before = await carried();
     const bought = await say('buy block');
     console.info(`  buy block: ${bought.slice(0, 200)}`);

@@ -68,7 +68,7 @@ export default class CutController extends ManualBuildController<CutModel> {
     } else if (raw !== null) {
       // A bare word: a part of the ground underfoot (`marked`, `hole`).
       const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
-      const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() ?? null;
+      const floor = (room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null);
       if (isCuttable(floor)) plan = await floor.cutPlan(req);
     }
 

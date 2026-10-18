@@ -1,8 +1,8 @@
 /**
  * StoreBookMixin — ⭐ **the house's book: the instrument custody is done
  * with** (storage-and-ice D6). A store's receipts are documents; the book
- * is the THING in the room that affords `deposit` and `withdraw` and names
- * the store it keeps. The verb goes on the instrument that performs the
+ * is the THING in the room that affords `store` (deposit, withdraw, the
+ * receipts) and names the store it keeps. The verb goes on the instrument that performs the
  * act — never on the keeper, never on the room.
  *
  * `look book` reads the outstanding claims by line, as last read from the

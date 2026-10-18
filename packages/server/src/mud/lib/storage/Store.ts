@@ -39,7 +39,8 @@
  * the same shed empty, with no special case anywhere.
  *
  * Capacity is mass, at the container's own veto (D7). Custody (receipts,
- * the keeper, deposit/withdraw) is W3's and rides the same lines.
+ * the keeper, `store deposit` / `store withdraw`) rides the same lines.
+ * See docs/subsystems/storage.md.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -125,8 +126,6 @@ export interface Store {
   getLine(poolKey: string): StoreLine | null;
   /** Kilograms on every line (stock and packing). */
   totalKg(): number;
-  /** Kilograms of STOCK (not packing) of a good row, every key it holds. */
-  stockKgOf(goodPath: string): number;
   /** The authored capacity, kg (0 = unbounded). */
   getCapacityKg(): number;
   /** The face (the top of the stack) for a line, or `null`. */
@@ -145,8 +144,6 @@ export interface Store {
   seedInitialLines(lines: readonly StoreSeedLine[]): Promise<void>;
   /** The heat this store pulls from its room (the {@link RoomHeatExchange} protocol). */
   roomHeatExchange(): RoomHeatExchange;
-  /** Days the stock of `goodPath` lasts at its current loss + draw. */
-  daysOfSupply(goodPath: string): number;
   /**
    * ⭐ Days the HOUSE's own stock of `goodPath` lasts — its claim (paid
    * pro rata), losing its share of the melt and drawn at the house's own
@@ -157,8 +154,6 @@ export interface Store {
   // ── custody (D6) ──
   /** The business that keeps this store (the bailee). */
   getBusinessPath(): string;
-  /** The printed terms. */
-  getTerms(): ReceiptTerms;
   /** Is `actor` on shift for the house that keeps this store? */
   isStaffOnShift(actor: Stuff): boolean;
   /** The keeper on shift in `room`, or `null` — who can take a deposit. */
@@ -265,12 +260,6 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this.lines.reduce((n, l) => n + l.amountKg, 0);
     }
 
-    public stockKgOf(goodPath: string): number {
-      return this.lines
-        .filter((l) => l.role === 'stock' && l.goodPath === goodPath)
-        .reduce((n, l) => n + l.amountKg, 0);
-    }
-
     public getCapacityKg(): number {
       return this.capacityKg;
     }
@@ -285,14 +274,6 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     public whenSettled(): Promise<void> {
       return this._settling;
-    }
-
-    public daysOfSupply(goodPath: string): number {
-      const lines = this.lines.filter((l) => l.role === 'stock' && l.goodPath === goodPath);
-      const kg = lines.reduce((n, l) => n + l.amountKg, 0);
-      const rate = lines.reduce((n, l) => n + l.lossKgPerDay + l.drawKgPerDay, 0);
-      if (!(kg > 0)) return 0;
-      return kg / Math.max(1e-6, rate);
     }
 
     public houseDaysOfSupply(goodPath: string): number {
@@ -326,10 +307,6 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public canAddContainable(item: Stuff & Containable): VetoResult {
       if (this._minting) return { ok: true };
-      const holder = item.getContainer();
-      if (holder !== null && holder !== (this as unknown as Stuff)) {
-        this._pendingPutters.set(item.stuffId, holder);
-      }
       if (!MixinApi.isPoolable(item)) {
         if (this.acceptsLiveGoods) return { ok: true };
         return { ok: false, reason: 'That does not go in a stack like this.' };
@@ -344,19 +321,25 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (this.capacityKg > 0 && this.totalKg() + massKgOf(item) > this.capacityKg + 1e-9) {
         return { ok: false, reason: 'The house is full.' };
       }
+      // Who is putting it — remembered only for a good the store will take,
+      // and taken back on arrival (`onContainableAdded`).
+      const holder = item.getContainer();
+      if (holder !== null && holder !== (this as unknown as Stuff)) {
+        this._pendingPutters.set(item.stuffId, holder);
+      }
       return { ok: true };
     }
 
     /** A good arrived: settle it into the ledger once the move completes. */
     public onContainableAdded(item: Stuff & Containable): void {
+      const putter = this._pendingPutters.get(item.stuffId) ?? null;
+      this._pendingPutters.delete(item.stuffId);
       if (this._minting) return;
       // ⚠ A restore puts the FACES back as contents; the ledger came back
       // with them and is the truth, so a restored face is adopted by key
       // (`adoptFaces`), never counted as a put.
       if (restoring()) return;
       if (!MixinApi.isPoolable(item)) return;
-      const putter = this._pendingPutters.get(item.stuffId) ?? null;
-      this._pendingPutters.delete(item.stuffId);
       this._arrivals.push({
         item: item as PoolableStuff,
         key: item.poolKey(),
@@ -556,14 +539,18 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     // ─────────────────────────── seeding ───────────────────────────
 
     /**
-     * Lay down the authored `initialLines` — once, on a store whose ledger is
-     * empty (the no-record branch). Each seed mints ONE exemplar, which
-     * becomes the line's face; the amount is the line's.
+     * HOLD the authored `initialLines` (the applier's phase-3 call); the
+     * hydration source decides whether to lay them down (`seedFromRow`).
      */
     public async seedInitialLines(lines: readonly StoreSeedLine[]): Promise<void> {
       this.initialLines = [...lines];
     }
 
+    /**
+     * Lay the held `initialLines` down — once, on a store whose ledger is
+     * empty (the no-record branch). Each seed mints ONE exemplar, which
+     * becomes the line's face; the amount is the line's.
+     */
     public async seedFromRow(): Promise<boolean> {
       if (this.lines.length > 0 || this.initialLines.length === 0) return false;
       const now = nowS();
@@ -794,10 +781,6 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this.businessPath;
     }
 
-    public getTerms(): ReceiptTerms {
-      return { ...this.terms };
-    }
-
     public isStaffOnShift(actor: Stuff): boolean {
       if (!this.businessPath || !MixinApi.isEmployed(actor)) return false;
       return actor.isOnShiftFor(this.businessPath);
@@ -946,10 +929,15 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         claim.withinAllowance = 1 - f <= claim.terms.allowancePct / 100 + 1e-9;
       }
       const receiptPath = await this.fileReceipt(business, claim);
-      const feeMinor = Math.round(paidKg * claim.terms.feeMinorPerKg);
-      if (feeMinor > 0 && !staff) {
+      // ⭐ The fee reported is the fee TAKEN: staff draw on the house's own
+      // claim and pay nothing, and a settle that lands nowhere (no operator,
+      // no account — served on the house) took nothing either.
+      const owedMinor = staff ? 0 : Math.round(paidKg * claim.terms.feeMinorPerKg);
+      let feeMinor = 0;
+      if (owedMinor > 0) {
         try {
-          await EmploymentApi.settleSale(this.storeVenuePath(), feeMinor, feeMinor, 'storage fee');
+          const settled = await EmploymentApi.settleSale(this.storeVenuePath(), owedMinor, owedMinor, 'storage fee');
+          if (settled !== null) feeMinor = owedMinor;
         } catch (err) {
           console.warn('StoreMixin: storage fee settle failed', err);
         }
@@ -977,12 +965,16 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (left < 1) break;
         const line = this.lines.find((l) => l.poolKey === claim.poolKey);
         if (!line || !(line.amountKg > LINE_EPSILON_KG)) continue;
+        // The house is a depositor like any other: in a shortfall it is
+        // paid pro rata, the same fraction `withdraw` pays (D6 — no run).
+        const claimed = (await this.claimsOn(claim.poolKey)).reduce((k, r) => k + r.amountKg, 0);
+        const f = claimed > 0 ? Math.min(1, line.amountKg / claimed) : 1;
         const unitKg = line.unitMassKg > 0 ? line.unitMassKg : claim.unitMassKg;
-        const n = Math.min(left, Math.floor((Math.min(claim.amountKg, line.amountKg) + 1e-9) / unitKg));
+        const n = Math.min(left, Math.floor((Math.min(claim.amountKg * f, line.amountKg) + 1e-9) / unitKg));
         if (n < 1) continue;
         const goods = await this.payOut(line, n, null, true);
         out.push(...goods);
-        claim.amountKg = Math.max(0, claim.amountKg - n * unitKg);
+        claim.amountKg = Math.max(0, claim.amountKg - (n * unitKg) / f);
         await this.fileReceipt(business, claim);
         left -= n;
       }
@@ -1183,7 +1175,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return { fixedW: 0, conductanceWperK: g, anchorK: g > 0 ? gAnchor / g : 0 };
     }
 
-    /** Record a withdrawal into a line's moving average (W3, W4) — the house's apart. */
+    /** Record a withdrawal into a line's moving average — the house's apart. */
     protected noteDraw(line: StoreLine, kg: number, forHouse = false): void {
       // Exponential moving average over the window, treating the draw as
       // landing on the day it is made.

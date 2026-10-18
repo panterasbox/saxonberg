@@ -541,9 +541,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       // ⭐⭐ IN THE WATER (storage-and-ice D10): a swimmable place says who
       // is in its water (whoever its floor is not holding up) and how cold
       // it is; the body then takes the water's exchange, not the air's.
-      if (scope !== null && MixinApi.isSwimmable(scope as unknown as Stuff)) {
-        const im = (scope as unknown as Stuff & { immersionOf(o: Stuff): { temperatureK: number } | null })
-          .immersionOf(host as unknown as Stuff);
+      const water = scope as unknown as Stuff | null;
+      if (water !== null && MixinApi.isSwimmable(water)) {
+        const im = water.immersionOf(host as unknown as Stuff);
         if (im) return Quantity.of(Math.max(0, this.exchangeWithWater(im.temperatureK, 0)), "K");
       }
 
@@ -679,9 +679,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const regHost = this.regHost as unknown as { getContainer?: () => unknown } | undefined;
       const getContainer = regHost?.getContainer;
       const place = typeof getContainer === 'function' ? (getContainer.call(regHost) as Stuff | null) : null;
-      if (place && MixinApi.isSwimmable(place as unknown as Stuff)) {
+      if (place && MixinApi.isSwimmable(place)) {
         const host = this.regHost as unknown as Stuff;
-        const im = (place as unknown as Stuff & { immersionOf(o: Stuff): unknown | null }).immersionOf(host);
+        const im = place.immersionOf(host);
         if (im && MixinApi.isAttired(host)) host.immerse();
       }
       // ⭐⭐ Remember how far the transforms moved the raw room

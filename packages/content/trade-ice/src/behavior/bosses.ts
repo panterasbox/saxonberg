@@ -34,7 +34,7 @@ export const brain = class BossesBrain {
     if (!MixinApi.isCommandGiver(host) || !MixinApi.isContainable(host)) return;
     if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') return;
     const room = host.getContainer();
-    const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() ?? null;
+    const floor = (room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null);
     if (!(floor instanceof IceSheet) || !floor.supports(host as unknown as Stuff)) return;
     const log = floor.getLog();
     if (log.some((p) => p.kind === 'marked' && p.areaM2 > 0)) return;

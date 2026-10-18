@@ -260,7 +260,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return read.draw ? { draw: read.draw } : { refusal: 'unread', line: 'Nothing comes up.' };
       }
       // ⭐ Through a hole: the floor of the place you stand in has open water.
-      const floor = (room as unknown as { getFloor?(): Stuff | null }).getFloor?.() ?? null;
+      const floor = MixinApi.isAdornable(room) ? room.getFloor() : null;
       if (floor !== null && MixinApi.isFloor(floor) && floor.openWaterAreaM2() > 0 && read.underIce) {
         return { draw: read.underIce };
       }

@@ -77,8 +77,10 @@ export default class StandController extends CommandController<StandModel> {
     // ⭐ On a floor where standing IS a slot you hold — a water surface,
     // an ice sheet (storage-and-ice D12) — bare `stand` from the water is
     // getting back up ONTO it, and the floor decides whether it bears you.
+    // ⚠ The posture change stays HERE: `transferPosture` is gated to the
+    // posture verbs, so the surface cannot stand you up itself.
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() as Stuff | null;
+    const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
     if (
       floor &&
       MixinApi.isFloor(floor) &&

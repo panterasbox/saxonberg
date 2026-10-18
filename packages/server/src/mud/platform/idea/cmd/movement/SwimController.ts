@@ -10,6 +10,7 @@ import type { TraversalGuard } from '../../../../lib/boundary/Exit';
 import type { CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
+import WaterSurface from '../../../thing/WaterSurface';
 
 export default class SwimController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
@@ -30,14 +31,12 @@ export default class SwimController extends LocomotionControllerBase {
     if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const floor = (room as unknown as { getFloor?(): unknown } | null)?.getFloor?.() as Stuff | null;
-    if (!floor || !MixinApi.isFloor(floor) || !floor.supportIsSlotted() || !(floor.openWaterAreaM2() > 0)) {
+    const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
+    if (!(floor instanceof WaterSurface)) {
       return this.refuse(context, 'act.deed', 'There is no open water here to swim in.', 'no-open-water');
     }
-    if (!floor.supports(giver)) {
-      return this.refuse(context, 'act.deed', 'You are already in the water.', 'already-in-water');
-    }
-    floor.giveWay(giver, true);
+    const out = floor.goIn(giver);
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
   }
 
   protected override composeRejection(

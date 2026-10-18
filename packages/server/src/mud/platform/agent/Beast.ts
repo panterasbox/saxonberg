@@ -62,7 +62,7 @@ export class Beast extends BeastBase {
     } catch {
       return { ok: true }; // a lazy destination not yet faulted in: nothing to judge
     }
-    const floor = (dest as unknown as { getFloor?(): Stuff | null } | null)?.getFloor?.() ?? null;
+    const floor = (dest ? (MixinApi.isAdornable(dest) ? dest.getFloor() : null) : null);
     if (floor === null || !MixinApi.isFloor(floor)) return { ok: true };
     if (!floor.supportIsSlotted()) return { ok: true };
     if (floor.bears(floor.supportLoadKgOf(this as unknown as Stuff))) return { ok: true };

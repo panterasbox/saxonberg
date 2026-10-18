@@ -198,12 +198,151 @@ function templateOf(spec: PropSpec | CastSpec): string | null {
  */
 
 /**
- * Public shape provided by StagedMixin.
- *
- * The appliers are the only public surface. The specs are consumed
- * during Phase 2 hydration and not retained.
+ * The shared minting walk. Class resolution goes through
+ * `StuffApi.loadClassByPath` — the existing public class-loading
+ * Api surface — which is also where the designation gate sits:
+ * the class is checked against `Mixins.Behaved` BEFORE anything is
+ * cloned, so a mis-filed entry never leaves a half-minted NPC
+ * behind.
  */
-export interface Staged {
+async function stageList(
+  host: Stuff & Container,
+  specs: PropSpec[],
+  kind: 'props' | 'cast'
+): Promise<void> {
+  // Lazy import to dodge any cycle through Stuff.
+  const { Template } = await import('./Template');
+  // Track populated instances by source path so a later placement entry can
+  // resolve the surface populated earlier in the list.
+  const placed = new Map<string, Stuff & Containable>();
+  // ⚠ Duplicate `as` within one list is an authoring error, not a
+  // last-wins: two entries claiming one identity means the merge
+  // rule cannot say which one a child is replacing.
+  const seenKeys = new Set<string>();
+  for (const spec of specs) {
+    const path = templateOf(spec);
+    if (path === null) continue;
+    const placement =
+      typeof spec === 'string' ? null : placementKeyOf(spec, path);
+    const as = typeof spec === 'string' ? undefined : spec.as;
+    const count =
+      typeof spec === 'string' ? undefined : (spec as { count?: number }).count;
+    if (as !== undefined) {
+      if (seenKeys.has(as)) {
+        throw new Error(
+          `StagedMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
+            `two entries share \`as: ${as}\`. An entry's \`as\` is its ` +
+            `identity — a child row replaces the entry that carries it, ` +
+            `so two of them have no answer.`,
+        );
+      }
+      seenKeys.add(as);
+    }
+    if (count !== undefined) {
+      if (kind !== 'props') {
+        throw new Error(
+          `StagedMixin.applyCast: '${path}' carries \`count\`. A count ` +
+            `is a props feature — twelve limes are twelve limes, but ` +
+            `twelve of a person are twelve people, each of whom needs ` +
+            `a name.`,
+        );
+      }
+      if (!Number.isInteger(count) || count < 1) {
+        throw new Error(
+          `StagedMixin.applyProps: '${path}' has count ${String(count)}; ` +
+            `a count is a whole number of at least 1.`,
+        );
+      }
+    }
+    const tpl = await Template.findByPath(path);
+    if (!tpl) {
+      throw new Error(
+        `StagedMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
+          `no template at '${path}'`
+      );
+    }
+    const cls = (await StuffApi.loadClassByPath(tpl.class)) as new (
+      ...args: unknown[]
+    ) => Stuff;
+    // The designation gate: declared kind must match the class.
+    const behaved = MixinApi.hasMixin(cls, Mixins.Behaved);
+    if (kind === 'props' && behaved) {
+      throw new Error(
+        `StagedMixin.applyProps: '${path}' resolves to a Behaved ` +
+          `class — that is cast, not props; list it under cast:`
+      );
+    }
+    if (kind === 'cast' && !behaved) {
+      throw new Error(
+        `StagedMixin.applyCast: '${path}' does not resolve to a ` +
+          `Behaved class — that is a prop, not cast; list it under props:`
+      );
+    }
+    const singleton = MixinApi.hasMixin(cls, Mixins.Singleton);
+    if (count !== undefined && count > 1 && singleton) {
+      throw new Error(
+        `StagedMixin.applyProps: '${path}' is a Singleton, so ` +
+          `\`count: ${count}\` asks for ${count} of the one thing there ` +
+          `can only ever be one of.`,
+      );
+    }
+    // ⭐ `count: N` mints N clones of one line. Ten identical crate
+    // lines and six identical stool lines were the same authoring
+    // gesture written out longhand; the entry is the same in every
+    // other respect, so the loop is the whole feature.
+    const times = count ?? 1;
+    let inst!: Stuff & Containable;
+    for (let n = 0; n < times; n++) {
+      if (singleton) {
+        inst = await StuffApi.singleton<Stuff & Containable>(path);
+        // A move-into-self singleton already placed elsewhere is left
+        // be; a placement always (re)stamps the relation.
+        if (inst.getContainer() !== null && !placement) continue;
+      } else {
+        inst = await StuffApi.clone<Stuff & Containable>(path);
+      }
+      if (placement) {
+        const host = placed.get(placement.host);
+        if (!host) {
+          throw new Error(
+            `StagedMixin.applyProps: '${path}' ${placement.name} ` +
+              `'${placement.host}' — the host must be populated ` +
+              `earlier in the list`
+          );
+        }
+        if (!MixinApi.isPlacing(host)) {
+          throw new Error(
+            `StagedMixin.applyProps: ${placement.name} ` +
+              `'${placement.host}' is not a Placing host`
+          );
+        }
+        ContainmentApi.move(inst, host, placement.name);
+      } else {
+        ContainmentApi.move(inst, host);
+      }
+    }
+    // ⚠ Keyed by BOTH identity and path, so a placement key may name
+    // either
+    // — an `as` where the author gave one, the bare path where they
+    // did not. Under `count`, the LAST clone is what a placement key finds.
+    if (as !== undefined) placed.set(as, inst);
+    placed.set(path, inst);
+  }
+}
+
+/**
+ * ⭐ **The props-only half — a host BORN WITH things** (split out of
+ * `StagedMixin` at the storage-and-ice sweep). `props:` is the set
+ * dressing of a room AND the loadout of a person; `cast:` is people, and
+ * only a place has a troupe. Bundled, a person who boots holding a saw had
+ * to claim it contains a cast (the reason `Gus`, `Katie`, `Walter`, the
+ * `Realtor` and the `Tinker` each grew a class) — and a plain `Cast` row's
+ * `props:` was dropped in SILENCE, because the field was undeclared on it
+ * (the ice crew, the Rejection hewers, the wharfside fisher: authored with
+ * tools, born with empty hands). `NPC` composes this half; `StagedMixin`
+ * composes it under the cast half.
+ */
+export interface Propped {
   /**
    * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `props` field. **Instruction applier** — consumes
@@ -214,10 +353,49 @@ export interface Staged {
    *
    *   ⭐ Runs **once per instance**: a no-op once this host's props are
    *   laid, so a go-live re-hydrate does not mint a second set.
-   *   See the class docstring.
    */
   applyProps(specs: PropSpec[]): Promise<void>;
 
+  /** Storage for the props once-guard (public for the applier). */
+  _propsStaged: boolean;
+}
+
+export function PropsMixin<
+  TBase extends MixinConstructor<Stuff & Container>,
+>(Base: TBase) {
+  return class PropsMixin extends Base {
+    static _mixinName: string = 'PropsMixin';
+
+    /**
+     * One instruction field. The once-flag is runtime state, never
+     * authored: set by the applier itself so a go-live re-hydrate cannot
+     * mint a second set; persistent so the fact survives a capture/restore.
+     */
+    static fieldMeta: FieldMeta = {
+      props: { instruction: true, authorable: true, inherit: 'by-entry' },
+      _propsStaged: { persistent: true, runtimeState: true },
+    };
+
+    public _propsStaged: boolean = false;
+
+    /** Phase 2 applier for `props:`. See class docstring. */
+    async applyProps(specs: PropSpec[]): Promise<void> {
+      if (!Array.isArray(specs)) return;
+      if (this._propsStaged) return;
+      await stageList(this as unknown as Stuff & Container, specs, 'props');
+      // Set after a successful run: a throw mid-list is a content bug
+      // that aborts the clone, and leaving the flag clear keeps the
+      // half-populated shell out of the "already done" state.
+      this._propsStaged = true;
+    }
+
+  };
+}
+
+/**
+ * Public shape provided by StagedMixin: the props half plus the troupe.
+ */
+export interface Staged extends Propped {
   /**
    * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `cast` field. **Instruction applier** — mints the
@@ -225,7 +403,7 @@ export interface Staged {
    *   `Behaved` (that is a prop, not cast).
    *
    *   ⭐ Runs **once per instance**, same guard discipline as
-   *   {@link Staged.applyProps}.
+   *   {@link Propped.applyProps}.
    */
   applyCast(specs: CastSpec[]): Promise<void>;
 
@@ -233,27 +411,24 @@ export interface Staged {
    * (props, cast, or both). */
   isStaged(): boolean;
 
-  /** Storage for the props once-guard (public for the applier). */
-  _propsStaged: boolean;
-
   /** Storage for the cast once-guard (public for the applier). */
   _castStaged: boolean;
 }
 
+/**
+ * ⭐ A PLACE that is born dressed and peopled: `props:` AND `cast:`.
+ * Flat, not `cast` over {@link PropsMixin} — one more level of nested
+ * mixin inference collapses the deep stacks (`GardenBed`, `PlantPot`) to
+ * `never`. Over an `NPC` (the loadout classes, `CastMixin(StagedMixin(NPC))`)
+ * its `applyProps` simply overrides the props half's: one field, one
+ * once-flag, one walk.
+ */
 export function StagedMixin<
   TBase extends MixinConstructor<Stuff & Container>,
 >(Base: TBase) {
   return class StagedMixin extends Base {
-    static _mixinName = 'StagedMixin';
+    static _mixinName: string = 'StagedMixin';
 
-    /**
-     * Two instruction fields, one per designation. The YAML data is an
-     * array of specs; Phase 2 dispatches by source-template
-     * singleton-shape and moves the resulting instance into self.
-     * The once-flags are runtime state, never authored: set by the
-     * appliers themselves so a go-live re-hydrate cannot mint a second
-     * set. Persistent so the fact survives a capture/restore round trip.
-     */
     static fieldMeta: FieldMeta = {
       props: { instruction: true, authorable: true, inherit: 'by-entry' },
       cast: { instruction: true, authorable: true, inherit: 'by-entry' },
@@ -264,160 +439,25 @@ export function StagedMixin<
     public _propsStaged: boolean = false;
     public _castStaged: boolean = false;
 
-    /** True once this host has laid down any born-with contents. */
-    public isStaged(): boolean {
-      return this._propsStaged || this._castStaged;
-    }
-
-    /** Phase 2 applier for `props:`. See class docstring. */
+    /** Phase 2 applier for `props:` — the same walk {@link PropsMixin} runs. */
     async applyProps(specs: PropSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
       if (this._propsStaged) return;
-      await this.stageList(specs, 'props');
-      // Set after a successful run: a throw mid-list is a content bug
-      // that aborts the clone, and leaving the flag clear keeps the
-      // half-populated shell out of the "already done" state.
+      await stageList(this as unknown as Stuff & Container, specs, 'props');
       this._propsStaged = true;
+    }
+
+    /** True once this host has laid down any born-with contents. */
+    public isStaged(): boolean {
+      return this._propsStaged || this._castStaged;
     }
 
     /** Phase 2 applier for `cast:`. See class docstring. */
     async applyCast(specs: CastSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
       if (this._castStaged) return;
-      await this.stageList(specs, 'cast');
+      await stageList(this as unknown as Stuff & Container, specs, 'cast');
       this._castStaged = true;
-    }
-
-    /**
-     * The shared minting walk. Class resolution goes through
-     * `StuffApi.loadClassByPath` — the existing public class-loading
-     * Api surface — which is also where the designation gate sits:
-     * the class is checked against `Mixins.Behaved` BEFORE anything is
-     * cloned, so a mis-filed entry never leaves a half-minted NPC
-     * behind.
-     */
-    private async stageList(
-      specs: PropSpec[],
-      kind: 'props' | 'cast'
-    ): Promise<void> {
-      // Lazy import to dodge any cycle through Stuff.
-      const { Template } = await import('./Template');
-      // Track populated instances by source path so a later placement entry can
-      // resolve the surface populated earlier in the list.
-      const placed = new Map<string, Stuff & Containable>();
-      // ⚠ Duplicate `as` within one list is an authoring error, not a
-      // last-wins: two entries claiming one identity means the merge
-      // rule cannot say which one a child is replacing.
-      const seenKeys = new Set<string>();
-      for (const spec of specs) {
-        const path = templateOf(spec);
-        if (path === null) continue;
-        const placement =
-          typeof spec === 'string' ? null : placementKeyOf(spec, path);
-        const as = typeof spec === 'string' ? undefined : spec.as;
-        const count =
-          typeof spec === 'string' ? undefined : (spec as { count?: number }).count;
-        if (as !== undefined) {
-          if (seenKeys.has(as)) {
-            throw new Error(
-              `StagedMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
-                `two entries share \`as: ${as}\`. An entry's \`as\` is its ` +
-                `identity — a child row replaces the entry that carries it, ` +
-                `so two of them have no answer.`,
-            );
-          }
-          seenKeys.add(as);
-        }
-        if (count !== undefined) {
-          if (kind !== 'props') {
-            throw new Error(
-              `StagedMixin.applyCast: '${path}' carries \`count\`. A count ` +
-                `is a props feature — twelve limes are twelve limes, but ` +
-                `twelve of a person are twelve people, each of whom needs ` +
-                `a name.`,
-            );
-          }
-          if (!Number.isInteger(count) || count < 1) {
-            throw new Error(
-              `StagedMixin.applyProps: '${path}' has count ${String(count)}; ` +
-                `a count is a whole number of at least 1.`,
-            );
-          }
-        }
-        const tpl = await Template.findByPath(path);
-        if (!tpl) {
-          throw new Error(
-            `StagedMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
-              `no template at '${path}'`
-          );
-        }
-        const cls = (await StuffApi.loadClassByPath(tpl.class)) as new (
-          ...args: unknown[]
-        ) => Stuff;
-        // The designation gate: declared kind must match the class.
-        const behaved = MixinApi.hasMixin(cls, Mixins.Behaved);
-        if (kind === 'props' && behaved) {
-          throw new Error(
-            `StagedMixin.applyProps: '${path}' resolves to a Behaved ` +
-              `class — that is cast, not props; list it under cast:`
-          );
-        }
-        if (kind === 'cast' && !behaved) {
-          throw new Error(
-            `StagedMixin.applyCast: '${path}' does not resolve to a ` +
-              `Behaved class — that is a prop, not cast; list it under props:`
-          );
-        }
-        const singleton = MixinApi.hasMixin(cls, Mixins.Singleton);
-        if (count !== undefined && count > 1 && singleton) {
-          throw new Error(
-            `StagedMixin.applyProps: '${path}' is a Singleton, so ` +
-              `\`count: ${count}\` asks for ${count} of the one thing there ` +
-              `can only ever be one of.`,
-          );
-        }
-        // ⭐ `count: N` mints N clones of one line. Ten identical crate
-        // lines and six identical stool lines were the same authoring
-        // gesture written out longhand; the entry is the same in every
-        // other respect, so the loop is the whole feature.
-        const times = count ?? 1;
-        let inst!: Stuff & Containable;
-        for (let n = 0; n < times; n++) {
-          if (singleton) {
-            inst = await StuffApi.singleton<Stuff & Containable>(path);
-            // A move-into-self singleton already placed elsewhere is left
-            // be; a placement always (re)stamps the relation.
-            if (inst.getContainer() !== null && !placement) continue;
-          } else {
-            inst = await StuffApi.clone<Stuff & Containable>(path);
-          }
-          if (placement) {
-            const host = placed.get(placement.host);
-            if (!host) {
-              throw new Error(
-                `StagedMixin.applyProps: '${path}' ${placement.name} ` +
-                  `'${placement.host}' — the host must be populated ` +
-                  `earlier in the list`
-              );
-            }
-            if (!MixinApi.isPlacing(host)) {
-              throw new Error(
-                `StagedMixin.applyProps: ${placement.name} ` +
-                  `'${placement.host}' is not a Placing host`
-              );
-            }
-            ContainmentApi.move(inst, host, placement.name);
-          } else {
-            ContainmentApi.move(inst, this as unknown as Stuff & Container);
-          }
-        }
-        // ⚠ Keyed by BOTH identity and path, so a placement key may name
-        // either
-        // — an `as` where the author gave one, the bare path where they
-        // did not. Under `count`, the LAST clone is what a placement key finds.
-        if (as !== undefined) placed.set(as, inst);
-        placed.set(path, inst);
-      }
     }
   };
 }

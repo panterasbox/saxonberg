@@ -306,14 +306,23 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     // ⭐ One grid on a sheet (the review): a new mark REPLACES a standing
     // one — its area goes back to the ice it was scored on, then the new
     // grid is laid. So `cut marked` always means the one current grid, and
-    // two players never hold two grids nobody can tell apart.
+    // two players never hold two grids nobody can tell apart. ⚠ A REFUSED
+    // mark leaves the grid standing (the pre-merge audit — a bad word wiped
+    // the crew's grid): the log is put back as it was.
+    const before = this.log.map((p) => ({ ...p }));
+    const refuse = (line: string): { ok: boolean; line: string } => {
+      this.log = before;
+      return { ok: false, line };
+    };
     for (const old of this.log.filter((p) => p.kind === 'marked' && p.areaM2 > 0)) this.unmark(old);
-    const from = this.patchByWord(raw ?? 'scraped') ?? this.patchByWord('field');
+    // A bare `mark` takes the scraped patch, else the field; a NAMED patch
+    // is that patch or a refusal (`mark banana` is not the field).
+    const from = raw === null ? (this.patchByWord('scraped') ?? this.patchByWord('field')) : this.patchByWord(raw);
     if (from === null || !(from.kind === 'scraped' || from.kind === 'field')) {
-      return { ok: false, line: 'There is no clear ice there to mark.' };
+      return refuse('There is no clear ice there to mark.');
     }
     const fromIce = this.iceOf(from);
-    if (fromIce === null || fromIce.thicknessM <= OPEN_BELOW_M) return { ok: false, line: 'That is open water.' };
+    if (fromIce === null || fromIce.thicknessM <= OPEN_BELOW_M) return refuse('That is open water.');
     const grid = t.getGridM?.() ?? 0.3;
     const area = Math.min(from.areaM2, t.getDraught?.() === 'horse' ? 100 : 20);
     this.split(from, 'marked', area, { gridM: grid, bareFromS: from.bareFromS });

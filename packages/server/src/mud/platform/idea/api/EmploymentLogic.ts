@@ -2188,9 +2188,12 @@ export class EmploymentLogic extends ApiLogic {
 
   private async resolveSky(business: BusinessStuff, key: string): Promise<void> {
     const where = business.getOperatingLocations()[0];
-    const place = where ? StuffApi.findByTemplatePath<Stuff>(where) : null;
-    if (!place) return;
+    if (!where) return;
     try {
+      // ⭐ Loaded on use, not looked up: a house whose ground nobody stands
+      // on is not resident, and a residency read left its season unknown —
+      // every season-bound seat off for good (the pre-merge audit).
+      const place = await StuffApi.singleton<Stuff>(where);
       const site = await ZoneApi.climateSiteFor(place);
       const profile = await CelestialApi.profileFor(place);
       this.skies.set(key, { latitudeDeg: site.latitudeDeg, profile });

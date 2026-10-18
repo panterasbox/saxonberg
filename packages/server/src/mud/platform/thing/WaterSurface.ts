@@ -87,6 +87,22 @@ export default class WaterSurface extends FloorBase {
     return true;
   }
 
+  /**
+   * ⭐ Bare `swim` here: go into the water ON PURPOSE. The surface decides
+   * — open water to go into, and you on it to go in from — and returns
+   * its refusal in its own words; the verb only renders.
+   */
+  public goIn(actor: Stuff): { ok: true } | { ok: false; reason: string; line: string } {
+    if (!(this.openWaterAreaM2() > 0)) {
+      return { ok: false, reason: 'no-open-water', line: 'There is no open water here to swim in.' };
+    }
+    if (!this.supports(actor)) {
+      return { ok: false, reason: 'already-in-water', line: 'You are already in the water.' };
+    }
+    this.giveWay(actor, true);
+    return { ok: true };
+  }
+
   public override reconcileSupport(): void {
     const self = this as unknown as Stuff;
     if (!MixinApi.isSlotted(self)) return;
