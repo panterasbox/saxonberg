@@ -2247,3 +2247,15 @@ runs found, in the order they found it (✔ = fixed and committed):
 | 16 | the rubberized coat read *"It is soaked through"*: `exposeToRain` wetted the outer garment whatever it was made of — rain "beading" on rubber was soaking in | ✔ an impermeable outer layer (`permeability() = 0`) is not wetted; what reaches the body is unchanged. ⚠ ice's `immerse` (a DROP-AT-MERGE copy here) has the same shape for the wader's rubber boots — a note for storage-and-ice |
 | 17 | ✅ **the rain suite 6/6** — it rains; the street and terrace wet; the hall, awning, coach and loft dry; the gambeson *soaked through* and the rubberized coat dry; daylight through the hall's glass; the tower's room covered | — |
 
+**The full suite, pre-MR** (`tools/suite`, at `df6442bf1`): all 44 packages pass, 16,767 tests (server 13,641), 17 minutes. `lint:family`: all 80 gates.
+
+**The shipped drives this build's readers touch, each alone on a fresh world, against a BASELINE** (a throwaway detached worktree at `origin/master`, booted on this worktree's own dev DB):
+
+| drive | rubber | master | verdict |
+|---|---|---|---|
+| `envelope` — the night suites, the room's own state, the body | ✅ | — | — |
+| `envelope` — *a funded street on a broke realm is dark* · *Mayfield Row on a dark street* | ✗ "It is dim here" | ✗ **identical** | pre-existing — not this build |
+| `envelope` — the lantern's two light steps | ✗ `no-fuel` | (W3 note) | pre-existing — the cloned lantern authors `interiorMaterial: lamp-oil` and no amount, so it is born empty |
+| `taps` — 2–6 and 15–22 (the stand, the stems, the affordances) | ✅ 8/8 | ✅ 8/8 | identical |
+| `taps` — 1 (the kit) | ✗ the server DIES | (W3 note; testing.md) | pre-existing — the drive's `eval --parcel` mints the kit inside the sandbox and discards the promise; the hydration's `setCapabilities` is denied at the sandbox boundary and the UNHANDLED rejection kills the world. ⚠ A server-robustness finding: any eval whose discarded promise rejects takes the realm down |
+
