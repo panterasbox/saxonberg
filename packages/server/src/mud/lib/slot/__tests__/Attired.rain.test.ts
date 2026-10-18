@@ -81,9 +81,11 @@ describe('the outer layer sheds the rain', () => {
 
   it('⭐⭐ a rubberized coat passes nothing — the body stays dry after ten segments', () => {
     const b = body() as Rained;
-    coat(b, cloth('rubberized', 0.5));
+    const g = coat(b, cloth('rubberized', 0.5));
     for (let i = 0; i < 10; i++) b.exposeToRain(0.2);
     expect(b.getWetness()).toBe(0);
+    // …and the coat itself took in nothing: rain beads on rubber and runs off.
+    expect((g as unknown as { getWetness(): number }).getWetness()).toBe(0);
   });
 
   it('one wet() per distinct garment, at the summed share', () => {

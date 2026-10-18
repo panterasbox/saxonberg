@@ -712,8 +712,14 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       let toBody = bareShare.reduce((a, b) => a + b, 0) * delta;
       for (const [garment, share] of outerShare) {
-        if (MixinApi.isWet(garment)) garment.wet(delta * share);
         const mat = MixinApi.isTangible(garment) ? garment.getMaterial() : null;
+        // ⚠ An impermeable layer takes in NOTHING: rain beads on a
+        // rubberized coat and runs off, so the coat is not wetted at all
+        // (found by the drive: it read "soaked through"). What reaches the
+        // body is unchanged — rubber passed nothing either way.
+        if (MixinApi.isWet(garment) && (mat === null || mat.permeability() > 0)) {
+          garment.wet(delta * share);
+        }
         const saturation = MixinApi.isWet(garment) ? garment.getWetness() : 1;
         const pass = mat ? mat.permeability() * saturation : 1;
         toBody += delta * share * pass;

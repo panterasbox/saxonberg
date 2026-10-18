@@ -603,21 +603,24 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
   }
 
   it('it rains (the clock moves in weather segments until it does)', async () => {
-    // ⚠ An hour at a time: a spell is shorter than the six-hour jumps this
-    // began with, and a body dries between them. RAIN, not snow — a cold
-    // spell's "rain" type can fall as snow, which wets nobody the same way.
+    // ⚠ Rain wets a body at a weather SEGMENT BOUNDARY (every 6 game
+    // hours: the boundary fan-out wets each occupied rain scope "one
+    // segment's worth"), using the phase AT that instant — and within a
+    // segment the phase flips between snow and rain with the temperature.
+    // So step to just past each boundary and accept only LIQUID rain there.
+    const SEGMENT_S = 6 * 3600;
     const wet = (w: string): boolean =>
       /type:\s*(rain|drizzle|showers?|storm|downpour)/i.test(w) &&
       /rain precipitation/i.test(w);
     let raining = false;
-    for (let i = 0; i < 240 && !raining; i++) {
-      await advanceWorldClock('1 hour');
+    for (let i = 0; i < 40 && !raining; i++) {
+      const { after } = await advanceWorldClock('0 seconds');
+      const toNext = Math.ceil((after + 1) / SEGMENT_S) * SEGMENT_S - after;
+      await advanceWorldClock(`${Math.ceil(toNext) + 60} seconds`);
+      await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
       raining = wet(await say(places.street!, 'analyze weather'));
     }
-    expect(raining, 'no rain in ten game days — the drive cannot run its rain steps').toBe(true);
-    // A quarter-hour IN it, so the fan-out has wetted who stands out there.
-    await advanceWorldClock('15 minutes');
-    await new Promise((r) => setTimeout(r, 3_000));
+    expect(raining, 'no liquid rain at a boundary in ten game days').toBe(true);
   }, 3_600_000);
 
   it('5 — the street and the roof terrace are wet', async () => {
