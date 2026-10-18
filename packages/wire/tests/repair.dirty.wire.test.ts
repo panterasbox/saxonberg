@@ -203,6 +203,27 @@ async function settle(where: string): Promise<void> {
   }
 }
 
+/**
+ * ⭐ Wait for Berta to light her own forge (`stokes`, a presence-gated
+ * beat — somebody is in the smithy). The drive used to stoke and light it
+ * itself, which proved nothing and burned one of the smithy's two baskets
+ * of charcoal; with a day-long clock jump burning the bed out between
+ * drives, run 20 reached drive 9 with no charcoal left to relight with.
+ */
+async function forgeLit(): Promise<string> {
+  let lit = '';
+  for (let i = 0; i < 15 && !/true/.test(lit); i++) {
+    lit = await evalOn(
+      SMITHY,
+      'berta',
+      "String(this.getContainer().getContents().filter((c) => MixinApi.isBurner(c)).map((c) => c.isLit()))",
+    ).catch((e) => String(e));
+    if (!/true/.test(lit)) await new Promise((r) => setTimeout(r, 10_000));
+  }
+  console.log(`[repair drive] the forge, lit by Berta → ${lit}`);
+  return lit;
+}
+
 /** Jump the world clock to `hour`:00 today (or tomorrow, if it has passed). */
 async function toHour(hour: number): Promise<void> {
   const { after } = await advanceWorldClock('0 seconds');
@@ -292,8 +313,8 @@ suite('⭐⭐ drives 2–3 — a mend can be done badly, and again (AC 1, 4)', (
 
   it('⭐ drive 3 — an untrained hand at a lit forge: short of sound, a grade down; again, another grade', async () => {
     await cloneHere(SMITHY, T.ingot, 6);
-    await say(mender, 'stoke charcoal into forge');
-    await say(mender, 'light forge');
+    // Berta keeps the forge on her shift; the untrained hand works at it.
+    expect(await forgeLit(), 'Berta lights her forge').toMatch(/true/);
     await practise(mender, 'appraisal', 10); // to READ the grade; the mend stays untrained smithing
     const before = await say(mender, 'analyze condition miners-pick');
     expect(before, `before: ${before}`).toMatch(/fine work/);
@@ -553,6 +574,7 @@ suite('⭐⭐ drive 9 — the heirloom keeps its name through its hilts (AC 14)'
     await say(mender, 'drop Hollin');
     await evalOn(SMITHY, 'Hollin', "(this.ensureParts(), this.getLine('blade').failed = 1, this.getName())");
     await say(mender, 'get Hollin');
+    expect(await forgeLit(), 'Berta has her forge going').toMatch(/true/);
     const roar = await say(mender, 'pump forge');
     console.log(`[repair drive] pump forge → ${roar}`);
     await say(mender, 'repair Hollin');
