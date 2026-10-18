@@ -58,3 +58,21 @@ settings:
     value: "200"
   - key: sericulture.maxEggs
     value: "600"
+  # ---- the reel ----
+  # Cocoons one reeling uses up; game-ms at eight to the thread, rate 1.
+  - key: sericulture.reel.charge
+    value: "40"
+  - key: sericulture.reel.baseMs
+    value: "1800000"
+  # The water must be at least this hot (a lit fire in reach).
+  - key: sericulture.reel.waterK
+    value: "330"
+  # ---- the labour bench (src/__tests__/labour.bench.test.ts) ----
+  # ⭐ A rearing is not long acts, it is ATTENDANCE: the tray must be
+  # visited and fed twice a day for the four weeks the worms eat. The
+  # bench prices each visit at this many minutes of a hand's time — the
+  # user's insight that silk is scarce because the time commitment is.
+  - key: sericulture.bench.visitMinutes
+    value: "15"
+  - key: sericulture.bench.visitsPerDay
+    value: "2"

@@ -1191,6 +1191,36 @@ textiles). `weaves.ts` is untouched (silk runs on the reeler).
 
 **Commit.** `build(silk W5): the silk house in the valley, and a reeler at the mill`
 
+> ✅ **Done.** Re-planned in place where the plan's premise was wrong:
+> - **No sub-zone**: the loft and the walk are `SingletonCartesianLocation`s
+>   on the Delight grid (`{-12,3,6}` / `{-14,3,6}`), the creamery's shape.
+> - ⚠ **The cocoon line is NOT on the textiles bale store**: that row is
+>   the textiles pack's, and a textiles row naming a sericulture good points
+>   the dependency the wrong way. The mill gets its own input Stock,
+>   `mill/thing/crib` (par 40, supplier the silk house outfit).
+> - **The house hand puts stifled cocoons straight on the house counter**
+>   (the house's own goods, priced) instead of `consigns` — `consigns` lifts
+>   ONE unit per `get 1`, which for cocoon-count stacks is forty listings a
+>   reeling. The reeler's `stocks` beat buys them there (`batch: 40`).
+> - **No `CirculatingMixin` on Cocoons/EggLot**: a `censusKey` with the
+>   default `regionTarget` is a census FAUCET; the asks ride the counter's
+>   `prices` and the reeler's `defaultAsk` instead.
+> - **The trays are worked by OBJECT in `tends`** (three trays in one room;
+>   a typed `tray` resolves whichever comes first) — the oven, counter,
+>   mulberry and doors are literal verbs. The oven is lit only when there is
+>   a crop to stifle (the kernel `stokes` calls), fuelled by the fuel trade's
+>   charcoal (bounded props).
+> - ⭐ **tray-1 is authored SPINNING** (`spinStartS: 1`): spinning is a time
+>   not a warmth, so the house has a crop on the first reads of a boot in
+>   ANY season — the world boots in winter and an unheated loft rears
+>   nothing (honest), which would otherwise leave AC 14 undrivable.
+> - `reels` words chosen so nothing else on the floor answers: `hank` (a new
+>   raw-silk keyword), `crib`, `silks`; config key `bin` (a reachability
+>   CITATION) for the crib. Walk mill↔loft: 9 authored steps each way (via
+>   the ford).
+> - The lane gains `north`; the house is titled to its outfit; nothing is
+>   booted (83/83 unchanged). The dyehouse also gains a water butt.
+
 ### W6 — the labour bench and the prices
 
 **Goal.** D14. **Files.** `trade-sericulture/src/__tests__/labour.bench.test.ts`;
@@ -1199,6 +1229,15 @@ the numbers it prints are written into `silk-house/thing/counter.yaml`
 `defaultAsk`, and the bale-store line is left as `supplier` (the price is
 the house's). **Acceptance.** AC 20. **Commit.** `build(silk W6): the
 labour bench — hours per kilo, and the silk prices that follow`
+
+> ✅ **Done.** ⭐ A rearing's hours are **attendance** (two 15-minute visits
+> a day for the ~23 feeding days at 25 °C, + 4), not act length — the
+> slate's insight that silk is scarce because the TIME commitment is.
+> Printed: per web linen 4.2 h · wool 3.5 · silk 10.5; per kg of fibre
+> linen 2.6 · wool 2.2 · **silk 173**. The cocoon's price is those hours at
+> the hand's wage **floored at one coin** (≈0.15 by the hours — the currency
+> has no smaller unit; markets-slate Q5); the silk bolt's ask is the cocoons
+> plus the reeler's hours at her wage, per bolt: **84** (linen asks 40).
 
 ### W7 — the drive, and the docs
 
