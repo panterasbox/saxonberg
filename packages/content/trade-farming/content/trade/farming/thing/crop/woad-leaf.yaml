@@ -13,4 +13,8 @@ data:
   longDescription: |
     Broad blue-green leaves, already bruising where they were handled. There is nothing blue about them to look at, which is the first surprising thing about woad and not the last.
   _materialPath: /trade/farming/idea/material/woad
+  # ⭐ `steep` it in a vat of water and the bath IS the dyestuff — the only
+  # way a dye bath is ever charged (silk W4: no crop was Steepable, so no
+  # bath in the game could be).
+  steepsInto: /trade/farming/idea/material/woad
   mass: 0.6

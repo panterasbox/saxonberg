@@ -480,6 +480,29 @@ function enclosingCoolbox(host: Stuff): (Stuff & Coolbox & Thermal) | null {
   return scope.isHoldingCold() ? scope : null;
 }
 
+/**
+ * ⭐ **The bath holding this body**, or null — the second holder rung
+ * (silk W4): a solid IMMERSED in a vessel's bulk is at the bulk's
+ * temperature, not the room's air. A bolt of raw silk in a copper of
+ * simmering water is at the water's temperature; so is a wheel in brine
+ * and a fish in a keepnet. Before this rung every one of them read the
+ * room, which made boiling anything in a liquid unrepresentable.
+ *
+ * ⚠ Immediate holder only (the {@link enclosingCoolbox} discipline), and
+ * any interior bulk counts: a body buried in a sack of grain is at the
+ * grain's temperature too. Fails fast for a body in a room — one
+ * `isBulkable` lookup that answers no.
+ */
+function enclosingBath(host: Stuff): (Stuff & Thermal) | null {
+  const scope = ambientScopeOf(host);
+  if (scope === null) return null;
+  if (!MixinApi.isBulkable(scope) || !MixinApi.isThermal(scope)) return null;
+  if (!MixinApi.isContainer(scope)) return null;
+  if (!scope.hasInteriorBulk()) return null;
+  if (!(scope.getBulkAmount("interior").rawValue() > 0)) return null;
+  return scope;
+}
+
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new RangeError(
@@ -1062,7 +1085,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     private holderK(): number | null {
       const self = this.thermalHost;
       const holder = enclosingCoolbox(self);
-      if (holder === null) return null;
+      if (holder === null) {
+        // ⭐ Rung two: immersed in a bath, a body is at the bath's
+        // temperature (see `enclosingBath`). Read in the same position
+        // on the pull and the push side as the coolbox, for the same
+        // reason.
+        const bath = enclosingBath(self);
+        return bath === null ? null : bath.getContentsTemperature().rawValue();
+      }
       const coldest = holder.coldestMass() as unknown as Stuff | null;
       if (coldest !== null && coldest.stuffId === (self as Stuff).stuffId) {
         return null;
@@ -1330,7 +1360,29 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
     // `requiredClosureFor` makes, so there is one definition of "gas"
     // and it lives on the material.
     if (BulkableApi.requiredClosureFor(mat) === 'sealed') return;
-    // Boil — the liquid flashes to gas (steam); the pool shrinks away.
+    // ⭐⭐ **The latent-heat plateau** (silk W4) — the boil twin of
+    // `reconcileMelt`, and what `Material.latentHeatOfVaporization` always
+    // said it was for: the heat above the boiling point is spent turning
+    // liquid to steam, and the liquid HOLDS at the boil while it lasts.
+    // Before this the whole interior flashed to steam the instant it
+    // reached the boiling point, so every pot on every fire in the game
+    // boiled dry at 100 °C and nothing could be held at a simmer — which
+    // made boiling cloth (and anything else) unrepresentable. A material
+    // with no latent heat still flashes, as the doc promises (`0` = an
+    // instantaneous transition).
+    const latent = mat.getLatentHeatOfVaporization().rawValue();
+    const kgPerL = mat.getDensity().rawValue() / 1000;
+    if (latent > 0 && kgPerL > 0) {
+      const overshootJ = (temp - bp) * v.thermalCapacityJPerK();
+      const boiledL = overshootJ / latent / kgPerL;
+      const left = amount - boiledL;
+      if (left > 0) {
+        v.setBulkAmount(aff, Quantity.of(left, 'L'));
+        v.setContentsTemperature(bp); // the plateau
+        return;
+      }
+    }
+    // Boiled dry (or no plateau to hold) — the liquid is gone to steam.
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     return;

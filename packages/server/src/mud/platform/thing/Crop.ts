@@ -29,6 +29,7 @@
  */
 
 import Provision from "./Provision";
+import { SteepableMixin } from "../../lib/craft/Steepable";
 import type { FieldMeta } from "../../lib/mixin";
 
 /**
@@ -39,7 +40,15 @@ import type { FieldMeta } from "../../lib/mixin";
  * `lint:perishable` had nothing to read. The day the key was fixed the
  * gate said what a sack of carrots is: matter that rots, on a class that
  * could not. Narrow the HOST, never drop the material.
+ *
+ * ⭐ **And a harvested plant part MAY steep** (silk W4). Madder root,
+ * weld and woad are crops, and the only way a solid ever becomes a dye
+ * bath is `steep` — whose solute must be `Steepable`. No crop was, so no
+ * dye bath in the game could ever be charged and dyeing's own drive never
+ * dyed. A crop with no `steepsInto` is inert (the controller refuses it in
+ * words), so a carrot affords `steep` and declines it — *afford
+ * statically, decline diegetically*.
  */
-export default class Crop extends Provision {
+export default class Crop extends SteepableMixin(Provision) {
   static fieldMeta: FieldMeta = {};
 }

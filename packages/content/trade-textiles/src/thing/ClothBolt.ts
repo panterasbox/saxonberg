@@ -31,15 +31,34 @@ import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
+import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import { FinishingMixin } from '../lib/Finishing';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
-const ClothBoltBase = StackableMixin(
-  CraftedMixin(ConstructedMixin(DyedMixin(Good))),
+/**
+ * ⭐ Thermal + Finishing (silk W4): every bolt has a temperature and may
+ * be finished in the piece by a temperature-driven profile — raw silk
+ * degummed in a copper, and (the recorded next consumers) wool scoured,
+ * linen piece-bleached.
+ */
+const ClothBoltBase = FinishingMixin(
+  ThermalMixin(StackableMixin(CraftedMixin(ConstructedMixin(DyedMixin(Good))))),
 );
 
+/** `look bolt` — what the finish has done to it, when it has done anything. */
+function finishingAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof ClothBolt)) return text;
+  const line = host.finishingLine();
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export default class ClothBolt extends ClothBoltBase {
+  static markupAugmenters: MarkupAugmenter[] = [finishingAugmenter];
+
   // ⚠ TS re-surface of the inner `GradedMixin`'s members: they are
   // present at runtime, but an anonymous mixin base's members do not
   // surface through `CraftedMixin` (the documented `Crafted.ts` cast

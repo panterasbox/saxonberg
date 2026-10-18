@@ -146,8 +146,12 @@ export default class DyeController extends ManualBuildController<DyeModel> {
     // why the launch palette is honestly muted.
     const cellulose = fibre?.hasTag('cellulose') ?? false;
     const tanninFirst = hasTannin(target);
+    // ⭐ And GUM holds nothing either: raw silk still in its sericin takes a
+    // dye thinly and loosely, whichever chemistry — which is why silk is
+    // boiled off before it is dyed (silk W4).
+    const gummed = fibre?.hasTag('gummed') ?? false;
     const bondPenalty =
-      chemistry === 'mordant' && cellulose && !tanninFirst && pending !== 'tannin'
+      gummed || (chemistry === 'mordant' && cellulose && !tanninFirst && pending !== 'tannin')
         ? 0.5
         : 1;
 
@@ -166,10 +170,15 @@ export default class DyeController extends ManualBuildController<DyeModel> {
     const available = slot.available();
     const capacity = slot.getCapacity()?.rawValue() ?? available;
     const fullness = capacity > 0 ? Math.min(1, available / capacity) : 1;
+    // ⭐⭐ The bond penalty pays in DEPTH as well as fastness (silk W4):
+    // dye that does not bind is not in the cloth to be seen. Before this
+    // the penalty touched fastness only, so un-tannined linen took as deep
+    // a shade as wool and the textiles doc's "saturation is a thing wool
+    // brings" had no mechanism.
     const strength =
       chemistry === 'vat'
-        ? clamp01(0.35 + priorDepth(target, dyestuff.getKey()))
-        : clamp01(fullness * dial(DyeController.EXHAUST_KEY, DyeController.EXHAUST) * 1.6);
+        ? clamp01((0.35 + priorDepth(target, dyestuff.getKey())) * bondPenalty)
+        : clamp01(fullness * dial(DyeController.EXHAUST_KEY, DyeController.EXHAUST) * 1.6 * bondPenalty);
 
     this.engageStep(context, {
       durationMs: dial(DyeController.BASE_MS_KEY, DyeController.BASE_MS),
@@ -210,9 +219,11 @@ export default class DyeController extends ManualBuildController<DyeModel> {
           .toSelf(
             chemistry === 'vat'
               ? Mml.compose`You draw ${Mml.thing(target)} out yellow-green. As the air takes it, the colour walks up through jade to a deep, even blue.`
-              : bondPenalty < 1
-                ? Mml.compose`${Mml.thing(target)} comes up ${shade.colour}, and thinner than it ought to be. Cellulose will not hold a metal on its own — it wanted tannin first.`
-                : Mml.compose`${Mml.thing(target)} comes up ${shade.colour}.`,
+              : gummed
+                ? Mml.compose`${Mml.thing(target)} comes up ${shade.colour}, thin and patchy. It is still in its gum — the dye sits on it rather than in it. It wanted boiling off first.`
+                : bondPenalty < 1
+                  ? Mml.compose`${Mml.thing(target)} comes up ${shade.colour}, and thinner than it ought to be. Cellulose will not hold a metal on its own — it wanted tannin first.`
+                  : Mml.compose`${Mml.thing(target)} comes up ${shade.colour}.`,
           )
           .toPeers(Mml.compose`${Mml.actor(giver)} lifts something dripping out of a bath.`)
           .send();

@@ -134,10 +134,20 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
     return { flask, room };
   }
 
-  it('boils a liquid to gas above its boiling point (steam)', () => {
+  it('⭐ boils off what the heat above the boil pays for, and HOLDS at the boil (the plateau)', () => {
     const { flask } = waterFlask(400); // > 373 K
     if (MixinApi.isThermal(flask)) flask.reconcilePhase();
-    expect(flask.getBulkAmount('interior').rawValue()).toBe(0); // flashed to steam
+    // 27 K over × (1 kg × 4186 J/K) ÷ 2.26 MJ/kg ≈ 0.05 L to steam.
+    const left = flask.getBulkAmount('interior').rawValue();
+    expect(left).toBeGreaterThan(0.94);
+    expect(left).toBeLessThan(0.96);
+    expect(flask.getTemperature().rawValue()).toBeCloseTo(373, 6);
+  });
+
+  it('boils dry when the heat above the boil is more than the liquid', () => {
+    const { flask } = waterFlask(3000); // absurdly hot: more than enough
+    if (MixinApi.isThermal(flask)) flask.reconcilePhase();
+    expect(flask.getBulkAmount('interior').rawValue()).toBe(0); // gone to steam
   });
 
   it('solidifies a liquid to a cast below its melting point', async () => {

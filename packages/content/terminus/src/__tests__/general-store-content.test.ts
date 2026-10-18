@@ -394,6 +394,7 @@ describe("general-store content integrity", () => {
     "/trade/sericulture/thing/EggLot",
     "/trade/sericulture/thing/RearingTray",
     "/trade/sericulture/thing/ReelingTool",
+    "/trade/textiles/thing/Copper",
     // ⭐ The wear-part line (assembly W6): a pane is the glasshouse's
     // `Sheet`, and a cushion or a smoker's bellows is an `Assembly` — a
     // made thing of parts with no other capability. All discrete: you

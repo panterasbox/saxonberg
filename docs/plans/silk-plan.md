@@ -1133,6 +1133,35 @@ vitest, `lint:family` (`envelope`, `perishable`, `doneness` untouched).
 
 **Commit.** `build(silk W4): finishing in the piece — a bath has a temperature, a bolt a profile, kermes two rows`
 
+> ✅ **Done.** Risk 2 BIT, and the fix is a kernel one:
+> - ⚠⚠ **The bulk phase layer flashed a vessel's whole interior to steam
+>   the instant it reached the boil** — every pot on every fire boiled dry
+>   at 100 °C, despite `Material.latentHeatOfVaporization`'s own doc
+>   promising a plateau. `reconcileBulkPhase` now has the latent-heat
+>   plateau (the boil twin of `reconcileMelt`): the heat above the boil
+>   turns liquid to steam and the liquid HOLDS at the boil; a material with
+>   no latent heat still flashes. `Meltable.test`'s instant-boil case now
+>   asserts the plateau (+ a boil-dry case). `reconcilePhase` is `@Final`,
+>   so a per-class override was not available — the plateau was the only
+>   compliant path, and it is the documented intent.
+> - **The immersion rung is any interior bulk** (not only "a liquid"):
+>   a body buried in grain is at the grain's temperature too, and there is
+>   no cheap phase predicate. Immediate holder only.
+> - **The copper is 12 L**, not 40: the kernel's Newton model (τ = R·C,
+>   no burner power) heats 30 L to a simmer in ~5 game hours; 12 L
+>   simmers in ~1½ and degums in ~3½ all told. `Copper` caps its CONTENTS
+>   read at the boil (the vessel's own temperature runs ahead between reads).
+> - `FinishingMixin`'s two progress fields are stack identity (a half-boiled
+>   bolt never merges with a finished one); held past `damageAboveK` costs a
+>   band — unreachable in water, by the cap.
+> - Dye: the gum penalty applies to BOTH chemistries, with its own sentence
+>   (*still in its gum*); depth pays the penalty for both (`depth.test` runs
+>   the real controller).
+> - The kermes oak is a polycarp authored ready, propped on the silk house
+>   walk (W5); `two-chemistries` now counts three mordant dyes.
+> - The dyehouse floor props a copper, a brazier and three logs — its prose
+>   always said *"coppers along one wall, each over its own fire"*.
+
 ### W5 — the silk house, and the reeler at the mill
 
 **Goal.** D10, D11 (the walk), D15 (house trays). The house runs while

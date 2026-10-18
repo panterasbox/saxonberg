@@ -1,0 +1,41 @@
+# A kermes oak — ⭐ a scrub oak kept for the scale insects on it. Its
+# "fruit" in the polycarp cycle is the year's kermes, gathered by hand
+# (`harvest`) off the twigs in spring. Authored ready to gather (the hazel
+# stool's fields), because it stands as a prop of the silk house's walk.
+class: /platform/thing/Plant
+data:
+  shortDescription: kermes oak
+  keywords: [oak, "kermes oak", kermes, shrub, tree]
+  register: indefinite
+  longDescription: |
+    A dense, prickly evergreen oak no taller than a man, its holly-like leaves dusty grey-green; here and there on the twigs sit small round red swellings like berries.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/coccifera
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 30
+  lifecycleState: alive
+  harvestTemplatePath: /trade/farming/thing/crop/kermes
+  discipline: horticulture
+  nutrientDraw: 4
+  growthStage: mature
+  _vigor: 0.9
+  _flowering: true
+  _seedSet: true
+  _fruitFill: 1
+  profile:
+    moistureHappyAt: 0.15
+    moistureWiltAt: 0.02
+    litresPerGameDay: 0.1
+    luxHappyAt: 120
+    luxDarkAt: 15
+    rootDemand:
+      seedling: 0.3
+      young: 1
+      established: 3
+      mature: 6
+    daysToStage:
+      young: 60
+      established: 180
+      mature: 360
+    # A year's grains, gathered in spring.
+    fruitSetCount: 3
+    fruitFillDays: 360
