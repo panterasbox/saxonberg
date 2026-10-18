@@ -45,6 +45,7 @@ import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { DyedMixin } from '../../../lib/material/Dyed';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
+import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SoilableMixin } from '../../../lib/cleanliness/Soilable';
 import type { WashOutcome, WashSpec } from '../../../lib/cleanliness/Soilable';
 import { LabelledMixin } from '../../../lib/description/Labelled';
@@ -67,11 +68,13 @@ import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolic
 // ⭐ Soilable and Labelled OUTERMOST (cleanliness D3, D9): every garment
 // may carry dirt by kind and be washed — a shirt, an apron, a pair of
 // gloves — and every garment may be marked with its owner's name, which
-// is what a laundry mark is.
+// is what a laundry mark is. Parts or one piece beneath (repair D4): a
+// welted boot is two uppers and two soles a cobbler re-soles; a shirt is
+// one piece. One class.
 const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
-    CraftedMixin(
-      DurableMixin(ConstructedMixin(DyedMixin(Good))),
+    AssembledMixin(
+      CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
 )));

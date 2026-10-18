@@ -9,4 +9,7 @@ data:
     A straight steel blade bevelled on one side, with a tang drawn out at each end and turned toward the edge.
   mass: 0.5
   capabilities: []
+  # ⭐ An EDGE (repair D3): the form word is what makes it honable —
+  # `sharpen` reaches it loose, and through the whole it is fitted in.
+  constructionForm: bladed
   _materialPath: /stuff/idea/material/alloy/steel

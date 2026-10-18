@@ -16,4 +16,7 @@ data:
     sharpening.
   mass: 3.4
   capabilities: ["mowing"]
+  # ⭐ An EDGE (repair D3): the form word is what makes it honable —
+  # `sharpen` reaches it loose, and through the whole it is fitted in.
+  constructionForm: bladed
   _materialPath: /stuff/idea/material/element/iron

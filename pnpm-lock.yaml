@@ -916,6 +916,9 @@ importers:
       '@saxonberg/content-trade-fishing':
         specifier: workspace:*
         version: link:../trade-fishing
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel

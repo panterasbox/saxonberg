@@ -1,6 +1,6 @@
 # Eternal City source — inventory & EU mappings (staging)
 
-> **Status: resource, mined from `docs/eternal/` overnight (2026-06-08).**
+> **Status: resource, mined from `~/play/eotl/mudlib/zone/null/eternal/` overnight (2026-06-08).**
 > A complete catalog of the legacy EC source — roads, buildings, NPCs,
 > content subdirs, the map — with **suggested EU mappings**. The mappings
 > are *suggestions, not decisions*; the extraction is the value. Prose for

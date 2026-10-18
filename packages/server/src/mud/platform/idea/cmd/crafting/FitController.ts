@@ -85,7 +85,11 @@ export default class FitController extends CraftController<FitModel> {
     // SHARES in hand bound "plough" to a share (inventory is searched
     // first, and a share is a Tool like the plough) — the assembly drive.
     // The thing the part fits, answering to the word, is what was meant.
-    if (whole && !MixinApi.isAssembled(whole) && model.whole?.raw) {
+    if (
+      whole &&
+      (!MixinApi.isAssembled(whole) || whole.isOnePiece()) &&
+      model.whole?.raw
+    ) {
       const meant = this.wholeFor(part, giver, model.whole.raw.trim().toLowerCase());
       if (meant) whole = meant;
     }

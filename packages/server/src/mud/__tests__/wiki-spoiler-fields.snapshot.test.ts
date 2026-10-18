@@ -80,6 +80,32 @@
  *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted;
  *     `DressingMixin.dressingQuality` — authored, now derived from the
  *     dressing's clean tier (a row could claim a sterile bandage).
+ *
+ * **Repair — assemblies part two (4 fields, and a relabel).** Every one
+ * level 0, and why:
+ *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
+ *     been mended (by Berta)* and `analyze condition` reads the rest by
+ *     the appraiser's band; the panel shows what a look already does.
+ *   - `CraftedMixin.castDiscipline` — the trade of the mould a thing set
+ *     in. It is which trade MENDS it, and the mend's own refusal names
+ *     that trade; nothing to hide.
+ *   - ⭐ The question this build was asked to settle — is an un-revealed
+ *     heirloom's name a spoiler? — answered with NO new field: a thing's
+ *     proper name is `NamedMixin.name` (already level 0, now composed on
+ *     Tool and Weapon), and a part's rides its line. A name is what a
+ *     thing is CALLED — *Hollin* on `look`, in the room and in your hands,
+ *     and how you ask for it. What a name may hide (where it came from,
+ *     who carried it) is the row's prose. The first cut added
+ *     `AssembledMixin.seatName`/`.nameGrant`, a second name concept; it
+ *     was folded onto `Named` in review, the grant derived from the
+ *     reforge's mend record (`MendRecord.nameLost`).
+ *   - `Vat.emptySince` (was `Cask.emptySince`) and `Timber.condition` —
+ *     the fold-back: the cask's drying clock moved onto every vat, and a
+ *     stave's wear is stack identity. Runtime state, read out in words.
+ *   - ⚠ The relabel: `AssembledMixin.__validateComposition__` declared a
+ *     `const name` above `static fieldMeta` (the dairy's finding, missed
+ *     here), so `bill`/`parts`/`joints`/`gauge`/`hands` were filed under
+ *     `name.*`. The check sits below `fieldMeta` now.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

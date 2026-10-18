@@ -53,6 +53,9 @@ data:
       destination: /world/terminus/hearts-delight/creamery/location/floor
       media: [ground]
       edgeMinutes: 4
+  props:
+    # ⭐ The tinker's stop at ten (repair D15).
+    - /world/terminus/hearts-delight/thing/tinkers-slate
   details:
     # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
     # appends the live state ("burning, fed from the town's oil store").

@@ -129,7 +129,7 @@ you bring the sample back.** A whole gameplay rhythm falling out of
 an equipment distinction.
 
 **Power belongs to instruments, not to the aether** — cells, per the
-old `CellCode` split in `docs/newbie/`. (Aether-as-energy is left
+old `CellCode` split in the EotL source (`~/play/eotl/mudlib/`). (Aether-as-energy is left
 alone deliberately; it is adjacent to a line already redrawn once.)
 
 ## The social layer — what Deus Ex promised and did not deliver
