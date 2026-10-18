@@ -2761,6 +2761,10 @@ Read first, in this order.
   test): a re-capture reuses the stash inside `capture`, so a derived key
   never becomes explicit.
 
+- **B39 — Only an unnamed target strips** (`UnequipController`): a word
+  that names nothing you have on is refused (*You aren't wearing coat*),
+  the manner-word refusal's sibling.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -2862,3 +2866,21 @@ WIRE_PORT=2013`. Runs, and what each found:
   - the record held the set-stain shirt, and the first query after the
     restart came back empty — the drive waits for the inventory now and
     logs how long it took.
+- **Run 20** (fresh DB) — 21/22: every step but the restart PASS,
+  including drive 18 (Bet names the fibre and price and brings the apron
+  back; the bath attendant felts the jumper and the house pays cover) and
+  drive 20 (the doorman turns the apron away in words, a bath, a jumper,
+  the arch opens). No restore-placement warning after B38. Found, by
+  probing the warm world after the run:
+  - the restart's shirt was not missing — drive 9 had hung it on the
+    cookhouse's drying rack, and the kept place gave it back, one copy,
+    still soiled with blood and grease. The drive read the cook's pockets;
+    it reads the room now;
+  - ⚠ **`remove shirt` with the shirt on the rack stripped the cook
+    bare** — a named target that matches nothing reaches the controller
+    as a result with no `stuff`, and fell through to the strip. Refused
+    in words now (B39);
+  - finding, not this build's: a returning player gets a SECOND aether
+    implant each login — the restored one lands in the pack, not the
+    cranial slot, so `Avatar`'s loadout mints another (`Avatar.ts` loadout
+    occupy). Three boots, three implants.

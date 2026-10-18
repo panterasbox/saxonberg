@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B38). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B39). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
