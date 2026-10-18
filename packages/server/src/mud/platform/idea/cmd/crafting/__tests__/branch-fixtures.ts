@@ -365,6 +365,17 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     ) {
       return realClone(path) as never;
     }
+    // The wash reads its cleansers and dirt kinds through the engine's lazy
+    // catalogues (cleanliness). This world authors none, so the real
+    // catalogue with nothing to warm is the honest stand-in.
+    if (path === '/platform/idea/CleanserCatalogue') {
+      const { default: C } = await import('../../../CleanserCatalogue');
+      return makeStuff(() => new C()) as never;
+    }
+    if (path === '/platform/idea/DirtKindCatalogue') {
+      const { default: C } = await import('../../../DirtKindCatalogue');
+      return makeStuff(() => new C()) as never;
+    }
     if (path === KNIFE_T || path === '/stuff/thing/arms/fire-poker') {
       return makeStuff(() => new TestKnife()) as never;
     }
