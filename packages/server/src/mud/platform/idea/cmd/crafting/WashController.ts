@@ -83,17 +83,25 @@ export default class WashController extends ManualBuildController<WashModel> {
     this.currentModel = model;
     // ⭐ A source that has to read itself first (a shore's water, a tap's
     // main) settles before anything is looked for in it.
+    // ⚠ Bounded (found by the drive: a wash never answered, and the player
+    // could do nothing else). A source that cannot settle in time washes
+    // with what it already knows; the bound is logged so the slow one is
+    // named.
     for (const c of model.water?.stuff ?? []) {
-      await BulkableApi.slotFor(c, undefined)?.settle();
+      const slot = BulkableApi.slotFor(c, undefined);
+      if (slot) await bounded(slot.settle(), `settle ${c.getTemplatePath()}`);
     }
     // The rows the chemistry reads, warmed once here — every later read is
     // a sync `peek` (the catalogue rule).
     const cleansers = await StuffApi.singleton<CleanserCatalogue>(
       TemplatePaths.cleanserCatalogue,
     );
-    await StuffApi.singleton<DirtKindCatalogue>(
-      TemplatePaths.dirtKindCatalogue,
-    ).then((c) => c.allWarmed());
+    await bounded(
+      StuffApi.singleton<DirtKindCatalogue>(TemplatePaths.dirtKindCatalogue).then((c) =>
+        c.allWarmed(),
+      ),
+      'dirt catalogue warm',
+    );
     const found = await this.findCleansers(model.cleanser, cleansers);
     if ("refusal" in found) {
       this.declineStep(context, Mml.compose`${found.refusal}`, "not-a-cleanser");
@@ -306,6 +314,22 @@ export default class WashController extends ManualBuildController<WashModel> {
     }
     if (frozenLine) return { refusal: frozenLine, reason: "frozen" };
     return { refusal: "There's no water here to wash in.", reason: "no-water" };
+  }
+}
+
+/** Wait for `p`, but never longer than `ms`; say which wait ran over. */
+async function bounded<T>(p: Promise<T>, label: string, ms = 5000): Promise<T | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<undefined>((res) => {
+    timer = setTimeout(() => {
+      console.warn(`WashController: ${label} did not settle in ${ms} ms; washing without it`);
+      res(undefined);
+    }, ms);
+  });
+  try {
+    return await Promise.race([p, late]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 

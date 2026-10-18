@@ -366,6 +366,8 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     cook = await goTo(cookHandle, COOKHOUSE);
     await cloneHere(COOKHOUSE, T.apron);
     await cloneHere(COOKHOUSE, T.carcass, 4);
+    // ⚠ The world outlives a run: an earlier cook pocketed the house knife.
+    await cloneHere(COOKHOUSE, '/trade/cooking/thing/boning-knife').catch(() => {});
     // The player's own shirt is the one the drive reads (a fresh avatar
     // dresses in a student shirt, trousers and canvas shoes).
     await say(cook, 'get boning knife');
@@ -481,14 +483,18 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
 
 suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () => {
   it('stoke the cellar brazier with sulfur and light it; the air reads it', async () => {
-    const buyer = await goTo(cookHandle, '/world/terminus/wharfside/chandlery/location/floor');
+    // ⚠ Its OWN player: an hour in a shut room with sulfur burning kills
+    // you — the first drive that tried it left the cook a shade (*"your
+    // hand passes through it"* at the next wash), which is the feature.
+    const buyer = await newPlayer('fumes', '/world/terminus/wharfside/chandlery/location/floor');
+    const fumesHandle = buyer.handle;
     await buy(buyer, 'sulfur');
     buyer.close();
-    const s = await goTo(cookHandle, CELLAR);
+    const s = await goTo(fumesHandle, CELLAR);
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
     await say(s, 'stoke sulfur into brazier');
     await say(s, 'ignite brazier');
-    await advanceWorldClock('1 hour');
+    await advanceWorldClock('30 minutes');
     const air = await say(s, 'analyze atmosphere');
     expect(air, `the cellar air: ${air}`).toMatch(/sulfur|sulphur|dioxide|acrid/i);
     s.close();
@@ -498,6 +504,8 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
 suite('⭐⭐ drive 12 — the cookhouse kept: crumbs, the window, the flue (AC 12, 13, 14)', () => {
   it('⭐ eating drops crumbs; the floor reads crumbed, and the survey names the method', async () => {
     const s = await goTo(cookHandle, COOKHOUSE);
+    // The kitchen's own logs may have walked off in an earlier run.
+    await cloneHere(COOKHOUSE, '/stuff/thing/items/dry-log').catch(() => {});
     await say(s, 'get log');
     await say(s, 'stoke log into oven');
     const lit = await s.cmd('ignite oven');
