@@ -383,6 +383,9 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(refusal(swim), JSON.stringify(swim.notes)).toBeNull();
     const stand = await k.cmd('stand');
     expect(refusal(stand), JSON.stringify(stand.notes)).toBeNull();
+    // The line comes in before the cutter works on (run 9: a line left in
+    // the water kept the hands busy through the next cut and the saw).
+    await say('cancel fishing');
     const walk = await k.cmd('south');
     expect(refusal(walk), 'standing on the ice again, you walk off it').toBeNull();
     expect(await here()).toMatch(/shore/i);
