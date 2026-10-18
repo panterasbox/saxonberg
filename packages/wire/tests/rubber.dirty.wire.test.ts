@@ -420,15 +420,24 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await say(s, 'stoke coal into stove');
     await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
+    // ⚠ A producer's clock starts at its FIRST read (the stamp seeds then),
+    // so a tree nobody has looked at yet has run nothing: look first.
+    await say(s, 'look tree');
     // From a ~270 K dawn the stove alone takes hours and the morning sun
-    // joins it: two hours left the glass at 286 K, four at 312 (past the
-    // tree's 309). Three aims at the middle of the band.
-    await advanceWorldClock('3 hours');
-    await new Promise((r) => setTimeout(r, 3_000));
-    const warm = await thermometer(s);
+    // joins it — and how fast depends on the morning (two hours left the
+    // glass at 286 K, three at 291 or 302, four at 312, past the tree's
+    // 309). Warm an hour at a time until it reads inside the band.
+    let warm = 0;
+    for (let h = 0; h < 6; h++) {
+      await advanceWorldClock('1 hour');
+      await new Promise((r) => setTimeout(r, 2_000));
+      warm = await thermometer(s);
+      if (warm >= 295) break;
+    }
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] stove house, stove lit 3 h: ${warm.toFixed(1)} K`);
+    console.log(`  [drive] stove house, stove lit: ${warm.toFixed(1)} K`);
     expect(warm).toBeGreaterThan(291);
+    expect(warm).toBeLessThan(309);
     // Let the cuts run a while in the warm before anybody taps them.
     // ⚠ While the stove still burns: the window is sampled at the read,
     // so a house gone cold (or hot) by the tap bills the whole wait as shut.
