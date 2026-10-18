@@ -34,6 +34,7 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -155,6 +156,9 @@ async function finish(
   const giver = context.commandGiver;
   // ⚠⚠ A module function — the controller is destructed by now.
   const watching = !giver.isDestroyed();
+  // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
+  // destructed below.
+  const fibre = MixinApi.isTangible(stock) ? stock.getMaterial() : null;
   // The stock is consumed WHETHER OR NOT the thread held. That is the
   // waste, and it is the whole of the failure mode.
   const left = Math.max(0, stock.getQuantity() - charge);
@@ -186,6 +190,11 @@ async function finish(
     // ever stops being TextileStock the count must break loudly rather
     // than be silently dropped.
     if (yarn instanceof TextileStock) yarn.setYarnCount(count);
+    // ⭐⭐ The yarn is the FIBRE it was drawn from, and the spinner made
+    // it. Before the silk build neither was carried: the row's linen
+    // stood, so spun wool came off the wheel as linen yarn.
+    carryFibre(fibre, yarn);
+    if (MixinApi.isCrafted(yarn)) yarn.setMaker(giver.getIdentityPath() ?? '');
     if (MixinApi.isContainable(yarn) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(yarn as Stuff & Containable, giver as Stuff & Container);
     }
@@ -201,6 +210,21 @@ async function finish(
       .send();
   } catch (err) {
     console.warn('SpinController: could not mint yarn:', err);
+  }
+}
+
+/**
+ * ⭐ The product takes the input's material, and answers to its name —
+ * *wool*, *raw silk* — beside the row's own nouns. Weave carries its own
+ * copy, as each controller carries its own `dial` (a pack exports no
+ * helpers).
+ */
+function carryFibre(material: Material | null, to: Stuff): void {
+  if (!material || !MixinApi.isTangible(to)) return;
+  to.setMaterial(material);
+  if (MixinApi.isPerceptible(to)) {
+    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
+    to.setKeywords([...new Set([...to.getKeywords(), ...words])]);
   }
 }
 

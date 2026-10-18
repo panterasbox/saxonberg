@@ -25,6 +25,7 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -129,6 +130,9 @@ async function finish(
   const giver = context.commandGiver;
   // ⚠⚠ A module function — the controller is destructed by now.
   const watching = !giver.isDestroyed();
+  // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
+  // destructed below.
+  const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
   const left = Math.max(0, yarn.getQuantity() - charge);
   if (left === 0) StuffApi.destruct(yarn);
   else yarn.setQuantity(left);
@@ -138,6 +142,9 @@ async function finish(
     if (MixinApi.isStackable(bolt)) bolt.setQuantity(units);
     if (MixinApi.isConstructed(bolt)) await bolt.setConstructionForm(form);
     if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
+    // ⭐⭐ The cloth is the yarn's fibre, and the weaver's work.
+    carryFibre(fibre, bolt);
+    if (MixinApi.isCrafted(bolt)) bolt.setMaker(giver.getIdentityPath() ?? '');
     if (MixinApi.isContainable(bolt) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(bolt as Stuff & Containable, giver as Stuff & Container);
     }
@@ -151,6 +158,16 @@ async function finish(
       .send();
   } catch (err) {
     console.warn('WeaveController: could not mint a bolt:', err);
+  }
+}
+
+/** The cloth takes the yarn's material and answers to its name. */
+function carryFibre(material: Material | null, to: Stuff): void {
+  if (!material || !MixinApi.isTangible(to)) return;
+  to.setMaterial(material);
+  if (MixinApi.isPerceptible(to)) {
+    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
+    to.setKeywords([...new Set([...to.getKeywords(), ...words])]);
   }
 }
 

@@ -50,6 +50,21 @@ export default class ClothBolt extends ClothBoltBase {
   declare getGrade: () => Grade;
   declare setGrade: (value: Grade) => void;
   /**
+   * ⭐ *bolt of wool* · *bolt of silk* — cloth is named for its fibre,
+   * which `weave` carries from the yarn (and a finishing bath can change:
+   * raw silk boils off its gum and becomes silk). The authored stem is the
+   * fallback for a bolt whose material has no name.
+   */
+  override getShortDescription(): string {
+    const fibre = MixinApi.isTangible(this as unknown as Stuff)
+      ? (this as unknown as { getMaterial(): { getName(): string } | null })
+          .getMaterial()
+          ?.getName()
+      : '';
+    return fibre ? `bolt of ${fibre}` : super.getShortDescription();
+  }
+
+  /**
    * ⚠ Narrows, never widens. `super` still decides the shipped
    * questions (same row, no shadows, no adornments); this adds the
    * three facts that make two bolts genuinely the same cloth.
