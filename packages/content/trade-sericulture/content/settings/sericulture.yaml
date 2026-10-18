@@ -37,3 +37,24 @@ settings:
   # What a lay multiplies the mothers' load by.
   - key: sericulture.pebrine.amplification
     value: "1.6"
+  # ---- the cocoon ----
+  # ⭐ Calibrated over a real lit oven (src/__tests__/stifling.test.ts): a
+  # 500 K kitchen range stifles in ~11 minutes and scorches at ~32, a 345 K
+  # stifling oven stifles and never scorches. A cocoon has almost no
+  # thermal mass, so the WINDOW is the difference of the two hold times.
+  - key: sericulture.stifleK
+    value: "333"
+  - key: sericulture.stifleHoldS
+    value: "600"
+  - key: sericulture.scorchK
+    value: "423"
+  - key: sericulture.scorchHoldS
+    value: "1800"
+  # An unstifled cocoon opens this many game days after the spin.
+  - key: sericulture.emergeDays
+    value: "10"
+  # Eggs one kept cocoon is worth, and the most one card holds.
+  - key: sericulture.eggsPerCocoon
+    value: "200"
+  - key: sericulture.maxEggs
+    value: "600"

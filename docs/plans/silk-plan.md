@@ -1029,6 +1029,25 @@ state refuse to merge.
 
 **Commit.** `build(silk W2): the cocoon — stifled by heat, opened by the deadline, selected by what you keep`
 
+> ✅ **Done.** Calibrated on the real oven: a cocoon stack has almost no
+> thermal mass, so it is at the oven's temperature in a minute and the
+> window between DEAD and BURNT is the difference of the two hold times.
+> `scorchHoldS` went 900 → **1800** so the 500 K kitchen range stifles at
+> ~11 min and scorches at ~32 (a 21-minute window — about a real minute
+> and three quarters); 345 K never scorches. Risk 3 did not bite: the
+> range works, the stifling oven is the forgiving option.
+> - **The cocoon material is named `spun silk`** (which is literally what a
+>   cocoon is): `spin` carries the material's NAME down the chain, so a
+>   pierced cocoon spins to *a skein of spun silk yarn* (AC 11) with no
+>   silk code in textiles.
+> - **Piercing drops the stack one grade band** (the cut thread is a short
+>   staple); scorching drops two and implies stifled.
+> - A lay is ONE card: `min(maxEggs 600, quantity × 200)` eggs; the
+>   genetic mean is `lotGeneticMg + h² × (meanShellMg − lotMeanMg)` (see
+>   W1); `laidWhere` is the enclosing room's name in words.
+> - `stifling-oven` and `pupae` carry `unreachable: awaiting:silk-slate`
+>   until W3 (reel mints pupae) and W5 (the house props the oven).
+
 ### W3 — `reel`, unified
 
 **Goal.** D6. `reel` with a hooked fish reels the fish; `reel cocoons

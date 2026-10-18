@@ -1,0 +1,13 @@
+# A handful of pupae — ⭐ what the reel leaves in the basin. Eat them
+# roasted, or let them go off; there is nothing else they are for.
+# ⚠ Reached by the silk house (W5) / the reel (W3); held until then.
+unreachable: awaiting:silk-slate
+class: /platform/thing/Provision
+data:
+  shortDescription: handful of silkworm pupae
+  keywords: [pupae, pupa, handful, chrysalis, chrysalises, "silkworm pupae"]
+  register: indefinite
+  longDescription: A wet handful of brown pupae out of the reeling basin, each the size of a bean.
+  _materialPath: /trade/sericulture/idea/material/pupa
+  mass: 0.05
+  gradeBand: fair
