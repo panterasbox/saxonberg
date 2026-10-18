@@ -226,7 +226,13 @@ refactored `go`. It does two things:
    dispatch context.
 
 The note's `gate` vocabulary is the closed union
-`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door' | 'terrain' | 'breakaway' | 'veto'`.
+`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door' | 'terrain' | 'breakaway' | 'veto' | 'encumbrance' | 'locked' | 'unbuilt' | 'unpublished'`.
+⚠ The last four were guards with no word of their own that fell to the
+mapper's `exit-mode` default (storage-and-ice, 2026-10-17): a laden
+swimmer refused *"You're carrying too much to swim."* read for three
+drive runs as a way that does not swim. `mapGate`'s default is still
+`exit-mode`, so a new guard must add its word to the union AND the
+mapper.
 A `blocked` refusal renders the exit's own `reason` when it has one (a
 ford, a snowbound pass), else *"The way is blocked."*
 The `mode` is the short LocomotionMode name (`'walk'`, `'climb'`, …).
@@ -236,6 +242,24 @@ The gate names are kebab-case on the wire even though
 `exitMode`, `noConveyance`); `emitRejection` does the mapping. See
 [response-envelope.md § Notes](./response-envelope.md) for the full
 note shape and auto-escalation rule.
+
+### ⭐ `swim` with no target — *swim here* (storage-and-ice, 2026-10-17)
+
+`swim.yaml`'s `target` is optional. Bare `swim` lets go of the floor and
+swims where you are: the room's water surface decides —
+`WaterSurface.goIn(actor)` ([ground.md](./ground.md) § The water's
+surface) needs open water (`openWaterAreaM2() > 0` — a cut channel, a
+hole, an open pool) and you on the surface, then calls `giveWay(actor,
+true)` — the deliberate drop, the gentler scene, nothing broken in the
+ice — and returns its refusal otherwise (*"There is no open water here to
+swim in."*, *"You are already in the water."*); `SwimController` only
+renders. ⚠ Bare `stand` back out stays the posture verb's own act:
+`transferPosture` is gated to the posture verbs, so no floor can stand
+you up. A **typed** way that binds nothing
+(`swim north` at a bank with no north) is the crossing, refused *"You
+can't swim that way."* — not the bare branch. In the water you are
+immersed by the place's say (thermal.md § Immersion); getting out is
+bare `stand` (posture.md).
 
 ## Engagement lifecycle
 
@@ -493,3 +517,9 @@ content slate that pulls on it.
   `defaultLocomotionMode`.
 - [ref-shapes.md](../ref-shapes.md) — identity refs (path-by-string) for
   mode references on actor / drivable.
+
+---
+
+- **2026-10-18 (storage-and-ice, MR !378).** Bare `swim` (*swim here*);
+  the gate vocabulary gained `encumbrance` · `locked` · `unbuilt` ·
+  `unpublished`.

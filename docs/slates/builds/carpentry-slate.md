@@ -17,7 +17,7 @@
 > offcuts** — slabs, wedges and edgings, most of what quartering loses
 > and historically firewood, which `saw` and `carve` make vanish today
 > (the **sawdust** half, by kerf, is the ice build's →
-> [ice-trade-slate § 6](./ice-trade-slate.md)).
+> [ice-trade-slate § 6](../tails/ice-trade-slate.md)).
 > **Size:** a build — `trade-carpentry` is its pack; forestry, smithing
 > and shopkeeping are its neighbours.
 

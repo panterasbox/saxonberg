@@ -500,6 +500,20 @@ paying a supplier: cost of goods on its books), and the good goes where
 the line is refilled from — into the store on the house's claim, or onto
 the shelf as the house's.
 
+⭐ **The counter says what the house buys before anybody makes the trip**
+(a `look` at the counter): the bid; or *"its store is full"* (the store's
+`capacityKg`); or *"it is short of money"* — remembered from the last sale
+that failed on the house's account and cleared by the next good one,
+because a look cannot read a balance. A buying line's store-fed ask is
+the counter's own (`bringUpFor` brings a block up **to order** when the
+shelf is bare, so an empty store is an empty counter).
+
+⚠ **Many sellers, one counter** is held by the market, not a cap: the bid
+falls with the house's days of supply, and its store and its money run
+out. Exclusivity of a harvest (who may cut a pond) is a use of the reach
+→ [navigable-water-slate](../slates/builds/navigable-water-slate.md) § Ice
+harvest as a use of the reach.
+
 ## Deferred
 
 The NPC buying goods for its own coin (the vendor-trash faucet, behind the

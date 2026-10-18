@@ -1,21 +1,19 @@
 # Ice trade slate — the first RGO whose product is a weather condition
 
-> **Status: UNBUILT, unblocked.** Climate shipped (MR !360, 2026-10-12):
-> ice exists on the meres. Maritime shipped (MR !358): the shore is a
-> place and a small water is a place (`Pool`). Assembly shipped (MR !361):
-> the saw. Designed in conversation 2026-10-12…16; builds **in one build
-> with** [storage-slate](./storage-slate.md), whose first consumer is
-> the icehouse.
-> **Left:** the frozen pool as the harvest site, and the pond's log ·
-> `cut` and the block · the crew and the ice boss · the icehouse on the
-> storage substrate · the ice company and its counter · sawdust by kerf ·
-> **cold water** (a swimmer's body reads the water; breaking through) ·
-> the `Casting` split · the ice material to the commons · the block's
-> grade.
+> **Status: PARTIAL** — v1 shipped 2026-10-18 (MR !378, with
+> [storage-slate](./storage-slate.md)) → [watershed.md](../../subsystems/watershed.md)
+> § the frozen pool, [storage.md](../../subsystems/storage.md),
+> [crafting.md](../../subsystems/crafting.md) § one `cut`: the frozen pool
+> and its patch log, scrape · mark · `cut`, the graded block, cold water
+> and breaking through, the crew and the ice boss on seasonal seats, the
+> Hollow Mere icehouses, the ice company's counter that buys and sells.
+> **Left:** what § Open after names — the item-patch seam, floating at the
+> thaw, a break-through that never heals, exclusive cutting rights; and
+> every ⛔ below.
 > ⛔ **Placeholder or deferred:** geography · the haul · ships · the
 > iceman's route · the ice card · offcuts · little ice by sky radiation ·
-> the general load-bearing surface.
-> **Size:** a build, shared with storage.
+> the general load-bearing surface · ice rescue · thin ice over a current.
+> **Size:** a tail — each item a pass, none a build.
 
 ---
 
@@ -177,7 +175,7 @@ vanishes** (carve's shavings likewise). ✅ **`saw` leaves sawdust in
 proportion to the cuts it made** — one kerf per cut, roughly 10–15 % of a
 log through-sawn into ten boards — derived, not a dial, on the pit or mill
 floor. ✅ **Offcuts** (slabs, wedges, edgings — most of what quartering
-loses; historically firewood) → [carpentry-slate](./carpentry-slate.md).
+loses; historically firewood) → [carpentry-slate](../builds/carpentry-slate.md).
 
 Sawdust is a declared-poolable good, so the Heart's Delight mill floor
 *"ankle deep in sawdust"* is literally a stock line, and the icehouse
@@ -212,7 +210,7 @@ bailee (a brewery's ice, for a fee).
   temperable — a lie the card's mixin chips show a player (lens 1's #28,
   3a). `Casting` becomes the plain re-meltable solid; alloying moves to a
   metal twin, and metal's `castTemplate` and the metal salvage path point
-  at it. Owed by [base-class-narrowing-slate](./base-class-narrowing-slate.md)
+  at it. Owed by [base-class-narrowing-slate](../builds/base-class-narrowing-slate.md)
   since 2026-09-28; *"the trade must not ship on a straight man that
   lies."*
 - ✅ **The ice material moves to the commons** beside water, out of
@@ -234,16 +232,25 @@ bailee (a brewery's ice, for a fee).
   *latitude as a resolved value* as deferred, so a hold's air may not yet
   warm as a ship sails south.
 - **The iceman's route** → logistics. **The ice card** (25/50/75/100 lb in
-  the window) → [standing-instructions-slate](./standing-instructions-slate.md):
+  the window) → [standing-instructions-slate](../builds/standing-instructions-slate.md):
   a standing order and a lovely piece of real-world interface.
 - **Little ice by sky radiation** (the Persian yakhchal, the Bengal ice
   pits: shallow pans freezing on clear nights above freezing air) → the
   weather slate; the model has no sky-radiation term.
-- **Thin ice over the current, pressure ridges** → watershed.
+- **Thin ice over the current, pressure ridges** → watershed (no
+  watershed slate exists; recorded here). Attach (storage-and-ice, MR
+  !378): `WatercourseCatalogue.iceAt`'s `history`/opts argument is where a
+  per-reach variation enters.
 - **Ice rescue** — a rope thrown from thicker ice, crawling out flat to
   spread your weight, pulling someone out → this slate, as the harvest's
   next content (the requirements make breaking through real; getting
-  someone else out is not yet an act).
+  someone else out is not yet an act). Attach: `IceSheet.bears(loadKg)`
+  and the floor's `canOccupy` are where a prone posture (`lie` on the
+  floor's slot) would spread a load; a rope is a `Slottable` pull from a
+  supported body.
+- **Natural-ice contamination** (the typhoid history) →
+  [cold-chain-slate](../builds/cold-chain-slate.md) § natural-ice contamination
+  (attach: `IceSheet.cutBlock` reading the reach's contamination).
 - **Ice-fishing gear and behaviour** (tip-ups, shanties, cold-water bite)
   → [fishing-slate](../tails/fishing-slate.md). The build makes frozen water
   fishable only through a hole.
@@ -311,10 +318,33 @@ one underneath, demonstrating the three-rung ladder from the top down.
 
 **See also:** [storage-slate](./storage-slate.md) ·
 [preservation-slate](../tails/preservation-slate.md) (the demand, WHO
-SELLS ICE) · [cold-chain-slate](./cold-chain-slate.md) (the RGO
+SELLS ICE) · [cold-chain-slate](../builds/cold-chain-slate.md) (the RGO
 classification; the active rung) · [thermal-slate](../tails/thermal-slate.md) ·
-[climate-slate](./climate-slate.md) · [navigable-water-slate](./navigable-water-slate.md) ·
-[carpentry-slate](./carpentry-slate.md) ·
-[base-class-narrowing-slate](./base-class-narrowing-slate.md) ·
+[climate-slate](../builds/climate-slate.md) · [navigable-water-slate](../builds/navigable-water-slate.md) ·
+[carpentry-slate](../builds/carpentry-slate.md) ·
+[base-class-narrowing-slate](../builds/base-class-narrowing-slate.md) ·
 [watershed.md](../../subsystems/watershed.md) · [expanse.md](../../subsystems/expanse.md) ·
 [thermal.md](../../subsystems/thermal.md).
+
+## Open after storage-and-ice (MR !378, 2026-10-18)
+
+What the build's drive and review left open, for whoever builds next here:
+
+- **An item does not know its patch.** Float/sink sorts at the thaw (the
+  whole surface), never at a single cut: nothing records where on a
+  4 000 m² sheet a dropped tool lies. The honest seam is a `patchId`
+  stamped on things dropped by an actor whose cut is in progress.
+- **A floating good at the thaw is unproven** — the drive asserts the
+  iron spud sank; a 6 kg block melts in summer water long before day 290,
+  so nothing driven floats.
+- **The scrape's advantage is not driven at Hollow Mere** — its sky is
+  pinned clear, so no snow lies to scrape (`IceSheet.test.ts` proves it
+  under snow). Open for the user: a venue whose sky varies is where
+  scraping becomes a skill.
+- **The sheet's patch log across a restart** rides its own `(scope,
+  poolKey)` record and no test round-trips it.
+- **A break-through never heals** — a `broken` patch still read so after
+  three days of hard frost; it should regrow like a cut patch
+  (underwater-slate records the live-walk finding).
+- **Exclusivity of the cut** → navigable-water-slate § Ice harvest as a
+  use of the reach.

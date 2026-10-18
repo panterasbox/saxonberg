@@ -13,7 +13,7 @@ second glasshouse is rows.
 1. **Win sand** at a pit (`dig`, the quarrying trade's verb). The pit's
    deposit pins the **iron grade** per face — clean in the heart, rusty at
    the fringe — and the quarry's mint stamps that assay onto the won load
-   (an `AlloyedMixin` good; see mining.md § the assay stamp). `analyze iron
+   (a `CompositionMixin` good; see mining.md § the assay stamp). `analyze iron
    <sand>` reads it: a band word to an untrained eye, the figure to a
    proficient glassmaker.
 2. **Fire the batch** (`fire <kiln>`, the platform verb). The recipe
@@ -67,6 +67,23 @@ decays continuously. `cancel glasswork` stops the watch, not the cooling.
 tuned for an open mug, a compact blob on a pipe loses heat slower per
 kilogram, and that factor is the one playtest knob dressed as physics — a
 dial, and the one place the build's "derivable throughout" bends.
+
+## ⭐ Composition vs temper (storage-and-ice, 2026-10-17)
+
+What is dissolved in a piece and what a heat treatment left in it are
+two claims: `CompositionMixin` (`lib/material/Composition.ts` —
+`alloying`, `fractionOf`, `setAlloying`) and `TemperedMixin`
+(`lib/material/Tempered.ts` — `temper`). `AlloyedMixin` is the two
+together, what metal stock composes; a lump of glass, wax or ice keeps
+its fractions and claims no temper. So `/stuff/thing/Casting` (cullet,
+the off-spec non-metal lump, salvaged glass) is `CompositionMixin`
+only, and `/stuff/thing/metal-casting` (`MetalCasting`) carries both.
+`Material.getCastTemplate()` derives the default — authored, else
+`metal-casting` for a `metal`-tagged material, else `Casting`. ⚠ A site
+that reads only the fractions asks `MixinApi.isComposition` (every glass
+site, `TintedMixin`'s reads, `analyze iron`'s `subjectRequires`), one
+that reads only the temper asks `isTempered`; `isAlloyed` still means
+both.
 
 ## Cullet goes one way toward green
 

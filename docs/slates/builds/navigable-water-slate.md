@@ -2411,3 +2411,7 @@ ask the right whether this cutter may cut, and refuse in the right's
 words. Until the covenant, the pond limits itself: a field cut out leaves
 nowhere to stand, and the house's falling bid caps the rest — the wood's
 rule.
+
+- **A frozen lake crossed by compass** (from storage-and-ice, MR !378) —
+  a sheet wide enough to lose the shore on, crossed by bearing in snow or
+  fog; this slate's navigation over the expanse's chart (expanse.md).

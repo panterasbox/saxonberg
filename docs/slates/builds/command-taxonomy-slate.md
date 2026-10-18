@@ -1,7 +1,12 @@
 # Command taxonomy — fewer verbs, each one doing more
 
-**Status:** slate · **Left:** design + the sweep · **Size:** one build (a
-refactor/sweep, kernel-led; first consumer: every institution verb).
+> **Status: UNBUILT** — seeded at the storage-and-ice review (MR !378,
+> 2026-10-18); the follow-up MR is the user's.
+> **Left:** the rule, written · `category:` on every view · a census then
+> a ratchet · the sweep · a gate validating views against the schema ·
+> scope order (the room-first seed).
+> **Size:** a build — a refactor/sweep, kernel-led; first consumer: every
+> institution verb.
 
 Seeded at the storage-and-ice review (MR !378, 2026-10-18). The reviewer:
 *"we have like hundreds of verbs now … each one of those is a command def

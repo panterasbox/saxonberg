@@ -114,6 +114,12 @@ unrelieved: the feedback law says milk has nothing to decide at the act,
 so what the player trades is attendance against her rate, and nothing
 discharges it today.
 
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **The ice card** (25 / 50 / 75 / 100 lb in the window) — a standing
+  order a household leaves for the iceman, and a real-world interface for
+  this slate's *pay somebody* limb. The route is logistics-slate's.
+
 ## Cross-references
 
 - `docs/subsystems/taps.md` § The relief — the cut, and milk's open question

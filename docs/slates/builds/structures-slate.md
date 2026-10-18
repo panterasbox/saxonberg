@@ -284,10 +284,15 @@ timber, lime, slate, glass, sawdust fill.
   thickness per face, so the bill can **derive** from it (area × thickness ×
   density = the mass of each material owed), and upkeep from what time does
   to each material — the same "the good decides what time does to it" rule
-  as [storage-slate](./storage-slate.md).
+  as [storage-slate](../tails/storage-slate.md).
 - **Where it builds: AFTER the rubber build**, in neither it nor
   storage-and-ice (decided 2026-10-16, after reading the two side by side):
   rubber's **layered** walls and roof are the seam the bill derives from —
   each layer's material × area × thickness is a line of it. Consumers waiting: the icehouse wall, the hothouse's
   glass and its stove house, every building rubber's construction model
   describes.
+- ⚠ **Upkeep, by declaration** (from storage-and-ice, MR !378): the repair
+  build's W7 weathers layers by `Material.weatheringDays` and `maintain`
+  lays them under the layer's `laying` trade. The icehouse and sawdust are
+  deliberately OFF there (sawdust authors no `laying`/`weathers`) and opt
+  in by declaration once a supply reaches the icehouse.

@@ -90,6 +90,14 @@ answer here should stand on.
 - `npc-behavior-slate` (*"simulate what someone can see; derive the
   rest"*), `agent-coordination-slate` (`presenceGated` as the equity axis)
 
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **NPC restocking unobserved** — the ice company's keeper restocking and
+  the crew working with nobody present ride two boot entries (the
+  business and the large house; `lint:boot-entries` 83 → 85,
+  owner-approved). The physics needs nothing: a store integrates its own
+  unwatched gap from the weather walk on its next read.
+
 ## Cross-references
 
 - [location-graph.md](../../subsystems/location-graph.md) — the record

@@ -1,19 +1,20 @@
 # Storage slate — goods held at scale, as a count and not as objects
 
-> **Status: UNBUILT** — designed 2026-10-12…16 in conversation, out of
-> the ice trade (the icehouse is its first consumer). Builds **in one
-> build with** [ice-trade-slate](./ice-trade-slate.md).
-> **Left:** the store object · stock lines and the poolable declaration ·
-> deposit / withdraw · lazy reconcile under the climate that reaches the
-> store · stock → room heat · receipts, the shrinkage allowance and the
-> pro-rata loss · the takeable stack · stocktake as a reading · a counter
-> line whose source is a store, priced against the store's days of supply.
+> **Status: PARTIAL** — v1 shipped 2026-10-18 (MR !378, with
+> [ice-trade-slate](./ice-trade-slate.md)) → [storage.md](../../subsystems/storage.md):
+> the store and its pooled lines, receipts on the house's book (`store
+> deposit | withdraw`), the shrinkage allowance and the pro-rata payout,
+> the house's claim, the takeable stack, the stocktake as a reading, the
+> heat sink, a counter line fed by a store and priced on its days of supply.
+> **Left:** § Open after — the repack, the stocking horizon, the receipt
+> kind; and every ⛔ below.
 > ⛔ **Deferred:** store-to-store transfer, the ship's hold, any cargo
 > (→ freight, *after every RGO is designed*) · damp and spontaneous
-> combustion · a navigable warehouse interior · migrating the timber yard.
-> **Size:** a build, shared with the ice trade.
+> combustion · vermin · transferable receipts · a navigable warehouse
+> interior · migrating the timber yard · the bank vault as a store.
+> **Size:** a tail — each item a pass.
 
-*This is the design [logistics-slate](./logistics-slate.md) Part 11.5
+*This is the design [logistics-slate](../builds/logistics-slate.md) Part 11.5
 ("Warehousing") has been waiting on since 2026-09-03. Part 11.5 said
 what bigness changes and why its spine could not ship; this slate supplies
 the missing piece and the mechanism.*
@@ -217,7 +218,13 @@ legitimate world state, refused at the validator.
   build because the hold rooms are not persisted; a count-store in the
   hold is that cargo for fungible goods.
 - **Damp, spontaneous combustion, vermin** → this slate's next pass, with
-  the granary and the haymow as consumers.
+  the granary and the haymow as consumers. Attach (storage-and-ice, MR
+  !378): `reconcileInStore` receives `StoreConditions` — a humidity term
+  and a `heatW` source on the good are the seam, and `poolRole` admits a
+  third role; vermin's substrate is cleanliness's `Floor.hasPests()` /
+  `pestRatePerHour` (a `pests` term in `StoreConditions`); spoiled packing
+  a keeper digs out goes to cleanliness's midden via `dispose` once it
+  lands (until then, the floor).
 - **A navigable warehouse interior** → nowhere for now (procgen).
 - ⚠ **A Durable poolable** (repair's Timber, with `condition` as stack
   identity) must key its **condition band** into `poolKey()`, so a store
@@ -226,9 +233,12 @@ legitimate world state, refused at the validator.
   the good's `reconcileInStore`). Recorded for the timber-yard migration
   (repair build, 2026-10-17).
 - **Migrating the timber yard** (a Stock counter of seasoning stacks
-  today) → a candidate, not done here.
+  today) → a candidate, not done here. Attach: `PoolableMixin` on the
+  board with `poolState = {seasonedFraction}` and the minimum merge.
 - **Transferable receipts** (futures; a receipt as collateral, which
-  `credit.md` already wants) → later; the receipt document is the seam.
+  `credit.md` already wants) → later; the receipt document is the seam —
+  `StoreReceipt.depositor` is the field a transfer rewrites (from
+  storage-and-ice, MR !378).
 - **⭐ The bank vault as a store, and the money warehouse** → banking /
   currency slate (recorded 2026-10-16, not now). Banking already IS this
   slate's spine — account balances are the claims, the vault's coin is the
@@ -245,7 +255,7 @@ legitimate world state, refused at the validator.
   A keeper who quietly sells depositors' pooled stock is already running
   one (or embezzling, depending who asks). Its own slate.
 - **The NPC loop while unobserved** (a keeper restocking with nobody on)
-  → [unobserved-economy-slate](./unobserved-economy-slate.md). The
+  → [unobserved-economy-slate](../builds/unobserved-economy-slate.md). The
   physics needs nothing: lines reconcile on read.
 
 ## 5. Lens pass
@@ -270,11 +280,30 @@ legitimate world state, refused at the validator.
 7. **Governance** — loss is decided by printed terms and the courts,
    never by the engine; the grade bands are an institution's rule.
 
-**See also:** [logistics-slate § 11.5](./logistics-slate.md) ·
-[freight-slate](./freight-slate.md) ·
+**See also:** [logistics-slate § 11.5](../builds/logistics-slate.md) ·
+[freight-slate](../builds/freight-slate.md) ·
 [ice-trade-slate](./ice-trade-slate.md) ·
 [logistics.md](../../subsystems/logistics.md) (the depot and the receipt) ·
 [retail.md](../../subsystems/retail.md) ·
 [banking.md](../../subsystems/banking.md) ·
 [thermal.md](../../subsystems/thermal.md) (the Coolbox) ·
 [assembly.md](../../subsystems/assembly.md) (`Chamber`).
+
+## Open after storage-and-ice (MR !378, 2026-10-18)
+
+- ⚠⚠ **The repack is a mechanism gap, not a missing test.** The keeper's
+  brain digs out ONE kilogram a beat (`get 1 sawdust`), and
+  `StoreMixin.reconcile` insulates with the FIRST packing line only — so
+  dry sawdust put beside a sodden line changes nothing until the sodden
+  line is gone, and two tonnes cannot be dug out a kilogram at a time. A
+  repack wants (a) the packing lines combined (depth = their sum,
+  conductivity mass-weighted) and (b) a bulk dig-out. Only *soaked
+  packing melts faster than dry* is proven (`Store.test.ts`).
+- **The stocking horizon** — a store-fed line prices on the house's days
+  of supply against `retail.stockingHorizonDays` (120), so a house still
+  nine-tenths full in late summer asks base. Open for the user: should
+  the horizon be *days until the next harvest* instead?
+- **`BUSINESS_DOCUMENT_KINDS` stayed closed at three** by widening the
+  `warehouse-receipt` record rather than adding a `store-receipt` kind; a
+  distinct kind is a one-line vocabulary edit plus a schema-docs line if
+  it is ever wanted.
