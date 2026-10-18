@@ -253,8 +253,16 @@ house's first wage come later, on revenue this creates.
 
 ## Open questions
 
-1. **Where the dealer lives** — a business kind beside the producer and
-   shopkeeping trades, or its own `trade-dealing` pack.
+1. ~~**Where the dealer lives**~~ — **decided 2026-10-18: in
+   `trade-shopkeeping`, no new pack.** Dealing is the same trade —
+   selling over a counter, plus buying for stock. retail.md's
+   kernel/pack line places the halves: **the bid side of the stocking
+   rule is kernel substrate** (`lib/retail/Stock.ts`, never instanced),
+   because the kernel reads it — the price index, the credit ladder, the
+   Gazette's series — and a kernel module may never import a pack; the
+   pack ships the instanceable dealer counter, a `deals` brain beside
+   `stocks` and `consigns`, and a **`dealer` archetype** beside `shop`,
+   so a dealer in a new town is rows only.
 2. **The first public budget** — which institution and which commodity
    after ice (lamp oil is half-shipped already).
 3. **Piecework's first venue** — Dave's Bar, paid per drink served?
