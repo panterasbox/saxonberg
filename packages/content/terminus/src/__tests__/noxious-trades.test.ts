@@ -241,7 +241,7 @@ describe('the premises have what the trades need', () => {
       '/trade/chandlery/thing/lye-flask',
       '/trade/chandlery/thing/glycerin-jar',
       '/trade/quarrying/thing/sulfur',
-      '/trade/fuel/thing/ash',
+      '/trade/fuel/thing/wood-ash',
     ]);
   });
 

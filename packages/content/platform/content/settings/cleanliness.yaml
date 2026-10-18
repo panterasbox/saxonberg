@@ -37,9 +37,10 @@ settings:
     value: "0.1"
 
   # The row a hearth's grate is raked out into (`sweep hearth`) — the
-  # lye-maker's ash. The fuel trade's ash.
+  # lye-maker's ash: wood ash, the hearth's own row (a failed clamp's ash is
+  # the other one, the same material).
   - key: cleanliness.ashTemplate
-    value: "/trade/fuel/thing/ash"
+    value: "/trade/fuel/thing/wood-ash"
 
   # The severity a board, a knife or a pair of hands short of sanitised
   # puts on the food it touches (a raw or dirty surface the whole of it,

@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B39). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B40). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -144,6 +144,13 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   none): soot by kg burnt × incompleteness; a foul flue under a roaring fire
   CATCHES (heat and smoke into the room). `sweep hearth with flue brush`
   clears it; `sweep hearth` rakes the grate's ash.
+- **The grate** — a wood fire leaves `ashFraction` of what it burns; past
+  `fire.ash.chokeStartShare` of the burner's capacity the ash **chokes the
+  draught** (down to `fire.ash.chokedDraught`), and the fire says *the grate
+  is choked with ash*. Raked out as `/trade/fuel/thing/wood-ash`, **made
+  from the hearth** — the hearth owner's by the fresh-title rule, so raking
+  a stranger's grate is the taking case. Big ash (a burn's ground) and ash
+  quality are [potash-slate](../slates/tails/potash-slate.md).
 - **The window** — grime is a factor inside `Window.transmissivity()`
   (a filthy pane passes 40 %). ⭐ A sky-lit room's named opening may be a
   one-sided pane IN the room (`/stuff/thing/fixture/window`): the vision

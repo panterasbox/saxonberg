@@ -1,0 +1,17 @@
+# Wood ash — what a hearth leaves in its grate (cleanliness). Raked out
+# with `sweep <hearth>`; a deep bed of it chokes the fire's draught, so a
+# grate nobody rakes burns worse. ⭐ The SAME material as a failed clamp's
+# ash (`organic/ash`, tag `potash`), so the lye hopper and the glass batch
+# take either — only the story differs: this one is a chore, that one is a
+# lost burn.
+class: /platform/thing/Provision
+data:
+  shortDescription: heap of wood ash
+  keywords: [ash, ashes, "wood ash", heap, "heap of wood ash"]
+  register: indefinite
+  longDescription: >-
+    Soft grey ash raked out of a grate, with a few black flecks of charcoal
+    in it. It is lighter than it looks, and gets everywhere.
+  _materialPath: /stuff/idea/material/organic/ash
+  gradeBand: poor
+  mass: 0.6

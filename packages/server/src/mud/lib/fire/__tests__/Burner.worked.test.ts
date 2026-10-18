@@ -105,6 +105,18 @@ describe('a worked flame', () => {
     return f;
   }
 
+  it('⭐ the grate chokes: ash past a tenth of capacity starves the draught; raked, it draws again', () => {
+    const f = real();
+    f.setFuelCapacityKg(10); // clear to 1 kg of ash, fully choked at 3 kg
+    expect(f.ashChoke()).toBe(1);
+    f.ashKg = 2;
+    expect(f.ashChoke()).toBeCloseTo(0.7, 5);
+    f.ashKg = 5;
+    expect(f.ashChoke()).toBeCloseTo(0.4, 5);
+    expect(f.takeAsh()).toBe(5);
+    expect(f.ashChoke()).toBe(1);
+  });
+
   it('⭐ has no fuel to run out of, and nothing to stoke', () => {
     const f = worked();
     expect(f.fuelRemaining()).toBe(Infinity);

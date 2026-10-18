@@ -2767,6 +2767,15 @@ Read first, in this order.
   that names nothing you have on is refused (*You aren't wearing coat*),
   the manner-word refusal's sibling.
 
+- **B40 — The grate chokes, and ash is the hearth owner's** (review, the
+  ash lens pass). A deep ash bed multiplies the draught down (a share of the
+  burner's own capacity, `fire.ash.choke*`) and the look says so — lens 3a:
+  hearths need tending, so the sim must make them. Raked ash is minted
+  *made from* the hearth, so the shipped fresh-title rule gives it to the
+  hearth's title-holder (lens 4/7: no new rule — the taking case). Hearth
+  ash got its own row (`wood-ash`); the old row's prose was a failed
+  clamp's. Big ash, quality, the potash works → `potash-slate`.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

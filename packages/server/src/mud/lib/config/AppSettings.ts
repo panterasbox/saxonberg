@@ -1748,6 +1748,13 @@ export const AppSettingKeys = {
    * fire down but not off, so *bank it, leave, come back to it still in* is
    * arithmetic rather than a mechanism. */
   fireDraughtBanked: "fire.draught.banked",
+  /** Fire — the ash share of a burner's capacity at which its grate
+   * begins to choke the draught (cleanliness). */
+  fireAshChokeStartShare: "fire.ash.chokeStartShare",
+  /** Fire — the ash share of capacity at which the grate is fully choked. */
+  fireAshChokeFullShare: "fire.ash.chokeFullShare",
+  /** Fire — the draught multiplier a fully choked grate leaves. */
+  fireAshChokedDraught: "fire.ash.chokedDraught",
   /** Fire — the power ceiling (W) a burner row that authors none falls back
    * to. */
   fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",

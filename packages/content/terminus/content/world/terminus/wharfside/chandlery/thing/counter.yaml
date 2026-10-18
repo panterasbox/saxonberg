@@ -40,7 +40,7 @@ data:
     - { itemTemplatePath: /trade/chandlery/thing/lye-flask, par: 4 }
     - { itemTemplatePath: /trade/chandlery/thing/glycerin-jar, par: 2 }
     - { itemTemplatePath: /trade/quarrying/thing/sulfur, par: 4 }
-    - { itemTemplatePath: /trade/fuel/thing/ash, par: 4 }
+    - { itemTemplatePath: /trade/fuel/thing/wood-ash, par: 4 }
   prices:
     # ⚠ ONE row and ONE price, because there is one candle row — what a
     # candle is made of is per-instance, so the counter cannot price the
@@ -56,4 +56,4 @@ data:
     /trade/chandlery/thing/lye-flask: 2
     /trade/chandlery/thing/glycerin-jar: 4
     /trade/quarrying/thing/sulfur: 2
-    /trade/fuel/thing/ash: 1
+    /trade/fuel/thing/wood-ash: 1

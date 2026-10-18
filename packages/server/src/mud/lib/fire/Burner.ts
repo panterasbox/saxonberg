@@ -159,6 +159,12 @@ export interface Burner extends Pumpable {
   getAshKg(): number;
   /** Rake the grate: the ash's kg, and the grate left clean. */
   takeAsh(): number;
+  /**
+   * What the ash in the grate does to the draught, `(0, 1]` — 1 while the
+   * grate is clear. A deep ash bed starves the fire of air from below, so a
+   * hearth nobody rakes burns worse (cleanliness, the ash lens pass).
+   */
+  ashChoke(): number;
   /** The temperature (K) the furnace holds while lit + fuelled. */
   getHeldTemperatureK(): number;
   /** Is the bellows working (boosting the held temperature)? */
@@ -242,6 +248,7 @@ function burnerAugmenter(
         ? `It is cold. There is ${materials[0]!.getName()} laid in it.`
         : 'It is cold, and the bed is empty.',
     );
+    if (host.ashChoke() < 1) lines.push('The grate is deep in ash.');
   } else {
     if (materials.length === 1) {
       lines.push(`It is burning ${materials[0]!.getName()}.`);
@@ -259,6 +266,8 @@ function burnerAugmenter(
     );
     if (host.getDraught() <= BANKED_LOOK_THRESHOLD) {
       lines.push('It is banked down under its own ash, and will keep.');
+    } else if (host.ashChoke() < 1) {
+      lines.push('The grate is choked with ash, and the fire draws badly.');
     }
     // ⭐⭐⭐ **The flame cap** — the tell the canary cannot give you.
     //
@@ -385,6 +394,25 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const kg = this.ashKg;
       this.ashKg = 0;
       return kg;
+    }
+
+    /**
+     * ⭐ The grate chokes. Measured against the burner's OWN capacity — a
+     * great hearth holds more ash than a stove before it suffers: clear
+     * below `fire.ash.chokeStartShare` of it, down to
+     * `fire.ash.chokedDraught` at `fire.ash.chokeFullShare`, linear
+     * between.
+     */
+    public ashChoke(): number {
+      const cap = this.effectiveCapacityKg();
+      if (!(cap > 0) || !(this.ashKg > 0)) return 1;
+      const start = burnerDial(AppSettingKeys.fireAshChokeStartShare, 0.1) * cap;
+      const full = burnerDial(AppSettingKeys.fireAshChokeFullShare, 0.3) * cap;
+      const floor = burnerDial(AppSettingKeys.fireAshChokedDraught, 0.4);
+      if (this.ashKg <= start) return 1;
+      if (this.ashKg >= full || full <= start) return floor;
+      const t = (this.ashKg - start) / (full - start);
+      return 1 - t * (1 - floor);
     }
 
     /**
@@ -596,7 +624,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     private draughtFactor(): number {
       const floor = burnerDial(AppSettingKeys.fireDraughtBanked, 0.05);
       const d = Number.isFinite(this.draught) ? this.draught : 1;
-      return Math.max(Math.min(1, d), floor);
+      // A choked grate takes air the vents would give (above the banked
+      // floor: ash smothers a fire, it does not put it out).
+      return Math.max(Math.min(1, d) * this.ashChoke(), floor);
     }
 
     /** The scope whose medium this fire breathes, or `null`. */

@@ -151,7 +151,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
               .send();
             return;
           }
-          const ash = await SweepController.mint(ashTemplate(), kg, giver);
+          // ⭐ The ash is MADE FROM the hearth, so it is the hearth owner's (the
+          // shipped fresh-title rule: inputs first, then hands). Raking a
+          // stranger's grate leaves you holding their ash — the taking
+          // case, not a new rule. An untitled hearth falls to your hands.
+          const ash = await SweepController.mint(ashTemplate(), kg, giver, hearth);
           await PersistableApi.captureHostOf(hearth).catch(() => {});
           MessageApi.scene(giver)
             .topic(TOPIC)
@@ -168,9 +172,15 @@ export default class SweepController extends ManualBuildController<SweepModel> {
   }
 
   /** Mint `kg` of a heap row into the sweeper's hands (or at their feet). */
-  private static async mint(template: string, kg: number, giver: Stuff): Promise<Stuff | null> {
+  private static async mint(
+    template: string,
+    kg: number,
+    giver: Stuff,
+    madeFrom?: Stuff,
+  ): Promise<Stuff | null> {
     try {
       const heap = await StuffApi.clone<Stuff>(template);
+      if (madeFrom && MixinApi.isChattel(heap)) await heap.recordMadeFrom([madeFrom]);
       if (MixinApi.isStackable(heap)) {
         heap.setQuantity(Math.max(1, Math.round(kg / 0.1)));
       } else if (MixinApi.isTangible(heap)) {

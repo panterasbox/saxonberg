@@ -250,7 +250,7 @@ data:
     - { itemTemplatePath: /trade/fuel/thing/washing-soda, par: 4 }
     - { itemTemplatePath: /stuff/thing/gear/scrub-brush, par: 3 }
     - { itemTemplatePath: /trade/fuel/thing/naphtha-flask, par: 2 }
-    - { itemTemplatePath: /trade/fuel/thing/ash, par: 4 }
+    - { itemTemplatePath: /trade/fuel/thing/wood-ash, par: 4 }
     - { itemTemplatePath: /trade/quarrying/thing/fullers-earth, par: 3 }
     - { itemTemplatePath: /trade/quarrying/thing/chalk, par: 3 }
     - { itemTemplatePath: /trade/chandlery/thing/hopper, par: 1 }
@@ -364,7 +364,7 @@ data:
     /trade/fuel/thing/washing-soda: 2
     /stuff/thing/gear/scrub-brush: 2
     /trade/fuel/thing/naphtha-flask: 4
-    /trade/fuel/thing/ash: 1
+    /trade/fuel/thing/wood-ash: 1
     /trade/quarrying/thing/fullers-earth: 1
     /trade/quarrying/thing/chalk: 1
     /trade/chandlery/thing/hopper: 12
