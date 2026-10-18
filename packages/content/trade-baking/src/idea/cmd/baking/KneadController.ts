@@ -84,7 +84,6 @@ export default class KneadController extends ManualBuildController<KneadModel> {
         ExecutionContextApi.getActingAuthor() as Stuff | null
       )?.getIdentityPath() ?? '';
     const built: Stuff & Builds = vessel;
-    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: KNEAD_MS,
@@ -96,7 +95,6 @@ export default class KneadController extends ManualBuildController<KneadModel> {
           // switches on it, and that is what keeps `knead` a method
           // rather than a subsystem.
           built.setBuildMethod('kneaded');
-          built.recordCommand(commandText);
           const outcome = await CraftingApi.mintFromBuild({
             // ⭐⭐ Into the TROUGH ITSELF. A cocktail strains out into a
             // glass; a dough stays where it was made, because what

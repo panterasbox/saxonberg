@@ -78,13 +78,12 @@ export class ScriptApi {
   }
 
   /**
-   * Invoke a named session script (a `def`'d recipe) with positional
-   * `args`, binding its params — the `make <recipe>` path. The acting
+   * Invoke a named script (a session `def`, or one saved in the actor's
+   * home `scripts/`) with positional `args`, binding its params — the
+   * `do <name>` path. The acting
    * actor is derived from context; the script runs paced by the coroutine
    * (engaged steps trickle out). Resolves `true` if a script of that name
-   * was found and started, `false` otherwise (the caller declines). The
-   * authored-content recipe-script source (loaded from the path-addressed
-   * store) lands in P7; v1 invokes session `def`s.
+   * was found and started, `false` otherwise (the caller declines).
    */
   static invoke(name: string, args: string[] = []): Promise<boolean> {
     return logic().invoke(name, args);
@@ -141,30 +140,6 @@ export class ScriptApi {
    */
   static format(ast: Script): string {
     return logic().format(ast);
-  }
-
-  /**
-   * Capture a faithful manual build as the builder's learned recipe: mint
-   * the can-make **deed** and transcribe + bank the personal recipe-script
-   * — the *same act* (learning **is** getting the script). Called at the
-   * `strain` step's engaged completion, which the scheduler runs inside an
-   * **authorless** `runRoot('completion')` frame — so the builder
-   * (captured from the live command frame at dispatch, then threaded here)
-   * is stamped as that frame's acting author via {@link
-   * ExecutionContextApi.tagActingAuthor}. That stamp is the framework seam
-   * a controller can't reach (frame mutators are framework-only); the
-   * downstream `noteMade` / `Transcriber.transcribe` read it back through
-   * `getActingAuthor`. Returns the banked script path, or null when
-   * nothing was captured (already learned, or no resolvable owner).
-   */
-  static captureManualBuild(
-    builder: Stuff,
-    recipeId: string,
-    name: string,
-    sources: readonly string[],
-  ): Promise<string | null> {
-    ExecutionContextApi.tagActingAuthor(builder);
-    return logic().captureManualBuild(recipeId, name, sources);
   }
 
   /**

@@ -16,15 +16,22 @@
  *
  *  - **known-of** — a chronicle `claim`, minted (once) when you read a
  *    recipe source (the menu). You know the steps to *attempt* it.
- *  - **can-make** — a chronicle `deed`, minted (once) on the first
- *    faithful manual build — the same act that transcribes + banks the
- *    personal recipe-script. The book isn't enough; the hands have to
- *    learn it.
+ *  - **can-make** — a chronicle `deed`, minted (once) the first time you
+ *    MAKE it, by any crafting act (`CraftingLogic.recordCraftEvidence`:
+ *    a hand build, a carve, a fit, a mill, a one-shot). The book isn't
+ *    enough; the hands have to learn it.
  *
- * `make <recipe>` is gated on **can-make** (for catalogue recipes; a
- * player's own `def` needs no claim/deed). The gate is the recipe-
- * learning loop only — `RecipeCatalogue` stays openly resolvable; this is
- * the new per-character layer over it.
+ * The one-shot crafting verbs (`cook` · `mix` · `serve` · `forge` ·
+ * `bake`) are gated on **can-make** for catalogue recipes. The gate is
+ * the recipe-learning loop only — `RecipeCatalogue` stays openly
+ * resolvable; this is the per-character layer over it.
+ *
+ * ⚠ It is CRAFTING's, not scripting's (moved from `lib/script/`,
+ * 2026-10-18). The deed used to be minted by the script system in the
+ * same call that auto-transcribed a recipe-script — so only three hand
+ * verbs ever taught, and the script runner (`make`) was gated on a
+ * crafting deed. A script is now just commands; each still meets its own
+ * gates.
  *
  * Claim and deed use **distinct keys** (`recipe-known:` / `recipe-made:`)
  * — `recordOnce` dedups on `{owner, key}` regardless of kind, so a shared

@@ -129,7 +129,6 @@ export default class HammerController extends ManualBuildController<HammerModel>
       return;
     }
     const build = target;
-    const commandText = context.commandText;
     this.engageStep(context, {
       // The anvil paces the forming work (the conferring kind's rate);
       // the striking hammer is a requirement, never a pacer.
@@ -141,7 +140,6 @@ export default class HammerController extends ManualBuildController<HammerModel>
         // Bank the workpiece's matter — the forming work. The once-rule
         // is the substrate's (`bankWorkpiece` is idempotent per build).
         const first = build.bankWorkpiece();
-        build.recordCommand(commandText);
         // The hammer wears with the work (Law 2).
         // A hammer blow jars the hammer — a hafted one gives at the haft.
         if (MixinApi.isDurable(striker)) striker.wear(undefined, 'shock');

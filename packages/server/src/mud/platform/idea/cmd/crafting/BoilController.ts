@@ -145,7 +145,6 @@ export default class BoilController extends ManualBuildController<BoilModel> {
     }
 
     const purifiedInto = contents?.getPurifiedByBoiling() ?? '';
-    const commandText = ctx.commandText;
 
     this.engageStep(ctx, {
       // The pot paces its own boil, like every other step. ⚠ `pot` is the
@@ -156,14 +155,10 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       beginSelf: Mml.compose`You set ${Mml.thing(target)} over the fire and bring it up to a boil.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} over the fire.`,
       onComplete: () => {
-        void this.applyBoil(
-          giver,
-          target,
-          build,
-          vessel,
-          purifiedInto,
-          commandText,
-        );
+        // ⚠ STATIC: a controller is destructed when `execute` returns, and
+        // a completion calling back into the instance is a silent no-op on
+        // a destroyed Stuff (the equip fix, rubber build; FireController).
+        void BoilController.applyBoil(giver, target, build, vessel, purifiedInto);
       },
     });
   }
@@ -172,13 +167,12 @@ export default class BoilController extends ManualBuildController<BoilModel> {
    * Both consequences, in the order they are true: the build remembers
    * what happened to it, and the matter changes if the matter says so.
    */
-  private async applyBoil(
+  private static async applyBoil(
     giver: Stuff,
     target: Stuff,
     build: (Stuff & Builds) | null,
     vessel: (Stuff & Bulkable) | null,
     purifiedInto: string,
-    commandText: string,
   ): Promise<void> {
     if (build !== null) {
       // Re-read at completion — the fire may have died mid-step; you
@@ -186,7 +180,6 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       const finalK = (MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0);
       if (finalK > 0) build.noteHeat(finalK);
       build.setBuildMethod(METHOD);
-      build.recordCommand(commandText);
     }
 
     let purified = false;

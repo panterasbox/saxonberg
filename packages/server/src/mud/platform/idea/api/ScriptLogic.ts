@@ -17,8 +17,6 @@ import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { StuffApi } from "../../../api/stuff";
 import EvalScript from "../EvalScript";
 import { Interpreter } from "../../../lib/script/Interpreter";
-import { RecipeKnowledge } from "../../../lib/script/RecipeKnowledge";
-import { Transcriber } from "../../../lib/script/Transcriber";
 import type {
   ResourceLimits,
   DispatchFn,
@@ -178,7 +176,7 @@ function cancelAllImpl(reason: ScriptAbortReason): void {
 /**
  * Per-actor session `def`'d-command store — in-memory, keyed on
  * `stuffId`. A `def` typed at one prompt lands here and is invocable at
- * the next (via `make <name>`, or directly within a later script). The
+ * the next (via `do <name>`, or directly within a later script). The
  * interpreter writes/reads this map directly (passed as its `defs`), so a
  * `def` persists for the session. Transient (dies on restart), like the
  * coroutine registry.
@@ -214,11 +212,16 @@ function homeScriptPath(actor: Stuff, name: string): string | null {
 }
 
 /**
- * Auto-load a recipe-script the actor owns from the home store (the
- * learned/transcribed recipe), running its source to register the `def`,
- * then returning it. Re-resolved per call (cached until `goLive`) — so an
- * edit to the banked script reaches the next `make`. The stored source is
- * a `def …` (no dispatch), so the loader run completes synchronously.
+ * Load a named script the actor saved in their home store
+ * (`/home/<identity>/scripts/<name>`), running its source to register the
+ * `def`, then returning it. Re-resolved per call (cached until `goLive`) —
+ * so an edit to the saved script reaches the next `do`. The stored source
+ * is a `def …` (no dispatch), so the loader run completes synchronously.
+ *
+ * ⚠ Only what the PLAYER saved: nothing writes here on their behalf any
+ * more (the manual build used to transcribe a recipe-script into a
+ * lineage-keyed path this never read — see crafting.md § The knowledge
+ * ladder).
  */
 async function loadHomeRecipe(
   actor: Stuff & CommandGiver,
@@ -286,8 +289,8 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
 }
 
 /**
- * Invoke a named session script with positional args (the `make
- * <recipe>` path). Looks up the `def`'d script on the acting actor, binds
+ * Invoke a named session script with positional args (the `do
+ * <name>` path). Looks up the `def`'d script on the acting actor, binds
  * its params in a child of the def's captured scope (the closure), and
  * runs the body — paced by the same coroutine as any script. Returns
  * `false` when no such script is defined (the caller declines).
@@ -309,35 +312,6 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   def.params.forEach((param, i) => callScope.define(param, args[i]));
   await startAndDetach(actor, interpreter, def.body, callScope);
   return true;
-}
-
-/**
- * Capture a faithful manual build (the `strain` engaged-completion path).
- * The acting author is the builder — stamped onto the scheduler's
- * completion frame by `ScriptApi.captureManualBuild` (the framework seam)
- * and read back here via {@link currentAuthor}. Idempotent on the deed:
- * a recipe already in the can-make state captures nothing (returns null).
- * Otherwise mints the deed and transcribes the personal recipe-script,
- * returning its banked path.
- */
-async function captureManualBuildImpl(
-  recipeId: string,
-  name: string,
-  sources: readonly string[],
-): Promise<string | null> {
-  const builder = currentAuthor();
-  if (builder === null) return null;
-  // ⚠ The chronicle half is guarded, the transcription is NOT: a builder
-  // with no chronicle still gets the recipe-script banked. Folding the
-  // guard around both would silently stop transcribing for them.
-  if (MixinApi.isPersona(builder)) {
-    if (await builder.hasDone(RecipeKnowledge.madeKey(recipeId))) return null;
-    await builder.recordChronicleOnce(
-      RecipeKnowledge.madeKey(recipeId),
-      RecipeKnowledge.madeEntry(name),
-    );
-  }
-  return Transcriber.transcribe(recipeId, sources);
 }
 
 /* ─────────────── scripts over the document store (P7) ─────────── */
@@ -578,15 +552,5 @@ export class ScriptLogic extends ApiLogic {
     code: string,
   ): Promise<EvalScript> {
     return mintEvalScratchImpl(path, code);
-  }
-
-  /** See {@link ScriptApi.captureManualBuild}. */
-  @CallSecurity(ScriptApiCallers)
-  public async captureManualBuild(
-    recipeId: string,
-    name: string,
-    sources: readonly string[],
-  ): Promise<string | null> {
-    return captureManualBuildImpl(recipeId, name, sources);
   }
 }

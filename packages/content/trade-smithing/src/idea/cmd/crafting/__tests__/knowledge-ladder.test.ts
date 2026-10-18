@@ -23,7 +23,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { RecipeKnowledge } from '@saxonberg/server/mud/lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '@saxonberg/server/mud/lib/craft/RecipeKnowledge';
 import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';

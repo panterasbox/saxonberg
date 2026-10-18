@@ -18,7 +18,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { CraftingApi } from '../../../../api/crafting';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { RecipeKnowledge } from '../../../../lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '../../../../lib/craft/RecipeKnowledge';
 import Menu from '../../../../lib/commerce/Menu';
 import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';

@@ -157,16 +157,6 @@ export interface Builds {
   noteHeat(kelvin: number): void;
   /** The highest heat (K) this build reached; 0 = never heated. */
   getHeatedToK(): number;
-  /**
-   * Record the verbatim command source of a completed manual step (the
-   * demonstration-capture trail). A *scripted* build records nothing (its
-   * dispatched commands carry no typed source), so only a hand-typed
-   * build accumulates a transcript — the natural manual-vs-scripted
-   * discriminator. Empty/blank sources are ignored.
-   */
-  recordCommand(source: string): void;
-  /** The recorded manual-step command sources, in order (snapshot-safe). */
-  getCommandSources(): readonly string[];
   /** Reset the buffer (the terminal step clears it after minting). */
   clearBuild(): void;
 }
@@ -201,7 +191,6 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _contributions: BuildContribution[] = [];
     private _method: BuildMethod | null = null;
-    private _commandSources: string[] = [];
     private _heatedToK: number = 0;
 
     addContribution(contribution: BuildContribution): void {
@@ -267,19 +256,9 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this._heatedToK;
     }
 
-    recordCommand(source: string): void {
-      const trimmed = source.trim();
-      if (trimmed.length > 0) this._commandSources.push(trimmed);
-    }
-
-    getCommandSources(): readonly string[] {
-      return [...this._commandSources];
-    }
-
     clearBuild(): void {
       this._contributions = [];
       this._method = null;
-      this._commandSources = [];
       this._heatedToK = 0;
     }
   };

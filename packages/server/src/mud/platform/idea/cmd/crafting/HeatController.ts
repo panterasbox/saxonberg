@@ -70,7 +70,6 @@ export default class HeatController extends ManualBuildController<HeatModel> {
     }
 
     const build = target;
-    const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(HEAT_MS, target, ["pot"]),
       effortW: 200,
@@ -81,7 +80,6 @@ export default class HeatController extends ManualBuildController<HeatModel> {
         // latch the heat you actually finished at.
         const finalK = (MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0);
         if (finalK > 0) build.noteHeat(finalK);
-        build.recordCommand(commandText);
         // ⭐ Heat ANNEALS. A hardened piece taken back above the critical
         // temperature loses its temper, and that is not a penalty the
         // engine chose — it is what happens, and it is why a smith

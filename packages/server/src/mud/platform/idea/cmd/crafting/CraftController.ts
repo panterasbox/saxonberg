@@ -1,6 +1,6 @@
 /**
  * CraftController — shared base for the maker verbs (`order`/`serve`/`mix`/
- * `forge`/`cook`/`make`).
+ * `forge`/`cook`/`bake`).
  *
  * Holds the two pieces of logic the family shares: turning a
  * `CraftOutcome` decline into a diegetic scene + a `controller-rejected`
@@ -19,7 +19,7 @@ import {
   type SalvageFailure,
 } from '../../../../api/crafting';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { RecipeKnowledge } from '../../../../lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '../../../../lib/craft/RecipeKnowledge';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
@@ -36,12 +36,13 @@ export abstract class CraftController<
 > extends CommandController<M> {
   /**
    * The knowledge gate shared by the earned one-shots (`forge`/`cook`/
-   * `make`): a **catalogue** recipe declines until the can-make deed
-   * exists (the first faithful hand build — reading the recipe is only a
-   * claim). A ref that resolves to no catalogue view passes ungated (a
-   * player's own `def` — you wrote it); `order` never calls this — the
-   * served path stays open. Returns true when the craft may proceed;
-   * false after narrating + noting the decline.
+   * `mix`/`serve`/`bake`): a **catalogue** recipe declines until the
+   * can-make deed exists — the first time you MADE it, by any crafting act
+   * (a hand build, a carve, a fit, a grind; `recordCraftEvidence`).
+   * Reading the recipe is only a claim. A ref naming no catalogue recipe
+   * passes; `order` never calls this — the served path stays open. Returns
+   * true when the craft may proceed; false after narrating + noting the
+   * decline.
    */
   protected async requireDeed(
     context: CommandContext,
@@ -52,8 +53,8 @@ export abstract class CraftController<
     const view = await CraftingApi.lookupRecipe(recipeRef);
     if (!view) return true;
     // ⭐ ONE read, shared with the served path. This used to be the chronicle
-    // deed alone, inline — so `order` (which never called this) and `make`
-    // answered two different questions about the same person. An NPC never
+    // deed alone, inline — so `order` (which never called this) and the
+    // one-shots answered two different questions about the same person. An NPC never
     // types these verbs and a player has no seeded band, so nothing
     // observable changes for a player here; what changes is that there is
     // now one definition of "can make it".
@@ -61,7 +62,7 @@ export abstract class CraftController<
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You've heard of ${view.name}, but you haven't learned to ${verb} it — work it by hand first.`,
+        Mml.compose`You've heard of ${view.name}, but you've never made one — the hands have to learn it before you can ${verb} it in one go.`,
       )
       .send();
     context.note({

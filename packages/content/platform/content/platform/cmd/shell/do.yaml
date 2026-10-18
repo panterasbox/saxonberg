@@ -1,0 +1,36 @@
+# `do` — run a NAMED script (a procedure you wrote), the named twin of
+# `script <body>`.
+#
+# ⚠⚠ It was `make`, filed under crafting, and that name lied twice: it never
+# made anything (it only replays a script), and it sat behind crafting's
+# knowledge gate as if it were a craft. A player reading `make liner` took
+# it for the crafting verb — so did a whole plan. Crafting has its own
+# verbs (`mill` · `bake` · `cook` · `forge` · `carve` · `fit` …); a script
+# is just commands, and each command still meets its own gates exactly as
+# if you typed it (2026-10-18).
+verbs: [do]
+controller: /platform/idea/cmd/shell/DoController
+description: "Run a script you have written, by name"
+help: |
+  Run one of your own named scripts — `do morning`, or hand it a value
+  for its first parameter: `do martini with gin`.
+
+  A script is a procedure you wrote: a `def` you typed at the prompt
+  (yours for the session), or a script saved in your home's `scripts/`
+  folder. It runs its commands exactly as if you
+  typed them, one after another, each pacing itself — so every command in
+  it still needs what it needs. Nothing is learned or skipped by running
+  it this way.
+
+  To run a few statements without naming them, use `script`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: name
+    type: string
+    required: true
+  - name: arg
+    type: string
+    required: false
+    prepositions: [with]

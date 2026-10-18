@@ -21,7 +21,6 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { ScriptApi } from '@saxonberg/server/mud/api/script';
 
 const TOPIC = 'act.deed';
 const PLATE_MS = 2500;
@@ -64,12 +63,10 @@ export default class PlateController extends ManualBuildController<PlateModel> {
     }
 
     const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
+      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getIdentityPath() ??
       '';
     const built: Stuff & Builds = vessel;
     const into = dish;
-    const builder = giver;
-    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: this.paceMs(PLATE_MS, vessel, ['pot']),
@@ -77,8 +74,6 @@ export default class PlateController extends ManualBuildController<PlateModel> {
       beginSelf: Mml.compose`You begin plating ${Mml.thing(vessel)} onto ${Mml.thing(dish)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
-          built.recordCommand(commandText);
-          const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
             vessel: into,
             contributions: [...built.getContributions()],
@@ -100,24 +95,17 @@ export default class PlateController extends ManualBuildController<PlateModel> {
             .toPeers(Mml.compose`${Mml.actor(giver)} plates up ${Mml.thing(outcome.output)}.`)
             .send();
 
-          // The knowledge ladder + demonstration capture (the same act).
-          if (recipeId.length > 0 && sources.length > 0) {
+          // ⭐ The knowledge ladder: crafting records the first making and
+          // says so on the outcome — no script is written behind your back.
+          if (outcome.learned === true && recipeId.length > 0) {
             const view = await CraftingApi.lookupRecipe(recipeId);
             const name = view?.name ?? recipeId;
-            const path = await ScriptApi.captureManualBuild(
-              builder,
-              recipeId,
-              name,
-              sources,
-            );
-            if (path !== null) {
-              MessageApi.scene(giver)
-                .topic(TOPIC)
-                .toSelf(
-                  Mml.compose`You've worked out how to cook ${name} — the recipe is yours now (try \`cook ${recipeId}\`).`,
-                )
-                .send();
-            }
+            MessageApi.scene(giver)
+              .topic(TOPIC)
+              .toSelf(
+                Mml.compose`You've worked out how to cook ${name} — the recipe is yours now (try \`cook ${recipeId}\`).`,
+              )
+              .send();
           }
         })().catch((err: unknown) => {
           console.error('PlateController: mint failed', err);
