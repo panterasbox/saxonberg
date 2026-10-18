@@ -2252,7 +2252,7 @@ runs found, in the order they found it (✔ = fixed and committed):
 
 **Final state.** Every step of the script has passed on a fresh world after the last fix that touched it: whole-file run 2 is 16/19, and the three it missed (the stove house) pass together in run 20. The whole file was not re-run end to end after the tap-key fix — a whole-file run is ~2 h on this machine (three sibling worlds, swapping), and each suite's last green follows the last change that touches it.
 
-**The full suite, pre-MR** (`tools/suite`, at `df6442bf1`): all 44 packages pass, 16,767 tests (server 13,641), 17 minutes. `lint:family`: all 80 gates.
+**The full suite, pre-MR** (`tools/suite`): at `df6442bf1` all 44 packages, 16,767 tests; **again at `fe63c956d`** (after the tap-key and resolved-air fixes) all 44 packages, **16,768 tests**, 16 minutes. `lint:family`: all 80 gates.
 
 **The shipped drives this build's readers touch, each alone on a fresh world, against a BASELINE** (a throwaway detached worktree at `origin/master`, booted on this worktree's own dev DB):
 
