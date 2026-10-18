@@ -27,4 +27,4 @@ data:
   props:
     - /world/terminus/hollow-mere/icehouse/thing/counter
     - /world/terminus/hollow-mere/icehouse/thing/book
-    - /trade/coopering/thing/gauging-rod
+    - /world/terminus/hollow-mere/icehouse/thing/stock-rod

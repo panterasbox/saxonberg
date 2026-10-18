@@ -2598,6 +2598,32 @@ ringing faintly under the cold. It is open water."* The sheet now says what
 it is now (its short and long descriptions follow the field) — **run 7**
 re-drives the fix: **22/22**.
 
+**The regression drives** (W0's decision: once, at W10). One booted world
+for eight files (textiles, climate, maritime, fishing, assembly,
+metallurgy, glass, cold storage): 90 passed, 17 failed, on a box at load
+20–50. Every red file was then re-run ALONE on a fresh world:
+
+- **climate-and-water alone: 13/13** — including the blackmere crossing
+  that refused in the shared world (there it started on day 43, after
+  assembly's 40-day jump, and timed out under load).
+- textiles, fishing, metallurgy, cold storage: green in the shared run.
+- **glass alone: 7/7** (the shared run's sand read raced the dig's
+  landing under load; the darkness was the clock jumped to night).
+- **maritime alone: 40/40** (the shared run's "prompt" was a stale
+  dismissed-prompt frame under load).
+- ⭐ **assembly alone: 21/23 — a real interaction with this build.** Drive
+  22's `clone /trade/coopering/thing/gauging-rod --here` was refused
+  `access-denied`: the icehouse platform propped that coopering row, the
+  venue boots its rooms, so the first live gauging rod in the world stood at
+  the mere — and `clone` answers title through a row's FIRST LIVE INSTANCE
+  (its representative), at a place the founder holds nothing. Fix: the
+  icehouse's rod is its own row (`icehouse/thing/stock-rod`, `extends:` the
+  cooper's), so the coopering path's representative stays the cooperage's.
+  ⚠ **For the user's eye**: `clone`'s representative rule is order-
+  dependent — any venue that props a shared row can change who may clone
+  it. The row's title (`canAtPath`) is the question the code-maintenance
+  doctrine would ask; changing `CloneController` is out of this build.
+
 **Not driven, and where each is proven** (the drive's own header says so
 too):
 
@@ -2607,7 +2633,7 @@ too):
 | 10 — the house hand's `put` on shift | the drive has no path that seats a player on the roster | `Custody.test.ts` (staff on shift put it on the house's claim) |
 | 5 — scraped thicker than the field | Hollow Mere's sky is pinned clear; no snow lies to scrape | `IceSheet.test.ts` (under snow) |
 | 12 — the floating block | a 6 kg block melts in summer water long before day 290 | ⚠ **not proven** — the drive asserts the iron spud SANK (gone from reach); a floating good at the thaw is a gap |
-| 12 — the repack, wet dug-out sawdust | no repack act is driven or tested | ⚠ **not proven** — `Store.test.ts` proves soaked packing melts faster than dry; digging out and repacking is a gap |
+| 12 — the repack, wet dug-out sawdust | ⚠⚠ **a mechanism gap, not a missing test** | The keeper's brain digs out ONE kilogram a beat (`get 1 sawdust`), and `StoreMixin.reconcile` insulates with the FIRST packing line only — so dry sawdust put beside a sodden line changes nothing until the sodden line is gone, and 2 t cannot be dug out a kilogram at a time. A repack wants (a) the packing lines combined (depth = their sum, conductivity mass-weighted) and (b) a bulk dig-out. `Store.test.ts` proves only that soaked packing melts faster than dry. **For the user's eye.** |
 | 14 — the keeper's short stocktake | the gauge is bracketed | `Custody.test.ts` (taking the face by hand changes no receipt — only a stocktake shows it) |
 | 16 — the cookhouse icebox and its supply job | a Hearthworks cook's job cycle is hours of drive on its own | `restocks.test.ts` (a delivered block lands IN the shut icebox) |
 | 17 — two depositors pro rata | one depositor in the drive | `Custody.test.ts` (a shortfall shared pro rata, inside or beyond the allowance) |
