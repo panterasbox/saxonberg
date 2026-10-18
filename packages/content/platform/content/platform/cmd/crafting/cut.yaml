@@ -34,7 +34,11 @@ args:
     type: object
     required: false
     greedy: true
-    scope: ["$focus", "inventory", "reachable"]
+    # A world act names no `inventory` scope of its own. ⚠ `reachable` still
+    # puts your own gear first (person ∪ here ∪ peers), so `cut ice` while
+    # carrying a block binds the block — the seed's order is the
+    # command-taxonomy slate's question, not this view's.
+    scope: ["$focus", "reachable"]
     requires: any
   # ⭐ The tools — DECLARED, not hunted for (`lint:instrument-args`). The
   # target (or the tool that plans the cut) narrows them by the capability

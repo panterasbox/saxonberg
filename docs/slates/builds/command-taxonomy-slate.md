@@ -63,6 +63,18 @@ peers.
    the next boot. A sweep that moves dozens of verbs under subcommands
    needs this gate FIRST.
 
+6. **Scope order follows where the verb's object lives.** The binder
+   tries a view's scopes in order and the first ADMISSIBLE match wins, and
+   the `reachable` seed is itself `person ∪ here ∪ peers` — *your own gear
+   first*. The reviewer's argument (2026-10-18): inventory changes less than
+   location, so for a verb that acts on the WORLD (`cut`, `saw`, `fell`,
+   `scrape`) the room is the better clue to intent — `cut ice` while
+   carrying a block binds the block, not the sheet underfoot. For a verb
+   whose object is IN HAND (`eat`, `drop`, `wield`, `give`) gear-first is
+   the meaning. Decide: a room-first seed (`around`?) for world acts, or a
+   per-view flag; audit the ~25 views that name `inventory` first and the
+   158+ on `reachable`.
+
 ## Open questions
 
 - Does `category:` replace the directory, or mirror it (with a gate that
