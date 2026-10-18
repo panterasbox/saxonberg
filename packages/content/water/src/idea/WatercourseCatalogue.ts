@@ -87,6 +87,15 @@ import {
  */
 export const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
+/**
+ * ⭐ Skim ice is open water: at or under this thickness a cast, a bucket or
+ * a body breaks it without trying. ONE threshold for the read (is the reach
+ * frozen — can it be drawn or fished) and the sheet (is a patch open water),
+ * so the two never disagree about the same ice (the storage-and-ice review:
+ * a 5 mm night skim on a slow river refused fishing as "frozen over").
+ */
+export const OPEN_WATER_BELOW_M = 0.005;
+
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
 
@@ -395,7 +404,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const contamination =
       standing?.contamination ?? (await this.contaminationAt(citation, nowS).catch(() => null));
     const water = standing?.water ?? (await this.waterStateAt(citation, nowS).catch(() => null));
-    const frozen = ice !== null && ice.thicknessM > 0;
+    const frozen = ice !== null && ice.thicknessM > OPEN_WATER_BELOW_M;
     const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
     const opaque: ReachReadState = {
       reach,

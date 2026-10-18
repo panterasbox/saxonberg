@@ -49,7 +49,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CutPlan, CutRefusal, CutRequest, Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import WatercourseCatalogue, { type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
+import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
 import PoolBottom from './PoolBottom';
 
 /** What a patch of the sheet has been through. */
@@ -76,8 +76,8 @@ const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 const BLOCK_ROW = '/stuff/thing/ice-block';
 /** Ice density, kg/m³. */
 const ICE_DENSITY = 917;
-/** Below this the ice is open water, m. */
-const OPEN_BELOW_M = 0.005;
+/** Skim ice is open water — the catalogue's one threshold. */
+const OPEN_BELOW_M = OPEN_WATER_BELOW_M;
 /** A hole for a line, m². */
 const HOLE_M2 = 0.1;
 /** How a tool might say how much a pass covers. */

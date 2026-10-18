@@ -310,3 +310,18 @@ describe('⭐ the sheet says what it is now', () => {
     expect(sheet.getShortDescription()).toBe('open water');
   });
 });
+
+describe('⭐ skim ice is open water — one threshold for the read and the sheet (the review)', () => {
+  it('a night skim does not freeze a reach for drawing or fishing; real ice does', async () => {
+    await cat.iceAt(REF, now);
+    const place = makeStuff(() => new Pool()) as unknown as Stuff;
+    const real = (await cat.iceAt(REF, now))!;
+    vi.spyOn(cat, 'iceAt').mockResolvedValue({ ...real, thicknessM: 0.004 });
+    const skim = await cat.readWater(REF, place, now);
+    expect(skim?.frozen).toBe(false);
+    vi.spyOn(cat, 'iceAt').mockResolvedValue({ ...real, thicknessM: 0.02 });
+    const iced = await cat.readWater(REF, place, now);
+    expect(iced?.frozen).toBe(true);
+    expect(iced?.underIce).toBeDefined();
+  });
+});
