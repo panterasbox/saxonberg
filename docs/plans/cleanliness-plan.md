@@ -2851,6 +2851,18 @@ Read first, in this order.
   collection, transformation, the waste trades, abandoned ownership —
   `waste-slate` (the user: the end is just destroying it).
 
+- **B48 — The rest of this build's controller logic moves onto objects**
+  (review: complexity on the objects through their mixins and class
+  taxonomy; an Api static only when it belongs to no instance; no lib
+  statics). `order wash` → `Garment.launderBy` + the tariff's
+  `quoteLaundry` / `houseCleansers` / `houseWaterHardness` / `payCover`;
+  `order bath` → `Tariff.houseVessel` + `Tub.drawFrom`; `dry`'s wet
+  outlook → `Wet.dryingOutlook`; hands and bath spend their own soap; a
+  wash of several things in one water → `CleanlinessApi.washTogether` (the
+  one piece with no owner: items × water × cleansers). `DryController`'s
+  `prospectFor` (the drying law, moved here from trade-cooking) is left
+  for `controllers-are-io-slate` — not this build's to make worse or better.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

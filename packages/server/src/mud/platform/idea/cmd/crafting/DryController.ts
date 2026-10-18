@@ -153,8 +153,8 @@ export default class DryController extends CommandController<DryModel> {
     const prospect =
       scope === null
         ? null
-        : wetThing
-          ? this.wetProspect(scope)
+        : wetThing && MixinApi.isWet(target)
+          ? DryController.wetLine(target.dryingOutlook())
           : this.prospectFor(target, scope);
 
     if (MixinApi.isAdvancing(giver)) {
@@ -232,17 +232,18 @@ export default class DryController extends CommandController<DryModel> {
     return `In this air it will take about ${this.span(hours)}.`;
   }
 
-  /**
-   * ⭐ A wet thing's prospect, in words (cleanliness D11): it dries by the
-   * shipped wet law at its stamp rate — warmth and a support the air can
-   * reach speed it; under the open sky the wind takes it faster still.
-   */
-  protected wetProspect(scope: Stuff & Container): string {
-    const air = BiomeApi.airFor(scope);
-    if (air.humidityPct >= 95) return 'Nothing will dry in this air.';
-    return BiomeApi.isSkyExposed(scope)
-      ? 'Out in the air like this, it will be dry before long.'
-      : 'It will dry, slowly, indoors.';
+  /** ⭐ A wet thing's outlook (`Wet.dryingOutlook`), in words. */
+  private static wetLine(outlook: 'never' | 'outdoors' | 'indoors' | 'enclosed'): string {
+    switch (outlook) {
+      case 'never':
+        return 'Nothing will dry in this air.';
+      case 'outdoors':
+        return 'Out in the air like this, it will be dry before long.';
+      case 'indoors':
+        return 'It will dry, slowly, indoors.';
+      default:
+        return 'Nothing will dry shut away like that.';
+    }
   }
 
   /** How much of the target the air reaches — the support's own claim. */

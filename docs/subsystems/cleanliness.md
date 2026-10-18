@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B47). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B48). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -234,3 +234,19 @@ hut, the shop floor, the lavoir, the bathhouse rooms.
 - The house's soap is not spent by a paid wash (B28) — a paid BATH spends
   it, the bath's own act (B45); the copper's fire is the house's
   abstraction (B30).
+
+## Where the logic lives (review, B45–B48)
+
+⭐ A verb is input and output: it reads the model, calls the act, and words
+the outcome. Every act is a public METHOD on the thing that performs or
+undergoes it — `Soilable.washSite` / `brushOff` / `holdAtHeat`,
+`Hygiene.washHands` / `bathe` (each spends its own soap, `CleanserUse`),
+`Metabolic.eat`, `Floor.sweepInto` / `strewWith`, `Flued.sweepChimney`,
+`Burner.rakeGrate`, `Midden.takeRefuse`, `Garment.launderBy`,
+`Tub.drawFrom`, `Wet.dryingOutlook`, `Vitals.loseBlood`, and the house's
+own on its `Tariff` (`houseVessel`, `houseWaterHardness`, `houseCleansers`,
+`quoteLaundry`, `payCover`). Only what NO one object owns is an Api static:
+`CleanlinessApi.washTogether({items, spec})` — several things in one water.
+No `lib/` statics, no module functions for an act's internals. The
+tree-wide rule is [controllers-are-io-slate](../slates/builds/controllers-are-io-slate.md).
+

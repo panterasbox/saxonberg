@@ -35,6 +35,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
+import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -108,6 +110,12 @@ function clamp01(x: number): number {
 export interface Wet {
   /** Current saturation `[0, 1]` (reconciles the drain on read). */
   getWetness(): number;
+  /**
+   * ⭐ How it will dry where it is now (cleanliness D11, B48) — the wet
+   * law's outlook: `never` in saturated air, `outdoors` (the sky and the
+   * wind take it fast), `indoors` (slowly). The verb words it.
+   */
+  dryingOutlook(): 'never' | 'outdoors' | 'indoors' | 'enclosed';
   /** Current banded wetness (presentation). */
   getWetnessBand(): WetnessBand;
   /**
@@ -167,6 +175,15 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private _reconcilingWet = false;
 
     // ---------- reads ----------
+
+    public dryingOutlook(): 'never' | 'outdoors' | 'indoors' | 'enclosed' {
+      const self = this as unknown as Stuff;
+      const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!where || !MixinApi.isContainer(where)) return 'enclosed';
+      const scope = where as Stuff & Container;
+      if (BiomeApi.airFor(scope).humidityPct >= 95) return 'never';
+      return BiomeApi.isSkyExposed(scope) ? 'outdoors' : 'indoors';
+    }
 
     public getWetness(): number {
       if (!this._reconcilingWet) this.reconcileWetness();

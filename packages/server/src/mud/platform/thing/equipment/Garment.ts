@@ -47,7 +47,7 @@ import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SoilableMixin } from '../../../lib/cleanliness/Soilable';
-import type { WashOutcome, WashSpec } from '../../../lib/cleanliness/Soilable';
+import type { WashCleanser, WashOutcome, WashSpec } from '../../../lib/cleanliness/Soilable';
 import { LabelledMixin } from '../../../lib/description/Labelled';
 import type Material from '../../../lib/material/Material';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -78,6 +78,9 @@ const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
     ),
   ),
 )));
+
+/** Damage words that are a RUINED garment (a fade is only wear). */
+const LAUNDRY_RUIN = new Set(['felted', 'shrunk', 'rotted', 'burnt', 'bled']);
 
 /** The water at which wool FELTS — boiling, near enough. */
 const FELT_ABOVE_K = 363;
@@ -135,6 +138,41 @@ export default class Garment extends GarmentBase {
    * a dirty shirt. Never the consequence: she says what she will do, not
    * what it will do to it.
    */
+  /**
+   * ⭐ Laundered by a hand at her band (cleanliness D26, B48): her METHOD
+   * (`policy.methodFor` what she reads of the cloth) — the heat, the
+   * effort, lye or soap from the house — and the cloth decides what that
+   * does. A ruin is the hand's deed. The verb words the outcome.
+   */
+  public async launderBy(
+    policy: WashPolicy,
+    opts: { hand: Stuff; customer: Stuff; hardnessDgh: number; cleansers: WashCleanser[] },
+  ): Promise<{ outcome: WashOutcome; ruined: string[] }> {
+    const method = policy.methodFor(this.describeForLaundress(policy).subject);
+    const outcome = this.washSite(
+      {
+        waterK: method.waterK,
+        hardnessDgh: opts.hardnessDgh,
+        cleansers: opts.cleansers,
+        effort: method.effort,
+        coWashed: [this as unknown as Stuff],
+      },
+      '',
+    );
+    const ruined = outcome.damage.filter((d) => LAUNDRY_RUIN.has(d));
+    if (ruined.length > 0 && MixinApi.isPersona(opts.hand)) {
+      // The deed is the hand's (AC 19): a ruined thing is on whoever ruined it.
+      await opts.hand
+        .recordDeed({
+          kind: 'deed',
+          text: `ruined ${this.getPresentation()} in the wash (${ruined.join(', ')}) for ${opts.customer.getPresentation()}`,
+          tags: ['ruined', 'wash'],
+        })
+        .catch(() => {});
+    }
+    return { outcome, ruined };
+  }
+
   public describeForLaundress(policy: WashPolicy): {
     said: string;
     subject: WashSubject;

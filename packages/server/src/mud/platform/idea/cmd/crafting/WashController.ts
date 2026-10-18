@@ -27,7 +27,7 @@ import type { MqlManyResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
-import { CleanserUse } from '../../../../lib/cleanliness/CleanserUse';
+import { CleanlinessApi } from '../../../../api/cleanliness';
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
 import { StuffApi } from "../../../../api/stuff";
@@ -161,20 +161,13 @@ export default class WashController extends ManualBuildController<WashModel> {
       effortW: effort > 1 ? 350 : 200,
       beginSelf: Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
       onComplete: () => {
-        const spec: WashSpec = {
-          waterK: water.waterK,
-          hardnessDgh: water.hardnessDgh,
-          cleansers,
-          effort,
-          coWashed: washable,
-        };
-        const lines: string[] = [];
-        for (const t of washable) {
-          if (t.isDestroyed() || !MixinApi.isSoilable(t)) continue;
-          const outcome = t.washSite(spec, "");
-          lines.push(describeOutcome(t.getPresentation(), outcome, act.self));
-        }
-        new CleanserUse(cleansers).spend(washable.length);
+        // ⭐ One water, several things: the orchestration no one thing
+        // owns (`CleanlinessApi.washTogether`) — each thing's own wash.
+        const results = CleanlinessApi.washTogether({
+          items: washable,
+          spec: { waterK: water.waterK, hardnessDgh: water.hardnessDgh, cleansers, effort },
+        });
+        const lines = results.map((r) => describeOutcome(r.item.getPresentation(), r.outcome, act.self));
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${lines.join(" ")}`)
@@ -213,7 +206,6 @@ export default class WashController extends ManualBuildController<WashModel> {
           cleansers,
           effort,
         });
-        new CleanserUse(cleansers).spend(1);
         const clean = giver.handCleanliness() >= 0.9;
         const what = gloved ? "gloves" : "hands";
         MessageApi.scene(giver)

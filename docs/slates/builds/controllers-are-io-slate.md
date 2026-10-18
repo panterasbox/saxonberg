@@ -67,11 +67,16 @@ inside `Hygiene.bathe`.
    `MillController` 16, `SmeltController` 14, `CutController` 12,
    `CrackController` 12, `ButcherController` 12, `SawController` 11; the
    kernel's `PutController` and `CloneController` 7 each.
-3. ⚠ Left by the cleanliness build, named: `WashController` (its finders are
-   input resolution and stay; the wash itself is `Soilable.washSite`, but the
-   dye bleed and co-wash bookkeeping are still in it) and `OrderController`'s
-   service arms (`washService`, `doBathService`, `payCover` — the house's
-   service logic belongs on the `Tariff` / the hand).
+3. The cleanliness build cleared its own (B48): the co-wash is
+   `CleanlinessApi.washTogether`, the laundress is `Garment.launderBy` + the
+   `Tariff`'s house methods, the bath is `Tub.drawFrom`. ⚠ Left, named:
+   `DryController.prospectFor` (the drying law — moved from trade-cooking),
+   and `OrderController`'s pre-existing arms (treatment, repair are the
+   repair build's).
+4. ⭐ **The order of homes** (user, 2026-10-18): first the OBJECT — a public
+   instance method through its mixins or its class taxonomy; only when the
+   behaviour belongs to no one instance, an Api STATIC (taking a
+   `…Request`). Never a `lib/` static, never a module function.
 
 ## Open for the build
 

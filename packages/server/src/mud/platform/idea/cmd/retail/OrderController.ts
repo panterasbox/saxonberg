@@ -26,16 +26,12 @@ import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import Tariff, { type ServiceKind, type QuoteRequestLine } from '../../../thing/Tariff';
+import Tariff, { type ServiceKind, type QuoteRequestLine, type CoverOutcome } from '../../../thing/Tariff';
+import Tub from '../../../thing/Tub';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
 import { WashPolicy } from '../../../../lib/cleanliness/WashPolicy';
-import { TemplatePaths } from '../../../../lib/paths';
-import { StuffApi } from '../../../../api/stuff';
-import { BulkableApi } from '../../../../api/bulk';
 import Garment from '../../../thing/equipment/Garment';
-import type CleanserCatalogue from '../../CleanserCatalogue';
-import type { WashCleanser } from '../../../../lib/cleanliness/Soilable';
 
 const TOPIC = 'act.deed';
 
@@ -583,20 +579,16 @@ export default class OrderController extends CraftController<OrderModel> {
     const band = MixinApi.isAdvancing(hand)
       ? await hand.competenceBandFor('textiles')
       : CompetenceBand.FLOOR;
+    // ⭐ The objects' (B48): what the hand reads of the cloth, her method,
+    // the house's quote, its soap and water, the cloth's laundering.
     const policy = new WashPolicy(band);
     const look = item.describeForLaundress(policy);
     const method = policy.methodFor(look.subject);
-    const lines = [{ key, label: 'wash', qty: Math.max(1, look.kinds.length) }];
-    if (method.waterK >= 333) lines.push({ key: 'hot-wash', label: 'hot', qty: 1 });
-    const quote = tariff.quoteFor(lines);
+    const quote = tariff.quoteLaundry(key, look.kinds, method);
     const who = hand.getPresentation() ?? 'They';
     MessageApi.scene(giver)
       .topic(SERVICE_TOPIC)
-      .toSelf(
-        Mml.fromMarkup(
-          Mml.escape(`${who} turns it over. ${look.said} That'll be ${money(quote.total)}.`),
-        ),
-      )
+      .toSelf(Mml.fromMarkup(Mml.escape(`${who} turns it over. ${look.said} That'll be ${money(quote.total)}.`)))
       .send();
     if (!tariff.canSettle(quote.total)) {
       return { ok: false, reason: 'cannot-pay', detail: "You haven't the money for that." };
@@ -607,22 +599,12 @@ export default class OrderController extends CraftController<OrderModel> {
           .catch(() => false)
       : false;
     if (!yes) return { ok: true, declined: true, detail: 'You keep your coin, and your washing.' };
-
-    // ⭐ The inputs are the HAND's reach (repair's rule): the water in the
-    // room (its hardness), the house's soap — or lye, if that is what she
-    // reaches for and there is any.
-    const cleansers = await this.houseCleansers(context, method.reachesFor);
-    const outcome = item.washSite(
-      {
-        waterK: method.waterK,
-        hardnessDgh: this.roomHardness(context),
-        cleansers,
-        effort: method.effort,
-        coWashed: [item],
-      },
-      '',
-    );
-    const ruined = outcome.damage.filter((d) => RUIN.has(d));
+    const { outcome, ruined } = await item.launderBy(policy, {
+      hand,
+      customer: giver,
+      hardnessDgh: tariff.houseWaterHardness(),
+      cleansers: await tariff.houseCleansers(method.reachesFor),
+    });
     const what = item.getPresentation();
     if (ruined.length === 0) {
       return {
@@ -632,61 +614,28 @@ export default class OrderController extends CraftController<OrderModel> {
         hand,
       };
     }
-    // The deed is the hand's (AC 19): a ruined thing is on whoever ruined it.
-    if (MixinApi.isPersona(hand)) {
-      await hand
-        .recordDeed({
-          kind: 'deed',
-          text: `ruined ${what} in the wash (${ruined.join(', ')}) for ${giver.getPresentation()}`,
-          tags: ['ruined', 'wash'],
-        })
-        .catch(() => {});
-    }
-    const cover = tariff.priceFor('cover') ?? 0;
     return {
       ok: true,
       detail: `${who} brings ${what} back ${ruined.join(' and ')}. "I'm sorry — the house will make it good."`,
       charge: quote.total,
       hand,
-      after: async () => this.payCover(tariff, giver, cover, what, context),
+      after: async () => OrderController.wordCover(giver, await tariff.payCover(giver, what)),
     };
   }
 
-  /** The house pays the customer its posted cover for a ruined thing. */
-  private async payCover(
-    tariff: Tariff,
-    customer: Stuff,
-    cover: number,
-    what: string,
-    context: CommandContext,
-  ): Promise<void> {
-    if (!(cover > 0)) return;
-    const house = await tariff.house();
-    const account = await tariff.houseAccount();
-    const payeeKey = customer.getIdentityPath() ?? '';
-    let line: string;
-    if (!house || !account || !payeeKey) {
-      line = 'The house owes you for it, and says so.';
-    } else {
-      const paid = await BankingApi.indemnify({
-        houseAccountId: account,
-        housePath: house.getOrganizationPath(),
-        payeeKey,
-        amount: Money.of(cover, BankingApi.compactCurrency()),
-        memo: `cover: ${what}`,
-      }).catch(() => ({ ok: false as const, reason: 'no-persistence' as const }));
-      line = paid.ok
-        ? `The house pays you ${money(cover)} for it.`
-        : paid.reason === 'self-dealing'
-          ? 'The house does not pay its own people for their own washing.'
-          : paid.reason === 'no-account'
-            ? `The house owes you ${money(cover)} — you have no account to be paid into.`
-            : `The house owes you ${money(cover)}, and has not got it.`;
-    }
-    MessageApi.scene(context.commandGiver)
-      .topic(SERVICE_TOPIC)
-      .toSelf(Mml.fromMarkup(Mml.escape(line)))
-      .send();
+  /** The house's cover for a ruined thing, in words (`Tariff.payCover`). */
+  private static wordCover(customer: Stuff, cover: CoverOutcome): void {
+    if (!cover.paid && cover.reason === 'no-cover') return;
+    const line = cover.paid
+      ? `The house pays you ${money(cover.amount)} for it.`
+      : cover.reason === 'self-dealing'
+        ? 'The house does not pay its own people for their own washing.'
+        : cover.reason === 'no-account'
+          ? `The house owes you ${money(cover.amount)} — you have no account to be paid into.`
+          : cover.reason === 'no-house'
+            ? 'The house owes you for it, and says so.'
+            : `The house owes you ${money(cover.amount)}, and has not got it.`;
+    MessageApi.scene(customer).topic(SERVICE_TOPIC).toSelf(Mml.fromMarkup(Mml.escape(line))).send();
   }
 
   /**
@@ -705,28 +654,27 @@ export default class OrderController extends CraftController<OrderModel> {
     if (!MixinApi.isAttired(giver)) {
       return OrderController.serviceFail(context, 'There is nobody here to bathe.', 'not-a-body');
     }
-    const copper = this.roomVessel(context, 'copper');
-    const tub = this.roomVessel(context, 'tub');
-    if (!copper || !tub) {
+    // ⭐ The house's vessels, and the tub's own draw (B48).
+    const copper = tariff.houseVessel('copper');
+    const tub = tariff.houseVessel('tub');
+    if (!copper || !tub || !(tub instanceof Tub)) {
       return OrderController.serviceFail(context, 'There is nothing here to draw a bath in.', 'no-tub');
-    }
-    const hot = BulkableApi.slotFor(copper, undefined);
-    if (!hot || hot.isEmpty() || (hot.getTemperatureK() ?? 0) < 310) {
-      return OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot');
     }
     const price = tariff.priceFor(key) ?? 0;
     if (!tariff.canSettle(price)) {
       return OrderController.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
     }
-    const bath = BulkableApi.slotFor(tub, undefined);
-    if (!bath) return OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
-    BulkableApi.transfer(hot, bath, { kind: 'measure', litres: 80, mode: 'lenient' });
-    const cleansers = await this.houseCleansers(context, 'soap');
-    // Just drawn from the copper: the bath is at the copper's heat.
-    const waterK = hot.getTemperatureK() ?? 310;
+    const drawn = tub.drawFrom(copper, 80);
+    if (!drawn.ok) {
+      return drawn.reason === 'not-hot' || drawn.reason === 'no-water'
+        ? OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot')
+        : OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
+    }
+    const cleansers = await tariff.houseCleansers('soap');
+    const waterK = drawn.waterK;
     const who = hand.getPresentation() ?? 'The attendant';
     // ⚠ Read now: the effect lands after the controller is destructed.
-    const hardnessDgh = this.roomHardness(context);
+    const hardnessDgh = tariff.houseWaterHardness();
     this.runDurativeService(
       context,
       12000,
@@ -750,58 +698,6 @@ export default class OrderController extends CraftController<OrderModel> {
           .send();
       },
     );
-  }
-
-  /** A bulk vessel in the room that answers to `keyword` (the copper, a tub). */
-  private roomVessel(context: CommandContext, keyword: string): Stuff | null {
-    const loc = context.location;
-    if (!loc || !MixinApi.isContainer(loc)) return null;
-    for (const s of (loc as Stuff & Container).getContents()) {
-      const c = s as unknown as Stuff;
-      if (MixinApi.isBulkable(c) && MixinApi.isPerceptible(c) && c.hasKeyword(keyword)) return c;
-    }
-    return null;
-  }
-
-  /** The hardness of the water the room's trough or copper holds. */
-  private roomHardness(context: CommandContext): number {
-    const loc = context.location;
-    if (!loc || !MixinApi.isContainer(loc)) return 8;
-    for (const s of (loc as Stuff & Container).getContents()) {
-      const c = s as unknown as Stuff;
-      if (!MixinApi.isBulkable(c)) continue;
-      const slot = BulkableApi.slotFor(c, undefined);
-      if (!slot || slot.isEmpty() || !slot.getMaterial()?.hasTag('water')) continue;
-      return slot.getHardnessDgh() ?? 8;
-    }
-    return 8;
-  }
-
-  /**
-   * The house's cleanser in the room (the soap at par on a shelf, a flask
-   * of lye) — what the hand reaches for, or soap when there is none of it,
-   * or nothing (a water wash).
-   */
-  private async houseCleansers(
-    context: CommandContext,
-    reachesFor: 'lye' | 'soap',
-  ): Promise<WashCleanser[]> {
-    const loc = context.location;
-    if (!loc || !MixinApi.isContainer(loc)) return [];
-    const catalogue = await StuffApi.singleton<CleanserCatalogue>(TemplatePaths.cleanserCatalogue);
-    const want = reachesFor === 'lye' ? 'alkali-strong' : 'surfactant';
-    let soap: WashCleanser | null = null;
-    for (const s of (loc as Stuff & Container).getContents()) {
-      const c = s as unknown as Stuff;
-      const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
-      if (!m) continue;
-      const row = await catalogue.byTagsWarmed(m.getTags());
-      if (!row) continue;
-      const found = { row, materialPath: m.getTemplatePath() ?? null, source: c };
-      if (row.action === want) return [found];
-      if (row.action === 'surfactant' && soap === null) soap = found;
-    }
-    return soap ? [soap] : [];
   }
 
   /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
@@ -946,6 +842,3 @@ function quoteLine(f: Fault): QuoteRequestLine {
 function money(minor: number): string {
   return Money.of(minor, BankingApi.compactCurrency()).render();
 }
-
-/** Damage words that are a RUINED garment (a fade is only wear). */
-const RUIN = new Set(['felted', 'shrunk', 'rotted', 'burnt', 'bled']);

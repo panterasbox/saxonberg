@@ -140,6 +140,7 @@ export function HygieneMixin<
       };
       if (this.handSites().length === 0) {
         wash(self, '');
+        if (spec) new CleanserUse(spec.cleansers).spend(1);
         return;
       }
       const done = new Set<Stuff>();
@@ -153,6 +154,8 @@ export function HygieneMixin<
           wash(self, hand);
         }
       }
+      // ⭐ The hands' wash spends its soap once — the act's (B48).
+      if (spec) new CleanserUse(spec.cleansers).spend(1);
     }
 
     public soilFrom(
