@@ -239,9 +239,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const path = (c as Stuff).getTemplatePath();
         if (path === null) continue;
         if (this.castTemplate !== '' && path === this.castTemplate) return true;
-        const m = MixinApi.isTangible(c as Stuff)
-          ? ((c as unknown as { getMaterial(): Material | null }).getMaterial() ?? null)
-          : null;
+        const s = c as Stuff;
+        const m = MixinApi.isTangible(s) ? (s.getMaterial() ?? null) : null;
         if (m !== null && m.getCastTemplate() === path) return true;
       }
       return false;

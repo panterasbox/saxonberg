@@ -65,7 +65,7 @@ data:
     - { itemTemplatePath: /trade/rubber/thing/rubber-boots, par: 2 }
     - { itemTemplatePath: /trade/rubber/thing/rubber-gloves, par: 2 }
     - { itemTemplatePath: /trade/rubber/thing/rubberized-coat, par: 1 }
-    # ⭐ (rubber build, D16) Off-the-rack trousers, plain and elastic, side
+    # ⭐ (rubber build) Off-the-rack trousers, plain and elastic, side
     # by side: the plain pair is cut for the average body and the elastic
     # one gives. The tailor still cuts you a pair that fits.
     - { itemTemplatePath: /trade/tailoring/thing/trousers, par: 2 }

@@ -413,7 +413,7 @@ function materialOf(s: Stuff): Material | null {
 }
 
 /**
- * ⭐⭐ The cure (rubber build, D9): when a consumed input's MATERIAL carries
+ * ⭐⭐ The cure (rubber build): when a consumed input's MATERIAL carries
  * a `crosslinking` spec, the charge's agent fraction (the agent-tagged
  * mass over the whole consumed mass — what the player weighed), the heat
  * held and the time held decide which material comes out. No table, no
@@ -502,9 +502,8 @@ async function runFiring(
   const makerPath = giver.isDestroyed() ? '' : giver.getIdentityPath() ?? '';
   const castKg = massYield > 0 ? totalConsumedKg * massYield : totalConsumedKg;
 
-  // ⭐⭐ THE MOULD SEAM (rubber build, D10; owned by moulding-slate § 5 —
-  // origin/reqs/repair:docs/slates/builds/moulding-slate.md until repair
-  // merges). A charge that stood in a mould comes out in the MOULD's
+  // ⭐⭐ THE MOULD SEAM (rubber build; owned by
+  // docs/slates/builds/moulding-slate.md § 5). A charge that stood in a mould comes out in the MOULD's
   // shape: the firing hands the mould a pool and the mould mints the cast,
   // exactly as the freeze edge does — shape, material, mass, wear and its
   // grade all ride the mould's one path. No rubber word here: bread in a

@@ -436,7 +436,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ Wear reads the packing's MATERIAL (rubber build, D12.3): a tougher
+     * ⭐ Wear reads the packing's MATERIAL (rubber build): a tougher
      * packing wears slower, and a springy one wears slower again — it
      * keeps its seal against the barrel instead of scuffing it away.
      * `(referenceToughness / toughness) · (1 − min(0.8, elasticity/500 ·

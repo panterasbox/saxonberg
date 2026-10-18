@@ -3,7 +3,7 @@
 # load. Useful as it is for very little; cured with sulfur it becomes the
 # most useful material of the age.
 #
-# ⭐⭐ THE CURE IS DATA ON THIS ROW (rubber build, D9). `fire` reads the
+# ⭐⭐ THE CURE IS DATA ON THIS ROW (rubber build). `fire` reads the
 # `crosslinking` spec below and decides, from the sulfur fraction of the
 # charge, the heat it was held at and how long, which of four materials
 # comes out. There is no knowledge gate and no table in any controller:

@@ -1,5 +1,5 @@
 /**
- * ⭐⭐⭐ **Exposure — the one face rule** (rubber build, D4).
+ * ⭐⭐⭐ **Exposure — the one face rule** (rubber build).
  *
  * *A face is exterior unless the space across it is an enclosed place of
  * the same structure.* Every case the requirements name is here as one

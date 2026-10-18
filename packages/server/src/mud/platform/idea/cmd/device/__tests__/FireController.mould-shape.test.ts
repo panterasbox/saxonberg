@@ -1,6 +1,6 @@
 /**
  * ⭐⭐ `fire` asks the MOULD for its shape, and the FEEDSTOCK for its cure
- * (rubber build, D8–D10). The contract this file pins, for the moulding
+ * (rubber build). The contract this file pins, for the moulding
  * build that owns the seam afterwards (moulding-slate § 5):
  *
  *  1. a charge loaded in a mould standing in the chamber comes out in the

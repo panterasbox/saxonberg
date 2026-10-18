@@ -268,7 +268,7 @@ records whose impression a thing is; it decides nothing.
 ## Cross-references
 
 - `docs/subsystems/mould.md` (ships with dairy) · `reqs/dairy` plan D9.
-- `reqs/rubber` — `rubber-requirements.md` (the mould decides the shape;
+- rubber (shipped, MR !379; [rubber.md](../../subsystems/rubber.md)) (the mould decides the shape;
   ⚠ it routes *footwear as a trade (a cobbler)* to textiles-slate, while
   the repair build ships a Terminus cobbler — reconcile at the next
   rubber review).

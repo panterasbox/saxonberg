@@ -398,7 +398,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             }
           }
           // ⭐ The temperature term reads the AIR at the host's place
-          // (rubber build, D13.1): a 290 kg stem's own body lags its house
+          // (rubber build): a 290 kg stem's own body lags its house
           // by hours, and a tree's xylem follows the air — the reason
           // `freeze-thaw` already reads it. Absent is unmodelled: open.
           const k = this.windowAirK();

@@ -1,7 +1,7 @@
 # Structures slate — the thing that says "these rooms are one building", and whether it is needed at all
 
 > ⭐⭐⭐ **LOAD-BEARING FOR INTERIORS (2026-10-16)** →
-> [rubber-requirements](../../requirements/rubber-requirements.md). The
+> [construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379). The
 > 10-15 ruling that a Structure is only for what is seen over the horizon
 > is **reversed** — but narrower than first written (corrected the same
 > day): **places own their materials** (walls and roof, layered, on the

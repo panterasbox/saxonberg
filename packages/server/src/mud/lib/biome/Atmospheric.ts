@@ -1785,7 +1785,7 @@ export function AtmosphericMixin<
 
     /**
      * ⭐⭐ **The sun through a transparent face, in W, at game-time `atS`**
-     * (rubber build, D6): `I_noon · skyFactor(t) · weatherDim · Σ T·A·w`.
+     * (rubber build): `I_noon · skyFactor(t) · weatherDim · Σ T·A·w`.
      * The sky factor is the light walk's own curve; the dim is the scope's
      * cached cloud factor; `I_noon` is the one calibration dial. 0 for
      * every room with no transparent exterior face.

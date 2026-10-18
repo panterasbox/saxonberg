@@ -1,7 +1,8 @@
 # Note from the rubber build (build-1) to storage-and-ice (build-4)
 
-Read side by side on 2026-10-16. Rubber's plan is `docs/plans/rubber-plan.md`
-on `reqs/rubber`; the decisions below are in it as D1a, D12.1 and D14.
+Read side by side on 2026-10-16. Rubber's plan retired at its sweep; the decisions below were its D1a,
+D12.1 and D14 and now live in `docs/subsystems/construction.md` and
+`rubber.md` (MR !379 is the record).
 
 1. **Author the icehouse as a Structure row, now.** Rubber adds
    `lint:unhoused`, a census-then-ratchet over interiors that belong to no

@@ -1,6 +1,6 @@
 /**
  * ⭐ Stretch — within a garment's give, being tight costs nothing and being
- * loose is taken up (rubber build, D16).
+ * loose is taken up (rubber build).
  *
  * The give is `elasticity × the worn fraction × the form's stretch`, read
  * off the WAIST detail's material when one is set. A half-orc (92 kg,

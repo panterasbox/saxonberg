@@ -1,6 +1,6 @@
 /**
  * ⭐⭐ **The rooms of one building share heat through their interior
- * faces** (rubber build, D7).
+ * faces** (rubber build).
  *
  * A stove lit in the lower room warms the room above it through the
  * stair — within the hour when the way is open (the inside air moving),

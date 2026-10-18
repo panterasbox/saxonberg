@@ -1,5 +1,5 @@
 /**
- * ⭐ Rain on a dressed body (rubber build, D12.2): the outermost layer is
+ * ⭐ Rain on a dressed body (rubber build): the outermost layer is
  * rained on, ONCE per distinct garment; the body takes what that layer
  * passes — its permeability × how soaked it already is. Wool soaks
  * through as it saturates; rubberized cloth passes nothing.

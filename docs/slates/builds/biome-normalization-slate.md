@@ -1,7 +1,7 @@
 # Biome normalization slate — what a biome is a claim ABOUT, and how narrow one may get
 
 > ⭐⭐ **Job 2 is ANSWERED by the rubber build (2026-10-16)** →
-> [rubber-requirements](../../requirements/rubber-requirements.md): sky
+> [construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379): sky
 > exposure leaves the biome. A place's construction is **walls + roof**
 > (material + thickness, layered, or none), owned by **the place
 > itself** — a `Structure` owns only membership and storeys (a tree,

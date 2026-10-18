@@ -1607,7 +1607,7 @@ export const AppSettingKeys = {
   lightSolarSideWeight: "light.solar.sideWeight",
   /**
    * ⭐ Light — the sun's irradiance on a horizontal surface at a clear
-   * noon, W/m² (rubber build, D6). The ONE calibration constant of solar
+   * noon, W/m² (rubber build). The ONE calibration constant of solar
    * gain: the lux scale is a MUD scale (`light.sky.noonLux` is 80), so
    * heat has its own number and shares only the sky factor and the dim.
    */
@@ -2150,7 +2150,7 @@ export const AppSettingKeys = {
    * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
   textilesFitRefuseAbove: "textiles.fit.refuseAbove",
   /** Textiles — the share of a material's spring-back strain a garment
-   * is WORN at (rubber build, D16): the give that fit takes up is
+   * is WORN at (rubber build): the give that fit takes up is
    * `elasticity × this × the form's stretch`. */
   textilesFitStretchWornFraction: "textiles.fit.stretchWornFraction",
 

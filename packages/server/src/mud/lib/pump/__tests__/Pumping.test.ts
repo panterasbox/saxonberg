@@ -396,7 +396,7 @@ describe('⭐ the machine rung — power-limited, and wear INTEGRATED', () => {
   });
 });
 
-describe('⭐ wear reads the packing\'s MATERIAL (rubber build, D12.3)', () => {
+describe('⭐ wear reads the packing\'s MATERIAL (rubber build)', () => {
   function packingOf(toughness: number, elasticity: number): Tool {
     const m = makeStuffAtPath(
       () => new Material(),

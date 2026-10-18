@@ -478,7 +478,7 @@ export class CelestialApi {
    * ⭐ The sky's illuminance factor at game-time `t` (s) — the same curve
    * {@link skyFactorNow} samples, at any instant and unmemoized. The
    * envelope's solar term integrates a gap that may span a night, so it
-   * samples each segment's midpoint (rubber build, D6).
+   * samples each segment's midpoint (rubber build).
    */
   public static skyFactorAt(t: number, latitudeDeg?: number): number {
     return logic().skyFactorAt(t, latitudeDeg);

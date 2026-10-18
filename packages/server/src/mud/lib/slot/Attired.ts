@@ -692,7 +692,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff & Slotted;
       const plan = bodyPlanOf(self);
       if (!plan) {
-        if (MixinApi.isWet(self as unknown as Stuff)) (self as unknown as { wet(n: number): void }).wet(delta);
+        if (MixinApi.isWet(self)) self.wet(delta);
         return;
       }
       // ⭐ ONE wet() per distinct outermost garment, at its summed share —
@@ -724,8 +724,8 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         const pass = mat ? mat.permeability() * saturation : 1;
         toBody += delta * share * pass;
       }
-      if (toBody > 0 && MixinApi.isWet(self as unknown as Stuff)) {
-        (self as unknown as { wet(n: number): void }).wet(toBody);
+      if (toBody > 0 && MixinApi.isWet(self)) {
+        self.wet(toBody);
       }
     }
 
@@ -755,7 +755,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const body = self as unknown as Stuff;
       if (share > 0 && MixinApi.isWet(body)) {
-        (body as unknown as { wet(n: number): void }).wet(saturation * (parts ? Math.min(1, share) : 1));
+        body.wet(saturation * (parts ? Math.min(1, share) : 1));
       }
     }
 

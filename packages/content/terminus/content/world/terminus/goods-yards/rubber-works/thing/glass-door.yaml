@@ -1,6 +1,6 @@
 # The glass door between the works floor and the stove house — shut, it
 # keeps the stove house's warmth its own; open, the two rooms share their
-# air (rubber build, D7: shut ⇒ conduction, open ⇒ flow).
+# air (rubber build: shut ⇒ conduction, open ⇒ flow).
 class: /platform/thing/Door
 data:
   shortDescription: glass door

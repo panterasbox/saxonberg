@@ -1,6 +1,6 @@
 # Tapping slate — the yield that does not kill the organism
 
-> ⭐ **Rubber's supply, 2026-10-16** → [rubber-requirements](../../requirements/rubber-requirements.md):
+> ⭐ **Rubber's supply, 2026-10-16** → [construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379):
 > Hevea cannot grow in this realm's open air, so latex is tapped **under
 > glass** (a stove house; the tap's `weather` window reads the house's own
 > derived temperature, so a dead stove closes the run) and the second
@@ -423,7 +423,7 @@ a fact when demand is **authored**: if the world only ships medieval,
 criterion 1 refuses every post-medieval material forever. The real
 blocker is that the **industrial epoch has no on-ramp** — the doctrine's
 delivery mechanism was conferral, and conferral is retired. See
-[rubber-slate](./rubber-slate.md) and
+[rubber-slate](../tails/rubber-slate.md) and
 [inquiry-slate § From law to technology](./inquiry-slate.md).
 **Latex remains tapping's mechanism exactly**, so this slate still
 carries rubber's supply side.

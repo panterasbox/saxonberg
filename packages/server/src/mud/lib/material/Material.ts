@@ -466,7 +466,7 @@ export default class Material extends SingletonMixin(
    * then flows the mass to a `Bulkable` liquid. `0` = does not melt in the
    * modelled range.
    */
-  // ⭐ Light through matter (rubber build, D5): Beer–Lambert's α in 1/m. A
+  // ⭐ Light through matter (rubber build): Beer–Lambert's α in 1/m. A
   // layer of thickness t passes e^(−α·t). ABSENT means opaque — the honest
   // default for every row that is not glass, water or ice.
   private _lightAbsorption: Quantity<'1/m'> | null = null;
@@ -482,7 +482,7 @@ export default class Material extends SingletonMixin(
     this._lightAbsorption = value;
   }
 
-  // ⭐ Elasticity (rubber build, D11): the strain it springs back from, %.
+  // ⭐ Elasticity (rubber build): the strain it springs back from, %.
   // Rubber 500, leather 10, linen 3, glass 0.1; unauthored reads 0 —
   // rigid, which is today's answer everywhere.
   private _elasticity: Quantity<'%'> = Quantity.of(0, '%');
@@ -498,7 +498,7 @@ export default class Material extends SingletonMixin(
     this._elasticity = value;
   }
 
-  // ⭐⭐ The cure as data (rubber build, D9): how this feedstock crosslinks
+  // ⭐⭐ The cure as data (rubber build): how this feedstock crosslinks
   // with an agent under heat and time. `null` — every material but a raw
   // elastomer — is inert. Validated by constructing the value object, so
   // a curve that cannot be evaluated fails at the row.

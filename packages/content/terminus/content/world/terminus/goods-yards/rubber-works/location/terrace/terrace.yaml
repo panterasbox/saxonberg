@@ -1,4 +1,4 @@
-# The roof terrace — ⭐ on the loft's roof (rubber build, D3): a member
+# The roof terrace — ⭐ on the loft's roof (rubber build): a member
 # place of a storey standing on the loft, with no walls and no roof of its
 # own. Rain falls on it; its floor IS the loft's slate roof.
 class: /platform/location/SingletonCartesianLocation

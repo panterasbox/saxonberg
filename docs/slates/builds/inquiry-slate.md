@@ -1,7 +1,7 @@
 # Inquiry slate (working doc) — discovering, verifying, and trusting knowledge
 
 > ⭐ **2026-10-16 — rubber ships with NO gate**
-> ([rubber-requirements](../../requirements/rubber-requirements.md)): not
+> ([construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379)): not
 > even the token. The oven asks nobody what they know; the cure window is
 > narrow enough that it is reached by measuring rather than by tradition,
 > which is the industrial break encoded in physics instead of a lock.
@@ -306,7 +306,7 @@ chemist that way.
 
 ### The first consumer
 
-⭐ **Rubber**, not magic — see [rubber-slate](./rubber-slate.md). It is
+⭐ **Rubber**, not magic — see [rubber-slate](../tails/rubber-slate.md). It is
 the better proof case because vulcanization is the canonical technology
 that *cannot* be had without theory, its law is a genuinely honest
 function of the engine's own material fields, and over-applying it
@@ -446,7 +446,7 @@ prose. A catalogue only buys row 5.
 ⚠ **This does not retire this slate.** Row 5 — recovering a relationship
 by experiment, graded by *prediction* rather than by stating the model —
 is still the best pedagogical object in the backlog, and
-[rubber](./rubber-slate.md) is still its best first consumer. What changed
+[rubber](../tails/rubber-slate.md) is still its best first consumer. What changed
 is that it is **no longer a blocker**: rubber, plastics and drilling can
 ship on the token, and discovery can arrive later as what it always was —
 a *better way to earn one*.

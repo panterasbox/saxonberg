@@ -187,7 +187,7 @@ export interface FabricSpec {
   drape: number;
   /**
    * How far the construction lets its fibre give, as a multiple of the
-   * material's own elasticity (rubber build, D16). Absent = `1`, the
+   * material's own elasticity (rubber build). Absent = `1`, the
    * fibre's own; `0` locks it (felting matts the fibres solid); a knit's
    * loops give more than the yarn does.
    */

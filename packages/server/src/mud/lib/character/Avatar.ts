@@ -1317,7 +1317,7 @@ export default abstract class Avatar extends AvatarBase {
             this.getOccupants("cranial").size === 0
               ? (this as unknown as Stuff & Container)
                   .getContents()
-                  .find((c) => c instanceof AetherImplant)
+                  .find((c) => c.getTemplatePath() === AetherImplant.TEMPLATE_PATH)
               : undefined;
           if (carried) {
             this.occupy(carried as unknown as AetherImplant, "cranial");

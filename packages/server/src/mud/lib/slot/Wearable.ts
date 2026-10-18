@@ -361,7 +361,7 @@ export function WearableMixin<
 
       const dStature = (statureM - cutStature) / cutStature;
       const rawGirth = (girthIndex - cutGirth) / cutGirth;
-      // ⭐ Stretch (rubber build, D16): within the garment's give, being
+      // ⭐ Stretch (rubber build): within the garment's give, being
       // tight costs nothing and being loose is taken up. It is the GIRTH
       // that gives — a waistband goes round you, it does not make the
       // legs longer — so a tall body is still short in the leg.
@@ -390,7 +390,7 @@ export function WearableMixin<
     /**
      * How far this garment gives round the body, as a fraction of its
      * girth: `elasticity × textiles.fit.stretchWornFraction × the form's
-     * stretch` (rubber build, D16). ⭐ The material is the `waist`
+     * stretch` (rubber build). ⭐ The material is the `waist`
      * detail's when one is set — an elastic-waisted pair of trousers is a
      * row whose waist names rubber — else the garment's own. A felt gives
      * nothing whatever its fibre; linen next to nothing; rubber a band.

@@ -1,6 +1,6 @@
 /**
  * ⭐⭐ Latex — the tap opens on the AIR of the stove house, and latex sets
- * into raw rubber in a pan (rubber build, D13.1/D13.2).
+ * into raw rubber in a pan (rubber build).
  *
  * The rows under test are the SHIPPED ones: the Hevea species' production
  * and the latex material's drain set are read off their YAML, so a number
