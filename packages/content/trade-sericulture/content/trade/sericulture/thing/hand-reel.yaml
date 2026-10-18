@@ -1,0 +1,15 @@
+# A hand reel — ⭐ the home reeler's instrument: a wooden swift on a
+# crank, set over a pot of hot water on the range. It affords `reel`, and
+# it is slow and none too steady; a mill's basin is twice the rate and
+# keeps the thread evener.
+class: /trade/sericulture/thing/ReelingTool
+data:
+  shortDescription: hand reel
+  keywords: [reel, "hand reel", swift, crank]
+  register: indefinite
+  longDescription: |
+    A light wooden swift on a crank handle, with a hook to clamp it to the edge of a table and a glass eye to lead the thread through.
+  capabilities:
+    - { kind: reeling, rate: 1 }
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 3

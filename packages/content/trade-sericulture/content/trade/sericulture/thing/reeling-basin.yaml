@@ -1,0 +1,17 @@
+# A reeling basin — ⭐ the mill's instrument: a copper basin of water kept
+# near the simmer over a brazier, a croissure to twist the thread on
+# itself and squeeze out the water, and a big reel turned by a treadle.
+# Twice a hand reel's rate, and `control: fine` — it keeps a thread even.
+# ⚠ Propped at the Wharfside mill (silk W5); held until then.
+unreachable: awaiting:silk-slate
+class: /trade/sericulture/thing/ReelingTool
+data:
+  shortDescription: reeling basin
+  keywords: [basin, "reeling basin", reel, croissure]
+  register: indefinite
+  longDescription: |
+    A wide copper basin on a stand, steam lifting off the water in it, and behind it a great slatted reel on a treadle with a croissure of glass eyes between the two.
+  capabilities:
+    - { kind: reeling, rate: 2, control: fine }
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 60

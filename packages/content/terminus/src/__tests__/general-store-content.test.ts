@@ -393,6 +393,7 @@ describe("general-store content integrity", () => {
     // are the state of. The brush is a plain Good, the sapling a Seed.
     "/trade/sericulture/thing/EggLot",
     "/trade/sericulture/thing/RearingTray",
+    "/trade/sericulture/thing/ReelingTool",
     // ⭐ The wear-part line (assembly W6): a pane is the glasshouse's
     // `Sheet`, and a cushion or a smoker's bellows is an `Assembly` — a
     // made thing of parts with no other capability. All discrete: you

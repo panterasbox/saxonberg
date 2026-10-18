@@ -159,6 +159,7 @@ data:
     - { itemTemplatePath: /trade/sericulture/thing/tray, par: 2 }
     - { itemTemplatePath: /trade/sericulture/thing/mounting-brush, par: 2 }
     - { itemTemplatePath: /trade/sericulture/thing/seed/mulberry, par: 2 }
+    - { itemTemplatePath: /trade/sericulture/thing/hand-reel, par: 2 }
     # ⭐⭐ A watch, par 2 — and it is here because two shipped verbs had
     # no instrument a player could own. `wind` and `adjust` are the
     # avenue's verbs and the only `Watch` in the realm was in Gus's
@@ -575,6 +576,7 @@ data:
     /trade/sericulture/thing/tray: 3
     /trade/sericulture/thing/mounting-brush: 1
     /trade/sericulture/thing/seed/mulberry: 4
+    /trade/sericulture/thing/hand-reel: 6
     # ⚠ Dearer than the hive and cheaper than the bees: brass, a spring
     # and a jewel, made by somebody who knew how. It does not keep time
     # properly, which is the point and not a discount.

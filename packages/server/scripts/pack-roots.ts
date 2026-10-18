@@ -333,6 +333,15 @@ function importedClassPath(
     if (spec.startsWith(".")) {
       return classPathOfFile(resolve(dirname(file), spec) + ".ts", sources);
     }
+    // ⭐ A pack extending ANOTHER pack's class imports it by package
+    // specifier (`@saxonberg/content-trade-textiles/src/thing/TextileStock`
+    // — silk's `RawSilk`). Unfollowed, the base read as fieldless and every
+    // key a row inherited from it counted as an orphan: a finding invented
+    // by the reader, not the row.
+    const pack = /^@saxonberg\/content-([^/]+)\/(.+)$/.exec(spec);
+    if (pack) {
+      return classPathOfFile(join(CONTENT, pack[1]!, pack[2]!) + ".ts", sources);
+    }
     return null;
   }
   return null;

@@ -298,7 +298,12 @@ export function packBrainShapeOk(source: string): boolean {
 // rooms authored `address:`, which no composed field declares — so the
 // moor's storm pin never reached its own heath. They author `_address:`
 // (Addressable's field) now.
-const ORPHAN_DATA_KEY_CEILING = 387;
+// 387 → 362 (the silk build, 2026-10-18): `declaredFields` now follows a
+// cross-pack base imported by package specifier
+// (`@saxonberg/content-<pack>/src/…`). Unfollowed, every key a row
+// inherited from another pack's class read as an orphan — 25 findings the
+// reader invented.
+const ORPHAN_DATA_KEY_CEILING = 362;
 
 
 function main(): void {

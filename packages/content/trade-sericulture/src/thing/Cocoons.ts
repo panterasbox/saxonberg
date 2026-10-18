@@ -35,9 +35,26 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CocoonSeed, CocoonSeedable, HeftBand } from '../lib/Rearing';
 import type Strain from '../idea/Strain';
 import type EggLot from './EggLot';
+import type RawSilk from './RawSilk';
+import type { Reelable } from '@saxonberg/content-trade-fishing/src/lib/Reelable';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { WorkPrognosis, WorkResult } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 const EGG_LOT_ROW = '/trade/sericulture/thing/egg-lot';
+const RAW_SILK_ROW = '/trade/sericulture/thing/raw-silk';
+const PUPAE_ROW = '/trade/sericulture/thing/pupae';
+
+/** Cocoons one reeling uses up. */
+const REEL_CHARGE = 40;
+/** Game-ms one reeling takes at eight to the thread with a rate-1 reel. */
+const REEL_BASE_MS = 30 * 60 * 1000;
+/** The water has to be near simmering to loosen the gum. */
+const REEL_WATER_K = 330;
+/** The count a reeler uses when they do not say. */
+const DEFAULT_COUNT = 8;
 
 /**
  * ⭐⭐ The four stifling dials. A cocoon is a few grams with almost no
@@ -86,7 +103,7 @@ function heftAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 
 const CocoonsBase = ThermalMixin(StackableMixin(CraftedMixin(Good)));
 
-export default class Cocoons extends CocoonsBase implements CocoonSeedable {
+export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reelable {
   // ⚠ TS re-surface of the inner `GradedMixin`'s members (the documented
   // `Crafted.ts` cast quirk — `TextileStock` carries the same block).
   declare getGradeBand: () => string;
@@ -200,6 +217,97 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
    */
   private heftGrade(): string {
     return this.heftBand === 'heavy' ? 'fine' : this.heftBand === 'light' ? 'poor' : 'fair';
+  }
+
+  // ---------- the reel ----------
+
+  /** ⭐ The shape fishing's `reel` narrows on (D6). */
+  public readonly reelable = true as const;
+
+  /**
+   * What one reeling would be, or why not — in the cocoons' own words. No
+   * side effects.
+   */
+  public async planReel(
+    by: Stuff,
+    tool: (Stuff & Tooled) | null,
+    count: number | null,
+  ): Promise<WorkPrognosis> {
+    this.reconcileCocoons();
+    if (this.pierced) {
+      return refusal('pierced', 'There is nothing to reel off a pierced cocoon — the thread is cut. It will spin.');
+    }
+    if (!this.stifled) {
+      return refusal('not-stifled', 'The moths are still alive in them. Stifle them first, or they will break the thread as you reel.');
+    }
+    const charge = dial('sericulture.reel.charge', REEL_CHARGE);
+    if (this.getQuantity() < charge) {
+      return refusal('too-few', 'There are not enough cocoons there to keep a thread going.');
+    }
+    if (!tool || !tool.hasCapability('reeling')) {
+      return refusal('no-reel', 'You want a reel to wind the thread onto.');
+    }
+    const heat = Math.max(
+      this.reachableHeatK(),
+      MixinApi.isThermal(by) ? by.reachableHeatK() : 0,
+    );
+    if (heat < dial('sericulture.reel.waterK', REEL_WATER_K)) {
+      return refusal('no-heat', 'They want hot water to loosen the gum, and there is no fire here.');
+    }
+    const n = Math.max(3, Math.min(20, Math.round(count ?? DEFAULT_COUNT)));
+    const base = dial('sericulture.reel.baseMs', REEL_BASE_MS);
+    const durationMs = Math.round((base / Math.max(0.1, tool.capabilityRate('reeling'))) * (DEFAULT_COUNT / n));
+    return {
+      kind: 'plan',
+      durationMs,
+      cost: 0,
+      beginSelf: `You drop a handful of cocoons into the hot water, find the ends with a twig, and gather ${n} of them into one thread.`,
+      beginPeers: 'Somebody bends over a basin, reeling silk off cocoons.',
+      token: { count: n, charge, control: tool.capabilityControl('reeling') },
+    };
+  }
+
+  /**
+   * ⭐ Do it: the cocoons are used, ONE skein of raw silk and a handful of
+   * pupae are made, and the skein carries the reeler's mark and how even
+   * their hands kept it.
+   */
+  public async completeReel(
+    by: Stuff,
+    _tool: (Stuff & Tooled) | null,
+    token: unknown,
+  ): Promise<WorkResult> {
+    const t = token as { count: number; charge: number; control: string | null };
+    const band = await competenceOf(by);
+    const evenness = Math.max(
+      0,
+      Math.min(
+        1,
+        0.45 +
+          0.12 * CompetenceBand.rank(band) +
+          (t.control === 'fine' ? 0.2 : 0) -
+          0.04 * Math.max(0, 8 - t.count),
+      ),
+    );
+    const cocoonBand = this.getGradeBand();
+    const left = this.getQuantity() - t.charge;
+    if (left <= 0) StuffApi.destruct(this as unknown as Stuff);
+    else this.setQuantity(left);
+
+    const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
+    if (skein) {
+      skein.setFilamentCount(t.count);
+      skein.setEvenness(evenness);
+      skein.setMaker(by.getIdentityPath() ?? '');
+      skein.setGradeBand(lowerBand(cocoonBand, evennessBand(evenness)));
+    }
+    await mint<Stuff>(PUPAE_ROW, by);
+    const line = skein ? skein.threadLine() : '';
+    return {
+      self: `You wind off a skein of raw silk. ${line} The pupae are left in the basin.`,
+      peers: 'Somebody lifts a skein of raw silk off the reel.',
+      credit: { discipline: 'textiles', difficulty: t.count < 6 ? 'hard' : 'standard' },
+    };
   }
 
   // ---------- the clock ----------
@@ -344,6 +452,50 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
       ? 'Something stirs inside; the moths will be out within the day.'
       : `Something stirs inside; the moths will come in about ${GrammarApi.inWords(left)} days.`;
   }
+}
+
+function refusal(reason: string, prose: string): WorkPrognosis {
+  return { kind: 'refusal', reason, prose };
+}
+
+/** Clone a row into `by`'s hands — the one clone path. */
+async function mint<T>(row: string, by: Stuff): Promise<T | null> {
+  let made: Stuff | null = null;
+  try {
+    made = await StuffApi.clone<Stuff>(row);
+  } catch {
+    return null;
+  }
+  if (!made) return null;
+  if (MixinApi.isContainable(made) && MixinApi.isContainer(by)) {
+    ContainmentApi.move(made as Stuff & Containable, by as Stuff & Container);
+  }
+  return made as unknown as T;
+}
+
+async function competenceOf(by: Stuff): Promise<CompetenceBandName> {
+  const actor = by as unknown as { competenceBandFor?(key: string): Promise<CompetenceBandName> };
+  if (typeof actor.competenceBandFor !== 'function') return 'untrained';
+  try {
+    return await actor.competenceBandFor('textiles');
+  } catch {
+    return 'untrained';
+  }
+}
+
+/** The grade an evenness earns on its own. */
+function evennessBand(e: number): string {
+  return e < 0.4 ? 'poor' : e < 0.6 ? 'fair' : e < 0.8 ? 'fine' : e < 0.95 ? 'exceptional' : 'masterful';
+}
+
+/** The weaker of two bands — weakest link. */
+function lowerBand(a: string, b: string): string {
+  const bands = GRADE_BANDS as readonly string[];
+  const i = bands.indexOf(a);
+  const j = bands.indexOf(b);
+  if (i < 0) return j < 0 ? 'fair' : b;
+  if (j < 0) return a;
+  return bands[Math.min(i, j)]!;
 }
 
 /** Where a stack stands, in words — the room the lot will say it was laid in. */

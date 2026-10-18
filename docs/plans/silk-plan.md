@@ -1080,6 +1080,28 @@ it there (a dependency flip to record, not a design change).
 
 **Commit.** `build(silk W3): reel — one verb, the rod or the basin decides`
 
+> ✅ **Done.** The cross-pack view key in `ReelingTool`'s static needed no
+> fallback — a forestry `Panel` already names platform views the same way.
+> Decisions:
+> - **The `tool` arg IS `greedy: true`** (it is the trailing prepositional
+>   tail, and `lint:reachability` arm G ratchets non-greedy prepositional
+>   object args); the TARGET stays non-greedy, per the review fix.
+> - **A bound target that is not `Reelable` falls through to the fishing
+>   act** rather than refusing — `reel` typed with any stray word keeps
+>   behaving as it did (AC 19).
+> - **Fineness reads the same for every viewer**: a sync `look` augmenter
+>   cannot await a competence read, and the ACs ask only that EVENNESS
+>   reflect the REELER's competence (it does, baked at the reel). The count
+>   is spoken (*six cocoons to it*); denier never appears.
+> - Reel charge 40 cocoons/act, base 30 game-minutes at eight to the thread
+>   with a rate-1 reel; hot water = a lit burner in reach ≥ 330 K (the
+>   stack's or the reeler's `reachableHeatK`).
+> - ⚠ **A lint precision fix**: `pack-roots.declaredFields` did not follow
+>   a cross-pack base imported by package specifier, so `RawSilk extends
+>   TextileStock` read as fieldless. Following it cleared 25 pre-existing
+>   false orphans — `lint:instanceable`'s ceiling 387 → 362.
+> - `reeling-basin` holds `unreachable: awaiting:silk-slate` until W5 props it.
+
 ### W4 — finishing in the piece, the bath rung, dye depth, kermes
 
 **Goal.** D8, D12, the AC 10 line.

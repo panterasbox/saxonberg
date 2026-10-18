@@ -1,0 +1,14 @@
+# A skein of raw silk — ⭐ what one reeling makes: a thread of so many
+# cocoons, as even as the reeler's hands kept it, still stiff with gum.
+# `spin` throws it (the twist that makes a yarn); the material carries on.
+class: /trade/sericulture/thing/RawSilk
+data:
+  shortDescription: skein of raw silk
+  keywords: [skein, silk, "raw silk", "skein of raw silk", thread]
+  register: indefinite
+  longDescription: |
+    A hank of thread so fine it is hard to see one strand, stiff and a little harsh, catching the light like wet glass.
+  _materialPath: /trade/sericulture/idea/material/raw-silk
+  mass: 0.015
+  gradeBand: fair
+  yarnCount: 0
