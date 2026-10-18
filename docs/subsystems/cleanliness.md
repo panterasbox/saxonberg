@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B42). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B43). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -134,7 +134,9 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   absorbent drinks blood, grease and milk), `sweepUp` (on a strewn floor
   everything; on a scrubbed one the debris), `sweepsInto` (the heap row:
   sweepings, the byre's muck). Verbs: `sweep`/`muck`, `strew`, `dispose`
-  (into a midden), `beat` (a rug). `survey` reads *the floor is soiled; to
+  (into a midden), `beat` (a rug) — ⭐ each conferred by what PERFORMS it
+  (B43): `SweepingTool` (broom, flue brush), `Litter` (rushes), `Heap`
+  (sweepings, muck), never by the place. `survey` reads *the floor is soiled; to
   scrub it would see to it*.
 - **The stalls** — the ONE calendar accrual: a byre floor row names its
   herd book (`stalls: {herdbook}`) and fouls by head × days, reconciled on

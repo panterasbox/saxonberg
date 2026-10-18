@@ -349,6 +349,12 @@ describe("general-store content integrity", () => {
     // lives in the smithing pack so the kernel never names a trade's
     // view. The ingot a Meltable Thing — all discrete, none Stackable.
     "/platform/thing/Tool",
+    // The cleanliness instruments (review: the verb goes on what PERFORMS
+    // the act, not the room): the broom and flue brush sweep, rushes strew,
+    // a heap is disposed of.
+    "/platform/thing/SweepingTool",
+    "/platform/thing/Litter",
+    "/platform/thing/Heap",
     "/platform/thing/MendingTool",
     "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",

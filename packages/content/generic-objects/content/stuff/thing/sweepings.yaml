@@ -1,6 +1,6 @@
 # A heap of sweepings — what `sweep` takes up (cleanliness D15). Carry it to
 # the midden (`dispose`), where it rots down for the field.
-class: /platform/thing/Good
+class: /platform/thing/Heap
 data:
   shortDescription: heap of sweepings
   keywords: [sweepings, heap, pile, "heap of sweepings"]

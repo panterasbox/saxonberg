@@ -2795,6 +2795,16 @@ Read first, in this order.
   callers narrow with `MixinApi.isHygienic`. The test was the import list:
   Attired no longer imports the cleanliness module's types.
 
+- **B43 — The keeping verbs are the instruments', not `Location`'s**
+  (review). W4 hung `sweep`/`strew`/`dispose` on the base `Location`, so
+  every place in the world conferred them. `crafting.md` § *Split by what
+  performs the act*: `SweepingTool` (broom, flue brush — `sweep`/`muck`),
+  `Litter` (rushes — `strew`), `Heap` (sweepings, muck — `dispose`), each
+  `environment` to whoever holds it. `dispose` is the HEAP's, not the
+  midden's: holding a heap you can always try, and the refusal names what
+  lifts it (three rooms have a midden). Raking a grate wants a broom or a
+  brush in hand now.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

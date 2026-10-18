@@ -37,7 +37,6 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
-import type { CommandContributions } from '../../api/command';
 
 /**
  * ⭐ The Location's own say in what its floor is, without authoring a floor
@@ -174,20 +173,6 @@ const LocationBase = AddressableMixin(
 );
 
 export default class Location extends LocationBase {
-  /**
-   * ⭐ Keeping a place (cleanliness D15): wherever you stand you may
-   * sweep its floor, strew it and carry the sweepings out. A place grants
-   * these INWARD to whoever is in it (the shore's `inventory` bucket); the
-   * floor's own kind decides what each does.
-   */
-  static commandContributions: CommandContributions = {
-    inventory: [
-      'platform/cmd/inventory/sweep.yaml',
-      'platform/cmd/inventory/strew.yaml',
-      'platform/cmd/inventory/dispose.yaml',
-    ],
-  };
-
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
 // `world/practicum/warded-cell.yaml:18` authors it and the field's own
 // docstring tells authors to ("Authored in room seeds"), so the Studio

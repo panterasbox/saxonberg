@@ -1,5 +1,5 @@
 # A bundle of rushes — for strewing an earth floor (cleanliness D15).
-class: /platform/thing/Good
+class: /platform/thing/Litter
 data:
   shortDescription: bundle of rushes
   keywords: [rushes, bundle, "bundle of rushes", strewing]

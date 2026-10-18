@@ -1,6 +1,6 @@
 # A broom — birch twigs bound to a haft (cleanliness D15). Sweeps a floor
 # three times as fast as hands.
-class: /platform/thing/Tool
+class: /platform/thing/SweepingTool
 data:
   shortDescription: birch broom
   keywords: [broom, besom, "birch broom"]
