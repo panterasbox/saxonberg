@@ -143,7 +143,10 @@ export default class SapStandard extends SapStandardBase {
       case 'cold':
         return 'It is too cold; nothing is moving in the wood.';
       case 'warm':
-        return 'It has gone too warm. The run is finished.';
+        // ⚠ Not "the run is finished": the window is a BAND, and a stove
+        // house that cools reopens it — the drive's step 10 is exactly
+        // that lesson. Found driving the rubber build in a browser.
+        return 'It has gone too warm; nothing will run until it cools.';
       default:
         return super.tapRefusal(key, reason);
     }
@@ -156,7 +159,9 @@ export default class SapStandard extends SapStandardBase {
   }
 
   public override tapBeginPhrase(_key: string): string {
-    return 'You unhook the pail and let it run.';
+    // The vessel is whatever the tapper brought (a pail, a latex cup),
+    // so the line names none.
+    return 'You hold it under the cut and let it run.';
   }
 
   /**
