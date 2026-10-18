@@ -44,6 +44,15 @@
 > **Size:** a build, and probably two — the **estuary** is reachable on
 > its own and the **areal** half is most of the cost.
 
+> ⚠ **Superseded for rivers, 2026-10-18.** The river half of this slate —
+> linear passages, the Deliverance gap, river pilotage, craft occupying a
+> river passage — was redesigned with the founder in
+> [river-slate](./river-slate.md) (the river as a line, the `RiverWarren`,
+> ships positioned in the river's frame, one Ship and one set of Helm
+> verbs). The *"a place that can be underwater"* answer in § 4 is now
+> [underwater-slate](./underwater-slate.md) § 2 (water as a state; `Pool`
+> retires). The sea half stands.
+
 *Opened 2026-10-08, out of "we definitely need one or more seas." The
 conversation started at whaling and never got there, deliberately: ⭐ the
 goal is that **every body of water gives the player a consistent,
