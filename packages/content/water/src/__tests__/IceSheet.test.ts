@@ -23,6 +23,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Actor } from '@saxonberg/server/mud/lib/creature/Actor';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -209,6 +210,26 @@ describe('the acts — scrape, mark, cut', () => {
     expect(kg).toBeCloseTo(Math.round(ice.thicknessM * 0.25 * 917 * 10) / 10, 6);
     expect((block as unknown as { iceQuality: string }).iceQuality).toBe(ice.quality);
     expect(sheet.getLog().some((p) => p.kind === 'cut' && p.areaM2 > 0)).toBe(true);
+  });
+
+  it('⭐ the finished cut SAYS so — the block and its heft, to the cutter (the live walk)', async () => {
+    const { pool, sheet } = await sheetIn();
+    const w = walker(pool);
+    sheet.occupy(w as never, 'ground:1');
+    sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null);
+    const said: string[] = [];
+    const chain = {
+      topic: () => chain,
+      toSelf: (m: unknown) => (said.push(String(m)), chain),
+      toPeers: () => chain,
+      send: () => undefined,
+    };
+    vi.spyOn(MessageApi, 'scene').mockReturnValue(chain as never);
+    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', options: {} });
+    if (!plan.ok) throw new Error('the plan refused');
+    plan.onComplete();
+    await vi.waitFor(() => expect(said.length).toBe(1));
+    expect(said[0]).toMatch(/saw comes through the last line/i);
   });
 
   it('⭐ a cutter who is nobody\'s hand cuts their OWN block — titled to them before it lands (the review)', async () => {

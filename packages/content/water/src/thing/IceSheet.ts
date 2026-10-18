@@ -42,6 +42,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -371,9 +372,41 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
         : Mml.compose`You set the ice saw into the grid line and begin to cut.`,
       beginPeers: Mml.compose`${Mml.actor(actor)} saws at the ice.`,
       onComplete: () => {
-        void (hole ? this.cutHole(actor) : this.cutBlock(actor, patch.id));
+        void this.finishCut(actor, hole, patch.id);
       },
     };
+  }
+
+  /**
+   * The cut's end, said: the plan owns its completion (tailoring's
+   * `finishCut` precedent) — a cut that lands a block in silence leaves its
+   * cutter waiting on a saw that has already stopped (the live walk).
+   */
+  private async finishCut(actor: Stuff, hole: boolean, patchId: string): Promise<void> {
+    if (hole) {
+      await this.cutHole(actor);
+      MessageApi.scene(actor)
+        .topic('act.deed')
+        .toSelf(Mml.compose`The saw breaks through, and black water wells up into the hole.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} saws a hole through the ice.`)
+        .send();
+      return;
+    }
+    const block = await this.cutBlock(actor, patchId);
+    if (block === null) {
+      MessageApi.scene(actor)
+        .topic('act.deed')
+        .toSelf(Mml.compose`The saw comes through, but there is no block to lift — the ice there will not give one.`)
+        .send();
+      return;
+    }
+    const kg = MixinApi.isTangible(block) ? block.getMass().rawValue() : 0;
+    const heft = kg > 0 ? ` — about ${Math.round(kg)} kilograms of it —` : '';
+    MessageApi.scene(actor)
+      .topic('act.deed')
+      .toSelf(Mml.compose`The saw comes through the last line, and you lever ${block.getPresentation()}${heft} up out of the water onto the ice.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} levers ${block.getPresentation()} up out of the water.`)
+      .send();
   }
 
   /** A block off a marked patch: thickness × grid², at the patch's grade. */
