@@ -15,7 +15,26 @@
 > streamer-only card that holds the camera region · the web as
 > content: the browser's own tab, and tab-away as a fact the client
 > reports · the broadcast contract: which client facts the overlay
-> feed carries
+> feed carries · ⭐ **card bodies** (2026-10-17): two base cards (subject,
+> set) with the re-run-touches and glance-on-expiry rules, the branch in
+> colour and icon, composition on every card, the place report and
+> cues, the Location, Zone, navigator and Warren bodies; the Agent card
+> by the agency ladder with the person marker everywhere, the `commands`
+> card, the Thing card's mixin-contributed sections, notable-or-quiet
+> with the composition strip as the menu, a repeatable `--mixin` lens on
+> `sense` (sections) and `query` (columns), the cut order; Ideas —
+> known, never perceived — through three doors (card links, an MQL
+> reference step, a `catalogue` command) behind one gate on the Idea,
+> and a unified catalogue interface; the Shadow card — unperceived by
+> default, its impression derived from the HOST mixins it overrides, the
+> veil badge on the host's composition chips, five tiers of who may know;
+> the mode sidebar — `chat · explore · watch · build · govern` (`play`
+> renamed, no study mode), a mode rail + a per-mode panel + a *you*
+> corner, chat mode as Discord over one filtered terminal, the room as a
+> channel; the `score` card — your own sheet by the measurement doctrine
+> (complete by B3, numbers for performance, never a gauge for a declared
+> standard, what changed first, self only), its glance tier the
+> you-corner chips that replace the top-bar widgets
 > **Size:** a build
 
 **Captured 2026-10-17**, from a conversation about getting broadcast
@@ -231,6 +250,693 @@ phone cost nothing on the client.
 The deck becomes a **streamer-only card** (visible to the `streamers`
 axis; size: corner or focal). Its chips send their commands — the dead
 scaffold goes. Its corner size is the **camera region** (below).
+
+---
+
+## ⭐⭐⭐ Card bodies — two shapes, and what each branch needs
+
+**Captured 2026-10-17**, in the live usability pass on the demo box
+(issues `origin::ux-pass-2026-10-17`, #48–#83). Read with #49 (terminal
+rules), #50 (card lifecycle), #51 (composition), #52 (the place report),
+#71 (query render), #74 (status lines), #78 (sense index), #79 (place
+surfaces).
+
+### Two base cards; everything else specializes
+
+card-surface.md already ships **one inspection card laid out by kind**,
+not one card per verb. This keeps that and names the second shape:
+
+- **The subject card — one thing.** Identity is the subject's id.
+  `look`, `sense`, `listen`, `smell`, `feel` and `taste` all open the
+  **same** card; the verb decides which **section** it opens on. The
+  header carries the **modality strip** (the sense index, #78): each
+  channel lit when it has authored content or a notable reading.
+- **The set card — one result set.** Identity is the normalized query
+  **plus its anchor**: `query peers` asked in Dave's Bar is *peers ·
+  Dave's Bar*, and stays about Dave's Bar after you leave. ⚠ This is
+  card-surface.md's costliest lesson (a relative query re-answers
+  against wherever you are now — the lounge card became a bar card),
+  applied to sets. Body: the grouped tree (#71) — header and count,
+  groups, identical items collapsed — expanding **in place**, unlike
+  the terminal. Members link to their subject cards; flags change the
+  header's lens, never the card type.
+
+The stock sheet is a set card; the wiki and help pages are subject
+cards about a document. The catalogue becomes *two shapes, many rows*.
+
+### Rules for both
+
+1. **Born only by a command** — the one birth path is unchanged.
+2. **One card per identity: re-running TOUCHES it** — brings it to the
+   bottom, focuses it, refreshes it — instead of stacking another.
+   ⚠ This reverses card-surface.md's *"the feed is a log"*: the
+   terminal is the log; cards are your working set of subjects. Two
+   identical weapons-rack cards (#50) are noise, not history.
+3. **× closes now; the pin keeps; everything else ages out** (#50).
+4. **An aged-out card shrinks to its glance chip** — a one-line title —
+   rather than staying a full-height husk that looks live. Closing the
+   chip removes it.
+5. **Live only where attention is** — focal, or the newest card when
+   nothing is focal; otherwise a snapshot with a time and a refresh.
+6. **Lazy, never collapsed-but-fetched.** A card holds only what has
+   been asked: the modality strip is the cheap index; each channel's
+   section is **empty until its verb runs**, and clicking a lit channel
+   *sends* that verb (clickables preview their command).
+7. **Composition on every card** (#51) — the mixin list, a one-line
+   chip at feed size and the full list at focal, each mixin a link to
+   its help topic. It is the most direct statement of what a thing can
+   do, and it is shown deliberately.
+
+### The branch is unmistakable
+
+Every card header, **and every link to a Stuff anywhere** — terminal,
+card, chip — carries its root branch in **colour AND icon** (never
+colour alone): **Agent** (a someone) · **Location** (a place) ·
+**Thing** (a something) · **Idea** (a concept) · **Shadow**, which is a
+layer riding a host rather than a peer of the others, so it also gets a
+different frame (dashed, a veil) and shows twice — as a marker on its
+host's card, and as its own card when inspected. MML already tags
+identity on links; this is a rendering rule, not new data. Each branch
+has its own body needs, below.
+
+### The place report — `look`, terminal and card alike
+
+`look` is the **place report**, not *the visual prose* (#52), and it is
+the arrival verb. Sections: the **heading** (the short — always), then
+**prose**, **exits**, **people**, **furnishings** (fixed), **things**
+(loose, summarized per #71), **cues**. Every section but the heading has
+an on/off option (`--prose/--no-prose`, `--exits`, `--cues`, …); the
+arrival look reads its defaults from settings (prose typically *first
+visit only*, because prose is the first thing a player turns off and
+the stateful sections are what they want every time). **`--horizon`**
+is a further section, off by default — the pull rule: nothing on the
+horizon is ever announced.
+
+**Cues** (#78) — every channel can hint at the others: a cue from A to B
+appears when something is notable in B and its **source is perceivable
+through A** (a visible rose with authored smell → `look` cues *smell ▸
+the rose*; hammering to the east → `listen` cues *look ▸ east*; a smell
+from a room you cannot see produces no cue from `look`; an ambient level
+with no source cues nothing). One `--cues` option on all five channel
+verbs; on for the arrival look. `sense` is the full index — every
+channel, every reason.
+
+### The Location card
+
+Its sections are **the place report's sections**, so terminal and card
+share one vocabulary; the card adds only what a terminal cannot (an
+image, live state, in-place expansion).
+
+- **Header** — the Location chip, the heading in heading case (#69),
+  the **zone chain** as an address trail (each step links its Zone
+  card), one small **coordinates** line linking the Zone card, a
+  **"part of ▸ <warren>"** link when the room belongs to a warren, and
+  the modality strip.
+- **Body** — illustration (collapsible) · prose (two lines in the feed,
+  full at focal; detail nouns linked) · **exits** as chips (direction,
+  the destination's name **only if you know it** — walked or seen, per
+  your map — and the door's state; click goes, secondaries `look north`
+  and the look-through form, #70) · **people** (status + chips, #74) ·
+  **furnishings** by surface (#79) · **things** (the #71 summary,
+  expanding in place) · **conditions** (light, temperature, weather if
+  under the sky, the floor — the derived half of the index, in word
+  bands) · **place facts** (who holds it — *Dave's Bar · Dave's house ·
+  open*; your relationship — home, lease, work; first visit vs known) ·
+  composition.
+- **Lifecycle** — identity is the location's id; arriving touches its
+  card; live while you are in it; leaving freezes it as *"what you last
+  saw"* and shrinks it to a glance chip, so recent rooms read as a trail
+  of one-line chips.
+- **Sizes** — glance *heading · head count · exit directions*; feed
+  *header, two prose lines, exits, people, things summary*; focal
+  *everything*.
+
+### The navigator (about YOU) and the Zone card (about a zone)
+
+*Does the Zone card follow movement or inspection?* splits into two
+cards, both properly anchored:
+
+- **The navigator — a card about you, your position.** Its subject is
+  the viewer, so following you IS its anchoring (no relative query).
+  It updates on every move; crossing into another zone changes what it
+  shows.
+- **The Zone card — a card about one zone**, opened by inspecting it. It
+  does not follow you.
+
+⛔ **The firewall shapes both.** A player's map is a CLAIM, not a view
+(location-graph.md): one document per player per locality, written only
+by what the player did. The world's index never reaches a client. So a
+zone is drawn **as you know it** — no total room counts (*12 places on
+your map*, never *12 of 40*), no rooms you have not learned, every claim
+with its channel and its date.
+
+⚠ **Zones have no geography relative to each other.** Parent and child
+is taxonomy, not space; a card must never imply a child sits somewhere
+inside its parent's map. Each map is one zone's grid or chart.
+
+| | navigator (about you) | Zone card (about the zone) |
+|---|---|---|
+| map | a window **centred on you** | the whole **known** zone |
+| position | known, in a grid; on an expanse, **your plot** — a reckoning with an uncertainty ring that grows as you sail and collapses on a fix, labelled as a reckoning; never the true position (*nothing fixes you by being seen*, expanse.md) | — |
+| horizon | your last `query horizon`, with its time — a button, never pushed | — |
+| compass, a `route` in progress | ✓ | — |
+| zone chain, coordinates line | ✓ | ✓ |
+| region facts | — | ✓ |
+| places of note | — | ✓ |
+| parent / children (a TREE, not a map) and **ways out** (the known cross-zone exits) | — | ✓ |
+
+**The Zone card's sections:**
+
+- **Header** — the Idea chip with a zone mark; the name; the kind in
+  words (*a gridded district*, *an open expanse*, *a folder*); the
+  chain.
+- **The map** — a grid of known rooms at their coordinates with known
+  exits, floors as tabs (Cartesian); or the chart — foci with a radius
+  on lat/lon, and bands (a current, a fog) in the chart's or pilot's own
+  words (spherical). The **channel shows in the drawing**: walked solid,
+  seen lighter, told/charted marked with who said so, **stale faded with
+  its date** (*rot is the feature*). A disagreement shows both claims
+  with their dates. Clicking a room you are not in opens **what you
+  know** — the claim — never the live room; clicking your own room
+  opens its Location card.
+- **Coordinates** — the system, the zone's extent, your position if you
+  are inside a grid; an expanse's origin.
+- **Region facts** (spatial zones only) — elevation, latitude, climate
+  now, the **address and locality**, the **jurisdiction** (whose writ
+  runs here, from civics), shown as inherited so a room's card can link
+  here to explain *why it is cold*.
+- **Places of note** — the houses, structures and institutions attached
+  to rooms **on your map**.
+- **Parent and children** as a tree; **ways out** as a list.
+- Composition.
+- **Sizes** — glance *University Avenue · 12 places known*; feed header,
+  a small map, one region line; focal everything; full the map fills the
+  space with toggles for floors, channels and staleness. Static by
+  default (a map changes only when you learn something); live only while
+  you are inside.
+
+**Non-spatial zones** (a folder, the wiki, a clade, `/home`) have no
+map: the card shows the tree of what is under them — a clade's card is
+the taxonomy, a folder's a directory.
+
+### The Warren card
+
+A warren is an Idea that owns an elastic group of instance rooms (the
+lounge and its satellites, dorm rooms, holdings), so it gets a card of
+its own, linked from its rooms' headers: what kind of warren it is and
+what it is for; its instances — host and satellites, occupancy each,
+**which one you are in**, **which one is yours**; and whether it is
+budding or merging now — which answers the otherwise baffling *"why are
+there other lounges?"*
+
+### `look` is not a scorecard
+
+Every card in this section is what **`look`** shows — what you see when
+you inspect something in the room with you. It is never a character
+sheet. A **`score`** command (your own sheet: body stocks, competences,
+standing, traits — the mirror in full) is a real thing to want and a
+**different card**. `look me` is how you appear to others, not your
+sheet.
+
+Two rules carry over from the Location and Zone cards:
+
+- **As you know it.** Recognition, identification and regard are
+  per-viewer beliefs. An agent you have not been introduced to is *"a
+  steady, watchful dwarf tending bar"*; a disguise shows the disguise;
+  an unidentified thing goes by its appearance (*a vial of murky
+  liquid*). ⚠ **The card keys on your belief's referent, never the true
+  identity** — keyed on the truth, two disguised appearances of one
+  person would touch the same card, which leaks that they are one.
+- **In words, never numbers.** Condition, wear, freshness and fill are
+  bands of words, deepening with competence (*"competence resolves
+  detail, never access"*). Numbers are the mirror's (`score`) and the
+  instruments' (`analyze`, `measure`).
+
+### The Agent card — organized by the agency ladder
+
+The ladder is the model's: **Creature** (a body — species, vitals, sex;
+no persona) → **Character** (agency — persona, pronouns, engagement) →
+**Extra** (a role: *the storekeeper*, *a hewer*) → **Cast** (a person:
+a proper name, a history) → **protagonist** (an Avatar — a player). Each
+rung adds what you can perceive.
+
+| section | creature | extra | cast | protagonist |
+|---|---|---|---|---|
+| **header** — Agent chip · what you call them · the rung | *a mule* | *the storekeeper* | *Mara* once introduced, a description until then | the name you know · **the person marker** |
+| **description** | species, authored look | the role's look | authored, richer | **player-authored** |
+| **presence** — what they are doing; posture chip (#74) | grazing, lying down | the status line, engaged chip | status, chips | the player's status, chips · **away** (linkdead reads *"staring into space"*) · **on air** (broadcast-ready) |
+| **what you can see on them** — the outermost layer per body part, what is in their hands, never pockets | a collar, a pack saddle | an apron, a ledger | ✓ | ✓ |
+| **condition as you perceive it** — words, deeper with medical competence; `assess` is the deliberate read | lame, frothing | tired, bleeding | ✓ | ✓ |
+| composition | ✓ | ✓ | ✓ | ✓ |
+
+- ⭐⭐ **The person marker goes EVERYWHERE** — the card header and every
+  link to a player anywhere (chat, room lists, cards), like the branch
+  icon. Whether an agent is a real person is the single most important
+  fact about it; the Compact is players-only by arithmetic.
+- **Not on the card, because not perceivable:** regard, standing, who
+  they answer to, your contacts metadata, a job title as *data*. A job
+  you can SEE — the apron, working behind the bar — is already in what
+  they wear and do.
+- ⭐ **The status line already exists** (`StatusMixin`: the `status` verb
+  for players, `setStatus` for NPC brains, an authored default). What is
+  missing is brains calling it when their activity changes, plus the
+  engaged and posture chips (#74).
+- **Lifecycle** — live while you share a room (status, posture and
+  condition update); parting freezes it as *"last seen at Dave's Bar,
+  12:40"*.
+
+### The `commands` card — what you can do, and where each command comes from
+
+Commands are **not** on the subject cards; they are a card of their own.
+
+- **`commands <thing>`** — the commands the thing affords you; **bare
+  `commands`** — everything available here (the room, what you hold,
+  your own repertoire). Named for the whole thing, the way *"the `ls`
+  command"* names the binary rather than one execution — the game's own
+  vocabulary already calls them command views and command controllers.
+  (`command`/`commands` is claimed by nothing today.)
+- **Grouped by source** — the subject itself (the storekeeper affords
+  `buy`), what they wear or hold (a lantern affords `light`), the room
+  (`sit`, because of the stools), you (`cast`). The resolver already
+  computes the source; the card's action row only used it as a filter.
+- **Commands you cannot use yet still appear, with the reason** — *the
+  refusal is the progression UI*: if something can lift a refusal, the
+  command must exist so you can be told.
+- Each command previews itself, like every clickable. Identity is the
+  subject plus this lens, touched on re-run. Every subject card's header
+  carries a **"commands ▸"** link.
+
+### The Thing card — sections from the composition
+
+Things vary far more than agents (a mug, a rack of sixty glasses, a
+still, a pair of trousers, a corpse, a screen, a cart built from parts).
+Rather than a card variant per kind, **each mixin that has something
+perceivable contributes a section**, and the card orders them — *one card
+laid out by kind*, made general. A vessel adds what is in it and how
+full; a garment, whether it fits you; a provision, how fresh; a display,
+what it is showing; an assembly, its parts and where each is worn; a
+light source, lit or dark.
+
+1. **Header** — the Thing chip; what you call it (by appearance until
+   identified); a **fixed** marker for furnishings; a **quantity** for a
+   stack or bulk (*12 coupes*, *two pints of ale*); the modality strip;
+   **commands ▸**.
+2. **Description and details**, detail nouns linked.
+3. **Make** — material in words; **marks you can see** (a maker's mark,
+   a brand, a hallmark); quality in words only where it shows.
+4. **State in words** — wear and condition (*chipped*, *a cracked
+   spoke*), freshness (*going off*), wet, dirty or clean (cleanliness's
+   tiers), open, closed or locked, lit or dark. Temperature only through
+   `feel`.
+5. **On it / in it / hanging from it** — in the placement words, collapsed
+   like a set (*in it: 60 glasses ▸* → `query rack:i`).
+6. **Whose** — only what you can know: **yours** (you always know your
+   own) or a visible mark. Never another owner's name from the ledger.
+7. **The mixin-contributed sections.**
+8. **Composition.**
+
+Live while in reach (a filling glass, a cooling ingot); out of reach,
+frozen as last seen.
+
+### Notable or quiet — and the composition strip is the menu
+
+Mixin-contributed sections can be a flood or nothing at all. The rule for
+every branch is the one already agreed for the senses: **show what is
+notable; everything else is one deliberate step away.**
+
+- **Each section knows when it is notable** — when its state is not the
+  default: a lock when *locked*, temperature when hot or cold, freshness
+  when going off, a light when lit, wear when damaged. The same
+  *notable* test as the sense index, applied to mixins.
+- **Notable sections show by default; quiet ones do not render** — they
+  survive as their **chip in the composition strip**.
+- ⭐⭐ **The composition strip is the table of contents.** Each mixin chip
+  is clickable and sends `sense <subject> --mixin <name>`. The full depth
+  is always one click away, labelled with the architecture itself — the
+  card reinforces the mixin model in the player's mind without dumping
+  it at them.
+- **One method per mixin feeds both features** — its perceivable face,
+  in words, plus whether that face is notable.
+
+### `--mixin` — a repeatable lens on `sense` and `query`
+
+⭐ **It belongs to `sense`, not `look`** (revised 2026-10-17): the test
+that decides which mixin sections show **is the sense index's
+*notable* rule** — *which channels are worth attention* and *which
+facets are* were always one feature. `look` stays the quick visual place
+report and the arrival verb, its flags the report's own sections;
+`sense` is **everything perceivable, organized** — by modality by
+default, by mixin with `--mixin`. Typing it explicitly is right: it is
+the deliberate deep look, not the glance on arrival. It is all the same
+card; the verb only decides which section opens and what fills it.
+
+- **On `sense`, it chooses the sections**: `sense chest --mixin lockable
+  --mixin container` shows exactly those two and nothing else — any
+  mixin takes part by its own name, without anyone inventing a flag for
+  it. `sense chest --all` is every perceivable face. `sense` was already
+  the verb bounded by what your senses can perceive, so the perceivable
+  limit below is its natural edge rather than a rule bolted onto `look`.
+- ⭐ **On `query`, it chooses the columns** — a set plus mixin lenses is
+  a **table**, one row per thing, one column per mixin:
+  `query me:i --mixin freshness` (everything you carry, with how fresh),
+  `query here:[mixin.Container] --mixin container --mixin lockable`
+  (every container here, what is in it, whether it is locked),
+  `query back-bar:i --mixin vessel` (every glass and what is in it). MQL
+  already FILTERS on mixins (`[mixin.Lockable]`); `--mixin` adds
+  SHOWING them. On the set card it is a sortable table; in the terminal,
+  columns.
+- ⛔ **It is a lens over what you could perceive anyway.** A mixin's
+  section is its **perceivable face** only. *Measured* values are the
+  instruments' (`analyze`, `measure`, competence-banded); what **no
+  sense reports** (the spoilage doc's silent contamination) is never
+  shown by any lens — or `--mixin` becomes a sense the world does not
+  have; the **model itself** (fields, schema) is the studio's, for
+  authors.
+- The name stays **`--mixin`** rather than something softer like
+  `--facet` — it teaches the architecture by name, which is the point.
+
+The flag vocabulary is one: a section has the same name in the terminal
+and on the card — `look`'s report sections (`--prose`, `--exits`,
+`--people`, `--furnishings`, `--things`, `--cues`, `--horizon`,
+`--all`), and `sense`'s facets (`--mixin <name>`, `--all`).
+
+### Sizes — the cut order
+
+Every card has a **header that never scrolls** (chip, name, the person
+marker or quantity, the modality strip). Below it:
+
+- **Feed size never scrolls inside the card** — scroll areas nested in
+  a scrolling feed are miserable — so it **cuts**, from the bottom of
+  the lists below upward.
+- **Focal and full scroll the body** under the fixed header.
+- ⭐ **A notable section always survives the cut** — a bleeding wound, a
+  locked door, a burning lamp jumps the queue.
+
+| branch | kept at feed size | cut first → last |
+|---|---|---|
+| **Location** | heading · exits · people · things summary | illustration → place facts → furnishings → conditions → prose to 2 lines → composition to a count |
+| **Agent** | name · rung · person marker · presence | portrait → what they wear and hold → description to 1 line → condition (unless notable) → composition to a count |
+| **Thing** | name · quantity · fixed marker · the most notable state words · contents summary | make → mixin sections to the 2 most notable → description to 1 line → composition to a count |
+
+**Glance** is the header alone, plus one state word for a thing or the
+status for an agent. **Full** is `--all`: every section, scrollable.
+
+### Ideas — known, never perceived
+
+**An Idea is not one card.** Most Ideas need no card at all, and the
+ones that do each want their own body. And an Idea is not perceived, it
+is **known** — so neither `look` (sight) nor `sense` (the senses) targets
+one. Bending either to open a biome would break the one boundary
+`--mixin` keeps: *only what you could perceive*. Zones and warrens prove
+the rule: they are reached through the navigator and the room's header,
+never by looking at them.
+
+**Catalogue vs registry.** A **catalogue** is a self-warming index of
+**authored reference Ideas** — biomes, materials, readings, placements,
+disciplines, recipes, topics, spells, brands, governments (22 today). A
+**registry** owns **live runtime state** — access, cards, offices, bores.
+Registries are machinery and need no card; neither do logic singletons,
+nor any Idea nothing perceivable points at. Authors reach those through
+the studio, by path or id.
+
+#### Three doors
+
+1. **Links on cards** — any Idea a perceivable thing references,
+   catalogued or not: a room's *biome ▸*, a thing's *oak ▸* (material),
+   an agent's species, a shop's business and brand, a town's government,
+   a contract you are party to, your party, a channel. Most players will
+   only ever arrive at an Idea this way.
+2. **The reference step** — an MQL step that follows a declared
+   reference: strawman `here:@biome`, `me:i:axe:@material`. A walk along
+   a field, not a search, so it does not reintroduce the `world` seed the
+   grammar refuses; it also has uses beyond Ideas. Kept safe three ways:
+   - **only fields declared as references in `fieldMeta`** (ref-shapes.md
+     already makes every reference declare its shape) — never an
+     arbitrary property; that is the security boundary;
+   - **one hop at a time, loaded on use** — each step is one load, never
+     a fan-out;
+   - **the far end passes the Idea's own gate** (below).
+3. **`catalogue <kind> [filter]`** — a new command for browsing, outside
+   MQL: `catalogue materials [tag.metal]`. The filter **reuses MQL's
+   bracket expressions** applied to entries — one filter language,
+   without making catalogues MQL seeds. The result is a **set card**, so
+   grouping, `--mixin` columns and the cut order work with nothing
+   extra; a single entry opens its subject card. (`catalogue` is free;
+   only `recall` is taken nearby.)
+
+#### ⭐⭐ One gate, three doors
+
+The known/unknown gate **lives on the Idea**, not in the catalogue —
+MQL accepts Stuff ids as seeds, and links and the reference step bypass
+the catalogue entirely, so a catalogue-only gate leaks. Each Idea kind
+answers *may this viewer know me*: a material or recipe asks the
+**discovery** realm (the epoch on-ramp: you list what you have met or
+learned, never everything in the game); a business is public; a contract
+answers only to its parties; a party only to its members. The catalogue
+applies the gate in bulk when browsing; the reference step and links
+apply it to the one Idea at the far end. No door can leak.
+
+#### The unified catalogue interface — new work
+
+There is **no common interface today**: each of the 22 catalogues is a
+bare `Idea` with its own surface (`warm()` on some, `allWarmed()` on
+others; `DisciplineCatalogue` hands back plain descriptors rather than
+the Idea itself). The command needs one shape every catalogue
+implements: its **kind**, **`entries(viewer, filter)`** and
+**`get(key, viewer)`** — returning the **Idea Stuff instances, never
+descriptors** (so a card can show them and `--mixin` can read them), and
+taking the viewer on **every** read, so the gate is applied inside and no
+viewer-less public read exists.
+
+#### The Idea card
+
+No common body, but a common frame — and the mixin rule applies:
+
+- **Header** — the Idea chip and **what kind** (a biome, a material, a
+  discipline, a species).
+- **What it is** — its description.
+- **Its perceivable facts** via the mixin-face rule — a material's tags
+  (*metal, brittle*), a biome's climate, a discipline's band names —
+  notable-or-quiet and the composition strip working as everywhere else.
+- **Where you have met it** — back-links filtered by your own knowledge:
+  the rooms in this biome you know, the things made of oak you have
+  seen, the people of this species you have met. That is what makes an
+  Idea card worth opening.
+- **Composition.**
+
+### The Shadow card — derived from what it touches
+
+A shadow is **per-instance behaviour riding a host**: it intercepts named
+methods on one specific Stuff, shadows stack (last installed runs
+first), and detaching restores the host byte for byte (call-security.md
+§ Shadow Subsystem). Buffs and debuffs, enchantments (a shadow over
+`augmentInflict`), curses, a blindfold or night vision on a viewer,
+tracers and audit hooks are all shadows. ⭐ Few exist yet — everything
+built so far is platform-consistent, not special cases — but they are
+**the mod surface**: with permission, and provided it does not lag the
+game, anyone can override anything. That content will come sooner than
+it looks.
+
+#### Unperceived by default
+
+A shadow's whole job is to override behaviour **seamlessly**, so by
+default **nobody perceives it**. Anything visible is a deliberate
+declaration, and even then it is an **impression**, never the mechanism.
+
+#### The impression is derived from the host's mixins
+
+A shadow intercepts **methods** on its host; each method belongs to a
+**mixin on the host**. So *what is this shadow up to* is answered as
+**which of the host's facets it alters**, worded by those mixins:
+vision methods on a viewer → *something is affecting their sight*; the
+lock's open check → *the lock is not behaving normally*;
+`augmentInflict` → *its strikes are altered*. It is the mixin
+organization again — not the mixins the shadow composes, but the host's
+mixins it overrides.
+
+⭐⭐ **The veil badge on the host's composition chips is the primary
+signal.** Where you are allowed to know, the `Lockable` chip on the
+chest wears a veil — *this facet is overridden* — and clicking it opens
+the shadow's card. The mixin strip doubles as a map of **where a thing
+has been modded**. A **layers** row (one veil-framed chip per shadow you
+perceive, outermost first — shadows stack, and the row shows it) is the
+secondary view.
+
+#### Shadow metadata
+
+Derivation alone cannot tell a blessing from a curse, so a shadow
+declares a little about itself: **tags** (*buff, curse, enchantment,
+cosmetic, instrumentation* — a tracer or an audit hook); an **optional
+perceivable description** (*the blade burns what it strikes*); **who may
+perceive it** (below); and **how long it lasts**. Tags give the
+impression a tone and give MQL something to filter on
+(`me:[shadow.curse]`).
+
+#### Who may know — in tiers
+
+1. **Nobody** — the default; seamless.
+2. **The host** — you know you are blindfolded; you may feel the
+   sluggishness.
+3. **Observers** — the glowing blade.
+4. **Detectable** — by a reading (an instrument, magic-sensing), detail
+   by competence, per the instrumentation ladder.
+5. **Its author and the title holders** — the full picture, in the
+   studio: every method intercepted, every host mixin touched, **who
+   installed it** (the provenance ledger already records authorship — a
+   mod with no attributable author should not exist) and **what it
+   costs** (its dispatch overhead — the mod surface's one hard rule is
+   that it must not lag the game).
+
+#### The player's Shadow card
+
+- **Header** — the Shadow chip in its dashed, veil-like frame; the name
+  **as you know it** (*an enchantment* until identified, then
+  *Flamebrand* — the identification realm, keyed on your belief like an
+  unidentified potion).
+- **On** — a link back to the host (*on your sword*).
+- **The facets it alters** — derived, in the host mixins' words.
+- **Tags and description** where declared; **duration** where
+  perceptible; **who put it there** only if you know.
+- **Composition** — a shadow is Stuff and has mixins too.
+- ⛔ **Intercepted method names appear only in the author tier.** They are
+  mechanism; the facet impression is what is shareable.
+- **Lifecycle** — live while the host is in reach; when the shadow
+  detaches, the card closes **with the reason said** (*the enchantment
+  faded*) — the card surface's existing `gone` reason.
+- **Sizes** — glance *an enchantment · on your sword*; feed header,
+  host, the facets it alters; focal everything you may know.
+
+### The mode sidebar — chat mode is Discord
+
+**Decided 2026-10-17.** The modes are **`chat · explore · watch · build
+· govern`** — `play` is renamed **`explore`** (it was always vague; the
+navigation content makes it concrete), and there is **no study mode**.
+A mode is still **a view, never a gate** (cockpit.md — a test enforces
+it): it decides which arrangements ship, which you land in, and which
+card kinds it summons. Today the modes hide in a Views menu; they move
+to a sidebar.
+
+⭐⭐ **We compete directly with Discord, so chat mode IS Discord** — stick
+with what works.
+
+#### Two columns
+
+```
+| ▣ rail | mode panel    | terminal (~100 ch) | card rail |
+|  chat  | (per mode,    |                    |           |
+| explore|  collapsible) |                    |           |
+|  watch |               |                    |           |
+|  build |               |                    |           |
+| govern |               |                    |           |
+|  ····  |               |                    |           |
+|  you   |               |                    |           |
+```
+
+1. **The mode rail** (icons, ~56 px) — one icon per mode with a
+   **badge** (unread and mentions for chat, new map claims for explore,
+   live streams for watch). A click sends `cockpit mode <name>`: still
+   the command bus, still no client-only state.
+2. **The mode panel** (~240 px, collapsible) — **a list that
+   navigates**, Discord's channel column. It is **chrome, not a card**
+   (cockpit.md's rule: a panel has no subject; it lists subjects);
+   choosing an entry opens that subject's card.
+3. **The bottom of the rail is *you*** — your name and status
+   (authorable), `score`, switching character, settings. Discord's user
+   corner; it absorbs most of the top bar (#77 — identity, connection,
+   settings).
+
+#### Chat mode, mapped onto Discord
+
+| Discord | chat mode |
+|---|---|
+| server list (far left) | the **mode rail**, chat one icon of it |
+| channel list | the **chat panel** — the **room you are in** (local speech), channels, tells/DMs, relayed stream chats, each with **unread** and **mention** badges |
+| message pane | **the terminal, filtered to the selected channel** |
+| member list (right) | **the card rail** — who is in that channel or room, as agent cards at glance size, with the person marker |
+| user corner (bottom left) | **you** |
+| threads | forum threads, opening as cards (the decomposed forum) |
+
+- ⭐ **One terminal, never a second stream.** Every channel is the same
+  frame store filtered, so nothing is said twice and `recall` finds
+  everything; frames stay in arrival order (#49).
+- ⭐ **The room is a channel.** Local speech is just another
+  conversation in the panel (*Dave's Bar*), and moving changes which
+  room entry is live. The Chat tab (#75) and chat mode turn out to be
+  the same thing.
+
+#### Per mode
+
+| mode | panel lists | stage |
+|---|---|---|
+| **chat** | the room, channels, tells/DMs, relayed stream chats — with unread/mentions | the terminal filtered to the selection, full height; the member rail |
+| **explore** | **the navigator** — current zone, minimap, compass, known places, a route in progress | the terminal + the room's cards |
+| **watch** | live streams, what you are tuned to, screens in reach | the video card at focal |
+| **build** | the CMS file tree, git, diagnostics | file cards at full size (the decomposed CMS) |
+| **govern** | offices you hold, open motions, the Compact | unbuilt — still falls back, visibly |
+
+#### Rules
+
+- **The terminal never goes away** — it is the place of record: full in
+  explore, filtered in chat, a strip under focal cards in build.
+- **Maximizing works the same in every mode** (focal takes the
+  terminal's column; full takes terminal and card rail); **the panel
+  collapses first** when space runs short.
+- **Mobile** — the rail becomes a bottom tab bar, the panel a drawer;
+  the regions are unchanged.
+- The `play` → `explore` rename is code (the mode vocabulary in
+  `@saxonberg/types`, the client's mode registry, the saved-arrangement
+  mapping) — tracked as #84.
+
+### The `score` card — your own sheet, by the measurement doctrine
+
+`look` is never a sheet; **`score`** is — your own, and nobody else's.
+[measurement.md](../../measurement.md) already decides almost everything
+it may show:
+
+1. **"Any measurement the platform makes of you is one you can read"**
+   (B3). If the engine counts it, `score` shows it — hiding a
+   measurement from its subject is Mara's shape. So `score` is
+   **complete by principle**, not curated.
+2. **Performance is readable, numerically, routinely** (Part 6 rule 4)
+   — competence, hours, quantities, money, the body's stocks. *"The
+   scale in the bathroom."*
+3. ⛔ **A declared standard is never a gauge** (rule 3) — disposition,
+   traits, faith: bands and **your recent acts** in words, never a
+   position, no meter, no streak. *"You'd not have done that a year
+   ago."*
+4. **Evidence, not praise** (Part 5) — show **what changed**, never a
+   judgment of who you are.
+
+| section | contents | form |
+|---|---|---|
+| **You** | name, rung, species, home, household | facts |
+| **Body** | condition and wounds; the five slow stocks (lean · protein · wind · vitamin C · alcohol tolerance, exertion.md); burden against capacity; hunger, thirst, warmth | **numbers** with words — it is the scale |
+| **Competence** | each discipline — band, hours, recent change — from your transcript | **numbers** |
+| **Standing** | the three chambers (*make · fund · play*, the front door's own words), renown by scope, participation | **numbers** — measurements of you |
+| **Character** | traits and dispositions | ⛔ **bands and narrated recent acts only — never a position** |
+| **Holdings** | money and accounts, debts (the Arrival Note), property, chattel, positions and wages | numbers |
+| **Record** | chronicle deeds, contracts, what is coming on your calendar | lists |
+
+- **Every section leads with what changed since you last looked** — the
+  evidence-not-praise rule made routine.
+- **The card** — subject: you; opens at **focal or full** (a sheet wants
+  room); **sections are lazy** (collapsed headers that fetch only when
+  opened); the same flag vocabulary (`score --body`, `score
+  --competence`, `score --all`).
+- ⛔ **Self only, always** — nobody reads another person's score, staff
+  included. The doctrine is about measurements *of you*, for you.
+- ⭐⭐ **Its glance tier is the *you* corner.** The top-bar widgets
+  (*PLAY dormant · RENOWN — · SKILL — · BODY fresh*, #77) are score
+  fragments nobody can decode. They become **chips in the you-corner**,
+  each a link into its section of `score` — and **which chips ride there
+  is your choice**, because the doctrine's middle layer is that *the
+  subject decides what is worth watching*. That closes #77 rather than
+  restyling the jargon.
+
+### Still to detail
+
+The set card's lenses per flag beyond `--mixin`; per-kind Idea bodies as
+they are needed.
 
 ---
 
