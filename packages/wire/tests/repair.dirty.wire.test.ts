@@ -82,10 +82,6 @@ const T = {
   ingot: '/trade/smelting/thing/steel-ingot',
   handle: '/trade/carpentry/thing/handle',
   pommel: '/trade/smithing/thing/pommel',
-  // The smelter's iron: its own pigs (steel ingots stand live in the
-  // smithy by then, and `clone` refuses a row live where the founder
-  // holds no title).
-  pig: '/trade/smelting/thing/cast-iron-pig',
 };
 
 /** The verb was understood — not the parser's "I don't understand". */
@@ -373,9 +369,18 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
       await say(at, 'drop miners-pick');
       await evalOn(SMELTER, 'miners-pick', "(this.ensureParts(), this.wearLine('head', 0.5), this.getLine('haft').failed = 1, this.getCondition())");
       await say(at, 'get miners-pick');
-      await say(at, 'stoke charcoal into furnace');
-      await say(at, 'light furnace');
-      await cloneHere(SMELTER, T.pig, 2);
+      // ⭐ Nobody lights the furnace for him (the browser walk): the tinker
+      // on his stop sees to the smelter's fire from the smelter's charcoal
+      // (`stokes`, a presence-gated beat — somebody is here now), and
+      // mends from the iron offcuts in his own kit. The drive used to
+      // stoke and light it, and clone pigs in, and so proved neither.
+      let lit = '';
+      for (let i = 0; i < 12 && !/true/.test(lit); i++) {
+        await new Promise((r) => setTimeout(r, 10_000));
+        lit = await evalOn(SMELTER, 'furnace', 'this.isLit()').catch((e) => String(e));
+      }
+      console.log(`[repair drive] d6: the smelter furnace lit by the tinker → ${lit}`);
+      expect(lit, `the tinker lights the smelter's fire: ${lit}`).toMatch(/true/);
       // ⚠ Not a bare `look` here: it asked "which target?" between the
       // furnace and the smelter. The projection says who is present.
       const here = await examine(at, 'tinker');

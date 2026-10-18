@@ -2473,11 +2473,17 @@ player sees that the wire cannot:
   only — iron offcuts now, and in the tinker's kit); the quote said
   "iron" for a steel blade; "It is the work of Berta" after a mere mend;
   the cobbler's sign said "a game-hour" for a piece-rate seat.
-- ⚠ **Open — the forge is cold.** In a fresh world Berta's forge is
-  banked and nothing lights it: the quote refuses honestly (*"wants a
-  fire hotter than any here"*) until a PLAYER stokes and lights it. The
-  drive hid it — drive 3 lights the forge before drive 5, and drive 6
-  lights the smelter furnace before the tinker's stop. Owner's call.
+- ✅ **The forge was cold — owner chose a brain.** In a fresh world
+  Berta's forge was banked and nothing lit it: the quote refused
+  honestly (*"wants a fire hotter than any here"*) until a PLAYER stoked
+  and lit it. The drive hid it (drive 3 lit the forge before drive 5;
+  drive 6 lit the smelter furnace before the tinker's stop). Of three
+  options — a brain, the mend lighting the fire inside the ladder (the
+  engine doing the hand's job unseen), or leave the refusal — the owner
+  took the brain: `lib/behavior/stokes` (candidate, `work`, presence-
+  gated) on Berta and the tinker. Fuel is a `fuel`-tagged material, never
+  the house's goods. Drive 6 now WAITS for the tinker to light the
+  smelter's fire, and mends from his own offcuts — no pigs cloned.
 - Seen, not repair's: the teller's line renders doubled quotes
   (`""Opening an account?…""`); Berta "introduces themselves" to a player
   teleporting OUT; `get sword` takes every sword in reach; the

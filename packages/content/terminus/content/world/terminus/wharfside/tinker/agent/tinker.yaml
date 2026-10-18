@@ -39,3 +39,10 @@ data:
     - { discipline: tailoring, asserting: novice }
     - { discipline: leatherwork, asserting: novice }
     - { discipline: appraisal, asserting: competent }
+  # ⭐ At the stop with a fire he lights it (the smelter's furnace, from the
+  # smelter's charcoal) — "where there is a fire: iron mended there" was a
+  # promise nothing kept until a player lit it (the repair build's walk).
+  # Idle at every stop with no fire.
+  behaviors:
+    - brain: /lib/behavior/stokes
+      trigger: candidate
