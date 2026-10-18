@@ -1,0 +1,17 @@
+# Cocoons — a stack of them, of one heft. ⭐ Minted by a tray when its worms
+# have spun (three stacks: heavy, middling, light), never sold raw by a shop
+# that does not rear: a silk house sells them stifled.
+#
+# Unstifled, they open about ten days after the spin and the moths cut the
+# thread on their way out; stifled (held hot enough, long enough) they keep
+# for ever and reel.
+class: /trade/sericulture/thing/Cocoons
+data:
+  shortDescription: cocoons
+  keywords: [cocoons, cocoon]
+  register: indefinite
+  longDescription: |
+    Smooth oval cocoons, a little longer than a thumbnail, light as paper and faintly fluffy at the ends.
+  _materialPath: /trade/sericulture/idea/material/cocoon-shell
+  mass: 0.002
+  gradeBand: fair

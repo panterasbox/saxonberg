@@ -1,0 +1,26 @@
+# Cocoon — the shell a silkworm spins about itself: one unbroken filament,
+# a kilometre of it, gummed together with sericin.
+#
+# ⭐ It carries `fibre`, so a pierced cocoon (the thread cut by the moth's
+# way out) still SPINS — into spun silk, the lesser yarn — and `gummed`,
+# because the gum is still on it. ⚠ Not perishable: the pupa inside is
+# killed by stifling or leaves as a moth; neither is food going off on a
+# shelf.
+class: /platform/idea/material/Material
+data:
+  name: cocoon
+  keywords: [cocoon, cocoons]
+  appearance: a smooth, papery cocoon
+  density: 1300
+  thermalConductivity: 0.05
+  specificHeat: 1400
+  hardness: 2
+  toughness: 3
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "protein", "sericin", "gummed", "organic", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
+    tissueType: cocoon

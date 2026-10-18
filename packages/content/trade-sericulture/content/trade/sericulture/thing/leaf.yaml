@@ -1,0 +1,13 @@
+# Mulberry leaf — an armful, cut. ⭐ It wilts within about a day, and
+# wilted leaf feeds worse: a crop is a race between the leaf and the
+# appetite. `put leaf in tray`.
+class: /platform/thing/Crop
+data:
+  shortDescription: armful of mulberry leaves
+  keywords: [leaf, leaves, mulberry, armful]
+  register: indefinite
+  longDescription: |
+    Broad, glossy leaves stripped from the shoot, still cool from the tree.
+  _materialPath: /trade/sericulture/idea/material/mulberry-leaf
+  mass: 0.5
+  gradeBand: fair

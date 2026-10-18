@@ -1,0 +1,13 @@
+# Imported eggs — ⭐ the grainer's clean lot from over the mountains: a
+# fine one-brood white, wintered by the seller, and (though nothing about
+# the card says so) almost free of disease. Dear, and worth it.
+class: /trade/sericulture/thing/EggLot
+extends: /trade/sericulture/thing/egg-lot
+data:
+  shortDescription: card of imported silkworm eggs
+  keywords: [eggs, "egg lot", lot, card, seed, silkworm, imported, "silkworm eggs", "imported silkworm eggs", "card of imported silkworm eggs"]
+  _strainPath: /trade/sericulture/idea/strain/white-one-brood
+  laidWhere: from a grainer over the mountains
+  wintered: true
+  # ⚠ A spoiler: seeded here, read by nothing a player has.
+  pebrineLoad: 0.02

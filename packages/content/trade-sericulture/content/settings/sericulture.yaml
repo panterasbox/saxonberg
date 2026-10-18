@@ -1,0 +1,39 @@
+# sericulture — the trade's dials (the `settings` kind: merge-missing, so a
+# value an operator changed through `config` is never touched).
+#
+# ⚠⚠ **Playtest dials, not design decisions.** Every one has a seeded
+# fallback in the pack's code, so the trade works before this row
+# installs. The DESIGN is the shape of the arithmetic — warmth is the
+# clock, hunger slows and never kills, the disease is seeded and silent,
+# the heavy cocoons you keep raise the next lot by h² × S, and an
+# unstifled cocoon opens in about ten days. None of that is tunable here.
+settings:
+  # ---- the rearing ----
+  # Below this (K) the worms do not develop at all.
+  - key: sericulture.baseK
+    value: "283"
+  # Degree-days from a laid (or wintered) lot to hatch.
+  - key: sericulture.hatchDD
+    value: "150"
+  # Leaf one worm eats over its whole life, kg.
+  - key: sericulture.leafKgPerWorm
+    value: "0.025"
+  # The share of hatched worms that live to spin.
+  - key: sericulture.survival
+    value: "0.85"
+  # Days worms spin once they have somewhere to climb.
+  - key: sericulture.spinDays
+    value: "3"
+  # Days wandering worms look for a brush before spinning where they lie.
+  - key: sericulture.wanderGraceDays
+    value: "1"
+  # ---- pébrine ----
+  # Specks are visible from the fourth age at or above this load.
+  - key: sericulture.pebrine.speckLoad
+    value: "0.4"
+  # A tray at or above this load dies at the start of its fifth age.
+  - key: sericulture.pebrine.collapseAt
+    value: "0.6"
+  # What a lay multiplies the mothers' load by.
+  - key: sericulture.pebrine.amplification
+    value: "1.6"

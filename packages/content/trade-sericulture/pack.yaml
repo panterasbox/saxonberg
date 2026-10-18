@@ -1,0 +1,19 @@
+id: trade-sericulture
+version: 0.1.0
+root: /trade/sericulture
+description: >-
+  The sericulture trade — ⭐⭐ **the RGO whose take ends the animal.** A
+  tray of worms eats a leaf crop for a month, spins, and must then be
+  killed by heat inside the cocoon within about ten days, or the moths
+  break the thread on their way out. That deadline is the trade's
+  decision: everything you stifle becomes reelable silk, and everything
+  you keep becomes next year's eggs — and the heaviest you keep raise the
+  next generation by the breeder's equation. ⭐ **It ships no verb.** You
+  `put` an egg lot, leaf and a brush in a tray, `get` the cocoons out,
+  `put` them in an oven, and `reel` them — the fishing trade's verb, told
+  by the instrument what it is reeling.
+requires:
+  # The mechanism is the trade's; the silk houses are the realm's. Held by
+  # the Ministry of Trade, like every other placeless trade.
+  title:
+    - { extent: /trade/sericulture, holder: { organization: /compact/trade } }

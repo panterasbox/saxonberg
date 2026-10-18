@@ -70,6 +70,7 @@ const SMITHING_DIR = fileURLToPath(new URL("../../../trade-smithing/content/trad
 const TANNING_DIR = fileURLToPath(new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url));
 const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
+const SERICULTURE_DIR = fileURLToPath(new URL("../../../trade-sericulture/content/trade/sericulture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
 // ⭐ The four packs the reachability sweep's shelf lines reach into. Each
 // was already a dependency; what was missing was a line on the counter.
@@ -271,6 +272,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
+  { prefix: "/trade/sericulture/", dir: () => SERICULTURE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
   // The billhook (repair W5).
   { prefix: "/trade/forestry/", dir: () => FORESTRY_DIR },

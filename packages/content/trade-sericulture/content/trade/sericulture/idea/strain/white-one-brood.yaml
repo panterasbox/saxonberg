@@ -1,0 +1,13 @@
+# The white — ⭐ the fine race from away: one brood a year, so its eggs must
+# winter before they will hatch, and a heavier, whiter shell. The grainer's
+# imported lots are this; a grower who keeps its moths must keep its eggs
+# through a cold season.
+class: /trade/sericulture/idea/Strain
+data:
+  key: white-one-brood
+  label: one-brood white
+  colour: white
+  broods: 1
+  heritability: 0.5
+  meanShellMg: 420
+  sdShellMg: 45

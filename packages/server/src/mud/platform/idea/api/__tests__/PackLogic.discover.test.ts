@@ -114,7 +114,9 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `trade-coopering`; 60 → 61: the dairy build adds `trade-dairying`
     // (⚠ the hazard above: a sibling branch adding a pack merges clean and
     // lands red — this one merged with a conflict instead).
-    expect(ids).toHaveLength(61);
+    // ⭐ 61 → 62: the silk build adds `trade-sericulture` (⚠ the hazard
+    // above, a sixth time: count off whatever master holds at merge).
+    expect(ids).toHaveLength(62);
     expect(ids[0]).toBe('platform');
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).

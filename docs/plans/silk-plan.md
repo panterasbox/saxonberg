@@ -929,6 +929,12 @@ packages/content/trade-textiles test`, `test:near`, `lint:family`.
 
 **Commit.** `build(silk W0): spin and weave keep the fibre's material and stamp the maker`
 
+> ✅ **Done — 71e23860b.** The fibre is read BEFORE the input is consumed
+> (an emptied stack is destructed first, and a husk's material is not a
+> thing to trust). Keywords gain the material's name words (`raw silk` →
+> `raw`, `silk`). The unit test drives the real controllers through their
+> engaged steps with only the row clone stubbed.
+
 ### W1 — the pack, the rearing, the leaf
 
 **Goal.** A player buys an egg lot, a tray and a sapling, hatches, feeds,
@@ -974,6 +980,32 @@ Pack vitest + `test:near` + `lint:family` (notably `reachability`,
 `perishable`, `instanceable`, `kept-animals`, `mixin-names`).
 
 **Commit.** `build(silk W1): trade-sericulture — the tray, the egg lot, the leaf and the ages`
+
+> ✅ **Done.** Decisions the build made:
+> - **The bought lots are sibling rows** `imported-eggs` / `valley-eggs` /
+>   `cheap-eggs`, each `extends:` the base `egg-lot` — the folder/leaf
+>   invariant forbids `egg-lot` being both a row and a directory.
+> - **The cheap lot is a general-store line** (par 1, price 2, *taken in
+>   trade*) — the only honest place a player can meet a sick lot that looks
+>   clean; the shopkeeper cannot see it either. `valley-eggs` waits on the
+>   W5 house counter (`unreachable: awaiting:silk-slate` until then).
+> - **`laidWhere` is WORDS, not a path** — `lint:census` reads any
+>   path-shaped value as a template ref; a lay writes the room's name.
+> - **A one-brood lot that has not wintered is REFUSED by the tray** (in
+>   words) rather than adopted into a dormant tray: the winter clock lives
+>   on the `EggLot`, and the tray never holds diapause eggs.
+> - **Selection keeps the GENETIC mean separate from the phenotype**: the
+>   tray carries `lotGeneticMg`, each stack `lotMeanMg` (phenotype, the
+>   baseline for S) and `lotGeneticMg`; W2's lay is `G + h²(kept − p)`, so an
+>   underfed tray does not breed lighter worms (lens 1 — the breeder's
+>   equation applies to the heritable part only).
+> - Stack identity is `fieldMeta.stackIdentity: true`, not a static.
+> - **Persistence (D15) is asserted at the declaration** (`rows.test`:
+>   `HouseTray` composes `PersistableMixin`, every rearing field is
+>   persistent), not by a spine round-trip — the spine is generic and its
+>   own suite proves capture.
+> - Pack added to the repo root `package.json` (PackLogic discovers from
+>   it) — the discovery count 61 → 62, ⚠ the known merge hazard.
 
 ### W2 — the cocoon: stifle, scorch, the deadline, the lay, selection
 

@@ -1,0 +1,22 @@
+# sericulture — ⭐ rearing silkworms, which is neither husbandry nor
+# horticulture and needs both.
+#
+# A sericulturist keeps a crop of leaf and a crop of worms in step: cuts
+# enough leaf at the right freshness for an appetite that grows a
+# hundredfold in a month, keeps a loft at the warmth that rears in time,
+# gives the worms something to climb, and — the decision the trade is —
+# chooses within ten days which cocoons die for silk and which live for
+# seed. ISCED-F 2013 **0811 — Crop and livestock production**, beside
+# apiculture.
+class: /platform/idea/Discipline
+data:
+  key: sericulture
+  channel: skill
+  label: Sericulture
+  iscedf: "0811"
+  description: >-
+    Rearing silkworms on cut mulberry leaf: keeping a tray warm and fed
+    through five ages and four moults, mounting it to spin, stifling the
+    crop in time, and choosing which cocoons to keep for seed.
+  specializes: []
+  requires: []

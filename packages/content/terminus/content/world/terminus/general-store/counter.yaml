@@ -147,6 +147,18 @@ data:
     # at par 1 rather than a par on every product, it is in a shop where
     # importing belongs, and this comment is what it is.
     - { itemTemplatePath: /trade/apiculture/thing/nuc, par: 1 }
+    # ⭐ Sericulture. The trays, the brush and the sapling are goods anybody
+    # could make; ⚠⚠ the EGGS are the second labelled faucet, for the
+    # nuc's reason: a valley starts rearing by importing a grainer's clean
+    # lot, and after the first crop its own moths supply it (with whatever
+    # disease they carry — which is why the clean lot stays worth buying).
+    - { itemTemplatePath: /trade/sericulture/thing/imported-eggs, par: 2 }
+    # ⚠ …and a card taken in trade from down the valley, for next to
+    # nothing. It looks exactly like the clean one. Nobody here can tell.
+    - { itemTemplatePath: /trade/sericulture/thing/cheap-eggs, par: 1 }
+    - { itemTemplatePath: /trade/sericulture/thing/tray, par: 2 }
+    - { itemTemplatePath: /trade/sericulture/thing/mounting-brush, par: 2 }
+    - { itemTemplatePath: /trade/sericulture/thing/seed/mulberry, par: 2 }
     # ⭐⭐ A watch, par 2 — and it is here because two shipped verbs had
     # no instrument a player could own. `wind` and `adjust` are the
     # avenue's verbs and the only `Watch` in the realm was in Gus's
@@ -556,6 +568,13 @@ data:
     # ⚠ The one faucet, and the dearest thing on the shelf under the
     # musket. Bees are cheap to keep and expensive to start.
     /trade/apiculture/thing/nuc: 45
+    # ⭐ Clean eggs from away are dear — the grainer's whole trade is that
+    # nobody can see the difference until the fourth age.
+    /trade/sericulture/thing/imported-eggs: 12
+    /trade/sericulture/thing/cheap-eggs: 2
+    /trade/sericulture/thing/tray: 3
+    /trade/sericulture/thing/mounting-brush: 1
+    /trade/sericulture/thing/seed/mulberry: 4
     # ⚠ Dearer than the hive and cheaper than the bees: brass, a spring
     # and a jewel, made by somebody who knew how. It does not keep time
     # properly, which is the point and not a discount.

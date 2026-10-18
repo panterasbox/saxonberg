@@ -1,0 +1,22 @@
+# An egg lot — a card of silkworm eggs ("seed", the growers called it).
+#
+# ⭐ This row is what a LAY mints: when an unstifled stack of cocoons
+# opens, the moths' eggs land here, carrying the strain, the mothers' load
+# of disease amplified, and a genetic mean moved by what was kept. The lots
+# a shop sells extend it (`imported-eggs`, `valley-eggs`, `cheap-eggs`) and
+# differ in exactly the facts a grower cannot see.
+#
+# `put egg lot in tray` hatches it — the tray adopts the eggs and the card
+# is gone.
+class: /trade/sericulture/thing/EggLot
+data:
+  shortDescription: card of silkworm eggs
+  keywords: [eggs, "egg lot", lot, card, seed, silkworm, "silkworm eggs", "card of silkworm eggs"]
+  register: indefinite
+  longDescription: |
+    A stiff card speckled all over with tiny grey eggs, each no bigger than a poppy seed.
+  _materialPath: /trade/sericulture/idea/material/silkworm-egg
+  mass: 0.01
+  _strainPath: /trade/sericulture/idea/strain/valley-gold
+  eggCount: 300
+  wintered: false

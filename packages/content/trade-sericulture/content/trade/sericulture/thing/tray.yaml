@@ -1,0 +1,15 @@
+# A rearing tray — ⭐ the host of a rearing. Shallow, wooden, a yard long.
+#
+# `put egg lot in tray` to hatch, `put leaf in tray` to feed, `put brush
+# in tray` when they wander, `get cocoons from tray` when they have spun;
+# `look tray` reads the worms in words. The worms are its state — there is
+# no worm object to lose.
+class: /trade/sericulture/thing/RearingTray
+data:
+  shortDescription: rearing tray
+  keywords: [tray, "rearing tray", rearing]
+  register: indefinite
+  longDescription: |
+    A shallow tray of thin boards with a low rim, a yard long and half as wide, its floor lined with paper.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 2
