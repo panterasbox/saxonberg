@@ -224,7 +224,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ (cleanliness D6) Hard work SWEATS — by the excess, never by the
       // clock: the one deposit that lands on the INNERMOST layer (the
       // shirt under the coat). Effort under the threshold leaves nothing.
-      if (excessJ > 0 && MixinApi.isAttired(self)) {
+      if (excessJ > 0 && MixinApi.isHygienic(self)) {
         const trunk = self.trunkSite();
         const load = excessJ / SWEAT_J_PER_LOAD;
         if (trunk && load > 0.001) self.soilBodyPart(trunk, 'sweat', load, null, 'inner');

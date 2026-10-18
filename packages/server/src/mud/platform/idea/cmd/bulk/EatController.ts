@@ -204,7 +204,7 @@ export default class EatController extends CommandController<EatModel> {
    * with the fingers, a little grease on the hands as well.
    */
   private leaveCrumbs(giver: Stuff, withCutlery: boolean): void {
-    if (!MixinApi.isAttired(giver)) return;
+    if (!MixinApi.isHygienic(giver)) return;
     giver.soilFrom(
       withCutlery
         ? [{ kind: "crumbs", amount: 0.05, where: "floor" }]

@@ -2784,6 +2784,17 @@ Read first, in this order.
   copper and a later boiler all answer `fill tub from …`. Not a third bulk
   slot on the tub: the slot vocabulary is closed (`interior | surface`).
 
+- **B42 — `HygieneMixin`, split out of `AttiredMixin`** (review:
+  *"Attired has a buncha stuff about washing hands"*; supersedes B1's
+  host). `lib/cleanliness/Hygiene.ts` holds `handCleanliness`,
+  `washHands`, `soilHands`, `soilBodyPart`, `soilFrom`, `bathe`, `doff`'s
+  transfer and `immerse`'s rinse (an override over Attired's soak — the
+  storage contract's `immerse` stays on Attired). Attired keeps the
+  covering stack and the body-site reads (`handSites`, `trunkSite`…), which
+  the doorman's dress code reads too. Composed OUTERMOST on `Creature`;
+  callers narrow with `MixinApi.isHygienic`. The test was the import list:
+  Attired no longer imports the cleanliness module's types.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

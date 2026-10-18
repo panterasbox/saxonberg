@@ -424,7 +424,7 @@ async function runFiring(
   // everything Soilable left in the chamber: an oven held hot is how an
   // instrument is sterilised, so the heat is stamped by the act that
   // reached it.
-  if (!giver.isDestroyed() && MixinApi.isAttired(giver)) {
+  if (!giver.isDestroyed() && MixinApi.isHygienic(giver)) {
     giver.soilFrom(firing.recipe.getSoils());
   }
   const heldK = firing.recipe.getRequiresHeatK();

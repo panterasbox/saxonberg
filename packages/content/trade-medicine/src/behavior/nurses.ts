@@ -214,7 +214,7 @@ export const brain = class NursesBrain {
     }
     if (wound && dressing) {
       // Scrub first — a professional does not infect what she treats.
-      if (MixinApi.isAttired(host)) host.washHands();
+      if (MixinApi.isHygienic(host)) host.washHands();
       const quality = skill * dressing.getDressingQuality();
       patient.applyTreatment(wound, {
         by: 'dressing',

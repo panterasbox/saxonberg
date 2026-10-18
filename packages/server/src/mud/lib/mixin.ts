@@ -423,6 +423,7 @@ export const Mixins = {
   // missing from it cannot be named by a `requires:` however real it is.
   BodyPlanSlots: 'BodyPlanSlotsMixin',
   Attired: 'AttiredMixin',
+  Hygiene: 'HygieneMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
   Wardrobe: 'WardrobeMixin',

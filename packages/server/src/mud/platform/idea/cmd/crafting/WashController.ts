@@ -195,7 +195,7 @@ export default class WashController extends ManualBuildController<WashModel> {
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isAttired(giver) || giver.handSites().length === 0) {
+    if (!MixinApi.isHygienic(giver) || giver.handSites().length === 0) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
       return;
     }

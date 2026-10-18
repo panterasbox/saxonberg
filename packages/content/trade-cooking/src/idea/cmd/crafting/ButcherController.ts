@@ -492,7 +492,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // ⭐ (cleanliness D6) Breaking a carcass is the bloodiest work there
     // is: blood and fat on the hands and on whatever covers the trunk (an
     // apron is why butchers wear one), and on the block and the floor.
-    if (MixinApi.isAttired(giver)) giver.soilFrom(BUTCHER_SOILS, body);
+    if (MixinApi.isHygienic(giver)) giver.soilFrom(BUTCHER_SOILS, body);
     if (block && MixinApi.isSoilable(block)) {
       block.soil('blood', 0.3, body);
       block.soil('grease', 0.2);

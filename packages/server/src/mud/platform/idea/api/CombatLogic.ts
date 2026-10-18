@@ -2560,10 +2560,10 @@ function commitInflict(
     // and on the hands that struck. A coat is evidence after a fight.
     if (BLEED_FAMILY.has(outcome.trauma.type)) {
       const amount = Math.min(0.6, 0.15 * Math.max(0.5, outcome.trauma.severity));
-      if (MixinApi.isAttired(target) && site) {
+      if (MixinApi.isHygienic(target) && site) {
         target.soilBodyPart(site, 'blood', amount, target);
       }
-      if (MixinApi.isAttired(attacker)) attacker.soilHands('blood', amount / 2, target);
+      if (MixinApi.isHygienic(attacker)) attacker.soilHands('blood', amount / 2, target);
     }
   }
   // Drain the augment ctx's queued consequences — the sequence position

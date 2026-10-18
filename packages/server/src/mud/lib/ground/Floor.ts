@@ -856,7 +856,7 @@ export function FloorMixin<
     }
 
     public soilFeetOf(mover: Stuff): void {
-      if (!this.takesSoil() || !MixinApi.isAttired(mover)) return;
+      if (!this.takesSoil() || !MixinApi.isHygienic(mover)) return;
       const kind = this.getGroundKind();
       const self = this as unknown as Stuff;
       const wet =

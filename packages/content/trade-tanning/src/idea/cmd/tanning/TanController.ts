@@ -148,7 +148,7 @@ export default class TanController extends CommandController<TanModel> {
     hide.reconcileTanning();
     // ⭐ (cleanliness D6) The stench trade: a raw skin's fat and the bate's
     // dung on the hands and the apron.
-    if (MixinApi.isAttired(giver)) giver.soilFrom(TAN_SOILS);
+    if (MixinApi.isHygienic(giver)) giver.soilFrom(TAN_SOILS);
 
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -198,7 +198,7 @@ export default class TanController extends CommandController<TanModel> {
       ContainmentApi.move(hide, giver);
     }
     // Lifting a sodden skin out of the liquor (cleanliness D6).
-    if (MixinApi.isAttired(giver)) giver.soilFrom(TAN_SOILS);
+    if (MixinApi.isHygienic(giver)) giver.soilFrom(TAN_SOILS);
 
     const bands = hide.tanPenaltyBands();
     const line =

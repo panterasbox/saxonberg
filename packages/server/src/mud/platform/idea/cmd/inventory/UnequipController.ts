@@ -214,7 +214,7 @@ export default class UnequipController extends CommandController<UnequipModel> {
      */
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
-    if (!wieldy) giver.doff(target, { careful });
+    if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
 
     if (MixinApi.isEngaged(giver)) {
       SchedulerApi.start(

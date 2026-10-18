@@ -735,7 +735,7 @@ export default class OrderController extends CraftController<OrderModel> {
         peers: `${giver.getPresentation()} gets into a hot tub.`,
       },
       async () => {
-        if (giver.isDestroyed() || !MixinApi.isAttired(giver)) return;
+        if (giver.isDestroyed() || !MixinApi.isHygienic(giver)) return;
         giver.bathe(
           { waterK, hardnessDgh, cleansers, effort: 2 },
           120,

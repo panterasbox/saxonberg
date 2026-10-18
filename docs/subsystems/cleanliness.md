@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B41). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B42). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -29,7 +29,7 @@ Bands are words: `clean · marked · soiled · filthy` (dials
 `cleanliness.band.*`); the look line is `soilPhrase` — *soiled, bloodied
 and greasy* — never a number.
 
-Hosts: `Garment`, the body (per part, through `AttiredMixin`), the `Floor`
+Hosts: `Garment`, the body (per part, through `HygieneMixin`), the `Floor`
 twin, `Window`, `Chair` (seats, beds, the `Tub`), `Lamp`, `Bandage`,
 `CraftVessel`, trade-cooking's `KitchenTool`, trade-medicine's
 `SurgicalKit` and `SutureKit`, `Rug`. ⛔ Not `Thing`, `Good`, `Tool` or
@@ -61,14 +61,17 @@ else. No boot list.
 `Recipe.soils`, `TapSpec.soils` and `WorkResult.soils` carry a
 `SoilSpecs` value (`lib/cleanliness/SoilSpec.ts`): `{kind, amount,
 where}` with `where` ∈ `hands · apron · feet · floor`. The act lands it
-through `Attired.soilFrom`; the wearer decides which layer it reaches
+through `Hygiene.soilFrom`; the wearer decides which layer it reaches
 (`outermostAt`). Butchery bloodies the apron and the hands; a glove takes
 a hand's deposit once per layer; eating drops `crumbs` on the floor (the
 one debris producer, B6); a fire's incomplete exhaust soots every Soilable
 fixture in its room; walking carries a floor's soil onto the feet
 (`receiveTraffic`).
 
-**Hands** (`AttiredMixin`, B1): `handSites`, `handCleanliness()` (the
+**Hands** (`HygieneMixin`, `lib/cleanliness/Hygiene.ts`, B42 — split out of
+`AttiredMixin`, which keeps the covering stack and the body-site reads;
+Hygiene composes outside both it and `Soilable` on `Creature`, so clothing
+knows nothing of dirt): `handCleanliness()` (the
 derived number the treat path reads — the old six-hour hands clock is
 deleted), `soilHands`, `washHands`. `remove gloves` quickly puts half a
 dirty glove's load on the bare hand; `remove gloves carefully` puts none.
@@ -177,7 +180,7 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   and the cloth decides what that does. Ruined comes back with the house's
   posted `cover`, paid by `BankingApi.indemnify` — never to one of the
   house's own seats (B26).
-- **`order bath`** / **`bathe`** — `Attired.bathe(spec, s)`: every part of
+- **`order bath`** / **`bathe`** — `Hygiene.bathe(spec, s)`: every part of
   the body washed, then `immerse` (bathe dressed and your clothes soak),
   then `ThermalRegulation.exchangeWithWater` (B29). A `Tub` holds water; a
   `Copper` is a boiler over its own fire (B30); a shore answers through its

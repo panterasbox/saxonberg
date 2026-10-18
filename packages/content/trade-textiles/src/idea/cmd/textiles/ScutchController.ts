@@ -186,7 +186,7 @@ async function finish(
   if (room && MixinApi.isAtmospheric(room) && charge > 0) {
     room.addAtmosphereContent('/stuff/idea/material/gas/flax-dust', charge * 10);
   }
-  if (watching && MixinApi.isAttired(giver)) {
+  if (watching && MixinApi.isHygienic(giver)) {
     giver.soilFrom([{ kind: 'dust', amount: 0.15, where: 'hands' }]);
   }
 

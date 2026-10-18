@@ -129,7 +129,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
             if (floor && MixinApi.isSoilable(floor) && soot > 0) {
               floor.soil('soot', soot * SOOT_LOAD_PER_KG);
             }
-            if (MixinApi.isAttired(giver)) giver.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
+            if (MixinApi.isHygienic(giver)) giver.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
             await PersistableApi.captureHostOf(hearth).catch(() => {});
             MessageApi.scene(giver)
               .topic(TOPIC)
@@ -143,7 +143,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
             return;
           }
           const kg = hearth.takeAsh();
-          if (MixinApi.isAttired(giver)) giver.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
+          if (MixinApi.isHygienic(giver)) giver.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
           if (!(kg > 0.01)) {
             MessageApi.scene(giver)
               .topic(TOPIC)

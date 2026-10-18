@@ -139,6 +139,7 @@ import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Attired } from '../lib/slot/Attired';
+import type { Hygiene } from '../lib/cleanliness/Hygiene';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
 import type {
@@ -1702,6 +1703,11 @@ export class MixinApi {
    */
   public static isAttired(obj: Stuff): obj is Stuff & Slotted & Attired {
     return this.hasMixin(obj, Mixins.Attired);
+  }
+
+  /** A body kept clean — where an act's dirt lands, the hands, a bath (cleanliness). */
+  public static isHygienic(obj: Stuff): obj is Stuff & Slotted & Attired & Hygiene {
+    return this.hasMixin(obj, Mixins.Hygiene);
   }
 
   public static isSlottable(obj: Stuff): obj is Stuff & Slottable {

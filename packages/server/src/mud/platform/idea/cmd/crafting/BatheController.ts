@@ -92,7 +92,7 @@ export default class BatheController extends WashController {
         : Mml.compose`You get into ${Mml.thing(water.source)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} gets into ${Mml.thing(water.source)}.`,
       onComplete: () => {
-        if (giver.isDestroyed() || !MixinApi.isAttired(giver)) return;
+        if (giver.isDestroyed() || !MixinApi.isHygienic(giver)) return;
         giver.bathe(
           {
             waterK: water.waterK,

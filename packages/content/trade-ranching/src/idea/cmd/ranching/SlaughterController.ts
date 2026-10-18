@@ -179,7 +179,7 @@ export default class SlaughterController extends CommandController<SlaughterMode
     // it cancels — happens there and happens once.
     // ⭐ (cleanliness D6) The kill bloodies the one who makes it — with the
     // ANIMAL's blood, read while it still has a body to read it from.
-    if (MixinApi.isAttired(giver)) {
+    if (MixinApi.isHygienic(giver)) {
       giver.soilFrom(
         [
           { kind: 'blood', amount: 0.4, where: 'hands' },

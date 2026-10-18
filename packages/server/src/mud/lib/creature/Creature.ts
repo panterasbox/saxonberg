@@ -47,6 +47,7 @@ import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
+import { HygieneMixin } from '../cleanliness/Hygiene';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { ReservedMixin, Reserve } from '../reserve';
@@ -144,7 +145,10 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // clock, so its placement is immaterial to the ordered body stack, and
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
-const CreatureBase = PostmortemMixin(
+// ⭐ Hygiene OUTERMOST (cleanliness, review): how a body is kept clean reads
+// the covering stack (Attired) and writes the body's soil by part
+// (Soilable), so it sits outside both — and clothing knows nothing of dirt.
+const CreatureBase = HygieneMixin(PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -222,7 +226,7 @@ const CreatureBase = PostmortemMixin(
   )
   )
   )
-);
+));
 
 /**
  * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal

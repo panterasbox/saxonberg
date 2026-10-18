@@ -79,9 +79,6 @@ import {
 } from '../../api/mql-subscription';
 import { Impression, type ImpressionClause } from './Impression';
 import { SOIL_BANDS } from '../cleanliness/Soilable';
-import type { Soilable } from '../cleanliness/Soilable';
-import type { SoilSpec } from '../cleanliness/SoilSpec';
-import type { WashSpec } from '../cleanliness/Soilable';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -144,8 +141,17 @@ export interface Attired {
   /** The insulation stacked over one body part, in `clo`. */
   insulationAt(partKey: string): Quantity<'clo'>;
 
-  // ── dirt on the body (cleanliness D4) — the soiling seam's consumers ──
-
+  /**
+   * The body goes INTO water (storage-and-ice's contract): the body and
+   * every layer at every part the filter admits are soaked (`wet(1)`; no
+   * filter = every part). Side-effect only. ⭐ What the water washes off is
+   * `HygieneMixin`'s, which overrides this to rinse.
+   */
+  immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
+  /** Every distinct layer covering a leaf part the filter admits. */
+  immersedLayers(parts?: (partKey: string) => boolean): (Stuff & Slottable)[];
+  /** The body's leaf parts — those that govern nothing below them. */
+  leafParts(): string[];
   /** The body parts that serve `capacity` (`manipulation` → the hands). */
   partsServing(capacity: string): string[];
   /** The hand sites — the parts that serve manipulation. */
@@ -153,68 +159,8 @@ export interface Attired {
   /** The foot sites — the leaf parts below what serves locomotion (a
    * biped's feet; a quadruped's legs, which have no foot part). */
   footSites(): string[];
-  /**
-   * ⭐ How clean this body's hands are, `[0, 1]` — DERIVED, never stored:
-   * `1 − min(1, worst load)` over each hand, read off the outermost layer
-   * there when it is Soilable (a glove) and off the bare hand otherwise.
-   * Replaces the retired six-hour hands clock: a clean hand stays clean
-   * until it touches something.
-   */
-  handCleanliness(): number;
-  /**
-   * Wash the layer at each hand — a glove when one is worn (the gloves
-   * come clean, the hands under them untouched, D5), else the bare hand —
-   * by the wash's chemistry (`spec`), or plainly clean with none.
-   */
-  washHands(spec?: WashSpec): void;
-  /**
-   * ⭐ Land a row's `soils:` (a recipe's, a tap's) on this body and the
-   * floor it stands on — `hands`, `apron` (whatever covers the trunk),
-   * `feet`, `floor`. The act names the dirt; this says where it goes.
-   */
-  soilFrom(specs: readonly SoilSpec[], by?: Stuff | null): void;
   /** The trunk part — the root of the body plan (`body.torso`). */
   trunkSite(): string | null;
-  /**
-   * ⭐ The body goes INTO water (storage-and-ice's contract, built here in
-   * its shape — cleanliness D7): the body and every layer at every part
-   * the filter admits are soaked (`wet(1)`; no filter = every part) — and
-   * ⭐ RINSED: each soaked Soilable site takes a water-only wash at the
-   * water's temperature, so climbing out of a river you are wet, not
-   * still caked in mud; grease and a set stain stay. Side-effect only.
-   */
-  immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
-  /**
-   * ⭐ A bath (cleanliness D28): every part of the BODY is washed by the
-   * bath's chemistry (soap, the water's heat and hardness — the head site
-   * is the hair), then the body goes in (`immerse`) — so a bather who
-   * kept their clothes on soaks them, which is the bather's problem — and
-   * the water's heat is exchanged with the body by the one law
-   * (`exchangeWithWater`): a copper-fed tub warms, a winter river chills.
-   */
-  bathe(spec: WashSpec, durationS: number): void;
-  /**
-   * ⭐ The doffing problem (cleanliness D5): a garment came off. Taken off
-   * in a hurry, a dirty one leaves `cleanliness.doff.transfer` of what is
-   * on it on the hands that pulled it — the bare hands once the gloves
-   * are off. Taken off `careful`ly, nothing.
-   */
-  doff(garment: Stuff, opts?: { careful?: boolean }): void;
-  /** Soil both hands on the layer the act reaches (a glove, else skin). */
-  soilHands(kind: string, amount: number, by?: Stuff | null): void;
-  /**
-   * Soil one body part on the layer an act reaches: the outermost
-   * covering (`outer`, the default — the apron over the shirt), the
-   * innermost (`inner` — sweat lands on the shirt, not the coat), or the
-   * skin when the part is bare or nothing there is Soilable.
-   */
-  soilBodyPart(
-    partKey: string,
-    kind: string,
-    amount: number,
-    by?: Stuff | null,
-    layer?: 'outer' | 'inner',
-  ): void;
 
   /**
    * Whole-body insulation in `clo`, **surface-weighted per part**.
@@ -700,12 +646,37 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.coveringAt(partKey)[0] ?? null;
     }
 
-    // ── dirt on the body (cleanliness D4) ──
-    // ⭐ What an act soils is the layer it REACHES: the outermost covering
-    // at a part (`outermostAt` — the soiling seam), the bare part only when
-    // nothing covers it. So a gloved butcher's gloves are bloodied and his
-    // hands are not, and taking the gloves off carelessly is what moves
-    // the blood (D5). The bare part is the host's own Soilable site.
+    /**
+     * The body goes INTO water: the body and every layer at every part the
+     * filter admits are soaked (`wet(1)`). What the water also WASHES off is
+     * cleanliness's — `HygieneMixin` overrides this and rinses.
+     */
+    public immerse(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+      _waterK = 283,
+    ): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isWet(self)) self.wet(1);
+      for (const layer of this.immersedLayers(parts)) {
+        if (MixinApi.isWet(layer)) layer.wet(1);
+      }
+    }
+
+    /** Every distinct layer covering a leaf part the filter admits. */
+    public immersedLayers(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+    ): (Stuff & Slottable)[] {
+      const done = new Set<Stuff & Slottable>();
+      for (const key of this.leafParts()) {
+        if (parts && !parts(key)) continue;
+        for (const layer of this.coveringAt(key)) done.add(layer);
+      }
+      return [...done];
+    }
+
+    // ── the body's sites — plain body-plan reads (dress codes, dirt) ──
 
     public partsServing(capacity: string): string[] {
       const plan = bodyPlanOf(this as unknown as Stuff);
@@ -733,199 +704,21 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       return out;
     }
 
-    public handCleanliness(this: Stuff & Slotted & Attired): number {
-      const self = this as unknown as Stuff;
-      const skin = MixinApi.isSoilable(self) ? self : null;
-      const hands = this.handSites();
-      if (hands.length === 0) return 1 - Math.min(1, skin?.soilAt() ?? 0);
-      let worst = 0;
-      for (const hand of hands) {
-        const layer = this.outermostAt(hand);
-        const load =
-          layer && MixinApi.isSoilable(layer)
-            ? layer.soilAt('')
-            : (skin?.soilAt(hand) ?? 0);
-        worst = Math.max(worst, load);
-      }
-      return 1 - Math.min(1, worst);
-    }
-
-    public washHands(this: Stuff & Slotted & Attired, spec?: WashSpec): void {
-      const self = this as unknown as Stuff;
-      const wash = (target: Stuff, site: string): void => {
-        if (!MixinApi.isSoilable(target)) return;
-        if (spec) {
-          target.washSite(spec, site);
-          return;
-        }
-        for (const kind of target.soilKinds(site)) target.removeSoil(kind, 1, site);
-      };
-      if (this.handSites().length === 0) {
-        wash(self, '');
-        return;
-      }
-      const done = new Set<Stuff>();
-      for (const hand of this.handSites()) {
-        const layer = this.outermostAt(hand);
-        if (layer) {
-          if (done.has(layer)) continue;
-          done.add(layer);
-          wash(layer, '');
-        } else {
-          wash(self, hand);
-        }
-      }
-    }
-
     public trunkSite(): string | null {
       const plan = bodyPlanOf(this as unknown as Stuff);
       if (!plan) return null;
       return plan.getBodyParts().find((p) => p.parent === null)?.key ?? null;
     }
 
-    public soilFrom(
-      this: Stuff & Slotted & Attired,
-      specs: readonly SoilSpec[],
-      by: Stuff | null = null,
-    ): void {
-      const self = this as unknown as Stuff;
-      for (const spec of specs) {
-        switch (spec.where) {
-          case 'hands':
-            this.soilHands(spec.kind, spec.amount, by);
-            break;
-          case 'apron': {
-            const trunk = this.trunkSite();
-            if (trunk) this.soilBodyPart(trunk, spec.kind, spec.amount, by);
-            else if (MixinApi.isSoilable(self)) self.soil(spec.kind, spec.amount, by, '');
-            break;
-          }
-          case 'feet':
-            for (const foot of this.footSites()) {
-              this.soilBodyPart(foot, spec.kind, spec.amount, by);
-            }
-            break;
-          case 'floor': {
-            const room = MixinApi.isContainable(self) ? self.getContainer() : null;
-            const floor =
-              room && MixinApi.isAdornable(room) ? room.getFloor() : null;
-            if (floor && MixinApi.isSoilable(floor as unknown as Stuff)) {
-              (floor as unknown as Stuff & Soilable).soil(spec.kind, spec.amount, by, '');
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    public immerse(
-      this: Stuff & Slotted & Attired,
-      parts?: (partKey: string) => boolean,
-      waterK = 283,
-    ): void {
-      const self = this as unknown as Stuff;
-      if (MixinApi.isWet(self)) self.wet(1);
-      const rinse: WashSpec = { waterK, hardnessDgh: 8, cleansers: [], effort: 0 };
-      const plan = bodyPlanOf(self);
-      const keys = plan
+    /** The body's leaf parts — those that govern nothing below them. */
+    public leafParts(): string[] {
+      const plan = bodyPlanOf(this as unknown as Stuff);
+      return plan
         ? plan
             .getBodyParts()
             .filter((p) => (p.governs ?? []).length === 0)
             .map((p) => p.key)
         : [];
-      const done = new Set<Stuff>();
-      for (const key of keys) {
-        if (parts && !parts(key)) continue;
-        for (const layer of this.coveringAt(key)) {
-          if (done.has(layer)) continue;
-          done.add(layer);
-          if (MixinApi.isWet(layer)) layer.wet(1);
-          if (MixinApi.isSoilable(layer)) layer.washSite(rinse, '');
-        }
-        if (MixinApi.isSoilable(self)) self.washSite(rinse, key);
-      }
-    }
-
-    public bathe(
-      this: Stuff & Slotted & Attired,
-      spec: WashSpec,
-      durationS: number,
-    ): void {
-      const self = this as unknown as Stuff;
-      if (MixinApi.isSoilable(self)) {
-        const plan = bodyPlanOf(self);
-        const keys = plan
-          ? plan
-              .getBodyParts()
-              .filter((p) => (p.governs ?? []).length === 0)
-              .map((p) => p.key)
-          : [];
-        // The bath washes the body, not what it has on: a covered part's
-        // soap goes on the cloth over it (immerse below soaks it).
-        for (const key of ['', ...keys]) self.washSite(spec, key);
-      }
-      this.immerse(undefined, spec.waterK);
-      if (MixinApi.isThermalRegulation(self)) {
-        self.exchangeWithWater(spec.waterK, durationS);
-      }
-    }
-
-    public doff(
-      this: Stuff & Slotted & Attired,
-      garment: Stuff,
-      opts: { careful?: boolean } = {},
-    ): void {
-      if (opts.careful || !MixinApi.isSoilable(garment)) return;
-      if (SOIL_BANDS.indexOf(garment.soilBand('')) < SOIL_BANDS.indexOf('marked')) return;
-      const share = dial(AppSettingKeys.cleanlinessDoffTransfer, 0.5);
-      for (const kind of garment.soilKinds('')) {
-        const load = garment.soilLoad(kind, '');
-        if (load > 0) this.soilHands(kind, load * share, null);
-      }
-    }
-
-    public soilHands(
-      this: Stuff & Slotted & Attired,
-      kind: string,
-      amount: number,
-      by: Stuff | null = null,
-    ): void {
-      const hands = this.handSites();
-      if (hands.length === 0) {
-        // A body with no hands (or none resolved) takes it on the whole.
-        const self = this as unknown as Stuff;
-        if (MixinApi.isSoilable(self)) self.soil(kind, amount, by, '');
-        return;
-      }
-      // ⭐ One deposit per LAYER reached: a pair of gloves covers both
-      // hands and is one garment, so it takes the act once, not twice.
-      const reached = new Set<Stuff>();
-      for (const hand of hands) {
-        const layer = this.outermostAt(hand);
-        if (layer && MixinApi.isSoilable(layer)) {
-          if (reached.has(layer)) continue;
-          reached.add(layer);
-        }
-        this.soilBodyPart(hand, kind, amount, by);
-      }
-    }
-
-    public soilBodyPart(
-      this: Stuff & Slotted & Attired,
-      partKey: string,
-      kind: string,
-      amount: number,
-      by: Stuff | null = null,
-      layer: 'outer' | 'inner' = 'outer',
-    ): void {
-      const stack = this.coveringAt(partKey);
-      const reached = layer === 'outer' ? stack[0] : stack[stack.length - 1];
-      if (reached && MixinApi.isSoilable(reached)) {
-        reached.soil(kind, amount, by, '');
-        return;
-      }
-      const self = this as unknown as Stuff;
-      if (MixinApi.isSoilable(self)) self.soil(kind, amount, by, partKey);
     }
 
     public insulationAt(this: Stuff & Slotted & Attired, partKey: string): Quantity<'clo'> {

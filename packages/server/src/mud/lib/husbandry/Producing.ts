@@ -852,7 +852,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       // maple, a birch or a rubber tree authors none. Landed AFTER the
       // take: the hand that drew this milk is read as it was before.
       const soilTheTaker = (): void => {
-        if (tap.soils && tap.soils.length > 0 && MixinApi.isAttired(by)) {
+        if (tap.soils && tap.soils.length > 0 && MixinApi.isHygienic(by)) {
           by.soilFrom(tap.soils, this as unknown as Stuff);
         }
       };
@@ -1195,7 +1195,7 @@ const MILKING_INOCULUM = 0.3;
 function stampTheHand(by: Stuff, vessel: Stuff & Bulkable, slot: BulkSlot): void {
   const maker = by.getIdentityPath();
   if (maker) slot.setPayload({ ...(slot.getPayload() ?? {}), maker });
-  if (!MixinApi.isAttired(by)) return;
+  if (!MixinApi.isHygienic(by)) return;
   const clean = by.handCleanliness();
   if (clean >= HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) return;
   const severity = (1 - clean) * MILKING_INOCULUM;

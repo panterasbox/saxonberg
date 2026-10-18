@@ -1019,7 +1019,7 @@ function kitInoculum(
     const rank = Math.max(0, idx - 1);
     loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * (1 - rank / 4));
   }
-  if (maker !== null && MixinApi.isAttired(maker)) {
+  if (maker !== null && MixinApi.isHygienic(maker)) {
     const dirt = 1 - maker.handCleanliness();
     if (dirt > 0.05) {
       loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * dirt);
@@ -3269,7 +3269,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // ⭐ **And the hand that made it** (cleanliness D6): the recipe row says
   // what making this dirties — grease on the renderer's hands and apron,
   // flour on the baker's floor — and it lands on the layer it reaches.
-  if (MixinApi.isAttired(maker)) maker.soilFrom(recipe.getSoils());
+  if (MixinApi.isHygienic(maker)) maker.soilFrom(recipe.getSoils());
 
   // ⭐⭐ **A working DIRTIES the tools it was done with** — a press that
   // pressed contaminated fruit is a dirty press, the board's route one

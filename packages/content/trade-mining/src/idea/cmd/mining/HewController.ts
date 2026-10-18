@@ -241,7 +241,7 @@ async function winOre(
   // ⭐ (cleanliness D6) Rock dust on the hewer — a `dust` DirtKind row this
   // pack ships under its own root, read by the platform with no code.
   const hewer = context.commandGiver;
-  if (MixinApi.isAttired(hewer)) {
+  if (MixinApi.isHygienic(hewer)) {
     hewer.soilFrom([
       { kind: 'dust', amount: 0.2, where: 'hands' },
       { kind: 'dust', amount: 0.1, where: 'apron' },

@@ -3208,7 +3208,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // ⭐ Derived from what the hands (or the gloves) carry — never a
         // clock (cleanliness D4).
         const hands =
-          treater && MixinApi.isAttired(treater)
+          treater && MixinApi.isHygienic(treater)
             ? treater.handCleanliness()
             : 1;
         // ⭐ Semmelweis (cleanliness D14): the WORST of what touched the
@@ -3239,7 +3239,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         // Handling a bleeding wound bloodies the treater's hands — with
         // the PATIENT's blood (the sample a forensic read can name).
-        if (treater && MixinApi.isAttired(treater)) {
+        if (treater && MixinApi.isHygienic(treater)) {
           treater.soilHands(
             'blood',
             HARM_DEFAULTS.HAND_BLOOD_PER_DRESSING,
