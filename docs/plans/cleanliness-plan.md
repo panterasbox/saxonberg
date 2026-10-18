@@ -2865,6 +2865,14 @@ Read first, in this order.
   `prospectFor` (the drying law, moved here from trade-cooking) is left
   for `controllers-are-io-slate` — not this build's to make worse or better.
 
+- **B49 — A tap's dirt is derived, not authored on the species** (review:
+  *"soils on species is a little weird"*). The cow, ewe and goat carried
+  the identical milking entry — the act's, copied onto each animal.
+  `TapSpec.soils` is gone; `Producing.soilTheTaker` derives it: an animal's
+  take puts a share of the manure on the floor she stands in on the hands
+  (so mucking out the byre keeps the milker clean), a hand-drawn liquid
+  splashes the apron as its own kind; a plant's tap dirties nothing.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

@@ -61,6 +61,7 @@ import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { MixinApi } from '../../api/mixin';
+import type { SoilSpec } from '../cleanliness/SoilSpec';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 import type Species from '../../platform/idea/species/Species';
@@ -829,6 +830,30 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * numbers — the interval between planning and landing is real game
      * time, and a season can close inside it.
      */
+    /**
+     * ⭐ What a take DIRTIES the taker with — derived, never authored
+     * (cleanliness D6, review): only an ANIMAL's tap dirties (a maple's
+     * sap, a rubber tree's latex do not). The hands at the beast's flank
+     * take a share of the manure on the floor she stands in — a cow from a
+     * fouled byre, mucked out or not — and a liquid drawn by hand into a
+     * pail splashes the apron with what it is (milk is `milk`). Landed
+     * AFTER the take: the hand that drew this milk is read as it was before.
+     */
+    protected soilTheTaker(by: Stuff, tap: TapSpec, shape: string): void {
+      const self = this as unknown as Stuff;
+      if (!self.isAgent() || !MixinApi.isHygienic(by)) return;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const floor = room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+      const manure = floor && MixinApi.isSoilable(floor) ? floor.soilLoad('manure', '') : 0;
+      const specs: SoilSpec[] = [];
+      if (manure > 0) specs.push({ kind: 'manure', amount: Math.min(0.5, manure * 0.3), where: 'hands' });
+      if (shape === 'volume') {
+        const leaf = (tap.yieldRow ?? '').split('/').pop() ?? '';
+        if (leaf) specs.push({ kind: leaf, amount: 0.1, where: 'apron' });
+      }
+      if (specs.length > 0) by.soilFrom(specs, self);
+    }
+
     public async completeTap(
       by: Stuff,
       key: string,
@@ -847,15 +872,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (take.units <= 0) return { self: 'Nothing came of it.' };
 
       const credit = this.tapCredit(key);
-      // ⭐ (cleanliness D6) What the take DIRTIES is the tap's own row
-      // field — manure on the milker's hands and milk on her apron; a
-      // maple, a birch or a rubber tree authors none. Landed AFTER the
-      // take: the hand that drew this milk is read as it was before.
-      const soilTheTaker = (): void => {
-        if (tap.soils && tap.soils.length > 0 && MixinApi.isHygienic(by)) {
-          by.soilFrom(tap.soils, this as unknown as Stuff);
-        }
-      };
+      const soilTheTaker = (): void => this.soilTheTaker(by, tap, shape);
       if (shape === 'volume') {
         const kept = await this.pourTake(tap, take.units, vessel, by);
         if (kept > 0) soilTheTaker();

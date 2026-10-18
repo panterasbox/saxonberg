@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B48). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B49). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -58,11 +58,15 @@ else. No boot list.
 
 ## The producers — every act names its deposit
 
-`Recipe.soils`, `TapSpec.soils` and `WorkResult.soils` carry a
+`Recipe.soils` and `WorkResult.soils` carry a
 `SoilSpecs` value (`lib/cleanliness/SoilSpec.ts`): `{kind, amount,
 where}` with `where` ∈ `hands · apron · feet · floor`. The act lands it
 through `Hygiene.soilFrom`; the wearer decides which layer it reaches
-(`outermostAt`). Butchery bloodies the apron and the hands; ⭐ an external
+(`outermostAt`). ⭐ A TAP's dirt is derived, never authored (B49): an
+animal's take puts a share of the manure on the floor she stands in on the
+taker's hands (a fouled byre, or a mucked-out one) and a liquid drawn by
+hand splashes the apron with what it is (`Producing.soilTheTaker`); a
+plant's tap dirties nothing. Butchery bloodies the apron and the hands; ⭐ an external
 bleed (a laceration, a puncture, an avulsion, an embedded object — not a
 rupture, which bleeds inward) stains the INNERMOST layer over the wound
 with the bleeder's own blood, the bare skin when nothing covers it, and a

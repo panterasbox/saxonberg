@@ -5,6 +5,9 @@
  * can carry a surface load.
  */
 import '../../../../test-bootstrap';
+import { ContainmentApi } from '../../../api/containment';
+import CartesianLocation from '../../location/CartesianLocation';
+import Floor from '../../../platform/thing/Floor';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducingMixin } from '../Producing';
 import { Creature } from '../../../lib/creature/Creature';
@@ -37,11 +40,6 @@ const TAPS: TapSpec[] = [
     behaviour: 'expire',
     windowDays: 1,
     yieldShape: 'volume',
-    // ⭐ (cleanliness D6) The take dirties the taker — the cow's own row.
-    soils: [
-      { kind: 'manure', amount: 0.3, where: 'hands' },
-      { kind: 'milk', amount: 0.1, where: 'apron' },
-    ],
   },
 ];
 
@@ -185,8 +183,13 @@ describe('the hand on the milk', () => {
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
   });
 
-  it('⭐ (cleanliness D6) the take soils the taker — AFTER the milk is drawn', async () => {
+  it('⭐ (cleanliness D6) the take soils the taker by the byre — AFTER the milk is drawn', async () => {
     const c = cow();
+    const byre = makeStuff(() => new CartesianLocation());
+    ContainmentApi.move(c as never, byre as never);
+    const floor = makeStuff(() => new Floor());
+    vi.spyOn(byre, 'getFloor').mockReturnValue(floor as never);
+    floor.soil('manure', 1); // a fouled byre
     const who = milker();
     advance(0.5 * DAY);
     const p = pail(() => new FoodPail());
@@ -194,17 +197,17 @@ describe('the hand on the milk', () => {
     // The first milk with clean hands is clean…
     const slot = BulkableApi.slotFor(p, undefined)!;
     expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
-    // …and the hands are dung-spattered now.
-    expect(who.soilKinds()).toContain('manure');
+    // …and the hands are dung-spattered now, from the floor she stood in.
+    expect(who.soilKinds('body.arm.left.hand').concat(who.soilKinds())).toContain('manure');
   });
 
-  it('a tap that authors no `soils` leaves nothing on the hands', async () => {
+  it('⭐ a cow from a clean byre leaves the hands clean (only the pail splashes)', async () => {
     const c = cow();
     const who = milker();
-    vi.spyOn(c, 'taps').mockReturnValue([{ ...TAPS[0]!, soils: undefined }]);
     advance(0.5 * DAY);
     const p = pail(() => new FoodPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
-    expect(who.soilKinds()).toEqual([]);
+    const hands = who.handSites().flatMap((h) => who.soilKinds(h));
+    expect(hands).not.toContain('manure');
   });
 });

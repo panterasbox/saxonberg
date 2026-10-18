@@ -1752,8 +1752,8 @@ the feed was dropped. It folds the source payload through
 
 ## What making dirties, and the kitchen tier (2026-10-17)
 
-`Recipe.soils` (and `TapSpec.soils`, `WorkResult.soils`) name what a
-making deposits and where; the maker lands it (`Attired.soilFrom`). A
+`Recipe.soils` (and `WorkResult.soils`; a tap's is derived — cleanliness B49) name what a
+making deposits and where; the maker lands it (`Hygiene.soilFrom`). A
 Soilable tool short of *sanitised* — and a dirty hand — inoculates the
 perishable inputs before the working's kill. `boil <cloth> in <pot>` and
 `heat <instrument>` stamp the heat the clean tiers read. See [cleanliness.md](./cleanliness.md).
