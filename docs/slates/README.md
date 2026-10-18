@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**299 slates.** 72 greenfield · 102 continuations · 63 waves · 62 tails.
+**300 slates.** 72 greenfield · 102 continuations · 63 waves · 63 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (72)
 
@@ -49,7 +49,6 @@ respect.
 | [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the butcher-or-offer fork + the recognition-never-reward guardrail … |
 | [amendment-library](./builds/amendment-library-slate.md) | the catalog Document + module registry + the adoption path over Art. X · the v1 standard-library modules as amendment documents (due process · free expression · term limits … |
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
-| [assembly](./tails/assembly-slate.md) | the `Joint` **ROW** vocabulary (condition · operation · strength · reversibility … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [attribution](./builds/attribution-slate.md) | ⭐ **the observe-only sampler** (§ 4 — the one new instrument, and the thing to prototype first) · the **bucketed use counter** (§ 4a — the denominator) · the offline RAM rating table (§ 4d) · the mint ledger … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
@@ -64,7 +63,6 @@ respect.
 | [content-declaration](./builds/content-declaration-slate.md) | the declaration schema itself (the field list) · the |
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
-| [dairy](./builds/dairy-slate.md) | the dairy as a business (the hourly tap and the hired hand) · pasteurization on the shipped kill curve · cheese as a maturation profile with whey as the lees · butter and cream as mechanical process … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
@@ -91,6 +89,7 @@ respect.
 | [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
+| [moulding](./builds/moulding-slate.md) | ✅ five rulings (§ 0) · **impressions** — a mould taken from any object (shape copies, identity never) · **pressing** as a load on a mould · **the pour can fail**, on physics already in the rows (a mould that cannot survive the pour, a misrun, a damp mould, shrinkage, draft) … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
@@ -100,6 +99,7 @@ respect.
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
+| [repair](./builds/repair-slate.md) | ✅ three rulings so far (§ 0: *a bad repair is possible*; *the mixin composes on the FAMILIES*; *seats are AUTHORED only* — the owner, 2026-10-16) · the per-part gate on the maker's discipline · the failure mode, deterministic · the paid service performed by a person … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging to be **DESIGNED** (not built — § below) |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
@@ -295,7 +295,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (62)
+## Tails — small and opportunistic (63)
 
 | slate | left |
 |---|---|
@@ -303,6 +303,7 @@ are the named remainders.
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — denies + `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()` for non-staff verbs (chat gag-as-deny, channel post/moderate roles, guild kick, field masks) + deny-wins composition · the location/context source · the lease-vs-quota design question, which should not ride the audit sink's cycle |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled — and ⭐ the prefix is an **MQL string**, 2026-09-25) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) · ⭐⭐ **the collision-resolution ladder** (below) |
 | [apiculture](./tails/apiculture-slate.md) | ⛔⛔ **NO ACT RESOLVES `crush-comb` OR `spin-comb`** — two authored recipes a player cannot run, and the comb→honey rung of the trade's own epoch ladder (see below) |
+| [assembly](./tails/assembly-slate.md) | the deferred seams in § *Left after the build* (the furniture family's second half, casks that are not Vats, the threaded fastener, humidity in seasoning, the sawmill's water right) + four small code tidies the pre-merge audit recorded rather than fixed. |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
@@ -361,15 +362,6 @@ are the named remainders.
 | [wiki](./tails/wiki-slate.md) | the level-3 source embed · the rest of the transclusion palette (page-card) · the diegetic narrative front · anonymous pre-auth read (Q5) … |
 | [wire-suite-growth](./tails/wire-suite-growth-slate.md) | boot groups · the compressed-clock group (farming's arc as its first customer) · farming's yard legs (the one-actor problem) · metal-chain's provisioning leg … |
 | [world-scan-perf](./tails/world-scan-perf-slate.md) | MQL grammar for the specialized rosters (D5, "later if at all") · an active-mixin selector `[active.X]` if anything ever wants one (Q1's residue) |
-
-## ⚠ Misfiled — the folder disagrees with the size
-
-The folder is derived: a build lives in `builds/`, a wave or a
-tail in `tails/`. These need moving or re-stamping.
-
-| slate | size | folder |
-|---|---|---|
-| [assembly](./tails/assembly-slate.md) | a build | `tails/` |
 
 <!-- END GENERATED -->
 

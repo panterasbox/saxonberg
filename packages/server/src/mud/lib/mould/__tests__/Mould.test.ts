@@ -198,6 +198,15 @@ describe('moulds — the container decides the shape', () => {
     expect(contentsOf(r)).toHaveLength(2); // the pail and the lump
   });
 
+  it('⭐ a cast remembers WHICH TRADE its mould is — the trade that mends it (repair D1)', async () => {
+    const m = fillVessel(mould(BLOCK), water(), 1, 150);
+    m.setDiscipline('smelting');
+    m.reconcilePhase();
+    await settle();
+    const cast = contentsOf(m)[0] as unknown as { getCastDiscipline(): string };
+    expect(cast.getCastDiscipline()).toBe('smelting');
+  });
+
   it('a cracked mould casts a lump; a whole one wears by wearPerCast', async () => {
     const broken = fillVessel(mould(BLOCK), water(), 1, 150);
     broken.setCondition(0);

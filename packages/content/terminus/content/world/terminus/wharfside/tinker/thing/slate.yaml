@@ -1,0 +1,18 @@
+# The tinker's slate at his yard (repair D15) — a mend priced BY DIAGNOSIS: when
+# the tinker is here on his round he looks it over and names each fault
+# and its price before he takes a coin; when he is not, there is nobody
+# to do the work. Iron mends well only where there is a fire.
+class: /platform/thing/Tariff
+data:
+  shortDescription: tinker's slate
+  keywords: [slate, tariff, tinker, "tinker's", mending]
+  register: indefinite
+  longDescription: |
+    A slate on a nail, chalked MENDS — POTS — EDGES — HAFTS, with a figure, and under it the round in a smaller hand: the yard at six, the crossroads at eight, the valley gate at ten, the crossroads at noon, the smelter at two.
+  mass: 1.2
+  _materialPath: /stuff/idea/material/rock/slate
+  prices:
+    repair: 4
+    tighten: 1
+  services:
+    repair: repair

@@ -1,0 +1,19 @@
+# The cobbler's slate (repair D16) — a mend priced BY DIAGNOSIS: the
+# cobbler on shift looks the boots over and names what is wrong and what
+# it costs before any money is taken. A worn sole is `repair`; a sole that
+# has gone right through is a new one fitted, which is a different trade
+# (`fit sole to boots`, at the bench).
+class: /platform/thing/Tariff
+data:
+  shortDescription: cobbler's slate
+  keywords: [slate, tariff, prices, mending, cobbler]
+  register: indefinite
+  longDescription: |
+    A slate nailed beside the door. SOLES & HEELS, it says, and under that MENDING, and a figure against each, and under everything, in a different chalk: BOOTS NOT CALLED FOR IN A MONTH WILL BE SOLD.
+  mass: 1.2
+  _materialPath: /stuff/idea/material/rock/slate
+  prices:
+    repair: 4
+    tighten: 1
+  services:
+    repair: repair

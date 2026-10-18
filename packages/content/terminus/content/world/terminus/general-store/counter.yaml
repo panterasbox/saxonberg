@@ -40,6 +40,10 @@ data:
     # was a tin nobody could light. See the row's own header.
     - { itemTemplatePath: /trade/apiculture/thing/sacking, par: 4 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
+    # ⭐ A billhook (repair W5): an edged tool you can buy, so `sharpen`
+    # has an edge to find outside a weapon, and the hook comes apart into a
+    # blade and a handle — the drive's first lesson in parts.
+    - { itemTemplatePath: /trade/forestry/thing/billhook, par: 1 }
     # ⭐⭐ **Armour, finally BUYABLE.** Six armour rows shipped months ago
     # and not one was referenced by any `props:`, `cast:` or stock line —
     # so the whole outside-in covering model (the resist fold, the layer
@@ -368,6 +372,9 @@ data:
     # beekeeper's consumable has to cost less than the honey it saves.
     /trade/apiculture/thing/sacking: 1
     /world/terminus/general-store/thing/whetstone: 3
+    # A billhook between the clasp-knife and the lantern: an afternoon's
+    # wages for a tool that earns its keep in the coppice.
+    /trade/forestry/thing/billhook: 8
     # ⚠ Priced against the shipped ladder (stipend 20, wages 4-6 per
     # game-hour, bed 45, wagon 95), not as a balance claim. The shape is
     # the claim: boots are an afternoon's wages and a breastplate is a

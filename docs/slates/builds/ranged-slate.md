@@ -26,7 +26,7 @@ reserved — **all** ranged delivery, uniformly: bows, crossbows,
 slings, thrown blades, **guns** (the worked hard case, chosen first
 because it is hardest), and **thrown effect-carriers** (the potion
 that does its thing on impact). Prior art:
-`docs/newbie/{gun,mag,ammo}.doc` — the user's decades-old GunCode
+`~/play/eotl/mudlib/doc/mudlib/{gun,mag,ammo}.doc` — the user's decades-old GunCode
 design, re-examined below; more of it survives than its original
 audience believed.
 

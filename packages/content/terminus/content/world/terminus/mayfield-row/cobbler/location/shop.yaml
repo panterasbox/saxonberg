@@ -1,0 +1,39 @@
+# The cobbler's shop (repair D16) — where boots come back from the dead.
+#
+# ⭐ A city trade with a door on the street, not a tinker's stop: the
+# cobbler does here what the tinker does on the road, for one kind of
+# thing, better. `order repair boots` at the slate; `sew sole` at the
+# bench to make what a re-soling wants.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "cobbler's shop"
+  keywords: [shop, cobbler, cobblers, "cobbler's"]
+  register: definite
+  longDescription: |
+    A low room that smells of leather and wax and feet. A bench under the window with an iron last bolted to it, a rack of boots waiting with paper tickets in their mouths, and a box of soles cut and stacked like slices of bread.
+
+    Everything here has been walked a long way in by somebody, and is going to be walked a long way again.
+  # No ambient of its own: lit by spill from the row through the open
+  # door, like the tailor's two doors down.
+  exits:
+    row:
+      destination: /world/terminus/mayfield-row/street
+  props:
+    - /world/terminus/mayfield-row/cobbler/thing/slate
+    # ⭐ The last-and-awl paces a mend (`mending`); the needle-case is
+    # what makes `sew` sayable here, so the cobbler can MAKE a sole.
+    - /world/terminus/mayfield-row/cobbler/thing/last-and-awl
+    - /trade/tailoring/thing/needle-case
+    # Leather to mend with, and soles and uppers cut ready — a re-soling
+    # draws a sole, a patch draws hide.
+    - { template: /stuff/thing/items/hide-stock, count: 2 }
+    # ⭐ What a patch is CUT from — a mend draws offcuts by weight.
+    - /trade/tanning/thing/leather-offcuts
+    - { template: /trade/tanning/thing/sole, count: 4 }
+    - { template: /trade/tailoring/thing/boot-upper, count: 2 }
+  cast:
+    - /world/terminus/mayfield-row/cobbler/agent/cobbler

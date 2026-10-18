@@ -48,6 +48,12 @@ data:
     # CONSEQUENCE of employment state, so the move belongs to the roster
     # tick that owns the state — `offstage:` on the house, `station:` on
     # the seat. See docs/subsystems/employment.md.
+    # ⭐ On shift she keeps the forge going from the smithy's charcoal —
+    # nothing else in the game ever lit it, so every metal mend she was
+    # paid for was refused (the repair build's browser walk). A `work`
+    # beat, so it outranks the idle business below.
+    - brain: /lib/behavior/stokes
+      trigger: candidate
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

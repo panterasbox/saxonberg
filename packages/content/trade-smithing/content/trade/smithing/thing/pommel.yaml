@@ -1,0 +1,13 @@
+# A sword's POMMEL (repair D17): the counterweight the tang is peened
+# over — the fastener of the hilt, and the part a re-hilting costs.
+class: /platform/thing/Tool
+data:
+  keywords: [pommel]
+  shortDescription: pommel
+  register: indefinite
+  longDescription: >-
+    A heavy wheel of iron bored through the middle, flat on one face and
+    domed on the other, to sit at the end of a hilt and balance a blade.
+  mass: 0.13
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

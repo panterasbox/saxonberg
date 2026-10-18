@@ -1,0 +1,28 @@
+# The tinker's yard (repair D15) — where his round starts at six and his
+# cart stands between rounds. Off the bank, behind the warehouses.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "tinker's yard"
+  keywords: [yard, tinker, "tinker's", cart]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    A cobbled slot between two warehouse walls, just wide enough for a handcart. The cart is here when he is: a grinding wheel on a frame, a box of odd iron, a rack of handles in every length, and a slate hung off the back.
+
+    A chalked line on the wall reads the round, and somebody has rubbed the hours out and written them in again more than once.
+  exits:
+    bank:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    # His own slate — the round starts here at six.
+    - /world/terminus/wharfside/tinker/thing/slate
+  cast:
+    - /world/terminus/wharfside/tinker/agent/tinker

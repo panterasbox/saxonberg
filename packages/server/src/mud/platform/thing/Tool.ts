@@ -23,12 +23,29 @@
  * durable-good half). Backs the bar's shaker / mixing-glass (and any future
  * strainer / muddler); capabilities + condition are authored in each seed's
  * `data:`.
+ *
+ * ⭐⭐ **Parts or one piece, one class** (repair D3, D4). A pick is a head
+ * wedged on a haft; a whetstone is one piece; both are tools. The family
+ * composes `AssembledMixin` and every method of it is total on a thing
+ * with no bill — a row with a `bill:` is made of parts, a row without one
+ * is one piece and says so. (Until 2026-10-17 a narrow `AssembledTool`
+ * twin carried the rows with bills; two classes for a shovel was the
+ * wrong answer to "is this made of parts".)
+ *
+ * And it has a FORM and an EDGE (`Constructed` + `Keen`, exactly
+ * `Weapon`'s claim): a billhook is `bladed` and honed by `sharpen`, a
+ * hammer has no edge form and its keenness is inert. An edge is derived
+ * from the form word, never a predicate on the host set.
  */
 
 import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
+import { ConstructedMixin } from '../../lib/material/Constructed';
+import { KeenMixin } from '../../lib/material/Keen';
+import { AssembledMixin } from '../../lib/craft/Assembled';
+import { NamedMixin } from '../../lib/description/Named';
 
 // CraftedMixin closes the tools-make-tools loop: a Tool can be a
 // recipe output (smithing makes the hammer smithing needs); the mark
@@ -50,6 +67,15 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
-const ToolBase = CraftedMixin(ToolMixin(DurableMixin(Good)));
+//
+// ⭐ Named BENEATH Assembled (repair D18): a tool may bear a proper name —
+// the grandfather's axe, a sword's blade lying loose — and an assembly's
+// name lives in the part that bears it, so `Assembled.getName` reads the
+// named part before this field.
+const ToolBase = AssembledMixin(
+  NamedMixin(
+    KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good))))),
+  ),
+);
 
 export default class Tool extends ToolBase {}

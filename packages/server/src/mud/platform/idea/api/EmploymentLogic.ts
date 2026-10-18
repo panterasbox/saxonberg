@@ -972,26 +972,27 @@ async function moveForShift(
   assignment: RosterAssignment,
   actor: Stuff,
   onShift: boolean,
-): Promise<void> {
-  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return;
+): Promise<string | null> {
+  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return null;
   if (!onShift) {
     const offstage = business.getOffstage();
-    if (!offstage) return;
+    if (!offstage) return null;
     try {
       // ⭐ The one legitimate clone here: an offstage room is
       // materialized on demand and nothing else owns it.
       const dest = await StuffApi.singletonOrClone(offstage);
-      if (!MixinApi.isContainer(dest)) return;
+      if (!MixinApi.isContainer(dest)) return null;
       const current = actor.getContainer();
-      if (current && current.stuffId === dest.stuffId) return;
+      if (current && current.stuffId === dest.stuffId) return offstage;
       actor.teleport(dest as Stuff & Container);
+      return offstage;
     } catch (err) {
       console.error(
         `EmploymentLogic: shift move offstage to '${offstage}' failed`,
         err,
       );
     }
-    return;
+    return null;
   }
 
   /**
@@ -1032,18 +1033,20 @@ async function moveForShift(
       break;
     }
   }
-  if (!place) return;
+  if (!place) return null;
   try {
     const dest = place;
     const current = actor.getContainer();
-    if (current && current.stuffId === dest.stuffId) return;
+    if (current && current.stuffId === dest.stuffId) return targetPath;
     actor.teleport(dest as Stuff & Container);
+    return targetPath;
   } catch (err) {
     console.error(
       `EmploymentLogic: shift move to '${targetPath}' failed`,
       err,
     );
   }
+  return null;
 }
 
 /**
@@ -1656,6 +1659,13 @@ export class EmploymentLogic extends ApiLogic {
    * returned EARLY when the business was already live, so the one venue that
    * needed the pass never got it. It calls this now.
    */
+  /**
+   * Where each round (assignee + seat) was last moved to while on shift —
+   * so a station change mid-shift moves them, and an unchanged one does
+   * not. A cache: empty after a restart, which re-moves once.
+   */
+  private shiftStations = new Map<string, { slot: number; at: string }>();
+
   private tickBusiness(
     business: BusinessStuff,
     date: ReturnType<InstanceType<typeof DefaultCalendar>['decompose']>,
@@ -1670,7 +1680,20 @@ export class EmploymentLogic extends ApiLogic {
     // ⭐ The house's local season rides the clock (storage-and-ice D20):
     // read only by a season-bound window, so every other roster is as it was.
     const clock = { ...date, season: this.seasonOf(business, nowRaw) };
+    // ⭐⭐ A ROUND is roster slots (repair D13): one assignee holding one
+    // seat on several slots is ONE shift — on at the first slot that says
+    // so, off at the last — and the station follows the hour. Evaluated
+    // per assignee, never per slot: two slots evaluated apart had a later
+    // slot's off-turn end the shift an earlier slot had just begun.
+    const rounds = new Map<string, RosterAssignment[]>();
     for (const assignment of roster.getAssignments()) {
+      const key = `${assignment.assignee}\u0000${assignment.positionKey}`;
+      const slots = rounds.get(key);
+      if (slots) slots.push(assignment);
+      else rounds.set(key, [assignment]);
+    }
+    for (const [roundKey, slots] of rounds) {
+      const assignment = slots[0]!;
       const actor = StuffApi.findByTemplatePath(assignment.assignee);
       if (!actor || !MixinApi.isEmployed(actor)) {
         console.warn(
@@ -1702,12 +1725,34 @@ export class EmploymentLogic extends ApiLogic {
       }
       if (TERMINAL.includes(emp.status)) continue;
 
-      const desired = roster.evaluate(assignment, clock);
+      // The slot the clock is in now — the first in file order (the
+      // overlap is refused by `lint:openings`). `Roster.evaluate` per slot
+      // stays the ONE on-test (repair P4: a season-aware clock rides it).
+      const onSlot = slots.find((a) => roster.evaluate(a, clock) === 'on-shift') ?? null;
+      const slotIndex = onSlot ? slots.indexOf(onSlot) : -1;
+      const desired = onSlot ? 'on-shift' : 'off-shift';
       const currentlyOn = emp.status === 'on-shift';
-      if (desired === 'on-shift' && !currentlyOn) {
+      const moveTo = (slot: RosterAssignment): void => {
+        void moveForShift(business, slot, actor, true).then((landed) => {
+          // ⭐ Remember the slot and WHERE it landed — a stop that is not
+          // standing falls back to the house's room, and is taken on a
+          // later pass once it stands.
+          if (landed) this.shiftStations.set(roundKey, { slot: slotIndex, at: landed });
+        });
+      };
+      const was = this.shiftStations.get(roundKey);
+      const stray =
+        !!onSlot &&
+        (!was || was.slot !== slotIndex || (!!onSlot.station && was.at !== onSlot.station));
+      if (onSlot && !currentlyOn) {
         business.beginShift(employed, nowRaw);
-        void moveForShift(business, assignment, actor, true);
+        moveTo(onSlot);
+      } else if (onSlot && currentlyOn && stray) {
+        // ⭐ Mid-shift, the hour moved the round to its next stop. A
+        // restart re-moves once (the map starts empty).
+        moveTo(onSlot);
       } else if (desired === 'off-shift' && currentlyOn) {
+        this.shiftStations.delete(roundKey);
         // Settle off the captured record (has `onShiftSince`) at this
         // tick's instant, before the synchronous clear below — no race.
         void settleShiftWageImpl(

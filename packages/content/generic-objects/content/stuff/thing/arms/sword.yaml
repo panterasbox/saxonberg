@@ -32,3 +32,16 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ An arming sword is the blades practice itself.
   exercises: [blades]
+  # ⭐ A sword is FOUR parts (repair D17): the blade (where a name lives),
+  # a guard, a grip and a pommel, the tang peened over the pommel. Taken
+  # apart the blade comes away whole and the pommel does not; a re-hilt is
+  # a new grip, a new pommel and the old blade.
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/sword-blade, count: 1, role: structural, material: /stuff/idea/material/alloy/steel, form: bladed }
+      - { part: guard, template: /trade/smithing/thing/crossguard, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: grip, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: pommel, template: /trade/smithing/thing/pommel, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: hilting, method: peened, members: [blade, guard, grip], fastener: pommel }
+

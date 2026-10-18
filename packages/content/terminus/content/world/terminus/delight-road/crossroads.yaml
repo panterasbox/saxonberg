@@ -61,6 +61,11 @@ data:
       destination: /world/terminus/hollow-mere/location/road
       media: [ground]
       edgeMinutes: 30
+  props:
+    # ⭐ The tinker's stop (repair D15): his slate, and his round on the
+    # fingerpost. He stands here at eight and at noon.
+    - /world/terminus/delight-road/thing/tinkers-slate
+    - /world/terminus/delight-road/thing/tinkers-notice
   details:
     stone:
       keywords: [stone, inscription, marker, slab]

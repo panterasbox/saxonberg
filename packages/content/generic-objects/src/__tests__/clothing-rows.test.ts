@@ -95,7 +95,7 @@ describe("every worn row is a real physical object", () => {
     // breastplate and a linen shirt resolve through the same code
     // because the blow asks the material and the form, never the class.
     for (const row of ALL) {
-      expect(row.class).toMatch(/\/platform\/thing\/equipment\/(Garment|DisguiseGarment|AssembledGarment)$/);
+      expect(row.class).toMatch(/\/platform\/thing\/equipment\/(Garment|DisguiseGarment)$/);
     }
     expect(ALL.some((r) => r.class.endsWith("/Armor"))).toBe(false);
   });

@@ -9,4 +9,7 @@ data:
     A curved blade set across its eye like a hoe's, the edge ground on the inside of the curve.
   mass: 1.0
   capabilities: []
+  # ⭐ An EDGE (repair D3): the form word is what makes it honable —
+  # `sharpen` reaches it loose, and through the whole it is fitted in.
+  constructionForm: bladed
   _materialPath: /stuff/idea/material/alloy/steel

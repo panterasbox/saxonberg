@@ -445,6 +445,16 @@ export class BankingApi {
     return logic().settle(charge, method);
   }
 
+  /**
+   * ⭐ Could the person acting pay `amount` now — by their payment
+   * credential's balance, or by coin in hand? Read-only; asked BEFORE a
+   * service is performed, so a mend nobody can pay for is refused rather
+   * than done on the house (repair P1).
+   */
+  public static canSettle(amount: Money): boolean {
+    return logic().canSettle(amount);
+  }
+
   /** The acting owner's routing payment credential (implant-first), or null. */
   public static activeCredential(): PaymentCredential | null {
     return logic().activeCredential();
