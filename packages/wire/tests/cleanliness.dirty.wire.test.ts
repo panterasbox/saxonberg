@@ -270,11 +270,14 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
 
 async function buy(s: Session, item: string): Promise<void> {
   // ⚠ A fresh world's first sale stocks the counter to par, and on a
-  // loaded machine that can outlast the harness's 30 s — once.
-  const said = await say(s, `buy ${item}`).catch(async () => {
-    await s.drainProse();
-    return say(s, `buy ${item}`);
-  });
+  // loaded machine that can outlast the harness's 30 s.
+  let said = '';
+  for (let attempt = 0; attempt < 3 && !/you buy/i.test(said); attempt++) {
+    said = await say(s, `buy ${item}`).catch(async () => {
+      await s.drainProse();
+      return '';
+    });
+  }
   expect(said, `buy ${item}: ${said}`).toMatch(/you buy/i);
 }
 
@@ -306,9 +309,9 @@ suite('⭐ the new places stand (the boot, and the five reachability links)', ()
   it('the bathhouse is north of the square; the copper is hot and the tubs are there', async () => {
     const s = await newPlayer('baths', SQUARE);
     await say(s, 'go north');
-    const slate = await say(s, 'menu');
-    expect(slate, `menu at the bathhouse: ${slate}`).toMatch(/bath/i);
     await say(s, 'go north');
+    const slate = await say(s, 'menu');
+    expect(slate, `menu at the baths: ${slate}`).toMatch(/bath/i);
     const copper = await examine(s, 'copper');
     expect(copper, `the copper: ${copper}`).toMatch(/copper/i);
     const tub = await examine(s, 'tub');
@@ -524,11 +527,13 @@ suite('⭐ drive 14 — mill dust hangs in the mill house; swept, it settles (AC
     // A trained nose for the air: the free read names what is OBVIOUS to
     // anyone, and a flammable share of flour is well under that.
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
-    for (let i = 0; i < 2; i++) {
+    // Three grinds close together: a long jump between them airs the
+    // dust out of the house, which is the point of a draught.
+    for (let i = 0; i < 3; i++) {
       await cloneHere(MILL_HOUSE, T.wheat);
       // ⚠ `corn`, not `wheat`: the flour sacks answer to `wheat` too.
       await say(s, 'mill corn 0.72');
-      await advanceWorldClock('2 hours');
+      await advanceWorldClock('20 minutes');
     }
     await s.listen(3_000);
     await s.drainProse();
@@ -551,7 +556,7 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
     const floor = await examine(s, 'floor');
     expect(floor, `the byre floor: ${floor}`).toMatch(/manure|dung|filthy|soiled/i);
     await act(s, 'muck with broom');
-    const heap = await examine(s, 'muck');
+    const heap = await mine(s, 'muck');
     expect(heap, `the heap: ${heap}`).toMatch(/muck|manure|dung/i);
     s.close();
   }, 300_000);
@@ -579,7 +584,7 @@ suite('⭐⭐ drive 18 — the laundress at her band, and the house that pays (A
   }, 300_000);
 
   it('⭐⭐ the bath attendant boils a wool coat and felts it — and the house answers for it', async () => {
-    const s = await goTo(cookHandle, VESTIBULE);
+    const s = await goTo(cookHandle, BATHS);
     const done = await sayYes(s, 'order wash jumper');
     expect(done, `the attendant's wash: ${done}`).toMatch(/felted|shrunk/i);
     const after = await s.listen(3_000);

@@ -22,6 +22,11 @@ data:
     - { template: /stuff/thing/fixture/tub, count: 3 }
     - /trade/chandlery/thing/soap-bar
     - /stuff/thing/fixture/midden
+    # ⭐ The slate and the attendant where the work is (found by the
+    # drive): a paid service is done by a hand in the room with the tubs.
+    - /world/terminus/market/bathhouse/thing/tariff
+  cast:
+    - /world/terminus/market/bathhouse/agent/attendant
   details:
     windows:
       keywords: [windows, window]

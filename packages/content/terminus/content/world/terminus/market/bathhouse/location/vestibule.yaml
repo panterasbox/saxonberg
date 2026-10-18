@@ -9,7 +9,7 @@ data:
   keywords: [vestibule, bathhouse, entrance, hall]
   register: definite
   longDescription: |
-    A warm tiled hall that smells of steam and soap, with a bench along one wall for boots and a slate by the inner door with the prices on it. Warm damp air comes through from the baths beyond; a second door, propped open, gives onto the thump of a gymnasium.
+    A warm tiled hall that smells of steam and soap, with a bench along one wall for boots and a doorway through to the baths where the prices are chalked up. Warm damp air comes through from the baths beyond; a second door, propped open, gives onto the thump of a gymnasium.
   exits:
     south:
       destination: /world/terminus/market/square
@@ -23,10 +23,6 @@ data:
       destination: /world/terminus/market/bathhouse/location/gym
       media: [ground]
       edgeMinutes: 1
-  props:
-    - /world/terminus/market/bathhouse/thing/tariff
-  cast:
-    - /world/terminus/market/bathhouse/agent/attendant
   details:
     windows:
       keywords: [windows, window]
