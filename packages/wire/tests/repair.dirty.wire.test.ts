@@ -377,7 +377,12 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
       let lit = '';
       for (let i = 0; i < 12 && !/true/.test(lit); i++) {
         await new Promise((r) => setTimeout(r, 10_000));
-        lit = await evalOn(SMELTER, 'furnace', 'this.isLit()').catch((e) => String(e));
+        // Read off the tinker (one of him; `--on furnace` matched two).
+        lit = await evalOn(
+          SMELTER,
+          'tinker',
+          "String(this.getContainer().getContents().filter((c) => MixinApi.isBurner(c)).map((c) => c.isLit()))",
+        ).catch((e) => String(e));
       }
       console.log(`[repair drive] d6: the smelter furnace lit by the tinker → ${lit}`);
       expect(lit, `the tinker lights the smelter's fire: ${lit}`).toMatch(/true/);
@@ -395,8 +400,10 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
     } finally {
       at.close();
       await toHour(12);
+      // In the finally: a failure here must not leave the later drives a
+      // closed session (run 16's drive 9 cascaded from exactly that).
+      mender = await goTo(pickHandle, SMITHY);
     }
-    mender = await goTo(pickHandle, SMITHY);
   }, 600_000);
 });
 
