@@ -197,11 +197,23 @@ async function feel(s: Session): Promise<string> {
  * walk interrupts it). Returns everything said meanwhile.
  */
 async function dress(s: Session, line: string): Promise<string> {
-  const r = await s.cmd(line);
-  const said = squash(plain(await r.said()));
+  // ⚠ "You take off …" prints as the undressing STARTS; the act runs on.
+  // A hand still busy with the last one is waited out, not failed.
+  let said = '';
+  for (let tries = 0; tries < 8; tries++) {
+    const r = await s.cmd(line);
+    said = squash(plain(await r.said()));
+    if (!/hands are busy/i.test(said)) break;
+    await new Promise((res) => setTimeout(res, 5_000));
+  }
   expect(understood(said), `'${line}' was not understood: ${said}`).toBe(true);
-  // The completion line ("You put on …") arrives on the act's own clock.
-  const later = squash(await s.listen(8_000));
+  // The completion line ("You put on …") arrives on the act's own clock,
+  // and a don time is derived from the garment: listen until it reports.
+  const done = /you put on|you take off|you dress|put nothing on|nothing to|not cut|occupied|aren't wearing/i;
+  let later = '';
+  for (let waited = 0; waited < 45_000 && !done.test(`${said} ${later}`); waited += 5_000) {
+    later = `${later} ${squash(await s.listen(5_000))}`.trim();
+  }
   // eslint-disable-next-line no-console -- the drive's own record
   console.log(`  [drive] ${s.handle.slice(0, 18)} > ${line}\n          ${said} ${later}`.slice(0, 500));
   return `${said} ${later}`;
@@ -504,11 +516,12 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     seller.close();
     const leather = await at(lh, CATWALK);
     const rubber = await at(rh, CATWALK);
-    const inL = await say(leather, 'down');
-    const inR = await say(rubber, 'down');
-    await new Promise((r) => setTimeout(r, 3_000));
-    const l = await examine(leather, 'me');
-    const r = await examine(rubber, 'me');
+    // ⚠ The shock is narrated on its own clock, after the arrival: listen
+    // for it, and read the body the way a player would (`look me`).
+    const inL = `${await say(leather, 'down')} ${squash(await leather.listen(6_000))}`;
+    const inR = `${await say(rubber, 'down')} ${squash(await rubber.listen(6_000))}`;
+    const l = `${await examine(leather, 'me')} ${await say(leather, 'look me')}`;
+    const r = `${await examine(rubber, 'me')} ${await say(rubber, 'look me')}`;
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] leather wade: ${inL.slice(0, 200)}\n          rubber wade: ${inR.slice(0, 200)}`);
     expect(`${inL} ${l}`).toMatch(/shock|jolt|burn|current|spasm/i);
