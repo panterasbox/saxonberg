@@ -179,6 +179,12 @@ export default class SapStandard extends SapStandardBase {
     // boring a hole into a stem that will not run for three months, and
     // the sentence a player wants is about the season rather than about
     // their auger.
+    // ⚠ A tap this stem does not give is the mixin's `no-such-tap`
+    // refusal, never a closed window with no reason (which every refusal
+    // below would read as "nothing has run yet").
+    if (!this.taps().some((t) => t.key === key)) {
+      return super.planTap(by, key, tool, vessel, what);
+    }
     await this.bringTapAirCurrent();
     const window = this.tapWindow(key);
     if (!window.open && window.reason !== null) {
