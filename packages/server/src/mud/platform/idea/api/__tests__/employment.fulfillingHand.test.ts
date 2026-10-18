@@ -9,7 +9,7 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { EmploymentApi } from "../../../../api/employment";
 import { CraftingApi } from "../../../../api/crafting";
 import { StuffApi } from "../../../../api/stuff";
