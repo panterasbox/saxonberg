@@ -241,7 +241,7 @@ export default class Stock extends StockBase {
     const want = Stock.leafWord(keyword);
     if (want === "") return null;
     for (const item of this.offeredItems()) {
-      if (Stock.leafWord(item.getTemplatePath().split("/").pop() ?? "") === want) {
+      if (Stock.leafWord((item.getTemplatePath() ?? "").split("/").pop() ?? "") === want) {
         return item;
       }
     }

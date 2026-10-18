@@ -713,11 +713,23 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
       const worn: Array<{ index: number; slots: string[] }> = [];
+      const wornOwned: Array<{ chattelId: string; slots: string[] }> = [];
       for (const [item, slots] of byItem) {
         const index = ctx.indexOf(item);
-        if (index >= 0) worn.push({ index, slots });
+        if (index >= 0) {
+          worn.push({ index, slots });
+        } else if (
+          MixinApi.isChattel(item) &&
+          item.isOwnerPersisted() &&
+          MixinApi.isContainable(item) &&
+          item.getContainer() === host
+        ) {
+          // An owned good rides the estate, not the contents order, so it
+          // has no index — name it by its chattel id instead.
+          wornOwned.push({ chattelId: item.getChattelId(), slots });
+        }
       }
-      return { worn };
+      return wornOwned.length > 0 ? { worn, wornOwned } : { worn };
     }
 
     static cleanupOnDestruct(stuff: Stuff): void {
