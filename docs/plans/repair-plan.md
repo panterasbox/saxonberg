@@ -2576,3 +2576,14 @@ Runs: 18 — 10/13 (the `name` verb); 19 — 12/13 (drive 9 passed; drive 12
 asked before the inventory restored); 20 — 11/13 (cold forge: charcoal);
 21 — 12/13 (drive 12: the restart wiped the name — defect 2); 22 —
 abandoned (a sibling world and load ~20, 1 GB free).
+
+⭐ **Run 23** — the world did not answer within the 15-minute boot budget
+(two sibling builds driving, load ~60 at peak; it opened late). **Run 24:
+13/13 on the final code** (`WIRE_BOOT_TIMEOUT=1800000`,
+`WIRE_FRAME_TIMEOUT=90000` — a loaded box, not a slow game): Berta lit her
+forge for drives 3 and 9, the tinker lit the smelter's furnace for drive
+6, drive 9 reforged *Hollin* and named it *Brightwater*, and drive 12
+found *Brightwater* after the restart. ⭐ **AC 13:** the assembly build's
+own drive (`assembly.dirty.wire.test.ts`) on the same tree — **23/23**:
+everything that build shipped still lists its parts and mends, fits and
+salvages.
