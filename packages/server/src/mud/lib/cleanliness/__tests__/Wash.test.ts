@@ -26,7 +26,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 const DIRT = [
-  { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7 },
+  { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7, brushLifts: 0.5 },
   { key: 'grease', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'alkali-strong', 'solvent'], waterLifts: 0.05 },
   {
     key: 'blood', form: 'stain', setsAboveK: 318, waterLifts: 0.5,
@@ -206,3 +206,25 @@ describe('what washing does to cloth (D10, AC 4–5)', () => {
     expect(g.getWetnessBand()).toBe('soaked');
   });
 });
+
+describe('⭐ brush what is loose, wash a film, bleach a stain (B46)', () => {
+  it('a brushing takes the dried mud off a coat and leaves the grease for the wash', () => {
+    const coat = garment();
+    coat.soil('mud', 0.6);
+    coat.soil('grease', 0.3);
+    const removed = coat.brushOff(3);
+    expect(removed.mud).toBeGreaterThan(0);
+    expect(coat.soilLoad('mud')).toBeLessThan(0.6);
+    expect(coat.soilLoad('grease')).toBeCloseTo(0.3, 5);
+  });
+
+  it('a SET stain gives nothing to a brush', () => {
+    const shirt = garment();
+    shirt.soil('blood', 0.5);
+    shirt.washSite(spec({ waterK: 330 }), '');
+    const before = shirt.soilLoad('blood');
+    expect(shirt.brushOff(3).blood).toBeUndefined();
+    expect(shirt.soilLoad('blood')).toBeCloseTo(before, 5);
+  });
+});
+

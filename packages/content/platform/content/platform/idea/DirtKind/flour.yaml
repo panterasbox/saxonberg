@@ -6,3 +6,4 @@ data:
   form: film
   answersTo: [surfactant, alkali-mild]
   waterLifts: 0.7
+  brushLifts: 0.8

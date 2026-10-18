@@ -1,0 +1,33 @@
+# `brush` — get the LOOSE dirt out of a thing without water (cleanliness,
+# review B46): a coat brushed down, a hat, a cushion, a rug taken out and
+# beaten. ⭐ The three cleaning acts by the dirt's own nature: BRUSH what is
+# loose (crumbs, ash, flour, dried mud), WASH a film (grease, sweat), BLEACH
+# a set stain. What a kind gives up to a brush is its row's `brushLifts`.
+#
+# Conferred by the instrument (`SweepingTool` — a clothes brush, a carpet
+# beater, a broom); a floor is SWEPT, not brushed.
+verbs: [brush, beat]
+controller: /platform/idea/cmd/inventory/BrushController
+description: "Brush or beat the loose dirt out of something"
+help: |
+  `brush coat`, `beat rug with beater` — what is loose comes out: crumbs,
+  grit, ash, flour, dried mud. Grease and sweat stay for the wash, and a
+  set stain for a bleach. A beater or a stiff brush does more than a broom.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: SoilableMixin
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "me:i:[capability.brushing or capability.sweeping],reachable:[capability.brushing or capability.sweeping]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

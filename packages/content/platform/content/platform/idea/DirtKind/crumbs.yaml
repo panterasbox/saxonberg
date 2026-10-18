@@ -7,3 +7,4 @@ data:
   form: debris
   answersTo: []
   waterLifts: 0.5
+  brushLifts: 0.9

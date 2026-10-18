@@ -1,0 +1,12 @@
+# A carpet beater — a loop of plaited cane on a handle (cleanliness, B46).
+# `beat rug`: a rug hung over a line and beaten gives up what a floor
+# gathers.
+class: /platform/thing/SweepingTool
+data:
+  shortDescription: carpet beater
+  keywords: [beater, "carpet beater", "carpet-beater", paddle]
+  register: indefinite
+  longDescription: A broad trefoil of plaited cane on a cane handle, for beating rugs over a line.
+  capabilities: [brushing]
+  _materialPath: /stuff/idea/material/wood/willow
+  mass: 0.4

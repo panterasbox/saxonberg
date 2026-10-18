@@ -137,6 +137,10 @@ function describe(data: unknown): DirtKindDescriptor | string {
     typeof d.waterLifts === "number" && Number.isFinite(d.waterLifts)
       ? Math.max(0, Math.min(1, d.waterLifts))
       : 0.3;
+  const brush =
+    typeof d.brushLifts === "number" && Number.isFinite(d.brushLifts)
+      ? Math.max(0, Math.min(1, d.brushLifts))
+      : 0;
   return {
     key: d.key,
     adjective:
@@ -153,6 +157,7 @@ function describe(data: unknown): DirtKindDescriptor | string {
     absorbedBy: d.absorbedBy === true,
     contaminates,
     waterLifts: lifts,
+    brushLifts: brush,
   };
 }
 

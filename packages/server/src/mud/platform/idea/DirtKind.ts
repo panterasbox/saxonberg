@@ -47,6 +47,10 @@ export interface DirtKindDescriptor {
   /** Water alone lifts this share per standard wash (mud a lot, grease
    * almost none). */
   waterLifts: number;
+  /** ⭐ A dry brushing (or a beating) lifts this share — what is LOOSE:
+   * crumbs, ash, flour, dried mud. Grease, sweat and a stain take nothing
+   * from a brush. 0 by default. */
+  brushLifts: number;
 }
 
 export default class DirtKind extends Idea {
@@ -62,6 +66,7 @@ export default class DirtKind extends Idea {
   public absorbedBy: boolean = false;
   public contaminates: Record<string, number> = {};
   public waterLifts: number = 0.3;
+  public brushLifts: number = 0;
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
@@ -73,6 +78,7 @@ export default class DirtKind extends Idea {
     absorbedBy: { persistent: true },
     contaminates: { persistent: true },
     waterLifts: { persistent: true },
+    brushLifts: { persistent: true },
   };
 
   public getKey(): string {

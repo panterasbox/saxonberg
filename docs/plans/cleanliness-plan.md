@@ -2831,6 +2831,17 @@ Read first, in this order.
   `leaveCrumbs`, `Vitals.loseBlood` (B44's bleed), the heap mint inlined
   in `Floor.sweepInto` / `Burner.rakeGrate`.
 
+- **B46 — `beat` is `brush`** (review: *"is it ever going to take any
+  target that's not a rug?"*). One verb for the loose dirt out of any
+  Soilable thing, dry — `Soilable.brushOff(effort)` over a new DirtKind
+  field `brushLifts` (crumbs 0.9, ash/flour 0.8, mud 0.5, soot 0.3, manure
+  0.2; grease, sweat, milk, blood nothing) — so brush, wash and bleach split
+  the dirt by its own nature. Conferred by `SweepingTool` (a new clothes
+  brush and carpet beater, `capability: brushing`, stocked at the store;
+  a broom does it worse); `beat` is its alias; `Rug` confers nothing now. A
+  floor is swept. `boil`'s rework (immersion takes the liquid's heat) and
+  the narrow-verb audit → `verb-interfaces-slate`.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

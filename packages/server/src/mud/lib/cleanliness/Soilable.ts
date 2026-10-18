@@ -208,6 +208,13 @@ export interface Soilable {
    */
   holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void;
   /**
+   * ⭐ Brush it — or beat it — dry (cleanliness, review B46): each kind
+   * gives up its `brushLifts` share, scaled by the effort (a beater on a
+   * rug, a clothes brush on a coat). What is loose comes out; a film or a
+   * stain stays for the wash. Returns what came off, by kind.
+   */
+  brushOff(effort: number, site?: string): Record<string, number>;
+  /**
    * ⭐ How clean, in the tiers a kitchen, a clinic and a surgery read
    * (cleanliness D14) — derived on read from the band, the last wash and
    * the last heat since the last deposit.
@@ -461,6 +468,19 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         return 'sanitised';
       }
       return 'clean';
+    }
+
+    public brushOff(effort: number, site: string = WHOLE_SITE): Record<string, number> {
+      const removed: Record<string, number> = {};
+      const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, effort));
+      for (const kind of this.soilKinds(site)) {
+        if (this.isSoilSet(kind, site)) continue;
+        const lifts = dirtRow(kind)?.brushLifts ?? 0;
+        if (!(lifts > 0)) continue;
+        const got = this.removeSoil(kind, clamp01(lifts * fEffort), site);
+        if (got > 0) removed[kind] = got;
+      }
+      return removed;
     }
 
     public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {
