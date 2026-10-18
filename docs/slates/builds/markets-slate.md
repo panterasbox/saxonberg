@@ -18,7 +18,12 @@
 > possible sink · the **levers** as rows and settings · supply-gig
 > rewards that track the supplier's price · **piecework** before hourly
 > wages · a daily **price series** per dealer per commodity, printed by
-> the Gazette
+> the Gazette · ⭐ **the labor market**: work from genuine scarcities
+> (movement, speed — paid by what ARRIVES, compute the carter would
+> spend, presence, performance, judgment, information) with the NPC
+> carter as haulage's ceiling; narrative work as gigs with a story,
+> funded by institutional budgets; three purses, never a mint; content
+> paid in standing, zorkmids only by commission
 > **Size:** a build — after the ice build (storage-and-ice) merges; ice
 > is the first commodity
 
@@ -219,6 +224,91 @@ ours* — the central bank, the customs house and the statistics bureau.
 - **Prices differ between towns**, so moving goods from a cheap dealer
   to a dear one *is* the haulage arbitrage — logistics pays for itself.
 - There is **no global oracle**: each price comes from one book.
+
+## ⭐⭐ The labor market — real work, from two directions
+
+**Captured 2026-10-18.** Not Dave's Bar: *what real work do we need
+done, that we can pay players for?* Two directions, and one mechanism
+under both.
+
+### Direction 1 — work that exists because something is genuinely scarce
+
+Goods clone, so a goods market has no scarcity unless we impose it (and
+we impose it only on money). What is genuinely scarce is what only a
+person can supply, or what the engine should not:
+
+| scarcity | the work | who pays |
+|---|---|---|
+| **movement** — goods are never teleported | hauling: anything that must cross real ground | the shipper or the gig poster |
+| **speed / response time** | perishables — ice, fresh fish, blood | the buyer, **by what arrives** (below) |
+| **engine compute** | the haul an NPC carter would otherwise run brains and engagements for | the same; the carter's cost is the ceiling |
+| **human attention and presence** | watches (lookout, fire watch — `watch` is already a gig template), guiding newcomers, hosting | institutions, businesses |
+| **human performance** | music, storytelling, a game master's evening — what an NPC can only fake | tips, venues |
+| **judgment** | appraising unique goods, arbitration, juries — questions with no derivable answer | the parties, the polity |
+| **information** | prospecting, surveying, charting, scouting a route | institutions, prospectors |
+| **content** | building the world | standing, and commissions (below) |
+
+- ⭐⭐ **Speed pays itself if goods are paid for by what arrives.** Ice is
+  bought by the block's **remaining mass at delivery**, so whoever walks
+  it in fastest delivers more ice and is paid more — a player can cut a
+  block and carry it to town as fast as they can type. No speed bonus to
+  tune; the melt does it. The same holds for anything that spoils.
+- ⭐ **The NPC carter is haulage's backstop, as imports are for goods.**
+  It already exists — it takes an unclaimed gig after
+  `haulage.gigWindowGameHours` (6) at the reservation wage
+  (`haulage.npcRatePerKgMinor`, `npcMinimumMinor`), and that rate is the
+  ceiling. It also **costs compute** — brains, engagements, ticks — so
+  every haul a player takes is a brain the engine did not run. Players
+  win on speed and on judgment (route, weather, risk): the honest form
+  of *players have an advantage*.
+
+### Direction 2 — narrative work (the snipe hunt)
+
+EotL's snipe quest — a princess posts a reward for capturing a snipe,
+there is a story and a questline, and at the end she pays — is **not a
+separate mechanism. It is a gig with a story wrapped around it**: the
+escrow, the condition (*a snipe is in the princess's menagerie*) and the
+payout are the contract board; the story is authored dialogue, scenes
+and steps ([quest-modeling-slate](quest-modeling-slate.md)).
+
+- ⭐⭐ **Decided: quest givers draw on institutional budgets.** The
+  princess's purse must be real money: she is Cast of an institution
+  (the royal household), so her rewards come from **that household's
+  budget** — an appropriation like the infirmary's ice money. A quest
+  giver with an empty purse cannot post a quest, which is honest, and
+  it hands **the polity a lever over how much questing the realm can
+  afford**.
+- **Players can post quests too** — an escrowed gig with a story
+  attached, funded by the author: *players are the game developers* in
+  its smallest form.
+
+### The funding model — three purses, never a mint
+
+1. **Public** — the treasury, through budgets the polity sets: the
+   infirmary's ice, street lamps, the royal household's quests, watches,
+   charting.
+2. **Private** — businesses, out of customer revenue: supply gigs,
+   piecework, dealer bids.
+3. **Personal** — players: shipping fees, patronage, tips, player-posted
+   quests.
+
+Every payout to a player comes out of one of the three, with a reason in
+the fiction.
+
+### Content — standing by default, zorkmids only by commission
+
+Content does not trade like a commodity, and it is the scarcity this
+game lives or dies on.
+
+- ⭐⭐ **Decided: content pays in standing by default** — the **Make**
+  chamber (*"You built it"*), earned by contribution
+  ([contribution-slate](../tails/contribution-slate.md)).
+- **Zorkmids only through commissions** — an institution posts *"the
+  town needs a cooper's shop"*, escrowed from a budget and paid **on
+  acceptance**. ⚠ That is governance (lens 7): who judges acceptance,
+  the criterion, the appeal and the entrenchment tier — its own
+  conversation, alongside
+  [content-generation-slate](content-generation-slate.md).
 
 ## How a new player earns — concretely
 
