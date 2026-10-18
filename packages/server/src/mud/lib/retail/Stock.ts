@@ -79,25 +79,44 @@ export interface StockLine {
   /** Optional brand key (an independent shelf mark). */
   brandKey?: string;
   /**
-   * ⭐ The supplier this line is BOUGHT from (a Business path) — the
-   * keeper's `stocks` beat walks there and buys the shortfall on terms.
-   * A line with no supplier is an IMPORT: the reset sweep clones it from
-   * nothing (goods, never money — the malt sack nobody produces). A line
-   * WITH one is never cloned.
+   * ⭐ Where the shelf is refilled from — exactly ONE source, so the line
+   * says it once (`from:`), never as two optional fields that must not
+   * both be set:
+   *
+   *   - absent — an **import**: the reset sweep clones it from nothing
+   *     (goods, never money — the malt sack nobody produces);
+   *   - `{ supplier: <business> }` — **bought**: the keeper's `stocks` beat
+   *     walks there and buys the shortfall on terms; never cloned;
+   *   - `{ store: <store> }` — **brought up** from a store on the HOUSE'S
+   *     claim (storage-and-ice D8), at the sweep and to order; never cloned,
+   *     never bought; an empty claim leaves the shelf bare.
+   *
+   * Read through {@link Stock.sourceOf}, the one place the shape is decoded.
    */
-  supplier?: string;
+  from?: StockFrom;
   /** How the line is priced; `fixed` by default. */
   pricing?: StockPricing;
   /**
-   * ⭐ The STORE this line is brought up from (a store's template path,
-   * storage-and-ice D8) — the third source, beside a supplier and an
-   * import. A sourced line is never cloned and never bought: the counter
-   * draws `par − onHand` units from the store ON THE HOUSE'S CLAIM,
-   * whenever the sweep runs and the moment somebody asks for one — to
-   * order. An empty claim leaves the shelf bare.
+   * ⭐ The house BUYS this good from anyone who brings one (`sell`) — an
+   * ice company buys a cutter's blocks. Its bid is derived from the ask,
+   * never authored: see {@link Stock.bidFor}. Absent: the house buys none.
    */
-  source?: string;
+  buys?: boolean;
 }
+
+/** A line's authored source (`from:`); absent means an import. */
+export type StockFrom = { supplier: string } | { store: string };
+
+/** A line's source, decoded — the one switch every reader takes. */
+export type StockSource =
+  | { kind: "import" }
+  | { kind: "supplier"; business: string }
+  | { kind: "store"; store: string };
+
+/** What a counter answers when somebody sells it a good (`sell`). */
+export type BuyFromOutcome =
+  | { ok: true; paidMinor: number; intoStore: boolean }
+  | { ok: false; reason: string; line: string };
 
 // One counter is BOTH the house's shelf and a brokerage shelf (libations
 // D4): `ConsignmentShelfMixin` holds the listings a consignor (a player,
@@ -157,6 +176,43 @@ export default class Stock extends StockBase {
     return this.stockLines;
   }
 
+  /**
+   * The applier's Phase-1 setter (and a restore's): every line's source is
+   * checked here, once. A line naming two sources, or the retired
+   * `supplier:` / `source:` keys, is an authoring error and says so.
+   */
+  public setStockLines(value: unknown): void {
+    if (!Array.isArray(value)) throw new Error("Stock.stockLines: expected a list of lines");
+    for (const raw of value as Array<Record<string, unknown>>) {
+      const at = String(raw?.itemTemplatePath ?? "?");
+      for (const retired of ["supplier", "source"]) {
+        if (raw && retired in raw) {
+          throw new Error(`Stock.stockLines '${at}': '${retired}:' is retired — write from: { ${retired === "source" ? "store" : "supplier"}: … }`);
+        }
+      }
+      const from = raw?.from as Record<string, unknown> | undefined;
+      if (from === undefined || from === null) continue;
+      const keys = Object.keys(from);
+      const ok =
+        keys.length === 1 &&
+        (keys[0] === "supplier" || keys[0] === "store") &&
+        typeof from[keys[0]!] === "string" &&
+        (from[keys[0]!] as string).length > 0;
+      if (!ok) {
+        throw new Error(`Stock.stockLines '${at}': from: names exactly one of supplier or store (got ${JSON.stringify(from)})`);
+      }
+    }
+    this.stockLines = value as StockLine[];
+  }
+
+  /** ⭐ The one decoding of a line's `from:`. */
+  public sourceOf(line: StockLine): StockSource {
+    const from = line.from;
+    if (from && "supplier" in from) return { kind: "supplier", business: from.supplier };
+    if (from && "store" in from) return { kind: "store", store: from.store };
+    return { kind: "import" };
+  }
+
   /** The stock line for a template, or null. */
   public lineFor(itemTemplatePath: string): StockLine | null {
     return this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath) ?? null;
@@ -166,9 +222,10 @@ export default class Stock extends StockBase {
   public shortSuppliedLines(): Array<StockLine & { supplier: string; shortfall: number }> {
     const out: Array<StockLine & { supplier: string; shortfall: number }> = [];
     for (const line of this.stockLines) {
-      if (!line.supplier) continue;
+      const src = this.sourceOf(line);
+      if (src.kind !== "supplier") continue;
       const shortfall = line.par - this.onHand(line.itemTemplatePath);
-      if (shortfall > 0) out.push({ ...line, supplier: line.supplier, shortfall });
+      if (shortfall > 0) out.push({ ...line, supplier: src.business, shortfall });
     }
     return out;
   }
@@ -191,19 +248,45 @@ export default class Stock extends StockBase {
     }
     if (line?.pricing !== "stocking" || line.par <= 0) return base;
     const e = Stock.dial(AppSettingKeys.retailStockingElasticity, 0.5);
-    // ⭐ A store-fed line prices on the STORE's days of supply (D8): the
-    // shelf holds one block at a time, so its own depth says nothing.
-    if (line.source) {
-      const store = this.sourceStore(line);
+    return Math.max(1, Math.round(base * (1 + e * this.scarcityOf(line))));
+  }
+
+  /**
+   * ⭐ How short a line is, asked of where it is refilled from — one
+   * question, one price formula. A shelf line is short against its par
+   * (`1 − onHand/par`: over par reads negative, and asks less). A store-fed
+   * line holds one unit at a time, so its shelf says nothing: it is short
+   * against the house's own days of supply in the store (D8), measured
+   * against `retail.stockingHorizonDays`, between 0 and 1.
+   */
+  private scarcityOf(line: StockLine): number {
+    const src = this.sourceOf(line);
+    if (src.kind === "store") {
+      const store = this.storeAt(src.store);
       if (store !== null) {
-        const days = store.daysOfSupply(line.itemTemplatePath);
+        const days = store.houseDaysOfSupply(line.itemTemplatePath);
         const horizon = Stock.dial(AppSettingKeys.retailStockingHorizonDays, 120) || 120;
-        const scarcity = Math.min(1, Math.max(0, 1 - days / horizon));
-        return Math.max(1, Math.round(base * (1 + e * scarcity)));
+        return Math.min(1, Math.max(0, 1 - days / horizon));
       }
     }
-    const onHand = this.onHand(key);
-    return Math.max(1, Math.round(base * (1 + e * (1 - onHand / line.par))));
+    return 1 - this.onHand(line.itemTemplatePath) / line.par;
+  }
+
+  /**
+   * ⭐ What the house PAYS for a good it buys (`sell`): its own ask less
+   * the margin a shop takes on a supplier's good (`retail.termsMargin`,
+   * the terms rung's markup run backwards). Derived, never authored — so
+   * when ice is short the house both asks and pays more, which is the
+   * price a harvester reads. `null` for a line the house does not buy.
+   */
+  public bidFor(itemTemplatePath: string): number | null {
+    const line = this.lineFor(itemTemplatePath);
+    if (!line || line.buys !== true) return null;
+    const ask = this.priceFor(itemTemplatePath);
+    if (ask === null) return null;
+    const margin = Stock.dial(AppSettingKeys.retailTermsMargin, 0.25);
+    const bid = Math.floor(ask / (1 + margin));
+    return bid > 0 ? bid : null;
   }
 
   /** The supplier's price owed at sale for a terms good of this template, or null. */
@@ -254,33 +337,32 @@ export default class Stock extends StockBase {
   }
 
   /**
-   * ⭐ Does a stock LINE carry this word — i.e. the shop SELLS it, even
-   * with a bare shelf? Matched against the template leaf, which is
-   * exactly what `getLong()` prints to the player ("On the shelves:
-   * float-rod (11), keepnet (6)"). Without this a sold-out good is
-   * refused as *"float-rod" isn't for sale here* while the shop's own
-   * description lists it — a flat contradiction the fishing build's
-   * live browser drive hit on its second run, because every new tackle
-   * line is `par: 1`.
+   * ⭐ The line a typed word names — the ONE matcher (`buy`, its sold-out
+   * refusal, and the bring-up all ask it; three copies once disagreed and
+   * `buy block` was refused at a counter selling ice-blocks). Matched
+   * against the template leaf, which is what `getLong()` prints ("On the
+   * shelves: float-rod (11)"), or one word of it (`block` for
+   * `ice-block`).
    *
-   * ⚠ The leaf (or one of its words) is the whole match: a player who
-   * types a word the shelf list does not print (`cane` for `…/thing/rod`)
-   * still gets the honest `not-on-shelf` refusal. Matching a row's keywords would want
-   * the template, which is an async read this refusal path does not
-   * have.
+   * ⚠ The leaf is the whole vocabulary: a word the shelf list does not
+   * print (`cane` for `…/thing/rod`) names no line, and the honest
+   * `not-on-shelf` refusal follows. A row's keywords would want the
+   * template, an async read the refusal path does not have.
    */
+  public lineForWord(word: string): StockLine | null {
+    const want = word.trim().toLowerCase().replace(/[-_]/g, " ");
+    if (want === "") return null;
+    return (
+      this.stockLines.find((l) => {
+        const leaf = (l.itemTemplatePath.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
+        return leaf === want || leaf.split(" ").includes(want);
+      }) ?? null
+    );
+  }
+
+  /** Does a stock line carry this word — the shop SELLS it, even with a bare shelf? */
   carriesLine(keyword: string): boolean {
-    const want = keyword.trim().toLowerCase().replace(/[-_]/g, " ");
-    if (want === "") return false;
-    return this.stockLines.some((l) => {
-      const leaf = (l.itemTemplatePath.split("/").pop() ?? "")
-        .toLowerCase()
-        .replace(/[-_]/g, " ");
-      // A word of the leaf names the line too (`block` for `ice-block`) —
-      // the same rule `bringUpFor` brings a store-fed line up by, so the
-      // two never disagree about what the counter sells.
-      return leaf === want || leaf.split(" ").includes(want);
-    });
+    return this.lineForWord(keyword) !== null;
   }
 
   /** The authored par depth for a line (by item template path). */
@@ -316,13 +398,14 @@ export default class Stock extends StockBase {
    */
   override async reset(): Promise<void> {
     for (const line of this.stockLines) {
+      const src = this.sourceOf(line);
       // ⭐ A SUPPLIED line is bought, never cloned (economic bootstrap
       // D14): the keeper walks to the supplier and buys the shortfall on
       // terms. Only the import lines — goods nobody produces — come from
       // nothing.
-      if (line.supplier) continue;
+      if (src.kind === "supplier") continue;
       // ⭐ A STORE-FED line is brought up from the store, never cloned.
-      if (line.source) {
+      if (src.kind === "store") {
         await this.bringUp(line.itemTemplatePath);
         continue;
       }
@@ -342,9 +425,11 @@ export default class Stock extends StockBase {
    * claim or the store is empty: *an empty store means an empty counter*.
    */
   public async bringUp(itemTemplatePath: string): Promise<number> {
-    const line = this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath && l.source);
+    const line = this.lineFor(itemTemplatePath);
     if (!line) return 0;
-    const store = this.sourceStore(line);
+    const src = this.sourceOf(line);
+    if (src.kind !== "store") return 0;
+    const store = this.storeAt(src.store);
     if (store === null) return 0;
     const need = line.par - this.onHand(itemTemplatePath);
     if (need < 1) return 0;
@@ -361,22 +446,70 @@ export default class Stock extends StockBase {
    * many came up.
    */
   public async bringUpFor(keyword: string): Promise<number> {
-    const want = keyword.trim().toLowerCase().replace(/[-_]/g, " ");
-    if (want === "") return 0;
-    let n = 0;
-    for (const line of this.stockLines) {
-      if (!line.source) continue;
-      const leaf = (line.itemTemplatePath.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
-      if (leaf === want || leaf.split(" ").includes(want)) n += await this.bringUp(line.itemTemplatePath);
-    }
-    return n;
+    const line = this.lineForWord(keyword);
+    return line === null ? 0 : this.bringUp(line.itemTemplatePath);
   }
 
-  /** The live store a sourced line draws from, or null. */
-  private sourceStore(line: StockLine): (Stuff & Store) | null {
-    if (!line.source) return null;
-    const s = StuffApi.findByTemplatePath<Stuff>(line.source);
+  /** The live store at a path, or null. */
+  private storeAt(path: string): (Stuff & Store) | null {
+    const s = StuffApi.findByTemplatePath<Stuff>(path);
     return s && MixinApi.isStore(s) ? s : null;
+  }
+
+  /**
+   * ⭐ The house BUYS a good off somebody (`sell`) — the act a counter
+   * performs, so the counter owns the sequence and returns its refusals:
+   * the line must say the house buys it; somebody is behind the counter;
+   * the good is the seller's own; a store-fed line's store has room; the
+   * seller has an account; the house can pay. Every gate is asked BEFORE
+   * the money moves. Then the house pays its bid as cost of goods (the
+   * terms leg: the house paying a supplier), and the good goes where the
+   * line is refilled from — into the store on the house's claim, or onto
+   * the shelf as the house's.
+   */
+  public async buyFrom(seller: Stuff, item: Stuff & Containable): Promise<BuyFromOutcome> {
+    const no = (reason: string, line: string): BuyFromOutcome => ({ ok: false, reason, line });
+    const path = item.getTemplatePath() ?? "";
+    const line = this.lineFor(path);
+    if (!line || line.buys !== true) return no("not-bought", "The house does not buy that.");
+    const venue = (this as unknown as Stuff).getIdentityPath() ?? "";
+    const business = await EmploymentApi.ensureOperatorAt(venue);
+    const who = seller.getIdentityPath();
+    if (!business || !who || this.requestAttention(who).status === "closed") {
+      return no("unattended", "There's no one behind the counter just now.");
+    }
+    if (MixinApi.isChattel(item)) {
+      const owner = await item.chattelOwner();
+      if ((owner?.kind === "player" || owner?.kind === "organization") && owner.templatePath !== who) {
+        return no("not-yours", "That is not yours to sell.");
+      }
+    }
+    const src = this.sourceOf(line);
+    const store = src.kind === "store" ? this.storeAt(src.store) : null;
+    if (src.kind === "store") {
+      if (store === null) return no("no-store", "The house has nowhere to put it.");
+      const veto = (store as unknown as Stuff & Container).canAddContainable?.(item) ?? { ok: true };
+      if (!veto.ok) return no("store-refuses", veto.reason ?? "The house has no room for it.");
+    }
+    const bid = this.bidFor(path);
+    if (bid === null) return no("not-priced", "The house will not put a price on that.");
+    const sellerAccount = await BankingApi.primaryAccountIdOf(who);
+    if (!sellerAccount) return no("no-account", "You have no bank account to be paid into.");
+    try {
+      const houseAccount = await EmploymentApi.operatingAccountOf(business);
+      await BankingApi.payTerms(houseAccount, sellerAccount, Money.of(bid, BankingApi.compactCurrency()), `bought: ${item.getPresentation()}`);
+    } catch {
+      return no("house-cannot-pay", "The house cannot pay for that just now.");
+    }
+    if (store !== null) {
+      const taken = await store.receive(item, store.getBusinessPath());
+      if (taken.ok) return { ok: true, paidMinor: bid, intoStore: true };
+      // Paid for and refused by the book: the good is the house's either
+      // way — it goes on the counter rather than vanish.
+    }
+    ContainmentApi.move(item, this as unknown as Stuff & Container);
+    if (MixinApi.isChattel(item)) await item.transferChattel(business);
+    return { ok: true, paidMinor: bid, intoStore: false };
   }
 
   /** The shop restocks while browsed — repop-ing a watched room is fine. */

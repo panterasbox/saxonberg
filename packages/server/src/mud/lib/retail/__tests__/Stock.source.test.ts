@@ -8,7 +8,11 @@
  *  2. An empty claim brings nothing up — the shelf stays bare.
  *  3. ⭐ `buy block` on a bare shelf brings one up first (`bringUpFor`
  *     matches a word of the line's leaf).
- *  4. The price rises as the store's days of supply fall.
+ *  4. The price rises as the HOUSE's days of supply in the store fall.
+ *  5. A line names ONE source (`from:`), checked at the setter.
+ *  6. ⭐ The house BUYS a line it says it buys (`sell`): the bid is the ask
+ *     less the terms margin, every gate is asked before money moves, and
+ *     the good goes into the store on the house's claim.
  */
 
 import "../../../../test-bootstrap";
@@ -18,6 +22,8 @@ import Stockpile from "../../../platform/thing/Stockpile";
 import Good from "../../../platform/thing/Good";
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
+import { EmploymentApi } from "../../../api/employment";
+import { BankingApi } from "../../../api/banking";
 import type { Stuff } from "../../stuff/Stuff";
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from "../../security/__tests__/test-setup";
 
@@ -48,6 +54,7 @@ beforeEach(() => {
   const settings: Record<string, string> = {
     "retail.stockingElasticity": "0.5",
     "retail.stockingHorizonDays": "120",
+    "retail.termsMargin": "0.25",
   };
   vi.spyOn(AppApi, "setting").mockImplementation(((key: string) => settings[key] ?? "") as never);
   store = makeStuffAtPath(() => new Stockpile(), STACK);
@@ -58,10 +65,10 @@ beforeEach(() => {
     drawn -= n;
     return Array.from({ length: n }, () => block() as unknown as Stuff);
   });
-  vi.spyOn(store, "daysOfSupply").mockImplementation(() => days);
+  vi.spyOn(store, "houseDaysOfSupply").mockImplementation(() => days);
   counter = makeStuffAtPath(() => {
     const s = new Stock();
-    s.stockLines = [{ itemTemplatePath: BLOCK, par: 1, source: STACK, pricing: "stocking" }];
+    s.stockLines = [{ itemTemplatePath: BLOCK, par: 1, from: { store: STACK }, pricing: "stocking" }];
     s.prices = { [BLOCK]: 10 };
     return s;
   }, COUNTER);
@@ -105,5 +112,99 @@ describe("a counter fed from a store", () => {
     expect(counter.priceFor(BLOCK)).toBe(13);
     days = 0;
     expect(counter.priceFor(BLOCK)).toBe(15);
+  });
+});
+
+describe("a line names one source", () => {
+  it("decodes the three: an import, a supplier, a store", () => {
+    const c = makeStuff(() => new Stock());
+    c.setStockLines([
+      { itemTemplatePath: "/a", par: 1 },
+      { itemTemplatePath: "/b", par: 1, from: { supplier: "/biz" } },
+      { itemTemplatePath: "/c", par: 1, from: { store: STACK } },
+    ]);
+    expect(c.getStockLines().map((l) => c.sourceOf(l).kind)).toEqual(["import", "supplier", "store"]);
+  });
+
+  it("⭐ refuses a line with two sources, or the retired keys", () => {
+    const c = makeStuff(() => new Stock());
+    expect(() => c.setStockLines([{ itemTemplatePath: "/x", par: 1, from: { supplier: "/b", store: "/s" } }])).toThrow(/exactly one/);
+    expect(() => c.setStockLines([{ itemTemplatePath: "/x", par: 1, supplier: "/b" }])).toThrow(/retired/);
+    expect(() => c.setStockLines([{ itemTemplatePath: "/x", par: 1, source: "/s" }])).toThrow(/from: \{ store/);
+  });
+});
+
+describe("⭐ the house buys what it says it buys (`sell`)", () => {
+  const HOUSE = "/test/stock-source/idea/house";
+  const SELLER = "/platform/agent/Avatar/seller";
+  let paid: number[];
+  let received: string[];
+  let seller: Stuff;
+
+  beforeEach(() => {
+    counter.stockLines = [{ itemTemplatePath: BLOCK, par: 1, from: { store: STACK }, pricing: "stocking", buys: true }];
+    paid = [];
+    received = [];
+    seller = { getIdentityPath: () => SELLER } as unknown as Stuff;
+    vi.spyOn(EmploymentApi, "ensureOperatorAt").mockResolvedValue({ getOrganizationPath: () => HOUSE } as never);
+    vi.spyOn(EmploymentApi, "operatingAccountOf").mockResolvedValue("acct-house");
+    vi.spyOn(BankingApi, "primaryAccountIdOf").mockResolvedValue("acct-seller");
+    vi.spyOn(BankingApi, "payTerms").mockImplementation((async (_from: string, _to: string, m: { minor: number }) => {
+      paid.push(m.minor);
+      return "tx";
+    }) as never);
+    vi.spyOn(counter, "requestAttention").mockReturnValue({ status: "served" } as never);
+    vi.spyOn(store, "getBusinessPath").mockReturnValue(HOUSE);
+    vi.spyOn(store, "canAddContainable").mockReturnValue({ ok: true });
+    vi.spyOn(store, "receive").mockImplementation((async (_item: unknown, depositor: string) => {
+      received.push(depositor);
+      return { ok: true } as never;
+    }) as never);
+  });
+
+  const mine = (): Block => {
+    const b = block();
+    vi.spyOn(b as never, "chattelOwner").mockResolvedValue({ kind: "player", templatePath: SELLER } as never);
+    return b;
+  };
+
+  it("⭐ the bid is the ask less the terms margin — and rises with the ask", () => {
+    days = 200;
+    expect(counter.bidFor(BLOCK)).toBe(8); // ask 10 / 1.25
+    days = 0;
+    expect(counter.bidFor(BLOCK)).toBe(12); // ask 15 / 1.25
+  });
+
+  it("⭐ pays its bid and takes the block into the store on the house's claim", async () => {
+    days = 200;
+    const out = await counter.buyFrom(seller, mine() as never);
+    expect(out).toMatchObject({ ok: true, paidMinor: 8, intoStore: true });
+    expect(paid).toEqual([8]);
+    expect(received).toEqual([HOUSE]);
+  });
+
+  it("a line the house does not buy is refused, and nothing is paid", async () => {
+    counter.stockLines = [{ itemTemplatePath: BLOCK, par: 1, from: { store: STACK }, pricing: "stocking" }];
+    expect(await counter.buyFrom(seller, mine() as never)).toMatchObject({ ok: false, reason: "not-bought" });
+    expect(paid).toEqual([]);
+  });
+
+  it("somebody else's good is not yours to sell", async () => {
+    const b = block();
+    vi.spyOn(b as never, "chattelOwner").mockResolvedValue({ kind: "player", templatePath: "/platform/agent/Avatar/other" } as never);
+    expect(await counter.buyFrom(seller, b as never)).toMatchObject({ ok: false, reason: "not-yours" });
+    expect(paid).toEqual([]);
+  });
+
+  it("⭐ a store that will not take it refuses BEFORE any money moves", async () => {
+    vi.spyOn(store, "canAddContainable").mockReturnValue({ ok: false, reason: "This stack does not take that." });
+    expect(await counter.buyFrom(seller, mine() as never)).toMatchObject({ ok: false, reason: "store-refuses", line: "This stack does not take that." });
+    expect(paid).toEqual([]);
+  });
+
+  it("a house that cannot pay keeps its money and the seller keeps the good", async () => {
+    vi.spyOn(BankingApi, "payTerms").mockRejectedValue(new Error("the shop holds less"));
+    expect(await counter.buyFrom(seller, mine() as never)).toMatchObject({ ok: false, reason: "house-cannot-pay" });
+    expect(received).toEqual([]);
   });
 });

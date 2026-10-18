@@ -687,8 +687,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const line of stockLines) {
       if (line && typeof line === 'object') {
         push('stockLines.itemTemplatePath', (line as Record<string, unknown>).itemTemplatePath);
-        // ⭐ A store-fed line's store (storage-and-ice D8).
-        push('stockLines.source', (line as Record<string, unknown>).source);
+        // ⭐ Where the line is refilled from (`from:` — a supplier business
+        // or a store, storage-and-ice D8): both name rows.
+        const from = (line as Record<string, unknown>).from as Record<string, unknown> | undefined;
+        if (from && typeof from === 'object') {
+          push('stockLines.from.store', from.store);
+          push('stockLines.from.supplier', from.supplier);
+        }
       }
     }
   }

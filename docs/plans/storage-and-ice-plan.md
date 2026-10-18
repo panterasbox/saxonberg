@@ -2452,6 +2452,44 @@ Read first, in this order, with the lines cited in § Grounding:
 
 ---
 
+## Review round 1 (2026-10-18) — the shop model, and the house that buys
+
+The reviewer asked whether a shop with instances and a warehouse with a
+ledger are two shop models. **They are not**: the counter (`Stock`) always
+sells instances; the store (`StoreMixin`) is custody and sells nothing; a
+counter LINE may name a store as where it is refilled from. What was not
+clean was the line, and the economics had three strains. All in scope:
+
+- **R1 — one source per line.** `supplier?` + `source?` (an implicit
+  union nothing enforced) became `from: { supplier } | { store }` (absent:
+  an import), checked in `Stock.setStockLines`, decoded once by
+  `Stock.sourceOf`. Rows: the general store's two supplied lines, the ice
+  counter's store line. `lint:reachability` classifies `store` as a
+  citation (it was `source`); the census reads `stockLines.from.*`.
+- **R2 — scarcity asked of the source.** One price formula,
+  `base × (1 + e × scarcityOf(line))`: a shelf line against par, a
+  store-fed line against the house's days of supply.
+- **R3 — one matcher.** `Stock.lineForWord`; `carriesLine` and
+  `bringUpFor` ask it (two of three copies had disagreed in run 1).
+- **R4 — an icehouse takes ice.** The ice-stack kind row authors
+  `acceptsPoolKeys: [ice, sawdust]`, and an entry may now name a pool KIND
+  (`ice` takes every grade) as well as one key.
+- **R5 — the house's days of supply** (`Store.houseDaysOfSupply`). ⚠ I
+  told the reviewer depositors' ice inflated the house's supply; under
+  pro-rata pooling it does not (the house's share of the stock and of the
+  melt scale together). What did diverge was the DRAW: depositors taking
+  their own ice home counted as the house selling. Lines now keep a
+  `houseDrawKgPerDay` apart (`drawForHouse` notes it).
+- **R6 — the house buys: `sell`.** `Stock.buyFrom`; `buys: true` on a
+  line; the bid derived as the ask ÷ (1 + `retail.termsMargin`); every
+  gate before money moves; paid through `BankingApi.payTerms` (cost of
+  goods); the good to the line's source. View `platform/cmd/retail/sell`,
+  `SellController`, afforded beside `buy` by the shopkeeping counter. The
+  ice counter buys ice. The drive sells a second block after the deposit.
+  ⭐ Decision: the bid is DERIVED (lens 4/6 — a price is never a
+  percentage an author picks), and reusing the terms margin means one
+  dial governs both directions of a shop's trade.
+
 ## Drive record
 
 *(appended at build time, not at plan time — the output of running the

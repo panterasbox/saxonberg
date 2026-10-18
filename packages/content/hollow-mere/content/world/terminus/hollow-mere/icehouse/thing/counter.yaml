@@ -16,6 +16,6 @@ data:
   serverPositionKeys: [keeper]
   businessPath: /world/terminus/hollow-mere/idea/ice-company
   stockLines:
-    - { itemTemplatePath: /stuff/thing/ice-block, par: 1, source: /world/terminus/hollow-mere/icehouse/thing/stack, pricing: stocking }
+    - { itemTemplatePath: /stuff/thing/ice-block, par: 1, from: { store: /world/terminus/hollow-mere/icehouse/thing/stack }, pricing: stocking, buys: true }
   prices:
     /stuff/thing/ice-block: 6

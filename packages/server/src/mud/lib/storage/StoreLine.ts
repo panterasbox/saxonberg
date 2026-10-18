@@ -27,8 +27,14 @@ export interface StoreLine {
   role: PoolRole;
   /** What the store's own physics took off this line, kg/day (last reconcile). */
   lossKgPerDay: number;
-  /** A 30-day moving average of withdrawals, kg/day. */
+  /** A 30-day moving average of withdrawals, kg/day — everyone's. */
   drawKgPerDay: number;
+  /**
+   * The same average of the HOUSE's own draws (a counter bringing stock
+   * up), kg/day — what the house sells at, apart from depositors taking
+   * their own goods home. Absent on a line recorded before it existed.
+   */
+  houseDrawKgPerDay?: number;
   /** Game-second this line was last brought current. */
   lastReconciledS: number;
 }

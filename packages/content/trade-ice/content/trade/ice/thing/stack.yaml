@@ -18,6 +18,10 @@ data:
   stackShapeFactor: 5
   drainage: 0.5
   keeperPositions: [keeper]
+  # ⭐ What the building is FOR: ice of any grade, and the sawdust it is
+  # packed in. An icehouse is single-purpose — a sack of grain is refused
+  # at the door, in the house's words (the storage-and-ice review).
+  acceptsPoolKeys: [ice, sawdust]
   terms: { allowancePct: 10, feeMinorPerKg: 1 }
   mass: 1
   _materialPath: /stuff/idea/material/wood/sawdust

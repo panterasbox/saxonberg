@@ -147,6 +147,12 @@ export interface Store {
   roomHeatExchange(): RoomHeatExchange;
   /** Days the stock of `goodPath` lasts at its current loss + draw. */
   daysOfSupply(goodPath: string): number;
+  /**
+   * ⭐ Days the HOUSE's own stock of `goodPath` lasts — its claim (paid
+   * pro rata), losing its share of the melt and drawn at the house's own
+   * rate. What a counter selling on the house's claim prices on.
+   */
+  houseDaysOfSupply(goodPath: string): number;
 
   // ── custody (D6) ──
   /** The business that keeps this store (the bailee). */
@@ -212,7 +218,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public stackShapeFactor = 5;
     /** The share of meltwater that runs off rather than soaking the packing, `[0, 1]`. */
     public drainage = 0.5;
-    /** The pool keys this store takes, or `null` for any pooled good. */
+    /** The pools this store takes — a kind (`ice`) or one key (`ice|black`) — or `null` for any pooled good. */
     public acceptsPoolKeys: string[] | null = null;
     /** What the row seeds the ledger with on first creation. */
     public initialLines: StoreSeedLine[] = [];
@@ -289,6 +295,28 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return kg / Math.max(1e-6, rate);
     }
 
+    public houseDaysOfSupply(goodPath: string): number {
+      const lines = this.lines.filter((l) => l.role === 'stock' && l.goodPath === goodPath);
+      const claims = this.cachedClaims();
+      let houseKg = 0;
+      let rate = 0;
+      for (const line of lines) {
+        if (!(line.amountKg > LINE_EPSILON_KG)) continue;
+        const onLine = claims.filter((r) => r.poolKey === line.poolKey && r.unit === 'kg');
+        // No claims read yet (a store not yet reconciled): the stock is the
+        // house's, as a seed leaves it.
+        const total = onLine.reduce((n, r) => n + r.amountKg, 0);
+        const own = onLine.filter((r) => r.depositor === this.businessPath).reduce((n, r) => n + r.amountKg, 0);
+        const share = onLine.length === 0 ? 1 : total > 0 ? own / total : 0;
+        // The pro-rata payout: a claim is worth min(1, S/C) of itself.
+        const kg = onLine.length === 0 ? line.amountKg : own * Math.min(1, line.amountKg / Math.max(total, 1e-9));
+        houseKg += kg;
+        rate += line.lossKgPerDay * share + (line.houseDrawKgPerDay ?? 0);
+      }
+      if (!(houseKg > 0)) return 0;
+      return houseKg / Math.max(1e-6, rate);
+    }
+
     // ───────────────────── the container's veto (D7) ─────────────────────
 
     /**
@@ -307,7 +335,10 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return { ok: false, reason: 'That does not go in a stack like this.' };
       }
       const key = item.poolKey();
-      if (this.acceptsPoolKeys !== null && !this.acceptsPoolKeys.includes(key)) {
+      // An entry names a whole pool kind (`ice` takes every grade) or one
+      // pool key exactly (`ice|black`): what the building is FOR.
+      const kind = key.split('|')[0] ?? key;
+      if (this.acceptsPoolKeys !== null && !this.acceptsPoolKeys.includes(key) && !this.acceptsPoolKeys.includes(kind)) {
         return { ok: false, reason: 'This stack does not take that.' };
       }
       if (this.capacityKg > 0 && this.totalKg() + massKgOf(item) > this.capacityKg + 1e-9) {
@@ -949,7 +980,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const unitKg = line.unitMassKg > 0 ? line.unitMassKg : claim.unitMassKg;
         const n = Math.min(left, Math.floor((Math.min(claim.amountKg, line.amountKg) + 1e-9) / unitKg));
         if (n < 1) continue;
-        const goods = await this.payOut(line, n, null);
+        const goods = await this.payOut(line, n, null, true);
         out.push(...goods);
         claim.amountKg = Math.max(0, claim.amountKg - n * unitKg);
         await this.fileReceipt(business, claim);
@@ -988,7 +1019,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /** Mint `n` units off a line, debit it, note the draw, hand them to `to` (or leave loose). */
-    private async payOut(line: StoreLine, n: number, to: Stuff | null): Promise<Stuff[]> {
+    private async payOut(line: StoreLine, n: number, to: Stuff | null, forHouse = false): Promise<Stuff[]> {
       const goods: Stuff[] = [];
       const face = this.faceFor(line.poolKey);
       const stackable = face !== null && MixinApi.isStackable(face);
@@ -1000,7 +1031,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       const paidKg = goods.reduce((sum, g) => sum + massKgOf(g), 0);
       line.amountKg = Math.max(0, line.amountKg - paidKg);
-      this.noteDraw(line, paidKg);
+      this.noteDraw(line, paidKg, forHouse);
       if (to !== null && MixinApi.isContainer(to)) {
         for (const g of goods) if (MixinApi.isContainable(g)) ContainmentApi.move(g, to);
       }
@@ -1152,12 +1183,14 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return { fixedW: 0, conductanceWperK: g, anchorK: g > 0 ? gAnchor / g : 0 };
     }
 
-    /** Record a withdrawal into a line's moving average (W3, W4). */
-    protected noteDraw(line: StoreLine, kg: number): void {
+    /** Record a withdrawal into a line's moving average (W3, W4) — the house's apart. */
+    protected noteDraw(line: StoreLine, kg: number, forHouse = false): void {
       // Exponential moving average over the window, treating the draw as
       // landing on the day it is made.
       const alpha = 1 / DRAW_WINDOW_DAYS;
       line.drawKgPerDay = line.drawKgPerDay * (1 - alpha) + kg * alpha;
+      const house = line.houseDrawKgPerDay ?? 0;
+      line.houseDrawKgPerDay = house * (1 - alpha) + (forHouse ? kg : 0) * alpha;
     }
   };
 }

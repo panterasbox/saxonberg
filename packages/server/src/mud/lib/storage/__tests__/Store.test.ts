@@ -435,3 +435,43 @@ describe('⭐ the seed is laid down by the hydration source (a fresh house)', ()
     expect(iceKg(store)).toBeCloseTo(20_000, 0);
   });
 });
+
+describe('⭐ what a building is for, and what its house can sell (the storage-and-ice review)', () => {
+  it('an acceptance list names a whole pool KIND — `ice` takes every grade, and refuses the rest', async () => {
+    const room = shed(48);
+    const store = stack(room);
+    store.acceptsPoolKeys = ['ice'];
+    expect(store.canAddContainable(block(4, BLOCK, 'black')).ok).toBe(true);
+    expect(store.canAddContainable(block(4, BLOCK, 'cloudy')).ok).toBe(true);
+    const refused = store.canAddContainable(dust(5));
+    expect(refused.ok).toBe(false);
+    expect(refused.reason).toMatch(/does not take/);
+  });
+
+  it('⭐ the house\'s days of supply: its claim, its share of the melt, its OWN draws', async () => {
+    const { store } = await seeded(48, 20_000, 0);
+    // The ledger itself (getLines() hands out copies).
+    const line = (store as unknown as { lines: Array<Record<string, number | string>> }).lines[0]! as unknown as {
+      poolKey: string; lossKgPerDay: number; drawKgPerDay: number; houseDrawKgPerDay?: number;
+    };
+    line.lossKgPerDay = 20;
+    line.drawKgPerDay = 0;
+    line.houseDrawKgPerDay = 0;
+    // No claims read yet: the stock is the house's — the whole stack.
+    expect(store.houseDaysOfSupply(BLOCK)).toBeCloseTo(1000, 6);
+    // A depositor holds a quarter: the house holds 15 t and bears 3/4 of the melt.
+    const house = (store as unknown as { businessPath: string }).businessPath || '/house';
+    (store as unknown as { businessPath: string }).businessPath = house;
+    (store as unknown as { _claimsCache: unknown[] })._claimsCache = [
+      { depositor: house, poolKey: line.poolKey, unit: 'kg', amountKg: 15_000, terms: {} },
+      { depositor: '/someone', poolKey: line.poolKey, unit: 'kg', amountKg: 5_000, terms: {} },
+    ];
+    expect(store.houseDaysOfSupply(BLOCK)).toBeCloseTo(15_000 / 15, 6);
+    // ⚠ A depositor taking their own ice home is not the house selling: the
+    // draw that counts is the house's alone.
+    line.drawKgPerDay = 100;
+    expect(store.houseDaysOfSupply(BLOCK)).toBeCloseTo(15_000 / 15, 6);
+    line.houseDrawKgPerDay = 35;
+    expect(store.houseDaysOfSupply(BLOCK)).toBeCloseTo(15_000 / 50, 6);
+  });
+});

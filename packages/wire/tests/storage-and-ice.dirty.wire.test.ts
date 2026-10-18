@@ -434,7 +434,27 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     // ⭐ The receipt is the BOOK's record, filed in your name with its terms.
     expect(said, said).toMatch(/book records .* to your name/i);
     expect(said, said).toMatch(/allowance of \d+%/i);
+    // ⭐ The house BUYS a cutter's block (the review): back out for a
+    // second block, and sell it — the bid paid into the account, the block
+    // onto the stack on the house's claim.
+    await goto(SHORE);
+    expectOk(await k.cmd('north'));
+    await say('mark');
+    await say('cut marked');
+    await new Promise((r) => setTimeout(r, 15_000));
+    await k.drainProse();
+    await say('get block');
+    expect(await carried()).toMatch(/block of ice/i);
+    await goto(PLATFORM);
+    const sold = await k.cmd('sell block');
+    const soldSaid = await sold.said();
+    console.info(`  sell block: ${refusal(sold)} — ${soldSaid.trim().slice(0, 300)}`);
+    expect(refusal(sold), JSON.stringify(sold.notes)).toBeNull();
+    expect(soldSaid, soldSaid).toMatch(/You sell .* to the house for .*onto the stack/i);
     expect(await carried()).not.toMatch(/block of ice/i);
+    // A counter buys only the lines it says it does.
+    const rod = await k.cmd('sell rod');
+    expect(refusal(rod)).toBe('not-bought');
     const book = await k.prose('look book');
     console.info(`  look book: ${book.replace(/\n/g, ' | ').slice(0, 400)}`);
   });

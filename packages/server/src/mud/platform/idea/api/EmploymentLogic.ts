@@ -880,7 +880,7 @@ function stockSheetForImpl(
     return { line, onHand, shortfall: Math.max(0, line.level - onHand) };
   });
   // ⭐ Plus the SUPPLIED lines of every counter the house operates
-  // (economic bootstrap D14): a `stockLines` entry with a `supplier` is a
+  // (economic bootstrap D14): a `stockLines` entry `from: { supplier }` is a
   // par line the shelf carries itself — its category the good's template,
   // its level the par, counted over the counter rather than the viewer's
   // eye. One sheet, whichever place the policy was authored.
@@ -889,15 +889,16 @@ function stockSheetForImpl(
     // ⚠ By SHAPE, not `instanceof`: `Stock` composes `PricedOffer`, which
     // reaches this logic — a value import here is an evaluation cycle.
     const live = StuffApi.findByTemplatePath(path) as (Stuff & Partial<Stock>) | null;
-    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function') continue;
+    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function' || typeof live.sourceOf !== 'function') continue;
     for (const line of live.getStockLines()) {
-      if (!line.supplier || seen.has(line.itemTemplatePath)) continue;
+      const src = live.sourceOf(line);
+      if (src.kind !== 'supplier' || seen.has(line.itemTemplatePath)) continue;
       seen.add(line.itemTemplatePath);
       const par = ParLine.fromData({
         category: line.itemTemplatePath,
         level: line.par,
         unit: 'count',
-        supplier: line.supplier,
+        supplier: src.business,
       });
       const onHand = live.onHand(line.itemTemplatePath);
       sheet.push({ line: par, onHand, shortfall: Math.max(0, line.par - onHand) });

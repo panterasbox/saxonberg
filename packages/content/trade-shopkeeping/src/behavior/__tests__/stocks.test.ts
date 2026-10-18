@@ -190,8 +190,8 @@ beforeEach(async () => {
   counter = makeStuffAtPath(() => {
     const s = new Stock();
     s.stockLines = [
-      { itemTemplatePath: LIMES, par: 3, supplier: SUPPLIER, pricing: 'stocking' },
-      { itemTemplatePath: COFFEE, par: 1, supplier: SUPPLIER, pricing: 'stocking' },
+      { itemTemplatePath: LIMES, par: 3, from: { supplier: SUPPLIER }, pricing: 'stocking' },
+      { itemTemplatePath: COFFEE, par: 1, from: { supplier: SUPPLIER }, pricing: 'stocking' },
     ];
     s.prices = { [LIMES]: 10, [COFFEE]: 30 };
     s.setKeywords(['counter']);
