@@ -54,8 +54,8 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
-// The `hardnessDgh` payload field is declared by Hardness's merge.
-import type {} from '../cleanliness/Hardness';
+// The `hardnessDgh` payload field is declared by WaterHardness's merge.
+import type {} from '../cleanliness/WaterHardness';
 
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains

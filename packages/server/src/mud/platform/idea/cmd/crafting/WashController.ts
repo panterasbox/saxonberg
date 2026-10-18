@@ -46,7 +46,7 @@ const TOPIC = "act.deed";
 export const WASH_MS = 3000;
 /** Water nobody has measured: a basin at a cool room's warmth. */
 const UNKNOWN_WATER_K = 285;
-/** Hardness nobody has stated — moderately hard (the realm's default seed). */
+/** Water hardness nobody has stated — moderately hard (the realm's default seed). */
 const UNKNOWN_HARDNESS_DGH = 8;
 
 export interface WashModel extends CommandModel {

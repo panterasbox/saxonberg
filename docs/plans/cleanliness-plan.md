@@ -663,14 +663,14 @@ overnight is dry in the morning). Test: a soaked swimmer logs out; after
 number` (kernel `WaterSource.ts`); the water pack's reach read fills it
 from the compiled reach (flow-weighted at joins, the shipped value);
 `BulkPayload.hardnessDgh?` is declared by declaration-merge from
-`S/lib/cleanliness/Hardness.ts` (the `blood` precedent) and blends
+`S/lib/cleanliness/WaterHardness.ts` (the `blood` precedent) and blends
 volume-weighted through the shipped payload blend; a `WaterFixture`
 `suppliedBy:` a conduit carries its source reach's hardness, so **every
 Terminus tap off the Cold Fell main is soft (5 dGH) and the Quay is hard
 (12)** — the honest geography, and the drive's contrast with no new
 river. `WaterFixture`'s look line gains *"The water is soft/hard"* through
 the same `hardnessWords` rule (moved to the kernel as a method on the
-`Hardness` value object; the water pack calls it). `Soilable.wash`:
+`WaterHardness` value object; the water pack calls it). `Soilable.wash`:
 `f_hard = 1 − hardWaterPenalty × clamp((dgh − 6)/12)` for a cleanser with
 `hardWaterPenalty`; a `softens` cleanser in the same wash (soda, `using`
 twice is two cleansers — the `cleanser` arg is `objects`) sets `dgh = 2`.
@@ -1669,10 +1669,10 @@ Run these against `origin/master` and record the answers in § Grounding:
 | `combustionProducts`, `flammableLimit`, `vapourLPerLPerHour`, `ashFraction` | `Material` | any material may say what it gives off burning, at what share its vapour flashes, how fast it evaporates, what ash it leaves; the honest zero/null default leaves every shipped row byte-identical | — |
 | `offGas` | `MaturationProfile` | any profile may name its gas (replaces the CO₂ hardcode) | a census test pins every shipped profile |
 | `soils` | `Recipe` | any recipe may say what making it dirties | — |
-| `hardnessDgh` | `WaterDraw` (kernel) + `BulkPayload` (declaration-merge from `lib/cleanliness/Hardness.ts`) | drawn water remembers its source's hardness; blends by volume | — |
+| `hardnessDgh` | `WaterDraw` (kernel) + `BulkPayload` (declaration-merge from `lib/cleanliness/WaterHardness.ts`) | drawn water remembers its source's hardness; blends by volume | — |
 | `bleach(dose)` | `DyedMixin` | any dyed thing fades under an oxidiser dose | — |
 | `DirtKind`, `Cleanser` (Ideas) + two catalogues | `platform/idea/` | row families; nothing composes them | — |
-| `WashPolicy`, `WashSpec`/`WashOutcome`, `Hardness`, `StainRecord` | `lib/cleanliness/` value objects | nothing composes them | instance-shaped (`lint:lib-statics` at ceiling) |
+| `WashPolicy`, `WashSpec`/`WashOutcome`, `WaterHardness`, `StainRecord` | `lib/cleanliness/` value objects | nothing composes them | instance-shaped (`lint:lib-statics` at ceiling) |
 | `PersistentCartesianLocation` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not FurnishableRoom (coords; warren claims) |
 | fixture-state slice | `AdornableMixin.captureSlice`/materialize | a persistable host remembers its non-chattel fixtures' runtime state | — |
 | `Tub` (`Bulkable(Thermal(Chair))` — Soilable comes through `Chair`, never composed twice) | `platform/thing/Tub` | a seat you lie in that holds water | the `fixture/tub` row re-classed; the bathroom archetype unchanged |
@@ -1798,7 +1798,7 @@ treater's hands; every row is byte-identical in play.
 Implements D1–D4, D9, D31.
 
 **Files.**
-- `S/lib/cleanliness/{Soilable,Hardness,WashPolicy,StainRecord}.ts` (new);
+- `S/lib/cleanliness/{Soilable,WaterHardness,WashPolicy,StainRecord}.ts` (new);
   `S/lib/mixin.ts` (`Mixins.Soilable`, `Mixins.Flued` later; `Hygiene`
   removed), `S/api/mixin.ts` (`isSoilable`; `isHygiene` removed).
 - `S/platform/idea/{DirtKind,DirtKindCatalogue,Cleanser,CleanserCatalogue}.ts`
@@ -1937,7 +1937,7 @@ re-pointed; `C/trade-cooking/pack.yaml` loses the view),
 (`drawAt`) + `C/trade-fishing/…/FishingController.ts` (`reachFor` onto
 it),
 `S/lib/location/WaterSource.ts` (`hardnessDgh`), `C/water/src/idea/WatercourseCatalogue.ts`
-(fill it; `hardnessWords` → `Hardness`), `S/lib/bulk/Bulkable.ts` /
+(fill it; `hardnessWords` → `WaterHardness`), `S/lib/bulk/Bulkable.ts` /
 `BulkableLogic.ts` (payload blend of `hardnessDgh`),
 `S/platform/thing/WaterFixture.ts` (the soft/hard line; the supply's
 hardness), `rinse.yaml` (shore default), `C/trade-medicine/src/idea/reading/BloodReading.ts`
@@ -2041,7 +2041,7 @@ rinse restores), `fumes.test.ts` (a shut room poisons; a door clears).
 > and keep their `ambientSource: sky`. The scrub refusal is a returned
 > `Soilable.washRefusal()` hook the Floor overrides (B19); the `clean`
 > contract is `clean <place>` / `clean <thing> at <place>` (B20). Surprise:
-> a pack's tsc could not see the Hardness payload merge (nothing in its
+> a pack's tsc could not see the WaterHardness payload merge (nothing in its
 > import closure loaded it) — the three readers import it by type now.
 
 **Goal.** A place is kept as well as it is used; the dangerous

@@ -85,7 +85,7 @@ felts (protein fibre at a boil), shrinks (≥ 333 K), rots or burns
 (`corrosiveTo`), fades and bleeds an unfast dye onto everything in the
 same water, comes out wet. Cleansers are spent by use (B12).
 
-Hardness rides the water (`Hardness.ts`'s payload merge): a pail keeps its
+Hardness rides the water (`WaterHardness.ts`'s payload merge): a pail keeps its
 source's hardness; a tap reads its main's; unknown water washes as 8 °dH.
 `Soilable.washRefusal()` lets a host refuse in words — an earth floor is
 strewn and swept, not scrubbed (B19).

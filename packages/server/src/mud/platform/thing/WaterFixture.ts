@@ -50,7 +50,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MarkupAugmenter } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
-import { Hardness } from '../../lib/cleanliness/Hardness';
+import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
 import {
   SUPPLY_STATE_GLOSS,
   type SupplyReport,
@@ -67,7 +67,7 @@ function hardnessAugmenter(text: string, host: Stuff): string {
   if (!(host instanceof WaterFixture)) return text;
   const dgh = host.getWaterHardnessDgh();
   if (dgh === null) return text;
-  return `${text}\n\nThe water is ${new Hardness(dgh).word()}.`;
+  return `${text}\n\nThe water is ${new WaterHardness(dgh).word()}.`;
 }
 
 /**

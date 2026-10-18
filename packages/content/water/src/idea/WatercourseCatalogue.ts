@@ -46,7 +46,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { Hardness } from '@saxonberg/server/mud/lib/cleanliness/Hardness';
+import { WaterHardness } from '@saxonberg/server/mud/lib/cleanliness/WaterHardness';
 import {
   WaterSourceMixin,
   type WaterRead,
@@ -1534,7 +1534,7 @@ function temperatureWords(k: number): string {
 function hardnessWords(dgh: number): string {
   // ⭐ The kernel's one rule (cleanliness D12): the river and the tap say
   // *soft* and *hard* the same way.
-  return new Hardness(dgh).word();
+  return new WaterHardness(dgh).word();
 }
 /** Liquid water under a frozen surface — the floor a river's temperature reads. */
 const UNDER_ICE_K = 274;

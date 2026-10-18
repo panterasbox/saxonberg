@@ -1297,7 +1297,7 @@ invisible to acceptance 28's reveal audit — the same blind spot
   `StorageNode` answers no `supplyReport` (`analyze water tank` → *carries no
   water anywhere*). Neither row is in the pump build's diff.
 
-## Hardness travels (2026-10-17)
+## Water hardness travels (2026-10-17)
 
 Water carries its hardness (`hardnessDgh` on the bulk payload): a pail
 keeps its source's, a tap reads its main's, a shore's draw its reach's.
