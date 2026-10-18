@@ -222,14 +222,35 @@ export default class Stock extends StockBase {
     return (this as unknown as Stuff & Container).getContents();
   }
 
-  /** Resolve a shelf good by keyword, or null. */
+  /**
+   * Resolve a shelf good by keyword, or null.
+   *
+   * ⭐ The word the shelf list PRINTS is a name too. `getLong()` lists a
+   * line by its template leaf ("rubber-boots (11)"), so a player who
+   * types exactly what the slate says must be served — before this, a
+   * good whose keywords were "rubber boots" was refused as *"the shelf
+   * is bare"* by `carriesLine` (which does match the leaf) while a pair
+   * sat on the counter. Keywords first; the leaf is the fallback.
+   */
   resolveBuy(keyword: string): (Stuff & Containable) | null {
     for (const item of this.offeredItems()) {
       if (MixinApi.isPerceptible(item) && item.hasKeyword(keyword)) {
         return item;
       }
     }
+    const want = Stock.leafWord(keyword);
+    if (want === "") return null;
+    for (const item of this.offeredItems()) {
+      if (Stock.leafWord(item.getTemplatePath().split("/").pop() ?? "") === want) {
+        return item;
+      }
+    }
     return null;
+  }
+
+  /** A typed word or a template leaf, compared the way the shelf list prints it. */
+  private static leafWord(word: string): string {
+    return word.trim().toLowerCase().replace(/[-_]/g, " ");
   }
 
   /**
@@ -249,14 +270,11 @@ export default class Stock extends StockBase {
    * have.
    */
   carriesLine(keyword: string): boolean {
-    const want = keyword.trim().toLowerCase().replace(/[-_]/g, " ");
+    const want = Stock.leafWord(keyword);
     if (want === "") return false;
-    return this.stockLines.some((l) => {
-      const leaf = (l.itemTemplatePath.split("/").pop() ?? "")
-        .toLowerCase()
-        .replace(/[-_]/g, " ");
-      return leaf === want;
-    });
+    return this.stockLines.some(
+      (l) => Stock.leafWord(l.itemTemplatePath.split("/").pop() ?? "") === want
+    );
   }
 
   /** The authored par depth for a line (by item template path). */

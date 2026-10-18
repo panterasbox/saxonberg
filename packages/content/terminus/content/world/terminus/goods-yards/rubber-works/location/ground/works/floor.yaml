@@ -17,7 +17,7 @@ data:
       keywords: [windows, window, glass]
       description: Tall iron-framed windows down the yard wall, grey with the smoke of the firebox.
   longDescription: |
-    A long brick floor black with the dust of sulfur and coal. The vulcanizing oven squats at the far end with its iron chamber door, and the moulds stand on a bench beside it — boots, gloves, an apron, a flat sheet, a little ring, a long split tube. A ladder goes up through a trap to the loft, and a glass door at the side opens into the steamy green of the stove house.
+    A long brick floor black with the dust of sulfur and coal. The vulcanizing oven squats at the far end with its iron chamber door, and the moulds stand on a bench beside it — boots, gloves, an apron, a flat sheet, a little ring, a long split tube. A ladder goes up through a trap to the loft. A glass door in the north wall opens into the steamy green of the stove house, the store is through the west wall, and the yard door is east.
   exits:
     east:
       destination: /world/terminus/goods-yards/yard
