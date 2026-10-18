@@ -177,6 +177,32 @@ async function practise(s: Session, discipline: string, n: number): Promise<void
   for (let i = 0; i < n; i++) await s.cmd(`practice ${discipline} hard success`);
 }
 
+/**
+ * Wait until the world answers again after a long clock jump.
+ *
+ * ⚠ A jump of most of a day makes the world catch up every house's
+ * roster ticks and every counter's restock at once, and the next command
+ * can outlast the wire's 30 s — drive 7's `buy boots`, the first act at
+ * the general store after drive 6's 21-hour jump, timed out in runs 16
+ * and 18 and passed in 17 by timing alone. A live world never jumps a
+ * day; this is the harness's settling, not a retry of a checkpoint.
+ */
+async function settle(where: string): Promise<void> {
+  const s = await goTo('founder', where);
+  try {
+    for (let i = 0; i < 6; i++) {
+      try {
+        await s.cmd('look');
+        return;
+      } catch {
+        /* still catching up — try again */
+      }
+    }
+  } finally {
+    s.close();
+  }
+}
+
 /** Jump the world clock to `hour`:00 today (or tomorrow, if it has passed). */
 async function toHour(hour: number): Promise<void> {
   const { after } = await advanceWorldClock('0 seconds');
@@ -400,6 +426,7 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
     } finally {
       at.close();
       await toHour(12);
+      await settle(STORE); // a 21-hour jump; drive 7 starts at the store
       // In the finally: a failure here must not leave the later drives a
       // closed session (run 16's drive 9 cascaded from exactly that).
       mender = await goTo(pickHandle, SMITHY);
@@ -518,6 +545,26 @@ suite('⭐⭐ drive 9 — the heirloom keeps its name through its hilts (AC 14)'
     expect(raised, `fit sword: ${raised}`).toMatch(/fit the parts together/i);
     const whole = await examine(mender, 'Hollin');
     expect(whole, `re-hilted: ${whole}`).toMatch(/made of/i);
+
+    // ⭐ AC 14's other half, observed rather than unit-tested (finalize):
+    // broken and reforged, the blade loses its name, and its reforger may
+    // name it. The blade wants 1450 K and the forge holds 1300 unworked,
+    // so the bellows is worked first (the forge Berta keeps lit).
+    await say(mender, 'drop Hollin');
+    await evalOn(SMITHY, 'Hollin', "(this.ensureParts(), this.getLine('blade').failed = 1, this.getName())");
+    await say(mender, 'get Hollin');
+    const roar = await say(mender, 'pump forge');
+    console.log(`[repair drive] pump forge → ${roar}`);
+    await say(mender, 'repair Hollin');
+    await new Promise((r) => setTimeout(r, 9_000)); // the repair is an engaged act
+    await mender.drainProse();
+    const remade = await examine(mender, 'sword');
+    console.log(`[repair drive] reforged: ${remade}`);
+    expect(remade, `reforged, the name is gone: ${remade}`).not.toMatch(/Hollin/);
+    const named = await say(mender, 'name sword Brightwater');
+    expect(named, `the reforger names it: ${named}`).toMatch(/Brightwater/);
+    const known = await examine(mender, 'Brightwater');
+    expect(known, `it answers to its new name: ${known}`).toMatch(/Brightwater/);
   }, 600_000);
 });
 
@@ -558,7 +605,7 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
     await stopOwnedWorld();
   });
 
-  it.skipIf(!isOwnedTestWorld())('the botched pick\'s mends, the keen billhook and the named blade, as left', async () => {
+  it.skipIf(!isOwnedTestWorld())('the botched pick\'s mends, the keen billhook and the renamed blade, as left', async () => {
     mender?.close();
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
     // ⭐ A RESTART, not a crash: SIGTERM and wait for the shutdown capture.
@@ -603,8 +650,10 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
     await toHour(12); // by daylight: in the dark a thing is "something"
     const back = await Session.open(pickHandle, { startLocation: SMITHY, wizard: true });
     try {
-      const sword = await examine(back, 'Hollin');
-      expect(sword, `the named blade, after a restart: ${sword}`).toMatch(/Hollin/);
+      // Drive 9 reforged *Hollin* and its reforger named it *Brightwater*:
+      // the name a player gave, on the blade that lost the old one.
+      const sword = await examine(back, 'Brightwater');
+      expect(sword, `the named blade, after a restart: ${sword}`).toMatch(/Brightwater/);
       const hook = await say(back, 'analyze response billhook');
       expect(hook, `the billhook, after a restart: ${hook}`).toMatch(/edge: keen/);
       const pick = await examine(back, 'miners-pick');

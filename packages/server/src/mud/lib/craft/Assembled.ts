@@ -29,13 +29,16 @@
  * 1` on a count-30 line; *the hoops are slack* is a joint whose `tension`
  * fell with every line sound.
  *
- * ⭐⭐ **Composed only by things that ARE made of parts.** A class composes
- * this mixin only when every row of it has a bill — the pick is an
- * `AssembledTool`, a dagger is a plain `Tool` — and `lint:bills` holds
- * both directions. So no caller asks "is this one really an assembly?":
- * composing it is the answer (the base-class narrowing's rule; an earlier
- * cut composed it on whole families and guarded every read with an
- * emptiness check, the mixin-on-the-wrong-host tell).
+ * ⭐⭐ **Composed on the FAMILIES, and a thing with no bill is ONE PIECE**
+ * (repair D4, the owner's ruling). A pick and a whetstone are both `Tool`s;
+ * the pick has a bill and lists its head and haft, the whetstone has none
+ * and says *"It is one piece."* `isOnePiece()` is the mixin's own answer
+ * and every method is total on it, so no caller asks "is this one really
+ * an assembly?" — the guard that made the first cut's family composition
+ * the wrong-host tell is unnecessary when nothing needs guarding. (The
+ * assembly build's narrow twins — `AssembledTool`, `AssembledChair` and
+ * seven more — were folded back into their families, 2026-10-17.)
+ * `lint:bills` arm 7 holds the bill-to-class direction.
  *
  * A FOUND thing (spawned from a row with a bill, never crafted) reads its
  * derived properties off the bill at defaults and MATERIALIZES its record
@@ -550,15 +553,23 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       // `self` until the browser walk: a pick in your hands could not be
       // repaired, a shield could not be salvaged — every drive checkpoint
       // had the assembly lying on the floor, which is `peers`.
+      // ⭐ …and `name` (repair D18): a reforged blade's reforger may name
+      // it, and the verb has to exist where the blade is or the right is
+      // unreachable. Only `Bonded` afforded it, so `name sword …` was "I
+      // don't understand 'name'" beside the very sword (the finalize drive
+      // — the controller test had skipped the binder). Every other made
+      // thing is refused in words, which is the lesson.
       environment: [
         'platform/cmd/crafting/fit.yaml',
         'platform/cmd/crafting/repair.yaml',
         'platform/cmd/crafting/salvage.yaml',
+        'platform/cmd/social/name.yaml',
       ],
       peers: [
         'platform/cmd/crafting/fit.yaml',
         'platform/cmd/crafting/repair.yaml',
         'platform/cmd/crafting/salvage.yaml',
+        'platform/cmd/social/name.yaml',
       ],
     };
 

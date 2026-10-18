@@ -97,7 +97,13 @@ export default class NameController extends CommandController<NameModel> {
     // part (repair D18, Narsil's rule): both arms are checked HERE, since
     // the view's arg takes anything (`requires: any` — an alternation of
     // mixins in the view would delete one of the checks).
-    if (animal && MixinApi.isAssembled(animal) && MixinApi.isNamed(animal)) {
+    if (animal && MixinApi.isAssembled(animal)) {
+      // A made thing that bears no name at all (a pail) is refused here,
+      // in the thing's words — not as "not an animal".
+      if (!MixinApi.isNamed(animal)) {
+        this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
+        return;
+      }
       await this.nameThing(animal, wanted, context);
       return;
     }

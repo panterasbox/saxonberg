@@ -40,6 +40,7 @@ import { DurableMixin } from "../../material/Durable";
 import { ContainmentApi } from "../../../api/containment";
 import { CommandApi, type CommandContributions } from "../../../api/command";
 import { StuffApi } from "../../../api/stuff";
+import Weapon from "../../../platform/thing/equipment/Weapon";
 
 const MENDING = [
   "platform/cmd/crafting/repair.yaml",
@@ -179,6 +180,22 @@ describe("the verbs the reachability sweep conferred", () => {
       affordsOn(walker, "drive"),
       "a drivable vehicle beside you lights up `drive`",
     ).toBe(true);
+  });
+
+  it("⭐ `name` is afforded by a MADE thing in reach — the reforger's right needs the verb (repair D18)", () => {
+    // Only `Bonded` afforded `name`, so beside the very sword its reforger
+    // could name, `name sword …` was "I don't understand" — the finalize
+    // drive found it; the controller test had skipped the binder.
+    CommandApi.getCommand("platform/cmd/social/name.yaml");
+    const room = makeStuff(() => new Room());
+    const walker = makeStuff(() => new Walker());
+    ContainmentApi.move(walker, room);
+    expect(affordsOn(walker, "name")).toBe(false);
+    const sword = makeStuff(() => new Weapon());
+    ContainmentApi.move(sword, room);
+    expect(affordsOn(walker, "name"), "a sword on the floor").toBe(true);
+    ContainmentApi.move(sword, walker);
+    expect(affordsOn(walker, "name"), "a sword in hand").toBe(true);
   });
 
   it("⭐ `prompt` is HasInteractiveMixin's — a prompt is a CONNECTION's", () => {

@@ -425,7 +425,13 @@ still deferred — not faked.
 > set: the tell that the host is wrong ([antipatterns.md § a mixin composed on a
 > broad family](../antipatterns.md#a-mixin-composed-on-a-broad-family-then-guarded-back-down)). `MixinApi.isAssembled` is now the
 > whole question, and `lint:bills` arm 7 holds *a row has a bill ⇔ its
-> class composes `AssembledMixin`* both ways. The full model — bills, joints,
+> class composes `AssembledMixin`* both ways.
+>
+> ⚠ **Superseded by the repair build (W1, 2026-10-17):** the twins were
+> folded back into their families, and a billless member is *one piece*
+> rather than a non-assembly — the guard problem is gone because every
+> method is total on one piece. See [assembly.md § Host
+> placement](./assembly.md#host-placement--the-families-a-monolith-is-one-piece). The full model — bills, joints,
 > wear, the grain carry — is [assembly.md](./assembly.md).
 
 ## The offer: `CommerceMenu` + the venue subclasses
