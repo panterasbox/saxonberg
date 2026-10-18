@@ -302,6 +302,11 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     if (t.getDraught?.() === 'horse' && !this.hasDraftAnimal()) {
       return { ok: false, line: 'An ice plough wants a horse in the traces, and there is none out here.' };
     }
+    // ⭐ One grid on a sheet (the review): a new mark REPLACES a standing
+    // one — its area goes back to the ice it was scored on, then the new
+    // grid is laid. So `cut marked` always means the one current grid, and
+    // two players never hold two grids nobody can tell apart.
+    for (const old of this.log.filter((p) => p.kind === 'marked' && p.areaM2 > 0)) this.unmark(old);
     const from = this.patchByWord(raw ?? 'scraped') ?? this.patchByWord('field');
     if (from === null || !(from.kind === 'scraped' || from.kind === 'field')) {
       return { ok: false, line: 'There is no clear ice there to mark.' };
@@ -313,6 +318,21 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     this.split(from, 'marked', area, { gridM: grid, bareFromS: from.bareFromS });
     void this.captureSelf();
     return { ok: true, line: `You score a grid across the ice, the lines ${Math.round(grid * 100)} centimetres apart.` };
+  }
+
+  /** A marked patch goes back to the ice it was scored on: scraped (its bare clock kept) or field. */
+  private unmark(marked: PatchRecord): void {
+    const scraped = marked.bareFromS !== undefined;
+    const home = this.log.find(
+      (p) => p !== marked && (scraped ? p.kind === 'scraped' && p.bareFromS === marked.bareFromS : p.kind === 'field'),
+    );
+    if (home) {
+      home.areaM2 += marked.areaM2;
+      this.log = this.log.filter((p) => p !== marked);
+    } else {
+      marked.kind = scraped ? 'scraped' : 'field';
+      delete marked.gridM;
+    }
   }
 
   /**

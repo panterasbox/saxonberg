@@ -43,6 +43,11 @@ class Saw extends Good {
     return kind === 'ice-sawing';
   }
 }
+class WideMarker extends Good {
+  getGridM(): number {
+    return 0.8;
+  }
+}
 class Marker extends Good {
   getGridM(): number {
     return 0.5;
@@ -225,6 +230,28 @@ describe('the acts — scrape, mark, cut', () => {
     const block = await sheet.cutBlock(w as unknown as Stuff, sheet.patchByWord('marked')!.id);
     expect(block).not.toBeNull();
     expect(titled).toEqual([w]);
+  });
+
+  it('⭐ one grid on a sheet: a second mark replaces the first, the area goes back, and the cut takes the current grid (the review)', async () => {
+    const { pool, sheet } = await sheetIn();
+    const a = walker(pool);
+    const b = walker(pool);
+    sheet.occupy(a as never, 'ground:1');
+    sheet.occupy(b as never, 'ground:1');
+    const total = (): number => sheet.getLog().reduce((n, p) => n + p.areaM2, 0);
+    const before = total();
+    expect(sheet.markPatch(a as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null).ok).toBe(true);
+    expect(sheet.markPatch(b as unknown as Stuff, makeStuff(() => new WideMarker()) as unknown as Stuff, null).ok).toBe(true);
+    const marked = sheet.getLog().filter((p) => p.kind === 'marked' && p.areaM2 > 0);
+    expect(marked).toHaveLength(1);
+    expect(marked[0]!.gridM).toBe(0.8);
+    expect(total()).toBeCloseTo(before, 9);
+    const block = await sheet.cutBlock(a as unknown as Stuff, marked[0]!.id);
+    const ice = sheet.iceOf(marked[0]!)!;
+    expect((block as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue()).toBeCloseTo(
+      Math.round(ice.thicknessM * 0.8 * 0.8 * 917 * 10) / 10,
+      6,
+    );
   });
 
   it('a cut is refused without a saw, and without a marked grid', async () => {

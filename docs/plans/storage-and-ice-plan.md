@@ -2504,6 +2504,15 @@ clean was the line, and the economics had three strains. All in scope:
   (the `BankController` shape); the `deposit` / `withdraw` views and
   controllers are gone. The verb-space refactor this implies is the
   reviewer's follow-up MR: `docs/slates/builds/command-taxonomy-slate.md`.
+- **R9 — one grid on a sheet** (the reviewer: players must not collide
+  over marks). A mark is shared prep work on the pool's sheet — anyone on
+  the ice may `cut marked`, and the block is the cutter's (R7). Two
+  standing grids would need a way to name which one; instead a new `mark`
+  REPLACES a standing one: its area goes back to the ice it was scored on
+  (scraped, its bare clock kept, or field) and the new grid is laid. Area
+  is conserved; the latest marker's grid wins. Decided against: marks
+  healing over (snow and refreeze filling the lines) — nothing a player
+  does would change for it.
 - Re-driving also found two drives broken before this review: **fishing**'s
   setup called `reserve issue` (gone since the economic bootstrap; it now
   funds by `reserve override`, as drilling does), and
