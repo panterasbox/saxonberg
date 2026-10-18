@@ -2451,3 +2451,35 @@ this one was OOM-killed at drive 7 (exit 137). 14: abandoned at drive 4
 (0 GB available, load ~40, four worlds again). ⭐ **15: 13/13 green on
 the final code** (`b4ba3b6c2`, after the review's fold onto `Named`; 1797
 s) — drive 9 finds *Hollin* by its `Named` name, draws and re-hilts it.
+
+### The browser walk (2026-10-17, after run 15)
+
+Client on 5176 (`VITE_SERVER_URL`) against a fresh world on 2016
+(`AUTH_MODE=test`, started without the preflight so no sibling's server
+was touched), a walker and a founder in two isolated contexts. What a
+player sees that the wire cannot:
+
+- ✅ `look Hollin` binds by the `Named` name; the card is titled *Hollin*
+  and reads its history, its four parts and the peened joint. A
+  `look sword` with two swords in hand asks *which target?* and offers
+  **Hollin** by name.
+- ✅ The paid mend: Berta's quote in the transcript, then the confirm
+  prompt rendered as *"Have it done for 5 zorkmids?"* with Yes / No;
+  Yes → *"Berta mends an arming sword; it is sound. (5 zorkmids,
+  goodkin)"*, the card *"It has been mended by Berta."*, an untrained
+  appraisal *"It is sound. It has been mended."* (the band hides who).
+- ✅ The tinker's notice at the crossroads reads the round.
+- 🔧 Fixed (`918a15204`): Berta could not mend from her own smithy (bars
+  only — iron offcuts now, and in the tinker's kit); the quote said
+  "iron" for a steel blade; "It is the work of Berta" after a mere mend;
+  the cobbler's sign said "a game-hour" for a piece-rate seat.
+- ⚠ **Open — the forge is cold.** In a fresh world Berta's forge is
+  banked and nothing lights it: the quote refuses honestly (*"wants a
+  fire hotter than any here"*) until a PLAYER stokes and lights it. The
+  drive hid it — drive 3 lights the forge before drive 5, and drive 6
+  lights the smelter furnace before the tinker's stop. Owner's call.
+- Seen, not repair's: the teller's line renders doubled quotes
+  (`""Opening an account?…""`); Berta "introduces themselves" to a player
+  teleporting OUT; `get sword` takes every sword in reach; the
+  cobbler's slate (a `Tariff`) is not `read`able, so its prices are
+  learned from the quote alone.
