@@ -47,7 +47,10 @@ export default class StrewController extends CommandController<StrewModel> {
     }
     const name = item.getPresentation();
     await StuffApi.destruct(item);
-    await PersistableApi.captureHostOf(floor).catch(() => {});
+    // ⚠ Not awaited (found by the drive): the act answers now, and the kept
+    // room's snapshot — a crowded cookhouse, over a remote store — lands
+    // when it lands. Nothing here reads it back.
+    void PersistableApi.captureHostOf(floor).catch(() => {});
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You strew ${name} over the floor.`)

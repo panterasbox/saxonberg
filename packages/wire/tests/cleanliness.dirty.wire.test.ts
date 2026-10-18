@@ -281,13 +281,38 @@ async function buy(s: Session, item: string): Promise<void> {
   expect(said, `buy ${item}: ${said}`).toMatch(/you buy/i);
 }
 
+/**
+ * ⚠⚠ Jump the clock, then wait for the world to catch up. A jump drains
+ * every schedule in the interval, and on a long one the server is busy for
+ * minutes — commands sent in that window time out and wedge their session
+ * (three "hangs" in the drive were this). Poll a cheap query until it
+ * answers.
+ */
+async function advance(duration: string): Promise<{ before: number; after: number }> {
+  const r = await advanceWorldClock(duration);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  try {
+    const until = Date.now() + 600_000;
+    while (probe && Date.now() < until) {
+      const ok = await probe
+        .query('here', { fields: ['displayName'] })
+        .then(() => true)
+        .catch(() => false);
+      if (ok) break;
+    }
+  } finally {
+    probe?.close();
+  }
+  return r;
+}
+
 /** Work by daylight: a dark room names nothing. */
 async function toDaylight(): Promise<void> {
   const { after } = await advanceWorldClock('0 seconds');
   const tod = ((after % 86_400) + 86_400) % 86_400;
   if (tod >= 9 * 3600 && tod <= 15 * 3600) return;
   const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
-  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
+  await advance(`${Math.ceil(toNoon / 60)} minutes`);
 }
 
 beforeAll(async () => {
@@ -420,7 +445,7 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
 
   it('⭐ drive 3 — a game day of idling changes nothing (no clock on dirt)', async () => {
     const before = await body(cook);
-    await advanceWorldClock('24 hours');
+    await advance('24 hours');
     await toDaylight();
     const after = await body(cook);
     expect(after.match(/Your hands[^.]*\./)?.[0], `hands a day later: ${after}`).toBe(
@@ -471,13 +496,13 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
 
   it('⭐ drive 9 — a washed shirt is wet; dried by the fire it is not', async () => {
     const wet = await mine(cook, 'shirt');
-    expect(wet, `after the wash: ${wet}`).toMatch(/wet|damp|sodden/i);
+    expect(wet, `after the wash: ${wet}`).toMatch(/soaked|wet\b|damp/i);
     const handle = cook.handle;
     cook.close();
     cook = await goTo(handle, COOKHOUSE);
     await act(cook, 'dry shirt');
     const dry = await mine(cook, 'shirt');
-    expect(dry, `dried: ${dry}`).not.toMatch(/sodden/i);
+    expect(dry, `dried: ${dry}`).not.toMatch(/soaked/i);
   }, 300_000);
 });
 
@@ -494,7 +519,7 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
     await say(s, 'stoke sulfur into brazier');
     await say(s, 'ignite brazier');
-    await advanceWorldClock('30 minutes');
+    await advance('30 minutes');
     const air = await say(s, 'analyze atmosphere');
     expect(air, `the cellar air: ${air}`).toMatch(/sulfur|sulphur|dioxide|acrid/i);
     s.close();
@@ -546,7 +571,7 @@ suite('⭐ drive 14 — mill dust hangs in the mill house; swept, it settles (AC
       await cloneHere(MILL_HOUSE, T.wheat);
       // ⚠ `corn`, not `wheat`: the flour sacks answer to `wheat` too.
       await say(s, 'mill corn 0.72');
-      await advanceWorldClock('20 minutes');
+      await advance('20 minutes');
     }
     await s.listen(3_000);
     await s.drainProse();
@@ -563,7 +588,7 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
     const first = await goTo(cookHandle, BYRE);
     await examine(first, 'floor');
     first.close();
-    await advanceWorldClock('48 hours');
+    await advance('48 hours');
     await toDaylight();
     const s = await goTo(cookHandle, BYRE);
     const floor = await examine(s, 'floor');
