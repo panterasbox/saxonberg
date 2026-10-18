@@ -12,8 +12,19 @@ data:
   specificHeat: 3200
   electricalConductivity: 1.0e-4
   waterAbsorptionCapacity: 60
-  edibility: false
-  nutrients: []
+  # ⭐ Edible, as a dandelion root is (roasted, it is the old coffee
+  # substitute): bitter, mostly inulin, and it rots like any root. It is
+  # also what makes it STOCK — crafting reads a grown, marked thing as
+  # matter only when it is food (CraftingLogic.isItemCandidate), and the
+  # milling recipe takes it as an item (found by the rubber drive: the
+  # stones said there was not enough rubber-root with a bundle in hand).
+  edibility: true
+  tastes: [bitter]
+  spoilActivationEnergy: 60000
+  waterActivity: 0.95
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 9000
   toxicity: []
   tags: ["rubber-root", "plant", "organic", "once-living"]
   composition: []

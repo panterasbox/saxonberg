@@ -20,8 +20,18 @@
   **coagulating pan** (a `Mould`) holds the pool a game day and keeps the
   sheet. ⚠ A cup of latex never sets — the set runs only in a mould.
 - **Dandelion rubber** — the russian dandelion (`trade-farming`): seed on
-  the general store's counter, dug in its first autumn; `mill` the roots to
-  pulp, `make raw-rubber-from-pulp` with water in reach.
+  the general store's counter, dug in its first autumn. The roots are
+  **wet-milled**: `mill` (or `grind`) them at any millstones — the
+  Delight's grist mill, a hand quern — with **5 L of water** and an
+  **empty pail** in reach (the byre has both), and the crushed root gives
+  up its latex into the pail (`dandelion-latex`). It is the Hevea's own
+  latex from there: poured into a coagulating pan, a game day later it is
+  a sheet of raw rubber. ONE set process for both supplies.
+  ⚠ It shipped as pulp-then-`make` and the drive found that unreachable
+  three ways (`make` runs a player's script, not a catalogue recipe; no
+  verb washes a pulp; a `Casting` is not a craft output). The root is
+  edible (a grown, marked thing is craft STOCK only as food), and the
+  recipe has no ladder placement (rubber has no knowledge gate).
 - **Sulfur** — the Hill Quarry's caprock band (−10 … −11 m), won by `dig`
   as a 50 g nodule (a `Firewood`; `stoke` takes it).
 

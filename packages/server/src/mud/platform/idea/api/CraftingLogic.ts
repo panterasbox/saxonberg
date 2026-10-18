@@ -4044,6 +4044,22 @@ export class CraftingLogic extends ApiLogic {
     return offeredImpl(menu);
   }
 
+  /** See {@link CraftingApi.recipeTaking}. */
+  @CallSecurity(CraftingApiCallers)
+  public async recipeTaking(
+    capability: string,
+    tags: readonly string[],
+  ): Promise<RecipeView | null> {
+    const catalogue = await requireCatalogue();
+    const wanted = new Set(tags);
+    for (const recipe of catalogue.allRecipes()) {
+      if (!recipe.getToolCapabilities().includes(capability)) continue;
+      const items = recipe.getInputSlots().filter((sl) => sl.kind === 'item');
+      if (items.length === 1 && wanted.has(items[0]!.category)) return toView(recipe);
+    }
+    return null;
+  }
+
   /** See {@link CraftingApi.canMake}. */
   @CallSecurity(CraftingApiCallers)
   public async canMake(recipeRef: string): Promise<boolean> {

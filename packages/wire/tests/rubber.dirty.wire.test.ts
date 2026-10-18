@@ -68,6 +68,8 @@ const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 const CATWALK = '/world/substation/catwalk';
 const CELL = '/world/substation/flooded-cell';
+const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
+const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
 
 const ROW = {
   raw: '/trade/rubber/thing/raw-rubber',
@@ -286,6 +288,62 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
     expect(elastic, `wear elastic: ${elastic}`).toMatch(/you put on/i);
     expect(elastic).not.toMatch(/tight|loose/i);
   }, 600_000);
+});
+
+// ───────────────────────── dandelion rubber (12) ─────────────────────────
+
+suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the stones, the latex set in the pan (AC 1)', () => {
+  it('the seed is on the general store\'s counter', async () => {
+    const s = await funded('dandelion-seed', SHOP);
+    await buyOne(s, '"dandelion seed"');
+    expect(await examine(s, 'me:i:seed'), 'the seed').toMatch(/dandelion/i);
+  }, 600_000);
+
+  it('dug roots, wet-milled at the Delight\'s stones, give a latex that sets in the pan to raw rubber', async () => {
+    // ⚠ The growth arc does not port (the farming drive's header: a
+    // 150-day crop wants a compressed clock the suite cannot assume), so
+    // this begins with what the dig yields — a bundle of dandelion root.
+    await toHour(10, 14); // in the dark every root reads "something"
+    // Water, and an empty pail for the run-off: the byre has both.
+    const w = await funded('dandelion', BYRE);
+    await say(w, 'get 2 pail');
+    const filled = await say(w, 'fill pail from butt');
+    expect(filled, `fill pail: ${filled}`).toMatch(/you fill/i);
+    const h = w.handle;
+    w.close();
+    const s = await at(h, MILLSITE);
+    await cloneInto(MILLSITE, s, '/trade/farming/thing/crop/dandelion-root', 'dandelion', 1);
+    // ⚠ In the HAND: a recipe grind takes its input from the miller's own
+    // reach (the grain arm takes a sack off the floor; this one does not).
+    const milled = await s.cmd('mill dandelion');
+    const said = squash(plain(await milled.said()));
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] mill dandelion: ${said.slice(0, 300)}`);
+    expect(said, `mill dandelion: ${said}`).not.toMatch(/not grain|will not take/i);
+    expectOk(milled);
+    await new Promise((r) => setTimeout(r, 3_000));
+    await s.drainProse();
+    // Two pails answer to "pail": find the one holding the milk.
+    const pails = await s.query('me:i:pail', { fields: 'detail' });
+    const texts = pails.map((p) => String((p as { longDescription?: unknown }).longDescription ?? ''));
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] the pails: ${texts.map((t) => t.slice(0, 120)).join(' | ')}`);
+    const milk = texts.findIndex((t) => /milk|latex/i.test(t));
+    expect(milk, 'a pail of dandelion latex').toBeGreaterThanOrEqual(0);
+    // Into the stove house's coagulating pan: the Hevea's set, the same pan.
+    s.close();
+    const t = await at(h, STOVE_HOUSE);
+    const poured = await say(t, `pour me:i:pail:[${milk + 1}] into pan`);
+    expect(poured, `pour: ${poured}`).toMatch(/pour/i);
+    await advanceWorldClock('26 hours');
+    await new Promise((r) => setTimeout(r, 3_000));
+    const pan = await examine(t, 'pan');
+    expect(pan, 'the pan has set').toMatch(/set/i);
+    const got = await say(t, 'get here:i:pan:i:sheet');
+    expect(got).toMatch(/sheet/i);
+    const sheet = await examine(t, 'me:i:sheet');
+    expect(sheet, 'raw rubber from the dandelion').toMatch(/raw rubber|tacky|stiff/i);
+  }, 900_000);
 });
 
 // ───────────────────────── the cure (14–17) ─────────────────────────

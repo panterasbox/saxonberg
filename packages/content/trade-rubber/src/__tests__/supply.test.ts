@@ -38,24 +38,27 @@ describe('sulfur is caprock', () => {
 });
 
 describe('rubber from a field', () => {
-  it('seed → plant → root → pulp → raw rubber: every row names the next', () => {
+  it('seed → plant → root → (wet-milled) latex → the pan: every row names the next', () => {
     const seed = data('trade-farming', '/trade/farming/thing/seed/kok-saghyz.yaml');
     const plant = data('trade-farming', `${String(seed.growsIntoPath)}.yaml`);
     const crop = data('trade-farming', `${String(plant.harvestTemplatePath)}.yaml`);
     const root = data('trade-farming', `${String(crop._materialPath)}.yaml`);
     expect(root.tags).toContain('rubber-root');
+    // ⭐ Edible, and that is what makes a grown, marked root STOCK to a
+    // craft (CraftingLogic.isItemCandidate) — the drive found it refused.
+    expect(root.edibility).toBe(true);
 
-    const pulpRecipe = doc('trade-rubber', '/recipes/root-pulp.yaml');
-    const slot = (pulpRecipe.inputSlots as Array<{ category: string }>)[0]!;
-    expect(slot.category).toBe('rubber-root');
-    const pulp = data('trade-rubber', `${String(pulpRecipe.outputMaterial)}.yaml`);
-    expect(pulp.tags).toContain('rubber-pulp');
-
-    const washRecipe = doc('trade-rubber', '/recipes/raw-rubber-from-pulp.yaml');
-    const cats = (washRecipe.inputSlots as Array<{ category: string }>).map((s) => s.category);
-    expect(cats).toEqual(['rubber-pulp', 'water']);
-    const lump = data('trade-rubber', `${String(washRecipe.outputTemplate)}.yaml`);
-    expect(lump._materialPath).toBe('/stuff/idea/material/organic/raw-rubber');
+    const recipe = doc('trade-rubber', '/recipes/dandelion-latex.yaml');
+    const cats = (recipe.inputSlots as Array<{ category: string }>).map((sl) => sl.category);
+    expect(cats).toEqual(['rubber-root', 'water']);
+    expect(recipe.toolCapabilities).toEqual(['millstone']);
+    // No ladder placement: rubber has no knowledge gate.
+    expect(recipe.difficulty).toBeUndefined();
+    expect(recipe.discipline).toBeUndefined();
+    // ⭐ It runs off as the Hevea's latex, so it SETS in the same pan.
+    expect(recipe.outputMaterial).toBe('/stuff/idea/material/organic/latex');
+    const latex = data('base-library', '/stuff/idea/material/organic/latex.yaml');
+    expect(latex.drainSetting).toBeTruthy();
   });
 
   it('the seed is on the general store\'s counter, priced', () => {
