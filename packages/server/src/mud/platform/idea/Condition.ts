@@ -33,6 +33,8 @@ import type { Channel } from '../../lib/material/Channel';
 import type { MagicProvenance } from '../../lib/magic/Grid';
 import type { ResistBand } from '../../lib/magic/Resist';
 import type { FieldMeta } from '../../lib/mixin';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 // ---------- the active-condition vocabulary ----------
@@ -307,6 +309,15 @@ export const HARM_DEFAULTS = {
   DRESSED_HEAL_PER_SEC: 0.02,
   /** Below this severity a laceration has clotted (safe to undress). */
   CLOT_SEVERITY: 0.5,
+  /** ⭐ Blood that leaves the body STAINS (cleanliness, review): soil
+   * load per litre on the layer over the wound — a quarter-litre soaks a
+   * shirt to *filthy* (the band dials: marked 0.1 · soiled 0.4 · filthy 1). */
+  BLOOD_STAIN_PER_L: 4,
+  /** At or above this severity an open bleed DRIPS — a share of it lands on
+   * the floor the bleeder stands on (a trail). */
+  BLOOD_DRIP_SEVERITY: 1,
+  /** The share of a dripping bleed that reaches the floor. */
+  BLOOD_DRIP_SHARE: 0.5,
   /** ⭐ Severity decay per game-second while a wound is SUTURED (D8) —
    * faster than a bare dressing: stitches hold the edges together. */
   SUTURED_HEAL_PER_SEC: 0.03,
@@ -950,6 +961,30 @@ function setBloodLitres(host: Vitals, litres: number): void {
 }
 
 /**
+ * Lose `litres` of blood through wound `t`. ⭐ An EXTERNAL bleed stains
+ * (cleanliness, review): the blood soaks the INNERMOST layer over the wound
+ * site first (the bare skin when nothing covers it), the stain records the
+ * bleeder — your own blood on your shirt is evidence you were hurt — and a
+ * heavy bleed drips onto the floor. A rupture bleeds into the body and
+ * stains nothing.
+ */
+function bleedOut(host: Vitals, t: Trauma, litres: number, external: boolean): void {
+  if (!(litres > 0)) return;
+  setBloodLitres(host, bloodLitres(host) - litres);
+  if (!external) return;
+  const body = host as unknown as Stuff;
+  if (!MixinApi.isHygienic(body)) return;
+  const D = HARM_DEFAULTS;
+  const load = litres * D.BLOOD_STAIN_PER_L;
+  const drips = t.severity >= D.BLOOD_DRIP_SEVERITY;
+  const onBody = drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load;
+  body.soilBodyPart(t.site, 'blood', onBody, body, 'inner');
+  if (drips) {
+    body.soilFrom([{ kind: 'blood', amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
+  }
+}
+
+/**
  * The flagship — **laceration → bleed**, with the clot gate.
  *
  * - `onset` opens the bleed (`bleeding = true`).
@@ -972,8 +1007,7 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     // severity decay is the HEALING half and lives in `mend`, where the
     // convalescence factor scales it — see the split (D1).
     if (t.bleeding && !t.dressed) {
-      const lost = D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec;
-      setBloodLitres(host, bloodLitres(host) - lost);
+      bleedOut(host, t, D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, true);
     }
   },
   mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
@@ -1307,7 +1341,13 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
  */
 export const RUPTURE_BEHAVIOR: TraumaBehavior = {
   onset: LACERATION_BEHAVIOR.onset,
-  tick: LACERATION_BEHAVIOR.tick,
+  // ⭐ Into the body: the same drain, and no stain — a cavity is not a
+  // shirt.
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    if (t.bleeding && !t.dressed) {
+      bleedOut(host, t, HARM_DEFAULTS.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, false);
+    }
+  },
   // ⭐ An interior bleed does not knit on its own — it is bleeding into a
   // cavity nobody can reach, so `mend` does NOTHING until surgery closes
   // it (D4). Once `dressed` (operated), it heals slowly at the rupture
@@ -1368,7 +1408,7 @@ export const FOREIGN_BODY_BEHAVIOR: TraumaBehavior = {
         HARM_DEFAULTS.FOREIGN_BODY_BLEED_SCALE *
         Math.max(0, t.severity) *
         elapsedSec;
-      setBloodLitres(host, bloodLitres(host) - lost);
+      bleedOut(host, t, lost, true);
     }
   },
   // Nothing knits around an embedded object; once extracted (dressed), it

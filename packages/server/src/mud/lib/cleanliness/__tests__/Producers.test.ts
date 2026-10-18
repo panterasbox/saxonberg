@@ -13,6 +13,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { soilBody, wear } from './soil-fixtures';
+import { TRAUMA_BEHAVIOR, type Trauma } from '../../../platform/idea/Condition';
 
 beforeEach(() => installV1QuantityMarshallers());
 afterEach(() => {
@@ -135,3 +136,36 @@ describe('hard work sweats the INNER layer (D6)', () => {
     expect(shirt.soilBand()).toBe('clean');
   });
 });
+
+describe('⭐ a bleeding wound stains what covers it (review)', () => {
+  const wound = (type: Trauma['type'], site: string): Trauma => ({
+    kind: 'trauma',
+    type,
+    site,
+    severity: 0.8, // below the drip line: no floor in this fixture
+    bleeding: true,
+  });
+
+  it('a cut on the torso soaks the shirt over it, with the bleeder\'s own blood', () => {
+    const c = soilBody();
+    const shirt = wear(c, 'torso');
+    TRAUMA_BEHAVIOR.laceration.tick(c, wound('laceration', 'body.torso'), 60);
+    expect(shirt.soilLoad('blood')).toBeGreaterThan(0.1);
+    expect(c.soilAt('body.torso')).toBe(0); // the shirt took it, not the skin
+  });
+
+  it('a cut nothing covers bloodies the skin at the wound', () => {
+    const c = soilBody();
+    TRAUMA_BEHAVIOR.laceration.tick(c, wound('laceration', 'body.arm.left.hand'), 60);
+    expect(c.soilLoad('blood', 'body.arm.left.hand')).toBeGreaterThan(0);
+  });
+
+  it('a rupture bleeds INTO the body and stains nothing', () => {
+    const c = soilBody();
+    const shirt = wear(c, 'torso');
+    TRAUMA_BEHAVIOR.rupture.tick(c, wound('rupture', 'body.torso'), 60);
+    expect(shirt.soilLoad('blood')).toBe(0);
+    expect(c.soilAt('body.torso')).toBe(0);
+  });
+});
+

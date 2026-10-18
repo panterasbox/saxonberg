@@ -2805,6 +2805,15 @@ Read first, in this order.
   lifts it (three rooms have a midden). Raking a grate wants a broom or a
   brush in hand now.
 
+- **B44 — An external bleed stains** (review: *"I never considered
+  garments getting soiled from blood loss"*). Every act names its deposit,
+  and a bleed's was nowhere. `bleedOut` routes the laceration, puncture,
+  avulsion and foreign-body drains: the innermost layer over the wound (the
+  skin when bare), the bleeder's own blood on the stain, a heavy bleed
+  drips on the floor; a rupture bleeds inward and stains nothing. Laundry,
+  the dress code and `analyze` read it with no further code. Dressings that
+  stay on and are changed → `dressings-slate` (the medic vertical's).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

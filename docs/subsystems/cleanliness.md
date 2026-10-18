@@ -6,7 +6,7 @@
 
 Built by the cleanliness build (2026-10-17; plan
 `docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B43). Seeding slates: laundry, room-condition, rendering § 9,
+B1–B44). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -62,7 +62,11 @@ else. No boot list.
 `SoilSpecs` value (`lib/cleanliness/SoilSpec.ts`): `{kind, amount,
 where}` with `where` ∈ `hands · apron · feet · floor`. The act lands it
 through `Hygiene.soilFrom`; the wearer decides which layer it reaches
-(`outermostAt`). Butchery bloodies the apron and the hands; a glove takes
+(`outermostAt`). Butchery bloodies the apron and the hands; ⭐ an external
+bleed (a laceration, a puncture, an avulsion, an embedded object — not a
+rupture, which bleeds inward) stains the INNERMOST layer over the wound
+with the bleeder's own blood, the bare skin when nothing covers it, and a
+heavy bleed drips on the floor (`HARM_DEFAULTS.BLOOD_*`, B44); a glove takes
 a hand's deposit once per layer; eating drops `crumbs` on the floor (the
 one debris producer, B6); a fire's incomplete exhaust soots every Soilable
 fixture in its room; walking carries a floor's soil onto the feet

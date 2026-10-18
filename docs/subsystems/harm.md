@@ -882,3 +882,13 @@ driver now reaches (replacing seven scattered sites), plus
 `embodyForSession` / `reembody` for the recovery arc. The per-driver dying
 windows live with the physics that justifies them, in each driver's own
 `*_DEFAULTS`.
+
+## Bleeding stains (cleanliness, 2026-10-18)
+
+An external bleed's lost blood lands on the body (`bleedOut` in
+`Condition.ts`): the innermost covering at the wound's site, else the skin
+there, with the bleeder recorded on the stain; at
+`BLOOD_DRIP_SEVERITY` a share drips on the floor. A rupture drains the same
+way and stains nothing. Dressings that stay on the wound and are changed
+when soaked are [dressings-slate](../slates/tails/dressings-slate.md).
+
