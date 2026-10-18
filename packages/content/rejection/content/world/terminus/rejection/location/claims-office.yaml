@@ -61,7 +61,7 @@ data:
     # repeat: *the same path twice in one list with no `as` is
     # `count: N` written longhand — and a repeat with no identity is an
     # entry no child row can ever replace.* One is what a rack would
-    # hold anyway, and `make liner` takes two of timber.
+    # hold anyway, and `carve liner` takes two of timber.
     - /trade/drilling/thing/liner
     - /trade/drilling/thing/pressure-gauge
     # The surveying instrument is MINING's — this trade adds none for its
@@ -73,9 +73,10 @@ data:
     # recorded it) and nobody in the valley makes pumps to sell.
     - /stuff/thing/gear/force-pump
     # …and a spare packing, because the leather goes. ⚠ It cannot be
-    # bought (the till) and a fresh hand cannot `make` one either — `make`
-    # is deed-gated until somebody has built it once by hand. The recipe
-    # ships for the trade; the rack is the shipped answer to the till.
+    # bought (the till), and no verb makes one yet: the packing recipe
+    # takes leather and a cutting tool, and nothing cuts leather (carving is
+    # wood only) — a stranded recipe (scripting-decouple census). The rack
+    # is the shipped answer to the till.
     - /trade/tanning/thing/packing
     # A light, because the sites are outdoor rooms and the sun sets.
     - /world/terminus/rejection/thing/glowcap-jar

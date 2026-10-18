@@ -26,7 +26,9 @@ leaves behind is a fruit set on trees it does not own.
 
 Everything else is the platform's: you `open` a hive, `put` a nucleus or a
 super in it, `split` a strong colony, `handle` it to read it, `ignite` a
-smoker, and `make` honey out of comb two different ways.
+smoker. Honey out of comb has two recipes (`crush-comb`, `spin-comb`) and,
+⚠ as yet, no verb that runs them — they were written for `make`, which only
+ever replayed scripts (see docs/subsystems/apiculture.md).
 
 ⭐ **And nothing in Heart's Delight keeps bees.** The valley has an
 apiary-shaped hole in it and a grower who would be better off if somebody

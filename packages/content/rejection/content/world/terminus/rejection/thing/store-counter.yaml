@@ -37,8 +37,8 @@ data:
     # SAME SHELF for the same reason the sugaring kit is: a new trade's
     # instruments go where people already buy, not on a bespoke counter.
     # ⚠ No derrick here — a ton and a half of timber frame is not a
-    # thing you walk out of a shop with. The derrick is `make`'d from
-    # timber at the site, and the timber is already on this slate.
+    # thing you walk out of a shop with. The derrick STANDS at the site
+    # (the salt spring's prop); nobody makes one — there is no recipe.
     - { itemTemplatePath: /trade/drilling/thing/bailer, par: 2 }
     - { itemTemplatePath: /trade/drilling/thing/liner, par: 10 }
     # The pan and the hearth the brine ends up in. ⭐ Both are

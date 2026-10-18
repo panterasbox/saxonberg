@@ -155,8 +155,8 @@ suite('the other hurdle, and a proper cook', () => {
   it('the sear resolves, or declines for a reason a player can act on', async () => {
     /*
      * ⭐ A decline is a PASS here, and it should be: `cook` is deed-gated
-     * on the knowledge ladder, so a cook who has never worked a sear by
-     * hand is told to work it by hand first. That is the shipped design
+     * on the knowledge ladder, so a cook who has never made a sear is
+     * told the hands have to learn it first. That is the shipped design
      * answering, not the build failing — and the preserving verbs
      * deliberately do NOT carry that gate, because their by-hand path
      * does not exist.

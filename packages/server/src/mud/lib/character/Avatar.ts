@@ -322,16 +322,18 @@ export default abstract class Avatar extends AvatarBase {
       "platform/cmd/system/trace.yaml",
       "platform/cmd/social/subject.yaml",
       "platform/cmd/shell/script.yaml",
+      // `do <name>` — the named twin of `script`: run a script you wrote.
+      // (It was `make` under crafting; it never made anything.)
+      "platform/cmd/shell/do.yaml",
       // The record layer's retrieval verb. It lives on Avatar rather
       // than on a mixin because its subject IS the durable player
       // identity — `recall --scope frames` reads a store keyed on
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
       "platform/cmd/stream/tune.yaml",
-      "platform/cmd/crafting/make.yaml",
-      // ⭐ `fit`'s RAISE arm is `make` for a thing made of parts, and its
-      // hand rung (a wedge, a friction fit) has no instrument — so it is
-      // the person's, like `make`. Afforded by the parts it was not: a
+      // ⭐ `fit`'s RAISE arm builds a thing made of parts, and its hand rung
+      // (a wedge, a friction fit) has no instrument — so it is the
+      // person's. Afforded by the parts it was not: a
       // pick head is a plain `Tool`, and only a class that IS made of
       // parts composes `AssembledMixin` (which still affords the
       // replace arm, `repair` and `salvage` on the assembly itself).

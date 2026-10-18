@@ -377,10 +377,12 @@ off a stool, stamped with the maker and the cycle's grade — it used to be
 a `Provision`, which hung a freshness clock on a stick); timber is a
 `Thing` of the bole's wood; a log is `Firewood`. The `timber-set` recipe
 (`category: wood, minGrade: poor`) matches any of them through the
-material's `wood` tag — ⚠ but has no by-hand path today (no vessel, no
-anvil): `make timber set` answers *"work it by hand first"*, and the mine
-buys its sets as it always has. The set-from-timber is the sawing
-build's.
+material's `wood` tag. It is a `carve` recipe by shape (one wood slot,
+the `cutting` tool, a tangible output, no heat), so `carve set` with two
+timber and a knife should make one — ⚠ not yet driven. (This said *"`make
+timber set` answers 'work it by hand first'"*: `make` was never a crafting
+verb — it replayed scripts, and is `do` now.) The mine still buys its
+sets.
 
 ## Daylight, and no night
 

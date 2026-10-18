@@ -156,27 +156,6 @@ describe("script store — save", () => {
     expect(doc).not.toBeNull();
     expect((doc!.getData().source as string)).toBe("ping; ping");
   });
-
-  it("captureManualBuild banks the recipe-script in an authorless frame", async () => {
-    // The strain step's engaged completion runs in the scheduler's
-    // **authorless** `runRoot('completion')` frame. `captureManualBuild`
-    // must stamp the builder as acting author itself (a controller can't
-    // push/tag frames — the bug this guards) and bank the transcribed
-    // recipe to the builder's own `/home/<self>/` store. No giver, no
-    // pre-tag here — exactly the scheduler-completion scenario.
-    vi.spyOn(AccessApi, "can").mockResolvedValue(false);
-    vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(false); // self-home only
-    const path = await ExecutionContextApi.runRoot(Stuff, "completion", () =>
-      ScriptApi.captureManualBuild(actor, "martini", "Gin Martini", [
-        "pour gin into shaker",
-        "stir shaker",
-      ]),
-    );
-    expect(path).toBe("/home/test/scripts/martini");
-    const doc = await StoredDocument.findByPath(path!);
-    expect(doc).not.toBeNull();
-    expect((doc!.getData().source as string)).toContain("def martini");
-  });
 });
 
 describe("script store — resolve + invoke by path, edit goes live", () => {

@@ -3,8 +3,8 @@
  *
  * The cooking one-shot: the earned shorthand over the same craft-resolve
  * the by-hand path performs. Maker = the giver (`makerMode: 'self'`);
- * **deed-gated** on the `RecipeKnowledge` can-make deed (the MakeController
- * gate — the book/menu gives the claim, the hands earn the shorthand;
+ * **deed-gated** on the `RecipeKnowledge` can-make deed (the shared
+ * `CraftController` gate — the book/menu gives the claim, the hands earn the shorthand;
  * `order` stays ungated).
  */
 

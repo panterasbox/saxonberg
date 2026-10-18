@@ -48,7 +48,7 @@ pour gin into mixing glass; stir mixing glass      # multi-statement
 set $base (spirits where category = gin | first)   # a value, MQL island
 if ($base) { pour $base into glass }               # control flow as commands
 def martini ($brand) { pour $brand … ; strain … }  # named, parameterized
-make martini with Crowsfoot                        # invoke a recipe-script
+do martini with Crowsfoot                          # run a named script
 wait 5m; say "Last call."                           # coroutine — game-time
 every 3m { say "Closing up." }                      # perpetual cadence
 # this is a comment                                 # bash-rule line comments
@@ -258,9 +258,9 @@ because the NPC is its own principal. See
    variables with zero ceremony.
 2. **Named scripts.** A session `def` persists per-actor (`SESSION_DEFS` in
    `ScriptLogic`, the interpreter's `defs` map) — a `def` typed at one
-   prompt is invocable at the next via `make <recipe> [with <arg>]`
-   (`MakeController` → `ScriptApi.invoke`, binding the first param from
-   `with`). Authored recipe-scripts persist in the store (below).
+   prompt is invocable at the next via `do <name> [with <arg>]`
+   (`DoController` → `ScriptApi.invoke`, binding the first param from
+   `with`). Authored scripts persist in the store (below).
 
 ## The store: scripts as a document `kind` (P7)
 
@@ -305,46 +305,28 @@ edit-and-go-live in the same explorer as templates and source — and the
 tree is ready for the next owned-JSON kind (dorm customization) without a
 new backend.
 
-## Demonstration capture (P8)
+## Demonstration capture and the knowledge ladder — retired (2026-10-18)
 
-The **third authoring source** (after typed-inline and authored-as-content):
-a hand build *becomes* a script. As a player builds a drink by hand, the
-intermediate vessel records each completed step's verbatim command source
-(the **vessel-as-buffer** capture boundary — a *scripted* build records
-nothing, the natural manual-vs-scripted discriminator). At the terminal
-`strain`, the **`Transcriber`** (`lib/script/Transcriber.ts`):
+⚠⚠ Both lived here and both are gone from scripting. A hand build used to
+**silently** become a script: the build vessel recorded each step's typed
+command and the terminal `strain`/`quench`/`plate` ran a `Transcriber` that
+wrapped them in `def <recipe> ($brand) { … }` and banked it — in the same
+call that minted the crafting **can-make deed**, and with the runner
+(`make`) gated on that deed. It was magic the player had no view of, and it
+did not even work: the transcript was written under the shared lineage
+`templatePath` while the runner read the identity path.
 
-1. parses the joined step sources via the `format()` round-trip (P1) —
-   so the artifact is **inspectable + editable source**, not an opaque
-   macro;
-2. **lifts the base spirit** (the first step's input) to a single
-   `$brand` param;
-3. wraps it in `def <recipe> ($brand) { … }`;
-4. banks it to the builder's home path in the store.
-
-Learning a recipe *is* getting the script.
-
-## The chronicle knowledge ladder (P9)
-
-`make <recipe>` is gated on a per-character learning ladder, **derived on
-read** from the chronicle ledger (the renown precedent: a dumb store, a
-smart consumer — no stored set, no mixin). `RecipeKnowledge`
-(`lib/script/RecipeKnowledge.ts`):
-
-```
-unknown → known-of (a chronicle claim, on reading the menu)
-        → can-make (a chronicle deed, on the first faithful hand build)
-```
-
-Reading the menu mints the **known-of** claim (idempotent). The first
-faithful manual build mints the **can-make** deed **and** transcribes the
-recipe-script — the *same act*. `make <catalogue-recipe>` declines until
-you can-make it; a player's own non-catalogue `def` is ungated (you wrote
-it). Claim and deed use **distinct keys** (`recipe-known:` /
-`recipe-made:`) because `recordChronicleOnce` dedups on `{owner, key}`
-regardless of kind. `ScriptLogic.invoke` auto-loads a learned home
-recipe-script by name, so `make martini` finds the banked script after the
-first build.
+- **The knowledge ladder is crafting's** — every craft mints the deed
+  (`RecipeKnowledge` is in `lib/craft/`); see
+  [crafting.md § The knowledge ladder](./crafting.md).
+- **Nothing is transcribed behind the player's back.** A script is
+  something you write (a `def`, or a file in your home `scripts/`). An
+  explicit *macro recorder* — record what I do, then *"save this as a
+  script?"* — is the replacement, unbuilt:
+  [script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
+- **The runner is `do <name> [with <arg>]`**, the shell's named twin of
+  `script <body>`, and it is **ungated**: a script is commands, and each
+  command meets its own gates exactly as if typed.
 
 ## Authored demo content (P10)
 
@@ -364,9 +346,8 @@ and reconciles it three-way at boot — the live wire (the former
 `ScriptSeeder` and the `.script` extension are gone; a one-time boot
 migration renamed `kind: 'script'` → `'msh'` and moved the rows). These world scripts are the **`invokeByPath`**
 targets (an operator beat or an NPC bartender's brain); they are
-deliberately **not** wired into a player's `make` (that resolves the
-player's own session `def` or home recipe-script — the demonstration
-ladder's output).
+deliberately **not** wired into a player's `do` (that resolves the
+player's own session `def` or a script saved in their home `scripts/`).
 
 ## Relationship to the command pipeline & EvalScript
 
@@ -397,11 +378,10 @@ ladder's output).
 | Abort reasons | `lib/script/AbortReason.ts` |
 | The wrapping parser | `lib/command/parsers/script.ts` |
 | Document store (scripts ride it) | `lib/document/StoredDocument.ts` + `api/document.ts` + `platform/idea/api/DocumentLogic.ts` ([document-store.md](./document-store.md)) |
-| Demonstration capture | `lib/script/Transcriber.ts` |
-| Recipe knowledge ladder | `lib/script/RecipeKnowledge.ts` |
+| Recipe knowledge ladder (crafting's) | `lib/craft/RecipeKnowledge.ts` — [crafting.md](./crafting.md) |
 | Api façade | `api/script.ts` |
 | Logic singleton (`/platform/idea/api/script`) | `platform/idea/api/ScriptLogic.ts` |
-| `make` verb | `platform/idea/cmd/crafting/MakeController.ts` + `cmd/crafting/make.yaml` |
+| `do` verb | `platform/idea/cmd/shell/DoController.ts` + `cmd/shell/do.yaml` |
 | Authored demo scripts | `packages/content/saxonberg-lounge/content/msh/*.msh` (the `msh` document kind, [content-packs.md](./content-packs.md)) |
 
 ## `ScriptApi.mintEvalScratch`

@@ -74,7 +74,7 @@ export default class LineController extends DrillingActController<LineModel> {
     if (liner === null) {
       this.decline(
         context,
-        Mml.compose`You have nothing to line it with. A length of tube — \`make liner\` takes two of timber.`,
+        Mml.compose`You have nothing to line it with. A length of tube — \`carve liner\` takes two of timber.`,
         'no-liner',
       );
       return;

@@ -169,10 +169,10 @@ the Hydrator; per-field invariants ride accessor pairs.
   `MixinApi.isBuildVessel`) — the **vessel-as-buffer** for a step-by-step
   build (the shaker / mixing glass). A runtime-only buffer of graded
   `BuildContribution`s (`addContribution`/`getContributions`/`clearBuild`)
-  the `pour`/`add` verbs bank into and `strain` mints from, plus the
-  recorded **command sources** (`recordCommand`/`getCommandSources`) the
-  demonstration capture transcribes (see [scripting.md](./scripting.md)).
-  No persistent fields — a build is transient.
+  the `pour`/`add` verbs bank into and `strain` mints from. (It also used
+  to record each step's typed command for a silent auto-transcription;
+  that is gone — § The knowledge ladder.) No persistent fields — a build is
+  transient.
 
 > ⭐ **The ingot is not the only faucet; every finished good is one too.**
 > A production chain that stops at the ingot *moves* the faucet without
@@ -552,7 +552,7 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `make`, `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
+it: `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
 `wash` are platform (a pot and a shaker both pour and stir; a furnace
 heats and boils; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
@@ -564,8 +564,9 @@ and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
 `BurnerMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
-— an appliance mixin, not a `Tooled` host — and `make` is innate on
-`Avatar` (knowledge-driven, no instrument). Capability entries are
+— an appliance mixin, not a `Tooled` host. (⚠ There is no generic
+`make`: the verb of that name only ever replayed a player's script, and it
+is the shell's `do` now — see § The knowledge ladder.) Capability entries are
 **parameterized**: `{ kind, rate?, control?, technique? }` (a bare
 string = the defaulted spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
 that divides the engaged duration of the steps the kind confers (the
@@ -591,8 +592,8 @@ venue-generic: a smithy with a menu and an on-shift maker just works.
 `content/platform/cmd/crafting/*.yaml` views + `mud/platform/idea/cmd/crafting/*Controller.ts`.
 A `CraftController` base centralizes decline rendering
 (`declineToScene`) **and the can-make deed gate** (`requireDeed` — the
-one gate `forge`/`cook`/`make` share; a non-catalogue ref passes
-ungated, `order` never calls it); all controllers return `void`,
+one gate `forge`/`cook`/`mix`/`serve`/`bake` share; a non-catalogue ref
+passes ungated, `order` never calls it); all controllers return `void`,
 emitting via `ctx.note` + `MessageApi.scene`.
 
 - **`menu`** — render the present Menu's offer.
@@ -705,9 +706,9 @@ the present on-shift maker.
   water state as the **stronger** of each axis, so a weaker second
   treatment never un-cures and two separate acts stack (salt it, then dry
   it). ⚠ **Not deed-gated**, unlike `cook`: the can-make deed is earned by
-  a faithful by-hand build, and the cooking branch's by-hand path banks
-  into a pot — the wrong shape for a discrete transform. A gate whose key
-  does not exist is a lock, so these follow `order`.
+  making the thing once, and a gated verb that is the ONLY way to make it
+  can never be satisfied — a gate whose key does not exist is a lock, so
+  these follow `order`.
 - **`butcher`/`dress`** (trade-cooking) — take a dead animal apart. Gated
   on a reachable `constructionForm: 'bladed'` implement, refused on a
   sentient corpse, and the cuts carry the carcass's AGE (see
@@ -892,8 +893,7 @@ cap included, is threaded alongside it into the three output seams.
 ## The manual build (the by-hand path)
 
 Alongside the one-shot served path, a drink can be **built by hand**, one
-command at a time — the path the scripting build added (its manual-build
-verbs are also the substrate the demonstration-capture records). Each step
+command at a time — the path the scripting build added. Each step
 is an **engaged activity** (`ManualBuildStep`, the `'hands'` slot, the
 activity substrate's first durative-verb consumer — see
 [activity.md](./activity.md)): the effect lands **at completion**, so a
@@ -955,10 +955,10 @@ against it at the mint; reset by `clearBuild`).
   with the authored food Material at the portion; off-spec mints the
   generic **pot-luck** fill).
 
-`quench`/`plate` replicate `strain`'s capture tail
-(`ScriptApi.captureManualBuild`) — the first faithful hand build mints
-the can-make **deed** + transcribes the personal recipe-script, the
-same act.
+`strain`/`quench`/`plate` mint through `CraftingApi.mintFromBuild`, which
+records the can-make **deed** like every craft (§ The knowledge ladder)
+and returns `learned: true` the first time — the verb then says *"you've
+worked out how to …"* and names the one-shot verb that now works.
 
 ### ⭐⭐ Smithing's two extra acts (metallurgy, 2026-09)
 
@@ -1132,14 +1132,45 @@ standing job advertisement.
 
 ### Which verbs are gated
 
-`make` · `cook` · `forge` · `bake` through `CraftController.requireDeed`,
-and from this build **`mix` and `serve`** as well. ⚠ Both shipped **ungated**:
-a player who had read the board could `mix` a Negroni they had never made,
-while `make` refused them the same drink. `order` is gated differently and on
+`cook` · `forge` · `bake` through `CraftController.requireDeed`, and
+**`mix` and `serve`** as well. ⚠ Both shipped **ungated**: a player who had
+read the board could `mix` a Negroni they had never made, while the script
+runner (`make` then) refused them the same drink. `order` is gated differently and on
 purpose — the gate applies to the *maker it resolves*, not to the patron.
 
 ⚠ `preserve` stays ungated, by documented design: a gate whose key does not
 exist is a lock. See the Deferred section.
+
+### ⭐⭐ The knowledge ladder — crafting's, not scripting's (2026-10-18)
+
+`unknown → known-of → can-make`, keys in `lib/craft/RecipeKnowledge.ts`.
+Reading a menu (or watching a craft) mints the **known-of** claim; the
+**can-make** deed is minted the first time you MAKE the recipe, by any
+crafting act — `CraftingLogic.recordCraftEvidence` runs on every `craft`
+and `mintFromBuild` (a hand build, a carve, a fit, a grind, a one-shot)
+and returns whether this making taught it (`CraftSuccess.learned`). The
+deed goes to the **maker**, never a patron: an `order` filled by the smith
+teaches the smith.
+
+⚠⚠ **History, because it shaped what is broken.** Until this date the deed
+was minted by the SCRIPT system (`ScriptApi.captureManualBuild`), in the
+same call that silently auto-transcribed the hand build into a
+"recipe-script" — and only from `strain`, `quench` and `plate`. So:
+`knead`, `carve`, `fit` and every one-shot taught nothing; the script
+runner `make` sat behind this crafting gate (and was read, by players and
+by a plan, as the generic crafting verb it never was); the transcript was
+written under the shared lineage `templatePath` while the runner read the
+identity path, so no player's transcript was ever found; and the hand
+build resolved its maker by lineage, so a quench credited whichever Avatar
+the row resolved to (the crafting drive's undiagnosed `it.fails`). Now the
+deed is crafting's, the maker resolves by identity, nothing is transcribed
+behind the player's back, and the runner is the shell's ungated `do`.
+
+⚠ **A gate is only satisfiable where an ungated act makes the recipe
+first.** A recipe whose only maker is a gated one-shot (the loaves, which
+only `bake` makes) can never be learned; the census of those, and of the
+recipes no verb reaches at all, is
+[script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
 
 ### ⭐ Mixology is a real seat question now
 

@@ -254,6 +254,27 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
     expect(rejectedWith(await tryForge(bystander), 'not-learned')).toBe(true);
   });
 
+  it('⭐ ANY craft teaches — the deed is crafting\'s, not a script\'s — and says so the first time only', async () => {
+    // The can-make deed used to be minted by the script system alongside an
+    // auto-transcribed recipe-script, by three hand verbs only. It is
+    // crafting's record now: a craft by any path teaches its maker.
+    standUpSmithy();
+    const craftSelf = (): Promise<unknown> =>
+      ExecutionContextApi.runRoot(null, 'test', () => {
+        ExecutionContextApi.tagActingAuthor(builder);
+        return CraftingApi.craft({ recipeRef: 'belt-knife', makerMode: 'self' });
+      });
+    ContainmentApi.move(makeIngot(), room);
+    const first = (await craftSelf()) as { ok: boolean; learned?: boolean };
+    expect(first.ok).toBe(true);
+    expect(first.learned).toBe(true);
+    expect(await builder.hasDone(RecipeKnowledge.madeKey('belt-knife'))).toBe(true);
+    ContainmentApi.move(makeIngot(), room);
+    const second = (await craftSelf()) as { ok: boolean; learned?: boolean };
+    expect(second.ok).toBe(true);
+    expect(second.learned).toBe(false);
+  });
+
   it('craft-resolve appends Transcript deeds at the authored difficulty; bar rows never do', async () => {
     standUpSmithy();
     ContainmentApi.move(makeIngot(), room);

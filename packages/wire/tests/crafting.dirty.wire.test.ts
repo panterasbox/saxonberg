@@ -144,47 +144,32 @@ suite('the smithy — the knowledge ladder is real', () => {
     expectOk(quenched);
 
     /*
-     * ⚠⚠ **FINDING — the by-hand build completes and teaches nothing.**
-     *
-     * All three steps succeed (heat → hammer → quench, each awaited on
-     * its own engagement), the quench answers *"You plunge a cold iron
-     * ingot into the…"*, and the deed is NOT conferred: `forge knife`
-     * still answers `not-learned` afterwards. The original spec asserted
-     * *"worked out how to forge"* on the quench, so either the conferral
-     * has regressed or the ladder wants more of the recipe than these
-     * three acts.
-     *
-     * ⓘ Not diagnosed — the smithing ladder is its own subsystem and an
-     * infra build is the wrong place to chase it. Reported here, and the
-     * four checkpoints downstream of it are marked below so they come
-     * back the moment somebody fixes this.
+     * ⭐ **The by-hand build TEACHES now** (the scripting decouple,
+     * 2026-10-18). This was a FINDING: heat → hammer → quench all
+     * succeeded and `forge knife` stayed `not-learned`. The cause was two
+     * keys: the quench captured its maker by the shared lineage
+     * `templatePath` (every player Avatar has the same one), so the mint
+     * credited whichever Avatar that row resolved to; and the deed was the
+     * SCRIPT system's, minted beside a silent transcript. The maker
+     * resolves by identity now and the deed is crafting's. The learning
+     * line arrives at the quench's completion, after this reply, so what
+     * proves it is the next checkpoint: `forge` works.
      */
-    console.log(
-      /worked out how to forge/i.test(await quenched.said())
-        ? '   ⭐ the deed WAS conferred — the ladder is whole again; ' +
-            'un-skip the checkpoints below'
-        : '   ⚠ FINDING: the by-hand build completed and conferred no ' +
-            'deed. `forge` stays not-learned. See the note at this site.'
-    );
   }, 300_000);
 
-  // ⛔ Blocked by the conferral finding above — self-correcting: this
-  // starts failing (and must be un-marked) the moment the deed lands.
-  it.fails('⭐ …and now the same command forges', async () => {
+  it('⭐ …and now the same command forges', async () => {
     const forged = await s.cmd('forge knife');
     expectOk(forged);
     expect(await forged.said()).toMatch(/You forge/i);
   }, 120_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
-  it.skip('the blade reads as a weapon with a playstyle', async () => {
+  it('the blade reads as a weapon with a playstyle', async () => {
     const said = await s.prose('analyze weapon knife');
     expect(said).toMatch(/Playstyle of/i);
     expect(said).toMatch(/edge keen/i);
   }, 60_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
-  it.skip('⭐ `sharpen` does not exist until a whetstone is in hand', async () => {
+  it('⭐ `sharpen` does not exist until a whetstone is in hand', async () => {
     notAfforded(await s.cmd('sharpen knife'));
     expectOk(await s.cmd('get whetstone'));
     const sharpened = await s.cmd('sharpen knife');
@@ -192,8 +177,7 @@ suite('the smithy — the knowledge ladder is real', () => {
     expect(await sharpened.said()).toMatch(/long slow strokes|keen again/i);
   }, 120_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
-  it.skip('a sound blade needs no repair, and salvage costs you most of it', async () => {
+  it('a sound blade needs no repair, and salvage costs you most of it', async () => {
     expect(await s.prose('repair knife')).toMatch(/already sound/i);
     expect(await s.prose('salvage knife')).toMatch(/mostly loses/i);
     expect(await s.prose('find lump')).toMatch(/salvaged lump of iron/i);
