@@ -1960,6 +1960,24 @@ once, the MR. See § Test & gate strategy for the file's contract.
 
 - Commit: `drive(storage-and-ice): <what driving found>` plus the fixes
   it forces as `fix(<area>):` commits.
+- ✅ **Done (build, 2026-10-17).** The drive ran seven times on fresh
+  day-0 worlds (6 → 10 → 9 → 12 → 18 → 22 → 22 of 22; the record is at the
+  foot of this plan). It forced eight fixes outside the waves — the seed
+  field (applier phase 3), a pool's cited water as a feature (and the new
+  gate `lint:water-citations`), the sheet's reach bound from its citation,
+  `reconcileCover` sparing a rostered proprietor, `put` naming a merged
+  item before the move, the four unmapped traversal gates, the custody
+  verbs bringing the house current, and the venue's own gauging rod — plus
+  the prose that contradicted the world (the stack, the block, the summer
+  sheet, `swim` at a bank with no way). The regression drives are green
+  file by file on fresh worlds (climate 13/13, glass 7/7, maritime 40/40,
+  assembly 23/23; textiles, fishing, metallurgy, cold storage in the shared
+  run). **The full suite, once:** 43 of 45 packages green on the first run;
+  server (2) and trade-forestry (1) red on three census tests this build's
+  content had outgrown (`open`/`close` in the cook's brain, a quoted `kg`
+  read as a channel, sawdust in the wood directory); fixed, and both
+  packages re-run green — server 13,637, trade-forestry 139. Lint family
+  green.
 
 Docs that graduate at the sweep (not a wave): a new
 `docs/subsystems/storage.md`; `thermal.md` (the exchange, the wet law,
