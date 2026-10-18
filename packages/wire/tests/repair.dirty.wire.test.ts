@@ -650,14 +650,20 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
     await toHour(12); // by daylight: in the dark a thing is "something"
     const back = await Session.open(pickHandle, { startLocation: SMITHY, wizard: true });
     try {
-      // Drive 9 reforged *Hollin* and its reforger named it *Brightwater*:
-      // the name a player gave, on the blade that lost the old one.
-      const sword = await examine(back, 'Brightwater');
-      expect(sword, `the named blade, after a restart: ${sword}`).toMatch(/Brightwater/);
       const hook = await say(back, 'analyze response billhook');
       expect(hook, `the billhook, after a restart: ${hook}`).toMatch(/edge: keen/);
       const pick = await examine(back, 'miners-pick');
       expect(pick, `the botched pick, after a restart: ${pick}`).toMatch(/mended/i);
+      // Drive 9 reforged *Hollin* and its reforger named it *Brightwater*:
+      // the name a player gave, on the blade that lost the old one. ⚠ Read
+      // AFTER the inventory has answered — the first command after a login
+      // can beat the restore of what you carry (run 19 asked for it first
+      // and found nothing; the saved record held the name). And ⚠ the old
+      // check here — *Hollin* after a restart — was a false positive: the
+      // heirloom row re-spawns in the smithy on every boot, named by its
+      // bill, so it proved nothing about a saved name.
+      const sword = await examine(back, 'Brightwater');
+      expect(sword, `the named blade, after a restart: ${sword}`).toMatch(/Brightwater/);
     } finally {
       back.close();
     }

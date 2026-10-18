@@ -1860,6 +1860,33 @@ back; `refusedFor` is blind to `command-rejected`. Restart last.
 
 ### W7 — building upkeep (⏸ gated: the rubber build on master)
 
+> **Carried from the requirements at the W0–W6 sweep (2026-10-18)** — the
+> requirements doc retired with W0–W6's MR, so W7's product spec lives
+> here, verbatim. The drive step (the wire file's drive 11):
+>
+> 11. *(Building upkeep — once rubber has merged.)* Advance the clock a
+>     season. At home, `survey`: a named layer is going and the cure names
+>     the material and the amount. `maintain` with no materials — refused,
+>     naming them. Get them; `maintain` untrained — the layer comes back
+>     short and `survey` says the patch is poor. Watch the dorm's keeper
+>     keep the dorm with materials the university bought.
+>
+> Its acceptance criteria:
+>
+> 15. After a season unwatched, `survey` names which layer of a building
+>     weathered and what it needs; slate and thatch on the same calendar
+>     weather differently.
+> 15a. A building that has not opted in (the smithy) is unchanged after the
+>      same season; a layer of a material that has not opted in (a sawdust
+>      fill) is unchanged beside a lime layer that weathered.
+> 16. `maintain` lays the named material from hand into the named layer,
+>     by that layer's trade, at the hand's band — refused without the
+>     material, short and readable when untrained; a durable good beside it
+>     is unchanged across the same season.
+> 17. The dorm stays kept while its keeper's employer can buy the
+>     materials, and weathers when it cannot.
+
+
 **Gate.** Do not start until rubber's W0 is on `origin/master` (`git
 log origin/master -- packages/server/src/mud/lib/spatial/Exposure.ts`
 shows a commit). **If rubber has not merged when W6 is done, W6 opens
