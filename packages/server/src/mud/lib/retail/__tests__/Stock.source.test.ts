@@ -146,7 +146,7 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
     paid = [];
     received = [];
     seller = { getIdentityPath: () => SELLER } as unknown as Stuff;
-    vi.spyOn(EmploymentApi, "ensureOperatorAt").mockResolvedValue({ getOrganizationPath: () => HOUSE } as never);
+    vi.spyOn(EmploymentApi, "ensureOperatorAt").mockResolvedValue({ getOrganizationPath: () => HOUSE, getIdentityPath: () => HOUSE } as never);
     vi.spyOn(EmploymentApi, "operatingAccountOf").mockResolvedValue("acct-house");
     vi.spyOn(BankingApi, "primaryAccountIdOf").mockResolvedValue("acct-seller");
     vi.spyOn(BankingApi, "payTerms").mockImplementation((async (_from: string, _to: string, m: { minor: number }) => {
@@ -177,10 +177,15 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
 
   it("⭐ pays its bid and takes the block into the store on the house's claim", async () => {
     days = 200;
-    const out = await counter.buyFrom(seller, mine() as never);
+    const b = mine();
+    const titled = vi.spyOn(b as never, "transferChattel").mockResolvedValue(undefined as never);
+    const out = await counter.buyFrom(seller, b as never);
     expect(out).toMatchObject({ ok: true, paidMinor: 8, intoStore: true });
     expect(paid).toEqual([8]);
     expect(received).toEqual([HOUSE]);
+    // ⭐ The house's from the moment it is paid for — before the store can
+    // adopt it as a face the seller could `get` back (the audit).
+    expect(titled).toHaveBeenCalledTimes(1);
   });
 
   it("a line the house does not buy is refused, and nothing is paid", async () => {
@@ -205,7 +210,7 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
   it("⭐ the counter says what the house buys before anybody makes the trip: its bid, full, or short of money", async () => {
     days = 200;
     vi.spyOn(store, "getCapacityKg").mockReturnValue(30_000);
-    vi.spyOn(store, "getLines").mockReturnValue([{ amountKg: 10_000 }] as never);
+    vi.spyOn(store, "totalKg").mockReturnValue(10_000);
     expect(counter.getLong()).toMatch(/The house buys ice-block at 8/);
     // A sale fails on the house's money: the counter says so until a good one.
     vi.spyOn(BankingApi, "payTerms").mockRejectedValueOnce(new Error("the shop holds less"));
@@ -214,7 +219,7 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
     await counter.buyFrom(seller, mine() as never);
     expect(counter.getLong()).toMatch(/The house buys ice-block at/);
     // A full store buys nothing.
-    vi.spyOn(store, "getLines").mockReturnValue([{ amountKg: 30_000 }] as never);
+    vi.spyOn(store, "totalKg").mockReturnValue(30_000);
     expect(counter.getLong()).toMatch(/buying no ice-block — its store is full/);
   });
 
