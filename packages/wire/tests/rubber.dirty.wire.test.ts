@@ -421,8 +421,9 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await say(s, 'stoke coal into stove');
     await say(s, 'light stove');
     // ⚠ A producer's clock starts at its FIRST read (the stamp seeds then),
-    // so a tree nobody has looked at yet has run nothing: look first.
-    await say(s, 'look tree');
+    // so a tree nobody has read yet has run nothing: ask it first (`tap`
+    // binds one of the three; `look tree` asks which, and waits).
+    await say(s, 'tap tree');
     // From a ~270 K dawn the stove alone takes hours and the morning sun
     // joins it — and how fast depends on the morning (two hours left the
     // glass at 286 K, three at 291 or 302, four at 312, past the tree's
