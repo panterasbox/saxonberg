@@ -65,9 +65,14 @@ export default class UnequipController extends CommandController<UnequipModel> {
     // as the MANNER, left no target, and fell through to the strip below —
     // the player stood naked in the hall. A manner word that is not a
     // manner, or a manner with nothing to take off, is a refusal.
+    // ⚠ And the drive again: `remove shirt` with the shirt on a drying rack
+    // bound a TARGET that matched nothing — a result with no `stuff` — and
+    // stripped shoes, trousers and all. Only an unnamed target strips.
     const manner = (model.manner ?? '').trim();
-    if (manner !== '' && (!model.target?.stuff || !/^(careful|quick|hast)/i.test(manner))) {
-      const what = manner;
+    const named = (model.target?.raw ?? '').trim();
+    const unmatched = named !== '' && !model.target?.stuff;
+    if (unmatched || (manner !== '' && (!model.target?.stuff || !/^(careful|quick|hast)/i.test(manner)))) {
+      const what = unmatched ? named : manner;
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(Mml.compose`You aren't wearing ${what}.`)
