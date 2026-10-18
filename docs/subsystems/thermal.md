@@ -494,6 +494,15 @@ different from its outside* — true of a room and of a wardrobe, and
 **inert where `getVolume()` is null**, which is the geometry answering
 rather than a guard.
 
+⚠ **The integration is lazy, so a change of heater settles first.** The
+envelope integrates on read, with the heaters as they are AT the read.
+A `Burner` that warms its room (`SpaceHeating`) therefore calls
+`reconcileEnvelope()` on its room *before* its lit state or its draught
+changes, so the gap up to the change is billed at the old output and the
+new output bills only forward. Without it, a stove lit in a cold room
+was credited for every hour nobody had read the room (found driving the
+rubber build in a browser, 2026-10-18).
+
 ### ⭐ Authors author CAUSES, not EFFECTS
 
 > *You cannot author "well-insulated"; you author granite and the
