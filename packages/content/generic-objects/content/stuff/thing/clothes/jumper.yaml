@@ -5,7 +5,7 @@
 class: /platform/thing/equipment/Garment
 data:
   shortDescription: wool jumper
-  keywords: [jumper, sweater, wool, knit]
+  keywords: [jumper, "wool jumper", sweater, wool, knit]
   register: indefinite
   longDescription: >
     A thick knitted jumper of undyed grey wool, a little long in the arms,

@@ -441,7 +441,11 @@ suite('⭐⭐ drive 1–3 — the apron takes the blood; the gloves, washed and 
     await act(cook, 'butcher carcass', 180_000);
     await act(cook, 'remove gloves carefully');
     expect(await body(cook), 'careful removal').not.toMatch(/hands are .*blood/i);
-    await act(cook, 'wear gloves');
+    // ⚠ A glove will not go on a hand holding a knife (run 21: "Your hands
+    // are busy with something else"). Put the knife up first.
+    await act(cook, 'unwield knife').catch(() => '');
+    const gloved = await act(cook, 'wear gloves');
+    expect(gloved, `wear gloves again: ${gloved}`).not.toMatch(/busy|can't|cannot/i);
     await act(cook, 'remove gloves');
     const me = await body(cook);
     expect(me, `quick removal: ${me}`).toMatch(/hands are .*blood/i);
