@@ -2002,3 +2002,22 @@ what it found, including the three restarts (mid-boil after step 4,
 mid-drain in step 6, the hold in step 19 — `stopOwnedWorld` /
 `bootOwnedWorld`, `it.skipIf(!isOwnedTestWorld())`, each reopening its
 `Session`). The record must show the run.
+
+### Drive record — status (2026-10-19)
+
+- The drive is written: `packages/wire/tests/sugar.dirty.wire.test.ts`,
+  Stage A steps 1–9, 11 and 12, and Stage B steps 13–17 and 19. Step 20
+  is held with W6.
+- **Not yet run end to end.**
+  - Attempt 1: the world refused to boot. trade-sugar named
+    `GristMill` without depending on trade-milling, and waponi-woo named
+    `Deposit` without depending on ground. Fixed in `807a2da27`.
+    ⚠ **No lint gate catches a pack naming another pack's class without
+    depending on it; only the boot does.** That's a gate gap worth a
+    census.
+  - Attempt 2: reaped for memory during boot, with two other
+    worktrees' worlds up.
+- W1a's heating drives (smithy, cooking, glass, rubber, cleanliness,
+  taps, fire, silk, whiskey) are also owed, and go in the same boot when
+  memory allows.
+
