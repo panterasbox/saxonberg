@@ -24,7 +24,7 @@ import { UnboundedSourceMixin } from '../../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Good from '../../../../../lib/stuff/Good';
 import Floor from '../../../../thing/Floor';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { Quantity } from '../../../../../lib/quantity';
@@ -206,7 +206,7 @@ describe('Bulk verbs — fill / sip / drink', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     floorIn(loc);
     actor = makeStuff(() => new TestActor()) as never;
     (actor as unknown as { setName(n: string): void }).setName('bob');
@@ -320,7 +320,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     floor = floorIn(loc);
     actor = makeStuff(() => new TestActor()) as unknown as Stuff;
     (actor as unknown as { setName(n: string): void }).setName('bob');
@@ -450,7 +450,7 @@ describe('Bulk verbs — drink prose, and the two article rules', () => {
     bank.primary = ['crimson'];
     bank.secondary = ['iridescent'];
     DescriptorBank.primeCache([bank]);
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     floorIn(loc);
     actor = makeStuff(() => new TestActor()) as unknown as Stuff;
     (actor as unknown as { setName(n: string): void }).setName('bob');
@@ -515,7 +515,7 @@ describe('Bulk verbs — look composes Material.appearance', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     floor = floorIn(loc);
     actor = makeStuff(() => new TestActor()) as unknown as Stuff;
     (actor as unknown as { setName(n: string): void }).setName('bob');

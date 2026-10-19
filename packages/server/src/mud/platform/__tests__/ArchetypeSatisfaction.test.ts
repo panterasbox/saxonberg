@@ -13,7 +13,7 @@
  *   3. **Nothing consumes it.** An unrecognized room provisions,
  *      persists and functions identically, and no code anywhere reads a
  *      satisfaction to decide anything — asserted by a source walk, the
- *      same shape `FurnishableRoom`'s room-designation field uses,
+ *      same shape `PersistentLocation`'s room-designation field uses,
  *      because a habit is not a guarantee.
  */
 
@@ -35,7 +35,7 @@ import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import Vat from '../thing/Vat';
 import YAML from 'yaml';
-import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
+import Locale from '../location/Locale';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
 import Good from '../thing/Thing';
@@ -135,8 +135,8 @@ function parseArchetype(raw: string): StoredDocument {
 
 let catalogue: ArchetypeCatalogue;
 
-function room(): SingletonCartesianLocation {
-  return makeStuff(() => new SingletonCartesianLocation());
+function room(): Locale {
+  return makeStuff(() => new Locale());
 }
 function put(item: Stuff, where: Stuff): void {
   ContainmentApi.move(
@@ -424,7 +424,7 @@ describe('the fermentation venue archetypes', () => {
       label: 'a probe',
       capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
     });
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     const bare = archetype.satisfies(room);
     expect(bare.satisfied).toBe(false);
 
@@ -434,7 +434,7 @@ describe('the fermentation venue archetypes', () => {
     expect(withVat.satisfied).toBe(true);
     expect(withVat.rows[0]!.by).not.toBeNull();
 
-    const room2 = makeStuff(() => new SingletonCartesianLocation());
+    const room2 = makeStuff(() => new Locale());
     const bottle = makeStuff(() => new Vat());
     (bottle as unknown as { category: string }).category = 'wine-bottle';
     ContainmentApi.move(bottle as never, room2 as never);

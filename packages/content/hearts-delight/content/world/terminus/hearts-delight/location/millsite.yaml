@@ -33,9 +33,7 @@ data:
   longDescription: |
     The Delight comes round a shoulder of rock here and drops — not far, twenty feet at most, but all at once and all the year round. Somebody a long time ago threw a weir across above the drop and cut a race along the bank, and the water goes down the race and onto the wheel instead of over the ledge.
 
-    The mill is built into the slope so the stones sit at the top of the wheel shaft. It is louder inside than you expect and everything in it is dusted white.
-
-    A bin by the stairs, a pair of stones, and the smell of warm flour.
+    The mill is built into the slope so the stones sit at the top of the wheel shaft, in the mill house above you. The door stands open on a room dusted white, and the smell of warm flour comes out of it.
   coords: { x: -13, y: -6, z: 4 }
   exits:
     north:
@@ -48,12 +46,14 @@ data:
       destination: /world/terminus/hearts-delight/location/sawmill
       media: [ground]
       edgeMinutes: 2
+    # ⭐ The stones are indoors now (cleanliness D22): the mill house, at
+    # the top of the wheel shaft, west of the race.
+    west:
+      destination: /world/terminus/hearts-delight/location/mill-house
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/hearts-delight/thing/millrace
-    - /trade/milling/thing/grist-mill
-    - /trade/milling/thing/toll-bin
-  cast:
-    - /world/terminus/hearts-delight/agent/miller
   details:
     # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
     # appends the live state. Seniority 3 — the first to stand cold.

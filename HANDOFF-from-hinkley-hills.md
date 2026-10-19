@@ -61,7 +61,7 @@ sub-zones.
 
 Why it is worth standardizing:
 
-- `CartesianLocation.getSizeScale()` is literally `zone.getCellSize()²`, so a
+- `Location.getSizeScale()` is literally `zone.getCellSize()²`, so a
   **zone is already the unit at which interior scale is declared**. A house at
   4 m cells and a warehouse at 10 m stop needing per-room fiddling.
 - It gives **`ParcelRecord.zonePath` a real referent** — today it is always

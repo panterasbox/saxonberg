@@ -19,7 +19,7 @@ import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import type { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -39,7 +39,7 @@ export default class FrontDoorExit extends LockableMixin(DeferredDestinationExit
    * thing an author could never edit.
    */
   public configureFrontDoor(
-    warren: OuterWarren,
+    warren: CirculationWarren,
     holdingKey: string,
     opts: { lockTech?: LockType } = {},
   ): void {
@@ -52,9 +52,9 @@ export default class FrontDoorExit extends LockableMixin(DeferredDestinationExit
     return this.holdingKey;
   }
 
-  private warren(): OuterWarren | null {
+  private warren(): CirculationWarren | null {
     return (
-      StuffApi.findByTemplatePath<OuterWarren>(this.warrenPath) ?? null
+      StuffApi.findByTemplatePath<CirculationWarren>(this.warrenPath) ?? null
     );
   }
 

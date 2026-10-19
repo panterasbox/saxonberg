@@ -69,6 +69,7 @@ import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import { SpatialZone } from '@saxonberg/server/mud/lib/zone/SpatialZone';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -473,6 +474,24 @@ export default class Conduit
     if (!this.isOn()) return 'off';
     if (!this.isLifting()) return 'off';
     return null;
+  }
+
+  /**
+   * ⭐ How hard the water this main delivers is, °dH — its REACH's
+   * (cleanliness D12). The chemistry is the course's seed, flow-weighted at
+   * the joins upstream, so every tap on the Cold Fell aqueduct runs soft
+   * and every tap on the city intake runs as hard as the Kestrel.
+   */
+  public async readWaterHardnessDgh(): Promise<number | null> {
+    if (this.direction !== 'supply' || this.reachRef === '') return null;
+    const catalogue = await StuffApi.singleton<WatercourseCatalogue>(
+      WATERCOURSE_CATALOGUE_PATH,
+    );
+    const state = await catalogue.waterStateAt(
+      this.reachRef,
+      WorldClockApi.getNow().rawValue(),
+    );
+    return state?.hardnessDgh ?? null;
   }
 
   // ---------- state ----------

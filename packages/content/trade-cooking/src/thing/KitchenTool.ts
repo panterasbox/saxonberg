@@ -21,7 +21,11 @@
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
+import { SoilableMixin } from '@saxonberg/server/mud/lib/cleanliness/Soilable';
 
-const KitchenToolBase = ContaminableMixin(Tool);
+// ⭐ Soilable (cleanliness D3, D14): the kit the kitchen tier reads — a
+// greasy knife, a board scrubbed in hot soapy water. `Tool` itself stays
+// unsoilable: a sledge is soilable for nobody.
+const KitchenToolBase = SoilableMixin(ContaminableMixin(Tool));
 
 export default class KitchenTool extends KitchenToolBase {}

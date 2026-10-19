@@ -4,7 +4,8 @@
 > the physics/`Modality` layer) → [senses.md](../../subsystems/senses.md);
 > the `sense` verb is being CUT and `look` made the take-it-all-in verb by
 > [legibility-slate § Part D](../builds/legibility-slate.md) (2026-09-18).
-> **Left:** smell trails / temporal persistence + NPC scent-tracking · the
+> **Left:** ⭐ NPCs reacting to SMELL (§ below — opened 2026-10-18 by the
+> cleanliness review, !380) · smell trails / temporal persistence + NPC scent-tracking · the
 > active-sense pattern (echolocation) + the alien channels
 > (magneto-/electroreception, pit-sensing) · differential per-channel
 > rendering · sensorium-relative stealth / NPC detection · the full ESP
@@ -299,6 +300,93 @@ have & how tuned → your gestalt → what it's like to be you. **Body-type
 determines the experienced world.**
 
 ---
+
+## ⭐ NPCs reacting to smell (opened 2026-10-18, cleanliness review !380)
+
+> *"make a slate for NPCs reacting to smell"* — the user, after the
+> cleanliness build made dirt smell. **UNBUILT · a build.**
+
+### What ships (cleanliness B57) — verified by opening files
+
+- **Dirt has a nose.** `DirtKind.odour` (identity + ppm per unit load) on
+  sweat (*stale sweat*), manure (*dung*), milk (*sour milk*), blood (*old
+  blood*), grease (*rancid fat*); `Soilable.soilOdour()` derives an
+  emission from the loads, and a body (`Creature`) adds its worn layers.
+- **The room carries it.** `SmellModality`'s contents leg reads that
+  derived odour beside every `SmellSource`'s stored emission; the signal
+  is ppm + a dominant identity + a capped **source list** — attribution
+  already exists (`smell` says *what*, and can say *from whom*).
+- **A player can tell.** `smell <thing>` (*it smells of stale sweat*,
+  *reeks* ≥ 100 ppm), the bare `smell`, and `analyze cleanliness`.
+- **Nobody ELSE reacts.** No brain reads the smell field. The only NPC that
+  judges cleanliness is the doorman (`lib/behavior/doorman.ts`), and he
+  judges by the SOIL BAND — by sight. A filthy body under a clean coat
+  walks past him; a sweat-sour one in a clean apron too.
+- **The receivers exist.** Each species authors an `olfactoryProfile`
+  (acuity keen · normal · dull · none — `SmellController`'s thresholds 1 ·
+  10 · 100 ppm); brains have witness/`candidate` triggers and ONE
+  deliberation beat (behavior.md); regard is the belief store's
+  (belief.md). Nothing connects them.
+
+### ⭐ The physics that decides most of it — ADAPTATION
+
+You cannot smell yourself for long, and a tanner cannot smell the tannery:
+olfactory receptors adapt to a steady odour in minutes. So **an observer
+does not perceive an odour identity it carries itself** (or carried within
+the adaptation window). Derivable, no table: subtract the observer's own
+`soilOdour()` identities (and its room's steady ones) from what it
+perceives. Consequences, all emergent:
+
+- the farmhand does not mind the dung on you; the bathhouse attendant
+  minds everything; the dog minds nothing and notices everything;
+- `smell me` should be dulled (you are adapted to yourself — the honest
+  reason people ask somebody else, and a lesson);
+- a tavern full of sweat-sour drinkers smells of nothing to the regulars
+  and of everything to the stranger who walks in.
+
+### Questions to close at requirements
+
+1. **When does an NPC perceive?** Load on use, never a tick: at its
+   deliberation beat, and on the ARRIVAL witness (somebody enters its
+   room) — read `signalAt(room)` at its species acuity, adaptation
+   subtracted, attributed by the source list.
+2. **What does it change?** Candidates, by altitude:
+   - *invariant* — adaptation; acuity by species; masking (a stronger
+     identity dominates — perfume, smoke, a rose — argmax already does it).
+   - *grain* (a default an author may change, per role/brain) — **regard**
+     (a small, decaying nudge, reception-shaped, never a stat); a
+     **refusal in words** where a role has a criterion (the doorman learns
+     to smell; an inn's keeper, a tailor who will not fit a filthy body, a
+     cook who will not let you in her kitchen); **animals** — a dog
+     follows, a horse shies at old blood, a predator is drawn by it
+     (`hunting`, the scent-trail half of this slate).
+   - *title* — what a locality finds offensive, authored by its people.
+3. ⭐ **Governance (lens 7) — it judges a PERSON.** Name the criterion
+   (*the odour, past this ppm, that this observer is not adapted to*), the
+   appeal (**wash** — and the refusal must say so, or it is not honest:
+   *"a refusal is only honest if something lifts it"* — the bathhouse is
+   what lifts it), and the tier (a role's default is grain; a polity's
+   ordinance on public cleanliness is C, the Compact's).
+4. **Pricing smell, not just refusing it** (lens 6) — the bathhouse and
+   the laundress gain demand that was not there (smell is why most people
+   wash), and there is a **perfumer**-shaped hole in the vocations register:
+   masking is a trade (rosewater, lavender, musk — a still the distilling
+   pack already ships). Was the demand there first? Now it is.
+5. **Dirt identities as rows** — the odour identities shipped as FREE
+   TEXT on the dirt rows. `non-visual-senses-slate` decides the aroma
+   vocabulary becomes rows; dirt's identities should join it then, not
+   become a second list.
+
+### Lens content (lenses as a generator, not a scorecard)
+
+- **Pedagogy** — sensory adaptation (Weber–Fechner, receptor fatigue) is
+  real, derivable and surprising; the history of public health (the Great
+  Stink, why soap and bathhouses spread) is the stakes.
+- **Immersion / participation** — a stranger is *noticed*; a hunter
+  washes before the hunt and rolls in the leaf litter; a thief who works
+  the docks smells of the docks; a dog that finds you hiding in the hay.
+- **Economy** — demand for washing, bathing and perfume from a thing the
+  world already measures.
 
 ## The gestalt verb — perceive everything in one action
 

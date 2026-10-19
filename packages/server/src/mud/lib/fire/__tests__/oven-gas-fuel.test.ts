@@ -37,7 +37,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { chargeWood } from './burner-fuel';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Burner } from '../Burner';
@@ -78,20 +78,20 @@ function water(): Material {
   }, `/stuff/idea/material/_test/water-${seq}`) as unknown as Material;
 }
 
-let room: CartesianLocation;
-let bench: CartesianLocation;
+let room: Location;
+let bench: Location;
 
 beforeEach(() => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
-  room = makeStuff(() => new CartesianLocation());
+  room = makeStuff(() => new Location());
   room.setCoordinates([0, 0, 0]);
   // ⚠ A second room, and it is not scenery: `ContainmentApi.move` is a
   // NO-OP inside one container, so moving a vessel from *on the oven* to
   // *the floor of the same room* leaves its placement stamp in place and
   // it is still coupled. Taking something off a hearth means taking it
   // somewhere, which is what a player does when they pick it up.
-  bench = makeStuff(() => new CartesianLocation());
+  bench = makeStuff(() => new Location());
   bench.setCoordinates([1, 0, 0]);
 });
 

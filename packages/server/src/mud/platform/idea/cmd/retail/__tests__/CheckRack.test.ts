@@ -32,7 +32,7 @@ import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -77,7 +77,7 @@ function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function ctx(
   giver: TestGiver,
-  loc: Location,
+  loc: Place,
   rack: CheckRack,
   verb: string,
 ): CommandContext {
@@ -130,8 +130,8 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     vi.restoreAllMocks();
   });
 
-  function scene(): { loc: Location; rack: CheckRack; patron: TestGiver } {
-    const loc = makeStuff(() => new Location());
+  function scene(): { loc: Place; rack: CheckRack; patron: TestGiver } {
+    const loc = makeStuff(() => new Place());
     const rack = makeStuffAtPath(() => new CheckRack(), RACK);
     ContainmentApi.move(rack as never, loc as never);
     const patron = makeStuffAtPath(

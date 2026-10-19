@@ -14,7 +14,7 @@ import { MAX_HOPS } from '../Modality';
 import { Sound } from '../Sound';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Door from '../../../platform/thing/Door';
 import { Idea } from '../../stuff/Idea';
@@ -28,13 +28,13 @@ import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity
 
 class Ear extends SensorMixin(ContainableMixin(Idea)) {}
 
-function room(zone: CartesianZone, x: number, y: number): CartesianLocation {
-  const loc = makeStuff(() => new CartesianLocation());
+function room(zone: CartesianZone, x: number, y: number): Location {
+  const loc = makeStuff(() => new Location());
   zone.addLocation(loc, x, y, 0);
   return loc;
 }
 
-function earIn(loc: CartesianLocation): Ear {
+function earIn(loc: Location): Ear {
   const e = makeStuff(() => new Ear());
   ContainmentApi.move(e, loc);
   return e;

@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Biome from '../Biome';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';
@@ -11,7 +11,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function installRootBiome(): void {
   makeStuffAtPath(() => {

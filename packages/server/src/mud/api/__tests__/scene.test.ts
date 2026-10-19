@@ -7,7 +7,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageApi } from '../message';
 import { Mml } from '../mml';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
@@ -129,13 +129,13 @@ describe('Scene compositional checks', () => {
 });
 
 describe('Scene multi-audience dispatch', () => {
-  let location: Location;
+  let location: Place;
   let alice: CapSensor;
   let bob: CapSensor;
   let carol: CapSensor;
 
   beforeEach(() => {
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     alice = makeStuff(() => new CapSensor());
     alice.setName('Alice');
     bob = makeStuff(() => new CapSensor());
@@ -266,7 +266,7 @@ describe('Scene multi-audience dispatch', () => {
 
 describe('Scene attribution stamping', () => {
   it('stamps commandId + causingCommandId from a Command frame', () => {
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     const alice = makeStuff(() => new CapSensor());
     ContainmentApi.move(alice, location);
 
@@ -304,7 +304,7 @@ describe('Scene attribution stamping', () => {
   });
 
   it('outside any command, neither commandId nor causingCommandId is set', () => {
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     const alice = makeStuff(() => new CapSensor());
     ContainmentApi.move(alice, location);
 
@@ -316,7 +316,7 @@ describe('Scene attribution stamping', () => {
 
 describe('Scene per-recipient body materialization (Step B)', () => {
   it('renders Mml body once per recipient with the recipient as viewer', () => {
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     const alice = makeStuff(() => new CapSensor());
     alice.setName('Alice');
     const bob = makeStuff(() => new CapSensor());
@@ -350,7 +350,7 @@ describe('Scene per-recipient body materialization (Step B)', () => {
   });
 
   it('threads viewer to toSelf body', () => {
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     const alice = makeStuff(() => new CapSensor());
     ContainmentApi.move(alice, location);
 

@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Vessel } from '../../stuff/Vessel';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -9,7 +9,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 class TestVessel extends Vessel {}
 
 describe('AtmosphericMixin — composition + storage', () => {
@@ -20,7 +20,7 @@ describe('AtmosphericMixin — composition + storage', () => {
     StuffApi.clearAll();
   });
 
-  it('Location composes AtmosphericMixin', () => {
+  it('Place composes AtmosphericMixin', () => {
     const room = makeStuff(() => new TestLocation());
     expect(MixinApi.hasMixin(room, Mixins.Atmospheric)).toBe(true);
   });

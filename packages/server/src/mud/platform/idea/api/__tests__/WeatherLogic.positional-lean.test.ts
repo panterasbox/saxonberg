@@ -8,7 +8,7 @@
 
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import { WeatherApi } from '../../../../api/weather';
 import { BiomeApi } from '../../../../api/biome';
 import { AddressApi } from '../../../../api/address';
@@ -33,7 +33,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('the positional lean', () => {
   it('⭐ inside the haar the sky reads fog, segment after segment; ashore it is the climate\'s', async () => {
-    const deck = makeStuffAtPath(() => new Location(), '/test/ship/deck');
+    const deck = makeStuffAtPath(() => new Place(), '/test/ship/deck');
     const seen = new Set<string>();
     lean = { fog: 1e6 };
     for (let seg = 0; seg < 12; seg++) {
@@ -53,7 +53,7 @@ describe('the positional lean', () => {
   });
 
   it('a lean resolves as `climate-leaned`', async () => {
-    const deck = makeStuffAtPath(() => new Location(), '/test/ship/deck');
+    const deck = makeStuffAtPath(() => new Place(), '/test/ship/deck');
     lean = { fog: 4 };
     expect((await WeatherApi.resolveWeatherFor(deck)).provenance).toBe('climate-leaned');
     lean = null;

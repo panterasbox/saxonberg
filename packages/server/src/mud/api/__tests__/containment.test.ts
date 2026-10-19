@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ContainmentApi } from '../containment';
 import { ContainmentLogic } from '../../platform/idea/api/ContainmentLogic';
 import { SecurityError } from '../../lib/security/errors';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { PlacingMixin } from '../../lib/spatial/Placing';
@@ -73,8 +73,8 @@ describe('ContainmentApi', () => {
   let item: TestItem;
   let container1: TestContainer;
   let container2: TestContainer;
-  let location1: Location;
-  let location2: Location;
+  let location1: Place;
+  let location2: Place;
 
   beforeEach(() => {
     item = makeStuff(() => new TestItem());
@@ -83,9 +83,9 @@ describe('ContainmentApi', () => {
 
     container2 = makeStuff(() => new TestContainer());
 
-    location1 = makeStuff(() => new Location());
+    location1 = makeStuff(() => new Place());
 
-    location2 = makeStuff(() => new Location());
+    location2 = makeStuff(() => new Place());
   });
 
   describe('move()', () => {
@@ -116,7 +116,7 @@ describe('ContainmentApi', () => {
       expect(container1.hasContainable(item)).toBe(true);
     });
 
-    it('should work with Location as container', () => {
+    it('should work with Place as container', () => {
       ContainmentApi.move(item, location1);
 
       expect(item.getContainer()).toBe(location1);

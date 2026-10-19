@@ -1,0 +1,20 @@
+# A soap frame — a shallow wooden mould the curd is poured into to set
+# (cleanliness D24), a ROW over the kernel's Mould: the frame keeps the
+# curd in its shape while the brine drains out of it, and what comes out
+# is a bar to cut and cure.
+class: /platform/thing/Mould
+data:
+  shortDescription: soap frame
+  keywords: [frame, "soap frame", mould, mold]
+  register: indefinite
+  longDescription: >-
+    A shallow box of planed boards with a loose bottom, the inside
+    rubbed white with old soap.
+  interiorBulk: true
+  interiorCapacity: 4
+  closure: liquidTight
+  castTemplate: /trade/chandlery/thing/soap-bar
+  reusable: true
+  discipline: chemistry
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 3

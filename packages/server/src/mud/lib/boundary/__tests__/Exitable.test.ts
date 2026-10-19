@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import SphericalLocation from '../../../platform/location/SphericalLocation';
 import SphericalZone from '../../../platform/idea/location/SphericalZone';
 import Exit from '../Exit';
@@ -20,15 +20,15 @@ describe('ExitableMixin', () => {
   });
 
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
-  let locC: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
+  let locC: Location;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
-    locC = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
+    locC = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     zone.addLocation(locC, 0, 2, 0);
@@ -49,11 +49,11 @@ describe('ExitableMixin', () => {
     expect(locA.getExits().size).toBe(0);
   });
 
-  it('CartesianLocation allows orphan non-cardinal exit (no source templatePath → permissive)', async () => {
+  it('Location allows orphan non-cardinal exit (no source templatePath → permissive)', async () => {
     // Without a sourcePath (makeStuff'd locA has no template path), the
     // cardinal-rule check falls into the permissive branch — see
-    // CartesianLocation.addExit. The intra-zone non-cardinal failure
-    // case is exercised in CartesianLocation.cardinalRule.test.ts using
+    // Location.addExit. The intra-zone non-cardinal failure
+    // case is exercised in Location.cardinalRule.test.ts using
     // makeStuffAtPath fixtures.
     const exit = makeStuff(() => new Exit({ direction: 'portal', source: locA, destination: locC }));
     expect(await locA.addExit(exit)).toBe(true);
@@ -201,8 +201,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
   it('wires inverse pointers when destination is loaded with matching back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -230,7 +230,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
   });
 
   it('skips exits whose destination is not yet loaded', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
     const east = makeStuff(() => new Exit({
       direction: 'east',
       source: a,
@@ -247,8 +247,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
   it('marks blocked when destination loaded but missing back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 5, 5, 5);
 
@@ -267,9 +267,9 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
   it('marks blocked when back-exit points elsewhere', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    const c = makeStuffAtPath(() => new CartesianLocation(), '/zone/c');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
+    const c = makeStuffAtPath(() => new Location(), '/zone/c');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 5, 5, 5);
     zone.addLocation(c, 9, 9, 9);
@@ -295,8 +295,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
   it('skips oneWay exits even with no back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 5, 5, 5);
 
@@ -317,8 +317,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
   it('skips already-wired exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -332,8 +332,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
   });
 
   it('skips non-cardinal directions (semantic exits)', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     const semantic = makeStuff(() => new Exit({
       direction: 'office',
@@ -362,8 +362,8 @@ describe('ExitableMixin.onDestruct / Location destroy choreography', () => {
 
   it('marks neighbor inbound exits blocked and destructs outbound exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -381,7 +381,7 @@ describe('ExitableMixin.onDestruct / Location destroy choreography', () => {
 
   it('Zone destruct refuses while locations are live', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const loc = makeStuffAtPath(() => new Location(), '/zone/a');
     zone.addLocation(loc, 0, 0, 0);
 
     expect(() => StuffApi.destruct(zone as unknown as Idea)).toThrow(
@@ -391,7 +391,7 @@ describe('ExitableMixin.onDestruct / Location destroy choreography', () => {
 
   it('Zone destruct succeeds after locations are drained', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const loc = makeStuffAtPath(() => new Location(), '/zone/a');
     zone.addLocation(loc, 0, 0, 0);
 
     StuffApi.destruct(loc as unknown as Idea);

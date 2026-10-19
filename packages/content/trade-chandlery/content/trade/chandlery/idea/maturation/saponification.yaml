@@ -1,0 +1,19 @@
+# Saponification — fat and lye kept at the boil (cleanliness D24): the
+# alkali splits the fat into SOAP and GLYCERIN. Below a boil it barely
+# goes; much past it the paste scorches. About an hour at the boil, and
+# the glycerin settles out as the lees. Salt added after grains the soft
+# soap into a curd that sets into a hard bar (the kettle's own transform).
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: saponification
+  inputCategory: soap-paste
+  mechanism: chemical
+  stallBelowK: 350
+  happyK: 368
+  damageAboveK: 420
+  ratePerDay: 24
+  productMaterial: /trade/chandlery/idea/material/soft-soap
+  leesFraction: 0.1
+  leesMaterial: /trade/chandlery/idea/material/glycerin
+  wildStrain: ''
+  spontaneousLagDays: 0

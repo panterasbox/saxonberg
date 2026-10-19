@@ -59,7 +59,7 @@ import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { Evaporation } from './Evaporation';
-import Location from '../stuff/Location';
+import Place from '../stuff/Place';
 import type { Container } from '../spatial/Container';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -180,7 +180,7 @@ function waterAugmenter(
  *
  * ⭐ Three rungs, and they are the whole exposure model:
  *
- *   - **enclosed** (`0`) — the immediate container is not a `Location`: a
+ *   - **enclosed** (`0`) — the immediate container is not a `Place`: a
  *     body's inventory, a sack, a chest, a pot. A ham in a closed sack
  *     does not dry, which is honest and is what keeps the store sparse
  *     for every carried and stored good in the world.
@@ -201,10 +201,10 @@ function exposureOf(host: Stuff): number {
   if (!MixinApi.isContainable(host)) return 0;
   const where = host.getContainer();
   if (where === null) return 0;
-  // ⚠ `instanceof Location` rather than a mixin predicate: a `Vessel` is
+  // ⚠ `instanceof Place` rather than a mixin predicate: a `Vessel` is
   // Atmospheric too, and the question here is "is this the open world or
   // the inside of something". The `Display.ts` precedent.
-  if (!(where instanceof Location)) return 0;
+  if (!(where instanceof Place)) return 0;
   const support = host.getPlacement()?.host ?? null;
   if (support !== null) return clamp01(support.getAirExposure());
   return clamp01(
@@ -213,13 +213,13 @@ function exposureOf(host: Stuff): number {
 }
 
 /**
- * The `Location` a host is exposed in, or `null` when it is enclosed —
+ * The `Place` a host is exposed in, or `null` when it is enclosed —
  * the scope the air is read from.
  */
 function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
   if (!MixinApi.isContainable(host)) return null;
   const where = host.getContainer();
-  if (where === null || !(where instanceof Location)) return null;
+  if (where === null || !(where instanceof Place)) return null;
   return where as unknown as Stuff & Container;
 }
 

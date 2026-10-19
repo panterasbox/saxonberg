@@ -1,0 +1,23 @@
+# Chalk — the soft white top of the limestone (cleanliness D25): rubbed on a
+# grease spot it drinks the oil, and it is the cheaper absorbent.
+class: /platform/idea/material/Material
+data:
+  name: chalk
+  keywords: [chalk]
+  appearance: soft white chalk
+  density: 2000
+  specificHeat: 880
+  thermalConductivity: 0.9
+  electricalConductivity: 1.0e-8
+  waterAbsorptionCapacity: 20
+  hardness: 3
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [rock, mineral, granular, absorbent, chalk]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/chalk
+  composition: []
+  biologicalSource: null

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach , vi } from 'vitest';
 import { withRow } from './row';
 import { driveMeasure, instrumentWith } from './drive';
 import TemperatureReading from '../TemperatureReading';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Biome from '../../../../lib/biome/Biome';
 import { BiomeApi } from '../../../../api/biome';
 import { Quantity } from '../../../../lib/quantity';
@@ -34,7 +34,7 @@ import {
 import type Interactive from '../../Interactive';
 import Receptacle from '../../../thing/Receptacle';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),

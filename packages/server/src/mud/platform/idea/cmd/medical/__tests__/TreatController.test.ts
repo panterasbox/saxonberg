@@ -19,7 +19,7 @@ import UndressController from '../UndressController';
 import Bandage from '../../../../thing/Bandage';
 import { DressingMixin } from '../../../../../lib/vitals/Dressing';
 import Good from '../../../../../lib/stuff/Good';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Creature } from '../../../../../lib/creature/Creature';
 import { MessageApi } from '../../../../../api/message';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -104,9 +104,9 @@ afterEach(() => {
 /** A medic in a room, carrying `dressing`, with a bleeding foot wound. */
 function medicWith(dressing: Good, path: string, severity = 1.5): {
   medic: MedicCreature;
-  room: Location;
+  room: Place;
 } {
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
   const medic = makeStuff(() => new MedicCreature());
   stampTemplatePathForTest(medic, path);
   ContainmentApi.move(medic, room);
@@ -154,7 +154,7 @@ describe('TreatController', () => {
   });
 
   it('rejects when there is no wound to dress', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, '/platform/agent/Avatar/medic-c');
     ContainmentApi.move(medic, room);
@@ -266,16 +266,19 @@ describe('TreatController — stabilization', () => {
   function dyingPatient(): {
     medic: MedicCreature;
     patient: Creature;
-    room: Location;
+    room: Place;
     dressing: Good;
   } {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, '/platform/agent/Avatar/medic-stab');
     const patient = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/patient-stab');
     patient.setLifecycleState('alive');
     const dressing = makeStuff(() => new Bandage());
+    // ⭐ A boiled bandage (cleanliness D14): a dressing is as good as it
+    // is clean, and these tests are about the rescue, not the linen.
+    dressing.recordHeat(373, 300);
     ContainmentApi.move(medic, room);
     ContainmentApi.move(patient, room);
     ContainmentApi.move(dressing, medic);
@@ -349,8 +352,10 @@ describe('TreatController — stabilization', () => {
     const { medic, patient, room, dressing } = dyingPatient();
     patient.beginDying('hypothermia', 300);
     // A worthless dressing in untrained hands → the failure outcome.
-    (dressing as unknown as { setDressingQuality(q: number): void })
-      .setDressingQuality(0);
+    vi.spyOn(
+      dressing as unknown as { getDressingQuality(): number },
+      'getDressingQuality',
+    ).mockReturnValue(0);
 
     const ctrl = makeStuff(() => new TreatController());
     await ctrl.execute(
@@ -383,8 +388,8 @@ describe('TreatController — the treatment matches the condition', () => {
     item: Good | null,
     wound: Trauma,
     path: string,
-  ): { medic: MedicCreature; room: Location } {
-    const room = makeStuff(() => new Location());
+  ): { medic: MedicCreature; room: Place } {
+    const room = makeStuff(() => new Place());
     const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, path);
     ContainmentApi.move(medic, room);

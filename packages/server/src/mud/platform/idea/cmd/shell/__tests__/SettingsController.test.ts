@@ -17,10 +17,10 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import { ContainmentApi } from '../../../../../api/containment';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import {
   CommandApi,
   type CommandContext,
@@ -93,7 +93,7 @@ class Host extends HostBase {
   }
 }
 
-function makeContext(host: Host, location: Location): CommandContext {
+function makeContext(host: Host, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
@@ -108,11 +108,11 @@ function makeContext(host: Host, location: Location): CommandContext {
 
 describe('SettingsController', () => {
   let host: Host;
-  let location: CartesianLocation;
+  let location: Location;
   let controller: SettingsController;
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     host = makeStuff(() => new Host());
     ContainmentApi.move(host, location);
     controller = makeStuff(() => new SettingsController());

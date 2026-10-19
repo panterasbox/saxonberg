@@ -15,7 +15,7 @@ import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import type { Stuff } from '../Stuff';
 import Thing from '../Thing';
-import Location from '../Location';
+import Place from '../Place';
 import Exit from '../../boundary/Exit';
 import Door from '../../../platform/thing/Door';
 import { ContainerMixin } from '../../spatial/Container';
@@ -29,8 +29,8 @@ import {
 } from '../../security/__tests__/test-setup';
 
 class Box extends Holder {}
-class ExitRoom extends ExitableMixin(Location) {}
-class Bearer extends DoorBearingMixin(ExitableMixin(Location)) {}
+class ExitRoom extends ExitableMixin(Place) {}
+class Bearer extends DoorBearingMixin(ExitableMixin(Place)) {}
 class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 

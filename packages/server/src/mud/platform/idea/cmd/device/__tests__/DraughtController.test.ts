@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DraughtController from '../DraughtController';
 import CoverController from '../CoverController';
 import Forge from '../../../../thing/Forge';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -59,7 +59,7 @@ const one = (stuff: unknown, raw: string): MqlOneResult =>
 
 describe('the draught', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let forge: Forge;
 
   function ctx(verb: string): CommandContext {
@@ -92,7 +92,7 @@ describe('the draught', () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

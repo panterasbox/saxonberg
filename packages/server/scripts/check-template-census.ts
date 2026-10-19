@@ -560,6 +560,25 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
+   * ⭐ What a material gives off (cleanliness D22): each burnt product and
+   * the vapour a volatile liquid becomes are gas ROWS the fire and the
+   * pour resolve by path — a misspelt one is a sulfur lump that fumes
+   * nothing, silently.
+   */
+  const products = data.combustionProducts;
+  if (Array.isArray(products)) {
+    for (const p of products) {
+      if (p && typeof p === 'object') {
+        push('combustionProducts.material', (p as Record<string, unknown>).material);
+      }
+    }
+  }
+  push('vapourMaterial', data.vapourMaterial);
+  // A floor's sweep heaps into this row (cleanliness D15).
+  push('sweepsInto', data.sweepsInto);
+  // The house whose doorman keeps a door (cleanliness D29).
+  push('keptBy', data.keptBy);
+  /*
    * ⭐⭐ The deposit's FLUID bodies (the drilling build) — each one names
    * the material that comes up it.
    *

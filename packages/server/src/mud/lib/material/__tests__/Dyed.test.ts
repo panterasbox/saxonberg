@@ -162,11 +162,12 @@ describe('the soiling SEAM is a method, not a mechanism', () => {
     return out;
   }
 
-  it('⚠ NO SoilableMixin ships from this build', () => {
+  it('⭐ the seam\'s consumer shipped as its OWN subsystem (cleanliness), not in textiles', () => {
+    // The textiles build held this line until somebody built the soiling
+    // model; the cleanliness build did, in `lib/cleanliness/`.
     expect(existsSync(join(MUD, 'lib', 'material', 'Soilable.ts'))).toBe(false);
-    expect(
-      (Mixins as unknown as Record<string, string>).Soilable,
-    ).toBeUndefined();
+    expect(existsSync(join(MUD, 'lib', 'cleanliness', 'Soilable.ts'))).toBe(true);
+    expect((Mixins as unknown as Record<string, string>).Soilable).toBe('SoilableMixin');
   });
 
   it('⚠⚠ NO `soil.*` event is registered', () => {
@@ -193,8 +194,14 @@ describe('the soiling SEAM is a method, not a mechanism', () => {
       join(MUD, 'platform', 'thing', 'CraftVessel.ts'),
       'utf-8',
     );
+    // ⭐ Both now — and they stay TWO facts: `soiled` (Serviceable) is
+    // *used*, Soilable is the dirt by kind. The used bit's writer is
+    // `markUsed`, so neither shadows the other.
     expect(src).toMatch(/soiled/);
-    expect(src).not.toMatch(/SoilableMixin/);
+    expect(src).toMatch(/SoilableMixin/);
+    const serviceable = readFileSync(join(MUD, 'lib', 'craft', 'Serviceable.ts'), 'utf-8');
+    expect(serviceable).toMatch(/markUsed\(\): void/);
+    expect(serviceable).not.toMatch(/^\s+soil\(\): void/m);
   });
 
   it('nothing in the mudlib emits or listens for a soiling event', () => {

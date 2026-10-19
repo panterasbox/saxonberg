@@ -29,7 +29,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../../backend/PersistenceManager';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import { Zone } from '../../../../lib/zone/Zone';
@@ -112,8 +112,8 @@ async function zoneAt(
   return zone;
 }
 
-function roomIn(zone: Zone, biome: Biome): CartesianLocation {
-  const room = makeStuff(() => new CartesianLocation());
+function roomIn(zone: Zone, biome: Biome): Location {
+  const room = makeStuff(() => new Location());
   Stuff._stampZone(room, zone as never);
   room.setBiome(biome);
   return room;

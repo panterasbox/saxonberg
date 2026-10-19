@@ -1,0 +1,54 @@
+# cleanliness — the soil bands and the dials of the acts that move dirt.
+#
+# ⭐ None of these is a clock. Dirt arrives because an act put it there
+# and leaves because an act took it away; these only say how much an act
+# moves and where the words change.
+settings:
+  # The load at which a thing reads MARKED, SOILED and FILTHY. A load is a
+  # dimensionless amount of dirt at a site (a hand, a garment, a floor):
+  # one bare-handed butchering puts about a soiled's worth on the hands.
+  - key: cleanliness.band.markedAt
+    value: "0.1"
+  # The ppm of a thing's dirt odour at which its description says it smells
+  # (an ordinary nose, `smell`'s `normal` acuity) — B57.
+  - key: cleanliness.odourNoticedPpm
+    value: "10"
+  - key: cleanliness.band.soiledAt
+    value: "0.4"
+  - key: cleanliness.band.filthyAt
+    value: "1"
+
+  # The share of what is on a mover's feet a floor takes at each crossing
+  # — and the feet lose. ⭐ Why a shop floor soils with its customers: the
+  # mud is brought in, by them, from wherever they walked.
+  - key: cleanliness.traffic.trackIn
+    value: "0.2"
+
+  # The share of a dirty glove's load that a QUICK removal leaves on the
+  # bare hand under it — the doffing problem nurses are trained on.
+  # `remove gloves carefully` is slower and leaves none.
+  - key: cleanliness.doff.transfer
+    value: "0.5"
+
+  # The debris load (crumbs, manure, sweepings) on a floor at which — with
+  # open food lying in the room — pests come. Sweep up, and they go.
+  - key: cleanliness.pests.debrisAt
+    value: "0.4"
+
+  # What pests add to an open food's spoilage rate, per hour, while they
+  # are at it (a warm loaf grows at ~0.05/h; pests about treble it).
+  - key: cleanliness.pests.ratePerHour
+    value: "0.1"
+
+  # The row a hearth's grate is raked out into (`sweep hearth`) — the
+  # lye-maker's ash: wood ash, the hearth's own row (a failed clamp's ash is
+  # the other one, the same material).
+  - key: cleanliness.ashTemplate
+    value: "/trade/fuel/thing/wood-ash"
+
+  # The severity a board, a knife or a pair of hands short of sanitised
+  # puts on the food it touches (a raw or dirty surface the whole of it,
+  # a merely washed one three quarters). Hot water and soap reach
+  # sanitised; a boil, disinfected.
+  - key: kitchen.surfaceInoculum
+    value: "0.5"

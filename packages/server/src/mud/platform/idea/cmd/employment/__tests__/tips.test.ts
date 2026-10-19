@@ -21,7 +21,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { StuffApi } from '../../../../../api/stuff';
@@ -67,7 +67,7 @@ class Bartender extends EmployedMixin(
   }
 }
 
-function makeContext(giver: Stuff, location: Location, verb: string): CommandContext {
+function makeContext(giver: Stuff, location: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -124,12 +124,12 @@ describe('tips — the tip jar', () => {
   });
 
   function scene(): {
-    loc: Location;
+    loc: Place;
     patron: Patron;
     bartender: Bartender;
     jar: TipJar;
   } {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const patron = makeStuffAtPath(() => new Patron(), PATRON);
     const bartender = makeStuffAtPath(() => new Bartender(), MARA);
     const jar = makeStuff(() => new TipJar());

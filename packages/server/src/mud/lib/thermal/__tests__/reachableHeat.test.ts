@@ -10,7 +10,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { ThermalMixin } from '../Thermal';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Forge from '../../../platform/thing/Forge';
 import { FireApi } from '../../../api/fire';
 import { StuffApi } from '../../../api/stuff';
@@ -22,7 +22,7 @@ import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class ReachRoom extends Location {}
+class ReachRoom extends Place {}
 class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = 'ReachThermalThing';
 }

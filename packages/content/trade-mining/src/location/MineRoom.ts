@@ -12,7 +12,7 @@
  *
  *  - **`PersistableMixin`** — the host rule (its `cleanupOnDestruct` must
  *    fire before the inner `Container` evacuates). ⚠ Over the PERMISSIVE
- *    `CartesianLocation`, never the singleton one, because a working is a
+ *    `Location`, never the singleton one, because a working is a
  *    KIND of place minted many times. It is safe here only because every
  *    instance is **keyed** (`<claimExtent>/<cell>`, through
  *    `restoreOrSeed`) — a keyless persistable over a permissive base
@@ -28,13 +28,13 @@
  * to exist.
  */
 
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { WorkingMixin } from '../lib/Working';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const MineRoomBase = PersistableMixin(WarrenMemberMixin(WorkingMixin(CartesianLocation)));
+const MineRoomBase = PersistableMixin(WarrenMemberMixin(WorkingMixin(Location)));
 
 export default class MineRoom extends MineRoomBase {
   static fieldMeta: FieldMeta = {};

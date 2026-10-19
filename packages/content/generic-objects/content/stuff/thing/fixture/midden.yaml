@@ -1,0 +1,19 @@
+# A midden — the heap the sweepings and the muck go on, and rot down into
+# compost (cleanliness D15, D20). ⭐ The RETURN LEG of the nitrogen ledger:
+# `fill sack from midden`, `feed field with sack`. A bulk holder of compost
+# that `dispose` adds to.
+class: /platform/thing/Midden
+data:
+  shortDescription: midden
+  keywords: [midden, heap, dunghill, muck]
+  register: definite
+  longDescription: >-
+    A low walled heap of straw, dung and sweepings, steaming faintly, turned
+    at one end and settled dark at the other.
+  interiorBulk: true
+  interiorCapacity: 2000
+  interiorMaterial: /stuff/idea/material/bulk/compost
+  interiorAmount: 40
+  fixedInPlace: true
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 500

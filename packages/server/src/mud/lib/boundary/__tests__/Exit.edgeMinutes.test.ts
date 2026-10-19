@@ -15,7 +15,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import { ContainmentApi } from '../../../api/containment';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -24,10 +24,10 @@ class Walker extends MobileMixin(ContainableMixin(Idea)) {
   static _mixinName = 'EdgeMinutesWalker';
 }
 
-function endpoints(): { locA: CartesianLocation; locB: CartesianLocation } {
+function endpoints(): { locA: Location; locB: Location } {
   const zone = makeStuff(() => new CartesianZone());
-  const locA = makeStuff(() => new CartesianLocation());
-  const locB = makeStuff(() => new CartesianLocation());
+  const locA = makeStuff(() => new Location());
+  const locB = makeStuff(() => new Location());
   zone.addLocation(locA, 0, 0, 0);
   zone.addLocation(locB, 0, 1, 0);
   return { locA, locB };

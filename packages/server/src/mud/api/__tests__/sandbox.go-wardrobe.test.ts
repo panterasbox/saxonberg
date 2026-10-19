@@ -22,7 +22,7 @@ import { ExecutionContextApi, OMNI_SCOPE } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
@@ -105,7 +105,7 @@ describe('go wardrobe (the real command path)', () => {
   });
 
   it('carries the player into their circle, and `out` brings them back', async () => {
-    const room = await StuffApi.create(() => new CartesianLocation());
+    const room = await StuffApi.create(() => new Location());
     room.setShortDescription('the wire alcove');
     const avatar = await StuffApi.create(() => new Avatar(), {
       playerId: PLAYER,

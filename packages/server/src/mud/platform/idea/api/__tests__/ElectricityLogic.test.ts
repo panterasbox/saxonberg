@@ -13,7 +13,7 @@ import { EnergizedMixin } from '../../../../lib/electricity/Energized';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Floor from '../../../thing/Floor';
 import Garment from '../../../thing/equipment/Garment';
 import { Construction } from '../../../../lib/material/Construction';
@@ -49,12 +49,12 @@ const saltWater = () => mkConductor('salt-water', 5);
 const rubber = () => mkConductor('rubber', 1.0e-13);
 const steel = () => mkConductor('steel', 6.0e6);
 
-function makeRoom(): Location {
-  return makeStuff(() => new Location());
+function makeRoom(): Place {
+  return makeStuff(() => new Place());
 }
 
 /** Attach a Floor with a conductive (or dry) surface pool to the room. */
-function floodFloor(room: Location, pool: Material | null, litres: number): Floor {
+function floodFloor(room: Place, pool: Material | null, litres: number): Floor {
   const floor = makeStuff(() => {
     const f = new Floor();
     f.surfaceBulk = true;
@@ -70,7 +70,7 @@ function floodFloor(room: Location, pool: Material | null, litres: number): Floo
 
 /** A dry room whose Floor's own material conducts (a metal floor) — grounds
  * and bridges without wetting anyone. */
-function metalFloor(room: Location, material: Material): Floor {
+function metalFloor(room: Place, material: Material): Floor {
   const floor = makeStuff(() => {
     const f = new Floor();
     f.surfaceBulk = true;
@@ -96,7 +96,7 @@ function makeBodyPlanTorso(c: Creature): string {
   return c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
 }
 
-function makeWire(room: Location, volts: number): TestWire {
+function makeWire(room: Place, volts: number): TestWire {
   const w = makeStuff(() => {
     const wire = new TestWire();
     wire.setName('live wire');
@@ -107,7 +107,7 @@ function makeWire(room: Location, volts: number): TestWire {
   return w;
 }
 
-function makeBody(room: Location | null): Creature {
+function makeBody(room: Place | null): Creature {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-biped');
@@ -146,7 +146,7 @@ function makeBody(room: Location | null): Creature {
   return c;
 }
 
-function bootBody(room: Location, material: Material): Creature {
+function bootBody(room: Place, material: Material): Creature {
   const c = makeBody(room);
   const boots = makeStuff(() => new Garment());
   boots.setMaterial(material);

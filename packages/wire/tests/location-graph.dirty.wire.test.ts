@@ -154,7 +154,7 @@ suite('⭐ 2 — an ephemeral room has no handle to remember a find by', () => {
   /*
    * ⚠ The first run of this step asked the lounge's BAR and got its row
    * back, which read as a failure and was not one: `Bar extends
-   * SingletonCartesianLocation`, so it is ONE place and its row is
+   * Locale`, so it is ONE place and its row is
    * exactly the right handle. The ephemeral thing is the SATELLITE
    * (`Lounge`, which composes no `SingletonMixin` and is cloned per
    * landing). Asking both is the better test, because the rule has two

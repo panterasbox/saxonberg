@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
-import CartesianLocation from "../../location/CartesianLocation";
+import Location from "../../location/Location";
 import Good from "../../stuff/Good";
 import { AdornmentMixin } from "../Adornment";
 import { StuffApi } from "../../../api/stuff";
@@ -25,16 +25,16 @@ describe("AdornableMixin.applyAdornments", () => {
   });
 
   it("registers `adornments` as an instruction field without shadowing siblings", () => {
-    // CartesianLocation composes both Adornable and Exitable; the chain
+    // Location composes both Adornable and Exitable; the chain
     // walk must collect BOTH (a `static instructionFields` on Adornable
     // must not clobber Exitable's 'exits' / Staged' 'populates').
-    const fields = MixinApi.getAllInstructionFields(CartesianLocation);
+    const fields = MixinApi.getAllInstructionFields(Location);
     expect(fields).toContain("adornments");
     expect(fields).toContain("exits");
   });
 
   it("clones each spec and attaches it as a fixture, stamping adornedTo", async () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
     const clone = vi
       .spyOn(StuffApi, "clone")
@@ -50,7 +50,7 @@ describe("AdornableMixin.applyAdornments", () => {
   });
 
   it("accepts a bare path string (auto-slot)", async () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
     vi.spyOn(StuffApi, "clone").mockResolvedValue(fx as never);
 
@@ -60,7 +60,7 @@ describe("AdornableMixin.applyAdornments", () => {
   });
 
   it("throws when a template does not compose AdornmentMixin", async () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const notFixture = makeStuff(() => new Good());
     vi.spyOn(StuffApi, "clone").mockResolvedValue(notFixture as never);
 
@@ -70,7 +70,7 @@ describe("AdornableMixin.applyAdornments", () => {
   });
 
   it("tolerates a non-array spec as a no-op", async () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     await expect(
       loc.applyAdornments(undefined as never)
     ).resolves.toBeUndefined();

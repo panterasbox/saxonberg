@@ -199,7 +199,7 @@ influence cluster — five Apis, one `lib/standing/`*).
 (`lib/trait/TraitPosition.ts:92,114,137`) are still public statics, ruled
 *move, but not yet — on the list, not forgotten*. No list carries them:
 `value-object-statics-slate`'s `Left` (as unlinked-1 left it) names
-`GroundCharacter` / `OuterWarren` / `HoldingWarren` / `Login` / `readInt` /
+`GroundCharacter` / `CirculationWarren` / `HoldingWarren` / `Login` / `readInt` /
 `linearToDb` / `scoreEvents` and not these six. So the dossier is reduced
 to a pointer stub keeping § 4 verbatim, under the calibration *a slate
 whose only remainder another slate owns becomes a pointer stub*, and the
@@ -218,7 +218,7 @@ handoff asks for the six to be added to value-object-statics-slate's
 - `## What this leaves the sweep` (213–220, 8) — the sweep ran (563 → 337)
 
 ### Superseded — cut
-- `### Needs a ruling — world-level statics with nowhere to go` table (81–93, 13) — by the executed rulings, row by row: identification → declined, cache cluster ruled (`WarmedIndex`, unlinked-1); standing → `api-normalization-slate`; wiki → declined; advancement / trait → **§ 4 kept**; lock → `BoundaryApi.mintKeyway` (`api/boundary.ts:123`); location → `Warren.cleanupOnDestruct` is rung 0 reflective (`antipatterns.md § Rung 0 is not optional`), `OuterWarren.conditionOf/admitFor` is on value-object-statics's `Left`; npc → `DialogueEffectRegistry.register` ruled `@internal`, no door (unlinked-1); commerce → `CommerceMenu.resolveIn` no longer exists (`lib/commerce/Menu.ts` has only `fieldMeta` / `commandContributions`)
+- `### Needs a ruling — world-level statics with nowhere to go` table (81–93, 13) — by the executed rulings, row by row: identification → declined, cache cluster ruled (`WarmedIndex`, unlinked-1); standing → `api-normalization-slate`; wiki → declined; advancement / trait → **§ 4 kept**; lock → `BoundaryApi.mintKeyway` (`api/boundary.ts:123`); location → `Warren.cleanupOnDestruct` is rung 0 reflective (`antipatterns.md § Rung 0 is not optional`), `CirculationWarren.conditionOf/admitFor` is on value-object-statics's `Left`; npc → `DialogueEffectRegistry.register` ruled `@internal`, no door (unlinked-1); commerce → `CommerceMenu.resolveIn` no longer exists (`lib/commerce/Menu.ts` has only `fieldMeta` / `commandContributions`)
 - `## 3. standing — not four subsystems, and not four rulings` (188–204, 17) — by `api-normalization-slate` § 6.2 + its `Left` (*merge the influence cluster … into one `InfluenceApi`*), which the section itself says is where it is logged; ⚠ the *namespace barrel* it proposes was since **rejected** (api-normalization-slate: *⛔ the barrel pattern is retired — 6.5*), so the section is superseded on its own remedy too
 
 ### Kept (UNBUILT)

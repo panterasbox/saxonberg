@@ -1,0 +1,24 @@
+# The window a room's daylight comes in by — ONE-SIDED, and that is the
+# point (cleanliness D19, B18).
+#
+# A room that declares `ambientSource: sky` names the opening its daylight
+# arrives through (`ambientOpening: window`). When that opening is a real
+# pane IN the room — this row, whose keyword is `window` — the daylight
+# passes through it: a pane sooted by the room's fires lets in less, `wash
+# window` brings it back, and shutting it darkens the room. No second room
+# to wire, so a kitchen minted into every house can carry one as a prop.
+#
+# The two-sided Window (the glazier's hut) is the other shape: it joins
+# two rooms and carries the light between them.
+class: /platform/thing/Window
+data:
+  shortDescription: window
+  keywords: [window, glass, pane]
+  register: definite
+  longDescription: >-
+    A small-paned window in the wall, the glass a little wavy. The day
+    comes in through it.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 3
+  baseTransmissivity: 0.85
+  open: true

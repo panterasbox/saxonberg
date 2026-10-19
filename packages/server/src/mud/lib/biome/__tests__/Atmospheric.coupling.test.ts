@@ -16,7 +16,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Stuff } from '../../stuff/Stuff';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Material from '../../material/Material';
 import Biome from '../Biome';
@@ -58,7 +58,7 @@ function material(path: string, k: number): void {
   }, path);
 }
 
-type Room = CartesianLocation & {
+type Room = Location & {
   setEnclosure(v: EnclosurePartSpec | null): void;
   setRoof(v: RoofSpec | null): void;
   getRoof(): RoofSpec | null;
@@ -73,7 +73,7 @@ let zone: CartesianZone;
 let n = 0;
 
 function room(path: string, outsideK = 275): Room {
-  const r = makeStuffAtPath(() => new CartesianLocation(), path) as Room;
+  const r = makeStuffAtPath(() => new Location(), path) as Room;
   zone.addLocation(r, n++, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   r.setEnclosure({ material: BRICK, thicknessM: 0.23 });

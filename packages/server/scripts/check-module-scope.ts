@@ -96,7 +96,7 @@ interface Finding {
  */
 const EXEMPT_CALL = /^Stuff\._registerTopLevelBranch\(/;
 const EXEMPT_FILES =
-  /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.ts$/;
+  /\/mud\/lib\/stuff\/(Thing|Place|Idea|Agent|Shadow)\.ts$/;
 
 /**
  * The second sanctioned module-scope exception: an `*Api` facade

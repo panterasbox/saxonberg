@@ -69,6 +69,11 @@ const GLASS_SRC = fileURLToPath(new URL("../../../trade-glass/src", import.meta.
 const SMITHING_DIR = fileURLToPath(new URL("../../../trade-smithing/content/trade/smithing/", import.meta.url));
 const TANNING_DIR = fileURLToPath(new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url));
 const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url));
+// ⭐ The cleansers' shelf (cleanliness W3): soap and the soap-maker's
+// kit, washing soda and naphtha, fuller's earth and chalk.
+const CHANDLERY_DIR = fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url));
+const FUEL_DIR = fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url));
+const QUARRYING_DIR = fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url));
 const RUBBER_DIR = fileURLToPath(new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
@@ -279,6 +284,9 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
+  { prefix: "/trade/chandlery/", dir: () => CHANDLERY_DIR },
+  { prefix: "/trade/fuel/", dir: () => FUEL_DIR },
+  { prefix: "/trade/quarrying/", dir: () => QUARRYING_DIR },
   // ⭐ The rubber works' boots, gloves and coat (rubber build).
   { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },

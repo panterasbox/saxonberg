@@ -22,7 +22,7 @@ import { NamedMixin } from '../lib/description/Named';
 import { SensorMixin } from '../lib/message/Sensor';
 import { Agent } from '../lib/stuff/Agent';
 import { Idea } from '../lib/stuff/Idea';
-import Location from '../lib/stuff/Location';
+import Place from '../lib/stuff/Place';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from '../api/stuff';
 import { ShadowApi } from '../api/shadow';
@@ -70,7 +70,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   verb: string,
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -97,7 +97,7 @@ describe('Affordance verbs — integration', () => {
   });
 
   it('full cycle: get apple, put apple on table, give apple to quartermaster', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     giver.setName('bob');
     ContainmentApi.move(giver, room);

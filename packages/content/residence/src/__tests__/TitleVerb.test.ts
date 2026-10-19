@@ -37,7 +37,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
@@ -47,7 +47,7 @@ import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -70,13 +70,13 @@ import {
 
 /** A persistable room — what a real house room clones to. */
 class TitleTestRoom extends PersistableMixin(
-  ContainerMixin(Location),
+  ContainerMixin(Place),
 ) {
   static _mixinName = 'TitleTestRoom';
 }
 
 /** The street the lots front onto — needs only exits + containment. */
-class StreetRoom extends ExitableMixin(ContainerMixin(Location)) {
+class StreetRoom extends ExitableMixin(ContainerMixin(Place)) {
   static _mixinName = 'TitleTestStreet';
 }
 
@@ -187,10 +187,10 @@ function installStore(): void {
     floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
     upkeepTerm: 'owner-all',
   });
-  add(YARD_ROW, '/platform/location/FurnishableRoom', {
+  add(YARD_ROW, '/platform/location/PersistentLocation', {
     shortDescription: 'the yard behind the house',
   });
-  add(ROAD_ROW, '/platform/location/FurnishableRoom', {
+  add(ROAD_ROW, '/platform/location/PersistentLocation', {
     shortDescription: 'a reach of the lane',
   });
   // The sale WRITES an area, so a real m² marshaller is needed.
@@ -296,7 +296,7 @@ function stubCommand(): CommandDefinition {
     '<test>',
   );
 }
-function ctxFor(giver: TestGiver, loc: Location): CommandContext {
+function ctxFor(giver: TestGiver, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -317,7 +317,7 @@ function reasons(ctx: CommandContext): string[] {
 
 async function run(
   giver: TestGiver,
-  loc: Location,
+  loc: Place,
   m: TitleExec,
 ): Promise<CommandContext> {
   const ctx = ctxFor(giver, loc);
@@ -368,7 +368,7 @@ describe('title', () => {
   });
 
   /** A records room WITH its deed desk — the P6 venue. */
-  function registryRoom(): Location {
+  function registryRoom(): Place {
     const room = makeStuffAtPath(
       () => new TitleTestRoom(),
       fresh('/world/somewhere/records'),
@@ -376,12 +376,12 @@ describe('title', () => {
     const desk = makeStuff(() => new DeedDesk());
     desk.setBooks([BOOK_PATH]);
     ContainmentApi.move(desk, room);
-    return room as unknown as Location;
+    return room as unknown as Place;
   }
-  function elsewhere(): Location {
-    return makeStuffAtPath(() => new Location(), fresh('/world/somewhere'));
+  function elsewhere(): Place {
+    return makeStuffAtPath(() => new Place(), fresh('/world/somewhere'));
   }
-  function buyerIn(room: Location): TestGiver {
+  function buyerIn(room: Place): TestGiver {
     const g = makeStuffAtPath(() => {
       const t = new TestGiver();
       t.setName('Alice');
@@ -545,7 +545,7 @@ describe('title', () => {
       null,
     );
     const cond = vi
-      .spyOn(OuterWarren, 'conditionOf')
+      .spyOn(CirculationWarren, 'conditionOf')
       .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
 
     const ctx = await run(buyer, room, model('buy', 'lot 2'));

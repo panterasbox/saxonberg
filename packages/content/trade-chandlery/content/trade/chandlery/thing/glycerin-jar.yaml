@@ -1,0 +1,14 @@
+# A jar of glycerin — the chandler's stock (cleanliness D24).
+class: /platform/thing/Receptacle
+data:
+  shortDescription: jar of glycerin
+  keywords: [glycerin, jar, flask, "jar of glycerin"]
+  register: indefinite
+  longDescription: A small glass jar of clear, syrupy glycerin.
+  interiorBulk: true
+  interiorCapacity: 0.5
+  interiorMaterial: /trade/chandlery/idea/material/glycerin
+  interiorAmount: 0.3
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.6

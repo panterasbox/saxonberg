@@ -28,7 +28,6 @@ import { describe, it, expect } from 'vitest';
 import CookPot from '../thing/CookPot';
 import ButcherBlock from '../thing/ButcherBlock';
 import SaltingTrough from '../thing/SaltingTrough';
-import DryingRack from '../thing/DryingRack';
 import SmokeChimney from '../thing/SmokeChimney';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
@@ -40,7 +39,6 @@ const STATIONS: ReadonlyArray<
   ['CookPot', CookPot, ['cook', 'plate']],
   ['ButcherBlock', ButcherBlock, ['butcher']],
   ['SaltingTrough', SaltingTrough, ['cure']],
-  ['DryingRack', DryingRack, ['dry']],
   ['SmokeChimney', SmokeChimney, ['smoke']],
 ];
 
@@ -99,7 +97,8 @@ describe('the kitchen affords each verb from exactly one station', () => {
     const all = new Set(
       STATIONS.flatMap(([, cls]) => afforded(cls.commandContributions)),
     );
-    for (const verb of ['cook', 'plate', 'butcher', 'cure', 'dry', 'smoke']) {
+    // ⚠ `dry` moved to the platform with its rack (cleanliness D11).
+    for (const verb of ['cook', 'plate', 'butcher', 'cure', 'smoke']) {
       expect(all.has(V(verb)), verb).toBe(true);
     }
   });

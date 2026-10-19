@@ -17,7 +17,7 @@ import { MountableMixin } from '../../../../lib/slot/Mountable';
 import { HaulerMixin } from '../../../../lib/slot/Hauler';
 import Handcart from '../Handcart';
 import CartesianZone from '../../../idea/location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Exit from '../../../../lib/boundary/Exit';
 import { Quantity } from '../../../../lib/quantity';
 import { StuffApi } from '../../../../api/stuff';
@@ -82,8 +82,8 @@ async function handcart(
 
 function tworoom() {
   const zone = makeStuff(() => new CartesianZone());
-  const locA = makeStuff(() => new CartesianLocation());
-  const locB = makeStuff(() => new CartesianLocation());
+  const locA = makeStuff(() => new Location());
+  const locB = makeStuff(() => new Location());
   zone.addLocation(locA, 0, 0, 0);
   zone.addLocation(locB, 0, 1, 0);
   const north = makeStuff(

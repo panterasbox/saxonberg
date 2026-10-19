@@ -7,14 +7,14 @@
  * provisioner supplies the key) shares ONE scope across every instance
  * minted from its row: every reap writes a `holder_snapshots` row, they
  * all collide on the same scope, and nothing ever reads them back.
- * That was the `FurnishableRoom` drift this build cut back — thirteen
+ * That was the `PersistentLocation` drift this build cut back — thirteen
  * trade floors and three pieces of minted scaffolding, each getting a
  * persistence record for free.
  *
  * ⚠ This test WALKS THE DIRECTORY rather than naming classes, on
  * purpose: it has to cover classes that do not exist yet. The rule is
  * one a merge can break silently — a class composed as
- * `PersistableMixin(CartesianLocationBase)` is singleton-and-durable
+ * `PersistableMixin(LocationBase)` is singleton-and-durable
  * while the lib base carries `SingletonMixin` and becomes
  * minted-and-durable the moment it does not, with no textual change and
  * no type error. Naming the classes would let exactly that through.
@@ -61,7 +61,7 @@ describe("every persistable location is singleton or keyed", () => {
           `one place) nor WarrenMember (keyed by a provisioner). Every ` +
           `instance from its row would share ONE holder_snapshots scope — ` +
           `write-only records nothing reads back. Compose it over ` +
-          `SingletonCartesianLocation, or give it the keyed shape.`,
+          `Locale, or give it the keyed shape.`,
       ).toBe(true);
     });
   }

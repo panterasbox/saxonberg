@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../../api/locomotion';
 import { ContainmentApi } from '../../api/containment';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import Exit from '../../lib/boundary/Exit';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
@@ -31,7 +31,7 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { buildAllModes, buildMode } from '../../lib/locomotion/__tests__/test-helpers';
 
-const ClimbableLoc = ClimbableMixin(CartesianLocation);
+const ClimbableLoc = ClimbableMixin(Location);
 class ClimbZoneLocation extends ClimbableLoc {}
 
 /**
@@ -58,10 +58,10 @@ class ClimbZoneLocation extends ClimbableLoc {}
  * the slate names the estuary as its own first target.
  * `lint:reachability` is what will notice when either stops being true.
  */
-const SwimmableLoc = SwimmableMixin(CartesianLocation);
+const SwimmableLoc = SwimmableMixin(Location);
 class SwimZoneLocation extends SwimmableLoc {}
 
-const FlyableLoc = FlyableMixin(CartesianLocation);
+const FlyableLoc = FlyableMixin(Location);
 class FlyZoneLocation extends FlyableLoc {}
 
 const ClimbableLadderBase = ClimbableMixin(ContainableMixin(Good));
@@ -83,8 +83,8 @@ describe('Locomotion integration — § 16 compositions', () => {
 
   it('walks corridor: actor + walk-allowed exit → success', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
@@ -103,8 +103,8 @@ describe('Locomotion integration — § 16 compositions', () => {
   it('climbs ladder up attic: ladder in scope, climb-allowed exit → success', async () => {
     const climb = buildMode('climb');
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation()); // attic, not Climbable
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location()); // attic, not Climbable
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 0, 1);
     const ladder = makeStuff(() => new Ladder());
@@ -131,8 +131,8 @@ describe('Locomotion integration — § 16 compositions', () => {
 
   it('walk fails through climb-only exit (gate=exitMode)', async () => {
     const walk = buildMode('walk');
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
       media: ['vertical'],
@@ -150,7 +150,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const zone = makeStuff(() => new CartesianZone());
     const pond = makeStuff(() => new SwimZoneLocation());
     pond.setAxes(['*']);
-    const beach = makeStuff(() => new CartesianLocation());
+    const beach = makeStuff(() => new Location());
     zone.addLocation(pond, 0, 0, 0);
     zone.addLocation(beach, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
@@ -199,8 +199,8 @@ describe('Locomotion integration — § 16 compositions', () => {
     const ride = buildMode('ride');
     const walk = buildMode('walk');
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     const horse = makeStuff(() => new TestMount());
@@ -244,8 +244,8 @@ describe('Locomotion integration — § 16 compositions', () => {
     const drive = buildMode('drive');
     const wheeled = buildMode('wheeled');
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     const cart = makeStuff(() => new TestCart());

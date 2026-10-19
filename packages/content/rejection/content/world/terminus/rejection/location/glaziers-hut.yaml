@@ -7,7 +7,9 @@
 # windows from the sunlit yards either side. That is the whole reason it
 # can show the stained-glass effect — the light in here IS the light that
 # came through the glass.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentLocale
 data:
   shortDescription: glazier's hut
   keywords: [hut, glazier, "glazier's hut", bench, shop]

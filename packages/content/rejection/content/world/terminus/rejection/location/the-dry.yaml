@@ -4,7 +4,7 @@
 # thermal and metabolism all get their turn, and it is the room where two
 # miners who have never spoken end up talking because there is nowhere
 # else to sit while your clothes steam.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: dry
   # Held warm (lint:envelope's authored list says why).

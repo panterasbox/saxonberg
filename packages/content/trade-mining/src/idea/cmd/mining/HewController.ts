@@ -238,6 +238,15 @@ async function winOre(
   // engagement was the actor's, and *a barge-in leaves the rock
   // standing* is already the rule for an interrupted cut.
   if (context.commandGiver.isDestroyed()) return;
+  // ⭐ (cleanliness D6) Rock dust on the hewer — a `dust` DirtKind row this
+  // pack ships under its own root, read by the platform with no code.
+  const hewer = context.commandGiver;
+  if (MixinApi.isHygienic(hewer)) {
+    hewer.soilFrom([
+      { kind: 'dust', amount: 0.2, where: 'hands' },
+      { kind: 'dust', amount: 0.1, where: 'apron' },
+    ]);
+  }
     const giver = context.commandGiver;
   const lump = (await StuffApi.clone(oreRow)) as unknown as Ore;
     lump.setGrade(grade);

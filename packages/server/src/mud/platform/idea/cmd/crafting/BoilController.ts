@@ -51,7 +51,7 @@
 
 import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Builds } from '../../../../lib/craft/ManualBuild';
 import type { Bulkable } from '../../../../lib/bulk/Bulkable';
@@ -79,8 +79,12 @@ const METHOD = 'boiled';
  */
 const DEFAULT_BOIL_K = 373;
 
+/** A disinfecting boil is held this long (cleanliness D14: ≥ 300 s). */
+const DISINFECT_HOLD_S = 300;
+
 interface BoilModel extends CommandModel {
   target?: MqlOneResult;
+  pot?: MqlManyResult;
 }
 
 export default class BoilController extends ManualBuildController<BoilModel> {
@@ -100,6 +104,18 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       target !== null && MixinApi.isBulkable(target)
         ? (target as Stuff & Bulkable)
         : null;
+
+    // ⭐ A cloth or a tool — a bandage, a board — is boiled IN a pot
+    // (cleanliness D14): the heat it held is stamped on it, and the stamp
+    // is what makes it disinfected.
+    if (
+      target !== null &&
+      build === null &&
+      vessel === null &&
+      MixinApi.isSoilable(target)
+    ) {
+      return this.boilInPot(target, model, ctx);
+    }
 
     if (target === null || (build === null && vessel === null)) {
       this.declineStep(
@@ -156,7 +172,9 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       beginSelf: Mml.compose`You set ${Mml.thing(target)} over the fire and bring it up to a boil.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} over the fire.`,
       onComplete: () => {
-        void this.applyBoil(
+        // Static: the controller clone is destructed when `execute`
+        // returns, long before the boil completes.
+        void BoilController.applyBoil(
           giver,
           target,
           build,
@@ -172,7 +190,7 @@ export default class BoilController extends ManualBuildController<BoilModel> {
    * Both consequences, in the order they are true: the build remembers
    * what happened to it, and the matter changes if the matter says so.
    */
-  private async applyBoil(
+  private static async applyBoil(
     giver: Stuff,
     target: Stuff,
     build: (Stuff & Builds) | null,
@@ -213,6 +231,61 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} boils ${Mml.thing(target)}.`)
       .send();
+  }
+
+  /** A cloth or a tool boiled in a pot of water: the heat is stamped. */
+  private boilInPot(
+    target: Stuff,
+    model: BoilModel,
+    ctx: CommandContext,
+  ): void {
+    const giver = ctx.commandGiver;
+    const pot = this.bestInstrument(model.pot, 'pot');
+    if (pot === null) {
+      this.declineStep(
+        ctx,
+        Mml.compose`Boil ${Mml.thing(target)} in what? It wants a pot of water.`,
+        'no-pot',
+      );
+      return;
+    }
+    const reachableK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+    if (reachableK < DEFAULT_BOIL_K) {
+      this.declineStep(
+        ctx,
+        reachableK <= 0
+          ? Mml.compose`There's no fire here to boil anything on.`
+          : Mml.compose`The fire isn't hot enough to bring ${Mml.thing(pot)} to a boil.`,
+        reachableK <= 0 ? 'no-heat' : 'insufficient-heat',
+      );
+      return;
+    }
+    this.engageStep(ctx, {
+      durationMs: this.paceMs(BOIL_MS, pot, ['pot']),
+      effortW: 200,
+      beginSelf: Mml.compose`You drop ${Mml.thing(target)} into ${Mml.thing(pot)} and bring it up to a boil.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} boils ${Mml.thing(target)} in ${Mml.thing(pot)}.`,
+      onComplete: () => {
+        if (target.isDestroyed() || !MixinApi.isSoilable(target)) return;
+        // Re-read at completion — the fire may have died mid-step.
+        const finalK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+        if (finalK < DEFAULT_BOIL_K) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`The pot goes off the boil before ${Mml.thing(target)} has been in it long enough.`)
+            .send();
+          return;
+        }
+        // ⭐ The thing's own act (`holdAtHeat`): water boils at its boiling
+        // point however hot the fire is — a WET heat, so spores survive it.
+        target.holdAtHeat(DEFAULT_BOIL_K, DISINFECT_HOLD_S, { wet: true });
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You hold ${Mml.thing(target)} at a rolling boil, then fish it out steaming. Nothing that was living on it is living now.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} fishes ${Mml.thing(target)} out of the pot.`)
+          .send();
+      },
+    });
   }
 
   /** The material in a vessel's bulk slot, or `null` when it is empty. */

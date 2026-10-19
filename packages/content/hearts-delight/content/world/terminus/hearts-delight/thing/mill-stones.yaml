@@ -1,0 +1,7 @@
+# The Delight's millstones — the grist mill, in its mill house, driven by
+# the race outside (cleanliness D22): the stones are indoors, so the dust
+# they throw hangs in the room. ⭐ `powerFrom` names the race by path —
+# the house stands beside its wheel, not in the river.
+extends: /trade/milling/thing/grist-mill
+data:
+  powerFrom: /world/terminus/hearts-delight/thing/millrace

@@ -26,7 +26,7 @@ import { MessageApi } from '../../../api/message';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Species from '../../../platform/idea/species/Species';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import { Idea } from '../../stuff/Idea';
@@ -104,7 +104,7 @@ function makeWearer(): Wearer {
   w.setSpecies(species);
   stampTemplatePathForTest(w, `/obj/test/wearer-${n}`);
   w.installArcaneReserve();
-  const room = makeStuff(() => new SingletonCartesianLocation());
+  const room = makeStuff(() => new Locale());
   stampTemplatePathForTest(room, `/obj/test/wear-room-${n}`);
   ContainmentApi.move(w, room);
   return w;

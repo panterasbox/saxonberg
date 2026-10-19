@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../../../../api/locomotion';
 import { LocomotionMode } from '../../LocomotionMode';
 import { buildMode } from '../../../../lib/locomotion/__tests__/test-helpers';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Exit from '../../../../lib/boundary/Exit';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { Creature } from '../../../../lib/creature/Creature';
@@ -107,15 +107,15 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   });
   afterEach(() => StuffApi.clearAll());
 
-  function exitBetween(from: Location, to: Location): Exit {
+  function exitBetween(from: Place, to: Place): Exit {
     return makeStuff(
       () => new Exit({ direction: 'north', source: from, destination: to })
     );
   }
 
   async function traverse(a: MobileCreature): Promise<number> {
-    const here = a.getContainer() as Location;
-    const there = makeStuff(() => new Location());
+    const here = a.getContainer() as Place;
+    const there = makeStuff(() => new Place());
     const before = endurance(a);
     await LocomotionApi.engageAround(
       a,
@@ -127,7 +127,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   }
 
   it('a foot laceration drains endurance on traverse, scaling with severity', async () => {
-    const here = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
 
     const light = walker();
     ContainmentApi.move(light, here);
@@ -143,14 +143,14 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   });
 
   it('an unwounded body pays no limp cost', async () => {
-    const here = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
     const a = walker();
     ContainmentApi.move(a, here);
     expect(await traverse(a)).toBe(0);
   });
 
   it('the limp clears when the wound heals (severity 0)', async () => {
-    const here = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
     const a = walker();
     ContainmentApi.move(a, here);
     const wound = footLaceration(1.5);
@@ -162,7 +162,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   });
 
   it('a non-locomotor (arm) laceration does not limp', async () => {
-    const here = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
     const a = walker();
     ContainmentApi.move(a, here);
     a.afflict({

@@ -12,11 +12,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlApi } from '../../mql';
 import { StuffApi } from '../../stuff';
 import { type Attachment } from '../../../lib/location/Warren';
-import { InnerWarren } from '../../../lib/location/InnerWarren';
+import { RoomWarren } from '../../../lib/location/RoomWarren';
 import { ContainerMixin, type Container } from '../../../lib/spatial/Container';
 import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import { AddressableMixin } from '../../../lib/address/Addressable';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import {
   makeStuff,
@@ -25,13 +25,13 @@ import {
 
 /** A keyed, addressable member room — the D16 keyed-instance shape. */
 class KeyedRoom extends AddressableMixin(
-  PersistableMixin(ContainerMixin(Location)),
+  PersistableMixin(ContainerMixin(Place)),
 ) {
   static _mixinName = 'MembersLocatorRoom';
 }
 
 /** A minimal concrete warren — policy hooks are no-ops. */
-class TestWarren extends InnerWarren {
+class TestWarren extends RoomWarren {
   static _mixinName = 'MembersLocatorWarren';
   protected async createMember(): Promise<Stuff & Container> {
     throw new Error('not used');

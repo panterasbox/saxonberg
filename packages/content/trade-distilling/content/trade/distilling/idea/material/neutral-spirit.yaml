@@ -17,6 +17,9 @@ data:
     - { type: alcohol, amount: 45 }
   nutrients: []
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "neutral-spirit"]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/spirits
   composition: []
   biologicalSource: null
   autoignitionTemperature: 636

@@ -57,6 +57,8 @@ import type Material from '../material/Material';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { PersistableApi } from '../../api/persistable';
+import { ContainmentApi } from '../../api/containment';
 import { BiomeApi } from '../../api/biome';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -155,6 +157,22 @@ export interface Burner extends Pumpable {
    * the light and the exhaust all read.
    */
   completeness(): number;
+  /** The ash in the grate, kg (cleanliness D24). */
+  getAshKg(): number;
+  /** Rake the grate: the ash's kg, and the grate left clean. */
+  takeAsh(): number;
+  /**
+   * ⭐ Rake the grate (cleanliness D24, B40): the ash into the raker's hands,
+   * MADE FROM this burner (so its owner's), ash on the raker's hands, the
+   * room kept. `ash` is `null` when there was hardly any.
+   */
+  rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }>;
+  /**
+   * What the ash in the grate does to the draught, `(0, 1]` — 1 while the
+   * grate is clear. A deep ash bed starves the fire of air from below, so a
+   * hearth nobody rakes burns worse (cleanliness, the ash lens pass).
+   */
+  ashChoke(): number;
   /** The temperature (K) the furnace holds while lit + fuelled. */
   getHeldTemperatureK(): number;
   /** Is the bellows working (boosting the held temperature)? */
@@ -238,6 +256,7 @@ function burnerAugmenter(
         ? `It is cold. There is ${materials[0]!.getName()} laid in it.`
         : 'It is cold, and the bed is empty.',
     );
+    if (host.ashChoke() < 1) lines.push('The grate is deep in ash.');
   } else {
     if (materials.length === 1) {
       lines.push(`It is burning ${materials[0]!.getName()}.`);
@@ -255,6 +274,8 @@ function burnerAugmenter(
     );
     if (host.getDraught() <= BANKED_LOOK_THRESHOLD) {
       lines.push('It is banked down under its own ash, and will keep.');
+    } else if (host.ashChoke() < 1) {
+      lines.push('The grate is choked with ash, and the fire draws badly.');
     }
     // ⭐⭐⭐ **The flame cap** — the tell the canary cannot give you.
     //
@@ -361,7 +382,101 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       draught: { persistent: true, authorable: true },
       flameEnclosed: { persistent: true, authorable: true },
       burnerFuelClockStamp: { persistent: true, runtimeState: true },
+      ashKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ The ash in the grate, kg (cleanliness D24): every kilogram of a
+     * solid fuel burnt leaves its material's `ashFraction`. Raked out by
+     * whoever sweeps the hearth — the first input of lye.
+     */
+    public ashKg = 0;
+
+    /** The ash lying in the grate, kg. */
+    public getAshKg(): number {
+      return this.ashKg;
+    }
+
+    /** Rake the grate: hand back the ash's kg and leave it clean. */
+    public async rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }> {
+      const self = this as unknown as Stuff;
+      const kg = this.takeAsh();
+      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
+      if (!(kg > 0.01)) return { kg, ash: null };
+      const template = (() => {
+        try {
+          return AppApi.setting(AppSettingKeys.cleanlinessAshTemplate) || '/trade/fuel/thing/wood-ash';
+        } catch {
+          return '/trade/fuel/thing/wood-ash';
+        }
+      })();
+      const ash = await StuffApi.clone<Stuff>(template).catch(() => null);
+      if (!ash) return { kg, ash: null };
+      // ⭐ MADE FROM this burner, so the fresh-title rule makes it the
+      // burner's owner's (B40).
+      if (MixinApi.isChattel(ash)) await ash.recordMadeFrom([self]);
+      if (MixinApi.isTangible(ash)) ash.setMass(Quantity.of(kg, 'kg'));
+      // Into the raker's hands (at their feet when they hold nothing).
+      const where = MixinApi.isContainer(raker) ? raker : MixinApi.isContainable(raker) ? raker.getContainer() : null;
+      if (where && MixinApi.isContainer(where) && MixinApi.isContainable(ash)) ContainmentApi.move(ash, where);
+      await PersistableApi.captureHostOf(self).catch(() => {});
+      return { kg, ash };
+    }
+
+    public takeAsh(): number {
+      const kg = this.ashKg;
+      this.ashKg = 0;
+      return kg;
+    }
+
+    /**
+     * ⭐ The grate chokes. Measured against the burner's OWN capacity — a
+     * great hearth holds more ash than a stove before it suffers: clear
+     * below `fire.ash.chokeStartShare` of it, down to
+     * `fire.ash.chokedDraught` at `fire.ash.chokeFullShare`, linear
+     * between.
+     */
+    public ashChoke(): number {
+      const cap = this.effectiveCapacityKg();
+      if (!(cap > 0) || !(this.ashKg > 0)) return 1;
+      const start = burnerDial(AppSettingKeys.fireAshChokeStartShare, 0.1) * cap;
+      const full = burnerDial(AppSettingKeys.fireAshChokeFullShare, 0.3) * cap;
+      const floor = burnerDial(AppSettingKeys.fireAshChokedDraught, 0.4);
+      if (this.ashKg <= start) return 1;
+      if (this.ashKg >= full || full <= start) return floor;
+      const t = (this.ashKg - start) / (full - start);
+      return 1 - t * (1 - floor);
+    }
+
+    /**
+     * What this fire gives off besides its CO₂ and smoke, for `kg` burnt —
+     * each fuel's own `combustionProducts`, by its share of the bed
+     * (cleanliness D22): a lump of sulfur on the coals breathes sulfur
+     * dioxide into the room.
+     */
+    public combustionProductsFor(kg: number): { material: string; litres: number }[] {
+      if (!(kg > 0)) return [];
+      const total = this.fuelRemaining();
+      if (!(total > 0)) return [];
+      const out: { material: string; litres: number }[] = [];
+      const shares: Array<[Material, number]> = [];
+      const slot = this.fuelSlot();
+      if (slot !== null) {
+        const m = slot.getMaterial();
+        if (m) shares.push([m, 1]);
+      } else {
+        for (const [path, mass] of Object.entries(this.fuelBed)) {
+          const m = StuffApi.findByTemplatePath<Material>(path);
+          if (m && mass > 0) shares.push([m, mass / total]);
+        }
+      }
+      for (const [m, share] of shares) {
+        for (const p of m.getCombustionProducts()) {
+          out.push({ material: p.material, litres: p.litresPerKg * kg * share });
+        }
+      }
+      return out;
+    }
 
     /** The vessel's ceiling (K) — what it can hold, with fuel that hot. */
     public burnTemperatureK: number = BURNER_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;
@@ -542,7 +657,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     private draughtFactor(): number {
       const floor = burnerDial(AppSettingKeys.fireDraughtBanked, 0.05);
       const d = Number.isFinite(this.draught) ? this.draught : 1;
-      return Math.max(Math.min(1, d), floor);
+      // A choked grate takes air the vents would give (above the banked
+      // floor: ash smothers a fire, it does not put it out).
+      return Math.max(Math.min(1, d) * this.ashChoke(), floor);
     }
 
     /** The scope whose medium this fire breathes, or `null`. */
@@ -911,6 +1028,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const fraction = Math.min(1, kg / total);
       for (const path of Object.keys(this.fuelBed)) {
         const mass = this.fuelBed[path] ?? 0;
+        // ⭐ What burns leaves its ash in the grate (cleanliness D24).
+        const ash = StuffApi.findByTemplatePath<Material>(path)?.getAshFraction() ?? 0;
+        if (ash > 0) this.ashKg += mass * fraction * ash;
         const left = mass - mass * fraction;
         if (left > 1e-9) this.fuelBed[path] = left;
         else delete this.fuelBed[path];
@@ -993,6 +1113,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
           scope as unknown as Stuff & Container,
           kg,
           complete,
+          this.combustionProductsFor(kg),
         );
       }
     }

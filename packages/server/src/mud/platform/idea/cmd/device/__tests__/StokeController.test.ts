@@ -20,7 +20,7 @@ import Forge from '../../../../thing/Forge';
 import Lamp from '../../../../thing/Lamp';
 import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../../lib/wetness/Wet';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -95,7 +95,7 @@ function cold<T>(thing: T): T {
 
 describe('StokeController', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let forge: Forge;
 
   function ctx(verb = 'stoke'): CommandContext {
@@ -147,7 +147,7 @@ describe('StokeController', () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

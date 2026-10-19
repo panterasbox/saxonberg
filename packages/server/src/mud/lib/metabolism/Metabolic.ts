@@ -59,6 +59,9 @@ import { MaterialApi } from '../../api/material';
 import { CraftingApi } from '../../api/crafting';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { BulkableApi } from '../../api/bulk';
+import { Freshness } from '../material/Freshness';
+import { UTENSIL_KINDS, type UtensilKind } from '../bulk/Utensil';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -414,7 +417,35 @@ export interface CoupledConsumer {
   readonly hydrationCost: number;
 }
 
+/**
+ * What `eat` did — or why not. ⭐ The act is the EATER's (review: a
+ * controller does input and output, and an alternate `eat` controller — or
+ * a brain feeding an animal — must get the same behaviour); the verb only
+ * words this.
+ */
+export type EatOutcome =
+  | { ok: false; reason: 'not-edible' | 'too-full' }
+  | {
+      ok: true;
+      /** Out of a dish (emptied, kept) or a whole item (eaten, gone). */
+      fromDish: boolean;
+      /** What was eaten, as the sentence wants it (a blend carries its own
+       * article; a material's does not). */
+      what: string;
+      /** The food's presentation, captured before a whole item is gone. */
+      foodName: string;
+      /** The clean utensil used and dirtied, or `null` — the fingers. */
+      utensil: UtensilKind | null;
+    };
+
 export interface Metabolic {
+  /**
+   * ⭐ Eat `food`: a whole edible item (all-or-nothing — eaten and gone), or
+   * a portion out of a served dish (the dish emptied, not destroyed). The
+   * first clean utensil among `utensils` is used and dirtied; eating leaves
+   * crumbs on the floor, and grease on bare fingers (cleanliness D6).
+   */
+  eat(food: Stuff, utensils?: readonly Stuff[]): Promise<EatOutcome>;
   /** The live level a toxin's severity bands are read against (BAC for a
    * `storeRaw` toxin, the raw burden otherwise). */
   toxinLevelFor(type: string): number;
@@ -497,6 +528,77 @@ function assertRecordOfNonNeg(value: Record<string, number>, what: string): void
 export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
+
+    /**
+     * The first clean utensil offered — in kind preference order, the
+     * caller's order within a kind — used (dirtied) on the way out.
+     * ⭐ Cutlery READS, it never gates: none is a perfectly good way to eat.
+     */
+    protected claimUtensil(offered: readonly Stuff[]): UtensilKind | null {
+      for (const kind of UTENSIL_KINDS) {
+        for (const candidate of offered) {
+          if (!MixinApi.isCutlery(candidate)) continue;
+          if (candidate.getUtensilKind() !== kind) continue;
+          if (!MixinApi.isServiceable(candidate)) continue;
+          if (!candidate.isClaimable()) continue;
+          candidate.markUsed();
+          return kind;
+        }
+      }
+      return null;
+    }
+
+    /** ⭐ (cleanliness D6) Crumbs on the floor; with the fingers, grease too. */
+    protected leaveCrumbs(withCutlery: boolean): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isHygienic(self)) return;
+      self.soilFrom(
+        withCutlery
+          ? [{ kind: 'crumbs', amount: 0.05, where: 'floor' }]
+          : [
+              { kind: 'crumbs', amount: 0.05, where: 'floor' },
+              { kind: 'grease', amount: 0.03, where: 'hands' },
+            ],
+      );
+    }
+
+    public async eat(food: Stuff, utensils: readonly Stuff[] = []): Promise<EatOutcome> {
+      const self = this as unknown as Stuff;
+      const portionL = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
+      // ⭐ A cooked meal is a bulk blend in a claimed dish: serve from the
+      // slot rather than swallowing the crockery, and EMPTY the dish — a
+      // bowl you have finished is a bowl to wash.
+      if (MixinApi.isBulkable(food) && food.holdsFood()) {
+        const slot = BulkableApi.slotFor(food, undefined);
+        if (!slot) return { ok: false, reason: 'not-edible' };
+        const material = slot.getMaterial();
+        const payload = new Freshness(slot).ingestPayload();
+        const what = CraftingApi.blendAppearance(payload, material) || 'it';
+        const portion = Math.min(portionL, slot.getAmount().rawValue());
+        const accepted = BulkableApi.ingestSolid(self, material, portion, payload);
+        if (accepted < portion - 1e-9) return { ok: false, reason: 'too-full' };
+        const utensil = this.claimUtensil(utensils);
+        BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
+        this.leaveCrumbs(utensil !== null);
+        return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil };
+      }
+      const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
+      if (!material || material.getEdibility() !== true) {
+        return { ok: false, reason: 'not-edible' };
+      }
+      // The food synthesizes its own payload (`Fresh.ingestPayload`) — the
+      // same answer for every mouth.
+      const payload = MixinApi.isFresh(food) ? food.ingestPayload() : null;
+      const accepted = BulkableApi.ingestSolid(self, material, portionL, payload);
+      // A discrete item is all-or-nothing: only a full portion consumes it.
+      if (accepted < portionL - 1e-9) return { ok: false, reason: 'too-full' };
+      const what = material.getAppearance() || material.getName() || 'it';
+      const utensil = this.claimUtensil(utensils);
+      this.leaveCrumbs(utensil !== null);
+      const foodName = food.getPresentation();
+      await StuffApi.destruct(food);
+      return { ok: true, fromDish: false, what, foodName, utensil };
+    }
 
     /**
      * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
@@ -1843,7 +1945,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // answers it in one field read without touching the map at all.
       if (MixinApi.isPosed(self) && !self.getRestingOnPath()) return 1.0;
       const host = self.getOccupiedHost();
-      if (host && MixinApi.isPostured(host)) return host.getRestQuality();
+      if (host && MixinApi.isPostured(host)) return host.restQualityAsKept();
       return 1.0;
     }
   };

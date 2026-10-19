@@ -1,0 +1,14 @@
+# Manure — the byre's, on the milker's hands and the stalls' floor. It
+# carries what lives in a gut, so it seeds a surface it touches.
+class: /platform/idea/DirtKind
+data:
+  key: manure
+  adjective: dung-spattered
+  form: film
+  answersTo: [surfactant, alkali-mild, alkali-strong]
+  waterLifts: 0.6
+  brushLifts: 0.2
+  contaminates: {e-coli: 0.3}
+  # What it smells of — ppm per unit of load (B57): a soiled thing's
+  # odour is derived from what is on it.
+  odour: { identity: dung, ppmPerLoad: 80 }

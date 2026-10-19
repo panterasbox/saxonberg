@@ -13,7 +13,7 @@ import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { StuffApi } from '../../../../../api/stuff';
@@ -33,7 +33,7 @@ let said: string[] = [];
 function ctx(): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: 'watch horizon',
     executionId: 't',
     commandId: 't',

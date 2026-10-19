@@ -7,7 +7,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../../../lib/stuff/Good';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import { ResidencyApi } from '../../../../api/residency';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
@@ -68,7 +68,7 @@ describe('residency sweep', () => {
 
   it('enforce mode spares a vetoing object (a non-empty room)', () => {
     setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const item = makeStuff(() => new Good());
     ContainmentApi.move(item, room);
     const id = room.stuffId;
@@ -79,7 +79,7 @@ describe('residency sweep', () => {
 
   it('presence keeps an occupied room’s contents warm', () => {
     setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const holder = makeStuff(() => new Good()); // stand-in avatar
     const item = makeStuff(() => new Good());
     ContainmentApi.move(holder, room);
@@ -97,7 +97,7 @@ describe('residency sweep', () => {
 
   it('without presence, an idle item in a room is culled', () => {
     setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const item = makeStuff(() => new Good());
     ContainmentApi.move(item, room);
     const itemId = item.stuffId;

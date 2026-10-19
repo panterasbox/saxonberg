@@ -1,0 +1,10 @@
+# A bag of washing soda (cleanliness D25) — soften the water with it and the
+# soap lathers.
+class: /platform/thing/Good
+data:
+  shortDescription: bag of washing soda
+  keywords: [soda, bag, "washing soda", "bag of washing soda"]
+  register: indefinite
+  longDescription: A small cloth bag of white crystals that crunch under the thumb.
+  _materialPath: /stuff/idea/material/bulk/washing-soda
+  mass: 0.5

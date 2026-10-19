@@ -237,7 +237,7 @@ the whole graph rather than a local walk.
 
 ### `PlatPlan` is persisted elastic topology
 
-`OuterWarren.fieldMeta` carries `plan`, `capacityKey`, `defaultCapacity`,
+`CirculationWarren.fieldMeta` carries `plan`, `capacityKey`, `defaultCapacity`,
 `parentExtent` as **`persistent: true, authorable: true`**, and `plan:`
 parses into an immutable `PlatPlan`:
 
@@ -273,7 +273,7 @@ Three consequences:
 
 ### The occupancy warren stays unmapped, and that is the honest answer
 
-`LoungeWarren extends SingletonMixin(InnerWarren)` with **no plan**. Its
+`LoungeWarren extends SingletonMixin(RoomWarren)` with **no plan**. Its
 satellites exist because people are standing in them: *"Every room instance
 is a runtime clone, gone on restart, recreated on the next first-landing.
 Only the templates + the Warren definition persist."*
@@ -331,7 +331,7 @@ and proposed an override. **Both were wrong: the override is already
 implemented.** Traced 2026-10-01:
 
 ```
-scheme 1   OuterWarren:499    asIdentityPath: `${parentExtent}/${nodeId}`
+scheme 1   CirculationWarren:499    asIdentityPath: `${parentExtent}/${nodeId}`
                               ← circulation nodes, keyed on the PLAN's node id
 scheme 2   PlatWarren         "(scope = the row, key = <lotExtent>/<leaf>)"
                               ← house rooms. "The old identityFor mint and
@@ -340,7 +340,7 @@ scheme 3   Warren.spawnMember  nothing
                               ← lounge satellites; ephemeral by design
 ```
 
-`CartesianLocation`'s own doc is honest about it: *"Use this for a row that
+`Location`'s own doc is honest about it: *"Use this for a row that
 describes a **kind** of place minted many times… Each instance carries its
 own coordinates and **its own minted identity (`asIdentityPath`, D17)** —
 which is also what makes them distinguishable in the registry."*

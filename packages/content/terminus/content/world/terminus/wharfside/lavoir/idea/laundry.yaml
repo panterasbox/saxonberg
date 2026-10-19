@@ -1,0 +1,32 @@
+# The laundry — ⭐ a Business in the lavoir (cleanliness D27): two houses in
+# one room, the shipped shape — the trough is the town's, the slate is
+# hers. Paid by the piece: a laundress is paid for what she washes.
+class: /platform/idea/Business
+data:
+  name: "the Wharfside laundry"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  call: rota
+  positions:
+    - key: laundress
+      noun: laundress
+      label: at the trough
+      wageRate: 2
+      headcount: 2
+      fulfills: [textiles]
+      requires:
+        discipline: textiles
+        band: novice
+      compensation: { basis: per-settlement, rate: 1 }
+  rosterSlots:
+    - positionKey: laundress
+      assignee: /world/terminus/wharfside/lavoir/agent/laundress
+      station: /world/terminus/wharfside/lavoir/location/lavoir
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 17] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/lavoir/location/lavoir
+    - /world/terminus/wharfside/lavoir/location/laundry
+    - /world/terminus/wharfside/lavoir/thing/tariff

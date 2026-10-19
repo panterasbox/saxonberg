@@ -13,7 +13,7 @@
 # a real thing you can read if you know what it means. ⚠ It still tells
 # you nothing about where to bore — the seep is where the cap LEAKS,
 # which is the edge of it.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: burnt ground

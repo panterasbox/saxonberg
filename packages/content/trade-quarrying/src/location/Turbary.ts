@@ -24,7 +24,7 @@
  *
  * ## Why it is a class and the stone pit is not
  *
- * `PersistableMixin(ImprovableMixin(OpenWorkingMixin(SingletonCartesianLocation)))`
+ * `PersistableMixin(ImprovableMixin(OpenWorkingMixin(Locale)))`
  * — the pit's composition plus **improvement**, and that is the entire
  * difference. Composing `ImprovableMixin` claims *this ground can be cleared,
  * drained and limed, and it reverts*, which is honest on a moss: clearing is
@@ -36,7 +36,7 @@
  * ⭐ No guard anywhere re-narrows the host set, which is the test.
  */
 
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import {
   ImprovableMixin,
@@ -63,7 +63,7 @@ const SUBSIDE_M_PER_GAME_DAY = 0.004;
 const SECONDS_PER_GAME_DAY = 86_400;
 
 const TurbaryBase = PersistableMixin(
-  ImprovableMixin(OpenWorkingMixin(SingletonCartesianLocation)),
+  ImprovableMixin(OpenWorkingMixin(Locale)),
 );
 
 export default class Turbary extends TurbaryBase {

@@ -23,7 +23,7 @@ import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
-import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
+import Locale from '../../platform/location/Locale';
 import Thing from '../../platform/thing/Thing';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import type { Register } from '../../lib/description/NounPhrase';
@@ -36,8 +36,8 @@ import type { Register } from '../../lib/description/NounPhrase';
 async function makeRoom(
   name: string,
   register: Register = 'definite',
-): Promise<SingletonCartesianLocation> {
-  const room = await StuffApi.create(() => new SingletonCartesianLocation());
+): Promise<Locale> {
+  const room = await StuffApi.create(() => new Locale());
   room.setShortDescription(name);
   room.setRegister(register);
   return room;

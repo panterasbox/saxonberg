@@ -1,7 +1,7 @@
 # The Hesper's hold — below the deck. ⚠ Not persistable: anything left in
 # it does not survive a restart (the vessel build's question, not this
 # one's).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: hold
   keywords: [hold, below]

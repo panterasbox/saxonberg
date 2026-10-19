@@ -9,7 +9,7 @@
 # bar is reached `aboard` from here. The sea is still not content in the
 # room sense — nothing is ever inside the Greywater; its places are its
 # nodes, and this room is the content behind one of them.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: mouth of the estuary
   keywords: [mouth, estuary]

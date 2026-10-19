@@ -32,7 +32,7 @@ import { Quantity } from '../../../../../lib/quantity';
 import '../../../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../../../platform/idea/SpellCatalogue';
 import { Template } from '../../../../../lib/stuff/Template';
-import SingletonCartesianLocation from '../../../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../../../platform/location/Locale';
 import { Character } from '../../../../../lib/character/Character';
 import {
   makeStuff,
@@ -94,8 +94,8 @@ async function installCatalogue(): Promise<void> {
   spy.mockRestore();
 }
 
-function room(elevation: number | null): SingletonCartesianLocation {
-  const r = makeStuff(() => new SingletonCartesianLocation());
+function room(elevation: number | null): Locale {
+  const r = makeStuff(() => new Locale());
   stampTemplatePathForTest(r, `/platform/location/test/anch-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r;

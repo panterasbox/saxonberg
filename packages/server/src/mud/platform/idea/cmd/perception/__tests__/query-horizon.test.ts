@@ -18,7 +18,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -31,7 +31,7 @@ import {
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
 
-class Room extends VisibleMixin(NamedMixin(ContainerMixin(Location))) {
+class Room extends VisibleMixin(NamedMixin(ContainerMixin(Place))) {
   static _mixinName = 'HorizonRoom';
 }
 class Viewer extends SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))) {

@@ -83,7 +83,7 @@ sub-room geometry is opt-in for content that needs it.
 
 Saxonberg is a *text* game. Everything has to be expressed in
 prose. Rich spatial modeling is doable internally — we already
-have CartesianLocation and SphericalLocation in `lib/spatial/` —
+have Location and SphericalLocation in `lib/spatial/` —
 but what the player sees is sentences, and sentences carry only
 so much spatial information before they become unreadable.
 
@@ -628,7 +628,7 @@ earns it.**
 - Geometric content (a chemistry lab, a precision puzzle)
   authors coordinates.
 
-The CartesianLocation and SphericalLocation classes already in
+The Location and SphericalLocation classes already in
 `lib/spatial/` support (4); they sit unused for most content
 and become available when needed. **Spatial fidelity is per-
 location authoring**, not a framework-wide commitment.

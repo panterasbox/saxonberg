@@ -27,6 +27,9 @@ data:
   # `silica`: the glass batch's former (glass build W4) — sand is what
   # vitrifies, the ash and lime are the fluxes that drop its melting point.
   tags: ["granular", "solid", "earth", "silica"]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/sand
   composition: []
   chemistry: null
   biologicalSource: null

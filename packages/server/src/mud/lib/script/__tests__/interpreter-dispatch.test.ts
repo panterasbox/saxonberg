@@ -13,7 +13,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import { Idea } from "../../stuff/Idea";
 import { CommandGiverMixin } from "../../command/CommandGiver";
 import { EnvironmentMixin } from "../../shell/Environment";
@@ -48,7 +48,7 @@ class TestGiver extends TestGiverBase {
 
 describe("Interpreter — real-bus dispatch via the prompt", () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -75,7 +75,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
       findById: vi.fn(),
     } as unknown as PersistenceManager);
 
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
     // Opt into the scripting parser (the default flip is P6).

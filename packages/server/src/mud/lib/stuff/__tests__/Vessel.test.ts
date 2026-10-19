@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { Vessel } from '../Vessel';
 import Thing from '../Thing';
-import Location from '../Location';
+import Place from '../Place';
 import ExitableVessel from '../../boundary/ExitableVessel';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -43,8 +43,8 @@ describe('Vessel', () => {
       expect(vessel.getContainer()).toBeNull();
     });
 
-    it('can be placed inside a Location', () => {
-      const loc = makeStuff(() => new Location());
+    it('can be placed inside a Place', () => {
+      const loc = makeStuff(() => new Place());
 
       ContainmentApi.move(vessel, loc);
 
@@ -64,7 +64,7 @@ describe('Vessel', () => {
 
   describe('Both sides together', () => {
     it('holds items while itself sitting in a location', () => {
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const coin = makeStuff(() => new Thing());
 
       ContainmentApi.move(vessel, loc);

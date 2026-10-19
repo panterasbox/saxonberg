@@ -11,7 +11,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import {
   CommandGiverMixin,
   type CommandGiver,
@@ -124,7 +124,7 @@ describe('CommandGiverMixin schema-delivery', () => {
 
   it('emits adds when a peer thing arrives in the giver\'s environment', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
     giver.onConnectionAttached({} as Interactive);
     giver.received = [];
@@ -140,7 +140,7 @@ describe('CommandGiverMixin schema-delivery', () => {
 
   it('emits removes when a peer thing leaves the giver\'s environment', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);

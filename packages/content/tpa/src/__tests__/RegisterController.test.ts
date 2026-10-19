@@ -26,7 +26,7 @@ import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable"
 import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGiver";
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
-import Location from "@saxonberg/server/mud/lib/stuff/Location";
+import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { BankingApi } from "@saxonberg/server/mud/api/banking";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
@@ -105,7 +105,7 @@ describe("RegisterController — AC14, registering costs nothing", () => {
   it.each(["arrival", "both"] as const)(
     "a %s node registers for FREE — no money leaves by any door",
     async (directionality) => {
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const giver = makeTraveller();
       const node = makeStuff(() => {
         const n = new Node();
@@ -139,7 +139,7 @@ describe("RegisterController — AC14, registering costs nothing", () => {
   );
 
   it("a departures-only node has nothing to register, and still charges nothing", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeTraveller();
     const node = makeStuff(() => {
       const n = new Node();

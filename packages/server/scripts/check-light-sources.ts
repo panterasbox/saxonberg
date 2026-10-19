@@ -180,6 +180,11 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * also authors as a detail you can look at.
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
+  '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
+  '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
+  '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs
+  '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell
+  '/world/terminus/wharfside/lavoir/location/laundry', // a low doorway onto the open lavoir, its only light
   '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
   '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
@@ -196,6 +201,7 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/stuff/location/room/bedroom', // a window with a catch that sticks
   '/stuff/location/room/living', // a window taking up most of one wall
   '/stuff/location/room/bathroom', // a small frosted window, high up
+  '/world/terminus/hinkley-hills/lots/bathroom', // the same frosted window, and a copper
   '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
   '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
   '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight
@@ -529,7 +535,23 @@ function lint(): void {
       details && typeof details === "object"
         ? Object.keys(details as Record<string, unknown>)
         : [];
-    if (!ids.includes(opening)) {
+    // ⭐ …or a PANE in the room (cleanliness B18): a prop whose row answers
+    // to the opening's word and composes the light conduit a Window is — a
+    // thing you can look at, wash and shutter, which is a stronger claim
+    // than a detail.
+    const placed = Array.isArray(r.row.data.props) ? (r.row.data.props as unknown[]) : [];
+    const paneIsTheOpening = placed.some((p) => {
+      const path = typeof p === "string" ? p : ((p as { template?: string })?.template ?? null);
+      const target = path ? rows.get(path) : undefined;
+      const kw = target?.data.keywords;
+      return (
+        !!target &&
+        target.class === "/platform/thing/Window" &&
+        Array.isArray(kw) &&
+        kw.includes(opening)
+      );
+    });
+    if (!ids.includes(opening) && !paneIsTheOpening) {
       failures.push(
         `${r.row.file}: \`ambientOpening: ${opening}\` names no detail on ` +
           `this row (has: ${ids.join(", ") || "none"}). The opening must be ` +

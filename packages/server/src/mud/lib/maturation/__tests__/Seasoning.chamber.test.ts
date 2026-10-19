@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Timber from '../../../platform/thing/Timber';
 import Chamber from '../../../platform/thing/Chamber';
 import Material from '../../material/Material';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import { Template } from '../../stuff/Template';
 import Placement from '../../../platform/idea/Placement';
@@ -25,7 +25,7 @@ import { BiomeApi, type AirSegment } from '../../../api/biome';
 import { Evaporation } from '../../material/Evaporation';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 
-class Yard extends Location {}
+class Yard extends Place {}
 
 const DAY = 86_400;
 const BASE = 10_000_000;

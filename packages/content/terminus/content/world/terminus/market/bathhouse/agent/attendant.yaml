@@ -1,0 +1,20 @@
+# Nell, the bath attendant (cleanliness D28) — kind, quick, and no
+# laundress: she boils whatever you give her to wash.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Nell
+  keywords: [nell, attendant, bath-attendant]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Nell the attendant
+  register: proper
+  longDescription: |
+    A small quick woman in a damp apron with a stack of towels on her hip, who knows every regular by the boots they leave on the bench.
+  archetype: attendant
+  competence:
+    - { discipline: personal-services, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

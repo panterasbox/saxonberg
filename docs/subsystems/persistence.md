@@ -1437,7 +1437,7 @@ template row and are separated only by their persistence key, so
 `{ container }` alone would collapse every tenant's yard into one; and
 the room is not standing when the placement restores, because the whole
 holding is dormant. So `capturePlacement` records the pair, and
-`restorePlacement` re-enters through `OuterWarren.admitFor(key)` —
+`restorePlacement` re-enters through `CirculationWarren.admitFor(key)` —
 which finds the institution whose parent extent prefixes the key, stands
 the holding back up, and returns the exact room.
 
@@ -1555,3 +1555,9 @@ The troupe's durable home is the authored `cast:` data, exactly like the
 born-with seed; only its *liveness* is transient. Proven in
 `lib/persistence/__tests__/CastReseed.test.ts` and the designation gate in
 `lib/stuff/__tests__/Staged.test.ts`.
+
+## Kept places (2026-10-17)
+
+`PersistentLocale` keeps a place's floor, fire and fixtures
+across a restart through `AdornableMixin`'s fixture slice;
+`captureHostOf` walks fixture → host. See [cleanliness.md](./cleanliness.md).

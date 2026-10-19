@@ -2,7 +2,7 @@
  * Shore — ⭐ **a place beside a named water** (maritime revision 3): a
  * mere's shore, a heath by its tarn, a ship's deck, a beach.
  *
- * The one thing this class adds over {@link SingletonCartesianLocation}
+ * The one thing this class adds over {@link Locale}
  * is {@link ShoreMixin}: a row declares which of its own features is
  * which water (`waters: { mere: blackmere:mere }`), and looking at that
  * feature reads the water. Being beside water is a fact about SOME
@@ -11,7 +11,7 @@
  * waterfront is {@link Quay}.
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 
-export default class Shore extends ShoreMixin(SingletonCartesianLocation) {}
+export default class Shore extends ShoreMixin(Locale) {}

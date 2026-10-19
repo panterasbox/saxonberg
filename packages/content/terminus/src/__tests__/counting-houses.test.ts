@@ -104,7 +104,9 @@ describe("Goodkin seeds — the authored branch is well-formed", () => {
       positions: { key: string }[];
       operatingLocations: string[];
     };
+    // ⭐ …and the man on the parlor arch (cleanliness D29).
     expect(biz.positions.map((p) => p.key).sort()).toEqual([
+      "doorman",
       "officer",
       "teller",
     ]);

@@ -1,0 +1,17 @@
+# Lye — water dripped through wood ash in a hopper (cleanliness D24). The
+# potash in the ash goes into the water and comes out of the bottom as a
+# caustic liquor strong enough to float an egg. About half a day. ⭐ Run
+# only by a hopper with ash in it (`Hopper.matchProfile`): nothing else
+# carries `lye-leach`.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: lye-leach
+  inputCategory: lye-leach
+  mechanism: chemical
+  stallBelowK: 275
+  happyK: 285
+  damageAboveK: 400
+  ratePerDay: 2
+  productMaterial: /trade/chandlery/idea/material/lye
+  wildStrain: ''
+  spontaneousLagDays: 0

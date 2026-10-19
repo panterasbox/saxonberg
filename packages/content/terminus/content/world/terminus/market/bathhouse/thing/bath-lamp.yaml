@@ -1,0 +1,11 @@
+# The bathhouse's lamps — wall sconces kept LIT (cleanliness, found by the
+# browser walk: the baths read pitch black at 20:30). A bathhouse keeps
+# evening hours and its glass-roofed daylight is gone by then; the copper's
+# glowing fire door is prose, not a light. Hung as an adornment so it lights
+# the room fixture-side — the infirmary ward's lamp is the precedent.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: steam-fogged sconce
+  keywords: [sconce, lamp, light]
+  on: true

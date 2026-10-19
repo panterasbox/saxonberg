@@ -17,7 +17,7 @@ import { packSources } from '../pack-roots';
 const BIOME = '/platform/idea/Biome';
 const SKY = '/platform/idea/SkyExposedBiome';
 const FOLDER = '/platform/idea/FolderZone';
-const ROOM = '/platform/location/CartesianLocation';
+const ROOM = '/platform/location/Location';
 
 const facts: BiomeClassFacts = {
   isBiome: (c) => c === BIOME || c === SKY,

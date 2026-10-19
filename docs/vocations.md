@@ -402,7 +402,7 @@ So decompose it — the parts land in five different places:
 | Part | Lands as |
 |---|---|
 | cooking | ✅ **already a vocation** — cook (shipped) |
-| cleaning, laundry, tidying **for wages** | ⚠ **texture** — the bottom rung; and it *freezes in absence*, so nobody needs you to do it while they are away |
+| cleaning, laundry, tidying **for wages** | ◐ **laundry ships as a paid seat** (the lavoir's laundress, the bathhouse attendant — cleanliness build, `domestic-services`); cleaning a room *for wages* is still texture: it *freezes in absence*, so nobody needs you to do it while they are away |
 | reading the condition **band** | 🤖 **automated** — the record already knows it, and it is visible by design |
 | ⭐ the **causal** read — which producer binds, and what act clears it | ✅ **a real gate** (below) |
 | ⭐⭐ the **continuous** processes of a holding its owner is not in | ✅ **the strongest survivor** (below) |

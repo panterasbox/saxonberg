@@ -19,7 +19,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { StreamerTarget } from '../../../../../lib/streaming/StreamerTarget';
 import {
@@ -44,7 +44,7 @@ function stubCommand(): CommandDefinition {
 function makeContext(giver: Avatar): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: 'tune',
     executionId: 'test',
     commandId: 'test',

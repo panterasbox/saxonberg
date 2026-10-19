@@ -13,7 +13,7 @@
 > 2026-09-19; ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
 > **Left:** `GroundCharacter.forZone` / `resolve` (a finder returning its
 > own class that is not a `Document`; a null-model static) · the unruled
-> async lookups `OuterWarren.conditionOf` / `admitFor`,
+> async lookups `CirculationWarren.conditionOf` / `admitFor`,
 > `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 →
 > `AppApi.settingInt` (a behaviour change to `SandboxLogic`) · the
 > `linearToDb` false-friend rename · `scoreEvents` ×3 (a design change) · `Competence.derive` / `bandOf` / `seedRunFor` + `TraitPosition.derive` / `deriveAxis` / `pronounced` — pure-but-domain, ruled *move, but not yet* (absorbed from the lib-statics dossier § 4): destination is the face the normalization pass gives advancement / trait; until then they stay
@@ -85,7 +85,7 @@ out to be the second question; **who calls it** is the first.)*
 
 | item | n | the question |
 |---|---|---|
-| async persistence lookups — `NameBank.byKey`/`resolve`, `CreditRouting.resolve`, `OuterWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf`, `LaneCatalogue.exitBetween`, `Census.takeCensus` | 7 | are these record finders by another name (→ approved, stay) or Api surface? **They are not `Document` subclasses**, which is the only reason they are not already settled |
+| async persistence lookups — `NameBank.byKey`/`resolve`, `CreditRouting.resolve`, `CirculationWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf`, `LaneCatalogue.exitBetween`, `Census.takeCensus` | 7 | are these record finders by another name (→ approved, stay) or Api surface? **They are not `Document` subclasses**, which is the only reason they are not already settled |
 | singleton accessors — `DormWarren.resolve()`, `WikiRegistry.instance()`, `Realtor.offers()` | 3 | `X.resolve(): Promise<X>` is a singleton getter. `StuffApi.singletonSync` is the sanctioned path — do these route through it? |
 | controller statics — `EmbodyController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
 | settings/idiom reads — `Currency.compact`, `ConcealmentLevels.hiddenDefault` (`AppApi`), `Account.newId` (`SecurityApi.uuid`), `Light.bandFor` (`QuantityApi`) | 4 | ⭐ `Account.newId` is the same shape as `Lock.mintKeyway`, which **stayed**. Is reading a dial "the world"? |

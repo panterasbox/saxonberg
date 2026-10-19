@@ -19,7 +19,7 @@
  * CLAUDE.md § "Instanceable Lives in `platform/<branch>/`" calls
  * *splitting the base*. Eight of its nine instances share the base's name
  * and alias the import (`Vessel`, `Exit`, `Biome`, `Material`, `NPC`,
- * `CartesianLocation`, `SingletonCartesianLocation`, `Corpse`); this one
+ * `Location`, `Locale`, `Corpse`); this one
  * is the ninth.
  *
  * ⚠ **It was called `Prop` and that name was a small lie.** It suggested

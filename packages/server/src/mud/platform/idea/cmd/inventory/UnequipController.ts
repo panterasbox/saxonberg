@@ -46,7 +46,12 @@ const TOPIC = 'sense.survey';
 interface UnequipModel extends CommandModel {
   /** Absent for bare `unequip` — the strip-everything form. */
   target?: MqlOneResult;
+  /** `remove gloves carefully` — the manner word (cleanliness D5). */
+  manner?: string;
 }
+
+/** A careful removal takes this many times as long (cleanliness D5). */
+const CAREFUL_DOFF_FACTOR = 3;
 
 export default class UnequipController extends CommandController<UnequipModel> {
   async execute(model: UnequipModel, context: CommandContext): Promise<void> {
@@ -56,8 +61,28 @@ export default class UnequipController extends CommandController<UnequipModel> {
         `UnequipController: requiresSlotted should have caught ${giver.stuffId}`,
       );
     }
+    // ⚠ Found by the drive: `remove apron` with no apron on bound the word
+    // as the MANNER, left no target, and fell through to the strip below —
+    // the player stood naked in the hall. A manner word that is not a
+    // manner, or a manner with nothing to take off, is a refusal.
+    // ⚠ And the drive again: `remove shirt` with the shirt on a drying rack
+    // bound a TARGET that matched nothing — a result with no `stuff` — and
+    // stripped shoes, trousers and all. Only an unnamed target strips.
+    const manner = (model.manner ?? '').trim();
+    const named = (model.target?.raw ?? '').trim();
+    const unmatched = named !== '' && !model.target?.stuff;
+    if (unmatched || (manner !== '' && (!model.target?.stuff || !/^(careful|quick|hast)/i.test(manner)))) {
+      const what = unmatched ? named : manner;
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You aren't wearing ${what}.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'not-worn', detail: what });
+      return;
+    }
     if (model.target?.stuff) {
-      await this.takeOff(model.target.stuff, context, giver, false);
+      const careful = /^careful/i.test(manner);
+      await this.takeOff(model.target.stuff, context, giver, false, careful);
       return;
     }
     await this.strip(context, giver);
@@ -126,6 +151,7 @@ export default class UnequipController extends CommandController<UnequipModel> {
     context: CommandContext,
     giver: Stuff & Slotted & Attired,
     quiet: boolean,
+    careful = false,
   ): Promise<boolean> {
     const wieldy = this.heldSpeak(target, context);
     /*
@@ -186,11 +212,16 @@ export default class UnequipController extends CommandController<UnequipModel> {
      * and is the mirror of `equip`, where the claim lands at completion
      * because a garment half-on is not on.
      */
+    // ⭐ The hands that pulled it off take what was on its outside —
+    // unless it was peeled off carefully (cleanliness D5).
+    if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
+
     if (MixinApi.isEngaged(giver)) {
       SchedulerApi.start(
         new DressingStep({
           actor: giver,
-          durationMs: donDurationMs(target),
+          durationMs:
+            donDurationMs(target) * (careful ? CAREFUL_DOFF_FACTOR : 1),
           onComplete: () => {},
         }),
       );
@@ -201,7 +232,9 @@ export default class UnequipController extends CommandController<UnequipModel> {
         .toSelf(
           wieldy
             ? Mml.compose`You put up ${Mml.thing(target)}.`
-            : Mml.compose`You take off ${Mml.thing(target)}.`,
+            : careful
+              ? Mml.compose`You peel off ${Mml.thing(target)} carefully, inside out, touching only the inside.`
+              : Mml.compose`You take off ${Mml.thing(target)}.`,
         )
         .toPeers(
           wieldy

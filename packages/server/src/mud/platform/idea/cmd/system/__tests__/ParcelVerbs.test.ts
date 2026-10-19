@@ -25,7 +25,7 @@ import {
 } from "../../../../../api/command";
 import type { MqlOneResult } from "../../../../../api/mql";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import FolderZone from "../../../FolderZone";
 import { ParcelRecord, type ParcelOwner } from "../../../../../lib/parcel/ParcelRecord";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -61,7 +61,7 @@ function stubCommand(verb: string): CommandDefinition {
 function makeContext(giver: Avatar, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: verb,
     executionId: "test",
     commandId: "test",

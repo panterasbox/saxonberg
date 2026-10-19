@@ -31,7 +31,7 @@ import {
   Collections,
 } from '../../../../backend/PersistenceManager';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Biome from '../../biome/Biome';
 import { Zone } from '../Zone';
 import { Stuff } from '../../stuff/Stuff';
@@ -93,8 +93,8 @@ function installRootBiome(): void {
 }
 
 /** A room stamped into `zone`, with the root biome on it. */
-function roomIn(zone: Zone): CartesianLocation {
-  const room = makeStuff(() => new CartesianLocation());
+function roomIn(zone: Zone): Location {
+  const room = makeStuff(() => new Location());
   Stuff._stampZone(room, zone as never);
   room.setBiome(BiomeApi.getRootBiome());
   return room;
@@ -183,13 +183,13 @@ describe('elevation — a zone field that inherits', () => {
     ]);
     const zone = await StuffApi.singleton<SpatialZone>('/hinkley');
     zone.setElevation(420);
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     Stuff._stampZone(room, zone as never);
     expect(await ZoneApi.elevationFor(room)).toBe(420);
   });
 
   it('a place in no zone at all reads null', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     expect(await ZoneApi.elevationFor(room)).toBeNull();
   });
 });

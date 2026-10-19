@@ -38,7 +38,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 import type Interactive from '../../platform/idea/Interactive';
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -73,7 +73,7 @@ function lookCommand(): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   command: CommandDefinition,
   text: string
 ): CommandContext {
@@ -164,7 +164,7 @@ describe('Dispatcher pronoun-memory integration', () => {
 
   it('non-Gendered single-stuff result lands in the it slot', async () => {
     const cmd = lookCommand();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look rose');
     await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
@@ -172,7 +172,7 @@ describe('Dispatcher pronoun-memory integration', () => {
 
   it('he/him stuff lands in the him slot', async () => {
     const cmd = lookCommand();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bob');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look bob');
     await CommandApi.resolveAndValidate({ target: 'bob' }, ctx);
     expect(giver.getPronounMemory().read('him')!.stuff).toEqual([bob]);
     expect(giver.getPronounMemory().read('it')).toBeNull();
@@ -180,14 +180,14 @@ describe('Dispatcher pronoun-memory integration', () => {
 
   it('she/her stuff lands in the her slot', async () => {
     const cmd = lookCommand();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look alice');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look alice');
     await CommandApi.resolveAndValidate({ target: 'alice' }, ctx);
     expect(giver.getPronounMemory().read('her')!.stuff).toEqual([alice]);
   });
 
   it('they/them stuff lands in the them slot', async () => {
     const cmd = lookCommand();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look kim');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look kim');
     await CommandApi.resolveAndValidate({ target: 'kim' }, ctx);
     expect(giver.getPronounMemory().read('them')!.stuff).toEqual([kim]);
   });
@@ -212,7 +212,7 @@ describe('Dispatcher pronoun-memory integration', () => {
     );
     await CommandApi.resolveAndValidate(
       { targets: 'flower' },
-      makeContext(giver, location as unknown as Location, cmd, 'examine flower')
+      makeContext(giver, location as unknown as Place, cmd, 'examine flower')
     );
     expect(
       giver
@@ -229,13 +229,13 @@ describe('Dispatcher pronoun-memory integration', () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
-      makeContext(giver, location as unknown as Location, cmd, 'look rose')
+      makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     // Now `look it` — the dispatcher resolves "it" through the
     // stash and binds rose as the target.
     const ctx2 = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look it'
     );
@@ -251,7 +251,7 @@ describe('Dispatcher pronoun-memory integration', () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
-      makeContext(giver, location as unknown as Location, cmd, 'look rose')
+      makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     // From initial focus 'here', `look rose` targets a peer (no
     // detail-path continuation), so focus REPLACES with `rose`
@@ -266,7 +266,7 @@ describe('Dispatcher pronoun-memory integration', () => {
     // leaves focus alone.
     await CommandApi.resolveAndValidate(
       { target: 'it' },
-      makeContext(giver, location as unknown as Location, cmd, 'look it')
+      makeContext(giver, location as unknown as Place, cmd, 'look it')
     );
     expect(giver.getFocus()).toBe('rose');
   });
@@ -282,11 +282,11 @@ describe('Dispatcher pronoun-memory integration', () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
-      makeContext(giver, location as unknown as Location, cmd, 'look rose')
+      makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     await CommandApi.resolveAndValidate(
       { target: 'bob' },
-      makeContext(otherGiver, location as unknown as Location, cmd, 'look bob')
+      makeContext(otherGiver, location as unknown as Place, cmd, 'look bob')
     );
 
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
@@ -299,14 +299,14 @@ describe('Dispatcher pronoun-memory integration', () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
-      makeContext(giver, location as unknown as Location, cmd, 'look rose')
+      makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
     // Now `look it` — fragment for `it` should still be "rose", not
     // "it" (preserving the original anchor).
     await CommandApi.resolveAndValidate(
       { target: 'it' },
-      makeContext(giver, location as unknown as Location, cmd, 'look it')
+      makeContext(giver, location as unknown as Place, cmd, 'look it')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
   });
@@ -333,7 +333,7 @@ describe('Dispatcher pronoun-memory integration', () => {
     giver.setFocus('rose');
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       drillFirstLook,
       'look apple'
     );

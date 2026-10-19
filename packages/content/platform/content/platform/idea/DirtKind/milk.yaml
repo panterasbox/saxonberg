@@ -1,0 +1,12 @@
+# Milk — what the milker's apron takes at the pail; water and time
+# take it off again.
+class: /platform/idea/DirtKind
+data:
+  key: milk
+  adjective: milk-splashed
+  form: film
+  answersTo: [surfactant, alkali-mild]
+  waterLifts: 0.6
+  # What it smells of — ppm per unit of load (B57): a soiled thing's
+  # odour is derived from what is on it.
+  odour: { identity: sour milk, ppmPerLoad: 30 }

@@ -1,0 +1,14 @@
+# A jar of soft soap — the chandler's stock (cleanliness D24).
+class: /platform/thing/Receptacle
+data:
+  shortDescription: jar of soft soap
+  keywords: [soft soap, jar, flask, "jar of soft soap"]
+  register: indefinite
+  longDescription: A squat earthenware jar of brown soft soap, with a wooden spoon stuck in it.
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/chandlery/idea/material/soft-soap
+  interiorAmount: 0.8
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 0.6

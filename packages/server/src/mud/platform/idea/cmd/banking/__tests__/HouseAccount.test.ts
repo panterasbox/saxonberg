@@ -48,7 +48,7 @@ import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -167,7 +167,7 @@ function makeStore(price: number): { stock: Stock; torch: Torch } {
 
 function ctx(
   giver: TestGiver,
-  loc: Location,
+  loc: Place,
   source: Stuff | null,
   text: string,
   subcommand?: string,
@@ -206,7 +206,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
   return g;
 }
 
-async function walletUse(giver: TestGiver, loc: Location, corpo: string): Promise<CommandContext> {
+async function walletUse(giver: TestGiver, loc: Place, corpo: string): Promise<CommandContext> {
   const c = ctx(giver, loc, null, `wallet use ${corpo}`);
   const controller = makeStuff(() => new WalletController());
   await asOwner(giver, () =>
@@ -215,7 +215,7 @@ async function walletUse(giver: TestGiver, loc: Location, corpo: string): Promis
   return c;
 }
 
-async function buy(giver: TestGiver, loc: Location, stock: Stock, thing: string): Promise<CommandContext> {
+async function buy(giver: TestGiver, loc: Place, stock: Stock, thing: string): Promise<CommandContext> {
   const c = ctx(giver, loc, stock, `buy ${thing}`);
   const controller = makeStuff(() => new BuyController());
   await asOwner(giver, () =>
@@ -233,7 +233,7 @@ function rejections(c: CommandContext): string[] {
 }
 
 describe("the house account in the wallet (D6)", () => {
-  let loc: Location;
+  let loc: Place;
   beforeEach(async () => {
     /*
      * ⚠⚠ The givers here are `TestGiver` stand-ins parked at
@@ -269,7 +269,7 @@ describe("the house account in the wallet (D6)", () => {
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    loc = makeStuff(() => new Location());
+    loc = makeStuff(() => new Place());
   });
   afterEach(() => {
     teardownBankingHarness();

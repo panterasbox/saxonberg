@@ -3,7 +3,7 @@
 # you; the wind blows straight through; it is as warm or cold as the
 # square, because a roof and no walls holds no air of its own. Complete on
 # its own — it needs nothing else to answer every sky question.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 1, y: 0, z: 0 }
   shortDescription: under the awning

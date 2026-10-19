@@ -235,7 +235,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
 
 describe('the venue itself', () => {
   it('the SURFACE spine is authored singletons; the UNDERGROUND spine is authored WORKINGS', () => {
-    // ⭐ `SingletonCartesianLocation` — *one row IS one place*, and the
+    // ⭐ `Locale` — *one row IS one place*, and the
     // mixin SUBTRACTS, so a second `clone()` is refused. The four TYPE
     // rows take the permissive class instead, because they are minted
     // many times.
@@ -243,7 +243,7 @@ describe('the venue itself', () => {
       'pithead-yard', 'claims-office', 'assay-shed', 'provisioning', 'the-dry', 'adit',
     ]) {
       expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
-        '/platform/location/SingletonCartesianLocation',
+        '/platform/location/Locale',
       );
     }
     // ⚠⚠ …and the galleries are NOT plain singletons, which is the fix

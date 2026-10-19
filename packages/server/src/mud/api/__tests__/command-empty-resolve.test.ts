@@ -32,7 +32,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 import type Interactive from '../../platform/idea/Interactive';
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -79,7 +79,7 @@ function pluralObjectsCmd(): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   command: CommandDefinition,
   text: string
 ): CommandContext {
@@ -122,7 +122,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
 
   it('lands an MqlOneResult wrapper with stuff=null on no match', async () => {
     const cmd = singleObjectCmd();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look bathtub');
     const r = await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
@@ -137,7 +137,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
     const cmd = pluralObjectsCmd();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'drop bathtub'
     );
@@ -153,7 +153,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
 
   it('captures the player-typed text on the MqlOneResult.raw field', async () => {
     const cmd = singleObjectCmd();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look rose');
     const r = await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
@@ -163,7 +163,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
 
   it('captures raw text on the wrapper even when MQL resolves to nothing', async () => {
     const cmd = singleObjectCmd();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look bathtub');
     const r = await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
@@ -174,7 +174,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
   it('does not update player focus on empty resolution', async () => {
     const cmd = singleObjectCmd(); // updates_focus: extend
     giver.setFocus('rose');
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look bathtub');
     await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     // Focus unchanged — would have been clobbered if the dispatcher
     // had re-anchored to "bathtub".
@@ -183,14 +183,14 @@ describe('Dispatcher empty-resolution passthrough', () => {
 
   it('does not update pronoun memory on empty resolution', async () => {
     const cmd = singleObjectCmd();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look bathtub');
     await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     expect(giver.getPronounMemory().read('it')).toBeNull();
   });
 
   it('still updates focus/stash on a non-empty resolution', async () => {
     const cmd = singleObjectCmd();
-    const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
+    const ctx = makeContext(giver, location as unknown as Place, cmd, 'look rose');
     await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     // updates_focus: extend with a target Stuff that's not a detail
     // continuation of the current focus REPLACES rather than

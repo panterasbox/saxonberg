@@ -1,7 +1,7 @@
 # The dairy yard — the valley's dairy farm, down on the flats south of the
 # gate (dairy D14). ⭐ A real dairy in the community it belongs to: cows
 # want water meadow and the flats have it.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: dairy yard
   keywords: [yard, dairy, farm, cows]
@@ -24,6 +24,10 @@ data:
       destination: /world/terminus/hearts-delight/dairy/location/byre
       media: [ground]
       edgeMinutes: 1
+  # ⭐ The midden the byre is mucked out onto (cleanliness D20) — and the
+  # compost the field is fed from.
+  props:
+    - /stuff/thing/fixture/midden
   details:
     meadow:
       keywords: [meadow, water-meadow, grass, river, willows]

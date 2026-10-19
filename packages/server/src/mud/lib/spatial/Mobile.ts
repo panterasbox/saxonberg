@@ -1050,6 +1050,15 @@ async function crossExit(
   }
   callTraverseHook(mover, 'onTraversed', [exit]);
 
+  // ⭐ (cleanliness D15) Feet carry the ground. Wet earth where you were
+  // muddies them; the floor you arrive on takes a share of what is on
+  // them. A shop floor soils with what its customers bring in, by this
+  // alone — the floor is a fixture and is asked directly, never searched.
+  const fromFloor = (MixinApi.isAdornable(source) ? source.getFloor() : null) as Stuff | null;
+  if (fromFloor && MixinApi.isFloor(fromFloor)) fromFloor.soilFeetOf(mover);
+  const toFloor = (MixinApi.isAdornable(destination) ? destination.getFloor() : null) as Stuff | null;
+  if (toFloor && MixinApi.isFloor(toFloor)) toFloor.receiveTraffic(mover);
+
   // Hazard trigger — the generalization of the lounge glass alley's
   // `onEntered` (that class is retired; this is what replaced it). A trap is
   // self-resolving: each armed traversal-hazard the mover just met

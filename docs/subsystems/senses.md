@@ -536,6 +536,13 @@ existed in three identical private copies, two of them annotating the
 v1 limitation as *"shared verbatim"* — a comment admitting the
 duplication while making another copy of it.
 
+⭐ **Dirt smells** (cleanliness B57): the smell walk's contents leg also
+reads a `Soilable`'s DERIVED odour (`soilOdour()` — each dirt row's `odour`
+× its load; a body adds what it wears) beside any `SmellSource`'s stored
+emission, so a sweat-sour body or a dung-caked boot scents the room it is
+in, and `smell <thing>` reads *it smells of stale sweat* (the soil
+augmenter gives the marks to sight and the odour to the nose).
+
 The walks share structural shape (ambient + contents-side emitters +
 fixture-side emitters + cross-boundary via Conduit + cross-exit at base
 transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a

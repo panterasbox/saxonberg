@@ -1,0 +1,22 @@
+# ammonia-poisoning — a fume in a shut room (cleanliness D22): stinging the eyes and the chest. Respiration folds
+# the gas's `toxicity` into this burden per breath; it clears in fresh air,
+# faster than carbon monoxide (it does not bind the blood).
+class: /platform/idea/Condition
+data:
+  name: ammonia-poisoning
+  signature:
+    - { kind: vital, sign: spo2, perHour: -3 }
+  progression:
+    law: burden
+  resolution:
+    by: fresh-air
+  observableSigns: [coughing, watery-eyed]
+  contagion: null
+  toxinBehavior:
+    toxinType: ammonia
+    absorptionRate: 1
+    clearanceRate: 0.2
+    potency: 1
+    bands:
+      - { threshold: 10, severity: 1 }
+      - { threshold: 40, severity: 2 }

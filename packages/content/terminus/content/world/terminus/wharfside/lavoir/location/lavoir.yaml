@@ -1,0 +1,41 @@
+# The lavoir itself — the arches, the trough, the boards (cleanliness D27).
+# Free to anyone: the trough and the boards afford `wash` and `scrub`. The
+# laundress's slate prices what she does for you.
+class: /platform/location/PersistentLocale
+data:
+  # ⭐ Open-sided: the weather and the daylight come in under the arches.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: lavoir
+  keywords: [lavoir, washing-place, arches, shed]
+  register: definite
+  longDescription: |
+    A long slate roof on stone arches, open on three sides to the wharf, over a stone trough of running water the length of the shed. Washboards lean on its rim; a woman is up to her elbows at one end and another is wringing a sheet with her neighbour at the other, and the stones underfoot are wet and grey with soap.
+
+    A slate hangs on the end pillar with what the laundress charges, and a low door at the back leads into her laundry.
+  exits:
+    out:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 1
+    west:
+      destination: /world/terminus/wharfside/lavoir/location/laundry
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/wharfside/lavoir/location/drying-ground
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /stuff/thing/fixture/trough
+    - { template: /stuff/thing/fixture/washboard, count: 2 }
+    - /world/terminus/wharfside/lavoir/thing/tariff
+    - /trade/chandlery/thing/soap-bar
+    - /stuff/thing/fixture/midden
+  cast:
+    - /world/terminus/wharfside/lavoir/agent/laundress
+    - /world/terminus/wharfside/lavoir/agent/washerwoman
+  details:
+    arches:
+      keywords: [arches, arch, pillars, roof]
+      description: Round stone arches, green at the foot where the water splashes, holding up a roof of grey slate. The wind comes straight through.

@@ -1,0 +1,9 @@
+# The Bathhouse — ⭐ a hospitality venue off the market (cleanliness D28):
+# a vestibule, the baths with their copper and tubs, and a gym sharing the
+# door. Hot baths for a fee; the attendant washes your clothes too, at her
+# own (untrained) hand. A second bathhouse is these rows again (AC 23).
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Bathhouse
+  cellSize: 4.0
+  horizon: []

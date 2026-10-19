@@ -32,7 +32,7 @@
  * the shipped posture verbs move you on and off it.
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { TemplatePaths } from '../../lib/paths';
@@ -58,7 +58,7 @@ const WATER_DENSITY = 1000;
 
 type FloorStuff = Stuff & Floor;
 
-export default class Pool extends SwimmableMixin(ShoreMixin(SingletonCartesianLocation)) {
+export default class Pool extends SwimmableMixin(ShoreMixin(Locale)) {
   static fieldMeta: FieldMeta = {
     bed: { persistent: true, authorable: true },
   };

@@ -18,14 +18,14 @@ import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../../lib/location/CartesianLocation';
+import Location from '../../../lib/location/Location';
 import Good from '../../../lib/stuff/Good';
 import Material from '../../../lib/material/Material';
 import Firewood from '../../../platform/thing/Firewood';
 import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Floor from '../../../platform/thing/Floor';
-import SingletonCartesianLocation from '../../../lib/location/SingletonCartesianLocation';
+import Locale from '../../../lib/location/Locale';
 import { Reserve } from '../../../lib/reserve';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
@@ -47,7 +47,7 @@ class TestOccupant extends HasInteractiveMixin(Good) {
 }
 
 /** How much soot is in a scope's medium — the fire's incomplete output. */
-function sootIn(scope: CartesianLocation): number {
+function sootIn(scope: Location): number {
   const hit = BiomeApi.resolveAtmosphereContentsFor(
     scope as unknown as Stuff & Container,
   ).find((c) => c.type === '/stuff/idea/material/gas/smoke');
@@ -82,7 +82,7 @@ function iron(): Material {
   }, `/stuff/idea/material/_test/hearth-iron-${seq}`) as unknown as Material;
 }
 
-function firewood(where: CartesianLocation, massKg: number, wet = false): Firewood {
+function firewood(where: Location, massKg: number, wet = false): Firewood {
   const w = makeStuff(() => {
     const f = new Firewood();
     f.setMass(Quantity.of(massKg, 'kg'));
@@ -97,7 +97,7 @@ function firewood(where: CartesianLocation, massKg: number, wet = false): Firewo
   // move first, then stamp temperature so the container restamp doesn't win.
   return placeThermal(w, where, wet);
 }
-function placeThermal(w: Firewood, where: CartesianLocation, wet: boolean): Firewood {
+function placeThermal(w: Firewood, where: Location, wet: boolean): Firewood {
   ContainmentApi.move(w, where);
   w.setStampedTemperatureK(295);
   w.setLastAmbientK(295);
@@ -105,7 +105,7 @@ function placeThermal(w: Firewood, where: CartesianLocation, wet: boolean): Fire
   return w;
 }
 
-async function occupy(room: CartesianLocation): Promise<void> {
+async function occupy(room: Location): Promise<void> {
   const n = seq++;
   const occ = makeStuff(() => new TestOccupant());
   await ContainmentApi.move(occ, room);
@@ -124,7 +124,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
 
   it('the woodshed: a lit log spreads to a dry neighbour, a wet one resists', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const shed = makeStuff(() => new CartesianLocation());
+    const shed = makeStuff(() => new Location());
     zone.addLocation(shed, 0, 0, 0);
     const lit = firewood(shed, 1);
     const dry = firewood(shed, 1);
@@ -139,7 +139,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
 
   it('the smithy: a bellows-fed forge melts an iron ingot to a molten pool', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const smithy = makeStuff(() => new CartesianLocation());
+    const smithy = makeStuff(() => new Location());
     zone.addLocation(smithy, 1, 0, 0);
     const floor = makeStuff(() => new Floor());
     floor.surfaceBulk = true;
@@ -182,12 +182,12 @@ describe('The Hearthworks — the fire demonstrators', () => {
   it('the sealed cellar: an enclosed fire fills it, goes sooty, and smothers', async () => {
     const zone = makeStuff(() => new CartesianZone());
     // ⭐⭐ No `ReservedMixin`, no authored air budget. `SealedCellar` is a
-    // plain `SingletonCartesianLocation` now: the room starves a fire
+    // plain `Locale` now: the room starves a fire
     // because it is a 27 m³ stone box with no openings, which is what the
     // `%` Reserve was standing in for. Four Terminus cellars authored the
     // same budget and silently dropped it (no `ReservedMixin` in their
     // chain) — they behave identically to this one now.
-    class SealedCellar extends SingletonCartesianLocation {}
+    class SealedCellar extends Locale {}
     const cellar = makeStuff(() => new SealedCellar());
     zone.addLocation(cellar, 2, 0, 0);
     expect(cellar.airChangesPerHour()).toBeCloseTo(0.1); // the leak, and nothing else

@@ -15,7 +15,7 @@ import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { StackableMixin } from '../../../../../lib/stuff/Stackable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
@@ -80,7 +80,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -115,7 +115,7 @@ describe('GetController — bareword path (no quantity)', () => {
   });
 
   it('reaches one level into an open container standing in the room (the rack\'s coupe)', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const rack = makeStuff(() => new Rack());
@@ -142,8 +142,8 @@ describe('GetController — bareword path (no quantity)', () => {
   // still moves through `ContainmentApi.move`, which is what a remodel,
   // a `place` and an author rearranging scenery all use.
   it('refuses to pick up something fixed in place, and still lets the world move it', async () => {
-    const loc = makeStuff(() => new Location());
-    const other = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
+    const other = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const bench = makeStuff(() => {
@@ -170,7 +170,7 @@ describe('GetController — bareword path (no quantity)', () => {
   });
 
   it('moves a single item from the location into inventory', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const sword = makeStuff(() => {
@@ -189,7 +189,7 @@ describe('GetController — bareword path (no quantity)', () => {
   });
 
   it('reports failure when nothing matches the raw query', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -225,7 +225,7 @@ describe('GetController — quantity-bearing path', () => {
   // counter and reporting `fixed-in-place` is not what was asked. A
   // live drive hit exactly this the moment the fixtures became fixed.
   it('skips a fixed-in-place match and takes the takeable one', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const counter = makeStuff(() => {
@@ -264,7 +264,7 @@ describe('GetController — quantity-bearing path', () => {
   // bound and made every later `consign` slower than the last; the beat
   // asks `get 1 <kw>` so its authored `batch` means something.
   it('takes exactly ONE of several discrete things sharing a keyword', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const swords = Array.from({ length: 5 }, () => {
@@ -295,7 +295,7 @@ describe('GetController — quantity-bearing path', () => {
 
   it('picks up 5 of a 30-coin pile (lenient count)', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const pile = makeStuffAtPath(() => {
@@ -322,7 +322,7 @@ describe('GetController — quantity-bearing path', () => {
 
   it('clamps a lenient overflow', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const pile = makeStuffAtPath(() => {
@@ -348,7 +348,7 @@ describe('GetController — quantity-bearing path', () => {
 
   it('rejects strict overcount', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const pile = makeStuffAtPath(() => {
@@ -382,7 +382,7 @@ describe('GetController — quantity-bearing path', () => {
   });
 
   it('reports empty-result when no candidates are in the room', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -408,7 +408,7 @@ describe('GetController — quantity-bearing path', () => {
 
   it('all-kind picks up everything available', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const pile = makeStuffAtPath(() => {

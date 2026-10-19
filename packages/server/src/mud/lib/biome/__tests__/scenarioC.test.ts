@@ -2,8 +2,8 @@
  * Scenario C — cafeteria atrium showcase. The cafeteria biome at
  * `/stuff/idea/biome/indoor/social/cafeteria` is a plain `Biome`; a sibling
  * leaf `cafeteria-atrium` extends `SkyExposedBiome` and explicitly
- * `_extendsBiomePath`-refs the cafeteria. A Location pointing at
- * the atrium reads sky-exposed while a sibling Location pointing at
+ * `_extendsBiomePath`-refs the cafeteria. A Place pointing at
+ * the atrium reads sky-exposed while a sibling Place pointing at
  * the cafeteria does not.
  *
  * Demonstrates the post-refactor model's clean separation:
@@ -14,7 +14,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Biome from '../Biome';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import { BiomeApi } from '../../../api/biome';
@@ -26,7 +26,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function installRootBiome(): Biome {
   return makeStuffAtPath(() => {

@@ -1,6 +1,6 @@
 # The loft — over the works floor, its boards warm when the stove below
 # is lit (rubber build: the open ladder couples the two by the air).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 0, y: 0, z: 1 }
   shortDescription: "works loft"

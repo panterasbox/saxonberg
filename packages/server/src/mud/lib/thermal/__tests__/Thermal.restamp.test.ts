@@ -11,7 +11,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
 import { Quantity } from "../../quantity";
@@ -27,7 +27,7 @@ import { installV1QuantityMarshallers } from "../../persistence/__tests__/quanti
 class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = "ThermalThingRestamp";
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 const SCALE = 12;
 let real = 0;

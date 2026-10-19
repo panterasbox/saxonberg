@@ -237,6 +237,17 @@ export default class EquipController extends CommandController<EquipModel> {
      * told which of the two just happened rather than a word that covers
      * both and says neither.
      */
+    // ⭐ Already on: say so. (Found by the drive once `wear` actually put
+    // things on — a second `wear apron` threw inside the dressing step's
+    // completion, "candidate already in slot 'torso'".)
+    if ([...giver.wornStack()].includes(one as never)) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You already have ${Mml.thing(one)} on.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'already-worn', detail: one.getPresentation() });
+      return;
+    }
     const held = EquipController.claimAs(one, mode) === 'wield';
     await this.engage(one, context, giver, () => {
       EquipController.put(one, giver, mode);

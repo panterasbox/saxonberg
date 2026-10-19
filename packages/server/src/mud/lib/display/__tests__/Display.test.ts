@@ -26,7 +26,7 @@ import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import Tablet from '../../../platform/thing/Tablet';
 // ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's
 // and trade-hospitality's house tablet), and it is what these cases used
@@ -68,7 +68,7 @@ interface Viewer {
 }
 
 let seq = 0;
-async function makeViewer(name: string, room: SingletonCartesianLocation): Promise<Viewer> {
+async function makeViewer(name: string, room: Locale): Promise<Viewer> {
   seq += 1;
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName(name);
@@ -159,8 +159,8 @@ function resolveScreenFor(actor: Stuff) {
 }
 
 describe('DisplayMixin — a display drives itself', () => {
-  let booth: SingletonCartesianLocation;
-  let cellar: SingletonCartesianLocation;
+  let booth: Locale;
+  let cellar: Locale;
 
   beforeEach(async () => {
     StuffApi.clearAll();
@@ -171,9 +171,9 @@ describe('DisplayMixin — a display drives itself', () => {
     const reg = await StuffApi.create(() => new EventRegistry());
     stampTemplatePathForTest(reg, '/platform/idea/EventRegistry');
     EventApi._setRegistryForTesting(reg);
-    booth = await StuffApi.create(() => new SingletonCartesianLocation());
+    booth = await StuffApi.create(() => new Locale());
     booth.setShortDescription('the booth');
-    cellar = await StuffApi.create(() => new SingletonCartesianLocation());
+    cellar = await StuffApi.create(() => new Locale());
     cellar.setShortDescription('the cellar');
   });
 

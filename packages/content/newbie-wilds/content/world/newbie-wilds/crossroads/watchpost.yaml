@@ -13,7 +13,7 @@
 # pull into no standup / fast-travel cascade; the GlassAlley failure,
 # avoided by construction). It asserts no exit count, composes no
 # FastTravelMixin, and appears in no TPA manifest. Content-only.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: watchpost in the treeline
   keywords: [watchpost, treeline]

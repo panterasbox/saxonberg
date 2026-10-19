@@ -76,11 +76,50 @@ import { EngagedMixin } from '../activity/Engaged';
 import { MobileMixin } from '../spatial/Mobile';
 import { PerceptionMixin } from '../perception/Perception';
 import { CombatantMixin } from '../combat/Combatant';
+import { LIGHT_BANDS, type LightBand, type VisibilityDetail } from '../perception/Light';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
 
 const ActorBase = CombatantMixin(
   PerceptionMixin(MobileMixin(EngagedMixin(SensorMixin(Creature)))),
 );
 
-export abstract class Actor extends ActorBase {}
+export abstract class Actor extends ActorBase {
+  /**
+   * ⭐ Lye in the eyes (cleanliness D23) — the perception seam's first
+   * implementer: a caustic still working on the HEAD drops what this body
+   * can make out by two rungs, and it cannot read detail at all, until it
+   * is rinsed (`rinse` clears the agent; the burn then mends like any
+   * other). No eye part, no vision capacity — the head site is the eyes'.
+   */
+  public override perceivedBandModifier(raw: LightBand, loc: Stuff & Container): LightBand {
+    const band = super.perceivedBandModifier(raw, loc);
+    if (!this.hasCausticAtHead()) return band;
+    const at = LIGHT_BANDS.indexOf(band);
+    return LIGHT_BANDS[Math.max(0, at - 2)] ?? band;
+  }
+
+  public override canSeeOverride(
+    target: Stuff,
+    detail: VisibilityDetail,
+    raw: boolean,
+  ): boolean {
+    const base = super.canSeeOverride(target, detail, raw);
+    if (base && (detail === 'detail' || detail === 'fine') && this.hasCausticAtHead()) return false;
+    return base;
+  }
+
+  /** Is a caustic still working on the head — the eyes? */
+  public hasCausticAtHead(): boolean {
+    return this.getConditions().some(
+      (c) =>
+        c.kind === 'trauma' &&
+        c.type === 'caustic' &&
+        c.agentActive === true &&
+        typeof c.site === 'string' &&
+        (c.site === 'head' || c.site.startsWith('body.head')),
+    );
+  }
+}
 
 export default Actor;

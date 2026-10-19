@@ -315,6 +315,12 @@ The shipped frame holds — session, poise, gambits, tempo, terms, morale. No
 new combat system; the physics feeds it, and one thing becomes central:
 **the fight is about air.**
 
+**Coordinates are the author's choice**: `Location` for a
+gridded reef; `SphericalLocation` — exists, positions by focus and
+radius, *no implicit adjacency, every exit explicit* — for a column, a
+dome, a city under one. A column's exits are `up` and `down`, derived
+from depth. `lint:locations` is satisfied either way.
+
 - **Drag in the weapon profile.** A weapon is already a derived bundle from
   form × material × mass × length; water adds the **area presented along
   the motion**. Swung edges and clubs collapse (energy ∝ v²); **thrusts

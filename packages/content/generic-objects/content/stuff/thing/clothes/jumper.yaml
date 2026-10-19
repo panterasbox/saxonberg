@@ -1,0 +1,18 @@
+# A wool jumper — knitted, and the garment the wash teaches with
+# (cleanliness D10, D26): boil it and it felts and shrinks, and never
+# stretches back. A competent laundress washes it lukewarm; a bath
+# attendant who boils everything ruins it, and the house pays.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: wool jumper
+  keywords: [jumper, "wool jumper", sweater, wool, knit]
+  register: indefinite
+  longDescription: >
+    A thick knitted jumper of undyed grey wool, a little long in the arms,
+    with a rolled neck and elbows going thin.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: knit
+  gradeBand: fair
+  mass: 0.6

@@ -52,7 +52,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ManualBuildMixin } from '../../../../../lib/craft/ManualBuild';
 import { ToolMixin } from '../../../../../lib/craft/Tooled';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
 import { CommandApi } from '../../../../../api/command';
@@ -175,11 +175,11 @@ function fire(fuelKg: number): Forge {
 }
 
 let actor: TestActor;
-let room: Location;
+let room: Place;
 let now = 0;
 
 async function stand(lit: boolean): Promise<void> {
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   await ContainmentApi.move(actor as never, room as never);
   await ContainmentApi.move(fire(lit ? 40 : 0) as never, room as never);

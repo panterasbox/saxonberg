@@ -480,7 +480,7 @@ these files changed in dairy.
   split: `StagedMixin` bundles `props:` WITH `cast:`, so composing it
   on a person claims that person contains a cast.** `StagedMixin`
   otherwise composes on `Pump`, `Well`, `GardenBed`, `PlantPot`,
-  `FurnishableRoom`, `CartesianLocation`, the cold stores. The `props:`
+  `PersistentLocation`, `Location`, the cold stores. The `props:`
   / `cast:` keys carry a `Behaved` gate both ways (a `Behaved` prop
   throws at hydrate). `lint:boot-entries` admits a content boot row
   whose reason cites `unobserved-economy-slate` (terminus
@@ -543,8 +543,8 @@ these files changed in dairy.
   `residence.weather.daysToWorn` (`content/residence/content/settings/
   residence.yaml`, 45), stamp-forward, no scheduler; `conditionBand()`
   `:570`; `conditionCause()` `:579` (two fixed sentences);
-  `restoreShell()` `:589`. `OuterWarren.conditionOf`
-  (`lib/location/OuterWarren.ts:340–361`) reads both BY SHAPE for the
+  `restoreShell()` `:589`. `CirculationWarren.conditionOf`
+  (`lib/location/CirculationWarren.ts:340–361`) reads both BY SHAPE for the
   ascent gate.
 - **`survey`** — `platform/idea/cmd/perception/SurveyController.ts`:
   `HoldingShape` `:54` (duck-typed — the kernel never imports the pack),
@@ -564,7 +564,7 @@ these files changed in dairy.
 - **The `maintains` brain** — `src/behavior/maintains.ts`: `config
   {extent, batch 3}`; `holdingsUnder(extent)` via
   `NavigationApi.attachedTo/attachedWithin(extent, 'institution')` →
-  `OuterWarren.holdings()` filtered by `holdingKey()` prefix; per
+  `CirculationWarren.holdings()` filtered by `holdingKey()` prefix; per
   holding below sound: `teleport(entryRoom)`, `forceCommand('maintain')`,
   back. Rows: `eternal-university/…/duncan-hall/agent/katie.yaml` (props
   the kit + the master ring; `extent: …/duncan-hall/dorms`),
@@ -1078,7 +1078,7 @@ layer whose part has an exterior face (rubber D4: the roof iff
 `exposure().top === 'roof'`, the walls iff any `walls[].exterior`) loses
 `elapsed × 0.5 / (weatheringDays(material) × gradeFactor × 86 400)` and
 `shellCondition` is **assigned the minimum** — the holding is as sound
-as its worst layer, so `conditionBand()`, `OuterWarren.conditionOf` and
+as its worst layer, so `conditionBand()`, `CirculationWarren.conditionOf` and
 the ascent gate are unchanged readers; with `fabric` empty the shipped
 slope runs (*a building with no layers weathers as today*). ⛔ Not the
 assembly vocabulary: a `PartLine` is Durable state on a GOOD and a
@@ -1292,7 +1292,7 @@ Checked at plan time against `CLAUDE.md` and the current tree:
 
 - **`props:` / `cast:`** — every new row uses them; the tinker's kit is
   `props:` on a Cast row (D14). No `populates:`, no `container:`.
-- **Locations, not rooms** — new places are `SingletonCartesianLocation`
+- **Locations, not rooms** — new places are `Locale`
   under a `CartesianZone` (the tailor's shape); the tinker's offstage is
   a `/platform/location/Offstage` row.
 - **The five axes / `<root>/<branch>/`** — smithing parts at
@@ -2291,7 +2291,7 @@ generated file.
 | `Chair.ts`, `Garment.ts`, `Tool.ts`, `Vat.ts`, `Receptacle.ts`, `Timber.ts` | repair W1 recomposes them first (merge order); cleanliness re-grounds its W0 on repair's W1 and adds `Soilable`/`Labelled` to the new chains; `Timber.ts`: keep repair's chain, add cleanliness's `seasonPhrase` override, pin it with the byte-identity test. |
 | wear from non-use sources | cleanliness's bleach rot / burns call `Durable.wear()` (mendable; the condition word shows them); repair's `MendRecord` is written only by a mend, never by wash damage. |
 | the doorman | cleanliness may add an optional `wornBelow` clause reading Durable condition (its call). |
-| repair's new venues (cobbler shop, tinker yard) | plain `SingletonCartesianLocation`; if cleanliness wants their floors' soil to survive a restart it re-classes them (its call). |
+| repair's new venues (cobbler shop, tinker yard) | plain `Locale`; if cleanliness wants their floors' soil to survive a restart it re-classes them (its call). |
 | docs | `retail.md` / `employment.md`: cleanliness **extends** repair's *a priced service is performed by a person* section rather than writing a parallel one. |
 
 ### Changes this section made to repair's own decisions
@@ -2385,7 +2385,7 @@ Read first, in this order:
 For W7, additionally:
 
 16. `packages/content/residence/src/idea/HoldingWarren.ts:60–130, 540–600`, `src/idea/cmd/crafting/MaintainController.ts`, `src/behavior/maintains.ts`, `src/thing/HouseholdersKit.ts`, `content/system/residence/cmd/crafting/maintain.yaml`, `content/system/residence/thing/householders-kit.yaml`, `src/__tests__/HoldingWarren.test.ts:360–640`
-17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/location/OuterWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
+17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/location/CirculationWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
 18. `docs/subsystems/construction.md` (rubber's D1–D4, D14 and host placement — `roof`/`exposure()` on `AtmosphericMixin` — and its deferred seams; the plan retired at rubber's sweep), then the MERGED files (re-ground, § W7)
 19. `eternal-university/…/duncan-hall/{idea/college, idea/dorm-programme, location/dormroom, agent/katie}.yaml`, `terminus/…/mayfield-row/{idea/agency, agent/walter, seznick-house/unit-programme, seznick-house/location/*}.yaml`, `hinkley-hills/…/idea/house-programme.yaml`, `general-store/{business, counter}.yaml`, `trade-apiculture/…/thick-hive.yaml` (the Good that authors `enclosure:`)
 

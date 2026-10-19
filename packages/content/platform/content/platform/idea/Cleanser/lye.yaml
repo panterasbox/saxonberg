@@ -1,0 +1,5 @@
+# Lye — a strong alkali leached from wood ash. It cuts grease and fat
+# and protein — and it rots wool and burns skin (its material's
+# `corrosiveTo` says what, so this row need not).
+class: /platform/idea/Cleanser
+data: {key: lye, agent: lye, action: alkali-strong, consumesPerWash: 0.05, skinHarshness: 0.9}

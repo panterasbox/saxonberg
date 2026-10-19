@@ -1,5 +1,5 @@
 # The burial ground. One room off Mayfield Row (NORTHWEST back).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: necropolis
   keywords: [necropolis]

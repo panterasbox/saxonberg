@@ -18,7 +18,7 @@ three:
 
 The ladder as shipped:
 
-| Rung | Institution (outer) | Holding (inner) | Tenure | Upkeep term |
+| Rung | Institution (a `CirculationWarren`) | Holding (a `RoomWarren`) | Tenure | Upkeep term |
 |---|---|---|---|---|
 | Granted | `DormWarren` (Duncan Hall) | one room | parcel grant (lease) | `institution-all` |
 | Let | `BuildingWarren` (Seznick House) | a multi-room unit | parcel grant (lease) | `landlord-shell` |
@@ -29,29 +29,35 @@ this doc is what it converged ONTO.
 
 ---
 
-## Every warren is inner or outer, and the compiler asks
+## Every warren is a RoomWarren or a CirculationWarren, and the compiler asks
 
 Before the four roles, the vocabulary they sit in — because it applies
 to **any** warren, not just residential ones:
 
-| | members are | occupancy means | base |
-|---|---|---|---|
-| **`InnerWarren`** | ROOMS | who is standing in a member | `lib/location/InnerWarren` |
-| **`OuterWarren`** | WARRENS | who is anywhere inside a member's rooms | `lib/location/OuterWarren` |
+| | members are | occupancy means | it owns | base |
+|---|---|---|---|---|
+| **`RoomWarren`** | ROOMS you stand in (a house's hall and kitchen, the lounge's satellites) | who is standing in a member | the rooms | `lib/location/RoomWarren` |
+| **`CirculationWarren`** | HOLDINGS (each a `RoomWarren`) | who is anywhere inside a member's rooms | the CIRCULATION that reaches them — lane reaches, corridors, stairs, minted from a `PlatPlan` as holdings fill and reaped outside-in | `lib/location/CirculationWarren` |
+
+⭐ Named for what each IS, not for being the other's opposite (the user,
+2026-10-18, in the cleanliness review: *"InnerWarren and OuterWarren …
+imply a kind of universality the warrens don't earn"*). *Circulation* is
+the architects' word for corridors, stairs and streets taken together, and
+the class's own vocabulary already (`circulationForNode`).
 
 `Warren` declares `occupantsOf` **abstract**, so a new warren cannot be
 written without choosing. That is not ceremony: the leaf answer used to
-be the concrete default on `Warren` and the outer tier had to remember
+be the concrete default on `Warren` and the circulation tier had to remember
 to override it — and a warren that forgot would read every holding as
 empty and **reap an occupied house**. The choice is now made once, by
 which base you extend, and the compiler will not let you skip it.
 
-An inner warren also refuses a warren member outright (`addMember`
+A `RoomWarren` also refuses a warren member outright (`addMember`
 throws), so the tiers cannot quietly nest the wrong way round.
 
 The naming rule falls out: **every warren ends in `Warren`.**
-`DormWarren`, `BuildingWarren`, `PlatWarren` are outer; `HoldingWarren`
-and `LoungeWarren` are inner.
+`DormWarren`, `BuildingWarren`, `PlatWarren` are `CirculationWarren`s;
+`HoldingWarren` and `LoungeWarren` are `RoomWarren`s.
 
 ## The four roles
 
@@ -60,9 +66,9 @@ into the right one is almost always the whole design decision.
 
 | Role | Class | Question it answers |
 |---|---|---|
-| The institution | `lib/location/OuterWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
+| The institution | `lib/location/CirculationWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
 | The layout | `lib/location/PlatPlan` (kernel, value object) | *Where does the next holding GO?* |
-| The holding | `residence/idea/HoldingWarren` (pack, an `InnerWarren`) | *What rooms is this one made of, and what shape is it in?* |
+| The holding | `residence/idea/HoldingWarren` (pack, an `RoomWarren`) | *What rooms is this one made of, and what shape is it in?* |
 | The way in | `residence/idea/FrontDoorExit` (pack) | *May you cross this threshold?* |
 
 Two of the four are kernel and two are a capability pack's, and the line
@@ -76,15 +82,15 @@ which attaches each institution to its own `parentExtent` (the scan
 sweep, 2026-10-14; a pack catalogue that scanned the template table was
 retired). ⚠ It used to reach through MQL **by class NAME in a
 string**: a kernel→pack dependency the type system cannot see, priced at
-the size of the world. `OuterWarren.admitFor` and `title list` were the
+the size of the world. `CirculationWarren.admitFor` and `title list` were the
 two sites; the `maintains` brain was a third and moved into the pack
 outright.
 
 ---
 
-## Tier 1 — `OuterWarren`, the institution
+## Tier 1 — `CirculationWarren`, the institution
 
-`abstract class OuterWarren extends Warren`. Everything three
+`abstract class CirculationWarren extends Warren`. Everything three
 institutions had in common, lifted out of `DormWarren`:
 
 - **the holdings map** (`_holdingsByKey`) — a holding per parcel extent,
@@ -222,7 +228,7 @@ Locked in, free out: you need the key to get IN, never to get out.
 An edge off a road into a holding needs a *direction*, and the obvious
 one is wrong. Naming it for the holding (`lot-7`, `unit-3` — what is
 stencilled on the stake or screwed to the door) is not a direction at
-all: `CartesianLocation.addExit` refuses a non-cardinal direction between
+all: `Location.addExit` refuses a non-cardinal direction between
 two rooms of the same zone, so every such edge had to be pushed across a
 zone boundary before it was legal, and it never had an inverse.
 
@@ -428,7 +434,7 @@ Two residences-era additions:
 - **the keyed place.** `placeIdOf(host)` is `scope#key` for a keyed
   host, so many rooms sharing one row keep distinct placements — and a
   captured placement records `{ container, containerKey }` so a
-  restoring host re-enters through `OuterWarren.admitFor(key)`. That
+  restoring host re-enters through `CirculationWarren.admitFor(key)`. That
   is the "log out in your own yard, log back into the same yard"
   acceptance.
 - **the mount marker.** A good hung on a wall (`hang`) records

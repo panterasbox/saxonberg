@@ -19,7 +19,7 @@ Slates: `docs/slates/builds/zoning-slate.md`,
   never an area.
 - A **per-location extent** field did ship, but for a different consumer
   than zoning-slate anticipated: `Location.getLinearExtent()` /
-  `CartesianLocation`'s persistent `extent` override, feeding the combat
+  `Location`'s persistent `extent` override, feeding the combat
   band ladder, `getSizeScale()` and `getVolume()` (`ranged.md § The arena
   caps the ladder`). Zoning's own consumer (outdoor parcel acreage) was
   resolved differently — `parcel.area` is **declared**, explicitly
@@ -180,8 +180,8 @@ needed inserting.
 - `- **Minted identity may already unblock per-room extent.**` open
   question (7 lines) — SUPERSEDED: the `asTemplatePath` minting channel
   it depended on is retired, and the shipped answer went the other way
-  — a lot's room is a plain `FurnishableRoom`, deliberately **not**
-  `CartesianLocation`, precisely because a per-lot-minted room cannot
+  — a lot's room is a plain `PersistentLocation`, deliberately **not**
+  `Location`, precisely because a per-lot-minted room cannot
   safely be a grid member (`smallholding.md § A lot's room is NOT on the
   street's grid`). Kept as a struck-through, answered bullet rather than
   silently deleted, matching this slate's own convention elsewhere.

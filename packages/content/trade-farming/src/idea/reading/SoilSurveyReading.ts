@@ -29,6 +29,8 @@ import { SoilReading, READING_TOPIC, SOIL_SCIENCE } from '../../lib/SoilReading'
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { SurveyFrame, SurveyPoint } from '@saxonberg/types';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { SOIL_NITROGEN_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CardApi } from '@saxonberg/server/mud/api/card';
@@ -110,6 +112,23 @@ export default class SoilSurveyReading extends SoilReading {
       });
     }
 
+    // ⭐ (cleanliness D20) What the field has been FED — the nitrogen a
+    // mucked-out byre's manure puts back. Read by competence (detail,
+    // never access): an untrained hand can tell hungry from fed; a
+    // trained one reads how far.
+    const nitrogen = nitrogenOf(place);
+    if (nitrogen !== null) {
+      const rank = CompetenceBand.rank(band as CompetenceBandName);
+      solved.push({
+        parameter: 'nitrogen',
+        value:
+          rank >= 2
+            ? nitrogen < 25 ? 'poor — it wants feeding' : nitrogen < 60 ? 'middling' : 'rich, well fed'
+            : nitrogen < 40 ? 'hungry' : 'fed',
+        from: 1,
+      });
+    }
+
     if (points.length === 0) {
       note =
         'You have sampled nothing here. Open the ground with a spade and roll a pinch of it between your fingers; that is where a survey starts.';
@@ -179,4 +198,10 @@ function renderText(frame: SurveyFrame): string {
   }
   if (frame.note) lines.push(`  ${frame.note}`);
   return lines.join('\n');
+}
+
+/** The nitrogen (%) the ground's own soil holds, or `null` (no soil here). */
+function nitrogenOf(place: Stuff): number | null {
+  if (!MixinApi.isReserved(place) || !place.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) return null;
+  return place.getReserve(SOIL_NITROGEN_RESERVE_KEY)?.current.rawValue() ?? null;
 }

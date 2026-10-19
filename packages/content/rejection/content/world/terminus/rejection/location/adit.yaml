@@ -12,7 +12,7 @@
 # breathes, and "breathes" means *has a way out of the workings' own
 # zone*. The adit IS that way out. Every heading's air is measured from
 # here.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: adit mouth
   keywords: [adit, mouth, entrance, tunnel]

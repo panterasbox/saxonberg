@@ -1,0 +1,11 @@
+# The arch into the Circle parlor — ⭐ a KEPT door (cleanliness D29): the
+# hall's doorman, on shift, judges who goes through by the dress code on
+# his own row, and says why when he turns somebody away. Off shift, an
+# archway. The bank's officer can still `dispatch` you in; a borrowed
+# coat, a bath and a change of clothes all work.
+class: /platform/idea/KeptDoor
+extends: /platform/idea/exits/kept-door
+data:
+  keptBy: /world/terminus/counting-houses/business
+  messageOut: "{{ mover }} passes through the archway, past the man on the door."
+  messageIn: "{{ mover }} steps in through the archway."

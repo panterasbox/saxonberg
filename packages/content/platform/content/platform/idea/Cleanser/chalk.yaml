@@ -1,0 +1,3 @@
+# Chalk — an absorbent: grease and spills.
+class: /platform/idea/Cleanser
+data: {key: chalk, agent: chalk, action: absorbent, consumesPerWash: 0.05}

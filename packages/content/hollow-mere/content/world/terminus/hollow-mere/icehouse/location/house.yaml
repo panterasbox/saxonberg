@@ -2,7 +2,7 @@
 # D22). The walls are 0.4 m of sawdust between boards; the stack pulls
 # heat out of the room's air as it melts, which is why this room reads
 # colder than the empty shed of the same build down the road.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: icehouse
   keywords: [house, icehouse, inside]

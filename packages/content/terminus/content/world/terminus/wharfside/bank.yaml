@@ -131,6 +131,13 @@ data:
       destination: /world/terminus/wharfside/knackers/location/yard
       media: [ground]
       edgeMinutes: 7
+    # ⭐ The lavoir (cleanliness D27) — the town's washing place, on soft
+    # fell water. A NAMED exit: every compass point off the bank is a road
+    # or a trade floor already, and the lavoir is somewhere you go IN to.
+    lavoir:
+      destination: /world/terminus/wharfside/lavoir/location/lavoir
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

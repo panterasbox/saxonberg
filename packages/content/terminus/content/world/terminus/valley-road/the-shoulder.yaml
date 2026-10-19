@@ -5,7 +5,7 @@
 # here). Rather than split the zone, the SHOULDER is where the road
 # meets Hinkley's own zone through its exit — walk one more step west
 # and you are at 130 m, on ground that has to fetch its own water.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: shoulder
   keywords: [shoulder]

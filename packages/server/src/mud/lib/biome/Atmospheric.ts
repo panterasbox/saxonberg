@@ -51,6 +51,7 @@ import { ZoneApi } from '../../api/zone';
 
 import type Material from '../material/Material';
 import type { Concentrate } from '../bulk/Concentration';
+import type { Evaporation } from '../material/Evaporation';
 import type {
   Enclosed,
   EnclosureSpec,
@@ -152,6 +153,13 @@ export interface Atmospheric {
   reconcileAtmosphereContents(): void;
   /** Air changes per hour — `Infinity` under the sky. */
   airChangesPerHour(): number;
+  /**
+   * ⭐ The air in here as an {@link Evaporation} — humidity, wind,
+   * temperature, by the biome chain (`BiomeApi.airFor`). The place's to
+   * say: a wet thing dries by it (`Wet`, B56), and asking the place keeps
+   * the biome reads out of a mixin every Thing composes.
+   */
+  getAir(): Evaporation;
   /** The share of this scope's medium that is still plain medium. */
   airShare(): number;
 
@@ -251,14 +259,14 @@ export interface Atmospheric {
 
   /**
    * Atmospheric-bearing volume of this scope, in m³. Concrete
-   * subclasses derive from their topology (`CartesianLocation` from
+   * subclasses derive from their topology (`Location` from
    * cube `cellSize³`, `SphericalLocation` from `(4/3)πr³`). The
    * default is `null` — a scope with no derivable volume.
    */
   getVolume(): Quantity<'m³'> | null;
 
   /**
-   * Floor-to-ceiling vertical extent, in m. `CartesianLocation`
+   * Floor-to-ceiling vertical extent, in m. `Location`
    * returns `cellSize`; `SphericalLocation` returns the inscribed
    * cube's side (`2r/√3`). Default is `null`.
    */
@@ -1060,6 +1068,10 @@ export function AtmosphericMixin<
      * (the envelope's, which is deliberately room-to-outside only). A
      * room's air mixes with the next room's long before its heat does.
      */
+    public getAir(): Evaporation {
+      return BiomeApi.airFor(this as unknown as Stuff);
+    }
+
     public airChangesPerHour(): number {
       // ⭐ An awning or a lavoir does not hold gas like a shut room.
       if (!this.exposure().holdsAir()) return Infinity;

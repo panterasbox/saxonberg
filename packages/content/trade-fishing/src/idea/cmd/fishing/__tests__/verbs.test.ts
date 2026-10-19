@@ -16,7 +16,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -47,7 +47,7 @@ function rejected(ctx: CommandContext): string | null {
   return note ? (note as unknown as { reason: string }).reason : null;
 }
 
-let room: Location;
+let room: Place;
 let angler: Angler;
 let rod: Rod;
 let released: string[];
@@ -57,7 +57,7 @@ beforeEach(async () => {
   await standUpBranchHarness();
   sent = [];
   released = [];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   angler = makeStuff(() => new Angler());
   ContainmentApi.move(angler as never, room as never);
   rod = makeStuff(() => new Rod());
@@ -111,7 +111,7 @@ describe('fish', () => {
 
   it('⭐ the place\'s own water wins over the Locality\'s, by the feature you named', async () => {
     localityWith('delight:flats');
-    const shore = makeStuff(() => new Location());
+    const shore = makeStuff(() => new Place());
     const asked: Array<string | undefined> = [];
     (shore as unknown as { waterRefFor: (n?: string) => Promise<unknown> }).waterRefFor = async (n?: string) => {
       asked.push(n);
@@ -128,7 +128,7 @@ describe('fish', () => {
 
   it('⭐ frozen water is refused except through a hole — the shore\'s one gate (storage-and-ice D15)', async () => {
     localityWith('delight:flats');
-    const shore = makeStuff(() => new Location());
+    const shore = makeStuff(() => new Place());
     (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
       draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 285 },
     });
@@ -150,7 +150,7 @@ describe('fish', () => {
 
   it('⭐ naming something that is not water is refused in the place\'s words', async () => {
     localityWith('delight:flats');
-    const shore = makeStuff(() => new Location());
+    const shore = makeStuff(() => new Place());
     (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
       draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 285 },
     });
@@ -167,7 +167,7 @@ describe('fish', () => {
 
   it('naming a thing that is no shore at all is refused, never the Locality guessed at', async () => {
     localityWith('delight:flats');
-    const chair = makeStuff(() => new Location());
+    const chair = makeStuff(() => new Place());
     const ctx = await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: chair, raw: 'chair' } }, angler, room, 'fish at chair');
     expect(rejected(ctx)).toBe('not-water');
   });
@@ -226,7 +226,7 @@ describe('release', () => {
 
   it('refuses what is not a fish, a dead fish, and a place with no water', async () => {
     localityWith('kestrel:confluence');
-    const notFish = makeStuff(() => new Location());
+    const notFish = makeStuff(() => new Place());
     expect(rejected(await run(ReleaseController as never, { fish: { stuff: notFish, raw: 'rock' } }, angler, room, 'release rock'))).toBe('not-a-fish');
     const dead = makeStuff(() => new Fish());
     dead.setLifecycleState('dead');

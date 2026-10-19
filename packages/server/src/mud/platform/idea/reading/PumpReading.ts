@@ -101,7 +101,7 @@ export default class PumpReading extends Reading {
     if (fromSource) return fromSource;
     let at: Stuff | null = actor;
     while (at) {
-      if (at.isLocation() && MixinApi.isContainer(at)) return at;
+      if (at.isPlace() && MixinApi.isContainer(at)) return at;
       at = MixinApi.isContainable(at) ? at.getContainer() : null;
     }
     return null;

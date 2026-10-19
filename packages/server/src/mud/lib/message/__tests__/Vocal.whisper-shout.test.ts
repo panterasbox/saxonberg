@@ -13,7 +13,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../Sensor';
 import { VocalMixin } from '../Vocal';
 import { NamedMixin } from '../../description/Named';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
@@ -36,11 +36,11 @@ class Listener extends SensorMixin(ContainableMixin(NamedMixin(Idea))) {
 }
 
 function sceneRoom(): {
-  room: Location;
+  room: Place;
   alice: CharacterSpeaker;
   bob: Listener;
 } {
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
 
   const alice = makeStuff(() => new CharacterSpeaker());
   alice.setName('Alice');
@@ -93,7 +93,7 @@ describe('VocalMixin.say --to', () => {
     const charlie = makeStuff(() => new Listener());
     charlie.setName('Charlie');
     // charlie is the room's "peer" (in-room sensor that isn't actor/target).
-    const room = (alice as unknown as { getContainer(): unknown }).getContainer() as Location;
+    const room = (alice as unknown as { getContainer(): unknown }).getContainer() as Place;
     ContainmentApi.move(charlie, room);
 
     alice.say('hi', bob);

@@ -1,7 +1,7 @@
 /**
  * DormWarren — the elastic, two-tier room-collection manager for Duncan
  * Hall's dorms wing. A singleton content subclass of the shared
- * {@link OuterWarren} base (residences D12/D16 — the two-tier
+ * {@link CirculationWarren} base (residences D12/D16 — the two-tier
  * holdings + circulation machinery was lifted there; this class keeps
  * the dorm *policy*): rooms are keyed holdings (unit parcel extents),
  * floors are linear-plan circulation nodes (`main:<floor>`), doors are
@@ -17,7 +17,7 @@
  * `docs/subsystems/residence.md`.
  */
 
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -46,7 +46,7 @@ const DORM_DOOR_KIND =
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const DormWarrenBase = SingletonMixin(OuterWarren);
+const DormWarrenBase = SingletonMixin(CirculationWarren);
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
@@ -156,7 +156,7 @@ export default class DormWarren extends DormWarrenBase {
     return this.circulationForNode(`main:${slot.floor}`);
   }
 
-  /** Tear a unit down (end-lease). See {@link OuterWarren.dropHolding}. */
+  /** Tear a unit down (end-lease). See {@link CirculationWarren.dropHolding}. */
   public async dropUnit(
     unitKey: string,
     opts: { revert?: boolean } = {},
@@ -164,7 +164,7 @@ export default class DormWarren extends DormWarrenBase {
     return this.dropHolding(unitKey, opts);
   }
 
-  // ─────────────── OuterWarren policy hooks ─────────────────────
+  // ─────────────── CirculationWarren policy hooks ─────────────────────
 
   /**
    * Stand one unit up, whole — through the unit's keyed

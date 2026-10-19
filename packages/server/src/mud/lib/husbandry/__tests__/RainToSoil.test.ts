@@ -29,7 +29,7 @@ import GardenBed from '../../../platform/thing/GardenBed';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Biome from '../../biome/Biome';
 import { AtmosphericMixin } from '../../biome/Atmospheric';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Reserve } from '../../reserve';
 import {
   PLANT_SLOT,
@@ -46,7 +46,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
 
-class AirRoom extends AtmosphericMixin(Location) {}
+class AirRoom extends AtmosphericMixin(Place) {}
 
 const DAY = 86_400;
 const BASE = 30_000_000;

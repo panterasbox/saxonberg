@@ -40,6 +40,13 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandContext, CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
+import { BulkableApi } from '../../api/bulk';
+import { BankingApi } from '../../api/banking';
+import { Money } from '../../lib/banking/Money';
+import { TemplatePaths } from '../../lib/paths';
+import type { Container } from '../../lib/spatial/Container';
+import type { WashCleanser } from '../../lib/cleanliness/Soilable';
+import type { WashMethod } from '../../lib/cleanliness/WashPolicy';
 
 /**
  * ⭐ **The labour index dials** (D13). `LABOUR_INDEX` is how strongly a
@@ -88,6 +95,10 @@ export const SERVICE_KINDS = [
   'treatment',
   'burial',
   'transfusion',
+  // ⭐ Cleanliness D26: the laundress washes what you bring her (`wash`),
+  // the bathhouse draws you a bath (`bath`).
+  'wash',
+  'bath',
 ] as const;
 export type ServiceKind = (typeof SERVICE_KINDS)[number];
 
@@ -123,10 +134,16 @@ export interface Quote {
 
 const TariffBase = PricedOfferMixin(Thing);
 
+/** What the house's cover came to (worded by the verb). */
+export type CoverOutcome =
+  | { paid: true; amount: number }
+  | { paid: false; amount: number; reason: string };
+
 export default class Tariff extends TariffBase {
   static fieldMeta: FieldMeta = {
     services: { persistent: true, authorable: true },
     labourIndexed: { persistent: true, authorable: true },
+    serviceDisciplines: { persistent: true, authorable: true },
   };
 
   /**
@@ -136,6 +153,20 @@ export default class Tariff extends TariffBase {
    * silently declining.
    */
   public services: Record<string, string> = {};
+
+  /**
+   * ⭐ Which trade a service's hand must hold (cleanliness D26) — read off
+   * the ROW, never hard-coded: the lavoir's tariff names `{wash:
+   * textiles}`, so only a laundress answers; the bathhouse names none, so
+   * its attendant washes your clothes too, at whatever her textiles band
+   * is. Absent ⇒ any on-shift hand of this house.
+   */
+  public serviceDisciplines: Record<string, string> = {};
+
+  /** The discipline a service's hand must fulfil, or undefined for any. */
+  public disciplineFor(key: string): string | undefined {
+    return this.serviceDisciplines[key] || undefined;
+  }
 
   /**
    * ⭐⭐ **Price a treatment by the labour it restores** (D13). When true,
@@ -237,6 +268,95 @@ export default class Tariff extends TariffBase {
   /** Every priced key that names a real service. */
   public serviceKeys(): string[] {
     return this.pricedKeys().filter((k) => this.serviceFor(k) !== null);
+  }
+
+  // ── the house's own, where the slate stands (cleanliness B48) ──
+  // ⭐ A paid service is done with the HOUSE's things in the house's room —
+  // its water, its soap, its copper and tubs — so the tariff, which stands
+  // there, answers for them; the verb only words what they did.
+
+  /** The room this tariff is posted in, or `null`. */
+  private houseRoom(): (Stuff & Container) | null {
+    const self = this as unknown as Stuff;
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+    return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
+  }
+
+  /** A bulk vessel in the house's room that answers to `keyword`. */
+  public houseVessel(keyword: string): Stuff | null {
+    for (const s of this.houseRoom()?.getContents() ?? []) {
+      const c = s as unknown as Stuff;
+      if (MixinApi.isBulkable(c) && MixinApi.isPerceptible(c) && c.hasKeyword(keyword)) return c;
+    }
+    return null;
+  }
+
+  /** The hardness of the water the house's trough or copper holds (°dH). */
+  public houseWaterHardness(): number {
+    for (const s of this.houseRoom()?.getContents() ?? []) {
+      const c = s as unknown as Stuff;
+      if (!MixinApi.isBulkable(c)) continue;
+      const slot = BulkableApi.slotFor(c, undefined);
+      if (!slot || slot.isEmpty() || !slot.getMaterial()?.hasTag('water')) continue;
+      return slot.getHardnessDgh() ?? 8;
+    }
+    return 8;
+  }
+
+  /**
+   * The house's cleanser in its room — what the hand reaches for (`lye`, or
+   * `soap`), else soap, else nothing (a water wash).
+   */
+  public houseCleansers(reachesFor: 'lye' | 'soap'): WashCleanser[] {
+    const room = this.houseRoom();
+    if (!room) return [];
+    const want = reachesFor === 'lye' ? 'alkali-strong' : 'surfactant';
+    let soap: WashCleanser | null = null;
+    for (const s of room.getContents()) {
+      const c = s as unknown as Stuff;
+      const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
+      if (!m) continue;
+      const row = m.getCleanser();
+      if (!row) continue;
+      const found = { row, materialPath: m.getTemplatePath() ?? null, source: c };
+      if (row.action === want) return [found];
+      if (row.action === 'surfactant' && soap === null) soap = found;
+    }
+    return soap ? [soap] : [];
+  }
+
+  /**
+   * The quote for laundering: a wash per kind of dirt the hand names, and a
+   * hot-wash line when her method boils (cleanliness D26).
+   */
+  public quoteLaundry(key: string, kinds: readonly string[], method: WashMethod): Quote {
+    const lines: QuoteRequestLine[] = [{ key, label: 'wash', qty: Math.max(1, kinds.length) }];
+    if (method.waterK >= 333) lines.push({ key: 'hot-wash', label: 'hot', qty: 1 });
+    return this.quoteFor(lines);
+  }
+
+  /**
+   * ⭐ The house pays a customer its posted `cover` for a thing it ruined
+   * (cleanliness B26) — through `BankingApi.indemnify`, which refuses to pay
+   * the house's own people. The outcome is worded by the verb.
+   */
+  public async payCover(customer: Stuff, what: string): Promise<CoverOutcome> {
+    const cover = this.priceFor('cover') ?? 0;
+    if (!(cover > 0)) return { paid: false, amount: 0, reason: 'no-cover' };
+    const house = await this.house();
+    const account = await this.houseAccount();
+    const payeeKey = customer.getIdentityPath() ?? '';
+    if (!house || !account || !payeeKey) return { paid: false, amount: cover, reason: 'no-house' };
+    const paid = await BankingApi.indemnify({
+      houseAccountId: account,
+      housePath: house.getOrganizationPath(),
+      payeeKey,
+      amount: Money.of(cover, BankingApi.compactCurrency()),
+      memo: `cover: ${what}`,
+    }).catch(() => ({ ok: false as const, reason: 'no-persistence' as const }));
+    return paid.ok
+      ? { paid: true, amount: cover }
+      : { paid: false, amount: cover, reason: paid.reason };
   }
 
 }

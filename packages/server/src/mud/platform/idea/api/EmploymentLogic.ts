@@ -1000,13 +1000,13 @@ async function moveForShift(
    * operating location **that is not a FIXTURE**. ⚠ Live only — see the
    * header.
    *
-   * ⭐ `!isThing()` is the discriminator rather than `isLocation()`, and
+   * ⭐ `!isThing()` is the discriminator rather than `isPlace()`, and
    * the branch taxonomy is why: what has to be excluded here is a piece
    * of furniture — the general store's `Stock` counter is a `Thing` that
    * happens to be a `Container`, so a Container test alone put the
    * shopkeeper inside the till. A place to stand is a Location (or, in a
    * test, an Idea standing in for one); it is never Matter. Asking
-   * `isLocation()` would also have been true of the real world and false
+   * `isPlace()` would also have been true of the real world and false
    * of every stand-in, which is a gate that only fails for the people
    * writing tests.
    */

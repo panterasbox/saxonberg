@@ -1,6 +1,6 @@
 # The lower towpath — the working end of Wharfside, where things are
 # loaded rather than looked at.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: lower towpath
   keywords: [towpath, lower]

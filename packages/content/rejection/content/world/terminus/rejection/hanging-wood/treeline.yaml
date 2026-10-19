@@ -3,7 +3,7 @@
 # here worth the axe, and saying so with a class is honest — a player
 # standing here has no `fell`, and that is the first thing the wood
 # teaches about itself.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: treeline above the yard
   keywords: [treeline, edge, scrub, trees, wood, "hanging wood"]

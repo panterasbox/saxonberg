@@ -7,7 +7,7 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BlowController from '../BlowController';
 import Whistle from '../../../thing/Whistle';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -37,7 +37,7 @@ class FakeAvatar extends FakeAvatarBase {
   }
 }
 
-function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -58,11 +58,11 @@ function one(stuff: unknown, raw: string): MqlOneResult {
 
 describe('BlowController', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
 
   beforeEach(() => {
     installV1QuantityMarshallers();
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

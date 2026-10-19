@@ -1,0 +1,15 @@
+# A towel — linen, woven loose and long (cleanliness B56). `dry me with
+# towel` after a bath: it takes the water off you into itself, about twice
+# its own weight before it is sodden; then hang it on the rack to dry.
+class: /platform/thing/Cloth
+data:
+  shortDescription: towel
+  keywords: [towel, "linen towel"]
+  register: indefinite
+  longDescription: A long linen towel, loosely woven and soft with washing, frayed a little at one end.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.5
+  # ⭐ The weave's, not the fibre's: linen yarn holds a fifth of its weight,
+  # a loose towel about twice (a 0.5 kg towel takes ~1 kg — three baths'
+  # worth of skin film before it is sodden).
+  absorbency: 2

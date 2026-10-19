@@ -9,7 +9,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Good from '../../../../lib/stuff/Good';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
@@ -34,7 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../WorldClockRegistry';
 
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantStrike';
 }

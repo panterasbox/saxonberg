@@ -28,10 +28,10 @@
 # room needed a grid, not less position.
 #
 # South of the avenue block at `(0,-1,0)` in The Counting-Houses, which
-# also makes the cardinal exit pair honest — `CartesianLocation.addExit`
+# also makes the cardinal exit pair honest — `Location.addExit`
 # wants cardinal exits INTRA-zone, and until now one end of this door was
 # in no zone at all.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

@@ -5,7 +5,7 @@
 # rides — that is ranching's). The drove is authored anyway because it is
 # a real fact about a valley road, and because when ranching lands, the
 # place its drovers use is already here and already crosses the freight.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: drove crossing
   keywords: [drove, crossing]

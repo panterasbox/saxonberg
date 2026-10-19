@@ -142,7 +142,7 @@ function docs(): Doc[] {
     seed("world/terminus/terminal/location/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
-  const stub = (p: string, cls = "/platform/location/VoidLocation"): Doc => ({
+  const stub = (p: string, cls = "/platform/location/Void"): Doc => ({
     path: p,
     class: cls,
     data: { shortDescription: p.split("/").pop()! },

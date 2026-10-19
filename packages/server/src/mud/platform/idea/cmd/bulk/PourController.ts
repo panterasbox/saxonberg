@@ -86,6 +86,9 @@ export default class PourController extends CommandController<PourModel> {
     );
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
+    if (result.applied > 0 && MixinApi.isBulkable(source)) {
+      source.afterPouredOutBy(giver, result.applied);
+    }
 
     // The rack credit (fermentation W7/D9): drawing off a FINISHED
     // batch is the craft's timing act — credit `fermenting` at the

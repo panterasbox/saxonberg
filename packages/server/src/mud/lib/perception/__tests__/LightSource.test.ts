@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
 import Good from '../../stuff/Good';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
@@ -23,7 +23,7 @@ const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
 class Candle extends LightSourceMixin(Good) {}
-class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLocation extends AmbientLitMixin(Location) {}
 
 describe('LightSourceMixin', () => {
   beforeEach(() => {
@@ -81,7 +81,7 @@ describe('LightSourceMixin', () => {
   it('fires onLightSourceChanged on the immediate environment when flux changes', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
     const hook = vi.fn();
@@ -98,7 +98,7 @@ describe('LightSourceMixin', () => {
   it('does not fire when flux is unchanged', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
     const hook = vi.fn();
@@ -115,7 +115,7 @@ describe('LightSourceMixin', () => {
     it('a candle in a room contributes lux to the room', () => {
       const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
-      const room = makeStuff(() => new CartesianLocation());
+      const room = makeStuff(() => new Location());
       zone.addLocation(room, 0, 0, 0);
       const candle = makeStuff(() => new Candle());
       candle.setEmittedFlux(10);
@@ -131,8 +131,8 @@ describe('LightSourceMixin', () => {
     it('moving a LightSource between rooms updates each room lazily', () => {
       const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
-      const a = makeStuff(() => new CartesianLocation());
-      const b = makeStuff(() => new CartesianLocation());
+      const a = makeStuff(() => new Location());
+      const b = makeStuff(() => new Location());
       zone.addLocation(a, 0, 0, 0);
       zone.addLocation(b, 0, 5, 0);
       const candle = makeStuff(() => new Candle());
@@ -150,7 +150,7 @@ describe('LightSourceMixin', () => {
     it('setEmittedFlux(0) zeroes the contribution', () => {
       const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
-      const room = makeStuff(() => new AmbientCartesianLocation());
+      const room = makeStuff(() => new AmbientLocation());
       zone.addLocation(room, 0, 0, 0);
       room.setAmbientFlux(5);
       const candle = makeStuff(() => new Candle());

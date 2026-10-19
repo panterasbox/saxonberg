@@ -370,10 +370,10 @@ async function resolvePlacementAnchor(
     // A keyed room: re-enter through the owning institution's admit
     // (the log-out-in-your-yard seam, residences D16) — exact room,
     // exact state, never a fresh clone of the shared row.
-    const { OuterWarren } = await import(
-      '../../../lib/location/OuterWarren'
+    const { CirculationWarren } = await import(
+      '../../../lib/location/CirculationWarren'
     );
-    const room = await OuterWarren.admitFor(place.containerKey);
+    const room = await CirculationWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +
@@ -416,7 +416,11 @@ function nearestPersistableHost(stuff: Stuff): Stuff | null {
   let cur: Stuff | null = stuff;
   for (let hops = 0; cur && hops <= MAX_ANCESTOR_HOPS; hops++) {
     if (MixinApi.isPersistable(cur)) return cur;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+    const held: Stuff | null = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+    // ⭐ A fixture is not contained — it is HUNG on its host (a room's
+    // floor, a sconce). Its host is the next hop (cleanliness D31b: an
+    // act that soils the floor captures the room that keeps it).
+    cur = held ?? (MixinApi.isAdornment(cur) ? cur.getAdornedTo() : null);
   }
   return null;
 }
@@ -816,6 +820,16 @@ async function restoreState(
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
     standUpKeyed: (scope, key) => cloneHost(scope, key),
+    applyFields: async (t, fields) => {
+      const live = t as Stuff;
+      const ok = new Set(
+        MixinApi.getAllPersistentFields(live.constructor as AnyConstructor),
+      );
+      const data: Record<string, unknown> = {};
+      for (const [f, v] of Object.entries(fields)) if (ok.has(f)) data[f] = v;
+      if (Object.keys(data).length === 0) return;
+      await applier.apply(live, data, { mode: 'restore' });
+    },
   };
   for (const c of MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
@@ -1236,7 +1250,12 @@ function reoccupyRestingHost(host: Stuff): void {
 async function captureHostOfImpl(stuff: Stuff): Promise<void> {
   const host = nearestPersistableHost(stuff);
   if (!host) return;
-  await captureImpl(host, stashedKey(host) ?? undefined);
+  // ⚠ Keyless: `captureImpl` reuses the stashed key itself. Passing it in
+  // as `key` told the stash it was EXPLICIT, so the first soiled floor
+  // turned a singleton kept place into a keyed holding — and an avatar
+  // captured inside it recorded a `#key` placement only a warren can
+  // resolve (the cleanliness drive's restart: the cook woke in the lounge).
+  await captureImpl(host);
 }
 
 /**

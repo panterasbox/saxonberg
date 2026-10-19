@@ -40,7 +40,7 @@ import { Quantity } from "../../../../lib/quantity";
 import { CombatApi } from "../../../../api/combat";
 import { CombatTerms, type TermsProposal } from "../../../../lib/combat/CombatTerms";
 import type { CombatSession } from "../../../../lib/combat/CombatSession";
-import CartesianLocation from "../../../../lib/location/CartesianLocation";
+import Location from "../../../../lib/location/Location";
 import CartesianZone from "../../location/CartesianZone";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import EventRegistry from "../../EventRegistry";
@@ -309,9 +309,9 @@ describe("CombatLogic — the reach dance stays inside the melee bands", () => {
 
 /** A real Location (not a bare container) with an authored linear extent —
  * the only kind of room that can arm the ranged bands. */
-function makeArena(extentMetres: number): CartesianLocation {
+function makeArena(extentMetres: number): Location {
   const zone = makeStuff(() => new CartesianZone());
-  const room = makeStuff(() => new CartesianLocation());
+  const room = makeStuff(() => new Location());
   Stuff._stampZone(room, zone);
   room.setExtent(extentMetres);
   return room;

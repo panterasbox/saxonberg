@@ -356,31 +356,31 @@ it.
 ### ⭐ A lot's room is NOT on the street's grid
 
 This is the consequence of minting, and it took a live browser drive to
-find: **the room class cannot be a `CartesianLocation`.**
+find: **the room class cannot be a `Location`.**
 
 N lots cannot share one coordinate, so a per-lot room was never a grid
-member — and the grid says so itself. `CartesianLocation.addExit`
+member — and the grid says so itself. `Location.addExit`
 refuses a **non-cardinal** direction between two rooms in the same zone,
 which was exactly the `lot-1` gate off the lane before the gate ring made
 it cardinal (see *the gate*, below). The rule is right; the room was
 wrong — and it is wrong for a second, independent reason that outlived
-the gate fix: a `CartesianLocation` derives `getSizeScale()` from its
+the gate fix: a `Location` derives `getSizeScale()` from its
 zone's `cellSize²` and the light walk divides flux by it, so a cartesian
 yard reads `cellSize²`-times dimmer. **This regressed once more**, when
-the location-class taxonomy put `FurnishableRoom` on the cartesian base:
-600 lumens of open sky came back out at 16.7 lux again. `FurnishableRoom`
+the location-class taxonomy put `PersistentLocation` on the cartesian base:
+600 lumens of open sky came back out at 16.7 lux again. `PersistentLocation`
 is plain `Location` with the room mixins, and a test beside the class
 pins `getSizeScale() === 1.0`.
 
-So a lot's room is a **`FurnishableRoom`** — the furnishing build's
+So a lot's room is a **`PersistentLocation`** — the furnishing build's
 venue-generic persistable room ([furnishing.md](./furnishing.md)) — and
 the class this build originally minted for the job (`TitledRoom`,
-`PersistableMixin(CartesianLocation)`) is **retired**. Everything the
+`PersistableMixin(Location)`) is **retired**. Everything the
 yard needs is already there: it is a persistence host, it composes
 `Staged`, it is not singleton-shaped, and it authors no `air`
 reserve, which is what "outdoors" means to `FireLogic`.
 
-Losing `CartesianLocation` loses `getSizeScale()` = the zone's
+Losing `Location` loses `getSizeScale()` = the zone's
 `cellSize²` light denominator, and that turned out to be a **fix, not a
 cost**. Hinkley's zone has `cellSize: 6`, so a cartesian yard divided
 its 600-flux open sky by 36 m² and read **16.7 lux** — under the 120 lux
@@ -663,7 +663,7 @@ minting a room per lot (`b0cf1df4`; the merge that preceded it is
 | what the suite saw | what a browser saw |
 |---|---|
 | the lane had an exit north | it pointed at the **shared yard template**, which stood the template up as an unowned yard on nobody's lot — and then collided with the minted identities |
-| `TitledRoom` composed correctly | a per-lot room cannot be a `CartesianLocation` at all, and as one the yard read **16.7 lux** — under a carrot's light floor |
+| `TitledRoom` composed correctly | a per-lot room cannot be a `Location` at all, and as one the yard read **16.7 lux** — under a carrot's light floor |
 | exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have — **since superseded**: the gate ring made it cardinal, and the zone stays only for the grid-geometry reason |
 | `water` had a controller and a test | nothing in the yard **conferred** it — the can was missing |
 
@@ -675,7 +675,7 @@ Three lessons worth keeping, none of them about farming:
    something present — is not exercised by a controller test.
 2. **Retiring a one-week-old class is cheap; keeping it is not.**
    `TitledRoom` existed for days and was already a near-twin of the
-   furnishing build's `FurnishableRoom`. The geometry argument that
+   furnishing build's `PersistentLocation`. The geometry argument that
    justified it turned out to be the argument *against* it.
 3. **The engine's refusals were right every time.** The singleton guard,
    the cardinal-exit rule and the spatial-zone resolver each blocked

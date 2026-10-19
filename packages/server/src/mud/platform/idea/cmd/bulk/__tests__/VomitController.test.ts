@@ -17,7 +17,7 @@ import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Condition from "../../../Condition";
 import Material from "../../../../../lib/material/Material";
 import type { ToxinBehavior } from "../../../../../lib/metabolism/Metabolic";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { Quantity } from "../../../../../lib/quantity";
 import { StuffApi } from "../../../../../api/stuff";
@@ -118,7 +118,7 @@ describe("VomitController", () => {
     WorldClockApi._setNowProviderForTesting(() => real);
     ensure(ALCOHOL);
     ensure(ACUTE);
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();

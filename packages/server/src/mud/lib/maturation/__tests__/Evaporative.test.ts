@@ -23,7 +23,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
 import Material from '../../material/Material';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -81,10 +81,10 @@ function standFixtures(): void {
 /** A pan in a room whose air is authored, filled with brine. */
 function pan(
   opts: { humidityPct: number; windMs?: number; tempK?: number; litres?: number },
-): { vat: Vat; room: CartesianLocation } {
+): { vat: Vat; room: Location } {
   const tempK = opts.tempK ?? 293;
   const room = makeStuff(() => {
-    const r = new CartesianLocation();
+    const r = new Location();
     r.setHumidity(Quantity.of(opts.humidityPct, '%'));
     r.setWind(Quantity.of(opts.windMs ?? 0, 'm/s'));
     r.setTemperature(Quantity.of(tempK, 'K'));

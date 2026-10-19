@@ -46,19 +46,79 @@ import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { FloorMixin } from '../../lib/ground/Floor';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type Material from '../../lib/material/Material';
+import { StuffApi } from '../../api/stuff';
 
 // FloorMixin is OUTERMOST: its `getMaterial` / `getKeywords` /
 // `getSlotNames` overrides have to see the composed stack's answers
 // through `super` before they add their own.
-const FloorBase = FloorMixin(
+//
+// ⭐ Soilable outer of that (cleanliness D15): every room's ground may be
+// soiled, strewn and swept — a hall's boards and a street alike — and its
+// soil reads after the ground sentence and the snow (augmenters fold
+// root → leaf). A floor that does not take soil (a water surface, an ice
+// sheet) refuses the deposit itself, below.
+const FloorBase = SoilableMixin(FloorMixin(
   BulkableMixin(
     PosturedMixin(
       SlottedMixin(AdornmentMixin(VisibleMixin(Thing))),
     )
   )
-);
+));
 
 export default class Floor extends FloorBase {
+  /**
+   * ⭐ A floor takes soil only if it {@link takesSoil} — the one
+   * predicate; a water surface or an ice sheet takes none.
+   */
+  public soil(
+    kind: string,
+    amount: number,
+    by: Stuff | null = null,
+    site?: string,
+  ): void {
+    if (!this.takesSoil()) return;
+    super.soil(kind, amount, by, site);
+  }
+
+  /**
+   * ⭐ An earth floor is not scrubbed: water on it makes mud. It is strewn
+   * and swept (cleanliness D15) — and a floor that takes no soil has
+   * nothing on it to wash.
+   */
+  public override washRefusal(): string | null {
+    if (!this.takesSoil()) return 'There is nothing on it a wash would take.';
+    if (this.cleaningMethod() === 'strew and sweep') {
+      return 'Water on a floor like this only makes mud — it wants strewing and sweeping.';
+    }
+    return super.washRefusal();
+  }
+
+  /**
+   * ⭐ The floor's own soil sentence (cleanliness D15) — after the ground
+   * and the snow; masked under snow knee-deep or worse, as the ground
+   * sentence is. *The floor is soiled, muddy and crumbed. Fresh rushes are
+   * strewn over it. Something has been at the crumbs.*
+   */
+  public override soilLookLine(viewer: Stuff | null = null): string {
+    this.reconcileStalls();
+    const band = this.getSnowBand();
+    if (band === 'knee-deep' || band === 'deep') return '';
+    const lines: string[] = [];
+    const phrase = this.soilPhrase('');
+    if (phrase) lines.push(`It is ${phrase}.`);
+    const strewn = this.getStrewn();
+    if (strewn) {
+      const m = StuffApi.findByTemplatePath<Material>(strewn.materialPath);
+      lines.push(`${capitalise(m?.getAppearance() || m?.getName() || 'something')} is strewn over it.`);
+    }
+    if (this.hasPests()) lines.push('Something has been at the crumbs.');
+    void viewer;
+    return lines.join(' ');
+  }
+
   constructor() {
     super();
     // ⭐⭐ **Fixed in place, because it is the place.** Found by the
@@ -76,4 +136,8 @@ export default class Floor extends FloorBase {
     // it, which is what a floor needs.
     this.fixedInPlace = true;
   }
+}
+
+function capitalise(s: string): string {
+  return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
 }

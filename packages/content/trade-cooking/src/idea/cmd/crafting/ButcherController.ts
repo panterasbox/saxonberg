@@ -77,6 +77,7 @@
  */
 
 import { CraftController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/CraftController';
+import type { SoilSpec } from '@saxonberg/server/mud/lib/cleanliness/SoilSpec';
 import type {
   CommandContext,
   CommandModel,
@@ -111,6 +112,19 @@ const DISCIPLINE = 'butchery';
  * because `ConditionLogic` stamps it at the kill.
  */
 const UNREMARKABLE_FLESH = 55;
+
+/**
+ * What breaking a carcass puts on the butcher (cleanliness D6): blood and
+ * fat on the hands and the trunk's outer layer, a little blood on the
+ * floor.
+ */
+const BUTCHER_SOILS: readonly SoilSpec[] = [
+  { kind: 'blood', amount: 0.5, where: 'hands' },
+  { kind: 'grease', amount: 0.2, where: 'hands' },
+  { kind: 'blood', amount: 0.4, where: 'apron' },
+  { kind: 'grease', amount: 0.1, where: 'apron' },
+  { kind: 'blood', amount: 0.1, where: 'floor' },
+];
 
 /**
  * What a carcass carries into the meat when the gut is opened badly.
@@ -474,6 +488,15 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // does not, because it is a general tool and not food kit. Both open
     // the carcass — the verb gates on an edge, not on a class.
     this.spillGut(blade, mess);
+
+    // ⭐ (cleanliness D6) Breaking a carcass is the bloodiest work there
+    // is: blood and fat on the hands and on whatever covers the trunk (an
+    // apron is why butchers wear one), and on the block and the floor.
+    if (MixinApi.isHygienic(giver)) giver.soilFrom(BUTCHER_SOILS, body);
+    if (block && MixinApi.isSoilable(block)) {
+      block.soil('blood', 0.3, body);
+      block.soil('grease', 0.2);
+    }
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

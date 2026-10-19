@@ -1,0 +1,4 @@
+# Soap — a surfactant: it lifts grease and general dirt. In hard water
+# it scums and washes worse.
+class: /platform/idea/Cleanser
+data: {key: soap, agent: soap, action: surfactant, hardWaterPenalty: true, consumesPerWash: 0.005, skinHarshness: 0.2}

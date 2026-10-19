@@ -15,7 +15,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import {
   CommandGiverMixin,
   type CommandGiver,
@@ -68,7 +68,7 @@ type Giver = TestGiver & CommandGiver;
 
 describe('CommandContext.commandSource threading', () => {
   let giver: Giver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -95,7 +95,7 @@ describe('CommandContext.commandSource threading', () => {
       findById: vi.fn(),
     } as unknown as PersistenceManager);
 
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver()) as Giver;
     ContainmentApi.move(
       giver as unknown as Parameters<typeof ContainmentApi.move>[0],

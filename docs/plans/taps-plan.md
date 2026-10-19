@@ -183,7 +183,7 @@ premise in the requirements or the task brief, it says so.
   {ride,oak-clearing,hazel-cant,treeline}.yaml` + `thing/{panel-north,
   panel-west}.yaml`. `oak-clearing.yaml` is a `/trade/forestry/location/Wood`
   (`mix:` oak 12/14, ash 4/6; `props: panel-north`; coords 0,2,0).
-  `treeline.yaml` is a `/platform/location/SingletonCartesianLocation`
+  `treeline.yaml` is a `/platform/location/Locale`
   (coords 0,0,0; exits south→hillside, north→ride) and affords no `fell`.
   `panel-north.yaml`: `staticSlots plant capacity 8`, six `hazel-stool`
   props, `interiorAmount 180`, reserves moisture/nitrogen.
@@ -643,7 +643,7 @@ was built for.
   panel, pan and evaporator; the panel row uses `props:` for its six
   trees as distinct paths (not `as:`, which is not a keyword).
 - **Locations, not rooms** — the sugarbush is a
-  `/platform/location/SingletonCartesianLocation` with the woodland
+  `/platform/location/Locale` with the woodland
   biome (the treeline's shape), not a `Wood` (an empty `mix:` would
   render *nothing stands here worth the axe* over six standards).
 - **The five axes / `<root>/<branch>/`** — kernel substrate at
@@ -1328,7 +1328,7 @@ Implements D13, D14, D16 in `trade-forestry` (+ two commons species).
 Content only (no `src/`).
 
 - `rejection/content/world/terminus/rejection/hanging-wood/sugarbush.yaml`
-  (`SingletonCartesianLocation`, woodland biome, coords `{x: 1, y: 1,
+  (`Locale`, woodland biome, coords `{x: 1, y: 1,
   z: 0}`, exits `west → ride` / ride gains `east → sugarbush`
   `edgeMinutes 3`; prose: a hollow of birch and maple, an open-sided
   arch under a roof of brash; `props: [thing/sugarbush-panel,
@@ -1388,7 +1388,7 @@ because W6 is rows over W5's classes and neither suite separates.
 > rather than the mechanism.
 >
 > **W6 — what landed**
-> - `hanging-wood/sugarbush.yaml` (a `SingletonCartesianLocation`, ⚠ NOT
+> - `hanging-wood/sugarbush.yaml` (a `Locale`, ⚠ NOT
 >   a `Wood` — a stand's derived reading would say *"nothing stands here
 >   worth the axe"* over six stems a player can touch), east off the ride
 >   both ways, its own cell.

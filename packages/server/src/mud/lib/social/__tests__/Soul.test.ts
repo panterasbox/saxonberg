@@ -19,7 +19,7 @@ import { VocalMixin } from '../../message/Vocal';
 import { SoulMixin } from '../Soul';
 import { NamedMixin } from '../../description/Named';
 import { CommandGiverMixin } from '../../command/CommandGiver';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
@@ -88,7 +88,7 @@ describe('SoulMixin.renderEmote', () => {
 
 describe('SoulMixin.emote', () => {
   it('composes a Scene at act.emote with emotive-esp modality', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);
@@ -111,7 +111,7 @@ describe('SoulMixin.emote', () => {
   });
 
   it('emits a target frame when a target is supplied', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);
@@ -128,7 +128,7 @@ describe('SoulMixin.emote', () => {
 
 describe('SoulMixin.emoteFree', () => {
   it('emits free-form prose with actor name', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);
@@ -147,7 +147,7 @@ describe('SoulMixin.emoteFree', () => {
   // every single one a double stop. A live drive read it off the wall
   // of Dave's Bar: "Dave winks knowingly at no one in particular.."
   it('does not double a stop the text already ends with', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);
@@ -177,7 +177,7 @@ describe('SoulMixin.emoteFree', () => {
   });
 
   it('still adds a stop when the author left it off', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);
@@ -186,7 +186,7 @@ describe('SoulMixin.emoteFree', () => {
   });
 
   it('resolves `@mention` syntax inside the body to <mention> tags', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
     ContainmentApi.move(alice, room);

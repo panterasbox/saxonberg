@@ -1,0 +1,3 @@
+# Stale urine — ammonia, the fuller's alkali.
+class: /platform/idea/Cleanser
+data: {key: stale-urine, agent: ammonia-source, action: alkali-mild, consumesPerWash: 0.2, skinHarshness: 0.3}

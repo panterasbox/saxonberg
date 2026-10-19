@@ -1,6 +1,6 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Vessel } from '../../lib/stuff/Vessel';
 import { AtmosphericMixin } from '../../lib/biome/Atmospheric';
 import Biome from '../../lib/biome/Biome';
@@ -15,7 +15,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 /**
  * A CABIN — `Atmospheric(Vessel)`, the `ExitableVessel` shape without the
  * exit machinery (which needs an async clone). It was
@@ -75,7 +75,7 @@ describe('BiomeApi.isSkyExposed', () => {
     expect(BiomeApi.isSkyExposed(room)).toBe(false);
   });
 
-  it('walks outward through a vessel to the outer Location biome', () => {
+  it('walks outward through a vessel to the outer Place biome', () => {
     const biome = makeStuffAtPath(
       () => new SkyExposedBiome(),
       '/stuff/idea/biome/outdoor/temperate/quad',

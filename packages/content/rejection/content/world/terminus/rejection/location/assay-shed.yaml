@@ -10,7 +10,7 @@
 # Ore sells on CONSIGNMENT with payment on assay: zero new mechanism, and
 # historically exact. You were paid after the assay, not on the spot, and
 # the wait is what makes the assay an event.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: assay shed
   keywords: [shed, "assay shed", assay]
