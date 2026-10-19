@@ -1488,3 +1488,41 @@ full suite, then the MR.
   `boil condenser` (tar→pitch), water's `FouledWater.test.ts`, the docs (watershed.md § `boil`,
   crafting.md rows). Cleanliness's `boil <cloth> in <pot>` arm is reconciled mechanically by
   whichever lands second (put in pot + heat; its disinfection keys on time held hot).
+
+## Browser walk record (2026-10-19, after ice · rubber · cleanliness merged)
+
+A live browser walk (chrome-devtools, `silkwalk`, fresh `saxonberg_build3`,
+server on 2010 with test login + the founder configured; funded by the
+founder's reserve override as the drive is). Each finding was fixed and
+pushed on `reqs/silk` the same turn:
+
+| found | fix |
+|---|---|
+| boot threw: the mill crib's stock line used the retired bare `supplier:` | `from: { supplier: … }` (23dbf19ca) — no lint reads the key; only a boot could |
+| Bench Lane never mentioned the silk house; a design ⭐ leaked into its prose | prose names the loft; star removed (fd2e91a85) |
+| three identical "rearing tray"s; `look tray` took the loft's `trays` detail; `first/second/third tray` read as ordinals over the ROOM, finding harvested trays | a tray is named by what is on it; detail keyed `racks`; ordinal keywords removed (fd2e91a85) |
+| the counter slate omitted the house's own cocoons (priced, no stock line) | `Stock.getLong` lists every priced key (fd2e91a85, kernel) |
+| ⭐⭐ the server pinned at 100 % for minutes: a live card over the general store's ~300-item counter, and every argument resolution, re-walked the room's light per candidate (quadratic) | `PerceptionApi.holdLightSteady` — a hold/release pair around every MQL resolution and subscription projection (6d1493f48, 38267ee62, kernel). The callback-shaped first cut broke call-security attribution (world-seat-query); the pair keeps the read in its caller's frame. Steps went from never-answered to 1–5 s |
+| `get rearing tray` lifted all three HOUSE trays with the house's rearing and cocoons | house trays `fixedInPlace` (769647f2c) |
+| `put`'s target is chosen among the room's peers and takes the first that answers, so a bought tray set down by the house's lost its eggs to them | house trays answer to `house tray`; a bought tray is the only `rearing tray` in the loft (76f54cf95) |
+| ten cocoons: "not enough cocoons there" — no word of how many | "…a reeling takes about forty" (79a7571ae) |
+| the hand reel's skein: "A of a middling weight thread" | `middling-weight`; every band tested through the frame (b1c386065) |
+
+Walked and working: the store kit (reel, tray, imported/cheap eggs); hatching
+onto the bought tray ("A scatter of eggs, waiting for warmth"); leaf by name;
+the valley egg card reads its strain/where/when and nothing of disease; the
+house unattended at its shift (the hand arrives at 05:00, lifts the cocoons,
+tips the frass, stifles in the oven, sets out on the counter); the mill
+reeler buying at the house; 40 cocoons bought; a hand reeling beside the lit
+stifling oven makes a skein and pupae.
+
+Noted, not changed (engine or design questions, for the MR):
+- `buy` takes no quantity: forty `buy cocoon` commands for one reeling (~4
+  real minutes). The reeler's brain loops the same way.
+- Bought cocoons list as forty "a cocoon" lines (titled units never merge).
+- Each house act prints three identical lines (one per heft stack).
+- `put`'s target never asks when two things answer — engine-wide.
+- The mill is lit only by daylight spill (deliberate per its row) while its
+  seats start at 05:00: a visitor at dawn sees "something"s.
+- The memory budget: the host reaped the world three times (sibling worlds +
+  the desktop VS Code WSL server, which was killed with the user's say-so).
