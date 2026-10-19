@@ -370,10 +370,10 @@ async function resolvePlacementAnchor(
     // A keyed room: re-enter through the owning institution's admit
     // (the log-out-in-your-yard seam, residences D16) — exact room,
     // exact state, never a fresh clone of the shared row.
-    const { OuterWarren } = await import(
-      '../../../lib/location/OuterWarren'
+    const { CirculationWarren } = await import(
+      '../../../lib/location/CirculationWarren'
     );
-    const room = await OuterWarren.admitFor(place.containerKey);
+    const room = await CirculationWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +

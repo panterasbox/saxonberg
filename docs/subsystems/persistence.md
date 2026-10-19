@@ -1428,7 +1428,7 @@ template row and are separated only by their persistence key, so
 `{ container }` alone would collapse every tenant's yard into one; and
 the room is not standing when the placement restores, because the whole
 holding is dormant. So `capturePlacement` records the pair, and
-`restorePlacement` re-enters through `OuterWarren.admitFor(key)` —
+`restorePlacement` re-enters through `CirculationWarren.admitFor(key)` —
 which finds the institution whose parent extent prefixes the key, stands
 the holding back up, and returns the exact room.
 

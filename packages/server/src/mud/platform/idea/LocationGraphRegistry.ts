@@ -39,7 +39,7 @@ import { Mixins } from '../../lib/mixin';
 import { Template } from '../../lib/stuff/Template';
 import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
 import { PlatPlan } from '../../lib/location/PlatPlan';
-import { OuterWarren } from '../../lib/location/OuterWarren';
+import { CirculationWarren } from '../../lib/location/CirculationWarren';
 import Place from '../../lib/stuff/Place';
 import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
 import type { AttachmentKind } from '../../api/navigation';
@@ -548,7 +548,7 @@ export default class LocationGraphRegistry extends Idea {
         prototype?: unknown;
       };
       if (typeof cls === 'function') {
-        if (cls.prototype instanceof OuterWarren) verdict = 'warren';
+        if (cls.prototype instanceof CirculationWarren) verdict = 'warren';
         else if (cls.prototype instanceof Place) {
           verdict = MixinApi.hasMixin(
             cls as never,

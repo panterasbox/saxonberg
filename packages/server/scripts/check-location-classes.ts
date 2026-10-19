@@ -409,7 +409,7 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  *
  * ⭐ The dorm CORRIDOR and the LOUNGE are minted the same way: a corridor
  * per live floor takes the cell its `down` stair says it is in
- * (`Location.plotBesideNeighbour`, from `OuterWarren.ensureNode`), and a
+ * (`Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode`), and a
  * lounge satellite the cell off its host its star direction names
  * (`LoungeWarren.wireHubExit`). Both joined `Location` from bare `Place`
  * in the place taxonomy (cleanliness B53).

@@ -14,7 +14,7 @@
  * distinct `u` leaf so dorm tooling never misreads a unit extent).
  */
 
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -43,11 +43,11 @@ const FRONT_DOOR_KIND = '/system/residence/idea/exits/front-door';
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const BuildingWarrenBase = SingletonMixin(OuterWarren);
+const BuildingWarrenBase = SingletonMixin(CirculationWarren);
 
 export default class BuildingWarren extends BuildingWarrenBase {
   static fieldMeta: FieldMeta = {
-    ...OuterWarren.fieldMeta,
+    ...CirculationWarren.fieldMeta,
     programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
     corridorTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
     lobbyPath: { persistent: true, authorable: true, authorPicker: 'Template' },
@@ -111,7 +111,7 @@ export default class BuildingWarren extends BuildingWarrenBase {
     }
   }
 
-  // ─────────────── OuterWarren policy hooks ─────────────────────
+  // ─────────────── CirculationWarren policy hooks ─────────────────────
 
   /** Stand one unit up whole: the keyed programme, woken (D16). */
   protected async standUpHolding(key: string): Promise<MemberStuff> {

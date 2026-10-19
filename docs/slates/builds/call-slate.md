@@ -99,7 +99,8 @@ for locations — `Warren`.*
 **Where the analogy holds.** A `Warren`'s real content is not
 containment, it is **elastic membership plus a compiler that refuses to
 let you skip the hard question**: `occupantsOf` is declared *abstract*,
-so a warren cannot be written without choosing inner or outer. Same
+so a warren cannot be written without choosing `RoomWarren` or
+`CirculationWarren`. Same
 machinery at two cardinalities, members joining and leaving live. That
 is exactly the shape a crew wants — and the reason the residence ladder
 is one doc and one code path rather than three

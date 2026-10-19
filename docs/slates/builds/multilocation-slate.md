@@ -45,7 +45,7 @@ chain — shipped and are documented at
 
 *(Decision 5 — "the base is a working generic overflow-instancer;
 consumers are thin subclasses" — shipped, and more thoroughly than
-envisioned: the base (`Warren`/`InnerWarren`/`OuterWarren`) is reused by
+envisioned: the base (`Warren`/`RoomWarren`/`CirculationWarren`) is reused by
 `LoungeWarren`, `DormWarren`, `BuildingWarren`, `PlatWarren` and
 `MineWarren` — see [location.md § The pieces](../../subsystems/location.md#the-pieces),
 [holding.md](../../subsystems/holding.md). Its specific claim about
@@ -256,8 +256,8 @@ composed capability. See
 
 *(Q1–Q5 are resolved. Q1: shipped differently than the lean — not a
 concrete-with-defaults base, but an abstract `Warren` with an abstract
-`InnerWarren`/`OuterWarren` tier split (see
-[holding.md § Every warren is inner or outer](../../subsystems/holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks)),
+`RoomWarren`/`CirculationWarren` tier split (see
+[holding.md § Every warren is a RoomWarren or a CirculationWarren](../../subsystems/holding.md#every-warren-is-a-roomwarren-or-a-circulationwarren-and-the-compiler-asks)),
 a generalization axis nobody in this slate predicted. Q2: shipped
 differently than the lean — zero host mixins, one `WarrenMemberMixin`
 (see the Module taxonomy note above). Q3: resolved, and not the way this

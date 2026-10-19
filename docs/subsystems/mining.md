@@ -63,7 +63,7 @@ does not need admitting.
 graduation to a kernel holding is a **base swap**, and it puts claim
 scoping IN the key so part of `claimFor` is derivable.
 
-**The warren extends `InnerWarren`** — its members are rooms, and
+**The warren extends `RoomWarren`** — its members are rooms, and
 `Warren.occupantsOf` is abstract so the tier cannot be skipped.
 ⚠ Not `HoldingWarren`, and for one reason only: that is
 `packages/content/residence/` content and a trade pack must not depend on
@@ -644,7 +644,7 @@ places Stage A deliberately shaped itself for a later one:
 - ⭐ **`MineWarren` is shaped for a BASE SWAP, not a redesign.** When
   `HoldingWarren` graduates to the kernel — with mining as its second
   consumer, which is what the two-consumers rule asks for — adopting it
-  is `extends InnerWarren` → `extends HoldingWarren`. The only genuinely
+  is `extends RoomWarren` → `extends HoldingWarren`. The only genuinely
   residential residue to leave behind or make optional is the shell
   condition and its weathering clock; the keyed-member convention, the
   tenure/promotion split and the reconcile are already the shared shape.

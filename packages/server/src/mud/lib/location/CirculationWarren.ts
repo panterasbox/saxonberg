@@ -1,12 +1,15 @@
 /**
- * OuterWarren — **a warren whose members are WARRENS**, and the shared
+ * CirculationWarren — **a warren whose members are HOLDINGS (each a
+ * `RoomWarren`), and which owns the CIRCULATION that reaches them** — the
+ * lane reaches, the corridors and stairs, minted from its `PlatPlan` as
+ * holdings fill and reaped outside-in as they empty. The shared
  * **holdings + circulation** base
  * every residential institution consumes (residences D12/D16): the
  * dorm, the plat, the apartment building are the same machine wearing
  * different clothes.
  *
  * The tier is the load-bearing half of the name (see
- * {@link InnerWarren}): an outer warren's members are themselves
+ * {@link RoomWarren}): a circulation warren's members are themselves
  * warrens, so "who is in here" means whoever is anywhere inside a
  * member's own rooms — never merely who is standing in the member. A
  * warren that got that backwards would read every holding as empty and
@@ -96,7 +99,7 @@ interface WarrenMemberView {
   getWarren?: () => HoldingView | null | undefined;
 }
 
-export abstract class OuterWarren extends Warren {
+export abstract class CirculationWarren extends Warren {
   static fieldMeta: FieldMeta = {
     plan: { persistent: true, authorable: true },
     capacityKey: { persistent: true, authorable: true },
@@ -343,7 +346,7 @@ export abstract class OuterWarren extends Warren {
   public static async conditionOf(
     extent: string,
   ): Promise<{ condition: number; band: string } | null> {
-    const room = await OuterWarren.admitFor(extent);
+    const room = await CirculationWarren.admitFor(extent);
     if (!room) return null;
     const programme = (
       room as unknown as WarrenMemberView
@@ -371,7 +374,7 @@ export abstract class OuterWarren extends Warren {
   public static async admitFor(
     key: string,
   ): Promise<MemberStuff | null> {
-    for (const w of await OuterWarren.institutionsCovering(key)) {
+    for (const w of await CirculationWarren.institutionsCovering(key)) {
       const parent = w.getParentExtent();
       if (!parent || !key.startsWith(parent + '/')) continue;
       const rest = key.slice(parent.length + 1);
@@ -399,12 +402,12 @@ export abstract class OuterWarren extends Warren {
    */
   private static async institutionsCovering(
     key: string,
-  ): Promise<OuterWarren[]> {
+  ): Promise<CirculationWarren[]> {
     const { NavigationApi } = await import('../../api/navigation');
-    const out: OuterWarren[] = [];
+    const out: CirculationWarren[] = [];
     for (const p of await NavigationApi.attachedTo(key, 'institution')) {
       const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
-      if (!(s instanceof OuterWarren) || out.includes(s)) continue;
+      if (!(s instanceof CirculationWarren) || out.includes(s)) continue;
       const parent = s.getParentExtent();
       if (parent && key.startsWith(parent + '/')) out.push(s);
     }

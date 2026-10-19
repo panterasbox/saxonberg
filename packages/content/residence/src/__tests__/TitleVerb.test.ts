@@ -37,7 +37,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
@@ -545,7 +545,7 @@ describe('title', () => {
       null,
     );
     const cond = vi
-      .spyOn(OuterWarren, 'conditionOf')
+      .spyOn(CirculationWarren, 'conditionOf')
       .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
 
     const ctx = await run(buyer, room, model('buy', 'lot 2'));

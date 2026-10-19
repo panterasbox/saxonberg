@@ -17,7 +17,7 @@ import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
@@ -61,7 +61,7 @@ const LOT1 = `${PARENT}/lot-1`;
 
 /** The generic institution the programme hangs off (a PlatWarren stand-in). */
 class TestInstitution extends SingletonMixin(
-  OuterWarren,
+  CirculationWarren,
 ) {
   static _mixinName = 'ProgTestInstitution';
   protected async standUpHolding(key: string): Promise<MemberStuff> {
@@ -324,9 +324,10 @@ describe('the residential programme (D16)', () => {
     await bootRegistries();
     const w = await institution();
     const hall = await w.admit(LOT1);
+    expect(hall).toBeInstanceOf(PersistentLocation);
     expect(hall.getTemplatePath()).toBe(ROOM_A);
     expect(hall.getZone()?.getTemplatePath()).toBe(PARENT);
-    expect(hall.getSizeScale()).toBe(16);
+    expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(16);
   });
 
   it('⭐ sleeps and wakes WHOLE — rooms + fixtures + placed goods together', async () => {

@@ -477,13 +477,13 @@ export abstract class Warren extends Idea {
    * Every warren is one of two things, and the difference is exactly
    * this method:
    *
-   *   - an {@link InnerWarren} holds ROOMS, so its occupants are the
+   *   - an {@link RoomWarren} holds ROOMS, so its occupants are the
    *     interactives standing directly in a member;
-   *   - an {@link OuterWarren} holds WARRENS, so its occupants are the
+   *   - an {@link CirculationWarren} holds WARRENS, so its occupants are the
    *     interactives anywhere inside a member's own rooms.
    *
    * This used to be concrete here — the leaf answer, as a default — and
-   * the outer tier had to remember to override it. A warren that forgot
+   * the circulation tier had to remember to override it. A warren that forgot
    * would silently report every holding as empty and reap somebody's
    * house out from under them. Abstract means a new warren cannot be
    * written without saying which kind it is, and the compiler asks.
@@ -492,7 +492,7 @@ export abstract class Warren extends Idea {
 
   /**
    * The interactives standing directly in `m` — the shared half both
-   * tiers are built from. `InnerWarren` returns this; `OuterWarren`
+   * tiers are built from. `RoomWarren` returns this; `CirculationWarren`
    * unions it across a member's rooms.
    */
   protected leafOccupants(m: MemberStuff): (Stuff & Container)[] {

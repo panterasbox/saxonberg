@@ -2916,7 +2916,7 @@ Read first, in this order.
   `CircleFloor`, `Tombstone` → `Location`; `Offstage` → `Locale` (its five
   rows author a cell behind their venue). The cells: a minted node takes
   the one beside the neighbour it was wired to
-  (`Location.plotBesideNeighbour`, from `OuterWarren.ensureNode`; it
+  (`Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode`; it
   refuses rather than overwrite, which the grid never checked); a holding
   lays its rooms out in its OWN frame from the floorplan
   (`HoldingWarren.layOut`), because a plat's houses would share the
@@ -2939,6 +2939,13 @@ Read first, in this order.
   caught it). The eleven furnished rows' fluxes were scaled by their
   cell's area to keep their tuned lux (yard 600 → 21,600; a dorm room
   30 → 270); the generic rows are lit for the one plat that uses each.
+- **B55 — `InnerWarren` → `RoomWarren`, `OuterWarren` → `CirculationWarren`**
+  (review, the user: the old names *"imply a kind of universality the
+  warrens don't earn"* and said only *"the opposite of the other one"*).
+  Each is named for what it IS: a `RoomWarren`'s members are rooms you
+  stand in; a `CirculationWarren`'s are holdings, reached by the lanes,
+  corridors and stairs it mints from a `PlatPlan`. holding.md's tier
+  section (and its anchor) and the class headers say so.
 
 ## Drive record
 

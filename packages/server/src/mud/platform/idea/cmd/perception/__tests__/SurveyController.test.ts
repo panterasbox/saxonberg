@@ -30,7 +30,7 @@ import Locale from '../../../../location/Locale';
 import CartesianZone from '../../../location/CartesianZone';
 import { BiomeApi } from '../../../../../api/biome';
 import PersistentLocation from '../../../../location/PersistentLocation';
-import { InnerWarren } from '../../../../../lib/location/InnerWarren';
+import { RoomWarren } from '../../../../../lib/location/RoomWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
@@ -162,7 +162,7 @@ function bed(): Chair {
  * the residential class — the point of the seam is that the kernel never
  * names it, and a stand-in with the right SHAPE proves exactly that.
  */
-class FakeProgramme extends InnerWarren {
+class FakeProgramme extends RoomWarren {
   public band = 'sound';
   public cause: string | null = null;
   conditionBand(): string {

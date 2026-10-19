@@ -4,14 +4,14 @@
  * NEXT circulation node on demand (`ensureNode`), gated synchronously
  * on the plan's reachability — a floor with no provisioned holding on
  * it or above is impassable ("the stairs go no higher"), the dorm's
- * `FloorStairExit` rule generalized over the {@link OuterWarren}
+ * `FloorStairExit` rule generalized over the {@link CirculationWarren}
  * base.
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
 import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import type { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -27,13 +27,13 @@ export default class UpstairsExit extends DeferredDestinationExit {
    * `Exitable.installExit`'s `bind`; only the two facts a ROW cannot
    * know — which warren, which node — arrive here.
    */
-  public configureUpstairs(warren: OuterWarren, targetNode: string): void {
+  public configureUpstairs(warren: CirculationWarren, targetNode: string): void {
     this.warrenPath = warren.getTemplatePath() ?? '';
     this.targetNode = targetNode;
   }
 
-  private warren(): OuterWarren | null {
-    return StuffApi.findByTemplatePath<OuterWarren>(this.warrenPath) ?? null;
+  private warren(): CirculationWarren | null {
+    return StuffApi.findByTemplatePath<CirculationWarren>(this.warrenPath) ?? null;
   }
 
   protected override async computeDestination(): Promise<Stuff & Container> {

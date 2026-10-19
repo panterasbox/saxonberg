@@ -16,7 +16,7 @@ slate — the lounge revisit). This batch is the first to compact
 The status block (already re-stamped by an earlier "sort the backlog"
 pass, commit `720d9db06`) was directionally right but the body still
 described 2026-08's design conversation as if none of it had shipped.
-Verified against `packages/server/src/mud/lib/location/{Warren,InnerWarren,OuterWarren,WarrenMember}.ts`,
+Verified against `packages/server/src/mud/lib/location/{Warren,RoomWarren,CirculationWarren,WarrenMember}.ts`,
 `packages/server/src/mud/world/lounge/idea/LoungeWarren.ts`,
 `packages/content/saxonberg-lounge/content/world/lounge.yaml` (the
 `CartesianZone` — "EVERY LOCATION PLOTS"), `docs/subsystems/location.md`
@@ -35,8 +35,8 @@ SHIPPED-cut pass:
    designed.** The slate's "roles + cardinality" model (a Warren as a
    data-driven catalog of `(template × cardinality × attachment)` roles,
    so a dungeon's boss/corridors/chambers are one Warren) was **not
-   built**. What shipped instead is a **tier split** — `InnerWarren`
-   (members are rooms) vs `OuterWarren` (members are warrens) — a
+   built**. What shipped instead is a **tier split** — `RoomWarren`
+   (members are rooms) vs `CirculationWarren` (members are warrens) — a
    different axis entirely, reused by `LoungeWarren`, `DormWarren`,
    `BuildingWarren`, `PlatWarren`, `MineWarren`. The base today has
    exactly ONE elastic role + a host; there is no multi-role catalog.
@@ -148,8 +148,8 @@ Q6 and Q7 are still open and fold into `Left`.
   ONLY warren-side mixin; there is no host mixin. Folded into the
   Module-taxonomy pointer above rather than cut separately
 - Open question 1, concrete-with-defaults vs abstract+`OverflowWarren`
-  — by `Warren.ts` being abstract with an abstract `InnerWarren`/
-  `OuterWarren` tier split (`holding.md § Every warren is inner or
+  — by `Warren.ts` being abstract with an abstract `RoomWarren`/
+  `CirculationWarren` tier split (`holding.md § Every warren is inner or
   outer`) — an axis this slate never named. Noted in place
 - Open question 2, one/two mixins — by zero host mixins + one
   `WarrenMemberMixin`. Noted in place

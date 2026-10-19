@@ -393,17 +393,17 @@ geometry classes documented above):**
 | File | Role |
 |---|---|
 | `Warren.ts` | Abstract base — the generic mechanism. Declares `occupantsOf` **abstract**, so every warren must choose a tier. |
-| `InnerWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
-| `OuterWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
+| `RoomWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
+| `CirculationWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
 
 ⭐ **Every warren ends in `Warren`, and picks one of the two tiers.**
 The tier is not decoration — it *is* what "who is in here" means, and
-the leaf answer used to be a concrete default on `Warren` that the outer
+the leaf answer used to be a concrete default on `Warren` that the circulation
 tier had to remember to override. A warren that forgot read every
 holding as empty and would reap an occupied one. Abstract on the root
 means the compiler asks. See
-[holding.md](./holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks).
+[holding.md](./holding.md#every-warren-is-a-roomwarren-or-a-circulationwarren-and-the-compiler-asks).
 
 **Content — `world/lounge/` (the lounge area; class paths
 `/world/lounge/<branch>/*`, branch subdirs since content packs wave 4b —
@@ -415,7 +415,7 @@ mirrors it):**
 | `location/Lounge.ts` | The one room template every lounge instance clones from. |
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
-| `idea/LoungeWarren.ts` | Concrete singleton **`InnerWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `OuterWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
+| `idea/LoungeWarren.ts` | Concrete singleton **`RoomWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `CirculationWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
@@ -691,7 +691,7 @@ place its cell:
 | the place | its cell |
 |---|---|
 | an authored row (`Locale`, `Street`, `Offstage`…) | its own `coords:` in its zone |
-| a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `OuterWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
+| a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
 | a lounge satellite, a mine cell | its warren (`LoungeWarren.wireHubExit`, `MineWarren.placeInGrid`) |
 | a holding's room (a house, a let unit, a dorm room, a field) | the HOLDING's own frame — `HoldingWarren.layOut`: the entry room at the origin, the floorplan's cardinal exits from it; a room plotted off by name sits in the row beyond the house |
 | a circle's floor, a tombstone | the origin of a frame of its own |

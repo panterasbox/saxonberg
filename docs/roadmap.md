@@ -582,7 +582,7 @@ opportunistically.
 
 - ✅ **Every corpse gets its own identity** — shipped by the identity
   build (`design/dossier`, MR !248), ahead of #40 by decision.
-  `mintCorpseFrom` passes `asIdentityPath` with `OuterWarren`'s
+  `mintCorpseFrom` passes `asIdentityPath` with `CirculationWarren`'s
   scheme-derived pattern, and it survives the two things the item flagged:
   `reembody` (one person, several corpses — the *moment* is the second
   half of the key) and a shared `Extra` deceased key (same second falls

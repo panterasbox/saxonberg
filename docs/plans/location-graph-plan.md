@@ -163,7 +163,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   | `content/terminus/src/market/idea/cmd/StallController.ts:119` (the counter) | `${STALL_SEED}/<leaf>` | `/world/terminus/market/thing/stall` | its own `holder_snapshots` record (`restoreOrSeed`); `operatingLocations` / `counterPath` round-trips (`findByTemplatePath`) | **justified** (own record + lookup) — re-keyed by A4 |
   | `StallController.ts:141` (the house) | `${STALL_BUSINESS_SEED}/<leaf>` | `/trade/shopkeeping/idea/business/stall` | its operating account (`getAccountPath()` = identity, `Business.ts:339`); employment records' `organizationPath` | **justified** (referenced) |
   | `platform/idea/api/PartyLogic.ts:226` (`rec.path`) · `:358` | `/platform/idea/party/<uuid>` — not re-derivable, but **recorded** | `/platform/idea/Party` | its own `PartyRecord.path`; members' `activePartyPath` | **justified** (own record) |
-  | `lib/location/OuterWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` — **re-derivable** from the plan + the extent | the warren's circulation row (Hinkley `lots/road-segment`; Duncan's `Corridor`) | a parked character's snapshot records it as `place.container` (`capturePlacement`, `PersistableLogic.ts:221`) | **justified** (referenced) — ⭐ 9a's worked case: ephemeral as an object, durably named; **shape unchanged** |
+  | `lib/location/CirculationWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` — **re-derivable** from the plan + the extent | the warren's circulation row (Hinkley `lots/road-segment`; Duncan's `Corridor`) | a parked character's snapshot records it as `place.container` (`capturePlacement`, `PersistableLogic.ts:221`) | **justified** (referenced) — ⭐ 9a's worked case: ephemeral as an object, durably named; **shape unchanged** |
   | `platform/idea/api/ScriptLogic.ts:69` | `${parcel}/_eval` (`EvalController.ts:93`) — re-derivable from the jurisdiction | `/platform/idea/EvalScript` | `findByTemplatePath(path)` reads the previous scratch back to destroy it (`:66`) — a genuine lookup, not a mint-time probe | **justified** (lookup) |
   | `platform/idea/api/SandboxLogic.ts:355` (the wire body) | `actor.getIdentityPath()` — the REAL player's path, re-derivable | `/platform/agent/sandbox/SandboxAvatar` | the identity-keyed ledgers attribute in-circle acts to the player | **justified as a projection, wrong as a stamp** — DA8 / A3 moves the projection to the method and stops the stamp |
   | `platform/idea/Login.ts:309` (the guest) | `${Avatar.TEMPLATE_PATH_PREFIX}guest-<uuid>` (`:285`) — random | `/platform/agent/PrimaryAvatar` | nothing: unrecorded, `shouldPersist()` false | ⛔ **unjustified — named non-goal.** On the login path; its purpose is avoiding a throwaway template row; touching char-gen opportunistically is how a cheap build becomes expensive. The census RECORDS it; it is the first entry the ratchet is allowed to fall by. |
@@ -319,8 +319,8 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `api/stuff.ts:545` computes `identityPath = opts?.asIdentityPath ?? templatePath`
   for the singleton guard, and line 629 stamps `#identityPath` **only
   when `asIdentityPath` was passed**. Four populations follow:
-  - **Circulation nodes** of an `OuterWarren` are stamped
-    (`lib/location/OuterWarren.ts:499`) — ephemeral as objects, durably
+  - **Circulation nodes** of an `CirculationWarren` are stamped
+    (`lib/location/CirculationWarren.ts:499`) — ephemeral as objects, durably
     NAMED (G-MINT; requirements 9a's worked case). Their stamp stays.
   - **Holding rooms** (every Duncan Hall dorm room, every Hinkley house
     room, Seznick House's units) are NOT stamped. The keyed model is the
@@ -414,7 +414,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `nodesInOrder:315` (⚠ linear is unbounded — enumerates to `maxNodes`),
   `isAuthored:333`, `authoredPathOf:339`, `routeOf:358`,
   `reachableGiven:383`, `predecessorOf:393`, `onwardDirectionOf:409`,
-  `gateDirectionOfSlot:431`. `OuterWarren.fieldMeta` (line 112) carries
+  `gateDirectionOfSlot:431`. `CirculationWarren.fieldMeta` (line 112) carries
   `plan`, `capacityKey`, `defaultCapacity`, `parentExtent` as persistent
   + authorable; `getParentExtent():151`, `getPlatPlan():187`.
   `ensureNode` (line 486) uses `authoredPathOf(nodeId)` →
@@ -860,7 +860,7 @@ census QUESTIONS them, and its count is meant to go DOWN.
   stamps are re-derived from its new key in A4 (DA6) but the shape class
   is the same. Stage B's D4 derives the circulation identity through
   **`PlatPlan.nodeIdentityOf(nodeId, extent)`** (an instance method on
-  the kernel value object, which `OuterWarren.ensureNode` also calls), so
+  the kernel value object, which `CirculationWarren.ensureNode` also calls), so
   there is one computer of the string, not two — the method is a move of
   the existing formula, not a new shape.
 - **A2 unmints nothing, and says so.** Eleven sites are justified; the
@@ -963,17 +963,17 @@ boot"*. Indexes: `{identity: 1}` unique; `{zone: 1}`; `{'edges.to': 1}`;
   (G-ROWS). `identity` = `template` = the row path. Every other location
   row is a **kind** and is not a node.
 - A **plan node** (`origin: 'plan'`) is every circulation node of every
-  row whose effective class extends `lib/location/OuterWarren`
+  row whose effective class extends `lib/location/CirculationWarren`
   (`PlatWarren`, `BuildingWarren`, `DormWarren` extend it): parse
   `data.plan` with `PlatPlan.parse` (the kernel value object; the data is
-  authored on the kernel's `OuterWarren.fieldMeta`), enumerate
+  authored on the kernel's `CirculationWarren.fieldMeta`), enumerate
   `nodesInOrder(cap)` where `cap` for a linear plan is
   `ceil(defaultCapacity / frontagesPerNode)`; `identity` =
   `authoredPathOf(nodeId)` when the node is authored (the authored row
   then IS the node and the plan contributes its edges), else
   **`plan.nodeIdentityOf(nodeId, parentExtent)`** = `` `${parentExtent}/${nodeId}` ``,
   byte-identical to today's `ensureNode` string and the same method
-  `OuterWarren.ensureNode` now calls (DA5), so the two strings cannot
+  `CirculationWarren.ensureNode` now calls (DA5), so the two strings cannot
   drift. Edges: the spine (`predecessorOf` /
   `onwardDirectionOf` + the inverse), the branch edge
   (`branchesFrom.direction`), and one **slot stub** per frontage
@@ -1495,7 +1495,7 @@ Covers AC1, AC2, AC19's handle half.
 > definition.
 >
 > `PlatPlan.nodeIdentityOf(nodeId, parentExtent)` landed as planned and
-> `OuterWarren.ensureNode` calls it; the string is unchanged, proven by a
+> `CirculationWarren.ensureNode` calls it; the string is unchanged, proven by a
 > test that also pins re-derivability across a reap.
 
 **Original wave spec** — `build(stuff): every identity mint names what keys on it; the unjustified count is a ratchet at two`
@@ -1509,7 +1509,7 @@ reason and the slate pointer); `api/stuff.ts` (`#cloneInner` continuity
 assertion + `#identityNamespaceOf(ctor)` prototype walk);
 `lib/character/Avatar.ts`, `platform/agent/ShadeAvatar.ts`,
 `platform/idea/Party.ts` (`identityNamespace`); `lib/location/PlatPlan.ts`
-(`nodeIdentityOf(nodeId, extent)`) + `lib/location/OuterWarren.ts:499`
+(`nodeIdentityOf(nodeId, extent)`) + `lib/location/CirculationWarren.ts:499`
 (calls it; string unchanged); `docs/subsystems/identity.md` or
 `architecture.md`, `lint-family.md`. Tests: the lint's own (a fixture
 tree with a marked site, an unmarked site → error, a `none` site →
@@ -2407,7 +2407,7 @@ Read first, in this order:
    `scripts/check-person-keys.ts` (the lint shape to copy) ·
    `content/terminus/src/market/thing/MarketStalls.ts` +
    `idea/cmd/StallController.ts` + `content/world/terminus/market/{square,stalls,thing/stall,cmd/stall}.yaml` ·
-   `lib/location/OuterWarren.ts:480–520` · `lib/location/PlatPlan.ts`
+   `lib/location/CirculationWarren.ts:480–520` · `lib/location/PlatPlan.ts`
 3. `packages/server/src/mud/lib/boundary/Exit.ts` (`getDiscoveryKey:400`,
    `canTraverse`, `TraversalGate`) · `lib/boundary/Exitable.ts`
    (`_applyExitSpec`, `obviousExitsFor`, `verifyOutboundExits`)

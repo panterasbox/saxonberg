@@ -343,7 +343,7 @@ export class PlatPlan {
    * warren that mints the node, and anything that has to name the same
    * node without standing it up. Two computers of one string is exactly
    * what a single home prevents, so the formula lives here — it is a
-   * MOVE of the string `OuterWarren.ensureNode` already built, not a
+   * MOVE of the string `CirculationWarren.ensureNode` already built, not a
    * new shape.
    *
    * ⭐ It is a durable name even though the node is ephemeral as an

@@ -8,7 +8,7 @@
  * A `Location` — one of many, one per live floor — and on the hall's grid
  * like every place but the void: a clone holds no authored coords, so it
  * takes the cell its `down` stair says it is in (`plotBesideNeighbour`,
- * from `OuterWarren.ensureNode`): floor 1 one cell above the lobby.
+ * from `CirculationWarren.ensureNode`): floor 1 one cell above the lobby.
  * Sized by the hall's cell, like every Location. It holds the floor's
  * `DormDoor`s and the `down` (to the floor below) + `up` (a `FloorStairExit`)
  * stairs. No persistence — floors reconstitute from the durable slot set.

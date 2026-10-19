@@ -120,7 +120,7 @@ of the read-through mode the mutable registries will need.
   § Sequencing 5. ⚠ And it is a bigger claim than the slate states: the
   boolean does **three** unrelated jobs — the wire/shade guard, the
   **guest** gate (`!this.isGuest`), and the **revert** flag
-  (`markForRevert`, `OuterWarren`). Only the first is a partition; the
+  (`markForRevert`, `CirculationWarren`). Only the first is a partition; the
   other two mean *capture nothing at all*, which an allowlist cannot
   say. This build retires `SandboxAvatar`'s override only.
 - **The phase axis, the death spec, and the class layering** (Sequencing

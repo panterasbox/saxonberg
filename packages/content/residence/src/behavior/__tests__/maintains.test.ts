@@ -28,8 +28,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
 import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
-import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
@@ -48,7 +48,7 @@ const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
 /** A stand-in programme — the three methods are the contract. */
-class HoldingWarren extends InnerWarren {
+class HoldingWarren extends RoomWarren {
   public key = '';
   public band = 'sound';
   public entry: Stuff | null = null;
@@ -75,9 +75,9 @@ class HoldingWarren extends InnerWarren {
 
 /**
  * A stand-in institution. It stands the programmes the roster will find;
- * everything else an `OuterWarren` does is unused here.
+ * everything else an `CirculationWarren` does is unused here.
  */
-class TestInstitution extends OuterWarren {
+class TestInstitution extends CirculationWarren {
   public standing: (Stuff & Container)[] = [];
   override holdings(): (Stuff & Container)[] {
     return this.standing;

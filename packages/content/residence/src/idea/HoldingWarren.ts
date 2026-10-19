@@ -26,12 +26,12 @@
 
 import { type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
-// A holding's members are ROOMS, so it is an INNER warren — the tier
+// A holding's members are ROOMS, so it is a `RoomWarren` — the tier
 // whose occupancy is who is standing in a member. Its institution (a
-// dorm, a building, a plat) is the OUTER one, whose members are
-// holdings like this. `Warren` declares `occupantsOf` abstract so the
+// dorm, a building, a plat) is a `CirculationWarren`, whose members are
+// holdings like this and which owns the corridors and lanes between them. `Warren` declares `occupantsOf` abstract so the
 // tier is chosen explicitly, by which base you extend.
-import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -93,7 +93,7 @@ const GAME_DAY_SECONDS = 86_400;
 
 const ProgrammeBase = PersistableMixin(
   WarrenMemberMixin(
-    ContainerMixin(InnerWarren),
+    ContainerMixin(RoomWarren),
   ),
 );
 

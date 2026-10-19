@@ -138,7 +138,7 @@ behavior. Read the relevant doc before editing in its area.
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
   - [identity.md](./docs/subsystems/identity.md) — who a character IS: the `Cast`/`Extra` rungs (name OR the definite article), the authored dossier as seeded evidence + the archetype stamp, who answers for you, the three gates; ⭐ the Compact stays players-only by ARITHMETIC
-  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
+  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/RoomWarren/CirculationWarren tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity

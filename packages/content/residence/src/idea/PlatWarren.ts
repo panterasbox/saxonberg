@@ -20,7 +20,7 @@
  * before — the designed swap seam, swapped.
  */
 
-import { OuterWarren } from "@saxonberg/server/mud/lib/location/OuterWarren";
+import { CirculationWarren } from "@saxonberg/server/mud/lib/location/CirculationWarren";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
@@ -37,11 +37,11 @@ import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const PlatWarrenBase = SingletonMixin(OuterWarren);
+const PlatWarrenBase = SingletonMixin(CirculationWarren);
 
 export default class PlatWarren extends PlatWarrenBase {
   static fieldMeta: FieldMeta = {
-    ...OuterWarren.fieldMeta,
+    ...CirculationWarren.fieldMeta,
     programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
     roadTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
@@ -184,7 +184,7 @@ export default class PlatWarren extends PlatWarrenBase {
     return holding ? this.entryRoomOf(holding) : null;
   }
 
-  // ─────────────── OuterWarren policy hooks ─────────────────────
+  // ─────────────── CirculationWarren policy hooks ─────────────────────
 
   /** Stand one house up whole: the keyed programme, woken (D16). */
   protected async standUpHolding(key: string): Promise<MemberStuff> {
