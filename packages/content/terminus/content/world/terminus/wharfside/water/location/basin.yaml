@@ -40,3 +40,5 @@ data:
     # the bed the moment it is here, where a diver finds it and the city
     # pays to have it lifted.
     - /world/terminus/wharfside/water/thing/lost-anchor
+    # ⭐ The bell hangs here at the surface until the hoist lowers it.
+    - /world/terminus/wharfside/water/thing/bell

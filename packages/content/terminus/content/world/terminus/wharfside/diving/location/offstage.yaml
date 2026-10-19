@@ -1,0 +1,8 @@
+# Where the dive shop's people are when they are not working.
+class: /platform/location/Offstage
+data:
+  shortDescription: The Dive Shop — Back Room
+  keywords: [room, back]
+  register: proper
+  longDescription: |
+    A back room with a stove, a kettle and a line of boots drying in front of it.

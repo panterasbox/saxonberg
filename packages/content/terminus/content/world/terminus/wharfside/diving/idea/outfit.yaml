@@ -1,0 +1,48 @@
+# Morrow's dive shop (underwater C5) — the business: a dive master behind
+# the counter, a tender who holds the line on the quay, and a pump hand
+# who keeps the air going down the hose.
+class: /platform/idea/Business
+data:
+  name: "Morrow's dive shop"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/diving/agent/dive-master
+  call: rota
+  positions:
+    - key: master
+      noun: divemaster
+      label: running the dive shop
+      wageRate: 5
+      fulfills: [diving]
+    - key: tender
+      noun: tender
+      label: tending a diver's line
+      wageRate: 4
+      fulfills: [diving]
+    - key: pump-hand
+      noun: pumper
+      label: working the air pump
+      wageRate: 3
+      fulfills: [diving]
+  rosterSlots:
+    - positionKey: master
+      assignee: /world/terminus/wharfside/diving/agent/dive-master
+      station: /world/terminus/wharfside/diving/location/shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+    - positionKey: tender
+      assignee: /world/terminus/wharfside/diving/agent/tender
+      station: /world/terminus/wharfside/bank
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+    - positionKey: pump-hand
+      assignee: /world/terminus/wharfside/diving/agent/pump-hand
+      station: /world/terminus/wharfside/bank
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  offstage: /world/terminus/wharfside/diving/location/offstage
+  operatingLocations:
+    - /world/terminus/wharfside/diving/location/shop
+    - /world/terminus/wharfside/diving/thing/counter
+    - /world/terminus/wharfside/bank

@@ -539,7 +539,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         if (MixinApi.isAttired(s)) s.immerse();
         else if (MixinApi.isWet(s)) s.wet(1);
         if (MixinApi.isBulkable(s) && depth > 0) await this.fillOpenVessel(s);
-        if (MixinApi.isContainer(s)) {
+        // ⭐ An air pocket (a bell) keeps the water out of what it holds.
+        const ownAir = MixinApi.isAtmospheric(s) ? s.getInlineAtmosphere() : null;
+        if (MixinApi.isContainer(s) && (ownAir === null || ownAir === 'water')) {
           for (const c of [...s.getContents()]) await walk(c, depth + 1);
         }
       };

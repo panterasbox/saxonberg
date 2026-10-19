@@ -1,0 +1,21 @@
+# ⭐ Taking a fish by diving (underwater C5): in the lit band, where you
+# can see them, a fish spear takes what the water holds — drawn from the
+# same fishery every line and pot draws from.
+verbs: [spear]
+controller: /trade/diving/idea/cmd/diving/SpearController
+description: "Thrust a fish spear at what swims here"
+help: |
+  `spear fish` thrusts the fish spear you are holding at what swims
+  near you. You have to be down in the water. You take the most
+  plentiful fish the water has here — or nothing comes within reach,
+  when the water is fished out. A speared fish is yours to keep or to
+  sell to a fishmonger.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: quarry
+    type: string
+    required: false
+    greedy: true

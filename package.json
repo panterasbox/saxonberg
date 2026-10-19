@@ -65,7 +65,8 @@
     "@saxonberg/content-transport": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
-    "@saxonberg/content-world-seed": "workspace:*"
+    "@saxonberg/content-world-seed": "workspace:*",
+    "@saxonberg/content-trade-diving": "workspace:*"
   },
   "scripts": {
     "build": "pnpm -r build",

@@ -1,0 +1,21 @@
+# ⭐ Go and look at the works (underwater D17): a screen, a sluice, a weir.
+# The thing says what you see; and having looked is what an `inspection`
+# job on those works asks — the engine records it on the spot.
+verbs: [inspect]
+controller: /platform/idea/cmd/work/InspectController
+description: "Inspect works — see their state, and do an inspection job"
+help: |
+  `inspect screen` looks closely at a piece of works — the intake's
+  screen under the river, a sluice gate — and tells you what state it is
+  in. If you have taken a job to inspect those works, looking is the
+  job: go back to the board and `job complete`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # `requires: any` — works share no mixin; the controller narrows by SHAPE.
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: any

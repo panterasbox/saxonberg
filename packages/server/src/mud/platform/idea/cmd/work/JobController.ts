@@ -182,7 +182,7 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
   ):
     | {
-        template: "delivery" | "supply" | "watch";
+        template: "delivery" | "supply" | "watch" | "inspection";
         itemRef: ConditionData["item"];
         destinationPath: string;
         count: number;
@@ -190,14 +190,37 @@ export default class JobController extends CommandController<JobModel> {
       }
     | { error: string; reason: string } {
     const words = raw.trim().split(/\s+/).filter(Boolean);
-    const verb = (words.shift() ?? "").toLowerCase();
+    let verb = (words.shift() ?? "").toLowerCase();
+    /*
+     * ⭐ `inspect <works>` (underwater D17) — go and look at it. The works
+     * are named by what you can reach or by their path; the gig holds
+     * when the claimant uses `inspect` on them.
+     */
+    if (verb === "inspect") {
+      const works = this.kindOf(words.join(" "), context);
+      if (works.length === 0) {
+        return { error: `Inspect what? Name the works.`, reason: "no-item" };
+      }
+      return {
+        template: "inspection",
+        itemRef: { kind: "template", path: works },
+        // Inert, like a watch's place: where the gig was posted from.
+        destinationPath: context.location?.getTemplatePath() ?? works,
+        count: 1,
+      };
+    }
+    // ⭐ `recover <body> to <place>` is a delivery of ONE thing by who or
+    // what it is — a drowned body has no chattel row (underwater D17).
+    const recovering = verb === "recover";
+    if (recovering) verb = "deliver";
     if (verb !== "deliver" && verb !== "supply" && verb !== "watch") {
       return {
         error:
           `Post what? Say what has to be true — ` +
           `\`deliver <thing> to <place>\`, ` +
-          `\`supply <n> <kind> to <place>\` or ` +
-          `\`watch <place> for <n> hours\`.`,
+          `\`supply <n> <kind> to <place>\`, ` +
+          `\`watch <place> for <n> hours\`, \`inspect <works>\` or ` +
+          `\`recover <body> to <place>\`.`,
         reason: "no-condition",
       };
     }
@@ -322,6 +345,15 @@ export default class JobController extends CommandController<JobModel> {
     // `deliver` — point at it. A MARKED thing means THAT one; anything
     // else means its kind.
     const rawItem = subject.join(" ");
+    // A body named by its identity path (a posting brain names it so).
+    if (recovering && rawItem.startsWith("/")) {
+      return {
+        template: "delivery",
+        itemRef: { kind: "identity", identityPath: rawItem },
+        destinationPath,
+        count: 1,
+      };
+    }
     const item =
       MqlApi.resolveMany(rawItem, {
         commandGiver: context.commandGiver,
@@ -343,11 +375,16 @@ export default class JobController extends CommandController<JobModel> {
       };
     }
     const chattelId = MixinApi.isChattel(item) ? item.getChattelId() : "";
+    // ⭐ No chattel, but its own identity (a body): THAT one, by identity.
+    const identity = item.getIdentityPath() ?? "";
+    const ownIdentity = identity !== "" && identity !== (item.getTemplatePath() ?? "");
     return {
       template: "delivery",
       itemRef: chattelId
         ? { kind: "chattel", chattelId }
-        : { kind: "template", path: item.getTemplatePath() ?? "" },
+        : ownIdentity
+          ? { kind: "identity", identityPath: identity }
+          : { kind: "template", path: item.getTemplatePath() ?? "" },
       destinationPath,
       count: 1,
     };
@@ -392,7 +429,9 @@ export default class JobController extends CommandController<JobModel> {
     const what =
       condition?.item.kind === "chattel"
         ? `a marked item (${condition.item.chattelId.slice(0, 6)}…)`
-        : leafOf(condition?.item.kind === "template" ? condition.item.path : "");
+        : condition?.item.kind === "identity"
+          ? leafOf(condition.item.identityPath)
+          : leafOf(condition?.item.kind === "template" ? condition.item.path : "");
     const where = leafOf(condition?.destinationPath ?? "");
     const mode =
       gig.claimMode === "open-bounty"
@@ -413,6 +452,9 @@ export default class JobController extends CommandController<JobModel> {
         `  [${short}] watch ${where} — ${this.watchProgress(gig)} ` +
         `— ${gig.rewardMinor} credits (${mode}${expiry})`
       );
+    }
+    if (condition?.template === "inspection") {
+      return `  [${short}] inspect ${what} — ${gig.rewardMinor} credits (${mode}${expiry})`;
     }
     return `  [${short}] deliver ${what} to ${where} — ${gig.rewardMinor} credits (${mode}${expiry})`;
   }

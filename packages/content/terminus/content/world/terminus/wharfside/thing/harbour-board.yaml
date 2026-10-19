@@ -1,0 +1,14 @@
+# The harbour board (underwater C4) — where the harbour works post the
+# city's work below the waterline: inspections, recoveries, the lifting.
+class: /platform/thing/JobBoard
+data:
+  shortDescription: harbour board
+  keywords: [board, "harbour board", notices, jobs, job-board]
+  register: definite
+  longDescription: >
+    A tarred board on the quay wall under a little roof of its own, the
+    city's arms painted at the top and the slips under them weighted
+    against the wind with strips of lead.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 15
+  fixedInPlace: true

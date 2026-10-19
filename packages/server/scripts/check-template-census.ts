@@ -194,6 +194,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Wharfside basin). Resolved live by every read of the band; a
     // rowless one is a room under no water at all.
     'surface',
+    // ⭐ `bell` (the underwater build) — the diving bell a hoist carries,
+    // found live by its row path every time the hoist is worked.
+    'bell',
+    // ⭐ `works` (the underwater build) — the works a WorksFace is the face
+    // of (the intake's screen is the city intake's): read live on `inspect`.
+    'works',
     // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
     // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
     // the solidify edge of `reconcileBulkPhase`, and a rowless one is a

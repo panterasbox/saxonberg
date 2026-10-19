@@ -138,6 +138,11 @@ data:
     river:
       destination: /world/terminus/wharfside/water/location/basin
       media: [water, vertical]
+    # ⭐ Morrow's dive shop, a tarred shed on the quay (underwater C5).
+    divers:
+      destination: /world/terminus/wharfside/diving/location/shop
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
@@ -179,9 +184,21 @@ data:
     # detail wins the binding, and `climb steps` would have read the words
     # instead of the stone.
     - /world/terminus/wharfside/water/thing/quay-steps
+    # ⭐ The heaving line at the head of the steps (underwater C1).
+    - /world/terminus/wharfside/water/thing/heaving-line
+    # ⭐ The bell hoist over the basin (underwater C2).
+    - /world/terminus/wharfside/water/thing/bell-hoist
+    # ⭐ The dive shop's air pump on the quay, and the harbour works'
+    # board (underwater C3/C4).
+    - /trade/diving/thing/air-pump
+    - /world/terminus/wharfside/thing/harbour-board
   cast:
     - /world/terminus/wharfside/agent/fisher
     - /world/terminus/wharfside/agent/pilot
+    # ⭐ The dive shop's quay crew: the tender holds a diver's line, the
+    # pump hand works the air pump (underwater C3–C5).
+    - /world/terminus/wharfside/diving/agent/tender
+    - /world/terminus/wharfside/diving/agent/pump-hand
   details:
     lamps:
       keywords: [lamps, lamp, standards, lighting]

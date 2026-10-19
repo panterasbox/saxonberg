@@ -17,8 +17,7 @@ data:
   enclosure: none
   roof: none
   _biomePath: /stuff/idea/biome/water/under
-  details:
-    screen:
-      keywords: [screen, grate, bars, grille]
-      description: |
-        Iron bars a hand's breadth apart, the whole face of them matted with weed, rag and the leaves of last autumn. Through them, black, the pipe goes on toward the pump.
+  # ⭐ The screen is a THING (a works face) — `inspect screen` is the
+  # harbour works' job. A detail of the same name would win the binding.
+  props:
+    - /world/terminus/wharfside/water/thing/intake-screen

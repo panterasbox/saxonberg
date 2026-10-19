@@ -1,0 +1,11 @@
+# The face of a works (underwater D17) — the part of an intake or a weir
+# you can go and look at. A venue's row names its works.
+class: /system/water/thing/WorksFace
+data:
+  shortDescription: screen
+  keywords: [screen, bars, grate]
+  register: definite
+  longDescription: Iron bars across the mouth of the works.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 200
+  fixedInPlace: true

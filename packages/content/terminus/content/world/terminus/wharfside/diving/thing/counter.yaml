@@ -1,0 +1,44 @@
+# The dive shop counter (underwater C5) — what takes you down and keeps
+# you alive there.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: dive counter
+  keywords: [counter, till]
+  register: definite
+  longDescription: |
+    A scarred counter with a brass rail, coils of line underneath and a slate of prices nailed above.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 70
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [master]
+  businessPath: /world/terminus/wharfside/diving/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/diving/thing/diving-stone, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/weight-belt, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/lifeline, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/hose, par: 1 }
+    - { itemTemplatePath: /trade/diving/thing/helmet, par: 1 }
+    - { itemTemplatePath: /trade/diving/thing/dress, par: 1 }
+    - { itemTemplatePath: /trade/diving/thing/boots, par: 1 }
+    - { itemTemplatePath: /trade/diving/thing/air-barrel, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/dive-tables, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/slate, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/signal-bell, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/spear, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/air-bag, par: 3 }
+  prices:
+    /trade/diving/thing/diving-stone: 4
+    /trade/diving/thing/weight-belt: 10
+    /trade/diving/thing/lifeline: 8
+    /trade/diving/thing/hose: 20
+    /trade/diving/thing/helmet: 60
+    /trade/diving/thing/dress: 40
+    /trade/diving/thing/boots: 25
+    /trade/diving/thing/air-barrel: 12
+    /trade/diving/thing/dive-tables: 3
+    /trade/diving/thing/slate: 2
+    /trade/diving/thing/signal-bell: 6
+    /trade/diving/thing/spear: 9
+    /trade/diving/thing/air-bag: 10

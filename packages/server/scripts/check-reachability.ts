@@ -603,6 +603,8 @@ const CITATIONS: Record<string, string> = {
   source: "a feeder's generator — read live, never placed (the case that forced this list)",
   supply: "a locality's supply point",
   shelf: "a brain's config — the fixture is propped by its room",
+  works: "the works a face is the face of — the works are propped by their own place (underwater)",
+  bell: "the bell a hoist carries — the bell is propped by the water it hangs in (underwater)",
   stock: "as `shelf`",
   counter: "as `shelf`",
   board: "as `shelf`",
@@ -622,6 +624,8 @@ const CITATIONS: Record<string, string> = {
   _vaultPaths: "a donation bank's vaults, filtered live to live Containers",
   value: "a setting's value",
   seatIn: "self-seating — mechanism 2, likewise",
+  intake: "the surveys brain's works to post an inspection of — propped by the bank (underwater C4)",
+  anchor: "the surveys brain's lost anchor to post a recovery of — propped by the bed it lies on (underwater C4)",
 };
 
 /** Is this a `thing`-branch template path? */

@@ -176,4 +176,59 @@ describe('the weight of the water (underwater A4)', () => {
     expect(c.isInDrowningResponse()).toBe(true);
     expect(c.canVocalize()).toMatchObject({ ok: false, reason: 'no-breath' });
   });
+
+  it('⭐ the bends: twenty minutes on pumped air in the dark water, straight up — bent; with a stop — not', async () => {
+    const bent = body();
+    const careful = body();
+    for (const c of [bent, careful]) {
+      ContainmentApi.move(c, airRoom());
+      vi.spyOn(c as unknown as { hasWornAir(): boolean }, 'hasWornAir').mockReturnValue(true);
+      vi.spyOn(c as unknown as { currentSupply(): string }, 'currentSupply').mockReturnValue('available');
+    }
+    await settle();
+    const medium = vi.spyOn(BiomeApi, 'mediumFor');
+    const afflicted = (c: TestCharacter): boolean =>
+      c.getConditions().some((r) => (r as { templatePath?: string }).templatePath === TemplatePaths.respirationDecompression);
+    // Down to the dark water (4.5 m) on pumped air, and twenty minutes there.
+    medium.mockReturnValue(water(4.5));
+    await bent.reassess();
+    await careful.reassess();
+    WorldClockApi._advanceForTesting(20 * 60 * 1000);
+    await bent.reassess();
+    await careful.reassess();
+    // Straight up.
+    medium.mockReturnValue(water(0, true));
+    await bent.reassess();
+    expect(afflicted(bent)).toBe(true);
+    // Fifteen minutes in the light band (2.25 m) first.
+    medium.mockReturnValue(water(2.25));
+    await careful.reassess();
+    WorldClockApi._advanceForTesting(15 * 60 * 1000);
+    await careful.reassess();
+    medium.mockReturnValue(water(0, true));
+    await careful.reassess();
+    expect(afflicted(careful)).toBe(false);
+  });
+
+  it('⭐ going back down relieves the bends (recompression)', async () => {
+    const c = body();
+    ContainmentApi.move(c, airRoom());
+    vi.spyOn(c as unknown as { hasWornAir(): boolean }, 'hasWornAir').mockReturnValue(true);
+    vi.spyOn(c as unknown as { currentSupply(): string }, 'currentSupply').mockReturnValue('available');
+    await settle();
+    const medium = vi.spyOn(BiomeApi, 'mediumFor');
+    medium.mockReturnValue(water(6));
+    await c.reassess();
+    WorldClockApi._advanceForTesting(30 * 60 * 1000);
+    await c.reassess();
+    medium.mockReturnValue(water(0, true));
+    await c.reassess();
+    const bent = (): boolean =>
+      c.getConditions().some((r) => (r as { templatePath?: string }).templatePath === TemplatePaths.respirationDecompression);
+    expect(bent()).toBe(true);
+    medium.mockReturnValue(water(6));
+    await c.reassess();
+    expect(bent()).toBe(false);
+  });
 });
+

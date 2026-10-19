@@ -119,6 +119,14 @@ export const RESPIRATION_DEFAULTS = {
   FLOAT_SUPPORT_N: 30,
   /** Unequalized descent that hurts, metres (raised by diving). */
   SQUEEZE_AT_M: 3,
+  /**
+   * ⭐ The bends (underwater D27): three tissue compartments, Haldane's
+   * half-times in game-seconds, and the load (atm of dissolved gas) each
+   * can carry back to the surface without bubbling. A fast tissue fills
+   * and empties in minutes; a slow one keeps what it took for hours.
+   */
+  GAS_HALF_TIMES_S: [300, 1200, 3600] as readonly number[],
+  GAS_M_VALUES: [1.4, 1.25, 1.12] as readonly number[],
   /** `spo2` recovery rate per game-second on return to breathable air. */
   RECOVER_PER_SEC: 4.0,
   /** Lethal floor: dwell at/below this `spo2` accrues toward death. */
@@ -242,6 +250,8 @@ export interface Respiration {
   equalize(): void;
   /** The unequalized pressure on your ears, metres of descent. */
   getPressureDebtM(): number;
+  /** Dissolved gas per tissue compartment, atm (the bends, D27). */
+  getGasLoad(): readonly number[];
   /**
    * ⭐ Held up face-up at the surface (underwater D11) — by the water's
    * answer to a disconnected player. Breathing, at no cost, until
@@ -343,6 +353,16 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _lastDepthM = 0;
     /** The squeeze stages suffered since the last equalize (0, 1 squeeze, 2 eardrum). */
     private _squeezeStage = 0;
+    /**
+     * ⭐ Dissolved gas per tissue compartment, atm (underwater D27) —
+     * loaded at the water's pressure while breathing from a worn supply,
+     * given back at whatever pressure the body breathes at. Runtime.
+     */
+    private _gasLoad: number[] = [1, 1, 1];
+    /** When the gas load was last reconciled, game-seconds. */
+    private _gasStampS: number | null = null;
+    /** The pressure the body was breathing at then, atm. */
+    private _gasAtAtm = 1;
     /** The last swimming and diving bands read, warmed at reassess. */
     private _swimBand = 'untrained';
     private _diveBand = 'untrained';
@@ -655,6 +675,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ Down the water: the pressure on your ears (underwater D15).
       this.notePressure(medium);
+      // ⭐ The gas the tissues take up at depth, and the bends (D27).
+      if (nowS !== null) this.reconcileGas(nowS, medium, cause === 'supply' && this.hasWornAir());
       await this.warmWaterBands();
       if (self.isDestroyed()) return;
       const tread = engaged.getEngagementByType('respiration-tread');
@@ -1115,6 +1137,53 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         this.bodyCue('Your ears ache with the weight of the water.');
       }
+    }
+
+    /**
+     * ⭐⭐ The bends (underwater D27). Each compartment relaxes toward the
+     * pressure the body breathes at — the water's, `1 + depth/10`, while
+     * a worn supply feeds it at depth; the surface's otherwise. A free
+     * diver's lungful never loads (they take no gas down). Arriving at
+     * the surface with any compartment over its limit afflicts the bends,
+     * which show some minutes later; going back down below the band whose
+     * pressure clears it is the recompression that relieves them.
+     */
+    private reconcileGas(
+      nowS: number,
+      medium: { immersed: boolean; atSurface: boolean; depthM: number },
+      onSupply: boolean,
+    ): void {
+      const depth = medium.immersed && !medium.atSurface ? medium.depthM : 0;
+      const breathingAt = onSupply ? 1 + depth / 10 : 1;
+      if (this._gasStampS !== null && nowS > this._gasStampS) {
+        const dt = nowS - this._gasStampS;
+        const halves = RESPIRATION_DEFAULTS.GAS_HALF_TIMES_S;
+        for (let i = 0; i < halves.length; i++) {
+          const k = 1 - Math.pow(2, -dt / halves[i]!);
+          this._gasLoad[i] = this._gasLoad[i]! + (this._gasAtAtm - this._gasLoad[i]!) * k;
+        }
+      }
+      const host = this as unknown as RespirationHost;
+      const path = TemplatePaths.respirationDecompression;
+      const limits = RESPIRATION_DEFAULTS.GAS_M_VALUES;
+      // ⭐ The bends are a surface event: over a limit with only the
+      // surface's pressure holding the gas in.
+      const over = this._gasLoad.some((load, i) => load / breathingAt > limits[i]!);
+      const bent = this.findAffliction(path);
+      if (over && breathingAt <= 1 && !bent) {
+        host.afflict({ kind: 'affliction', templatePath: path, stage: 0, elapsed: 0 });
+      } else if (bent && breathingAt > 1 && !over) {
+        // Recompression: back under enough pressure, the bubbles go back
+        // into solution.
+        host.relieve(bent);
+      }
+      this._gasStampS = nowS;
+      this._gasAtAtm = breathingAt;
+    }
+
+    /** Dissolved gas per tissue compartment, atm (fast, middle, slow). */
+    public getGasLoad(): readonly number[] {
+      return [...this._gasLoad];
     }
 
     /** Warm the swimming and diving bands the hot ticks read. */

@@ -186,6 +186,8 @@ export const TemplatePaths = {
   respirationSqueeze: "/platform/idea/Condition/respiration/squeeze",
   /** A burst eardrum: vertigo (underwater D15). */
   respirationBurstEardrum: "/platform/idea/Condition/respiration/burst-eardrum",
+  /** The bends — coming up too fast from a supplied dive (underwater D27). */
+  respirationDecompression: "/platform/idea/Condition/respiration/decompression-sickness",
 } as const;
 
 /**

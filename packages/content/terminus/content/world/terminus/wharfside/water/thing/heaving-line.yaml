@@ -1,0 +1,16 @@
+# The heaving line on the quay (underwater C1) — a lifeline coiled on a
+# bollard at the head of the steps, for the next person who goes in and
+# cannot get out. `heave line to <them>`, then `haul line`.
+class: /trade/diving/thing/Lifeline
+data:
+  shortDescription: heaving line
+  keywords: [line, "heaving line", rope, lifeline]
+  register: definite
+  longDescription: >-
+    A coil of line on a bollard at the head of the quay steps, a monkey's
+    fist knotted into the end of it for throwing. A painted board above it
+    says IN CASE OF NEED.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 3
+  kind: line
+  lengthM: 15

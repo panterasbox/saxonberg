@@ -1,0 +1,6 @@
+# The dive shop at Wharfside (underwater C5) — a sub-zone of the wharfside
+# so the shop keeps its own coords.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Dive Shop
+  cellSize: 4.0

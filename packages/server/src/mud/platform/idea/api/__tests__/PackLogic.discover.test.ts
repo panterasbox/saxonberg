@@ -117,7 +117,9 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ 61 → 64: the storage-and-ice build adds `trade-ice` and its venue
     // `hollow-mere`, and the rubber build `trade-rubber` (built in
     // parallel; whoever lands second recounts — the sum, whatever git says).
-    expect(ids).toHaveLength(64);
+    // ⭐ 64 → 65: the underwater build adds `trade-diving` (silk and
+    // cleanliness in flight beside it: whoever lands second recounts).
+    expect(ids).toHaveLength(65);
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.
@@ -236,6 +238,11 @@ describe('the shipped packs (real discovery, no install)', () => {
     // world-seed — no edge to the trade at all.
     expect(ids.indexOf('trade-fishing')).toBeGreaterThan(ids.indexOf('water'));
     expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-fishing'));
+    // ⭐ The diving cut (underwater C1): the trade sells to the fishery's
+    // buyers by drawing from the trade's reach, and Wharfside casts its
+    // tender and dive master with the trade's gear.
+    expect(ids.indexOf('trade-diving')).toBeGreaterThan(ids.indexOf('trade-fishing'));
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-diving'));
 
     // The watershed cut: the three packs whose content names the water
     // pack's classes (`/system/water/thing/Conduit`, `StorageNode`) or its

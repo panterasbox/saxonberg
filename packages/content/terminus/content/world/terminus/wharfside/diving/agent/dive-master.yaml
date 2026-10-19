@@ -1,0 +1,30 @@
+# The dive master (underwater C5) — Hob Morrow, who has been down in the
+# Kestrel more times than anybody living and sells the gear to do it.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Hob Morrow
+  keywords: [hob, morrow, "dive master", diver]
+  shortDescription: dive master
+  register: definite
+  longDescription: >-
+    A short, barrel-chested man with burst veins across his nose and one
+    ear that does not hear any more, who looks at a new diver's chest
+    before he looks at their face.
+  archetype: proprietor
+  prologue:
+    - "Has been down in the Kestrel more times than anybody living."
+    - "Lost his hearing on the one side to the bed below the outfall and will tell you how."
+  competence:
+    - { discipline: diving, asserting: expert }
+    - { discipline: swimming, asserting: expert }
+  dispositions:
+    - { disposition: sociability, valence: 40 }
+    - { disposition: composure, valence: 85 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

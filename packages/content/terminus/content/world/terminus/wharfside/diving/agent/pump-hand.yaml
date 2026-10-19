@@ -1,0 +1,24 @@
+# The pump hand (underwater C3/C5) — Dunny, who works the air pump on the
+# quay whenever a diver is down on its hose, and talks to it.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Dunny
+  keywords: [dunny, "pump hand", pumper]
+  shortDescription: pump hand
+  register: definite
+  longDescription: >-
+    A heavy-shouldered young man with forearms like hams, sitting on the
+    pump case with a hand on each handle.
+  archetype: hand
+  competence:
+    - { discipline: diving, asserting: novice }
+  props:
+    - /trade/diving/thing/hose
+  behaviors:
+    - brain: /trade/diving/behavior/cranks
+      trigger: candidate

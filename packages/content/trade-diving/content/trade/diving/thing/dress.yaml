@@ -1,0 +1,17 @@
+# A diving dress (underwater C3) — the rubberised canvas suit of a standard
+# dress, watertight to the neck where the helmet bolts on. It keeps the
+# water off and the cold out, for a while.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: diving dress
+  keywords: [dress, "diving dress", suit, canvas]
+  register: indefinite
+  longDescription: >-
+    A one-piece suit of rubberised twill, stiff and smelling of rubber,
+    with vulcanised cuffs and a copper corselet ring at the neck.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso, legs]
+  _materialPath: /stuff/idea/material/textile/rubberized-cloth
+  constructionForm: woven
+  gradeBand: good
+  mass: 8

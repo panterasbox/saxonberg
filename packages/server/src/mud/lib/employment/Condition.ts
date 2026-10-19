@@ -72,8 +72,17 @@ import type { Stuff } from "../stuff/Stuff";
  * ⚠ Which means a guard who watched the full term and was robbed blind
  * still gets paid. That is correct, and it is the same reason a delivery
  * pays on arrival rather than on the client being pleased.
+ *
+ * ## ⭐ `inspection` — the fourth (underwater D17)
+ *
+ * *"Go down and look at the intake."* What the engine can verify is not
+ * that you understood what you saw but that you were THERE and LOOKED:
+ * the `inspect` verb, used on the named works, writes the contract's
+ * engine-sealed `fulfilled` row on the spot (the trusted-recording
+ * pattern `fulfill` already uses). Nothing is delivered; the destination
+ * is the works themselves, inert like a watch's.
  */
-export const CONDITION_TEMPLATES = ["delivery", "supply", "watch"] as const;
+export const CONDITION_TEMPLATES = ["delivery", "supply", "watch", "inspection"] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
@@ -97,9 +106,21 @@ export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 export type ConditionItemRef =
   | { kind: "template"; path: string }
   | { kind: "chattel"; chattelId: string }
-  | { kind: "category"; category: string; unit: ParUnit };
+  | { kind: "category"; category: string; unit: ParUnit }
+  /**
+   * ⭐ `identity` (underwater D17): **this one**, by who or what it is —
+   * a drowned body has no chattel row and shares its kind with every
+   * other corpse, but it has its own identity. "Recover THIS body."
+   */
+  | { kind: "identity"; identityPath: string };
 
 /** The serializable condition payload a Contract carries. */
+/** The works an inspection was of, by path (identity, and lineage when it has one). */
+export interface InspectedWorks {
+  identityPath: string;
+  templatePath: string | null;
+}
+
 export interface ConditionData {
   template: ConditionTemplate;
   /** What must be delivered — instance-bound (chattel) or kind-bound. */
@@ -156,13 +177,15 @@ export class Condition {
       if (!item.path) return "a template-bound item needs a path";
     } else if (item.kind === "chattel") {
       if (!item.chattelId) return "a chattel-bound item needs its id";
+    } else if (item.kind === "identity") {
+      if (!item.identityPath) return "an identity-bound item needs its identity";
     } else if (item.kind === "category") {
       if (!item.category) return "a category-bound item needs a category";
       if (!PAR_UNITS.includes(item.unit)) {
         return `a category needs a unit — one of ${PAR_UNITS.join(", ")}`;
       }
     } else {
-      return "item must be template-, chattel- or category-bound";
+      return "item must be template-, chattel-, identity- or category-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
     if (d.template === "watch") {
@@ -185,7 +208,7 @@ export class Condition {
       }
       // ⚠ A supply gig never binds ONE marked object: "ten of THIS one"
       // is not a thing anybody can mean.
-      if (item.kind === "chattel") {
+      if (item.kind === "chattel" || item.kind === "identity") {
         return "a supply condition counts a KIND, not one marked item";
       }
     }
@@ -203,6 +226,21 @@ export class Condition {
    * *"a person was at a place, for a while"*, which the existing
    * predicate cannot express however it is squeezed.
    */
+  /**
+   * ⭐ Whether `thing` is what an `inspection` clause names — the works by
+   * their row, or THESE works by identity. The clause itself holds only
+   * by the sealed `fulfilled` row an inspection writes.
+   */
+  public inspects(works: InspectedWorks): boolean {
+    if (this.data.template !== "inspection") return false;
+    const item = this.data.item;
+    if (item.kind === "identity") return works.identityPath === item.identityPath;
+    if (item.kind === "template") {
+      return works.templatePath === item.path || works.identityPath === item.path;
+    }
+    return false;
+  }
+
   public watchHolds(watchedSec: number): boolean {
     if (this.data.template !== "watch") return false;
     return watchedSec >= Math.max(0, this.data.gameHours ?? 0) * 3600;
@@ -231,6 +269,9 @@ export class Condition {
       return CategoryMeasure.counts(stuff, data.item.category);
     }
     if (MixinApi.isStackable(stuff)) return false;
+    if (data.item.kind === "identity") {
+      return stuff.getIdentityPath() === data.item.identityPath;
+    }
     if (data.item.kind === "chattel") {
       return (
         MixinApi.isChattel(stuff) &&

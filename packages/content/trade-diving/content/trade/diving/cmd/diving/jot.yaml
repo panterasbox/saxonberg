@@ -1,0 +1,26 @@
+# ⭐ Writing under the water (underwater C5): a grease pencil on a white
+# slate, the way divers talk below where no voice carries. `read slate`
+# reads it back. (`write` is the shell's authoring verb, so the slate's
+# act is its own word.)
+verbs: [jot]
+controller: /trade/diving/idea/cmd/diving/JotController
+description: "Scratch a few words on a diver's slate"
+help: |
+  `jot slate <words>` scratches your words onto a diver's slate you are
+  holding, after whatever is there already. Anyone can `read slate`.
+  Under the water nobody hears you; the slate is how you talk. It is
+  scratched, not inked, so the water does not wash it out.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: slate
+    type: object
+    required: true
+    scope: "inventory"
+    requires: any
+  - name: words
+    type: string
+    required: true
+    greedy: true

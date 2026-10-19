@@ -1,0 +1,17 @@
+# Lead diving boots (underwater C3) — eighteen kilos of lead and leather a
+# boot, made to keep a hard-hat diver's feet on the bottom. In them you
+# walk the bed and you cannot swim up: the hose and the line bring you up.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: lead diving boots
+  keywords: [boots, "lead boots", "diving boots"]
+  register: indefinite
+  longDescription: >-
+    A pair of boots with thick lead soles strapped to leather uppers. You
+    can barely lift them on land.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [legs]
+  _materialPath: /stuff/idea/material/element/lead
+  constructionForm: hide
+  gradeBand: fair
+  mass: 36

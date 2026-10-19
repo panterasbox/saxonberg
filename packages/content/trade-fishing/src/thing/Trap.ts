@@ -35,18 +35,37 @@ import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { HabitatRole } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Species';
+import type { Haulable, HaulOutcome, HaulSense } from '@saxonberg/server/mud/lib/spatial/Haulable';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
+import type { SpeciesStanding } from '../lib/FisheryRead';
+import Waters, { WATERS_PATH } from '../idea/Waters';
+import Fish from '../agent/Fish';
 
 const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
-export default class Trap extends TrapBase {
+const AGENT_PREFIX = '/trade/fishing/agent/';
+
+export default class Trap extends TrapBase implements Haulable {
   static commandContributions: CommandContributions = {
     self: [],
     // `peers` = whoever stands where it lies (a set trap in the water);
     // `environment` = whoever holds it. `lay` needs it held; `haul` needs
     // it set; both views are offered either way and the controllers
     // narrow on state.
-    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/haul.yaml'],
-    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/haul.yaml'],
+    // ⭐ `haul` is the KERNEL's verb over the `Haulable` protocol now
+    // (underwater D19): the trap says what hauling it means.
+    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/haul.yaml'],
+    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/haul.yaml'],
   };
 
   static fieldMeta: FieldMeta = {
@@ -148,4 +167,142 @@ export default class Trap extends TrapBase {
     if (this.isSet()) return { ok: false, reason: 'a set trap stays in the water' };
     return super.canEvict(context);
   }
+
+  /* ─────────────────────────── the haul (Haulable) ─────────────────────────── */
+
+  /**
+   * ⭐ `haul pot`: what the water put in it since it was set, reconciled
+   * now against the reach's record, into the hauler's hands — the
+   * fraction one seeded unit, nothing saying which was luck. Whatever was
+   * already IN it (a keepnet's fish) comes up too; the water it held
+   * drains away (fishing B8). A pot only comes up: `sense` is ignored.
+   */
+  public async haulBy(hauler: Stuff, sense: HaulSense | null): Promise<HaulOutcome> {
+    void sense;
+    if (!this.isSet()) return { ok: false, reason: 'not-set', line: 'It is not set.' };
+    if (!MixinApi.isContainer(hauler)) return { ok: false, reason: 'not-haulable', line: "You can't haul that." };
+    const nowS = WorldClockApi.getNow().rawValue();
+    const hours = Math.max(0, nowS - this.getSetAtS()) / 3600;
+    const reach = this.getSetReach();
+    const registry = await (await StuffApi.singleton<Waters>(WATERS_PATH)).registry();
+    const standing = registry === null ? null : await registry.standingAt(reach, nowS);
+    const took: string[] = [];
+    if (registry !== null && standing !== null) {
+      const eligible = standing.species.filter(
+        (sp) => this.getTakesRoles().includes(sp.role) && sp.level > 0 && sp.capacity > 0,
+      );
+      const expected = this.expectedTake(hours, eligible);
+      const seed = hashString(`${this.getIdentityPath() ?? ''}|${reach}`);
+      const fraction = expected - Math.floor(expected);
+      const count = Math.floor(expected) + (Seeded.unit(seed, this.getSetAtS() >>> 0) < fraction ? 1 : 0);
+      const organic = standing.contamination?.byKind?.organic ?? 0;
+      for (let i = 0; i < count; i++) {
+        const species = pickWeighted(eligible, Seeded.unit(seed, (this.getSetAtS() >>> 0) + 1 + i));
+        if (species === null) break;
+        if ((await registry.draw(reach, species.speciesPath, 1, nowS)) < 1) {
+          species.level = 0;
+          continue;
+        }
+        const fish = await mintFish(species, organic);
+        if (fish === null) continue;
+        ContainmentApi.move(fish as Stuff & Containable, hauler as Stuff & Container);
+        took.push(species.name);
+      }
+    }
+    // What it already held comes out into your hands.
+    const held: string[] = [];
+    for (const item of [...this.getContents()]) {
+      if (!MixinApi.isContainable(item)) continue;
+      ContainmentApi.move(item as Stuff & Containable, hauler as Stuff & Container);
+      held.push(item.getPresentation());
+    }
+    if (this.hasInteriorBulk()) this.setBulkAmount('interior', Quantity.of(0, 'L'));
+    this.markLifted();
+    ContainmentApi.move(this as unknown as Stuff & Containable, hauler as Stuff & Container);
+    const me = this as unknown as Stuff;
+    if (took.length === 0 && held.length > 0) {
+      return {
+        ok: true,
+        self: Mml.compose`You haul ${Mml.thing(me)} up and take out what you kept in it: ${held.join(', ')}.`,
+        peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water and takes something out of it.`,
+      };
+    }
+    if (took.length === 0) {
+      return {
+        ok: true,
+        self: Mml.compose`You haul ${Mml.thing(me)} up. Nothing in it.`,
+        peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water, empty.`,
+      };
+    }
+    return {
+      ok: true,
+      self: Mml.compose`You haul ${Mml.thing(me)} up. ${countWords(took)} in it.`,
+      peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water, with something in it.`,
+    };
+  }
+}
+
+async function mintFish(species: SpeciesStanding, organic: number): Promise<Fish | null> {
+  const leaf = species.speciesPath.split('/').pop() ?? '';
+  try {
+    const fish = await StuffApi.clone<Fish>(`${AGENT_PREFIX}${leaf}`);
+    if (!(fish instanceof Fish)) return null;
+    if (organic > 0) {
+      fish.setPathogenLoads({ 'e-coli': Math.min(1, organic * dial('fishing.contamination.loadPerUnit', 2)) });
+    }
+    return fish;
+  } catch {
+    return null;
+  }
+}
+
+function pickWeighted(eligible: SpeciesStanding[], u: number): SpeciesStanding | null {
+  const live = eligible.filter((s) => s.level > 0);
+  const total = live.reduce((sum, s) => sum + s.level, 0);
+  if (total <= 0) return null;
+  let acc = 0;
+  for (const s of live) {
+    acc += s.level / total;
+    if (u < acc) return s;
+  }
+  return live[live.length - 1] ?? null;
+}
+
+/** "A shore crab", "Two eels and a shore crab" — in words, never a figure. */
+function countWords(names: string[]): string {
+  const counts = new Map<string, number>();
+  for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1);
+  const parts = [...counts.entries()].map(([name, n]) => `${numberWord(n)} ${n === 1 ? name : plural(name)}`);
+  const joined = parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+  return joined.charAt(0).toUpperCase() + joined.slice(1);
+}
+
+function numberWord(n: number): string {
+  const words = ['no', 'a', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+  return words[n] ?? 'a great many';
+}
+
+function plural(name: string): string {
+  if (/(trout|carp|eel|mullet|sturgeon|fish|pike|perch|bream)$/.test(name)) return name;
+  return `${name}s`;
+}
+
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function hashString(s: string): number {
+  let v = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    v ^= s.charCodeAt(i);
+    v = Math.imul(v, 0x01000193);
+  }
+  return v >>> 0;
 }

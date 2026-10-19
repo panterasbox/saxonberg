@@ -1,0 +1,19 @@
+# A fish spear (underwater C5, D21) — a short barbed gig for the lit band,
+# where you can see them. It takes what the water holds; it is also a
+# weapon, and the one that still hurts below (a thrust, not a swing).
+class: /trade/diving/thing/Spear
+data:
+  shortDescription: fish spear
+  keywords: [spear, "fish spear", gig]
+  register: indefinite
+  longDescription: >-
+    A short ash shaft with a barbed iron head, three tines splayed like a
+    hand, and a wrist loop of cord at the butt.
+  _materialPath: /stuff/idea/material/element/iron
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/ash
+  constructionForm: pointed
+  gradeBand: common
+  mass: 1.2
+  length: 1.5
+  exercises: [diving]
