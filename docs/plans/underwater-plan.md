@@ -1646,6 +1646,33 @@ check-water-citations,check-light-sources}.ts`.
 
 ---
 
+## Build log
+
+Wave-by-wave: what landed, what the build decided, what surprised it.
+
+- **A0+A1 ✅ (872503b98)** — landed as one commit (the medium read's
+  third step IS the water place). ⭐ **D2 amended: the medium is a kernel
+  vocabulary (`S/lib/biome/Medium.ts`, `MEDIA` + `MEDIUM_TAGS`), not a
+  row kind.** Every reader is synchronous on a hot path (a breath, a fire
+  tick, a heat slice) and in unit suites with no content store — a
+  catalogue reads null cold (the reference-Idea-inert trap). The medium
+  is physics, like the materials `Channel` vocabulary; a new medium is
+  one entry. No `Medium.ts` Idea/catalogue/rows were made. ⭐ `MediumRead`
+  gained **`atSurface`** and **`substance`**: a swimmer in a water place
+  is immersed (wet, cold) but breathes the air over it — without that
+  the read reintroduced maritime's *swimming drowned you*; `substance` is
+  the liquid's own name (a fish in fouled water still breathes nothing).
+  `resolveAtmosphereFor` consults `mediumFor` only when the scope has no
+  atmosphere of its own (a sealed sub in a flooded room answers for
+  itself). `WaterSpec` gained an optional **`feature`** — the `waters`
+  key the place's own water registers under (Hollow Mere keeps `mere`,
+  so `fill bucket from mere` still binds; the cove keeps `pool`). An
+  uncited `Pool` reads `swimming` (legacy deep water). `WaterSurface.
+  bears` is true where the water is wading-deep or gone. The cistern
+  cites a new one-node still water `duncan:cistern` (eternal-university
+  now depends on the water pack). `SwimController`'s `instanceof` was
+  left (it works; narrowing is cosmetic).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
