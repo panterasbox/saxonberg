@@ -298,7 +298,10 @@ export function packBrainShapeOk(source: string): boolean {
 // rooms authored `address:`, which no composed field declares — so the
 // moor's storm pin never reached its own heath. They author `_address:`
 // (Addressable's field) now.
-const ORPHAN_DATA_KEY_CEILING = 387;
+// 387 → 386 (the rubber build, 2026-10-17): `chemistry: null` came off
+// the rubber row, which burnt rubber `extends:` — so it would have been
+// inherited as a second orphan.
+const ORPHAN_DATA_KEY_CEILING = 386;
 
 
 function main(): void {

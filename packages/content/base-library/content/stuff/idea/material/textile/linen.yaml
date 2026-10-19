@@ -37,6 +37,8 @@ data:
   # wool's 33: linen wets through faster and, once wet, has less lofted
   # air left to lose — which is why wet wool still beats wet linen.
   waterAbsorptionCapacity: 20
+  # Elasticity (% strain it springs back from; rubber build).
+  elasticity: 3
   edibility: false
   nutrients: []
   toxicity: []

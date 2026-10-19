@@ -111,10 +111,11 @@ settings:
     value: "0.95"
 
   # The reference agent the `analyze` preview shows a corrosion column
-  # against — a preview has to assume SOMETHING, and "attacks organic
-  # matter" is the commonest caustic in the world.
+  # against — a preview has to assume SOMETHING, and "attacks what was
+  # once alive" (lime) is the commonest caustic in the world. ⚠ Not
+  # `organic` since the rubber build: rubber is organic and lime spares it.
   - key: response.corrosion.previewCorrosiveTo
-    value: "organic"
+    value: "once-living"
 
   # ── penetration ──────────────────────────────────────────────────────
   # ⭐⭐ The pressure (J/m²) an ordinary blow arrives at. `penetration` is

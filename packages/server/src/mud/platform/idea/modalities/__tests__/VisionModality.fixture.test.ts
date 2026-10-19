@@ -43,6 +43,8 @@ import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { Idea } from '../../../../lib/stuff/Idea';
+import Exit from '../../../../lib/boundary/Exit';
+import Door from '../../../thing/Door';
 
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
@@ -103,5 +105,61 @@ describe('a fixture is seen in its host’s light', () => {
     const thing = makeStuff(() => new Floor());
     ContainmentApi.move(thing, room);
     expect(vision().canSee(viewer, thing)).toBe(true);
+  });
+});
+
+/**
+ * ⭐⭐ **An exit's DOOR is seen in the light of the room you stand in.**
+ *
+ * The same class as the fixture, found by driving the rubber build in a
+ * browser: a door rides `exit.getDoor()` and is in nobody's contents, so
+ * `open door` said *"You open something."* and `look door` in the stove
+ * house (a glass door and a vent) offered *"something (1)"* and
+ * *"something (2)"* — a prompt nobody could answer.
+ */
+describe('an exit door is seen in the light of the room whose exit carries it', () => {
+  let room: AmbientRoom;
+  let there: AmbientRoom;
+  let viewer: Viewer;
+  let door: Door;
+
+  beforeEach(async () => {
+    installV1QuantityTagTables();
+    buildAllModalities();
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    room = makeStuff(() => new AmbientRoom());
+    there = makeStuff(() => new AmbientRoom());
+    zone.addLocation(room, 0, 0, 0);
+    zone.addLocation(there, 0, 1, 0);
+    room.setAmbientFlux(120);
+    viewer = makeStuff(() => new Viewer());
+    ContainmentApi.move(viewer, room);
+    const exit = makeStuff(
+      () => new Exit({ direction: 'north', source: room, destination: there }),
+    );
+    await room.addExit(exit);
+    door = makeStuff(() => new Door());
+    room.getExit('north')!.setDoor(door);
+  });
+
+  afterEach(() => StuffApi.clearAll());
+
+  it('the premise: the door is in no contents', () => {
+    expect(door.getContainer()).toBeNull();
+  });
+
+  it('⭐ in a lit room its door can be seen', () => {
+    expect(vision().canSee(viewer, door)).toBe(true);
+  });
+
+  it('⚠ and the room’s light decides — a dark room hides it', () => {
+    room.setAmbientFlux(0);
+    expect(vision().canSee(viewer, door)).toBe(false);
+  });
+
+  it('a door on some OTHER room’s exit is not seen from here', () => {
+    const elsewhere = makeStuff(() => new Door());
+    expect(vision().canSee(viewer, elsewhere)).toBe(false);
   });
 });

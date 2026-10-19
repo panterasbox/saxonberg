@@ -246,6 +246,13 @@ when both are loaded.
 through `getObviousExits` — used by MQL so a player can target a
 door by keyword without it living in inventory.
 
+⚠ **Living in no contents, a door also had no light to be seen in** —
+`VisionModality.canSee` reads the target's container, so every attached
+door rendered as *"something"* (`open door` → *"You open something."*).
+A door is now seen in the light of the viewer's room when that room's
+obvious exits carry it — which covers a one-way door with no anchors.
+Found by the rubber build's browser drive (the stove house, 2026-10-18).
+
 #### ⭐⭐ `getObviousNeighbours()` — the five guards, once
 
 `getObviousExits()` answers *which exits are here*; the propagation

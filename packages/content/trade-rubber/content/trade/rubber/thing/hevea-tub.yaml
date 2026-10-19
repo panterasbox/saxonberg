@@ -1,0 +1,39 @@
+# A tub with a rubber tree in it — ⭐ a `PlantPot` (a pot is a bed with
+# one slot), big enough for a grown tree's roots, with the tree in its own
+# `props:` (the starter pot's shape). The stove house stands three.
+#
+# ⭐ A tree under glass is a tree somebody waters: the tub holds a
+# fortnight's water and no more, and `water` tops it up. A stove house
+# that nobody tends loses its trees — the fuel contest's sixth claimant
+# is the stove, and the second is the can.
+class: /platform/thing/PlantPot
+data:
+  shortDescription: tub of earth
+  keywords: [tub, "rubber tub", planter, earth]
+  register: indefinite
+  longDescription: |
+    A great half-barrel of dark earth, iron-hooped, with a rubber tree growing out of it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 120
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /stuff/idea/material/bulk/potting-soil
+  interiorAmount: 20
+  reserves:
+    moisture:
+      capacityValue: 8
+      currentValue: 8
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, earth, planting, roots]
+      description: Dark damp earth packed round the foot of the trunk, the roots humped up through it at the rim.
+  props:
+    - /trade/rubber/thing/plant/hevea-standard

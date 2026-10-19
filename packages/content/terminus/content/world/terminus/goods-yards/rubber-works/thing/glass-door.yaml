@@ -1,0 +1,13 @@
+# The glass door between the works floor and the stove house — shut, it
+# keeps the stove house's warmth its own; open, the two rooms share their
+# air (rubber build: shut ⇒ conduction, open ⇒ flow).
+class: /platform/thing/Door
+data:
+  shortDescription: glass door
+  keywords: [door, "glass door"]
+  register: definite
+  longDescription: >
+    A door of small panes in a painted frame, fogged on the stove-house side.
+  open: false
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 20

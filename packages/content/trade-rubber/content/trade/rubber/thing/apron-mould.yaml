@@ -1,0 +1,22 @@
+# apron mould — a rubber works' mould (rubber build): ⭐ a dairy `Mould` row.
+# Load it with raw rubber and sulfur, stand it in the oven, and `fire`
+# the oven: the charge comes out in this mould's shape — rubber-apron — and the
+# mould keeps it until you take it out. Reusable; it wears by a cast.
+# ⭐ `discipline: chemistry` is deliberately the MENDING trade of what it
+# casts: a moulded good is one piece, and its mending is a chemist's.
+class: /platform/thing/Mould
+data:
+  shortDescription: apron mould
+  keywords: [mould, mold, apron-mould, "apron mould", "apron mold"]
+  register: indefinite
+  longDescription: >-
+    A broad bronze plate cut to an apron's outline, with a clamped lid.
+  interiorBulk: true
+  interiorCapacity: 2
+  closure: liquidTight
+  castTemplate: /trade/rubber/thing/rubber-apron
+  reusable: true
+  discipline: chemistry
+  gradeBand: fine
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 8

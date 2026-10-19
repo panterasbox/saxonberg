@@ -1,0 +1,11 @@
+# A packet of russian-dandelion seed — the rubber dandelion's.
+class: /platform/thing/Seed
+data:
+  shortDescription: packet of russian dandelion seed
+  keywords: [seed, seeds, packet, dandelion, "dandelion seed", kok-saghyz]
+  register: indefinite
+  longDescription: |
+    A twist of paper holding a pinch of feathery dandelion seed, and a note in pencil: DIG IN THE FALL.
+  growsIntoPath: /trade/farming/thing/plant/kok-saghyz
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/asterales/asteraceae/taraxacum/kok-saghyz
+  mass: 0.01

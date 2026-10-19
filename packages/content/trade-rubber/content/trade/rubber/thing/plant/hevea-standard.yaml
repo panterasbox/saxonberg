@@ -1,0 +1,48 @@
+# A Hevea standard — ⭐ a rubber tree kept for its LATEX: forestry's
+# `SapStandard` class (a `Plant` that taps), so `tap` reaches it with no
+# rubber code — the class carries the affordance, the species row the
+# yield, and this row only the tree.
+#
+# ⚠ The latex is the SPECIES row's fact (`production:` on
+# `…/euphorbiaceae/hevea/brasiliensis`). Seven game years to a mature
+# stem; a mature one takes two tapping cuts.
+class: /trade/forestry/thing/SapStandard
+data:
+  shortDescription: rubber tree
+  keywords: [tree, "rubber tree", hevea, standard, stem]
+  register: indefinite
+  longDescription: |
+    A rubber tree taller than a man, smooth-barked and glossy-leaved, the
+    scars of old tapping cuts slanting down its trunk in neat parallel lines.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/euphorbiaceae/hevea/brasiliensis
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  # ⭐ A tree in a tub under glass is a grown tree: the works' stems are
+  # mature (two cuts each), and as heavy as a tree.
+  mass: 290
+  growthStage: mature
+  lifecycleState: alive
+  harvestTemplatePath: null
+  discipline: silviculture
+  # ⚠ No rubberwood row exists; a felled Hevea saws like beech, the
+  # nearest pale close-grained hardwood the commons carries.
+  standardMaterialPath: /stuff/idea/material/wood/beech
+  seedTemplatePath: null
+  nutrientDraw: 0
+  # ⭐ A grown tree under the knife: two cuts already open (the slanting
+  # scars in its prose), so `tap` draws the milk into a vessel.
+  spiles: 2
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.08
+    litresPerGameDay: 0.4
+    luxHappyAt: 20
+    luxDarkAt: 3
+    rootDemand:
+      seedling: 0.5
+      young: 3
+      established: 8
+      mature: 16
+    daysToStage:
+      young: 200
+      established: 900
+      mature: 2500

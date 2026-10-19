@@ -1,0 +1,32 @@
+# Sulfur — native sulfur, the yellow crust of a salt dome's caprock: won
+# from the Hill Quarry's band between the coal and the rock salt. The cure
+# of rubber (a few parts in a hundred) and the over-cure that makes
+# ebonite (a fifth and more); it melts at 388 K and burns blue.
+#
+# ⭐ Rubber owns this row for all four parallel builds; the cleanliness
+# build adds its combustion products (SO₂) here.
+# ⭐ `heatOfCombustion` and `autoignitionTemperature` are honest: the
+# works' oven held with the bellows (≈ 482 K) stays below 505 K, so a
+# charge of sulfur cures rubber and does not catch.
+class: /platform/idea/material/Material
+data:
+  name: sulfur
+  keywords: [sulfur, sulphur, brimstone]
+  appearance: bright yellow crystalline sulfur
+  density: 2070
+  specificHeat: 710
+  thermalConductivity: 0.2
+  meltingPoint: 388
+  heatOfCombustion: 9.2
+  autoignitionTemperature: 505
+  hardness: 20
+  toughness: 1
+  electricalConductivity: 1.0e-15
+  waterAbsorptionCapacity: 0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # `sulfur` is the cure's agent tag; `fuel` is deliberately absent — it
+  # burns, but no hearth is fired with it.
+  tags: ["sulfur", "mineral", "element", "crystalline"]
+  composition: []

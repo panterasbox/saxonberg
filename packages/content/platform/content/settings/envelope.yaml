@@ -24,6 +24,12 @@ settings:
   - key: enclosure.defaultThicknessM
     value: "0.3"
 
+  # The most pieces one reconcile splits a gap into to follow the sun
+  # through a transparent face — each at most a game hour (rubber build).
+  # A room with no transmitting exterior face never splits.
+  - key: envelope.solarSegmentsMax
+    value: "48"
+
   # ⭐ The still-air films clinging to both faces of a wall, m²K/W, IN
   # SERIES with the fabric's own conduction. The standard building-physics
   # figure (~0.13 inside + ~0.04 outside).

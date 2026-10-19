@@ -9,7 +9,13 @@ data:
   density: 2500
   # Water absorption capacity (% of dry mass, ASTM D570): glass is non-porous.
   waterAbsorptionCapacity: 0.1
+  # Elasticity (% strain it springs back from; rubber build).
+  elasticity: 0.1
   thermalConductivity: 1.0
+  # ⭐ Beer–Lambert α (1/m, rubber build): 4 mm of clear glass passes
+  # e^(−8·0.004) ≈ 0.97 — the grey term a construction face reads. The
+  # COLOUR term is Tinted's (iron/carbon per channel); they multiply.
+  lightAbsorption: 8
   specificHeat: 840
   # BRITTLE, stated as numbers rather than only as a tag: glass is nearly
   # as hard as steel (600/200) and has almost none of its toughness. That

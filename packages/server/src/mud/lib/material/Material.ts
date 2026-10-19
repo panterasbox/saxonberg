@@ -50,6 +50,7 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
+import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -477,6 +478,44 @@ export default class Material extends SingletonMixin(
    * then flows the mass to a `Bulkable` liquid. `0` = does not melt in the
    * modelled range.
    */
+  // ⭐ Light through matter (rubber build): Beer–Lambert's α in 1/m. A
+  // layer of thickness t passes e^(−α·t). ABSENT means opaque — the honest
+  // default for every row that is not glass, water or ice.
+  private _lightAbsorption: Quantity<'1/m'> | null = null;
+  protected get lightAbsorption(): Quantity<'1/m'> | null {
+    return this._lightAbsorption;
+  }
+  protected set lightAbsorption(value: Quantity<'1/m'> | null) {
+    if (value !== null && !(value instanceof Quantity && value.unit === '1/m')) {
+      throw new TypeError(
+        `Material.lightAbsorption must be a Quantity<'1/m'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._lightAbsorption = value;
+  }
+
+  // ⭐ Elasticity (rubber build): the strain it springs back from, %.
+  // Rubber 500, leather 10, linen 3, glass 0.1; unauthored reads 0 —
+  // rigid, which is today's answer everywhere.
+  private _elasticity: Quantity<'%'> = Quantity.of(0, '%');
+  protected get elasticity(): Quantity<'%'> {
+    return this._elasticity;
+  }
+  protected set elasticity(value: Quantity<'%'>) {
+    if (!(value instanceof Quantity) || value.unit !== '%') {
+      throw new TypeError(
+        `Material.elasticity must be a Quantity<'%'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._elasticity = value;
+  }
+
+  // ⭐⭐ The cure as data (rubber build): how this feedstock crosslinks
+  // with an agent under heat and time. `null` — every material but a raw
+  // elastomer — is inert. Validated by constructing the value object, so
+  // a curve that cannot be evaluated fails at the row.
+  private _crosslinking: Crosslinking | null = null;
+
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
 
   protected get meltingPoint(): Quantity<'K'> {
@@ -939,6 +978,9 @@ export default class Material extends SingletonMixin(
     autoignitionTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     heatOfCombustion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
+    elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+    crosslinking: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1199,6 +1241,43 @@ export default class Material extends SingletonMixin(
   /** Set heat of combustion. Strict on `Quantity<'MJ/kg'>`. */
   public setHeatOfCombustion(value: Quantity<'MJ/kg'>): void {
     this.heatOfCombustion = value;
+  }
+
+  /**
+   * Read the light absorption coefficient (Beer–Lambert α, 1/m), or
+   * `null` — opaque. A layer `t` thick passes `e^(−α·t)`.
+   */
+  public getLightAbsorption(): Quantity<'1/m'> | null {
+    return this._lightAbsorption;
+  }
+  /** Set light absorption. Strict on `Quantity<'1/m'>`; `null` = opaque. */
+  public setLightAbsorption(value: Quantity<'1/m'> | null): void {
+    this.lightAbsorption = value;
+  }
+
+  /** Read elasticity — the strain it springs back from (`%`; `0` = rigid). */
+  public getElasticity(): Quantity<'%'> {
+    return this._elasticity;
+  }
+  /** Set elasticity. Strict on `Quantity<'%'>`. */
+  public setElasticity(value: Quantity<'%'>): void {
+    this.elasticity = value;
+  }
+
+  /** ⭐ The cure this feedstock answers, or `null` (inert). */
+  public getCrosslinking(): Crosslinking | null {
+    return this._crosslinking;
+  }
+  /** The authored spec as stored (the row's own shape), or `null`. */
+  protected get crosslinking(): CrosslinkSpec | null {
+    return this._crosslinking?.toSpec() ?? null;
+  }
+  protected set crosslinking(value: CrosslinkSpec | null) {
+    this._crosslinking = value === null || value === undefined ? null : new Crosslinking(value);
+  }
+  /** Set the cure spec; throws on a curve that cannot be evaluated. */
+  public setCrosslinking(value: CrosslinkSpec | null): void {
+    this.crosslinking = value;
   }
 
   /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */

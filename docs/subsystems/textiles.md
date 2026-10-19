@@ -196,6 +196,19 @@ fifteen shipped rows read as ill-fitting hand-me-downs with no content
 edit. Consequences, the wrong-body refusal and the distance refusal:
 [embodiment.md](./embodiment.md) § *Fit*.
 
+⭐ **Stretch** (rubber build). A garment gives round the body by
+`stretchAllowance() = elasticity × textiles.fit.stretchWornFraction (0.04)
+× the fabric row's stretch` — the `waist` detail's material when one is
+set, else the garment's. The allowance takes up the **girth** term of the
+misfit both ways (tight or loose), so it lowers the refusal distance too;
+stature is untouched, so a tall body is still short in the leg. A fabric
+row's `stretch` is absent = 1, felted 0 (matted solid), knit 1.45. Rubber
+gives 0.2 of girth, knitted wool 0.017, linen nothing to notice: the
+elastic-waisted stock trousers (`trade-rubber`) serve a band of bodies a
+plain stock pair is tight on. ⭐ `wear` says *"It is tight on you."* /
+*"It hangs loose on you."* past 0.05 — the misfit already cost burden,
+seam wear and warmth, and nothing said so.
+
 ⚠⚠ **`seamAllowance` is the stamp's twin and lives beside it on
 `WearableMixin`** — both are *what the cutting did to this cloth*, and
 both must survive `cut` → `sew` → `alter`. It briefly lived on the

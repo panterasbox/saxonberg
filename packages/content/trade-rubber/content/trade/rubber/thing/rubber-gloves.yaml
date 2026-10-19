@@ -1,0 +1,17 @@
+# Rubber gloves — ⭐ one piece, cast round the hand-forms of a glove mould
+# (rubber build). Nothing wet comes through them and no current does: the
+# glove a chemist handles vitriol in, and an electrician a live wire.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: pair of rubber gloves
+  keywords: [gloves, "rubber gloves", pair, rubber]
+  register: indefinite
+  longDescription: >
+    Thick black gloves of cured rubber with long gauntlet cuffs, stiff at
+    the fingertips and smelling of sulfur.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [hands]
+  _materialPath: /stuff/idea/material/organic/rubber
+  constructionForm: hide
+  gradeBand: fair
+  mass: 0.3

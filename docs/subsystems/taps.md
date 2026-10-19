@@ -168,6 +168,15 @@ subclass names ONE string (`tapKey()`) and its *nothing here* sentence.
 ⚠ **The god-verb guard:** if a new tap needs that file to branch on what
 kind of tap it is, the design is wrong.
 
+⭐ Forestry's `tapKey()` asks the BOUND tree for its own first tap — a
+maple gives `sap`, a Hevea `latex`; `sap` is only the default for a stem
+that names none. And `SapStandard.planTap` sends a key the stem does not
+give to the mixin's `no-such-tap` refusal before reading any window, so it
+can never read as a silent closed window (*"nothing has run yet"*). Its
+`warm` line is a band, not a season's end: *"It has gone too warm;
+nothing will run until it cools."* Both found by the rubber build's
+browser drive (2026-10-18).
+
 ### ⚠⚠ Two things the act must get right, both learned the hard way
 
 1. **The completion is a MODULE function, never `this.<method>`.** A

@@ -1,0 +1,13 @@
+# A length of rubber hose — cast round a mandrel in a tube mould (rubber
+# build). A hose to carry water from a pump or a tap; flexible where a
+# pipe is not.
+class: /platform/thing/Thing
+data:
+  shortDescription: length of rubber hose
+  keywords: [hose, "rubber hose", tube, rubber]
+  register: indefinite
+  longDescription: >
+    A coil of black rubber hose as thick as a thumb, that kinks if you bend
+    it too hard and straightens when you let it go.
+  _materialPath: /stuff/idea/material/organic/rubber
+  mass: 1.5

@@ -40,6 +40,20 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **The rubber build (construction, W0: 2 fields).** Both level 0:
+ *   - `AtmosphericMixin.roof` — what is over a place, as its sibling
+ *     `enclosure` is what is around it: a material and a thickness you
+ *     can walk in and look up at.
+ *   - `Structure.storeys` — which of a building's places stand on which;
+ *     you learn it by climbing the stair.
+ *   - (W2) `Material.lightAbsorption` — how much light a thickness of it
+ *     passes: you hold a pane up to the sky and see.
+ *   - (W4) `Material.elasticity` — how far it stretches and springs back:
+ *     you pull it. `Material.crosslinking` — ⚠ arguably a spoiler (it is
+ *     the cure's whole curve), and deliberately level 0: the trade is a
+ *     curve you find by firing, and the requirements rule there is no
+ *     knowledge gate; a published curve is inquiry-slate's.
+ *
  * **Repair — assemblies part two (4 fields, and a relabel).** Every one
  * level 0, and why:
  *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has

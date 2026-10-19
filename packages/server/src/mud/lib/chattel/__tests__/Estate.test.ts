@@ -31,6 +31,9 @@ import { PersistableApi } from "../../../api/persistable";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
+import { SlottedMixin } from "../../slot/Slotted";
+import { SlottableMixin } from "../../slot/Slottable";
+import { ContainmentApi } from "../../../api/containment";
 import { Idea } from "../../stuff/Idea";
 import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
@@ -410,5 +413,58 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
 
     expect(col("chattel").find((d) => d.chattelId === chattelId)).toBeUndefined();
     expect(alice.getEstateEntry(chattelId)).toBeNull();
+  });
+});
+
+/**
+ * ⭐⭐ A WORN owned good comes back WORN.
+ *
+ * Found driving the rubber build in a browser across a server restart: an
+ * owned good rides the estate, not the contents order, so the Slotted slice
+ * (which names worn items by content index) dropped every bought garment's
+ * slot. They came back carried, and the implant — a minted good too — lost
+ * its cranial slot, so the default loadout cloned a second one each boot.
+ */
+describe("owner-based persistence — what is worn stays worn", () => {
+  class Coat extends SlottableMixin(Good) {}
+  class Wearer extends PersistableMixin(
+    EstateMixin(SlottedMixin(ContainerMixin(Idea))),
+  ) {
+    static fieldMeta: FieldMeta = {};
+  }
+  const COAT_PATH = "/obj/test/Coat";
+  const makeWearer = (): Wearer => {
+    const w = makeStuffAtPath(() => new Wearer(), ALICE_PATH);
+    w.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
+    return w;
+  };
+
+  it("an owned good worn at capture is worn again after materialize", async () => {
+    vi.spyOn(StuffApi, "clone").mockImplementation(
+      ((path: string) =>
+        Promise.resolve(makeStuffAtPath(() => new Coat(), path))) as unknown as
+        typeof StuffApi.clone,
+    );
+    const alice = makeWearer();
+    const coat = makeStuffAtPath(() => new Coat(), COAT_PATH);
+    ContainmentApi.move(coat, alice);
+    await coat.stampChattel(alice);
+    await coat.setChattelPlace(ESTATE_INVENTORY);
+    alice.occupyAll(coat, ["torso"]);
+    await PersistableApi.capture(alice);
+
+    StuffApi.clearAll();
+    await boot();
+    vi.spyOn(StuffApi, "clone").mockImplementation(
+      ((path: string) =>
+        Promise.resolve(makeStuffAtPath(() => new Coat(), path))) as unknown as
+        typeof StuffApi.clone,
+    );
+    const restored = makeWearer();
+    await PersistableApi.materialize(restored);
+
+    const contents = (restored as unknown as Container).getContents();
+    expect(contents.length).toBe(1);
+    expect(restored.getOccupant("torso")).toBe(contents[0]);
   });
 });

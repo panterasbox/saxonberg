@@ -326,6 +326,12 @@ slots. The actor's own body is skipped: taking your own worn thing is
   `DismountController.execute` also trigger it. Future witnesses
   (polymorph revert on dismount, status-clear, etc.) compose the same
   optional-method shape.
+- ⭐ **Persistence of a worn OWNED good** — `captureSlice` records content
+  occupants by index, but a player-stamped chattel rides its owner's estate
+  and has no index, so it is recorded in `wornOwned` by `chattelId` and
+  re-worn after the estate restores. Until the rubber build's browser
+  drive (2026-10-18) every bought garment came back carried after a
+  restart. See [persistence.md § slotted](./persistence.md).
 
 ## Detail-targeted resolution
 

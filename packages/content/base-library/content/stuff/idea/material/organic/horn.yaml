@@ -15,6 +15,9 @@ data:
   density: 1300
   specificHeat: 1700
   thermalConductivity: 0.2
+  # ⭐ Beer–Lambert α (1/m, rubber build): a horn pane a millimetre thick
+  # passes ~0.8 — the lantern-horn of a thousand years.
+  lightAbsorption: 200
   # Mechanical response (MPa / MJ·m⁻³): harder than leather, far softer
   # than bone, and tough enough to survive being dropped on a flagstone.
   hardness: 60

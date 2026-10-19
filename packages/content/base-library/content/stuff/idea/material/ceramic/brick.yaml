@@ -1,0 +1,31 @@
+# Brick — clay moulded and fired in a kiln: the walling of a works, a
+# station, a terrace row. Laid in courses with lime mortar; a single
+# "brick-thick" wall is 0.23 m (a brick's length).
+#
+# ⭐ Authored for the rubber build's construction model, where a place
+# says what its walls and roof are made of and the envelope reads the
+# numbers off this row. Honest values for common fired-clay brickwork:
+# about a quarter of granite's conductivity, which is why a brick
+# building holds its warmth better than a stone one of the same
+# thickness. Repair's building upkeep adds its weathering fields here.
+class: /platform/idea/material/Material
+data:
+  name: brick
+  keywords: [brick, brickwork]
+  appearance: weathered red brick
+  density: 1800
+  specificHeat: 840
+  thermalConductivity: 0.7
+  # Electrical conductivity (S/m) — dry fired clay is near-inert.
+  electricalConductivity: 1.0e-6
+  # Water absorption capacity (% of dry mass, ASTM D570): common brick
+  # soaks up to ~12% — the reason a brick wall wants a roof over it.
+  waterAbsorptionCapacity: 12
+  hardness: 60
+  toughness: 8
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "masonry"]
+  composition: []
+  biologicalSource: null

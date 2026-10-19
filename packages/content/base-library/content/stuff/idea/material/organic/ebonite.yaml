@@ -1,0 +1,23 @@
+# Ebonite — rubber cured with a great deal of sulfur for a long time:
+# hard, black, glossy, and it rings when you tap it. The over-range end of
+# the cure (rubber build): combs, pipe stems, the insulating panels of
+# an electrical age.
+class: /platform/idea/material/Material
+data:
+  name: ebonite
+  keywords: [ebonite, vulcanite, "hard rubber"]
+  appearance: hard glossy black ebonite that rings when tapped
+  density: 1180
+  specificHeat: 1400
+  thermalConductivity: 0.17
+  hardness: 80
+  toughness: 6
+  electricalConductivity: 1.0e-14
+  waterAbsorptionCapacity: 0.1
+  elasticity: 2
+  castTemplate: /trade/rubber/thing/ebonite-lump
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "elastomer", "insulating", "polymer", "synthetic", "ebonite"]
+  composition: []

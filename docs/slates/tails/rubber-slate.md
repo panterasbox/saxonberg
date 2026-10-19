@@ -1,18 +1,34 @@
 # Rubber slate — the first technology
 
-> **Status: UNBUILT** — and it is the case that proves the **epoch
-> on-ramp** ([inquiry-slate § From law to technology](./inquiry-slate.md)).
-> The material row ships, fully specified, and ⚠ **nothing in the entire
-> content tree is made of it.**
-> **Left:** latex as a tap (→ [tapping-slate](./tapping-slate.md)) ·
-> sulfur as a deposit row + material · the **crosslinking `Law`** and its
-> honest evaluator · `vulcanize` as a recipe gated on that law ·
-> ebonite as the over-range product · the consumer rows (boot · glove ·
-> mat · gasket · hose · elastic) · ⚠ the epoch on-ramp itself, which is
-> inquiry's build and blocks this one.
-> **Size:** a build — small in rows, but it lands the first
-> knowledge-gated recipe and the first synthetic material, so it carries
-> two precedents.
+> **Status: PARTIAL** — shipped in MR !379 (2026-10-18): construction
+> (walls + roof on the place, storeys on a `Structure`), Beer–Lambert light
+> and solar gain, heat between rooms, the cure (`Crosslinking`), the four
+> corrections, the supply (Hevea under glass, dandelion, caprock sulfur),
+> the rubber works, and stretch → [construction.md](../../subsystems/construction.md)
+> · [rubber.md](../../subsystems/rubber.md)
+> **Left:** synthetic rubber and tyres
+> ([destructive-distillation-slate](../builds/destructive-distillation-slate.md))
+> · compression moulding, a pressed pan, consumed moulds
+> ([moulding-slate](../builds/moulding-slate.md)) · the stove house's
+> stoker brain ([standing-instructions-slate](../builds/standing-instructions-slate.md))
+> · a published cure curve ([inquiry-slate](../builds/inquiry-slate.md))
+> · the consumer rows not yet authored (mat · gasket · hose)
+> **Size:** a wave
+
+> ⭐ **What the requirements found (2026-10-16), kept as history.** Four
+> of this slate's premises did not survive the survey: (1) ⛔ **it was NOT
+> blocked**: inquiry's codification doctrine took the on-ramp off the
+> critical path, and the build shipped **no knowledge gate at all**; the
+> oven asks nobody what they know, and the narrow window is what makes it
+> industrial; (2) **no latex can grow here** (no tropical biome; Terminus
+> is 42°), so the supply is Russian dandelion as a field crop plus Hevea
+> in a **glass stove house**; (3) **no sulfur existed**: it is a caprock
+> band above the Hill Quarry's salt; (4) ⚠ **three of the four "free"
+> consumers were not free**: leather already broke the ground path and
+> wet leather never conducted, rain never asked what you wear, packing
+> wear ignored material, and vitriol was authored to eat rubber. The
+> hothouse also forced the sky question: **sky exposure became
+> construction**.
 
 Opened 2026-09-25, out of *"we have other epochs in our toolchain so the
 absence of rubber is a real content gap."* That correction is the slate:
@@ -83,7 +99,7 @@ Better than magic, which is inquiry's own showcase, for four reasons:
 
 | piece | state |
 |---|---|
-| **latex** | ⭐ resin's mechanism *exactly* — a **wound response**, `behaviour: accrue`, a `production:` block on a species row. → [tapping-slate](./tapping-slate.md) builds the act; rubber adds one tree. |
+| **latex** | ⭐ resin's mechanism *exactly* — a **wound response**, `behaviour: accrue`, a `production:` block on a species row. → [tapping-slate](../builds/tapping-slate.md) builds the act; rubber adds one tree. |
 | **sulfur** | ⚠ does not ship — only `alloy/sulfurous-iron`. The extraction census already priced this shape for gems and precious metals: **a deposit row + a material, not an RGO family.** Cheap, and volcanic/quarry sourcing is honest. |
 | **heat** | ships — the `Oven` family; `brine-hearth` is the exemplar (an `Oven` row whose `ContainerMixin` lets `ThermalMixin.heatSourceK()` read the fire with no new coupling) |
 | **`vulcanize`** | a **recipe**, gated on the crosslinking `Law`. Not a verb — crafting resolves it. |
@@ -132,7 +148,7 @@ access… what the band decides is how narrowly the answer is bracketed…
 not a permission."* So **the epoch gate must be a HELD LAW, not a
 Discipline band.** A content author wrote that constraint down before
 this design existed, and it agrees with
-[advancement-slate](./advancement-slate.md).
+[advancement-slate](../builds/advancement-slate.md).
 
 **Derivable:** yes, strongly. `hardness` and `toughness` as
 f(sulfur fraction × temperature × time), with a real optimum and a real
@@ -343,7 +359,7 @@ instrument and your own measurements.
 The material was specified, the insulation model named it by name, and
 the garment model resolves it with zero new code — **and nothing is made
 of it.** That is the same shape as
-[tapping](./tapping-slate.md), where the act protocol, the tap vocabulary
+[tapping](../builds/tapping-slate.md), where the act protocol, the tap vocabulary
 and the evaporator were all built and did not know about each other.
 
 > **The substrate keeps running ahead of the content.** Both slates are
@@ -353,7 +369,7 @@ and the evaporator were all built and did not know about each other.
 
 **Next, and deliberately after** — both written 2026-09-25, and both
 inherit the on-ramp rather than needing their own:
-[destructive-distillation](./destructive-distillation-slate.md) (⭐ the
+[destructive-distillation](../builds/destructive-distillation-slate.md) (⭐ the
 collier already does it, and **plastics turns out NOT to be blocked on
 oil** — the first plastic is coal tar's) and
 [drilling](./drilling-slate.md) (⭐ the first extraction that does not
@@ -363,8 +379,8 @@ material they have never made.**
 
 ---
 
-See also: [inquiry-slate](./inquiry-slate.md) (**the blocker**) ·
-[tapping-slate](./tapping-slate.md) (the act) ·
+See also: [inquiry-slate](../builds/inquiry-slate.md) (**the blocker**) ·
+[tapping-slate](../builds/tapping-slate.md) (the act) ·
 [electricity.md](../../subsystems/electricity.md) (the named consumer) ·
 [textiles.md](../../subsystems/textiles.md) (the free consumer) ·
-[advancement-slate](./advancement-slate.md) (why conferral is not the gate)
+[advancement-slate](../builds/advancement-slate.md) (why conferral is not the gate)

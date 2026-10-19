@@ -53,9 +53,9 @@ data:
       trigger: arrival
       config:
         lines:
-          - "\"Welcome to Goodkin,\" Wenna says, warm and smooth. \"How can I help you today?\""
-          - "\"Opening an account? Just say the word — Mr. Halloran's through the back if you'd like to get set up.\""
-          - "Wenna smiles the practised Goodkin smile. \"You're among friends here.\""
+          - "Welcome to Goodkin. How can I help you today?"
+          - "Opening an account? Just say the word — Mr. Halloran's through the back if you'd like to get set up."
+          - "You're among friends here."
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

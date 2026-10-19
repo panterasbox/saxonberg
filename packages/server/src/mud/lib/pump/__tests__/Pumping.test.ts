@@ -395,3 +395,51 @@ describe('⭐ the machine rung — power-limited, and wear INTEGRATED', () => {
     expect(worn).toBeCloseTo(4 * 0.002, 3);
   });
 });
+
+describe('⭐ wear reads the packing\'s MATERIAL (rubber build)', () => {
+  function packingOf(toughness: number, elasticity: number): Tool {
+    const m = makeStuffAtPath(
+      () => new Material(),
+      `/stuff/idea/material/_pump/packing-${toughness}-${elasticity}`,
+    );
+    m.setName(`packing-stuff-${toughness}`);
+    m.setToughness(Quantity.of(toughness, 'MJ/m³'));
+    m.setElasticity(Quantity.of(elasticity, '%'));
+    const t = packing();
+    t.setMaterial(m);
+    return t;
+  }
+
+  async function strokes(p: Pump, w: Stuff, n: number): Promise<void> {
+    for (let i = 0; i < n; i++) {
+      // Empty the trough each stroke so the pump never refuses for a full one.
+      (w as unknown as { setBulkAmount(s: string, q: unknown): void }).setBulkAmount(
+        'interior',
+        Quantity.of(0, 'L'),
+      );
+      const plan = await p.planPump(someone());
+      if (plan.kind !== 'plan') throw new Error('expected a plan');
+      await p.completePump(someone(), plan.token);
+    }
+  }
+
+  it('the stroke count that wears leather to `worn` leaves rubber `sound` — four to one', async () => {
+    const r = await room();
+    const leatherPump = pump(SUCTION, 8, false);
+    ContainmentApi.move(packingOf(10, 10), leatherPump);
+    const rubberPump = pump(SUCTION, 8, false);
+    ContainmentApi.move(packingOf(20, 500), rubberPump);
+    const w1 = well(r, 6, 1000);
+    const w2 = well(r, 6, 1000);
+    ContainmentApi.move(leatherPump, w1);
+    ContainmentApi.move(rubberPump, w2);
+    await strokes(leatherPump, w1, 5);
+    await strokes(rubberPump, w2, 5);
+    expect(leatherPump.packingCondition()).toBe('worn');
+    expect(rubberPump.packingCondition()).toBe('sound');
+    const lw = 1 - leatherPump.packingPart()!.getCondition();
+    const rw = 1 - rubberPump.packingPart()!.getCondition();
+    console.log(`\npacking wear after 5 strokes: leather ${lw.toFixed(3)} · rubber ${rw.toFixed(3)} (${(lw / rw).toFixed(1)}×)`);
+    expect(lw / rw).toBeCloseTo(4, 1);
+  });
+});

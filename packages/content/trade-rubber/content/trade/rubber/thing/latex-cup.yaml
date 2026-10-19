@@ -1,0 +1,14 @@
+# A latex cup — the little tin cup a tapper hangs on a wire under the cut
+# to catch the milk (rubber build). A `Receptacle`: `tap tree into cup`
+# fills it, and `pour cup into pan` sets it.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: latex cup
+  keywords: [cup, "latex cup", "tapping cup", tin]
+  register: indefinite
+  longDescription: |
+    A small tin cup on a loop of wire, its inside skinned white with old dried latex.
+  _materialPath: /stuff/idea/material/element/tin
+  mass: 0.1
+  interiorBulk: true
+  interiorCapacity: 0.6
