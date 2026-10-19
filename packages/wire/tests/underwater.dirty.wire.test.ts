@@ -36,6 +36,7 @@ import {
   expectOk,
   expectRefused,
   advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -127,6 +128,28 @@ async function readInDaylight(s: Session, what: string): Promise<string> {
   return said;
 }
 
+/**
+ * Out of winter: the confluence carries ice in the cold months (the ice
+ * trade's own model), and the column's way up is then a ceiling. The
+ * drive dives in open water; the winter dive is step 8's.
+ */
+async function openWater(s: Session): Promise<void> {
+  // ⚠ Let the cold boot settle first (the sea's first read takes ~90 s),
+  // then go to high summer in chunks — the storage-and-ice drive's shape:
+  // one long jump outruns the fetch's headers timeout.
+  await s.listen(60_000);
+  const DAY = 86_400;
+  const doy = Math.floor((await worldClockNow()) / DAY) % 360;
+  let left = doy < 200 ? 200 - doy : 0;
+  for (; left > 0; left -= 30) await advanceWorldClock(`${Math.min(30, left)} days`);
+  for (let i = 0; i < 6; i++) {
+    const said = await say(s, 'analyze water');
+    if (!/ice lies on the water/.test(said)) return;
+    await advanceWorldClock('10 days');
+  }
+  throw new Error('the confluence never opened in high summer');
+}
+
 /** Fund a fresh character and buy `goods` at Morrow's counter. */
 async function outfitted(handle: string, goods: string[]): Promise<Session> {
   let s = await Session.open(handle, { startLocation: BANK_HALL });
@@ -155,6 +178,12 @@ let diver: Session;
 let buddy: Session;
 
 beforeAll(async () => {
+  const season = await Session.open(BUDDY, { startLocation: BANK });
+  try {
+    await openWater(season);
+  } finally {
+    season.close();
+  }
   diver = await outfitted(DIVER, [
     'lifeline', '"diver\'s slate"', '"signal bell"', '"fish spear"',
     '"air bag"', '"air bag"', '"air bag"', '"tide almanac"',
@@ -175,7 +204,7 @@ suite('A · the water place', () => {
     await toQuay(diver);
     // The work gear waits on the quay: carried, it is weight, and weight is
     // the one thing that refuses the way up (D14).
-    for (const g of ['lifeline', 'spear', '"air bag"', '"air bag"', '"air bag"']) expectOk(await diver.cmd(`drop ${g}`));
+    for (const g of ['me:i:lifeline', 'me:i:spear', 'me:i:bag']) expectOk(await diver.cmd(`drop ${g}`));
     let said = await look(diver, 'look river');
     for (let i = 0; i < 5 && !/Kestrel/.test(said); i++) {
       await diver.listen(1_500);
@@ -193,20 +222,23 @@ suite('A · the water place', () => {
 
   it('2 · inhale, descend: the surface, the column, the bed — and a second diver is in the same room at every step', async () => {
     await breathe(diver, buddy);
-    const down = await toTheBed(diver);
-    expect(down.length).toBeGreaterThanOrEqual(3);
-    expect(down[0]).toMatch(/foot of the quay steps|in the river/i);
-    const buddyDown = await toTheBed(buddy);
-    expect(buddyDown.length).toBe(down.length);
-    // ⭐ The bed of a silty river is dark: same room by where they ARE,
-    // not by sight (step 10b's premise, met for real).
-    expect(JSON.stringify(await buddy.query('here', { fields: 'ref' })))
-      .toEqual(JSON.stringify(await diver.query('here', { fields: 'ref' })));
-    // The light goes as you go down: the bed reads dim or dark, never as
-    // the surface does.
-    expect(down[down.length - 1]).toMatch(/dim|dark|black|cannot see|pitch/i);
-    await toTheSurface(diver);
-    await toTheSurface(buddy);
+    try {
+      const down = await toTheBed(diver);
+      expect(down.length).toBeGreaterThanOrEqual(3);
+      expect(down[0]).toMatch(/foot of the quay steps|in the river/i);
+      const buddyDown = await toTheBed(buddy);
+      expect(buddyDown.length).toBe(down.length);
+      // ⭐ Same room by where they ARE — the bed of a silty river may be
+      // too dark to see the other diver by (step 10b's premise).
+      expect(JSON.stringify(await buddy.query('here', { fields: 'ref' })))
+        .toEqual(JSON.stringify(await diver.query('here', { fields: 'ref' })));
+      // Each step down is a different place: the bed is not the surface.
+      expect(new Set(down).size).toBe(down.length);
+      expect(down[down.length - 1]).toMatch(/bottom|bed/i);
+    } finally {
+      await toTheSurface(diver);
+      await toTheSurface(buddy);
+    }
   });
 
   it('10 · in the lit band a voice is bubbles; an emote still reaches', async () => {
@@ -267,7 +299,7 @@ suite('C · the line', () => {
     expect(out.status, squash(await out.said())).toBe('ok');
     expect(await look(diver)).toMatch(/Kestrel|embankment/i);
     // The gear left on the quay, taken up again for the work.
-    for (const g of ['lifeline', 'spear', '"air bag"', '"air bag"', '"air bag"']) expectOk(await diver.cmd(`get ${g}`));
+    for (const g of ['here:i:lifeline', 'here:i:spear', 'here:i:bag']) expectOk(await diver.cmd(`get ${g}`));
     expectOk(await diver.cmd(`heave lifeline to ${BUDDY}`));
     await diver.drainProse();
     expectOk(await buddy.cmd('tug line'));

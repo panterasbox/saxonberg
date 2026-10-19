@@ -1022,7 +1022,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) return;
       if (this._floating || this._heldUp) return;
       const lift = this.netBuoyancyN(medium);
-      if (lift >= RESPIRATION_DEFAULTS.FLOAT_SUPPORT_N) {
+      // A small body floats on a small lift (the frog): the threshold
+      // scales with the body as its lungs and burn do.
+      if (lift >= RESPIRATION_DEFAULTS.FLOAT_SUPPORT_N * this.sizeFactor()) {
         // Held up by something that floats — the drowning stops.
         this._drowningSinceS = null;
         return;
