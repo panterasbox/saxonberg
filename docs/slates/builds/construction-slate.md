@@ -2,7 +2,7 @@
 
 > **Status: UNBUILT** — parked 2026-10-18 from the underwater session;
 > **designed at high level 2026-10-19** with the owner inside the ships and
-> harbours session (ships are its most demanding first consumer). Structures
+> harbors session (ships are its most demanding first consumer). Structures
 > exist only finished → the rubber build's `construction.md` (what a place is
 > made of), [assembly.md](../../subsystems/assembly.md), the repair build (W7,
 > building upkeep).
@@ -75,7 +75,7 @@ the completed product"*, the site can be good content of its own:
 - ⭐ **`ConstructionSite` is a third kind of `Structure`**, beside the plain
   building and the `Ship` — and **all three implement archetypes** (the shipped
   venue `archetype` document kind, lifted from the venue's room to the
-  Structure — see [ships-and-harbours-slate](./ships-and-harbours-slate.md)
+  Structure — see [ships-and-harbors-slate](./ships-and-harbors-slate.md)
   § 4).
 - **A site is instanced per project from a site KIND** — a floorplan of work
   places, with holding's keyed-instance machinery.

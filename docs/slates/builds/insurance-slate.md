@@ -869,7 +869,7 @@ products rather than its excuse:
   meet** — rare and valuable where players otherwise cluster in cities,
   and where news gathers for the press.
 - ⭐⭐⭐ **The guest register is surveillance you can legislate.** Inns
-  have always been licensed because they **harbour strangers**;
+  have always been licensed because they **harbor strangers**;
   requiring a register is how states track movement. A real
   civil-liberties object on the **camera-vs-witness** axis: a locality
   requiring registers catches more fugitives and **repels more

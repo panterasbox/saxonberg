@@ -1132,13 +1132,13 @@ have a claim — the **mariners'** (who rate *ship's cook* on the articles) and 
 or a cookery rating within the mariners', the claim rule deciding who may
 certify. ⭐ Content fact: in the Royal Navy the cook's warrant often went to a
 seaman **disabled in service**, as a pension. See
-[ships-and-harbours-slate](./ships-and-harbours-slate.md) § 15 and
+[ships-and-harbors-slate](./ships-and-harbors-slate.md) § 15 and
 [wellbeing-slate](./wellbeing-slate.md) § 8.
 
 ## ⭐⭐⭐ Designed 2026-10-19 — the MAP ROOM, the first concrete guild feature
 
 *"Maybe the first real feature we've added to guilds, and I think it's a good
-one."* Out of the mariners' guild (ships-and-harbours § 16). It makes the
+one."* Out of the mariners' guild (ships-and-harbors § 16). It makes the
 slate's first fantasy — **a door into a hidden world** — literal, and it is a
 feature of the **guild model**, not of one guild (*"a foresters' guild or
 something wants to map the woods"*).
@@ -1185,7 +1185,7 @@ changes. **The map room is a chart its readers keep feeding.**
 
 - **Two is the default stance** (*"with guilds I feel like two is better than
   one most of the time"*) — the mariners' guild and the watermen
-  ([ships-and-harbours-slate](./ships-and-harbours-slate.md) § 17): one living,
+  ([ships-and-harbors-slate](./ships-and-harbors-slate.md) § 17): one living,
   one shipped as a ruin.
 - ⚠ **OPEN — an organizing principle**: *"it may become necessary to apply an
   organization principle around them instead of just a big bag of different

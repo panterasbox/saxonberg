@@ -54,7 +54,7 @@
 > retires). The sea half stands.
 
 > ⚠ **§ 7a (vessels) superseded where they differ, 2026-10-19** — by
-> [ships-and-harbours-slate](./ships-and-harbours-slate.md): boats in water
+> [ships-and-harbors-slate](./ships-and-harbors-slate.md): boats in water
 > rooms only, ships alone in the field; *a ship is always alongside a room*
 > with exits wired on arrival; the berth housed on the quay; ship kinds as
 > floorplans instanced by key; the berth was argued on *"a ship's interior is
@@ -376,7 +376,7 @@ makes a lighthouse **a navigational asset somebody built.**
 
 ### ⭐⭐ The graph becomes the broad-phase filter
 
-Craft are not uniformly distributed — they are on lanes, in harbours, on
+Craft are not uniformly distributed — they are on lanes, in harbors, on
 grounds — so you only ever compare craft **on the same passage or at the
 same place.** ⭐ **The node graph stops being the geography and becomes
 the index**: on land the graph *is* the geography, on an areal passage the
@@ -845,7 +845,7 @@ land.**
 
 ⭐⭐⭐ **And the subdivision answer gets sharper too: a hostile water
 committee cannot stop you building a port. It can only stop you leaving
-it.** You may build the whole harbour and then find the charter will not
+it.** You may build the whole harbor and then find the charter will not
 license your transit — a far more specific and more interesting power
 than a landlord's veto.
 
@@ -1785,8 +1785,8 @@ nothing; occupied, it affords boarding, resolving to the Structure's
 deck room.
 
 ⭐⭐ **And the berth is strictly better than a dynamic edge, because a
-berth can be owned, rented, assigned, refused and fought over.** Harbour
-dues. A harbourmaster who allocates them. A berth held for thirty years.
+berth can be owned, rented, assigned, refused and fought over.** Harbor
+dues. A harbormaster who allocates them. A berth held for thirty years.
 None of that exists if the way aboard is a conditional exit. ⭐ And the
 berth **cites the ship** — which is the mill-and-the-river shape again: the
 berth is a feature of the quay, and what it points at is somewhere else.
@@ -1809,7 +1809,7 @@ the design:
 Three things fall out:
 
 - ⭐ **The berth and the home are separable assets**, and in a crowded
-  harbour the **berth is the scarcer one** — a rent story with no new
+  harbor the **berth is the scarcer one** — a rent story with no new
   mechanism.
 - ⭐⭐ **The cruising liveaboard has NO ADDRESS** — no mail, no delivery,
   and ⚠ possibly **no residency**, which is `civics.md`'s derive-on-read
