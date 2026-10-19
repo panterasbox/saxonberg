@@ -13,5 +13,5 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso, legs]
   _materialPath: /stuff/idea/material/textile/rubberized-cloth
   constructionForm: woven
-  gradeBand: good
+  gradeBand: fine
   mass: 8

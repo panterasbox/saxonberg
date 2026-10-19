@@ -1310,7 +1310,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * In-session game-time (seconds), or `null` when no world clock runs
+     * The breath's clock — game-time over the world's scale, i.e. REAL
+     * seconds (below) — or `null` when no world clock runs
      * (pre-boot, or a unit test that hasn't bootstrapped one) — the
      * metabolism presence guard verbatim, so unit tests stay idle.
      */
@@ -1318,7 +1319,16 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
         return null;
       }
-      return WorldClockApi.getNow().rawValue();
+      // ⭐⭐ A held breath runs on REAL seconds (underwater, found by the
+      // drive): it is something the player does at the keyboard. On the
+      // game clock a full breath at 12× was six real seconds — not time
+      // to type one command — and two divers blacked out before they
+      // could speak. Every respiration interval (the store, the urge, the
+      // drowning response, the rescue window, the tread, the gas) reads
+      // this clock, so dividing it once makes them all human-time. The
+      // charged shell's standby draw is the precedent (`Charge.standbyDraw`).
+      const scale = WorldClockApi.getScale();
+      return WorldClockApi.getNow().rawValue() / (Number.isFinite(scale) && scale > 0 ? scale : 1);
     }
 
     /* ──────────────────── voluntary breath control ──────────────────── */

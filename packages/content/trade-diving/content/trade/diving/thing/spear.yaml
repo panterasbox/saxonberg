@@ -13,7 +13,7 @@ data:
   _detailMaterialPaths:
     haft: /stuff/idea/material/wood/ash
   constructionForm: pointed
-  gradeBand: common
+  gradeBand: fair
   mass: 1.2
   length: 1.5
   exercises: [diving]

@@ -169,7 +169,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     }
     const opaque: SeaReadState = { line, standing, disciplineKey };
     const tide = this.tideAt(nowS);
-    const oxygenMgL = this.oxygenMgL(await this.roughnessAt(at, place).catch(() => 0.3));
+    const oxygenMgL = this.oxygenMgL();
     return {
       ref,
       atS: nowS,
@@ -350,7 +350,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       temperatureK: this.waterTemperatureK,
       currentMps: (band?.getSetKn() ?? 0) * 0.5144,
       salinityPpt: this.salinityPpt,
-      oxygenMgL: this.oxygenMgL(await this.roughnessAt(pos, null).catch(() => 0.3)),
+      oxygenMgL: this.oxygenMgL(),
       pH: 8.1,
       hardnessDgh: 50,
       nitrateMgL: 0.5,
@@ -363,15 +363,16 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   /**
    * ⭐ Dissolved oxygen, mg/L (underwater D21): saturation at the water's
    * temperature, less for salt (sea water holds a fifth less than fresh),
-   * times how well the surface is mixed — a rough sea is at saturation, a
-   * flat calm a little under it.
+   * at the open sea's well-mixed surface (95 % of saturation). ⚠ The plan
+   * mixed by the sea state's roughness; that read is a weather field per
+   * cell and cost ~80 s cold across a shore's waters (the drive found it),
+   * for a 15 % nuance — the sea is taken as mixed.
    */
-  private oxygenMgL(roughness: number): number {
+  private oxygenMgL(): number {
     const t = Math.max(0, Math.min(1, (this.waterTemperatureK - 273) / 30));
     const fresh = 14.6 + (7.5 - 14.6) * t;
     const salt = 1 - 0.006 * Math.max(0, this.salinityPpt);
-    const mixing = 0.85 + 0.15 * Math.max(0, Math.min(1, roughness));
-    return fresh * salt * mixing;
+    return fresh * salt * 0.95;
   }
 
   /** The wind the realm's weather gives here, m/s. */

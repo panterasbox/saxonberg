@@ -510,4 +510,37 @@ describe('RespirationMixin — the crisis core', () => {
     await diver.reassess();
     expect(diver.getEngagementByType('respiration-drain')).toBeDefined();
   });
+
+  it('⭐ a held breath runs on real seconds: at a 12× world clock, twelve game-seconds spend one second of breath', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    man.setMass(Quantity.of(70, 'kg'));
+    ContainmentApi.move(man, room('air'));
+    await man.reassess();
+    const full = man.getO2StoreL();
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 293, depthM: 3, waterRef: null,
+    });
+    await man.reassess();
+    WorldClockApi.setScale(12);
+    try {
+      WorldClockApi._advanceForTesting(12_000);
+      await settle();
+      const atTwelve = full - man.getO2StoreL();
+      WorldClockApi.setScale(1);
+      const man2 = bodyWith({ breathableMedia: ['air'] });
+      man2.setMass(Quantity.of(70, 'kg'));
+      ContainmentApi.move(man2, room('air'));
+      await man2.reassess();
+      const full2 = man2.getO2StoreL();
+      await man2.reassess();
+      WorldClockApi._advanceForTesting(12_000);
+      await settle();
+      const atOne = full2 - man2.getO2StoreL();
+      expect(atOne).toBeGreaterThan(0);
+      expect(atTwelve).toBeLessThan(atOne / 4);
+    } finally {
+      WorldClockApi.setScale(1);
+    }
+  });
 });
