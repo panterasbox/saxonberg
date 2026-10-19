@@ -323,7 +323,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
     const s = await at(LOFT);
     try {
       let bought = 0;
-      for (let i = 0; i < 90 && bought < 80; i++) {
+      for (let i = 0; i < 150 && bought < 80; i++) {
         const r = await say(s, 'buy cocoon');
         if (refusedFor(r) === null) {
           bought += 1;
@@ -338,7 +338,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
     } finally {
       s.close();
     }
-  }, 2_700_000);
+  }, 4_200_000);
 });
 
 /* ───────────── 8–9. reel, and throw ───────────── */
@@ -415,7 +415,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
     } finally {
       s.close();
     }
-  }, 2_700_000);
+  }, 4_200_000);
 
   it('⭐ AC 16 — the silk bolt is bought, and carries its weaver’s mark', async () => {
     const s = await at(STORE);

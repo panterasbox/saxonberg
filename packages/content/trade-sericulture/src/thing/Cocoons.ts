@@ -308,10 +308,20 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
           0.04 * Math.max(0, 8 - t.count),
       ),
     );
-    // ⭐ Drawn across the pool, weakest grade first in the reckoning: the
-    // skein is no better than the worst cocoon that went into it.
     const pool = this.reelPool();
     const cocoonBand = pool.reduce((b, c) => lowerBand(b, c.getGradeBand()), this.getGradeBand());
+    const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
+    if (skein) {
+      skein.setFilamentCount(t.count);
+      skein.setEvenness(evenness);
+      skein.setMaker(by.getIdentityPath() ?? '');
+      skein.setGradeBand(lowerBand(cocoonBand, evennessBand(evenness)));
+    }
+    await mint<Stuff>(PUPAE_ROW, by);
+    // ⭐ Only now are the cocoons used — AFTER the mints, because the stack
+    // this method runs on may be one the debit destroys (found by the
+    // drive: the pupae never arrived). The skein's grade was read above,
+    // weakest cocoon first: it is no better than the worst that went in.
     let need = t.charge;
     for (const c of pool) {
       if (need <= 0) break;
@@ -321,17 +331,9 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
       else c.setQuantity(c.getQuantity() - take);
     }
 
-    const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
-    if (skein) {
-      skein.setFilamentCount(t.count);
-      skein.setEvenness(evenness);
-      skein.setMaker(by.getIdentityPath() ?? '');
-      skein.setGradeBand(lowerBand(cocoonBand, evennessBand(evenness)));
-    }
-    await mint<Stuff>(PUPAE_ROW, by);
     const line = skein ? skein.threadLine() : '';
     return {
-      self: `You wind off a skein of raw silk. ${line} The pupae are left in the basin.`,
+      self: `You wind off a skein of raw silk. ${line} You fish the pupae out of the water.`,
       peers: 'Somebody lifts a skein of raw silk off the reel.',
       credit: { discipline: 'textiles', difficulty: t.count < 6 ? 'hard' : 'standard' },
     };
@@ -490,7 +492,8 @@ async function mint<T>(row: string, by: Stuff): Promise<T | null> {
   let made: Stuff | null = null;
   try {
     made = await StuffApi.clone<Stuff>(row);
-  } catch {
+  } catch (err) {
+    console.warn(`Cocoons: could not mint ${row}: ${String(err)}`);
     return null;
   }
   if (!made) return null;
