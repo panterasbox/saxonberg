@@ -2976,6 +2976,25 @@ Read first, in this order.
   `Soilable.soilOdour()` (a body adds its worn layers, `Creature`); the
   smell walk's contents leg reads it; the soil augmenter gives the marks
   to sight and the odour to the nose (`cleanliness.odourNoticedPpm`).
+- **B58 — The browser walk (2026-10-19).** Walked as a player through the
+  real client after the rubber + storage-and-ice merge. Worked live: the
+  towel bought, carded and conferring `dry`; `dry me with towel` (*you are
+  dry, and it is damp now*); `dry towel` (*in this air it will take about a
+  day*); `analyze cleanliness` at the eye rung; the bath itself. Fixed:
+  (1) the bathhouse and the lavoir's laundry had NO light — pitch black
+  after dusk (the copper's glowing door is prose) → kept-lit sconces as
+  adornments, the infirmary ward's precedent; (2) a returning player with
+  397 in the bank was told *"You haven't the money"* — the implant's
+  credential is session-durable and comes back unlinked after a restart
+  (`bank open` re-links, by design) → `PricedOffer.payRefusal` says so;
+  (3) every bath was FREE — the fee was collected in the completion, which
+  runs outside the command frame with no acting payer → taken at the desk,
+  in the command. Recorded, not this build's: `smell`/`feel`/`listen` on a
+  thing print its untagged vision prose; the transfusion order collects in
+  its completion too (probably free); the Terminus arrival hall is pitch
+  dark at night; a fresh character shivers in the lounge; the client's
+  command-slot popup swallows Enter; `bank open` on an existing account
+  says it opened one.
 
 ## Drive record
 

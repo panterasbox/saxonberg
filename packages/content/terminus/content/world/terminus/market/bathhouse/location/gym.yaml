@@ -19,6 +19,9 @@ data:
       destination: /world/terminus/market/bathhouse/location/vestibule
       media: [ground]
       edgeMinutes: 1
+  # A lamp kept lit — it keeps evening hours (cleanliness, the browser walk).
+  adornments:
+    - { template: /world/terminus/market/bathhouse/thing/bath-lamp, slot: lamp:gym }
   props:
     - /trade/smithing/thing/barbell
     - /stuff/thing/fixture/basin

@@ -530,8 +530,9 @@ export default class OrderController extends CraftController<OrderModel> {
         ),
       )
       .send();
-    if (!tariff.canSettle(quote.total)) {
-      return { ok: false, reason: 'cannot-pay', detail: "You haven't the money for that." };
+    const cannotPay = tariff.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', detail: cannotPay };
     }
     // No interactive (a scripted caller) answers no: money is never taken
     // on a question nobody was asked.
@@ -590,8 +591,9 @@ export default class OrderController extends CraftController<OrderModel> {
       .topic(SERVICE_TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(`${who} turns it over. ${look.said} That'll be ${money(quote.total)}.`)))
       .send();
-    if (!tariff.canSettle(quote.total)) {
-      return { ok: false, reason: 'cannot-pay', detail: "You haven't the money for that." };
+    const cannotPay = tariff.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', detail: cannotPay };
     }
     const yes = context.interactive
       ? await context.interactive
@@ -661,15 +663,23 @@ export default class OrderController extends CraftController<OrderModel> {
       return OrderController.serviceFail(context, 'There is nothing here to draw a bath in.', 'no-tub');
     }
     const price = tariff.priceFor(key) ?? 0;
-    if (!tariff.canSettle(price)) {
-      return OrderController.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
-    }
+    const cannotPay = tariff.payRefusal(price);
+    if (cannotPay) return OrderController.serviceFail(context, cannotPay, 'cannot-pay');
     const drawn = tub.drawFrom(copper, 80);
     if (!drawn.ok) {
       return drawn.reason === 'not-hot' || drawn.reason === 'no-water'
         ? OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot')
         : OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
     }
+    // ⭐ Paid at the desk, IN the command (found by the browser walk: the
+    // fee was taken in the completion, which runs outside the command frame
+    // where there is no acting payer — every bath was free). A bath you
+    // cannot pay for is refused before the tub is filled for you.
+    const collected = await tariff.collect(key, 'a bath');
+    if (price > 0 && !collected.paid) {
+      return OrderController.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
+    }
+    if (collected.paid) await OrderController.payPiecework(tariff, hand);
     const cleansers = tariff.houseCleansers('soap');
     const waterK = drawn.waterK;
     const who = hand.getPresentation() ?? 'The attendant';
@@ -688,8 +698,6 @@ export default class OrderController extends CraftController<OrderModel> {
           { waterK, hardnessDgh, cleansers, effort: 2 },
           120,
         );
-        const collected = await tariff.collect(key, 'a bath');
-        if (collected.paid) await OrderController.payPiecework(tariff, hand);
         const tail = collected.note ? ` ${collected.note}` : '';
         MessageApi.scene(giver)
           .topic(SERVICE_TOPIC)
