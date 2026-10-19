@@ -1,0 +1,41 @@
+# The Hanging Wood ashery (potash D16) — ⭐ where the wood's waste becomes
+# the glasshouse's flux. It stands in the wood because potash is about a
+# tenth of the ash's mass: burn where the wood is, leach and boil where the
+# ash is, and cart the cake. A lean-to with a hearth and an iron pot on it,
+# a hopper, a rain butt and an egg to read the lye by.
+#
+# ⭐ Persistent: a pot boiling down over hours, a hopper leaching overnight,
+# a cake in the pot — a kept place outlives a restart (cleanliness D31).
+#
+# ⚠ The prose is invariant: it never says how much ash is in anything.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: ashery
+  keywords: [ashery, "ash house", "lean-to", potashery]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # An open clearing, the canopy cut well back off the smoke.
+  ambientIntensity: 4500
+  ambientColorTemperature: 5600
+  longDescription: |
+    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A lean-to of rough boards shelters a hearth with an iron pot on it, crusted white round the lip, and beside it a tall hopper on legs with a stone channel under its spigot. A tarred rain butt stands under the eaves.
+
+    Everything here smells of wet ash and lye, and there is not a green thing growing within a cart's length of the hearth.
+  coords: { x: -1, y: 2, z: 0 }
+  exits:
+    east:
+      destination: /world/terminus/rejection/hanging-wood/oak-clearing
+      edgeMinutes: 2
+  props:
+    - /stuff/thing/Hearth
+    - { template: /trade/potash/thing/iron-pot, on: /stuff/thing/Hearth }
+    - /trade/chandlery/thing/hopper
+    - /trade/potash/thing/rain-butt
+    - /trade/potash/thing/test-egg
+    - { template: /trade/chandlery/thing/lye-flask, as: flask-1 }
+    - { template: /trade/chandlery/thing/lye-flask, as: flask-2 }
+  details:
+    ground:
+      keywords: [ground, ash, grey, floor]
+      description: |
+        Grey and soft and packed, with black flecks of char in it. Rain has run it into ridges where the hopper drips.

@@ -1127,6 +1127,12 @@ route's bar is graded by the lye's band.
 
 ### ⛔ The silk gate
 
+✅ **Taken 2026-10-19 — path 2** (`c2c5525e8`): !395 had not merged, so
+`origin/master` (design docs only) then `origin/reqs/silk` were merged into
+`reqs/potash`. Conflicts: the orphan-key ceiling (silk's 361 minus potash's
+8 → **353**, recounted by the lint) and the pack count (**66**:
+sericulture + potash). ⚠ The MR must open only after !395 merges.
+
 Run § Sibling builds › *The silk gate* here, before W5. Record in this
 plan which path was taken (master had !395 · merged `origin/reqs/silk`
 into the branch) and the conflict list as resolved. If silk is not yet
@@ -1135,6 +1141,16 @@ without the pot and the egg's lye checkpoints (the ashery row props the
 pot only once W5 exists) — never a pack-local flash workaround.
 
 ### W5 — the boil: lye → black salts in an iron pot (needs silk's plateau)
+
+✅ **Done** (commit below). `IronPot` hooks `reconcileSetting` (the mould's
+read path — `getContents`, `setState` — which already drives the thermal
+reconcile, so the plateau runs FIRST and the pot reads its result). The
+cake's grade is the pot's (carried in by the pour), set after `castInto`;
+its composition is the purity, 0.65. ⚠ To pass `lint:reachability` the
+ashery LOCATION landed here (hearth, the pot ON it, hopper, rain butt, egg,
+two flasks), off the oak clearing's new west exit; W6 adds the pit, kiln,
+people and counters. Persistent (a batch-holding place). Closure
+`liquidTight` (an open vessel lets a pour run through).
 
 **Pre-wave check:** `Thermal.ts` (read-only — potash edits nothing in
 it; confirm the plateau is present: `grep -n "latent-heat plateau"

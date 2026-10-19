@@ -47,6 +47,10 @@ data:
     south:
       destination: /world/terminus/rejection/hanging-wood/ride
       edgeMinutes: 3
+    # ⭐ The ashery (potash D16), west of the big oaks.
+    west:
+      destination: /world/terminus/rejection/hanging-wood/ashery
+      edgeMinutes: 2
   props:
     - /world/terminus/rejection/hanging-wood/thing/panel-north
   details:

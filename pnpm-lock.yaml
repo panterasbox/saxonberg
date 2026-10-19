@@ -796,6 +796,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-chandlery':
+        specifier: workspace:*
+        version: link:../trade-chandlery
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
@@ -817,6 +820,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-potash':
+        specifier: workspace:*
+        version: link:../trade-potash
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
