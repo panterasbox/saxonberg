@@ -1180,3 +1180,23 @@ changes. **The map room is a chart its readers keep feeding.**
   dated snapshot of its map: revenue, and a lens 4 choice — **Portugal kept its
   sea charts a state secret** (the *padrão real*); later admiralties published
   for safety.
+
+## Recorded 2026-10-19 — two charters by default, and an organizing principle (OPEN)
+
+- **Two is the default stance** (*"with guilds I feel like two is better than
+  one most of the time"*) — the mariners' guild and the watermen
+  ([ships-and-harbours-slate](./ships-and-harbours-slate.md) § 17): one living,
+  one shipped as a ruin.
+- ⚠ **OPEN — an organizing principle**: *"it may become necessary to apply an
+  organization principle around them instead of just a big bag of different
+  guilds with no relationship to each other."* Candidates:
+
+| principle | what organizes them | precedent |
+|---|---|---|
+| ⭐ **the supply chain** (the lean) | each guild sits at a position — **extract** (delvers, foresters), **transform** (smiths, ceramics, victuallers), **move** (watermen, carriers, mariners), **serve** (physic, the Chorus, landwrights) | `vocations.md` already organizes the vocations register by chain position |
+| the discipline map | each guild a region of the catalogue; neighbours by shared disciplines | the claim rule |
+| the paymaster | market · polity paper · patronage | the audit test (*who pays?*) |
+| precedence and federation | ranked or grouped by the polity — London's **Great Twelve** livery companies; a **trades council** | a governance choice — the polity's, never the engine's |
+
+  The lean: **the supply chain as the primary order**, **precedence and
+  federation left to each polity**. To decide when the slate fills out.
