@@ -13,7 +13,7 @@ data:
   longDescription: |
     A low room with a hearth at the back and a deep narrow pot on a trivet over it, kept just hot enough that what is in it stays liquid. Rods of dipped candles hang from the rafters to set, in two colours — the pale ones at the front where they can be seen and the yellow-grey ones at the back in far greater numbers.
 
-    A counter across the front has a tray of singles on it and, behind, bundles tied with string. In the corner by the hearth stand a tall ash hopper on legs and a copper soap kettle, and a rack of pale soap bars curing. The smell is mutton with honey somewhere underneath it, and the honey is losing.
+    A counter across the front has a tray of singles on it and, behind, bundles tied with string. In the corner by the hearth stand a tall ash hopper on legs and a copper soap kettle, and a rack of pale soap bars curing; a rain butt stands just inside the back door, with an old egg on a saucer on its lid. The smell is mutton with honey somewhere underneath it, and the honey is losing.
   exits:
     southwest:
       destination: /world/terminus/wharfside/knackers/location/yard
@@ -30,6 +30,10 @@ data:
     - /trade/chandlery/thing/soap-kettle
     - /trade/chandlery/thing/soap-frame
     - /trade/cooking/thing/drying-rack
+    # ⭐ (potash D7, D16) Soft water for the hopper and an egg to read the
+    # lye by — a lye of rain is stronger than one of the Kestrel.
+    - /trade/potash/thing/rain-butt
+    - /trade/potash/thing/test-egg
   details:
     rods:
       keywords: [rods, rod, candles, rafters, bundles]

@@ -1,0 +1,22 @@
+# A test egg — ⭐ the soapmaker's hydrometer, older than the glass by
+# centuries (potash D7). Float it in a lye: it sinks in water, stands on
+# its point in a weak lye, shows a coin of shell in a lye fit for soap and
+# rides high in a strong one. `analyze density <vessel>` with it in reach.
+#
+# ⚠ A KEPT egg, blown and waxed so it neither rots nor is eaten — a
+# `Tool` with the `flotation` capability, not the hen's egg (which is
+# food, and food is not a tool). Ungraded-poor: it reads to `competent`
+# and no finer; the glass hydrometer is the next rung.
+class: /platform/thing/Tool
+data:
+  shortDescription: test egg
+  keywords: ["test egg", egg, "lye egg"]
+  register: indefinite
+  longDescription: >-
+    A brown hen's egg, blown hollow through a pinhole and weighted with a
+    little wax, its shell stained yellow at one end where it has floated in
+    a hundred lyes.
+  capabilities: [flotation]
+  gradeBand: poor
+  mass: 0.06
+  _materialPath: /trade/potash/idea/material/eggshell

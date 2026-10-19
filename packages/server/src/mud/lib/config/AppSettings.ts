@@ -2371,6 +2371,16 @@ export const AppSettingKeys = {
   kitchenSurfaceInoculum: "kitchen.surfaceInoculum",
   /** Cleanliness — the row a hearth's raked-out ash is minted as. */
   cleanlinessAshTemplate: "cleanliness.ashTemplate",
+  /** Potash — the alkali (kg/L) from which a liquor reads as a WEAK lye
+   * rather than water (potash D5). */
+  potashLyeWeakFromKgPerL: "potash.lye.weakFromKgPerL",
+  /** Potash — the alkali (kg/L) from which a lye is SOAP-STRENGTH. */
+  potashLyeSoapFromKgPerL: "potash.lye.soapFromKgPerL",
+  /** Potash — the alkali (kg/L) from which a lye is STRONG. */
+  potashLyeStrongFromKgPerL: "potash.lye.strongFromKgPerL",
+  /** Potash — the share of a leach's alkali each °dH of the water wastes
+   * (potash D6): hard water spends alkali on its own lime. */
+  potashLyeHardnessWastePerDgh: "potash.lye.hardnessWastePerDgh",
 } as const;
 
 export type AppSettingKey =

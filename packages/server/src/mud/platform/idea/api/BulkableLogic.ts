@@ -38,6 +38,8 @@ import type {
 } from '../../../api/bulk';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
+// The `dissolvedSolidsKgPerL` payload field is declared by LyeStrength's merge.
+import type {} from '../../../lib/cleanliness/LyeStrength';
 
 const BULK_FIELD = 'bulk';
 
@@ -595,6 +597,23 @@ export class BulkableLogic extends ApiLogic {
           to.setPayload({
             ...toPayload,
             blood: new Blood(toPayload.blood).blend(fromPayload.blood),
+          });
+        }
+      }
+
+      // ⭐ A lye's strength blends by VOLUME (potash D5): a pail of weak
+      // lye tipped into a pot of strong thins it. ⚠ Lye only, and only
+      // until the sugar build's fold of the same field lands — then this
+      // block is DELETED (`potash-on-sugar`), since that fold covers it.
+      if (!toWasEmpty && material.hasTag('lye')) {
+        const held = to.getPayload();
+        const fromK = fromPayload?.dissolvedSolidsKgPerL ?? 0;
+        const toK = held?.dissolvedSolidsKgPerL ?? 0;
+        const total = applied + toAmountBefore;
+        if (total > 0 && (fromK > 0 || toK > 0)) {
+          to.setPayload({
+            ...(held ?? {}),
+            dissolvedSolidsKgPerL: (applied * fromK + toAmountBefore * toK) / total,
           });
         }
       }

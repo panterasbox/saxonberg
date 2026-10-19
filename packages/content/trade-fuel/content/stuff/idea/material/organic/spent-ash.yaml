@@ -1,0 +1,19 @@
+# Spent ash — leached wood ash (potash D6): the lime and the grit stay, the
+# potash is gone into the lye. ⚠ No `potash` tag, so a hopper will not
+# leach it twice. `liming` because it is mostly lime, for the day a field
+# reads it.
+class: /platform/idea/material/Material
+data:
+  name: spent ash
+  keywords: ["spent ash"]
+  density: 900
+  specificHeat: 840
+  thermalConductivity: 0.2
+  electricalConductivity: 1.0e-3
+  waterAbsorptionCapacity: 50
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "residue", "liming", "once-living"]
+  composition: []
+  biologicalSource: null

@@ -983,6 +983,24 @@ kg of ash in heaps; `lint:family` green; `pnpm test:near`.
 
 ### W2 — the pack, the leach, and the egg
 
+✅ **Done** (commit below). ⚠ **Sugar moved first:** by W2's pre-wave
+check `origin/reqs/sugar` had pushed its D1 — the `dissolvedSolidsKgPerL`
+fold in `BulkableLogic` (inserted between the hardness and blood blocks)
+and the `1 + 0.52·w` solids arm in `DensityReading.measure`. So potash
+**did not refactor the hardness block into `blendScalar`** (that would
+overlap sugar's hunk); instead a lye-ONLY fold sits after the blood block,
+marked for deletion at `potash-on-sugar`, and the lye early return sits at
+the very TOP of `measure`, above the empty-vessel check sugar's hunk
+abuts. Both merge textually clean; at the sugar merge, delete the lye fold
+(sugar's covers it). Other decisions: the egg's words and the glass's
+words are separate (`eggWords`/`glassWords`) — a hydrometer on a lye
+speaks of the glass, not an egg; below `competent` the egg cannot tell a
+weak lye from water ("it sinks"). The test egg is a `Tool` of a pack
+`eggshell` material (no shell material existed; limestone would have been
+matched by `burn-lime`). `trade-chandlery` now depends on `trade-fuel`
+(the hopper mints `spent-ash`). The hopper also leaches a LYE poured on
+fresh ash (the second pass), adding to the strength it carried.
+
 **Pre-wave check:** `BulkableLogic.ts`, `DensityReading.ts`,
 `density.yaml`, `PackLogic.discover.test.ts`, root `package.json`.
 

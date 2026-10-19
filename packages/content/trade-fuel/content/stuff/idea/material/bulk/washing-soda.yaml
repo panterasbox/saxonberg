@@ -1,6 +1,10 @@
-# Washing soda — the mild alkali left when lye is boiled down to dryness
-# (cleanliness D25): it cuts grease more gently than lye and it SOFTENS hard
-# water, so soap lathers in it. Sold by the bag at the general store.
+# Washing soda — sodium carbonate, the mild alkali (cleanliness D25): it
+# cuts grease more gently than lye and it SOFTENS hard water, so soap
+# lathers in it. Sold by the bag at the general store — a STOCKED line,
+# because nothing here makes it yet: soda comes from burnt seaweed (the
+# kelp burn, the underwater build) or from mineral natron. ⚠ It is NOT
+# boiled-down wood-ash lye: that lye is potassium carbonate, and boiling
+# it gives POTASH (potash D10).
 class: /platform/idea/material/Material
 data:
   name: washing soda

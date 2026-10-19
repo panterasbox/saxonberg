@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The chandlery — one dip, and what the candle is made of is whatever fat was in the pot.",
+  "description": "The chandlery \u2014 one dip, and what the candle is made of is whatever fat was in the pot.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

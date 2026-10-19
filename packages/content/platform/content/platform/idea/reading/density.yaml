@@ -14,9 +14,14 @@ data:
   subjectRequires: [BulkableMixin]
   discipline: chemistry
   instrument: hydrometry
+  # ⭐ The eye rung's hand tool is a kept test EGG (potash D7): float one
+  # in a lye and it says how strong the lye is — sinks, stands, shows a
+  # coin of shell, rides high. The folk hydrometer; only a lye answers it.
+  handTool: flotation
   instrumentNoun: a hydrometer
   eyeCeiling: untrained
   improves: >-
-    how much sugar a ferment has left to eat, and therefore when it is done
+    how much sugar a ferment has left to eat, and therefore when it is done;
+    how strong a lye is, and therefore whether it will make soap
   stakes: >-
     a batch bottled live, a cask of vinegar, a week of guessing

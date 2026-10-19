@@ -24,9 +24,23 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import { LyeStrength } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 
 /** The profile a hopper of water and ash runs. */
 const LEACH = 'lye-leach';
+/** What a leached heap leaves behind (potash D6). */
+const SPENT_ASH = '/trade/fuel/thing/spent-ash';
+/** A leached heap keeps this share of its mass as spent ash. */
+const SPENT_SHARE = 0.9;
+/** The alkali share assumed of an ash heap that does not say its own. */
+const UNSAID_STRENGTH = 0.1;
 
 export default class Hopper extends ContainerMixin(Vat) {
   /**
@@ -34,14 +48,71 @@ export default class Hopper extends ContainerMixin(Vat) {
    * it. Anything else in a hopper does nothing.
    */
   public override matchProfile(material: Material): MaturationProfile | null {
-    if (!material.hasTag('water')) return null;
+    // ⭐ Water leaches; so does a LYE poured back through fresh ash — a
+    // second pass, and the oldest way to make a lye strong (potash D6).
+    if (!material.hasTag('water') && !material.hasTag('lye')) return null;
     const ash = this.getContents().filter((c) => {
       const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
       return m?.hasTag('potash') ?? false;
     });
     if (ash.length === 0) return null;
-    for (const a of ash) void StuffApi.destruct(a);
+    this.leach(ash);
     return MaturationProfileRef.byKey(LEACH);
+  }
+
+  /**
+   * ⭐⭐ The leach, derived (potash D6): the water takes the ash's alkali —
+   * each heap's mass × its strength — into its litres, less what a HARD
+   * water spends on its own lime (river water makes a weaker lye than
+   * rain), on top of whatever strength a lye poured back through already
+   * had. The heaps are spent, not gone: each leaves a heap of spent ash.
+   * The hopper takes the strength's grade, so the lye drawn off it carries
+   * the band (a pour carries the holder's grade).
+   */
+  private leach(ash: Stuff[]): void {
+    const litres = this.getBulkAmount('interior').rawValue();
+    if (!(litres > 0)) return;
+    const alkaliPath = (() => {
+      try {
+        return AppApi.setting(AppSettingKeys.fireAshAlkaliMaterial) || '/stuff/idea/material/mineral/potash';
+      } catch {
+        return '/stuff/idea/material/mineral/potash';
+      }
+    })();
+    let alkaliKg = 0;
+    for (const heap of ash) {
+      const mass = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 0;
+      const strength = MixinApi.isComposition(heap) ? heap.fractionOf(alkaliPath) : UNSAID_STRENGTH;
+      alkaliKg += mass * strength;
+    }
+    const payload = this.getBulkPayload('interior');
+    const dgh = payload?.hardnessDgh ?? 0;
+    const perDgh = (() => {
+      try {
+        const v = Number(AppApi.setting(AppSettingKeys.potashLyeHardnessWastePerDgh));
+        return Number.isFinite(v) && v > 0 ? v : 0.04;
+      } catch {
+        return 0.04;
+      }
+    })();
+    const kept = Math.max(0, 1 - perDgh * dgh);
+    const kgPerL = (payload?.dissolvedSolidsKgPerL ?? 0) + (alkaliKg / litres) * kept;
+    this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
+    this.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
+    for (const heap of ash) void this.spend(heap);
+  }
+
+  /** A leached heap becomes spent ash, the owner's still (made from it). */
+  private async spend(heap: Stuff): Promise<void> {
+    const mass = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 0;
+    try {
+      const spent = await StuffApi.clone<Stuff & Containable>(SPENT_ASH, undefined, { madeFrom: [heap] });
+      if (MixinApi.isTangible(spent) && mass > 0) spent.setMass(Quantity.of(mass * SPENT_SHARE, 'kg'));
+      ContainmentApi.move(spent, this as unknown as Stuff & Container);
+    } catch (err) {
+      console.warn(`Hopper: no spent ash at '${SPENT_ASH}':`, err);
+    }
+    await StuffApi.destruct(heap);
   }
 
   /** Drawn bare-handed, a caustic splashes the face (D23). */
