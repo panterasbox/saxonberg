@@ -86,8 +86,47 @@ export class VisionModality extends Modality {
    * pre-migration contract.
    */
   public override signalAt(loc: Stuff & Container): Light {
-    return this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    const steady = this.steadyLight;
+    if (steady === null) {
+      return this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    }
+    const id = (loc as unknown as Stuff).stuffId;
+    const known = steady.get(id);
+    if (known) return known;
+    const light = this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    steady.set(id, light);
+    return light;
   }
+
+  /**
+   * ⭐⭐ The light at each place, remembered for the length of `fn` — which
+   * must be a synchronous READ that changes nothing a light depends on.
+   *
+   * Every `canSee` walks the light graph from scratch (the place's own
+   * sources, its fixtures, everything carried, and the legs out through
+   * its exits), and a batch that DESCRIBES many things — resolving a
+   * command's candidates, refreshing a live card over a counter — paid
+   * that walk once per thing: quadratic in what the room holds. A browser
+   * looking at a three-hundred-item shop counter pinned the server for
+   * minutes and every command behind it queued (silk's browser walk).
+   *
+   * ⚠ Scoped to a caller-declared READ, never to a command or a tick: a
+   * command can light a lamp or carry one into another room between two
+   * reads, and a cache that outlived that would leave a player in the
+   * dark they had just lit. Re-entrant: an inner batch rides the outer.
+   */
+  public whileLightIsSteady<T>(fn: () => T): T {
+    if (this.steadyLight !== null) return fn();
+    this.steadyLight = new Map();
+    try {
+      return fn();
+    } finally {
+      this.steadyLight = null;
+    }
+  }
+
+  /** The steady-light memo — live only inside {@link whileLightIsSteady}. */
+  private steadyLight: Map<string, Light> | null = null;
 
   /**
    * ⭐⭐ **How bright this place gets**: the same walk with the sky

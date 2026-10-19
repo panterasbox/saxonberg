@@ -124,6 +124,17 @@ export class PerceptionApi {
   }
 
   /**
+   * ⭐ Run `fn` — a synchronous READ that describes many things — with the
+   * light at each place computed once rather than once per thing. The
+   * candidate walk of a command's arguments and a live card's refresh use
+   * it; anything that might change a light (light, douse, carry a lamp)
+   * must not run inside it. See `VisionModality.whileLightIsSteady`.
+   */
+  public static whileLightIsSteady<T>(fn: () => T): T {
+    return logic().whileLightIsSteady(fn);
+  }
+
+  /**
    * Resolve a modality singleton by its BodyPlan organ key. Used by
    * `sensorium` when walking `BodyPlan.sensoryPorts.modality` strings
    * (which are organ keys, not modality names). Returns null when no

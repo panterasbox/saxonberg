@@ -379,11 +379,15 @@ export default class MqlSubscriptionRegistry extends Idea {
       return null;
     }
 
+    // ⭐ One light walk per place for the whole projection (a vision gate
+    // per row) — see `PerceptionApi.whileLightIsSteady`.
     const lastResult = new Map<string, RecordValue>();
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-      lastResult.set(stuff.stuffId, rec);
-    }
+    PerceptionApi.whileLightIsSteady(() => {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
+        lastResult.set(stuff.stuffId, rec);
+      }
+    });
 
     const registrantScope = ExecutionContextApi.getCircleScope();
     const sub: SubscriptionState = {
@@ -503,10 +507,12 @@ export default class MqlSubscriptionRegistry extends Idea {
     }
 
     const result: RecordValue[] = [];
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-      result.push(rec);
-    }
+    PerceptionApi.whileLightIsSteady(() => {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
+        result.push(rec);
+      }
+    });
 
     const template: Omit<MqlQueryResultEnvelope, 'frameId'> = {
       type: 'mql-query-result',
@@ -877,11 +883,15 @@ export default class MqlSubscriptionRegistry extends Idea {
       return;
     }
 
+    // ⭐ The re-resolve that pinned the server over a shop counter: one
+    // light walk per place, not one per row (silk's browser walk).
     const newResult = new Map<string, RecordValue>();
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
-      newResult.set(stuff.stuffId, rec);
-    }
+    PerceptionApi.whileLightIsSteady(() => {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
+        newResult.set(stuff.stuffId, rec);
+      }
+    });
 
     const changes = this.diff(sub.lastResult, newResult, sub.cardinality);
     sub.lastResult = newResult;
