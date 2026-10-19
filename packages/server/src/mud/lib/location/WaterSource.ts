@@ -38,6 +38,8 @@ export interface WaterDraw {
  */
 /** A tidal water's tide at the read's instant. */
 export interface WaterTide {
+  /** The instant this tide is for, game-seconds (a re-tide moves it, not the read's `atS`). */
+  atS: number;
   /** Low to high today, m. */
   rangeM: number;
   /** The water is coming in. */
@@ -95,6 +97,7 @@ export interface WaterSource {
   currentWaterRef(citation: string, place: Stuff): string | null;
   readWater(citation: string, place: Stuff, nowS: number): Promise<WaterRead | null>;
   waterLinesFor(read: WaterRead, viewer: Stuff): string[];
+  retide(read: WaterRead, nowS: number): WaterRead | null;
 }
 
 export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -142,6 +145,21 @@ export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
       void read;
       void viewer;
       return [];
+    }
+
+    /**
+     * ⭐ The same read with its tide brought to `nowS` (underwater D25) —
+     * the level and the stream are arithmetic on the moon's clock, and a
+     * whole read can be expensive (the drive found a sea read costing
+     * seconds, re-read by every tidal shore every ten minutes).
+     *
+     * @hook Override on a source whose waters have a tide. Default: `null`
+     *   — no cheaper way than a full read.
+     */
+    public retide(read: WaterRead, nowS: number): WaterRead | null {
+      void read;
+      void nowS;
+      return null;
     }
   };
 }

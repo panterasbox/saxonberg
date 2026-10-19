@@ -55,6 +55,8 @@ interface WaterMemo {
   refreshing: Promise<void> | null;
   /** The source was found and said it does not know this water. */
   unknown?: true;
+  /** When the tide was last brought current on this read, game-seconds. */
+  tideAtS?: number;
 }
 
 /** Which water a name picks, or why none. */
@@ -310,9 +312,19 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const moved =
         read !== null && memo.source !== null &&
         memo.source.currentWaterRef(citation, this as unknown as Stuff) !== read.ref;
-      const window = read?.tide !== undefined ? TIDE_SEGMENT_S : SEGMENT_S;
       const fresh =
-        read !== null && !read.pending && !moved && nowS - read.atS < window;
+        read !== null && !read.pending && !moved && nowS - read.atS < SEGMENT_S;
+      // ⭐ A tidal water's level moves in minutes: bring the tide current
+      // cheaply between full reads (the source re-tides what it holds).
+      if (fresh && read !== null && read.tide !== undefined && memo.source !== null &&
+          nowS - (memo.tideAtS ?? read.atS) >= TIDE_SEGMENT_S) {
+        const tided = memo.source.retide(read, nowS);
+        if (tided !== null) {
+          memo.read = tided;
+          memo.tideAtS = nowS;
+          void this.onWaterRead(key, tided);
+        }
+      }
       if (fresh && !(force && memo.source === null)) return Promise.resolve();
       if (!force && memo.unknown) return Promise.resolve();
       const run = this.readCited(key, memo, citation, nowS).finally(() => {
@@ -340,6 +352,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         memo.unknown = undefined;
         memo.read = read;
+        memo.tideAtS = nowS;
         await this.onWaterRead(key, read);
       } catch (err) {
         // The read stays as it was (a look says it is hard to read) — but
@@ -410,7 +423,7 @@ function tideWords(read: WaterRead): string | null {
   if (tide === undefined) return null;
   const slack = Math.abs(tide.streamMps) < 0.15;
   const nextS = tide.rising ? tide.nextHighS : tide.nextLowS;
-  const hours = Math.max(0, (nextS - read.atS) / 3600);
+  const hours = Math.max(0, (nextS - tide.atS) / 3600);
   const when = hours < 0.75 ? 'within the hour' : `in about ${hours < 1.5 ? 'an hour' : `${Math.round(hours)} hours`}`;
   if (slack) {
     return tide.rising ? 'The tide is on the turn at low water; it will be making soon.' : 'The tide is on the turn at the top of the flood.';

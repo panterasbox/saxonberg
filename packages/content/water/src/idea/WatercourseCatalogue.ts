@@ -400,6 +400,25 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     nowS: number,
   ): Promise<WaterRead | null> {
     void place;
+    // ⭐ ONE read per water per segment, shared by every place that cites
+    // it (found by the underwater drive): the bank, the basin and every
+    // band of its column cite the confluence, and each read is seconds of
+    // work — a diver's `descend` waited on a fresh read of the whole river
+    // for the band it was entering. The read does not depend on the place.
+    const key = `${citation}@${Math.floor(nowS / READ_SEGMENT_S)}`;
+    const shared = this.sharedReads.get(key);
+    if (shared) return shared;
+    const read = this.readWaterNow(citation, nowS);
+    this.sharedReads.set(key, read);
+    if (this.sharedReads.size > 256) this.sharedReads.delete(this.sharedReads.keys().next().value!);
+    read.catch(() => this.sharedReads.delete(key));
+    return read;
+  }
+
+  /** stuffId-free read cache: `<citation>@<segment>` → the read (runtime). */
+  private sharedReads = new Map<string, Promise<WaterRead | null>>();
+
+  private async readWaterNow(citation: string, nowS: number): Promise<WaterRead | null> {
     const reach = await this.reachOf(citation);
     if (reach === null) return null;
     let registry: FisheryRegistry | null = null;
@@ -453,6 +472,15 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /** Everyone's physical read, then the fishery read the viewer earns. Never *fouled*. */
+  /** ⭐ The tide brought current on a read this catalogue already gave (D25). */
+  public override retide(read: WaterRead, nowS: number): WaterRead | null {
+    const state = read.opaque as ReachReadState | undefined;
+    if (!state) return null;
+    const tide = this.tideOf(state.reach, nowS);
+    if (tide === null) return null;
+    return { ...read, levelM: tide.levelM, tide: tide.tide };
+  }
+
   public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
     const state = read.opaque as ReachReadState | undefined;
     if (!state) return [];
@@ -771,6 +799,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     return {
       levelM: t.levelM,
       tide: {
+        atS: nowS,
         rangeM: t.rangeM,
         rising: t.rising,
         nextHighS: t.nextHighS,
@@ -1638,6 +1667,9 @@ function hardnessWords(dgh: number): string {
 const UNDER_ICE_K = 274;
 
 /** Numeric AppSetting read with a seeded-literal fallback. */
+/** A read is shared for one weather segment (the shore's own memo window). */
+const READ_SEGMENT_S = 6 * 3600;
+
 function dial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);

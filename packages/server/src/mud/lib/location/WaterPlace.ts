@@ -648,6 +648,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       if (floor.supports(mover)) return { ok: true };
       if (!MixinApi.isMobile(mover) || !MixinApi.isSlottable(mover)) return { ok: true };
       if (mover.getEngagedMode()?.getMedium() === 'water') return { ok: true };
+      // ⭐ Or out by something you can climb (underwater 8b, found by the
+      // drive): the quay steps. The climb mode's own gate is what asks
+      // whether there is anything here to climb — the wall beside them
+      // refuses, the steps do not.
+      if (mover.getEngagedMode()?.getName() === 'climb') return { ok: true };
       return { ok: false, reason: 'You are in the water; swim for it.' };
     }
 

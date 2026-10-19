@@ -284,7 +284,7 @@ export default class WaterReading extends Reading {
     const tide = read?.tide;
     if (!read || tide === undefined) return [];
     const nextS = tide.rising ? tide.nextHighS : tide.nextLowS;
-    const hours = Math.max(0, (nextS - read.atS) / 3600);
+    const hours = Math.max(0, (nextS - tide.atS) / 3600);
     const stream = Math.abs(tide.streamMps) < 0.15
       ? 'slack water'
       : `the stream ${tide.streamMps > 0 ? 'flooding' : 'ebbing'} at ${Math.abs(tide.streamMps).toFixed(1)} m/s`;

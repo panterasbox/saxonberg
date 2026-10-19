@@ -157,6 +157,30 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       return { ref: citation, atS: nowS, name, pending: true, frozen: false, draw: null };
     }
     const ref = this.refAt(at);
+    // ⭐ One read per sea cell per segment, shared by every shore on it
+    // (the underwater drive: eight estuary places each read the sea).
+    const key = `${ref}@${Math.floor(nowS / (6 * 3600))}`;
+    const shared = this.sharedReads.get(key);
+    if (shared) return shared;
+    const read = this.readCellNow(citation, ref, at, place, nowS, name);
+    this.sharedReads.set(key, read);
+    if (this.sharedReads.size > 256) this.sharedReads.delete(this.sharedReads.keys().next().value!);
+    read.catch(() => this.sharedReads.delete(key));
+    return read;
+  }
+
+  /** `<cell>@<segment>` → the read (runtime). */
+  private sharedReads = new Map<string, Promise<WaterRead | null>>();
+
+  private async readCellNow(
+    citation: string,
+    ref: string,
+    at: GeoPosition,
+    place: Stuff,
+    nowS: number,
+    name: string,
+  ): Promise<WaterRead | null> {
+    void citation;
     const line = await this.seaReadAt(at, place);
     let standing: FisheryStanding | null = null;
     let disciplineKey: string | null = null;
@@ -183,6 +207,13 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       draw: { materialPath: SALT_WATER_PATH, temperatureK: this.waterTemperatureK },
       opaque,
     };
+  }
+
+  /** ⭐ The tide brought current on a read this sea already gave (D25). */
+  public override retide(read: WaterRead, nowS: number): WaterRead | null {
+    const tide = this.tideAt(nowS);
+    if (tide === null) return null;
+    return { ...read, levelM: tide.levelM, tide: tide.tide };
   }
 
   public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
@@ -249,6 +280,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     return {
       levelM: t.levelM,
       tide: {
+        atS: nowS,
         rangeM: t.rangeM,
         rising: t.rising,
         nextHighS: t.nextHighS,

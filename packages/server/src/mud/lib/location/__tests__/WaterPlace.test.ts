@@ -222,7 +222,7 @@ describe('the tide reaches the place (D11, D25)', () => {
     const read = (nextHighS: number): WaterRead => ({
       ref: 'r', atS: arrived, name: 'the sea', frozen: false,
       draw: { materialPath: '/m/salt', temperatureK: 285 }, levelM: -1,
-      tide: { rangeM: 3, rising: false, nextHighS, nextLowS: arrived + 3600, streamMps: -0.5 },
+      tide: { atS: arrived, rangeM: 3, rising: false, nextHighS, nextLowS: arrived + 3600, streamMps: -0.5 },
     });
     // High water still to come after it went in: it is still in the channel.
     vi.spyOn(strandline, 'peekWaterRead').mockReturnValue(read(arrived + 3600));

@@ -842,6 +842,14 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // tells you the air is gone, your chest does (`self.body`). A room
       // that fills with smoke you notice at once.
       const under = drain.cause === 'medium' && this.underWater();
+      // ⭐ Come up into the air (found by the drive): a drain tick that
+      // lands between the arrival and the reassess is not a crisis — the
+      // swimmer at the surface breathes. Reassess and say nothing.
+      const surfaced = BiomeApi.mediumFor(self);
+      if (drain.cause === 'medium' && surfaced.tag === 'water' && surfaced.immersed && surfaced.atSurface) {
+        void this.reassess();
+        return;
+      }
       if (!this._drainCued && !under) {
         this._drainCued = true;
         this.cueDrainBegin();
