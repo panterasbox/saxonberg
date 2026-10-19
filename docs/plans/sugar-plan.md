@@ -1102,7 +1102,33 @@ step 1 written in `packages/wire/tests/sugar.dirty.wire.test.ts`
 in the room and the help-wanted sign on `look`). Commit
 `build(sugar W0): the unpaid hand walks off and the roster shows the seat`.
 
-### W1a — the fire has power (after silk; before W1)
+### W1a — the fire has power (after silk; before W1) ✅ CODE DONE — drives owed
+
+> **Build note (2026-10-19).** `76f625436`. Three departures from D2 as
+> written, each decided by the physics:
+> ① **The power is a RESISTANCE, not a per-stretch cap.**
+> `R_fire = (T_fire − T_room)/P_delivered` in `effectiveR()`. That is a
+> constant of the fire, so the curve stays one exponential and a watched
+> pot heats exactly like an unwatched one. A per-stretch `P·dur/C` cap
+> depends on read cadence.
+> ② **A pot SET ON a fire is in the flame:** `R = R_wall + R_fire`, with no
+> still-air term. A body IN an oven takes `max(R_air + R_wall, R_fire)`.
+> The test showed the still-air term was the real limiter: a 30 L pot on
+> a 6 kW hearth climbed 0.8 K/min where the fire delivers 1.4.
+> ③ **The boil spends `P_at_boil × Δt`, not `min(overshoot, P×Δt)`.** The
+> min would keep the "one capacity's worth per gap" defect it was meant
+> to fix. Supporting changes:
+> - `Δt` comes from the new exact `Piecewise.secondsAtOrAbove`.
+> - The boil clock starts where the phase pass last looked (transient
+>   `_phaseCheckedS`, seeded from the persisted stamp). Silk's 600 s
+>   first-read lookback had credited an unread hour as ten minutes.
+> - Silk's copper test reads 2 h, not 8: a real range boils 12 L dry in
+>   about 3 h.
+>
+> ⚠ **The blast-radius drives are owed.** A run on a fresh world was
+> reaped for memory after the boot (576 s). The owner said carry on, so
+> they run in the same boot as W1's drive checkpoints. A heat drift found
+> there is fixed on its row and recorded here.
 
 **Goal.** D2 alone: a burner warms what it heats at its real power, and the
 boil plateau spends the fire's power on steam — the general physics, with
