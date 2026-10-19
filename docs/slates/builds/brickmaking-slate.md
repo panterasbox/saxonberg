@@ -8,7 +8,7 @@
 > valley brickfield (pit, weathering ground, temper pit, moulding shed,
 > hacks, clamp ground) · winning in autumn on the ground protocol · weathering
 > as a freeze-thaw count · tempering with sand and breeze · moulding as a
-> durative `make` · the statute brick · drying on the wetness model · the brick
+> durative `shape` · the statute brick · drying on the wetness model · the brick
 > clamp on the fuel trade's clamp shape, grades by position, absorption from
 > firing temperature, colour from iron and the draught · firebrick, roof
 > tiles, drain tiles · lime mortar by cure, repointing, the hard-mortar spall ·
@@ -74,8 +74,12 @@ no brick walls to weather. A content change in this build.
 
 - **The physics is moulding's shape-and-release** — a clot thrown into a
   sanded wooden mould, struck off, turned out green.
-- **The act is a durative `make`** (the platform's, on the brick mould as the
-  instrument): a skilled moulder and his gang made **three to five thousand a
+- **The act is a durative `shape`** — glass's shipped forming verb, unified
+  across glass, pottery and brick (*shape clay into brick* at the brick mould;
+  [pottery-slate](./pottery-slate.md) § 2). ⚠ Corrected 2026-10-18: this
+  first said `make`, which is the recipe-script runner (becoming the shell's
+  `do`), never a crafting act — *a recipe without a verb is a missing act, and
+  the act belongs to the trade*: a skilled moulder and his gang made **three to five thousand a
   day**, so by the abstraction law (*legitimate while it still costs somebody
   the activity*) a game-day of work at a rate set by competence (grain),
   consuming tempered clay and putting green bricks on a pallet. The gang —
@@ -193,7 +197,7 @@ furnaces that need it — hauled down to the Delight brickfield.
 | the clay pit | winning, in autumn | a quarrying `OpenWorking` on the valley's clay `Deposit` |
 | the weathering ground | the winter heaps | outdoors; the freeze-thaw count |
 | the temper pit | soaking and treading, with sand and breeze | tempering |
-| the moulding shed | the table, the mould, the gang's `make` | employment's roster |
+| the moulding shed | the table, the mould, the gang's `shape` | employment's roster |
 | the hacks | drying under caps | the wetness model |
 | the clamp ground (later a kiln) | firing and sorting | the fuel trade's clamp shape |
 
@@ -221,7 +225,7 @@ furnaces that need it — hauled down to the Delight brickfield.
    whoever holds the wall later); hard cement versus a building's survival —
    both with no right answer the engine supplies.
 5. **Continuity** — clamp → Scotch kiln → Hoffmann; treading → pugmill →
-   extrusion; hand mould → press: the same `make`, `maintain`, `repair`.
+   extrusion; hand mould → press: the same `shape`, `maintain`, `repair`.
 6. **Economy** — demand from W7 upkeep and furnace linings (both
    recurring, both on content that exists once Terminus is authored in
    brick); consumes clay, sand, lime, breeze, fuel; produces brick by grade,
