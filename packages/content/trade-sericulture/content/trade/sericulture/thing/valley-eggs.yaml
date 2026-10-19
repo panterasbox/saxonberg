@@ -1,0 +1,14 @@
+# Valley eggs — ⭐ the silk house's own grainage: its valley gold, laid in
+# its loft. Cheaper than imported, and it carries a quarter-load of the
+# disease the house has never been able to see (the provenance lesson: the
+# house is honest and its eggs are not clean).
+class: /trade/sericulture/thing/EggLot
+extends: /trade/sericulture/thing/egg-lot
+data:
+  shortDescription: card of valley silkworm eggs
+  keywords: [eggs, "egg lot", lot, card, seed, silkworm, valley, "silkworm eggs", "valley silkworm eggs", "card of valley silkworm eggs"]
+  _strainPath: /trade/sericulture/idea/strain/valley-gold
+  laidWhere: in the silk house at Hearts Delight
+  wintered: true
+  # ⚠ A spoiler.
+  pebrineLoad: 0.25

@@ -22,6 +22,7 @@
     "@saxonberg/content-trade-haulage": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
     "@saxonberg/content-trade-ranching": "workspace:*",
+    "@saxonberg/content-trade-sericulture": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*"

@@ -10,4 +10,8 @@ data:
   longDescription: |
     A tied armful of spindly stems gone straw-coloured, the seed pods still on. It looks exactly like a weed somebody could not be bothered to pull, and it is.
   _materialPath: /trade/farming/idea/material/weld
+  # ⭐ `steep` it in a vat of water and the bath IS the dyestuff — the only
+  # way a dye bath is ever charged (silk W4: no crop was Steepable, so no
+  # bath in the game could be).
+  steepsInto: /trade/farming/idea/material/weld
   mass: 0.5

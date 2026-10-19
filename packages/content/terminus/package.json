@@ -40,6 +40,7 @@
     "@saxonberg/content-trade-mining": "workspace:*",
     "@saxonberg/content-trade-quarrying": "workspace:*",
     "@saxonberg/content-trade-rubber": "workspace:*",
+    "@saxonberg/content-trade-sericulture": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-tailoring": "workspace:*",

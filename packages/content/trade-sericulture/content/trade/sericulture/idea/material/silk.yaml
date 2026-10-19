@@ -1,0 +1,23 @@
+# Silk — ⭐ degummed: the fibre itself, soft, white and lustrous, a protein
+# that takes a metal mordant directly and drinks a dye deeper than any
+# other fibre. What boiling raw silk in the piece leaves behind.
+class: /platform/idea/material/Material
+data:
+  name: silk
+  keywords: [silk]
+  appearance: soft, white, lustrous silk
+  density: 1330
+  thermalConductivity: 0.05
+  specificHeat: 1380
+  hardness: 3
+  toughness: 6
+  electricalConductivity: 1.0e-12
+  waterAbsorptionCapacity: 11
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "protein", "organic", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
+    tissueType: cocoon

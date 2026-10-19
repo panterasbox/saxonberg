@@ -365,7 +365,10 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
 
   it('⭐ drive 13 — tar boils to pitch through the shipped arrow', async () => {
     // Zero code: `purifiedByBoiling` is the arrow between two authored
-    // materials, driven by the `boil` verb a fire already affords.
+    // materials, and the phase engine fires it once the tar has been held
+    // at its boil. ⭐ `boil` is an ALIAS of `heat` since 2026-10-19 — it
+    // sets the vessel on the fire; this line proves the alias still
+    // routes (the swap itself is Thermal.purify.test.ts's claim).
     const boiled = await say(f, 'boil condenser');
     understood(boiled, 'boil condenser');
   }, 180_000);

@@ -1,0 +1,11 @@
+# A mulberry of the walk — the trade's white mulberry, authored grown and
+# in leaf (the hazel stool's fields: mature, thriving, the leaf cycle open
+# and full), so the walk can be cut on a fresh boot.
+class: /platform/thing/Plant
+extends: /trade/sericulture/thing/plant/mulberry
+data:
+  growthStage: mature
+  _vigor: 0.9
+  _flowering: true
+  _seedSet: true
+  _fruitFill: 1

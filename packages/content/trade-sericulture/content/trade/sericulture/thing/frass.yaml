@@ -1,0 +1,14 @@
+# A sack of frass — what a rearing leaves behind. ⭐ Compost: `feed <bed>
+# with frass` works it into the soil, and the leaf's nitrogen goes back to
+# the ground it came from.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: sack of frass
+  keywords: [frass, sack, droppings]
+  register: indefinite
+  longDescription: A small sack of dry, dark frass, smelling faintly of tea.
+  interiorBulk: true
+  interiorCapacity: 4
+  interiorMaterial: /trade/sericulture/idea/material/frass
+  interiorAmount: 4
+  mass: 0.3

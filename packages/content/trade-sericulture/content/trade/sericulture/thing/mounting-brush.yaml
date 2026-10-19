@@ -1,0 +1,12 @@
+# A mounting brush — a bundle of dry brushwood set upright in a tray. ⭐ What
+# wandering worms climb to spin: without one they spin a day late, on the
+# tray floor, and lighter.
+class: /platform/thing/Good
+data:
+  shortDescription: mounting brush
+  keywords: [brush, "mounting brush", brushwood, twigs]
+  register: indefinite
+  longDescription: |
+    A bundle of dry heather and broom tied at the waist so that it stands up by itself, all twigs and corners.
+  _materialPath: /trade/sericulture/idea/material/brushwood
+  mass: 0.3

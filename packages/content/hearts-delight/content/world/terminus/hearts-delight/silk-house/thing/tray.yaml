@@ -1,0 +1,8 @@
+# A house tray — the base the three working trays extend. ⭐ A persistable
+# singleton (`HouseTray`): a rearing in a room nobody owns survives a
+# restart, the forestry panel's shape.
+class: /trade/sericulture/thing/HouseTray
+extends: /trade/sericulture/thing/tray
+data:
+  shortDescription: rearing tray
+  keywords: [tray, "rearing tray", rearing]

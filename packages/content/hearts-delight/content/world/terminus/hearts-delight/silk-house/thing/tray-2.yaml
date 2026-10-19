@@ -1,0 +1,15 @@
+# The second working tray — ⭐ also authored at the end of its spin, a day
+# behind the first: between them the house has a crop for the mill's reeler
+# and for a buyer at the counter on the first morning of any season.
+class: /trade/sericulture/thing/HouseTray
+extends: /world/terminus/hearts-delight/silk-house/thing/tray
+data:
+  keywords: [tray, "rearing tray", rearing, second, "second tray"]
+  rearingState: spinning
+  _strainPath: /trade/sericulture/idea/strain/valley-gold
+  eggCount: 300
+  lotGeneticMg: 380
+  pebrineLoad: 0.25
+  degreeDays: 352
+  fifthAgeSat: 1
+  spinStartS: -270000

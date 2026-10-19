@@ -167,6 +167,9 @@ importers:
       '@saxonberg/content-trade-rubber':
         specifier: workspace:*
         version: link:packages/content/trade-rubber
+      '@saxonberg/content-trade-sericulture':
+        specifier: workspace:*
+        version: link:packages/content/trade-sericulture
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:packages/content/trade-shopkeeping
@@ -650,6 +653,9 @@ importers:
       '@saxonberg/content-trade-ranching':
         specifier: workspace:*
         version: link:../trade-ranching
+      '@saxonberg/content-trade-sericulture':
+        specifier: workspace:*
+        version: link:../trade-sericulture
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -998,6 +1004,9 @@ importers:
       '@saxonberg/content-trade-rubber':
         specifier: workspace:*
         version: link:../trade-rubber
+      '@saxonberg/content-trade-sericulture':
+        specifier: workspace:*
+        version: link:../trade-sericulture
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -1920,6 +1929,46 @@ importers:
       '@saxonberg/content-trade-tailoring':
         specifier: workspace:*
         version: link:../trade-tailoring
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-sericulture:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-trade-fishing':
+        specifier: workspace:*
+        version: link:../trade-fishing
+      '@saxonberg/content-trade-shopkeeping':
+        specifier: workspace:*
+        version: link:../trade-shopkeeping
+      '@saxonberg/content-trade-textiles':
+        specifier: workspace:*
+        version: link:../trade-textiles
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,18 @@
+# Quercus coccifera — the kermes oak. ⭐ A prickly evergreen scrub oak of
+# hot dry hillsides, grown for what LIVES on it: the kermes scale insect,
+# whose females swell into round red "grains" on the twigs each spring and
+# were the crimson of every Mediterranean court before cochineal.
+class: /platform/idea/species/Species
+data:
+  binomial: Quercus coccifera
+  commonNames: ["kermes oak", "kermes", "scrub oak"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -117,7 +117,11 @@ describe('the weaves beat is bounded and literal', () => {
   it('⚠⚠ does ONE act per beat, and stands off a hand that is mid-act', () => {
     // The acts are ENGAGEMENTS: a beat that fired four in a row earned
     // `engagement-conflict(busy)` and the batch was fiction.
-    expect(CODE).toContain("hand.hasEngagement('hands')");
+    // ⚠⚠⚠ …by a NON-beat engagement: the beat claims `hands` itself, so a
+    // bare `hasEngagement('hands')` stood the floor down on every beat (the
+    // silk drive, 2026-10-18). This assertion used to pin that line.
+    expect(CODE).toContain('e.type !== BEHAVIOR_BEAT_TYPE');
+    expect(CODE).not.toContain("hand.hasEngagement('hands')");
     // The shelving loop keeps its bound and its no-progress guard —
     // `put` is not an engagement, so it may run in the same beat.
     expect(CODE).toContain('>= before) break;');

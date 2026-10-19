@@ -1,0 +1,17 @@
+# The silk stock — the reeler's finished cloth, waiting for the general
+# store's counter. Its own shelf so silk is consigned at its own ask, not
+# the linen's.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: "silk shelf"
+  keywords: [silks, "silk shelf", shelf]
+  register: definite
+  longDescription: "A cupboard shelf with a cloth hung over it to keep the dust off, and under the cloth, folded bolts that catch the light."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 20
+  businessPath: /world/terminus/wharfside/mill/idea/outfit
+  stockLines: []
+  prices: {}

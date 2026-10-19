@@ -1,0 +1,23 @@
+# The first working tray — ⭐ authored SPINNING, its worms on the brush
+# since long before the world began: the first read after a boot finds
+# them done, and the tray holds three heft stacks of cocoons for the hand
+# to take off and stifle. (The house staggers its crops; a loft is never
+# all at one stage.) Spinning is a time, not a warmth, so this crop is
+# there in any season — the one the mill buys first.
+#
+# Its lot is the house's own valley gold, with the quarter-load the house
+# cannot see: it spins a quarter fewer cocoons than a clean lot would.
+class: /trade/sericulture/thing/HouseTray
+extends: /world/terminus/hearts-delight/silk-house/thing/tray
+data:
+  keywords: [tray, "rearing tray", rearing, first, "first tray"]
+  rearingState: spinning
+  _strainPath: /trade/sericulture/idea/strain/valley-gold
+  eggCount: 300
+  lotGeneticMg: 380
+  pebrineLoad: 0.25
+  degreeDays: 352
+  fifthAgeSat: 1
+  # ⚠ Before the epoch: a fresh world starts its clock at 0, so "since
+  # long ago" is a NEGATIVE game-second (found by the drive).
+  spinStartS: -300000

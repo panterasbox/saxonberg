@@ -51,15 +51,17 @@ function mordantKeys(): string[] {
 }
 
 describe("two chemistries, and the rows say which", () => {
-  it("ships TWO mordant dyes and ONE vat dye", () => {
+  it("ships THREE mordant dyes and ONE vat dye", () => {
+    // ⭐ Kermes (silk W4) is the third mordant dye — two farming rows and
+    // this pack's one, and no code: a fourth dyestuff costs rows.
     const rows = dyestuffs();
     expect(rows.filter((d) => d.chemistry === "mordant").map((d) => d.key).sort())
-      .toEqual(["madder", "weld"]);
+      .toEqual(["kermes", "madder", "weld"]);
     expect(rows.filter((d) => d.chemistry === "vat").map((d) => d.key))
       .toEqual(["woad"]);
   });
 
-  it("⭐ eight outcomes plus one, not a false twelve", () => {
+  it("⭐ four outcomes per mordant dye plus one, not a false grid", () => {
     const rows = dyestuffs();
     const mordant = rows.filter((d) => d.chemistry === "mordant");
     // Four mordants each — alum, iron, tannin, and NONE (the failure).
@@ -71,7 +73,7 @@ describe("two chemistries, and the rows say which", () => {
         "tannin",
       ]);
     }
-    expect(mordant.length * 4).toBe(8);
+    expect(mordant.length * 4).toBe(12);
     // …and woad's single shade, keyed to the empty mordant.
     const woad = rows.find((d) => d.chemistry === "vat")!;
     expect(woad.shades).toHaveLength(1);

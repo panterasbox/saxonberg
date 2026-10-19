@@ -1,0 +1,58 @@
+# The silk house loft — ⭐ the valley's second party, beside the hives: a
+# rearing house that keeps its trays fed off its own mulberry walk,
+# stifles its crop in a gentle oven, and sells cocoons to the Wharfside
+# mill's reeler. Paid hands, so its silk costs hours at a wage (the
+# luxury is the labour — silk-slate § 6).
+#
+# ⚠ Lit by its hung lantern (a lit fixture is the light source — no
+# authored ambient), and no authored temperature: the loft is as warm as
+# its walls and the season make it. The world's summer rears a crop in a
+# month; a winter rearing here is slow, which is true.
+class: /platform/location/Locale
+data:
+  extent: 8
+  shortDescription: silk house loft
+  keywords: [loft, "silk house", silkhouse, house]
+  register: definite
+  _address: terminus/hearts-delight/silk-house
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure:
+    material: /stuff/idea/material/wood/pine
+    thicknessM: 0.03
+  # The shingle roof the prose names — riven oak, a couple of centimetres
+  # (rubber split the top out of `enclosure:`; `lint:biome-sky`).
+  roof: { material: /stuff/idea/material/wood/oak, thicknessM: 0.02 }
+  longDescription: |
+    A long, low loft under a shingle roof, shuttered against the sun, with racks of shallow trays down both sides and the smell of cut leaf over everything. In the warm part of the year you can stand still in here and hear the worms eat — a soft, continuous sound like rain on leaves.
+
+    A squat brick oven stands at the far end, a counter by the door, and a ladder goes down to the lane. Through the west door is the mulberry walk.
+  coords: { x: -12, y: 3, z: 6 }
+  exits:
+    south:
+      destination: /world/terminus/hearts-delight/location/bench-lane
+      media: [ground]
+      edgeMinutes: 2
+    west:
+      destination: /world/terminus/hearts-delight/silk-house/location/walk
+      media: [ground]
+      edgeMinutes: 1
+  adornments:
+    - { template: /world/terminus/hearts-delight/silk-house/thing/lantern, slot: lamp:silk-house }
+  props:
+    - /world/terminus/hearts-delight/silk-house/thing/tray-1
+    - /world/terminus/hearts-delight/silk-house/thing/tray-2
+    - /world/terminus/hearts-delight/silk-house/thing/tray-3
+    - /trade/sericulture/thing/stifling-oven
+    - /world/terminus/hearts-delight/silk-house/thing/counter
+    - { template: /trade/sericulture/thing/mounting-brush, count: 3 }
+    # Fuel for the oven — bounded. The fuel trade's supplied line is the
+    # attach point when the house wants more (a named seam, not a faucet).
+    - { template: /trade/fuel/thing/charcoal, count: 3 }
+  cast:
+    - /world/terminus/hearts-delight/silk-house/agent/keeper
+    - /world/terminus/hearts-delight/silk-house/agent/hand
+  details:
+    trays:
+      keywords: [racks, rack, shelves]
+      description: |
+        Slatted racks four high, each shelf a shallow paper-lined tray. Most stand empty between crops; three are working.
