@@ -13,7 +13,9 @@ data:
   keywords: [hall, entry]
   register: definite
   alternateNames: [hallway, entry]
-  ambientIntensity: 30
+  # ⚠ A FLUX, read over the room's area — its zone's 3 m cell in Seznick House
+  # (9 m²): 270 reads the 30 lux this row was tuned to (B54).
+  ambientIntensity: 270
   ambientColorTemperature: 4200
   longDescription: |
     A small square hall, bare boards and a picture rail with nothing on it yet. Doorways open ahead to the main room and left to the bedroom; the flat smells faintly of soap and long sunlit dust — a cleaned slate.

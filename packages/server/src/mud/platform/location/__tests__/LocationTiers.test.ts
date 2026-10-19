@@ -49,15 +49,12 @@ beforeEach(() => {
  * still refused one. Type-checked, and every suite stayed green.
  */
 describe("the faces inherit the grid, they do not re-compose it", () => {
-  it("⭐⭐ a furnished room is ON the grid, and its size is its own", () => {
+  it("⭐⭐ a furnished room is ON the grid, sized by its zone's cell", () => {
     // Every place but the void has coordinates (the place taxonomy,
     // cleanliness B53), so a furnished room is a `Location` — its holding
-    // lays it out from the floorplan. ⚠ But NOT sized by its zone's cell:
-    // a Location derives `getSizeScale()` from `cellSize²` and the light
-    // walk divides flux by it, so a Hinkley yard at 600 lumens of open sky
-    // read 16.7 lux on a 6 m cell, under its own crop's floor (it shipped
-    // that way for one commit, years ago). Unsized, it reads as it always
-    // has; an authored `extent` sizes it.
+    // lays it out from the floorplan — and its size is its zone's cell,
+    // like every Location's (B54). Zoneless, it reads 1 m²; an authored
+    // `extent` overrides the cell.
     expect(PersistentLocation.prototype instanceof LibLocation).toBe(true);
     const room = makeStuffAtPath(() => new PersistentLocation(), "/x/y/room");
     expect(room.getSizeScale()).toBe(1.0);

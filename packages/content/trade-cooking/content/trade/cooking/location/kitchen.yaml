@@ -44,7 +44,9 @@ data:
   register: indefinite
   longDescription: |
     A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
-  ambientIntensity: 35
+  # ⚠ A FLUX, read over the room's area — its zone's 3 m cell in /trade/cooking
+  # (9 m²): 315 reads the 35 lux this row was tuned to (B54).
+  ambientIntensity: 315
   ambientColorTemperature: 4500
   # ⭐⭐ No air budget, and the archetype is the reason this matters. A
   # kitchen used to be *the only room in the game where you deliberately

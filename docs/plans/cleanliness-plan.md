@@ -2929,6 +2929,16 @@ Read first, in this order.
   had collided with `Location`'s metres. Found on the way: the Hearthworks
   cellar and cookhouse both authored (2,0,0) and the grid kept one
   silently — the cellar is under the cookhouse now, (2,0,-1).
+- **B54 — A room's size is its zone's cell** (review, the user: *"room
+  size need to be bound to the zone — if it's not that's a bug"*). B53's
+  `sizedByZoneCell()` seam is gone. A holding's rooms stand in their
+  HOLDING's zone: `StuffApi.clone` gained `zoneFrom` (the path the zone
+  resolves from; default the identity path), and `HoldingWarren.wakeRoom`
+  passes the room key — ⚠ NOT `asIdentityPath`, which would also have
+  moved the `(scope, key)` snapshot scope off the row (the dorm tests
+  caught it). The eleven furnished rows' fluxes were scaled by their
+  cell's area to keep their tuned lux (yard 600 → 21,600; a dorm room
+  30 → 270); the generic rows are lit for the one plat that uses each.
 
 ## Drive record
 

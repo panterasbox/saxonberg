@@ -214,25 +214,7 @@ export default class Location extends LocationBase {
    * derivations below read.
    */
   public override getLinearExtent(): number | null {
-    if (this._extent !== null) return this._extent;
-    return this.sizedByZoneCell() ? (this.getZone()?.getCellSize() ?? null) : null;
-  }
-
-  /**
-   * Whether an UNSIZED room (no authored `extent`) takes its zone's
-   * `cellSize` as its size. Yes for a cell of the zone's grid.
-   *
-   * ⚠ No for the rooms that joined `Location` from bare `Place` in the
-   * place taxonomy (cleanliness B53): a furnished room, a dorm corridor,
-   * a lounge — their rows' light (`ambientIntensity`) was tuned for an
-   * unsized room, and a 6 m Hinkley cell would read their yard at 16.7
-   * lux, under its own crop's light floor. Their size is their own: an
-   * authored `extent` sizes them, and until a row authors one they read
-   * as they always have. Authoring extents (and retuning that light) is
-   * the open work this flag names.
-   */
-  protected sizedByZoneCell(): boolean {
-    return true;
+    return this._extent ?? this.getZone()?.getCellSize() ?? null;
   }
 
   /**

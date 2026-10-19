@@ -35,7 +35,9 @@ data:
   register: indefinite
   longDescription: |
     A small tiled room with a tub along one wall, a basin under a clouded mirror, and a window of frosted glass that lets in light and nothing else.
-  ambientIntensity: 20
+  # ⚠ A FLUX, read over the room's area — its zone's 3 m cell in Seznick House, the one building that uses it
+  # (9 m²): 180 reads the 20 lux this row was tuned to (B54).
+  ambientIntensity: 180
   ambientColorTemperature: 4000
   props:
     - /stuff/thing/fixture/toilet

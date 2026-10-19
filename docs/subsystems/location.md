@@ -703,11 +703,19 @@ holding's room and the grid outside it (the dorm's `unit-3` and `out`)
 crosses frames and may be named, as a door between zones may
 (`Warren.laysOutOwnFrame`, read in `Location.addExit`).
 
-⚠ A room that joined `Location` from bare `Place` is sized by its OWN
-`extent`, not its zone's cell (`sizedByZoneCell()` false on
-`PersistentLocation`, the dorm `Corridor`, `Lounge`): their rows' light was
-tuned for an unsized room, and a 6 m Hinkley cell reads the yard at 16.7
-lux. Authoring extents and retuning that light is open work.
+⭐ **A room's size is its zone's cell** (user: *"room size need to be
+bound to the zone — if it's not that's a bug"*); an authored `extent`
+overrides it, nothing else does. So a holding's rooms stand in the zone the
+HOLDING does — `StuffApi.clone`'s `zoneFrom: <room key>` resolves the zone
+from `…/lots/lot-7/bedroom` while the identity stays the row (the
+`(scope, key)` record's scope) — and a generic `/stuff/location/room/*` row
+is a 6 m room in a Hinkley house and a 3 m one in Seznick House.
+
+⚠ An authored `ambientIntensity` is a FLUX, read over that area. The
+furnished rows were tuned when they were unsized (1 m²), so each was scaled
+by its cell's area to read the lux it was tuned to (the yard 600 → 21,600
+on 36 m²). A generic row is lit for the one plat that uses it; a second
+user of a different cell size wants lux authoring, not a flux.
 
 The grid geometry the cartesian pair shares is `lib/location/Location` (the
 twin shares its instanceable class's name, as every lib/platform pair

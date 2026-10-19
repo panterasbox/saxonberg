@@ -311,6 +311,24 @@ describe('the residential programme (D16)', () => {
     expect(holding.laysOutOwnFrame()).toBe(true);
   });
 
+  it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
+    // A room's size is its zone's cell. The rows live at `/world/prog-test/`
+    // (no zone), the lot under a 4 m zone — so the rooms take the lot's.
+    col('content').push({
+      _id: `d-${++idCounter}`,
+      path: PARENT,
+      class: '/platform/idea/location/CartesianZone',
+      data: { name: 'the lots', cellSize: 4 },
+    });
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    expect(hall.getTemplatePath()).toBe(ROOM_A);
+    expect(hall.getZone()?.getTemplatePath()).toBe(PARENT);
+    expect(hall.getSizeScale()).toBe(16);
+  });
+
   it('⭐ sleeps and wakes WHOLE — rooms + fixtures + placed goods together', async () => {
     seedLot();
     await bootRegistries();

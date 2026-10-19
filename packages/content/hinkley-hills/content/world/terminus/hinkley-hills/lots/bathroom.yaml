@@ -16,7 +16,9 @@ data:
   register: indefinite
   longDescription: |
     A small tiled room with a tub along one wall, a basin under a clouded mirror, and a squat brick copper in the corner with a fire-door at its foot. A window of frosted glass lets in light and nothing else.
-  ambientIntensity: 20
+  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots
+  # (36 m²): 720 reads the 20 lux this row was tuned to (B54).
+  ambientIntensity: 720
   ambientColorTemperature: 4000
   props:
     - /stuff/thing/fixture/toilet

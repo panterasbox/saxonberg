@@ -9,8 +9,7 @@
  * like every place but the void: a clone holds no authored coords, so it
  * takes the cell its `down` stair says it is in (`plotBesideNeighbour`,
  * from `OuterWarren.ensureNode`): floor 1 one cell above the lobby.
- * Its size is its own (`sizedByZoneCell` false) — its row's light was
- * tuned for an unsized room. It holds the floor's
+ * Sized by the hall's cell, like every Location. It holds the floor's
  * `DormDoor`s and the `down` (to the floor below) + `up` (a `FloorStairExit`)
  * stairs. No persistence — floors reconstitute from the durable slot set.
  * No `Named` — a generic labelled room.
@@ -24,11 +23,6 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 export default class Corridor extends Location {
   static fieldMeta: FieldMeta = {};
-
-  /** Sized by its own `extent`, not the hall's cell (see the header). */
-  protected override sizedByZoneCell(): boolean {
-    return false;
-  }
 
   /**
    * Never culled by residency: a corridor is not a Warren member, so it does

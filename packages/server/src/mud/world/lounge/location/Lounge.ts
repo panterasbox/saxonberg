@@ -36,12 +36,6 @@ const LoungeBase = LoungeMixin(WarrenMemberMixin(Location));
 export default class Lounge extends LoungeBase {
   static fieldMeta: FieldMeta = {};
 
-  /** Sized by its own `extent`, not the lounge zone's cell — its rows'
-   *  light was tuned for an unsized room (the place taxonomy, B53). */
-  protected override sizedByZoneCell(): boolean {
-    return false;
-  }
-
   // onCreate inherited: `Location.onCreate` wires the inverse exit
   // pointers. onDestruct inherited: ExitableMixin (exit teardown) → Place
   // (zone detach) → … → Stuff terminal. WarrenMember's static

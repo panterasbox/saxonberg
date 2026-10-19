@@ -36,7 +36,9 @@ data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   # Full open sky — the whole point of being out here. A carrot wants 120
   # lux to be unlimited by light; a windowsill gives 30.
-  ambientIntensity: 600
+  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots
+  # (36 m²): 21600 reads the 600 lux this row was tuned to (B54).
+  ambientIntensity: 21600
   ambientColorTemperature: 5800
   longDescription: |
     Grass, a wire fence, and the back of the house — a white weatherboard wall with two windows and a step down from the kitchen door. The ground falls away west just enough to catch the afternoon.

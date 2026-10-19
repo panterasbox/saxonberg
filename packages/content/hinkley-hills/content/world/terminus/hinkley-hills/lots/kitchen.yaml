@@ -16,7 +16,9 @@ data:
   shortDescription: kitchen
   keywords: [kitchen]
   register: definite
-  ambientIntensity: 60
+  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots
+  # (36 m²): 2160 reads the 60 lux this row was tuned to (B54).
+  ambientIntensity: 2160
   ambientColorTemperature: 4800
   longDescription: |
     A farmhouse kitchen with the range set into the old chimney breast, a scrubbed counter under the window, and a larder cupboard built into the cool of the south wall. The window looks over the yard; the light comes in over the counter most of the afternoon.

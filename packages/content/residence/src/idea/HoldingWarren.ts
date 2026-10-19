@@ -416,7 +416,14 @@ export default class HoldingWarren extends ProgrammeBase {
     if (!key || !spec.room) return null;
     const cached = this._roomsByKey.get(key);
     if (cached && !cached.isDestroyed()) return cached;
-    const room = await StuffApi.clone<MemberStuff>(spec.room);
+    // ⭐ The room stands in the zone its HOLDING does (the Hinkley lots,
+    // the dorm's hall), resolved from its key rather than its row: a
+    // room's size is its zone's cell, and a generic `/stuff/location/
+    // room/*` row resolves no zone of its own (B54). Its identity stays
+    // the row — the `(scope, key)` record's scope.
+    const room = await StuffApi.clone<MemberStuff>(spec.room, undefined, {
+      zoneFrom: key,
+    });
     this.addMember(room);
     await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);

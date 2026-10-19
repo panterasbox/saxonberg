@@ -87,12 +87,14 @@ export const UNRESTRICTED = "unrestricted";
 // room's coordinates; a door out of the holding — the dorm's `out`, the
 // corridor's `unit-3` — crosses frames (`Warren.laysOutOwnFrame`).
 //
-// ⚠ And its SIZE is its own. This class was cartesian once before, for
-// one commit, and the zone's cell became every room's floor area: a
-// Hinkley yard at 600 lumens of open sky read **16.7 lux** on a 6 m
-// cell, under its own crop's light floor. So `sizedByZoneCell()` is
-// false: an authored `extent` sizes the room, and an unsized one reads
-// as it always has.
+// ⭐ And its SIZE is its zone's cell, like every Location's (the user: a
+// room's size bound to anything else is a bug). Its holding names each
+// room by its key (`…/lots/lot-7/bedroom`), so a room takes the zone its
+// HOLDING stands in, not its row's — the generic `/stuff/location/room/*`
+// rows have no zone of their own. ⚠ An authored `ambientIntensity` is a
+// FLUX, read over that area: this class was cartesian once before, for
+// one commit, and a Hinkley yard tuned at 600 for 1 m² read 16.7 lux on
+// its 6 m cell. The rows' fluxes are scaled to their cells now (B54).
 //
 // The three things a room somebody FURNISHES needs and a bare cell does
 // not: a record of its own (`Persistable`), a warren to belong to
@@ -110,11 +112,6 @@ export default class PersistentLocation extends PersistentLocationBase {
   static fieldMeta: FieldMeta = {
     postedAs: { persistent: true, authorable: true },
   };
-
-  /** A furnished room is sized by its own `extent`, never its zone's cell. */
-  protected override sizedByZoneCell(): boolean {
-    return false;
-  }
 
   /**
    * **What the sign on the door says** — `unisex`, `gendered`, `staff`,
