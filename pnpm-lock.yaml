@@ -2102,6 +2102,9 @@ importers:
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
@@ -2269,6 +2272,9 @@ importers:
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
+      '@saxonberg/content-ground':
+        specifier: workspace:*
+        version: link:../ground
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform

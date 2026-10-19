@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The sugar trade — the copper, the strike, the thread test and the refiner.",
+  "description": "The sugar trade \u2014 the copper, the strike, the thread test and the refiner.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
+    "@saxonberg/content-trade-milling": "workspace:*",
     "@saxonberg/content-trade-quarrying": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

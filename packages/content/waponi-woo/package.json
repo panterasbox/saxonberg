@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Waponi Woo — the cane island: the estate, the smallholders, the train, the volcano.",
+  "description": "Waponi Woo \u2014 the cane island: the estate, the smallholders, the train, the volcano.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
