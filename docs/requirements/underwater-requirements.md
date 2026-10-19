@@ -23,7 +23,8 @@ water sequence (the river as a line and river craft follow). Seeded by
   estuary cove), across swimmable ways, into open water from ice; `stand`
   hauls out. A pool is a place whose floor is the water's surface or ice.
 - **Breath** — `inhale` / `exhale` hold and release a fixed grace; a body in
-  an unbreathable place blacks out and then **dies outright** (no rescue).
+  an unbreathable place blacks out and enters a short rescuable dying window
+  (90 seconds, the same in any water, nothing before it but the blackout).
 - **A drowning room** — the flooded cistern below Duncan Hall's steps,
   "water" done as the room's air, with a worn **air tank** and a
   **compressor** beside it that keep you alive down there.
