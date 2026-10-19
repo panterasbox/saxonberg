@@ -1459,3 +1459,32 @@ pinned in the pack suite and named in the file's RECORDED GAPS checkpoint.
 
 ⚠ **Open at the stop:** run 8 (fix the pupae mint, re-drive), then the
 full suite, then the MR.
+
+## ⏯ Resume here (2026-10-19, before a compaction)
+
+- **MR !395** (Draft) from `reqs/silk`, worktree build-3. !388 (the slate) MERGED as a684db44b.
+- **Merge order agreed:** ice (!378, build-4) → rubber (!379, build-1) → cleanliness (!380, build-2) → silk.
+  Simulated merges (`git merge-tree` of master+silk with each): ice/rubber conflicts are mechanical
+  (PackLogic count, `lint:instanceable` ceiling, lockfile, terminus package.json, thermal.md).
+  ⚠ **Cleanliness renames place classes**: `lib/stuff/Location`→`Place`,
+  `SingletonCartesianLocation`→`Locale` (row path `/platform/location/Locale`),
+  `CartesianLocation`→`Location`. Silk's silk-house floor/walk rows and ~5 silk tests import the old
+  names — sweep them at the rebase. Cleanliness also adds a kernel `platform/thing/Copper` (a wash
+  boiler, water held at 330 K) beside silk's `textiles/thing/Copper` (a pan you boil cloth in) — a
+  "two coppers" reconciliation to note in both MRs.
+- **Owed for silk:** rebase onto the three, then re-drive (`WIRE_BOOT=1 WIRE_PORT=2016
+  WIRE_BOOT_TIMEOUT=1200000 WIRE_FRAME_TIMEOUT=60000 npx vitest run tests/silk.dirty.wire.test.ts`,
+  DB `saxonberg_build3` dropped first with the scratchpad `drop.cjs`), then `pnpm test` once, then
+  undraft. Run 9 failed at the FIRST basin reel (no skein in hand; passed in run 8) — undiagnosed;
+  the host reaped runs 7 and 9 for memory (siblings' 3 GB worlds). Probe server recipe: start with
+  `& echo $! > pidfile`, stop by PID only; `tests/zz-silk-probe.wire.test.ts` (untracked) is the probe.
+- **Next build (user, 2026-10-19): retire the `boil` verb** — branch stacked on `reqs/silk`
+  (e.g. `reqs/boil-retire`), design in `docs/slates/builds/verb-interfaces-slate.md` (on the
+  cleanliness branch, unmerged). Boiling is a temperature: purification (`Material.purifiedByBoiling`:
+  fouled water→water, tar→pitch) moves into the bulk thermal reconcile — swap after the contents are
+  HELD at the boil (silk's latent-heat plateau) for ~a minute; immersion already takes the liquid's
+  heat (silk's `holderK` bath rung). `boil` stays only as an ALIAS of `heat`. Delete `BoilController`
+  + its `boiled` method latch (no recipe reads it); migrate `BoilVerb.test.ts`, the fire drive's
+  `boil condenser` (tar→pitch), water's `FouledWater.test.ts`, the docs (watershed.md § `boil`,
+  crafting.md rows). Cleanliness's `boil <cloth> in <pot>` arm is reconciled mechanically by
+  whichever lands second (put in pot + heat; its disinfection keys on time held hot).
