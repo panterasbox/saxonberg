@@ -97,15 +97,26 @@ suite('the smithy — the knowledge ladder is real', () => {
   it('⭐ `forge` is afforded and refuses on the DEED, not the verb', async () => {
     const early = await s.cmd('forge knife');
     reachedItsGate(early);
-    // A cook who has never worked one by hand is told to do that first.
-    expect(await early.said()).toMatch(/haven't learned to forge/i);
+    // A smith who has never worked one by hand is told to do that first.
+    expect(await early.said()).toMatch(/never made one|hands have to learn/i);
   }, 60_000);
 
   it('the by-hand build teaches it: pump · heat · hammer · quench', async () => {
     // ⚠ Light it BEFORE pumping. `pump` on a cold forge answers
     // `not-lit` — bellows move air, they do not make fire, and the
     // refusal is right.
-    expectOkOr(await s.cmd('ignite forge'), 'already-burning');
+    // ⚠ A fresh world's forge is a cold, EMPTY bed (the fuel is a bed
+    // somebody fills); Berta lights it when she is on shift (`stokes`),
+    // and a smith who comes in first lays the smithy's charcoal herself.
+    // Either order is honest, so both are allowed.
+    const lit = await s.cmd('ignite forge');
+    const litReasons = lit.notes.map((n) => (n as { reason?: string }).reason);
+    if (lit.status !== 'ok' && !litReasons.includes('already-burning')) {
+      expect(litReasons, 'a cold forge refuses for want of fuel').toContain('no-fuel');
+      await s.cmd('get 1 charcoal');
+      await s.cmd('stoke charcoal into forge');
+      expectOkOr(await s.cmd('ignite forge'), 'already-burning');
+    }
     expectOkOr(await s.cmd('pump forge'), 'already-burning', 'not-lit');
 
     /*
