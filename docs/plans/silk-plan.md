@@ -722,6 +722,14 @@ The requirement's *"with no player present"* is therefore delivered as
 
 ### D11 — The mulberry is a polycarp whose "fruit" is leaf; the walk is a `Panel`; a sapling is a `Seed`
 
+> ⚠ **Re-planned at build (review question from the user):** the walk is
+> NOT a `Panel`. A panel is forestry's bed for a timber stand (stools,
+> standards, the sugarbush) and composing it claims the trees are
+> forestry's — `fell`, stool prose, the woodland deed. It was chosen for
+> persistence alone, which is the wrong reason to adopt a host. Trees
+> cropped for food are the orchard close's shape: a farming `Field` with
+> one garden bed per tree, which persists with what grows in it.
+
 `/trade/sericulture/thing/plant/mulberry` (`/platform/thing/Plant`;
 species `/stuff/idea/species/plantae/…/moraceae/morus/alba` shipped by
 the pack under `/stuff/`; `harvestTemplatePath: …/thing/leaf`, no
