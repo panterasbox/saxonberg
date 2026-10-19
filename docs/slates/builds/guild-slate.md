@@ -1117,3 +1117,20 @@ authority; the wall) · [access.md](../../subsystems/access.md)
 credentials) · [renown.md](../../subsystems/renown.md) (credential
 value) · [attendant.md](../../subsystems/attendant.md) (congestion made
 felt).
+
+## ⭐ Recorded 2026-10-19 — the galley cook, a vocation at an intersection
+
+From the ships session (not yet drilled). *"The galley cook is the perfect case
+for guilds, which is how we encapsulate these kinds of combinatorial effects
+between trades and vocations."* By the formation rule (*vocation = discipline ×
+livelihood*), the ship's cook is **cooking's disciplines (plus preserving —
+curing, drying, salting) × the sea's livelihood** (a crew berth under articles):
+not a new discipline, a **combination a guild can recognise**. Two institutions
+have a claim — the **mariners'** (who rate *ship's cook* on the articles) and the
+**cooks'** (who know the cookery) — and this slate's answer to overlap is
+**wings inside one institution, never forks**: a sea wing of the cooks' guild,
+or a cookery rating within the mariners', the claim rule deciding who may
+certify. ⭐ Content fact: in the Royal Navy the cook's warrant often went to a
+seaman **disabled in service**, as a pension. See
+[ships-and-harbours-slate](./ships-and-harbours-slate.md) § 15 and
+[wellbeing-slate](./wellbeing-slate.md) § 8.

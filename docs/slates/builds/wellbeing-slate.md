@@ -240,3 +240,45 @@ cuisine.
 3. The interruption thresholds, and who tunes them.
 4. Sequencing against the sleep slate's wake reconcile (which should land
    first — wellbeing needs the night to read).
+
+## 8. ⭐⭐ The two ends of the pleasure model (2026-10-19, recorded)
+
+Recorded from the ships session; not yet drilled.
+
+### The ship's cook — the proving ground
+
+*"This is just what I was looking for trying to make food work."* Ships
+carried cooks for **necessity** (salt meat and biscuit were inedible raw; the
+galley stove was **the only fire allowed aboard a wooden ship**) and for
+**morale** — the **Potemkin mutiny (1905) began over maggoty meat**; Cook
+forced sauerkraut on his crews against scurvy. A ship proves this design
+better than a restaurant: the diners are **captive** (preference shows as
+wellbeing, not demand); the stores are **monotonous for months** (sensory-
+specific satiety and adaptation bite hardest, so **the cook's skill is variety
+from monotony**); **scurvy** is the deficiency direction made real; and the
+crew's wellbeing feeds **manning** — a badly fed crew is a slower, worse-steered
+ship. NPC crew discontent may go as far as **desertion** in port; refusal and
+mutiny are governance, deferred. Rations and the purser are lens 4. See
+[ships-and-harbours-slate](./ships-and-harbours-slate.md) § 15.
+
+### The three-star restaurant — the other end
+
+- ⭐ **Stars are a published CLAIM, never an engine gauge** (measurement.md: the
+  engine measures, the subject values, the polity imposes). The engine derives
+  each diner's pleasure; **a guide is a publisher** (the press subsystem), its
+  stars worth its renown; rival guides are possible.
+- ⭐ **Inspectors dine anonymously** — identity's shipped anonymity and disguise.
+- ⭐ **Only a trained palate can tell** — the shipped palate reads the taster's
+  competence in the discipline that made the dish; a three-star meal is wasted
+  on most diners, and **criticism is a skill**.
+- **What makes three stars, derived**: top-grade ingredients from deep chains;
+  technique; ⭐ **consistency** (why the **brigade** exists — chef de cuisine,
+  sous, chefs de partie as positions); front of house; the cellar; ⭐ **the
+  tasting menu**, which exists because many small courses **defeat
+  sensory-specific satiety**.
+- **What a star does** — reputation, demand, price (*luxury is embodied hours ×
+  wage*); ⚠ the critic's power is a lens 4 case.
+
+**The two ends meet**: the ship's cook makes pleasure from monotony under
+constraint, the three-star chef from abundance under scrutiny — the same taste
+profiles, pleasure model and palate.
