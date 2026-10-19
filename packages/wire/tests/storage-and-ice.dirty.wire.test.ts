@@ -324,12 +324,6 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(await arrive(/Hollow Mere/i)).toMatch(/Hollow Mere/i);
     const read = await say('measure ice');
     console.info(`  measure ice (day 3): ${read}`);
-    // ⭐ The winter crew is born holding its kit (an NPC's `props:` — the
-    // pre-merge audit found it dropped in silence: the brain's every
-    // `scrape` / `mark` / `cut` refused "nothing to do that with").
-    const bryn = await k.prose('look bryn');
-    console.info(`  look bryn (day 3): ${bryn.replace(/\n/g, ' | ').slice(0, 300)}`);
-    expect(bryn, bryn).toMatch(/ice saw/i);
     expect(read, read).toMatch(/read the ice at .* of (clear black ice|white snow-ice)/i);
     // ⭐ 8 (first half). Fishing frozen water is refused in words — asked
     // HERE, before any cut: a cut channel is open water (run 4).
@@ -500,6 +494,14 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     await nextDays(8);
     await goto(SHORE);
     expectOk(await k.cmd('north'));
+    // ⭐ The crew has walked out to work: its station is the BANK, so a
+    // hand on the mere is one whose brain judged the ice ready (the boss's
+    // margin, the boss's grid) and crossed — on shift, in the ice season
+    // (the pre-merge sweep: seats `winter` alone, a station on the water,
+    // and a crew stuck in it, had never once put a hand on the ice).
+    const out = await k.prose('look');
+    console.info(`  the mere, day 11 (the crew): ${out.replace(/\n/g, ' | ').slice(0, 400)}`);
+    expect(out, out).toMatch(/Bryn|Hedda/);
     const field = await say('measure ice field');
     const scraped = await say('measure ice scraped');
     console.info(`  field: ${field} · scraped: ${scraped}`);

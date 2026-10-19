@@ -9,19 +9,21 @@
  * subject to the rules a person is: ice that will not bear them drops them
  * in, a missing tool refuses them, open water cannot be cut.
  *
- * config: `{}` — the crew is stationed on the pool by its roster seat.
+ * ⭐ The crew waits on the BANK (its roster station) and walks out once
+ * the boss's grid is down and the ice bears it ({@link IceHand}).
+ *
+ * config: `{ pool, shore, out, back }` — see `IceHand`.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
-import IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
+import IceHand from '../lib/IceHand';
 
-export const brain = class HarvestsBrain {
+export const brain = class HarvestsBrain extends IceHand {
   static label = 'harvests';
   static kind: TaskKind = 'work';
   static summary = 'Scrapes, marks and cuts ice on a frozen pool, once the boss says it will hold.';
@@ -37,12 +39,13 @@ export const brain = class HarvestsBrain {
     const host = ctx.host;
     if (!MixinApi.isCommandGiver(host) || !MixinApi.isContainable(host)) return;
     if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') return;
-    const sheet = sheetUnder(host);
-    if (sheet === null || !sheet.supports(host)) return;
+    // ⭐ The boss's go-ahead is a marked patch: no grid, no going out.
+    const goAhead = (ice: { getLog(): readonly { kind: string; areaM2: number }[] }): boolean =>
+      ice.getLog().some((p) => p.kind === 'marked' && p.areaM2 > 0);
+    const sheet = await this.onTheIce(ctx, host, (ice) => goAhead(ice) && ice.bears(ice.supportLoadKgOf(host)));
+    if (sheet === null || !goAhead(sheet)) return;
     const giver = host as unknown as CommandGiver;
     const log = sheet.getLog();
-    // ⭐ The boss's go-ahead is a marked patch: no grid, no cutting.
-    if (!log.some((p) => p.kind === 'marked' && p.areaM2 > 0)) return;
     const scraped = log.some((p) => p.kind === 'scraped' && p.areaM2 > 0);
     if (!scraped) return void (await giver.forceCommand('scrape'));
     const marked = log.filter((p) => p.kind === 'marked').reduce((n, p) => n + p.areaM2, 0);
@@ -50,9 +53,3 @@ export const brain = class HarvestsBrain {
     await giver.forceCommand('cut marked');
   }
 };
-
-function sheetUnder(host: Stuff): IceSheet | null {
-  const room = MixinApi.isContainable(host) ? host.getContainer() : null;
-  const floor = (room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null);
-  return floor instanceof IceSheet ? floor : null;
-}

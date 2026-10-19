@@ -23,3 +23,4 @@ data:
   behaviors:
     - brain: /trade/ice/behavior/harvests
       trigger: candidate
+      config: { pool: /world/terminus/hollow-mere/location/pool, shore: /world/terminus/hollow-mere/location/shore, out: north, back: south }

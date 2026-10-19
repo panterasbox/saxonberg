@@ -1,7 +1,15 @@
 # The Hollow Mere ice company (storage-and-ice D22). The keeper keeps the
 # book on the platform; the house hand keeps the house; the crew and the
-# ice boss are WINTER seats — rostered and paid only while the mere is
-# frozen enough to work, which a southern site's season says (D20).
+# ice boss are ICE-SEASON seats — rostered and paid only while the mere is
+# frozen enough to work, which a southern site's season says (D20). ⚠ At
+# −58° the mere freezes in the AUTUMN (calendar days 0–90 are the southern
+# fall; the drive cuts ice on day 3): `winter` alone left the crew off for
+# the whole first half of the ice — never once seen on it (the pre-merge
+# sweep). The boss's go-ahead still decides whether the ice will hold.
+# ⭐ Their station is the SHORE, not the mere: a hand waits on the bank
+# and walks out when the ice is ready (the brains' `IceHand`) — stationed
+# on the mere, the crew came on shift through ice that would not hold it
+# and stayed in the water, and never worked.
 class: /platform/idea/Business
 data:
   appointingAuthority:
@@ -43,14 +51,14 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 17] }
     - positionKey: crew
       assignee: /world/terminus/hollow-mere/agent/cutter
-      station: /world/terminus/hollow-mere/location/pool
+      station: /world/terminus/hollow-mere/location/shore
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5], hours: [8, 16], season: [winter] }
+        - { days: [0, 1, 2, 3, 4, 5], hours: [8, 16], season: [fall, winter] }
     - positionKey: ice-boss
       assignee: /world/terminus/hollow-mere/agent/ice-boss
-      station: /world/terminus/hollow-mere/location/pool
+      station: /world/terminus/hollow-mere/location/shore
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5], hours: [7, 16], season: [winter] }
+        - { days: [0, 1, 2, 3, 4, 5], hours: [7, 16], season: [fall, winter] }
   banksAt: goodkin
   # ⭐ Off shift, the company's people wait in its shed (the drive, run 4:
   # with no offstage, the winter crew stood on in the mere all summer —

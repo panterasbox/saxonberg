@@ -330,6 +330,18 @@ classification; the active rung) · [thermal-slate](../tails/thermal-slate.md) �
 
 What the build's drive and review left open, for whoever builds next here:
 
+- **The crew walks onto ice that will not hold it.** The roster puts the
+  crew and the boss at their station — the mere — on the first day of
+  their season; the boss's "will it hold" gates only the WORK, not the
+  walk, so on young ice the crew goes through and works the season soaked
+  (the drive's Bryn, day 3). A station that is a place you cannot yet
+  stand on wants the shore as the waiting place (the brain walks out when
+  the ice holds), or the roster to ask the station's floor.
+- **The seats were `winter` alone at a site whose ice starts in the
+  autumn** (−58°; calendar days 0–90 are the southern fall) — fixed to
+  `[fall, winter]` at the sweep. A season is a proxy for "the ice is
+  workable"; a seat gated on the reach's ice (`iceAt`) would need no
+  per-site season list.
 - **An item does not know its patch.** Float/sink sorts at the thaw (the
   whole surface), never at a single cut: nothing records where on a
   4 000 m² sheet a dropped tool lies. The honest seam is a `patchId`
