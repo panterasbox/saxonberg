@@ -869,7 +869,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A pot SET ON a fire is in the flame: the flame, not still air, is
       // the medium, so the heat crosses the wall at the fire's delivered
       // watts. A 30 L copper on a hearth warms at the hearth's power.
-      if (this.thermalHost.getPlacement()?.host === this.heatSource()) {
+      const placedOn = this.thermalHost.getPlacement()?.host as unknown as Stuff | undefined;
+      if (placedOn !== undefined && placedOn === this.heatSource()) {
         return rWall + this.lentInsulationR() + fireR;
       }
       // A loaf IN an oven sits in the oven's hot air: the slower of the
