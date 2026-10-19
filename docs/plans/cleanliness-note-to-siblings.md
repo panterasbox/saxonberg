@@ -87,7 +87,7 @@ build's review-log entry kept, `pnpm install` for the lock,
 9. **Re-grep `BiomeApi.isSkyExposed` callers at merge time**: if we land
    first, `Soilable.reconcileAiring` has one, marked `// rubber: migrate`.
 10. **Keep `roof` authored-only and `_exposure` transient** (never
-    `runtimeState`): our `PersistentCartesianLocation` round-trips every
+    `runtimeState`): our `PersistentLocale` round-trips every
     runtimeState field of a venue room.
 11. **Your drive after ours lands:** the oven and the stove-house stove
     gain flues that soot and can catch (`fire.flue.ignitesAtKg` 0.5);
@@ -120,7 +120,7 @@ build's review-log entry kept, `pnpm install` for the lock,
 7. Optional: a spread form of `wear()` on `AssembledMixin` for chemistry
    that soaks every line of one fibre; otherwise we document the
    single-line limit.
-8. Cobbler shop: consider `PersistentCartesianLocation` once we land
+8. Cobbler shop: consider `PersistentLocale` once we land
    (its traffic-soiled floor survives a restart); author `enclosure:` +
    `roof:`. Your call.
 
@@ -178,3 +178,14 @@ build's review-log entry kept, `pnpm install` for the lock,
 - **After ours lands**, each of you re-runs the drive step the table
   names (storage 16/21; rubber's flue soot; repair's `order repair` on
   the shared seam).
+
+## ⚠ 2026-10-18 — the place taxonomy rename lands in cleanliness's MR
+
+Decided in review (`docs/slates/builds/place-taxonomy-slate.md`): the root
+`Location` → `Place`; one particular place is a **Locale**, one of many a
+**Location**, either `Persistent…`. Concretely:
+`PersistentCartesianLocation` → `PersistentLocale` (done),
+`SingletonCartesianLocation` → `Locale`, `FurnishableRoom` →
+`PersistentLocation`, `SingletonSphericalLocation` → `SphericalLocale`.
+Whoever merges after cleanliness re-points their rows' `class:` lines and
+imports by that table — a pure rename, a DB drop.

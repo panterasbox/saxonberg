@@ -1027,7 +1027,7 @@ emits its vapour into the room on the vessel's thermal reconcile
 `vapourLPerLPerHour`); a naphtha rag by the hearth is then the flash
 (AC 11). Mill house (D-user): the grist mill moves indoors — a new
 `/world/terminus/hearts-delight/location/mill-house.yaml`
-(`PersistentCartesianLocation`; construction in **rubber's exact valid
+(`PersistentLocale`; construction in **rubber's exact valid
 shape**, see D27 for the pre-/post-rubber rule; props the grist-mill +
 toll-bin, exits to/from the millsite, the miller's station moves). AC 16.
 
@@ -1230,7 +1230,7 @@ be paid the cover from the house account. `hand.recordDeed({kind:
 **D27 — The lavoir is civic rows; the laundress is a Business with a
 Tariff fixture in the same room (two houses in one room, shipped).**
 `C/terminus/content/world/terminus/wharfside/lavoir/`: `location/lavoir.yaml`
-(`PersistentCartesianLocation`, roofed and open-sided; `ambientSource:
+(`PersistentLocale`, roofed and open-sided; `ambientSource:
 sky`, `ambientOpening: arches`; props a `/stuff/thing/fixture/trough`
 (`WaterFixture`, `suppliedBy: /world/terminus/wharfside/thing/cold-fell-aqueduct`
 — soft, running), two `/stuff/thing/fixture/washboard` (Fitting,
@@ -1368,7 +1368,7 @@ verifies through the same predicate at :781–829. Four touches, as `watch`
 cost (AC 22).
 
 **D31 — Persistence: a singleton place that keeps a record, and
-fixtures that keep their state.** (a) `S/platform/location/PersistentCartesianLocation.ts`
+fixtures that keep their state.** (a) `S/platform/location/PersistentLocale.ts`
 = `PersistableMixin(SingletonCartesianLocation)` — ONE row, ONE place, ONE
 record keyed by its template path; `StuffApi.singleton` already restores
 or seeds-and-captures it (grounding), props capture as unstamped contents
@@ -1673,7 +1673,7 @@ Run these against `origin/master` and record the answers in § Grounding:
 | `bleach(dose)` | `DyedMixin` | any dyed thing fades under an oxidiser dose | — |
 | `DirtKind`, `Cleanser` (Ideas) + two catalogues | `platform/idea/` | row families; nothing composes them | — |
 | `WashPolicy`, `WashSpec`/`WashOutcome`, `WaterHardness`, `StainRecord` | `lib/cleanliness/` value objects | nothing composes them | instance-shaped (`lint:lib-statics` at ceiling) |
-| `PersistentCartesianLocation` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not FurnishableRoom (coords; warren claims) |
+| `PersistentLocale` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not FurnishableRoom (coords; warren claims) |
 | fixture-state slice | `AdornableMixin.captureSlice`/materialize | a persistable host remembers its non-chattel fixtures' runtime state | — |
 | `Tub` (`Bulkable(Thermal(Chair))` — Soilable comes through `Chair`, never composed twice) | `platform/thing/Tub` | a seat you lie in that holds water | the `fixture/tub` row re-classed; the bathroom archetype unchanged |
 | `KeptDoor` (Exit subclass) + `kept-door` kind row | `platform/idea/` | an exit that asks a doorman ON SHIFT at the business the row names | no doorman on shift → open; never a gauge; a seat, never presence |
@@ -1705,7 +1705,7 @@ passes its hand parts, everything else passes `''`.
   `CastMixin(StagedMixin(NPC))` (repair D14) — the laundress carries
   nothing; the attendant and doorman carry nothing; the washerwomen hold a
   basket as a room prop.
-- **Locations, not rooms** — `PersistentCartesianLocation` /
+- **Locations, not rooms** — `PersistentLocale` /
   `SingletonCartesianLocation`; `FurnishableRoom` only where a holding
   furnishes.
 - **The `<root>/<branch>/` pattern** — kernel rows in the platform pack
@@ -1757,7 +1757,7 @@ passes its hand parts, everything else passes `''`.
   the locality title), `lint:schema` (untouched), **`lint:bills`** (no new
   recipe output here, but rows over `Tool`, `Receptacle` and `Mould` meet
   its arms 7b/7d once repair lands — confirm green), **`lint:location-classes`**
-  (`PersistentCartesianLocation` extends `SingletonCartesianLocation`, so
+  (`PersistentLocale` extends `SingletonCartesianLocation`, so
   `extendsAny` finds it; every authored place is a singleton). ⭐ **And
   the wiki-spoiler audit** (`src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts`
   + `.snap`, a vitest, not a `lint:*`): every new `fieldMeta` field needs
@@ -1825,7 +1825,7 @@ Implements D1–D4, D9, D31.
   `C/trade-medicine/src/behavior/nurses.ts`, `WashController.washHands`
   (sites). `S/lib/vitals/Hygiene.ts` and its test deleted; `Vitals.sepsis.test.ts`,
   `Producing.pourTake.test.ts` re-pinned on deposits.
-- Persistence: `S/platform/location/PersistentCartesianLocation.ts` (new),
+- Persistence: `S/platform/location/PersistentLocale.ts` (new),
   `S/lib/boundary/Adornable.ts` (fixture-state slice),
   `S/platform/idea/api/PersistableLogic.ts` (apply the slice on
   materialize; `captureHostOf` walks fixture → host); rows re-classed:
@@ -1846,7 +1846,7 @@ Implements D1–D4, D9, D31.
   `CleanserCatalogue.test.ts` (a malformed row skipped and named; a
   pack-root row found), `Creature.hands.test.ts` (glove vs bare; the
   derived number; sepsis seeds as before at the threshold),
-  `PersistentCartesianLocation.test.ts` (singleton restore/seed; a prop's
+  `PersistentLocale.test.ts` (singleton restore/seed; a prop's
   field survives; fixture slice round-trips the floor's deposits and a
   Window's). ⚠ `Bandage` composes its three new mixins here but keeps
   the authored `dressingQuality` until W5 derives it (the tier does not
@@ -2224,7 +2224,7 @@ reader), `harm.md` / `blood.md` (the tiers; the stain), `fire.md` (the
 flue, products, limits), `furnishing.md` (debris, rest, pests no longer
 "deliberately not here"), `retail.md` / `employment.md` (the two service
 kinds; the laundress; indemnity), `contract.md` (`clean`), `persistence.md`
-(the fixture slice; `PersistentCartesianLocation`), `maturation.md`
+(the fixture slice; `PersistentLocale`), `maturation.md`
 (`offGas`; soap), `ground.md` (the floor's soil, `takesSoil`; merged
 with storage's water-surface/`ice`/`bears` sections), `watershed.md`
 (hardness travels; the under-ice draw), `behavior.md` (doorman, remarks),
@@ -2884,6 +2884,16 @@ Read first, in this order.
   (`Soilable.dirtKind`, a method — `dirtRow`/`dirtRowFor` were module
   functions). Each row reads itself (`descriptor()`). Template-table scans
   42 → 40; both catalogue singletons and rows deleted.
+
+- **B51 — The place taxonomy** (review, the user's decision). Every place
+  is a `Place` (root rename from `Location`); a **Locale** is one
+  particular place, a **Location** one of many laid out to a plan, either
+  `Persistent…`; spherical says so (`SphericalLocale` / `SphericalLocation`).
+  This build's `PersistentCartesianLocation` → **`PersistentLocale`**
+  (done, 14 rows). The rest of the rename — the root, `SingletonCartesian
+  Location` → `Locale`, `FurnishableRoom` → `PersistentLocation`, the
+  spherical singleton — is `place-taxonomy-slate`, to be done in this MR
+  after the context compaction.
 
 ## Drive record
 

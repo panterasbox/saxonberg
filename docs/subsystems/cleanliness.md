@@ -226,7 +226,7 @@ of the market square, the Goodkin parlor arch. A second of any is rows.
 
 ## Persistence
 
-`PersistentCartesianLocation` keeps a place's floor, fire and fixtures
+`PersistentLocale` keeps a place's floor, fire and fixtures
 across a restart through Adornable's fixture slice (`captureHostOf` walks
 fixture → host; ⚠ keyless, so a kept singleton never becomes a keyed holding —
 B38). Kept places: the cookhouse, the chandlery, the glazier's

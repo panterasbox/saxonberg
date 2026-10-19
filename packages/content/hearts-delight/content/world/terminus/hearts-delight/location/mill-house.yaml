@@ -2,7 +2,7 @@
 # the wheel shaft. ⭐ ENCLOSED, so the flour the stones throw hangs in the
 # air, grind on grind, until somebody sweeps it down — and enough of it,
 # with a spark, goes up. Damp the floor and sweep, and it does not.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   shortDescription: mill house
   keywords: [mill, "mill house", millhouse, stones]

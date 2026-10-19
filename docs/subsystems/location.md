@@ -89,7 +89,7 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   The shipped example is forestry's `Wood`
   ([forestry.md](./forestry.md)), which is this shape with two mixins
   inside the outermost `Persistable`. ⚠ A one-line
-  `PersistentCartesianLocation` class existed for this cell of the
+  `PersistentLocale` class existed for this cell of the
   taxonomy and **no row ever named it** — the one real consumer could not
   extend it anyway, because it needed mixins inside the outermost layer.
   It was retired by the base-class narrowing build; the RULE is what was
@@ -666,3 +666,42 @@ way out of the lounge — there is no placeholder campus exit),
 item-spawn-into-a-Warren (reuses `getHost()` as a separate instruction),
 the procedural-spatial Warren family (dungeon/desert), and the
 Warren-as-containment-tier evolution.
+
+## The four places (2026-10-18)
+
+A noun is a person, place, thing or idea, and the branches are the same
+four. Every place is a **Place** (the root — still `Location` in code until
+the rename sweep, `place-taxonomy-slate`). Two axes, named so the class
+says which:
+
+| | transient | kept (`Persistent…`) |
+|---|---|---|
+| **Locale** — ONE particular place; one row = one place (you *visit* a locale) | `Locale` (today `SingletonCartesianLocation`) | `PersistentLocale` (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` (today the instanceable `CartesianLocation`) | `PersistentLocation` (today `FurnishableRoom`; `Field`, `MineRoom` in shape) |
+
+A kept place must be singleton (a locale) or keyed (a location in a
+warren) — `PersistableLocations.test` holds it. `PersistableMixin` is
+composed OUTERMOST over a place's own substrate, which is why a kept place
+with substrate composes the shape rather than subclassing the plain kept
+class. Spherical places keep their own family until expanses need the pair.
+
+## The place taxonomy (decided 2026-10-18; the rename is `place-taxonomy-slate`)
+
+A noun is a person, place, thing or idea, and the four branches are the
+same: `Agent`, **`Place`**, `Thing`, `Idea`. Every place is a `Place` (the
+root — still `Location` in code until the rename sweep). Under it, ONE
+descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
+
+| | transient | kept |
+|---|---|---|
+| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` (today `SingletonCartesianLocation`) | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` (today the instanceable `CartesianLocation`) | `PersistentLocation` (today `FurnishableRoom`; `Field`, `MineRoom` in shape) |
+| spherical, one place | `SphericalLocale` (today `SingletonSphericalLocation`) | `PersistentSphericalLocale` when wanted |
+| spherical, one of many | `SphericalLocation` (unchanged) | `PersistentSphericalLocation` when wanted |
+
+Cartesian is the default and goes unprefixed; a spherical place says so.
+A kept place must be one place (a locale) or keyed (a location in a warren)
+— `PersistableLocations.test` holds it. `PersistableMixin` is composed
+OUTERMOST over a place's own substrate, which is why a kept place with
+substrate composes the shape rather than subclassing the plain kept class.
+

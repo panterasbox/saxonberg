@@ -73,7 +73,7 @@ PersistableMixin(StandMixin(SoilMixin(ReservedMixin(SingletonCartesianLocation))
   silently share ONE `holder_snapshots` scope across every mint*); the
   Wood is that shape with two mixins inside the outermost `Persistable`.
   ⭐ **The Wood is the shipped example of it** — there was a
-  `PersistentCartesianLocation` class stating the same rule and no row
+  `PersistentLocale` class stating the same rule and no row
   ever named it (the Wood could not `extend` it, for exactly the reason
   above), so the narrowing build retired the class and moved the rule to
   the doc. No `WarrenMember`: a clearing lives in a zone, not a holding.

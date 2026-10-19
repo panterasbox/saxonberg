@@ -13,7 +13,7 @@
  *   reached by an exit — the singleton cell. ⚠ The rule for the durable
  *   version — *a durable room over the permissive base would silently
  *   share ONE `holder_snapshots` scope across every mint* — was stated
- *   by a class called `PersistentCartesianLocation`, **which no longer
+ *   by a class called `PersistentLocale`, **which no longer
  *   exists**; this paragraph cited it in the present tense until the
  *   base-class narrowing (2026-09-30). The rule survives its class.
  *   The Wood is that shape with two mixins inside the outermost

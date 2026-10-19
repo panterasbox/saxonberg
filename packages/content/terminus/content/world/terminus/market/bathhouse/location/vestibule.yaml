@@ -1,5 +1,5 @@
 # The vestibule — the door off the square, the slate, the attendant's desk.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   coords: { x: 0, y: 0, z: 0 }
   # ⭐ Daylight through the high windows (the light-sources rule).

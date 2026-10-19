@@ -1,7 +1,7 @@
 # The lavoir itself — the arches, the trough, the boards (cleanliness D27).
 # Free to anyone: the trough and the boards afford `wash` and `scrub`. The
 # laundress's slate prices what she does for you.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   # ⭐ Open-sided: the weather and the daylight come in under the arches.
   _biomePath: /stuff/idea/biome/outdoor/baseline

@@ -1,6 +1,6 @@
 # The gym — sharing the bathhouse's door (cleanliness D28): you work up a
 # sweat here and wash it off next door.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   coords: { x: 1, y: 0, z: 0 }
   # ⭐ Daylight through the high windows (the light-sources rule).

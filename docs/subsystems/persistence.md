@@ -1549,6 +1549,6 @@ born-with seed; only its *liveness* is transient. Proven in
 
 ## Kept places (2026-10-17)
 
-`PersistentCartesianLocation` keeps a place's floor, fire and fixtures
+`PersistentLocale` keeps a place's floor, fire and fixtures
 across a restart through `AdornableMixin`'s fixture slice;
 `captureHostOf` walks fixture → host. See [cleanliness.md](./cleanliness.md).

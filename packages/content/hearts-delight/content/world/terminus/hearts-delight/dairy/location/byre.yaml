@@ -3,7 +3,7 @@
 # door; the milking is done by daylight.
 # ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
 # what is curing on its shelves — outlives a restart.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   shortDescription: byre
   keywords: [byre, shed, stalls]

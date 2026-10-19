@@ -1,7 +1,7 @@
 # The baths — the copper and the tubs (cleanliness D28). `order bath` and
 # the attendant fills one from the copper; or fill one yourself and
 # `bathe` in it.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   coords: { x: 0, y: 1, z: 0 }
   # ⭐ Daylight through the high windows (the light-sources rule).

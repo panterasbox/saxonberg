@@ -1,6 +1,6 @@
 # The laundry — the laundress's back room (cleanliness D27): the copper,
 # the soap on its shelf, the lye in its flask. Shut and warm and steaming.
-class: /platform/location/PersistentCartesianLocation
+class: /platform/location/PersistentLocale
 data:
   coords: { x: -1, y: 0, z: 0 }
   # ⭐ What light there is comes through from the lavoir's open side.
