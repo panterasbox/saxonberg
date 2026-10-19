@@ -1869,4 +1869,40 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
 
 ## Drive record
 
+
+### Drive runs 1–21 (2026-10-19) — in progress
+
+`packages/wire/tests/underwater.dirty.wire.test.ts`, 15 checkpoints. Best
+run so far: **run 19, 6 green** — 1 (the quay reads the water), 15d (the
+almanac on the quay), 18 (the tide at the mouth in words; `analyze water`
+gives the stream), 16 (the tidepool cut off at low water, its oxygen
+falling), 19 (the frog dives and comes up on its own breath), and 10a-dm
+held as `it.fails` (the PRE-EXISTING online-scope defect: `dm`/`tell`
+resolve nobody, even by the exact displayed name).
+
+**What the drive found, every one fixed and committed:**
+
+| run | found | fix (commit) |
+|---|---|---|
+| 1 | the diving dress authored `gradeBand: good` (not a band); the dive outfit's stock loads at login → every login 500 | `fine`/`fair` (7c2424c34) — no lint checks the grade-band vocabulary: a finding |
+| 5 | ⭐⭐ a full breath was 6 REAL seconds at the 12× clock; both divers blacked out before they could type | respiration's clock is the game clock over the world scale — breath is real-time (7c2424c34) |
+| 4–8 | every place citing the Kestrel (bank, basin, each band) did its own multi-second river read; `descend` waited 30 s; every tidal shore re-read the whole sea every 10 game-minutes | ONE read per water per segment, shared; `WaterSource.retide` brings a held read's tide current (0094ad00c) |
+| 7 | `climb up` out of the basin refused — WaterPlace.canExit admitted only swimming | climbing out admitted (0094ad00c) |
+| 7 | surfacing printed "You can't breathe!" (a drain tick between arrival and reassess) | a body at the surface reassesses, silently (0094ad00c) |
+| 15 | a fresh world starts in winter: rotten ice on the confluence, a ceiling over a diver | the drive dives in summer; `descend` onto ice says it is iced over (e75251ae3) |
+| 16–17 | ⭐ a one-day clock jump cost 20 s: the frog at the mere's surface trod water and the breath engagement beat every 2 GAME seconds | the beat is real-time (× the world scale); a small body floats on a small lift (e75251ae3) — 1.8 s a game day |
+| 19 | `ascend` at the surface tried to swim the basin's `up` (the quay wall) | at a water's surface `ascend` says you are there (c05c1dd39) |
+
+Drive-side lessons: one honest breath per dive (two inhales inside ten
+seconds is hyperventilating — the warning goes, requirements step 4);
+work gear left on the quay (weight refuses the way up; carrying it all is
+"carrying too much to swim"); several air bags are named `me:i:bag`;
+the dive counter's air-bag par is 6 (import lines refill at the reset
+sweep, not on the game clock).
+
+⚠ **Blocked on memory, not on code** (runs 20–21): an owned drive world
+holds ~3 GB; with a sibling worktree's world up on 2010 (build-3) the
+16 GB box swaps, a clock jump outruns its 300 s headers timeout, and the
+session's memory reaper stopped run 20. The drive resumes when only one
+world is up.
 *(appended at build time, not at plan time)*
