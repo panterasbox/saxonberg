@@ -1,7 +1,8 @@
 /**
  * WetMixin — the per-object wetness gauge (weather Wave 2). Accrual is
  * pushed (`wet`), drainage is reconcile-on-read over game-time,
- * presence-frozen (far-past guard), warmth-accelerated, banded for the
+ * presence-frozen (far-past guard), scaled by the air it is in and the
+ * matter's own heat (one law with curing, B56), banded for the
  * player. See docs/subsystems/weather.md.
  */
 
@@ -154,8 +155,10 @@ describe('WetMixin — the wetness gauge', () => {
   });
 
   it('warmth dries faster than cold', () => {
-    const warm = warmThing(330); // ~35 K above the 295 reference
-    const cool = warmThing(295);
+    // The matter's own heat is the Evaporation heat term (B56): at the
+    // 20 °C reference it dries at the material rate, and doubles per 10 K.
+    const warm = warmThing(330);
+    const cool = warmThing(293);
     warm.wet(1);
     cool.wet(1);
     setNow(HOUR);
@@ -163,6 +166,40 @@ describe('WetMixin — the wetness gauge', () => {
     const c = cool.getWetness();
     expect(c).toBeCloseTo(0.75, 2); // neutral warmth
     expect(w).toBeLessThan(c); // warmth accelerated the drain
+  });
+
+  it('⭐⭐ ONE law: saturated air dries nothing; dry air dries fast; the forecast is the rate (B56)', () => {
+    const room = (rh: number) => {
+      const r = makeStuff(() => new Place());
+      r.setHumidity(Quantity.of(rh, '%'));
+      return r;
+    };
+    const humid = room(100);
+    const dry = room(20);
+    const a = makeStuff(() => new WetThing());
+    const b = makeStuff(() => new WetThing());
+    ContainmentApi.move(a, humid);
+    ContainmentApi.move(b, dry);
+    a.wet(1);
+    b.wet(1);
+    // The forecast: never in saturated air; hours in dry air — and it is
+    // the closed form of the same rate the reconcile integrates.
+    expect(a.dryingHours()).toBeNull();
+    const hours = b.dryingHours()!;
+    expect(hours).toBeGreaterThan(0);
+    setNow(HOUR);
+    expect(a.getWetness()).toBe(1);
+    expect(b.getWetness()).toBeLessThan(1);
+    setNow(Math.min(Math.ceil(hours * HOUR) + 1, 4 * HOUR - 1));
+    if (hours < 3.9) expect(b.getWetnessBand()).toBe('dry');
+  });
+
+  it('shut in something that is not air (a chest), nothing dries', () => {
+    const chest = makeStuff(() => new Vessel());
+    const t = makeStuff(() => new WetThing());
+    ContainmentApi.move(t, chest);
+    t.wet(1);
+    expect(t.dryingHours()).toBeNull();
   });
 
   it('a wet object shows a band line in its long description (not a number)', () => {

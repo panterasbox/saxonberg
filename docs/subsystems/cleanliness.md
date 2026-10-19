@@ -97,7 +97,19 @@ hardness (soap scums in hard water; soda softens it); blood washed hot
 SETS — in a thing that `holdsSetStains()`; skin does not (B37). A host adds what washing does to IT by override — a `Garment`
 felts (protein fibre at a boil), shrinks (≥ 333 K), rots or burns
 (`corrosiveTo`), fades and bleeds an unfast dye onto everything in the
-same water, comes out wet. Cleansers are spent by use (B12).
+same water. Cleansers are spent by use (B12).
+
+⭐ **A wash is water** (B56): `Soilable.washSite` leaves what it washed at
+least `washedShare(site)` wet — the whole of a shirt, a rug or a floor (a
+mopped floor is slick until it dries, `Floor` ≥ 0.3), a hand's surface
+share of a body (`Creature.washedShare` over `Attired.surfaceShareOf`:
+washing your hands leaves you dry; a bath soaks you). A thing boiled in a
+pot (`holdAtHeat(…, {wet})`) comes out wet. A WADE wets the body by the
+share under water, each layer under it whole (`Attired.immerse`). And a
+**towel** (`platform/thing/Cloth`, held, confers `dry`) takes it off:
+`dry me with towel` → `Wet.soakUp`, the water moved by mass into the
+cloth, which then dries on the rack like anything else. The bathhouse
+stocks three, each bathroom one, the general store sells them.
 
 Hardness rides the water (`WaterHardness.ts`'s payload merge): a pail keeps its
 source's hardness; a tap reads its main's; unknown water washes as 8 °dH.
@@ -250,7 +262,7 @@ undergoes it — `Soilable.washSite` / `brushOff` / `holdAtHeat`,
 `Hygiene.washHands` / `bathe` (each spends its own soap, `CleanserUse`),
 `Metabolic.eat`, `Floor.sweepInto` / `strewWith`, `Flued.sweepChimney`,
 `Burner.rakeGrate`, `Midden.takeRefuse`, `Garment.launderBy`,
-`Tub.drawFrom`, `Wet.dryingOutlook`, `Vitals.loseBlood`, and the house's
+`Tub.drawFrom`, `Wet.dryingHours`, `Vitals.loseBlood`, and the house's
 own on its `Tariff` (`houseVessel`, `houseWaterHardness`, `houseCleansers`,
 `quoteLaundry`, `payCover`). Only what NO one object owns is an Api static:
 `CraftingApi.wash({items, spec})` — several things in one water, beside `repair` (the upkeep twin: dirt where repair is wear); no Api of its own.

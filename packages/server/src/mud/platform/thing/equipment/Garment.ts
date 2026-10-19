@@ -262,7 +262,6 @@ export default class Garment extends GarmentBase {
       }
     }
 
-    this.wet(1);
     return { ...outcome, damage: [...new Set(damage)] };
   }
 

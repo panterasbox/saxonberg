@@ -51,6 +51,7 @@ import { ZoneApi } from '../../api/zone';
 
 import type Material from '../material/Material';
 import type { Concentrate } from '../bulk/Concentration';
+import type { Evaporation } from '../material/Evaporation';
 import type {
   Enclosed,
   EnclosureSpec,
@@ -144,11 +145,12 @@ export interface Atmospheric {
   /** Air changes per hour — `Infinity` under the sky. */
   airChangesPerHour(): number;
   /**
-   * ⭐ How a wet thing dries in this air (cleanliness D11) — `never` when
-   * the air is saturated, `outdoors` under the sky (sun and wind take it
-   * fast), `indoors` slowly. The place's to say; `Wet.dryingOutlook` asks.
+   * ⭐ The air in here as an {@link Evaporation} — humidity, wind,
+   * temperature, by the biome chain (`BiomeApi.airFor`). The place's to
+   * say: a wet thing dries by it (`Wet`, B56), and asking the place keeps
+   * the biome reads out of a mixin every Thing composes.
    */
-  dryingConditions(): 'never' | 'outdoors' | 'indoors';
+  getAir(): Evaporation;
   /** The share of this scope's medium that is still plain medium. */
   airShare(): number;
 
@@ -975,10 +977,8 @@ export function AtmosphericMixin<
      * (the envelope's, which is deliberately room-to-outside only). A
      * room's air mixes with the next room's long before its heat does.
      */
-    public dryingConditions(): 'never' | 'outdoors' | 'indoors' {
-      const self = this as unknown as Stuff;
-      if (BiomeApi.airFor(self).humidityPct >= 95) return 'never';
-      return BiomeApi.isSkyExposed(self) ? 'outdoors' : 'indoors';
+    public getAir(): Evaporation {
+      return BiomeApi.airFor(this as unknown as Stuff);
     }
 
     public airChangesPerHour(): number {

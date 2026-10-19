@@ -8,11 +8,21 @@ settings:
   - key: wetness.evaporationRatePct
     value: "1.25"
 
-  - key: wetness.warmthFactor
-    value: "0.03"
+  # The reference air for drying: still indoor air at this humidity (and
+  # 20 °C) dries a thing at its material's own rate; the air it is really
+  # in — humidity deficit, wind, the matter's heat — scales that (B56).
+  - key: wetness.referenceHumidityPct
+    value: "50"
 
-  - key: wetness.warmthReferenceK
-    value: "295"
+  # A rub with a cloth takes this share of the water it has room for — never
+  # the last film (`Wet.soakUp`, B56).
+  - key: wetness.blotTakes
+    value: "0.9"
+
+  # A soaked body carries this much water per m² of skin — the film a towel
+  # takes (skin area by Meeh's law over the body's mass, B56).
+  - key: wetness.skinFilmKgPerM2
+    value: "0.2"
 
   - key: wetness.rainAccrualPerHour
     value: "1.5"

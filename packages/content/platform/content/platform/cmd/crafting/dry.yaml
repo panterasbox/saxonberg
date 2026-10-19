@@ -16,6 +16,10 @@ help: |
   `dry <thing> [on <rack>]` — hang something up where the air can get at
   it. Costs nothing but the time, and the time is the weather's to set.
 
+  `dry <thing> with <cloth>` — rub it dry: a towel takes the water into
+  itself, as much as it has room for (`dry me with towel` after a bath). A
+  sodden towel dries like anything else — hang it up.
+
   ⭐ **Drying is a RATE, not a treatment.** Hanging a cut up does not dry
   it; it puts it somewhere it *can* dry. What happens then is the air's
   business: dry, warm, moving air takes water out fast, and saturated air
@@ -66,5 +70,17 @@ args:
     # simply slower. When one IS named it carries the exposure fraction.
     default: "reachable:[class.DryingRack]"
     requires: [PlacingMixin]
+    validators:
+      - /lib/command/validators/canReach
+  - name: cloth
+    type: object
+    required: false
+    prepositions: [with]
+    # The tail after `with` — `dry me with the linen towel`.
+    greedy: true
+    scope: "reachable"
+    # Any wet-able thing will rub something dry (a shirt in a pinch); a
+    # towel is simply good at it. The controller narrows.
+    requires: any
     validators:
       - /lib/command/validators/canReach

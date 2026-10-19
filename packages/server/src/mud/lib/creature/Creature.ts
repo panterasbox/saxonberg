@@ -378,6 +378,29 @@ export class Creature extends CreatureBase {
   }
 
   /**
+   * A body wash wets the share of the body washed — a hand is ~3% of
+   * the skin, so washing your hands leaves you dry and a bath soaks you
+   * (B56). `''` is the whole skin.
+   */
+  public override washedShare(site: string): number {
+    if (site === '') return 1;
+    return this.surfaceShareOf((k) => k === site);
+  }
+
+  /**
+   * ⭐ A soaked body holds a FILM of water on its skin, not its flesh's
+   * absorption capacity × 70 kg — the water a towel takes (B56). Skin
+   * area by Meeh's law (`0.1 · m^(2/3)` m², ~1.7 m² at 70 kg) × the film
+   * per m² (`wetness.skinFilmKgPerM2`, 0.2): about a third of a litre.
+   */
+  public override waterCapacityKg(): number {
+    const massKg = this.getMass().rawValue();
+    if (!(massKg > 0)) return 0;
+    const areaM2 = 0.1 * Math.pow(massKg, 2 / 3);
+    return areaM2 * dial(AppSettingKeys.wetnessSkinFilmKgPerM2, 0.2);
+  }
+
+  /**
    * The soil on the BARE skin, by region — *Your hands are bloodied.* What
    * a garment carries is the garment's line (and the dressed impression's
    * upkeep clause), so only parts nothing covers are spoken for here.

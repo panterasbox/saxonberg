@@ -20,6 +20,8 @@ data:
   props:
     - /stuff/thing/fixture/copper
     - { template: /stuff/thing/fixture/tub, count: 3 }
+    # The attendant's stack — `dry me with towel` out of the tub (B56).
+    - { template: /stuff/thing/gear/towel, count: 3 }
     - /trade/chandlery/thing/soap-bar
     - /stuff/thing/fixture/midden
     # ⭐ The slate and the attendant where the work is (found by the

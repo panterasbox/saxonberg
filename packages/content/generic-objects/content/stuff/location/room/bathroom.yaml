@@ -44,6 +44,7 @@ data:
     - /stuff/thing/fixture/basin
     - /stuff/thing/fixture/tub
     - /stuff/thing/fixture/bath-tap
+    - /stuff/thing/gear/towel
   details:
     window:
       keywords: [window, glass, light]

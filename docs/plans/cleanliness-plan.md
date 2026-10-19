@@ -2946,6 +2946,22 @@ Read first, in this order.
   stand in; a `CirculationWarren`'s are holdings, reached by the lanes,
   corridors and stairs it mints from a `PlatPlan`. holding.md's tier
   section (and its anchor) and the class headers say so.
+- **B56 — Water, and drying, by one law** (review, the user: *"do things
+  get wet when you clean them? how long does it take for them to dry …
+  is it a simple wet/dry flag"*; all four, in this MR). (1) A wash wets
+  what it washes — `Soilable.washSite` → `washedShare(site)` (a hand's
+  surface share on a body, `Creature`), the `holdAtHeat` wet hold too;
+  `Garment`'s own `wet(1)` folded in. (2) The drying rate reads the air:
+  `Atmospheric.getAir()` (an `Evaporation`; replaces B48's
+  `dryingConditions`) × the matter's own heat, over a reference air — so
+  saturated air dries nothing (the outlook used to SAY so while the rate
+  dried anyway); `Wet.dryingHours()` is the closed form and the `dry`
+  verb words it (`dryingOutlook` retired; the warmth dials retired). (3)
+  A wade wets the body by `Attired.surfaceShareOf(parts)`. (4) A towel:
+  `platform/thing/Cloth` (`absorbency`, confers `dry`), `Wet.soakUp`,
+  `waterCapacityKg` (a body's skin film by Meeh's law), `dry <x> with
+  <cloth>`; stocked at the bathhouse, the bathrooms and the store. The
+  module functions `airReachOf`/`interactiveHolderOf` became methods.
 
 ## Drive record
 

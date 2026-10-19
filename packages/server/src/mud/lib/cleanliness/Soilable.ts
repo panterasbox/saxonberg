@@ -253,6 +253,12 @@ export interface Soilable {
    * bloodied hands washes them. Default `true`.
    */
   holdsSetStains(): boolean;
+  /**
+   * ⭐ How much of this thing a wash of `site` puts in the water, `0..1`
+   * (B56): the whole of a shirt, a hand's surface share of a body. A wash
+   * leaves what it washed that wet — washing is water.
+   */
+  washedShare(site: string): number;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -502,6 +508,8 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void {
       this.recordHeat(tempK, holdS);
+      // A thing boiled in water comes out of it wet (B56).
+      if (opts.wet) this.wetBy(1);
       const self = this as unknown as Stuff;
       if (MixinApi.isContaminable(self)) {
         self.setPathogenLoads(
@@ -547,6 +555,19 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public holdsSetStains(): boolean {
       return true;
+    }
+
+    public washedShare(_site: string): number {
+      return 1;
+    }
+
+    /** ⭐ Water leaves what it touched at least `share` wet (B56). */
+    private wetBy(share: number): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWet(self)) return;
+      const want = clamp01(share);
+      const now = self.getWetness();
+      if (want > now) self.wet(want - now);
     }
 
     public washSite(spec: WashSpec, site: string = WHOLE_SITE): WashOutcome {
@@ -601,6 +622,10 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         waterK: spec.waterK,
         hardnessDgh: dgh,
       });
+      // ⭐ A wash is water: a mopped floor is wet (and slick) until it
+      // dries, a washed rug wet through, a washed hand a hand's share of
+      // the body (B56).
+      this.wetBy(this.washedShare(site));
       return { removed, setNow, damage: [], band: this.soilBand(site) };
     }
 

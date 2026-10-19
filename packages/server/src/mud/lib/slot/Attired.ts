@@ -161,6 +161,13 @@ export interface Attired {
   footSites(): string[];
   /** The trunk part — the root of the body plan (`body.torso`). */
   trunkSite(): string | null;
+  /**
+   * ⭐ The share of this body's external surface the filter admits,
+   * `0..1` — Meeh's-law part areas (`BodyPlan.getPartSurfaceFraction`);
+   * by part count when the plan authors no masses. No filter is the whole
+   * body. How much of you is in the water when you wade (B56).
+   */
+  surfaceShareOf(parts?: (partKey: string) => boolean): number;
 
   /**
    * Whole-body insulation in `clo`, **surface-weighted per part**.
@@ -657,7 +664,13 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       _waterK = 283,
     ): void {
       const self = this as unknown as Stuff;
-      if (MixinApi.isWet(self)) self.wet(1);
+      // ⭐ Wading wets the body by the share of it under water, not to
+      // the hair (B56); each layer under water is soaked whole.
+      if (MixinApi.isWet(self)) {
+        const want = this.surfaceShareOf(parts);
+        const now = self.getWetness();
+        if (want > now) self.wet(want - now);
+      }
       for (const layer of this.immersedLayers(parts)) {
         if (MixinApi.isWet(layer)) layer.wet(1);
       }
@@ -741,6 +754,24 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         clo += asStuff.getClo().rawValue() * factor;
       }
       return Quantity.of(clo, 'clo');
+    }
+
+    public surfaceShareOf(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+    ): number {
+      if (!parts) return 1;
+      const plan = bodyPlanOf(this as unknown as Stuff & Slotted);
+      if (!plan) return 1;
+      let share = 0;
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key) || !parts(part.key)) continue;
+        share += plan.getPartSurfaceFraction(part.key);
+      }
+      if (share > 0) return Math.min(1, share);
+      const leaves = this.leafParts();
+      if (leaves.length === 0) return 1;
+      return leaves.filter((k) => parts(k)).length / leaves.length;
     }
 
     public bodyInsulation(this: Stuff & Slotted & Attired): Quantity<'clo'> {

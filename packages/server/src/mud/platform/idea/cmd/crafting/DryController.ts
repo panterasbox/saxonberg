@@ -50,6 +50,7 @@ const DISCIPLINE = 'cooking';
 export interface DryModel extends CommandModel {
   target?: MqlOneResult;
   rack?: MqlOneResult;
+  cloth?: MqlOneResult;
 }
 
 export default class DryController extends CommandController<DryModel> {
@@ -90,6 +91,13 @@ export default class DryController extends CommandController<DryModel> {
         )
         .send();
       context.note({ kind: 'controller-rejected', reason: 'not-dryable' });
+      return;
+    }
+
+    // ⭐ `dry <thing> with <cloth>` — rub it dry (B56): the cloth's act.
+    const cloth = model.cloth?.stuff ?? null;
+    if (cloth !== null) {
+      await this.rubDry(target, cloth, context);
       return;
     }
 
@@ -154,7 +162,7 @@ export default class DryController extends CommandController<DryModel> {
       scope === null
         ? null
         : wetThing && MixinApi.isWet(target)
-          ? DryController.wetLine(target.dryingOutlook())
+          ? this.wetLine(target.dryingHours())
           : this.prospectFor(target, scope);
 
     if (MixinApi.isAdvancing(giver)) {
@@ -232,18 +240,62 @@ export default class DryController extends CommandController<DryModel> {
     return `In this air it will take about ${this.span(hours)}.`;
   }
 
-  /** ⭐ A wet thing's outlook (`Wet.dryingOutlook`), in words. */
-  private static wetLine(outlook: 'never' | 'outdoors' | 'indoors' | 'enclosed'): string {
-    switch (outlook) {
-      case 'never':
-        return 'Nothing will dry in this air.';
-      case 'outdoors':
-        return 'Out in the air like this, it will be dry before long.';
-      case 'indoors':
-        return 'It will dry, slowly, indoors.';
-      default:
-        return 'Nothing will dry shut away like that.';
+  /** Rub `target` with `cloth` (`Wet.soakUp`) and word what it did. */
+  private async rubDry(
+    target: Stuff,
+    cloth: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isWet(cloth)) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${Mml.thing(cloth)} will not take up water.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'not-absorbent' });
+      return;
     }
+    const outcome = cloth.soakUp(target);
+    if (!outcome.ok) {
+      const line =
+        outcome.reason === 'cloth-sodden'
+          ? Mml.compose`${Mml.thing(cloth)} is sodden — it will take up no more.`
+          : Mml.compose`${Mml.thing(target)} is dry already.`;
+      MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+      context.note({ kind: 'controller-rejected', reason: outcome.reason });
+      return;
+    }
+    const self = target === giver;
+    const left =
+      outcome.left === 'dry'
+        ? 'dry'
+        : outcome.left === 'damp'
+          ? 'only damp'
+          : `still ${outcome.left}`;
+    const towel = outcome.cloth === 'dry' ? '' : `, and ${outcome.cloth === 'soaked' ? 'it is soaked now' : `it is ${outcome.cloth} now`}`;
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        self
+          ? Mml.compose`You rub yourself down with ${Mml.thing(cloth)}: you are ${left}${towel}.`
+          : Mml.compose`You rub ${Mml.thing(target)} with ${Mml.thing(cloth)}: it is ${left}${towel}.`,
+      )
+      .toPeers(
+        self
+          ? Mml.compose`${Mml.actor(giver)} rubs down with ${Mml.thing(cloth)}.`
+          : Mml.compose`${Mml.actor(giver)} rubs ${Mml.thing(target)} with ${Mml.thing(cloth)}.`,
+      )
+      .send();
+  }
+
+  /**
+   * ⭐ A wet thing's forecast (`Wet.dryingHours` — the same rate the gauge
+   * dries by, so the words cannot disagree with the drying, B56), in words.
+   */
+  private wetLine(hours: number | null): string {
+    if (hours === null) return 'Nothing will dry here.';
+    if (hours <= 0) return 'It is dry already.';
+    return `In this air it will take about ${this.span(hours)}.`;
   }
 
   /** How much of the target the air reaches — the support's own claim. */

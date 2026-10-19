@@ -1308,12 +1308,17 @@ export const AppSettingKeys = {
   /** Wetness — the water-absorption-capacity (%) a materialless object (or
    * a gauge whose host carries no material) reads as its neutral fallback. */
   wetnessAbsorptionCapacityDefaultPct: "wetness.absorptionCapacityDefaultPct",
-  /** Wetness — extra fractional drying per K the body/object is above the
-   * warmth reference (a warm body / a fire dries you faster). */
-  wetnessWarmthFactor: "wetness.warmthFactor",
-  /** Wetness — the reference temperature (K) above which warmth accelerates
-   * drying. */
-  wetnessWarmthReferenceK: "wetness.warmthReferenceK",
+  /** Wetness — the relative humidity (%) of the REFERENCE air: still
+   * indoor air at 20 °C, where a thing dries at its material's own rate.
+   * The air it is actually in (humidity deficit, wind, the matter's heat —
+   * `Evaporation.evaporationFactor`) scales the rate against this (B56). */
+  wetnessReferenceHumidityPct: "wetness.referenceHumidityPct",
+  /** Wetness — the share of the water a rub with a cloth takes (`Wet.soakUp`):
+   * never the last film (B56). */
+  wetnessBlotTakes: "wetness.blotTakes",
+  /** Wetness — kg of water a soaked body carries per m² of skin (the film a
+   * towel takes; the area by Meeh's law, B56). */
+  wetnessSkinFilmKgPerM2: "wetness.skinFilmKgPerM2",
   /** Wetness — saturation gained per game-hour of standing in rain. */
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */

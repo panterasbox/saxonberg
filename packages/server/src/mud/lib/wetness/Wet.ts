@@ -42,9 +42,15 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Evaporation } from '../material/Evaporation';
 
 /** The player-facing wetness band (presentation, never a raw number). */
 export type WetnessBand = 'dry' | 'damp' | 'wet' | 'soaked';
+
+/** What `Wet.soakUp` did — the verb words it. */
+export type SoakOutcome =
+  | { ok: true; movedKg: number; left: WetnessBand; cloth: WetnessBand }
+  | { ok: false; reason: 'not-wet' | 'already-dry' | 'cloth-sodden' };
 
 /** Wetness dials with seeded-literal fallbacks (pre-warm / test safe). */
 const WET_DEFAULTS = {
@@ -52,42 +58,6 @@ const WET_DEFAULTS = {
   MAX_REASONABLE_GAP_SEC: 4 * 3600,
   SECONDS_PER_HOUR: 3600,
 } as const;
-
-/**
- * The person this thing is, or is held by — walked up the holder chain
- * (a shirt on a body, a flask in a pack on a body). `null` when nobody
- * holds it: on a line, on a floor, in a room.
- */
-function interactiveHolderOf(
-  stuff: Stuff,
-): (Stuff & { isLinkdead(): boolean }) | null {
-  let cur: Stuff | null = stuff;
-  for (let hops = 0; cur && hops < 16; hops++) {
-    if (MixinApi.isHasInteractive(cur)) return cur;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-  }
-  return null;
-}
-
-/**
- * ⭐ How much of a thing the air reaches, against lying on the ground
- * (cleanliness D11): hung on a rack or a line it dries by the support's
- * own `airExposure` over the ground's share; worn, carried, or lying about
- * it dries at the plain rate.
- *
- * ⚠ The WIND on the line (`wetness.windFactor`) waits for the
- * construction answer (rubber's `exposure().windEnters()`): read off the
- * biome here it closes an import cycle that leaves this mixin undefined
- * where `Thing` composes it. Until then the factor is 1, as planned.
- */
-function airReachOf(stuff: Stuff, held: boolean): number {
-  if (held || !MixinApi.isContainable(stuff)) return 1;
-  const support = stuff.getPlacement()?.host ?? null;
-  if (support === null) return 1;
-  const ground = dial(AppSettingKeys.cureGroundExposure, 0.35);
-  const reach = ground > 0 ? support.getAirExposure() / ground : 1;
-  return Math.max(1, reach);
-}
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {
@@ -109,11 +79,26 @@ export interface Wet {
   /** Current saturation `[0, 1]` (reconciles the drain on read). */
   getWetness(): number;
   /**
-   * ⭐ How it will dry where it is now (cleanliness D11, B48) — the wet
-   * law's outlook: `never` in saturated air, `outdoors` (the sky and the
-   * wind take it fast), `indoors` (slowly). The verb words it.
+   * ⭐ Game-hours until it is no longer damp, in the air it is in NOW — the
+   * closed form of the same rate the reconcile integrates (B56), so the
+   * forecast and the drying can never disagree. `0` when already dry;
+   * `null` when it will not dry here (saturated air, shut away). The verb
+   * words it; the air will change, so it is a forecast.
    */
-  dryingOutlook(): 'never' | 'outdoors' | 'indoors' | 'enclosed';
+  dryingHours(): number | null;
+  /**
+   * How much water this holds when soaked, kg — its material's absorption
+   * capacity × its mass. A body overrides it with its skin film; a cloth
+   * with its weave (`Cloth.absorbency`).
+   */
+  waterCapacityKg(): number;
+  /**
+   * ⭐ Rub `from` with this — a towel, a rag, a shirt in a pinch (B56):
+   * water moves out of `from` into this, as much as this has room for.
+   * The act `dry <thing> with <cloth>` calls; the outcome is returned for
+   * the verb to word.
+   */
+  soakUp(from: Stuff): SoakOutcome;
   /** Current banded wetness (presentation). */
   getWetnessBand(): WetnessBand;
   /**
@@ -174,19 +159,53 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     // ---------- reads ----------
 
-    public dryingOutlook(): 'never' | 'outdoors' | 'indoors' | 'enclosed' {
-      const self = this as unknown as Stuff;
-      const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-      // The air is the place's to describe (`Atmospheric.dryingConditions`)
-      // — and asking it keeps the biome reads out of a mixin every Thing
-      // composes (a value import of `BiomeApi` here closes an import cycle).
-      if (!where || !MixinApi.isAtmospheric(where)) return 'enclosed';
-      return where.dryingConditions();
+    public dryingHours(): number | null {
+      const s = this.getWetness();
+      const dampAt = dial(AppSettingKeys.wetnessBandDampAt, 0.15);
+      if (s < dampAt) return 0;
+      const rate =
+        this.dryRatePerHour() *
+        this.airDryingFactor() *
+        this.airReach(this.interactiveHolder() !== null);
+      if (!(rate > 0)) return null;
+      return (s - dampAt) / rate;
     }
 
     public getWetness(): number {
       if (!this._reconcilingWet) this.reconcileWetness();
       return clamp01(this._saturation);
+    }
+
+    public waterCapacityKg(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return 0;
+      const massKg = self.getMass().rawValue();
+      const mat = self.getMaterial();
+      const pct = mat
+        ? mat.getWaterAbsorptionCapacity().rawValue()
+        : dial(AppSettingKeys.wetnessAbsorptionCapacityDefaultPct, 5);
+      return Math.max(0, massKg * pct) / 100;
+    }
+
+    public soakUp(from: Stuff): SoakOutcome {
+      if (!MixinApi.isWet(from)) return { ok: false, reason: 'not-wet' };
+      const fromCap = from.waterCapacityKg();
+      const held = from.getWetness() * fromCap;
+      if (!(held > 0.001)) return { ok: false, reason: 'already-dry' };
+      const cap = this.waterCapacityKg();
+      const free = (1 - this.getWetness()) * cap;
+      if (!(free > 0.001)) return { ok: false, reason: 'cloth-sodden' };
+      // Rubbing never takes the last of it: the film left is the share
+      // a dial keeps (`wetness.blotTakes`, 0.9).
+      const moved = Math.min(held, free) * clamp01(dial(AppSettingKeys.wetnessBlotTakes, 0.9));
+      from.wet(-moved / fromCap);
+      this.wet(moved / cap);
+      return {
+        ok: true,
+        movedKg: moved,
+        left: from.getWetnessBand(),
+        cloth: this.getWetnessBand(),
+      };
     }
 
     public getWetnessBand(): WetnessBand {
@@ -234,7 +253,7 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // as they were, together. A shirt on a line, a heap of sawdust, a
       // dropped cloak has no absence to honour: it dries over its whole gap.
       const self = this as unknown as Stuff;
-      const body = interactiveHolderOf(self);
+      const body = this.interactiveHolder();
 
       // Linkdead freeze — the body lingers but its clock is paused.
       if (body !== null && body.isLinkdead()) {
@@ -264,8 +283,8 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const hours = elapsed / WET_DEFAULTS.SECONDS_PER_HOUR;
         const rate =
           this.dryRatePerHour() *
-          this.warmthMultiplier() *
-          airReachOf(self, body !== null);
+          this.airDryingFactor() *
+          this.airReach(body !== null);
         this._saturation = clamp01(this._saturation - rate * hours);
         this.wetnessClockStamp = nowS;
       } finally {
@@ -303,22 +322,80 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * Drying accelerant from the object's own temperature (sync): warmer
-     * than the reference dries faster; at or below it, neutral. Reads the
-     * cached Thermal ambient — no async, no I/O.
+     * ⭐⭐ **The air's say in drying — one law** (B56). The air this thing
+     * is in (`Atmospheric.getAir`: the room, or the vessel it is shut in)
+     * as an {@link Evaporation} — the humidity deficit, the wind, and the
+     * heat of the MATTER (its own temperature: by the fire it dries fast)
+     * — over still indoor air at the reference humidity, so ordinary
+     * indoor drying is the material rate itself. `0` in saturated air and
+     * shut away in something that is not air at all (a pack, a chest).
      */
-    private warmthMultiplier(): number {
+    private airDryingFactor(): number {
+      const around = this.airAround();
+      if (around === null) return 0;
+      const refRh = dial(AppSettingKeys.wetnessReferenceHumidityPct, 50);
+      const air = around === 'reference' ? new Evaporation(refRh, 0, 293) : around;
       const self = this as unknown as Stuff;
-      if (!MixinApi.isThermal(self)) return 1;
-      try {
-        const tempK = self.getTemperature().rawValue();
-        const refK = dial(AppSettingKeys.wetnessWarmthReferenceK, 295);
-        const factor = dial(AppSettingKeys.wetnessWarmthFactor, 0.03);
-        const excess = tempK - refK;
-        return excess > 0 ? 1 + excess * factor : 1;
-      } catch {
-        return 1;
+      let tempK = air.tempK;
+      if (MixinApi.isThermal(self)) {
+        try {
+          tempK = self.getTemperature().rawValue();
+        } catch {
+          // keep the air's
+        }
       }
+      const here = new Evaporation(air.humidityPct, air.windMs, tempK).evaporationFactor();
+      const ref = new Evaporation(refRh, 0, 293).evaporationFactor();
+      return ref > 0 ? here / ref : here;
+    }
+
+    /**
+     * The air that reaches it: worn or carried, the air its bearer stands
+     * in; otherwise its own container's, if that is air (a room, a
+     * vessel). `null` shut in something that is not (a chest, a pack);
+     * `'reference'` in nothing at all, or a bearer standing nowhere.
+     */
+    private airAround(): Evaporation | 'reference' | null {
+      const self = this as unknown as Stuff;
+      let at: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
+      // In nothing at all (being made, a test bench): the reference air.
+      if (at === null) return 'reference';
+      for (let hops = 0; at && hops < 16; hops++) {
+        if (MixinApi.isAtmospheric(at)) return at.getAir();
+        if (!at.isAgent()) return null;
+        at = MixinApi.isContainable(at) ? at.getContainer() : null;
+      }
+      return 'reference';
+    }
+
+    /**
+     * ⭐ How much of a thing the air reaches, against lying on the ground
+     * (cleanliness D11): hung on a rack or a line it dries by the support's
+     * own `airExposure` over the ground's share; worn, carried, or lying
+     * about it dries at the plain rate.
+     */
+    private airReach(held: boolean): number {
+      const self = this as unknown as Stuff;
+      if (held || !MixinApi.isContainable(self)) return 1;
+      const support = self.getPlacement()?.host ?? null;
+      if (support === null) return 1;
+      const ground = dial(AppSettingKeys.cureGroundExposure, 0.35);
+      const reach = ground > 0 ? support.getAirExposure() / ground : 1;
+      return Math.max(1, reach);
+    }
+
+    /**
+     * The person this thing is, or is held by — walked up the holder chain
+     * (a shirt on a body, a flask in a pack on a body). `null` when nobody
+     * holds it: on a line, on a floor, in a room.
+     */
+    private interactiveHolder(): (Stuff & { isLinkdead(): boolean }) | null {
+      let cur: Stuff | null = this as unknown as Stuff;
+      for (let hops = 0; cur && hops < 16; hops++) {
+        if (MixinApi.isHasInteractive(cur)) return cur;
+        cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+      }
+      return null;
     }
 
     /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */

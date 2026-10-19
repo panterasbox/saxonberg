@@ -262,6 +262,7 @@ data:
     - { itemTemplatePath: /trade/chandlery/thing/soap-frame, par: 1 }
     - { itemTemplatePath: /stuff/thing/gear/broom, par: 3 }
     - { itemTemplatePath: /stuff/thing/gear/clothes-brush, par: 2 }
+    - { itemTemplatePath: /stuff/thing/gear/towel, par: 3 }
     - { itemTemplatePath: /stuff/thing/gear/carpet-beater, par: 2 }
     - { itemTemplatePath: /stuff/thing/gear/flue-brush, par: 1 }
     - { itemTemplatePath: /stuff/thing/rushes, par: 6 }
@@ -378,6 +379,7 @@ data:
     /trade/chandlery/thing/soap-frame: 6
     /stuff/thing/gear/broom: 2
     /stuff/thing/gear/clothes-brush: 2
+    /stuff/thing/gear/towel: 3
     /stuff/thing/gear/carpet-beater: 2
     /stuff/thing/gear/flue-brush: 6
     /stuff/thing/rushes: 1

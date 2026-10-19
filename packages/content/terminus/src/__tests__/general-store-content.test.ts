@@ -353,6 +353,8 @@ describe("general-store content integrity", () => {
     // the act, not the room): the broom and flue brush sweep, rushes strew,
     // a heap is disposed of.
     "/platform/thing/SweepingTool",
+    // A towel (cleanliness B56) — a cloth you dry with.
+    "/platform/thing/Cloth",
     "/platform/thing/Litter",
     "/platform/thing/Heap",
     "/platform/thing/MendingTool",
