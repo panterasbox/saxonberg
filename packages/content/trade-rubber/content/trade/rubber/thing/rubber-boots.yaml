@@ -1,0 +1,23 @@
+# Rubber boots — ⭐ one piece, cast in a boot mould (rubber build): no
+# bill, no welt, no sole to replace. They do not soak through and they do
+# not conduct, so a body wading the Drowned Substation's live water in
+# them is unharmed where leather shocks it.
+#
+# ⭐ `constructionForm: hide` — the honest pick from the closed covering
+# set: a cast sheet is a continuous, unwoven, loft-less layer that resists
+# like a hide and not at all like a weave or a plate. Its mending is the
+# mould's discipline (chemistry), never a cobbler's.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: pair of rubber boots
+  keywords: [boots, "rubber boots", wellingtons, pair, rubber]
+  register: indefinite
+  longDescription: >
+    Black rubber boots to the knee, seamless, with a moulded tread. They
+    smell faintly of sulfur and squeak on a dry floor.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [feet]
+  _materialPath: /stuff/idea/material/organic/rubber
+  constructionForm: hide
+  gradeBand: fair
+  mass: 1.6

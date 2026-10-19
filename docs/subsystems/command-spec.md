@@ -713,10 +713,17 @@ fed `"dog loaf"` bound the quotes along with it. The rule now:
   value. That field holds a NAME to be matched, and a player who quotes it
   is using quoting for precisely what it is for: *treat this phrase as one
   argument.*
-- **a TRAILING greedy field** (rung 2 — the rest of the line: `say`,
-  `tell`, `press post`) → the source slice, **verbatim, quotes and all.**
-  That is free text and the quotes are content: if you say *she said
-  "no"* you want them in your speech.
+- ⭐ **an `object` / `objects` greedy field, bounded OR trailing** → the
+  unquoted value too. It is a name by its TYPE: its value goes to MQL,
+  which has no use for a quote mark and refused one (*"unexpected
+  character '\"' at position 0"*). Found by the rubber build's browser
+  drive (2026-10-18): `buy "rubber boots"` worked and the next
+  `get "latex cup"` / `look "rubber boots"` answered with a parser error,
+  because `get` and `look` are trailing greedy object fields.
+- **a TRAILING greedy STRING field** (rung 2 — the rest of the line:
+  `say`, `tell`, `press post`) → the source slice, **verbatim, quotes and
+  all.** That is free text and the quotes are content: if you say *she
+  said "no"* you want them in your speech.
 - **several tokens**, either way → the source slice. An interior quote in
   a phrase is part of what was written.
 

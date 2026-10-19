@@ -26,6 +26,6 @@ data:
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []
-  tags: ["wood", "organic", "granular", "flammable", "absorbent", "sawdust"]
+  tags: ["wood", "organic", "once-living", "granular", "flammable", "absorbent", "sawdust"]
   composition: []
   biologicalSource: null

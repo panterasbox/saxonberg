@@ -326,14 +326,30 @@ export default class Stock extends StockBase {
     return (this as unknown as Stuff & Container).getContents();
   }
 
-  /** Resolve a shelf good by keyword, or null. */
+  /**
+   * Resolve a shelf good by keyword, or null.
+   *
+   * ⭐ The word the shelf list PRINTS is a name too. `getLong()` lists a
+   * line by its template leaf ("rubber-boots (11)"), so a player who
+   * types exactly what the slate says must be served — before this, a
+   * good whose keywords were "rubber boots" was refused as *"the shelf
+   * is bare"* by `carriesLine` (which does match the leaf) while a pair
+   * sat on the counter. Keywords first; then the line {@link lineForWord}
+   * names — the same matcher the sold-out refusal asks, so the two can
+   * never disagree about a word.
+   */
   resolveBuy(keyword: string): (Stuff & Containable) | null {
     for (const item of this.offeredItems()) {
       if (MixinApi.isPerceptible(item) && item.hasKeyword(keyword)) {
         return item;
       }
     }
-    return null;
+    const line = this.lineForWord(keyword);
+    if (line === null) return null;
+    return (
+      this.offeredItems().find((item) => item.getTemplatePath() === line.itemTemplatePath) ??
+      null
+    );
   }
 
   /**

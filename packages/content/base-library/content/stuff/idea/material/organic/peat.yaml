@@ -76,7 +76,7 @@ data:
   # with no error anywhere. `wheat-grain` and `barley-grain` both carry
   # their own names for exactly this reason; this row did not, and the
   # omission is invisible until something asks.
-  tags: ["organic", "earth", "solid", "fibrous", "fuel", "peat"]
+  tags: ["organic", "earth", "solid", "fibrous", "fuel", "peat", "once-living"]
   composition: []
   chemistry: null
   biologicalSource: null

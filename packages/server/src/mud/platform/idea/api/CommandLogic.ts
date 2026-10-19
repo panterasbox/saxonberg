@@ -2631,10 +2631,19 @@ function bindPositionals(
        *
        * ⚠ And SEVERAL tokens is free text either way — an interior quote
        * in a phrase is part of what was written, so the slice stands.
+       *
+       * ⭐ **An `object` / `objects` field is a NAME by its type**, bounded
+       * or not: its value goes to MQL, which has no use for a quote mark
+       * and refused one as *"unexpected character '\"' at position 0"*.
+       * Found driving the rubber build in a browser: `buy "rubber boots"`
+       * worked and the very next `get "latex cup"` / `look "rubber
+       * boots"` answered with a parser error, because `get` and `look`
+       * are trailing greedy object fields.
        */
       const greedySpan = positionals.slice(pi, stopAt);
+      const namesAThing = def.type === 'object' || def.type === 'objects';
       const loneQuoted =
-        laterPreps.size > 0 &&
+        (laterPreps.size > 0 || namesAThing) &&
         greedySpan.length === 1 &&
         greedySpan[0]!.raw !== greedySpan[0]!.value
           ? greedySpan[0]!.value

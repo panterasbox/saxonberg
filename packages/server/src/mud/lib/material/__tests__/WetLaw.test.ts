@@ -92,8 +92,13 @@ describe('the one wet law', () => {
   });
 
   it('⚠ and no shipped fibre or leather sits at or under the cutoff', () => {
-    const cloth = materialRows().filter((r) =>
-      r.tags.some((t) => ['textile', 'fibre', 'leather', 'hide'].includes(t)),
+    // ⚠ An ELASTOMER-faced cloth (the rubber build's rubberized cloth) is
+    // impermeable on purpose — that is what the rubber skin is for, and it
+    // shipped after the migration, so it changed no garment's clo.
+    const cloth = materialRows().filter(
+      (r) =>
+        r.tags.some((t) => ['textile', 'fibre', 'leather', 'hide'].includes(t)) &&
+        !r.tags.includes('elastomer'),
     );
     expect(cloth.length).toBeGreaterThan(0);
     expect(cloth.filter((r) => r.wac <= 2).map((r) => r.file)).toEqual([]);

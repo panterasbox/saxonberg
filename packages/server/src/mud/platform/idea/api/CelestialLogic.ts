@@ -161,6 +161,16 @@ export class CelestialLogic extends ApiLogic {
     return skyIlluminanceFactor(profile, latitudeDegrees, t, opts);
   }
 
+  /** See {@link CelestialApi.skyFactorAt}. */
+  @CallSecurity(CelestialApiCallers)
+  public skyFactorAt(t: number, latitudeDeg: number = CAMPUS_LATITUDE): number {
+    return skyIlluminanceFactor(EARTH_LIKE, latitudeDeg, t, {
+      twilightDecadeDeg: dial(AppSettingKeys.lightSkyTwilightDecadeDeg, 3),
+      moonMax: dial(AppSettingKeys.lightSkyMoonMax, 0.03),
+      starlight: dial(AppSettingKeys.lightSkyStarlight, 0.002),
+    });
+  }
+
   /** See {@link CelestialApi.skyFactorNow}. */
   @CallSecurity(CelestialApiCallers)
   public skyFactorNow(latitudeDeg: number = CAMPUS_LATITUDE): number {

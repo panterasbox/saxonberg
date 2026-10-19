@@ -57,9 +57,9 @@ data:
       trigger: arrival
       config:
         lines:
-          - "Tootie looks up over her glasses. \"Lost your card, or just lost?\""
-          - "Tootie taps the LOST YOUR CARD? ASK HERE placard without looking up."
-          - "\"Window's open,\" Tootie says. \"Speak up, I don't bite before noon.\""
+          - "Lost your card, or just lost?"
+          - "Lost your card? Ask here. It says so on the placard."
+          - "Window's open. Speak up, I don't bite before noon."
     # Small-business idle: the texture of a working ticket window.
     - brain: /lib/behavior/idles
       trigger: candidate

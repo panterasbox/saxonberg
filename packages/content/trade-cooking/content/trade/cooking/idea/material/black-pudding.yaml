@@ -20,4 +20,4 @@ data:
   nutrientAmounts:
     protein: 14000
     fat: 20000
-  tags: [food, meat, pudding, organic, edible, cooked]
+  tags: [food, meat, pudding, organic, edible, cooked, once-living]

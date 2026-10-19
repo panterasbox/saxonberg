@@ -287,7 +287,7 @@ And [drilling-slate](../tails/drilling-slate.md) names the first real consumer
 in its own Left block — *"the lift (a pump, and ⭐ **a pump needs a rubber
 gasket**)"* — and is deliberately scheduled last. So the honest sequencing is:
 **pressure containment is drilling's prerequisite, not rubber's**, and
-[rubber-slate](../builds/rubber-slate.md) is instead blocked on inquiry's epoch
+[rubber-slate](./rubber-slate.md) is instead blocked on inquiry's epoch
 on-ramp, because it lands *"the first knowledge-gated recipe and the first
 synthetic material"* via a crosslinking **`Law`** rather than via a new property
 field.

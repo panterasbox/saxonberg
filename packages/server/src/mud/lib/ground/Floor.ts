@@ -423,6 +423,15 @@ export function FloorMixin<
       if (this.onGrade !== null) return this.onGrade;
       const host = this.hostOf();
       if (!host) return false;
+      // ⭐ A storey standing on another (a roof terrace) has the roof of
+      // the place below for a floor: nothing continues beneath it. The
+      // ONLY change the construction makes here — every other floor keeps
+      // the derivation below byte-for-byte.
+      try {
+        if (BiomeApi.exposureOf(host as unknown as Stuff)?.floorIsRoofOf) return false;
+      } catch {
+        // no exposure — fall through to the shipped derivation
+      }
       try {
         if (BiomeApi.isSkyExposed(host as unknown as Stuff & Container)) {
           return true;
@@ -760,7 +769,7 @@ export function FloorMixin<
       const place = host as unknown as Stuff & Container;
       let sky = false;
       try {
-        sky = host !== null && BiomeApi.isSkyExposed(place);
+        sky = host !== null && (BiomeApi.exposureOf(place)?.rainReaches() ?? false);
       } catch {
         sky = false;
       }

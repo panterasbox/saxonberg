@@ -19,6 +19,9 @@ data:
   enclosure:
     material: /stuff/idea/material/wood/pine
     thicknessM: 0.03
+  # The shingle roof the prose names — riven oak, a couple of centimetres
+  # (rubber split the top out of `enclosure:`; `lint:biome-sky`).
+  roof: { material: /stuff/idea/material/wood/oak, thicknessM: 0.02 }
   longDescription: |
     A long, low loft under a shingle roof, shuttered against the sun, with racks of shallow trays down both sides and the smell of cut leaf over everything. In the warm part of the year you can stand still in here and hear the worms eat — a soft, continuous sound like rain on leaves.
 

@@ -148,6 +148,15 @@ type RawToken =
 — used by greedy positionals to recover the "everything from here
 on" slice without losing whitespace runs.
 
+⚠ So a quoted token's quote marks ARE part of that slice. The binder
+(`CommandLogic`, the *"BOUNDED greedy span of exactly one quoted token"*
+comment) binds the token's unquoted `value` instead when the greedy field
+is bounded by a later preposition **or** its type is `object`/`objects`
+(a name, bound for MQL — the rubber build's browser drive, 2026-10-18,
+found `get "latex cup"` refused as a parse error). A trailing greedy
+`string` (`say`) keeps its quotes. Rule + rungs:
+[command-spec.md § The phrase ladder](./command-spec.md).
+
 Classification rules:
 
 - `--name=value` always splits on the first `=` → `long-with-value`.

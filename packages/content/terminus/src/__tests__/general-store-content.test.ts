@@ -119,6 +119,9 @@ const TANNING_DIR = fileURLToPath(
 const TAILORING_DIR = fileURLToPath(
   new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url),
 );
+const RUBBER_DIR = fileURLToPath(
+  new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url),
+);
 
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
@@ -147,6 +150,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
+  // ⭐ The rubber works' boots, gloves and coat (rubber build).
+  { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -185,6 +190,11 @@ function classOf(seed: Seed, file: string): string {
   const candidates = [
     `${STORE_DIR}${parent.replace("/world/terminus/general-store/", "")}.yaml`,
     `${OBJ_DIR}${parent.replace("/stuff/", "")}.yaml`,
+    // ⭐ A trade good may extend another trade's (the rubberized coat is
+    // the tailor's coat in other cloth): resolve through the good homes.
+    ...GOOD_HOMES.filter((h) => parent.startsWith(h.prefix)).map(
+      (h) => `${h.dir()}${parent.slice(h.prefix.length)}.yaml`,
+    ),
   ];
   for (const candidate of candidates) {
     let raw: string;

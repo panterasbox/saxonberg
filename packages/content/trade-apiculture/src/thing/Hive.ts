@@ -51,7 +51,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { EnclosureDefaults } from '@saxonberg/server/mud/lib/spatial/Enclosed';
+import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type {
   Splittable,
@@ -208,11 +208,21 @@ export default class Hive extends HiveBase implements Splittable {
    * this is the honest fallback so a hive with no enclosure authored
    * still computes a real winter rather than granite's.
    */
-  public override enclosureDefaults(): EnclosureDefaults {
+  public override enclosureDefaults(): EnclosureDefaults | 'none' {
     const material = this.getMaterial();
     const path = material?.getTemplatePath() ?? null;
     if (path === null) return super.enclosureDefaults();
     return { materialPath: path, thicknessM: HIVE_WALL_M };
+  }
+
+  /**
+   * ⭐ A hive has a lid: it is roofed by its own material, like its walls,
+   * and never asks the apiary's sky.
+   */
+  public override roofDefaults(): RoofSpec | null {
+    const path = this.getMaterial()?.getTemplatePath() ?? null;
+    if (path === null) return {};
+    return { material: path, thicknessM: HIVE_WALL_M };
   }
 
   // ---------- the stores the colony lives on ----------

@@ -97,6 +97,11 @@ aluminium can.
 
 ## Kernel seams (shipped in this build's Stage A)
 
+> (rubber build, 2026-10) The glass ROW now carries a grey
+> `lightAbsorption` (α 8/m: 4 mm passes 0.97) — what a construction face
+> of glass reads, by Beer–Lambert. `Tinted`'s per-channel colour term is
+> unchanged and multiplies where both exist (a glazed `Window`).
+
 - **Colour on `Light`** (light.md) — `Light.colour`, a boundary's
   `transmittanceColour`, the vision walk's chroma; a stained `Window`
   colours the room through it, and two windows' colours add.

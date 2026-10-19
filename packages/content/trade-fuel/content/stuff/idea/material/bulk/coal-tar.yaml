@@ -37,6 +37,6 @@ data:
   # honest record: the hazard is real, the mechanism for it is not built,
   # and inventing a fake acute dose would be worse than saying so.
   toxicity: []
-  tags: [bulk, organic, flammable, tar, sulfurous]
+  tags: [bulk, organic, flammable, tar, sulfurous, once-living]
   composition: []
   biologicalSource: null

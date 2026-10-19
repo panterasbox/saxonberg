@@ -14,6 +14,9 @@ data:
   coords: { x: 1, y: 1, z: 0 }
   extent: 3.634
   enclosure: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  # The roof is the same layer as the walls: what the envelope assumed for
+  # all five faces before rubber split the top out (rubber's `roof:`).
+  roof: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
   adornments:
     - { template: /world/terminus/hollow-mere/thing/lantern, slot: lamp:beam }
   exits:

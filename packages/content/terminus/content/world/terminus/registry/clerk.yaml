@@ -64,9 +64,9 @@ data:
       trigger: arrival
       config:
         lines:
-          - "Odile looks up from her ledger. \"Registry. If it's a record, I keep it; if it's a dispute, I judge it. State which.\""
-          - "\"Mind the wet ink,\" Odile says, not looking up."
-          - "Odile marks her place with one finger. \"The city's listening. Briefly.\""
+          - "Registry. If it's a record, I keep it; if it's a dispute, I judge it. State which."
+          - "Mind the wet ink."
+          - "The city's listening. Briefly."
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

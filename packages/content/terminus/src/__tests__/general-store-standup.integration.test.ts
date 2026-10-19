@@ -69,6 +69,7 @@ const GLASS_SRC = fileURLToPath(new URL("../../../trade-glass/src", import.meta.
 const SMITHING_DIR = fileURLToPath(new URL("../../../trade-smithing/content/trade/smithing/", import.meta.url));
 const TANNING_DIR = fileURLToPath(new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url));
 const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url));
+const RUBBER_DIR = fileURLToPath(new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const SERICULTURE_DIR = fileURLToPath(new URL("../../../trade-sericulture/content/trade/sericulture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
@@ -280,6 +281,8 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
+  // ⭐ The rubber works' boots, gloves and coat (rubber build).
+  { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 

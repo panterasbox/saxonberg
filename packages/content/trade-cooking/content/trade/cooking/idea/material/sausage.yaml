@@ -19,4 +19,4 @@ data:
   nutrientAmounts:
     protein: 22000
     fat: 25000
-  tags: [food, meat, sausage, organic, edible, raw]
+  tags: [food, meat, sausage, organic, edible, raw, once-living]

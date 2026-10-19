@@ -192,7 +192,8 @@ export default class SurveyController extends CommandController {
     // Cheap pre-filter: a corridor is outdoor ground. An interior room
     // never asks corridor questions, which is what keeps four lines off
     // every bedroom in the game.
-    if (!BiomeApi.isSkyExposed(room)) return null;
+    // (rubber build) outdoor ground = open above and nothing around it.
+    if (!(BiomeApi.exposureOf(room)?.isOutside() ?? false)) return null;
     const here = room.getTemplatePath() ?? '';
     if (here === '') return null;
 

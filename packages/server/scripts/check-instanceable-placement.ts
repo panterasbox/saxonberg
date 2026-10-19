@@ -298,12 +298,16 @@ export function packBrainShapeOk(source: string): boolean {
 // rooms authored `address:`, which no composed field declares — so the
 // moor's storm pin never reached its own heath. They author `_address:`
 // (Addressable's field) now.
+// 387 → 386 (the rubber build, 2026-10-17): `chemistry: null` came off
+// the rubber row, which burnt rubber `extends:` — so it would have been
+// inherited as a second orphan.
 // 387 → 362 (the silk build, 2026-10-18): `declaredFields` now follows a
 // cross-pack base imported by package specifier
 // (`@saxonberg/content-<pack>/src/…`). Unfollowed, every key a row
 // inherited from another pack's class read as an orphan — 25 findings the
 // reader invented.
-const ORPHAN_DATA_KEY_CEILING = 362;
+// Both landed (silk merged rubber, 2026-10-19): 362 − 1.
+const ORPHAN_DATA_KEY_CEILING = 361;
 
 
 function main(): void {

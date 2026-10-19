@@ -27,4 +27,4 @@ data:
   # ⭐ `cooking-fat` and NOT `tallow`: the chandler's dip asks for tallow,
   # so a pig's fat is refused there by tag arithmetic and nothing has to
   # check for a pig.
-  tags: [food, fat, cooking-fat, animal, organic, edible, raw]
+  tags: [food, fat, cooking-fat, animal, organic, edible, raw, once-living]

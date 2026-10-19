@@ -18,10 +18,18 @@ data:
   electricalConductivity: 1.0e-13
   # Water absorption capacity (% of dry mass, ASTM D570): rubber is essentially non-absorbent.
   waterAbsorptionCapacity: 0.5
+  # ⭐ Elasticity (% strain it springs back from, rubber build): the most
+  # elastic thing in the realm. A stretch read on a garment, and the
+  # packing's long life on a pump, both come from this number.
+  elasticity: 500
+  # The lump a pour or a cure with no mould comes out as.
+  castTemplate: /trade/rubber/thing/rubber-lump
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["organic", "elastomer", "insulating", "synthetic"]
+  # ⚠ `organic` is kept — rubber IS organic. The corrosives that spare it
+  # (vitriol, quicklime) name what they really attack instead (rubber
+  # build, D12.4). `polymer` is the honest family tag.
+  tags: ["organic", "elastomer", "insulating", "polymer", "synthetic"]
   composition: []
-  chemistry: null
   biologicalSource: null

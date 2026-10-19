@@ -853,8 +853,10 @@ export const ARTICLE_SHAPE_CEILING = 121;
  * 72 → 70 in the scan sweep's review (2026-10-15): the goods yards' stocks
  * began naming their lines, which brought 44 goods into this arm's scope;
  * every one was given the name it prints, and two older misses with them.
+ * The rubber drive bought a leather WATERSKIN asking for the boots: they
+ * answer to "leather boots" now (70 → 69).
  */
-export const UNNAMEABLE_GOOD_CEILING = 70;
+export const UNNAMEABLE_GOOD_CEILING = 69;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command

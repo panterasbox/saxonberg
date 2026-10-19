@@ -1,5 +1,32 @@
 # Structures slate — the thing that says "these rooms are one building", and whether it is needed at all
 
+> ⭐⭐⭐ **LOAD-BEARING FOR INTERIORS (2026-10-16)** →
+> [construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379). The
+> 10-15 ruling that a Structure is only for what is seen over the horizon
+> is **reversed** — but narrower than first written (corrected the same
+> day): **places own their materials** (walls and roof, layered, on the
+> room), and a Structure owns only **membership and storeys as a tree**
+> (each names the storey it stands `on:`; a roof terrace is a member with
+> no walls and no roof, and its floor is the roof below). A place in no
+> structure is complete on its own; a structure with no places stays
+> valid. The census counts interiors whose construction still comes from
+> the biome, not unhoused rooms. This takes the Left list's roof, storeys
+> and envelope between rooms (heat moves between rooms of one building;
+> the threshold is `structureOf(this) !== structureOf(far)`). Air mixing
+> between rooms and fire spread stay here. ⚠ Zone was tried as the owner
+> in conversation and rejected: a zone is any space, composed however the
+> author likes and tied to parcels, so no zone is the authority for a
+> building.
+
+> ⭐ **Layers and the bill of goods (2026-10-16).** Read side by side with
+> build-4's storage-and-ice requirements: a wall or roof is a LIST of
+> layers (the icehouse's timber · sawdust · timber; a double-glazed
+> hothouse), and that list is the seam a building's **bill of goods**
+> reads — each layer's material × face area × thickness is a line, its
+> settling and rot the upkeep. ⚠ **Building upkeep is repair W7's**
+> (layer by layer, on the holding programme); **erection** — who builds,
+> paid in RGO outputs — stays here.
+
 > **Status: BUILT** in the maritime build (MR !358, 2026-10). A `Structure`
 > (`platform/idea/Structure`) is membership by extent prefix, the
 > entrance, the outside look, `landmark` and `heightM`;

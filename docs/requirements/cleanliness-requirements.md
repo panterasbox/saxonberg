@@ -685,7 +685,7 @@ A funded player, a fresh world after dairy, the real socket.
   [watershed.md](../subsystems/watershed.md) ·
   [mortality.md](../subsystems/mortality.md).
 - In flight: repair (`order`, `survey`) · **rubber**
-  (`docs/requirements/rubber-requirements.md` on `reqs/rubber`) ·
+  (shipped, MR !379: `docs/subsystems/construction.md`, `rubber.md`) ·
   **storage-and-ice**
   (`docs/requirements/storage-and-ice-requirements.md` on
   `reqs/storage-and-ice`) — § Collisions · dairy (merged — milking, the

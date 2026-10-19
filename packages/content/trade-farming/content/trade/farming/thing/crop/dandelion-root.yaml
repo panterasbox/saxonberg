@@ -1,0 +1,12 @@
+# Russian dandelion root — the rubber crop. Snapped, it shows white milky
+# threads: that is the rubber, and milling the roots and washing the pulp
+# floats it off as a lump of raw rubber (`trade-rubber`).
+class: /platform/thing/Crop
+data:
+  shortDescription: bundle of dandelion root
+  keywords: [dandelion, root, roots, "dandelion root", bundle]
+  register: indefinite
+  longDescription: |
+    A bundle of pale, fleshy taproots, snapped short. Where they break, fine white threads stretch between the halves.
+  _materialPath: /trade/farming/idea/material/kok-saghyz-root
+  mass: 1

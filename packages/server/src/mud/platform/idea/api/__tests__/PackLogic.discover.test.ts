@@ -114,11 +114,11 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `trade-coopering`; 60 → 61: the dairy build adds `trade-dairying`
     // (⚠ the hazard above: a sibling branch adding a pack merges clean and
     // lands red — this one merged with a conflict instead).
-    // ⭐ 61 → 63: the storage-and-ice build adds `trade-ice` and its venue
-    // `hollow-mere`; 63 → 64: the silk build adds `trade-sericulture` (the
-    // hazard above again: rubber, repair and cleanliness build in parallel
-    // — whoever lands second recounts).
-    expect(ids).toHaveLength(64);
+    // ⭐ 61 → 65: the storage-and-ice build adds `trade-ice` and its venue
+    // `hollow-mere`, the rubber build `trade-rubber`, and the silk build
+    // `trade-sericulture` (built in parallel; whoever lands second
+    // recounts — the sum, whatever git says).
+    expect(ids).toHaveLength(65);
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

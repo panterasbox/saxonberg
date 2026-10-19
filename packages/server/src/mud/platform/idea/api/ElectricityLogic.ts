@@ -152,6 +152,11 @@ interface ConductiveGraph {
   poolConducts: boolean;
   /** The floor's own material grounds a body standing on it. */
   floorConducts: boolean;
+  /**
+   * ⭐ What a layer standing in the floor medium is wet WITH, S/m: the
+   * pool's own conductivity (brine ≈ 5), else fresh water's (rubber build).
+   */
+  fluidSigma: number;
   sources: Array<Stuff & Energized>;
 }
 
@@ -171,11 +176,31 @@ function buildConductiveGraph(room: Stuff): ConductiveGraph {
     room,
     floor,
     poolConducts: poolMat !== null,
+    fluidSigma: poolMat
+      ? poolMat.getElectricalConductivity().rawValue()
+      : FRESH_WATER_SIGMA,
     floorConducts:
       floorMat !== null &&
       floorMat.getElectricalConductivity().rawValue() >= poolMin,
     sources,
   };
+}
+
+/** Fresh water's conductivity, S/m — what rain or a puddle wets a layer with. */
+const FRESH_WATER_SIGMA = 0.01;
+
+/**
+ * ⭐ A worn layer's conductivity AS IT IS — dry, or soaked by the wet law
+ * (rubber build): water in a porous layer's pores replaces the air, so a
+ * soaked leather boot carries the brine's conductivity in proportion to
+ * its permeability, and a rubber one (impermeable) does not move.
+ */
+function effectiveSigma(layer: Stuff, fluidSigma: number): number {
+  const mat = MixinApi.isTangible(layer) ? layer.getMaterial() : null;
+  if (!mat) return 0;
+  const dry = mat.getElectricalConductivity().rawValue();
+  const saturation = MixinApi.isWet(layer) ? layer.getWetness() : 0;
+  return saturation > 0 ? mat.wetProperty(dry, fluidSigma, saturation) : dry;
 }
 
 function contentsOf(room: Stuff): Stuff[] {
@@ -239,7 +264,7 @@ function footPartsOf(body: Stuff): string[] {
  * (rubber boots, a leather sole)? The counterplay. Reads the covering of the
  * foot parts specifically — a plate breastplate does NOT insulate the feet.
  */
-function groundContactInsulated(body: Stuff): boolean {
+function groundContactInsulated(body: Stuff, fluidSigma = FRESH_WATER_SIGMA): boolean {
   if (!MixinApi.isOrganism(body) || !MixinApi.isAttired(body)) return false;
   const insulatorMax = dial(
     AppSettingKeys.electricityInsulatorMaxConductivity,
@@ -255,7 +280,8 @@ function groundContactInsulated(body: Stuff): boolean {
     for (const occ of body.coveringAt(part)) {
       const asStuff = occ as unknown as Stuff;
       const mat = MixinApi.isTangible(asStuff) ? asStuff.getMaterial() : null;
-      if (mat && mat.getElectricalConductivity().rawValue() <= insulatorMax) {
+      // ⭐ Wet matter conducts: the layer's conductivity as soaked.
+      if (mat && effectiveSigma(asStuff, fluidSigma) <= insulatorMax) {
         return true;
       }
     }
@@ -282,7 +308,7 @@ function immersedInFloorMedium(body: Stuff, graph: ConductiveGraph): boolean {
     return false;
   }
   if (restsOnRaised(body, graph)) return false;
-  if (groundContactInsulated(body)) return false;
+  if (groundContactInsulated(body, graph.fluidSigma)) return false;
   return true;
 }
 
@@ -334,7 +360,7 @@ function touchesDirectly(body: Stuff, source: Stuff): boolean {
  * insulated step, in insulating footwear, or with no conductive floor/pool. */
 function groundPath(body: Stuff, graph: ConductiveGraph): boolean {
   if (!MixinApi.isContainable(body)) return false;
-  if (groundContactInsulated(body)) return false;
+  if (groundContactInsulated(body, graph.fluidSigma)) return false;
   if (restsOnRaised(body, graph)) return false;
   if ((body.getContainer() as Stuff | null) !== graph.room) {
     return false;
@@ -379,7 +405,12 @@ function isWet(body: Stuff, graph: ConductiveGraph): boolean {
  * observable acceptance criterion), the deferred multi-site entry/exit
  * distribution left as a seam.
  */
-function pathResistance(bodyResistanceOhms: number, victim: Stuff): number {
+function pathResistance(
+  bodyResistanceOhms: number,
+  victim: Stuff,
+  fluidSigma = FRESH_WATER_SIGMA,
+  throughParts?: readonly string[],
+): number {
   const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
   const insulatorMax = dial(
     AppSettingKeys.electricityInsulatorMaxConductivity,
@@ -390,33 +421,62 @@ function pathResistance(bodyResistanceOhms: number, victim: Stuff): number {
     0.15,
   );
   let r = bodyResistanceOhms;
-  for (const mat of wornConstructedMaterials(victim)) {
-    const sigma = mat ? mat.getElectricalConductivity().rawValue() : 0;
+  // ⭐ (rubber build) Only what the current passes THROUGH is in series: a
+  // body bridged through a pool is bridged at its FEET, so its dry shirt is
+  // not between it and the water (found by the drive — intake's student
+  // shirt and trousers insulated a wader in soaked leather boots down to
+  // 0.4 µA). A contact device passes no `throughParts` and keeps the stack.
+  const layers = throughParts
+    ? layersCovering(victim, throughParts)
+    : wornConstructedLayers(victim);
+  for (const layer of layers) {
+    const mat = MixinApi.isTangible(layer) ? layer.getMaterial() : null;
+    // ⭐ (rubber build) the layer as it is — a soaked one by the wet law.
+    const sigma = effectiveSigma(layer, fluidSigma);
     if (sigma >= poolMin) {
       // Conductive covering — spreads the current, lowers the skin path.
       r *= skinFactor;
     } else if (sigma <= insulatorMax) {
       // Insulating covering — adds series resistance (a rubber suit).
-      r += MaterialApi.contactResistance(mat).rawValue();
+      const saturation = MixinApi.isWet(layer) ? layer.getWetness() : 0;
+      r += MaterialApi.contactResistance(
+        mat,
+        saturation > 0 ? { saturation, fluidSigma } : undefined,
+      ).rawValue();
     }
   }
   return r;
 }
 
-/** The worn `Constructed` armor-layer materials — the series-resistance path
- * (the armor inversion: metal spreads/lowers, rubber/leather adds). */
-function wornConstructedMaterials(body: Stuff): Array<Material | null> {
+/** The worn `Constructed` layers covering any of `parts`, each once. */
+function layersCovering(body: Stuff, parts: readonly string[]): Stuff[] {
+  if (!MixinApi.isAttired(body)) return [];
+  const seen = new Set<Stuff>();
+  for (const part of parts) {
+    for (const occ of body.coveringAt(part)) {
+      const asStuff = occ as unknown as Stuff;
+      if (!MixinApi.isConstructed(asStuff) || !MixinApi.isWearable(asStuff)) continue;
+      seen.add(asStuff);
+    }
+  }
+  return [...seen];
+}
+
+/** The worn `Constructed` armor layers — the series-resistance path
+ * (the armor inversion: metal spreads/lowers, rubber/leather adds). Each
+ * layer, not just its material: a layer's own wetness is part of it. */
+function wornConstructedLayers(body: Stuff): Stuff[] {
   if (!MixinApi.isOrganism(body) || !MixinApi.isAttired(body)) return [];
   const plan = body.getSpecies()?.getBodyPlan();
   if (!plan) return [];
-  const mats: Array<Material | null> = [];
+  const layers: Stuff[] = [];
   for (const slot of plan.getSlots()) {
     for (const occ of body.getOccupants(slot.name)) {
       if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
-      mats.push(MixinApi.isTangible(occ) ? occ.getMaterial() : null);
+      layers.push(occ as unknown as Stuff);
     }
   }
-  return mats;
+  return layers;
 }
 
 /**
@@ -443,7 +503,10 @@ function divideCurrent(
     MixinApi.isTangible(victim) ? victim.getMaterial() : null,
     wet,
   ).rawValue();
-  const rPath = Quantity.of(pathResistance(bodyR, victim), 'Ω');
+  const rPath = Quantity.of(
+    pathResistance(bodyR, victim, graph.fluidSigma, footPartsOf(victim)),
+    'Ω',
+  );
   return MaterialApi.ohmsCurrent(v, rPath);
 }
 

@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { MixinApi } from "../../../api/mixin";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FloodedCell from '../FloodedCell';
 import LiveWire from '../../../platform/thing/LiveWire';
@@ -43,6 +44,14 @@ function installSaltWater(): void {
   m.setName('salt water');
   m.setElectricalConductivity(Quantity.of(5, 'S/m'));
   stampTemplatePathForTest(m, '/stuff/idea/material/bulk/salt-water');
+}
+function leather(): Material {
+  const m = makeStuff(() => new Material());
+  m.setName('leather');
+  m.setElectricalConductivity(Quantity.of(1.0e-9, 'S/m'));
+  m.setWaterAbsorptionCapacity(Quantity.of(15, '%'));
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/leather-${seq++}`);
+  return m;
 }
 function rubber(): Material {
   const m = makeStuff(() => new Material());
@@ -148,6 +157,36 @@ describe('FloodedCell — the electricity demonstrator', () => {
     const body = makeBody(cell);
     bootUp(body, rubber());
     cell.onEntered(body as unknown as Stuff, null);
+    expect(shocked(body)).toBe(false);
+  });
+
+  it('⭐ (rubber build) dry leather boots insulate — until you wade in them', async () => {
+    const cell = await makeCell();
+    const body = makeBody(cell);
+    bootUp(body, leather());
+    // The wire conducts with the body standing in the cell, boots DRY:
+    // leather at 1e-9 S/m is an insulator.
+    for (const c of (cell as unknown as { getContents(): Stuff[] }).getContents()) {
+      if (MixinApi.isEnergized(c)) c.conduct();
+    }
+    expect(shocked(body)).toBe(false);
+  });
+
+  it('⭐⭐ (rubber build) wade in leather boots: they soak through, and you are shocked', async () => {
+    const cell = await makeCell();
+    const body = makeBody(cell);
+    bootUp(body, leather());
+    cell.onEntered(body as unknown as Stuff, null);
+    expect(shocked(body)).toBe(true);
+  });
+
+  it('⭐⭐ (rubber build) wade in rubber boots: they take in nothing, and you are not', async () => {
+    const cell = await makeCell();
+    const body = makeBody(cell);
+    bootUp(body, rubber());
+    cell.onEntered(body as unknown as Stuff, null);
+    const boots = (body as unknown as { coveringAt(p: string): Stuff[] }).coveringAt('body.leg.left.foot')[0]!;
+    expect((boots as unknown as { getWetness(): number }).getWetness()).toBeGreaterThan(0.9);
     expect(shocked(body)).toBe(false);
   });
 
