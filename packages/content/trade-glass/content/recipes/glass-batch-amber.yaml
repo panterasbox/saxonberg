@@ -9,8 +9,10 @@ name: Amber glass batch
 keywords: [amber, "amber glass", "brown glass", "amber batch"]
 inputSlots:
   - { slot: sand, category: silica, minGrade: poor, kind: item, count: 2 }
-  - { slot: flux, category: potash, minGrade: poor, kind: item, count: 1 }
-  - { slot: lime, category: alkali, minGrade: poor, kind: item, count: 1 }
+  # ⭐ (potash D13) the FLUX is the potash family — wood ash, potash, pearl
+  # ash; the LIME is a stabilizer, which lye is not (it fills no slot here).
+  - { slot: flux, category: flux, minGrade: poor, kind: item, count: 1 }
+  - { slot: lime, category: stabilizer, minGrade: poor, kind: item, count: 1 }
   - { slot: colourant, category: charcoal, minGrade: poor, kind: item, count: 1 }
 toolCapabilities: []
 outputTemplate: /trade/glass/thing/amber-melt

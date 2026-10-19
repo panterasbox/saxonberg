@@ -23,6 +23,9 @@ data:
   edibility: false
   nutrients: ["potassium"]
   toxicity: []
-  tags: [solid, mineral, alkali, potash]
+  # ⭐ `flux`: the glassmaker's (potash D13). `alkali`: the cleansing family.
+  tags: [solid, mineral, alkali, potash, flux]
+  # What it washes as — softens hard water and cuts grease (potash D15).
+  cleanser: /trade/potash/idea/Cleanser/potash
   composition: []
   biologicalSource: null

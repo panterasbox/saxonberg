@@ -70,6 +70,7 @@ import type { CompositionEntry } from '../../../../lib/material/Material';
 import type Material from '../../../../lib/material/Material';
 import type { Mould } from '../../../../lib/mould/Mould';
 import type { CrosslinkOutcome } from '../../../../lib/material/Crosslinking';
+import type { Grade } from '../../../../lib/craft/Grade';
 
 const TOPIC = 'act.deed';
 
@@ -491,10 +492,24 @@ async function runFiring(
         acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
       }
     }
+    // ⭐ (potash D12a) What STAYS in a lighter output concentrates: a
+    // constituent that all comes through a firing that keeps `massYield`
+    // of the charge is `1 / massYield` as strong in what is left — black
+    // salts calcined to pearl ash lose their water and char, not their
+    // potash. Capped at the whole.
+    const concentrate = massYield > 0 ? 1 / massYield : 1;
     for (const [materialPath, fraction] of acc) {
-      mergedCharge.push({ materialPath, fraction });
+      mergedCharge.push({ materialPath, fraction: Math.min(1, fraction * concentrate) });
     }
   }
+  // ⭐ (potash D12b) A firing grades its output by its WORST graded input —
+  // the weakest-link rule a craft and a batch already follow. `null` when
+  // nothing in the charge was graded (a lime-burn of plain stone).
+  const weakestInput = consumed.reduce<Grade | null>((worst, c) => {
+    if (!MixinApi.isGraded(c)) return worst;
+    const g = c.getGrade();
+    return worst === null ? g : worst.min(g);
+  }, null);
 
   const outputs: Stuff[] = [];
   const cureMaterial =
@@ -577,6 +592,7 @@ async function runFiring(
       if (MixinApi.isComposition(made) && mergedCharge.length > 0) {
         made.setAlloying([...made.getAlloying(), ...mergedCharge]);
       }
+      if (weakestInput !== null && MixinApi.isGraded(made)) made.setGrade(weakestInput);
       if (MixinApi.isContainable(made)) {
         // Landed, not moved: a fired good is somebody's, and a good moved
         // into a kiln by nobody has no recorded place to come back to.

@@ -35,7 +35,8 @@ describe("glass recipes", () => {
     expect(r.getRequiresHeatK()).toBe(1400); // above the liquidus — the bellows
     expect(r.getDiscipline()).toBe("glasswork");
     const cats = r.getInputSlots().map((s) => s.category).sort();
-    expect(cats).toEqual(["alkali", "potash", "silica"]);
+    // ⭐ `flux` the potash family, `stabilizer` the lime (potash D13).
+    expect(cats).toEqual(["flux", "silica", "stabilizer"]);
     expect(r.getInputSlots().every((s) => Recipe.isItemSlot(s))).toBe(true);
     const sand = r.getInputSlots().find((s) => s.category === "silica");
     expect(sand?.count).toBe(2); // two of sand, one each of ash and lime
@@ -46,7 +47,7 @@ describe("glass recipes", () => {
     expect(r.getOutputTemplate()).toBe("/trade/glass/thing/amber-melt");
     expect(r.getMassYield()).toBeCloseTo(0.72, 6);
     const cats = r.getInputSlots().map((s) => s.category).sort();
-    expect(cats).toEqual(["alkali", "charcoal", "potash", "silica"]);
+    expect(cats).toEqual(["charcoal", "flux", "silica", "stabilizer"]);
   });
 
   it("remelt-cullet: one glass item, full mass back, cheaper heat", () => {

@@ -72,7 +72,7 @@ function seedMaterials(): void {
   mat(DRIFT, 'drift', ['earth', 'mixture'], 2);
   mat(CLAY, 'clay', ['earth', 'solid'], 3);
   mat(GRANITE, 'granite', ['rock', 'igneous'], 200);
-  mat(LIMESTONE, 'limestone', ['rock', 'carbonate', 'flux'], 120);
+  mat(LIMESTONE, 'limestone', ['rock', 'carbonate', 'smelting-flux'], 120);
 }
 
 /**

@@ -40,3 +40,29 @@ describe('the ashery rows', () => {
     expect(v('potash.lye.soapFromKgPerL')).toBeLessThan(v('potash.lye.strongFromKgPerL'));
   });
 });
+
+describe('the calcining (potash D12)', () => {
+  const recipe = YAML.parse(readFileSync(join(ROOT, 'recipes', 'calcine.yaml'), 'utf8')) as {
+    inputSlots: { category: string }[];
+    outputTemplate: string;
+    massYield: number;
+    discipline: string;
+  };
+
+  it('⭐ black salts in, pearl ash out, at a red heat, credited to the ashery', () => {
+    expect(recipe.inputSlots.map((s) => s.category)).toEqual(['black-salts']);
+    expect(recipe.outputTemplate).toBe('/trade/potash/thing/pearl-ash');
+    expect(recipe.discipline).toBe('ashery');
+  });
+
+  it('⭐ pearl ash authors no purity of its own — the firing writes it', () => {
+    expect(row('trade/potash/thing/pearl-ash.yaml').data.alloying).toBeUndefined();
+    expect(recipe.massYield).toBeCloseTo(0.8, 6);
+  });
+
+  it('⭐ the potash family carries the glassmaker’s `flux`', () => {
+    const salts = row('trade/potash/idea/material/black-salts.yaml');
+    expect(salts.data.tags).toContain('flux');
+    expect(salts.data.tags).not.toContain('stabilizer');
+  });
+});
