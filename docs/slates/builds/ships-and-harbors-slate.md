@@ -1,9 +1,9 @@
-# Ships and harbours slate — craft, berths, and life aboard
+# Ships and harbors slate — craft, berths, and life aboard
 
 > **Status: UNBUILT** — designed 2026-10-19 with the owner, high level; the
 > drill-downs follow. The maritime build shipped `Ship` (a Structure with a
 > position — the *Hesper*), a singleton `Boat` (the dinghy), `launch` /
-> `recover`, `AboardExit` / `AshoreExit`, and the barge; no harbour exists →
+> `recover`, `AboardExit` / `AshoreExit`, and the barge; no harbor exists →
 > [expanse.md](../../subsystems/expanse.md). Supersedes
 > [navigable-water-slate](./navigable-water-slate.md) § 7a where they differ.
 > **Left:** boats in water rooms only, ships alone in the field · boats as
@@ -14,8 +14,8 @@
 > `Ship extends Structure` + `Named`, owning her floorplan, keyed rooms,
 > whole-ship dormancy and condition · a Structure row naming its warren ·
 > ship registers per government, flags, the flag state's law · craft
-> ARCHETYPES (the shipped venue archetype) and media by parts · harbours —
-> anchor vs alongside, berths on quays, the harbourmaster, mooring by
+> ARCHETYPES (the shipped venue archetype) and media by parts · harbors —
+> anchor vs alongside, berths on quays, the harbormaster, mooring by
 > `course` · leaks, the pump, swamping, sinking to the bed as her own wreck ·
 > life aboard by tenure · boatbuilding under carpentry · the pack map
 > **Size:** a build — and several; the drill-downs decide
@@ -80,7 +80,7 @@ slate); the berth as the liveaboard's address.
 
 - A multi-room craft (a narrowboat: cabin and deck) is **a small ship** — you go
   *aboard*.
-- A ship in a river or harbour is **alongside** a room, never in it; the room's
+- A ship in a river or harbor is **alongside** a room, never in it; the room's
   `look` mentions her as a **derived line** read from the frame, never a Thing.
 
 ### The expanse Warren — the sea's own rooms
@@ -186,7 +186,7 @@ the degenerate case … there is no singleton-vs-multi branch."*
   register**, a ship is on **one at a time** (her **flag state**);
   re-flagging is a transfer; **the flag state's law applies aboard at sea**
   (civics' derive-on-read jurisdiction answering for a place in no locality),
-  **both** the port's and the flag's in harbour; **flags of convenience** —
+  **both** the port's and the flag's in harbor; **flags of convenience** —
   a polity can compete for registrations (lens 4 and 7); **an unregistered
   ship is stateless** and unprotected.
 - **The flown flag is a Thing; the registered flag a record** — false colours
@@ -220,7 +220,7 @@ anything whose stations satisfy it. So:
 | whaling | davits with whaleboats, the try-works, the cutting-in stage |
 | pleasure | seating, shelter, a view |
 
-The archetype is what the world reads — the harbourmaster's fish quay, a
+The archetype is what the world reads — the harbormaster's fish quay, a
 haulage contract wanting *cargo*. The needs vocabulary grows vessel words
 (propulsion, steering, hold capacity, berths, hauling gear), still closed.
 
@@ -251,7 +251,7 @@ Singletons are **institutions afloat**; minted craft are **property**.
 | service and the state | the pilot cutter · ⭐ the **lifeboat** (rescue — drowning is the most rescuable death) · ⭐ the **lightship** · the revenue cutter and the smuggler's lugger · the gunboat (at-sea mechanics) |
 | living and ending | the narrowboat and houseboat · ⭐ the **hulk** (warehouse, quarantine, ⚠ prison) · ⭐ the **funeral boat** (mortality's passage, a rite) · ⭐ the **iceboat** (winter on Hollow Mere's sheet) · the submarine (underwater's trench) · ⭐ the **hovercraft** |
 
-## 6. ⭐⭐ Harbours **[DECIDED]**
+## 6. ⭐⭐ Harbors **[DECIDED]**
 
 ### At anchor, or alongside
 
@@ -269,24 +269,24 @@ anchor in the roads and wait), **assigned**, ⭐ **leased** (residence's tenure;
 a berth held thirty years), **charged** (dues), and ⭐ **the liveaboard's
 address** (*your post goes to the berth*).
 
-### Mooring, the harbourmaster, ownership
+### Mooring, the harbormaster, ownership
 
 - **No new verb**: **`course <quay or berth>` moors her**; any other course
   unmoors; ⭐ **rafting** is `course <ship>` to a ship already moored, wiring
   deck to deck if her master allows.
-- **A public landing** is first come; **a harbour** assigns — **`hail`** the
-  harbour office, ⭐ the **harbourmaster** (a seat, NPC or player) assigns a
+- **A public landing** is first come; **a harbor** assigns — **`hail`** the
+  harbor office, ⭐ the **harbormaster** (a seat, NPC or player) assigns a
   berth or sends you to the roads; **a leased berth** is its holder's.
-- The harbourmaster keeps the **queue**, charges **dues** (banking's Terms),
+- The harbormaster keeps the **queue**, charges **dues** (banking's Terms),
   and **refuses entry on a posted criterion** — draught, ⭐ **quarantine** (the
   yellow flag), unpaid debt, an enemy flag — with an appeal (lens 7).
 - **Ownership is adjacent, never nested**: the water's holder holds the water
-  (navigable § 5 stands); **quays and berths** belong to a **harbour
+  (navigable § 5 stands); **quays and berths** belong to a **harbor
   authority**, private wharf owners or the town.
 - **The bar and the tide** — a deep ship crosses only near high water (tides +
   draught), so the queue moves with the moon.
 
-### What else a harbour holds
+### What else a harbor holds
 
 **Piers and jetties** (quays you walk out along) · ⭐ **the slipway** (`launch`
 from shore — a boat dragged down into the water room; hauling out the reverse
@@ -391,23 +391,23 @@ What falls out of shipped and designed work:
 | axis | pack | takes on |
 |---|---|---|
 | how the world works | `/system/water` ✅ | the expanse Warren; water rooms knowing their ships; tides (underwater build) |
-| | `/system/transport` ✅ | ⭐ the watercraft and harbour mechanism — minted Durable boats; **berths, moorings, slipways** as fixtures; davits; mooring by `course` |
+| | `/system/transport` ✅ | ⭐ the watercraft and harbor mechanism — minted Durable boats; **berths, moorings, slipways** as fixtures; davits; mooring by `course` |
 | | the kernel | `Ship` (floorplan, keyed rooms, `(extent, key)` membership); **civics' ship registers** and the flag state's law |
 | who makes | ⭐ **`trade-seafaring`** (new) | the mariner's trade — crews, masters, mates, the watch, seamanship and navigation (pilotage its discipline), shipping businesses, the sailor's labour market |
 | | `trade-haulage` ✅ | ⭐ widened to **carrying by any conveyance** — the **lighterman**, **stevedores and porters**, sea freight as hauls, the **waterman** and **the ferryman** (London's watermen and lightermen were one guild) |
 | | `trade-fishing` ✅ | the fleet's boats, the fish quay and market |
-| | `trade-diving` (build-4) | harbour works below the waterline |
+| | `trade-diving` (build-4) | harbor works below the waterline |
 | | `trade-carpentry` ✅ | ⭐ **the boatbuilder** |
 | | `trade-textiles` / `trade-tailoring` ✅ | the ropewalk (cordage), the sailmaker |
 | | `trade-chandlery` / `trade-fuel` ✅ | ship's stores; tar and pitch for caulking |
 | | *(later)* `trade-whaling` | parked in navigable-water § 7 |
-| where | ⭐ **a harbour district** (`/world/terminus/harbour`, new — the Hearthworks precedent) | the port of Terminus: quays and piers with berths, the harbourmaster's office, slipway, boathouse, careening hard, crane, customs house, ⭐ **the sailortown** (taverns, boarding houses, the seamen's mission), the fish quay, the ferry stairs |
-| | `terminus` ✅ | Wharfside and the estuary, joined to the harbour |
+| where | ⭐ **a harbor district** (`/world/terminus/harbor`, new — the Hearthworks precedent) | the port of Terminus: quays and piers with berths, the harbormaster's office, slipway, boathouse, careening hard, crane, customs house, ⭐ **the sailortown** (taverns, boarding houses, the seamen's mission), the fish quay, the ferry stairs |
+| | `terminus` ✅ | Wharfside and the estuary, joined to the harbor |
 | | Waponi Woo (build-1), Gannet Rock, Hollow Mere | a quay with berths; the lighthouse keeper's seat; the authored-lake case |
 | who owns | `/corpo/<line>` | a shipping line — the *Hesper*'s owners |
 
-**Not packs**: the harbourmaster, customs officer and lighthouse keeper are
-**seats**; quarantine is a harbourmaster power plus medicine; mudlarking is
+**Not packs**: the harbormaster, customs officer and lighthouse keeper are
+**seats**; quarantine is a harbormaster power plus medicine; mudlarking is
 foraging (parked); smuggling is emergent (customs + concealment); ⚠ **crimping
 and the press gang are never a mechanic** — coercion goes on the accountability
 ledger.
@@ -415,10 +415,10 @@ ledger.
 ## 11. ⚠ Notes to sibling builds and shipped content
 
 - **build-1 (sugar, `reqs/sugar`)** — carry on through **W5**; **hold W6 (the
-  voyage)** until the harbour lands: (1) **Waponi Woo's landing** is an `aboard`
+  voyage)** until the harbor lands: (1) **Waponi Woo's landing** is an `aboard`
   exit hard-wired to the *Hesper*'s deck (`oneWay`) — it becomes **a quay with
   berths**; (2) **the crew's home leg is the-pool node**, where going ashore puts
-  you **in the water** — the home port becomes **the harbour**; (3) **D13 (the
+  you **in the water** — the home port becomes **the harbor**; (3) **D13 (the
   hold persists by re-class)** is right and generalizes to every ship's rooms.
 - **build-4 (underwater)** — insulated (it defers all craft); its bell is a
   vessel Thing in the water's room, the craft size rule. No change.
@@ -440,7 +440,7 @@ ledger.
 3. **Immersion** — the ferry's regulars, sleeping through a passage, steerage's
    foul air, the scaffold and the saw pit, the wreck with her cargo still in her
    hold. **Participation** — seafaring, watermen and lightermen, the
-   harbourmaster, the pilot, the shipwright, boatbuilder and caulker, the
+   harbormaster, the pilot, the shipwright, boatbuilder and caulker, the
    builder, architect and labourer, the lifeboat crew; *can the polity do
    something we didn't want?* — flags of convenience, quarantine, jerry-building.
 4. **Values** — ⚠ crimping and the press gang, steerage and emigrant ships,
@@ -451,7 +451,7 @@ ledger.
 6. **Economy** — ships give freight somewhere to go; berths, dues and moorings
    get an owner; construction becomes every material trade's largest customer;
    ⚠ ships are bought as minted stock until construction ships.
-7. **Governance** — ship registers per government; the harbourmaster's
+7. **Governance** — ship registers per government; the harbormaster's
    refusals; quarantine; building codes; customs and privateering as hooks —
    each a criterion and an appeal when designed.
 
@@ -462,8 +462,8 @@ never a mechanic. *Grain*: the sea-room cell size, berth lengths, leak rates.
 
 ## 13. The drill-downs (next sessions)
 
-**Packs**: `trade-seafaring`; haulage's widening; the harbour district; the
-shipping line. **Harbour**: the harbourmaster's day; quarantine; pilots and the
+**Packs**: `trade-seafaring`; haulage's widening; the harbor district; the
+shipping line. **Harbor**: the harbormaster's day; quarantine; pilots and the
 bar; customs and smuggling; slipways and careening; the sailortown. **Craft**:
 each archetype's capabilities; the university's ship; the lifeboat; the punt;
 the hovercraft. **Life aboard**: seasickness and sea legs; the watch system;
@@ -535,7 +535,7 @@ other end in [wellbeing-slate](./wellbeing-slate.md) § 8.
   register checking it before she sails; the guild **examines and vouches**.
   Flags of convenience then also mean lax certification — the real problem.
 - **⭐ The shipping office** — articles signed **before a shipping master**, a
-  public official at a counter in the harbour district; the crew list filed
+  public official at a counter in the harbor district; the crew list filed
   with the register. ⚠ **The crimp** (drink, the advance stolen, a sailor
   delivered to a ship) is the accountability ledger's — **never a mechanic**.
 - **The sailor ashore** — paid off as the articles settle; the sailortown
@@ -560,7 +560,7 @@ call is distress** — a ship in trouble raises the shout, members are called
 (the lifeboat, rescue); ⭐ **the mark is recognition in any port** — a sailor
 stranded abroad is helped at the hall; the board posts berths; the budget is
 seamanship primary, navigation and command secondary; the hall stands in the
-harbour district with its chart room and almshouse; public work maintains
+harbor district with its chart room and almshouse; public work maintains
 lights and buoys and licenses pilots.
 
 **Branches** — a branch is another hall (a chapter); in a landlocked realm the
@@ -576,7 +576,7 @@ faculties; each guild's mystery is a magic noun).
 
 ## 17. ⭐⭐ The stories — lens 2's audit, and what it changed (2026-10-19)
 
-*"There are so many great stories that take place at sea or in harbour towns…
+*"There are so many great stories that take place at sea or in harbor towns…
 what stories do we want our seafarers to tell?"* Lens 2's real test is
 **can an author make THESE with no code**:
 
@@ -584,7 +584,7 @@ what stories do we want our seafarers to tell?"* Lens 2's real test is
 |---|---|---|
 | **The Count of Monte Cristo** — the *Pharaon* into Marseille, the owner making Dantès captain, false denunciation, the island prison, the escape sewn into a corpse's sack and thrown into the sea, the treasure, Morrel ruined by lost ships | the managing owner hiring the master; courts; ⭐ surviving being thrown in (buoyancy, breath, cold); a shipowner ruined (shares, insurance) | ✅ but the courts |
 | **Treasure Island** | ⭐ a treasure map is an authored Chart; the shipping office; ⭐ **marooning is `course … leaving them`**; `dig` | ✅ but mutiny |
-| **Moby-Dick** | ⭐ Ishmael haggling his **lay**; command and loyalty; a coffin as a lifebuoy (buoyancy) | ✅ the harbour; the chase is whaling's |
+| **Moby-Dick** | ⭐ Ishmael haggling his **lay**; command and loyalty; a coffin as a lifebuoy (buoyancy) | ✅ the harbor; the chase is whaling's |
 | **Robinson Crusoe** | ⭐ raiding the wreck before she breaks up — **the wreck as her own rooms** | ✅; survival leans on foraging |
 | ⭐ **Lord Jim** — an officer abandons a ship full of pilgrims | **leaving people is a deliberate, recorded act** — the stranding refusal IS the story's moral | ✅ the strongest validation |
 | **Titanic** | the ship's social geography; sinking takes time; ⭐ **boat capacity derived — *not enough boats* is arithmetic** | ✅ |
@@ -671,6 +671,6 @@ career* (deep-sea and river are two careers, two trades); *wings, never forks*
 is for flavours of one vocation, not two vocations. So: **the mariners' guild
 lives** (the proving case — public functions, the map room, the call to
 distress, recognition in any port); **the watermen's charter ships as a RUIN**
-— a shuttered Watermen's Hall in the harbour district, its charter readable on
+— a shuttered Watermen's Hall in the harbor district, its charter readable on
 the wall, teaching the other shape (apprenticeship, licensing, a granted
 monopoly) by archaeology, reopenable when the river has the traffic.

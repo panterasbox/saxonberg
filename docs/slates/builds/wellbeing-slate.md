@@ -259,7 +259,7 @@ from monotony**); **scurvy** is the deficiency direction made real; and the
 crew's wellbeing feeds **manning** — a badly fed crew is a slower, worse-steered
 ship. NPC crew discontent may go as far as **desertion** in port; refusal and
 mutiny are governance, deferred. Rations and the purser are lens 4. See
-[ships-and-harbours-slate](./ships-and-harbours-slate.md) § 15.
+[ships-and-harbors-slate](./ships-and-harbors-slate.md) § 15.
 
 ### The three-star restaurant — the other end
 
