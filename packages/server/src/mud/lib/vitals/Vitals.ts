@@ -3084,11 +3084,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * bounded `tetanyUntil` window, checked by the reconcile caller. */
     private shockCircuitLive(s: SustainedShock): boolean {
       if (!s.source) return false;
-      const source = StuffApi.findByTemplatePath(s.source);
-      if (!source || !MixinApi.isEnergized(source)) return false;
+      // ⚠ A source's template path names a KIND, and a kind may be live
+      // many times over (found by the underwater drive: a storm across a
+      // long clock jump left twelve lightning strikes standing, the
+      // singleton lookup threw inside this reconcile, and the rejection
+      // took the server down). The circuit is live if ANY of them still
+      // carries current through this body.
       const self = this as unknown as Stuff;
-      return (
-        (source as Stuff & Energized).currentThrough(self).rawValue() > 0
+      return StuffApi.findAllByTemplatePath(s.source).some(
+        (source) =>
+          MixinApi.isEnergized(source) &&
+          (source as Stuff & Energized).currentThrough(self).rawValue() > 0,
       );
     }
 

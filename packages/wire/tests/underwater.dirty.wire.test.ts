@@ -141,7 +141,7 @@ async function openWater(s: Session): Promise<void> {
   const DAY = 86_400;
   const doy = Math.floor((await worldClockNow()) / DAY) % 360;
   let left = doy < 200 ? 200 - doy : 0;
-  for (; left > 0; left -= 30) await advanceWorldClock(`${Math.min(30, left)} days`);
+  for (; left > 0; left -= 5) await advanceWorldClock(`${Math.min(5, left)} days`);
   for (let i = 0; i < 6; i++) {
     // The first read after half a year integrates half a year of weather:
     // kick it with a look and let it land before asking the instrument.
