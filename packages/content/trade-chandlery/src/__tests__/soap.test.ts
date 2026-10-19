@@ -234,3 +234,65 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     expect(h.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBe(0.02);
   });
 });
+
+describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (potash D14)', () => {
+  const rekeyOf = (k: SoapKettle) => vi.spyOn(k, 'rekeyBatch').mockImplementation(() => {});
+
+  it('⭐ water on quicklime slakes it — heat into the kettle, milk of lime, no batch', async () => {
+    installV1QuantityMarshallers();
+    const k = makeStuff(() => new SoapKettle());
+    const lime = makeStuff(() => new Good());
+    lime.setMaterial(material(['mineral', 'caustic', 'alkali', 'liming', 'stabilizer']));
+    lime.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(lime, k);
+    const heat = vi.spyOn(k, 'depositHeat');
+    const rekey = rekeyOf(k);
+    const destruct = vi.spyOn(StuffApi, 'destruct');
+    expect(k.matchProfile(material(['liquid', 'water']))).toBeNull();
+    expect(heat).toHaveBeenCalledWith(2 * 1.15e6);
+    expect(rekey).toHaveBeenCalledWith('/trade/chandlery/idea/material/milk-of-lime');
+    expect(destruct).toHaveBeenCalledWith(lime);
+  });
+
+  it('water with no lime in the kettle is the shipped question', () => {
+    const k = makeStuff(() => new SoapKettle());
+    const rekey = rekeyOf(k);
+    k.matchProfile(material(['liquid', 'water']));
+    expect(rekey).not.toHaveBeenCalled();
+  });
+
+  it('⭐ lye and milk of lime, either way round, make caustic lye', () => {
+    const k = makeStuff(() => new SoapKettle());
+    const rekey = rekeyOf(k);
+    const lye = material(['liquid', 'caustic', 'alkali', 'lye']);
+    const milk = material(['liquid', 'caustic', 'alkali', 'slaked-lime']);
+    vi.spyOn(k, 'getBulkMaterial').mockReturnValue(lye);
+    expect(k.classifyForeignPour(milk, '')).toBe('transform');
+    k.applyForeignPour('transform', '', 1, milk);
+    expect(rekey).toHaveBeenLastCalledWith('/trade/chandlery/idea/material/caustic-lye');
+    vi.spyOn(k, 'getBulkMaterial').mockReturnValue(milk);
+    k.applyForeignPour('transform', '', 1, lye);
+    expect(rekey).toHaveBeenLastCalledWith('/trade/chandlery/idea/material/caustic-lye');
+  });
+
+  it('⭐⭐ fat and CAUSTIC lye make the hard-soap paste; fat and plain lye still make soft', () => {
+    const k = makeStuff(() => new SoapKettle());
+    const rekey = rekeyOf(k);
+    vi.spyOn(k, 'getBulkMaterial').mockReturnValue(material(['liquid', 'fat']));
+    k.applyForeignPour('transform', '', 1, material(['liquid', 'caustic', 'alkali', 'lye', 'caustic-lye']));
+    expect(rekey).toHaveBeenLastCalledWith('/trade/chandlery/idea/material/hard-soap-paste');
+    k.applyForeignPour('transform', '', 1, material(['liquid', 'caustic', 'alkali', 'lye']));
+    expect(rekey).toHaveBeenLastCalledWith('/trade/chandlery/idea/material/soap-paste');
+  });
+
+  it('the caustic paste boils to the curd the frame already sets — no salt', () => {
+    const p = row('idea/maturation/saponification-caustic.yaml').data;
+    expect(p.inputCategory).toBe('hard-soap-paste');
+    expect(p.productMaterial).toBe('/trade/chandlery/idea/material/hard-soap-curd');
+    // ⚠ The paste's thermal fields are soap paste's exactly, so the kettle
+    // at the boil behaves as the cleanliness drive proved.
+    const soft = row('idea/material/soap-paste.yaml').data;
+    const hard = row('idea/material/hard-soap-paste.yaml').data;
+    for (const f of ['specificHeat', 'meltingPoint', 'boilingPoint', 'density']) expect(hard[f]).toBe(soft[f]);
+  });
+});

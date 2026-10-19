@@ -1045,6 +1045,13 @@ history.
 
 ### W3 — pearl ash by fire; flux and stabilizer; the grade carry
 
+✅ **Done — `93e77d982`.** Decisions: the glass melt stays UNGRADED (the
+glass trade has no grade anywhere — its quality is colour from iron), so
+AC 3's "glass grade" rides only the melt's composition (the flux's potash
+share now concentrates into it); flagged for review. The black-salts cake
+ROW moved to W5 (`lint:reachability`: its minter is the pot). Pearl ash
+authors no `alloying` — the carry writes its purity (0.65/0.8 ≈ 0.81).
+
 ✅ **Flux decided (owner, 2026-10-19): option (a).** The potash family
 carries `flux`; limestone's smelting role becomes `smelting-flux`
 (`limestone.yaml`, `SmeltController.ts:962`, `OpenWorking.test.ts:75`,
@@ -1086,6 +1093,13 @@ recipe; the smelt still finds limestone as its flux; `lint:capabilities`,
 **Commit** — `build(potash W3): pearl ash by fire; flux and stabilizer on the glass batch; a firing carries its charge's grade`
 
 ### W4 — lime: slaking, causticizing, hard soap direct
+
+✅ **Done** (commit below). Slaking rides `SoapKettle.matchProfile` (a
+fresh water fill over a `caustic`+`liming` lump): destruct, deposit
+1.15 MJ/kg (`chandlery.lime.slakingJPerKg`, the chandlery's own settings
+file), `rekeyBatch(milk-of-lime)`, and the acting author's bare hand is
+corroded. Lye's material lost the keyword `potash` (it bound `get potash`
+to a flask of lye).
 
 **Pre-wave check:** none of the shared files (the kettle and its
 materials are the chandlery's). ⚠ `hard-soap-paste.yaml` copies
