@@ -817,8 +817,10 @@ mass; `grep -r soda-from-lye packages/ docs/` is empty but for history.
 
 ### W4 — pearl ash by fire; flux and stabilizer; the grade carry
 
-⚠ **Blocked on STOP-AND-ASK #1 for the flux word only.** Everything else
-in this wave is unblocked.
+✅ **Flux decided (owner, 2026-10-19): option (a).** The potash family
+carries `flux`; limestone's smelting role becomes `smelting-flux`
+(`limestone.yaml`, `SmeltController.ts:962`, `OpenWorking.test.ts:75`,
+mining.md) and `burn-lime`'s slot becomes `carbonate`.
 
 **Files**
 - `platform/idea/cmd/device/FireController.ts` — D12 (a)+(b);
@@ -830,7 +832,7 @@ in this wave is unblocked.
   `trade-potash/content/trade/potash/{thing/pearl-ash.yaml,idea/Discipline/ashery.yaml,idea/Cleanser/potash.yaml}`;
   the potash material's `cleanser:` filled; black-salts material tags.
 - `trade-glass/content/recipes/glass-batch{,-amber}.yaml` — lime slot →
-  `stabilizer`; flux slot per the answer. `base-library/…/caustic/quicklime.yaml`
+  `stabilizer`; flux slot stays `flux` (now the potash family's). `base-library/…/caustic/quicklime.yaml`
   gains `stabilizer`. Verify `trade-glass/src/thing/Melt.ts` composes
   `Crafted`; compose it if not.
 - `glass.md`/`mining.md` one-line notes are the sweep's.
@@ -979,7 +981,7 @@ the ashery `Locale` is on the ride's exit graph (`lint:location-graph`).
 
 ## Risks & opens
 
-### STOP-AND-ASK
+### STOP-AND-ASK — ✅ both answered by the owner 2026-10-19: #1 option (a), #2 equal potash (as planned)
 
 1. **The `flux` tag is the metal chain's.** Requirements: *"potash, pearl
    ash (and later soda) carry `flux`"*; code: limestone carries `flux`,
