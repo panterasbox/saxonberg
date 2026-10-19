@@ -12,7 +12,7 @@ import { MqlApi } from '../../mql';
 import { PerceptionApi } from '../../perception';
 import { StuffApi } from '../../stuff';
 import { ContainmentApi } from '../../containment';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -27,7 +27,7 @@ class Item extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'TestItem';
 }
 
-let room: Location;
+let room: Place;
 let viewer: Holder;
 let bob: Holder;
 let shirt: Item;
@@ -35,7 +35,7 @@ let coin: Item;
 
 beforeEach(() => {
   StuffApi.clearAll();
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   viewer = makeStuff(() => new Holder());
   bob = makeStuff(() => new Holder());
   shirt = makeStuff(() => new Item());

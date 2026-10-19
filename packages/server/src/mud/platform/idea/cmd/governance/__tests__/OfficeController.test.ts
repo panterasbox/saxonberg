@@ -27,7 +27,7 @@ import {
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Document } from '../../../../../lib/persistence/Document';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
@@ -141,7 +141,7 @@ function stubCommand(verb: string): CommandDefinition {
 function makeContext(giver: Avatar): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: 'office',
     executionId: 'test',
     commandId: 'test',

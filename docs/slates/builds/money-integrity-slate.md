@@ -266,7 +266,7 @@ mints money and gets no error.
 ### ⭐⭐ What this narrows the vulnerable set to
 
 The ordinary play path has **two** resolve-first layers —
-`OuterWarren.admit` checks its cache before standing anything up, and
+`CirculationWarren.admit` checks its cache before standing anything up, and
 `cloneHost` checks for a live keyed instance. If both miss (a warren's
 in-memory cache gone cold while a holding is still live),
 `assertUniqueKey` **throws**: two live hosts would claim one key. **Loud,

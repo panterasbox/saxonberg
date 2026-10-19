@@ -5,7 +5,7 @@ import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Sound } from '../../../../lib/perception/Sound';
 import { SoundSourceMixin } from '../../../../lib/perception/SoundSource';
 import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import Door from '../../../thing/Door';
 import Good from '../../../../lib/stuff/Good';
@@ -24,7 +24,7 @@ const soundModality = (): SoundModality =>
   PerceptionApi.modalityByName('sound') as SoundModality;
 
 class Whistle extends SoundSourceMixin(Good) {}
-class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
+class AtmosphericLocation extends AtmosphericMixin(Location) {}
 
 describe('SoundModality.signalAt — propagation core', () => {
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('empty room with no emitters returns null', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     expect(soundModality().signalAt(loc)).toBeNull();
   });
@@ -50,7 +50,7 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('a whistle in a room is perceived at that scope', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     const w = makeStuff(() => new Whistle());
     w.setEmittedAmplitude(110);
@@ -66,7 +66,7 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('two 60 dB sources in a room sum to ~63 dB (logarithmic)', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     const a = makeStuff(() => new Whistle());
     a.setEmittedAmplitude(60);
@@ -84,8 +84,8 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('sound leaks through open doorless exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     await a.addBidirectionalExit(b, 'north'); // explicit doorless doorway
@@ -101,8 +101,8 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('a closed door blocks the leak', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     const w = makeStuff(() => new Whistle());
@@ -138,10 +138,10 @@ describe('SoundModality.signalAt — propagation core', () => {
   it('MAX_HOPS truncates propagation past depth 2', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
-    const c = makeStuff(() => new CartesianLocation());
-    const d = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
+    const c = makeStuff(() => new Location());
+    const d = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 0, 2, 0);

@@ -3,7 +3,7 @@
 # ⚠ Its EAST exit is the far half of the pair the terminus pack authors
 # at the crossroads. Both sides are written out explicitly; neither pack
 # reaches into the other's files.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: lower climb
   keywords: [climb, lower]

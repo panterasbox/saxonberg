@@ -26,13 +26,13 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import {
   CommandApi,
   type CommandContext,
@@ -71,7 +71,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   raw?: string
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -94,11 +94,11 @@ function fragmentField(stuff: Stuff[], raw: string): MqlManyResult {
 
 describe('FocusController', () => {
   let giver: TestGiver;
-  let location: CartesianLocation;
+  let location: Location;
   let controller: FocusController;
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     location.setShortDescription('Town Square');
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);

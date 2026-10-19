@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import { Boundary } from '../Boundary';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
@@ -43,8 +43,8 @@ describe('Boundary', () => {
 
   it('BoundaryApi.attachExistingBoundary wires anchors on both hosts', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -67,7 +67,7 @@ describe('Boundary', () => {
 
   it('attachExistingBoundary rejects a hostA === hostB install', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     const boundary = await StuffApi.create(() => new Boundary());
     expect(() =>
@@ -77,9 +77,9 @@ describe('Boundary', () => {
 
   it('attachExistingBoundary rejects re-installing on an already-wired boundary', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
-    const c = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
+    const c = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 1, 0, 0);
@@ -93,8 +93,8 @@ describe('Boundary', () => {
 
   it('getOtherSide / getOtherAnchor / getOtherHost walk the pair correctly', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -113,8 +113,8 @@ describe('Boundary', () => {
 
   it('detach() removes both anchors from their hosts and KEEPS the pair', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -145,8 +145,8 @@ describe('Boundary', () => {
 
   it('BoundaryApi.destruct destructs the boundary and its anchors', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -166,8 +166,8 @@ describe('Boundary', () => {
 
   it('Adornable.getFixtureBoundaries dedupes the boundary across anchor walks', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -180,8 +180,8 @@ describe('Boundary', () => {
 
   it('host destruct walks fixtures and tears down the anchor on that side', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 

@@ -325,7 +325,7 @@ export class ParcelLogic extends ApiLogic {
           // exact string, and it is re-derivable from the extent.
           asIdentityPath: identity,
           dataOverlay: {
-            extent,
+            takenDownExtent: extent,
             takenDownBy: holder,
             longDescription:
               `Bare ground, and a marker standing in it. The place that ` +

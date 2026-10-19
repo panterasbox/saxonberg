@@ -32,7 +32,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import Good from '../../../../../lib/stuff/Good';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Character } from '../../../../../lib/character/Character';
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
@@ -81,7 +81,7 @@ class Chest extends ContainerMixin(ContainableMixin(Good)) {
 let seq = 0;
 let clockNow = 1000;
 
-function standUp(): { body: Wearer; loc: Location; plan: string } {
+function standUp(): { body: Wearer; loc: Place; plan: string } {
   installV1QuantityMarshallers();
   WorldClockApi._resetForTesting();
   WorldClockApi._setNowProviderForTesting(() => clockNow);
@@ -129,7 +129,7 @@ function standUp(): { body: Wearer; loc: Location; plan: string } {
   const body = makeStuff(() => new Wearer());
   body.setSpecies(species);
 
-  const loc = makeStuff(() => new Location());
+  const loc = makeStuff(() => new Place());
   ContainmentApi.move(body as never, loc as never);
   return { body, loc, plan: planPath };
 }
@@ -145,7 +145,7 @@ function garment(plan: string, fabric: string, keyword: string): Garment {
   return g;
 }
 
-function ctx(body: Wearer, loc: Location, verb = 'equip'): CommandContext {
+function ctx(body: Wearer, loc: Place, verb = 'equip'): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: body as never,
     location: loc as never,
@@ -267,6 +267,55 @@ describe('`unequip`', () => {
     expect(worn(body)).toEqual([]);
   });
 
+  it('⭐⭐ `wear` lands after the controller is gone (the dispatcher destructs it)', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    const ctrl = makeStuff(() => new EquipController());
+    await ctrl.execute(
+      { target: { stuff: shirt as never, raw: 'shirt' } } as never,
+      ctx(body, loc, 'wear'),
+    );
+    // ⚠ What `_executeOne` does in its `finally`, before any dressing
+    // step can complete: a completion that called back into the
+    // controller ran on a dead proxy and nothing went on.
+    StuffApi.destruct(ctrl);
+    await settle();
+    expect(worn(body)).toEqual(['shirt']);
+  });
+
+  it('⚠ `remove apron` with no apron on is a refusal, never a strip (the drive)', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const c = ctx(body, loc, 'remove');
+    await makeStuff(() => new UnequipController()).execute({ manner: 'apron' } as never, c);
+    await settle();
+    expect(worn(body)).toEqual(['shirt']);
+    expect(
+      c.getNotes().some((n) => (n as { reason?: string }).reason === 'not-worn'),
+    ).toBe(true);
+  });
+
+  it('⚠ `remove shirt` naming nothing you have is a refusal, never a strip (the drive)', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, 'woven', 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const c = ctx(body, loc, 'remove');
+    // The binder's shape for a named word that matched nothing.
+    await makeStuff(() => new UnequipController()).execute(
+      { target: { raw: 'coat', stuff: null } } as never,
+      c,
+    );
+    await settle();
+    expect(worn(body)).toEqual(['shirt']);
+    expect(
+      c.getNotes().some((n) => (n as { reason?: string }).reason === 'not-worn'),
+    ).toBe(true);
+  });
+
   it('refuses readably with nothing on', async () => {
     const { body, loc } = standUp();
     const c = ctx(body, loc);
@@ -291,7 +340,7 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
    * be no word to read — one arg spanning both mixins gives the
    * controller no way to tell the two intentions apart.
    */
-  function armoured(): { body: Wearer; loc: Location; gauntlet: Gauntlet } {
+  function armoured(): { body: Wearer; loc: Place; gauntlet: Gauntlet } {
     const { body, loc, plan } = standUp();
     // Plate on the torso first: band 3, so nothing woven goes over it.
     const cuirass = garment(plan, 'plate', 'cuirass');

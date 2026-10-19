@@ -324,7 +324,7 @@ same build, not later:
 ### Unit 2 — Eternal Way (both arms + the north-gate stub) ✓
 
 **Structure:** two road rooms + one stub, all
-`CartesianLocation` in the campus zone. `eternal-way-south`
+`Location` in the campus zone. `eternal-way-south`
 (0,−1): exits south → the crossing (cross-zone, through the main
 gate door) and north → the Quad. `eternal-way-north` (0,1):
 exits south → the Quad and north → the north gate.
@@ -369,7 +369,7 @@ detail slots are shipped.
 
 ### Unit 3 — the Quad ✓
 
-**Structure:** `CartesianLocation` at campus origin (0,0),
+**Structure:** `Location` at campus origin (0,0),
 address `campus/quad`. **Exactly four exits — the compass
 roads.** Buildings are kept off the green entirely (decision,
 2026-07-28, revising the campus map's "buildings front it

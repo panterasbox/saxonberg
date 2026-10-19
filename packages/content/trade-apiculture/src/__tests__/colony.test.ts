@@ -32,7 +32,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -131,7 +131,7 @@ function hive(opts: {
     x.setLifecycleState('alive');
     return x;
   });
-  ContainmentApi.move(h as never, makeStuff(() => new Location()) as never);
+  ContainmentApi.move(h as never, makeStuff(() => new Place()) as never);
   // Prime the tap, then set the stores by hand: what is standing in the
   // `honey` tap IS the stores, which is the whole point of D2.
   h.standingIn('honey');
@@ -409,7 +409,7 @@ describe('the colony', () => {
       x._speciesPath = SPECIES_PATH;
       return x;
     });
-    ContainmentApi.move(h as never, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(h as never, makeStuff(() => new Place()) as never);
     const nuc = makeStuff(() => {
       const c = new Colony();
       c._speciesPath = SPECIES_PATH;
@@ -438,7 +438,7 @@ describe('the colony', () => {
       x._speciesPath = SPECIES_PATH;
       return x;
     });
-    ContainmentApi.move(h as never, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(h as never, makeStuff(() => new Place()) as never);
     const nuc = makeStuff(() => {
       const c = new Colony();
       c.strength = 0.35;

@@ -532,7 +532,7 @@ function lowerBand(a: string, b: string): string {
 function placeWords(holder: Stuff): string {
   let at: Stuff | null = holder;
   for (let i = 0; i < 8 && at; i++) {
-    if (at.isLocation()) {
+    if (at.isPlace()) {
       return MixinApi.isVisible(at) ? `in ${at.getShortDescription()}` : '';
     }
     at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;

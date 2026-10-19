@@ -4,7 +4,7 @@
  *
  * Seven rows authored `reserves: { air: … }` as a scope's combustion
  * oxygen budget. **Four of them could not hold it**: they are
- * `SingletonCartesianLocation` rows, and nothing in that chain composes
+ * `Locale` rows, and nothing in that chain composes
  * `ReservedMixin`, so the applier — which iterates persistent fields —
  * dropped the key. The fire driver's `airReserveOf` therefore answered
  * `null` and the room was *open air, unlimited*: the vintner cellar, the

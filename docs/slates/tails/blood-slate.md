@@ -530,7 +530,7 @@ disease transmission, and any cross-instance concern.
    time — but that couples supply pressure to the clock scale, and
    `setScale` is already known to rescale metabolic rates.
 3. **Who holds the inventory?** A Business, a civic office, or a
-   `FurnishableRoom` fixture. This decides whether a blood bank can be
+   `PersistentLocation` fixture. This decides whether a blood bank can be
    privately owned, which is most of the politics.
 4. ✅ *Q4 (can you refuse a transfusion?) resolved by the donor-card cut
    (2026-10-05): there is NO standing refusal — it was a non-choice. What

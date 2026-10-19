@@ -715,3 +715,11 @@ CMS save-gate, and the Dave's Bar cast — landed on
 consumer of the activity substrate (respiration was the first engagement
 producer). The requirements and plan docs were retired into this
 subsystem doc at sweep time per the workflow's artifact-retirement rule.
+
+## `doorman` and `remarks` (2026-10-17)
+
+`doorman` implements the `judge` seam on `BrainStatics`: a `KeptDoor`
+exit asks a keeper on either side, and HE decides he is on duty (on shift
+for the door's `keptBy` house) and judges by the dress code on his row;
+the refusal is his words. `remarks` is a `greets`-shaped arrival brain
+keyed by the arriver's outer garment. See [cleanliness.md](./cleanliness.md).

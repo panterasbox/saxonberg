@@ -12,7 +12,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -46,7 +46,7 @@ const fibres = {
   rawSilk: { path: '/trade/sericulture/idea/material/raw-silk', tags: ['fibre', 'protein', 'gummed'] },
 };
 
-let room: Location;
+let room: Place;
 let dyer: TestActor;
 let sent: string[];
 
@@ -95,7 +95,7 @@ async function dye(c: Cloth, b: Bath): Promise<number> {
 beforeEach(async () => {
   await standUpBranchHarness();
   sent = [];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   dyer = makeStuff(() => new TestActor());
   ContainmentApi.move(dyer as never, room as never);
   makeStuffAtPath(() => {

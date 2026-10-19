@@ -101,7 +101,7 @@ export interface Exitable {
   hasPendingVerification(): boolean;
   /**
    * Install an explicit exit. Async because subclasses (notably
-   * `CartesianLocation`) may perform an async cardinal-zone check
+   * `Location`) may perform an async cardinal-zone check
    * via `ZoneApi.resolveZoneForPath` before accepting the exit.
    * The base implementation does only sync work; the async return
    * type lets overrides remain typesafe.
@@ -476,7 +476,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * template declares (`ExitableVessel` overrides for the vessel `'out'`
      * hook). The zone no longer *synthesizes* exits from grid adjacency; it
      * only *enforces* geometry invariants on authored exits (see
-     * `CartesianLocation.addExit`). Every template is self-describing: read it
+     * `Location.addExit`). Every template is self-describing: read it
      * and you know what it connects to.
      */
     getExit(direction: string): Exit | undefined {

@@ -8,7 +8,7 @@ import Holder from '../Holder';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { EvictionContext } from '../Stuff';
 import Thing from '../Thing';
-import Location from '../Location';
+import Place from '../Place';
 import Exit from '../../boundary/Exit';
 import { ContainerMixin } from '../../spatial/Container';
 import { PersistableMixin } from '../../persistence/Persistable';
@@ -32,7 +32,7 @@ class PersistentBox extends PersistableMixin(Holder) {}
 /** A holder that also carries an Interactive — the occupied-container case. */
 class OccupiedHolder extends HasInteractiveMixin(Holder) {}
 class Bot extends BehavedMixin(Thing) {}
-class MemberRoom extends WarrenMemberMixin(Location) {}
+class MemberRoom extends WarrenMemberMixin(Place) {}
 class TestShadow extends Shadow {
   @Shadowing('getPresentation')
   public decorate(): string {
@@ -113,8 +113,8 @@ describe('residency veto roster', () => {
     expect(bot.canEvict(IDLE).ok).toBe(false); // authored cast → veto
   });
 
-  it('Location: an empty, unaffiliated room is cullable (re-clones on entry)', () => {
-    const room = makeStuff(() => new Location());
+  it('Place: an empty, unaffiliated room is cullable (re-clones on entry)', () => {
+    const room = makeStuff(() => new Place());
     expect(room.canEvict(IDLE)).toEqual({ ok: true });
   });
 

@@ -12,7 +12,7 @@
 # reader who has learned what salt does to grass can read them. It does
 # NOT name the structure, because the structure is what the survey is
 # for.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: bare flat

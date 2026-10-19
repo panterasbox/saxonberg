@@ -9,7 +9,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { AliasMixin, type DefaultAliasEntry } from '../Alias';
 import { CommandGiverMixin } from '../../command/CommandGiver';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -439,7 +439,7 @@ class PipelineHost extends PipelineHostBase {
 
 describe('AliasMixin — pipeline integration', () => {
   let giver: PipelineHost;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -466,7 +466,7 @@ describe('AliasMixin — pipeline integration', () => {
       findById: vi.fn(),
     } as unknown as PersistenceManager);
 
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new PipelineHost());
     ContainmentApi.move(giver, location);
   });

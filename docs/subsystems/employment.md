@@ -1247,6 +1247,14 @@ no-runtime-setter constraint on `positions` permits rather than blocks:
 what seats a business has is a fact about the KIND of business, so one
 authored row serves every outfit minted at every siting in the realm.
 
+## Cleanliness: the laundress and the attendant (2026-10-17)
+
+The lavoir's laundry seats a `laundress` (`fulfills: [textiles]`, paid by
+the piece); the bathhouse an `attendant` (`personal-services`, by the
+hour); Goodkin a `doorman`. `Employed.isOnShiftFor(org)` (storage's shape)
+is what a doorman judges by — a SEAT, never presence. A ruined wash is the
+HAND's deed. See [cleanliness.md](./cleanliness.md) and [retail.md](./retail.md).
+
 ---
 
 - **2026-10-18 (storage-and-ice, MR !378).** Seasonal shift windows

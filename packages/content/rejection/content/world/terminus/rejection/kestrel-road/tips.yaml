@@ -1,6 +1,6 @@
 # The tips — where the town's waste has been going for as long as there
 # has been a town, and the road runs through it.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: tips
   keywords: [tips]

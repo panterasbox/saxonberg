@@ -49,7 +49,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,
@@ -138,8 +138,8 @@ function ctx(giver: Stuff, loc: Stuff, source: Stuff | null, text: string): Comm
 }
 
 describe('the cellars beat — rack, cork, consign, home', () => {
-  let floor: Location;
-  let counterRoom: Location;
+  let floor: Place;
+  let counterRoom: Place;
   let shelf: Stock;
   let vat: Vat;
   let hand: Hand;
@@ -214,8 +214,8 @@ describe('the cellars beat — rack, cork, consign, home', () => {
       }, PROFILE);
     }
 
-    floor = makeStuffAtPath(() => new Location(), FLOOR);
-    counterRoom = makeStuffAtPath(() => new Location(), COUNTER_ROOM);
+    floor = makeStuffAtPath(() => new Place(), FLOOR);
+    counterRoom = makeStuffAtPath(() => new Place(), COUNTER_ROOM);
     shelf = makeStuffAtPath(() => {
       const s = new Stock();
       s.stockLines = [];
@@ -276,7 +276,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
       void giver;
         lines.push(text);
         const who = giver as unknown as Hand;
-        const here = who.getContainer() as Location;
+        const here = who.getContainer() as Place;
         if (text === 'get bottle') {
           const empty = (here.getContents() as Stuff[]).find(
             (c) =>

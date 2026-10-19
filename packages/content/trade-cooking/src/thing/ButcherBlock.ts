@@ -29,6 +29,7 @@
 
 import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
+import { SoilableMixin } from '@saxonberg/server/mud/lib/cleanliness/Soilable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /**
@@ -42,7 +43,9 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
  * was false of most of that host set. Here it is true of every member:
  * a butcher's block is food equipment and nothing else.
  */
-const ButcherBlockBase = ContaminableMixin(Fitting);
+// ⭐ Soilable (cleanliness D3): the block takes the blood and the grease
+// of every carcass broken on it, until somebody scrubs it.
+const ButcherBlockBase = SoilableMixin(ContaminableMixin(Fitting));
 
 export default class ButcherBlock extends ButcherBlockBase {
   static commandContributions: CommandContributions = {

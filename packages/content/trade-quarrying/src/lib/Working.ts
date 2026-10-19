@@ -548,6 +548,13 @@ export function OpenWorkingMixin<
           ? `You work a load of ${nameOfFace(face)} free.${tail}`
           : `${won}${tail}`,
         peers: null,
+        // ⭐ (cleanliness D6) Earth muddies; rock dusts.
+        soils: face.earth
+          ? [
+              { kind: 'mud', amount: 0.2, where: 'hands' },
+              { kind: 'mud', amount: 0.15, where: 'feet' },
+            ]
+          : [{ kind: 'dust', amount: 0.15, where: 'hands' }],
         credit: {
           discipline: QUARRYING,
           // ⭐ Difficulty is the ROCK's, read at the moment of the act: a

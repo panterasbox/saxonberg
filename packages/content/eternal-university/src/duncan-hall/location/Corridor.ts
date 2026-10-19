@@ -5,26 +5,23 @@
  * (build on `ensureFloor`, reap top-down on `reconcile`, destruct on
  * `teardown`).
  *
- * A plain non-coordinate `Location` (a clone can't hold fixed grid coords;
- * it hangs off the lobby / the floor below by live-ref stair exits, not grid
- * adjacency) with the exit + description surface. It holds the floor's
+ * A `Location` — one of many, one per live floor — and on the hall's grid
+ * like every place but the void: a clone holds no authored coords, so it
+ * takes the cell its `down` stair says it is in (`plotBesideNeighbour`,
+ * from `CirculationWarren.ensureNode`): floor 1 one cell above the lobby.
+ * Sized by the hall's cell, like every Location. It holds the floor's
  * `DormDoor`s and the `down` (to the floor below) + `up` (a `FloorStairExit`)
  * stairs. No persistence — floors reconstitute from the durable slot set.
  * No `Named` — a generic labelled room.
  *
- *   Exitable → Detailed → Visible → Location
+ *   Location (Staged → Exitable → CartesianCoordinates → Place)
  */
 
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const CorridorBase = ExitableMixin(
-  Location,
-);
-
-export default class Corridor extends CorridorBase {
+export default class Corridor extends Location {
   static fieldMeta: FieldMeta = {};
 
   /**

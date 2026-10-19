@@ -19,7 +19,7 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Scrap from '@saxonberg/server/mud/platform/thing/Scrap';
 import { fuelMaterial } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -48,7 +48,7 @@ class Hand extends MobileMixin(TestActor) {
   static _mixinName = 'TendsTestHand';
 }
 
-let floor: Location;
+let floor: Place;
 let hand: Hand;
 let said: string[];
 let now = 10_000_000;
@@ -105,7 +105,7 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => now);
   WorldClockApi.setScale(1000);
   said = [];
-  floor = makeStuffAtPath(() => new Location(), FLOOR);
+  floor = makeStuffAtPath(() => new Place(), FLOOR);
   hand = makeStuff(() => new Hand());
   ContainmentApi.move(hand as never, floor as never);
   vi.spyOn(hand, 'forceCommand').mockImplementation(async (line: string) => {
@@ -185,7 +185,7 @@ describe('tends', () => {
   });
 
   it('at the walk with nothing in hand: harvest, then home', async () => {
-    const walk = makeStuffAtPath(() => new Location(), WALK);
+    const walk = makeStuffAtPath(() => new Place(), WALK);
     ContainmentApi.move(hand as never, walk as never);
     await tends.act(ctx(TENDS));
     // Nothing came of the (captured) harvest, so the hand goes back.
@@ -203,7 +203,7 @@ describe('reels', () => {
   });
 
   it('a reeler away on an errand does nothing', async () => {
-    const elsewhere = makeStuff(() => new Location());
+    const elsewhere = makeStuff(() => new Place());
     ContainmentApi.move(hand as never, elsewhere as never);
     await reels.act(ctx({ floor: FLOOR, bin: '/x/crib', stock: '/x/silks' }));
     expect(said).toEqual([]);

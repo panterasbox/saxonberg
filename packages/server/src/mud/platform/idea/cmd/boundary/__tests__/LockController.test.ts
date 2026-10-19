@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import LockController from '../LockController';
 import UnlockController from '../UnlockController';
 import Door from '../../../../thing/Door';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -67,7 +67,7 @@ class FakeAvatar extends FakeAvatarBase {
   }
 }
 
-function ctxFor(avatar: FakeAvatar, loc: Location, verb: string): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -92,7 +92,7 @@ describe('LockController / UnlockController', () => {
   });
 
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let door: Door;
 
   /** The door's own keyway — anything opaque; a re-key is a new one. */
@@ -104,7 +104,7 @@ describe('LockController / UnlockController', () => {
   }
 
   beforeEach(async () => {
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

@@ -1755,7 +1755,7 @@ re-placement — plus one genuinely new mechanism, which is **not spatial**:
 The way aboard must **not** be an exit, and two unrelated rules say so.
 
 ⚠⚠ **1. The minted-zone check refuses it.** `zone.md`: a
-`CartesianLocation` accepts **cardinal exits unconditionally** and
+`Location` accepts **cardinal exits unconditionally** and
 **semantic-label exits only when the destination resolves to a different
 zone** — and *"the check is **eager and path-based**… It must be an
 **AUTHORED template row**. The walk reads template ancestry in Mongo, so a

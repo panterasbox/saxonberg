@@ -1,0 +1,19 @@
+# The washing trough — ⭐ a long stone trough of running water (cleanliness
+# D27), fed from the fell: soft water, which is why the laundresses wash
+# here and not in the river. Anybody may wash at it; the boards beside it
+# take the scrubbing.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: washing trough
+  keywords: [trough, water, washing-trough, stone]
+  register: definite
+  longDescription: >-
+    A long stone trough under the arches, the water running in at one end
+    from a spout and out at the other through a notch worn smooth. The
+    edges are polished with a hundred years of elbows.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  # Fell water: soft (cleanliness D12).
+  hardnessDgh: 3
+  fixedInPlace: true
+  mass: 900

@@ -1,0 +1,5 @@
+# Sulfur fumes — the oxidiser for wool, which the sun yellows and lye
+# destroys: the fibre decides the bleach. Ambient: the air of a shut room
+# a lump of sulfur burns in.
+class: /platform/idea/Cleanser
+data: {key: sulfur-fume, agent: sulfur-fume, action: oxidiser, ambient: true}

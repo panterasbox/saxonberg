@@ -9,7 +9,7 @@ import Material from '../../../../lib/material/Material';
 import Good from '../../../../lib/stuff/Good';
 import { Construction } from '../../../../lib/material/Construction';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -54,7 +54,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: CartesianLocation
+  location: Location
 ): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
@@ -85,9 +85,9 @@ describe('ResponseReading', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  async function room(): Promise<{ loc: CartesianLocation; me: FakeAvatar }> {
+  async function room(): Promise<{ loc: Location; me: FakeAvatar }> {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     const me = makeStuff(() => new FakeAvatar());
     me.setName('Alice');

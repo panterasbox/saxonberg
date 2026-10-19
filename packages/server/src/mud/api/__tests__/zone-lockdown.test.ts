@@ -22,7 +22,7 @@ import { describe, it, expect, beforeEach  } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import Good from '../../lib/stuff/Good';
 import { StuffApi } from '../stuff';
 import { ContainmentApi, ContainmentError } from '../containment';
@@ -112,8 +112,8 @@ describe('zone lockdown — cross-zone invariant integrity under tamper', () => 
     // Set up two zones, each with a location.
     const zoneA = makeStuff(() => new CartesianZone());
     const zoneB = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zoneA.addLocation(locA, 0, 0, 0);
     zoneB.addLocation(locB, 0, 0, 0);
 
@@ -161,11 +161,11 @@ describe('zone lockdown — getZone unwrap', () => {
     expect(raw!.getZone()).toBe(zone);
   });
 
-  it('CartesianLocation.getZone override still works (super.getZone unwraps)', () => {
+  it('Location.getZone override still works (super.getZone unwraps)', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
-    // CartesianLocation overrides getZone() to narrow the return
+    // Location overrides getZone() to narrow the return
     // type. Its body delegates to `super.getZone()` which is the
     // unwrapping base method.
     expect(loc.getZone()).toBe(zone);
@@ -182,14 +182,14 @@ describe('setZone gate — FromSpatialZone policy', () => {
     // The whole point of FromSpatialZone is that the
     // addLocation/removeLocation chokepoints work normally.
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     expect(() => zone.addLocation(loc, 0, 0, 0)).not.toThrow();
     expect(loc.getZone()).toBe(zone);
   });
 
   it('SpatialZone.removeLocation passes the gate (null-stamp path)', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     expect(() => zone.removeLocation(loc)).not.toThrow();
     expect(loc.getZone()).toBeNull();

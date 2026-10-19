@@ -5,7 +5,7 @@
 # this is a locality answering them. ⚠ Reported, never enforced: if the
 # midden were missing, the yard would still work and the archetype would
 # simply say so.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: university farmyard
   keywords: [farmyard, yard, farm, university]

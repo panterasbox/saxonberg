@@ -8,7 +8,7 @@
 > **Left:** the undeclared instance-ref sites still guarding by hand
 > (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches ·
 > `LoungeWarren._reapTimers` · the warren maps, now
-> `OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey`
+> `CirculationWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey`
 > and `HoldingWarren._roomsByKey`) · the six held-side R2.4 unhooks
 > folded into declarations (open question below)
 > **Size:** a tail

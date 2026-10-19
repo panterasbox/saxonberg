@@ -247,12 +247,12 @@ old field book at their new resolution.
 ## `Field` — a piece of ground you can stand in
 
 `PersistableMixin(WarrenMemberMixin(ImprovableMixin(SwardMixin(
-SoilMixin(ReservedMixin(CartesianLocation))))))` — `MineRoom`'s stack
+SoilMixin(ReservedMixin(Location))))))` — `MineRoom`'s stack
 with soil where the working is, which is not a coincidence: a mine and a
 farm are the same shape of problem, and the residences build already made
 that one substrate.
 
-⚠ Over the **permissive** `CartesianLocation`, never the singleton one,
+⚠ Over the **permissive** `Location`, never the singleton one,
 because a field is a KIND of place minted many times — safe only because
 every instance is keyed `<holding extent>/<leaf>`.
 

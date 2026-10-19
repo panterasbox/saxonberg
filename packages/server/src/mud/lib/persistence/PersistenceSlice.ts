@@ -98,6 +98,17 @@ export interface FieldsSlice {
   fields: Record<string, unknown>;
 }
 
+/**
+ * ⭐ `AdornableMixin`'s slice — the runtime state of the host's NON-chattel
+ * fixtures (cleanliness D31b), keyed by the slot each hangs in: the
+ * floor's soil and strewing, a pane's grime. A fixture is rebuilt from the
+ * row on every hydrate; what an act did to it since is what this keeps.
+ * The empty `fields` keeps it a default slice to the field pass.
+ */
+export interface FixturesSlice extends FieldsSlice {
+  fixtures?: Record<string, Record<string, unknown>>;
+}
+
 /** `ContainerMixin`'s slice — the host's directly-held content tree. */
 export interface ContainerSlice {
   contents: ContentEntry[];
@@ -310,6 +321,14 @@ export interface HydrateContext {
    * finds them already standing when the boot roll got there first.
    */
   standUpKeyed(scope: string, key: string): Promise<unknown | null>;
+
+  /**
+   * Hydrate captured field values onto a live `target` — drift-guarded to
+   * its declared persistent fields and applied in restore mode, the
+   * field pass's own path. The fixture slice uses it: a fixture is rebuilt
+   * from the row, then given back what happened to it.
+   */
+  applyFields(target: unknown, fields: Record<string, unknown>): Promise<void>;
 }
 
 /**

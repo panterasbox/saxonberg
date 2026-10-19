@@ -41,7 +41,7 @@ import { TangibleMixin } from '../../lib/material/Tangible';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 import type Interactive from '../../platform/idea/Interactive';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -144,7 +144,7 @@ describe('throw.yaml through the whole binder', () => {
     const ctx: CommandContext = CommandApi.createCommandContext({
       commandGiver: giver as unknown as CommandContext['commandGiver'],
       interactive: {} as Interactive,
-      location: location as unknown as Location,
+      location: location as unknown as Place,
       commandText: line,
       executionId: 'test-exec',
       commandId: 'test-cmd',

@@ -32,7 +32,7 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 
-const LEAF = "/platform/location/SingletonCartesianLocation";
+const LEAF = "/platform/location/Locale";
 const OTHER_LEAF = "/platform/thing/Thing";
 const FOLDER = "/platform/idea/FolderZone";
 const HYDRATOR = "/platform/idea/TemplateApplier";

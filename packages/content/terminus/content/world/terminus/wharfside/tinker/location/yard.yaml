@@ -1,6 +1,6 @@
 # The tinker's yard (repair D15) — where his round starts at six and his
 # cart stands between rounds. Off the bank, behind the warehouses.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

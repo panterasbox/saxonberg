@@ -24,6 +24,9 @@ data:
   thermalConductivity: 0.4
   specificHeat: 1380
   tags: [liquid, caustic, acid]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/vitriol
   # ⭐ (rubber build) No coarse `organic`: rubber and ebonite ARE organic,
   # and acid does not eat them — so the list names what it really attacks.
   # `once-living` is the biological-origin tag every caught row carries;

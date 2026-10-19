@@ -2,7 +2,7 @@
 # cold and still, where the wheels ripen. ⭐ Its temperature IS the
 # ripening — a wheel on these racks is in the profiles' happy band; carry
 # one upstairs into the warm and it goes over, or dies.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: cheese room
   keywords: [cellar, "cheese room", cave, store]

@@ -44,9 +44,9 @@
  * objects earn their place — a tavern's lamp and a hearth are things
  * you ignite, feed and run out of.
  *
- * Composed on `CartesianLocation`, over `Detailed` (the detail line
+ * Composed on `Location`, over `Detailed` (the detail line
  * needs somewhere to live) — not on `Location` (no `Detailed` there)
- * and not on `FurnishableRoom` (interiors are where objects earn their
+ * and not on `PersistentLocation` (interiors are where objects earn their
  * place). Inert unless a row declares it.
  */
 

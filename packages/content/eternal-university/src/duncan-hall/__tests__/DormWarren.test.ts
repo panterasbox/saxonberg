@@ -98,7 +98,7 @@ function seedDomain(): void {
     shortDescription: 'a dorm corridor',
   });
   // The lobby stand-in — a Corridor-class exitable container (the real lobby
-  // is a CartesianLocation needing its zone; the stair wiring only needs an
+  // is a Location needing its zone; the stair wiring only needs an
   // Exitable container here).
   add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'the lobby',

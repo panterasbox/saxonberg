@@ -30,7 +30,7 @@ import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   makeStuff,
@@ -44,7 +44,7 @@ import { buildAllModalities } from '../../lib/perception/modalities/__tests__/te
 import '../idea/WorldClockRegistry';
 
 /** A lit room. */
-class LitRoom extends AmbientLitMixin(Location) {}
+class LitRoom extends AmbientLitMixin(Place) {}
 /** A closable box — the in-dorm dark lever. */
 class Box extends SealableMixin(ContainerMixin(ContainableMixin(Idea))) {}
 

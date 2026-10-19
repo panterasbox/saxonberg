@@ -23,7 +23,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import {
   makeStuff,
@@ -134,7 +134,7 @@ function hole(
   depositPath: string | null = DEPOSIT_PATH,
 ): Wellhead {
   if (depositPath !== null) installDeposit(fluids);
-  const room = makeStuff(() => new CartesianLocation());
+  const room = makeStuff(() => new Location());
   room.setCoordinates([0, 0, 0]);
   (room as unknown as { getZone(): unknown }).getZone = () =>
     stubZone(10, depositPath);

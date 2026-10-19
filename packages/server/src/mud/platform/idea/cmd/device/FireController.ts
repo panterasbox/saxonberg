@@ -635,6 +635,24 @@ async function runFiring(
     }
   }
 
+  // ⭐ (cleanliness D6, D14) A firing is two acts on what is near it. The
+  // recipe's `soils` land on the firer — else `soils:` on a glass, lime or
+  // vulcanize row would be silently dead — and the hold is a DRY HEAT on
+  // everything Soilable left in the chamber: an oven held hot is how an
+  // instrument is sterilised, so the heat is stamped by the act that
+  // reached it.
+  if (!giver.isDestroyed() && MixinApi.isHygienic(giver)) {
+    giver.soilFrom(firing.recipe.getSoils());
+  }
+  const heldK = firing.recipe.getRequiresHeatK();
+  if (heldK > 0) {
+    const spent = new Set<Stuff>(consumed);
+    for (const c of kiln.getContents()) {
+      if (spent.has(c) || !MixinApi.isSoilable(c)) continue;
+      c.recordHeat(heldK, firing.recipe.getHoldS());
+    }
+  }
+
   for (const item of consumed) await StuffApi.destruct(item);
 
   if (MixinApi.isAdvancing(giver) && !giver.isDestroyed()) {

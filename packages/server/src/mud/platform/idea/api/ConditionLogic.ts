@@ -628,7 +628,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
  * asks *whose is this*. A necropolis that cannot tell two bodies apart is
  * not a necropolis.
  *
- * The scheme is `OuterWarren`'s: a root plus a derived key
+ * The scheme is `CirculationWarren`'s: a root plus a derived key
  * (`${corpseRoot}/${deceased}/${diedAtGameSec}`, the deceased's leading
  * slash dropped so the two paths compose into segments).
  *

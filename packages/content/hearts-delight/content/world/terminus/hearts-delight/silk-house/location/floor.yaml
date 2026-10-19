@@ -8,7 +8,7 @@
 # authored ambient), and no authored temperature: the loft is as warm as
 # its walls and the season make it. The world's summer rears a crop in a
 # month; a winter rearing here is slow, which is true.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   extent: 8
   shortDescription: silk house loft

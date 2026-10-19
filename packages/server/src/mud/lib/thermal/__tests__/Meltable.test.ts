@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Material from '../../material/Material';
 import Floor from '../../../platform/thing/Floor';
 import Flask from '../../../platform/thing/Flask';
@@ -28,7 +28,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 class Ingot extends MeltableMixin(ThermalMixin(Good)) {
   static _mixinName = 'IngotTest';
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 

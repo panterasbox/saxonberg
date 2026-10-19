@@ -68,6 +68,15 @@ export interface PricedOffer {
    * can pay for is refused, not done on the house.
    */
   canSettle(amount: number): boolean;
+  /**
+   * ⭐ Why the person asking could NOT pay `amount` now, in words — or
+   * `null` when they can. Honest about the one case that is not poverty:
+   * the implant's payment credential is session-durable, so after a
+   * restart a returning player's implant carries no linked account until
+   * `bank open` re-links it (found by the cleanliness browser walk: a
+   * player with 397 in the bank was told they had no money).
+   */
+  payRefusal(amount: number): string | null;
 }
 
 export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -155,6 +164,15 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
     public canSettle(amount: number): boolean {
       if (amount <= 0) return true;
       return BankingApi.canSettle(Money.of(amount, BankingApi.compactCurrency()));
+    }
+
+    public payRefusal(amount: number): string | null {
+      if (this.canSettle(amount)) return null;
+      const cred = BankingApi.activeCredential();
+      if (cred && cred.getActiveAccount() === null) {
+        return "Your implant has no account linked to it — `bank open` at your bank links it again.";
+      }
+      return "You haven't the money for that.";
     }
 
     /** The house, and the place the fee is attributed to. */

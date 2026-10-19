@@ -7,7 +7,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CoolController from '../CoolController';
 import { Creature } from '../../../../../lib/creature/Creature';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
 import Receptacle from '../../../../thing/Receptacle';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -75,7 +75,7 @@ function reachableWater(c: Creature): MqlManyResult {
 
 /** A burned body with a jug of water in reach. */
 function burned(): { me: Creature; burn: Trauma } {
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
   const me = makeStuff(() => new Creature());
   ContainmentApi.move(me, room);
   ContainmentApi.move(waterJug(), room);
@@ -111,7 +111,7 @@ describe('CoolController', () => {
   });
 
   it('⚠ needs water in reach', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const me = makeStuff(() => new Creature());
     ContainmentApi.move(me, room);
     me.afflict({ kind: 'trauma', type: 'burn', site: 'body.arm.left', severity: 2 });
@@ -125,7 +125,7 @@ describe('CoolController', () => {
   });
 
   it('⚠ refuses a body with nothing cooling would help', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const me = makeStuff(() => new Creature());
     ContainmentApi.move(me, room);
     ContainmentApi.move(waterJug(), room);

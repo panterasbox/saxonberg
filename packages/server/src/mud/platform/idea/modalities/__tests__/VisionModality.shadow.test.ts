@@ -7,7 +7,7 @@ import type { LightBand, VisionProfile } from '../../../../lib/perception/Light'
 import { VisionModality } from '../VisionModality';
 import { ShadowApi } from '../../../../api/shadow';
 import { StuffApi } from '../../../../api/stuff';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
@@ -27,7 +27,7 @@ import { PerceptionApi } from '../../../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLocation extends AmbientLitMixin(Location) {}
 class TestObserver extends PerceptionMixin(
   SensorMixin(ContainableMixin(Good))
 ) {
@@ -88,7 +88,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
   it('returns the raw band when no shadow is attached', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(40);
     const viewer = await StuffApi.create(() => new TestObserver());
@@ -99,7 +99,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
   it('BlindfoldShadow makes every room read pitch-black', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
     const viewer = await StuffApi.create(() => new TestObserver());
@@ -115,7 +115,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
   it('NightVisionShadow shifts the band up via getVisionProfile', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(2);
 
@@ -137,7 +137,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     // the absence of light (envelope D11).
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const cellar = makeStuff(() => new AmbientCartesianLocation());
+    const cellar = makeStuff(() => new AmbientLocation());
     zone.addLocation(cellar, 0, 0, 0);
     // No ambient, no emitter, no exit: genuinely zero photons.
 
@@ -157,7 +157,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
   it('multiple shadows compose via callDown — chain order respected', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
@@ -196,7 +196,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
   it('per-viewer specialization: two viewers, two answers', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(40);
 
@@ -222,7 +222,7 @@ describe('VisionModality.canSee — detail levels and overrides', () => {
   it('detail-level threshold gates discernment', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     const viewer = await StuffApi.create(() => new TestObserver());
     const target = makeStuff(() => new Candle());
@@ -250,7 +250,7 @@ describe('VisionModality.canSee — detail levels and overrides', () => {
   it('XRayShadow override forces canSee to true', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     const viewer = await StuffApi.create(() => new TestObserver());
     const target = makeStuff(() => new Candle());

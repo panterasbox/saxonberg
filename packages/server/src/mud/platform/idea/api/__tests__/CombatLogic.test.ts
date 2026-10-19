@@ -61,7 +61,7 @@ import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
 import Exit from "../../../../lib/boundary/Exit";
-import CartesianLocation from "../../../../lib/location/CartesianLocation";
+import Location from "../../../../lib/location/Location";
 import CartesianZone from "../../location/CartesianZone";
 import { Postures } from "../../../../lib/slot/Postured";
 import type { Combatant } from '../../../../lib/combat/Combatant';
@@ -2483,13 +2483,13 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
   // Two coordinate rooms joined by a south exit — the arena the rush
   // throws a foe out of.
   async function roomPair(): Promise<{
-    src: CartesianLocation;
-    dst: CartesianLocation;
+    src: Location;
+    dst: Location;
   }> {
     const zone = makeStuff(() => new CartesianZone());
     stampTemplatePathForTest(zone, `/test/zone-${seq++}`);
-    const src = makeStuff(() => new CartesianLocation());
-    const dst = makeStuff(() => new CartesianLocation());
+    const src = makeStuff(() => new Location());
+    const dst = makeStuff(() => new Location());
     stampTemplatePathForTest(src, `/test/room-src-${seq++}`);
     stampTemplatePathForTest(dst, `/test/room-dst-${seq++}`);
     zone.addLocation(src, 0, 0, 0);

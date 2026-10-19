@@ -54,7 +54,8 @@ const SoiledWriters = SecurityPolicies.AnyOf(
 /** The method surface serviceable kit offers other Stuff. */
 export interface Serviceable {
   isSoiled(): boolean;
-  soil(): void;
+  /** Mark it USED — one-way; only `wash()` clears it. */
+  markUsed(): void;
   setSoiled(value: boolean): void;
   getTechnique(): string;
   setTechnique(value: string): void;
@@ -91,8 +92,12 @@ export function ServiceableMixin<TBase extends MixinConstructor<Stuff>>(
      * and `wash()` is the only road back. That is why it needs no gate
      * where the raw setter does — anyone who uses a piece of kit may soil
      * it, and nobody at all may quietly un-soil one.
+     *
+     * ⚠ Named `markUsed`, not `soil`, since the cleanliness build: `soil`
+     * is `SoilableMixin`'s writer (dirt BY KIND on a layer), and a
+     * CraftVessel composes both — *used* and *greasy* are two facts.
      */
-    soil(): void {
+    markUsed(): void {
       this.soiled = true;
     }
 

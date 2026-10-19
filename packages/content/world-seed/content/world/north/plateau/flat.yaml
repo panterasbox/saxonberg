@@ -1,6 +1,6 @@
 # The plateau — the dry cold. Snow falls here as often as on the snowfield
 # and almost none of it lands: the Locality's amount, not its temperature.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: plateau
   keywords: [plateau, flat]

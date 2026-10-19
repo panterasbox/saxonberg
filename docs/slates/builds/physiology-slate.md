@@ -751,6 +751,12 @@ keeps recurring.
 
 ## Part 7d — Sleep, beds, and being logged in (2026-08-02)
 
+> ⭐ **2026-10-18 (user): logout IS sleep** — on login your state is a
+> function of your state at logout + the time away (restful or not); the
+> shipped far-past freeze was never the design. Carried by
+> [sleep-slate](./sleep-slate.md), which also holds rest quality from what
+> you wear and why pyjamas matter.
+
 **(User: sleep is currently ~"necessarily logged out", but it need not be
 — getting into bed WITHOUT logging out to heal is legit. So: what is the
 difference between being IN bed and being ASLEEP in bed, and do we model

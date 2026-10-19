@@ -1,6 +1,6 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Vessel } from '../../lib/stuff/Vessel';
 import { AtmosphericMixin } from '../../lib/biome/Atmospheric';
 import { Idea } from '../../lib/stuff/Idea';
@@ -17,7 +17,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 /**
  * ⭐ A CABIN — the `ExitableVessel` shape (`Atmospheric(Vessel)`) without
@@ -66,7 +66,7 @@ describe('BiomeApi resolve* — vessel walk', () => {
     BiomeApi.invalidateRootBiomeCache();
   });
 
-  it('porous vessel — no overrides → reads outer Location values', async () => {
+  it('porous vessel — no overrides → reads outer Place values', async () => {
     const room = makeStuff(() => new TestLocation());
     room.setTemperature(Quantity.of(285, 'K'));
     const ship = makeStuff(() => new TestCabin());
@@ -118,7 +118,7 @@ describe('BiomeApi resolve* — vessel walk', () => {
     expect(await BiomeApi.resolveAtmosphereFor(inner)).toBe('water');
   });
 
-  it('detail-key locality — outer Location IS queried with the detail key', async () => {
+  it('detail-key locality — outer Place IS queried with the detail key', async () => {
     const room = makeStuff(() => new TestLocation());
     room.setTemperature(Quantity.of(800, 'K'), 'hearth');
     const vessel = makeStuff(() => new TestCabin());
@@ -126,13 +126,13 @@ describe('BiomeApi resolve* — vessel walk', () => {
 
     // Per requirements: detail key applies only at innermost scope.
     // The vessel has no 'hearth' detail; the walk should NOT pass the
-    // detail key onto outer ancestors. The outer Location's hearth
+    // detail key onto outer ancestors. The outer Place's hearth
     // override is therefore NOT visible to a vessel-scope query.
     expect(
       (await BiomeApi.resolveTemperatureFor(vessel, 'hearth')).rawValue(),
     ).toBe(295); // falls through to universe default
 
-    // Querying the Location with the detail key DOES read the override.
+    // Querying the Place with the detail key DOES read the override.
     expect(
       (await BiomeApi.resolveTemperatureFor(room, 'hearth')).rawValue(),
     ).toBe(800);

@@ -11,7 +11,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RinseController from '../RinseController';
 import { Creature } from '../../../../../lib/creature/Creature';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
 import Receptacle from '../../../../thing/Receptacle';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -105,7 +105,7 @@ function reachableWater(c: Creature): MqlManyResult {
 /** A body standing in a room with a jug of water in it. */
 function atWater(): Creature {
   ensureWater();
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
   const jug = waterJug();
   ContainmentApi.move(jug, room);
   const c = makeStuff(() => new Creature());
@@ -115,7 +115,7 @@ function atWater(): Creature {
 
 /** A body in a dry room. */
 function dry(): Creature {
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
   const c = makeStuff(() => new Creature());
   ContainmentApi.move(c, room);
   return c;
@@ -206,7 +206,7 @@ describe('RinseController', () => {
 
   it('⭐ a CARRIED jug is water in reach, exactly as it is for `wash`', async () => {
     ensureWater();
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const me = makeStuff(() => new Creature());
     ContainmentApi.move(me, room);
     const jug = waterJug();

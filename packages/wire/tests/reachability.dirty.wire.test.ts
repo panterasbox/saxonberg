@@ -88,7 +88,9 @@ const BANK = '/world/terminus/wharfside/bank';
 const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
 const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
-const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
+// ⭐ The stones moved indoors with the cleanliness build (D22): the mill
+// house, west of the race.
+const MILLSITE = '/world/terminus/hearts-delight/location/mill-house';
 
 const open: Session[] = [];
 let k: Session;

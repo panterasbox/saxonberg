@@ -1312,12 +1312,17 @@ export const AppSettingKeys = {
   /** Wetness — the water-absorption-capacity (%) a materialless object (or
    * a gauge whose host carries no material) reads as its neutral fallback. */
   wetnessAbsorptionCapacityDefaultPct: "wetness.absorptionCapacityDefaultPct",
-  /** Wetness — extra fractional drying per K the body/object is above the
-   * warmth reference (a warm body / a fire dries you faster). */
-  wetnessWarmthFactor: "wetness.warmthFactor",
-  /** Wetness — the reference temperature (K) above which warmth accelerates
-   * drying. */
-  wetnessWarmthReferenceK: "wetness.warmthReferenceK",
+  /** Wetness — the relative humidity (%) of the REFERENCE air: still
+   * indoor air at 20 °C, where a thing dries at its material's own rate.
+   * The air it is actually in (humidity deficit, wind, the matter's heat —
+   * `Evaporation.evaporationFactor`) scales the rate against this (B56). */
+  wetnessReferenceHumidityPct: "wetness.referenceHumidityPct",
+  /** Wetness — the share of the water a rub with a cloth takes (`Wet.soakUp`):
+   * never the last film (B56). */
+  wetnessBlotTakes: "wetness.blotTakes",
+  /** Wetness — kg of water a soaked body carries per m² of skin (the film a
+   * towel takes; the area by Meeh's law, B56). */
+  wetnessSkinFilmKgPerM2: "wetness.skinFilmKgPerM2",
   /** Wetness — saturation gained per game-hour of standing in rain. */
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */
@@ -1417,6 +1422,9 @@ export const AppSettingKeys = {
   freshnessBandSpoiledAt: "freshness.band.spoiledAt",
   /** Spoilage — load at/above which the band reads `rotten`. */
   freshnessBandRottenAt: "freshness.band.rottenAt",
+  /** Freshness — game-seconds food lies ROTTEN, loose in a room, before it
+   * rots away into crumbs on the floor (cleanliness). */
+  freshnessRotAwayAfterS: "freshness.rotAwayAfterS",
   /** Spoilage — load at/below which an ingest carries NO ptomaine dose. */
   freshnessDoseOnsetLoad: "freshness.dose.onsetLoad",
   /** Spoilage — the ptomaine dose (mg) a fully rotten serving carries; the
@@ -1785,6 +1793,13 @@ export const AppSettingKeys = {
    * fire down but not off, so *bank it, leave, come back to it still in* is
    * arithmetic rather than a mechanism. */
   fireDraughtBanked: "fire.draught.banked",
+  /** Fire — the ash share of a burner's capacity at which its grate
+   * begins to choke the draught (cleanliness). */
+  fireAshChokeStartShare: "fire.ash.chokeStartShare",
+  /** Fire — the ash share of capacity at which the grate is fully choked. */
+  fireAshChokeFullShare: "fire.ash.chokeFullShare",
+  /** Fire — the draught multiplier a fully choked grate leaves. */
+  fireAshChokedDraught: "fire.ash.chokedDraught",
   /** Fire — the power ceiling (W) a burner row that authors none falls back
    * to. */
   fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",
@@ -2184,6 +2199,20 @@ export const AppSettingKeys = {
   /** Textiles — application strength below which a colour no longer
    * reads at all, and the thing is undyed again. */
   textilesDyeLegibleAt: "textiles.dye.legibleAt",
+  /** Textiles — the water temperature (K) at or above which a fibre
+   * garment shrinks in the wash (cleanliness D10). */
+  textilesWashShrinkAboveK: "textiles.wash.shrinkAboveK",
+  /** Textiles — the cut a hot wash shrinks a fibre garment to (× each). */
+  textilesWashHotShrink: "textiles.wash.hotShrink",
+  /** Textiles — the cut a FELTED garment shrinks to (× each): boiled wool
+   * does not come back. */
+  textilesWashFeltShrink: "textiles.wash.feltShrink",
+  /** Textiles — the share of the colour an unfast dye loses in a wash that
+   * goes onto whatever else is in the water with it. */
+  textilesWashBleedFraction: "textiles.wash.bleedFraction",
+  /** Textiles — wear done by a wash the cleanser's chemistry eats the
+   * fibre in (a harsh bleach on linen, lye on wool, vitriol on cotton). */
+  textilesWashRotDose: "textiles.wash.rotDose",
 
   /* ────────────────────────── body (the stocks) ────────────────────────── */
   /**
@@ -2300,6 +2329,42 @@ export const AppSettingKeys = {
   pumpHandFloorW: "pump.handFloorW",
   /** Pump — the fraction of a shift a rostered hand spends at the handle. */
   pumpCrewDuty: "pump.crewDuty",
+
+  /* ───────────────────────── cleanliness ───────────────────────── */
+  /**
+   * Cleanliness — the load (a dimensionless amount of dirt at a site) at
+   * which a thing reads MARKED, SOILED and FILTHY. The bands are the only
+   * thing a player is told; these say where the words change.
+   */
+  cleanlinessBandMarkedAt: "cleanliness.band.markedAt",
+  cleanlinessBandSoiledAt: "cleanliness.band.soiledAt",
+  cleanlinessBandFilthyAt: "cleanliness.band.filthyAt",
+  /** Cleanliness — the ppm of a thing's dirt odour (`Soilable.soilOdour`)
+   * at which its description says it smells (an ordinary nose's
+   * threshold, B57). The smell walk itself thresholds by the nose. */
+  cleanlinessOdourNoticedPpm: "cleanliness.odourNoticedPpm",
+  /** Cleanliness — the share of what is on a mover's feet a floor takes
+   * at each crossing (and the feet lose). */
+  cleanlinessTrafficTrackIn: "cleanliness.traffic.trackIn",
+  /** Cleanliness — the share of a dirty glove's load a QUICK removal
+   * leaves on the bare hand under it (`remove … carefully` leaves none). */
+  cleanlinessDoffTransfer: "cleanliness.doff.transfer",
+  /** Fire — the share of a badly-burnt kilogram that goes up the flue as
+   * soot (cleanliness D18). */
+  fireFlueSootFraction: "fire.flue.sootFraction",
+  /** Fire — the soot in a flue (kg) at which a roaring fire sets it alight. */
+  fireFlueIgnitesAtKg: "fire.flue.ignitesAtKg",
+  /** Cleanliness — the debris load on a floor at which, with open food in
+   * the room, pests come (cleanliness D17). */
+  cleanlinessPestsDebrisAt: "cleanliness.pests.debrisAt",
+  /** What pests add to an open food's spoilage rate, per hour, while the
+   * floor has them (cleanliness D17). */
+  cleanlinessPestsRatePerHour: "cleanliness.pests.ratePerHour",
+  /** The severity a board, knife or hand short of sanitised puts on the
+   * food it touches (cleanliness D14). */
+  kitchenSurfaceInoculum: "kitchen.surfaceInoculum",
+  /** Cleanliness — the row a hearth's raked-out ash is minted as. */
+  cleanlinessAshTemplate: "cleanliness.ashTemplate",
 } as const;
 
 export type AppSettingKey =

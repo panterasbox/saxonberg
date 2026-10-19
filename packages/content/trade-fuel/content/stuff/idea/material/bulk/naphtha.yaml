@@ -1,0 +1,27 @@
+# Naphtha — coal tar's light cut (cleanliness D22, D25): the solvent for
+# grease and oil water cannot touch. ⭐ VOLATILE: an open dish of it gives off
+# a vapour heavier than air, and a little over one part in a hundred of it by
+# a naked flame is a fire.
+class: /platform/idea/material/Material
+data:
+  name: naphtha
+  keywords: [naphtha, spirit, solvent]
+  appearance: a thin, clear, sharp-smelling liquid
+  density: 700
+  specificHeat: 2100
+  thermalConductivity: 0.13
+  meltingPoint: 200
+  boilingPoint: 350
+  autoignitionTemperature: 520
+  heatOfCombustion: 44
+  vapourLPerLPerHour: 40
+  vapourMaterial: /stuff/idea/material/gas/naphtha-vapour
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, fuel, volatile, naphtha]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/naphtha
+  composition: []
+  biologicalSource: null

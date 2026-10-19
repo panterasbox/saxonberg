@@ -8,7 +8,7 @@
 # a game day each is not a dairy; it is milk for the town and a soft cheese
 # set in a pan on the lodge stove — which is exactly the household scale
 # a goat has always been kept at.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: goat pen
   keywords: [pen, goats, fold, hurdles]

@@ -16,7 +16,7 @@ import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { EngagedMixin } from '../../../../../lib/activity/Engaged';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
@@ -40,7 +40,7 @@ class Lifter extends CommandGiverMixin(MobileMixin(SensorMixin(EngagedMixin(Crea
   protected override handleEnvelope(): void {}
 }
 
-function ctxFor(actor: Lifter, room: Location): CommandContext {
+function ctxFor(actor: Lifter, room: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: room,
@@ -69,7 +69,7 @@ async function makeRegistry(): Promise<void> {
 }
 
 describe('LiftController — the load you choose', () => {
-  let room: Location;
+  let room: Place;
   let lifter: Lifter;
   let bar: LoadDevice;
 
@@ -81,7 +81,7 @@ describe('LiftController — the load you choose', () => {
     StuffApi.clearAll();
     await makeRegistry();
     vi.spyOn(AppApi, 'setting').mockReturnValue('');
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     lifter = makeStuff(() => new Lifter());
     lifter.setMass(Quantity.of(70, 'kg'));
     ContainmentApi.move(lifter as never, room as never);

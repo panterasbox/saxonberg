@@ -1,15 +1,15 @@
 /**
- * SphericalLocation — a Location shaped as a sphere of given radius,
+ * SphericalLocation — a Place shaped as a sphere of given radius,
  * positioned by focus inside a `SphericalZone`.
  *
- * Composition: `ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))`
+ * Composition: `ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Place)))`
  *
  * Spherical zones have no implicit adjacency — every exit on a
  * SphericalLocation is explicit and semantic (e.g., `'office'`, `'plaza'`).
  * `CartesianZone`-style derivation returns nothing here.
  */
 
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { SphericalCoordinatesMixin } from '../../lib/location/SphericalCoordinates';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { Quantity } from '../../lib/quantity';
@@ -17,18 +17,18 @@ import type SphericalZone from '../idea/location/SphericalZone';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
 
-// ⭐ NOT singleton — the same asymmetry as `CartesianLocation`, and the
+// ⭐ NOT singleton — the same asymmetry as `Location`, and the
 // same reason it holds the unmarked name: the mixin SUBTRACTS. A class
 // without it still backs singleton templates via
 // `StuffApi.singleton(path)`; a class with it can back ONLY those,
 // because `clone()` throws after the first.
-// {@link SingletonSphericalLocation} is the opt-in.
+// {@link SphericalLocale} is the opt-in.
 const SphericalLocationBase =
-  ExitableMixin(SphericalCoordinatesMixin(Location));
+  ExitableMixin(SphericalCoordinatesMixin(Place));
 
 export default class SphericalLocation extends SphericalLocationBase {
   /**
-   * Mutual-exit verification — same as CartesianLocation. The verifier
+   * Mutual-exit verification — same as Location. The verifier
    * skips non-cardinal directions, so spherical exits authored with
    * semantic labels (`'office'`, `'plaza'`) are no-ops here; they rely
    * on `addBidirectionalExit` for inverse wiring at construction time.
@@ -38,14 +38,14 @@ export default class SphericalLocation extends SphericalLocationBase {
     this.verifyOutboundExits();
   }
 
-  // onDestruct inherited from ExitableMixin → Location chain.
+  // onDestruct inherited from ExitableMixin → Place chain.
 
   /**
    * Narrowed override: a `SphericalLocation` lives in a `SphericalZone`
    * by `SphericalZone.addLocation`'s rejection of non-Spherical
    * locations. The cast happens once here, at the boundary; callers
    * with a typed `SphericalLocation` reference get the narrowed type
-   * for free. Symmetric with `CartesianLocation.getZone`.
+   * for free. Symmetric with `Location.getZone`.
    */
   public override getZone(): SphericalZone | null {
     return super.getZone() as SphericalZone | null;
@@ -109,8 +109,8 @@ export default class SphericalLocation extends SphericalLocationBase {
    * on `SphericalCoordinatesMixin.coordinates` (`[rho, theta, phi]`)
    * and `radius` (number). The setter bridges them — see `setFocus`.
    *
-   * Parallel to `CartesianLocation.coords` per declarative-content-
-   * slate § coords on CartesianLocation (Spherical note).
+   * Parallel to `Location.coords` per declarative-content-
+   * slate § coords on Location (Spherical note).
    */
   protected _focus: {
     rho: number;

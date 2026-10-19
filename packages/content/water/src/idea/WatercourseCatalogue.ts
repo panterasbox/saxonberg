@@ -46,6 +46,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { WaterHardness } from '@saxonberg/server/mud/lib/cleanliness/WaterHardness';
 import {
   WaterSourceMixin,
   type WaterRead,
@@ -423,6 +424,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         : {
             materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
             temperatureK: water?.temperatureK ?? UNDER_ICE_K,
+            // ⭐ The water carries its source's hardness (cleanliness D12).
+            ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
           },
       // ⭐ The water under the ice (storage-and-ice D15): what comes up
       // through a hole — the reach's own water, at the under-ice floor.
@@ -431,6 +434,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
             underIce: {
               materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
               temperatureK: UNDER_ICE_K,
+              ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
             },
           }
         : {}),
@@ -1577,7 +1581,9 @@ function temperatureWords(k: number): string {
 }
 
 function hardnessWords(dgh: number): string {
-  return dgh < 6 ? 'soft' : 'hard';
+  // ⭐ The kernel's one rule (cleanliness D12): the river and the tap say
+  // *soft* and *hard* the same way.
+  return new WaterHardness(dgh).word();
 }
 /** Liquid water under a frozen surface — the floor a river's temperature reads. */
 const UNDER_ICE_K = 274;

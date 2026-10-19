@@ -7,7 +7,7 @@
 # It authors NO ambientSource: its daylight is its construction's — a
 # glass roof passes the sky. The vent door onto the yard is the only way
 # to let a summer noon out.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 0, y: 1, z: 0 }
   shortDescription: "stove house"

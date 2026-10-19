@@ -29,7 +29,7 @@ import {
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
 import Avatar from '../../../../platform/agent/PrimaryAvatar';
-import CartesianLocation from '../../../location/CartesianLocation';
+import Location from '../../../location/Location';
 import SandboxCrossing from '../../../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
@@ -204,7 +204,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     store.set(Collections.Transcripts, [{ owner: 'someone', check: 'x' }]);
 
     // The player and the door.
-    const room = await StuffApi.create(() => new CartesianLocation());
+    const room = await StuffApi.create(() => new Location());
     const avatar = await StuffApi.create(() => new Avatar(), {
       playerId: PLAYER,
     });
@@ -239,7 +239,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         // author a template under the circle namespace — the deliberate save
         await PersistApi.save(Collections.Content, {
           path: `${SCOPE}/workshop`,
-          class: '/platform/location/SingletonCartesianLocation',
+          class: '/platform/location/Locale',
         });
         // fight + transact — material ledger rows
         await PersistApi.save(Collections.BankLedger, {
@@ -300,7 +300,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     // "the content collection holds exactly one row".
     expect(store.get(Collections.Content)).toContainEqual({
       path: `${SCOPE}/workshop`,
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
     });
     // …and the epistemic record exists, wire-marked.
     //

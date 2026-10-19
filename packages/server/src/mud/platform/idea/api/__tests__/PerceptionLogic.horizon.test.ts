@@ -1,7 +1,7 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Thing from '../../../thing/Thing';
 import Structure from '../../Structure';
 import Ship from '../../Ship';
@@ -45,7 +45,7 @@ function zoneAt(path: string, cells: Array<[number, number]>, cellSize = 3): Car
   const z = makeStuffAtPath(() => new CartesianZone(), path);
   z.setCellSize(cellSize);
   cells.forEach(([x, y], i) => {
-    const loc = makeStuffAtPath(() => new CartesianLocation(), `${path}/room-${i}`);
+    const loc = makeStuffAtPath(() => new Location(), `${path}/room-${i}`);
     z.addLocation(loc, x, y, 0);
     live.set(`${path}/room-${i}`, loc);
   });
@@ -138,7 +138,7 @@ describe('the horizon ashore', () => {
   });
 
   it('an authored [] is an answer — the room overrides its zone', async () => {
-    const room = live.get('/t/avenue/room-1') as CartesianLocation;
+    const room = live.get('/t/avenue/room-1') as Location;
     room.setHorizon([]);
     expect((PerceptionApi.horizonFor(viewerIn('/t/avenue/room-1'))).things).toEqual([]);
     expect(names(PerceptionApi.horizonFor(viewerIn('/t/avenue/room-0')))).toEqual(['/t/town/tower']);

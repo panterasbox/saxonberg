@@ -2,7 +2,7 @@
 # of the bar. NOT the staff bolt-hole (that's Offstage, the shifts brain's
 # parking lot); this is Dave's *private* room, the place mastery retires
 # into — the endgame you can see the edge of. A plain connected room (the
-# duncan-hall CartesianLocation precedent), distinct from the singleton
+# duncan-hall Location precedent), distinct from the singleton
 # Bar so it never inherits the Warren wiring.
 #
 # The north exit INTO this room is a concealed (`concealment: hidden`)
@@ -12,7 +12,7 @@
 # scope-walk list it and `go north` works — the search-reveals-hidden
 # unlock (concealment-detection Phase 3). The south exit back out is plain
 # and visible.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. North of the bar, matching the exit pair that already named the direction.

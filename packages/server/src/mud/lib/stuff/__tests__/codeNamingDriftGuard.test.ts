@@ -201,6 +201,13 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/behavior/Behaved.ts::resolveExportSync",
     classification: "gated-direct",
   },
+  // ⭐ A kept door asks the door-judging brain on a keeper's behaviours,
+  // by the path his row authored (cleanliness D29) — the Behaved
+  // per-fire re-resolve precedent, behind the same source-write gate.
+  {
+    site: "platform/idea/KeptDoor.ts::resolveExportSync",
+    classification: "gated-direct",
+  },
   // Combat session invokes an attached combat brain by path each beat
   // (the Behaved per-fire re-resolve precedent). Author-named path, but a
   // brain is a `lib/behavior/` module behind the wizard source-write gate.

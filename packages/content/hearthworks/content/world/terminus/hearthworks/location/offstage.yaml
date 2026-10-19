@@ -6,6 +6,8 @@
 # a shortened schedule parks them somewhere rather than nowhere.
 class: /platform/location/Offstage
 data:
+  # Every place but the void has a cell (the place taxonomy) — behind the woodshed.
+  coords: { x: 0, y: 1, z: 0 }
   shortDescription: The Hearthworks — Back room
   keywords: [room, hearthworks, back]
   register: proper

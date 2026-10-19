@@ -46,7 +46,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, withRootContext } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { PlayerApi } from '@saxonberg/server/mud/api/player';
@@ -107,7 +107,7 @@ function rejections(c: CommandContext): string[] {
   return c.getNotes().filter((n) => n.kind === 'controller-rejected').map((n) => (n as { reason: string }).reason);
 }
 
-let square: Location;
+let square: Place;
 let stalls: MarketStalls;
 
 async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
@@ -211,7 +211,7 @@ describe('a player shop is a rented market stall', () => {
       b.setCorpoKey('goodkin');
       return b;
     }, BANK);
-    square = makeStuffAtPath(() => new Location(), SQUARE);
+    square = makeStuffAtPath(() => new Place(), SQUARE);
     stalls = makeStuffAtPath(() => {
       const s = new MarketStalls();
       s.stockLines = [];

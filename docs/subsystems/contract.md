@@ -413,3 +413,11 @@ piecework venue; the general trusted-recording instrument (the
 coin** (an unbanked completer paid in physical cash over a counter —
 needs an escrow→till bridge at a branch; today the refusal nudges the
 player to open an account).
+
+## The `clean` template (2026-10-17)
+
+`job post clean <place>` · `clean <thing> at <place>`: a place means its
+floor, a thing at the place that thing (a hearth's flue, a marked
+garment). `Condition.cleanHolds` reads the band (or the flue's soot) at
+turn-in; a subject already clean cannot be posted. Like `watch`, it gives
+up on intent: the engine checks the thing is clean now. See [cleanliness.md](./cleanliness.md).

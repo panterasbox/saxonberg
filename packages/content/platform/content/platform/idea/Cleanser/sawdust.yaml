@@ -1,0 +1,4 @@
+# Sawdust, strewn — an absorbent: spills and blood on a floor, swept up
+# with them (the saw's, storage-and-ice).
+class: /platform/idea/Cleanser
+data: {key: sawdust, agent: sawdust, action: absorbent, consumesPerWash: 0.5}

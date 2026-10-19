@@ -1,0 +1,14 @@
+# A flask of lye — the chandler's stock (cleanliness D24).
+class: /platform/thing/Receptacle
+data:
+  shortDescription: flask of lye
+  keywords: [lye, jar, flask, "flask of lye"]
+  register: indefinite
+  longDescription: A stoppered stone flask, its label a skull scratched into the glaze.
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/chandlery/idea/material/lye
+  interiorAmount: 0.5
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 0.6

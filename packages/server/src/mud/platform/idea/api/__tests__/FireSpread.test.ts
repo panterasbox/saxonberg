@@ -10,7 +10,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Exit from '../../../../lib/boundary/Exit';
 import Door from '../../../thing/Door';
 import Good from '../../../../lib/stuff/Good';
@@ -61,7 +61,7 @@ function woodMaterial(): Material {
  * 1 kg for the in-room case, lighter kindling across a doorway where less heat
  * arrives). */
 async function log(
-  room: CartesianLocation,
+  room: Location,
   wet = false,
   massKg = 1,
 ): Promise<Firewood> {
@@ -81,14 +81,14 @@ async function log(
   return w;
 }
 
-async function room(zone: CartesianZone, x: number): Promise<CartesianLocation> {
-  const r = makeStuff(() => new CartesianLocation());
+async function room(zone: CartesianZone, x: number): Promise<Location> {
+  const r = makeStuff(() => new Location());
   r.setShortDescription(`room-${x}`);
   zone.addLocation(r, x, 0, 0);
   return r;
 }
 
-async function occupy(room: CartesianLocation): Promise<void> {
+async function occupy(room: Location): Promise<void> {
   const occ = makeStuff(() => new TestOccupant());
   await ContainmentApi.move(occ, room);
   const n = seq++;

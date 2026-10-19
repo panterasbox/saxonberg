@@ -17,6 +17,12 @@ help: |
   on the fire in reach (`heat vat`), and warms there until you take it
   off (`get vat`). A thermometer tells you how far it has come.
 
+  A cloth or a tool — a bandage, a board, a knife — heated IN a pot of
+  water (`boil bandage in pot`) is held at the boil for five minutes and
+  comes out DISINFECTED. Washing only makes a thing clean; boiling is
+  what kills. Held in the flame instead (`heat kit`), an instrument takes
+  a dry heat, which kills the spores boiling leaves.
+
   `boil` is the same act. A pot of water brought to a boil holds there
   while it boils away, and a minute at a rolling boil makes bad water fit
   to drink — or tar into pitch. ⚠ It does not fix everything: a river
@@ -40,3 +46,16 @@ args:
     # fire in reach (dairy D6). A build vessel and a cold vat share no
     # mixin, so an alternation would delete a check.
     requires: any
+  # ⭐ WHAT IN — the pot a cloth or a tool is boiled in (cleanliness D14,
+  # carried over when `boil` became this verb's alias): `boil bandage in
+  # pot` / `heat bandage in pot`. ⚠ No `default:` — deliberately. Bare
+  # `heat kit` is the FLAME arm, and a defaulted pot would turn every
+  # instrument held in the ward's fire into one dropped in its pot. A
+  # build or a vessel is its own pot and ignores this.
+  - name: pot
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [in]
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -907,7 +907,7 @@ a room were **one object** to every identity-keyed ledger: to the
 chronicle, to belief, to chattel, to anything that asks *whose is this*.
 A necropolis that cannot tell two bodies apart is not a necropolis.
 
-The scheme is `OuterWarren`'s — a root plus a derived key:
+The scheme is `CirculationWarren`'s — a root plus a derived key:
 `${corpseRoot}/${deceased}/${diedAtGameSec}`, the deceased's leading
 slash dropped so the two compose into segments. ⚠ It has to survive two
 things, and the second is the one that catches people:

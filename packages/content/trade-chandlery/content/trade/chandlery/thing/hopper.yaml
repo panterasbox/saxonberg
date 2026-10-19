@@ -1,0 +1,19 @@
+# An ash hopper — a wooden tub on legs with a hole in the bottom and straw
+# over it (cleanliness D24). Put wood ash in, pour water on, and half a day
+# later the lye runs out of the bottom. ⚠ Tall: draw it off bare-handed and
+# it will splash your face.
+class: /trade/chandlery/thing/Hopper
+data:
+  shortDescription: ash hopper
+  keywords: [hopper, "ash hopper", tub]
+  register: indefinite
+  longDescription: >-
+    A tall wooden tub on four splayed legs, lined with straw, with a
+    spigot low down over a channel cut in a stone. It comes up to your
+    chin, and the wood around the spigot is bleached white.
+  category: hopper
+  interiorBulk: true
+  interiorCapacity: 20
+  open: true
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25

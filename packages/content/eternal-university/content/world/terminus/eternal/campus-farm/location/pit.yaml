@@ -20,7 +20,7 @@
 #
 # Reached by going `down` from the yard, which is the only way anybody
 # ever gets into one.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: slurry pit
   keywords: [pit, slurry, tank, midden]

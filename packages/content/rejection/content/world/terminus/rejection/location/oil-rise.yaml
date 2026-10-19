@@ -3,7 +3,7 @@
 # is twice the swings of slate.
 #
 # ⭐ Nothing here says so. The prose is a hill.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: whaleback

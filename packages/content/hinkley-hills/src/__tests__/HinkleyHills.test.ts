@@ -32,7 +32,7 @@ import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
 import PlantPot from '@saxonberg/server/mud/platform/thing/PlantPot';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
+import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve';
@@ -50,7 +50,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { AmbientLitMixin } from '@saxonberg/server/mud/lib/perception/AmbientLit';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -82,7 +82,7 @@ class TestGiver extends SensorMixin(
   static _mixinName = 'TestGiverHinkley';
   protected handleMessage(): void {}
 }
-class LitRoom extends AmbientLitMixin(Location) {}
+class LitRoom extends AmbientLitMixin(Place) {}
 
 const SUBURB = '/world/terminus/hinkley-hills';
 const YARD = '/world/terminus/hinkley-hills/yard';
@@ -248,7 +248,7 @@ function stubCommand(): CommandDefinition {
   );
 }
 
-function ctxFor(giver: TestGiver, loc: Location): CommandContext {
+function ctxFor(giver: TestGiver, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -543,10 +543,10 @@ describe('Hinkley Hills — the land-use gate', () => {
     await ParcelApi.rebuildCoverageIndex();
 
     const shared = fresh('/world/terminus/hinkley-hills/yard');
-    const ok = makeStuffAtPath(() => new FurnishableRoom(), shared);
+    const ok = makeStuffAtPath(() => new PersistentLocation(), shared);
     ok.setAmbientFlux(600);
     ok.setPersistenceKey(`${SUBURB}/lot-1`);
-    const banned = makeStuffAtPath(() => new FurnishableRoom(), fresh(shared));
+    const banned = makeStuffAtPath(() => new PersistentLocation(), fresh(shared));
     banned.setAmbientFlux(600);
     banned.setPersistenceKey(`${SUBURB}/lot-9`);
 

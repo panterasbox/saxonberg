@@ -15,7 +15,7 @@ import { Creature } from '../../creature/Creature';
 import { EngagedMixin } from '../../activity/Engaged';
 import { TendingEngagement } from '../TendingEngagement';
 import { ContainmentApi } from '../../../api/containment';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Postures } from '../../slot/Postured';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -43,8 +43,8 @@ function pretendHolding(carer: Carer): void {
     t === 'medical-tending' ? {} : undefined;
 }
 
-function scene(): { room: Location; patient: Creature; carer: Carer } {
-  const room = makeStuff(() => new Location());
+function scene(): { room: Place; patient: Creature; carer: Carer } {
+  const room = makeStuff(() => new Place());
   const patient = makeStuff(() => new Creature());
   patient.setPosture(Postures.Lie);
   ContainmentApi.move(patient, room);
@@ -96,7 +96,7 @@ describe('a carer buys recovery rate', () => {
     const tended = kOf(patient);
     // The carer leaves — the link is still set, but the read sees they are
     // no longer present and gives nothing.
-    const elsewhere = makeStuff(() => new Location());
+    const elsewhere = makeStuff(() => new Place());
     ContainmentApi.move(carer, elsewhere);
     expect(kOf(patient)).toBeLessThan(tended);
   });

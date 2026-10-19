@@ -6,7 +6,7 @@ import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import Good from '../../lib/stuff/Good';
 import { makeStuff,
   EXIT_KIND_TEST_ROWS,
@@ -75,7 +75,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {},
       },
     ]);
@@ -111,7 +111,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/orphan/leaf',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {},
       },
     ]);
@@ -207,7 +207,7 @@ describe('Zone is set at clone time, not on move', () => {
   });
 
   it('move does not restamp the item zone', async () => {
-    const park = makeStuff(() => new CartesianLocation());
+    const park = makeStuff(() => new Location());
 
     const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/zone/SpatialZone').SpatialZone;
     Stuff._stampZone(park, zoneRef);

@@ -14,7 +14,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
@@ -54,12 +54,12 @@ describe('Biome scenario E — cafeteria gas-law', () => {
 
   it('27 m³ of air at standard conditions yields ≈ 1116 mol via PV = nRT', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     Stuff._stampZone(room, zone);
 
     // 3 m linear cellSize is the new default; derived volume is 27 m³.
     // `getVolume()` lives on AtmosphericMixin (composed by Location);
-    // CartesianLocation overrides per its cube topology.
+    // Location overrides per its cube topology.
     const volume = room.getVolume();
     expect(volume).not.toBeNull();
     expect(volume!.rawValue()).toBe(27);

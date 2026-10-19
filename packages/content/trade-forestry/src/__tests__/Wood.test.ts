@@ -62,11 +62,11 @@ describe('Wood — the stack', () => {
 
   it('imports the singleton cell by the specifier `lint:locations` derives from', () => {
     // The gate reads the class file's `extends` chain and resolves each
-    // identifier through its import; `@saxonberg/server/mud/platform/location/SingletonCartesianLocation`
+    // identifier through its import; `@saxonberg/server/mud/platform/location/Locale`
     // is in CARTESIAN_ROOTS. A relative or lib import would make every
     // Wood row "unplotted" — the no-roster-edit claim rests on this line.
     const src = readFileSync(fileURLToPath(new URL('../location/Wood.ts', import.meta.url)), 'utf8');
-    expect(src).toMatch(/from '@saxonberg\/server\/mud\/platform\/location\/SingletonCartesianLocation'/);
+    expect(src).toMatch(/from '@saxonberg\/server\/mud\/platform\/location\/Locale'/);
   });
 
   it('answers the soil’s hooks as ground: its own scope, its whole area, the stand’s drink', () => {

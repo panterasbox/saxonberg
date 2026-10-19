@@ -31,7 +31,7 @@ import {
   makeStuff,
   seedKernelContentStore,
 } from '../../../../../lib/security/__tests__/test-setup';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import CartesianZone from '../../../location/CartesianZone';
 import { Idea } from '../../../../../lib/stuff/Idea';
 
@@ -90,7 +90,7 @@ function withPrompt(
 
 function giverAt(handle: string): { giver: Stuff; location: Stuff } {
   const zone = makeStuff(() => new CartesianZone());
-  const loc = makeStuff(() => new CartesianLocation());
+  const loc = makeStuff(() => new Location());
   zone.addLocation(loc, 0, 0, 0);
   vi.spyOn(
     loc as unknown as { getDurableHandle(): string },

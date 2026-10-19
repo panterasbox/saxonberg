@@ -14,7 +14,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Material from '../../material/Material';
 import Flask from '../../../platform/thing/Flask';
 import { THERMAL_DEFAULTS } from '../Thermal';
@@ -26,7 +26,7 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 // Fresh paths per test: the world clock's registry must outlive each test
 // (no `clearAll`), so the materials cannot reuse a path.

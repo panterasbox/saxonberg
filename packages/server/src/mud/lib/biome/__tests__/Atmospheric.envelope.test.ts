@@ -17,9 +17,9 @@
 import '../../../../test-bootstrap';
 import type { Stuff } from '../../stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Material from '../../material/Material';
 import Biome from '../Biome';
 import { SkyExposedMixin } from '../SkyExposed';
@@ -75,10 +75,10 @@ function material(
 function room(
   enclosure: { material: string; thicknessM: number } | null,
   outsideK = 281,
-): CartesianLocation {
+): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   if (enclosure)
@@ -89,7 +89,7 @@ function room(
   return r;
 }
 
-type Env = CartesianLocation & {
+type Env = Location & {
   envelopeApplies(): boolean;
   reconcileEnvelope(): void;
   envelopeTemperatureSync(): number | null;
@@ -99,10 +99,10 @@ type Env = CartesianLocation & {
   openExteriorOpenings(): number;
 };
 
-const env = (r: CartesianLocation): Env => r as unknown as Env;
+const env = (r: Location): Env => r as unknown as Env;
 
 /** τ in hours, from the room's own coefficients. */
-function tauHours(r: CartesianLocation): number {
+function tauHours(r: Location): number {
   const c = env(r).envelopeCoefficients()!;
   return c.capacityJPerK / c.uWperK / 3600;
 }
@@ -130,15 +130,15 @@ afterEach(() => {
 });
 
 describe('when an envelope applies at all', () => {
-  it('⭐ a plain Location has NO volume, so it gets none — the geometry answers, not a guard', () => {
-    const bare = makeStuff(() => new Location());
+  it('⭐ a plain Place has NO volume, so it gets none — the geometry answers, not a guard', () => {
+    const bare = makeStuff(() => new Place());
     (bare as unknown as Record<string, unknown>)._biomePath = INDOOR;
     expect(bare.getVolume()).toBeNull();
-    expect(env(bare as unknown as CartesianLocation).envelopeApplies()).toBe(
+    expect(env(bare as unknown as Location).envelopeApplies()).toBe(
       false,
     );
     // ⚠ This is also why `Offstage` needs no decree and gets no
-    // `if (room is Offstage)`: it extends `Location` directly.
+    // `if (room is Offstage)`: it extends `Place` directly.
   });
 
   it('a room that DECLARES its temperature wins outright — the bespoke case stays a row', () => {
@@ -160,7 +160,7 @@ describe('⭐⭐ the enclosure decides, and it is a CAUSE', () => {
   it('a timber room holds its heat far better than a stone one of the same size', () => {
     const stone = room({ material: GRANITE, thicknessM: 0.3 });
     const timber = room({ material: OAK, thicknessM: 0.05 });
-    const u = (r: CartesianLocation): number =>
+    const u = (r: Location): number =>
       env(r).envelopeCoefficients()!.uWperK;
     expect(u(timber)).toBeLessThan(u(stone));
     // And it warms and cools FASTER, because it has far less mass in
@@ -176,7 +176,7 @@ describe('⭐⭐ the enclosure decides, and it is a CAUSE', () => {
     // real shed actually does.
     const shed = room({ material: TIN, thicknessM: 0.005 });
     const stone = room({ material: GRANITE, thicknessM: 0.3 });
-    const u = (r: CartesianLocation): number =>
+    const u = (r: Location): number =>
       env(r).envelopeCoefficients()!.uWperK;
     expect(u(shed)).toBeGreaterThan(u(stone));
     expect(u(shed)).toBeLessThan(1000);
@@ -202,7 +202,7 @@ describe('⭐⭐ a hearth warms its room; a forge does not', () => {
   /** A fuelled fire, lit, standing in the room. */
   type Fire = Hearth | Forge;
 
-  function lightFireIn(r: CartesianLocation, fire: Fire): Fire {
+  function lightFireIn(r: Location, fire: Fire): Fire {
     chargeWood(fire as unknown as Stuff & Burner, 40);
     ContainmentApi.move(fire as never, r as never);
     fire.ignite();

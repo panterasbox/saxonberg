@@ -10,7 +10,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { VisionModality } from '../VisionModality';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
@@ -26,7 +26,7 @@ import { Light } from '../../../../lib/perception/Light';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLocation extends AmbientLitMixin(Location) {}
 
 const DAY = 86_400;
 const SCALE = 12; // the shipped clock scale: a game hour per 5 real minutes
@@ -47,10 +47,10 @@ function atGameSecond(t: number): void {
  * because nothing in the game ever changes what a room's light source
  * IS at runtime.
  */
-function skyLitCell(): AmbientCartesianLocation {
+function skyLitCell(): AmbientLocation {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const loc = makeStuff(() => new AmbientCartesianLocation());
+  const loc = makeStuff(() => new AmbientLocation());
   zone.addLocation(loc, 0, 0, 0);
   (loc as unknown as Record<string, unknown>).ambientSource = 'sky';
   return loc;
@@ -87,7 +87,7 @@ describe('the sky leg', () => {
 
   it('is DERIVED per room size: a big yard and a small closet both read the noon dial', () => {
     const big = skyLitCell();
-    const small = makeStuff(() => new AmbientCartesianLocation());
+    const small = makeStuff(() => new AmbientLocation());
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     zone.addLocation(small, 0, 0, 0);
@@ -128,7 +128,7 @@ describe('the sky leg', () => {
   it('a room that is NOT sky-lit ignores the sun entirely — its light is its own', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
     (loc as unknown as Record<string, unknown>).ambientSource = 'glow';
     loc.setAmbientFlux(360); // 40 lux on 9 m²
@@ -150,8 +150,8 @@ describe('the sky leg', () => {
     // night, at the cost of no authored number at all.
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    const yard = makeStuff(() => new AmbientCartesianLocation());
-    const shop = makeStuff(() => new AmbientCartesianLocation());
+    const yard = makeStuff(() => new AmbientLocation());
+    const shop = makeStuff(() => new AmbientLocation());
     zone.addLocation(yard, 0, 1, 0);
     zone.addLocation(shop, 0, 0, 0);
     (yard as unknown as Record<string, unknown>).ambientSource = 'sky';
@@ -179,7 +179,7 @@ describe('the sky leg', () => {
     // number twice.
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     expect(vision().bandAt(room)).toBe('pitch-black');
 
@@ -248,7 +248,7 @@ describe('the sky leg', () => {
 
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    const cellar = makeStuff(() => new AmbientCartesianLocation());
+    const cellar = makeStuff(() => new AmbientLocation());
     zone.addLocation(cellar, 1, 0, 0);
     const lamp = makeStuff(() => new Lantern());
     lamp.setEmittedFlux(220);
@@ -265,7 +265,7 @@ describe('the sky leg', () => {
   it('an enclosed room with no source is dark at every hour of the day', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
     for (let h = 0; h < 24; h++) {
       atGameSecond(h * 3600);

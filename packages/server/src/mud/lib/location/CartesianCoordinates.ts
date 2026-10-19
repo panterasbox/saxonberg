@@ -1,7 +1,7 @@
 /**
  * CartesianCoordinatesMixin — `[x, y, z]` data carrier.
  *
- * Used by `CartesianLocation` to place a location inside a
+ * Used by `Location` to place a location inside a
  * `CartesianZone`'s grid. Flat zones leave `z = 0`. This mixin carries
  * only the coordinate triple — grid registration and neighbor lookups
  * live on `CartesianZone`.
@@ -29,7 +29,7 @@ export function CartesianCoordinatesMixin<TBase extends MixinConstructor>(Base: 
 // ⚠⚠ `coordinates` LOST `authorable` in the base-class narrowing, and
 // offering it had been a trap. 125 rows over 13 classes compose this
 // mixin and **not one authors `coordinates:`** — the shape authors use
-// is `coords` on `CartesianLocation` (117 rows), which routes through
+// is `coords` on `Location` (117 rows), which routes through
 // `setCoords → zone.addLocation`.
 //
 // ⭐ The two flags were exactly inverted: the key that WORKS was not

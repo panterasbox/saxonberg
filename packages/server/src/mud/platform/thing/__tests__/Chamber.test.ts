@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Chamber from '../Chamber';
 import Fitting from '../Fitting';
 import Good from '../../../lib/stuff/Good';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import Material from '../../../lib/material/Material';
 import { ThermalMixin } from '../../../lib/thermal/Thermal';
 import { Quantity } from '../../../lib/quantity';
@@ -40,7 +40,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 class Cheese extends ThermalMixin(Good) {
   static _mixinName = 'ChamberTestCheese';
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 /** Exposes the protected seam so the test can read it directly. */
 class ProbeChamber extends Chamber {

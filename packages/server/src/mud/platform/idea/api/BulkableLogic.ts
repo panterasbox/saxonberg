@@ -36,6 +36,8 @@ import type {
   TransferResult,
   TransferStatus,
 } from '../../../api/bulk';
+// The `hardnessDgh` payload field is declared by WaterHardness's merge.
+import type {} from '../../../lib/cleanliness/WaterHardness';
 
 const BULK_FIELD = 'bulk';
 
@@ -572,6 +574,21 @@ export class BulkableLogic extends ApiLogic {
       // decant-to-launder trick (pour a wrong-type unit into a good bag
       // and read the bag's label). Only the non-empty case: an empty
       // destination just carried the source's payload across above.
+      // ⭐ Water hardness blends by VOLUME (cleanliness D12): a pail of the
+      // Kestrel tipped into a copper of rainwater makes it a little hard.
+      const fromDgh = fromPayload?.hardnessDgh;
+      if (!toWasEmpty && typeof fromDgh === 'number') {
+        const held = to.getPayload();
+        const toDgh = held?.hardnessDgh ?? fromDgh;
+        const total = applied + toAmountBefore;
+        if (total > 0) {
+          to.setPayload({
+            ...(held ?? {}),
+            hardnessDgh: (applied * fromDgh + toAmountBefore * toDgh) / total,
+          });
+        }
+      }
+
       if (!toWasEmpty && fromPayload?.blood) {
         const toPayload = to.getPayload();
         if (toPayload?.blood) {
@@ -580,6 +597,26 @@ export class BulkableLogic extends ApiLogic {
             blood: new Blood(toPayload.blood).blend(fromPayload.blood),
           });
         }
+      }
+    }
+
+    // ⭐ (cleanliness D22) A VOLATILE liquid poured into the open gives off
+    // its vapour into the room as it goes in — naphtha in a dish, spirit
+    // in a bowl. The quarter-hour of evaporation the pour exposes.
+    if (
+      applied > 0 &&
+      to !== null &&
+      toHolder !== null &&
+      material.getVapourLPerLPerHour() > 0 &&
+      material.getVapourMaterial() !== '' &&
+      to.getClosure() === 'open'
+    ) {
+      const room = MixinApi.isContainable(toHolder) ? toHolder.getContainer() : null;
+      if (room && MixinApi.isAtmospheric(room)) {
+        room.addAtmosphereContent(
+          material.getVapourMaterial(),
+          applied * material.getVapourLPerLPerHour() * 0.25,
+        );
       }
     }
 

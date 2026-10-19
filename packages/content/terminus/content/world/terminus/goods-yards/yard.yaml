@@ -4,7 +4,7 @@
 # ⭐ It is the reason the producer floors have doors at all, and the
 # doors are the reason a hauler can do the job the hands post. Nothing
 # is made here; everything passes through.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: goods yards
   keywords: [yards, goods]

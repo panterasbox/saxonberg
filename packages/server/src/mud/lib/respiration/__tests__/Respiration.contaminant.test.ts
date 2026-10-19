@@ -16,7 +16,7 @@ import {
   afterEach,
 } from 'vitest';
 import { Character } from '../../character/Character';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Species from '../../../platform/idea/species/Species';
 import Material from '../../material/Material';
@@ -34,7 +34,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 class TestCharacter extends Character {}
 
 const SPECIES_PATH = '/test/respiration/co-species';

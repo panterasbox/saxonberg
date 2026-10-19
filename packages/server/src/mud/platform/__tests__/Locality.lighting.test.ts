@@ -21,7 +21,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Locality from '../idea/Locality';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
 import { BankingApi } from '../../api/banking';
 import { StuffApi } from '../../api/stuff';
@@ -41,7 +41,7 @@ const A = '/world/_civic/high-street';
 const B = '/world/_civic/back-lane';
 const C = '/world/_civic/the-cut';
 
-type Street = CartesianLocation & { publicLighting: unknown };
+type Street = Location & { publicLighting: unknown };
 
 let city: Locality;
 let appropriations: Array<{ to: string; amount: Money }>;
@@ -62,10 +62,10 @@ function street(path: string, seniority: number): Street {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
   const s = makeStuffAtPath(
-    () => new CartesianLocation(),
+    () => new Location(),
     path,
   ) as unknown as Street;
-  zone.addLocation(s as unknown as CartesianLocation, 0, 0, 0);
+  zone.addLocation(s as unknown as Location, 0, 0, 0);
   s.publicLighting = { flux: 400, detail: 'lamps', seniority };
   (s as unknown as { _lightingLocalityPath: string })._lightingLocalityPath =
     CITY;

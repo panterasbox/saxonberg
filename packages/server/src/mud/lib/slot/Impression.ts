@@ -127,6 +127,22 @@ const PHRASINGS: Readonly<
       'clammy with damp',
       'damp all through',
     ],
+    // ⭐ Soil (cleanliness D1) — the band the worn stack's dirtiest
+    // garment reads, never which garment or what is on it.
+    filthy: [
+      'filthy',
+      'filthy from head to foot',
+      'in a filthy state',
+      'grimed all over',
+      'badly in want of a wash',
+    ],
+    soiled: [
+      'grubby',
+      'none too clean',
+      'in want of a wash',
+      'stained here and there',
+      'soiled',
+    ],
     ragged: [
       'coming apart at every seam',
       'worn to pieces',

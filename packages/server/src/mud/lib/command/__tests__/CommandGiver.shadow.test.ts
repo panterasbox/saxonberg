@@ -19,7 +19,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { ContainmentApi } from '../../../api/containment';
 import { Shadowing } from '../../security/decorators';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -108,7 +108,7 @@ describe('Shadow ↔ recency stack integration', () => {
   });
 
   it('a shadow\'s peers contribution lands on each CG sibling', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const host = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     const peer = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     ContainmentApi.move(host, loc);
@@ -131,7 +131,7 @@ describe('Shadow ↔ recency stack integration', () => {
   });
 
   it('detach pops the peers entry from siblings', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const host = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     const peer = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     ContainmentApi.move(host, loc);

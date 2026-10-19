@@ -14,7 +14,7 @@ import { EnergizedMixin } from '../../../../lib/electricity/Energized';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Floor from '../../../thing/Floor';
 import { Creature } from '../../../../lib/creature/Creature';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -54,11 +54,11 @@ function saltWater(): Material {
   return m;
 }
 
-function makeRoom(): Location {
-  return makeStuff(() => new Location());
+function makeRoom(): Place {
+  return makeStuff(() => new Place());
 }
 
-function floodFloor(room: Location, litres: number): Floor {
+function floodFloor(room: Place, litres: number): Floor {
   const floor = makeStuff(() => {
     const f = new Floor();
     f.surfaceBulk = true;
@@ -70,7 +70,7 @@ function floodFloor(room: Location, litres: number): Floor {
   return floor;
 }
 
-function makeWire(room: Location, volts: number): TestWire {
+function makeWire(room: Place, volts: number): TestWire {
   const w = makeStuff(() => {
     const wire = new TestWire();
     wire.setName('live wire');
@@ -82,7 +82,7 @@ function makeWire(room: Location, volts: number): TestWire {
   return w;
 }
 
-function makeBody(room: Location, connected = true): TestBody {
+function makeBody(room: Place, connected = true): TestBody {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-biped');

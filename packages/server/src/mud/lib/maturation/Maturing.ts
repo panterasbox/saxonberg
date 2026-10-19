@@ -118,21 +118,10 @@ const CULTURE_HOT_FACTOR = 3;
 /** Pitch kill ceiling when the strain has no culture profile (K). */
 const DEFAULT_PITCH_KILL_K = 313;
 
-// ── the cellar CO₂ (P11/D12): a working ferment displaces air ──
-/**
- * Litres of carbon dioxide a converting batch breathes into the room per
- * day. ⭐ Was three `%`-of-a-Reserve constants and a sentinel write onto
- * the room's atmosphere TAG; it is one emission now, into the same medium
- * a fire fills, cleared by the same derived ventilation. The ferment and
- * the fire were always doing the same thing to the same air — they just
- * had two copies of the idiom, both of which encoded *"only overlay null,
- * only clear my own tag"* and both of which broke the moment the tag was
- * not the sole source of truth.
- */
-const CO2_LITRES_PER_DAY = 5000;
-
-/** The gas a ferment breathes out. The fire's dial names the same row. */
-const CO2_MATERIAL_PATH = '/stuff/idea/material/gas/carbon-dioxide';
+// ── the cellar air (P11/D12): a working batch breathes into the room ──
+// ⭐ The gas and its rate are the PROFILE's (`MaturationProfile.getOffGas`,
+// cleanliness D22): a microbial ferment's CO₂ by default — the 5000 L/day
+// this file used to hardcode — and whatever a row authors otherwise.
 
 /**
  * The cellar's CO₂ (P11): a converting batch puts carbon dioxide into the
@@ -144,16 +133,14 @@ function reconcileCellarAir(
   vessel: Stuff,
   days: number,
   producing: boolean,
+  gas: { material: string; litresPerDay: number } | null,
 ): void {
-  if (!producing || !(days > 0)) return;
+  if (!producing || !(days > 0) || gas === null) return;
   if (!MixinApi.isContainable(vessel)) return;
   const room = vessel.getContainer();
   if (room === null || !MixinApi.isContainer(room)) return;
   if (!MixinApi.isAtmospheric(room)) return;
-  room.addAtmosphereContent(
-    CO2_MATERIAL_PATH,
-    CO2_LITRES_PER_DAY * days,
-  );
+  room.addAtmosphereContent(gas.material, gas.litresPerDay * days);
 }
 
 function clamp01(x: number): number {
@@ -766,9 +753,9 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
               // in a shed was draining the shed's air reserve toward
               // unbreathable. A latent textiles defect, fixed here because
               // the fourth mechanism would have been the second instance.
-              if (profile.getMechanism() === 'microbial') {
-                reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
-              }
+              // ⭐ (cleanliness D22) The profile says what it breathes —
+              // the mechanism's own answer by default (microbial: CO₂).
+              reconcileCellarAir(self, days, rateAt(profile, tempK) > 0, profile.getOffGas());
             }
             // ⭐⭐ **The cask writes its character**, additively and in
             // step with the conversion. The write is the DIFFERENCE since
@@ -910,7 +897,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.batchMaterialPath = materialPath;
       this.stampMadeFrom(materialPath);
-      const profile = MaturationProfileRef.forMaterial(material);
+      const profile = this.matchProfile(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
       if (profile !== null && profile.getKind() === 'culture') {
@@ -1480,6 +1467,16 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * fill resets all of that; a rekey is the same batch become something
      * else, which is what renneting milk is.
      */
+    /**
+     * @hook Which profile a batch of `material` runs on in THIS vessel —
+     * the material's own match by default (`inputCategory` against its
+     * tags). A vessel that is its own chemistry says otherwise: a lye
+     * hopper leaches only while there is ash in it (cleanliness D24).
+     */
+    public matchProfile(material: Material): MaturationProfile | null {
+      return MaturationProfileRef.forMaterial(material);
+    }
+
     public rekeyBatch(materialPath: string): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
@@ -1487,7 +1484,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!material) return;
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = materialPath;
-      const profile = MaturationProfileRef.forMaterial(material);
+      const profile = this.matchProfile(material);
       this.maturationProfileKey = profile?.getKey() ?? '';
       this.maturationPhase = profile !== null ? 'active' : 'idle';
       if (profile !== null) this.stampBatchMark(profile, this.maturationClockStamp);

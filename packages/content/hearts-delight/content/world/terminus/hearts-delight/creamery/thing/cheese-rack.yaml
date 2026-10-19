@@ -2,7 +2,7 @@
 # wheels stand to ripen with the air moving round them. ⭐ The shipped
 # drying rack's class: a slatted surface things are put ON, open to the
 # air — which is what a cheese shelf is.
-class: /trade/cooking/thing/DryingRack
+class: /platform/thing/DryingRack
 data:
   shortDescription: cheese rack
   keywords: [rack, "cheese rack", shelf, shelves, slats]

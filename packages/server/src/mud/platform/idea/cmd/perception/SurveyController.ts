@@ -19,7 +19,7 @@
  * they are read through the `WarrenMember` back-ref by SHAPE, never by
  * import: the residential programme is a capability pack's class and the
  * kernel does not import packs. It is the same duck-typed seam
- * `OuterWarren` already uses in the other direction.
+ * `CirculationWarren` already uses in the other direction.
  *
  * Room archetypes are the industry-less ones — a bedroom derives from no
  * recipes, which is exactly what distinguishes it from a venue
@@ -127,6 +127,15 @@ export default class SurveyController extends CommandController {
       lines.push(`Upkeep here is ${this.termProse(holding.getUpkeepTerm())}.`);
     }
 
+    // ⭐ How the place is KEPT (cleanliness D15) — after the holding and
+    // the fabric, the order repair's lines agree to: holding → fabric →
+    // floor. A band and the method, never a number.
+    const floorLine = this.floorLine(room);
+    if (floorLine) {
+      lines.push('');
+      lines.push(floorLine);
+    }
+
     MessageApi.scene(actor)
       .topic('sense.survey')
       .toSelf(Mml.text(`\n${lines.join('\n')}\n`))
@@ -134,6 +143,20 @@ export default class SurveyController extends CommandController {
   }
 
   /** One archetype's line: the verdict, then what met or missed each need. */
+  /** *The floor is soiled; scrub would see to it.* — or nothing. */
+  private floorLine(room: Stuff): string {
+    if (!MixinApi.isAdornable(room)) return '';
+    const floor = room.getFloor() as unknown as Stuff | null;
+    if (floor === null || !MixinApi.isFloor(floor) || !floor.takesSoil()) {
+      return '';
+    }
+    if (!MixinApi.isSoilable(floor)) return '';
+    floor.reconcileStalls();
+    const band = floor.soilBand('');
+    if (band === 'clean') return 'The floor is clean.';
+    return `The floor is ${band}; to ${floor.cleaningMethod()} it would see to it.`;
+  }
+
   private reportOf(s: Satisfaction): string {
     const met = s.rows.filter((r) => r.satisfied);
     const short = s.rows.filter((r) => !r.satisfied);

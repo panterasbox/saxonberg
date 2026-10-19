@@ -35,7 +35,7 @@ import type { Mml } from '../../../../../api/mml';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import CartesianZone from '../../../location/CartesianZone';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
@@ -55,10 +55,10 @@ const ROOM = '/stuff/test/light/location/cellar';
 const ALICE = '/platform/agent/Avatar/light-alice';
 const DESCRIPTION = 'Barrels stand in ranks against the far wall.';
 
-// `CartesianLocation` already composes `AmbientLit` (every `Location`
+// `Location` already composes `AmbientLit` (every `Location`
 // does) and `Visible`; it does not compose `Named`, and `Mml.location`
 // wants a name.
-class Room extends NamedMixin(CartesianLocation) {
+class Room extends NamedMixin(Location) {
   static _mixinName = 'LightTestRoom';
 }
 class Looker extends PerceptionMixin(

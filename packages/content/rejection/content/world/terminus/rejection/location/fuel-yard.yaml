@@ -4,7 +4,7 @@
 # that is real economics rather than layout: you burn more mass of
 # charcoal than you smelt of ore, so the expensive thing to move is the
 # fuel. Von Thünen, in one exit.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: fuel yard

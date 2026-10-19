@@ -47,3 +47,7 @@ maxHeatK: 373
 medium: water
 difficulty: standard
 discipline: cooking
+# A stew at the hearth: grease and the fire's soot (cleanliness D6).
+soils:
+- { kind: grease, amount: 0.1, where: hands }
+- { kind: soot, amount: 0.05, where: hands }

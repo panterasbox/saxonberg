@@ -43,7 +43,7 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { TangibleMixin } from '../../lib/material/Tangible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
@@ -220,7 +220,7 @@ describe('a cockpit mode gates nothing', () => {
       if ('error' in asm) return `assemble:${asm.error}`;
       const ctx: CommandContext = CommandApi.createCommandContext({
         commandGiver: actor as unknown as CommandContext['commandGiver'],
-        location: location as unknown as Location,
+        location: location as unknown as Place,
         commandText: 'look at lantern',
         executionId: 'test-exec',
         commandId: 'test-cmd',

@@ -6,7 +6,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 
@@ -16,15 +16,15 @@ class MobileObject extends MobileObjectBase {}
 
 describe('MobileMixin', () => {
   let mobileObj: MobileObject;
-  let location1: Location;
-  let location2: Location;
+  let location1: Place;
+  let location2: Place;
 
   beforeEach(() => {
     mobileObj = makeStuff(() => new MobileObject());
 
-    location1 = makeStuff(() => new Location());
+    location1 = makeStuff(() => new Place());
 
-    location2 = makeStuff(() => new Location());
+    location2 = makeStuff(() => new Place());
   });
 
   describe('teleport()', () => {
@@ -145,7 +145,7 @@ import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { MountableMixin } from '../../slot/Mountable';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Exit from '../../boundary/Exit';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
@@ -277,8 +277,8 @@ describe('Mobile.traverse mode-gate', () => {
     // we seed walk to exercise the full lookup path.
     buildMode('walk');
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
@@ -296,8 +296,8 @@ describe('Mobile.traverse mode-gate', () => {
   it('admits walk through a default exit', async () => {
     buildMode('walk');
     const zone = makeStuff(() => new CartesianZone());
-    const locA = makeStuff(() => new CartesianLocation());
-    const locB = makeStuff(() => new CartesianLocation());
+    const locA = makeStuff(() => new Location());
+    const locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     const exit = makeStuff(() => new Exit({

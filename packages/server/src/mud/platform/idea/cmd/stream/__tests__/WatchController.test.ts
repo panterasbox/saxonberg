@@ -19,7 +19,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -51,7 +51,7 @@ function stubCommand(): CommandDefinition {
   );
 }
 
-function makeContext(actor: TestActor, location: Location): CommandContext {
+function makeContext(actor: TestActor, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
@@ -78,12 +78,12 @@ function watched(actor: TestActor): WatchTarget | null {
 
 describe('WatchController', () => {
   let actor: TestActor;
-  let location: Location;
+  let location: Place;
   let pushSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     StuffApi.clearAll();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     actor = makeStuff(() => new TestActor());
     pushSpy = vi
       .spyOn(actor, 'pushClientStateUpdate')

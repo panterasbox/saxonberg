@@ -4,7 +4,7 @@
 class: /platform/thing/Provision
 data:
   shortDescription: drift of pale ash
-  keywords: [ash, ashes, drift, pale]
+  keywords: [ash, ashes, drift, pale, "drift of pale ash"]
   register: indefinite
   longDescription: >-
     Fine pale ash, still warm, lifting in any draught. A week's cutting

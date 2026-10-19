@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
 import ConditionReading from '../ConditionReading';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Tool from '../../../thing/Tool';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -50,7 +50,7 @@ class BandedConditionReading extends ConditionReading {
   }
 }
 
-function ctx(avatar: FakeAvatar, room: CartesianLocation): CommandContext {
+function ctx(avatar: FakeAvatar, room: Location): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
@@ -68,13 +68,13 @@ const mend = (byName: string, band: string, part: string): MendRecord => ({
 });
 
 describe('analyze condition', () => {
-  let room: CartesianLocation;
+  let room: Location;
   let avatar: FakeAvatar;
 
   beforeEach(() => {
     StuffApi.clearAll();
     vi.spyOn(AppApi, 'setting').mockReturnValue('');
-    room = makeStuff(() => new CartesianLocation());
+    room = makeStuff(() => new Location());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar, room);

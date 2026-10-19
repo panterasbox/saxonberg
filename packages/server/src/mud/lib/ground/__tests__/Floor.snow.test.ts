@@ -5,9 +5,10 @@
  */
 
 import '../../../../test-bootstrap';
+import { MixinApi } from '../../../api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
@@ -69,7 +70,7 @@ let seq = 0;
 async function floorAt(
   levers: { latitude: number; continentality?: number; elevation?: number; offsetK?: number },
   sky = true,
-): Promise<{ room: CartesianLocation; floor: Floor }> {
+): Promise<{ room: Location; floor: Floor }> {
   seq += 1;
   const zonePath = `/test/zone-${seq}`;
   rows.push({ path: zonePath, class: '/platform/idea/location/CartesianZone', data: {} });
@@ -84,7 +85,7 @@ async function floorAt(
     b.setExtendsBiomePath('/stuff/idea/biome/universe');
     return b;
   }, `/test/biome-${seq}`) as Biome;
-  const room = makeStuff(() => new CartesianLocation());
+  const room = makeStuff(() => new Location());
   Stuff._stampZone(room, zone as never);
   room.setBiome(biome);
   const floor = makeStuff(() => new Floor());
@@ -92,7 +93,7 @@ async function floorAt(
   return { room, floor };
 }
 
-async function settle(room: CartesianLocation): Promise<void> {
+async function settle(room: Location): Promise<void> {
   await room.resolveClimateSite();
   await room.resolveWeatherLocality();
 }
@@ -177,8 +178,9 @@ describe('snow lies on a sky-exposed floor', () => {
     expect(floor.getSnowBand()).toBe('deep');
     expect(floor.snowPhrase()).toMatch(/deep here.*not gone in years/);
 
-    const augmenters = (Floor as unknown as { markupAugmenters: MarkupAugmenter[] })
-      .markupAugmenters;
+    const augmenters = MixinApi.getAllMarkupAugmenters(
+      Floor,
+    ) as unknown as MarkupAugmenter[];
     let text = 'A floor.';
     for (const aug of augmenters) text = aug(text, floor, floor);
     // The ground sentence ("It is …") is masked; the snow sentence is said.
@@ -214,7 +216,7 @@ describe('snow lies on a sky-exposed floor', () => {
 
 
 describe('a puddle in freezing air reads frozen over (W6, D7)', () => {
-  async function wetFloor(levers: Parameters<typeof floorAt>[0]): Promise<{ room: CartesianLocation; floor: Floor }> {
+  async function wetFloor(levers: Parameters<typeof floorAt>[0]): Promise<{ room: Location; floor: Floor }> {
     const { room, floor } = await floorAt(levers);
     const water = makeStuffAtPath(() => {
       const m = new Material();
@@ -237,8 +239,9 @@ describe('a puddle in freezing air reads frozen over (W6, D7)', () => {
     await settle(warm.room);
     expect(cold.floor.isFrozenOver()).toBe(true);
     expect(warm.floor.isFrozenOver()).toBe(false);
-    const augmenters = (Floor as unknown as { markupAugmenters: MarkupAugmenter[] })
-      .markupAugmenters;
+    const augmenters = MixinApi.getAllMarkupAugmenters(
+      Floor,
+    ) as unknown as MarkupAugmenter[];
     let text = '';
     for (const aug of augmenters) text = aug(text, cold.floor, cold.floor);
     expect(text).toMatch(/skin of ice/);

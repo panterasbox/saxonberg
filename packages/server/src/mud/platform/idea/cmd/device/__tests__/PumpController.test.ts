@@ -18,7 +18,7 @@ import PumpController from '../PumpController';
 import { ManualBuildController } from '../../crafting/ManualBuildController';
 import { BurnerMixin } from '../../../../../lib/fire/Burner';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -76,7 +76,7 @@ class FakePump extends Good implements Pumpable {
   }
 }
 
-function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -109,7 +109,7 @@ function capture(): { self: string[]; peers: string[] } {
   return said;
 }
 
-async function pump(target: Stuff, raw: string, avatar: FakeAvatar, room: Location): Promise<CommandContext> {
+async function pump(target: Stuff, raw: string, avatar: FakeAvatar, room: Place): Promise<CommandContext> {
   const ctx = ctxFor(avatar, room);
   await makeStuff(() => new PumpController()).execute(
     { target: one(target, raw) } as CommandModel,
@@ -126,11 +126,11 @@ const reasons = (ctx: CommandContext): string[] =>
 
 describe('PumpController — ⭐⭐ the bellows reads exactly as it did (AC 10)', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let forge: TestForge;
 
   beforeEach(() => {
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);
@@ -186,10 +186,10 @@ describe('PumpController — ⭐⭐ the bellows reads exactly as it did (AC 10)'
 
 describe('PumpController — a well, and things that are not', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
 
   beforeEach(() => {
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

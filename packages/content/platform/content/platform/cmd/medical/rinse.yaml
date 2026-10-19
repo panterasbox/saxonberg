@@ -25,10 +25,14 @@ args:
   # Bare, the binder hands over every reachable vessel and the controller
   # takes the first holding water — a question about the CONTENTS, which
   # no predicate can ask (`lint:instrument-args`). Mirrors `wash`.
+  # ⭐ …or the water a shore is beside (cleanliness D12 — the `wash`
+  # default): rinsing lye off in a river works, and a frozen one refuses
+  # unless there is a hole in it.
   - name: water
-    type: object
+    type: objects
     required: false
-    prepositions: [in, under, with]
-    default: "reachable:[mixin.BulkableMixin]"
+    greedy: true
+    prepositions: [in, under, with, at]
+    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
     scope: ["reachable"]
-    requires: [BulkableMixin]
+    requires: any

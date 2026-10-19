@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
 import PumpReading from '../PumpReading';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Biome from '../../../../lib/biome/Biome';
 import Pump from '../../../thing/Pump';
 import Tool from '../../../thing/Tool';
@@ -62,7 +62,7 @@ function installStore(): void {
   } as unknown as PersistenceManager);
 }
 
-function ctx(avatar: FakeAvatar, room: CartesianLocation): CommandContext {
+function ctx(avatar: FakeAvatar, room: Location): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
@@ -76,7 +76,7 @@ function ctx(avatar: FakeAvatar, room: CartesianLocation): CommandContext {
 }
 
 describe('analyze pump', () => {
-  let room: CartesianLocation;
+  let room: Location;
   let avatar: FakeAvatar;
 
   beforeEach(() => {
@@ -94,7 +94,7 @@ describe('analyze pump', () => {
       b.setDefaultAtmosphere('air');
       return b;
     }, '/stuff/idea/biome/universe');
-    room = makeStuff(() => new CartesianLocation());
+    room = makeStuff(() => new Location());
     room.setBiome(BiomeApi.getRootBiome());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');

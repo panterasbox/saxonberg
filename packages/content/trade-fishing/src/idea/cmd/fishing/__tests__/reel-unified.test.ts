@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
@@ -54,7 +54,7 @@ class Spool extends Good implements Reelable {
   }
 }
 
-let room: Location;
+let room: Place;
 let reeler: Reeler;
 let sent: string[];
 
@@ -72,7 +72,7 @@ function rejected(ctx: CommandContext): string | null {
 beforeEach(async () => {
   await standUpBranchHarness();
   sent = [];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   reeler = makeStuff(() => new Reeler());
   ContainmentApi.move(reeler as never, room as never);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {

@@ -363,11 +363,11 @@ const locationCache = new Map<string, boolean>();
 const floorCache = new Map<string, boolean>();
 
 function isLocationRow(row: Row, sources: readonly PackSource[]): boolean {
-  // `Location` is a class, not a mixin, but `composesMixin` matches an
-  // identifier anywhere in the `extends` chain — and `\bLocation\b` does not
-  // match inside `CartesianLocation`, so a subclass is found by recursion
+  // `Place` is a class, not a mixin, but `composesMixin` matches an
+  // identifier anywhere in the `extends` chain — and `\bPlace\b` does not
+  // match inside `PlaceBase`, so a subclass is found by recursion
   // through its imports rather than by accident.
-  return composesMixin(row.class, "Location", sources, locationCache);
+  return composesMixin(row.class, "Place", sources, locationCache);
 }
 
 function isFloorRow(row: Row, sources: readonly PackSource[]): boolean {
@@ -532,7 +532,7 @@ function unchainedOnCreate(sources: readonly PackSource[]): string[] {
     // not this clause's business.
     const classPath = classPathOfFile(file, sources);
     if (!classPath) continue;
-    if (!composesMixin(classPath, "Location", sources, cache)) continue;
+    if (!composesMixin(classPath, "Place", sources, cache)) continue;
     out.push(
       `${relative(REPO, file)}: overrides onCreate without ` +
         `super.onCreate — the mixin's default does NOT chain, so this ` +

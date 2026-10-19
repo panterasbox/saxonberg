@@ -15,7 +15,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import SnowboundExit from '../idea/SnowboundExit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { installModes } from './transport-fixtures';
 
 const HOUR = 3_600;
@@ -24,8 +24,8 @@ let depthM = 0;
 /** A pass out of a room whose floor reads `depthM` of snow. */
 function pass(closesAboveM = 0.5): SnowboundExit {
   const zone = makeStuff(() => new CartesianZone());
-  const here = makeStuff(() => new SingletonCartesianLocation());
-  const there = makeStuff(() => new SingletonCartesianLocation());
+  const here = makeStuff(() => new Locale());
+  const there = makeStuff(() => new Locale());
   zone.addLocation(here, 0, 0, 0);
   zone.addLocation(there, 0, 1, 0);
   vi.spyOn(here, 'getFloor').mockReturnValue({

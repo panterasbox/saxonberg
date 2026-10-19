@@ -9,7 +9,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../lib/stuff/Good';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import Material from '../../lib/material/Material';
 import Floor from '../thing/Floor';
 import Forge from '../thing/Forge';
@@ -30,7 +30,7 @@ import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/qu
 class Ingot extends MeltableMixin(ThermalMixin(Good)) {
   static _mixinName = 'ForgeIngotTest';
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 let seq = 0;
 function ironMaterial(): Material {

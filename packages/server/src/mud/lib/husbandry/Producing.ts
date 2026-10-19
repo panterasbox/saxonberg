@@ -61,6 +61,7 @@ import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { MixinApi } from '../../api/mixin';
+import type { SoilSpec } from '../cleanliness/SoilSpec';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 import type Species from '../../platform/idea/species/Species';
@@ -926,6 +927,30 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * numbers — the interval between planning and landing is real game
      * time, and a season can close inside it.
      */
+    /**
+     * ⭐ What a take DIRTIES the taker with — derived, never authored
+     * (cleanliness D6, review): only an ANIMAL's tap dirties (a maple's
+     * sap, a rubber tree's latex do not). The hands at the beast's flank
+     * take a share of the manure on the floor she stands in — a cow from a
+     * fouled byre, mucked out or not — and a liquid drawn by hand into a
+     * pail splashes the apron with what it is (milk is `milk`). Landed
+     * AFTER the take: the hand that drew this milk is read as it was before.
+     */
+    protected soilTheTaker(by: Stuff, tap: TapSpec, shape: string): void {
+      const self = this as unknown as Stuff;
+      if (!self.isAgent() || !MixinApi.isHygienic(by)) return;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const floor = room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+      const manure = floor && MixinApi.isSoilable(floor) ? floor.soilLoad('manure', '') : 0;
+      const specs: SoilSpec[] = [];
+      if (manure > 0) specs.push({ kind: 'manure', amount: Math.min(0.5, manure * 0.3), where: 'hands' });
+      if (shape === 'volume') {
+        const leaf = (tap.yieldRow ?? '').split('/').pop() ?? '';
+        if (leaf) specs.push({ kind: leaf, amount: 0.1, where: 'apron' });
+      }
+      if (specs.length > 0) by.soilFrom(specs, self);
+    }
+
     public async completeTap(
       by: Stuff,
       key: string,
@@ -944,8 +969,10 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (take.units <= 0) return { self: 'Nothing came of it.' };
 
       const credit = this.tapCredit(key);
+      const soilTheTaker = (): void => this.soilTheTaker(by, tap, shape);
       if (shape === 'volume') {
         const kept = await this.pourTake(tap, take.units, vessel, by);
+        if (kept > 0) soilTheTaker();
         return {
           self: this.tapTookPhrase(key, take.units, kept),
           peers: null,
@@ -953,6 +980,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         };
       }
       const minted = await this.mintTake(tap, take, by, shape);
+      if (minted.length > 0) soilTheTaker();
       return {
         self: this.tapTookPhrase(key, take.units, take.units, minted),
         peers: null,
@@ -1274,15 +1302,15 @@ const MILKING_INOCULUM = 0.3;
  * — the identity path the harm ledger keys on, never the lineage — and,
  * when the hands have gone unwashed, what came off them. Milk comes out of
  * a healthy udder clean; what makes raw milk dangerous is the hand and the
- * pail. Hygiene's own header names this as its deferred producer, so no
- * new state is minted: six game-hours unwashed is dirty. No sense reports
- * it; procedure does.
+ * pail. The hand's cleanliness is DERIVED from what is on it (cleanliness
+ * D4) — what the last act put there, never a clock. No sense reports it;
+ * procedure does.
  */
 function stampTheHand(by: Stuff, vessel: Stuff & Bulkable, slot: BulkSlot): void {
   const maker = by.getIdentityPath();
   if (maker) slot.setPayload({ ...(slot.getPayload() ?? {}), maker });
-  if (!MixinApi.isHygiene(by)) return;
-  const clean = by.handsCleanliness();
+  if (!MixinApi.isHygienic(by)) return;
+  const clean = by.handCleanliness();
   if (clean >= HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) return;
   const severity = (1 - clean) * MILKING_INOCULUM;
   const loads = new Contamination(slot).loads();

@@ -15,7 +15,7 @@ import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGive
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
-import Location from "@saxonberg/server/mud/lib/stuff/Location";
+import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { BankingApi } from "@saxonberg/server/mud/api/banking";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
@@ -66,7 +66,7 @@ describe("ProcureCardController", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("clones a fresh TravelCard into the requester's inventory, free", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => {
       const g = new Giver();
       g.setName("alice");

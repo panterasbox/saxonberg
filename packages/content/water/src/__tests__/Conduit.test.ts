@@ -469,8 +469,8 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
     const { BiomeApi } = await import('@saxonberg/server/mud/api/biome');
     const { WorldClockApi } = await import('@saxonberg/server/mud/api/worldclock');
     const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
-    const { default: CartesianLocation } = await import(
-      '@saxonberg/server/mud/lib/location/CartesianLocation'
+    const { default: Location } = await import(
+      '@saxonberg/server/mud/lib/location/Location'
     );
     const { SkyExposedBiome } = await import(
       '@saxonberg/server/mud/platform/idea/SkyExposedBiome'
@@ -489,7 +489,7 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
       return b;
     }, '/stuff/idea/biome/outdoor/bank');
     const zone = await StuffApi.singleton('/world/confluence-bank');
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     Stuff._stampZone(room, zone as never);
     room.setBiome(sky);
     const roomK = (await BiomeApi.resolveTemperatureFor(room)).rawValue();

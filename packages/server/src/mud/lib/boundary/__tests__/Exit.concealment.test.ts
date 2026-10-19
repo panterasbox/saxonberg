@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Exit from '../Exit';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -12,13 +12,13 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 // still drops it (it reads isHidden(), now derived from the band).
 describe('Exit concealment (Exit.hidden subsumed)', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
   });

@@ -1,0 +1,32 @@
+# Mr Pruitt, the Goodkin doorman (cleanliness D29) — he keeps the arch to
+# the Circle parlor, on shift, by the dress code below: the criterion is
+# on this row, and he says it out loud.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/greatcoat
+  name: Mr Pruitt
+  keywords: [pruitt, doorman, porter, door]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Mr Pruitt the doorman
+  register: proper
+  longDescription: |
+    A tall grey man in a frock coat by the archway, hands folded, who has looked at your boots before you have finished coming in.
+  archetype: doorman
+  competence:
+    - { discipline: guarding, asserting: novice }
+  behaviors:
+    - brain: /lib/behavior/doorman
+      trigger: arrival
+      config:
+        greets:
+          - "Good day to you."
+        regardAdmits: 60
+        dressCode:
+          turnsAway:
+            - { outer: [apron, smock, overall, overalls], where: torso, say: "Not in your working clothes, if you please. The Circle is through here." }
+            - { soiledAbove: marked, say: "I'm afraid not in that state. There's a bathhouse off the market." }
+            - { bare: [torso], say: "Not like that. Put something on." }

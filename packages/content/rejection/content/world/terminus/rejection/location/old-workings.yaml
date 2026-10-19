@@ -10,7 +10,7 @@
 # stops here and works it has learned nothing; a prospector who reads the
 # thinness, keeps walking and finds the colour change at seventy-five
 # metres has learned the entire economics of a worked cap.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: old workings on the outcrop

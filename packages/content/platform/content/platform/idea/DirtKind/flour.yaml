@@ -1,0 +1,9 @@
+# Flour — the miller's and the baker's dust, on hands and aprons.
+class: /platform/idea/DirtKind
+data:
+  key: flour
+  adjective: floury
+  form: film
+  answersTo: [surfactant, alkali-mild]
+  waterLifts: 0.7
+  brushLifts: 0.8

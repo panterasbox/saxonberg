@@ -26,7 +26,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlApi } from '../../../api/mql';
 import { ContainmentApi } from '../../../api/containment';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Floor from '../../../platform/thing/Floor';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -48,12 +48,12 @@ function resolve(actor: Stuff, query: string): Stuff[] {
 }
 
 describe('a floor answers to `ground` through the real scope walk', () => {
-  let room: CartesianLocation;
+  let room: Location;
   let actor: TestActor;
   let floor: Floor;
 
   beforeEach(() => {
-    room = makeStuff(() => new CartesianLocation());
+    room = makeStuff(() => new Location());
     room.setShortDescription('a flagged cell');
     actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, room);

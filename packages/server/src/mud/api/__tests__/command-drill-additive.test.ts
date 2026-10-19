@@ -29,7 +29,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 import type Interactive from '../../platform/idea/Interactive';
 
 class TestLocation extends ContainerMixin(
@@ -98,7 +98,7 @@ function noneCommand(): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   command: CommandDefinition,
   text: string
 ): CommandContext {
@@ -159,7 +159,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look bookcase'
     );
@@ -172,7 +172,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look book'
     );
@@ -185,7 +185,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look bookcase'
     );
@@ -207,7 +207,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look rose'
     );
@@ -220,7 +220,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'look bathtub'
     );
@@ -264,7 +264,7 @@ describe('Drill-additive focus (extend mode)', () => {
     // of the two brass things.
     await CommandApi.resolveAndValidate(
       { target: 'pin' },
-      makeContext(giver, location as unknown as Location, cmd, 'look pin')
+      makeContext(giver, location as unknown as Place, cmd, 'look pin')
     );
     // Focus must move off the ambiguous fragment to the specific
     // keyword the player typed.
@@ -275,7 +275,7 @@ describe('Drill-additive focus (extend mode)', () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
-      makeContext(giver, location as unknown as Location, cmd, 'look rose')
+      makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     // `look rose` from focus='here' targets a peer (different stuff,
     // no detail-path continuation), so focus REPLACES with `rose`
@@ -291,7 +291,7 @@ describe('Drill-additive focus (extend mode)', () => {
     // The key check: the focus stays `rose`, not `it`.
     await CommandApi.resolveAndValidate(
       { target: 'it' },
-      makeContext(giver, location as unknown as Location, cmd, 'look it')
+      makeContext(giver, location as unknown as Place, cmd, 'look it')
     );
     expect(giver.getFocus()).toBe('rose');
     expect(giver.getFocus()).not.toContain('it');
@@ -321,7 +321,7 @@ describe('Drill-additive focus (replace mode)', () => {
     const cmd = replaceCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'anchor bookcase'
     );
@@ -386,7 +386,7 @@ describe('Default scope when YAML omits scope:', () => {
     giver.setFocus('here:bookcase');
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'examine rose'
     );
@@ -420,7 +420,7 @@ describe('Default scope when YAML omits scope:', () => {
     giver.setFocus('here:bookcase');
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'examine rose'
     );
@@ -464,7 +464,7 @@ describe('Drill-additive focus (none mode / default)', () => {
     const cmd = noneCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'poke rose'
     );

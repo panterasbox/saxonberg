@@ -9,7 +9,7 @@
 # clones each boot); the Business stands up lazily off its operatingLocations.
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: Goodkin banking hall
   keywords: [hall, goodkin, banking]
@@ -29,7 +29,9 @@ data:
       destination: /world/terminus/counting-houses/circle-parlor
       # Exit-kind demonstrator: the parlor sits behind a broad archway
       # (kind defaults: ground media + archway traverse messages).
-      kind: /stuff/idea/exits/archway
+      # ⭐ A KEPT door now (cleanliness D29): the archway's messages, and a
+      # doorman on shift who judges who goes through.
+      kind: /world/terminus/counting-houses/exits/parlor-arch
   details:
     vault:
       # ⚠ NOT `till`/`grille` — the teller counter is a real OBJECT here
@@ -56,3 +58,4 @@ data:
     - /world/terminus/counting-houses/bank-counter
   cast:
     - /world/terminus/counting-houses/agent/teller
+    - /world/terminus/counting-houses/agent/doorman

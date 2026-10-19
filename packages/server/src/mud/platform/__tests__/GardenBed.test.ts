@@ -33,7 +33,7 @@ import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { WorldClockApi } from '../../api/worldclock';
 import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Idea } from '../../lib/stuff/Idea';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -48,7 +48,7 @@ import {
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import '../idea/WorldClockRegistry';
 
-class LitRoom extends AmbientLitMixin(Location) {}
+class LitRoom extends AmbientLitMixin(Place) {}
 /** A Slotted host that is NOT cultivable — the negative case for fitsSlot. */
 class Rack extends SlottedMixin(ContainerMixin(Idea)) {}
 

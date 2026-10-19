@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ClothBolt from '../thing/ClothBolt';
 import Copper from '../thing/Copper';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import MaturationProfile from '@saxonberg/server/mud/platform/idea/maturation/MaturationProfile';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -103,7 +103,7 @@ function copper(litres: number): Copper {
 
 /** A lit range standing in a kitchen — `on` places into the room. */
 function litRange(): Oven {
-  const kitchen = makeStuff(() => new Location());
+  const kitchen = makeStuff(() => new Place());
   const o = makeStuff(() => {
     const oven = new Oven();
     oven.setBurnTemperatureK(500);

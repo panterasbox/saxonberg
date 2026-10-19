@@ -94,6 +94,12 @@ export default class LookController extends CommandController<LookModel> {
     if (one === context.location) {
       return this.lookAtLocation(context);
     }
+    // ⭐ (cleanliness D21) What has been happening to it since it was last
+    // looked at — the sun on a line, the fume in a shut room — settles
+    // before it is described.
+    if (MixinApi.isSoilable(one)) {
+      return one.reconcileAiring().then(() => this.lookAtTarget(one, context));
+    }
     return this.lookAtTarget(one, context);
   }
 

@@ -16,7 +16,7 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { SlottableMixin } from '../../lib/slot/Slottable';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Idea } from '../../lib/stuff/Idea';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
@@ -55,12 +55,12 @@ function personOf(actor: Stuff): Stuff[] {
 
 describe('MQL reachable seed — corporeal legs', () => {
   let actor: TestActor;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     actor = makeStuff(() => new TestActor());
     actor.setStaticSlots([{ name: 'aug:1', accepts: 'SlottableMixin' }]);
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     ContainmentApi.move(actor, location);
   });
 
@@ -127,12 +127,12 @@ class HostedUpdate extends AetherHostedMixin(Idea) {}
 
 describe('MQL person seed — bearer semantics (no location leg)', () => {
   let actor: TestActor;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     actor = makeStuff(() => new TestActor());
     actor.setStaticSlots([{ name: 'aug:1', accepts: 'SlottableMixin' }]);
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     ContainmentApi.move(actor, location);
   });
 
@@ -156,11 +156,11 @@ describe('MQL person seed — bearer semantics (no location leg)', () => {
 
 describe('MQL reachable seed — self + host-descent legs', () => {
   let actor: AttunedActor;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     actor = makeStuff(() => new AttunedActor());
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     ContainmentApi.move(actor, location);
   });
 

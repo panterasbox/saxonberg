@@ -11,7 +11,7 @@
  * ## The composition, and why each layer
  *
  * `PersistableMixin(WarrenMemberMixin(SoilMixin(ReservedMixin(
- * CartesianLocation))))` — `MineRoom`'s stack with soil where the
+ * Location))))` — `MineRoom`'s stack with soil where the
  * working is, which is not a coincidence: a mine and a farm are the same
  * shape of problem (*ground somebody holds, worked over time, remembered
  * between visits*) and the residences build already made that one
@@ -19,7 +19,7 @@
  *
  *  - **`PersistableMixin`** outermost — the host rule (`cleanupOnDestruct`
  *    must fire before the inner `Container` evacuates). ⚠ Over the
- *    PERMISSIVE `CartesianLocation`, never the singleton one, because a
+ *    PERMISSIVE `Location`, never the singleton one, because a
  *    field is a KIND of place minted many times. Safe only because every
  *    instance is **keyed** `<holding extent>/<leaf>` — a keyless
  *    persistable over a permissive base would silently share ONE
@@ -52,7 +52,7 @@
  *
  * ## What it is NOT
  *
- * ⚠ Not a `FurnishableRoom` — that class is the four furnishing
+ * ⚠ Not a `PersistentLocation` — that class is the four furnishing
  * archetypes' base, and a field is not a room a player puts their goods
  * in. ⚠ And it holds **no plant slot**: a field's crop is not four
  * `Slottable`s in a bed, which is exactly why `CultivableMixin` could not
@@ -61,7 +61,7 @@
  * See [docs/subsystems/soil.md] and [docs/subsystems/smallholding.md].
  */
 
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import {
@@ -179,7 +179,7 @@ const BLOOM_MIN_DAYLIGHT = 0.45;
 // constraint is `Stuff & Reserved` alone. Naming the intermediate stack
 // is not cosmetic: inference through this many nested generic mixin
 // factories in one expression collapses to `never`.
-const FieldGround = SoilMixin(ReservedMixin(CartesianLocation));
+const FieldGround = SoilMixin(ReservedMixin(Location));
 
 // `ImprovableMixin` is the THIRD axis (D57) — what has been DONE to the
 // ground, independent of what the polity permits (`LandUse`) and of what

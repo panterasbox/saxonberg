@@ -103,7 +103,12 @@ import {
  * place (`waters:` on the room) and the props were deleted, so a feature
  * of a room has no mass to state.
  */
-export const MASS_CEILING = 238;
+/**
+ * ⭐ **Lowered 238 → 237 by the cleanliness build (2026-10-17).** The
+ * campus midden was a bare `Thing` row with no mass; it is a `Receptacle`
+ * of compost now (the generic midden), which states its own.
+ */
+export const MASS_CEILING = 237;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

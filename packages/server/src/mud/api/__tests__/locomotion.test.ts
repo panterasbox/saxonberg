@@ -13,7 +13,7 @@ import {
 import { FlyableMixin } from '../../lib/locomotion/Flyable';
 import { Idea } from '../../lib/stuff/Idea';
 import Good from '../../lib/stuff/Good';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SlottableMixin } from '../../lib/slot/Slottable';
@@ -35,16 +35,16 @@ import { Mixins } from '../../lib/mixin';
 import { MixinApi } from '../mixin';
 
 // Test classes — compose the mixins this Api exercises.
-const ClimbableLoc = ClimbableMixin(Location);
+const ClimbableLoc = ClimbableMixin(Place);
 class ClimbLocation extends ClimbableLoc {}
 
-const SwimmableLoc = SwimmableMixin(Location);
+const SwimmableLoc = SwimmableMixin(Place);
 class SwimLocation extends SwimmableLoc {}
 
-const FlyableLoc = FlyableMixin(Location);
+const FlyableLoc = FlyableMixin(Place);
 class FlyLocation extends FlyableLoc {}
 
-// A Climbable Thing — e.g., a ladder sitting in a Location.
+// A Climbable Thing — e.g., a ladder sitting in a Place.
 const ClimbableThingBase = ClimbableMixin(ContainableMixin(Good));
 class Ladder extends ClimbableThingBase {}
 
@@ -196,7 +196,7 @@ describe('LocomotionApi', () => {
     describe('walk-shaped (no enablementMixin)', () => {
       it('returns ok regardless of scope', () => {
         const walk = buildMode('walk');
-        const loc = makeStuff(() => new Location());
+        const loc = makeStuff(() => new Place());
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
         expect(LocomotionApi.checkEnablement(actor, walk, 'north')).toEqual({
@@ -223,7 +223,7 @@ describe('LocomotionApi', () => {
       });
 
       it('finds a Climbable Containable in the room', () => {
-        const loc = makeStuff(() => new Location());
+        const loc = makeStuff(() => new Place());
         const ladder = makeStuff(() => new Ladder());
         ladder.setAxes(['up']);
         ContainmentApi.move(ladder, loc);
@@ -235,7 +235,7 @@ describe('LocomotionApi', () => {
       });
 
       it('returns gate=enablement when no Climbable is in scope', () => {
-        const loc = makeStuff(() => new Location());
+        const loc = makeStuff(() => new Place());
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
         const guard = LocomotionApi.checkEnablement(actor, climb, 'up');
@@ -258,7 +258,7 @@ describe('LocomotionApi', () => {
     });
 
     describe('swim', () => {
-      it('finds a Swimmable Location', () => {
+      it('finds a Swimmable Place', () => {
         const swim = buildMode('swim');
         const loc = makeStuff(() => new SwimLocation());
         loc.setAxes(['*']);
@@ -271,7 +271,7 @@ describe('LocomotionApi', () => {
 
       it('returns gate=enablement when no Swimmable in scope', () => {
         const swim = buildMode('swim');
-        const loc = makeStuff(() => new Location());
+        const loc = makeStuff(() => new Place());
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
         const guard = LocomotionApi.checkEnablement(actor, swim, 'down');
@@ -293,12 +293,12 @@ describe('LocomotionApi', () => {
     });
 
     describe('swim — the far side (a Pool is swum INTO)', () => {
-      const exitTo = (src: Location, dest: Location): Exit =>
+      const exitTo = (src: Place, dest: Place): Exit =>
         makeStuff(() => new Exit({ direction: 'east', source: src, destination: dest, media: ['water'] }));
 
       it('⭐ an exit whose DESTINATION is the medium admits the mode from dry land', async () => {
         const swim = buildMode('swim');
-        const strand = makeStuff(() => new Location());
+        const strand = makeStuff(() => new Place());
         const pool = makeStuff(() => new SwimLocation());
         pool.setAxes(['*']);
         const actor = makeStuff(() => new Actor());
@@ -310,8 +310,8 @@ describe('LocomotionApi', () => {
 
       it('a dry far side leaves the refusal standing — and a swimmable THING over there is not the medium', async () => {
         const swim = buildMode('swim');
-        const strand = makeStuff(() => new Location());
-        const dry = makeStuff(() => new Location());
+        const strand = makeStuff(() => new Place());
+        const dry = makeStuff(() => new Place());
         const SwimThing = SwimmableMixin(ContainableMixin(Good));
         const puddle = makeStuff(() => new SwimThing());
         puddle.setAxes(['*']);
@@ -325,7 +325,7 @@ describe('LocomotionApi', () => {
 
       it('the far side still gates capability', async () => {
         const swim = buildMode('swim');
-        const strand = makeStuff(() => new Location());
+        const strand = makeStuff(() => new Place());
         const pool = makeStuff(() => new SwimLocation());
         pool.setAxes(['*']);
         pool.setDifficulty(4);
@@ -338,7 +338,7 @@ describe('LocomotionApi', () => {
     });
 
     describe('fly', () => {
-      it('finds a Flyable Location and admits', () => {
+      it('finds a Flyable Place and admits', () => {
         const fly = buildMode('fly');
         const loc = makeStuff(() => new FlyLocation());
         loc.setAxes(['*']);
@@ -454,9 +454,9 @@ describe('LocomotionApi', () => {
   describe('isTransientEngagement', () => {
     it('returns true for walk regardless of destination', () => {
       const walk = buildMode('walk');
-      const dest = makeStuff(() => new Location());
+      const dest = makeStuff(() => new Place());
       // Build a synthetic Exit pointing at dest.
-      const src = makeStuff(() => new Location());
+      const src = makeStuff(() => new Place());
       const exit = makeStuff(
         () => new Exit({ direction: 'n', source: src, destination: dest }),
       );
@@ -465,8 +465,8 @@ describe('LocomotionApi', () => {
 
     it('returns false for passthrough modes', () => {
       const ride = buildMode('ride');
-      const dest = makeStuff(() => new Location());
-      const src = makeStuff(() => new Location());
+      const dest = makeStuff(() => new Place());
+      const src = makeStuff(() => new Place());
       const exit = makeStuff(
         () => new Exit({ direction: 'n', source: src, destination: dest }),
       );
@@ -476,7 +476,7 @@ describe('LocomotionApi', () => {
     it('returns false for climb when destination composes Climbable', () => {
       const climb = buildMode('climb');
       const dest = makeStuff(() => new ClimbLocation());
-      const src = makeStuff(() => new Location());
+      const src = makeStuff(() => new Place());
       const exit = makeStuff(
         () => new Exit({ direction: 'up', source: src, destination: dest }),
       );
@@ -485,8 +485,8 @@ describe('LocomotionApi', () => {
 
     it('returns true for climb when destination has no Climbable in contents', () => {
       const climb = buildMode('climb');
-      const dest = makeStuff(() => new Location());
-      const src = makeStuff(() => new Location());
+      const dest = makeStuff(() => new Place());
+      const src = makeStuff(() => new Place());
       const exit = makeStuff(
         () => new Exit({ direction: 'down', source: src, destination: dest }),
       );
@@ -495,11 +495,11 @@ describe('LocomotionApi', () => {
 
     it('returns false for climb when destination has a Climbable Containable', () => {
       const climb = buildMode('climb');
-      const dest = makeStuff(() => new Location());
+      const dest = makeStuff(() => new Place());
       const ladder = makeStuff(() => new Ladder());
       ladder.setAxes(['up', 'down']);
       ContainmentApi.move(ladder, dest);
-      const src = makeStuff(() => new Location());
+      const src = makeStuff(() => new Place());
       const exit = makeStuff(
         () => new Exit({ direction: 'down', source: src, destination: dest }),
       );

@@ -9,7 +9,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TeleportController from '../TeleportController';
-import SingletonCartesianLocation from '../../../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../../../platform/location/Locale';
 import Avatar from '../../../../../platform/agent/PrimaryAvatar';
 import { AccessApi } from '../../../../../api/access';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -20,14 +20,14 @@ import type { CommandContext, CommandModel } from '../../../../../api/command';
 
 let notes: Array<Record<string, unknown>>;
 
-function makeAvatar(id: string, room: SingletonCartesianLocation): Avatar {
+function makeAvatar(id: string, room: Locale): Avatar {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`);
   av.setPlayerId(id);
   ContainmentApi.move(av, room);
   return av;
 }
 
-function ctx(giver: Avatar, location: SingletonCartesianLocation): CommandContext {
+function ctx(giver: Avatar, location: Locale): CommandContext {
   notes = [];
   return {
     commandGiver: giver,
@@ -37,7 +37,7 @@ function ctx(giver: Avatar, location: SingletonCartesianLocation): CommandContex
 }
 
 /** Did the controller take the self-powered fork? (It lands the giver in the destination.) */
-async function hop(giver: Avatar, from: SingletonCartesianLocation, to: SingletonCartesianLocation): Promise<boolean> {
+async function hop(giver: Avatar, from: Locale, to: Locale): Promise<boolean> {
   const ctrl = makeStuff(() => new TeleportController());
   await ctrl.execute(
     { destination: { stuff: to, raw: to.getTemplatePath() ?? '' } } as CommandModel as never,
@@ -46,15 +46,15 @@ async function hop(giver: Avatar, from: SingletonCartesianLocation, to: Singleto
   return giver.getContainer() === (to as unknown);
 }
 
-let loungeBar: SingletonCartesianLocation;
-let loungeOffice: SingletonCartesianLocation;
-let terminus: SingletonCartesianLocation;
+let loungeBar: Locale;
+let loungeOffice: Locale;
+let terminus: Locale;
 
 beforeEach(() => {
   StuffApi.clearAll();
-  loungeBar = makeStuffAtPath(() => new SingletonCartesianLocation(), '/studio/lounge/bar');
-  loungeOffice = makeStuffAtPath(() => new SingletonCartesianLocation(), '/studio/lounge/office');
-  terminus = makeStuffAtPath(() => new SingletonCartesianLocation(), '/studio/terminus/hall');
+  loungeBar = makeStuffAtPath(() => new Locale(), '/studio/lounge/bar');
+  loungeOffice = makeStuffAtPath(() => new Locale(), '/studio/lounge/office');
+  terminus = makeStuffAtPath(() => new Locale(), '/studio/terminus/hall');
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
 });
 afterEach(() => {

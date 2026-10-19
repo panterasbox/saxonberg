@@ -1,0 +1,14 @@
+# A washboard — ⭐ ridged wood to scrub on (cleanliness D27): an instrument
+# with the `scrubbing` capability, so `scrub shirt using washboard` is a
+# scrub, not a wash.
+class: /platform/thing/Tool
+data:
+  shortDescription: washboard
+  keywords: [washboard, board, ridges]
+  register: indefinite
+  longDescription: >-
+    A wooden frame with a panel of worn ridges, set leaning against the
+    trough's edge. The ridges are pale where the soap has scoured them.
+  capabilities: [scrubbing]
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 2

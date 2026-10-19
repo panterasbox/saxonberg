@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import HitchController from '../HitchController';
 import UnhitchController from '../UnhitchController';
 import EquipController from '../../inventory/EquipController';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -32,7 +32,7 @@ function one(stuff: Stuff | null, raw: string): MqlOneResult {
   return { stuff, raw } as MqlOneResult;
 }
 
-function ctxFor(giver: HaulingBearer, loc: Location, verb: string): CommandContext {
+function ctxFor(giver: HaulingBearer, loc: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -47,8 +47,8 @@ function ctxFor(giver: HaulingBearer, loc: Location, verb: string): CommandConte
   });
 }
 
-function placedBearer(): { giver: HaulingBearer; loc: Location } {
-  const loc = makeStuff(() => new Location());
+function placedBearer(): { giver: HaulingBearer; loc: Place } {
+  const loc = makeStuff(() => new Place());
   const giver = haulingBearer(70);
   ContainmentApi.move(giver, loc);
   return { giver, loc };

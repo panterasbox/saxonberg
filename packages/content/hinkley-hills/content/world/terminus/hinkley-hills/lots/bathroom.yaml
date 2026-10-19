@@ -1,0 +1,37 @@
+# A Hinkley Hills house's bathroom — the generic bathroom (PRESENCE, D13)
+# with a household COPPER in the corner (cleanliness, review). A copper
+# over its own small fire heats the washing water and the bath, as a
+# scullery copper did: `fill tub from copper` draws a hot bath at home,
+# `fill tub from bath tap` a cold one.
+#
+# ⭐ This is why the generic archetype stays tier-agnostic: whether a house
+# has a copper is the HOUSE's answer, made in rows like this one — a
+# second hot-water house is one more row, no code.
+class: /platform/location/PersistentLocation
+data:
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: window
+  shortDescription: bathroom
+  keywords: [bathroom, bath, washroom, room]
+  register: indefinite
+  longDescription: |
+    A small tiled room with a tub along one wall, a basin under a clouded mirror, and a squat brick copper in the corner with a fire-door at its foot. A window of frosted glass lets in light and nothing else.
+  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots
+  # (36 m²): 720 reads the 20 lux this row was tuned to (B54).
+  ambientIntensity: 720
+  ambientColorTemperature: 4000
+  props:
+    - /stuff/thing/fixture/toilet
+    - /stuff/thing/fixture/basin
+    - /stuff/thing/fixture/tub
+    - /stuff/thing/fixture/bath-tap
+    - /stuff/thing/gear/towel
+    - /stuff/thing/fixture/copper
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A small frosted window, high up and cranked open a couple of fingers.

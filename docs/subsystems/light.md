@@ -192,11 +192,11 @@ Authoring guidance:
 m²**. The propagation walk divides accumulated lumens by this scalar
 to produce lux.
 
-- `CartesianLocation.getSizeScale()` — reads its zone's `cellSize`
+- `Location.getSizeScale()` — reads its zone's `cellSize`
   (in **linear meters** as of the biome substrate, default `3.0`)
   and **squares it** to produce the m² receiving-surface area. A
   `cellSize: 3` zone reports a 9 m² scale. The override on
-  `CartesianLocation.getZone()` narrows the return type to
+  `Location.getZone()` narrows the return type to
   `CartesianZone | null` by invariant.
 - `SphericalLocation.getSizeScale()` — returns its own radius (in
   m²; v1 uses the radius scalar directly rather than computing a
@@ -957,3 +957,10 @@ and run out of.
 - [docs/antipatterns.md](../antipatterns.md) — pre-asserted casts,
   redundant casts, scalar-default rule, instanceof vs. virtual
   vs. cast-by-invariant.
+
+## Grime (2026-10-17)
+
+A grimed `Window` passes less (`transmissivity()` × `1 − 0.6 × band/3`).
+⭐ A sky-lit room's named `ambientOpening` may be a one-sided pane in the
+room: `AmbientLit.openingTransmissivity()` scales the sky leg by it, so
+grime and shutters darken the room. See [cleanliness.md](./cleanliness.md).

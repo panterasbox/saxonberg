@@ -75,7 +75,7 @@ describe("SustainedEffect — the modifier condition kind", () => {
   });
 
   it("realizes a bound light emitter by pull; a suppression field makes it dormant", async () => {
-    const { default: Location } = await import("../../stuff/Location");
+    const { default: Location } = await import("../../stuff/Place");
     class WardRoom extends Location {}
     const plain = makeStuff(() => new WardRoom());
     const warded = makeStuff(() => new WardRoom());

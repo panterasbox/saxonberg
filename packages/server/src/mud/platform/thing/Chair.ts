@@ -21,6 +21,7 @@ import { SlottedMixin } from '../../lib/slot/Slotted';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 
@@ -36,8 +37,11 @@ function seatDial(key: string, fallback: number): number {
 
 // Crafted: `fit armchair` stamps what it raised. Durable beneath
 // Assembled: an assembly's wear has to have somewhere to go.
-const ChairBase = AssembledMixin(
-  CraftedMixin(DurableMixin(PosturedMixin(SlottedMixin(Good)))),
+// ⭐ Soilable OUTERMOST (cleanliness D16): every seat and bed may be
+// filthy, and a filthy bed rests you worse — a factor that sits OUTSIDE
+// whatever structural factor the chain below it applies.
+const ChairBase = SoilableMixin(
+  AssembledMixin(CraftedMixin(DurableMixin(PosturedMixin(SlottedMixin(Good))))),
 );
 
 export default class Chair extends ChairBase {

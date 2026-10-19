@@ -3,7 +3,7 @@
 # ⭐ Unlike the mill, this one needs a counter: what the dyehouse sells
 # is EVENNESS, and evenness is a service performed on cloth you bring.
 # `discipline: line` — bring cloth, wait your turn.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

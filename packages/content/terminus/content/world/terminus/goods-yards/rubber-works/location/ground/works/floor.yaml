@@ -1,7 +1,7 @@
 # The works floor — the vulcanizing oven, the moulds, a stove, and a
 # ladder to the loft. ⭐ It says what it is made of (rubber build): brick
 # walls and a slate roof; the loft standing on it makes its top a ceiling.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 0, y: 0, z: 0 }
   shortDescription: "works floor"

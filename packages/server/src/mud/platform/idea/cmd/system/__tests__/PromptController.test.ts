@@ -20,7 +20,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../../../lib/connection/HasInteractive';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Interactive from '../../../Interactive';
 import { StuffApi } from '../../../../../api/stuff';
 import { EventApi } from '../../../../../api/event';
@@ -83,7 +83,7 @@ describe('PromptController — prompt cancel', () => {
 
   it('cancels every pending prompt on every Interactive the giver owns', async () => {
     await bootRegistry();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
     const interactive = await StuffApi.create(
@@ -112,7 +112,7 @@ describe('PromptController — prompt cancel', () => {
 
   it('reports "No prompts to cancel" when none pending', async () => {
     await bootRegistry();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
     const interactive = await StuffApi.create(

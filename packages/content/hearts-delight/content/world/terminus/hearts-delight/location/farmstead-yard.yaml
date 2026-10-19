@@ -1,5 +1,5 @@
 # The farmstead yard — somebody's place, on the poor ground.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: farmstead yard
   keywords: [yard, farmstead, farm, house]

@@ -11,7 +11,7 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { EngagedMixin } from '@saxonberg/server/mud/lib/activity/Engaged';
@@ -33,7 +33,7 @@ class Fisher extends EngagedMixin(ContainerMixin(ContainableMixin(NamedMixin(Ide
   static _mixinName = 'Fisher';
 }
 
-let room: Location;
+let room: Place;
 let fisher: Fisher;
 let standing: SpeciesStanding[];
 const sp = (over: Partial<SpeciesStanding>): SpeciesStanding => ({
@@ -47,7 +47,7 @@ function ctx(config: Record<string, unknown> = {}): BrainContext {
 beforeEach(async () => {
   await standUpBranchHarness();
   standing = [sp({})];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   fisher = makeStuff(() => new Fisher());
   ContainmentApi.move(fisher as never, room as never);
   const locality = makeStuffAtPath(() => new Locality(), '/stuff/idea/Locality/wharf');

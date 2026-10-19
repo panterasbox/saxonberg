@@ -8,7 +8,7 @@
 # so the charge is weighed by counting nodules against the rubber.
 class: /platform/thing/Firewood
 data:
-  keywords: [sulfur, sulphur, brimstone, nodule, "sulfur nodule"]
+  keywords: [sulfur, sulphur, brimstone, nodule, "sulfur nodule", "nodule of sulfur"]
   shortDescription: nodule of sulfur
   register: indefinite
   longDescription: >-

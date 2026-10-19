@@ -62,9 +62,9 @@ afterEach(() => {
 describe('it names what happened, and who to ask', () => {
   it('carries the extent and the holder', () => {
     const stone = makeStuffAtPath(() => new Tombstone(), TOMBSTONE_ROW);
-    stone.setExtent(EXTENT);
+    stone.setTakenDownExtent(EXTENT);
     stone.setTakenDownBy('the Compact');
-    expect(stone.getExtent()).toBe(EXTENT);
+    expect(stone.getTakenDownExtent()).toBe(EXTENT);
     expect(stone.getTakenDownBy()).toBe('the Compact');
   });
 });

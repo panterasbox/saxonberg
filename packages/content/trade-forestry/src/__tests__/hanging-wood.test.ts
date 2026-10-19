@@ -98,7 +98,7 @@ describe('the Hanging Wood', () => {
 
   it('⭐ three clearings are STANDS on the forestry Wood; the treeline is not', () => {
     const classes = Object.fromEntries(ROOMS.map((f) => [f.split('/').pop(), row(f).class]));
-    expect(classes['treeline.yaml']).toBe('/platform/location/SingletonCartesianLocation');
+    expect(classes['treeline.yaml']).toBe('/platform/location/Locale');
     for (const r of ['ride.yaml', 'oak-clearing.yaml', 'hazel-cant.yaml']) {
       expect(classes[r], r).toBe('/trade/forestry/location/Wood');
     }
@@ -232,7 +232,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // stands here worth the axe"*. The sugarbush is the OTHER
     // representation: named individual trees in a panel.
     const bush = row(BUSH);
-    expect(bush.class).toBe('/platform/location/SingletonCartesianLocation');
+    expect(bush.class).toBe('/platform/location/Locale');
     expect(bush.data._biomePath).toBe('/stuff/idea/biome/outdoor/woodland');
   });
 
@@ -340,7 +340,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // same not-afforded answer, so the design is legible from where the
     // verbs ARE afforded.
     const treeline = row(join(WOOD, 'treeline.yaml'));
-    expect(treeline.class).toBe('/platform/location/SingletonCartesianLocation');
+    expect(treeline.class).toBe('/platform/location/Locale');
     expect(treeline.data.props ?? []).toEqual([]);
   });
 });

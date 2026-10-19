@@ -24,7 +24,7 @@ import type { BrainContext } from '../brain';
 import Material from '../../material/Material';
 import Provision from '../../../platform/thing/Provision';
 import StockBase from "../../retail/Stock";
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import { CommandGiverMixin } from '../../command/CommandGiver';
 import { SensorMixin } from '../../message/Sensor';
@@ -79,8 +79,8 @@ class TestBuyer extends CommandGiverMixin(
   }
 }
 
-let shop: Location;
-let home: Location;
+let shop: Place;
+let home: Place;
 let buyer: TestBuyer;
 let counter: Stock;
 let balanceMinor = 0;
@@ -150,8 +150,8 @@ beforeEach(async () => {
     () => Money.of(balanceMinor, 'crown' as never),
   );
 
-  shop = makeStuffAtPath(() => new Location(), '/test/eats/location/shop');
-  home = makeStuffAtPath(() => new Location(), '/test/eats/location/home');
+  shop = makeStuffAtPath(() => new Place(), '/test/eats/location/shop');
+  home = makeStuffAtPath(() => new Place(), '/test/eats/location/home');
   counter = makeStuffAtPath(() => new Stock(), COUNTER);
   counter.stockLines = [
     { itemTemplatePath: LEAN, par: 4 },

@@ -395,6 +395,12 @@ function hasAnyTag(material: Material, tags: readonly string[]): boolean {
  * At a water mill the driver may be a valley away by now, which is the
  * whole point of the rung — so the flour waits where the mill is.
  */
+/** The dust a grind throws into a shut room (cleanliness D22). */
+const FLOUR_DUST = '/stuff/idea/material/gas/flour-dust';
+/** Litres of suspended flour per kilogram milled — ten grinds in an
+ * unswept mill house reach the flash; two do not. */
+const DUST_L_PER_KG = 15;
+
 async function finishGrind(
   mill: Stuff & Comminuting,
   source: Stuff,
@@ -431,6 +437,21 @@ async function finishGrind(
       } else {
         await StuffApi.destruct(source);
       }
+    }
+
+    // ⭐ (cleanliness D22) The stones throw flour into the air. In an
+    // ENCLOSED mill house it hangs there, grind on grind, until it is
+    // swept down — and enough of it, struck by a spark, explodes. Under
+    // the open sky it blows away. A floor damped down (wet) halves it.
+    if (landing && MixinApi.isAtmospheric(landing) && plan.productKg > 0) {
+      const floor = MixinApi.isAdornable(landing)
+        ? (landing.getFloor() as unknown as Stuff | null)
+        : null;
+      const damped = floor !== null && MixinApi.isWet(floor) && floor.getWetness() > 0.2;
+      landing.addAtmosphereContent(
+        FLOUR_DUST,
+        plan.productKg * DUST_L_PER_KG * (damped ? 0.5 : 1),
+      );
     }
 
     // The product, less the toll.

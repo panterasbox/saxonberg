@@ -1369,6 +1369,14 @@ invisible to acceptance 28's reveal audit — the same blind spot
   sets `on: true`, so it reports *NOT delivering — shut off*; and the Hinkley
   `StorageNode` answers no `supplyReport` (`analyze water tank` → *carries no
   water anywhere*). Neither row is in the pump build's diff.
+
+## Water hardness travels (2026-10-17)
+
+Water carries its hardness (`hardnessDgh` on the bulk payload): a pail
+keeps its source's, a tap reads its main's, a shore's draw its reach's.
+Soap scums in hard water. The shore's one draw (`drawAt`) refuses a frozen
+water unless there is a hole in it. See [cleanliness.md](./cleanliness.md).
+
 - **2026-10-18 (storage-and-ice, MR !378).** The still-water threshold
   moved to 0.5 m/s; `iceAt` took a patch history; the frozen pool became
   an ice-sheet FLOOR with a patch log, the one skim threshold

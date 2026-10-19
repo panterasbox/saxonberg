@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
 import Biome from "../Biome";
 import Material from "../../material/Material";
-import CartesianLocation from "../../location/CartesianLocation";
+import Location from "../../location/Location";
 import CartesianZone from "../../../platform/idea/location/CartesianZone";
 import { AtmosphericMixin } from "../Atmospheric";
 import { ContainerMixin } from "../../spatial/Container";
@@ -59,10 +59,10 @@ class Box extends AtmosphericMixin(ContainerMixin(Good)) {
   }
 }
 
-function room(envelopeK: number): CartesianLocation {
+function room(envelopeK: number): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   (r as unknown as { setEnclosure(f: unknown): void }).setEnclosure({

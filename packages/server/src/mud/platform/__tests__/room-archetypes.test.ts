@@ -46,10 +46,10 @@ const read = (name: string): Seed =>
 const ARCHETYPES = ["bedroom", "kitchen", "bathroom", "living"] as const;
 
 describe("the four archetypes are template rows over ONE class (D6)", () => {
-  it("all four exist and share `/lib/location/FurnishableRoom`", () => {
+  it("all four exist and share `/lib/location/PersistentLocation`", () => {
     for (const name of ARCHETYPES) {
       const seed = read(name);
-      expect(seed.class).toBe("/platform/location/FurnishableRoom");
+      expect(seed.class).toBe("/platform/location/PersistentLocation");
     }
   });
 
@@ -66,9 +66,9 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
     // The check that keeps D12 honest. If a fixture ever needs a class of
     // its own, that is a design decision, not a detail — make it explicitly.
     const shipped = new Set([
-      // bed, tub, armchair — slots authored per seed. The bed and the
-      // armchair are MADE OF PARTS (frame + cushion / mattress) by their
-      // bills; the tub is one piece. One class either way (repair D4).
+      // bed, armchair — slots authored per seed. The bed and the armchair
+      // are MADE OF PARTS (frame + cushion / mattress) by their bills; one
+      // class either way (repair D4). The tub is its own class below.
       "/platform/thing/Chair",
       "/platform/thing/Oven", // the range
       "/platform/thing/Chest", // the larder
@@ -104,6 +104,27 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // the confidently-misleading failure the `coldStorage` repair in
       // the same build exists to end. Placement build, D10.
       "/platform/thing/Icebox",
+      // ⭐ The window a room's daylight comes in by (cleanliness D19, B18):
+      // a one-sided pane IN the room, so its grime and shutters darken
+      // the room. Not a new class — the glazier's `Window` already is a
+      // pane that carries light; this row is that class with one side.
+      "/platform/thing/Window",
+      // ⭐⭐ Two fixtures that DID need a class (cleanliness W6), made
+      // explicitly. The TUB holds water now — a bath is drawn into it from
+      // the copper and you sit in what it holds — so it is a bulk vessel
+      // that is also a seat (`Tub` = Bulkable over Thermal over Chair); a
+      // `Chair` holds nobody's bathwater. The COPPER is a boiler over its
+      // own fire (B30): plumbed water that heats, which `WaterFixture`
+      // alone does not do.
+      "/platform/thing/Tub",
+      "/platform/thing/Copper",
+      // Shipped classes the cleanliness build's fixtures name: the line
+      // the washing dries on is a `DryingRack` (B9), the midden a `Midden`
+      // heaps and rotten food are disposed onto (it turns them to compost),
+      // the washboard a `Tool` a scrub reaches for.
+      "/platform/thing/DryingRack",
+      "/platform/thing/Midden",
+      "/platform/thing/Tool",
     ]);
     for (const file of readdirSync(join(SEEDS, "stuff/thing/fixture"))) {
       const seed = read(`stuff/thing/fixture/${file}`);
@@ -131,6 +152,9 @@ describe("the kitchen — BUNDLE (D12)", () => {
     const kitchen = read("kitchen");
     expect(kitchen.data?.props).toEqual([
       "/stuff/thing/fixture/range",
+      // The opening the kitchen's daylight comes in by, as a real pane —
+      // the range's soot greys it (cleanliness D19).
+      "/stuff/thing/fixture/window",
       "/stuff/thing/fixture/counter",
       "/stuff/thing/fixture/larder",
       // ⭐ Somewhere cold, for the first time — and it arrives WARM and
@@ -190,11 +214,14 @@ describe("the kitchen — BUNDLE (D12)", () => {
 });
 
 describe("the bathroom — PRESENCE (D13)", () => {
-  it("three fixtures at three rungs of the LOD ladder", () => {
+  it("its fixtures at their rungs of the LOD ladder", () => {
     expect(read("bathroom").data?.props).toEqual([
       "/stuff/thing/fixture/toilet",
       "/stuff/thing/fixture/basin",
       "/stuff/thing/fixture/tub",
+      // The tub's brass tap, made real (cleanliness): cold water to fill
+      // it. Hot is a copper's, and a house that has one says so in rows.
+      "/stuff/thing/fixture/bath-tap",
     ]);
   });
 

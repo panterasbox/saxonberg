@@ -9,14 +9,14 @@ residence ladder.
 > and the dorm converged onto it.** A let unit at Seznick House and a bought
 > house at Hinkley Hills ride the same two-tier substrate this building's
 > machinery was lifted into — see **[holding.md](./holding.md)**, which is the
-> source of truth for `OuterWarren`, `PlatPlan`, `HoldingWarren`,
+> source of truth for `CirculationWarren`, `PlatPlan`, `HoldingWarren`,
 > `FrontDoorExit`, the weathering clock, the tenure terms, the capacity dials
 > and the archetype read. This doc stays the source of truth for the DORM: its
 > D1 multi-instance persistence model (which the whole ladder now rides), its
 > theme overlay, its provisioning verbs and Katie.
 >
 > What converged, and what deliberately did not: `DormWarren` re-parented onto
-> `OuterWarren` and each unit gained a degenerate one-room
+> `CirculationWarren` and each unit gained a degenerate one-room
 > `HoldingWarren`, so the dorm's condition, term and archetype read answer
 > like every other rung. `DormWarren`, `DormRoom`, `DormDoor` and
 > `FloorStairExit` **kept their names, template paths, extent scheme
@@ -359,7 +359,7 @@ the floor corridor first (best-effort).
 
 Three places used to find this system's objects by walking every live
 object in the world and matching a **class name in a string**
-(`OuterWarren.admitFor` — the log-back-in-where-you-logged-out seam;
+(`CirculationWarren.admitFor` — the log-back-in-where-you-logged-out seam;
 `title list` and the realty desk; the `maintains` brain). The world-scan
 build replaced those with a `ResidenceCatalogue` that found every row
 authoring `parentExtent` by a **scan of the template table** — and
@@ -374,7 +374,7 @@ somebody authored.
   `NavigationApi.attachedTo(key, 'institution')` answers for the key and
   every ancestor of it — Duncan Hall's dorm warren and college, Seznick
   House's building, Hinkley Hills' plat book and lot holder.
-  `OuterWarren.admitFor(key)` keeps the warrens whose parent extent
+  `CirculationWarren.admitFor(key)` keeps the warrens whose parent extent
   prefixes the key, innermost first; the `maintains` brain adds
   `attachedWithin(extent)` for the holdings under its own.
 - **A desk names the books it fronts** (`DeedDesk.books`), and so does

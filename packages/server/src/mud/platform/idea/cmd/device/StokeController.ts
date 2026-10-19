@@ -132,6 +132,14 @@ export default class StokeController extends CommandController<StokeModel> {
       return;
     }
 
+    // ⭐ (cleanliness D6) Tending a fire blackens the hands.
+    if (MixinApi.isHygienic(commandGiver)) {
+      commandGiver.soilFrom([
+        { kind: 'ash', amount: 0.1, where: 'hands' },
+        { kind: 'soot', amount: 0.05, where: 'hands' },
+      ]);
+    }
+
     const lit = (burner as Stuff & Burner).isLit();
     const tail = lit ? ' The fire takes it.' : '';
     MessageApi.scene(commandGiver)

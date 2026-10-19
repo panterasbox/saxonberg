@@ -30,14 +30,14 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MqlSubscriptionApi } from '../../../../../api/mql-subscription';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import {
   CommandApi,
   type CommandContext,
@@ -88,7 +88,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   giver: TestGiver | TestAdminGiver,
-  location: Location,
+  location: Place,
   raw: string
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -119,11 +119,11 @@ function namedThing(name: string): Stuff {
 
 describe('FindController', () => {
   let giver: TestGiver;
-  let location: CartesianLocation;
+  let location: Location;
   let controller: FindController;
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     location.setShortDescription('Town Square');
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);

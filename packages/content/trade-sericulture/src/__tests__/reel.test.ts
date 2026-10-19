@@ -16,7 +16,7 @@ import Strain from '../idea/Strain';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -42,7 +42,7 @@ const SHELL = '/trade/sericulture/idea/material/cocoon-shell';
 
 class Reeler extends TestActor {}
 
-let room: Location;
+let room: Place;
 let reeler: Reeler;
 
 function fixtures(): void {
@@ -127,7 +127,7 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => now);
   WorldClockApi.setScale(1000);
   fixtures();
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   reeler = makeStuff(() => new Reeler());
   ContainmentApi.move(reeler as never, room as never);
   vi.spyOn(reeler, 'getIdentityPath').mockReturnValue('/platform/agent/Avatar/reeler');

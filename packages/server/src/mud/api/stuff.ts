@@ -473,6 +473,15 @@ export class StuffApi {
       dataOverlay?: Record<string, unknown>;
       asIdentityPath?: string;
       /**
+       * ⭐ The path the clone's ZONE is resolved from — default: its
+       * identity path. A holding names its rooms by the shared row (the
+       * `(scope, key)` record's scope) while each room stands in the zone
+       * its HOLDING does (`…/lots/lot-7/bedroom`): a room's size is its
+       * zone's cell, and a generic `/stuff/location/room/*` row resolves
+       * no zone of its own (the place taxonomy, cleanliness B54).
+       */
+      zoneFrom?: string;
+      /**
        * ⭐ What this is being MADE FROM — the log a board is sawn out of,
        * the sample an assay paper reports on, the inputs a craft
        * consumes. A made good belongs to whoever owned what it was made
@@ -526,7 +535,11 @@ export class StuffApi {
   static async #cloneInner<T extends Stuff>(
     templatePath: string,
     context?: unknown,
-    opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
+    opts?: {
+      dataOverlay?: Record<string, unknown>;
+      asIdentityPath?: string;
+      zoneFrom?: string;
+    }
   ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
     //    Template module-load cycle at init time.
@@ -641,7 +654,7 @@ export class StuffApi {
     //    Lazy-loaded to break the StuffApi ↔ ZoneApi cycle (ZoneApi
     //    statically imports StuffApi for singleton + class-loading).
     const { ZoneApi } = await import('./zone');
-    const zone = await ZoneApi.resolveZoneForPath(identityPath);
+    const zone = await ZoneApi.resolveZoneForPath(opts?.zoneFrom ?? identityPath);
 
     // 6. Resolve the applier — iff there is anything to apply.
     //    ⭐ The row no longer names one. `hydratorClass` retired

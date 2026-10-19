@@ -11,7 +11,7 @@ import { FoldableMixin } from '../../../../../lib/slot/Foldable';
 import { PosturedMixin } from '../../../../../lib/slot/Postured';
 import { SlottedMixin } from '../../../../../lib/slot/Slotted';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -47,7 +47,7 @@ class FoldingChair extends FoldableMixin(
 ) {}
 class Sitter extends SlottableMixin(Idea) {}
 
-function ctxFor(avatar: FakeAvatar, loc: Location, verb: string): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -68,11 +68,11 @@ function one(stuff: unknown, raw: string): MqlOneResult {
 
 describe('FoldController / UnfoldController', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let chair: FoldingChair;
 
   beforeEach(() => {
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

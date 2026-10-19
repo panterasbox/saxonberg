@@ -10,7 +10,7 @@
 #
 # ⚠ The way ONWARD is the ford. There is no other line: that is what
 # makes a seasonal crossing a fact about the road rather than a detour.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: ford on the Delight
   keywords: [ford, delight]

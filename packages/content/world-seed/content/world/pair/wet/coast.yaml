@@ -1,6 +1,6 @@
 # The wet coast — 42° on the sea. A mild winter and a great deal of rain:
 # the Locality leans to rain and storm and doubles the amount.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: wet coast
   keywords: [coast, shore, headland]

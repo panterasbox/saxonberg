@@ -28,7 +28,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { PerceptibleMixin } from "../../../../../lib/description/Perceptible";
 import { StuffApi } from "../../../../../api/stuff";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
-import type Location from "../../../../../lib/stuff/Location";
+import type Place from "../../../../../lib/stuff/Place";
 import type Interactive from "../../../Interactive";
 
 class TestLocation extends ContainerMixin(
@@ -73,7 +73,7 @@ function lookCommand(): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   command: CommandDefinition,
   text: string
 ): CommandContext {
@@ -121,7 +121,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look rose --peek"
     );
@@ -140,7 +140,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look rose"
     );
@@ -158,7 +158,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look rose --peek"
     );
@@ -177,7 +177,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look rose"
     );
@@ -197,7 +197,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look rose --peek"
     );
@@ -224,7 +224,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       "look --peek"
     );
