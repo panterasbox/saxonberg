@@ -36,6 +36,19 @@ export interface WaterDraw {
  * `name`, `pending`, `frozen` and `draw`; `opaque` is the source's own
  * and is handed back to it untouched.
  */
+/** A tidal water's tide at the read's instant. */
+export interface WaterTide {
+  /** Low to high today, m. */
+  rangeM: number;
+  /** The water is coming in. */
+  rising: boolean;
+  /** Game-seconds of the next high and low water. */
+  nextHighS: number;
+  nextLowS: number;
+  /** The stream, m/s: + flooding, − ebbing, 0 at the turn. */
+  streamMps: number;
+}
+
 export interface WaterRead {
   /** The concrete ref this read is of. */
   ref: string;
@@ -66,6 +79,11 @@ export interface WaterRead {
    * light is left. Clear sea ~10, the Kestrel ~3.
    */
   clarityM?: number;
+  /**
+   * ⭐ The tide, where the water has one (underwater D4/D25): what a
+   * shore says about it in words and an almanac prints.
+   */
+  tide?: WaterTide;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
 }

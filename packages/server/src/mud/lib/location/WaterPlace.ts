@@ -58,6 +58,10 @@ import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
+import { WorldClockApi } from '../../api/worldclock';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import type { WaterRead } from './WaterSource';
 import { CombatApi } from '../../api/combat';
 import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
@@ -88,6 +92,15 @@ const SWIM_THRUST_N = 40;
 const DEFAULT_CLARITY_M = 5;
 
 /** What a place says about its water. */
+/**
+ * ⭐ What the tide does here (underwater D25): a strandline names the
+ * waters whose floating drift the high water leaves on it.
+ */
+export interface TideSpec {
+  /** Places whose floating things the flood carries here (authored forward refs). */
+  collectsFrom?: string[];
+}
+
 export interface WaterSpec {
   /** The water cited — a reach ref (`kestrel:confluence`) or a sea's path. */
   of: string;
@@ -186,6 +199,17 @@ export interface WaterPlace {
   sink(thing: Stuff): Promise<boolean>;
   /** At the thaw: everything here that sinks goes down. */
   sinkWhatSinks(): void;
+  getTide(): TideSpec | null;
+  setTide(value: TideSpec | null): void;
+  /** Game-second `thing` came into this water, if it is known (runtime). */
+  arrivedAtS(thing: Stuff): number | null;
+  /**
+   * ⭐ Bring the place up to the water now (underwater D11, D25): the
+   * flood's drift onto a strandline, and a disconnected body the water
+   * has come up to held face-up at the surface — with a word to whoever
+   * is here. Run on entry and whenever a fresh read of the water lands.
+   */
+  reconcileOccupants(): Promise<void>;
 }
 
 type FloorStuff = Stuff & Floor;
@@ -200,6 +224,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     static fieldMeta: FieldMeta = {
       water: { persistent: true, authorable: true },
       column: { persistent: true, authorable: true },
+      tide: { persistent: true, authorable: true },
     };
 
     /**
@@ -216,6 +241,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     /** What lies beside the column under this water. */
     public column: ColumnSpec = {};
+
+    /** What the tide leaves here (a strandline), or null. */
+    public tide: TideSpec | null = null;
+
+    /** stuffId → game-second it came into this water (runtime; lost on restart). */
+    private _arrivals = new Map<string, number>();
 
     /** A water is swum every way it opens; a row may narrow it. */
     public axes: string[] = ['*'];
@@ -244,6 +275,72 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       };
       const self = this as unknown as Shore;
       self.setWaters({ ...self.getWaters(), [this.getWaterKey()]: this.water.of });
+    }
+
+    public getTide(): TideSpec | null {
+      return this.tide === null ? null : { ...this.tide };
+    }
+
+    public setTide(value: TideSpec | null): void {
+      const from = Array.isArray(value?.collectsFrom)
+        ? value!.collectsFrom.filter((p): p is string => typeof p === 'string' && p !== '')
+        : [];
+      this.tide = from.length > 0 ? { collectsFrom: from } : null;
+    }
+
+    public arrivedAtS(thing: Stuff): number | null {
+      return this._arrivals.get(thing.stuffId) ?? null;
+    }
+
+    /** ⭐ A fresh read landed: the water may have come up or gone down. */
+    public async onWaterRead(key: string, read: WaterRead): Promise<void> {
+      await (Base.prototype as { onWaterRead?: (k: string, r: WaterRead) => Promise<void> }).onWaterRead?.call(this, key, read);
+      if (key === this.getWaterKey()) await this.reconcileOccupants();
+    }
+
+    public async reconcileOccupants(): Promise<void> {
+      const self = this as unknown as Stuff & Container;
+      if (self.isDestroyed()) return;
+      const read = (this as unknown as Shore).peekWaterRead(this.getWaterKey());
+      // The flood's drift: what floated in a collecting water since before
+      // the last high water now lies here.
+      const from = this.tide?.collectsFrom ?? [];
+      if (from.length > 0 && read?.tide !== undefined) {
+        const lastHighS = read.tide.nextHighS - HALF_LUNAR_DAY_S;
+        for (const path of from) {
+          const there = StuffApi.findByTemplatePath<Stuff>(path);
+          if (!there || there === self || !MixinApi.isContainer(there) || !MixinApi.isWaterPlace(there)) continue;
+          for (const thing of [...there.getContents()]) {
+            if (thing.isAgent?.() || !MixinApi.isTangible(thing) || !MixinApi.isContainable(thing)) continue;
+            if (thing.isFixedInPlace?.() || there.sinks(thing)) continue;
+            const at = there.arrivedAtS(thing);
+            if (at === null || at > lastHighS) continue;
+            try {
+              ContainmentApi.move(thing, self);
+            } catch {
+              /* it stays where it was */
+            }
+          }
+        }
+      }
+      // The water has come up to a disconnected body: hold it at the surface.
+      if (this.stateNow() !== 'swimming') return;
+      const held: Stuff[] = [];
+      for (const c of [...self.getContents()]) {
+        if (!MixinApi.isHasInteractive(c) || !c.isLinkdead()) continue;
+        if (MixinApi.isRespiration(c) && c.isHeldUp()) continue;
+        if (await this.holdAtSurface(c)) held.push(c);
+      }
+      if (held.length > 0) {
+        try {
+          MessageApi.scene(held[0]!)
+            .topic('sense.surroundings')
+            .toPeers(Mml.compose`The water is coming in. It lifts ${Mml.actor(held[0]!)} and holds them face-up at the surface.`)
+            .send();
+        } catch {
+          /* decoration */
+        }
+      }
     }
 
     public getWaterKey(): string {
@@ -465,6 +562,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      */
     public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
+      void this.reconcileOccupants();
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
@@ -516,6 +614,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
       const floor = this.waterFloor();
       floor?.reconcileSupport();
+      try {
+        this._arrivals.set(thing.stuffId, WorldClockApi.getNow().rawValue());
+      } catch {
+        /* no clock (a unit world): arrival unknown */
+      }
       // ⭐ Into the water (underwater D29 seams 1, 2, 4): whatever arrives
       // in it, and everything it carries, is wet through; whatever was
       // burning is out; an open empty vessel fills with the water.
@@ -570,6 +673,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public onContainableRemoved(thing: Stuff & Containable): void {
       (Base.prototype as { onContainableRemoved?: (t: unknown) => void }).onContainableRemoved?.call(this, thing);
+      this._arrivals.delete(thing.stuffId);
       this.waterFloor()?.reconcileSupport();
     }
 
@@ -615,6 +719,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
   };
 }
+
+/** Half a lunar day, game-seconds: high water to high water (a 30-day month). */
+const HALF_LUNAR_DAY_S = (86_400 * 30) / 29 / 2;
 
 /** The wading depth dial (`water.column.wadeM`). */
 function wadeDepthM(): number {

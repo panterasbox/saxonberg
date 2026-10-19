@@ -45,6 +45,9 @@ import type { MqlMatchVia } from '../../api/mql';
 /** The weather field is memoised per six-game-hour segment; reading more often buys nothing. */
 const SEGMENT_S = 6 * 3600;
 
+/** ⭐ A tidal water moves in minutes, not segments (underwater D25): read it this often. */
+const TIDE_SEGMENT_S = 600;
+
 /** One cited feature's read, and the source that answered it. */
 interface WaterMemo {
   source: (Stuff & WaterSource) | null;
@@ -72,6 +75,8 @@ export interface Shore {
   waterRefFor(name?: string): Promise<WaterRefPick>;
   settleWater(key: string): Promise<WaterRead | null>;
   peekWaterRead(key: string): WaterRead | null;
+  /** @hook A fresh read of the water under `key` has landed. */
+  onWaterRead(key: string, read: WaterRead): Promise<void>;
   /**
    * ⭐ What can be drawn from the water under `key` by someone standing in
    * `room` — THE frozen gate (storage-and-ice D15). Frozen water gives
@@ -305,18 +310,19 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const moved =
         read !== null && memo.source !== null &&
         memo.source.currentWaterRef(citation, this as unknown as Stuff) !== read.ref;
+      const window = read?.tide !== undefined ? TIDE_SEGMENT_S : SEGMENT_S;
       const fresh =
-        read !== null && !read.pending && !moved && nowS - read.atS < SEGMENT_S;
+        read !== null && !read.pending && !moved && nowS - read.atS < window;
       if (fresh && !(force && memo.source === null)) return Promise.resolve();
       if (!force && memo.unknown) return Promise.resolve();
-      const run = this.readCited(memo, citation, nowS).finally(() => {
+      const run = this.readCited(key, memo, citation, nowS).finally(() => {
         memo.refreshing = null;
       });
       memo.refreshing = run;
       return run;
     }
 
-    private async readCited(memo: WaterMemo, citation: string, nowS: number): Promise<void> {
+    private async readCited(key: string, memo: WaterMemo, citation: string, nowS: number): Promise<void> {
       const startedMs = Date.now();
       const where = (this as unknown as Stuff).getTemplatePath() ?? '?';
       try {
@@ -334,6 +340,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         memo.unknown = undefined;
         memo.read = read;
+        await this.onWaterRead(key, read);
       } catch (err) {
         // The read stays as it was (a look says it is hard to read) — but
         // a read that THROWS is a defect somebody must be able to see.
@@ -342,6 +349,16 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const tookMs = Date.now() - startedMs;
         if (tookMs > 2_000) console.warn(`ShoreMixin: reading '${citation}' at ${where} took ${tookMs} ms`);
       }
+    }
+
+    /**
+     * @hook A fresh read of the water under `key` has landed. A place
+     * whose own state follows the water (a tidepool, a strand) reconciles
+     * here; a plain shore does nothing.
+     */
+    public async onWaterRead(key: string, read: WaterRead): Promise<void> {
+      void key;
+      void read;
     }
 
     /**
@@ -373,6 +390,8 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         line = 'The water is hard to read yet.';
       } else {
         const lines = memo.source.waterLinesFor(memo.read, viewer as Stuff);
+        const tide = tideWords(memo.read);
+        if (tide !== null) lines.push(tide);
         line = lines.length > 0 ? lines.join(' ') : 'The water is hard to read yet.';
       }
       return base ? `${base}\n\n${line}` : line;
@@ -381,6 +400,25 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 }
 
 /* ───────────────────────── module-private ───────────────────────── */
+
+/**
+ * ⭐ The tide in a shore's words (underwater D25): which way it is going,
+ * how long to the turn, and the stream — never a number of metres.
+ */
+function tideWords(read: WaterRead): string | null {
+  const tide = read.tide;
+  if (tide === undefined) return null;
+  const slack = Math.abs(tide.streamMps) < 0.15;
+  const nextS = tide.rising ? tide.nextHighS : tide.nextLowS;
+  const hours = Math.max(0, (nextS - read.atS) / 3600);
+  const when = hours < 0.75 ? 'within the hour' : `in about ${hours < 1.5 ? 'an hour' : `${Math.round(hours)} hours`}`;
+  if (slack) {
+    return tide.rising ? 'The tide is on the turn at low water; it will be making soon.' : 'The tide is on the turn at the top of the flood.';
+  }
+  const way = tide.rising ? `The tide is making — high water ${when}` : `The tide is ebbing — low water ${when}`;
+  const run = Math.abs(tide.streamMps) > 0.8 ? ', and the stream runs hard' : '';
+  return `${way}${run}.`;
+}
 
 /**
  * The source that reads `citation`: the cited Idea itself when the

@@ -50,6 +50,9 @@ import {
   WaterSourceMixin,
   type WaterRead,
 } from '@saxonberg/server/mud/lib/location/WaterSource';
+import type { WaterTide } from '@saxonberg/server/mud/lib/location/WaterSource';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { Tide } from '../lib/Tide';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
@@ -411,6 +414,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       standing?.contamination ?? (await this.contaminationAt(citation, nowS).catch(() => null));
     const water = standing?.water ?? (await this.waterStateAt(citation, nowS).catch(() => null));
     const frozen = ice !== null && ice.thicknessM > OPEN_WATER_BELOW_M;
+    const tide = this.tideOf(reach, nowS);
     const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
     const opaque: ReachReadState = {
       reach,
@@ -424,7 +428,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       atS: nowS,
       name: reach.courseName || reach.courseKey,
       frozen,
-      levelM: 0,
+      levelM: tide?.levelM ?? 0,
+      ...(tide !== null ? { tide: tide.tide } : {}),
       clarityM: fouled ? Math.min(FOULED_CLARITY_M, reach.clarityM) : reach.clarityM,
       draw: frozen
         ? null
@@ -747,6 +752,34 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /**
+   * ⭐ The tide at a reach (underwater D4): a reach at the sea's level is
+   * the sea's tide, felt up the river mouth; any reach above it has none.
+   * The range is the realm's dial (`water.tide.rangeM`, the Greywater's 3).
+   */
+  private tideOf(reach: { elevation: number }, nowS: number): { levelM: number; tide: WaterTide } | null {
+    if (reach.elevation > 0) return null;
+    const rangeM = dial('water.tide.rangeM', 3);
+    if (!(rangeM > 0)) return null;
+    let moon = 0;
+    try {
+      moon = CelestialApi.moonPhase(Quantity.of(nowS, 's'));
+    } catch {
+      moon = 0;
+    }
+    const t = new Tide(rangeM, dial('water.tide.lagH', 0) * 3600).at(nowS, moon);
+    return {
+      levelM: t.levelM,
+      tide: {
+        rangeM: t.rangeM,
+        rising: t.rising,
+        nextHighS: t.nextHighS,
+        nextLowS: t.nextLowS,
+        streamMps: t.streamFactor * dial('water.tide.peakStreamMps', 1.2),
+      },
+    };
+  }
+
+  /**
    * ⭐⭐ **Everything a body of water reports** (fishing D22) — every word
    * of `WATER_PARAMETERS`, derived where it can be and seeded on the
    * course row where it cannot, so a species' tolerances and, one day,
@@ -792,7 +825,15 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
     const brackishBelowM = dial('water.fishery.brackishBelowM', 50);
     let salinityPpt = 0.3;
-    if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
+    const tide = this.tideOf(reach, nowS);
+    if (tide !== null) {
+      // ⭐ The tide replaces the step (underwater D4): sea water at the
+      // top of the flood, brackish at the bottom of the ebb.
+      const sea = dial('water.fishery.salinity.sea', 33);
+      const brackish = dial('water.fishery.salinity.brackish', 15);
+      const up = Math.max(0, Math.min(1, tide.levelM / Math.max(0.01, tide.tide.rangeM) + 0.5));
+      salinityPpt = brackish + (sea - brackish) * up;
+    } else if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
     else if (reach.depthToSea <= 1 && reach.elevation < brackishBelowM) {
       salinityPpt = dial('water.fishery.salinity.brackish', 15);
     }

@@ -195,6 +195,7 @@ export default class WaterReading extends Reading {
     if (reach.includes('@')) {
       const lines = [`water: ${read?.name ?? 'the sea'}`, 'salt'];
       if (read?.draw) lines.push(`${(read.draw.temperatureK - 273.15).toFixed(0)} °C at the surface`);
+      lines.push(...this.tideLines(read));
       MessageApi.scene(giver)
         .topic('sense.reading')
         .toSelf(Mml.compose`${lines.join('\n')}\n`)
@@ -226,6 +227,7 @@ export default class WaterReading extends Reading {
         ? `${flow.snowpackMm.toFixed(0)} mm of water still lying as snow above you`
         : `no snow left on the catchment`,
       flow.navigable ? `a boat would get through` : `too little for a boat`,
+      ...this.tideLines(read),
     ];
     // ⭐⭐ What is IN it — the gauge (maritime shore revision, AC 53).
     // Fouling announces itself to no sense; the instrument is how anybody
@@ -270,6 +272,26 @@ export default class WaterReading extends Reading {
       .topic('sense.reading')
       .toSelf(Mml.compose`${lines.join('\n')}\n`)
       .send();
+  }
+
+  /**
+   * ⭐ The tide, in figures (underwater D25): which way, the range today,
+   * the next turn by the clock, and the stream. A shore's `look` says the
+   * same in words.
+   */
+  private tideLines(read: WaterRead | null): string[] {
+    const tide = read?.tide;
+    if (!read || tide === undefined) return [];
+    const nextS = tide.rising ? tide.nextHighS : tide.nextLowS;
+    const hours = Math.max(0, (nextS - read.atS) / 3600);
+    const stream = Math.abs(tide.streamMps) < 0.15
+      ? 'slack water'
+      : `the stream ${tide.streamMps > 0 ? 'flooding' : 'ebbing'} at ${Math.abs(tide.streamMps).toFixed(1)} m/s`;
+    return [
+      `tide: ${tide.rising ? 'making' : 'ebbing'}, ${tide.rising ? 'high' : 'low'} water in ${hours.toFixed(1)} h; ` +
+        `range today ${tide.rangeM.toFixed(1)} m, the level ${(read.levelM ?? 0) >= 0 ? '+' : ''}${(read.levelM ?? 0).toFixed(1)} m`,
+      stream,
+    ];
   }
 
   /** Print a waterworks' own report, over the shape. */

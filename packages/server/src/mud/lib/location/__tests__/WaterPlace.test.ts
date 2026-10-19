@@ -28,7 +28,9 @@ import { TemplatePaths } from '../../paths';
 import { MEDIA } from '../../biome/Medium';
 import type { Stuff } from '../../stuff/Stuff';
 import type { WaterRead } from '../WaterSource';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import Good from '../../../platform/thing/Good';
+import Material from '../../../platform/idea/material/Material';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Walker extends Actor {}
@@ -186,5 +188,66 @@ describe('the place IS the water (D1)', () => {
     const p = makeStuff(() => new Pool());
     expect(MixinApi.isShore(p as unknown as Stuff)).toBe(true);
     expect(MixinApi.isSwimmable(p as unknown as Stuff)).toBe(true);
+  });
+});
+
+describe('the tide reaches the place (D11, D25)', () => {
+  /** A drifting plank: wood floats. */
+  function plank(): Stuff {
+    const mat = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('tide-test-pine');
+      m.setDensity(Quantity.of(500, 'kg/m³'));
+      return m;
+    }, '/stuff/idea/material/_test/tide-test-pine') as unknown as Material;
+    return makeStuff(() => {
+      const g = new Good();
+      g.setMass(Quantity.of(4, 'kg'));
+      g.setMaterial(mat);
+      return g;
+    }) as unknown as Stuff;
+  }
+
+  it('⭐ what floated in the channel before the last high water lies on the strandline after it', async () => {
+    const channel = makeStuffAtPath(() => new Pool(), '/test/tide/channel');
+    channel.setWater({ of: '/sea', depthM: 3 });
+    await channel.ensureFloor();
+    const { pool: strandline } = await pool({ of: '/sea', depthM: -1.3 });
+    strandline.setTide({ collectsFrom: ['/test/tide/channel'] });
+    const drift = plank();
+    ContainmentApi.move(drift as never, channel as never);
+    const arrived = channel.arrivedAtS(drift)!;
+    expect(arrived).not.toBeNull();
+
+    const read = (nextHighS: number): WaterRead => ({
+      ref: 'r', atS: arrived, name: 'the sea', frozen: false,
+      draw: { materialPath: '/m/salt', temperatureK: 285 }, levelM: -1,
+      tide: { rangeM: 3, rising: false, nextHighS, nextLowS: arrived + 3600, streamMps: -0.5 },
+    });
+    // High water still to come after it went in: it is still in the channel.
+    vi.spyOn(strandline, 'peekWaterRead').mockReturnValue(read(arrived + 3600));
+    await strandline.reconcileOccupants();
+    expect((drift as unknown as { getContainer(): unknown }).getContainer()).toBe(channel);
+    // A high water has come and gone since: it is on the strandline.
+    vi.spyOn(strandline, 'peekWaterRead').mockReturnValue(read(arrived + 50_000));
+    await strandline.reconcileOccupants();
+    expect((drift as unknown as { getContainer(): unknown }).getContainer()).toBe(strandline);
+  });
+
+  it('⭐ the flood holds a disconnected body face-up, and says the water is coming in', async () => {
+    const { pool: strand } = await pool({ of: '/sea', depthM: -1.3 });
+    const body = walker();
+    ContainmentApi.move(body as never, strand as never);
+    readAt(strand, -1.5);
+    const linkdead = Object.assign(body, { isLinkdead: () => true });
+    void linkdead;
+    vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((o: unknown) => o === body) as never);
+    const hold = vi.spyOn(strand, 'holdAtSurface');
+    await strand.reconcileOccupants();
+    expect(hold).not.toHaveBeenCalled();
+    readAt(strand, 4);
+    expect(strand.stateNow()).toBe('swimming');
+    await strand.reconcileOccupants();
+    expect(hold).toHaveBeenCalledWith(body);
   });
 });

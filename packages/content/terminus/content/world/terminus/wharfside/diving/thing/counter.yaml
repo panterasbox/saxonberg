@@ -28,6 +28,7 @@ data:
     - { itemTemplatePath: /trade/diving/thing/signal-bell, par: 2 }
     - { itemTemplatePath: /trade/diving/thing/spear, par: 2 }
     - { itemTemplatePath: /trade/diving/thing/air-bag, par: 3 }
+    - { itemTemplatePath: /trade/diving/thing/tide-almanac, par: 3 }
   prices:
     /trade/diving/thing/diving-stone: 4
     /trade/diving/thing/weight-belt: 10
@@ -42,3 +43,4 @@ data:
     /trade/diving/thing/signal-bell: 6
     /trade/diving/thing/spear: 9
     /trade/diving/thing/air-bag: 10
+    /trade/diving/thing/tide-almanac: 2
