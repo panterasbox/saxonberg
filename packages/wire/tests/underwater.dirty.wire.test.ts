@@ -143,6 +143,10 @@ async function openWater(s: Session): Promise<void> {
   let left = doy < 200 ? 200 - doy : 0;
   for (; left > 0; left -= 30) await advanceWorldClock(`${Math.min(30, left)} days`);
   for (let i = 0; i < 6; i++) {
+    // The first read after half a year integrates half a year of weather:
+    // kick it with a look and let it land before asking the instrument.
+    await s.cmd('look river').catch(() => undefined);
+    await s.listen(45_000);
     const said = await say(s, 'analyze water');
     if (!/ice lies on the water/.test(said)) return;
     await advanceWorldClock('10 days');
@@ -299,7 +303,9 @@ suite('C · the line', () => {
     expect(out.status, squash(await out.said())).toBe('ok');
     expect(await look(diver)).toMatch(/Kestrel|embankment/i);
     // The gear left on the quay, taken up again for the work.
-    for (const g of ['here:i:lifeline', 'here:i:spear', 'here:i:bag']) expectOk(await diver.cmd(`get ${g}`));
+    // The line, taken up again for this step (the rest stays on the quay:
+    // a swimmer carrying all of it is refused — "carrying too much").
+    expectOk(await diver.cmd('get here:i:lifeline'));
     expectOk(await diver.cmd(`heave lifeline to ${BUDDY}`));
     await diver.drainProse();
     expectOk(await buddy.cmd('tug line'));
@@ -312,6 +318,8 @@ suite('C · the line', () => {
 
 suite('C · the city\'s work', () => {
   it('15b · the lost anchor will not come up on a line; three air bags float it, and the line brings it in', async () => {
+    expectOk(await diver.cmd('drop me:i:lifeline'));
+    expectOk(await diver.cmd('get here:i:bag'));
     await breathe(diver);
     await toTheBed(diver);
     expect(await look(diver)).toMatch(/anchor/i);
@@ -325,7 +333,10 @@ suite('C · the city\'s work', () => {
   });
 
   it('15c · in the lit band a spear takes what the water holds', async () => {
+    expectOk(await diver.cmd('climb up'));
+    expectOk(await diver.cmd('get here:i:spear'));
     await breathe(diver);
+    expectOk(await diver.cmd('descend'));
     expectOk(await diver.cmd('descend'));
     const r = await diver.cmd('spear fish');
     const said = squash(await r.said());
@@ -406,6 +417,7 @@ suite('D · 19 · the frog', () => {
 suite('Magic · 20', () => {
   it('20 · under the water a working cannot be spoken', async () => {
     await breathe(diver);
+    expectOk(await diver.cmd('descend'));
     expectOk(await diver.cmd('descend'));
     const r = await diver.cmd('cast glowlight');
     const said = squash(await r.said());

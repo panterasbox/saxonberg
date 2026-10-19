@@ -70,6 +70,12 @@ export default class DescendController extends LocomotionControllerBase {
       }
       await room.ensureColumnExits();
     }
+    // ⭐ At the top of the water there is no further up (found by the
+    // drive): the basin's own `up` is the quay WALL, and `ascend` tried to
+    // swim it. Out of the water is `climb`, by something you can climb.
+    if (up && room.surfacePlace() === (room as unknown as Stuff)) {
+      return this.refuse(context, 'act.deed', 'You are already at the surface.', 'at-surface');
+    }
     const exit = room.getExit(up ? 'up' : 'down');
     if (!exit) {
       return up
