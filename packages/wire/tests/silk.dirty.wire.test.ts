@@ -227,9 +227,13 @@ suite('⭐ 1. the silk house — a lit loft, its trays in words', () => {
   it('⭐ AC 2 — `look tray` reads the worms in WORDS, with no number in them', async () => {
     const s = await at(LOFT);
     try {
-      const tray = await read(s, 'look second tray');
-      const line = tray.split(/\n/).filter((l) => /worm|egg|tray|nothing/i.test(l)).join(' ');
-      expect(line, 'the tray must say something about its rearing').not.toBe('');
+      // ⭐ By the name on the room's list — a tray is called by what is on
+      // it. ⚠ This read `look second tray` and accepted "nothing living":
+      // the ordinal counts the ROOM's order, not the house's, and it found
+      // a harvested tray while passing (silk's browser walk).
+      const tray = await read(s, 'look silkworms');
+      const line = tray.split(/\n/).filter((l) => /worms|eggs/i.test(l)).join(' ');
+      expect(line, 'the working tray must read its rearing').toMatch(/age|eating|asleep|wandering|spinning|waiting/i);
       expect(line, 'AC 2 — in words, never a number').not.toMatch(/\d/);
     } finally {
       s.close();

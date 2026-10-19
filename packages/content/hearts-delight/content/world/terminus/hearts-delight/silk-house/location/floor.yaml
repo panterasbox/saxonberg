@@ -52,7 +52,10 @@ data:
     - /world/terminus/hearts-delight/silk-house/agent/keeper
     - /world/terminus/hearts-delight/silk-house/agent/hand
   details:
-    trays:
+    # ⚠ Keyed `racks`, never `trays`: a detail's KEY is a word it answers
+    # to, and `trays` took `look tray` from the three real trays (silk's
+    # browser walk).
+    racks:
       keywords: [racks, rack, shelves]
       description: |
         Slatted racks four high, each shelf a shallow paper-lined tray. Most stand empty between crops; three are working.

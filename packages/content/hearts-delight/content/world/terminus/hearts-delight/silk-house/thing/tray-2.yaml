@@ -4,7 +4,6 @@
 class: /trade/sericulture/thing/HouseTray
 extends: /world/terminus/hearts-delight/silk-house/thing/tray
 data:
-  keywords: [tray, "rearing tray", rearing, second, "second tray"]
   rearingState: spinning
   _strainPath: /trade/sericulture/idea/strain/valley-gold
   eggCount: 300
