@@ -57,7 +57,7 @@ export default class RawSilk extends TextileStock {
    */
   public threadLine(): string {
     const n = this.filamentCount;
-    const fine = n <= 4 ? 'gossamer-fine' : n <= 7 ? 'fine' : n <= 10 ? 'of a middling weight' : 'coarse';
+    const fine = n <= 4 ? 'gossamer-fine' : n <= 7 ? 'fine' : n <= 10 ? 'middling-weight' : 'coarse';
     const even =
       this.evenness >= 0.75
         ? 'even along its whole length'
