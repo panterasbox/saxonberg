@@ -1269,7 +1269,7 @@ hearth over the same reads) is honestly visible now. Sugar's D2 (the
 power-limited plateau, its W1a, "after silk, alone, with a blast-radius
 check") makes litres-per-hour follow the fire's power, and then 60 L IS
 three times the hours. Potash must not build that limit (the sibling
-rule). Two ways to read AC 5, the owner's call:
+rule). ✅ **Owner chose (a), 2026-10-19.** The two readings were:
 (a) **accept** — the drive records cake mass per boil and per kg of wood
 now, states the time half as *"true once the fire has power (sugar
 W1a)"*, and `potash-on-sugar` adds the equal-potash timing checkpoint;
