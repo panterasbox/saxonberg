@@ -306,6 +306,8 @@ export interface Thermal {
   reachableHeatK(): number;
   /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
   reachableHeatSource(): (Stuff & Burner) | null;
+  /** The lit furnace this body is in or on, or `null` (sugar D2). */
+  heatSource(): (Stuff & Burner) | null;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -598,6 +600,13 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * camp). Same constraint as above: TypeScript `private`. Transient.
      */
     private _phaseReconciling = false;
+    /**
+     * When the phase pass last looked (game seconds) — where a pot that is
+     * found boiling starts its boil clock (sugar D2). Transient: after a
+     * restart it is seeded from the persisted thermal stamp on the first
+     * reconcile, which is the last moment anything knew the body's state.
+     */
+    private _phaseCheckedS: number | null = null;
 
     /**
      * This host, typed for the sibling-mixin members the call-security
@@ -771,10 +780,13 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._phaseReconciling) return;
       this._phaseReconciling = true;
       try {
+        const nowS = this.thermalNowSeconds();
         reconcilePhaseImpl(this as unknown as Stuff, {
-          nowS: this.thermalNowSeconds(),
+          nowS,
           horizonS: this.thermalRing().horizonS(),
+          lastS: this._phaseCheckedS,
         });
+        if (nowS !== null) this._phaseCheckedS = nowS;
       } finally {
         this._phaseReconciling = false;
       }
@@ -850,7 +862,36 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         D.DEFAULT_WALL_CONDUCTIVITY;
       const rMedium = D.R_GEOMETRY_MEDIUM / Math.max(kMedium, 1e-12);
       const rWall = D.R_GEOMETRY_WALL / Math.max(kWall, 1e-12);
-      return rMedium + rWall + this.lentInsulationR();
+      const r = rMedium + rWall + this.lentInsulationR();
+      // ⭐⭐ **A fire has power, not just a temperature** (sugar D2).
+      const fireR = this.fireCouplingR();
+      if (fireR <= 0) return r;
+      // A pot SET ON a fire is in the flame: the flame, not still air, is
+      // the medium, so the heat crosses the wall at the fire's delivered
+      // watts. A 30 L copper on a hearth warms at the hearth's power.
+      if (this.thermalHost.getPlacement()?.host === this.heatSource()) {
+        return rWall + this.lentInsulationR() + fireR;
+      }
+      // A loaf IN an oven sits in the oven's hot air: the slower of the
+      // two couplings limits — its own surface, or what the fire delivers.
+      return Math.max(r, fireR);
+    }
+
+    /**
+     * The resistance (K/W) a lit fire's power sets on whatever it heats:
+     * `(T_fire − T_room) / P_delivered`, so a cold body takes the fire's
+     * delivered watts and no more. `0` with no fire. A constant of the
+     * fire, never of the body's own temperature — so the curve is one
+     * exponential, and a watched pot heats exactly as an unwatched one.
+     */
+    private fireCouplingR(): number {
+      const source = this.heatSource();
+      if (source === null) return 0;
+      const powerW = source.deliveredPowerW();
+      const spanK =
+        source.getHeldTemperatureK() - THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
+      if (!(powerW > 0) || !(spanK > 0)) return 0;
+      return spanK / powerW;
     }
 
     /**
@@ -988,6 +1029,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
 
+      if (this._phaseCheckedS === null) this._phaseCheckedS = this.thermalClockStamp;
       const elapsed = nowS - this.thermalClockStamp;
       if (elapsed <= 0) {
         this.thermalClockStamp = nowS;
@@ -1081,19 +1123,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is what is in it.
      */
     private heatSourceK(): number | null {
+      return this.heatSource()?.getHeldTemperatureK() ?? null;
+    }
+
+    /**
+     * ⭐ The lit, fuelled furnace heating this body — the one it is IN (a
+     * loaf in an oven) or ON (a pot on a campfire) — or `null`. The fire
+     * itself, so a reader can ask its power as well as its temperature
+     * (sugar D2). Distinct from {@link reachableHeatSource}, which is
+     * what a recipe can reach from the room.
+     */
+    public heatSource(): (Stuff & Burner) | null {
       const self = this.thermalHost;
-      // A lit, fuelled furnace the body is IN or ON — `isBurner` narrows
-      // the one cast to the container type, and everything after reads
-      // through the narrowing.
-      const litBurnerK = (candidate: Stuff | null): number | null => {
+      // `isBurner` narrows the one cast to the container type.
+      const lit = (candidate: Stuff | null): (Stuff & Burner) | null => {
         if (candidate === null || !MixinApi.isBurner(candidate)) return null;
         if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
-        return candidate.getHeldTemperatureK();
+        return candidate;
       };
-      const inside = litBurnerK(self.getContainer() as unknown as Stuff | null);
-      if (inside !== null) return inside;
-      return litBurnerK(
-        (self.getPlacement()?.host ?? null) as unknown as Stuff | null,
+      return (
+        lit(self.getContainer() as unknown as Stuff | null) ??
+        lit((self.getPlacement()?.host ?? null) as unknown as Stuff | null)
       );
     }
 
@@ -1313,6 +1363,8 @@ function massToLitres(massKg: number, mat: Material): number {
 interface PhaseClock {
   nowS: number | null;
   horizonS: number | null;
+  /** When the phase pass last looked, if known. */
+  lastS?: number | null;
 }
 
 function reconcilePhaseImpl(stuff: Stuff, clock: PhaseClock): void {
@@ -1376,41 +1428,70 @@ function doMelt(m: Stuff & Meltable, mat: Material | null): void {
 }
 
 /**
- * ⭐ The purification clock: seconds the contents have now spent at
- * their boiling point, integrated off the vessel's OWN temperature
- * trajectory since the last read (the cocoon's stifle idiom), banked on
- * the payload. Only a material that names a `purifiedByBoiling` arrow
- * keeps the clock — everything else boils without the bookkeeping.
- * `null` without a world clock (a unit test, a spell with no clock): the
- * hold cannot be timed, so it never completes.
+ * ⭐ The boil clock: seconds the contents have spent at their boiling
+ * point, integrated off the vessel's OWN temperature trajectory since the
+ * last read (the cocoon's stifle idiom), banked on the payload. `heldS`
+ * is the running total (the purification hold reads it); `sinceS` is
+ * this read's share (the fire's power is spent over it, sugar D2). It
+ * runs for every material on the plateau. `null` without a world clock (a
+ * unit test, a spell with no clock): the hold cannot be timed, so it
+ * never completes, and the boil falls back to the overshoot.
  */
 function boilHeldSeconds(
   v: Stuff & Bulkable & Thermal,
   aff: BulkAffordance,
   bp: number,
   clock: PhaseClock,
-): number | null {
+): { heldS: number; sinceS: number } | null {
   const { nowS, horizonS } = clock;
   if (nowS === null) return null;
-  const mat = v.getBulkMaterial(aff);
-  if (mat === null || mat.getPurifiedByBoiling() === '') return null;
   const payload = v.getBulkPayload(aff) ?? {};
-  let held = payload.boilHeldS ?? 0;
+  const before = payload.boilHeldS ?? 0;
+  let held = before;
   // ⚠ Never before the body's own record begins: the trajectory HOLDS its
   // oldest value backwards, which would credit a pot that arrived at the
   // boil with ten minutes of boiling it never did.
+  // A pot found boiling for the first time starts its clock where the
+  // phase pass last looked — before that nobody saw it boil, and after it
+  // the trajectory says exactly when it reached the boil.
   const fromS =
     payload.boilCheckedS ??
-    Math.max(nowS - THERMAL_DEFAULTS.PURIFY_LOOKBACK_S, horizonS ?? nowS);
+    Math.max(
+      clock.lastS ?? nowS - THERMAL_DEFAULTS.PURIFY_LOOKBACK_S,
+      horizonS ?? nowS,
+    );
   if (nowS > fromS) {
     // ⚠ Half a kelvin of slack: the plateau clamps the contents AT the
     // boiling point, and a curve that sits exactly on it is boiling.
-    for (const s of v.temperatureTrajectory(fromS, nowS).samples(8)) {
-      if (s.value >= bp - 0.5) held += s.durationS;
-    }
+    held += v.temperatureTrajectory(fromS, nowS).secondsAtOrAbove(bp - 0.5);
   }
   v.setBulkPayload(aff, { ...payload, boilHeldS: held, boilCheckedS: nowS });
-  return held;
+  return { heldS: held, sinceS: held - before };
+}
+
+/**
+ * ⭐⭐ The heat spent on steam this read (sugar D2). Over a lit fire it is
+ * the fire's delivered power at the boil — `(T_fire − bp) · C / τ`, the
+ * same coupling that warmed the pot — times the seconds spent there. An
+ * unread pot boils off what the fire actually gave it, not one
+ * capacity's worth per gap, and a watched pot boils no faster for being
+ * watched. With no fire, or no clock, the overshoot above the boil is
+ * what there is (a pot taken off the fire boils on a moment, then
+ * stops).
+ */
+function boilJoules(
+  v: Stuff & Bulkable & Thermal,
+  temp: number,
+  bp: number,
+  held: { heldS: number; sinceS: number } | null,
+): number {
+  const overshootJ = (temp - bp) * v.thermalCapacityJPerK();
+  const source = v.heatSource();
+  if (source === null || held === null) return overshootJ;
+  const tau = v.getTau().rawValue();
+  const spanK = source.getHeldTemperatureK() - bp;
+  if (!(tau > 0) || !(spanK > 0)) return overshootJ;
+  return ((spanK * v.thermalCapacityJPerK()) / tau) * held.sinceS;
 }
 
 /**
@@ -1425,6 +1506,7 @@ function purifyIfHeld(
   mat: Material,
   heldS: number | null,
 ): void {
+  if (mat.getPurifiedByBoiling() === '') return;
   if (heldS === null || heldS < THERMAL_DEFAULTS.PURIFY_HOLD_S) return;
   const into = StuffApi.findByTemplatePath<Material>(
     mat.getPurifiedByBoiling(),
@@ -1479,14 +1561,13 @@ function reconcileBulkPhase(
     const latent = mat.getLatentHeatOfVaporization().rawValue();
     const kgPerL = mat.getDensity().rawValue() / 1000;
     if (latent > 0 && kgPerL > 0) {
-      const heldS = boilHeldSeconds(v, aff, bp, clock);
-      const overshootJ = (temp - bp) * v.thermalCapacityJPerK();
-      const boiledL = overshootJ / latent / kgPerL;
+      const held = boilHeldSeconds(v, aff, bp, clock);
+      const boiledL = boilJoules(v, temp, bp, held) / latent / kgPerL;
       const left = amount - boiledL;
       if (left > 0) {
         v.setBulkAmount(aff, Quantity.of(left, 'L'));
         v.setContentsTemperature(bp); // the plateau
-        purifyIfHeld(v, aff, mat, heldS);
+        purifyIfHeld(v, aff, mat, held?.heldS ?? null);
         return;
       }
     }
