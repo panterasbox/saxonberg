@@ -1,0 +1,21 @@
+# The fumaroles — native sulfur crusted round the vents (sugar W5): `dig`
+# wins it, as at the Hill Quarry's caprock.
+class: /trade/quarrying/location/OpenWorking
+data:
+  shortDescription: "fumarole field"
+  keywords: [fumaroles, vents, sulfur, hollow, steam]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A hollow on the volcano's flank where steam hisses out of cracks rimmed bright yellow with sulfur, and the air stinks of rotten eggs. The crust breaks under a boot.
+  coords: { x: 2, y: 3, z: 2 }
+  faceRunM: 10
+  props:
+    - /trade/quarrying/thing/spade
+  exits:
+    west:
+      destination: /world/terminus/waponi-woo/location/volcano
+      media: [ground]
+      edgeMinutes: 3

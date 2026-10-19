@@ -1,0 +1,25 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Adaeze Fairweather
+  keywords: [owner, adaeze, fairweather, proprietor, estate]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: sharp-eyed estate owner with a ledger under her arm
+  register: indefinite
+  longDescription: |
+    A tall woman in a linen coat gone soft with washing, a ledger under one arm and a pencil behind her ear. She bought the estate from the last owner's creditors and has been paying wages out of it ever since, which the island has not quite got used to.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: proprietor
+  competence:
+    - { discipline: sugar-refining, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Cane's a crop that won't wait. Neither do I."
+          - "The counter buys cane by the bundle. Fair weight."
+          - "Every hand here is paid on Saturday. Ask any of them."

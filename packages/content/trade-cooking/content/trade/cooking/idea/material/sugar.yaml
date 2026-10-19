@@ -26,3 +26,5 @@ data:
   tags: ["solid", "food", "sugar", "sweetener"]
   composition: []
   biologicalSource: null
+  # A sweetener (sugar D5): a refusal offered this for another sweetener says so.
+  _familyPath: /trade/cooking/idea/ingredient-family/sweetener

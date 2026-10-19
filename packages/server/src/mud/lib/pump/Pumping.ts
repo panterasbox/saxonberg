@@ -77,7 +77,6 @@ const HAND_FLOOR_W_FALLBACK = 200;
 const CREW_DUTY_FALLBACK = 0.5;
 const PUMP_EFFICIENCY_FALLBACK = 0.6;
 const MUSCLE_EFFICIENCY_FALLBACK = 0.25;
-const STANDARD_GRAVITY = 9.81;
 const WATER_KG_M3 = 1000;
 
 /** Numeric AppSetting read, falling back to the literal (the `Durable` dial). */
@@ -310,7 +309,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public powerForDuty(headM: number, m3s: number, densityKgM3 = WATER_KG_M3): number {
       const eta = dial(AppSettingKeys.waterPumpEfficiency, PUMP_EFFICIENCY_FALLBACK);
       if (!(eta > 0)) return 0;
-      return (densityKgM3 * STANDARD_GRAVITY * Math.abs(headM) * m3s) / eta;
+      return (densityKgM3 * BiomeApi.standardGravity() * Math.abs(headM) * m3s) / eta;
     }
 
     /**

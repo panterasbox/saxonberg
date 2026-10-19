@@ -1,0 +1,14 @@
+# A juice tub — what the cane juice runs into off the mill.
+class: /platform/thing/Vat
+data:
+  shortDescription: juice tub
+  keywords: [tub, "juice tub", juice]
+  register: indefinite
+  longDescription: A broad wooden tub, sticky to the rim, smelling of cut grass and sugar.
+  _materialPath: /stuff/idea/material/wood/oak
+  category: tub
+  interiorBulk: true
+  interiorCapacity: 40
+  closure: open
+  open: true
+  mass: 15

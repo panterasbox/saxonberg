@@ -136,6 +136,35 @@ lump; with no crucible the metal pools on the hearth and sets as a lump in
 the furnace. Bare-handed `get crucible` scalds (the shipped hot grab);
 pouring it where it stands burns nobody.
 
+## ⭐ The mould keeps its drainings (sugar, 2026-10)
+
+A drain set no longer throws away what it drives out. `DrainSetting`
+gains `drains` (what the drained matter IS, e.g. molasses off a sugar
+loaf) and `drainPerBand` (an extra share per grade band below `fine`: a
+poor strike gives up more and keeps less). When the mould stands ON a
+vessel that can take them (`drainsInto()`: the placement host, Bulkable,
+with an interior), the drainings are credited to it **as the set
+progresses**. Each step credits `total × progress`, tracked in
+`setDrainedKg`, and the remainder lands at the set. The cast's mass is
+what is left. The drainings get a **fresh payload**, not the pool's,
+so they cannot carry the pool's treatment, and a grade one band below
+the mould's. A sugar cone on its curing pot is the first consumer; a
+mould on a board keeps today's behaviour (the whey runs away).
+
+## ⭐ Percolation — a liquid through a porous solid (sugar, 2026-10)
+
+`PercolatingMixin` (`lib/material/Percolating.ts`) composes on a porous
+SOLID. `receivePercolant(litres)` puts liquid on it. The **reach**
+(`0..1`) advances on read over the host's `percolationDays()` while
+liquid is working, and each advance calls the host's
+`@hook onPercolated(from, to)`. `percolatesInto()` names where what
+comes out goes: the vessel below the mould the solid sits in (a loaf in
+its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
+is the first consumer: its head washes white past a third of the reach,
+its middle past two-thirds, its foot when the water is through, and
+the molasses it carries out runs into the pot. The lye hopper's ash is
+the planned second consumer (the potash build).
+
 ## Deferred
 
 - **Other moulded goods** — candles and soap (`rendering-slate`), bricks,

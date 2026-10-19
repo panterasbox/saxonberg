@@ -1357,7 +1357,38 @@ reads a maple strike. Commit `build(sugar W1): the boil converges on the
 plateau — elevation, the arrows, the power limit; the thread test; the
 Terminus sugar house`.
 
-### W2 — the cone, the grades, the sack, the rum's feedstock
+### W2 — the cone, the grades, the sack, the rum's feedstock ✅ CODE DONE — drive owed
+
+> **Build note (2026-10-19).** As planned, with these decisions:
+> - **Drainings get a FRESH payload**, not the pool's (D16 said carry
+>   it). Carrying it hands the molasses the liquor's treatment: its
+>   `limed`/`skimmed` flags would re-grade a re-boil back up, laundering
+>   it. Their grade is the mould's minus one band. A re-boil then grains
+>   one band darker, because a pour into an empty copper carries the
+>   pot's grade (the shipped "vessel grade = contents' grade" rule) and
+>   the strike arrow reads it.
+> - `Mould.creditDrainings` credits `totalKg × progress` each step
+>   (`setDrainedKg`, persistent). `drainPerBand` adds a share per band
+>   below `fine`. The strike's `nutrientAmounts.water 0.35` is the MOTHER
+>   LIQUOR: a third of a cone drains as molasses.
+> - **D5** as planned. `IngredientFamily` is a `SingletonMixin(Idea)` (the
+>   `PumpMechanism` shape). The near miss is found at both decline sites
+>   by `withNearMiss`, which follows each candidate's own `_familyPath`.
+>   `lint:census` reads `_familyPath` and `concentratesTo`.
+> - **The loaf's bands** are a field (`bands`, empty = the cast grade
+>   throughout). `look` reads the colour head to foot through a markup
+>   augmenter. Its pieces are the generic `sugar-piece` row, graded, not
+>   renamed: no rename surface on Perceptible.
+> - **Stock lines** for `sugar-sack`/`molasses-cask` are `par: 0` (never
+>   imported; filled only by hands) with prices. `molasses-cask`
+>   `extends:` the fuel trade's oak `oil-cask`.
+> - The refiner sets a cone on a pot and pours the strike in. Nipping,
+>   pounding and decanting are the drive's hands, not the brain's. A cone
+>   and pot stand on the boiling floor; three of each in the curing house.
+> - ⭐ **Fixed a master defect:** `corrosion-narrowing.test.ts` was red.
+>   Rushes, sweepings, manure and frass were `organic` without
+>   `once-living`, so lime and vitriol silently stopped attacking them
+>   when rubber narrowed the caustics. All four are tagged `once-living`.
 
 **Goal.** AC 1, 4, 5 (the muscovado half), 6, 7; drive steps 6, 8, 9,
 10. Decisions D5, D6, D9, D16.
@@ -1414,7 +1445,22 @@ sentence. The pantry's row has no sugar line. Commit `build(sugar W2):
 the cone keeps its molasses; one loaf, three grades; the sack is made,
 not conjured`.
 
-### W3 — the rum has a feedstock
+### W3 — the rum has a feedstock ✅ CODE DONE — drive owed
+
+> **Build note (2026-10-19).** ⭐ **No `distils` brain: the shipped
+> `cellars` brain already does exactly this.** It buys inputs at the
+> cash-and-carry, orders the wash recipe off the floor, ferments it in a
+> vat, runs the still with a banded cut and consigns the bottles.
+> Veshko's distiller runs it with `crushes: [light-rum-wash,
+> dark-rum-wash]` and buys `molasses`, which the Sugar House's hand
+> consigns there. That is the shipped convergence, so no new brain. The
+> distillery is a `PersistentLocale` with a still, tun, standpipe, two
+> vats, slop bucket, wash bucket, bottles and logs. The distiller seat
+> fulfils `[distilling, fermenting]`. Veshko's two rum lines stay as
+> lines at `par: 0` (never imported). The distilling test requires every
+> floor bottle to be some yard's line. **Hollis is untouched**: its two
+> branded rums still import. D8's brandKey question was not reached; it
+> is recorded as an open.
 
 **Goal.** AC 8; drive step 11. Decision D8.
 
@@ -1442,7 +1488,18 @@ yard's stock holds rum bottles whose maker is the distiller and the
 stock row carries no import for rum. Commit `build(sugar W3): Veshko's
 still — rum from molasses, light from first, dark from blackstrap`.
 
-### W4 — claying (Stage A's last)
+### W4 — claying (Stage A's last) ✅ CODE DONE — drive owed
+
+> **Build note (2026-10-19).** `PercolatingMixin` as D3. ⭐ The loaf's
+> bands are DERIVED from the reach, not stored (W2's `bands` field
+> retired). Unclayed is muscovado throughout (two bands under the loaf's
+> grade: the crystals are filmed in their molasses), which is what the
+> requirements' step 7 says. Past ⅓ of the reach the head is a band
+> above (white); past ⅔ the middle is the loaf's own (pale); through,
+> the foot is a band under (brown). Claying washes 12 % of the loaf's
+> mass out as molasses into the pot below. `clay loaf with clay` takes
+> a quarrying clay lump; four are propped in the curing house.
+> `mould.md` gained the drainings and percolation sections.
 
 **Goal.** AC 5 (the clayed half); drive step 7. Decision D3 (master's
 `matchProfile`/`Hopper` are untouched; the hopper's adoption is the
@@ -1471,7 +1528,41 @@ three grades; a second loaf left unclayed reads *muscovado* throughout.
 Commit `build(sugar W4): claying — percolation through a loaf that
 survives it`.
 
-### W5 — Waponi Woo (Stage B)
+### W5 — Waponi Woo (Stage B) ✅ ROWS + SUBSTRATE DONE — estate brains deferred, drive owed
+
+> **Build note (2026-10-19).**
+> - **Shipped:** the `waponi-woo` pack; the Greywater node (rho 444480,
+>   theta 180); the landing with an `aboard` exit (the Gannet Rock
+>   shape); the track; two estate cane pieces and two smallholdings
+>   (`Field`, cane props); the mill yard with the edge runner; the
+>   boiling house (train floor + curing house, both `PersistentLocale`);
+>   the estate store; the forest (`Wood`, mahogany: species + material
+>   shipped by the island, since no tropical wood existed); the volcano;
+>   the fumaroles (`OpenWorking` over a `vent` deposit, sulfur at the
+>   surface over granite, since no tuff row exists); the estate business
+>   with its owner (Adaeze Fairweather), cutters, miller, boiler and
+>   hand; the smallholders.
+> - **trade-sugar:** `InvertingMixin` (pack lib) with `Cane =
+>   InvertingMixin(Crop)`. The grade falls a band at 25 % and two at
+>   50 % from the band it was cut at. `Bagasse = WaterActivityMixin(Firewood)`
+>   is wet off the rollers. `Train = AssembledMixin(Oven)`:
+>   `getHeatTransferFraction` is 0.8 whole and −0.15 per missing or
+>   failed kettle (bill: 4 copper-kettles + a flue). The kettle arch is
+>   0.3. The kettle is a 200 L `Copper` row. Also: the hogshead (`Mould`
+>   → raw-sugar block), the edge runner (`GristMill`, millstone), the
+>   `crush-cane` recipe (`mill cane` → 18 L juice + a bagasse), and the
+>   cane species, plant, crop and sett.
+> - **D11 ground:** `GroundSample.nativeNitrogenPct`/`nativeOrganicPct`
+>   (optional, absent = 25/40), `GroundBand.nitrogenPct/organicPct`, and
+>   `Field.installSoilReserves` reads them. The island's
+>   `idea/ground.yaml` bands the cane ground at 45/60.
+> - The cane-juice maturation profile is NOT shipped: the boil is the
+>   plateau's (D1), so a profile would be a second mechanism.
+> - ⚠ **The estate brains (`cuts`/`mills`/`boils`) are deferred.** The
+>   hands are rostered and paid (AC 11). Cane grows (AC 9). A player cuts,
+>   mills and boils by hand (drive 15–16). Unattended production waits
+>   on W6's voyage, which is itself held (below). The estate's store
+>   lines are `par: 0`: it sells only what is made.
 
 **Goal.** AC 9, 10, 11; drive steps 13–18 (13 by a player sailing
 `course waponi woo`). Decisions D11, D15, D17, D18.
@@ -1555,7 +1646,22 @@ shift the hands' accounts show a wage. Commit `build(sugar W5): Waponi
 Woo — cane, the crush, inversion, the train and the forest, the estate
 and the smallholders`.
 
-### W6 — the voyage, the hold, the smaller world
+### W6 — the voyage, the hold, the smaller world ⚠ RE-PLANNED (the ship design landed)
+
+> **Re-plan (2026-10-19), per this section's own pre-check.** The ship
+> design landed on master (`167a9b5ba`…`85441dda5`,
+> `docs/slates/builds/ships-and-harbours-slate.md`). It says outright:
+> *"build-1 (sugar) — carry on through W5; hold W6 (the voyage) until
+> the harbour lands"*. Waponi Woo's landing becomes a quay with berths,
+> and the home leg becomes the harbour. Masters are seats the shipping
+> line appoints; crews belong to `trade-seafaring`. So:
+> - **Built here:** D13, the hold persists by re-class (the slate
+>   endorses it, L421–422), and D12, the planet radius (the slate is
+>   silent on it).
+> - **Held, destination the harbour build** (ships-and-harbours slate):
+>   D14 (the master's `sails` brain and the two-leg run), and AC 12's
+>   second half (the island's raw sugar replacing the Sugar House's
+>   import). The import stays, and the MR says so.
 
 **Goal.** AC 12; drive steps 19–20. Decisions D12, D13, D14.
 

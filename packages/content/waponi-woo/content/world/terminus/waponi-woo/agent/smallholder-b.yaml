@@ -1,0 +1,23 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Emeka Okafor
+  keywords: [smallholder, emeka, okafor]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: smallholder leaning on a hoe
+  register: indefinite
+  longDescription: |
+    A lean man leaning on a hoe at the end of his row, watching the estate's cane across the wall.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: farmer
+  competence:
+    - { discipline: agriculture, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Cut it today, sell it today. Tomorrow it's worth less."

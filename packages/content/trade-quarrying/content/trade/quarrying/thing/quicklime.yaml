@@ -14,7 +14,7 @@
 # you spread it.
 class: /trade/quarrying/thing/Lump
 data:
-  keywords: [quicklime, lime, burnt, lump]
+  keywords: [quicklime, lime, burnt, lump, "lump of quicklime"]
   shortDescription: lump of quicklime
   register: indefinite
   longDescription: >-

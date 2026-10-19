@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { GeoPosition } from '../GeoPosition';
+import { BiomeApi } from '../../../api/biome';
 
 describe('GeoPosition', () => {
   it('a degree of latitude is sixty miles', () => {
@@ -40,5 +41,17 @@ describe('GeoPosition', () => {
 
   it('writes itself as a navigator would', () => {
     expect(new GeoPosition(50.2, -4.0583).toString()).toBe("50°12.0'N 4°03.5'W");
+  });
+
+  describe('⭐ the chart follows the planet (sugar D12)', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('on a world a third of Earth\'s, a degree is twenty miles — and the metres do not move', () => {
+      vi.spyOn(BiomeApi, 'planetRadiusM').mockReturnValue(2_124_000);
+      const a = new GeoPosition(30, 0);
+      expect(a.distanceNm(new GeoPosition(31, 0))).toBeCloseTo((2 * Math.PI * 2_124_000) / 360 / 1852, 6);
+      // 240 nm due south (Waponi Woo's focus) is about twelve degrees here.
+      expect(a.latDeg - a.destination(180, 240).latDeg).toBeCloseTo(11.99, 1);
+    });
   });
 });

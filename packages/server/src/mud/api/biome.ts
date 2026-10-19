@@ -152,6 +152,11 @@ function logic(): BiomeLogic {
   );
 }
 
+/** Earth's mean radius, metres — the fallback planet. */
+const EARTH_RADIUS_M = 6_371_000;
+/** Earth-normal gravity, m/s² — the fallback. */
+const STANDARD_GRAVITY = 9.81;
+
 export class BiomeApi {
   /**
    * Singleton path lookup. Returns `null` when no template is
@@ -212,6 +217,27 @@ export class BiomeApi {
    */
   public static getRootBiome(): Biome {
     return logic().getRootBiome();
+  }
+
+  /**
+   * ⭐ The planet's radius, metres — the root biome's, or Earth's 6 371 000
+   * when none is authored or the root is not loaded (sugar D12).
+   */
+  public static planetRadiusM(): number {
+    try {
+      return logic().getRootBiome().getPlanetRadiusM() ?? EARTH_RADIUS_M;
+    } catch {
+      return EARTH_RADIUS_M;
+    }
+  }
+
+  /** The root biome's gravity, m/s² — 9.81 when unauthored or unloaded. */
+  public static standardGravity(): number {
+    try {
+      return logic().getRootBiome().getDefaultGravity()?.rawValue() ?? STANDARD_GRAVITY;
+    } catch {
+      return STANDARD_GRAVITY;
+    }
   }
 
   /** Drop the cached root biome instance. Wired by template HMR. */

@@ -1,0 +1,18 @@
+# West Indian mahogany — the island forest's tree, and the boiling house's
+# firewood until there is none.
+class: /platform/idea/species/Species
+data:
+  binomial: Swietenia mahagoni
+  commonNames: ["mahogany", "West Indian mahogany"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  diet: photosynthesis
+  longDescription: >-
+    A tall straight tree with dark scaly bark and a buttressed foot, its
+    wood red-brown and close-grained.
+  nameBankKeys: []

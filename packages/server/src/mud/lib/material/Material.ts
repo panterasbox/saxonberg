@@ -60,6 +60,7 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { VetoResult } from '../errors';
+import type IngredientFamily from '../../platform/idea/IngredientFamily';
 import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
@@ -140,6 +141,18 @@ export interface DrainSetting {
   becomes?: string;
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
+  /**
+   * ⭐ What the drained-off matter IS (sugar D16) — molasses off a sugar
+   * loaf. When set, a mould standing ON a vessel credits that vessel with
+   * the drainings as they drain; absent, they go nowhere (the cheese
+   * hoop's whey runs off its board).
+   */
+  drains?: string;
+  /**
+   * Extra share of the pool that drains away per grade band below `fine`
+   * — a poor strike gives up more molasses and keeps less sugar.
+   */
+  drainPerBand?: number;
 }
 
 /**
@@ -640,12 +653,15 @@ export default class Material extends SingletonMixin(
         value.moisture.loaded <= value.moisture.unloaded &&
         Number.isFinite(value.loadRef) &&
         value.loadRef > 0 &&
-        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== ''))
+        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
+        (value.drains === undefined || (typeof value.drains === 'string' && value.drains !== '')) &&
+        (value.drainPerBand === undefined ||
+          (Number.isFinite(value.drainPerBand) && value.drainPerBand >= 0 && value.drainPerBand < 1))
       )
     ) {
       throw new RangeError(
         'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, and becomes a path or absent',
+          'loadRef > 0, becomes and drains each a path or absent, and 0 <= drainPerBand < 1',
       );
     }
     this.drainSetting = {
@@ -653,6 +669,8 @@ export default class Material extends SingletonMixin(
       moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
       loadRef: value.loadRef,
       ...(value.becomes ? { becomes: value.becomes } : {}),
+      ...(value.drains ? { drains: value.drains } : {}),
+      ...(value.drainPerBand ? { drainPerBand: value.drainPerBand } : {}),
     };
   }
   /** Whether freezing ruins this material (blood) rather than casting it. */
@@ -1096,6 +1114,7 @@ export default class Material extends SingletonMixin(
     // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
     // thermometer and the thread, and the stages are the trade's syllabus.
     solidsKgPerL: { persistent: true, authorable: true },
+    _familyPath: { persistent: true, authorable: true, ref: 'identity:relation' },
     boilingPointElevation: { persistent: true, authorable: true },
     concentratesTo: { persistent: true, authorable: true },
   };
@@ -1525,6 +1544,27 @@ export default class Material extends SingletonMixin(
       prev = pt[0];
     }
     this.boilingPointElevation = value.map(([w, k]) => [w, k] as [number, number]);
+  }
+
+  /**
+   * ⭐ The ingredient family this material belongs to (sugar D5) — a path
+   * to an `IngredientFamily` row (`…/idea/ingredient-family/sweetener`),
+   * or `''`. It gates nothing; a refusal follows it to say honey offered
+   * for sugar is a different sweetener.
+   */
+  protected _familyPath = '';
+
+  public getFamilyPath(): string {
+    return this._familyPath;
+  }
+  public setFamilyPath(value: string): void {
+    this._familyPath = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /** The family row, loaded on use; `null` when uncited or unresolvable. */
+  public async getFamily(): Promise<IngredientFamily | null> {
+    if (this._familyPath === '') return null;
+    return StuffApi.singleton<IngredientFamily>(this._familyPath).catch(() => null);
   }
 
   /** The boiling point (K) at solids mass fraction `w` — the plain boil plus the elevation. */

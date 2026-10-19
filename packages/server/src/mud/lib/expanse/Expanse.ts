@@ -45,6 +45,7 @@
  * its own water.
  */
 
+import { BiomeApi } from '../../api/biome';
 import { NavigationApi } from '../../api/navigation';
 import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -429,7 +430,9 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   public sightRangeNm(observerHeightM: number, targetHeightM: number): number {
     const a = Math.sqrt(Math.max(0, observerHeightM) * FT_PER_M);
     const b = Math.sqrt(Math.max(0, targetHeightM) * FT_PER_M);
-    return 1.17 * (a + b);
+    // ⭐ (sugar D12) The horizon is closer on a smaller world: the range
+    // scales with √(R / R_earth) — 0.675 of Earth's on a third-size planet.
+    return 1.17 * Math.sqrt(BiomeApi.planetRadiusM() / 6_371_000) * (a + b);
   }
 
   /**

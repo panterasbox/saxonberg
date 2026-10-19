@@ -7,6 +7,8 @@ data:
   appointingAuthority:
     kind: committee
     parcel: /world/terminus
+  # Whoever is on: the refiner fulfils, and nobody else is seated to.
+  call: rota
   positions:
     - key: refiner
       noun: refiner

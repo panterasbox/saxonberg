@@ -1,0 +1,63 @@
+# The estate — a wage-paying sugar business with a named owner (sugar
+# D18). Cutters, a miller, a boiler and a hand, on a roster; the store
+# buys cane off anyone who brings it — the smallholders, a player.
+class: /platform/idea/Business
+data:
+  name: "the Waponi Woo estate"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/waponi-woo/agent/owner
+  call: rota
+  positions:
+    - key: cutter
+      noun: cutter
+      label: cutting cane
+      wageRate: 3
+      headcount: 2
+    - key: miller
+      noun: miller
+      label: running the mill
+      wageRate: 4
+      headcount: 1
+    - key: boiler
+      noun: boiler
+      label: boiling sugar
+      wageRate: 5
+      headcount: 1
+      fulfills: [sugar-refining]
+    - key: hand
+      noun: hand
+      label: keeping the estate store
+      wageRate: 3
+      headcount: 1
+      purchases: true
+  rosterSlots:
+    - positionKey: cutter
+      assignee: /world/terminus/waponi-woo/agent/cutter-1
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
+    - positionKey: cutter
+      assignee: /world/terminus/waponi-woo/agent/cutter-2
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
+    - positionKey: miller
+      assignee: /world/terminus/waponi-woo/agent/miller
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
+    - positionKey: boiler
+      assignee: /world/terminus/waponi-woo/agent/boiler
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [8, 20] }
+    - positionKey: hand
+      assignee: /world/terminus/waponi-woo/agent/hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/waponi-woo/location/store
+    - /world/terminus/waponi-woo/location/mill-yard
+    - /world/terminus/waponi-woo/boiling-house/location/train-floor
+    - /world/terminus/waponi-woo/boiling-house/location/curing-house
+    - /world/terminus/waponi-woo/location/cane-piece
+    - /world/terminus/waponi-woo/location/lower-piece
+    - /world/terminus/waponi-woo/thing/stock

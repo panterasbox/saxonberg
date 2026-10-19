@@ -23,6 +23,7 @@
  * editable by the realm), with their nodes and bands beneath.
  */
 
+import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import {
@@ -51,7 +52,6 @@ function numSetting(key: string, fallback: number): number {
   }
 }
 
-const G = 9.81;
 /** A breeze where no weather field reaches (an adrift boat, a bare test). */
 const STILL_AIR_MPS = 5;
 
@@ -245,6 +245,8 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     const u = Math.max(0.5, this.windMps(scope) + (lean?.strengthMps ?? 0));
     const fetchM = (wb?.getFetchKm() ?? this.fetchKm) * 1000;
     const depth = wb?.getDepthM() ?? this.depthM;
+    // (sugar D12) The world's gravity, not Earth's constant.
+    const G = BiomeApi.standardGravity();
     let hs = Math.min(0.0016 * u * Math.sqrt(fetchM / G), (0.243 * u * u) / G);
     const steep = depth > 0 && depth < hs * 8;
     // A shoal does not make the waves taller so much as shorter and

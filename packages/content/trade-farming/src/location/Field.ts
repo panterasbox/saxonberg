@@ -631,7 +631,8 @@ export default class Field extends FieldBase {
           // amount, because nobody has been taking anything off it. The
           // first crops off newly-broken land really were the best ones,
           // and the disappointment that follows is the lesson.
-          Quantity.of(40, '%'),
+          // (sugar D11) Volcanic ground says otherwise, on its sample.
+          Quantity.of(sample.nativeOrganicPct ?? 40, '%'),
           SOIL_RESERVE_THEME,
           null,
         ),
@@ -658,7 +659,7 @@ export default class Field extends FieldBase {
           // ⚠ Rough ground is not fertile ground. What is here is what
           // scrub and grass put back over the years nobody worked it,
           // and the whole nitrogen ledger is about what happens next.
-          Quantity.of(25, '%'),
+          Quantity.of(sample.nativeNitrogenPct ?? 25, '%'),
           SOIL_RESERVE_THEME,
           null,
         ),

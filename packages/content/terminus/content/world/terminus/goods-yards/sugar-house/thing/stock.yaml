@@ -6,6 +6,8 @@ data:
   keywords: [counter, stock, "sugar counter", shelves]
   register: definite
   longDescription: A scrubbed counter with scales on it, and shelves of raw sugar in sacking behind.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 60
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service
@@ -13,7 +15,14 @@ data:
   businessPath: /world/terminus/goods-yards/sugar-house/idea/outfit
   stockLines:
     - { itemTemplatePath: /trade/sugar/thing/raw-sugar-block, par: 6 }
+    # ⭐ What the house MAKES — no par import: these lines are only ever
+    # filled by the refiner's hands (a sack pounded off a loaf, a cask
+    # decanted from the pots).
+    - { itemTemplatePath: /trade/cooking/thing/sugar-sack, par: 0 }
+    - { itemTemplatePath: /trade/sugar/thing/molasses-cask, par: 0 }
   # Twenty kilograms of raw sugar: a few hours of a hand's wage, which is
   # what makes refining it worth a day's fuel and a refiner's.
   prices:
     /trade/sugar/thing/raw-sugar-block: 14
+    /trade/cooking/thing/sugar-sack: 6
+    /trade/sugar/thing/molasses-cask: 9

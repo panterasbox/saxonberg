@@ -1,0 +1,10 @@
+# The sweeteners — ⭐ a FAMILY, and it gates nothing (sugar D5). A recipe
+# slot asks for `sugar`, `honey` or `syrup`, and a cook knows they are not
+# interchangeable. What the family is for is the refusal: offer honey
+# where sugar is wanted and you are told it is a different sweetener,
+# rather than that there is no sugar here. A material says it belongs by
+# citing this row (`_familyPath`).
+class: /platform/idea/IngredientFamily
+data:
+  tag: sweetener
+  members: [sugar, honey, syrup]

@@ -1,0 +1,13 @@
+# A cask of molasses — what the Sugar House sends to the cash-and-carry
+# and the distiller buys (sugar D9). The fuel trade's empty oil cask,
+# filled.
+extends: /trade/fuel/thing/oil-cask
+data:
+  censusKey: sugar:molasses
+  shortDescription: cask of molasses
+  keywords: [cask, molasses, "molasses cask", "cask of molasses", barrel]
+  interiorMaterial: /trade/sugar/idea/material/molasses
+  interiorAmount: 40
+  longDescription: >-
+    A squat, iron-hooped oak cask, liquid-tight, heavy and sticky round the
+    bung, smelling of molasses.

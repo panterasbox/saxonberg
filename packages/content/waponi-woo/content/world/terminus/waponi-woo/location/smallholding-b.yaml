@@ -1,0 +1,25 @@
+# the Okafor piece — cane ground (sugar W5): the estate's or a smallholder's own field.
+class: /trade/farming/location/NamedField
+data:
+  fieldName: the Okafor piece
+  shortDescription: "Okafor smallholding"
+  keywords: [field, cane, piece, "Okafor smallholding"]
+  register: definite
+  longDescription: |
+    A narrow strip of cane between stone walls, with yams in the margins and a goat tethered on the edge of it.
+  coords: { x: -2, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  groundSpotX: 3
+  groundSpotY: 3
+  areaM2: 1000
+  props:
+    - { template: /trade/sugar/thing/plant/cane, count: 6 }
+  exits:
+    east:
+      destination: /world/terminus/waponi-woo/location/smallholding-a
+      media: [ground]
+      edgeMinutes: 4
+  cast:
+    - /world/terminus/waponi-woo/agent/smallholder-b

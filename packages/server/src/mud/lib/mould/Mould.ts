@@ -49,6 +49,9 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Material from '../material/Material';
+import type { DrainSetting } from '../material/Material';
+import type { Bulkable } from '../bulk/Bulkable';
+import { Grade } from '../craft/Grade';
 import type { BulkPayload } from '../bulk/Bulkable';
 import { WEAR_PER_USE } from '../material/Durable';
 import { Quantity } from '../quantity';
@@ -95,6 +98,8 @@ export interface Mould {
   castInto(pool: SetPool): Promise<Stuff | null>;
   /** True while a set thing sits in the mould. */
   holdsCast(): boolean;
+  /** The vessel the mould stands on that takes its drainings, or `null`. */
+  drainsInto(): (Stuff & Bulkable) | null;
   /** Kilograms placed ON the mould — the press. `0` without `Placing`. */
   loadKg(): number;
   /** Integrate a drain set to now (reconcile-on-read). */
@@ -147,6 +152,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       setProgress: { persistent: true, runtimeState: true },
       setStamp: { persistent: true, runtimeState: true },
       setPressed: { persistent: true, runtimeState: true },
+      setDrainedKg: { persistent: true, runtimeState: true },
     };
 
     static __validateComposition__(ctor: AnyConstructor): void {
@@ -181,6 +187,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * over its progress, so a stone put on halfway presses it halfway.
      */
     public setPressed = 0;
+    /** Kilograms of drainings credited to the vessel below so far (sugar D16). */
+    public setDrainedKg = 0;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _settingGuard = false;
@@ -304,6 +312,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           this.setProgress = 0;
           this.setStamp = 0;
           this.setPressed = 0;
+          this.setDrainedKg = 0;
           return;
         }
         const nowS = mouldNowSeconds();
@@ -326,7 +335,23 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         );
         this.setPressed += ratio * step;
         this.setProgress += step;
-        if (this.setProgress < 1 - 1e-9) return;
+        const waterFraction =
+          (material.getNutrientAmounts()['water'] ?? 0) / 1e6;
+        // ⭐ The drainings leave as the set progresses (sugar D16): what the
+        // set will have driven out, at today's press, credited a step at a
+        // time to the vessel the mould stands on.
+        const lostAt = (pressed: number): number => {
+          const m =
+            drain.moisture.unloaded +
+            (drain.moisture.loaded - drain.moisture.unloaded) * pressed;
+          const extra = (drain.drainPerBand ?? 0) * this.bandsBelowFine();
+          return Math.min(poolKg, poolKg * ((1 - m) * waterFraction + extra));
+        };
+        if (this.setProgress < 1 - 1e-9) {
+          const pressedSoFar = this.setProgress > 0 ? this.setPressed / this.setProgress : 0;
+          this.creditDrainings(drain, lostAt(pressedSoFar) * this.setProgress);
+          return;
+        }
 
         // ⭐ Set. The water the press drove out is gone; what is left is
         // the cheese, at the moisture the weight left it.
@@ -334,9 +359,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const moisture =
           drain.moisture.unloaded +
           (drain.moisture.loaded - drain.moisture.unloaded) * pressed;
-        const waterFraction =
-          (material.getNutrientAmounts()['water'] ?? 0) / 1e6;
-        const massKg = poolKg * (1 - (1 - moisture) * waterFraction);
+        const lostKg = lostAt(pressed);
+        this.creditDrainings(drain, lostKg);
+        const massKg = poolKg - lostKg;
         const becomes = drain.becomes
           ? StuffApi.findByTemplatePath<Material>(drain.becomes) ?? material
           : material;
@@ -347,6 +372,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.setProgress = 0;
         this.setStamp = 0;
         this.setPressed = 0;
+        this.setDrainedKg = 0;
         void this.castInto({
           material: becomes,
           massKg,
@@ -357,6 +383,60 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       } finally {
         this._settingGuard = false;
       }
+    }
+
+    /**
+     * ⭐ Where the drainings go (sugar D16): the vessel this mould stands
+     * ON, when it can hold them — a sugar cone on its curing pot. `null`
+     * (they run away) for a mould on a board, a shelf or the floor.
+     */
+    public drainsInto(): (Stuff & Bulkable) | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return null;
+      const host = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
+      if (host === null || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return null;
+      return host;
+    }
+
+    /** Grade bands this mould's pool sits below `fine` (0 when ungraded). */
+    private bandsBelowFine(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isGraded(self)) return 0;
+      return Math.max(0, Grade.of('fine').getOrdinal() - self.getGrade().getOrdinal());
+    }
+
+    /**
+     * Credit the vessel below up to `totalKg` of drainings. ⭐ A fresh
+     * payload — the drainings are a different matter, and carrying the
+     * pool's would hand them its treatment — and a grade one band below
+     * the pool's (the mould's).
+     */
+    private creditDrainings(drain: DrainSetting, totalKg: number): void {
+      const deltaKg = totalKg - this.setDrainedKg;
+      if (!drain.drains || !(deltaKg > 0)) return;
+      const into = this.drainsInto();
+      const what = StuffApi.findByTemplatePath<Material>(drain.drains);
+      if (into === null || !what) return;
+      const held = into.getBulkMaterial('interior');
+      if (held !== null && held.getTemplatePath() !== what.getTemplatePath()) return;
+      const density = what.getDensity().rawValue();
+      if (!(density > 0)) return;
+      const litres = (deltaKg / density) * 1000;
+      const had = into.getBulkAmount('interior').rawValue();
+      const cap = (into as unknown as { getInteriorCapacity(): Quantity<'L'> | null })
+        .getInteriorCapacity();
+      const room = (cap?.rawValue() ?? Infinity) - had;
+      if (!(room > 0)) return;
+      if (held === null) {
+        into.setBulkMaterial('interior', what);
+        into.setBulkPayload('interior', null);
+        const self = this as unknown as Stuff;
+        if (MixinApi.isGraded(self) && MixinApi.isGraded(into)) {
+          into.setGrade(Grade.fromOrdinal(self.getGrade().getOrdinal() - 1));
+        }
+      }
+      into.setBulkAmount('interior', Quantity.of(had + Math.min(litres, room), 'L'));
+      this.setDrainedKg = totalKg;
     }
 
     public async castInto(pool: SetPool): Promise<Stuff | null> {

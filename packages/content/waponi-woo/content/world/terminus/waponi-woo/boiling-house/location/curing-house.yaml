@@ -1,0 +1,16 @@
+# The curing house — ⭐ a PersistentLocale (sugar D20): hogsheads draining
+# on their pots for days survive a restart.
+class: /platform/location/PersistentLocale
+data:
+  coords: { x: 0, y: 2, z: 0 }
+  shortDescription: "curing house"
+  keywords: [house, "curing house", curing]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A dim stone shed where hogsheads stand on beams over a cistern, their holes stopped with cane, molasses dripping slowly through into pots. It smells like the inside of a cake. The train floor is back west.
+  props:
+    - { template: /trade/sugar/thing/hogshead, count: 2 }
+    - { template: /trade/sugar/thing/curing-pot, count: 2 }

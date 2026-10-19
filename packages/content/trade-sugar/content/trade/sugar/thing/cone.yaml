@@ -1,0 +1,20 @@
+# A sugar cone — ⭐ the mould a strike sets in (sugar W2, D16). Set point-
+# down ON a curing pot, it lets the molasses run out of the setting loaf
+# into the pot below, and keeps the loaf in its own shape. The kernel's
+# mould does all of it; this row is the shape.
+class: /platform/thing/Mould
+data:
+  shortDescription: sugar cone
+  keywords: [cone, "sugar cone", mould, form]
+  register: indefinite
+  longDescription: >-
+    A tall cone of red earthenware, open at the wide end and stopped at the
+    point with a plug of rag, glazed inside and dark with old sugar.
+  interiorBulk: true
+  interiorCapacity: 8
+  closure: liquidTight
+  castTemplate: /trade/sugar/thing/sugar-loaf
+  reusable: true
+  discipline: sugar-refining
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 4

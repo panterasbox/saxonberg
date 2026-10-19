@@ -605,6 +605,9 @@ export const Mixins = {
   // ⭐ A vessel that decides the SHAPE of what sets in it, and keeps it —
   // a cheese hoop, an ingot mould, an ice pan (dairy D9).
   Mould: 'MouldMixin',
+  // ⭐ A porous SOLID a liquid seeps down through, carrying something out
+  // of it — a clayed sugar loaf, later the lye hopper's ash (sugar D3).
+  Percolating: 'PercolatingMixin',
   // ⭐ A SOLID that converts on a shelf by its own temperature — a wheel
   // of cheese. Maturing's discrete twin (dairy D9).
   Ripening: 'RipeningMixin',
@@ -843,6 +846,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // A mould — the refusal names what one is for.
   MouldMixin: "{} isn't a mould",
+  // Percolation — the refusal names what it needs.
+  PercolatingMixin: "nothing soaks down through {}",
   RipeningMixin: "{} doesn't ripen",
 
   // A pump — the refusal names what one does.

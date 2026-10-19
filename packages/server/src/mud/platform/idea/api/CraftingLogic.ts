@@ -73,6 +73,7 @@ import { PersistableApi } from '../../../api/persistable';
 import type {
   CraftRequest,
   CraftOutcome,
+  CraftFailure,
   CraftDeclineReason,
   RecipeView,
   MakerMode,
@@ -875,6 +876,31 @@ function capClears(
 ): boolean {
   const cap = mediumCapK(floor.medium, material);
   return cap === 0 || cap >= floor.minK;
+}
+
+/**
+ * ⭐ The near miss (sugar D5): on a slot nothing in reach covers, is there
+ * something there of the same FAMILY — honey where sugar is wanted? A
+ * candidate whose material cites a family that lists the wanted tag, and
+ * does not carry it, is named on the failure so the refusal can say what
+ * it is instead of claiming there is nothing. Follows each material's own
+ * citation (load on use); no list anywhere.
+ */
+async function withNearMiss(
+  failure: CraftFailure & { detail: string },
+  candidates: ReadonlyArray<Material | null>,
+): Promise<CraftFailure> {
+  const wanted = failure.detail;
+  const seen = new Set<Material>();
+  for (const m of candidates) {
+    if (m === null || seen.has(m) || m.hasTag(wanted)) continue;
+    seen.add(m);
+    const family = await m.getFamily();
+    if (family !== null && family.hasMember(wanted)) {
+      return { ...failure, near: { name: m.getName(), family: family.getTag() } };
+    }
+  }
+  return failure;
 }
 
 function pickCandidate(
@@ -3062,7 +3088,10 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
         req.target ?? null,
       );
       if (!picks) {
-        return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
+        return withNearMiss(
+          { ok: false, reason: 'insufficient-input', detail: inSlot.category },
+          pool.map((c) => c.material),
+        );
       }
       matchedItems.push(...picks.map((p) => ({ ...p, slotName: inSlot.slot })));
       for (const p of picks) grades.push(p.grade);
@@ -3079,7 +3108,10 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       pickCandidate(inSlot, bottles, claimed, brandKey, mediumFloor) ??
       pickCandidate(inSlot, bottles, claimed, brandKey);
     if (!cand) {
-      return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
+      return withNearMiss(
+        { ok: false, reason: 'insufficient-input', detail: inSlot.category },
+        bottles.map((b) => b.material),
+      );
     }
     const need = inSlot.measureL ?? 0;
     claimed.set(cand.stuff, (claimed.get(cand.stuff) ?? 0) + need);

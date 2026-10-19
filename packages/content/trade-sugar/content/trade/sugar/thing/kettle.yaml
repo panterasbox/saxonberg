@@ -1,0 +1,16 @@
+# A boiling-house kettle — a big open copper the cane juice is boiled down
+# in, set on the train or the kettle arch. The same liquor, curve and
+# arrows as the Terminus copper's (sugar D1), from much further down.
+class: /trade/sugar/thing/Copper
+data:
+  shortDescription: boiling kettle
+  keywords: [kettle, copper, "boiling kettle", pan]
+  register: indefinite
+  longDescription: >-
+    A wide, deep kettle of riveted copper, black outside from the fire and
+    bright inside where the ladles scrape it.
+  _materialPath: /stuff/idea/material/element/copper
+  interiorCapacity: 200
+  closure: open
+  open: true
+  mass: 80

@@ -1,0 +1,9 @@
+# The brick flue a Jamaica train's fire runs along — a part.
+class: /platform/thing/Thing
+data:
+  shortDescription: flue brickwork
+  keywords: [flue, brickwork, bricks]
+  register: indefinite
+  longDescription: A run of fire-blackened brick shaped to carry a flame under a row of pans.
+  _materialPath: /stuff/idea/material/ceramic/brick
+  mass: 2000

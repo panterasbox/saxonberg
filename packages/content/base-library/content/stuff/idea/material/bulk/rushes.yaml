@@ -14,6 +14,6 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: [organic, plant, granular, absorbent, flammable]
+  tags: [organic, once-living, plant, granular, absorbent, flammable]
   composition: []
   biologicalSource: null

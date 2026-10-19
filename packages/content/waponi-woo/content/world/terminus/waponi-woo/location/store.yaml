@@ -1,0 +1,23 @@
+# The estate store — where the estate sells its sugar and molasses and
+# buys cane off the smallholders (sugar D18).
+class: /platform/location/Locale
+data:
+  shortDescription: "estate store"
+  keywords: [store, "estate store", counter, office]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A cool stone store with a counter and a ledger on it, hogsheads of raw sugar stacked behind and casks of molasses in a row, and a scale for weighing cane at the door. The track is back south.
+  coords: { x: 0, y: 2, z: 0 }
+  props:
+    - /world/terminus/waponi-woo/thing/stock
+  cast:
+    - /world/terminus/waponi-woo/agent/owner
+    - /world/terminus/waponi-woo/agent/hand
+  exits:
+    south:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 1

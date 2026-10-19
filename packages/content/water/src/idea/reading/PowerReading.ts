@@ -31,6 +31,7 @@
  * silently — the nine shipped collisions are what that looks like.
  */
 
+import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type {
@@ -273,7 +274,8 @@ export default class PowerReading extends Reading {
     // The same constants `ControlStructure.generationW` uses; a bare
     // reading has no structure to ask, so the standard figures stand in.
     const RHO = 1000;
-    const G = 9.81;
+    // (sugar D12) The world's gravity, not Earth's constant.
+    const G = BiomeApi.standardGravity();
     const ETA = 0.85;
     return RHO * G * headM * m3s * ETA;
   }

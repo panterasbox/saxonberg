@@ -1,0 +1,23 @@
+# The landing — ⭐ the node's destination (the Greywater's waponi-woo
+# node): a craft that raises the island lies here, and `go aboard`
+# finds her.
+class: /platform/location/Locale
+data:
+  shortDescription: "landing at Waponi Woo"
+  keywords: [landing, beach, jetty, waponi, woo]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A short jetty of black stone runs out from a beach of black sand into clear green water, and boats are drawn up on the sand either side of it. Behind the beach the ground rises in green terraces of cane toward a mountain that smokes. A track goes up from the jetty's foot.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/hesper/deck
+      oneWay: true
+    north:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 3

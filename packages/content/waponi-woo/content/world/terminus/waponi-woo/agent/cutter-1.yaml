@@ -1,0 +1,24 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Kofi Mensah
+  keywords: [cutter, cane-cutter, kofi, mensah]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: cane cutter with a broad machete
+  register: indefinite
+  longDescription: |
+    A cutter in a sweat-dark shirt with a cane machete at the hip and cane-cuts across the forearms.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: agriculture, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "strips the leaves off a cut stalk." }
+          - { kind: free, value: "sharpens a machete on a stone." }

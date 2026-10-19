@@ -313,6 +313,24 @@ emitters that announce themselves (a bell, a gun, a signal).
   (`ExpanseApi.leanAtSync`, warm state only — cold leans nothing). See
   [weather.md](./weather.md). No band authors prose.
 
+## ⭐ The planet is a setting (sugar D12, 2026-10)
+
+The world's radius is ONE authored value: `_planetRadiusM` on the root
+biome (`universe.yaml`, 2 124 000 m, a third of Earth's), read through
+`BiomeApi.planetRadiusM()` (Earth's 6 371 000 when absent). Two things
+derive from it:
+- **The chart:** `GeoPosition`'s nautical miles per degree is
+  `2πR / 360 / 1852`, 20 on this world, and exactly 60 when no radius
+  is authored.
+- **The horizon:** `Expanse.sightRangeNm` scales its coefficient by
+  `√(R / R_earth)`, 0.675 of Earth's.
+
+Every authored node focus is in METRES and never moves; the degrees it
+comes to do. Gravity is authored separately and stays 9.81: the
+heavy-world postulate (the-world slate). The water pack's sea-state and
+power reads and the pump's work now read `BiomeApi.standardGravity()`
+instead of a 9.81 literal.
+
 ## Deferred seams
 
 | seam | attach point | slate |

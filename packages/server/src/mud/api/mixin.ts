@@ -122,6 +122,7 @@ import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Fractionating } from '../lib/fractionation/Fractionating';
 import type { Mould } from '../lib/mould/Mould';
+import type { Percolating } from '../lib/material/Percolating';
 import type { Ripening } from '../lib/maturation/Ripening';
 import type { Pumping } from '../lib/pump/Pumping';
 import type { Plantable } from '../lib/husbandry/Plantable';
@@ -1589,6 +1590,14 @@ export class MixinApi {
    */
   public static isMould(obj: Stuff): obj is Stuff & Mould {
     return this.hasMixin(obj, Mixins.Mould);
+  }
+
+  /**
+   * A porous solid a liquid seeps down through over days — a clayed sugar
+   * loaf (sugar D3).
+   */
+  public static isPercolating(obj: Stuff): obj is Stuff & Percolating {
+    return this.hasMixin(obj, Mixins.Percolating);
   }
 
   /**

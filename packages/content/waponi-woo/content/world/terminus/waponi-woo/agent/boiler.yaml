@@ -1,0 +1,24 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Grace Achterberg
+  keywords: [boiler, grace, achterberg, skimmer]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: boiler with a long skimmer, red-faced from the train
+  register: indefinite
+  longDescription: |
+    A broad, red-faced woman with a long-handled skimmer, who reads the coppers by the colour of the steam.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: proficient }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "skims the grand copper and flicks the scum into a pail." }
+          - { kind: free, value: "pulls a drop of liquor between finger and thumb." }

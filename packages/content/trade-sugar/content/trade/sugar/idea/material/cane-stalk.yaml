@@ -1,0 +1,26 @@
+# Cane stalk — what the cutters bring to the mill: fibre and juice. ⭐ The
+# tag `cane` is what the crush recipe slots.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: sugar cane
+  keywords: [cane, stalk, "sugar cane"]
+  appearance: green-gold and jointed, sweet at the cut
+  density: 1100
+  specificHeat: 3200
+  thermalConductivity: 0.4
+  electricalConductivity: 0.1
+  waterAbsorptionCapacity: 0
+  hardness: 1
+  toughness: 1
+  edibility: true
+  tastes: [sweet]
+  spoilActivationEnergy: 55000
+  waterActivity: 0.97
+  nutrients: ["sugar", "water"]
+  nutrientAmounts: { sugar: 140000, water: 700000 }
+  toxicity: []
+  tags: ["solid", "food", "cane", "perishable", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/saccharum/officinarum
+    tissueType: stalk

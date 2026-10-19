@@ -120,7 +120,13 @@ describe('the shipped packs (real discovery, no install)', () => {
     // recounts — the sum, whatever git says).
     // ⭐ 65 → 66: the sugar build adds `trade-sugar` (potash builds in
     // parallel and adds one too — whoever lands second recounts).
-    expect(ids).toHaveLength(66);
+    // ⭐ 66 → 67: …and its venue, `waponi-woo` (sugar W5).
+    expect(ids).toHaveLength(67);
+    // The island orders after the trade whose cane and train it rows, the
+    // realm it hangs off, and the water whose sea reaches it.
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('trade-sugar'));
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('terminus'));
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('water'));
     // ⭐ The sugar trade buys its lime off the quarry's shelf, and the
     // sugar house in Terminus is built from its rows.
     expect(ids.indexOf('trade-sugar')).toBeGreaterThan(ids.indexOf('trade-quarrying'));

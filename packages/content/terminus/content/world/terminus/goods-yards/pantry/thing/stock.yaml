@@ -7,7 +7,7 @@ data:
   shortDescription: "pantry stock"
   keywords: [stock, pallet, cases, pantry]
   register: definite
-  longDescription: "Sacks on a pallet under a tarp: sugar, salt, coffee."
+  longDescription: "Sacks on a pallet under a tarp: salt, coffee."
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service
@@ -19,6 +19,7 @@ data:
   stockLines:
     - { itemTemplatePath: /trade/cooking/thing/coffee-sack, par: 4 }
     - { itemTemplatePath: /trade/cooking/thing/salt-sack, par: 6 }
-    - { itemTemplatePath: /trade/cooking/thing/sugar-sack, par: 6 }
+    # ⭐ (sugar D9) No sugar line: sugar comes from the Sugar House now,
+    # pounded off a loaf — the pantry stopped conjuring it.
     - { itemTemplatePath: /trade/cooking/thing/syrup, par: 6 }
   prices: {}

@@ -12,8 +12,10 @@
  * the pan does. ⚠ No `boil` anywhere: `heat` sets the copper on the fire
  * and the plateau does the boiling.
  *
- * What it does NOT do yet: fetch blocks or lime from elsewhere (it works
- * with what is in the room), or pour the strike into a cone (W2).
+ * At the strike it sets a cone on a pot and pours the copper into it (W2).
+ * What it does NOT do: fetch blocks or lime from elsewhere (it works with
+ * what is in the room), nip, pound or decant — those are the drive's hands
+ * and a later beat's.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -25,6 +27,7 @@ import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import Copper from '../thing/Copper';
+import CuringPot from '../thing/CuringPot';
 
 /** Litres of water a batch starts from — a block's worth, at a working strength. */
 const BATCH_WATER = '30L';
@@ -43,6 +46,10 @@ interface Floor {
   block: boolean;
   lime: boolean;
   fuel: boolean;
+  /** An empty cone stands on a pot, ready to take a strike (W2). */
+  coneReady: boolean;
+  /** An empty cone and an empty pot are both here, apart. */
+  coneAndPot: boolean;
 }
 
 export const brain = class {
@@ -71,7 +78,11 @@ export const brain = class {
    */
   static next(f: Floor): string | null {
     if (!f.copper) return null;
-    if (f.liquor === 'struck') return f.onFire ? 'get copper' : null;
+    if (f.liquor === 'struck') {
+      if (f.onFire) return 'get copper';
+      if (f.coneReady) return 'pour copper into cone';
+      return f.coneAndPot ? 'put cone on pot' : null;
+    }
     if (f.liquor === 'spoilt') return null;
     if (f.liquor === 'empty') return 'pour butt into copper --amount ' + BATCH_WATER;
     if (f.liquor === 'water') return f.block ? 'put block in copper' : null;
@@ -99,6 +110,16 @@ export const brain = class {
         .find((s) => s instanceof Copper) as Copper | undefined) ??
       null;
     const arch = here.find((s) => MixinApi.isBurner(s)) ?? null;
+    const isEmptyCone = (s: Stuff): boolean =>
+      MixinApi.isMould(s) && MixinApi.isBulkable(s) && s.isBulkEmpty('interior') && !s.holdsCast();
+    const cones = here.filter(isEmptyCone);
+    const pots = here.filter((s) => s instanceof CuringPot);
+    const coneReady = cones.some(
+      (c) =>
+        MixinApi.isContainable(c) &&
+        (c.getPlacement()?.host as unknown as Stuff | undefined) instanceof CuringPot,
+    );
+    const freePot = pots.some((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
     const hasTag = (s: Stuff, tag: string): boolean =>
       MixinApi.isTangible(s) && (s.getMaterial()?.hasTag(tag) ?? false);
     let liquor: Floor['liquor'] = 'empty';
@@ -129,6 +150,8 @@ export const brain = class {
       block: here.some((s) => hasTag(s, 'raw-sugar')),
       lime: here.some((s) => hasTag(s, 'liming')),
       fuel: here.some((s) => hasTag(s, 'fuel')),
+      coneReady,
+      coneAndPot: cones.length > 0 && freePot,
     };
   }
 

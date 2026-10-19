@@ -129,6 +129,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const f of [
     '_biomePath', '_speciesPath', '_bodyPlanPath',
     '_parentCladePath', '_materialPath', '_defaultMaterialPath',
+    // ⭐ `_familyPath` (sugar D5) — the ingredient family a material
+    // cites, followed by a refusal to say "honey is a different
+    // sweetener". A rowless one silently loses the sentence.
+    '_familyPath',
     // ⭐ The mana-device citations (TPA reform W5/W6). `mainsRef` names
     // the line a device is wired to and `bornWithCell` the cell a gate
     // shipped with — both resolved live, so a rowless one is a device

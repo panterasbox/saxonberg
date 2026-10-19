@@ -1,0 +1,13 @@
+# The light rum ferment (sugar D8) — the wash profile's shape on molasses.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: light-rum-wash
+  mechanism: microbial
+  inputCategory: light-rum-wort
+  stallBelowK: 283
+  happyK: 295
+  damageAboveK: 306
+  killK: 312
+  ratePerDay: 0.35
+  productMaterial: /trade/distilling/idea/material/light-rum-wash
+  turnDays: 6

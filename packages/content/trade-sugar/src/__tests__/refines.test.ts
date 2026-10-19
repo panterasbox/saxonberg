@@ -20,6 +20,8 @@ const base = {
   block: true,
   lime: true,
   fuel: true,
+  coneReady: false,
+  coneAndPot: true,
 };
 
 describe('refines — one act per beat', () => {
@@ -55,7 +57,9 @@ describe('refines — one act per beat', () => {
 
   it('takes the copper off at the strike, and leaves a spoilt pan be', () => {
     expect(brain.next({ ...base, liquor: 'struck', onFire: true })).toBe('get copper');
-    expect(brain.next({ ...base, liquor: 'struck', onFire: false })).toBeNull();
+    expect(brain.next({ ...base, liquor: 'struck', onFire: false })).toBe('put cone on pot');
+    expect(brain.next({ ...base, liquor: 'struck', coneReady: true })).toBe('pour copper into cone');
+    expect(brain.next({ ...base, liquor: 'struck', coneAndPot: false })).toBeNull();
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: true })).toBeNull();
   });
 

@@ -9,13 +9,29 @@ data:
   appointingAuthority:
     kind: committee
     parcel: /corpo/veshko
+  # (sugar D8) The distiller's seat fulfils; with no rule the resolver
+  # declines, so the house says who comes over.
+  call: rota
   positions:
     - key: hand
       noun: hand
       label: running Veshko's yard
       wageRate: 4
       purchases: true
+    # ⭐ (sugar D8) The distiller — the yard's rum is MADE here now, from
+    # the Sugar House's molasses, instead of conjured onto the pallet.
+    - key: distiller
+      noun: distiller
+      label: running Veshko's pot still
+      wageRate: 5
+      headcount: 1
+      fulfills: [distilling, fermenting]
+      purchases: true
   rosterSlots:
+    - positionKey: distiller
+      assignee: /world/terminus/goods-yards/veshko/agent/distiller
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
     - positionKey: hand
       assignee: /world/terminus/goods-yards/veshko/agent/hand
       schedule:

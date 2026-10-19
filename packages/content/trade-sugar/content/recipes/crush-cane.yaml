@@ -1,0 +1,20 @@
+# Crush cane — a bundle through the edge runner: juice into a tub, the
+# fibre left as bagasse (sugar W5). `mill cane` at the mill.
+recipeId: crush-cane
+name: Crushed cane
+keywords: ["crush-cane", "cane juice", "crush cane"]
+inputSlots:
+- slot: cane
+  kind: item
+  category: cane
+  minGrade: poor
+  count: 1
+toolCapabilities:
+- millstone
+outputApplication: bulk
+outputTemplate: /trade/sugar/thing/juice-tub
+outputMaterial: /trade/sugar/idea/material/cane-juice
+outputPortionL: 18
+outputResidue:
+  template: /trade/sugar/thing/bagasse
+  count: 1

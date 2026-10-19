@@ -30,6 +30,10 @@ data:
     - /stuff/thing/fixture/water-butt
     - /stuff/thing/instrument/thermometer
     - /trade/milling/thing/quern
+    # A cone and its pot by the arch, for the strike off the copper; the
+    # curing house racks the rest.
+    - /trade/sugar/thing/cone
+    - /trade/sugar/thing/curing-pot
     - /trade/haulage/thing/works-board
     - { template: /trade/quarrying/thing/coal, count: 8 }
   cast:

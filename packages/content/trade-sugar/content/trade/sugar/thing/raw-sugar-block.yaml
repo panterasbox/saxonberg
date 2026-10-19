@@ -3,7 +3,7 @@
 class: /platform/thing/Provision
 data:
   shortDescription: block of raw sugar
-  keywords: [block, "raw sugar", sugar, raw-sugar, muscovado]
+  keywords: [block, "raw sugar", "block of raw sugar", sugar, raw-sugar, muscovado]
   register: indefinite
   primaryKeyword: block
   longDescription: >-
