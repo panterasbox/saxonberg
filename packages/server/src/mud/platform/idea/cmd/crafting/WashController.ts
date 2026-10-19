@@ -157,6 +157,10 @@ export default class WashController extends ManualBuildController<WashModel> {
           spec: { waterK: water.waterK, hardnessDgh: water.hardnessDgh, cleansers, effort },
         });
         const lines = results.map((r) => describeOutcome(r.item.getPresentation(), r.outcome, act.self));
+        if (MixinApi.isAdvancing(giver)) {
+          // The deed `analyze cleanliness` reads (B57).
+          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${lines.join(" ")}`)
@@ -196,6 +200,10 @@ export default class WashController extends ManualBuildController<WashModel> {
           effort,
         });
         const clean = giver.handCleanliness() >= 0.9;
+        if (MixinApi.isAdvancing(giver)) {
+          // The deed `analyze cleanliness` reads (B57).
+          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+        }
         const what = gloved ? "gloves" : "hands";
         MessageApi.scene(giver)
           .topic(TOPIC)

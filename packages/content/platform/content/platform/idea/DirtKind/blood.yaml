@@ -11,3 +11,6 @@ data:
   setAnswersTo: [oxidiser-slow, oxidiser]
   absorbedBy: true
   waterLifts: 0.5
+  # What it smells of — ppm per unit of load (B57): a soiled thing's
+  # odour is derived from what is on it.
+  odour: { identity: old blood, ppmPerLoad: 15 }

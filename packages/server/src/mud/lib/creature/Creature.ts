@@ -388,6 +388,34 @@ export class Creature extends CreatureBase {
   }
 
   /**
+   * ⭐ A body smells of its skin AND what it wears (B57) — the shirt you
+   * worked in all day is half of why you need a bath.
+   */
+  public override soilOdour(): { identity: string; ppm: number } | null {
+    const own = super.soilOdour();
+    let ppm = own?.ppm ?? 0;
+    let identity = own?.identity ?? '';
+    let strongest = own?.ppm ?? 0;
+    const seen = new Set<unknown>();
+    for (const occupants of this.getAllOccupants().values()) {
+      for (const layer of occupants) {
+        if (seen.has(layer)) continue;
+        seen.add(layer);
+        const s = layer as unknown as Stuff;
+        if (!MixinApi.isSoilable(s)) continue;
+        const o = s.soilOdour();
+        if (!o) continue;
+        ppm += o.ppm;
+        if (o.ppm > strongest) {
+          strongest = o.ppm;
+          identity = o.identity;
+        }
+      }
+    }
+    return ppm > 0 ? { identity, ppm } : null;
+  }
+
+  /**
    * ⭐ A soaked body holds a FILM of water on its skin, not its flesh's
    * absorption capacity × 70 kg — the water a towel takes (B56). Skin
    * area by Meeh's law (`0.1 · m^(2/3)` m², ~1.7 m² at 70 kg) × the film

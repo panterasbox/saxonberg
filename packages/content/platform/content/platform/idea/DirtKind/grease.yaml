@@ -8,3 +8,6 @@ data:
   answersTo: [surfactant, alkali-mild, alkali-strong, solvent, absorbent]
   absorbedBy: true
   waterLifts: 0.05
+  # What it smells of — ppm per unit of load (B57): a soiled thing's
+  # odour is derived from what is on it.
+  odour: { identity: rancid fat, ppmPerLoad: 10 }

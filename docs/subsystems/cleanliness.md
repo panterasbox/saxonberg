@@ -148,6 +148,21 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   a stew boiled long enough is safe, a salad cut on a dirty board is not.
   Perishable inputs only.
 
+## Knowing — how a player tells it needs washing (B57)
+
+- **`look`** — the band and its kinds (*soiled, muddy and greasy*); a body
+  by region on the bare skin; the wet band.
+- **`smell`** — dirt with a nose has an `odour` on its row (sweat → *stale
+  sweat*, manure → *dung*, milk → *sour milk*, blood → *old blood*, grease
+  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdour()`
+  derives the emission from the loads (a body adds what it wears), the
+  smell walk scents the room with it, and `smell <thing>` reads *it smells
+  of …* (*reeks* at ≥ 100 ppm) once past `cleanliness.odourNoticedPpm`.
+- **`analyze cleanliness <thing>`** — the reading
+  ([instrumentation.md](./instrumentation.md)): where, what has set, what
+  lifts it, what was done to it, how long ago — by `domestic-services`
+  band, never the microbes.
+
 ## Places
 
 - **The floor** (`FloorMixin` + the `Floor` twin): `takesSoil` (a water

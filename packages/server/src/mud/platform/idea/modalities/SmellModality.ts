@@ -152,6 +152,19 @@ function ownSmell(loc: Stuff & Container): ConcentrationAccumulator {
 
   // (b) Contents-side emitters.
   for (const item of loc.getContents()) {
+    // ⭐ Dirt smells (B57): a soiled thing — a sweat-sour body, a dung-caked
+    // boot, a sour-milk rag — emits by its own loads (`Soilable.soilOdour`),
+    // derived, beside any stored emission.
+    if (MixinApi.isSoilable(item)) {
+      const odour = item.soilOdour();
+      if (odour) {
+        addContribution(acc, {
+          stuffId: (item as unknown as Stuff).stuffId,
+          concentration: odour.ppm,
+          identity: odour.identity,
+        });
+      }
+    }
     if (!MixinApi.isSmellSource(item)) continue;
     const conc = item.getEmittedConcentration().rawValue();
     if (conc <= 0) continue;

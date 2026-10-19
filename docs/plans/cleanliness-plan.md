@@ -2962,6 +2962,20 @@ Read first, in this order.
   `waterCapacityKg` (a body's skin film by Meeh's law), `dry <x> with
   <cloth>`; stocked at the bathhouse, the bathrooms and the store. The
   module functions `airReachOf`/`interactiveHolderOf` became methods.
+- **B57 — Knowing it needs washing** (review, the user: *"is there a way to
+  measure/analyze something's cleanliness … how does the player know"*;
+  both, in this MR). (1) The `cleanliness` Reading row over `analyze`
+  (`CleanlinessReading`, eye rung, `subjectRequires: [SoilableMixin]`):
+  look line → sites + set stains → what lifts it (`Soilable.liftedBy`, off
+  the dirt row) → the process record as evidence → how long ago; never the
+  microbes (`cleanTier` reads contamination, so the reading does not call
+  it). It reads a NEW Discipline, `domestic-services` (ISCED-F 1012, under
+  `personal-services`), because nothing credited cleaning before —
+  `wash`, `sweep` and `brush` now do. (2) Smell: `DirtKind.odour`
+  (identity + ppm per load) on sweat, manure, milk, blood, grease;
+  `Soilable.soilOdour()` (a body adds its worn layers, `Creature`); the
+  smell walk's contents leg reads it; the soil augmenter gives the marks
+  to sight and the odour to the nose (`cleanliness.odourNoticedPpm`).
 
 ## Drive record
 

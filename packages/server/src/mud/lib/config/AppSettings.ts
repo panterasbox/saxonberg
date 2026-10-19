@@ -2288,6 +2288,10 @@ export const AppSettingKeys = {
   cleanlinessBandMarkedAt: "cleanliness.band.markedAt",
   cleanlinessBandSoiledAt: "cleanliness.band.soiledAt",
   cleanlinessBandFilthyAt: "cleanliness.band.filthyAt",
+  /** Cleanliness — the ppm of a thing's dirt odour (`Soilable.soilOdour`)
+   * at which its description says it smells (an ordinary nose's
+   * threshold, B57). The smell walk itself thresholds by the nose. */
+  cleanlinessOdourNoticedPpm: "cleanliness.odourNoticedPpm",
   /** Cleanliness — the share of what is on a mover's feet a floor takes
    * at each crossing (and the feet lose). */
   cleanlinessTrafficTrackIn: "cleanliness.traffic.trackIn",

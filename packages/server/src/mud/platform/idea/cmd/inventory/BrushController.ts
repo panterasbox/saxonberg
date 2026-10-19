@@ -48,6 +48,10 @@ export default class BrushController extends ManualBuildController<BrushModel> {
     if (target.isDestroyed() || !MixinApi.isSoilable(target)) return;
     const removed = target.brushOff(effort);
     const what = Object.keys(removed).slice(0, 3).join(', ');
+    if (what && MixinApi.isAdvancing(giver)) {
+      // The deed `analyze cleanliness` reads (B57).
+      void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

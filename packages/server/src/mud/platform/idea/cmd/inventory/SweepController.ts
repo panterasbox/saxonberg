@@ -85,6 +85,10 @@ export default class SweepController extends ManualBuildController<SweepModel> {
       return;
     }
     const what = Object.keys(kinds).slice(0, 3).join(', ');
+    if (MixinApi.isAdvancing(giver)) {
+      // The deed `analyze cleanliness` reads (B57).
+      void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You sweep the floor clean${what ? ` of ${what}` : ''}, into ${Mml.thing(heap)}.`)

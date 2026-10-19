@@ -9,6 +9,10 @@ settings:
   # one bare-handed butchering puts about a soiled's worth on the hands.
   - key: cleanliness.band.markedAt
     value: "0.1"
+  # The ppm of a thing's dirt odour at which its description says it smells
+  # (an ordinary nose, `smell`'s `normal` acuity) — B57.
+  - key: cleanliness.odourNoticedPpm
+    value: "10"
   - key: cleanliness.band.soiledAt
     value: "0.4"
   - key: cleanliness.band.filthyAt

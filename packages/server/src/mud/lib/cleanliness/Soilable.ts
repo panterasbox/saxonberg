@@ -36,7 +36,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { MarkupAugmenter } from '../../api/mml';
+import type { AugmentOpts, MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -146,6 +146,15 @@ export interface WashSpec {
   effort: number;
   /** Other things in the same water (the bleed of an unfast dye). */
   coWashed?: readonly Stuff[];
+}
+
+/** What lifts one dirt kind at one site (`Soilable.liftedBy`). */
+export interface DirtLift {
+  set: boolean;
+  /** Plain water takes most of it (the row's `waterLifts` ≥ ½, unset). */
+  waterAlone: boolean;
+  /** The cleanser mechanisms that answer it now. */
+  actions: readonly CleanserAction[];
 }
 
 /** What a wash did — the verb renders this and nothing else. */
@@ -259,6 +268,20 @@ export interface Soilable {
    * leaves what it washed that wet — washing is water.
    */
   washedShare(site: string): number;
+  /**
+   * ⭐ What will lift this dirt here — read off the dirt's own row, so a
+   * competent eye's advice is derivable, never a table (the `cleanliness`
+   * reading, B57): whether it has SET, whether plain water takes most of
+   * it, and the cleanser mechanisms that answer it now.
+   */
+  liftedBy(kind: string, site?: string): DirtLift;
+  /**
+   * ⭐ What this smells of, from its dirt (B57): each kind's row `odour` ×
+   * its load, summed; the identity is the strongest kind's. `null` when
+   * nothing it carries smells. A body adds what it wears. The smell walk
+   * reads it beside a `SmellSource`'s stored emission.
+   */
+  soilOdour(): { identity: string; ppm: number } | null;
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -561,6 +584,37 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       return 1;
     }
 
+    public soilOdour(): { identity: string; ppm: number } | null {
+      const byIdentity = new Map<string, number>();
+      for (const [key, load] of Object.entries(this.deposits)) {
+        const kind = splitKey(key)[1];
+        const odour = this.dirtKind(kind)?.odour ?? null;
+        if (!odour || !(load > 0)) continue;
+        byIdentity.set(odour.identity, (byIdentity.get(odour.identity) ?? 0) + load * odour.ppmPerLoad);
+      }
+      let ppm = 0;
+      let identity = '';
+      let strongest = 0;
+      for (const [id, p] of byIdentity) {
+        ppm += p;
+        if (p > strongest) {
+          strongest = p;
+          identity = id;
+        }
+      }
+      return ppm > 0 ? { identity, ppm } : null;
+    }
+
+    public liftedBy(kind: string, site: string = WHOLE_SITE): DirtLift {
+      const row = this.dirtKind(kind);
+      const set = this.isSoilSet(kind, site);
+      return {
+        set,
+        waterAlone: !set && (row?.waterLifts ?? 0.3) >= 0.5,
+        actions: (set ? row?.setAnswersTo : row?.answersTo) ?? [],
+      };
+    }
+
     /** ⭐ Water leaves what it touched at least `share` wet (B56). */
     private wetBy(share: number): void {
       const self = this as unknown as Stuff;
@@ -740,9 +794,24 @@ function joinWords(words: string[]): string {
  * the whole-thing sentence by default, per part on a body, the boards and
  * the strewing on a floor. Too dim to make out marks, nothing is said.
  */
-function soilAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+function soilAugmenter(
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+  opts?: AugmentOpts,
+): string {
   if (!MixinApi.isSoilable(host)) return text;
-  const line = host.soilLookLine(viewer);
+  // ⭐ Each line to its sense (B57): the marks to sight, the smell to the
+  // nose — `smell shirt` reads *stale sweat*, never *greasy*; a bare
+  // `look` (no filter) reads both.
+  const sees = !opts?.filter || opts.filter.includes('vision');
+  const smells = !opts?.filter || opts.filter.includes('smell');
+  const odour = smells ? host.soilOdour() : null;
+  const smellLine =
+    odour && odour.ppm >= dialOf(AppSettingKeys.cleanlinessOdourNoticedPpm, 10)
+      ? `${odour.ppm >= 100 ? 'It reeks' : 'It smells'} of ${odour.identity}.`
+      : '';
+  const line = [sees ? host.soilLookLine(viewer) : '', smellLine].filter((l) => l).join(' ');
   if (!line) return text;
   // ⚠ Found by the drive: this was gated on `canMakeOutMarks` — the light
   // to read FINE PRINT — so a bloodied apron in a dim cookhouse (≈4 lux at
