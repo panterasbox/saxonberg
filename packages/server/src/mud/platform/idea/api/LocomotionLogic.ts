@@ -237,6 +237,8 @@ export class LocomotionLogic extends ApiLogic {
     }
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
+    const deep = this.overYourHead(exit, mode);
+    if (deep !== null) return deep;
     let enablement = this.checkEnablement(actor, mode, direction);
     // ⭐ The far side: an exit whose DESTINATION is the medium (the
     // strand's east into the pool) admits the mode — you swim INTO the
@@ -249,6 +251,26 @@ export class LocomotionLogic extends ApiLogic {
     }
     if (!enablement.ok) return enablement;
     return this.checkHaulage(actor, exit, mode);
+  }
+
+  /**
+   * ⭐ You do not WALK into water over your head (underwater D29 seam 10):
+   * a ground mode into a water place whose water is deeper than wading is
+   * refused, in the water's words — swim in, or go down to it. A frozen
+   * water is the floor's question (the ice bears you or breaks).
+   */
+  private overYourHead(exit: Exit, mode: LocomotionMode): TraversalGuard | null {
+    if (mode.getMedium() !== 'ground') return null;
+    const path = exit.getDestinationTemplatePath?.() ?? null;
+    const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+    if (!dest || !MixinApi.isWaterPlace(dest)) return null;
+    if (dest.stateNow() !== 'swimming') return null;
+    return {
+      ok: false,
+      gate: 'blocked',
+      mode: mode.getName(),
+      reason: 'You would be in over your head there; swim, or go down to it.',
+    };
   }
 
   /**

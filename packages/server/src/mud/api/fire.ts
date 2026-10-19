@@ -33,10 +33,11 @@ export interface IgniteOutcome {
    * Why it didn't, when `lit` is false: `'not-flammable'` (the material
    * will not burn), `'no-fuel'` (⭐ a burner with an empty bed — the
    * refusal that `stoke` lifts, and the reason a fire can be run twice),
-   * `'already-burning'`, or `'too-wet'` (a hand-flame can't dry it).
+   * `'already-burning'`, `'too-wet'` (a hand-flame can't dry it), or
+   * `'no-air'` (under the water: nothing burns there).
    * Absent on success.
    */
-  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet';
+  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet' | 'no-air';
 }
 
 const LOGIC_PATH = '/platform/idea/api/fire';

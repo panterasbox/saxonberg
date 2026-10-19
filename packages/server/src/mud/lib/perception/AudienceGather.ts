@@ -44,6 +44,7 @@ import type { Container } from '../spatial/Container';
 import type { Sensor } from '../message/Sensor';
 import { MAX_HOPS, EXIT_TAU } from './Modality';
 import { MixinApi } from '../../api/mixin';
+import { MEDIA } from '../biome/Medium';
 import { Traversal } from '../location/Traversal';
 import type { Leg } from '../location/Traversal';
 import { StuffApi } from '../../api/stuff';
@@ -96,6 +97,16 @@ const PER_HOP_TAU = 0.01;
  * because the resolve is async and this walk is not) is documented at
  * the method, once.
  */
+/** A place under the surface of a water: a band of a column. */
+function underWater(loc: Stuff & Container): boolean {
+  return MixinApi.isWaterPlace(loc) && loc.surfacePlace() !== (loc as unknown as Stuff);
+}
+
+/** The per-hop falloff into `loc`: the water's under the surface, the air's elsewhere. */
+function hopTauOf(loc: Stuff & Container): number {
+  return underWater(loc) ? MEDIA.water?.soundHopTau ?? PER_HOP_TAU : PER_HOP_TAU;
+}
+
 function atmosphereBlocks(loc: Stuff & Container): boolean {
   return MixinApi.isAtmospheric(loc) ? loc.atmosphereBlocks() : false;
 }
@@ -229,15 +240,19 @@ function walkOutward(
     bound: { hops: MAX_HOPS },
     visited,
     descend: (carry, leg) => ({
-      tau: carry.tau * (leg.tau ?? EXIT_TAU) * PER_HOP_TAU,
+      // ⭐ Under the water sound carries further between places (D29
+      // seam 11): the hop's falloff is the medium's, not the air's.
+      tau: carry.tau * (leg.tau ?? EXIT_TAU) * hopTauOf(leg.node),
       // Sticky: the first hop names the direction and later hops keep it.
       direction: carry.direction ?? leg.dir ?? null,
     }),
     enter: (node, _d, carry) => {
       if (atmosphereBlocks(node)) return out;
       const db = linearToDb(sourceDb, carry.tau);
+      // ⭐ …and arrives from no direction a hearer can place.
+      const direction = underWater(node) ? null : carry.direction;
       for (const sensor of MessageApi.getSensors(node)) {
-        out.push({ sensor, db, direction: carry.direction });
+        out.push({ sensor, db, direction });
       }
       return undefined;
     },

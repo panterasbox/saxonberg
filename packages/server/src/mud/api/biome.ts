@@ -176,6 +176,12 @@ export interface MediumRead {
   readonly depthM: number;
   /** The water citation a water place answered with, else null. */
   readonly waterRef: string | null;
+  /**
+   * ⭐ How far you can see through it, m — the water's clarity under the
+   * surface (D28: the fight's range cap). `null` in air: as far as the
+   * place lets you.
+   */
+  readonly visibilityM?: number | null;
 }
 
 export class BiomeApi {

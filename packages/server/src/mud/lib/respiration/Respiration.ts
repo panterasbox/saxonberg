@@ -249,6 +249,8 @@ export interface Respiration {
    */
   holdUp(): void;
   releaseHold(): void;
+  /** A drowning body has grabbed this one (D28). */
+  beClungTo(by: Stuff): void;
   isHeldUp(): boolean;
 
   /**
@@ -323,6 +325,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _wasUnder = false;
     /** Whether this body blacked out under water (the rescued cough). */
     private _blackedOutUnder = false;
+    /**
+     * Who is clinging to this body in the drowning response — runtime,
+     * by stuffId (D28: the drowning grab). Each one is a body this one
+     * holds up as well as its own.
+     */
+    private _clungBy = new Set<string>();
     /** Held face-up at the surface (a disconnected body, underwater D11). */
     private _heldUp = false;
     /** Floating on your back (`float`) — no tread, until you go under or out. */
@@ -928,7 +936,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isExerting(self)) return;
       const technique = SWIM_TECHNIQUE[this._swimBand] ?? SWIM_TECHNIQUE.untrained!;
       const buoyancy = lift > 0 ? 0.5 : 1 + Math.min(3, -lift / 50);
-      const powerW = RESPIRATION_DEFAULTS.TREAD_W * technique * buoyancy;
+      // ⭐ Every drowning body clinging to you is a body you hold up too.
+      const clinging = this.liveClingers();
+      const powerW = RESPIRATION_DEFAULTS.TREAD_W * technique * buoyancy * (1 + clinging);
       self.exert({ durationS: elapsedS, powerW });
       if (MixinApi.isAdvancing(self)) {
         void self.creditDeed({ discipline: 'swimming', difficulty: 'easy', outcome: 'success' }).catch(() => {});
@@ -941,6 +951,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._drowningSinceS === null) {
         this._drowningSinceS = nowS;
         this.drowningScene();
+        this.grabNearest();
         return;
       }
       if (nowS - this._drowningSinceS >= RESPIRATION_DEFAULTS.DROWNING_RESPONSE_SEC) {
@@ -987,6 +998,55 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public isHeldUp(): boolean {
       return this._heldUp;
+    }
+
+    /**
+     * ⭐ The drowning grab (D28): a body in the drowning response climbs
+     * whoever else is in the water within reach to get its head up — the
+     * rescuer now treads for two, and is the next to be spent. *Reach,
+     * throw, don't go* is derived, not taught.
+     */
+    private grabNearest(): void {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (place === null || !MixinApi.isContainer(place)) return;
+      for (const other of place.getContents()) {
+        if (other === self || !MixinApi.isRespiration(other)) continue;
+        const m = BiomeApi.mediumFor(other);
+        if (!(m.immersed && m.atSurface)) continue;
+        other.beClungTo(self);
+        try {
+          MessageApi.scene(self)
+            .topic('act.deed')
+            .toTarget(other, Mml.compose`${Mml.actor(self)} grabs at you and climbs you, pushing you under to get their own head up.`)
+            .send();
+        } catch {
+          // decoration
+        }
+        return;
+      }
+    }
+
+    public beClungTo(by: Stuff): void {
+      this._clungBy.add(by.stuffId);
+    }
+
+    /** The clingers still here and still drowning. */
+    private liveClingers(): number {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self) ? self.getContainer() : null;
+      let n = 0;
+      for (const id of [...this._clungBy]) {
+        const who = place && MixinApi.isContainer(place)
+          ? place.getContents().find((c) => c.stuffId === id) ?? null
+          : null;
+        if (who === null || !MixinApi.isRespiration(who) || !who.isInDrowningResponse()) {
+          this._clungBy.delete(id);
+          continue;
+        }
+        n += 1;
+      }
+      return n;
     }
 
     public isInDrowningResponse(): boolean {

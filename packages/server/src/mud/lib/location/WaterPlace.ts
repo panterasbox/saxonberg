@@ -57,6 +57,8 @@ import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
+import { BulkableApi } from '../../api/bulk';
+import { CombatApi } from '../../api/combat';
 import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -364,6 +366,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
 
     public canRise(body: Stuff): VetoResult {
+      // ⭐ Held under (D28): a body somebody has grappled goes nowhere —
+      // holding a person down is the breath model, not a damage roll.
+      const held = CombatApi.sessionFor(body)?.getStates()
+        .find((st) => st.combatant === body)?.flags.has('grappled') ?? false;
+      if (held) return { ok: false, reason: 'You are held; you cannot get up to the air.' };
       if (!MixinApi.isLoadBearing(body)) return { ok: true };
       const medium = this.mediumFor(body);
       let rho = WATER_DENSITY;
@@ -509,12 +516,53 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
       const floor = this.waterFloor();
       floor?.reconcileSupport();
+      // ⭐ Into the water (underwater D29 seams 1, 2, 4): whatever arrives
+      // in it, and everything it carries, is wet through; whatever was
+      // burning is out; an open empty vessel fills with the water.
+      if (BiomeApi.mediumFor(thing).immersed) void this.immerseArrival(thing);
       // Open water (nothing underfoot bears even an empty load): a dense
       // thing goes straight down. On ice it lies on the ice until the
       // thaw. Deferred a tick: never move a thing from inside the hook of
       // its own arrival.
       if (floor !== null && floor.supportIsSlotted() && !floor.bears(0) && this.sinks(thing)) {
         void Promise.resolve().then(() => this.sink(thing));
+      }
+    }
+
+    /** Wet, douse and fill what has gone into the water, and what it carries. */
+    private async immerseArrival(thing: Stuff): Promise<void> {
+      const seen = new Set<string>();
+      const walk = async (s: Stuff, depth: number): Promise<void> => {
+        if (depth > 8 || seen.has(s.stuffId) || s.isDestroyed()) return;
+        seen.add(s.stuffId);
+        if (MixinApi.isBurner(s) || MixinApi.isCombustible(s)) s.douse();
+        if (MixinApi.isAttired(s)) s.immerse();
+        else if (MixinApi.isWet(s)) s.wet(1);
+        if (MixinApi.isBulkable(s) && depth > 0) await this.fillOpenVessel(s);
+        if (MixinApi.isContainer(s)) {
+          for (const c of [...s.getContents()]) await walk(c, depth + 1);
+        }
+      };
+      // The arriving thing itself fills too when it is a loose vessel.
+      if (MixinApi.isBulkable(thing)) await this.fillOpenVessel(thing);
+      await walk(thing, 0);
+    }
+
+    /** An open, empty vessel takes the water it is in. */
+    private async fillOpenVessel(vessel: Stuff): Promise<void> {
+      try {
+        if (MixinApi.isSealable(vessel) && !vessel.isOpen()) return;
+        const to = BulkableApi.slotFor(vessel);
+        if (to === null || !to.isEmpty()) return;
+        const from = BulkableApi.slotFor(this as unknown as Stuff);
+        await from?.settle();
+        if (from === null || from.isEmpty()) return;
+        const remaining = to.remaining();
+        BulkableApi.transfer(from, to, Number.isFinite(remaining)
+          ? { kind: 'measure', litres: remaining, mode: 'lenient' }
+          : { kind: 'all' });
+      } catch {
+        // A vessel that will not take water simply stays dry.
       }
     }
 

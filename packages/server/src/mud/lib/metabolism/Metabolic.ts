@@ -47,6 +47,7 @@ import type Condition from "../../platform/idea/Condition";
 import type Material from "../material/Material";
 import type { BulkPayload } from "../bulk/Bulkable";
 import { MixinApi } from "../../api/mixin";
+import { BiomeApi } from "../../api/biome";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
@@ -415,6 +416,12 @@ export interface CoupledConsumer {
 }
 
 export interface Metabolic {
+  /**
+   * ⭐ Can this body take anything in by mouth now (underwater D29 seam
+   * 6)? Under the water an air-breather would take in the water with it
+   * — refused before anything is moved, in the body's words.
+   */
+  canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string };
   /** The live level a toxin's severity bands are read against (BAC for a
    * `storeRaw` toxin, the raw burden otherwise). */
   toxinLevelFor(type: string): number;
@@ -1463,6 +1470,15 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `result.applied`-style semantics (the `eat` verb consumes a
      * discrete item only on full acceptance).
      */
+    public canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string } {
+      const self = this as unknown as Stuff;
+      const medium = BiomeApi.mediumFor(self);
+      if (!medium.immersed || medium.atSurface) return { ok: true };
+      const breathes = MixinApi.isRespiration(self) ? self.getBreathableMedia() : ['air'];
+      if (breathes.includes(medium.substance) || breathes.includes(medium.tag)) return { ok: true };
+      return { ok: false, reason: 'airway', line: 'You would take in water.' };
+    }
+
     public ingest(
       material: Material,
       amount: Quantity<"L">,

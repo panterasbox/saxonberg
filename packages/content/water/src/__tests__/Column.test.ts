@@ -31,6 +31,8 @@ import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__test
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { AudienceGather } from '@saxonberg/server/mud/lib/perception/AudienceGather';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -282,6 +284,25 @@ describe('the column (underwater A2)', () => {
     expect(await bed.holdAtSurface(d as unknown as Stuff)).toBe(true);
     expect(d.getContainer()).toBe(p);
     expect(bed.surfacePlace()).toBe(p);
+  });
+
+  it('⭐ under the water sound carries from no direction (D29 seam 11)', async () => {
+    const p = await surface();
+    const warren = await column();
+    const lit = (await warren.bandOf(p, 'lit')) as unknown as Band;
+    await warren.bandOf(p, 'dark');
+    const listener = diver();
+    const dark = warren.bandAt(SURFACE, 'dark')!;
+    ContainmentApi.move(listener as never, dark as never);
+    vi.spyOn(MessageApi, 'getSensors').mockImplementation(((node: unknown) =>
+      node === (dark as unknown) ? [listener] : []) as never);
+    (dark as unknown as { getExit(d: string): { resolveDestination(): Promise<unknown> } | undefined })
+      .getExit('up')?.resolveDestination();
+    await (lit.getExit('down') as ColumnExit).resolveDestination();
+    const arrivals = AudienceGather.gather(lit as never, 60);
+    const heard = arrivals.find((a) => (a.sensor as unknown) === (listener as unknown));
+    expect(heard, 'the diver below heard nothing').toBeDefined();
+    expect(heard!.direction).toBeNull();
   });
 
   it('a band reads from its prose bank, steady within the hour', async () => {

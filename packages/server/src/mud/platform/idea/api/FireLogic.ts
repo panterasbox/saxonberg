@@ -242,6 +242,10 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
+  // ⭐ No flame where there is no air (underwater D29 seam 1): a thing
+  // under the water, or in any medium that will not burn, is refused
+  // BEFORE anything is struck — in the medium's own words.
+  if (!mediumBurns(stuff)) return { lit: false, reason: 'no-air' };
   // ⭐⭐⭐ **Striking a light is how you find out.** The tick's flash check
   // runs where a fire already burns; this is the other half, and it is
   // the one that actually kills people — a miner walks into a gassy
@@ -313,6 +317,17 @@ function igniteNow(stuff: Stuff & Combustible): void {
  * real reason a doused log won't relight until dried). No-op on a non-burning
  * or non-combustible target.
  */
+/** Can a flame burn where `stuff` is? The one medium read's answer. */
+function mediumBurns(stuff: Stuff): boolean {
+  const medium = BiomeApi.mediumFor(stuff);
+  if (!medium.immersed || medium.atSurface) return true;
+  try {
+    return BiomeApi.mediumProps(medium.tag).supportsCombustion;
+  } catch {
+    return false;
+  }
+}
+
 function douseImpl(stuff: Stuff): boolean {
   // A lit furnace — put it out.
   if (MixinApi.isBurner(stuff)) {

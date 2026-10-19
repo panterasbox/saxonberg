@@ -55,6 +55,11 @@ export default class EatController extends CommandController<EatModel> {
       return;
     }
 
+    // ⭐ Under the water nothing goes in by mouth but the water (D29).
+    if (MixinApi.isMetabolic(giver)) {
+      const airway = giver.canIngest();
+      if (!airway.ok) return this.refuse(context, TOPIC, airway.line, airway.reason);
+    }
     // ⭐ A cooked meal is a bulk blend in a claimed dish, so `eat stew`
     // targets the BOWL. Serve from the slot rather than swallowing the
     // crockery — the two arms of the verb, one act.

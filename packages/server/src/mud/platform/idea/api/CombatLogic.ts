@@ -8,6 +8,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import { Creature } from "../../../lib/creature/Creature";
 import type { Engaged } from "../../../lib/activity/Engaged";
 import { MixinApi } from "../../../api/mixin";
+import { BiomeApi } from "../../../api/biome";
 import { MaterialApi } from "../../../api/material";
 import { ConditionApi } from "../../../api/condition";
 import { ElectricityApi } from "../../../api/electricity";
@@ -556,7 +557,18 @@ function weaponProfileConfig(): WeaponProfileConfig {
  * `CombatApi.weaponProfileOf` and the couplings below. */
 function weaponProfileOfImpl(weapon: Stuff): WeaponProfile | null {
   if (!(weapon instanceof Weapon)) return null;
-  return WeaponProfile.derive(weapon.getProfileInputs(), weaponProfileConfig());
+  // ⭐ The medium the weapon moves through (underwater D28) — read off the
+  // weapon itself, which is wherever its wielder is.
+  const medium = BiomeApi.mediumFor(weapon);
+  let mediumDrag = 0;
+  if (medium.immersed && !medium.atSurface) {
+    try {
+      mediumDrag = BiomeApi.mediumProps(medium.tag).drag;
+    } catch {
+      mediumDrag = 0;
+    }
+  }
+  return WeaponProfile.derive({ ...weapon.getProfileInputs(), mediumDrag }, weaponProfileConfig());
 }
 
 /** The profile of the weapon an actor is wielding right now (impairment-
@@ -894,8 +906,14 @@ function arenaMaxBandFor(who: Stuff): RangeState {
   // geometry accessors (VisionModality does exactly this for
   // `getSizeScale`) — Location is a class, not a mixin, so there is no
   // MixinApi predicate to reach for.
-  const extent =
+  let extent =
     env !== null && env instanceof Location ? env.getLinearExtent() : null;
+  // ⭐ Under the water you fight only as far as you can see (D28): the
+  // water's clarity caps the arena — read off the one medium read.
+  const seen = BiomeApi.mediumFor(who).visibilityM;
+  if (typeof seen === 'number' && seen > 0) {
+    extent = extent === null ? seen : Math.min(extent, seen);
+  }
   return RangeBand.maxForExtent(extent, rangeBandConfig());
 }
 
@@ -3436,6 +3454,7 @@ function moraleFor(
       alliesDown,
       foeBand,
       onlookers: onlookersOf(session, self),
+      breathUrge: MixinApi.isRespiration(self) ? self.getBreathUrge() : 0,
     },
     moraleConfig(),
   );

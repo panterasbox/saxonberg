@@ -20,6 +20,7 @@ import { DrivableMixin } from '../../lib/slot/Drivable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { ContainmentApi } from '../containment';
 import Exit from '../../lib/boundary/Exit';
+import Pool from '../../platform/location/Pool';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -317,6 +318,18 @@ describe('LocomotionApi', () => {
         const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, dry), swim, 'east');
         expect(guard.ok).toBe(false);
         expect(guard.gate).toBe('enablement');
+      });
+
+      it('⭐ you do not WALK into water over your head — refused in the water\'s words (D29 seam 10)', async () => {
+        const walk = buildMode('walk');
+        const strand = makeStuff(() => new Location());
+        const deep = makeStuffAtPath(() => new Pool(), '/test/locomotion/deep-pool');
+        const actor = makeStuff(() => new Actor());
+        ContainmentApi.move(actor, strand);
+        const exit = makeStuff(() => new Exit({ direction: 'east', source: strand, destinationPath: '/test/locomotion/deep-pool', media: ['ground', 'water'] }));
+        void deep;
+        const guard = await LocomotionApi.canTraverseExit(actor, exit, walk, 'east');
+        expect(guard).toMatchObject({ ok: false, gate: 'blocked', reason: 'You would be in over your head there; swim, or go down to it.' });
       });
 
       it('the far side admits any body: going in is never a skill check', async () => {

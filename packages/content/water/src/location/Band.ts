@@ -42,6 +42,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { MediumRead } from '@saxonberg/server/mud/api/biome';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -126,7 +127,15 @@ export default class Band extends BandBase {
       temperatureK: this.waterTemperatureK(),
       depthM: this.getDepthM(),
       waterRef: this.getWater()?.of ?? null,
+      visibilityM: this.seeingM(),
     };
+  }
+
+  /** How far you see through this water, m — its clarity. */
+  private seeingM(): number | null {
+    const surface = this.getSurface();
+    const c = surface?.peekWaterRead(surface.getWaterKey())?.clarityM;
+    return typeof c === 'number' && c > 0 ? c : null;
   }
 
   /** The surface's water temperature. */
@@ -205,18 +214,41 @@ export default class Band extends BandBase {
   /* ─────────────────────────── light and words ─────────────────────────── */
 
   /**
-   * ⭐ The surface's light, through this band's depth of water: the depth
-   * at which 1 % is left is the water's clarity, so the lit band keeps a
-   * share and the dark band almost none.
+   * ⭐ The surface's light, through this band's depth of water (D29 seam
+   * 9): the light falling on the surface NOW — the sky's, by the sun or
+   * the moon and the cloud, or the place's own — times what is left at
+   * this depth. The depth at which 1 % is left is the water's clarity, so
+   * the lit band keeps a share, the dark band almost none, and a night
+   * dive is black without a light you brought.
    */
   public getAmbientFlux(): Quantity<'lumen'> {
     const surface = this.getSurface();
     if (surface === null || !MixinApi.isAmbientLit(surface)) return Quantity.of(0, 'lumen');
-    const above = surface.getAmbientFlux().rawValue();
+    const above = surface.isSkyLit()
+      ? surface.skyNoonFlux() *
+        CelestialApi.skyFactorNow() *
+        surface.getWeatherDimFactor() *
+        surface.skyLightFraction()
+      : surface.getAmbientFlux().rawValue();
     const read = surface.peekWaterRead(surface.getWaterKey());
     const clarity = typeof read?.clarityM === 'number' && read.clarityM > 0 ? read.clarityM : 5;
     const share = Math.pow(0.01, this.getDepthM() / clarity);
     return Quantity.of(above * share, 'lumen');
+  }
+
+  /** Under water there is no sky of its own: what light there is comes down. */
+  public isSkyLit(): boolean {
+    return false;
+  }
+
+  /**
+   * ⭐ Red goes first in water: what reaches you is green-blue, and bluer
+   * the deeper you are — so blood reads black at depth. Carried as the
+   * colour temperature of the light that is left.
+   */
+  public getAmbientColorTemperature(): Quantity<'K'> | null {
+    const depth = this.getDepthM();
+    return Quantity.of(Math.min(20000, 6500 + 1500 * depth), 'K');
   }
 
   /** One line of the bank, drawn by the surface, the band and the hour. */

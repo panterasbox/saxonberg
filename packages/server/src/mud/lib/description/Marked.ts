@@ -40,6 +40,11 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+
+/** How wet inked paper must be before the ink runs (0..1). */
+const INK_RUNS_AT = 0.5;
 
 /**
  * The channels a written thing's marks can be taken in through. A
@@ -171,7 +176,24 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The common script is the ordinary case, so it is the default. */
     public markScript: string = COMMON_SCRIPT;
 
+    /**
+     * ⭐ What the marks say — unless they were inked on something you can
+     * carry that has been soaked (underwater D29 seam 2): the ink has run.
+     * Drying it does not bring the words back; the text is still stored,
+     * the reading is what failed. Fixed things (a sign in the rain) and
+     * marks that are not ink (chalk, a scratched slate) are unaffected.
+     */
     public getMarkText(): string {
+      const self = this as unknown as Stuff;
+      if (
+        this.markForm === 'inked' &&
+        this.markText !== '' &&
+        MixinApi.isWet(self) &&
+        self.getWetness() >= INK_RUNS_AT &&
+        !(MixinApi.isContainable(self) && self.isFixedInPlace())
+      ) {
+        return 'The ink has run; nothing of it can be read.';
+      }
       return this.markText;
     }
 
