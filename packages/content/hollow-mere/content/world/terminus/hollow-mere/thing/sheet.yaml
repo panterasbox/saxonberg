@@ -1,0 +1,5 @@
+# Hollow Mere's ice — the pool's floor (storage-and-ice D12), a sheet of
+# 4 000 m² over the mere.
+extends: /system/water/thing/ice-sheet
+data:
+  areaM2: 4000

@@ -337,7 +337,7 @@ async function runFiring(
   if (totalConsumedKg > 0) {
     const acc = new Map<string, number>();
     for (const c of consumed) {
-      if (!MixinApi.isAlloyed(c) || !MixinApi.isTangible(c)) continue;
+      if (!MixinApi.isComposition(c) || !MixinApi.isTangible(c)) continue;
       const weight = c.getMass().rawValue() / totalConsumedKg;
       for (const e of c.getAlloying()) {
         acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
@@ -357,7 +357,7 @@ async function runFiring(
           Quantity.of((totalConsumedKg * massYield) / firing.batches, 'kg'),
         );
       }
-      if (MixinApi.isAlloyed(made) && mergedCharge.length > 0) {
+      if (MixinApi.isComposition(made) && mergedCharge.length > 0) {
         made.setAlloying([...made.getAlloying(), ...mergedCharge]);
       }
       if (MixinApi.isContainable(made)) {

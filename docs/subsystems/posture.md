@@ -155,12 +155,27 @@ the standard non-configurable case.
 | `sit <X>` | with arg | First slot on X accepting `Postures.Sit` |
 | `lie` / `lie <X>` | both | Same shape, `Postures.Lie` |
 | `kneel` | no-arg only | `default: 'ground'`, `Postures.Kneel` |
-| `stand` | no-arg | Slot-less posture flip — vacates any posture-bearing slot, sets `Stand` |
+| `stand` | no-arg | Slot-less posture flip — vacates any posture-bearing slot, sets `Stand`; ⭐ on a slotted floor, transfers ONTO the floor (below) |
 | `stand <X>` | with arg | Stand on X (e.g., on a chair or table) |
 
 The asymmetry: `sit` / `lie` / `kneel` no-arg occupy the floor slot
 (routed through `Slotted/Slottable`); `stand` no-arg does not (it's the
 implicit "free" posture, no slot needed).
+
+### ⭐ Support on a slotted floor (storage-and-ice, 2026-10-17)
+
+On a floor whose `supportIsSlotted()` is true — a pool's water surface,
+an ice sheet ([ground.md](./ground.md) § The water's surface) — standing
+IS holding the floor's `ground:1`, and whoever does not hold it is in the
+water. So bare `stand` there is getting out: `StandController` transfers
+the actor onto the floor (`transferPosture(floor, Stand, 'stand')`); the
+floor's `canOccupy` decides whether it bears you and refuses in its own
+words (`Slotted.canOccupyReason` — *"The ice will not bear you here."*),
+and on success the engaged swim mode clears (*"You haul yourself out and
+stand on the ice, streaming water."*). Already supported → a plain
+*"You stand up."* `sit`/`lie` on such a floor are refused the same way
+while it does not bear you. Every ordinary floor answers `false`, so
+bare `stand` elsewhere is unchanged.
 
 ## `default: 'ground'` mechanism
 
@@ -241,3 +256,7 @@ replacing that witness (see [slot.md](./slot.md) and
 by more than one composed layer*). `PersistableLogic` re-occupies last, after
 placement and fixtures; every failure degrades to the room floor with no
 error and no teleport.
+
+- **2026-10-18 (storage-and-ice, MR !378).** Bare `stand` on a slotted
+  floor climbs out of the water onto it; `Slotted.canOccupyReason` lets a
+  slot host refuse in its own words.

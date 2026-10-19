@@ -216,6 +216,10 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
     case 'terrain': return 'terrain';
     case 'breakaway': return 'breakaway';
     case 'veto': return 'veto';
+    case 'encumbrance': return 'encumbrance';
+    case 'locked': return 'locked';
+    case 'unbuilt': return 'unbuilt';
+    case 'unpublished': return 'unpublished';
     default: return 'exit-mode';
   }
 }

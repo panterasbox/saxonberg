@@ -178,3 +178,10 @@ respectively; the write Api is also carried in this slate's header
   [delivery-slate](../builds/delivery-slate.md) — the **addressing substrate**
   (the locality namespace weather's coherence rides); the addressing foundation
   shipped, the wider delivery build remains deferred.
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **Night-sky radiation — pan ice** (the Persian yakhchal, the Bengal ice
+  pits: shallow pans freezing on clear nights above freezing air). The
+  model has no sky-radiation term; rubber's roof face (exterior area,
+  solar gain per segment) is the attach point.

@@ -31,7 +31,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { WaterRead, WaterSource } from './WaterSource';
+import type { WaterDraw, WaterRead, WaterSource } from './WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -72,6 +72,12 @@ export interface Shore {
   waterRefFor(name?: string): Promise<WaterRefPick>;
   settleWater(key: string): Promise<WaterRead | null>;
   peekWaterRead(key: string): WaterRead | null;
+  /**
+   * ⭐ What can be drawn from the water under `key` by someone standing in
+   * `room` — THE frozen gate (storage-and-ice D15). Frozen water gives
+   * nothing except through a hole: the room's floor offering open water.
+   */
+  drawAt(key: string, room: Stuff): { draw: WaterDraw } | { refusal: 'frozen' | 'unread'; line: string };
   waterSlot(via?: MqlMatchVia): SourceSlot;
 }
 
@@ -240,6 +246,25 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /** The current read of the water under `key`, kicking a refresh when stale. */
     public peekWaterRead(key: string): WaterRead | null {
       return this.peekWater(key).read;
+    }
+
+    public drawAt(
+      key: string,
+      room: Stuff,
+    ): { draw: WaterDraw } | { refusal: 'frozen' | 'unread'; line: string } {
+      const read = this.peekWaterRead(key);
+      if (read === null || read.pending) {
+        return { refusal: 'unread', line: 'The water is hard to read yet.' };
+      }
+      if (!read.frozen) {
+        return read.draw ? { draw: read.draw } : { refusal: 'unread', line: 'Nothing comes up.' };
+      }
+      // ⭐ Through a hole: the floor of the place you stand in has open water.
+      const floor = MixinApi.isAdornable(room) ? room.getFloor() : null;
+      if (floor !== null && MixinApi.isFloor(floor) && floor.openWaterAreaM2() > 0 && read.underIce) {
+        return { draw: read.underIce };
+      }
+      return { refusal: 'frozen', line: 'The water is frozen over; you would need a hole.' };
     }
 
     /**

@@ -62,6 +62,8 @@ data:
         shelf: /stuff/thing/fixture/table
         board: /world/terminus/terminal/thing/job-board
         bench: /trade/haulage/thing/receiving-bench
+        # ⭐ Ice goes IN the icebox and the box is shut (storage-and-ice D21).
+        cold: /world/terminus/hearthworks/thing/stocked-icebox
         reward: 30
     - brain: /lib/behavior/idles
       trigger: candidate

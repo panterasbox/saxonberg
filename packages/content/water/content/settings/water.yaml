@@ -80,10 +80,12 @@ settings:
 
   # ── ice on a still reach (the climate build) ─────────────────────
   # Running water does not freeze over here: at or above this current
-  # (m/s) a reach reads `running` (the thin place over the current is the
-  # ice trade's to model).
+  # (m/s) a reach reads `running`. ⭐ 0.5 (storage-and-ice D14): rivers
+  # freeze over at currents up to about half a metre a second; only fast,
+  # turbulent water stays open (0.1 left most slow rivers open all winter).
+  # The thin place over a current is the watershed slate's.
   - key: water.ice.stillWaterMps
-    value: "0.1"
+    value: "0.5"
 
   # Stefan's law: a sheet thickens as α·√(freezing degree-days), because
   # its own thickness insulates the water beneath. α for clear (black)

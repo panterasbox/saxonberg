@@ -19,7 +19,7 @@
  */
 
 import { Character } from '../character/Character';
-import { CostumedMixin } from '../stuff/Staged';
+import { CostumedMixin, PropsMixin } from '../stuff/Staged';
 import { BehavedMixin } from '../behavior/Behaved';
 import type { FieldMeta } from '../mixin';
 
@@ -29,8 +29,14 @@ import type { FieldMeta } from '../mixin';
 // `applyProps` with the check missing. It is on the Staged rail now:
 // an instruction field, a Phase-2 applier, a once-flag, and the class
 // gated before anything is cloned. See `lib/stuff/Staged.ts`.
-const NPCBase = CostumedMixin(
-  BehavedMixin(Character),
+// ⭐ `PropsMixin` — an NPC is born holding what its row's `props:` names
+// (the ice crew's saws, a hewer's pick). Undeclared until the
+// storage-and-ice sweep, so a `Cast` row's `props:` were dropped in
+// silence; the troupe half (`cast:`) stays a PLACE's (`StagedMixin`).
+const NPCBase = PropsMixin(
+  CostumedMixin(
+    BehavedMixin(Character),
+  ),
 );
 
 export class NPC extends NPCBase {

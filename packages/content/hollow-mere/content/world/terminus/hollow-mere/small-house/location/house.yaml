@@ -1,0 +1,21 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: small icehouse
+  keywords: [house, icehouse, small]
+  register: definite
+  _address: terminus/hollow-mere/small-house
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A small icehouse, close and cold, a lantern on a hook and a little stack of ice in sawdust filling most of it.
+  coords: { x: -1, y: 1, z: 0 }
+  extent: 2
+  enclosure: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  adornments:
+    - { template: /world/terminus/hollow-mere/thing/lantern, slot: lamp:beam }
+  exits:
+    southeast:
+      destination: /world/terminus/hollow-mere/location/road
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hollow-mere/small-house/thing/stack

@@ -1,0 +1,16 @@
+# The hand marker — a toothed iron runner pushed across the ice to score a
+# grid of thirty-centimetre squares for the saw to follow (`mark`). The
+# rung below the horse-drawn ice plough: the same act, a smaller grid.
+class: /trade/ice/thing/IceMarker
+data:
+  keywords: [marker, "hand marker", "ice marker", groover]
+  shortDescription: hand ice marker
+  register: indefinite
+  longDescription: >-
+    A heavy iron runner with a row of teeth along its keel, on a pair of
+    handles; pushed across the ice it leaves a straight groove.
+  mass: 9
+  capabilities: ["marking"]
+  gridM: 0.3
+  draught: hand
+  _materialPath: /stuff/idea/material/element/iron

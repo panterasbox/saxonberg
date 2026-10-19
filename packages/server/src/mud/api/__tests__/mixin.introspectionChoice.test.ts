@@ -38,7 +38,9 @@ import '../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { MixinApi } from '../mixin';
 import Ingot from '../../platform/thing/Ingot';
-import Casting from '../../platform/thing/Casting';
+// ⭐ MetalCasting since storage-and-ice D17 split the generic Casting off
+// temper; the metal lump is the class that differs from Ingot by ONE mixin.
+import Casting from '../../platform/thing/MetalCasting';
 import Good from '../../lib/stuff/Good';
 
 const names = (ctor: unknown): string[] =>

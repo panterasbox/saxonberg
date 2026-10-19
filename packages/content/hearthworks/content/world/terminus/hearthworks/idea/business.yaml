@@ -104,6 +104,10 @@ data:
   parLines:
     - { category: root-vegetables, unit: count, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /stuff/thing/items/root-vegetables }
     - { category: stew-meat, unit: count, level: 4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /stuff/thing/items/stew-meat }
+    # ⭐ Ice for the icebox (storage-and-ice D21), from the Hollow Mere ice
+    # company; the sheet reads into the shut icebox, so a box running low
+    # is seen while it is shut, and the cook posts a supply job.
+    - { category: ice, unit: count, level: 1, supplier: /world/terminus/hollow-mere/idea/ice-company, exemplar: /stuff/thing/ice-block }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/hearthworks/location/smithy

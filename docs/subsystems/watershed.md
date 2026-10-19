@@ -501,8 +501,16 @@ enumerated.
 (that vocabulary is the fish tank's, closed in the kernel).
 
 - **Running water does not freeze over here**: a current at or above
-  `water.ice.stillWaterMps` (0.1) reads `running` (the thin place over
-  the current is the ice trade's).
+  `water.ice.stillWaterMps` (**0.5 m/s** since storage-and-ice — rivers
+  freeze over at currents up to about that; only fast, turbulent water
+  stays open) reads `running` (the thin place over the current is the
+  ice trade's).
+- ⭐ **Skim ice is open water**: at or under `OPEN_WATER_BELOW_M` (5 mm,
+  `WatercourseCatalogue.ts`) a cast, a bucket or a body breaks it
+  without trying. ONE threshold for the read (is the reach `frozen` —
+  can it be drawn or fished) and the sheet (is a patch open water), so
+  the two never disagree about the same ice (a 5 mm night skim once
+  refused fishing as *"frozen over"*).
 - **Stefan's law**: the sheet thickens as `h² += α²·ΔFDD` over freezing
   degree-days — its own thickness insulates the water beneath — with α
   0.027 for clear ice and 0.017 while snow lies on it; thawing
@@ -518,6 +526,82 @@ enumerated.
 Read by `analyze water` (by `physics`), by a shore's look at its water, and by
 transport's `IceCrossingExit` (logistics.md). Memoised per weather
 segment beside the flow memo.
+
+⭐ **A patch has a history** (storage-and-ice): `iceAt(ref, t, history?)`
+and the SYNC `iceAtSync` take `IceHistory {openedAtS?, bareFromS?}` —
+`openedAtS` discards every step before it and regrows from `h = 0` (a
+cut, a break, a hole: open water on its date, thinner after); `bareFromS`
+reads no snow from then until the first snow step after it (a scraping:
+it grows faster, and black). The cache key includes the history. The
+sync read exists because a floor's `bears()` is asked inside the slot
+substrate and the place hooks; once the drainage is compiled the walk is
+synchronous, so it reads fresh every time rather than off a memo a clock
+jump would leave answering yesterday's ice.
+
+### ⭐⭐ The frozen pool — the ice is the pool's FLOOR (storage-and-ice, 2026-10-17)
+
+A phase change never creates or removes space. A harvest pool is a plain
+kernel `Pool` whose `floor:` names the water pack's
+`/system/water/thing/ice-sheet` (`IceSheet` = `PersistableMixin(
+WaterSurface)`, see [ground.md](./ground.md) § The water's surface); a
+venue's sheet row `extends:` it with its `areaM2`. Whether you are on the
+ice or in the water under it is **support** (the floor's ground slot),
+never location — no `FrozenPool` class, no down exit. A second harvest
+pool is rows.
+
+- **The log: areas by history.** `log: PatchRecord[]` (persistent,
+  runtime state) — `field · scraped · marked · cut · broken · hole`, each
+  an area with an `IceHistory`; the field is the plain walk. The player's
+  words address them (`patchByWord`: `field`/`snowy`, `scraped`/`bare`,
+  `marked`/`grid`, `cut`/`channel`, `broken`, `hole`); patches made in the
+  same 6-hour segment merge.
+- **`bears(load)`** — some patch with area holds it, thicker than skim and
+  not rotting. **`giveWay`** splits a `broken` patch of `patchFootprintM2`
+  (default 1 m²) off the thinnest failing patch before the kernel drop,
+  so the hole somebody went through is open water in the log.
+  `reconcileSupport()` runs the thaw, then drops everyone the sheet no
+  longer bears.
+- **The acts** (verbs are `trade-ice`'s; the sheet is the authority and
+  refuses an actor it does not support): `scrapePatch` clears snow off up
+  to the scraper's `sweepM2` (and PLANES the white top — a scraped patch
+  reads black on new growth); `markPatch` scores a grid (`gridM` off the
+  marker; the horse rung refuses with no `DraftAnimal` on the ice), and
+  ⭐ **one grid per sheet** — a new mark returns any standing grid to the
+  ice it was scored on, so `cut marked` always means the current grid and
+  two players never hold grids nobody can tell apart; `cutPlan` is the
+  sheet's side of the kernel `cut` (crafting.md § One `cut`): a block of
+  `thickness × grid² × 917 kg` graded by the patch, or `cut hole` (0.1 m²,
+  no block). ⭐ **The block is titled before it lands** — `hew`'s rule: a
+  hand on shift for the house that works the water cuts for the house,
+  anyone else cuts their own.
+- **The per-area snow seam** — the sheet's `getSnowDepthM()` reads the
+  walk whenever it is frozen (snow lies on ice whatever `onGrade` says);
+  a scraped patch is bare until the next snow, in words in `groundPhrase`.
+- **The thaw wipes the log**: when the field reads open water the log
+  collapses to one field patch, every occupant goes in, and the sheet
+  asks the pool to sink what sinks (`Pool.sinkWhatSinks` — material
+  density against water; it never names the bed): floats stay, sinkers go
+  to the prop the pool's `bed:` names, the water pack's `pool-bottom` (a
+  shut `Sealable` holder: kept but unreachable until diving, the
+  underwater slate's). A thing dropped into open water sinks on arrival
+  by the same `Pool.sinks`/`sink`. The sheet's
+  short/long descriptions follow the field (*open water* in summer).
+- **Its own record.** A floor is a fixture with no container, so
+  `captureHostOf` cannot reach it: the sheet keeps a `(scope, poolKey)`
+  record, restored in `resolveUnderfoot`, captured after every act.
+  ⚠ No test round-trips it across a restart.
+- **The reach is bound from the pool's CITATION** on first use
+  (`currentWaterRef`, sync for a still water) — a read still pending at
+  boot would have left a sheet reachless until restart. ⚠ A shore honours
+  a `waters:` key only when the place has a `details:` feature of the
+  same name; `lint:water-citations` (ceiling 0) gates it — a pool citing
+  a water that is none of its features answered *"There is no water
+  here"* and its ice never bound.
+- **Frozen water is refused except through a hole** — ONE gate,
+  `ShoreMixin.drawAt(key, room)`: frozen and no open water in the room's
+  floor → *"The water is frozen over; you would need a hole."*; through a
+  hole → `WaterRead.underIce` (274 K — a frozen read's `draw` is null).
+  Fishing's `reachFor` asks it (fishing.md).
 
 ### Navigability is derived, never authored
 
@@ -1296,3 +1380,7 @@ invisible to acceptance 28's reveal audit — the same blind spot
   sets `on: true`, so it reports *NOT delivering — shut off*; and the Hinkley
   `StorageNode` answers no `supplyReport` (`analyze water tank` → *carries no
   water anywhere*). Neither row is in the pump build's diff.
+- **2026-10-18 (storage-and-ice, MR !378).** The still-water threshold
+  moved to 0.5 m/s; `iceAt` took a patch history; the frozen pool became
+  an ice-sheet FLOOR with a patch log, the one skim threshold
+  `OPEN_WATER_BELOW_M`, the `drawAt` gate and `lint:water-citations`.

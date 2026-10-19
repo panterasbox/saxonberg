@@ -68,11 +68,22 @@ function fileFor(templatePath: string): string | null {
 
 describe('the wood vocabulary — ten woods, ten trees, each naming the other', () => {
   it('ships exactly the ten materials', () => {
-    const rows = readdirSync(WOOD_DIR)
+    // ⭐ The ten woods are the rows that come from a TREE (a species). A
+    // wood PRODUCT shares the directory and names no one tree — sawdust,
+    // from the saw's kerf (storage-and-ice W1) — and is counted apart.
+    const all = readdirSync(WOOD_DIR)
       .filter((f) => f.endsWith('.yaml'))
-      .map((f) => f.replace(/\.yaml$/, ''))
-      .sort();
-    expect(rows).toEqual([...TEN].sort());
+      .map((f) => ({
+        name: f.replace(/\.yaml$/, ''),
+        doc: YAML.parse(readFileSync(join(WOOD_DIR, f), 'utf8')) as {
+          data: { biologicalSource: { speciesPath?: string } | null; tags?: string[] };
+        },
+      }));
+    const fromATree = all.filter((r) => r.doc.data.biologicalSource?.speciesPath).map((r) => r.name).sort();
+    expect(fromATree).toEqual([...TEN].sort());
+    const products = all.filter((r) => !r.doc.data.biologicalSource?.speciesPath);
+    expect(products.map((r) => r.name)).toEqual(['sawdust']);
+    for (const p of products) expect(p.doc.data.tags).toContain('wood');
   });
 
   it('every wood material names a species that exists, as wood', () => {

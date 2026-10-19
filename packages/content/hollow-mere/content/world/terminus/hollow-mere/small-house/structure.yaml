@@ -1,0 +1,14 @@
+# The small house — the same build at a sixth of the size, the scale
+# check (storage-and-ice D22): a small stack has more surface for its
+# mass and loses a larger share of itself through a summer.
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/hollow-mere/small-house
+  entrance: /world/terminus/hollow-mere/small-house/location/house
+  shortDescription: small icehouse
+  register: definite
+  keywords: [house, icehouse, small]
+  longDescription: >-
+    A squat little icehouse, the same thick walls as the big one around a
+    room you could stand three people in.
+  heightM: 3

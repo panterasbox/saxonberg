@@ -20,6 +20,14 @@ settings:
   - key: wetness.immersionSaturation
     value: "1"
 
+  # ⭐ The one wet law's cutoff (Material.permeability): a material that
+  # absorbs no more than this % of its dry mass takes no water into its
+  # pores — rubber, glass, oiled leather. Above it a material's pores fill
+  # in proportion to wAC / textiles.clo.absorptionReference. Read by cloth
+  # (clo), the icehouse's sawdust packing, and rubber's contact resistance.
+  - key: wetness.impermeableBelowPct
+    value: "2"
+
   - key: wetness.band.dampAt
     value: "0.15"
 

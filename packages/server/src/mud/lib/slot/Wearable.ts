@@ -172,11 +172,6 @@ const CLO_DEFAULTS = {
   REFERENCE_SURFACE_M2: 1.8,
   /** Surface share assumed when a garment claims no resolvable slots. */
   DEFAULT_COVERED_FRACTION: 0.3,
-  /**
-   * `waterAbsorptionCapacity` (% of dry mass) at which a material's
-   * loft is considered fully flooded. Wool sits at 33, linen at 20.
-   */
-  ABSORPTION_REFERENCE: 40,
 } as const;
 
 /** Validate a non-negative finite measurement, naming the setter. */
@@ -410,20 +405,10 @@ export function WearableMixin<
       const loft = form?.getFabric()?.loft ?? 0;
       const kFibre = material.getThermalConductivity().rawValue();
 
-      // How much of the loft is water rather than air.
+      // How much of the loft is water rather than air — the ONE wet law
+      // on the material (`Material.wetProperty`, storage-and-ice D9).
       const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
-      const capacity = material.getWaterAbsorptionCapacity().rawValue();
-      const soak =
-        wetness *
-        Math.min(
-          1,
-          capacity /
-            dial(
-              AppSettingKeys.textilesCloAbsorptionReference,
-              CLO_DEFAULTS.ABSORPTION_REFERENCE,
-            ),
-        );
-      const kVoid = K_AIR * (1 - soak) + K_WATER * soak;
+      const kVoid = material.wetProperty(K_AIR, K_WATER, wetness);
       const kEff = kFibre * (1 - loft) + kVoid * loft;
       if (!(kEff > 0)) return Quantity.of(0, 'clo');
 

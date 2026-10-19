@@ -254,3 +254,15 @@ owed to the sward, the cold larder and the spoilage hurdles regardless.
 
 **Priority: promoted (user, 2026-10-08)** — onto the RGO track with the
 rest, ahead of foraging, orderable freely against drilling.
+
+## From storage-and-ice (MR !378, 2026-10-18) — natural-ice contamination
+
+The cold chain's purity rung: sewage-fouled river ice and the 1890s
+typhoid scare that handed the trade to plant ice (`mould.md § Deferred`:
+*the pool's payload onto a non-food cast*). Attach: the cut stamps
+nothing of the water today; the seam is `IceSheet.cutBlock` reading the
+reach's `waterStateAt` contamination (watershed.md § Contamination) onto
+the block's `ContaminableMixin`, the way `castInto` carries a payload
+onto a cast that can hold it — the store line's state would then carry a
+load the way sawdust carries saturation. Pointer from
+[ice-trade-slate](../tails/ice-trade-slate.md).

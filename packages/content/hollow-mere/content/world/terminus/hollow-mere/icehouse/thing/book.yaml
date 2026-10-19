@@ -1,0 +1,3 @@
+extends: /trade/ice/thing/book
+data:
+  storePath: /world/terminus/hollow-mere/icehouse/thing/stack

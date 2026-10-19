@@ -64,6 +64,8 @@ import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../lib/spatial/Container';
+import { SealableMixin } from '../../../lib/spatial/Sealable';
+import IceBlock from '../../../platform/thing/IceBlock';
 import Good from '../../../lib/stuff/Good';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
@@ -123,6 +125,7 @@ const CARD = '/stuff/thing/PaymentCard';
 // shipped lounge row names.
 const BOARD = '/trade/haulage/thing/works-board';
 const BENCH = '/trade/haulage/thing/receiving-bench';
+const ICEBOX = '/world/lounge/thing/_test-icebox';
 const REWARD = 30;
 
 class Hand extends EmployedMixin(
@@ -190,6 +193,8 @@ function stock(path: string, kw: string): Stock {
  * kernel knows: hospitality's `GlassRack` ships in its own pack.
  */
 class TestRack extends ContainerMixin(Good) {}
+/** A shut cold box (the cookhouse icebox's shape: Sealable over a container). */
+class TestIcebox extends SealableMixin(ContainerMixin(Good)) {}
 
 describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and receives it", () => {
   let bar: Location;
@@ -403,6 +408,11 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         if (item) ContainmentApi.move(item as never, who as never);
         return;
       }
+      if (verb === 'open' || verb === 'close') {
+        const box = find(rest[0]!, here.getContents() as Stuff[]);
+        if (box && MixinApi.isSealable(box)) box.setOpen(verb === 'open');
+        return;
+      }
       if (verb === 'wash') {
         const item = find(rest[0]!, who.getContents() as Stuff[]) as CraftVessel | undefined;
         if (item) (item as unknown as { soiled: boolean }).soiled = false;
@@ -587,5 +597,31 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     expect(dirty.getContainer()).toBe(rack);
     expect(dirty.isSoiled()).toBe(false);
     expect(clean.getContainer()).toBe(rack);
+  });
+
+  it('⭐ a delivered block of ice goes IN the shut icebox, and the box is shut again (storage-and-ice D21 — unpackIntoCold)', async () => {
+    barBiz.removeParLine('gin');
+    const ice = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('ice');
+      m.setTags(['solid', 'ice', 'frozen']);
+      m.setDensity(Quantity.of(917, 'kg/m³'));
+      return m;
+    }, '/stuff/idea/material/bulk/ice') as unknown as Material;
+    const box = makeStuffAtPath(() => new TestIcebox(), ICEBOX);
+    box.setKeywords(['icebox', 'box']);
+    box.setPrimaryKeyword('icebox');
+    box.setOpen(false);
+    ContainmentApi.move(box as never, bar as never);
+    const block = makeStuffAtPath(() => new IceBlock(), '/stuff/thing/ice-block');
+    block.setKeywords(['block', 'ice']);
+    block.setPrimaryKeyword('block');
+    block.setMaterial(ice);
+    ContainmentApi.move(block as never, bench as never);
+    const lines = installDispatcher();
+    await restocks.act({ ...brainCtx(), config: { ...brainCtx().config, cold: ICEBOX } } as BrainContext);
+    expect(lines).toEqual(['get 1 block', 'open icebox', 'put block in icebox', 'close icebox']);
+    expect(block.getContainer()).toBe(box);
+    expect(box.isOpen()).toBe(false);
   });
 });

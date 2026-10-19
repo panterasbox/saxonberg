@@ -1,0 +1,33 @@
+# The ice counter (storage-and-ice D8, D22): one block on show, brought up
+# from the house TO ORDER on the house's own claim, and priced on the
+# house's days of supply — cheap after the harvest, dear in late summer.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: ice counter
+  keywords: [counter, ice, till]
+  register: definite
+  longDescription: |
+    A plank counter at the end of the platform, wet at one end where a block has been standing, a pair of tongs hung on a nail.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 60
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [keeper]
+  businessPath: /world/terminus/hollow-mere/idea/ice-company
+  stockLines:
+    - { itemTemplatePath: /stuff/thing/ice-block, par: 1, from: { store: /world/terminus/hollow-mere/icehouse/thing/stack }, pricing: stocking, buys: true }
+    # ⭐ The trade's tools, for anyone who means to cut (the review: the
+    # shore's props are the COMPANY's kit, one of each — a second cutter
+    # found the saw in someone else's hands and nowhere to get another).
+    # Imports: the counter restocks them.
+    - { itemTemplatePath: /trade/ice/thing/ice-saw, par: 1 }
+    - { itemTemplatePath: /trade/ice/thing/spud, par: 1 }
+    - { itemTemplatePath: /trade/ice/thing/scraper, par: 1 }
+    - { itemTemplatePath: /trade/ice/thing/hand-marker, par: 1 }
+  prices:
+    /stuff/thing/ice-block: 6
+    /trade/ice/thing/ice-saw: 20
+    /trade/ice/thing/spud: 10
+    /trade/ice/thing/scraper: 6
+    /trade/ice/thing/hand-marker: 8

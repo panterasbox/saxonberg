@@ -2405,3 +2405,22 @@ retired requirements doc:
    a bath.** A spring on somebody's land (*Jean de Florette*) lands here.
 3. ⚑ **Reversing flow / the tidal bore** (§ 4's loss). In neither the
    maritime nor the climate build's collision table.
+
+## Ice harvest as a use of the reach (storage-and-ice review, 2026-10-18)
+
+The ice trade's pond is a **commons** today: anyone on the ice may scrape,
+mark and cut, and a block is its cutter's (or the house's, for a hand on
+shift). The reviewer asked whether a company should be able to own its
+harvest. The answer belongs HERE, not in the ice trade: a harvest right is
+a **use of the reach**, like the fishery's quota (fishing § the covenant)
+and a mill's weir — *a volume per window plus a priority date*, filed
+(prior appropriation) or derived from the banks (riparian), under the
+shipped `Rights` substrate (watershed.md § Rights). The sheet would then
+ask the right whether this cutter may cut, and refuse in the right's
+words. Until the covenant, the pond limits itself: a field cut out leaves
+nowhere to stand, and the house's falling bid caps the rest — the wood's
+rule.
+
+- **A frozen lake crossed by compass** (from storage-and-ice, MR !378) —
+  a sheet wide enough to lose the shore on, crossed by bearing in snow or
+  fog; this slate's navigation over the expanse's chart (expanse.md).

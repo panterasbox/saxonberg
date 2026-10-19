@@ -1,0 +1,14 @@
+# The ice scraper — a broad board blade on a long handle that clears the
+# snow off the ice so it freezes black beneath (`scrape`).
+class: /trade/ice/thing/Scraper
+data:
+  keywords: [scraper, "ice scraper", blade]
+  shortDescription: ice scraper
+  register: indefinite
+  longDescription: >-
+    A wide wooden blade, iron-shod along its edge, on a handle long enough
+    to lean your weight into.
+  mass: 5
+  capabilities: ["scraping"]
+  sweepM2: 4
+  _materialPath: /stuff/idea/material/wood/oak

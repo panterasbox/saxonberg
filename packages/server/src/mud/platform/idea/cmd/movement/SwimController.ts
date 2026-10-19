@@ -7,10 +7,36 @@ import { LocomotionControllerBase, type LocomotionModel } from './LocomotionCont
 import type { CommandContext } from '../../../../api/command';
 import type { LocomotionMode } from '../../LocomotionMode';
 import type { TraversalGuard } from '../../../../lib/boundary/Exit';
+import type { CommandModel } from '../../../../api/command';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../../api/mixin';
+import WaterSurface from '../../../thing/WaterSurface';
 
 export default class SwimController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
     return 'swim';
+  }
+
+  /**
+   * ⭐ `swim` with no target — *swim here* (storage-and-ice D12): let go of
+   * the floor and go into the water where you are. The floor decides: one
+   * with open water drops you in, gently; one with none refuses. With a
+   * target it is the shipped crossing.
+   */
+  override async execute(model: LocomotionModel & CommandModel, context: CommandContext): Promise<void> {
+    // A way that was TYPED is the crossing even when it names no exit —
+    // `swim north` at a bank with no north said "no open water here"
+    // (the storage-and-ice drive); the crossing's refusal names the way.
+    const typed = (model.target as { raw?: string } | null | undefined)?.raw?.trim() ?? '';
+    if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
+    const giver = context.commandGiver as unknown as Stuff;
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
+    if (!(floor instanceof WaterSurface)) {
+      return this.refuse(context, 'act.deed', 'There is no open water here to swim in.', 'no-open-water');
+    }
+    const out = floor.goIn(giver);
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
   }
 
   protected override composeRejection(

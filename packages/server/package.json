@@ -105,6 +105,7 @@
     "lint:unconsumed-seams": "tsx scripts/check-unconsumed-seams.ts",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
     "lint:verb-collisions": "tsx scripts/check-verb-collisions.ts",
+    "lint:water-citations": "tsx scripts/check-water-citations.ts",
     "lint:whole-table": "tsx scripts/check-whole-table.ts",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
     "reset:db": "tsx scripts/reset-db.ts",

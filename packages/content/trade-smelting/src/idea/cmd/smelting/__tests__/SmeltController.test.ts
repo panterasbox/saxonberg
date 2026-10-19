@@ -26,7 +26,7 @@ import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import UnboundedReceptacle from '@saxonberg/server/mud/platform/thing/UnboundedReceptacle';
-import Casting from '@saxonberg/server/mud/platform/thing/Casting';
+import MetalCasting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import Mould from '@saxonberg/server/mud/platform/thing/Mould';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -70,7 +70,8 @@ const BLOOM_ROW = '/trade/smelting/thing/iron-bloom';
 const STEEL_ROW = '/trade/smelting/thing/steel-ingot';
 const PIG_ROW = '/trade/smelting/thing/cast-iron-pig';
 const SLAG_ROW = '/trade/smelting/thing/slag';
-const LUMP_ROW = '/stuff/thing/Casting';
+// ⭐ A metal pool sets as a MetalCasting (storage-and-ice D17).
+const LUMP_ROW = '/stuff/thing/metal-casting';
 const MOULD_INGOT_ROW = '/trade/smelting/thing/ingot';
 
 /**
@@ -246,7 +247,7 @@ beforeEach(async () => {
     }
     // ⭐ (dairy D19) A pool set on the hearth: the metal's own fallback.
     if (path === LUMP_ROW) {
-      const c = makeStuff(() => new Casting());
+      const c = makeStuff(() => new MetalCasting());
       stampTemplatePathForTest(c, LUMP_ROW);
       return c as never;
     }
