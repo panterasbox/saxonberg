@@ -1114,12 +1114,12 @@ run on master:
 | trade | drive (in `packages/wire/tests/`) | what to watch |
 |---|---|---|
 | smithing | `crafting.dirty.wire.test.ts -t 'the smithy'` | a bar reaches forging heat at the forge's power |
-| cooking | the cooking drive | oven loaves, the range, the copper |
-| glass | the glass drive | the furnace melt, the gather's working window |
-| distilling | the fermentation/libations still checkpoints | the still's heat-up and the cut |
+| cooking | `cooking.dirty.wire.test.ts` | oven loaves, the range, the copper |
+| glass | `glass.dirty.wire.test.ts` | the furnace melt, the gather's working window |
+| distilling | the drive whose checkpoints run a still (`grep -l still packages/wire/tests/*.ts`) | the still's heat-up and the cut |
 | rubber | `rubber.dirty.wire.test.ts -t 'the cure\|stove house'` | the oven's hold at ~430 K; the stove house |
-| cleanliness | the bath checkpoints | a heated bath |
-| taps | the sugarbush checkpoints | the maple pan |
+| cleanliness | `cleanliness.dirty.wire.test.ts` (on master since `b7b97f0c3`) — the bath checkpoints | a heated bath |
+| taps | `taps.dirty.wire.test.ts` — the sugarbush checkpoints | the maple pan |
 | fire | `fire.dirty.wire.test.ts` | the hearth, the furnace |
 
 A drive that changes is either a row to calibrate (fix it here) or a real
