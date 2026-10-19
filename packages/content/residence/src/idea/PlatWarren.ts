@@ -212,7 +212,7 @@ export default class PlatWarren extends PlatWarrenBase {
    * `branchesFrom.direction` and the way back is its inverse.
    *
    * ⚠ It used to use the branch ROAD'S KEY as the onward direction —
-   * `hinkley-court`, which is not a direction. A CartesianLocation
+   * `hinkley-court`, which is not a direction. A Location
    * refuses a non-cardinal exit into its own zone, and both reaches
    * clone the same road row, so they resolve to the same zone: the first
    * lot sold on a branch road threw as its reach was wired. Nothing

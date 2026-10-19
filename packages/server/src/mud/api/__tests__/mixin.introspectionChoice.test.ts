@@ -22,7 +22,7 @@
  *
  *   `Ingot`/`Casting` · `ServingVessel`/`Dish` ·
  *   `Receptacle`/`UnboundedReceptacle` ·
- *   `CartesianLocation`/`SingletonCartesianLocation`
+ *   `Location`/`Locale`
  *
  * All four were false, and the plan built on them proposed merging
  * classes that differ by a real mixin — one of them a PARENT and its

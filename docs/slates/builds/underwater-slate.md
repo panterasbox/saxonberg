@@ -208,7 +208,7 @@ through the shipped chain, as `_biomePath` and elevation already do.
 Twelve rooms at one depth share one band-zone and author none of it
 twice.
 
-**Coordinates are the author's choice**: `CartesianLocation` for a
+**Coordinates are the author's choice**: `Location` for a
 gridded reef; `SphericalLocation` — exists, positions by focus and
 radius, *no implicit adjacency, every exit explicit* — for a column, a
 dome, a city under one. A column's exits are `up` and `down`, derived

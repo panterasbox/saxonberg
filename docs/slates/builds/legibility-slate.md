@@ -303,7 +303,7 @@ The real risks are quieter:
 2. **The go-live no-op gets a blast radius** (see Part A's open items).
    Made worse by two lifetimes: a non-persistable singleton like the
    hospitality `bar` re-applies its props each boot, while a
-   `FurnishableRoom`'s props are *captured* into its snapshot and never
+   `PersistentLocation`'s props are *captured* into its snapshot and never
    re-read.
 
 ### The fallback, if the entry shape is too big for this build

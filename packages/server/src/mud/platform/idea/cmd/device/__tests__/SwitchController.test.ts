@@ -7,7 +7,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import SwitchController from '../SwitchController';
 import { SwitchableMixin } from '../../../../../lib/boundary/Switchable';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -40,7 +40,7 @@ class FakeAvatar extends FakeAvatarBase {
 
 class Lamp extends SwitchableMixin(VisibleMixin(Good)) {}
 
-function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -61,11 +61,11 @@ function one(stuff: unknown, raw: string): MqlOneResult {
 
 describe('SwitchController', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let lamp: Lamp;
 
   beforeEach(() => {
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

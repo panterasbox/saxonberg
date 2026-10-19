@@ -14,20 +14,20 @@
 # `props:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
-# `/lib/location/FurnishableRoom`, and NOT a CartesianLocation — the
+# `/lib/location/PersistentLocation`, and NOT a Location — the
 # minted-identity decision forces this and it took a live drive to see.
 # A lot's room is cloned per lot at its own identity path, so it cannot
 # be a member of the district's shared grid: N lots would sit on ONE
-# coordinate, and `CartesianLocation.addExit` (rightly) refuses a
+# coordinate, and `Location.addExit` (rightly) refuses a
 # non-cardinal `lot-1` exit between two rooms in the same zone. A yard is
 # reached through a gate, not by a grid step.
 #
-# FurnishableRoom is the furnishing build's venue-generic persistable
+# PersistentLocation is the furnishing build's venue-generic persistable
 # room and has everything this needs: it IS a persistence host (this
 # room's contents are the owner's), it composes Populates, and it is not
 # singleton-shaped. It authors no `air` reserve, which is exactly what
 # "outdoors" means to FireLogic.
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 data:
   shortDescription: yard behind the house
   keywords: [yard, behind, house]

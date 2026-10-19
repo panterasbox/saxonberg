@@ -477,7 +477,7 @@ because the status block grew.
 
 ### Uncertain — kept
 - `### The three sites` row 2 (*Horticulture grounds + greenhouse — rides smallholding, husbandry, thermal*) — shipped as the campus FARM: a yard, a byre, a home field, a herdbook (`trade-farming` + `trade-ranching` classes, no greenhouse, no thermal instrumentation). *The campus field site teaches the loop; the world charges for it* is now literally true for farming (Heart's Delight is the static authored farm that charges the journey — `hearts-delight/pack.yaml`). The row is kept because the greenhouse half is unbuilt; requirements should site the labs beside the farm that exists
-- `## Part 2` says a lab is *"a `FurnishableRoom` row with a `populates:` of its bench instruments"* — `populates:` was retired in favour of `props:` / `cast:` (memory: props-and-cast-designation). The decision (a row, zero classes, in the university pack) stands; the field name is stale
+- `## Part 2` says a lab is *"a `PersistentLocation` row with a `populates:` of its bench instruments"* — `populates:` was retired in favour of `props:` / `cast:` (memory: props-and-cast-designation). The decision (a row, zero classes, in the university pack) stands; the field name is stale
 - `## Part 0` counts *23 platform Disciplines (+10 arcana)* and *18 analyze/measure channels*; the metal chain added `measure strike` / `dip` and `analyze ground` stanzas since — not recounted
 - `### It is cheap` / Q15 — `serve` still lives in `trade-hospitality` (`CLAUDE.md § File Naming` lists it there); the placement question is still open
 - Q4 (the observatory as official time) — `time.md` gives the clock to `WorldClockApi` + the Timekeeping display seam; no institution owns it

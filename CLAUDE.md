@@ -166,7 +166,7 @@ behavior. Read the relevant doc before editing in its area.
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
   - [sandbox.md](./docs/subsystems/sandbox.md) — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary, the wire-body crossing + wardrobe door, the Forkable substrate, jurisdiction-targeted eval
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
-  - [furnishing.md](./docs/subsystems/furnishing.md) — owner-based persistence: `place`, the estate slice, the host skip rule, the room overlay; FurnishableRoom + the four archetypes; acreage (ground vs floors)
+  - [furnishing.md](./docs/subsystems/furnishing.md) — owner-based persistence: `place`, the estate slice, the host skip rule, the room overlay; PersistentLocation + the four archetypes; acreage (ground vs floors)
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
@@ -936,8 +936,8 @@ deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
-`platform/location/CartesianLocation`,
-`platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
+`platform/location/Location`,
+`platform/location/Locale`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`. **Four are
 real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
 (← `Creature`), which is also the one twin that changed BRANCH — a corpse

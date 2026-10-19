@@ -74,7 +74,7 @@ export interface CapacityCheck {
  * Named once rather than spelled inline at each call site: five
  * anonymous probes for one concept hid how wide the seam actually is,
  * and a second consumer has to be able to see the whole surface it is
- * being asked for. Same pattern as `FurnishableRoom`'s `WarrenView` and
+ * being asked for. Same pattern as `PersistentLocation`'s `WarrenView` and
  * `TitleController`'s `PlatWarrenShape`.
  */
 interface HoldingView {
@@ -467,7 +467,7 @@ export abstract class OuterWarren extends Warren {
    *
    * ⭐ A minted node gets its own **identity** — `<parentExtent>/<nodeId>`
    * — because its row describes a KIND of place and the instances are
-   * the places (a `MintedCartesianLocation`; nine reaches of one lane, a landing
+   * the places (a `MintedLocation`; nine reaches of one lane, a landing
    * per floor). Identity per instance is what makes them distinguishable
    * in the registry, and it is what carries them past the singleton
    * guard, which keys on identity rather than on template path (D17).

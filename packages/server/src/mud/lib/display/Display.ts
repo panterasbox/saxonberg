@@ -52,7 +52,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { WatchTarget, CardId } from '@saxonberg/types';
 import type { SaxonbergClient } from '../connection/SaxonbergClient';
 import type { ClientState } from '../connection/ClientState';
-import Location from '../stuff/Location';
+import Place from '../stuff/Place';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -401,7 +401,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       const guard = new Set<string>();
       while (cur && !guard.has(cur.stuffId)) {
         guard.add(cur.stuffId);
-        if (cur instanceof Location) return cur;
+        if (cur instanceof Place) return cur;
         cur = MixinApi.isContainable(cur) ? (cur.getContainer() as Stuff | null) : null;
       }
       return null;
@@ -409,7 +409,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * Every Stuff in `host`'s containment subtree, stopping at a nested
-     * `Location` (another room's business is its own).
+     * `Place` (another room's business is its own).
      */
     private subtreeOf(host: Stuff): Stuff[] {
       const out: Stuff[] = [];
@@ -421,7 +421,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
           if (s.isDestroyed() || seen.has(s.stuffId)) continue;
           seen.add(s.stuffId);
           out.push(s);
-          if (s instanceof Location) continue;
+          if (s instanceof Place) continue;
           walk(s);
         }
       };

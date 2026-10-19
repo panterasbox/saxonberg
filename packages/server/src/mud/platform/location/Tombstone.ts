@@ -30,7 +30,7 @@
  * second one.
  */
 
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../../api/stuff';
@@ -44,11 +44,11 @@ import type { FieldMeta } from '../../lib/mixin';
 /** The kind row every tombstone is cloned from. */
 export const TOMBSTONE_ROW = '/platform/location/tombstone';
 
-// ⭐ `PerceptibleMixin` is composed per class because `Location` does
-// NOT carry it — only `CartesianLocation` does — so a room class built
-// directly on `Location` has to remember, or it authors
+// ⭐ `PerceptibleMixin` is composed per class because `Place` does
+// NOT carry it — only `Location` does — so a room class built
+// directly on `Place` has to remember, or it authors
 // `primaryKeyword` into a void (`lint:presentation` clause (d)).
-const TombstoneBase = ExitableMixin(PerceptibleMixin(Location));
+const TombstoneBase = ExitableMixin(PerceptibleMixin(Place));
 
 export default class Tombstone extends TombstoneBase {
   static fieldMeta: FieldMeta = {

@@ -60,7 +60,7 @@ import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable'
 import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   makeStuff,
@@ -152,8 +152,8 @@ function polyProfile(): GrowthProfileData {
 }
 
 describe('the farms beat — tend, pick, sell, home', () => {
-  let grove: Location;
-  let market: Location;
+  let grove: Place;
+  let market: Place;
   let bed: GardenBed;
   let tree: Plant;
   let stall: Stock;
@@ -206,8 +206,8 @@ describe('the farms beat — tend, pick, sell, home', () => {
       return b;
     }, BANK);
 
-    grove = makeStuffAtPath(() => new Location(), GROVE);
-    market = makeStuffAtPath(() => new Location(), MARKET);
+    grove = makeStuffAtPath(() => new Place(), GROVE);
+    market = makeStuffAtPath(() => new Place(), MARKET);
 
     // The bed: THIRSTY (1 of 6 L) and holding a ripe polycarp tree.
     bed = makeStuffAtPath(() => {
@@ -319,7 +319,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
         if (text === 'sense') return;
         lines.push(text);
         const who = giver as unknown as Farmer;
-        const here = who.getContainer() as Location;
+        const here = who.getContainer() as Place;
         const [verb, ...rest] = text.split(' ');
         const reach = (kw: string): Stuff | null =>
           ((here.getContents() as Stuff[]).find(

@@ -19,16 +19,16 @@ import { PersistableApi } from '../../../api/persistable';
 import { ContainerMixin, type Container } from '../../spatial/Container';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 type MemberStuff = Stuff & Container;
 
-class HoldingRoom extends ContainerMixin(ExitableMixin(Location)) {
+class HoldingRoom extends ContainerMixin(ExitableMixin(Place)) {
   static _mixinName = 'HWTestHolding';
 }
-class CircRoom extends ContainerMixin(ExitableMixin(Location)) {
+class CircRoom extends ContainerMixin(ExitableMixin(Place)) {
   static _mixinName = 'HWTestCirc';
 }
 

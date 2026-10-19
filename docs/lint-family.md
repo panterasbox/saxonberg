@@ -389,7 +389,7 @@ dossier, 2026-09).
   `issueCash`, `mint`; a call to them from anywhere else counts). Census
   10 at W3 of the bootstrap; **0** at W6, where the gate holds.
 - **`lint:locations`** — three checks over the location vocabulary: the
-  `FurnishableRoom` roster and the minted `CartesianLocation` roster are
+  `PersistentLocation` roster and the minted `Location` roster are
   enumerated (adding a row is a design question a reviewer should see),
   and structurally, **a zone row that zones nothing fails**.
 - **`lint:schema`** — the collection ↔ schema doc ↔ record class ↔

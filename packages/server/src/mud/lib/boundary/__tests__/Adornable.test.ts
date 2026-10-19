@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Good from '../../stuff/Good';
 import { AdornmentMixin } from '../Adornment';
@@ -18,13 +18,13 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('Location is Adornable', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     expect(MixinApi.isAdornable(loc)).toBe(true);
-    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Adornable)).toBe(true);
+    expect(MixinApi.hasMixin(Location, Mixins.Adornable)).toBe(true);
   });
 
   it('addFixture / hasFixture / getFixtures round-trip and stamp adornedTo', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
 
     expect(loc.addFixture(fx)).toBe(true);
@@ -34,7 +34,7 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('addFixture is idempotent — second add returns false', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
 
     expect(loc.addFixture(fx)).toBe(true);
@@ -43,7 +43,7 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('removeFixture clears adornedTo and detaches', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
     loc.addFixture(fx);
 
@@ -53,14 +53,14 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('removeFixture returns false for an unknown fixture', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
     expect(loc.removeFixture(fx)).toBe(false);
   });
 
   it('removeFixture only clears adornedTo when it still points at us (re-attach safety)', () => {
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
 
     a.addFixture(fx);
@@ -78,7 +78,7 @@ describe('AdornableMixin (composed on Location)', () => {
 
   it('AdornableMixin.onDestruct destructs every fixture', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
     const fx1 = makeStuff(() => new TestFixture());
@@ -94,8 +94,8 @@ describe('AdornableMixin (composed on Location)', () => {
 
   it('ContainmentApi.move rejects an attached Adornment with a ContainmentError', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
-    const dest = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
+    const dest = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     zone.addLocation(dest, 0, 1, 0);
 
@@ -107,7 +107,7 @@ describe('AdornableMixin (composed on Location)', () => {
 
   it('ContainmentApi.move accepts a detached Adornment', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
     const fx = makeStuff(() => new TestFixture());
@@ -119,7 +119,7 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('Slotted retrofit: synthetic slot names assigned in order', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const a = makeStuff(() => new TestFixture());
     const b = makeStuff(() => new TestFixture());
     const c = makeStuff(() => new TestFixture());
@@ -131,7 +131,7 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('Slotted retrofit: addFixture honors explicit slotName', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const a = makeStuff(() => new TestFixture());
     loc.addFixture(a, 'seatbelt:driver');
     expect(loc.getSlotNames()).toEqual(['seatbelt:driver']);
@@ -139,7 +139,7 @@ describe('AdornableMixin (composed on Location)', () => {
   });
 
   it('Slotted retrofit: getSlotSpec returns synthetic AdornmentMixin spec', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestFixture());
     loc.addFixture(fx);
     expect(loc.getSlotSpec('fixture:1')).toEqual({

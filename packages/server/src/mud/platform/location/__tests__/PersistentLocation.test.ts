@@ -1,5 +1,5 @@
 /**
- * FurnishableRoom (wave 7, D7/D14) — the one room class every archetype is
+ * PersistentLocation (wave 7, D7/D14) — the one room class every archetype is
  * a template row over, and the posted designation it carries.
  *
  * The second test is the one that matters. D14's whole point is that the
@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import FurnishableRoom, { UNRESTRICTED } from "../FurnishableRoom";
+import PersistentLocation, { UNRESTRICTED } from "../PersistentLocation";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../../lib/mixin";
@@ -25,21 +25,21 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 
-const ROOM_PATH = "/platform/location/FurnishableRoom";
+const ROOM_PATH = "/platform/location/PersistentLocation";
 
 beforeEach(() => {
   StuffApi.clearAll();
 });
 
-describe("FurnishableRoom", () => {
+describe("PersistentLocation", () => {
   it("is a persistable Location — it has a record to carry fixtures in", () => {
-    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     expect(MixinApi.isPersistable(room)).toBe(true);
     expect(MixinApi.isContainer(room)).toBe(true);
   });
 
   it("composes every layer a room seed actually needs", () => {
-    // The regression this test exists for: FurnishableRoom first shipped as
+    // The regression this test exists for: PersistentLocation first shipped as
     // `Persistable(Reserved(Location))`, and EVERY OMISSION WAS SILENT — a
     // seed's `props:` never fired, its prose never landed, and nothing
     // could walk into it. The YAML-shape tests all passed, because a seed
@@ -55,20 +55,20 @@ describe("FurnishableRoom", () => {
       Mixins.Container,
       Mixins.Persistable,
     ]) {
-      expect(MixinApi.hasMixin(FurnishableRoom, layer)).toBe(true);
+      expect(MixinApi.hasMixin(PersistentLocation, layer)).toBe(true);
     }
   });
 
   it("declares room-level state of its own, distinct from its contents (D7)", () => {
-    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     // The seam stewardship's condition and the mirror's readings will use:
     // a room carries declared fields, not merely a container slice.
-    expect(MixinApi.getAllPersistentFields(FurnishableRoom)).toContain("postedAs");
+    expect(MixinApi.getAllPersistentFields(PersistentLocation)).toContain("postedAs");
     expect(room.getPostedAs()).toBe(UNRESTRICTED);
   });
 
   it("a posted room says so — and that is the entire behaviour (D14)", () => {
-    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     room.setPostedAs("gendered: women");
     expect(room.getPostedAs()).toBe("gendered: women");
 
@@ -107,7 +107,7 @@ describe("FurnishableRoom", () => {
       isConnected: () => true,
     } as unknown as PersistenceManager);
 
-    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     const cloned: string[] = [];
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       cloned.push(path);
@@ -143,13 +143,13 @@ describe("FurnishableRoom", () => {
     };
     walk(root);
     expect(hits.sort()).toEqual([
-      "platform/location/FurnishableRoom.ts",
-      "platform/location/__tests__/FurnishableRoom.test.ts",
+      "platform/location/PersistentLocation.ts",
+      "platform/location/__tests__/PersistentLocation.test.ts",
     ]);
   });
 
   it("an empty or missing designation falls back to unrestricted", () => {
-    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     room.setPostedAs("");
     expect(room.getPostedAs()).toBe(UNRESTRICTED);
   });

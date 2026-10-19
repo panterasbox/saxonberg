@@ -431,7 +431,7 @@ describe("MagicLogic — the cast pipeline", () => {
 
   it("an anti-magic field vetoes casting at cast time, grid-filterable", async () => {
     stubBands("competent");
-    const { default: Location } = await import("../../../../lib/stuff/Location");
+    const { default: Location } = await import("../../../../lib/stuff/Place");
     class WardRoom extends Location {}
     const warded = makeStuff(() => new WardRoom());
     warded.setSuppressesMagic({ nouns: ["fire"] });
@@ -460,7 +460,7 @@ describe("MagicLogic — the cast pipeline", () => {
    */
   it("a working refuses a target further out than its envelope reaches", async () => {
     stubBands("competent");
-    const { default: Location } = await import("../../../../lib/stuff/Location");
+    const { default: Location } = await import("../../../../lib/stuff/Place");
     class WideRoom extends Location {
       public override getLinearExtent(): number {
         return 30; // an authored open cell — the arena affords `far`

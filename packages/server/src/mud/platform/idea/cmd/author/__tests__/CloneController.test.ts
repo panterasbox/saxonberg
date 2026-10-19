@@ -8,7 +8,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CloneController from '../CloneController';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -64,7 +64,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -123,7 +123,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('reports unplaced for a non-Containable template', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -145,7 +145,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('places in --into when explicit override provided', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -180,7 +180,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('places in --here environment', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -205,7 +205,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('accepts hydration self-placement when no override given', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -246,7 +246,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('falls back to giver inventory when no override AND no self-placement', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -271,7 +271,7 @@ describe('CloneController.execute — hydrate-first', () => {
   });
 
   it('Layer 1 (--into) overrides hydration self-placement and notes the override', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -331,7 +331,7 @@ describe('CloneController.execute — hydrate-first', () => {
    */
   describe('⭐⭐ a template with no live instance', () => {
     it('asks the PATH question instead, and a titled path answers', async () => {
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const giver = makeStuff(() => new TestGiver());
       ContainmentApi.move(giver, loc);
 
@@ -367,7 +367,7 @@ describe('CloneController.execute — hydrate-first', () => {
     });
 
     it('⚠ and untitled STILL fails closed — this is not a hole', async () => {
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const giver = makeStuff(() => new TestGiver());
       ContainmentApi.move(giver, loc);
       vi.spyOn(AccessApi, 'can').mockResolvedValue(false);

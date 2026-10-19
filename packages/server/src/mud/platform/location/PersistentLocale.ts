@@ -9,9 +9,7 @@
  * (you FILL a location); either may be `Persistent`. Cartesian is the
  * default and unprefixed; spherical places say so (`SphericalLocale`,
  * `SphericalLocation`). This is the kept Locale — the cookhouse, the
- * chandlery, the lavoir, the bathhouse. Until the rename sweep lands, the
- * root is still `Location` and the plain Locale still
- * `SingletonCartesianLocation`.
+ * chandlery, the lavoir, the bathhouse.
  *
  * A place that is KEPT — a floor mucked out or let go, a flue swept or
  * not, a tub of hot water, the soap curing on the chandlery's rack — has
@@ -25,15 +23,15 @@
  * place's own runtime state; and the fixtures' runtime state — the floor's
  * soil — rides `AdornableMixin`'s fixture slice.
  *
- * ⛔ Not the kept LOCATION (today `FurnishableRoom`): that is one of many,
+ * ⛔ Not the kept LOCATION (today `PersistentLocation`): that is one of many,
  * minted per row and keyed per holding. A locale is authored once, on a
  * grid. A kept locale with substrate of its own (`Wood`, the quarries)
  * composes `PersistableMixin` outermost over its own stack the same way.
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 
 export default class PersistentLocale extends PersistableMixin(
-  SingletonCartesianLocation,
+  Locale,
 ) {}

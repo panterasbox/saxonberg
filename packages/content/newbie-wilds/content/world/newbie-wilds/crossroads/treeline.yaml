@@ -5,7 +5,7 @@
 # by walking south back to the crossroads; deliberately no inbound exit
 # wired from the hub (keeps content-area standup clean). Carries the
 # Last-Counted-Mile locality address like the hub.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: treeline past the crossroads
   keywords: [treeline, past, crossroads]

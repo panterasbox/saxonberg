@@ -21,7 +21,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Floor from '../../../platform/thing/Floor';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -76,7 +76,7 @@ const ROWS: Doc[] = [
   // ── the two rooms, authored the two ways an author would ──
   {
     path: '/test/limbo/lane',
-    class: '/platform/location/CartesianLocation',
+    class: '/platform/location/Location',
     data: {
       shortDescription: 'Limbo Lane',
       coordinates: [0, 0, 0],
@@ -85,7 +85,7 @@ const ROWS: Doc[] = [
   },
   {
     path: '/test/limbo/alley',
-    class: '/platform/location/CartesianLocation',
+    class: '/platform/location/Location',
     data: {
       shortDescription: 'Limbo Alley',
       coordinates: [9, 9, 0],
@@ -126,7 +126,7 @@ describe('a floor of an invented material', () => {
   });
 
   it('⭐ step 22 — it exists, it is made of the pink, and it is CONTRIVED', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/limbo/lane');
+    const room = await StuffApi.clone<Location>('/test/limbo/lane');
     const floor = room.getFloor() as unknown as Floor;
     expect(floor).not.toBeNull();
     expect(floor.getMaterial()!.getName()).toBe('limbo pink');
@@ -134,7 +134,7 @@ describe('a floor of an invented material', () => {
   });
 
   it('…and `look floor` answers in words rather than erroring', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/limbo/lane');
+    const room = await StuffApi.clone<Location>('/test/limbo/lane');
     const floor = room.getFloor() as unknown as Floor;
     // The derived sentence names the material and says, honestly, that the
     // fold has no word for what it is.
@@ -144,7 +144,7 @@ describe('a floor of an invented material', () => {
   });
 
   it('…and you can sit on it — `contrived` is not a refusal', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/limbo/lane');
+    const room = await StuffApi.clone<Location>('/test/limbo/lane');
     const floor = room.getFloor()!;
     expect(MixinApi.isPostured(floor)).toBe(true);
     expect(floor.getAcceptedPostures('ground:1')).toContain('sit');
@@ -159,8 +159,8 @@ describe('a floor of an invented material', () => {
   });
 
   it('⭐ step 23 — a second room with the same inputs behaves identically', async () => {
-    const lane = await StuffApi.clone<CartesianLocation>('/test/limbo/lane');
-    const alley = await StuffApi.clone<CartesianLocation>('/test/limbo/alley');
+    const lane = await StuffApi.clone<Location>('/test/limbo/lane');
+    const alley = await StuffApi.clone<Location>('/test/limbo/alley');
     const a = lane.getFloor() as unknown as Floor;
     const b = alley.getFloor() as unknown as Floor;
 

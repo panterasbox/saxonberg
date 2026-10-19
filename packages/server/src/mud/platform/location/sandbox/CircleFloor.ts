@@ -3,7 +3,7 @@
  *
  * An ordinary room in every respect a player can see, with one
  * structural difference that matters: it is **not a singleton**.
- * `CartesianLocation` composes `SingletonMixin` because a named place
+ * `Location` composes `SingletonMixin` because a named place
  * in the world is one place — but a circle floor is per-circle content,
  * and every maker's circle materializes its own. Cloning the shared
  * room template twice is exactly what a second visitor does, so the
@@ -18,14 +18,14 @@
  * a mapped location, and nothing navigates it by grid.
  */
 
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { StagedMixin } from '../../../lib/stuff/Staged';
 import type { FieldMeta } from '../../../lib/mixin';
 
 const CircleFloorBase =
   StagedMixin(
-    ExitableMixin(Location)
+    ExitableMixin(Place)
   );
 
 export default class CircleFloor extends CircleFloorBase {

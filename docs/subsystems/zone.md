@@ -280,7 +280,7 @@ fields through this scope" (every Zone ancestor).
 
 ## Cardinal-only-intra-zone exit invariant
 
-A CartesianLocation accepts cardinal exits unconditionally and
+A Location accepts cardinal exits unconditionally and
 semantic-label exits only when the destination's templatePath
 resolves to a *different* zone than the source's. The check is eager
 and path-based — `ZoneApi.resolveZoneForPath` walks template ancestry

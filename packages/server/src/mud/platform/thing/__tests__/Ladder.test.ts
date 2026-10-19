@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ladder from '../Ladder';
 import ClimbController from '../../idea/cmd/movement/ClimbController';
 import CartesianZone from '../../idea/location/CartesianZone';
-import CartesianLocation from '../../../lib/location/CartesianLocation';
+import Location from '../../../lib/location/Location';
 import Exit from '../../../lib/boundary/Exit';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
@@ -24,7 +24,7 @@ import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
 import type Interactive from '../../idea/Interactive';
-import type Location from '../../../lib/stuff/Location';
+import type Place from '../../../lib/stuff/Place';
 import { CommandApi, type CommandContext, type CommandModel, type ModelData } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { AppApi } from '../../../api/app';
@@ -40,7 +40,7 @@ class Climber extends CommandGiverMixin(NamedMixin(MobileMixin(SensorMixin(Conta
   }
 }
 
-function makeContext(avatar: Climber, location: Location): CommandContext {
+function makeContext(avatar: Climber, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
@@ -54,8 +54,8 @@ function makeContext(avatar: Climber, location: Location): CommandContext {
 }
 
 describe('Ladder — somebody can finally climb', () => {
-  let head: CartesianLocation;
-  let foot: CartesianLocation;
+  let head: Location;
+  let foot: Location;
   let climber: Climber;
   let down: Exit;
 
@@ -64,8 +64,8 @@ describe('Ladder — somebody can finally climb', () => {
     buildMode('walk');
     buildMode('climb');
     const zone = makeStuff(() => new CartesianZone());
-    head = makeStuff(() => new CartesianLocation());
-    foot = makeStuff(() => new CartesianLocation());
+    head = makeStuff(() => new Location());
+    foot = makeStuff(() => new Location());
     zone.addLocation(head, 0, 0, 0);
     zone.addLocation(foot, 0, 0, -1);
     down = makeStuff(() => new Exit({ direction: 'down', source: head, destination: foot }));

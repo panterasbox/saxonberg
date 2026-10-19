@@ -15,7 +15,7 @@ import Block, { BLOCK_PIECES, PIECE_MASS_KG } from '../thing/Block';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -32,7 +32,7 @@ import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Wor
 const GRANITE = '/stuff/idea/material/rock/granite';
 
 let actor: Stuff;
-let room: CartesianLocation;
+let room: Location;
 
 let graniteRow: Material | null = null;
 
@@ -78,7 +78,7 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   vi.restoreAllMocks();
   vi.spyOn(console, 'error').mockImplementation(() => {});
-  room = makeStuff(() => new CartesianLocation());
+  room = makeStuff(() => new Location());
   actor = makeStuff(() => new Good()) as unknown as Stuff;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
     const p = makeStuff(() => new Good());

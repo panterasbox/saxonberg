@@ -1,9 +1,16 @@
 /**
- * Location — root for spatial containers in the world.
+ * Place — the root of every place: a person, a PLACE, a thing or an idea
+ * (the place taxonomy, `docs/subsystems/location.md`). Under it a
+ * **Locale** is one particular place (you VISIT a locale) and a
+ * **Location** one of many laid out to a plan (you FILL a location).
+ * ⚠ A Place is the NOUN; a *placement* (`on`·`in`·`from`, the `Placing`
+ * mixin, the `place` verb) is the RELATION of a thing to where it sits.
  *
- * Pure structural role: a Location is any Stuff that can hold other
+ * Root for spatial containers in the world.
+ *
+ * Pure structural role: a Place is any Stuff that can hold other
  * Stuff but doesn't itself live inside something. Concrete kinds of
- * Location (`CartesianLocation`, `SphericalLocation`, …) extend this
+ * Place (`Location`, `SphericalLocation`, …) extend this
  * class and layer on Visible (for descriptions), Exitable (for
  * navigation), coordinate mixins, NamedMixin (for places with proper
  * names like "Town Square"), and whatever else they need.
@@ -39,7 +46,7 @@ import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 
 /**
- * ⭐ The Location's own say in what its floor is, without authoring a floor
+ * ⭐ The Place's own say in what its floor is, without authoring a floor
  * row. `{ material, worked, onGrade }` decorate the default floor at mint;
  * `template` names a different row to clone instead.
  *
@@ -95,13 +102,13 @@ function dialNum(key: string, fallback: number): number {
  */
 const warnedFloorFailures = new Set<string>();
 
-/** What {@link Location.floorDefaults} answers. */
+/** What {@link Place.floorDefaults} answers. */
 export interface FloorDefaults {
   worked: boolean;
   materialPath: string;
 }
 
-// A Location represents *space*, not *matter* — so it is NOT `Tangible`
+// A Place represents *space*, not *matter* — so it is NOT `Tangible`
 // (rooms have no material or mass; nothing ever read them). "Made of matter"
 // is the Tangible seam (Thing / Vessel / Agent), which is also exactly the
 // "can get wet" set — see lib/wetness/Wet.ts.
@@ -115,34 +122,34 @@ export interface FloorDefaults {
 // perception walk skips a zero-flux ambient, so an unauthored room reads
 // exactly as it did before.
 //
-// ⭐⭐ The floor is minted by `Location.onCreate` HERE, at the base, since
+// ⭐⭐ The floor is minted by `Place.onCreate` HERE, at the base, since
 // the ground build. Until 2026-10-01 the hook arrived from
 // `PostRegistrationMixin`, whose default was a **non-chaining no-op**, so a
 // second composition anywhere above the base SWALLOWED the base's hook and
-// the ten Location classes that composed it individually each had to drop
+// the ten Place classes that composed it individually each had to drop
 // it. The hook is a terminal on `Stuff` now, so there is no marker to
 // compose twice and no layer to swallow; what still matters is that every
 // `onCreate` override in the family chains `super`. Inert by default, exactly as
-// `AmbientLitMixin` above it is: a Location with nothing to do at
+// `AmbientLitMixin` above it is: a Place with nothing to do at
 // post-register does `ensureFloor()` and returns.
 //
 // ⚠ Consequence worth knowing before touching the hook: after this, the
-// ENTIRE Location tree depends on base-level `onCreate`. A hydration
+// ENTIRE Place tree depends on base-level `onCreate`. A hydration
 // build that changes how the hook is composed or invoked has one more
 // consumer, at the root of the biggest class family in the game.
 // ⭐⭐ **`Visible`, `Perceptible` and `Detailed` joined the root in the
 // base-class narrowing (2026-09-30), and the finding was already
 // written down three times.** `Offstage.ts:20-24`, `Bar.ts:40-44` and
 // `Lounge.ts:33-37` each carry the same sentence — *"`PerceptibleMixin`
-// … is composed per class because `Location` does NOT carry it, so
-// every room class built directly on `Location` has to remember"* —
+// … is composed per class because `Place` does NOT carry it, so
+// every room class built directly on `Place` has to remember"* —
 // with the note that those rows *"were authoring `primaryKeyword` into
 // a void until 2026-09-11"*.
 //
 // ⚠⚠ Two classes did not remember. `Corridor` and `DormRoom` compose
 // `Visible` and `Detailed` and **not** `Perceptible`, and their rows
 // author `keywords:` that nothing reads; the Hush gallery
-// (`SingletonSphericalLocation`) authors `primaryKeyword`, `keywords`
+// (`SphericalLocale`) authors `primaryKeyword`, `keywords`
 // AND `details` into the same void. A mixin every composer has to
 // remember is a mixin on the wrong host — that is the project's rule,
 // and here the rule and the recurrence agree.
@@ -158,7 +165,7 @@ export interface FloorDefaults {
 // three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
-const LocationBase = AddressableMixin(
+const PlaceBase = AddressableMixin(
   AmbientLitMixin(
     AtmosphericMixin(
       AdornableMixin(
@@ -172,12 +179,12 @@ const LocationBase = AddressableMixin(
   ),
 );
 
-export default class Location extends LocationBase {
+export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
 // `world/practicum/warded-cell.yaml:18` authors it and the field's own
 // docstring tells authors to ("Authored in room seeds"), so the Studio
 // was hiding a key the documentation advertises. The same inversion as
-// `CartesianLocation.coords`, in the same family, found in one pass.
+// `Location.coords`, in the same family, found in one pass.
 // ⚠ Kept OUTSIDE the object literal — see that file for why.
   static fieldMeta: FieldMeta = {
     suppressesMagic: { persistent: true, authorable: true },
@@ -233,20 +240,20 @@ export default class Location extends LocationBase {
    * Yes. See {@link Stuff.isAgent} for why the four branch predicates
    * are methods on `Stuff` rather than `instanceof` checks.
    */
-  public override isLocation(): boolean {
+  public override isPlace(): boolean {
     return true;
   }
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
   // above) so Vessels — which also have meaningful interior volume —
-  // pick them up too. Concrete Location subclasses (`CartesianLocation`,
+  // pick them up too. Concrete Place subclasses (`Location`,
   // `SphericalLocation`) override per their topology.
 
   /**
    * Effective light-receiving floor area in m², used by
    * `VisionModality.lightAt` to convert accumulated lumens to lux.
    * The base is topology-agnostic and returns 1.0 (m²); concrete
-   * Location subclasses (`CartesianLocation`, `SphericalLocation`)
+   * Place subclasses (`Location`, `SphericalLocation`)
    * override per their cell geometry. Larger rooms read dimmer for
    * the same total flux.
    */
@@ -264,7 +271,7 @@ export default class Location extends LocationBase {
    *
    * Topology-agnostic base: `null` — "this room does not report a
    * size." Concrete subclasses override per their geometry
-   * (`CartesianLocation` from its cell, `SphericalLocation` from its
+   * (`Location` from its cell, `SphericalLocation` from its
    * diameter). Consumers must treat `null` conservatively rather than
    * assuming a default, because an unmeasured room cannot promise the
    * distance a ranged weapon needs.
@@ -326,14 +333,14 @@ export default class Location extends LocationBase {
   }
 
   /**
-   * ⭐⭐ **Every Location gets a floor here**, at the one lifecycle point
+   * ⭐⭐ **Every Place gets a floor here**, at the one lifecycle point
    * every clone AND every `create` passes through — which is why the hook
    * moved to the base rather than being added to a seventh subclass. A
    * warren-minted Lounge room gets its floor from the same line an authored
    * room does, because `LoungeWarren.createMember` goes through
    * `StuffApi.clone` like everything else.
    *
-   * @hook Chained from `Stuff.onCreate`. A Location subclass that
+   * @hook Chained from `Stuff.onCreate`. A Place subclass that
    *   overrides this **must** call `await super.onCreate(context)` —
    *   forgetting it means the room silently has no floor. The roster test
    *   is the guard.
@@ -400,7 +407,7 @@ export default class Location extends LocationBase {
     } catch (err) {
       // One warning per distinct cause, not per room: a world whose store
       // lacks the default-floor row produces the same failure for every
-      // Location in it, and twenty identical lines hide the next real
+      // Place in it, and twenty identical lines hide the next real
       // warning rather than adding information. The first line names a
       // room so the cause is diagnosable.
       const cause = err instanceof Error ? err.message : String(err);
@@ -416,7 +423,7 @@ export default class Location extends LocationBase {
       // and `MaturationProfile` precedent: an engine-level condition with
       // no audience goes to stderr.
       console.warn(
-        `Location.ensureFloor: no floor for ` +
+        `Place.ensureFloor: no floor for ` +
           `${this.getTemplatePath() ?? this.stuffId} — ${cause} ` +
           `(further rooms failing the same way are silent)`,
       );
@@ -440,7 +447,7 @@ export default class Location extends LocationBase {
    * `floorDefaults()` returning `onGrade` too; this is the same decision
    * with the duplication removed.
    *
-   * @hook Override on a Location subclass that knows its own kind — a
+   * @hook Override on a Place subclass that knows its own kind — a
    *   ship's deck, a glasshouse, a cellar. None in this build needs to:
    *   the mine, the field, the wood and the cellar all reach rung 3 through
    *   their on-grade derivation, and the holodeck, the dorm and the Lounge
@@ -486,4 +493,4 @@ export default class Location extends LocationBase {
 // self-registration — see `Stuff._registerTopLevelBranch` for why the
 // hierarchy's root invariant must populate at branch-module load, and
 // `scripts/check-module-scope.ts`'s allowlist).
-Stuff._registerTopLevelBranch(Location);
+Stuff._registerTopLevelBranch(Place);

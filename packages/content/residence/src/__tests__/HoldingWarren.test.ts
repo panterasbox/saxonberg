@@ -19,7 +19,7 @@ import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
+import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -134,17 +134,17 @@ function seedDomain(): void {
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
   });
-  add(ROOM_A, '/platform/location/FurnishableRoom', {
+  add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
     props: ['/world/prog-test/coatrack'],
   });
-  add(ROOM_B, '/platform/location/FurnishableRoom', {
+  add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
-  add(STREET, '/platform/location/FurnishableRoom', {
+  add(STREET, '/platform/location/PersistentLocation', {
     shortDescription: 'the lane',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
@@ -269,7 +269,7 @@ describe('the residential programme (D16)', () => {
     // The entry is the hall (floorplan `entry: true`), a keyed instance
     // of the REAL row — templatePath resolves to the row (D17), the
     // instance identity is the (scope, key) pair.
-    expect(entry).toBeInstanceOf(FurnishableRoom);
+    expect(entry).toBeInstanceOf(PersistentLocation);
     expect(entry.getTemplatePath()).toBe(ROOM_A);
     expect(
       (entry as unknown as { getPersistenceKey(): string }).getPersistenceKey(),

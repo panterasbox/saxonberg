@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import { Boundary } from '../Boundary';
 import { BoundaryAnchor } from '../BoundaryAnchor';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
@@ -37,8 +37,8 @@ describe('BoundaryAnchor', () => {
 
   it('getOtherHost walks through the boundary to the opposite side', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
     zone.addLocation(roomA, 0, 0, 0);
     zone.addLocation(roomB, 0, 1, 0);
 
@@ -57,9 +57,9 @@ describe('BoundaryAnchor', () => {
 
   it('an attached anchor cannot be moved into a Container via ContainmentApi', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
-    const trash = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
+    const trash = makeStuff(() => new Location());
     zone.addLocation(roomA, 0, 0, 0);
     zone.addLocation(roomB, 0, 1, 0);
     zone.addLocation(trash, 1, 0, 0);
@@ -77,8 +77,8 @@ describe('BoundaryAnchor', () => {
 
   it('onDestruct clears the boundary slot for this anchor', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
     zone.addLocation(roomA, 0, 0, 0);
     zone.addLocation(roomB, 0, 1, 0);
 

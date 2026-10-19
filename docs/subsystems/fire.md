@@ -112,7 +112,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   an authored `'air'` `Reserve`, and that was the single worst thing in
   this subsystem: ⛔ **four of the seven rows that authored one could not
   hold the key at all** (no `ReservedMixin` anywhere in a
-  `SingletonCartesianLocation` chain), so the vintner cellar, the brewing
+  `Locale` chain), so the vintner cellar, the brewing
   floor, the cold store and the Crowsfoot floor each *meant* to displace
   their own air and silently did not — and the one room that worked did so
   because somebody remembered the line. A scope's medium now carries

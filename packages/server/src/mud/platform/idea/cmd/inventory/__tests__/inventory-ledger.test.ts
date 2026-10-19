@@ -18,7 +18,7 @@ import type { Mml } from '../../../../../api/mml';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -42,7 +42,7 @@ let visible: VisibleContents;
 function ctx(verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: me as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: verb, executionId: 't', commandId: 't', verb,
     command: CommandDefinition.fromYaml(`verbs: [${verb}]\ncontroller: X\ndescription: d\n`, '<t>'),
   });

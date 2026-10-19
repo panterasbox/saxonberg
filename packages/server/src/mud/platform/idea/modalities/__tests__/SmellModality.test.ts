@@ -5,7 +5,7 @@ import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Smell } from '../../../../lib/perception/Smell';
 import { SmellSourceMixin } from '../../../../lib/perception/SmellSource';
 import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import Door from '../../../thing/Door';
 import Good from '../../../../lib/stuff/Good';
@@ -24,7 +24,7 @@ const smellModality = (): SmellModality =>
   PerceptionApi.modalityByName('smell') as SmellModality;
 
 class Candle extends SmellSourceMixin(Good) {}
-class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
+class AtmosphericLocation extends AtmosphericMixin(Location) {}
 
 describe('SmellModality.signalAt — propagation core', () => {
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('empty room with no emitters returns null', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
     expect(smellModality().signalAt(loc)).toBeNull();
@@ -51,7 +51,7 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('a candle in a room is perceived at that scope', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
     candle.setEmittedConcentration(50);
@@ -68,8 +68,8 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('odor leaks through open doorless exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     await a.addBidirectionalExit(b, 'north'); // explicit doorless doorway
@@ -85,8 +85,8 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('a closed door between rooms blocks the leak', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     const candle = makeStuff(() => new Candle());
@@ -122,10 +122,10 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('MAX_HOPS truncates propagation past depth 2', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
-    const c = makeStuff(() => new CartesianLocation());
-    const d = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
+    const c = makeStuff(() => new Location());
+    const d = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 0, 2, 0);
@@ -142,7 +142,7 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('multi-identity merging: dominant by total concentration', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
     const garlic = makeStuff(() => new Candle());
@@ -163,7 +163,7 @@ describe('SmellModality.signalAt — propagation core', () => {
   it('source cap respected when many emitters contribute', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
     for (let i = 0; i < 5; i++) {

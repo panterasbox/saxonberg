@@ -4,7 +4,7 @@
 # roads. This is that slot, met — and the pass above it is where it
 # stops being met, which is what the `corridor` archetype's report is
 # for.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: last water
   keywords: [water, last]

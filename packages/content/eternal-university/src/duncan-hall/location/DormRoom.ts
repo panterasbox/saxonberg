@@ -25,27 +25,27 @@
  * with no new field work.
  */
 
-import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
+import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-// ⭐⭐ **A `DormRoom` IS a `FurnishableRoom`, and that class's own
+// ⭐⭐ **A `DormRoom` IS a `PersistentLocation`, and that class's own
 // docstring says so** — *"That the shipped dorm room already had
 // exactly this stack is the reason to mirror it rather than re-derive:
 // `DormRoom` IS a room archetype (a bedsit — bed, desk, footlocker,
 // tap), and it has been carrying the correct composition all along."*
-// `FurnishableRoom` was DERIVED from this class and then the two
+// `PersistentLocation` was DERIVED from this class and then the two
 // drifted by one mixin.
 //
 // ⚠ The population witness below was duplicated verbatim in both
 // files, and this class had not gained the `Perceptible` that
-// `FurnishableRoom` added when `lint:presentation` found ten rows
+// `PersistentLocation` added when `lint:presentation` found ten rows
 // authoring keywords into a void — so `dormroom.yaml`'s
 // `keywords: [room, dorm]` was dead until the narrowing put the
 // description mixins on the `Location` root (L0).
 //
 // Extending it keeps `SCOPE`/`ADDRESS` (which are this locality's) and
 // gains `Reserved` + `postedAs`, which a bedsit wants anyway.
-export default class DormRoom extends FurnishableRoom {
+export default class DormRoom extends PersistentLocation {
   /** The shared clone-namespace path — the D1 record `scope`. */
   static readonly SCOPE = '/world/terminus/eternal/duncan-hall/location/dormroom';
 

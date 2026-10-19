@@ -553,7 +553,7 @@ vetoes eviction today; the slate below is where the veto learns to
 lapse). And there is **no fault**: nothing in the game can trigger a
 load by touching a good, and no room asks for what is recorded as
 standing in it. ⚠ That last one was tried and reversed in the same
-build — `reclaimOwnedGoods` on every `CartesianLocation.onCreate`,
+build — `reclaimOwnedGoods` on every `Location.onCreate`,
 439 indexed point queries at boot — and it is the room scan wearing a
 different face. The day a fault is wanted ("a neighbour walks onto the
 lane, so load the lane's cats") the design has become a pager, and this

@@ -340,7 +340,7 @@ scheme 3   Warren.spawnMember  nothing
                               ← lounge satellites; ephemeral by design
 ```
 
-`CartesianLocation`'s own doc is honest about it: *"Use this for a row that
+`Location`'s own doc is honest about it: *"Use this for a row that
 describes a **kind** of place minted many times… Each instance carries its
 own coordinates and **its own minted identity (`asIdentityPath`, D17)** —
 which is also what makes them distinguishable in the registry."*

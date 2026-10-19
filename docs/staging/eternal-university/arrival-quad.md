@@ -60,7 +60,7 @@ public-street / civic / device systems). Two rules:
 > wording in this section was the stale frame and is replaced by the below.
 
 - **Room:** `/world/terminus/eternal/university-avenue/crossing` — a
-  `CartesianLocation` in the `university-avenue` `CartesianZone` (renamed
+  `Location` in the `university-avenue` `CartesianZone` (renamed
   from `plaza`; `primaryKeyword: crossing`, `shortDescription` stays
   `University Avenue`).
 - **`south`** → `/world/terminus/terminal/location/arrival-gate` — **BUILT**. The

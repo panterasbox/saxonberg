@@ -1,8 +1,9 @@
 /**
- * SingletonSphericalLocation — a {@link SphericalLocation} that opts
+ * SphericalLocale — you VISIT a locale (one particular place); you FILL a
+ * location. A {@link SphericalLocation} that opts
  * into **one live instance per row.**
  *
- * The spherical half of the restriction; `SingletonCartesianLocation`
+ * The spherical half of the restriction; `Locale`
  * is the other, and carries the full rationale. In short: the mixin
  * subtracts, so the permissive class keeps the unmarked name and this
  * is what a row opts into when one row IS one place — the guard then
@@ -12,6 +13,6 @@
 import SphericalLocation from './SphericalLocation';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 
-export default class SingletonSphericalLocation extends SingletonMixin(
+export default class SphericalLocale extends SingletonMixin(
   SphericalLocation,
 ) {}

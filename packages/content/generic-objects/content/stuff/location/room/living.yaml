@@ -24,7 +24,7 @@
 # is not worth modelling, the television because its function is ALREADY
 # modelled. One rule — a fixture becomes an object only when something
 # reads it.
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

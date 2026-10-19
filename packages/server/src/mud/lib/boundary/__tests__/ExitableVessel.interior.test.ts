@@ -20,7 +20,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import { Vessel } from '../../stuff/Vessel';
 import { SealableMixin } from '../../spatial/Sealable';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Biome from '../../biome/Biome';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
@@ -40,9 +40,9 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 class SealedVessel extends SealableMixin(ExitableVessel) {}
 
 /** Somewhere to park one, under the open sky. */
-async function street(): Promise<CartesianLocation> {
+async function street(): Promise<Location> {
   const zone = makeStuff(() => new CartesianZone());
-  const room = makeStuff(() => new CartesianLocation());
+  const room = makeStuff(() => new Location());
   zone.addLocation(room, 0, 0, 0);
   room.setBiome(
     makeStuffAtPath(

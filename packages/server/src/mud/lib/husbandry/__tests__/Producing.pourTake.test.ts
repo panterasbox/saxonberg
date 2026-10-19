@@ -6,7 +6,7 @@
  */
 import '../../../../test-bootstrap';
 import { ContainmentApi } from '../../../api/containment';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Floor from '../../../platform/thing/Floor';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducingMixin } from '../Producing';
@@ -185,7 +185,7 @@ describe('the hand on the milk', () => {
 
   it('⭐ (cleanliness D6) the take soils the taker by the byre — AFTER the milk is drawn', async () => {
     const c = cow();
-    const byre = makeStuff(() => new CartesianLocation());
+    const byre = makeStuff(() => new Location());
     ContainmentApi.move(c as never, byre as never);
     const floor = makeStuff(() => new Floor());
     vi.spyOn(byre, 'getFloor').mockReturnValue(floor as never);

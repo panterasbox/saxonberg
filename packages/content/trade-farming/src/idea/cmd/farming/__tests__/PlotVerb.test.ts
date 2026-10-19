@@ -30,7 +30,7 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -52,7 +52,7 @@ const LOT = '/world/plot-test/lots/lot-1';
 const FIELD_ROW = '/trade/farming/location/field';
 
 /** A yard: a coordinate room that belongs to a warren. */
-class TestYard extends WarrenMemberMixin(CartesianLocation) {}
+class TestYard extends WarrenMemberMixin(Location) {}
 
 /**
  * ⚠ The duck-typed holding. It answers `admitPlot` and `getMembers` and

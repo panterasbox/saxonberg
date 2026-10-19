@@ -1,16 +1,16 @@
 /**
- * Location tests — covers the structural-container role only.
+ * Place tests — covers the structural-container role only.
  *
  * Visible / Named / Exitable behaviors live on concrete subclasses
- * (`CartesianLocation`, `SphericalLocation`, …) and are exercised by
- * those subclasses' tests; bare Location is just `ContainerMixin(Idea)`.
+ * (`Location`, `SphericalLocation`, …) and are exercised by
+ * those subclasses' tests; bare Place is just `ContainerMixin(Idea)`.
  */
 
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import Location from '../Location';
+import Place from '../Place';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -19,11 +19,11 @@ import { Idea } from "../Idea";
 
 class TestItem extends ContainableMixin(Idea) {}
 
-describe('Location', () => {
-  let location: Location;
+describe('Place', () => {
+  let location: Place;
 
   beforeEach(() => {
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
   });
 
   describe('Construction', () => {
@@ -85,7 +85,7 @@ describe('⭐⭐ the description mixins are on the ROOT', () => {
    * Until the base-class narrowing (2026-09-30) `Visible`, `Perceptible`
    * and `Detailed` were composed per room class, and three docstrings
    * said what that cost — `Offstage.ts`, `Bar.ts` and `Lounge.ts` each
-   * carry the sentence *"every room class built directly on `Location`
+   * carry the sentence *"every room class built directly on `Place`
    * has to remember"*, with the note that those rows *"were authoring
    * `primaryKeyword` into a void until 2026-09-11"*.
    *
@@ -95,10 +95,10 @@ describe('⭐⭐ the description mixins are on the ROOT', () => {
    * `keywords` AND `details` going nowhere. ⭐ A mixin every composer
    * has to remember is a mixin on the wrong host.
    */
-  it('a bare Location is visible, addressable by keyword, and detailed', () => {
-    expect(MixinApi.hasMixin(Location, Mixins.Visible)).toBe(true);
-    expect(MixinApi.hasMixin(Location, Mixins.Perceptible)).toBe(true);
-    expect(MixinApi.hasMixin(Location, Mixins.Detailed)).toBe(true);
+  it('a bare Place is visible, addressable by keyword, and detailed', () => {
+    expect(MixinApi.hasMixin(Place, Mixins.Visible)).toBe(true);
+    expect(MixinApi.hasMixin(Place, Mixins.Perceptible)).toBe(true);
+    expect(MixinApi.hasMixin(Place, Mixins.Detailed)).toBe(true);
   });
 
   it('⭐ and still everything a place was: contained, lit, aired, addressed', () => {
@@ -109,7 +109,7 @@ describe('⭐⭐ the description mixins are on the ROOT', () => {
       Mixins.AmbientLit,
       Mixins.Addressable,
     ]) {
-      expect(MixinApi.hasMixin(Location, m), `Location should ${m}`).toBe(true);
+      expect(MixinApi.hasMixin(Place, m), `Place should ${m}`).toBe(true);
     }
   });
 
@@ -118,7 +118,7 @@ describe('⭐⭐ the description mixins are on the ROOT', () => {
     // `Exitable`/`Staged`/coordinates, with the reason in its own
     // docstring. The root ends at *a place you can see, name and point
     // at*; being a place you can walk BETWEEN is what `Exitable` adds.
-    // This is the Location branch's `Corpse`.
-    expect(MixinApi.hasMixin(Location, Mixins.Exitable)).toBe(false);
+    // This is the Place branch's `Corpse`.
+    expect(MixinApi.hasMixin(Place, Mixins.Exitable)).toBe(false);
   });
 });

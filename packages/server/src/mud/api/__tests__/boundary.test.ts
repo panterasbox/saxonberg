@@ -17,7 +17,7 @@ import { BoundaryLogic } from '../../platform/idea/api/BoundaryLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import {
   makeStuff,
@@ -35,8 +35,8 @@ describe('BoundaryApi.create', () => {
 
   it('constructs via factory through StuffApi.create and installs on both hosts', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -57,8 +57,8 @@ describe('BoundaryApi.create', () => {
 
   it('returns the boundary for fluent chaining', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -75,7 +75,7 @@ describe('BoundaryApi.create', () => {
 
   it('rejects hostA === hostB after the factory has already run', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
 
     await expect(
@@ -89,8 +89,8 @@ describe('BoundaryApi.create', () => {
 
   it('composes with destruct to fully tear down a created boundary', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -119,8 +119,8 @@ describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-l
 
   it('preserves anchor side tags (A/B) deterministically', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -136,8 +136,8 @@ describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-l
 
   it('returns the same boundary instance the caller supplied', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 

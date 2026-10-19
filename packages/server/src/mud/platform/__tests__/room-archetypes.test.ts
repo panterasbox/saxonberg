@@ -46,10 +46,10 @@ const read = (name: string): Seed =>
 const ARCHETYPES = ["bedroom", "kitchen", "bathroom", "living"] as const;
 
 describe("the four archetypes are template rows over ONE class (D6)", () => {
-  it("all four exist and share `/lib/location/FurnishableRoom`", () => {
+  it("all four exist and share `/lib/location/PersistentLocation`", () => {
     for (const name of ARCHETYPES) {
       const seed = read(name);
-      expect(seed.class).toBe("/platform/location/FurnishableRoom");
+      expect(seed.class).toBe("/platform/location/PersistentLocation");
     }
   });
 
@@ -119,11 +119,11 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/platform/thing/Tub",
       "/platform/thing/Copper",
       // Shipped classes the cleanliness build's fixtures name: the line
-      // the washing dries on is a `DryingRack` (B9), the midden a
-      // `Receptacle` heaps are disposed into, the washboard a `Tool` a
-      // scrub reaches for.
+      // the washing dries on is a `DryingRack` (B9), the midden a `Midden`
+      // heaps and rotten food are disposed onto (it turns them to compost),
+      // the washboard a `Tool` a scrub reaches for.
       "/platform/thing/DryingRack",
-      "/platform/thing/Receptacle",
+      "/platform/thing/Midden",
       "/platform/thing/Tool",
     ]);
     for (const file of readdirSync(join(SEEDS, "stuff/thing/fixture"))) {

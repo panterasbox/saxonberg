@@ -197,7 +197,7 @@ two identities either side of its first capture.
 
 ⚠⚠ **Only a host that persists ITSELF overlays** — the four location
 classes that compose `Persistable`. A public room never asks. The pets
-build tried putting the overlay on every `CartesianLocation.onCreate`
+build tried putting the overlay on every `Location.onCreate`
 (hundreds of indexed point queries at boot) and reversed it the next day:
 a room doing work to find things that are not its own state is the room
 scan wearing another face. What a good in a public room needs is the
@@ -335,7 +335,7 @@ exactly as it did before the fields existed.
 
 ## The room class and its archetypes
 
-`lib/location/FurnishableRoom` is the **one class** every archetype is a
+`lib/location/PersistentLocation` is the **one class** every archetype is a
 template row over. Its composition is **`DormRoom`'s stack minus
 `WarrenMember`**:
 
@@ -352,10 +352,10 @@ is mirrored rather than re-derived.
 
 > **⭐ It is also the class OUTDOOR titled ground uses.** The Hinkley
 > Hills build minted a near-twin for a lot's yard
-> (`TitledRoom = PersistableMixin(CartesianLocation)`) and then retired
+> (`TitledRoom = PersistableMixin(Location)`) and then retired
 > it for this one — see [smallholding.md](./smallholding.md). The
 > deciding constraint was that a room minted **per lot** cannot be a grid
-> member (N lots, one coordinate), and losing `CartesianLocation` also
+> member (N lots, one coordinate), and losing `Location` also
 > lost the `cellSize²` light denominator that was dividing a yard's open
 > sky down to 16.7 lux. So "venue-generic" is stronger than it reads: not
 > just bank-bathroom-and-bar-kitchen, but *any* room that is one instance
@@ -414,7 +414,7 @@ room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
 barbell); its `pace` slot waits for the first treadmill. See
 [exertion.md](./exertion.md).
 
-**Three trade bundles** joined them in libations, each a `FurnishableRoom`
+**Three trade bundles** joined them in libations, each a `PersistentLocation`
 row with a `props:` of the trade's own fixtures: hospitality's
 **`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,

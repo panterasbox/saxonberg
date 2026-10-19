@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { StuffApi } from '../../../api/stuff';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Door from '../../../platform/thing/Door';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
@@ -24,18 +24,18 @@ describe('ExitableVessel', () => {
   });
 
   let zone: CartesianZone;
-  let park: CartesianLocation;
-  let park2: CartesianLocation;
+  let park: Location;
+  let park2: Location;
   let wardrobe: ExitableVessel;
 
   beforeEach(async () => {
     zone = makeStuff(() => new CartesianZone());
 
-    park = makeStuff(() => new CartesianLocation());
+    park = makeStuff(() => new Location());
     park.setShortDescription('Park');
     zone.addLocation(park, 0, 0, 0);
 
-    park2 = makeStuff(() => new CartesianLocation());
+    park2 = makeStuff(() => new Location());
     park2.setShortDescription('Park 2');
     zone.addLocation(park2, 1, 0, 0);
 
@@ -152,7 +152,7 @@ describe('ExitableVessel', () => {
 
     it('cannot move between Exitables in different zones', async () => {
       const otherZone = makeStuff(() => new CartesianZone());
-      const otherPark = makeStuff(() => new CartesianLocation());
+      const otherPark = makeStuff(() => new Location());
       otherZone.addLocation(otherPark, 0, 0, 0);
 
       Stuff._stampZone(wardrobe, zone);

@@ -1,23 +1,23 @@
 /**
- * AddressableMixin on Location — sparse declaration + predicate.
+ * AddressableMixin on Place — sparse declaration + predicate.
  *
  * The mixin is intentionally thin: it stores a declared address string
  * and nothing more (resolution to a covering Locality is AddressApi's
  * job). These tests pin the sparse/non-breaking contract — an
- * un-authored Location declares no address and reads identically to
+ * un-authored Place declares no address and reads identically to
  * before the mixin existed — plus the `isAddressable` narrowing.
  */
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
-describe('AddressableMixin on Location', () => {
+describe('AddressableMixin on Place', () => {
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -27,7 +27,7 @@ describe('AddressableMixin on Location', () => {
     expect(room.getAddress()).toBeNull();
   });
 
-  it('every Location is Addressable (predicate narrows)', () => {
+  it('every Place is Addressable (predicate narrows)', () => {
     const room = makeStuff(() => new TestLocation());
     expect(MixinApi.isAddressable(room)).toBe(true);
   });

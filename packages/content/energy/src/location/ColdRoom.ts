@@ -13,18 +13,18 @@
  * Containable; `GridPoweredMixin.resolveRoomPath` returns its own path).
  *
  * The forestry `Wood` precedent: a pack class extending the platform's
- * `SingletonCartesianLocation`. See [docs/subsystems/energy.md],
+ * `Locale`. See [docs/subsystems/energy.md],
  * [docs/subsystems/thermal.md § The active twin].
  */
 
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { ClimateControlMixin } from '@saxonberg/server/mud/lib/thermal/ClimateControl';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { GridPoweredMixin } from '../lib/GridPowered';
 
 const ColdRoomBase = ClimateControlMixin(
-  GridPoweredMixin(SingletonCartesianLocation),
+  GridPoweredMixin(Locale),
 );
 
 export default class ColdRoom extends ColdRoomBase {

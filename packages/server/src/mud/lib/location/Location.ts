@@ -1,8 +1,10 @@
 /**
- * CartesianLocation — a Location that lives at `[x,y,z]` inside a
- * `CartesianZone`, with a full Exitable map.
+ * Location — you FILL a location (one of many laid out to a plan); you
+ * VISIT a locale. This is the grid geometry both share: a Place that
+ * lives at `[x,y,z]` inside a `CartesianZone`, with a full Exitable map.
+ * {@link Locale} adds the one-per-row restriction on top.
  *
- * Composition: `ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))`
+ * Composition: `ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Place)))`
  *
  * Locations are positioned by integer grid coordinates in a zone's grid.
  * Exits are authored **explicitly** on every room — the zone does not derive
@@ -11,15 +13,15 @@
  * light-scale) and the cardinal-only-intra-zone exit rule below, not exit
  * synthesis. Flat zones leave `z = 0`; vertical zones use `up`/`down`.
  *
- * Direction discipline: CartesianLocations only accept exits in one of the
+ * Direction discipline: Locations only accept exits in one of the
  * 10 canonical cardinal directions (`n`/`s`/`e`/`w`/diagonals/`up`/`down`).
  * Labeled exits (`'portal'`, `'office'`) belong on SphericalLocation or
  * ExitableVessel — those spaces have no grid to be nonsensical against.
- * This keeps reciprocity sensible: every exit on a CartesianLocation has a
+ * This keeps reciprocity sensible: every exit on a Location has a
  * known inverse.
  */
 
-import Location from '../stuff/Location';
+import Place from '../stuff/Place';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { StagedMixin } from '../stuff/Staged';
@@ -39,7 +41,7 @@ import type { FieldMeta } from '../mixin';
 // how an eager exit resolves its destination. A class WITH the mixin can
 // back ONLY singleton templates — `clone()` throws after the first. The
 // mixin subtracts, so the permissive class is the default and
-// {@link SingletonCartesianLocation} is the one that opts into the
+// {@link Locale} is the one that opts into the
 // restriction.
 //
 // The restriction is worth opting into wherever one row IS one place: it
@@ -53,16 +55,16 @@ import type { FieldMeta } from '../mixin';
 // and a ploughed field a lighting field and a `onCreate` hook to
 // answer for. FIVE rows in the realm declare the service. It lives on
 // `platform/location/Street` now, which is what a town lights.
-const CartesianLocationBase =
+const LocationBase =
   StagedMixin(
     
       
-        ExitableMixin(CartesianCoordinatesMixin(Location))
+        ExitableMixin(CartesianCoordinatesMixin(Place))
       
     
   );
 
-export default class CartesianLocation extends CartesianLocationBase {
+export default class Location extends LocationBase {
 // ⭐ `coords` gained `authorable` in the base-class narrowing
 // (2026-09-30) — the other half of an inverted pair. This is the shape
 // 117 rows already use and the one that registers a room with its zone
@@ -109,7 +111,7 @@ export default class CartesianLocation extends CartesianLocationBase {
     }
     // Non-cardinal direction — must be cross-zone. Path-based check:
     // ZoneApi.resolveZoneForPath walks template ancestry in Mongo
-    // without loading the destination Location as a Stuff.
+    // without loading the destination Place as a Stuff.
     const destPath = exit.getDestinationTemplatePath();
     const sourcePath = (this as unknown as Stuff).getTemplatePath();
     if (!destPath || !sourcePath) {
@@ -121,7 +123,7 @@ export default class CartesianLocation extends CartesianLocationBase {
     const destZone = await ZoneApi.resolveZoneForPath(destPath);
     if (sourceZone && destZone && sourceZone === destZone) {
       throw new Error(
-        `CartesianLocation.addExit: non-cardinal direction '${direction}' ` +
+        `Location.addExit: non-cardinal direction '${direction}' ` +
           `requires the destination to be in a different zone; both ` +
           `source '${sourcePath}' and destination '${destPath}' resolve ` +
           `to zone '${
@@ -142,7 +144,7 @@ export default class CartesianLocation extends CartesianLocationBase {
    * `ExitableMixin.verifyOutboundExits`.
    */
   public override async onCreate(context?: unknown): Promise<void> {
-    // ⚠ Chain FIRST: `Location.onCreate` is what gives the room its
+    // ⚠ Chain FIRST: `Place.onCreate` is what gives the room its
     // floor, and the mixin's default is a non-chaining no-op — so an
     // override that forgets this line leaves the room standable by nobody.
     await super.onCreate(context);
@@ -150,15 +152,15 @@ export default class CartesianLocation extends CartesianLocationBase {
   }
 
   // onDestruct is inherited from ExitableMixin (exit teardown) and
-  // chains via super to Location.onDestruct (zone detach). No
+  // chains via super to Place.onDestruct (zone detach). No
   // override needed.
 
   /**
-   * Narrowed override: a `CartesianLocation` lives in a `CartesianZone`
+   * Narrowed override: a `Location` lives in a `CartesianZone`
    * by `CartesianZone.addLocation`'s rejection of non-Cartesian
    * locations. The cast happens once here, at the boundary; every
-   * caller within (or with a typed reference to) `CartesianLocation`
-   * gets the narrowed type for free. If a `CartesianLocation` ever
+   * caller within (or with a typed reference to) `Location`
+   * gets the narrowed type for free. If a `Location` ever
    * landed in a non-Cartesian zone, `getCellSize` would be undefined
    * and any optional-call would short-circuit — defensive but
    * documented.
@@ -250,7 +252,7 @@ export default class CartesianLocation extends CartesianLocationBase {
    * `CartesianCoordinatesMixin.coordinates` (`[x, y, z]`). The setter
    * bridges them — see `setCoords`.
    *
-   * Per declarative-content-slate § coords on CartesianLocation,
+   * Per declarative-content-slate § coords on Location,
    * `feedback_property_vs_instruction_fields` (property field
    * shape: storage IS the value), and `ref-shapes.md` § Field
    * naming (backing slot is `_coords`, public surface is
@@ -273,7 +275,7 @@ export default class CartesianLocation extends CartesianLocationBase {
    *
    * Pattern: setter with side effects, parallel to
    * `SphericalLocation.setFocus` and `Window.setAttachedHosts`.
-   * Per declarative-content-slate § coords on CartesianLocation.
+   * Per declarative-content-slate § coords on Location.
    */
   public async setCoords(value: {
     x: number;
@@ -287,7 +289,7 @@ export default class CartesianLocation extends CartesianLocationBase {
       typeof value.z !== 'number'
     ) {
       throw new TypeError(
-        `CartesianLocation.setCoords: expected { x, y, z } with ` +
+        `Location.setCoords: expected { x, y, z } with ` +
           `numeric fields, got ${JSON.stringify(value)}`
       );
     }
@@ -297,7 +299,7 @@ export default class CartesianLocation extends CartesianLocationBase {
         (this as unknown as Stuff).getTemplatePath() ??
         (this as unknown as Stuff).stuffId;
       throw new Error(
-        `CartesianLocation.setCoords: no zone resolved for ${tag}; ` +
+        `Location.setCoords: no zone resolved for ${tag}; ` +
           `template-path ancestry must include a CartesianZone.`
       );
     }
@@ -318,7 +320,7 @@ export default class CartesianLocation extends CartesianLocationBase {
         (this as unknown as Stuff).getTemplatePath() ??
         (this as unknown as Stuff).stuffId;
       throw new Error(
-        `CartesianLocation.setCoords: ${tag} already at ` +
+        `Location.setCoords: ${tag} already at ` +
           `(${this._coords.x},${this._coords.y},${this._coords.z}); ` +
           `refusing to re-set to (${value.x},${value.y},${value.z}).`
       );

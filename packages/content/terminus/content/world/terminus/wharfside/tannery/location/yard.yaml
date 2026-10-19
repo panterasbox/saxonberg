@@ -8,7 +8,7 @@
 # ⚠ Lit by spill from the bank, like the dyehouse — bright by day and
 # DARK at night, which costs no authored number and is the honest answer
 # for a yard.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

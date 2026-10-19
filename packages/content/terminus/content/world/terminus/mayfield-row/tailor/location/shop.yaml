@@ -9,7 +9,7 @@
 # tailoring's best RP beat and a job board has none.** The contract
 # half — commissioning a player-tailor through the work board — is
 # deferred and is the player-tailor's, not the NPC's.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

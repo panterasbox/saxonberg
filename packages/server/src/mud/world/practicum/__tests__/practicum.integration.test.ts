@@ -23,7 +23,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
 import CartesianZone from "../../../platform/idea/location/CartesianZone";
-import CartesianLocation from "../../../lib/location/CartesianLocation";
+import Location from "../../../lib/location/Location";
 import Material from "../../../lib/material/Material";
 import Firewood from "../../../platform/thing/Firewood";
 import Floor from "../../../platform/thing/Floor";
@@ -133,7 +133,7 @@ function saltWater(): Material {
  * C = 3000 J/K, so 293 → 570 K (autoignition) needs ≈ **831 kJ**. An
  * honest firebolt carries 25.5 kJ. It chars; it does not catch.
  */
-function dummyIn(room: CartesianLocation): Firewood {
+function dummyIn(room: Location): Firewood {
   const d = makeStuff(() => {
     const f = new Firewood();
     f.setMass(Quantity.of(1.5, "kg"));
@@ -152,7 +152,7 @@ function dummyIn(room: CartesianLocation): Firewood {
   return d;
 }
 
-function brineFloor(room: CartesianLocation, litres: number): Floor {
+function brineFloor(room: Location, litres: number): Floor {
   const floor = makeStuff(() => {
     const f = new Floor();
     f.surfaceBulk = true;
@@ -164,7 +164,7 @@ function brineFloor(room: CartesianLocation, litres: number): Floor {
   return floor;
 }
 
-function casterIn(room: CartesianLocation): MagicTester {
+function casterIn(room: Location): MagicTester {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName("practicum-biped");
@@ -198,7 +198,7 @@ function casterIn(room: CartesianLocation): MagicTester {
  * autoignition. An honest firebolt has that; the dummy needs thirty times
  * as much. The two objects are the demonstration.
  */
-function tinderIn(room: CartesianLocation): Firewood {
+function tinderIn(room: Location): Firewood {
   const t = makeStuff(() => {
     const f = new Firewood();
     f.setMass(Quantity.of(0.04, "kg"));
@@ -245,7 +245,7 @@ describe("The Practicum — the magic demonstrators", () => {
     // better demonstrator: *hit the target* and *set it alight* are
     // different acts, and the yard now shows both.
     const zone = makeStuff(() => new CartesianZone());
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     zone.addLocation(yard, 0, 0, 0);
     const dummy = dummyIn(yard);
     const caster = casterIn(yard);
@@ -264,7 +264,7 @@ describe("The Practicum — the magic demonstrators", () => {
     // uncursed bolt (25.5 kJ) has. This is the pair that makes the yard
     // teach something true.
     const zone = makeStuff(() => new CartesianZone());
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     zone.addLocation(yard, 0, 0, 0);
     const tinder = tinderIn(yard);
     const caster = casterIn(yard);
@@ -277,7 +277,7 @@ describe("The Practicum — the magic demonstrators", () => {
 
   it("the conductive gallery: spark through the brine shocks the wading caster", async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const gallery = makeStuff(() => new CartesianLocation());
+    const gallery = makeStuff(() => new Location());
     zone.addLocation(gallery, 1, 0, 0);
     brineFloor(gallery, 30);
     const caster = casterIn(gallery); // wading — MIND WHERE YOU STAND
@@ -298,8 +298,8 @@ describe("The Practicum — the magic demonstrators", () => {
 
   it("the warded cell: casting refused, glowlight dormant, the mundane fire burns on", async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const yard = makeStuff(() => new CartesianLocation());
-    const cell = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
+    const cell = makeStuff(() => new Location());
     zone.addLocation(yard, 0, 0, 0);
     zone.addLocation(cell, 2, 0, 0);
     cell.setSuppressesMagic({ all: true });

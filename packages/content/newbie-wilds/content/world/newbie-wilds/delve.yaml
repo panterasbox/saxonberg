@@ -12,7 +12,7 @@
 #   - no exit-count assertion on the host (the treeline asserts none);
 #   - no FastTravelMixin anywhere here, and no TPA manifest entry.
 #
-# Its own generic classes only (CartesianZone / CartesianLocation / Trap /
+# Its own generic classes only (CartesianZone / Location / Trap /
 # Thing) — zero new code; every trap "kind" is a Trap field combination.
 # See docs/subsystems/concealment.md.
 class: /platform/idea/location/CartesianZone

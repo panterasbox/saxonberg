@@ -20,7 +20,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import {
   makeStuffAtPath,
   seedKernelContentStore,
@@ -38,8 +38,8 @@ beforeEach(() => {
   StuffApi.clearAll();
   recorded = [];
   seedKernelContentStore([
-    { path: HERE, class: '/platform/location/CartesianLocation', data: {} },
-    { path: THERE, class: '/platform/location/CartesianLocation', data: {} },
+    { path: HERE, class: '/platform/location/Location', data: {} },
+    { path: THERE, class: '/platform/location/Location', data: {} },
   ]);
   vi.spyOn(DiagnosticApi, 'record').mockImplementation(
     (async (d: RuntimeDiagnostic) => {
@@ -52,9 +52,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-async function room(path: string): Promise<CartesianLocation> {
+async function room(path: string): Promise<Location> {
   const zone = makeStuffAtPath(() => new CartesianZone(), ZONE);
-  const loc = makeStuffAtPath(() => new CartesianLocation(), path);
+  const loc = makeStuffAtPath(() => new Location(), path);
   zone.addLocation(loc, 0, 0, 0);
   return loc;
 }
@@ -119,9 +119,9 @@ describe('an exit onto nothing', () => {
 
     // The author creates the room they meant.
     seedKernelContentStore([
-      { path: HERE, class: '/platform/location/CartesianLocation', data: {} },
-      { path: THERE, class: '/platform/location/CartesianLocation', data: {} },
-      { path: MISSING, class: '/platform/location/CartesianLocation', data: {} },
+      { path: HERE, class: '/platform/location/Location', data: {} },
+      { path: THERE, class: '/platform/location/Location', data: {} },
+      { path: MISSING, class: '/platform/location/Location', data: {} },
     ]);
     await here.applyExits({ north: { destination: MISSING } });
 

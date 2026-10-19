@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ **Every Location has a floor.** The wave that fixes the defect that
+ * ⭐⭐ **Every Place has a floor.** The wave that fixes the defect that
  * opened the cycle: `sit`, `lie` and `kneel` returned
  * `empty-result[target]` in the Lounge — the room a brand-new character
  * opens their eyes in — because 27 of 180 Locations had a floor and
@@ -7,12 +7,12 @@
  * authoring"* was a choice nobody was making.
  *
  * ⭐ The roster test at the bottom is the guard that matters. The hook lives
- * at the base of `Location`, and `Stuff.onCreate` is the terminal — so any
+ * at the base of `Place`, and `Stuff.onCreate` is the terminal — so any
  * subclass override that
  * forgets `await super.onCreate(context)` silently leaves its rooms
  * unstandable, with nothing else going wrong. Counting `super.onCreate`
  * across the family at plan time found **six** overrides with none. The
- * roster clones every concrete kernel Location class and asserts a floor,
+ * roster clones every concrete kernel Place class and asserts a floor,
  * so forgetting the line is a red test rather than a quiet regression.
  */
 
@@ -20,12 +20,12 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import Location from '../Location';
-import CartesianLocation from '../../location/CartesianLocation';
-import SingletonCartesianLocation from '../../location/SingletonCartesianLocation';
+import Place from '../Place';
+import Location from '../../location/Location';
+import Locale from '../../location/Locale';
 import SphericalLocation from '../../../platform/location/SphericalLocation';
-import SingletonSphericalLocation from '../../../platform/location/SingletonSphericalLocation';
-import FurnishableRoom from '../../../platform/location/FurnishableRoom';
+import SphericalLocale from '../../../platform/location/SphericalLocale';
+import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Offstage from '../../../platform/location/Offstage';
 import VoidLocation from '../../../platform/location/VoidLocation';
 import Crossing from '../../../platform/location/Crossing';
@@ -112,14 +112,14 @@ describe('ensureFloor — the default', () => {
     installStore([
       {
         path: '/test/room/plain',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
   });
 
-  it('a cloned Location has exactly one floor, in the slot named `floor`', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/plain');
+  it('a cloned Place has exactly one floor, in the slot named `floor`', async () => {
+    const room = await StuffApi.clone<Location>('/test/room/plain');
     const floor = room.getFloor();
     expect(floor).not.toBeNull();
     expect(MixinApi.isFloor(floor!)).toBe(true);
@@ -128,7 +128,7 @@ describe('ensureFloor — the default', () => {
   });
 
   it('…and you can sit on it — the whole point', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/plain');
+    const room = await StuffApi.clone<Location>('/test/room/plain');
     const floor = room.getFloor()!;
     expect(MixinApi.isPostured(floor)).toBe(true);
     expect(floor.getAcceptedPostures('ground:1')).toContain('sit');
@@ -136,7 +136,7 @@ describe('ensureFloor — the default', () => {
   });
 
   it('is idempotent — a second ensureFloor adds nothing', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/plain');
+    const room = await StuffApi.clone<Location>('/test/room/plain');
     const first = room.getFloor();
     await room.ensureFloor();
     expect(room.getFixtures()).toHaveLength(1);
@@ -144,7 +144,7 @@ describe('ensureFloor — the default', () => {
   });
 
   it('an indoor room at datum reads as a BUILT floor, not as earth (AC 7)', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/plain');
+    const room = await StuffApi.clone<Location>('/test/room/plain');
     const floor = room.getFloor()!;
     expect(floor.isOnGrade()).toBe(false);
     expect(floor.isWorked()).toBe(true);
@@ -170,7 +170,7 @@ describe('ensureFloor — authored wins', () => {
       },
       {
         path: '/test/room/authored',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: {
           shortDescription: 'a weeping cell',
           coordinates: [0, 0, 0],
@@ -178,7 +178,7 @@ describe('ensureFloor — authored wins', () => {
         },
       },
     ]);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/authored');
+    const room = await StuffApi.clone<Location>('/test/room/authored');
     const floors = room.getFixtures().filter((f) => f instanceof Floor);
     expect(floors).toHaveLength(1);
     expect(floors[0]!.getShort()).toContain('flagstones');
@@ -195,11 +195,11 @@ describe('ensureFloor — the opt-out', () => {
     installStore([
       {
         path: '/test/room/void',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: { shortDescription: 'nowhere', noDefaultFloor: true },
       },
     ]);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/void');
+    const room = await StuffApi.clone<Location>('/test/room/void');
     expect(room.isNoDefaultFloor()).toBe(true);
     expect(room.getFloor()).toBeNull();
   });
@@ -213,7 +213,7 @@ describe('ensureFloor — the opt-out', () => {
     installStore([
       {
         path: '/test/room/midair',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: {
           shortDescription: 'open air',
           coordinates: [0, 0, 40],
@@ -221,7 +221,7 @@ describe('ensureFloor — the opt-out', () => {
         },
       },
     ]);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/midair');
+    const room = await StuffApi.clone<Location>('/test/room/midair');
     expect(room.getFloor()).toBeNull();
     // Nothing in the room affords a posture, so `sit`'s target cannot bind.
     const postured = room
@@ -237,7 +237,7 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
     installStore([
       {
         path: '/test/room/spec',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: {
           shortDescription: 'a byre',
           coordinates: [0, 0, 0],
@@ -249,7 +249,7 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
         },
       },
     ]);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/spec');
+    const room = await StuffApi.clone<Location>('/test/room/spec');
     const floor = room.getFloor() as unknown as Floor;
     expect(floor.isWorked()).toBe(true);
     expect(floor.isOnGrade()).toBe(true);
@@ -266,14 +266,14 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       },
       {
         path: '/test/room/tpl',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: {
           shortDescription: 'a parlour',
           floor: { template: '/test/floor/boards' },
         },
       },
     ]);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/tpl');
+    const room = await StuffApi.clone<Location>('/test/room/tpl');
     expect(room.getFloor()!.getShort()).toContain('boards');
     expect(room.getFixtures()).toHaveLength(1);
   });
@@ -284,7 +284,7 @@ describe('11 · a spill pools in a room that had no floor before', () => {
     installStore([
       {
         path: '/test/room/spill',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -297,7 +297,7 @@ describe('11 · a spill pools in a room that had no floor before', () => {
     // The `default-floor` row declares `surfaceBulk: true`, so every room in
     // the game is now a sink, which is what makes the shipped
     // weather→bulk→electricity loop reach rooms nobody authored a floor for.
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/spill');
+    const room = await StuffApi.clone<Location>('/test/room/spill');
     const floor = room.getFloor()!;
     expect(MixinApi.isBulkable(floor)).toBe(true);
     expect(
@@ -306,7 +306,7 @@ describe('11 · a spill pools in a room that had no floor before', () => {
   });
 
   it('…and the three resolvers reach it through the room\u2019s one read', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/spill');
+    const room = await StuffApi.clone<Location>('/test/room/spill');
     // `getFloor()` is what `floorSurfaceNear`, `findFloor` and
     // `findRoomFloor` all now ask, in place of three fixture scans.
     expect(room.getFloor()).not.toBeNull();
@@ -336,7 +336,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       },
       {
         path: '/test/room/street',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: {
           shortDescription: 'a street',
           coordinates: [0, 0, 0],
@@ -346,7 +346,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       },
       {
         path: '/test/room/gallery',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/Location',
         data: { shortDescription: 'a gallery', coordinates: [0, 0, -4] },
       },
     ]);
@@ -359,7 +359,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
     // scan sweep the biome is a CONSTITUENT of the room (`_biomePath`,
     // `identity:constituent`): the applier loads it before the room exists,
     // so nothing has to be booted and nothing has to remember to warm it.
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    const room = await StuffApi.clone<Location>('/test/room/street');
     expect(room.getBiome()).not.toBeNull();
     expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(true);
   });
@@ -368,7 +368,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
     // `singleton` IS the get-or-create, and one line of it is the whole
     // difference between the two readings. The mechanism is not at fault.
     await StuffApi.singleton(BIOME);
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    const room = await StuffApi.clone<Location>('/test/room/street');
     expect(room.getBiome()).not.toBeNull();
     expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(true);
   });
@@ -381,14 +381,14 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       m.setTags(['rock']);
       return m;
     }, '/test/material/granite-x');
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    const room = await StuffApi.clone<Location>('/test/room/street');
     const floor = room.getFloor() as unknown as Floor;
     expect(floor.getUnderfootRung()).toBe(2);
     expect(floor.getGroundKind()).toBe('set-paving');
   });
 
   it('⭐ a room BELOW DATUM is on grade with no biome at all', async () => {
-    const room = await StuffApi.clone<CartesianLocation>('/test/room/gallery');
+    const room = await StuffApi.clone<Location>('/test/room/gallery');
     const floor = room.getFloor() as unknown as Floor;
     expect(floor.isOnGrade()).toBe(true);
   });
@@ -412,19 +412,19 @@ describe('the default-floor row this all depends on', () => {
   });
 });
 
-describe('⭐ the roster — every concrete kernel Location class', () => {
+describe('⭐ the roster — every concrete kernel Place class', () => {
   // `StuffApi.create` runs register → onCreate, which is the whole
   // chain under test; the floor row still has to be findable, so the store
   // is installed even though no room is cloned.
   beforeEach(() => installStore([]));
 
-  const ROSTER: Array<[string, () => Location]> = [
+  const ROSTER: Array<[string, () => Place]> = [
+    ['Place', () => new Place()],
     ['Location', () => new Location()],
-    ['CartesianLocation', () => new CartesianLocation()],
-    ['SingletonCartesianLocation', () => new SingletonCartesianLocation()],
+    ['Locale', () => new Locale()],
     ['SphericalLocation', () => new SphericalLocation()],
-    ['SingletonSphericalLocation', () => new SingletonSphericalLocation()],
-    ['FurnishableRoom', () => new FurnishableRoom()],
+    ['SphericalLocale', () => new SphericalLocale()],
+    ['PersistentLocation', () => new PersistentLocation()],
     ['Offstage', () => new Offstage()],
     ['Crossing', () => new Crossing()],
     ['CircleFloor', () => new CircleFloor()],

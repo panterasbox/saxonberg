@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DeferredDestinationExit from '../DeferredDestinationExit';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
@@ -41,11 +41,11 @@ describe('DeferredDestinationExit', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/src',
     ) as unknown as Stuff & Container;
     target = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/dest-instance',
     ) as unknown as Stuff & Container;
     exit = makeStuff(() => new TestDeferredExit(source, target)) as TestDeferredExit;
@@ -81,7 +81,7 @@ describe('DeferredDestinationExit', () => {
     StuffApi.destruct(target);
     // A fresh instance stands in for the re-materialized clone.
     const reborn = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/dest-instance-2',
     ) as unknown as Stuff & Container;
     (exit as unknown as { target: Stuff & Container }).target = reborn;

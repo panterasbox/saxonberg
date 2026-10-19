@@ -18,7 +18,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import Good from '../../../../../lib/stuff/Good';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Character } from '../../../../../lib/character/Character';
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
@@ -127,7 +127,7 @@ function garment(planPath: string, form: string, keyword: string): TestGarment {
   return g;
 }
 
-function context(body: Wearer, location: Location): CommandContext {
+function context(body: Wearer, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: body as never,
     location: location as never,
@@ -165,7 +165,7 @@ describe('the ladder refusal', () => {
   function setup(): {
     body: Wearer;
     planPath: string;
-    location: Location;
+    location: Place;
   } {
     installV1QuantityMarshallers();
     standUpScheduler();
@@ -177,7 +177,7 @@ describe('the ladder refusal', () => {
       drape: 0.6,
     });
     const { body, planPath } = bodyAndPlanPath();
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     ContainmentApi.move(body, location);
     return { body, planPath, location };
   }
@@ -280,7 +280,7 @@ describe('the impossible fit', () => {
 
     const big = makeStuff(() => new Wearer());
     big.setSpecies(species);
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     ContainmentApi.move(big, location);
 
     // Cut for a halfling — and both are the same body plan, so slot
@@ -311,7 +311,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
   function dressed(): {
     body: Wearer;
     planPath: string;
-    location: Location;
+    location: Place;
     shirt: TestGarment;
     coat: TestGarment;
   } {
@@ -325,7 +325,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
       drape: 0.6,
     });
     const { body, planPath } = bodyAndPlanPath();
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     ContainmentApi.move(body, location);
     const shirt = garment(planPath, 'woven', 'shirt');
     const coat = garment(planPath, 'woven', 'coat');
@@ -336,7 +336,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
 
   async function run(
     body: Wearer,
-    location: Location,
+    location: Place,
     model: Record<string, unknown>,
   ): Promise<ReturnType<typeof context>> {
     const ctx = context(body, location);

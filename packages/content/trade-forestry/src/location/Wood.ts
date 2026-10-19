@@ -6,9 +6,9 @@
  * and what stands on it is a fact about the place. So a Wood is the
  * `Field` shape over the singleton cell:
  *
- *     PersistableMixin(StandMixin(SoilMixin(ReservedMixin(SingletonCartesianLocation))))
+ *     PersistableMixin(StandMixin(SoilMixin(ReservedMixin(Locale))))
  *
- * - **`SingletonCartesianLocation`**, not the permissive base: an
+ * - **`Locale`**, not the permissive base: an
  *   authored clearing is ONE row at a coordinate in its wood's zone,
  *   reached by an exit — the singleton cell. ⚠ The rule for the durable
  *   version — *a durable room over the permissive base would silently
@@ -60,7 +60,7 @@
  * See [docs/subsystems/forestry.md].
  */
 
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
 import {
@@ -80,7 +80,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 const LITRES_PER_M2_LOAM = 45;
 
 // The ground half first, named — the Field/GardenBed rule.
-const WoodGround = SoilMixin(ReservedMixin(SingletonCartesianLocation));
+const WoodGround = SoilMixin(ReservedMixin(Locale));
 // The stand goes OVER the soil because it drinks it (the Sward rule).
 // Persistable OUTERMOST — the host rule.
 const WoodBase = PersistableMixin(StandMixin(WoodGround));

@@ -27,7 +27,7 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { VisionModality } from '../VisionModality';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import Floor from '../../../thing/Floor';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
@@ -47,7 +47,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class AmbientRoom extends AmbientLitMixin(CartesianLocation) {}
+class AmbientRoom extends AmbientLitMixin(Location) {}
 class Viewer extends PerceptionMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea))),
 ) {}

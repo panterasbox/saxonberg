@@ -180,12 +180,12 @@ yard, hung on the street by `PlatWarren`; see
 `LotGateExit` is the case where the eager path is **exact** rather than a
 class name: each lot's room is minted at its own identity, so the stored
 `destinationTemplatePath` is that identity. That matters beyond honesty —
-it is the path `CartesianLocation.addExit` resolves the destination ZONE
+it is the path `Location.addExit` resolves the destination ZONE
 from when deciding whether a non-cardinal direction is admissible.
 
 #### Non-cardinal exits are a ZONE boundary, not a naming choice
 
-`CartesianLocation.addExit` refuses a non-cardinal direction when source
+`Location.addExit` refuses a non-cardinal direction when source
 and destination resolve to the **same** zone. Content hits this the
 moment a street wants a gate per lot: `lot-1` is not a compass bearing,
 and it cannot be one (a second lot would collide on `north`).
@@ -206,7 +206,7 @@ one grid coordinate. Two traps when you author that zone:
 #### `addExit` is async
 
 `Exitable.addExit(exit)` returns `Promise<boolean>`. The async return
-type is what makes `CartesianLocation`'s cardinal-only-intra-zone
+type is what makes `Location`'s cardinal-only-intra-zone
 check possible — the subclass override awaits
 `ZoneApi.resolveZoneForPath` (which may clone a zone Stuff on first
 reference). The base implementation does only sync work; the async
@@ -217,7 +217,7 @@ Callers must `await`.
 ### `ExitableMixin` lookup — explicit only
 
 `ExitableMixin` (`lib/boundary/Exitable.ts`) is composed by
-`CartesianLocation`, `SphericalLocation`, and `ExitableVessel`.
+`Location`, `SphericalLocation`, and `ExitableVessel`.
 Exits are **authored explicitly on every room** — a room connects to
 exactly what its own template declares, on both sides. The zone does
 **not** synthesize exits from grid adjacency; every template is
@@ -313,7 +313,7 @@ collection, not stored as a value. The applier consumes a
 `Record<string, ExitInstruction>` and installs each entry:
 
 ```yaml
-# A CartesianLocation template's data:
+# A Location template's data:
 exits:
   north:
     destination: /eternal/duncan-hall/lounge

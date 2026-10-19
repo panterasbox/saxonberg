@@ -1,7 +1,7 @@
 /**
  * OpenWorking — ⭐ **one row IS one pit**, and it keeps a record.
  *
- * `PersistableMixin(OpenWorkingMixin(SingletonCartesianLocation))` — the
+ * `PersistableMixin(OpenWorkingMixin(Locale))` — the
  * `Wood` composition, and for the same reason. A pit is a **singleton**: it
  * is reached by an exit and there is exactly one of it, so its template path
  * is its identity. And it is **persistable**, because a worked pit is a
@@ -26,12 +26,12 @@
  * it is a separate class for exactly that reason.
  */
 
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { OpenWorkingMixin } from '../lib/Working';
 
 const OpenWorkingBase = PersistableMixin(
-  OpenWorkingMixin(SingletonCartesianLocation),
+  OpenWorkingMixin(Locale),
 );
 
 export default class OpenWorking extends OpenWorkingBase {}

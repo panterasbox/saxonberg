@@ -39,7 +39,7 @@ import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
 import { EngagedMixin } from '../../activity/Engaged';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -275,8 +275,8 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
     StuffApi.clearAll();
   });
 
-  function room(zone: CartesianZone, x: number, y: number): CartesianLocation {
-    const loc = makeStuff(() => new CartesianLocation());
+  function room(zone: CartesianZone, x: number, y: number): Location {
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, x, y, 0);
     return loc;
   }

@@ -180,7 +180,7 @@ metal armor does NOT protect against a shock).
   `Switchable`, ~120–240 V. The downed cable.
 - **`FloodedCell`** (`domain/substation/FloodedCell.ts`) — the primary
   demonstrator (the duncan-hall cistern precedent: a flooded hazard room a
-  body ENTERS by walking). A proper **`CartesianLocation`** with coordinates,
+  body ENTERS by walking). A proper **`Location`** with coordinates,
   living in its own self-contained **`CartesianZone`** — *The Drowned
   Substation* (`/world/substation`), electricity's own home (and where the
   deferred power-grid content grows), so it never pollutes another themed

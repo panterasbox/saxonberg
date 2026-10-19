@@ -4,7 +4,7 @@
 # ⚠⚠ **It was missing, and the omission was fatal at boot.** The lobby
 # declares `out:` to the street and the street declares `house:` back —
 # both NON-CARDINAL, because a door is identified by what it opens onto
-# and not by a compass point. `CartesianLocation.addExit` admits a
+# and not by a compass point. `Location.addExit` admits a
 # non-cardinal exit only ACROSS a zone boundary, and without this row the
 # lobby and the street both resolved to `/world/terminus/mayfield-row`,
 # so the pair threw.

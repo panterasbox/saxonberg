@@ -24,7 +24,7 @@ substrate + the lounge that uses it.
 
 ## Locations
 
-`lib/stuff/Location.ts` is the abstract base. Pure structural role:
+`lib/stuff/Place.ts` is the abstract base. Pure structural role:
 "any Stuff that can hold other Stuff but doesn't itself live inside
 something." Composition layers
 `AddressableMixin(AmbientLitMixin(AtmosphericMixin(AdornableMixin(
@@ -53,7 +53,7 @@ particular vessel has a meaningful interior volume).
 
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 
-- **`CartesianLocation`** = `Exitable(CartesianCoords(Visible(Location)))`.
+- **`Location`** = `Exitable(CartesianCoords(Visible(Location)))`.
   Overrides `addExit` (async — awaits zone resolution) per the
   **cardinal-only-intra-zone exit invariant**: cardinal directions
   (`north`/`south`/`east`/`west`/diagonals/`up`/`down`) are accepted
@@ -73,14 +73,14 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   One row, one room, in a zone's grid, whose `props:` write back to
   `holder_snapshots` — for the bespoke stateful venue: a hand-authored
   farm whose beds must keep their soil state (`captureHostOf` walks to
-  the nearest persistable ancestor, and a plain `CartesianLocation`
+  the nearest persistable ancestor, and a plain `Location`
   gives it none). The shape is
 
-      PersistableMixin( … SingletonCartesianLocation)
+      PersistableMixin( … Locale)
 
   with `Persistable` **outermost** (its `cleanupOnDestruct` must fire
   before the inner `Container` evacuates, and its `applyProps`/`applyCast`
-  wrap `Staged`), and over `SingletonCartesianLocation` rather than the
+  wrap `Staged`), and over `Locale` rather than the
   permissive base — ⚠⚠ **a durable room over the permissive base would
   silently share ONE `holder_snapshots` scope across every mint.**
   `StuffApi.singleton` is the establishing context (restore-or-seed, the
@@ -95,11 +95,11 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   It was retired by the base-class narrowing build; the RULE is what was
   load-bearing, and it is written here now instead of being inferred from
   a class nobody instanced. The keyed multi-instance interior unit
-  remains `FurnishableRoom`; the spherical twin is derived the same way
+  remains `PersistentLocation`; the spherical twin is derived the same way
   when a spherical venue first needs one.
 
 - ⭐ **A place beside a named water** — `platform/location/Shore`
-  (`ShoreMixin` over `SingletonCartesianLocation`: a mere's shore, the
+  (`ShoreMixin` over `Locale`: a mere's shore, the
   heath by its tarn, a ship's deck, the headland) and
   `platform/location/Quay` (`ShoreMixin` over `Street`: a lit public
   waterfront, the wharfside bank). Maritime revision 3. Like `Street`,
@@ -110,7 +110,7 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   of any OTHER class (a riverside dyehouse) needs its own composed class
   — the recorded cost (`shore-as-place-slate`).
 - ⭐ **A place that IS a small water** — `platform/location/Pool`
-  (`SwimmableMixin(ShoreMixin(SingletonCartesianLocation))`: the cove
+  (`SwimmableMixin(ShoreMixin(Locale))`: the cove
   off the estuary strand). The PLACE is the water: being in it makes its
   ways swimmable, an exit whose destination is one is swimmable INTO it
   (`LocomotionLogic`'s far-side rule), and it cites the water it is
@@ -126,12 +126,12 @@ description; `NamedMixin` is opt-in for rooms that take proper names
 ("Town Square").
 
 Both override `getZone()` with a narrowed return type:
-`CartesianLocation.getZone(): CartesianZone | null` and
+`Location.getZone(): CartesianZone | null` and
 `SphericalLocation.getZone(): SphericalZone | null`. The cast-by-
 invariant lives at the boundary method (each `Zone.addLocation`
 rejects mismatched coordinate types), so call sites within the
 concrete location see the narrowed type for free —
-`CartesianLocation.getSizeScale()` reads `getZone()?.getCellSize()`
+`Location.getSizeScale()` reads `getZone()?.getCellSize()`
 without any local cast. See
 [antipatterns.md § "instanceof, virtual methods, and cast-by-invariant"](../antipatterns.md)
 for the underlying pattern.
@@ -161,7 +161,7 @@ single coherent change rather than three partial states.
 
 **One number, and everything that cares about room size derives from
 it.** `Location.getLinearExtent(): number | null` returns the room's
-edge length in metres — `CartesianLocation` reads its own persistent
+edge length in metres — `Location` reads its own persistent
 `extent` field and falls back to the zone's cell size, so an authored
 room can be larger or smaller than its zone's default;
 `SphericalLocation` returns `2 × radius`; the base returns null (size
@@ -210,9 +210,9 @@ declares).
 ([biome.md](./biome.md)). Default `3.0` linear meters (a typical
 room). It drives:
 
-- `CartesianLocation.getVolume()` → `cellSize³` (27 m³ at default).
-- `CartesianLocation.getCeilingHeight()` → `cellSize` (3 m default).
-- `CartesianLocation.getSizeScale()` → `cellSize²` (9 m² —
+- `Location.getVolume()` → `cellSize³` (27 m³ at default).
+- `Location.getCeilingHeight()` → `cellSize` (3 m default).
+- `Location.getSizeScale()` → `cellSize²` (9 m² —
   receiving-surface area for the light substrate, derived by
   squaring the linear cellSize rather than authored separately).
 
@@ -327,7 +327,7 @@ the barrier-subclass pattern documented in
 
 ### The setter-with-side-effects pattern
 
-`CartesianLocation.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
+`Location.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
 and `Window.setAttachedHosts([pathA, pathB])` share a single
 declarative-content shape: a public setter that **stores the value
 AND performs cross-object side effects** atomically. The shape is:
@@ -599,7 +599,7 @@ deferring to `super` when its own condition is false:
 Precedence falls out of composition order: `Persistable` always sits
 above `Stuff`, so a key beats a stamp; `Singleton` only ever fills in a
 `null`. Nothing narrows on a mixin from `Stuff`, and nothing anywhere
-asks `if (isLocation(x))` — the handle is every object's question, and
+asks `if (isPlace(x))` — the handle is every object's question, and
 `Stuff` answers it honestly with `null`.
 
 ⭐ **The `#` joiner is load-bearing.** The row is the *substance* of a
@@ -667,39 +667,30 @@ item-spawn-into-a-Warren (reuses `getHost()` as a separate instruction),
 the procedural-spatial Warren family (dungeon/desert), and the
 Warren-as-containment-tier evolution.
 
-## The four places (2026-10-18)
-
-A noun is a person, place, thing or idea, and the branches are the same
-four. Every place is a **Place** (the root — still `Location` in code until
-the rename sweep, `place-taxonomy-slate`). Two axes, named so the class
-says which:
-
-| | transient | kept (`Persistent…`) |
-|---|---|---|
-| **Locale** — ONE particular place; one row = one place (you *visit* a locale) | `Locale` (today `SingletonCartesianLocation`) | `PersistentLocale` (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
-| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` (today the instanceable `CartesianLocation`) | `PersistentLocation` (today `FurnishableRoom`; `Field`, `MineRoom` in shape) |
-
-A kept place must be singleton (a locale) or keyed (a location in a
-warren) — `PersistableLocations.test` holds it. `PersistableMixin` is
-composed OUTERMOST over a place's own substrate, which is why a kept place
-with substrate composes the shape rather than subclassing the plain kept
-class. Spherical places keep their own family until expanses need the pair.
-
-## The place taxonomy (decided 2026-10-18; the rename is `place-taxonomy-slate`)
+## The place taxonomy (decided 2026-10-18; renamed in the cleanliness MR, !380)
 
 A noun is a person, place, thing or idea, and the four branches are the
 same: `Agent`, **`Place`**, `Thing`, `Idea`. Every place is a `Place` (the
-root — still `Location` in code until the rename sweep). Under it, ONE
+root, `lib/stuff/Place`). Under it, ONE
 descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
 
 | | transient | kept |
 |---|---|---|
-| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` (today `SingletonCartesianLocation`) | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
-| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` (today the instanceable `CartesianLocation`) | `PersistentLocation` (today `FurnishableRoom`; `Field`, `MineRoom` in shape) |
-| spherical, one place | `SphericalLocale` (today `SingletonSphericalLocation`) | `PersistentSphericalLocale` when wanted |
+| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` | `PersistentLocation` (lots, dorm rooms, let units; `Field`, `MineRoom` in shape) |
+| spherical, one place | `SphericalLocale` | `PersistentSphericalLocale` when wanted |
 | spherical, one of many | `SphericalLocation` (unchanged) | `PersistentSphericalLocation` when wanted |
 
 Cartesian is the default and goes unprefixed; a spherical place says so.
+
+⚠ Two things the names do not say. The grid geometry the cartesian pair
+shares is `lib/location/Location` (the twin shares its instanceable
+class's name, as every lib/platform pair does), so a `Locale` IS-A grid
+`Location` in code while meaning *one place* in the taxonomy. And
+`PersistentLocation` is NOT on the grid — a lot or a dorm room is placed
+by its warren, not a coordinate — so it builds on `Place` directly and does
+not extend `Location`. The few places that are neither (`Offstage`,
+`Tombstone`, `VoidLocation`) build on `Place` too.
 A kept place must be one place (a locale) or keyed (a location in a warren)
 — `PersistableLocations.test` holds it. `PersistableMixin` is composed
 OUTERMOST over a place's own substrate, which is why a kept place with

@@ -39,7 +39,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { NamedMixin } from '../../../../../lib/description/Named';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
@@ -146,7 +146,7 @@ describe('`dry` — hang it where the air can reach it', () => {
 
   function scene(humidityPct: number, windMs = 2) {
     const room = makeStuff(() => {
-      const r = new CartesianLocation();
+      const r = new Location();
       r.setHumidity(Quantity.of(humidityPct, '%'));
       r.setWind(Quantity.of(windMs, 'm/s'));
       r.setTemperature(Quantity.of(293, 'K'));

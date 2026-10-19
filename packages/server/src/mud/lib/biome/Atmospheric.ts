@@ -143,6 +143,12 @@ export interface Atmospheric {
   reconcileAtmosphereContents(): void;
   /** Air changes per hour — `Infinity` under the sky. */
   airChangesPerHour(): number;
+  /**
+   * ⭐ How a wet thing dries in this air (cleanliness D11) — `never` when
+   * the air is saturated, `outdoors` under the sky (sun and wind take it
+   * fast), `indoors` slowly. The place's to say; `Wet.dryingOutlook` asks.
+   */
+  dryingConditions(): 'never' | 'outdoors' | 'indoors';
   /** The share of this scope's medium that is still plain medium. */
   airShare(): number;
 
@@ -242,14 +248,14 @@ export interface Atmospheric {
 
   /**
    * Atmospheric-bearing volume of this scope, in m³. Concrete
-   * subclasses derive from their topology (`CartesianLocation` from
+   * subclasses derive from their topology (`Location` from
    * cube `cellSize³`, `SphericalLocation` from `(4/3)πr³`). The
    * default is `null` — a scope with no derivable volume.
    */
   getVolume(): Quantity<'m³'> | null;
 
   /**
-   * Floor-to-ceiling vertical extent, in m. `CartesianLocation`
+   * Floor-to-ceiling vertical extent, in m. `Location`
    * returns `cellSize`; `SphericalLocation` returns the inscribed
    * cube's side (`2r/√3`). Default is `null`.
    */
@@ -969,6 +975,12 @@ export function AtmosphericMixin<
      * (the envelope's, which is deliberately room-to-outside only). A
      * room's air mixes with the next room's long before its heat does.
      */
+    public dryingConditions(): 'never' | 'outdoors' | 'indoors' {
+      const self = this as unknown as Stuff;
+      if (BiomeApi.airFor(self).humidityPct >= 95) return 'never';
+      return BiomeApi.isSkyExposed(self) ? 'outdoors' : 'indoors';
+    }
+
     public airChangesPerHour(): number {
       const self = this as unknown as Stuff;
       if (BiomeApi.isSkyExposed(self)) return Infinity;

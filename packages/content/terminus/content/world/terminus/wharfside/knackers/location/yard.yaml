@@ -3,7 +3,7 @@
 # Everything here is somebody else's problem arriving. The board by the
 # gate is how it arrives: a haulage job posted, a hauler paid, and a
 # carcass on the cobbles by morning.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

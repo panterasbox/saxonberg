@@ -924,7 +924,7 @@ or no longer load-bearing:
 - **Phase 5 ("Communications")** — absorbed; `say` / `tell` +
   `Sensor` / `Vocal` shipped.
 - **Phase 6 ("Extended Object Model")** — absorbed; `Thing`,
-  `Detailed`, `Propertied`, `CartesianLocation` all in tree.
+  `Detailed`, `Propertied`, `Location` all in tree.
 - **Phase 8 ("Advanced API Layer")** — partially shipped; rest
   is the "Utility APIs" punch-list item.
 - **Light & Boundary subsystem** — shipped. The Light value

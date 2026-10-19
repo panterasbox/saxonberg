@@ -1,7 +1,7 @@
 /**
  * Exit - First-class one-way passage between two exitable places.
  *
- * An `Exit` lives on an `Exitable` (`CartesianLocation`, `SphericalLocation`,
+ * An `Exit` lives on an `Exitable` (`Location`, `SphericalLocation`,
  * or `ExitableVessel`) and points to another Exitable. Reciprocity is opt-in
  * via `ExitableMixin.addBidirectionalExit()`, which installs one Exit on
  * each side (and, optionally, the same shared `Door` reference).

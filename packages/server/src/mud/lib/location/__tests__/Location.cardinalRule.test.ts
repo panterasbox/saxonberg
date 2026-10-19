@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../CartesianLocation';
+import Location from '../Location';
 import Exit from '../../boundary/Exit';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -63,7 +63,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
   return store;
 }
 
-describe('CartesianLocation.addExit cardinal rule', () => {
+describe('Location.addExit cardinal rule', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
@@ -82,11 +82,11 @@ describe('CartesianLocation.addExit cardinal rule', () => {
       },
     ]);
     const source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/a/room1'
     );
     const dest = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/a/room2'
     );
     const exit = makeStuff(
@@ -109,11 +109,11 @@ describe('CartesianLocation.addExit cardinal rule', () => {
       },
     ]);
     const source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zoneA/room1'
     );
     const dest = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zoneB/room1'
     );
     const exit = makeStuff(
@@ -131,11 +131,11 @@ describe('CartesianLocation.addExit cardinal rule', () => {
       },
     ]);
     const source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/a/room1'
     );
     const dest = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/a/room2'
     );
     const exit = makeStuff(
@@ -158,7 +158,7 @@ describe('CartesianLocation.addExit cardinal rule', () => {
       },
     ]);
     const source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zoneA/room1'
     );
     // No `dest` Stuff is created; the exit just carries the path.
@@ -179,10 +179,10 @@ describe('CartesianLocation.addExit cardinal rule', () => {
     // No store needed; the check shortcuts to permissive before any
     // path-resolution happens.
     const source = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new Location(),
       '/zone/a/room1'
     );
-    const dest = makeStuff(() => new CartesianLocation()); // no path
+    const dest = makeStuff(() => new Location()); // no path
     const exit = makeStuff(
       () => new Exit({ direction: 'portal', source, destination: dest })
     );

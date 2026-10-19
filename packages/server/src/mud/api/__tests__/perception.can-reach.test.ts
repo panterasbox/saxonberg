@@ -25,7 +25,7 @@ import { MixinApi } from '../mixin';
 import Good from '../../lib/stuff/Good';
 import Door from '../../platform/thing/Door';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
 import { NamedMixin } from '../../lib/description/Named';
@@ -85,17 +85,17 @@ describe('PerceptionApi.canReach', () => {
   });
 
   let zone: CartesianZone;
-  let here: CartesianLocation;
-  let there: CartesianLocation;
+  let here: Location;
+  let there: Location;
   let actor: Actor;
 
   beforeEach(async () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     zone = makeStuff(() => new CartesianZone());
-    here = makeStuff(() => new CartesianLocation());
+    here = makeStuff(() => new Location());
     here.setShortDescription('Here');
-    there = makeStuff(() => new CartesianLocation());
+    there = makeStuff(() => new Location());
     there.setShortDescription('There');
     zone.addLocation(here, 0, 0, 0);
     zone.addLocation(there, 0, 1, 0);

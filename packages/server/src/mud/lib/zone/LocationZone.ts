@@ -16,7 +16,7 @@
  * the method body into a mixin changes nothing about who may write it.
  */
 
-import type Location from '../stuff/Location';
+import type Place from '../stuff/Place';
 import type { VetoResult } from '../errors';
 import type { MixinConstructor } from '../mixin';
 import type { SpatialZone } from './SpatialZone';
@@ -24,10 +24,10 @@ import type { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 
 export interface LocationZone {
-  getLocations(): ReadonlySet<Location>;
-  addLocation(location: Location): void;
-  removeLocation(location: Location): boolean;
-  contains(location: Location): boolean;
+  getLocations(): ReadonlySet<Place>;
+  addLocation(location: Place): void;
+  removeLocation(location: Place): boolean;
+  contains(location: Place): boolean;
   canDestruct(): VetoResult;
 }
 
@@ -42,22 +42,22 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      * Host-internal storage; external callers go through
      * `getLocations()` / `contains()`.
      *
-     * `Location.zone` (on the Stuff base) is the back-reference stamped
+     * `Place.zone` (on the Stuff base) is the back-reference stamped
      * when the location is added.
      */
-    protected locations: Set<Location> = new Set();
+    protected locations: Set<Place> = new Set();
 
     /** Horizon targets already stood up from here (runtime only). */
     private sightedTargets: Set<string> | null = null;
 
-    public getLocations(): ReadonlySet<Location> { return this.locations; }
+    public getLocations(): ReadonlySet<Place> { return this.locations; }
 
     /**
      * Mark a location as belonging to this zone. Subclasses extend to
      * capture coordinates (CartesianZone stamps grid position,
      * SphericalZone stamps the focus tuple).
      */
-    public addLocation(location: Location): void {
+    public addLocation(location: Place): void {
       this.locations.add(location);
       location.setZone(this as unknown as SpatialZone);
       this.standUpAttached(location);
@@ -76,7 +76,7 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      * standing up reaches back for the sea it sails on. A caller that must
      * have the house awaits it through the employment path.
      */
-    private standUpAttached(location: Location): void {
+    private standUpAttached(location: Place): void {
       const path = location.getIdentityPath() ?? location.getTemplatePath();
       if (!path) return;
       void import('../../api/navigation')
@@ -103,7 +103,7 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      * awaited — `addLocation` is a registration, and a horizon read made
      * the instant a room appears sees whatever has stood up by then.
      */
-    private lookOutFrom(location: Location): void {
+    private lookOutFrom(location: Place): void {
       // A zone's towers are the structures attached within it.
       const standStructuresWithin = (zonePath: string): void => {
         void import('../../api/navigation')
@@ -129,7 +129,7 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
     }
 
     /** Remove a location from this zone. Clears the back-reference. */
-    public removeLocation(location: Location): boolean {
+    public removeLocation(location: Place): boolean {
       const removed = this.locations.delete(location);
       if (removed && location.getZone() === (this as unknown as SpatialZone)) {
         location.setZone(null);
@@ -138,7 +138,7 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
     }
 
     /** Does this zone contain the given location? */
-    public contains(location: Location): boolean {
+    public contains(location: Place): boolean {
       return this.locations.has(location);
     }
 

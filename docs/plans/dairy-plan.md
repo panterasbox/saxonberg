@@ -1033,10 +1033,10 @@ Checked against the tree, not recalled.
   nowhere in this plan. Prefilled vessels are `interiorMaterial` +
   `interiorAmount` rows (the culture-jar shape).
 - **Locations, not rooms** — the byre, the creamery, the cheese room and
-  the goat pen are `SingletonCartesianLocation` rows with `coords` on the
+  the goat pen are `Locale` rows with `coords` on the
   owning zone's grid (20 m cells at the Delight, 10 m at Rejection);
   cardinal exits with agreeing coordinates (the barn's lesson); no
-  `FurnishableRoom`.
+  `PersistentLocation`.
 - **The five axes and `<root>/<branch>/`** — `/trade/dairying/{thing,idea}/…`,
   `/trade/dairying/idea/material/*`, `/trade/dairying/idea/maturation/*`,
   `/trade/dairying/idea/fractionation/*`, `/trade/dairying/idea/Discipline/*`,

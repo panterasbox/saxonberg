@@ -150,7 +150,7 @@ build's review-log entry kept, `pnpm install` for the lock,
    integrate long gaps.
 6. **Declare `SEASONS` in `CLOSED_BY_DESIGN`** (`CLOSED_VOCABULARY_CEILING`
    is 5; we lean on it too). Author the icehouse rooms as
-   `SingletonCartesianLocation` (`lint:location-classes` enumerates
+   `Locale` (`lint:location-classes` enumerates
    `MINTED_ROWS`).
 7. **The cookhouse after our re-class**: props re-lay only on the
    no-record branch, so a melted block stays melted across restarts; run
@@ -184,8 +184,20 @@ build's review-log entry kept, `pnpm install` for the lock,
 Decided in review (`docs/slates/builds/place-taxonomy-slate.md`): the root
 `Location` → `Place`; one particular place is a **Locale**, one of many a
 **Location**, either `Persistent…`. Concretely:
-`PersistentCartesianLocation` → `PersistentLocale` (done),
-`SingletonCartesianLocation` → `Locale`, `FurnishableRoom` →
-`PersistentLocation`, `SingletonSphericalLocation` → `SphericalLocale`.
-Whoever merges after cleanliness re-points their rows' `class:` lines and
-imports by that table — a pure rename, a DB drop.
+(all done in !380, by name; the `/platform/location/` path segment is
+unchanged):
+
+| was | now |
+|---|---|
+| `lib/stuff/Location` (`isLocation()`) | `lib/stuff/Place` (`isPlace()`) |
+| `CartesianLocation` (lib + platform) | `Location` |
+| `SingletonCartesianLocation` (lib + platform) | `Locale` |
+| `PersistentCartesianLocation` | `PersistentLocale` |
+| `FurnishableRoom` | `PersistentLocation` |
+| `SingletonSphericalLocation` | `SphericalLocale` |
+
+⚠ ORDER matters if you script it: rename the root (`Location` → `Place`,
+only in files that import `lib/stuff/Location`) BEFORE `CartesianLocation`
+→ `Location`, or the two collide. Whoever merges after cleanliness re-points
+their rows' `class:` lines and imports by that table — a pure rename, a DB
+drop.

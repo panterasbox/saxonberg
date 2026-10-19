@@ -134,8 +134,8 @@ adding.
   being cloned generically, it splits: the base stays here and a thin
   concrete subclass in `platform/<branch>/` takes the clones
   (`lib/stuff/Thing` → `platform/thing/Thing`,
-  `lib/location/CartesianLocation` →
-  `platform/location/CartesianLocation`).
+  `lib/location/Location` →
+  `platform/location/Location`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
   the exemplar and a **permanent** exception to "platform/ holds Stuff
@@ -911,7 +911,7 @@ to `lib/stuff/Good`.
   handcart). Which one a row names IS the claim *can this be carried off*.
 
 ⭐⭐ **Four predicates on `Stuff` answer which branch** — `isAgent()` ·
-`isThing()` · `isIdea()` · `isLocation()`, each `false` on the root and
+`isThing()` · `isIdea()` · `isPlace()`, each `false` on the root and
 overridden exactly once in its own branch file. So nothing anywhere has
 to import a branch class to ask the question, which matters because
 `api/**` and `lib/mixin.ts` sit *below* the branch classes: an
@@ -1048,7 +1048,7 @@ despite the mirror convention; and with
 `landlord-shell`). ⭐ Exactly the three-meanings problem that got
 `WireBody` renamed, one rung up. `ShelledCharacter` was already
 conformant — an adjectival modifier on a noun, like
-`SingletonCartesianLocation` — and it says what an instance IS. `Avatar`
+`Locale` — and it says what an instance IS. `Avatar`
 (`lib/character/Avatar.ts`) is **abstract** and adds *a human is on the
 other side*; nothing instances it.
 
@@ -1145,7 +1145,7 @@ live animal. 96 composition sites were stripped. See
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
 | `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"). ⚠ **Not `Concealable` and not `Chattel`** — those are what it means to be carried off, and they are `Good`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
 | `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff)))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
-| `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
+| `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`Location`, …) layer on coordinate / Visible / Exitable mixins. |
 | `Holder` | `ContainerMixin(Thing)` | **Matter that holds other matter** — a shop counter, a teller's counter, a warehouse, a shelf, a rack. Part of the premises: its ownership, if any, is the PARCEL's. |
 | `Vessel` | `ChattelMixin(ConcealableMixin(Holder))` | **A `Holder` that is also a `Good`** — an article of property with a chattel identity, so it can change hands and be put out of sight: a chest, a pack, a crate. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ It composed `Atmospheric` too until the base-class narrowing — *a bag is not a place*; see `ExitableVessel`. |
 
@@ -1278,7 +1278,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/character/` | `GenderedMixin` | pronouns (he/she/they/etc.), persistent |
 | `lib/description/` | `NamedMixin` | proper names — `name`, `surname`, `nameSuffix`, `honorific`, `alternateNames`, `fullName`, persistent. ⚠ **Composed explicitly, never inherited**: `CastMixin`, `Avatar`, and any class minting a name of its own. It sat on the creature base until 2026-09-10, so a wolf and a corpse carried `setSurname` |
 | `lib/description/` | `VisibleMixin` | `shortDescription` (⚠ a **stem**, no article), `register` (`proper`/`definite`/`indefinite`), `longDescription`; provides `look` |
-| `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent. Composed by `Thing`, `CartesianLocation`, `Material` **and `Creature`** (every body is addressable — 48 agent rows authored a `primaryKeyword` into a void before 2026-09-10) |
+| `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent. Composed by `Thing`, `Location`, `Material` **and `Creature`** (every body is addressable — 48 agent rows authored a `primaryKeyword` into a void before 2026-09-10) |
 | `lib/description/` | `DetailedMixin` | hierarchical detail management, persistent |
 | `lib/spatial/` | `ContainerMixin` | inventory; provides `inventory`/`get`/`drop` |
 | `lib/spatial/` | `ContainableMixin` | environment reference, plus the auxiliary **placement pair** (`_placementHost` + `_placementName`) and `getEnclosingScope()` |
@@ -1355,7 +1355,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/metabolism/` | `NutritionLabelMixin` | opt-in consumable affordance: appends an edible `Material`'s inspectable nutrition profile to the host's long description via the `markupAugmenter` seam. Composed by content onto labelled consumables (not every Stuff). See [metabolism.md](./subsystems/metabolism.md). |
 | `lib/respiration/` | `RespirationMixin` | the air-exchange driver and the first concrete engagement producer: an event-triggered bounded `RespirationDrain`/`RespirationRecovery` `SustainedEngagement` that drives `Vitals.spo2` past the consciousness floor to the anoxia death seam when the surrounding medium is unbreathable (drowning / vacuum), then recovers on return to air. Reads `BodyPlan.breathableMedia` (water-breather inversion) + the biome `breathable` column; W2 taps a worn `AirTank` `Bulkable`. Composed outer of `Metabolic` by `Creature`. No Api. See [respiration.md](./subsystems/respiration.md). |
 | `lib/perception/` | `AmbientLitMixin` | **inherent ambient light a scope exposes**, and since the envelope build it is DERIVED: `AmbientSource = 'sky' \| 'glow' \| 'none'` with `null` meaning *derived* — a scope open to the sky follows the sun because its biome says so, and one that is not has no ambient at all. `ambientIntensity` survives only as a **noon calibration**, `ambientOpening` names the detail a `'sky'` interior gets its daylight through, and `skyNoonFlux()` × the sky factor × the weather dim is the walk's leg (a). Composed at the `Location` base. See [light.md](./subsystems/light.md). |
-| `lib/perception/` | `PublicLightingMixin` | **street lighting as a property of the street** — a row declares the service (`flux`, a `detail` id, a `seniority`) and whether it burns is derived from the hour and from whether the covering extent paid tonight. **No lamp object exists anywhere.** ⚠ Composed on `platform/location/Street` and nowhere else: it went on `CartesianLocation` for one build, which gave a cellar and a mine heading a lighting field to answer for. See [light.md](./subsystems/light.md), [civics.md](./subsystems/civics.md). |
+| `lib/perception/` | `PublicLightingMixin` | **street lighting as a property of the street** — a row declares the service (`flux`, a `detail` id, a `seniority`) and whether it burns is derived from the hour and from whether the covering extent paid tonight. **No lamp object exists anywhere.** ⚠ Composed on `platform/location/Street` and nowhere else: it went on `Location` for one build, which gave a cellar and a mine heading a lighting field to answer for. See [light.md](./subsystems/light.md), [civics.md](./subsystems/civics.md). |
 | `lib/thermal/` | `SpaceHeatingMixin` | **a fire that warms the room it stands in**, `spaceHeatOutputW()` summed by the envelope's integration. Composed by `Hearth` and `Campfire` and NOT by `Forge` — *a lit forge must not warm the room it stands in* is kept by composition, so nothing anywhere asks "is this a forge". See [thermal.md](./subsystems/thermal.md). |
 | `lib/stuff/` | `CostumedMixin` | ⭐ **the third designation beside `props:` and `cast:`** — `costume:`, what a cast member wears, on a body rather than a place. Same rail: an `instruction:` field, a Phase-2 applier, a once-flag, and the class gated on `Mixins.Wearable` **before** anything is cloned. Composed by `NPC`. ⚠ Not `wardrobe` — that is `lib/slot/Wardrobe.ts`, a player's saved named outfits. See [persistence.md](./subsystems/persistence.md) § Props and cast. |
 | `lib/thermal/` | `ThermalMixin` | the generic heat-exchange capability: lazy Newton's-cooling-on-read (mirrors `Metabolic`) with a **sync** `getTemperature()` via a cached ambient refreshed at re-stamp events (`onMoved` / ambient-shift fan-out / seal toggle / bulk transfer); τ = R·C from `Tangible` mass × `Material` specific heat + the medium/wall conductivity series; a sealed `Sealable` host → vacuum barrier. Composed by any Tangible+Containable Stuff (`Receptacle`/`Flask`/`Campfire`) and by `Creature` (corpse algor mortis). No Api. See [thermal.md](./subsystems/thermal.md). |
@@ -1749,7 +1749,7 @@ If you're reading the older planning docs and wondering where Phases
 (Communications) shipped as part of Phase 3 messaging plus the
 say/tell controllers in `content/platform/cmd/` and `mud/platform/idea/cmd/`. Phase 6
 (Extended Object Model) shipped as `Thing.ts`, `Detailed.ts`,
-`Propertied.ts`, `CartesianLocation.ts` in `lib/stuff/` and
+`Propertied.ts`, `Location.ts` in `lib/stuff/` and
 `lib/spatial/`. Implementation status now lives in
 [roadmap.md](./roadmap.md).
 

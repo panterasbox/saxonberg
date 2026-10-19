@@ -4,7 +4,7 @@
 # counting-houses precedent): the grid exits into the sphere and the
 # sphere exits back to the exact grid cell it was entered from. A
 # one-sided crossing is how a player ends up somewhere with no way home.
-class: /platform/location/SingletonSphericalLocation
+class: /platform/location/SphericalLocale
 data:
   shortDescription: Hush
   register: definite

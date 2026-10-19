@@ -14,7 +14,7 @@ import { MqlApi } from '../../../../api/mql';
 import { ContainmentApi } from '../../../../api/containment';
 import { ContainerMixin } from '../../../spatial/Container';
 import { ContainableMixin } from '../../../spatial/Containable';
-import Location from '../../../stuff/Location';
+import Place from '../../../stuff/Place';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
@@ -68,7 +68,7 @@ describe('sandbox-escape: lookup', () => {
       null,
       'stage',
       async () => {
-        const room = await StuffApi.create(() => new Location());
+        const room = await StuffApi.create(() => new Place());
         const actor = await StuffApi.create(() => new TestActor());
         const circleItem = await StuffApi.create(() => new Contraband());
         ContainmentApi.move(actor, room);

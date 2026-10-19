@@ -7,7 +7,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Provision from '../../../platform/thing/Provision';
 import Midden from '../../../platform/thing/Midden';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Material from '../Material';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ScheduleApi } from '../../../api/schedule';
@@ -68,7 +68,7 @@ describe('⭐ rotten food rots away, and a midden takes it', () => {
   });
 
   it('loose in a room, three days past rotten, it is gone', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const food = meat();
     ContainmentApi.move(food as never, room as never);
     food.getMicrobialLoad(); // seed the clock

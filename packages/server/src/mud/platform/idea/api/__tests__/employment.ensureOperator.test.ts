@@ -18,7 +18,7 @@ import {
   type Doc,
 } from "../../../../world/lounge/__tests__/lounge-fixtures";
 import TemplateApplier from "../../TemplateApplier";
-import Location from "../../../../lib/stuff/Location";
+import Place from "../../../../lib/stuff/Place";
 import Thing from "../../../thing/Thing";
 import { ContainmentApi } from "../../../../api/containment";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
@@ -77,7 +77,7 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     // location graph's record, derived from each house's own
     // `operatingLocations` — and the fixtures stand there, live.
     attachGraph({ [ROOM]: [[BIZ_A, "house"], [BIZ_B, "house"], [BIZ_C, "house"]] });
-    const room = makeStuffAtPath(() => new Location(), ROOM);
+    const room = makeStuffAtPath(() => new Place(), ROOM);
     for (const f of [FIXTURE_A, FIXTURE_B, FIXTURE_C]) {
       const t = makeStuffAtPath(() => new Thing(), f);
       ContainmentApi.move(t as never, room as never);

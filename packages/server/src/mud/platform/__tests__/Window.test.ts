@@ -2,7 +2,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import Window from '../thing/Window';
 import { Boundary } from '../../lib/boundary/Boundary';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
 import { BoundaryApi } from '../../api/boundary';
 import { StuffApi } from '../../api/stuff';
@@ -134,8 +134,8 @@ describe('Window', () => {
 
   it('attachExistingBoundary plus destruct round-trip', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 

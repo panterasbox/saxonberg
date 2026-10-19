@@ -14,7 +14,7 @@ import { WorldClockApi } from '../worldclock';
 import { StuffApi } from '../stuff';
 import { Quantity } from '../../lib/quantity';
 import Locality from '../../platform/idea/Locality';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {
   WEATHER_DEFAULTS,
@@ -23,7 +23,7 @@ import {
 
 const SEG = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function locality(address: string): Locality {
   const l = makeStuff(() => new Locality());

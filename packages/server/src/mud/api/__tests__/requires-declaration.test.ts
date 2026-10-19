@@ -26,7 +26,7 @@ import { ShadowApi } from '../shadow';
 import { MixinApi } from '../mixin';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { NamedMixin } from '../../lib/description/Named';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -143,8 +143,8 @@ describe('requires: — a slot states what it accepts', () => {
    * affordance resolver was offering `attack`, `drink` and `talk`
    * against; a kind declaration is what stopped it.
    */
-  it('refuses a Location for a slot that wants a living thing', async () => {
-    const room = makeStuff(() => new Location()) as unknown as Stuff;
+  it('refuses a Place for a slot that wants a living thing', async () => {
+    const room = makeStuff(() => new Place()) as unknown as Stuff;
     expect(await refusalFor('VitalsMixin', room)).toMatch(/isn't alive/);
   });
 

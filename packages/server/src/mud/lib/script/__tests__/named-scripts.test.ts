@@ -13,7 +13,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import { Idea } from "../../stuff/Idea";
 import { CommandGiverMixin } from "../../command/CommandGiver";
 import { EnvironmentMixin } from "../../shell/Environment";
@@ -54,7 +54,7 @@ const CONTROLLERS: Record<string, string> = {
 
 describe("named scripts — def persistence + make", () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -75,7 +75,7 @@ describe("named scripts — def persistence + make", () => {
     // These names are session `def`s, not catalogue recipes — the
     // can-make gate keys off a recipe view, so make it resolve to none.
     vi.spyOn(CraftingApi, "lookupRecipe").mockResolvedValue(null);
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });

@@ -5,23 +5,23 @@
  * (build on `ensureFloor`, reap top-down on `reconcile`, destruct on
  * `teardown`).
  *
- * A plain non-coordinate `Location` (a clone can't hold fixed grid coords;
+ * A plain non-coordinate `Place` (a clone can't hold fixed grid coords;
  * it hangs off the lobby / the floor below by live-ref stair exits, not grid
  * adjacency) with the exit + description surface. It holds the floor's
  * `DormDoor`s and the `down` (to the floor below) + `up` (a `FloorStairExit`)
  * stairs. No persistence — floors reconstitute from the durable slot set.
  * No `Named` — a generic labelled room.
  *
- *   Exitable → Detailed → Visible → Location
+ *   Exitable → Detailed → Visible → Place
  */
 
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 const CorridorBase = ExitableMixin(
-  Location,
+  Place,
 );
 
 export default class Corridor extends CorridorBase {

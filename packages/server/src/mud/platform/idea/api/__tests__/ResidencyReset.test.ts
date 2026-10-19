@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import StockBase from "../../../../lib/retail/Stock";
 import Good from "../../../../lib/stuff/Good";
 import { Vessel } from "../../../../lib/stuff/Vessel";
-import Location from "../../../../lib/stuff/Location";
+import Place from "../../../../lib/stuff/Place";
 import { ResettableMixin } from "../../../../lib/residency/Resettable";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import { Idea } from "../../../../lib/stuff/Idea";
@@ -73,7 +73,7 @@ describe("residency reset sweep", () => {
   });
 
   it("resets a non-present resettable to baseline", async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const demo = makeStuff(() => new ResettableDemo());
     ContainmentApi.move(demo, room);
     await ResidencyApi.resetNow();
@@ -81,7 +81,7 @@ describe("residency reset sweep", () => {
   });
 
   it("skips a resettable while a player occupies its room (default)", async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const demo = makeStuff(() => new ResettableDemo());
     ContainmentApi.move(demo, room);
     const spy = presentIn(room);
@@ -100,7 +100,7 @@ describe("residency reset sweep", () => {
   // pinned at a core with five of five debugger pauses landing in this
   // walk. Nothing asserted the no-touch half, which is how it shipped.
   it("walking the presence check does not TOUCH the containers it walks", async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     // A container standing in the room, with the resettable inside it —
     // so the presence walk has a real ancestor hop to make.
     const crate = makeStuff(() => new Vessel());
@@ -110,7 +110,7 @@ describe("residency reset sweep", () => {
     // Somebody is present SOMEWHERE, so the walk actually runs (it
     // early-returns on an empty present set — which is why this cliff
     // only appears once a player logs in).
-    const elsewhere = makeStuff(() => new Location());
+    const elsewhere = makeStuff(() => new Place());
     const restore = presentIn(elsewhere);
     // The setup's own moves record custody asynchronously (the movement
     // primitive derives it) — let that land before the reading.
@@ -128,7 +128,7 @@ describe("residency reset sweep", () => {
 
   it("observe mode repops nothing", async () => {
     setSetting(AppSettingKeys.residencyResetMode, "observe");
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const demo = makeStuff(() => new ResettableDemo());
     ContainmentApi.move(demo, room);
     await ResidencyApi.resetNow();
@@ -136,7 +136,7 @@ describe("residency reset sweep", () => {
   });
 
   it("the shop's Stock restocks to par even while browsed (override)", async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const stock = makeStuffAtPath(() => {
       const s = new Stock();
       s.stockLines = [{ itemTemplatePath: TORCH, par: 2 }];

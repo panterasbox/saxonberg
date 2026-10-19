@@ -222,7 +222,7 @@ Locked in, free out: you need the key to get IN, never to get out.
 An edge off a road into a holding needs a *direction*, and the obvious
 one is wrong. Naming it for the holding (`lot-7`, `unit-3` — what is
 stencilled on the stake or screwed to the door) is not a direction at
-all: `CartesianLocation.addExit` refuses a non-cardinal direction between
+all: `Location.addExit` refuses a non-cardinal direction between
 two rooms of the same zone, so every such edge had to be pushed across a
 zone boundary before it was legal, and it never had an inverse.
 

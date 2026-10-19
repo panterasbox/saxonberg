@@ -16,7 +16,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Exit from '../../../../lib/boundary/Exit';
 import Good from '../../../../lib/stuff/Good';
@@ -72,8 +72,8 @@ function woodMaterial(): Material {
  * the whole point of the build is that an ordinary room does this.
  * `extent: 2` is a closet: 8 m³, the smallest honest sealed space.
  */
-function room(zone: CartesianZone, x: number, extent = 2): CartesianLocation {
-  const r = makeStuff(() => new CartesianLocation());
+function room(zone: CartesianZone, x: number, extent = 2): Location {
+  const r = makeStuff(() => new Location());
   r.setShortDescription(`room-${x}`);
   r.setExtent(extent);
   zone.addLocation(r, x, 0, 0);
@@ -82,7 +82,7 @@ function room(zone: CartesianZone, x: number, extent = 2): CartesianLocation {
 
 /** A stack of firewood heavy enough to use up a closet's air. */
 async function burningStack(
-  where: CartesianLocation,
+  where: Location,
   massKg = 20,
 ): Promise<Firewood> {
   const w = makeStuff(() => {
@@ -101,7 +101,7 @@ async function burningStack(
   return w;
 }
 
-async function occupy(where: CartesianLocation): Promise<void> {
+async function occupy(where: Location): Promise<void> {
   const n = seq++;
   const occ = makeStuff(() => new TestOccupant());
   await ContainmentApi.move(occ, where);
@@ -114,12 +114,12 @@ async function occupy(where: CartesianLocation): Promise<void> {
   interactive.setHolder(occ as unknown as HasInteractive & Stuff);
 }
 
-function airShare(r: CartesianLocation): number {
+function airShare(r: Location): number {
   return BiomeApi.airShareOf(
     BiomeApi.resolveAtmosphereContentsFor(r as unknown as Stuff & Container),
   );
 }
-function amountOf(r: CartesianLocation, path: string): number {
+function amountOf(r: Location, path: string): number {
   const hit = BiomeApi.resolveAtmosphereContentsFor(
     r as unknown as Stuff & Container,
   ).find((c) => c.type === path);
@@ -238,7 +238,7 @@ describe('fire chemistry — the oxygen leg, derived', () => {
 
   it('a scope with no derivable volume accepts nothing — an Offstage room is not a place', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const r = makeStuff(() => new CartesianLocation());
+    const r = makeStuff(() => new Location());
     // No extent, no zone → getVolume() is null.
     const accepted = (r as unknown as {
       addAtmosphereContent(p: string, l: number): number;

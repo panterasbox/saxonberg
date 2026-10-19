@@ -1,10 +1,9 @@
 # The place taxonomy — Place, Locale, Location
 
-> **Status: DECIDED (user, 2026-10-18, the cleanliness MR review), RENAME UNBUILT.**
-> **Left:** the rename — `Location` → `Place` (the root), the Locale and
-> Location pairs (cartesian and spherical), `FurnishableRoom` →
-> `PersistentLocation` · the `/platform/location/` path segment.
-> **Size:** a build (the user: to be done right after the context compaction).
+> **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18).**
+> **Left:** the `/…/location/` path segment (branch folder + content trees)
+> · `VoidLocation`'s name.
+> **Size:** a sweep.
 
 ## The decision (user, 2026-10-18)
 
@@ -39,7 +38,7 @@ Rules the user set on the way:
 **visit** a locale; you **fill** a location. Each class header's first
 line says it.
 
-## The rename map (measured 2026-10-18)
+## The rename map (measured 2026-10-18; the class rows ✅ done in !380)
 
 | today | becomes | reach |
 |---|---|---|
@@ -49,6 +48,7 @@ line says it.
 | `platform/location/FurnishableRoom` | `PersistentLocation` | 48 files |
 | `platform/location/SingletonSphericalLocation` | `SphericalLocale` | 1 row |
 | `platform/location/SphericalLocation` | unchanged | — |
+| `platform/location/VoidLocation` | ? — a place that is neither (builds on `Place`, one row); not renamed | 14 files |
 | `PersistentCartesianLocation` | `PersistentLocale` | ✅ done (14 rows) |
 | `Field`, `MineRoom` (minted, kept, keyed) | keep their names, the `PersistentLocation` shape | — |
 | `Wood`, `OpenWorking`, `Turbary` (authored, kept) | keep their names, the `PersistentLocale` shape | — |
@@ -64,3 +64,21 @@ line says it.
   RELATION — the root's header says so.
 - `PersistableLocations.test` walks `platform/location/` — it must walk the
   new directory if the segment renames.
+
+## Done in !380 — and what was left
+
+✅ `lib/stuff/Location` → `Place` (`isPlace()`), `CartesianLocation` →
+`Location` (lib geometry + platform twin, one shared name),
+`SingletonCartesianLocation` → `Locale` (both tiers), `FurnishableRoom` →
+`PersistentLocation`, `SingletonSphericalLocation` → `SphericalLocale`;
+rows, tests, gates, docs. A scripted rename over ~690 files; the runtime
+branch-file allowlist (`Stuff._registerTopLevelBranch`) and four gates
+(`lint:module-scope`, `lint:ground`'s root-class probe, the field-meta
+golden, Studio's base list) named the root by string and were fixed by hand.
+
+⏸ **The path segment** stays `location` for now: ~1,100 references in 50+
+content trees, nearly all of them room identity paths that exits and
+warren plans point at — a different kind of change (directory moves, every
+exit target), and the three sibling builds author rows under those paths.
+Whether `/platform/location/` → `/platform/place/` (and every
+`<root>/location/` content tree with it) is the open question.

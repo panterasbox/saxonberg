@@ -480,7 +480,7 @@ these files changed in dairy.
   split: `StagedMixin` bundles `props:` WITH `cast:`, so composing it
   on a person claims that person contains a cast.** `StagedMixin`
   otherwise composes on `Pump`, `Well`, `GardenBed`, `PlantPot`,
-  `FurnishableRoom`, `CartesianLocation`, the cold stores. The `props:`
+  `PersistentLocation`, `Location`, the cold stores. The `props:`
   / `cast:` keys carry a `Behaved` gate both ways (a `Behaved` prop
   throws at hydrate). `lint:boot-entries` admits a content boot row
   whose reason cites `unobserved-economy-slate` (terminus
@@ -1292,7 +1292,7 @@ Checked at plan time against `CLAUDE.md` and the current tree:
 
 - **`props:` / `cast:`** — every new row uses them; the tinker's kit is
   `props:` on a Cast row (D14). No `populates:`, no `container:`.
-- **Locations, not rooms** — new places are `SingletonCartesianLocation`
+- **Locations, not rooms** — new places are `Locale`
   under a `CartesianZone` (the tailor's shape); the tinker's offstage is
   a `/platform/location/Offstage` row.
 - **The five axes / `<root>/<branch>/`** — smithing parts at
@@ -2291,7 +2291,7 @@ generated file.
 | `Chair.ts`, `Garment.ts`, `Tool.ts`, `Vat.ts`, `Receptacle.ts`, `Timber.ts` | repair W1 recomposes them first (merge order); cleanliness re-grounds its W0 on repair's W1 and adds `Soilable`/`Labelled` to the new chains; `Timber.ts`: keep repair's chain, add cleanliness's `seasonPhrase` override, pin it with the byte-identity test. |
 | wear from non-use sources | cleanliness's bleach rot / burns call `Durable.wear()` (mendable; the condition word shows them); repair's `MendRecord` is written only by a mend, never by wash damage. |
 | the doorman | cleanliness may add an optional `wornBelow` clause reading Durable condition (its call). |
-| repair's new venues (cobbler shop, tinker yard) | plain `SingletonCartesianLocation`; if cleanliness wants their floors' soil to survive a restart it re-classes them (its call). |
+| repair's new venues (cobbler shop, tinker yard) | plain `Locale`; if cleanliness wants their floors' soil to survive a restart it re-classes them (its call). |
 | docs | `retail.md` / `employment.md`: cleanliness **extends** repair's *a priced service is performed by a person* section rather than writing a parallel one. |
 
 ### Changes this section made to repair's own decisions

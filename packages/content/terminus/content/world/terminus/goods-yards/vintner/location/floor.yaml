@@ -2,12 +2,12 @@
 # `container:` — the sweep stands them at target here) and the hand whose
 # `consigns` beat carries them to the cash-and-carry. No exits: the hand
 # teleports (the `shifts` shape); a walk is the locomotion slate's.
-# An ordinary location, not a FurnishableRoom: that class is the
+# An ordinary location, not a PersistentLocation: that class is the
 # FURNISHING archetypes' base. A trade floor's durability lives on its
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
@@ -37,7 +37,7 @@ data:
   # OPENINGS: the ferments put carbon dioxide into the room, the trapdoor
   # is what carries it away, and this row says neither. ⚠ It used to
   # author a `%` air Reserve that the applier silently DROPPED, because
-  # `SingletonCartesianLocation` never composed `ReservedMixin` — so this
+  # `Locale` never composed `ReservedMixin` — so this
   # cellar has had unlimited air for its whole life. It behaves now.
   props:
     - /world/terminus/goods-yards/vintner/thing/stock

@@ -6,7 +6,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Thing from '../Thing';
 import { StuffApi } from '../../../api/stuff';
-import Location from '../Location';
+import Place from '../Place';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { MixinApi } from '../../../api/mixin';
@@ -42,14 +42,14 @@ describe('Thing', () => {
     });
 
     it('should set environment via ContainmentApi.move', () => {
-      const location = makeStuff(() => new Location());
+      const location = makeStuff(() => new Place());
 
       ContainmentApi.move(thing, location);
       expect(thing.getContainer()).toBe(location);
     });
 
     it('should be added to container via ContainmentApi', () => {
-      const location = makeStuff(() => new Location());
+      const location = makeStuff(() => new Place());
 
       ContainmentApi.move(thing, location);
 
@@ -58,8 +58,8 @@ describe('Thing', () => {
     });
 
     it('should be removed from old container when moved', () => {
-      const location1 = makeStuff(() => new Location());
-      const location2 = makeStuff(() => new Location());
+      const location1 = makeStuff(() => new Place());
+      const location2 = makeStuff(() => new Place());
 
       // Add to first location
       ContainmentApi.move(thing, location1);

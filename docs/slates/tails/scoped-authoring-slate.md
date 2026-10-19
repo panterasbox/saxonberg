@@ -35,7 +35,7 @@
 >
 > **"Every player authors their own space" shipped as *furnishing*, not
 > field-writing.** [furnishing.md](../../subsystems/furnishing.md) —
-> owner-based persistence, `place`, the estate slice, `FurnishableRoom`,
+> owner-based persistence, `place`, the estate slice, `PersistentLocation`,
 > the room overlay — over [residence.md](../../subsystems/residence.md)
 > (the dorm) and [chattel.md](../../subsystems/chattel.md) (title). A
 > player arranging their dorm today **is** doing scoped personal

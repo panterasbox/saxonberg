@@ -8,7 +8,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import { BiomeApi } from '../../../../api/biome';
@@ -23,7 +23,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { WEATHER_PROFILES } from '../../../../lib/weather/WeatherType';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const BASE_T = 295; // K
 const BASE_P = 101_325; // Pa
@@ -66,7 +66,7 @@ function installRootBiome(): void {
 }
 
 /** A room whose biome composes SkyExposedMixin (weather-eligible). */
-function skyRoom(): Location {
+function skyRoom(): Place {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
     b.setExtendsBiomePath('/stuff/idea/biome/universe');
@@ -78,7 +78,7 @@ function skyRoom(): Location {
 }
 
 /** A room whose biome is a plain (indoor / sheltered) Biome. */
-function indoorRoom(): Location {
+function indoorRoom(): Place {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
     b.setExtendsBiomePath('/stuff/idea/biome/universe');

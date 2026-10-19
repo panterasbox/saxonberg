@@ -14,7 +14,7 @@ import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainmentApi } from '../../../api/containment';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
@@ -217,12 +217,12 @@ describe('WetMixin — the host set is the matter seam', () => {
   afterEach(() => WorldClockApi._resetForTesting());
 
   it('matter (Thing / Vessel / Agent) is wettable; space + Ideas are not', () => {
-    // "Can get wet" ⟺ "is matter" (Tangible). A Location is *space*, not
+    // "Can get wet" ⟺ "is matter" (Tangible). A Place is *space*, not
     // matter, so it is neither Tangible nor Wet; a pure Idea is neither.
     expect(MixinApi.isWet(makeStuff(() => new Good()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Vessel()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Agent()))).toBe(true);
-    expect(MixinApi.isWet(makeStuff(() => new Location()))).toBe(false);
+    expect(MixinApi.isWet(makeStuff(() => new Place()))).toBe(false);
     expect(MixinApi.isWet(makeStuff(() => new Idea()))).toBe(false);
   });
 });

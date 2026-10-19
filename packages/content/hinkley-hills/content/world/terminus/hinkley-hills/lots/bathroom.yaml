@@ -7,7 +7,7 @@
 # ⭐ This is why the generic archetype stays tier-agnostic: whether a house
 # has a copper is the HOUSE's answer, made in rows like this one — a
 # second hot-water house is one more row, no code.
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 data:
   ambientSource: sky
   ambientOpening: window

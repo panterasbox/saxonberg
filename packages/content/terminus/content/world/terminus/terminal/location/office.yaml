@@ -3,7 +3,7 @@
 # exit is declared explicitly here, the `up` on the hall). The terminal clerk
 # works here; `props` stands the clerk NPC up on hydrate, and the clerk's
 # onCreate stands up the city-budget Business (Phase 4). Generic room.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: Terminus ticket office
   keywords: [office, terminus, ticket]

@@ -1,20 +1,20 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import CartesianLocation from '../CartesianLocation';
+import Location from '../Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-describe('CartesianLocation.setCoords', () => {
+describe('Location.setCoords', () => {
   afterEach(() => {
     StuffApi.clearAll();
   });
 
   function makeRoomInZone() {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     Stuff._stampZone(room, zone);
     return { zone, room };
   }
@@ -44,7 +44,7 @@ describe('CartesianLocation.setCoords', () => {
   });
 
   it('throws when no zone resolves from template-path ancestry', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     await expect(
       room.setCoords({ x: 0, y: 0, z: 0 })
     ).rejects.toThrow(/no zone resolved/);

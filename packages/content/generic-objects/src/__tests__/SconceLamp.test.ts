@@ -17,7 +17,7 @@ import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
-import Location from "@saxonberg/server/mud/lib/stuff/Location";
+import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Adornable } from "@saxonberg/server/mud/lib/boundary/Adornable";
@@ -47,7 +47,7 @@ describe("SconceLamp", () => {
 
   it("hangs on a room's fixture map, and refuses to be in its contents while it does", () => {
     const s = lamp();
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const host = room as unknown as Stuff & Adornable;
 
     expect(MixinApi.isAdornment(s as unknown as Stuff)).toBe(true);

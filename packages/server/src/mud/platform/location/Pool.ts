@@ -25,11 +25,11 @@
  * build's — walking on it, how thick it is).
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 
-export default class Pool extends SwimmableMixin(ShoreMixin(SingletonCartesianLocation)) {
+export default class Pool extends SwimmableMixin(ShoreMixin(Locale)) {
   /** A pool is swum every way it opens; a row may narrow it. */
   public override axes: string[] = ['*'];
 

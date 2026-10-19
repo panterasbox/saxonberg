@@ -131,8 +131,8 @@ requirements or a sibling's assumption.
 
 ### Places
 
-- ⚠ **Most named venues keep no record.** Only `FurnishableRoom`
-  (`S/platform/location/FurnishableRoom.ts` =
+- ⚠ **Most named venues keep no record.** Only `PersistentLocation`
+  (`S/platform/location/PersistentLocation.ts` =
   `Persistable(WarrenMember(Reserved(… Location)))`, "venue-generic on
   purpose", **never a singleton, not cartesian — authors no `coords`**)
   and pack-owned Field/Wood/MineRoom/Turbary/OpenWorking compose
@@ -140,7 +140,7 @@ requirements or a sibling's assumption.
   (`C/hearthworks/…/location/cookhouse.yaml`, `coords` authored), byre
   (`C/hearts-delight/…/dairy/location/byre.yaml`), both mills, the
   chandlery floor, the general store, the ward, the glazier's hut are
-  `SingletonCartesianLocation` or `Street`. `CartesianLocation.ts:19–29`:
+  `Locale` or `Street`. `Location.ts:19–29`:
   *"It keeps no record"* — because a **multi-instance** record was
   write-only; a singleton keyed by its own template path is exactly what
   `PersistableMixin` defaults to. ⭐ **`StuffApi.singleton` already
@@ -153,7 +153,7 @@ requirements or a sibling's assumption.
   `AdornableMixin.captureSlice` (`S/lib/boundary/Adornable.ts:146–173`)
   reports chattel fixtures to the estate and returns `{fields: {}}`;
   fixtures are rebuilt from the row on hydrate (:213–230). The floor is a
-  fixture (`Location.ensureFloor`, `S/lib/stuff/Location.ts:368–430`,
+  fixture (`Location.ensureFloor`, `S/lib/stuff/Place.ts:368–430`,
   `addFixture(minted, 'floor')`); `FloorMixin` fieldMeta is `onGrade`,
   `worked` only (`S/lib/ground/Floor.ts:328–331`); `markupAugmenters =
   [floorAugmenter, snowAugmenter]` (:280–326) is where a soiling line
@@ -207,14 +207,14 @@ requirements or a sibling's assumption.
   at Hearts' Delight `millsite.yaml` (a `Street`, sky-exposed → no air
   contents). `MillController.finishGrind` (`C/trade-milling/src/idea/cmd/milling/MillController.ts:384–470`)
   has the room in scope.
-- Byre: `SingletonCartesianLocation`, props 3 pails, water-butt, block,
+- Byre: `Locale`, props 3 pails, water-butt, block,
   knife; the herd is a record (`dairy-book.yaml`, `Herdbook.tally 6`,
   `homeExtent` the **yard**). No manure row; `feed`
   (`S/platform/idea/cmd/bulk/FeedController.ts`) spreads `compost`-tagged
   bulk into soil nitrogen with no code. ⚠ Nothing reports nitrogen
   (`SoilSurveyReading.ts` has no nutrient line; `SurveyController.ts`
   reads archetypes + the holding only, :100–135).
-- Homes: Hinkley kitchen (`FurnishableRoom`; `/stuff/thing/fixture/range`
+- Homes: Hinkley kitchen (`PersistentLocation`; `/stuff/thing/fixture/range`
   = class `Oven`; window is `ambientOpening: window`, a detail); Seznick
   main (empty grate, windows are details); dorm (no burner). The only
   `Window` objects are the two Rejection hut windows.
@@ -372,7 +372,7 @@ requirements or a sibling's assumption.
   `Garment`, `Receptacle`, `Vat`, `Tool`, `Weapon` with `AssembledMixin`
   (`Lamp.getEmittedFlux` keeps the failed-facing factor); the bank gains a
   **named `yard` exit**; the cobbler shop and tinker yard stay
-  `SingletonCartesianLocation`. Hotspots: OrderController, Tariff,
+  `Locale`. Hotspots: OrderController, Tariff,
   PricedOffer, SurveyController, CraftingLogic, Garment, Chair, Lamp,
   Timber, general-store counter, the field-meta golden, the wiki-spoiler
   snapshot.
@@ -909,7 +909,7 @@ seams, and the stove house — a sooty stove inside a glasshouse whose
 grimed roof would cool the latex tap — is its first consumer. Homes: a
 window that is a prose detail cannot grime; the drive's home is
 **Hinkley** and its kitchen gains a real `Window` row over the counter
-window (`kitchen ↔ yard`, both FurnishableRoom; `baseTransmissivity 0.85`,
+window (`kitchen ↔ yard`, both PersistentLocation; `baseTransmissivity 0.85`,
 keywords `window, glass`) **and drops `ambientSource: sky` /
 `ambientOpening: window`** from `lots/kitchen.yaml` — the ambient rung
 does not pass through the object, so keeping it would let grime dim only
@@ -1369,12 +1369,12 @@ cost (AC 22).
 
 **D31 — Persistence: a singleton place that keeps a record, and
 fixtures that keep their state.** (a) `S/platform/location/PersistentLocale.ts`
-= `PersistableMixin(SingletonCartesianLocation)` — ONE row, ONE place, ONE
+= `PersistableMixin(Locale)` — ONE row, ONE place, ONE
 record keyed by its template path; `StuffApi.singleton` already restores
 or seeds-and-captures it (grounding), props capture as unstamped contents
 (the Oven's `flueSoot`, a tub's water), chattel owner-side, cast transient
 (`reseedCast`), air contents (dust) ride `runtimeState`. ⛔ Not
-`FurnishableRoom` (not cartesian — the venues author `coords`; and
+`PersistentLocation` (not cartesian — the venues author `coords`; and
 `WarrenMember`/`Reserved` claim a holding's room). Re-classed rows: the
 cookhouse, the byre, the chandlery floor, the textile mill floor, the
 glazier's hut, the infirmary ward, the general-store shop floor, the
@@ -1391,7 +1391,7 @@ slot (the floor's `deposits`/`strewn`/`stallsStamp`, a Window's
 with the same state, last wins). The Floor's own comment (`Floor.ts:343–350`)
 is the spec. ⛔ Not a floor-keyed `(scope, key)` record per room (one
 `holder_snapshots` row per Location at mint — the write-only failure the
-`CartesianLocation` header records; storage's `IceSheet` record is one
+`Location` header records; storage's `IceSheet` record is one
 pool's big log, a different case). **Capture is explicit**: every act in
 this plan that writes a Soilable, Flued or floor field calls
 `PersistableApi.captureHostOf(thing)` after it (a worn garment → the
@@ -1443,7 +1443,7 @@ stay in the plan as insurance, not as the intended path.
   keeps `immerse(parts?)` side-effect-only (our rinse goes inside); reads
   the dug-out sawdust before any clock jump; keys `reface` on the stored
   line key; declares `SEASONS` in `CLOSED_BY_DESIGN`; authors the
-  icehouse rooms as `SingletonCartesianLocation`; re-runs the cookhouse
+  icehouse rooms as `Locale`; re-runs the cookhouse
   steps on a fresh DB after both land; names our `Floor.hasPests()` /
   `pestRatePerHour` as vermin's substrate and our midden as spoiled
   packing's `dispose`; makes no `CLAUDE.md` edits. **If we land first**
@@ -1639,7 +1639,7 @@ Run these against `origin/master` and record the answers in § Grounding:
   `BOOT_ENTRY_CEILING` 83 → **85, approved by the owner 2026-10-17**
   for storage's two entries (cleanliness adds NONE — both catalogues
   warm lazily — so at our merge the ceiling is master's, unchanged); the icehouse rooms are
-  `SingletonCartesianLocation` (`lint:location-classes`).
+  `Locale` (`lint:location-classes`).
 
 ---
 
@@ -1673,7 +1673,7 @@ Run these against `origin/master` and record the answers in § Grounding:
 | `bleach(dose)` | `DyedMixin` | any dyed thing fades under an oxidiser dose | — |
 | `DirtKind`, `Cleanser` (Ideas) + two catalogues | `platform/idea/` | row families; nothing composes them | — |
 | `WashPolicy`, `WashSpec`/`WashOutcome`, `WaterHardness`, `StainRecord` | `lib/cleanliness/` value objects | nothing composes them | instance-shaped (`lint:lib-statics` at ceiling) |
-| `PersistentLocale` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not FurnishableRoom (coords; warren claims) |
+| `PersistentLocale` | `platform/location/` | one authored place on a grid whose state outlives the process; props capture, chattel owner-side | ⛔ not PersistentLocation (coords; warren claims) |
 | fixture-state slice | `AdornableMixin.captureSlice`/materialize | a persistable host remembers its non-chattel fixtures' runtime state | — |
 | `Tub` (`Bulkable(Thermal(Chair))` — Soilable comes through `Chair`, never composed twice) | `platform/thing/Tub` | a seat you lie in that holds water | the `fixture/tub` row re-classed; the bathroom archetype unchanged |
 | `KeptDoor` (Exit subclass) + `kept-door` kind row | `platform/idea/` | an exit that asks a doorman ON SHIFT at the business the row names | no doorman on shift → open; never a gauge; a seat, never presence |
@@ -1706,7 +1706,7 @@ passes its hand parts, everything else passes `''`.
   nothing; the attendant and doorman carry nothing; the washerwomen hold a
   basket as a room prop.
 - **Locations, not rooms** — `PersistentLocale` /
-  `SingletonCartesianLocation`; `FurnishableRoom` only where a holding
+  `Locale`; `PersistentLocation` only where a holding
   furnishes.
 - **The `<root>/<branch>/` pattern** — kernel rows in the platform pack
   (`/platform/idea/DirtKind/*`, `/platform/idea/Cleanser/*`,
@@ -1757,7 +1757,7 @@ passes its hand parts, everything else passes `''`.
   the locality title), `lint:schema` (untouched), **`lint:bills`** (no new
   recipe output here, but rows over `Tool`, `Receptacle` and `Mould` meet
   its arms 7b/7d once repair lands — confirm green), **`lint:location-classes`**
-  (`PersistentLocale` extends `SingletonCartesianLocation`, so
+  (`PersistentLocale` extends `Locale`, so
   `extendsAny` finds it; every authored place is a singleton). ⭐ **And
   the wiki-spoiler audit** (`src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts`
   + `.snap`, a vitest, not a `lint:*`): every new `fieldMeta` field needs
@@ -2553,10 +2553,10 @@ Read first, in this order.
 3. `S/lib/vitals/Hygiene.ts`, `S/lib/slot/Attired.ts:120–140, 575–620`,
    `S/platform/idea/cmd/crafting/WashController.ts`, `wash.yaml`,
    `S/lib/craft/Serviceable.ts:30–56`, `S/lib/material/Contaminable.ts`.
-4. `S/platform/location/{CartesianLocation,FurnishableRoom}.ts` headers,
+4. `S/platform/location/{Location,PersistentLocation}.ts` headers,
    `S/api/stuff.ts:800–836`, `S/lib/persistence/Persistable.ts` header,
    `S/lib/boundary/Adornable.ts:140–235`, `S/lib/ground/Floor.ts`,
-   `S/lib/stuff/Location.ts:365–430`.
+   `S/lib/stuff/Place.ts:365–430`.
 5. `S/platform/idea/JointCatalogue.ts` (the catalogue shape),
    `scripts/check-template-scans.ts:58–95`, `scripts/check-closed-vocabularies.ts`.
 6. `S/lib/maturation/{MaturationProfile,Maturing,Seasoning}.ts`,
@@ -2890,10 +2890,25 @@ Read first, in this order.
   particular place, a **Location** one of many laid out to a plan, either
   `Persistent…`; spherical says so (`SphericalLocale` / `SphericalLocation`).
   This build's `PersistentCartesianLocation` → **`PersistentLocale`**
-  (done, 14 rows). The rest of the rename — the root, `SingletonCartesian
-  Location` → `Locale`, `FurnishableRoom` → `PersistentLocation`, the
-  spherical singleton — is `place-taxonomy-slate`, to be done in this MR
-  after the context compaction.
+  (done, 14 rows).
+- **B52 — The place rename, by class name** (review; `place-taxonomy-slate`).
+  Root `lib/stuff/Location` → `Place` (`isPlace()`); `CartesianLocation` →
+  `Location` (the lib geometry root shares the twin's name, the default for
+  lib/platform pairs — no `CartesianPlace` coined); `SingletonCartesian
+  Location` → `Locale`; `FurnishableRoom` → `PersistentLocation` (it is not
+  on the grid, so it builds on `Place` and does not extend `Location` —
+  recorded in location.md); `SingletonSphericalLocation` → `SphericalLocale`.
+  Scripted over ~690 files, root first so the two `Location`s never meet.
+  Hand fixes where the root was named by STRING: the runtime branch-file
+  allowlist in `Stuff._registerTopLevelBranch` (tsc cannot see it; a boot
+  would have died), `lint:module-scope`, `lint:ground`'s root probe, the
+  field-meta golden, Studio's base list. ⏸ The `/…/location/` path segment
+  is NOT renamed (~1,100 identity-path references) — the slate's open
+  question. Round fixes the full lint family found on the way: the
+  `isHygienic` combat allowlist entry, the Hinkley bathroom lot in
+  `FURNISHED`, the archetype test's `Midden`, and `Wet.dryingOutlook`'s
+  `BiomeApi` import cycle (the read moved to `Atmospheric.dryingConditions`
+  — the air is the place's to describe).
 
 ## Drive record
 

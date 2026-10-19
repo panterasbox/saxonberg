@@ -131,8 +131,8 @@ interface Row {
  * with no persistent field and no `captureSlice` (`api/mixin.ts`), so a
  * `fieldMeta`-less mixin is INVISIBLE to it: `Ingot` and `Casting`
  * looked identical and differ by `ManualBuildMixin`; `Receptacle` and
- * `UnboundedReceptacle` by `UnboundedSourceMixin`; `CartesianLocation`
- * and `SingletonCartesianLocation` by `SingletonMixin`. The contributor
+ * `UnboundedReceptacle` by `UnboundedSourceMixin`; `Location`
+ * and `Locale` by `SingletonMixin`. The contributor
  * walk is right for FIELDS and wrong for IDENTITY.
  */
 function mixinNamesOf(ctor: AnyConstructor): string[] {

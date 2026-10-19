@@ -12,7 +12,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { ClientStateMixin } from '../../connection/ClientState';
@@ -65,11 +65,11 @@ const fakeInteractive = {
 
 describe('executeCommand per-bar input mode', () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });

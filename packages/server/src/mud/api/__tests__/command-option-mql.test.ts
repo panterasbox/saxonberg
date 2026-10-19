@@ -27,7 +27,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Location from '../../lib/stuff/Location';
+import type Place from '../../lib/stuff/Place';
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -69,7 +69,7 @@ function cmdWithObjectsOption(): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   cmd: CommandDefinition,
   text: string,
 ): CommandContext {
@@ -112,7 +112,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     const cmd = cmdWithObjectOption();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'destruct --mql rose',
     );
@@ -128,7 +128,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     const cmd = cmdWithObjectsOption();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'eval --on rose',
     );
@@ -145,7 +145,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     const cmd = cmdWithObjectOption();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'destruct --mql bathtub',
     );
@@ -160,7 +160,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     const cmd = cmdWithObjectsOption();
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'eval --on bathtub',
     );
@@ -189,7 +189,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     );
     const ctx = makeContext(
       giver,
-      location as unknown as Location,
+      location as unknown as Place,
       cmd,
       'destruct --mql rose',
     );

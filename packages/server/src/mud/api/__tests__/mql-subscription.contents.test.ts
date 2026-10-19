@@ -28,7 +28,7 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -49,11 +49,11 @@ interface CapturedEnvelope {
 async function setup(): Promise<{
   interactive: Interactive;
   avatar: Avatar;
-  location: Location;
+  location: Place;
   envelopes: CapturedEnvelope[];
 }> {
   await bootRegistry();
-  const location = await StuffApi.create(() => new Location());
+  const location = await StuffApi.create(() => new Place());
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName('Alice');
   ContainmentApi.move(avatar, location);
@@ -198,7 +198,7 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
   it('non-Container host: substrate omits the contents field', async () => {
     // Projection of detail fields against a non-Container Stuff yields
     // no `contents` key. Use `projectFields` directly against an Idea
-    // instance (Avatar / Location both compose ContainerMixin).
+    // instance (Avatar / Place both compose ContainerMixin).
     await bootRegistry();
     const { MqlSubscriptionApi, DETAIL_FIELDS } = await import(
       '../mql-subscription'

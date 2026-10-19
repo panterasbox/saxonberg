@@ -72,8 +72,8 @@ Not from memory — these change, and a plan written against a stale
 convention is rework. Check the current state of at least:
 
 - `props:` / `cast:` designation (`populates:` is retired).
-- Locations, not rooms — `CartesianLocation` / `SphericalLocation`;
-  `FurnishableRoom` is for interiors somebody furnishes.
+- Locations, not rooms — `Location` / `SphericalLocation`;
+  `PersistentLocation` is for interiors somebody furnishes.
 - The five namespace axes and `<root>/<branch>/` path pattern.
 - Module scope declares; lifecycles initialize.
 - The import boundary (`lint:imports`) and the module categories —

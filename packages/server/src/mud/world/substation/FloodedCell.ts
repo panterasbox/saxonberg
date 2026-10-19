@@ -10,7 +10,7 @@
  * A **one-off demonstrator room** (the precedent was the lounge's glass
  * alley, since retired into `HazardMixin`) — NOT a
  * reusable `HazardMixin`; the reusable abstraction is `ElectricityApi.conduct`
- * itself. A proper {@link CartesianLocation}: it lives at `[x,y,z]` in the
+ * itself. A proper {@link Location}: it lives at `[x,y,z]` in the
  * substation's {@link CartesianZone} (`/world/substation`).
  *
  * The **only** bespoke behavior is the hazard trigger — `onEntered` conducts
@@ -26,13 +26,13 @@
  * See docs/subsystems/electricity.md.
  */
 
-import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
+import Locale from '../../lib/location/Locale';
 import { MixinApi } from '../../api/mixin';
 import { ElectricityApi } from '../../api/electricity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 
-export default class FloodedCell extends SingletonCartesianLocation {
+export default class FloodedCell extends Locale {
   /**
    * The hazard: fired on the destination when a body walks in (the
    * `Mobile.traverse` → `onEntered` seam). Conduct from every live source in

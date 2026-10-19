@@ -3,7 +3,7 @@
 # the units spawn onto), a crate of empty bags, and the runner's carried
 # cooler. Cross-zone cardinal exit WEST back to the ward, both sides
 # explicit.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: collection room
   keywords: [collection, room]

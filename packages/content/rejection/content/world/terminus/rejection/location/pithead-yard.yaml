@@ -10,7 +10,7 @@
 # ⭐ The OUTCROP is here, and it is the reason the surface zone carries
 # the deposit: `measure strike` works standing in the yard, on the green
 # stain running out from under the spoil.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: pithead yard

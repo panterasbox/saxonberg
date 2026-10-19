@@ -5,7 +5,7 @@
 # finite `air` reserve because it is the room you deliberately run a
 # fire in — a lit range behind a closed door burns incomplete (D12's
 # lesson, at home).
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

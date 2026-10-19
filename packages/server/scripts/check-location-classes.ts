@@ -1,16 +1,16 @@
 /**
- * check-location-classes — **`FurnishableRoom` is the furnishing
+ * check-location-classes — **`PersistentLocation` is the furnishing
  * archetypes' base, not the default room class.**
  *
  * The vocabulary is LOCATION, and it has two axes:
  *
- *   - the coordinate system — `CartesianLocation` / `SphericalLocation`;
+ *   - the coordinate system — `Location` / `SphericalLocation`;
  *   - the instancing — plain (a row describing a KIND of place, minted
  *     many times) versus `Singleton…` (one row IS one place, and a
  *     second `clone()` is refused).
  *
- * `FurnishableRoom` is neither axis: it is the INTERIOR SOMEBODY
- * FURNISHES — a `CartesianLocation` that also carries `Persistable`,
+ * `PersistentLocation` is neither axis: it is the INTERIOR SOMEBODY
+ * FURNISHES — a `Location` that also carries `Persistable`,
  * `WarrenMember` and `Reserved`, because a tenant's goods land in it and
  * must survive.
  *
@@ -42,8 +42,8 @@ import { reaches } from "./check-mass";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
-const FURNISHABLE = "/platform/location/FurnishableRoom";
-const MINTED = "/platform/location/CartesianLocation";
+const FURNISHABLE = "/platform/location/PersistentLocation";
+const MINTED = "/platform/location/Location";
 /** The kernel's own spatial-zone classes — the roots of the walk below. */
 const ZONE_ROOTS = [
   "/platform/idea/location/CartesianZone",
@@ -76,14 +76,14 @@ const ZONE_ROOTS = [
  * The kernel's cartesian-room classes. A pack's own room class —
  * `trade-mining`'s `AuthoredWorking` and `MineRoom` — extends one of
  * these, and the same derivation finds them: a check that matched on the
- * NAME `CartesianLocation` skipped every pack room silently, which is
+ * NAME `Location` skipped every pack room silently, which is
  * how a gate becomes a gate-shaped comment.
  */
 const CARTESIAN_ROOTS = [
-  "/platform/location/CartesianLocation",
-  "/platform/location/SingletonCartesianLocation",
-  "/platform/location/FurnishableRoom",
-  "/lib/location/CartesianLocation",
+  "/platform/location/Location",
+  "/platform/location/Locale",
+  "/platform/location/PersistentLocation",
+  "/lib/location/Location",
 ];
 
 /*
@@ -105,18 +105,18 @@ function isCartesianClass(classPath: string): boolean {
 }
 
 /**
- * Every row on the PERMISSIVE `CartesianLocation` — a row that describes
+ * Every row on the PERMISSIVE `Location` — a row that describes
  * a KIND of place, minted many times.
  *
  * ⚠⚠ This roster exists because the name is a **semantic trap across
- * branches**. `/platform/location/CartesianLocation` used to be
+ * branches**. `/platform/location/Location` used to be
  * `/platform/location/Room`, and it carried `SingletonMixin` — one row
  * WAS one place, and a second `clone()` was refused. This build flipped
  * the axis: the mixin SUBTRACTS (a class without it still backs a
  * singleton template through `StuffApi.singleton()`; a class with it can
  * back only singleton templates), so the unmarked name went to the
  * permissive class and authored places moved to
- * `SingletonCartesianLocation`.
+ * `Locale`.
  *
  * That means the SAME STRING names opposite things depending on which
  * branch you came from, and a merge that resolves cleanly by text will
@@ -128,7 +128,7 @@ function isCartesianClass(classPath: string): boolean {
  * So the minted set is enumerated too. Three rows, and each is a KIND:
  * a venue archetype minted per venue, a corridor minted per floor, a
  * road segment minted as frontage fills. An authored place — a hub, a
- * hollow, a cookhouse — belongs on `SingletonCartesianLocation`.
+ * hollow, a cookhouse — belongs on `Locale`.
  */
 const MINTED_ROWS = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/road-segment.yaml",
@@ -137,14 +137,14 @@ const MINTED_ROWS = [
 ];
 
 /**
- * Every row on `FurnishableRoom`, and each is a room a PLAYER puts
+ * Every row on `PersistentLocation`, and each is a room a PLAYER puts
  * their own goods in: the three shipped archetypes, a bought house's
  * rooms, a let unit's rooms.
  */
 const FURNISHED = [
   // ⭐ The dorm room joined the roster in the base-class narrowing
   // (2026-09-30), and it joined by becoming what it always was: it now
-  // `extends FurnishableRoom`, whose own docstring had said for two
+  // `extends PersistentLocation`, whose own docstring had said for two
   // builds that *"`DormRoom` IS a room archetype … and it has been
   // carrying the correct composition all along"*. The warren assigns
   // its position at runtime, which is exactly what this list is for.
@@ -152,6 +152,7 @@ const FURNISHED = [
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/lots/bathroom.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
@@ -236,9 +237,9 @@ function against(
    * ⚠⚠ **A SUBCLASS counts, and this read `r.cls === cls` until the
    * base-class narrowing (2026-09-30).** An exact string match on the
    * row's `class:` cannot see a class that EXTENDS the one named — so
-   * when `DormRoom` became `extends FurnishableRoom` (which
-   * `FurnishableRoom`'s own docstring had been asking for), the gate
-   * said the row "no longer uses FurnishableRoom" while it had just
+   * when `DormRoom` became `extends PersistentLocation` (which
+   * `PersistentLocation`'s own docstring had been asking for), the gate
+   * said the row "no longer uses PersistentLocation" while it had just
    * started to.
    *
    * ⭐ Same blindness as the composition census, which reads rows and
@@ -246,9 +247,9 @@ function against(
    * `extends` clause, expanding module-local `const` bases.
    *
    * ⚠⚠ **Opt-in, and the other caller must NOT have it.** For
-   * `FurnishableRoom` a subclass is the same kind of thing. For
-   * `CartesianLocation` the subclass is the whole DISTINCTION:
-   * `SingletonCartesianLocation`'s docstring says *"the mixin
+   * `PersistentLocation` a subclass is the same kind of thing. For
+   * `Location` the subclass is the whole DISTINCTION:
+   * `Locale`'s docstring says *"the mixin
    * SUBTRACTS, which is why this is the marked name"* — a singleton
    * row is exactly what the permissive-base check is not complaining
    * about. Following the chain there reported all 116 singleton rows
@@ -284,7 +285,7 @@ export function allYamlFiles(contentDir: string = CONTENT): string[] {
   return out;
 }
 
-/** The findings: rows on `FurnishableRoom` that are not in the roster. */
+/** The findings: rows on `PersistentLocation` that are not in the roster. */
 export function classify(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
@@ -302,7 +303,7 @@ export function classify(rows: readonly Row[]): {
  * that used to be inside it silently falls back to the enclosing zone.
  *
  * That is not cosmetic. These boundaries are what make a non-cardinal
- * exit legal (`CartesianLocation.addExit` allows one only ACROSS a zone),
+ * exit legal (`Location.addExit` allows one only ACROSS a zone),
  * so an orphaned zone re-arms a throw on a door that has worked for
  * months — and it re-arms it in the world, not in a suite, because a
  * fixture that omits zone rows skips the rule entirely. It has happened
@@ -332,15 +333,15 @@ export function orphanedZones(rows: readonly Row[], files: readonly string[]): s
 /**
  * ⚠⚠ **A cartesian row with `coords:` and no `CartesianZone` over it.**
  *
- * `CartesianLocation.setCoords` calls `zone.addLocation`, so a row that
+ * `Location.setCoords` calls `zone.addLocation`, so a row that
  * authors coordinates in a directory no spatial zone covers throws at
  * HYDRATE — and if the row is in a pack's `boot:` list, that is a FATAL
  * boot error rather than a warning.
  *
  * It is a merge hazard, not a typo, which is why it is worth a gate:
- * `FurnishableRoom` is deliberately NOT cartesian, so a `coords:` block
+ * `PersistentLocation` is deliberately NOT cartesian, so a `coords:` block
  * on one is inert data nobody reads. Move that row to
- * `SingletonCartesianLocation` — as the residences build did for three
+ * `Locale` — as the residences build did for three
  * trade floors — and the dead block becomes LIVE, in a directory that
  * never needed a zone before. Nothing else notices until a boot.
  *
@@ -373,7 +374,7 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * warren or floorplan assigns dynamically.**
  *
  * ⚠⚠ The reason it needs a gate is that the failure is INVISIBLE.
- * `CartesianLocation.setCoords` is the only path by which an authored
+ * `Location.setCoords` is the only path by which an authored
  * row joins a zone, so a row with no coords is not sitting at the
  * origin — it is in no grid at all, and it silently inherits nothing a
  * zone carries: no `address` and therefore no Locality, no
@@ -395,7 +396,7 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * Rows a WARREN places at runtime — the plot rule's own exemption list.
  *
  * ⚠ It is separate from `MINTED_ROWS` on purpose: that roster answers a
- * different question (*which rows are on plain `CartesianLocation`*) and
+ * different question (*which rows are on plain `Location`*) and
  * is asserted to be exactly those, so a row on any other class cannot
  * join it. This one answers *who stamps the cell* and is class-agnostic.
  *
@@ -444,7 +445,7 @@ export function unplottedLocations(rows: readonly Row[]): string[] {
 /**
  * ⚠⚠ **A NON-CARDINAL exit between two rows in the same zone.**
  *
- * `CartesianLocation.addExit` admits a non-cardinal direction only
+ * `Location.addExit` admits a non-cardinal direction only
  * ACROSS a zone boundary — the rule that guarantees a grid exit has a
  * known inverse. A named door (`out`, `house`, `unit-3`) between two
  * rooms the same zone covers therefore THROWS at hydrate, and again a
@@ -516,7 +517,7 @@ function ancestorsOf(path: string): string[] {
   return out;
 }
 
-/** The findings: rows on the permissive `CartesianLocation`. */
+/** The findings: rows on the permissive `Location`. */
 export function classifyMinted(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
@@ -544,8 +545,8 @@ function main(): void {
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
-        `FurnishableRoom, every one a room somebody furnishes; ` +
-        `${MINTED_ROWS.length} on CartesianLocation, every one a KIND; ` +
+        `PersistentLocation, every one a room somebody furnishes; ` +
+        `${MINTED_ROWS.length} on Location, every one a KIND; ` +
         `every zone row zones something; every cartesian row PLOTS on a ` +
         `coordinate system; every row's coords and named doors are legal.`,
     );
@@ -558,9 +559,9 @@ function main(): void {
         `\`zone.addLocation\`, so these throw at hydrate — and a row in a ` +
         `pack's \`boot:\` list turns that into a FATAL boot error.\n\n` +
         `  ⚠ Usually the block is dead data that came alive: ` +
-        `\`FurnishableRoom\` is deliberately NOT cartesian, so \`coords:\` ` +
+        `\`PersistentLocation\` is deliberately NOT cartesian, so \`coords:\` ` +
         `on one is ignored — and moving the row to ` +
-        `SingletonCartesianLocation makes it live.\n\n` +
+        `Locale makes it live.\n\n` +
         `  ⚠⚠ GIVE IT A ZONE. An earlier revision of this message said to ` +
         `delete the coords instead, and that advice was taken and was ` +
         `WRONG: coords are the MEMBERSHIP operation, so deleting them ` +
@@ -592,7 +593,7 @@ function main(): void {
     console.error(
       `\ncheck-location-classes: ${namedSameZone.length} NON-CARDINAL ` +
         `exit(s) between rows the SAME zone covers. ` +
-        `\`CartesianLocation.addExit\` admits a named direction only ` +
+        `\`Location.addExit\` admits a named direction only ` +
         `ACROSS a zone boundary — the rule that guarantees a grid exit ` +
         `has a known inverse — so these throw at hydrate.\n\n` +
         `  ⚠ Add a zone where the authorship of the space genuinely ` +
@@ -619,7 +620,7 @@ function main(): void {
         `  ⚠ If these arrived from a branch where this class was named ` +
         `Room and carried SingletonMixin, they are AUTHORED PLACES and ` +
         `the merge has silently stripped their singleton guard. They ` +
-        `want /platform/location/SingletonCartesianLocation. Only a row ` +
+        `want /platform/location/Locale. Only a row ` +
         `that describes a KIND of place, minted many times, belongs ` +
         `here — and it goes in the roster in this file:`,
     );
@@ -636,9 +637,9 @@ function main(): void {
   if (unexpected.length > 0) {
     console.error(
       `\ncheck-location-classes: ${unexpected.length} row(s) use ` +
-        `FurnishableRoom without being furnished by anybody. That class ` +
+        `PersistentLocation without being furnished by anybody. That class ` +
         `carries a persistence record; a room nobody furnishes wants a ` +
-        `plain CartesianLocation (minted) or SingletonCartesianLocation ` +
+        `plain Location (minted) or Locale ` +
         `(one row = one place), with durability on its fixtures:`,
     );
     for (const f of unexpected) console.error(`  ✗ ${f}`);
@@ -646,7 +647,7 @@ function main(): void {
   if (missing.length > 0) {
     console.error(
       `\ncheck-location-classes: ${missing.length} roster row(s) no longer ` +
-        `use FurnishableRoom. If that is deliberate, drop them from the ` +
+        `use PersistentLocation. If that is deliberate, drop them from the ` +
         `roster in this file:`,
     );
     for (const f of missing) console.error(`  ✗ ${f}`);

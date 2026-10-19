@@ -25,7 +25,7 @@ import Condenser from '../thing/Condenser';
 import Gasometer from '../thing/Gasometer';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import { Recipe } from '@saxonberg/server/mud/lib/craft/Recipe';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -70,12 +70,12 @@ function installMaterial(rel: string, path: string): Material {
 
 describe('the retort', () => {
   let zone: CartesianZone;
-  let yardRoom: CartesianLocation;
+  let yardRoom: Location;
 
   beforeEach(() => {
     installV1QuantityMarshallers();
     zone = makeStuff(() => new CartesianZone());
-    yardRoom = makeStuff(() => new CartesianLocation());
+    yardRoom = makeStuff(() => new Location());
     zone.addLocation(yardRoom, 0, 0, 0);
     installMaterial('stuff/idea/material/bulk/wood-tar.yaml', TAR);
     installMaterial('stuff/idea/material/bulk/coal-tar.yaml', COAL_TAR);

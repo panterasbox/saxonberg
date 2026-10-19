@@ -98,7 +98,7 @@ class composes, used or not."* Measured at runtime via
 | `Exit` | 1 | 14 |
 | `Thing` | **7** | **19** |
 | `Vessel` | 9 | 38 |
-| `CartesianLocation` | 13 | 44 |
+| `Location` | 13 | 44 |
 | `Extra` | **50** | 83 |
 | `Cast` | **53** | 92 |
 | `Avatar` | **65** | 101 |

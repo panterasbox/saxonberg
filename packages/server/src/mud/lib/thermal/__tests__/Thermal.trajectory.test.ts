@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import Biome from "../../biome/Biome";
-import CartesianLocation from "../../location/CartesianLocation";
+import Location from "../../location/Location";
 import CartesianZone from "../../../platform/idea/location/CartesianZone";
 import { Creature } from "../../creature/Creature";
 import { ThermalMixin } from "../Thermal";
@@ -70,10 +70,10 @@ function loaf(k: number): Loaf {
   });
 }
 
-function room(): CartesianLocation {
+function room(): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   (r as unknown as { setEnclosure(f: unknown): void }).setEnclosure({

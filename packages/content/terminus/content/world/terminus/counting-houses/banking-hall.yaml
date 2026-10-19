@@ -9,7 +9,7 @@
 # clones each boot); the Business stands up lazily off its operatingLocations.
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: Goodkin banking hall
   keywords: [hall, goodkin, banking]

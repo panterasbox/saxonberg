@@ -24,7 +24,7 @@ import Blank from '../thing/Blank';
 import Board from '../thing/Board';
 import { boardsFrom, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -76,12 +76,12 @@ function fromRow(name: string): Sawmill {
   return s;
 }
 
-let room: Location;
+let room: Place;
 
 beforeEach(() => {
   StuffApi.clearAll();
   WorldClockApi._resetForTesting();
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
 });
 
 describe('the sawmill — one class, two rungs, and the rate is the river\'s', () => {

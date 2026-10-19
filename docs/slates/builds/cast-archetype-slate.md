@@ -72,7 +72,7 @@ lives in prose the engine cannot read, and gets retyped per character.
 
 > *"WHY A CLASS (and not pure seed data): there is no declarative seed
 > path to put gear on a creature. `populates:` is composed only on rooms
-> (`CartesianLocation`), not on `Creature`/`Character`/`NPC`, and
+> (`Location`), not on `Creature`/`Character`/`NPC`, and
 > worn/wielded occupancy is deliberately runtime-only… So a fresh NPC
 > clone always boots with empty hands and empty slots."*
 

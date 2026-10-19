@@ -29,7 +29,7 @@ import { CommandApi } from '@saxonberg/server/mud/api/command';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
@@ -96,7 +96,7 @@ const stubCommand = CommandDefinition.fromYaml(
 );
 
 let actor: TestActor;
-let room: Location;
+let room: Place;
 let said: string[];
 
 function ctx(): CommandContext {
@@ -129,7 +129,7 @@ function refusal(c: CommandContext): string | null {
 
 beforeEach(async () => {
   WorldClockApi._resetForTesting();
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   said = actor.lines;
   await ContainmentApi.move(actor as never, room as never);

@@ -9,7 +9,7 @@ live here has moved to `lib/location/` — see the sibling doc below.
 Sibling docs cover related ground without overlap:
 
 - [location.md](./location.md) — the room/coordinate/zone **geometry**
-  (`Location`, `CartesianLocation`, `SphericalLocation`, the coordinate
+  (`Location`, `Location`, `SphericalLocation`, the coordinate
   mixins, `CartesianZone`, `SphericalZone`, `ZoneApi` resolution) plus
   the Warren elastic-graph (MultiLocation) substrate. All in
   `lib/location/`.
@@ -36,7 +36,7 @@ Sibling docs cover related ground without overlap:
 
 ## The Cast
 
-The room / coordinate / zone classes (`Location`, `CartesianLocation`,
+The room / coordinate / zone classes (`Location`, `Location`,
 `SphericalLocation`, the coordinate mixins, `CartesianZone`,
 `SphericalZone`, `ZoneApi`) live in `lib/location/` — see
 [location.md](./location.md); the `Zone` hierarchy roots are in
@@ -58,7 +58,7 @@ substrate in `lib/spatial/`:
 
 ## Class Hierarchy
 
-The room/zone **geometry** tree (`Location` → `CartesianLocation` /
+The room/zone **geometry** tree (`Location` → `Location` /
 `SphericalLocation`; the `Zone` / `SpatialZone` / `CartesianZone` /
 `SphericalZone` hierarchy) is in [location.md](./location.md) and
 [zone.md](./zone.md). The branches this doc covers:
@@ -663,7 +663,7 @@ not storage](./embodiment.md). The recipient is gated by the
 ## Locations, Coordinates, Zones
 
 Moved out of `lib/spatial/` and into `lib/location/`. Rooms
-(`Location` / `CartesianLocation` / `SphericalLocation`), the coordinate
+(`Location` / `Location` / `SphericalLocation`), the coordinate
 mixins (`CartesianCoordinatesMixin` / `SphericalCoordinatesMixin`), and
 the concrete spatial zones (`CartesianZone`, `SphericalZone`) — together
 with `ZoneApi` resolution and the setter-with-side-effects pattern — are
@@ -930,7 +930,7 @@ Public methods (all on `NavigationApi`):
 - `isCardinalDirection(direction)` → boolean.
 - `cardinalDirections()` → readonly array of all 10.
 
-Used heavily: `CartesianLocation.addExit` validates against
+Used heavily: `Location.addExit` validates against
 `isCardinalDirection`; `CartesianZone.getNeighbor`
 goes through `normalizeDirection` and `directionOffset`;
 `Exitable.addBidirectionalExit` uses `invertDirection` for inferred

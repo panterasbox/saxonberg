@@ -15,7 +15,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Exit from '../../boundary/Exit';
 import { BiomeApi } from '../../../api/biome';
@@ -37,14 +37,14 @@ const CO2 = '/stuff/idea/material/gas/carbon-dioxide';
 
 let seq = 0;
 
-function room(zone: CartesianZone, x: number): CartesianLocation {
-  const r = makeStuff(() => new CartesianLocation());
+function room(zone: CartesianZone, x: number): Location {
+  const r = makeStuff(() => new Location());
   r.setShortDescription(`contents-room-${x}`);
   zone.addLocation(r, x, 0, 0);
   return r;
 }
 
-function openYard(zone: CartesianZone, x: number): CartesianLocation {
+function openYard(zone: CartesianZone, x: number): Location {
   const r = room(zone, x);
   seq += 1;
   r.setBiome(
@@ -56,7 +56,7 @@ function openYard(zone: CartesianZone, x: number): CartesianLocation {
   return r;
 }
 
-function contentsOf(r: CartesianLocation): Record<string, number> {
+function contentsOf(r: Location): Record<string, number> {
   const out: Record<string, number> = {};
   for (const c of BiomeApi.resolveAtmosphereContentsFor(
     r as unknown as Stuff & Container,
@@ -132,7 +132,7 @@ describe('AtmosphericMixin — what the medium carries', () => {
   });
 
   it('a scope with no derivable volume is not a place and accepts nothing', () => {
-    const r = makeStuff(() => new CartesianLocation()); // no zone, no extent
+    const r = makeStuff(() => new Location()); // no zone, no extent
     expect(r.getVolume()).toBeNull();
     expect(r.addAtmosphereContent(SMOKE, 10000)).toBe(0);
     expect(r.airShare()).toBe(1);

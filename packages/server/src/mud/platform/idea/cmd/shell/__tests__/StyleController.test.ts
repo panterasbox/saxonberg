@@ -25,7 +25,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -53,7 +53,7 @@ function stubCommand(): CommandDefinition {
   );
 }
 
-function makeContext(actor: TestActor, location: Location): CommandContext {
+function makeContext(actor: TestActor, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
@@ -82,13 +82,13 @@ function getOverlay(actor: TestActor): StyleOverlay {
 
 describe('StyleController', () => {
   let actor: TestActor;
-  let location: Location;
+  let location: Place;
   let pushSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, location);
     // Stub the push wire so we don't need a backend; assert the call

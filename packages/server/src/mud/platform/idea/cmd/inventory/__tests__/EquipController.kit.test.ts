@@ -32,7 +32,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import Good from '../../../../../lib/stuff/Good';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Character } from '../../../../../lib/character/Character';
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
@@ -81,7 +81,7 @@ class Chest extends ContainerMixin(ContainableMixin(Good)) {
 let seq = 0;
 let clockNow = 1000;
 
-function standUp(): { body: Wearer; loc: Location; plan: string } {
+function standUp(): { body: Wearer; loc: Place; plan: string } {
   installV1QuantityMarshallers();
   WorldClockApi._resetForTesting();
   WorldClockApi._setNowProviderForTesting(() => clockNow);
@@ -129,7 +129,7 @@ function standUp(): { body: Wearer; loc: Location; plan: string } {
   const body = makeStuff(() => new Wearer());
   body.setSpecies(species);
 
-  const loc = makeStuff(() => new Location());
+  const loc = makeStuff(() => new Place());
   ContainmentApi.move(body as never, loc as never);
   return { body, loc, plan: planPath };
 }
@@ -145,7 +145,7 @@ function garment(plan: string, fabric: string, keyword: string): Garment {
   return g;
 }
 
-function ctx(body: Wearer, loc: Location, verb = 'equip'): CommandContext {
+function ctx(body: Wearer, loc: Place, verb = 'equip'): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: body as never,
     location: loc as never,
@@ -340,7 +340,7 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
    * be no word to read — one arg spanning both mixins gives the
    * controller no way to tell the two intentions apart.
    */
-  function armoured(): { body: Wearer; loc: Location; gauntlet: Gauntlet } {
+  function armoured(): { body: Wearer; loc: Place; gauntlet: Gauntlet } {
     const { body, loc, plan } = standUp();
     // Plate on the torso first: band 3, so nothing woven goes over it.
     const cuirass = garment(plan, 'plate', 'cuirass');

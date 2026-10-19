@@ -28,7 +28,7 @@
  * WHY A CLASS (and not pure seed data), as of when this was written:
  * there was no declarative seed path to
  * put gear on a creature. `props:` is composed only on rooms
- * (`CartesianLocation`), not on `Creature`/`Character`/`NPC`, and worn/
+ * (`Location`), not on `Creature`/`Character`/`NPC`, and worn/
  * wielded occupancy is deliberately runtime-only (never persisted, never
  * seedable — see `lib/slot/Slotted.ts`). So a fresh NPC clone always boots
  * with empty hands and empty slots. The supported pattern is the one

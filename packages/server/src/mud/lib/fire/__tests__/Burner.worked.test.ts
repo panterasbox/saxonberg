@@ -24,7 +24,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Good from '../../stuff/Good';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { LightSourceMixin } from '../../perception/LightSource';
@@ -64,7 +64,7 @@ class TestRealFlame extends FlameBase {
   public override maxBurnPowerW = 2000;
 }
 
-function amountOf(r: CartesianLocation, path: string): number {
+function amountOf(r: Location, path: string): number {
   const hit = BiomeApi.resolveAtmosphereContentsFor(
     r as unknown as Stuff & Container,
   ).find((c) => c.type === path);
@@ -73,12 +73,12 @@ function amountOf(r: CartesianLocation, path: string): number {
 
 describe('a worked flame', () => {
   let zone: CartesianZone;
-  let cell: CartesianLocation;
+  let cell: Location;
 
   beforeEach(() => {
     installV1QuantityMarshallers();
     zone = makeStuff(() => new CartesianZone());
-    cell = makeStuff(() => new CartesianLocation());
+    cell = makeStuff(() => new Location());
     cell.setExtent(2); // a sealed 8 m³ test cell
     zone.addLocation(cell, 0, 0, 0);
   });
@@ -134,7 +134,7 @@ describe('a worked flame', () => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
     zone = makeStuff(() => new CartesianZone());
-    cell = makeStuff(() => new CartesianLocation());
+    cell = makeStuff(() => new Location());
     cell.setExtent(2);
     zone.addLocation(cell, 0, 0, 0);
     const r = real();
@@ -148,7 +148,7 @@ describe('a worked flame', () => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
     zone = makeStuff(() => new CartesianZone());
-    cell = makeStuff(() => new CartesianLocation());
+    cell = makeStuff(() => new Location());
     cell.setExtent(2);
     zone.addLocation(cell, 0, 0, 0);
     const r = real();

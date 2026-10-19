@@ -35,8 +35,6 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
-import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -179,10 +177,11 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public dryingOutlook(): 'never' | 'outdoors' | 'indoors' | 'enclosed' {
       const self = this as unknown as Stuff;
       const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-      if (!where || !MixinApi.isContainer(where)) return 'enclosed';
-      const scope = where as Stuff & Container;
-      if (BiomeApi.airFor(scope).humidityPct >= 95) return 'never';
-      return BiomeApi.isSkyExposed(scope) ? 'outdoors' : 'indoors';
+      // The air is the place's to describe (`Atmospheric.dryingConditions`)
+      // — and asking it keeps the biome reads out of a mixin every Thing
+      // composes (a value import of `BiomeApi` here closes an import cycle).
+      if (!where || !MixinApi.isAtmospheric(where)) return 'enclosed';
+      return where.dryingConditions();
     }
 
     public getWetness(): number {

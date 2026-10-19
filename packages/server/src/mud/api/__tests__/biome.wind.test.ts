@@ -8,7 +8,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
@@ -19,7 +19,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function installRootBiome(): Biome {
   return makeStuffAtPath(() => {

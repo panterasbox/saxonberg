@@ -48,7 +48,7 @@ import type {
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -203,7 +203,7 @@ export interface CardOpenOptions {
  * something needs it.
  */
 function subjectKindOf(stuff: Stuff): StuffKind {
-  if (stuff instanceof Location) return 'location';
+  if (stuff instanceof Place) return 'location';
   if (stuff instanceof Agent) return 'agent';
   if (stuff instanceof Idea) return 'idea';
   return 'thing';

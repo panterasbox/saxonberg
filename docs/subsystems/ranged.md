@@ -76,7 +76,7 @@ Thresholds are `combat.range.nearMetres` / `farMetres`. A bar fight
 stays a knife fight by physics, and because outdoor cells are already
 authored larger, the frontier arms itself.
 
-`Location.getLinearExtent()` is the one number. `CartesianLocation`
+`Location.getLinearExtent()` is the one number. `Location`
 returns its own persistent `extent` override, else the zone's
 `cellSize`; `SphericalLocation` returns its diameter. A room that
 reports nothing gets the conservative melee cap — an unmeasured room

@@ -185,7 +185,7 @@ export function normalizeClassPath(p: string): string {
  *
  * ⚠⚠ The mixin call is the whole difficulty, and the reason a naive
  * `extends (\w+)` is useless here: a room class is
- * `class AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`,
+ * `class AuthoredWorking extends WorkingMixin(Locale)`,
  * and the first identifier after `extends` is the MIXIN. Reading it as
  * the base made every pack room invisible — and a gate that never fires
  * reads exactly like a gate that passes. So every identifier in the

@@ -1687,7 +1687,7 @@ you reach for the wrong one:
   natural. Rare in this codebase, but real.
 - **Cast-by-invariant** — when an external invariant guarantees
   the relationship (e.g. `CartesianZone.addLocation` rejects
-  non-Cartesian locations, so a `CartesianLocation`'s zone is
+  non-Cartesian locations, so a `Location`'s zone is
   always a `CartesianZone`). Document the invariant; use a
   type-only cast `getZone() as CartesianZone | null`; let the
   optional-call short-circuit handle transient state.
@@ -3000,7 +3000,7 @@ this gap**, none of them visible to a green suite:
 
 | What was tested | What was broken |
 |---|---|
-| `FurnishableRoom`'s fields round-trip | the class composed no `StagedMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
+| `PersistentLocation`'s fields round-trip | the class composed no `StagedMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
 | the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
 | `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
 | ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |
@@ -3152,7 +3152,7 @@ scope: every reap writes a `holder_snapshots` row, they all collide, and
 nothing ever reads them back. Write-only records, on a path that reaps
 constantly by design.
 
-It is easy to fall into because for a long time `FurnishableRoom` was the
+It is easy to fall into because for a long time `PersistentLocation` was the
 only multi-instance location that existed, so anything minted
 many-times-from-one-row had nowhere else to go — and picked up a
 persistence record on the way. Thirteen trade floors and three pieces of
@@ -3162,8 +3162,8 @@ minted scaffolding got one that way.
 about what a class INHERITS, and re-listing a mixin stack instead of
 extending the class that owns the behaviour produces something that
 type-checks, passes every test, and has quietly dropped an override.
-`platform/location/CartesianLocation` shipped re-composed for one commit
-and had lost `CartesianLocation.addExit` — the cardinal-only-intra-zone
+`platform/location/Location` shipped re-composed for one commit
+and had lost `Location.addExit` — the cardinal-only-intra-zone
 rule — so minted road reaches accepted non-cardinal exits while the
 authored lane beside them still refused one.
 
@@ -3171,18 +3171,18 @@ authored lane beside them still refused one.
 
 ```typescript
 // one row, N minted instances, all sharing scope = the row's path
-export default class TitledRoom extends PersistableMixin(CartesianLocation) {}
+export default class TitledRoom extends PersistableMixin(Location) {}
 ```
 
 ### GOOD
 
 ```typescript
 // Singleton: one row IS one place, so the scope is unambiguous.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 
 // …or KEYED: a WarrenMember whose provisioner supplies the key, which
 // is what makes N instances from one row addressable.
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 ```
 
 Enforced by `platform/location/__tests__/PersistableLocations.test.ts`,
@@ -3192,13 +3192,13 @@ most needs to cover are the ones that do not exist yet.
 ### The related question: does it belong on the grid at all?
 
 Separately from persistence, a minted room usually should not be a
-`CartesianLocation` at all, because `getSizeScale()` is the zone's
+`Location` at all, because `getSizeScale()` is the zone's
 `cellSize²` and it is a **photometric denominator**. A yard in a
 `cellSize: 6` zone divided its 600-flux open sky by 36 m² and read
 **16.7 lux** — under the light floor its own crop needed. Plain
 `Location`'s flat 1.0 was the right answer. That regressed a second time
-when the location-class taxonomy briefly put `FurnishableRoom` on the
-cartesian base, which is why `FurnishableRoom` is plain `Location` today
+when the location-class taxonomy briefly put `PersistentLocation` on the
+cartesian base, which is why `PersistentLocation` is plain `Location` today
 and a test pins `getSizeScale() === 1.0`.
 
 Not one shipped furnished row authors `coords`. A floorplan looks like a
@@ -4443,7 +4443,7 @@ the same shape twice.
 
 ## A cartesian location that authors no `coords`
 
-`CartesianLocation.setCoords` is the **only** path by which an authored
+`Location.setCoords` is the **only** path by which an authored
 row joins a zone. A cartesian row with no `coords:` is therefore not
 sitting at the origin — **it is in no grid at all**, and it silently
 inherits nothing a zone carries: no `address` and so no Locality, no

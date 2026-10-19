@@ -1,10 +1,11 @@
 /**
- * SingletonCartesianLocation — the instanceable face of the grid
+ * Locale — you VISIT a locale (one particular place, one row = one
+ * place); you FILL a location. The instanceable face of the grid
  * location that **opts into one live instance per row.**
  *
  * The vocabulary is LOCATION: a Location belongs to a Zone, and the Zone
  * adopts one of two coordinate systems. "Room" implies an interior and
- * is reserved for {@link FurnishableRoom}, the interior somebody
+ * is reserved for {@link PersistentLocation}, the interior somebody
  * furnishes — this class was called `Room` and it was never one; a city
  * crossing, a station hall and a bank frontage are not rooms.
  *
@@ -13,14 +14,14 @@
  * otherwise silently produce two of them sharing a template path.
  *
  * ⚠ The mixin SUBTRACTS, which is why this is the marked name and
- * `CartesianLocation` is the default: a class without `SingletonMixin`
+ * `Location` is the default: a class without `SingletonMixin`
  * backs singleton templates perfectly well (`StuffApi.singleton(path)`
  * get-or-creates, which is how an eager exit resolves its destination),
  * while a class with it can back ONLY singleton templates. Reach for
- * plain `CartesianLocation` when a row describes a KIND of place minted
+ * plain `Location` when a row describes a KIND of place minted
  * many times — a reach of road, a landing per floor.
  */
 
-import SingletonCartesianLocationBase from '../../lib/location/SingletonCartesianLocation';
+import LocaleBase from '../../lib/location/Locale';
 
-export default class SingletonCartesianLocation extends SingletonCartesianLocationBase {}
+export default class Locale extends LocaleBase {}

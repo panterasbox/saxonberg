@@ -16,7 +16,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
 import Material from '../../material/Material';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { UNBOUNDED_CAPACITY } from '../../slot/Slotted';
@@ -159,7 +159,7 @@ describe('getMaterial — authored, then stamped, then nothing', () => {
 
   it("the Location's floor: spec is rung 2", async () => {
     const clay = mat('clay', ['earth']);
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     (room as unknown as { getFloorSpec(): unknown }).getFloorSpec = () => ({
       material: clay.getTemplatePath()!,
       worked: true,
@@ -182,7 +182,7 @@ describe('onGrade — the derivation, and what it is NOT', () => {
   });
 
   it('defaults to derive, and an indoor room at datum is not on grade', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setCoordinates([3, 4, 0]);
     const f = bareFloor();
     room.addFixture(f, 'floor');
@@ -191,7 +191,7 @@ describe('onGrade — the derivation, and what it is NOT', () => {
   });
 
   it('below datum is on grade — a cellar and a gallery both', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setCoordinates([0, 0, -3]);
     const f = bareFloor();
     room.addFixture(f, 'floor');
@@ -199,7 +199,7 @@ describe('onGrade — the derivation, and what it is NOT', () => {
   });
 
   it('an upper storey is not on grade', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setCoordinates([0, 0, 2]);
     const f = bareFloor();
     room.addFixture(f, 'floor');
@@ -245,8 +245,8 @@ describe('rung 3 — the ground beneath, through GroundSourceMixin', () => {
     cited: Record<string, string>,
     cellSize = 1,
     coords: [number, number, number] = [2, 3, -4]
-  ): CartesianLocation {
-    const room = makeStuff(() => new CartesianLocation());
+  ): Location {
+    const room = makeStuff(() => new Location());
     room.setCoordinates(coords);
     (room as unknown as { getZone(): unknown }).getZone = () => ({
       getCellSize: () => cellSize,
@@ -352,7 +352,7 @@ describe('onGrade — the sky-exposure half, which the drive caught', () => {
       () => new SkyExposedBiome(),
       '/test/biome/outdoor'
     );
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setCoordinates([0, 0, 0]);
     room.setBiome(biome);
 
@@ -366,7 +366,7 @@ describe('onGrade — the sky-exposure half, which the drive caught', () => {
       () => new SkyExposedBiome(),
       '/test/biome/outdoor-2'
     );
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setBiome(biome);
     const f = bareFloor();
     room.addFixture(f, 'floor');
@@ -377,7 +377,7 @@ describe('onGrade — the sky-exposure half, which the drive caught', () => {
 
   it('an indoor biome at datum is NOT on grade', () => {
     const biome = makeStuffAtPath(() => new Biome(), '/test/biome/indoor');
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.setBiome(biome);
     const f = bareFloor();
     room.addFixture(f, 'floor');

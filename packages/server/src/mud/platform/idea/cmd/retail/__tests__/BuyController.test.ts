@@ -35,7 +35,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";
 import { StackableApi } from "../../../../../api/stackable";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -186,7 +186,7 @@ function makePotStore(price: number): { stock: Stock; pot: PlantPot } {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   stock: Stock,
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -221,7 +221,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("buy by card: settles, credits the store, hands over + stamps, decrements", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/pat");
     ContainmentApi.move(giver as never, loc as never);
     const card = makeStuff(() => new PaymentCard());
@@ -265,7 +265,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("⭐ a heap on the shelf sells ONE piece at the piece price (the assembly drive)", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/pat");
     ContainmentApi.move(giver as never, loc as never);
     const card = makeStuff(() => new PaymentCard());
@@ -327,7 +327,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("⭐ a broke buyer at a heap is told the price of ONE piece, not the heap (the browser walk)", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/broke");
     ContainmentApi.move(giver as never, loc as never);
     await makeStoreBusiness();
@@ -364,7 +364,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/cash");
     ContainmentApi.move(giver as never, loc as never);
     // Coin on hand, no card.
@@ -405,7 +405,7 @@ describe("BuyController — buy that stamps", () => {
     // path difference and nothing more, so the shipped buy loop has to carry
     // them unchanged — including the chattel stamp, which is what makes the
     // pot the buyer's.
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/gardener");
     ContainmentApi.move(giver as never, loc as never);
     const card = makeStuff(() => new PaymentCard());
@@ -448,7 +448,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("an unattended (closed) counter refuses; nothing changes hands", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/nope");
     ContainmentApi.move(giver as never, loc as never);
 
@@ -474,7 +474,7 @@ describe("BuyController — buy that stamps", () => {
   });
 
   it("⭐ a bare shelf is SOLD OUT, not 'isn't for sale' — the counter lists what it carries (the fishing live drive)", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/bare");
     ContainmentApi.move(giver as never, loc as never);
     const { stock, torch } = makeStore({

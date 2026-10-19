@@ -38,7 +38,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { MqlApi } from '../../../../api/mql';
 import Exit from '../../../../lib/boundary/Exit';
 import Door from '../../../thing/Door';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import { ContainmentApi } from '../../../../api/containment';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -60,17 +60,17 @@ class TestMover extends MoverBase {
 
 describe('a direction match carries a live Exit', () => {
   let zone: CartesianZone;
-  let here: CartesianLocation;
-  let there: CartesianLocation;
+  let here: Location;
+  let there: Location;
   let mover: TestMover;
   let door: Door;
 
   beforeEach(async () => {
     seedKernelContentStore();
     zone = makeStuff(() => new CartesianZone());
-    here = makeStuff(() => new CartesianLocation());
+    here = makeStuff(() => new Location());
     here.setShortDescription('Here');
-    there = makeStuff(() => new CartesianLocation());
+    there = makeStuff(() => new Location());
     there.setShortDescription('There');
     zone.addLocation(here, 0, 0, 0);
     zone.addLocation(there, 0, 1, 0);

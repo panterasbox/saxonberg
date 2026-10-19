@@ -22,7 +22,7 @@ import { ZoneApi } from '../../../api/zone';
 import { BiomeApi } from '../../../api/biome';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -39,7 +39,7 @@ let seq = 0;
 const elevations = new Map<Stuff, number | null>();
 
 function room(elevation: number | null): Stuff & Container {
-  const r = makeStuff(() => new SingletonCartesianLocation());
+  const r = makeStuff(() => new Locale());
   stampTemplatePathForTest(r, `/platform/location/test/reloc-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r as unknown as Stuff & Container;

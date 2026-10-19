@@ -1,5 +1,7 @@
 /**
- * FurnishableRoom — a room that persists **a record of its own**: its
+ * PersistentLocation — you FILL a location (one of many laid out to a
+ * plan — a lot, a dorm room, a let unit); this one is kept. A room that
+ * persists **a record of its own**: its
  * built-in fixtures, its room-level state, and (through the spine's overlay)
  * the owned goods people have placed in it.
  *
@@ -20,12 +22,12 @@
  * lease-gated door is the *door*. So the room stays plain, and the next
  * venue that wants a bathroom writes a seed row.
  *
- * Composition — `CartesianLocation` plus the three layers a room
+ * Composition — `Location` plus the three layers a room
  * somebody FURNISHES needs:
  *
- *   Persistable → WarrenMember → Reserved → CartesianLocation
+ *   Persistable → WarrenMember → Reserved → Location
  *     (which carries Staged, Detailed, Perceptible,
- *     Exitable, CartesianCoordinates, Visible, and Location's Container,
+ *     Exitable, CartesianCoordinates, Visible, and Place's Container,
  *     Adornable, AmbientLit, Atmospheric, Addressable)
  *
  * It sits in the location taxonomy rather than beside it — the axis is
@@ -55,7 +57,7 @@
  * smoke and carbon monoxide, and self-smothers (D12).
  */
 
-import Location from "../../lib/stuff/Location";
+import Place from "../../lib/stuff/Place";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { StagedMixin } from "../../lib/stuff/Staged";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
@@ -72,7 +74,7 @@ import type { FieldMeta } from "../../lib/mixin";
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
-// ⭐⭐ **It is NOT one of the four Location classes, and that is a claim
+// ⭐⭐ **It is NOT one of the four Place classes, and that is a claim
 // about what a furnished room IS.**
 //
 // **Minted**, yes: many live rooms per row, keyed per holding — three
@@ -86,7 +88,7 @@ export const UNRESTRICTED = "unrestricted";
 // underneath. There is not, and the give-away is that not one shipped
 // row authors `coords`.
 //
-// ⚠ The cost of getting it wrong is not abstract. A `CartesianLocation`
+// ⚠ The cost of getting it wrong is not abstract. A `Location`
 // derives its cell geometry from its ZONE — `getSizeScale()` is
 // `cellSize²` — and the light walk divides flux by that to get lux. A
 // furnished room on the cartesian base therefore reads
@@ -97,26 +99,26 @@ export const UNRESTRICTED = "unrestricted";
 // not a grid cell of the street either — N lots cannot share one
 // coordinate.
 //
-// So: plain `Location` with the room mixins, plus the three things a
+// So: plain `Place` with the room mixins, plus the three things a
 // room somebody FURNISHES needs and a bare cell does not — a record of
 // its own (`Persistable`), a warren to belong to (`WarrenMember`), and
 // the ability to author a finite `air` budget (`Reserved`).
-const FurnishableRoomBase = PersistableMixin(
+const PersistentLocationBase = PersistableMixin(
   WarrenMemberMixin(
       ExitableMixin(
         // ⭐⭐ `PerceptibleMixin` beside `Visible` — a furnished room is
         // addressable by keyword, and **all ten shipped rows already say
         // so**: every one authors `primaryKeyword` / `keywords` /
         // `alternateNames`, and until 2026-09-11 the applier discarded
-        // every one of them, because this stack builds on `Location`
-        // rather than `CartesianLocation` and so never composed it.
+        // every one of them, because this stack builds on `Place`
+        // rather than `Location` and so never composed it.
         //
         // Same shape as the 48 agent rows W3 fixed: when authored
         // content asserts a field the class does not declare, the class
         // is wrong, not the content. Found by `lint:presentation`
         // clause (d) the day the clause existed.
         
-          ReservedMixin(StagedMixin(Location)),
+          ReservedMixin(StagedMixin(Place)),
       ),
   ),
 );
@@ -126,7 +128,7 @@ interface WarrenView {
   notifyPopulationChange(room: Stuff & Container): void;
 }
 
-export default class FurnishableRoom extends FurnishableRoomBase {
+export default class PersistentLocation extends PersistentLocationBase {
   static fieldMeta: FieldMeta = {
     postedAs: { persistent: true, authorable: true },
   };

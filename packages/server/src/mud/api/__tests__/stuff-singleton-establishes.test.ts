@@ -1,7 +1,7 @@
 /**
  * `StuffApi.singleton` is a persistable singleton's establishing context.
  *
- * A `FurnishableRoom` (a venue reached by an exit, or booted by a pack) and
+ * A `PersistentLocation` (a venue reached by an exit, or booted by a pack) and
  * a `Stock` counter (placed by a room's `props:`) are persistable
  * hosts with ONE instance per template path. On a persistable host
  * `applyProps` only retains the specs; something has to decide
@@ -15,21 +15,21 @@
  */
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import FurnishableRoom from "../../platform/location/FurnishableRoom";
+import PersistentLocation from "../../platform/location/PersistentLocation";
 import { StuffApi } from "../stuff";
 import { PersistableApi } from "../persistable";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
-const ROOM_PATH = "/platform/location/FurnishableRoom";
+const ROOM_PATH = "/platform/location/PersistentLocation";
 
 describe("StuffApi.singleton establishes a persistable singleton", () => {
-  let room: FurnishableRoom;
+  let room: PersistentLocation;
   let seed: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     StuffApi.clearAll();
     // Registered with NO template-path stamp, so `singleton()` has to mint.
-    room = makeStuff(() => new FurnishableRoom()) as FurnishableRoom;
+    room = makeStuff(() => new PersistentLocation()) as PersistentLocation;
     seed = vi.fn(async () => undefined);
     (room as unknown as { seedBornWith: () => Promise<void> }).seedBornWith =
       seed;

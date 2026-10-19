@@ -1,5 +1,6 @@
 /**
- * SingletonCartesianLocation — a {@link CartesianLocation} that opts
+ * Locale — you VISIT a locale (one particular place, one row = one
+ * place); you FILL a location. A {@link Location} that opts
  * into **one live instance per row.**
  *
  * The mixin SUBTRACTS, which is why this is the marked name and the
@@ -16,13 +17,13 @@
  *
  * Do NOT use it where a row describes a **kind** of place minted many
  * times — nine reaches of one lane, a landing per occupied floor. Those
- * are plain `CartesianLocation`s carrying a per-instance identity
+ * are plain `Location`s carrying a per-instance identity
  * (`asIdentityPath`, D17).
  */
 
-import CartesianLocation from './CartesianLocation';
+import Location from './Location';
 import { SingletonMixin } from '../stuff/Singleton';
 
-export default class SingletonCartesianLocation extends SingletonMixin(
-  CartesianLocation,
+export default class Locale extends SingletonMixin(
+  Location,
 ) {}

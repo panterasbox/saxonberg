@@ -2,7 +2,7 @@ import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LightReading from '../LightReading';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -33,7 +33,7 @@ import { driveMeasure, instrumentWith } from './drive';
 // Vision modality singleton + perception cache live behind PerceptionApi.
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 
-class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLoc extends AmbientLitMixin(Location) {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))

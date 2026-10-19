@@ -16,7 +16,7 @@ import Hearth from '../../../platform/thing/Hearth';
 import Chair from '../../../platform/thing/Chair';
 import { StuffApi } from '../../../api/stuff';
 import Material from '../../material/Material';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { GROUND_KINDS } from '../../ground/GroundKind';
 import { Condition } from '../../employment/Condition';
 import { ContainmentApi } from '../../../api/containment';
@@ -123,7 +123,7 @@ function mat(): Material {
   }, '/stuff/idea/material/_test/pest-bread') as unknown as Material;
 }
 
-function loafIn(room: CartesianLocation, m: Material): Provision {
+function loafIn(room: Location, m: Material): Provision {
   const p = makeStuff(() => {
     const x = new Provision();
     x.setMass(Quantity.of(1, 'kg'));
@@ -143,8 +143,8 @@ function loafIn(room: CartesianLocation, m: Material): Provision {
 describe('pests (D17)', () => {
   it('⭐ an open loaf spoils faster in a room whose floor has pests', () => {
     const m = mat();
-    const clean = makeStuff(() => new CartesianLocation());
-    const dirty = makeStuff(() => new CartesianLocation());
+    const clean = makeStuff(() => new Location());
+    const dirty = makeStuff(() => new Location());
     const cleanFloor = floorOf('boards');
     const dirtyFloor = floorOf('boards');
     vi.spyOn(cleanFloor, 'hasPests').mockReturnValue(false);
@@ -176,7 +176,7 @@ describe('the window a room is lit by (D19, B18)', () => {
   });
 
   it("⭐ a sky room's daylight comes through the pane its opening names", () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     (room as unknown as { ambientSource: string; ambientOpening: string }).ambientSource = 'sky';
     (room as unknown as { ambientOpening: string }).ambientOpening = 'window';
     expect(room.openingTransmissivity()).toBe(1);
@@ -210,7 +210,7 @@ describe('a `clean` contract (D30)', () => {
   });
 
   it('holds on a swept floor and not on a soiled one', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const f = floorOf('boards');
     vi.spyOn(room, 'getFloor').mockReturnValue(f as never);
     f.soil('crumbs', 1);
@@ -280,7 +280,7 @@ describe('rest as kept (D16)', () => {
     bed.setRestQuality(2);
     const kept = bed.restQualityAsKept();
     bed.soil('mud', 5);
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const f = floorOf('boards');
     f.soil('mud', 5);
     vi.spyOn(room, 'getFloor').mockReturnValue(f as never);

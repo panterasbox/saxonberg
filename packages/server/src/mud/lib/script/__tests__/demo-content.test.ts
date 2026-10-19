@@ -25,7 +25,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import { Idea } from "../../stuff/Idea";
 import { CommandGiverMixin } from "../../command/CommandGiver";
 import { EnvironmentMixin } from "../../shell/Environment";
@@ -180,7 +180,7 @@ describe("the saxonberg-lounge pack installs the authored scripts", () => {
 
 describe("the engine runs authored shapes paced over the bus", () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -209,7 +209,7 @@ describe("the engine runs authored shapes paced over the bus", () => {
       findById: vi.fn(),
     } as unknown as PersistenceManager);
 
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
     giver.setSetting("shell.parser", "script", giver);

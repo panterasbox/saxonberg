@@ -10,7 +10,7 @@
  * `getFixtureBoundaries()` / `getFixtureLightSources()`.
  *
  * Constraint: composed on `Stuff & Container`. Locations compose it
- * for free; every `CartesianLocation` / `SphericalLocation` ships
+ * for free; every `Location` / `SphericalLocation` ships
  * with `getFixtures()`.
  *
  * **Slotted underpinning (post-retrofit).** Adornable composes

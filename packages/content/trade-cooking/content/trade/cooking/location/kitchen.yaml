@@ -24,7 +24,7 @@
 # has a doorway. The failure mode of getting it wrong is "the stove went out
 # and the room stinks", not death by accident. Deleting the block restores
 # `airReserveOf -> null` -> open air, with nothing else touched.
-class: /platform/location/FurnishableRoom
+class: /platform/location/PersistentLocation
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

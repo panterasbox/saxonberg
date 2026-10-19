@@ -14,7 +14,7 @@ import { StuffApi } from "../../../../../api/stuff";
 import { ShadowApi } from "../../../../../api/shadow";
 import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { NPC } from "../../../../../lib/npc/NPC";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
 import {
@@ -23,7 +23,7 @@ import {
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 let captured: string[];
 

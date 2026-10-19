@@ -42,7 +42,7 @@
  * anywhere re-narrows who composes this. The three resolvers **select** a
  * floor among a room's fixtures — that is selection within a set, not a
  * host-set narrowing — and if `ensureFloor` ever needs
- * `if (!(room instanceof CartesianLocation))` the mechanism is on the
+ * `if (!(room instanceof Location))` the mechanism is on the
  * wrong class.
  */
 

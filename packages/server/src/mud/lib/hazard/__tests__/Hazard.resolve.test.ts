@@ -38,7 +38,7 @@ import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Good from '../../stuff/Good';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Exit from '../../boundary/Exit';
 import { Postures } from '../../slot/Postured';
 import { MessageApi } from '../../../api/message';
@@ -159,9 +159,9 @@ let trapCounter = 0;
 async function walkInto(
   m: PlainMover | RichMover,
   trap: Trap | null,
-): Promise<Location> {
-  const street = makeStuff(() => new Location());
-  const room = makeStuff(() => new Location());
+): Promise<Place> {
+  const street = makeStuff(() => new Place());
+  const room = makeStuff(() => new Place());
   ContainmentApi.move(m, street);
   if (trap) ContainmentApi.move(trap as unknown as Good, room);
   const exit = makeStuff(
@@ -199,7 +199,7 @@ beforeEach(() => {
     return b as never;
   });
   // The arrival flow's respiration/atmosphere reassess resolves the biome
-  // chain (async, detached from the traverse) — a plain test Location has
+  // chain (async, detached from the traverse) — a plain test Place has
   // no seeded universe biome, so short-circuit it to a benign medium.
   vi.spyOn(BiomeApi, 'resolveAtmosphereFor').mockResolvedValue('air' as never);
   vi.useFakeTimers();
@@ -286,7 +286,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
 
   it('a ground hazard is cleared by an air-medium crossing (fly)', () => {
     const m = plainMover('/platform/agent/Avatar/hz-flier');
-    ContainmentApi.move(m, makeStuff(() => new Location()));
+    ContainmentApi.move(m, makeStuff(() => new Place()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     // modeOf('fly') → an air-medium mode; the ground trap clears.
     vi.spyOn(LocomotionApi, 'modeOf').mockReturnValue({
@@ -322,7 +322,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
 
   it('drop relocates the mover to the authored below-location', async () => {
     const m = plainMover('/platform/agent/Avatar/hz-dropped');
-    const below = makeStuff(() => new Location());
+    const below = makeStuff(() => new Place());
     const belowPath = `/obj/test/pit-below-${n}`;
     stampTemplatePathForTest(below, belowPath);
     const trap = makeTrap(
@@ -417,7 +417,7 @@ describe('disarm — found-gated', () => {
 
   it('cannot disarm a trap the actor has not discovered', async () => {
     const m = plainMover('/platform/agent/Avatar/hz-blind');
-    ContainmentApi.move(m, makeStuff(() => new Location()));
+    ContainmentApi.move(m, makeStuff(() => new Place()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
@@ -426,7 +426,7 @@ describe('disarm — found-gated', () => {
 
   it('disarms a trap the actor has discovered', async () => {
     const m = plainMover('/platform/agent/Avatar/hz-sharp');
-    ContainmentApi.move(m, makeStuff(() => new Location()));
+    ContainmentApi.move(m, makeStuff(() => new Place()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Good);
     const context = ctx(m, m.getContainer());

@@ -2,7 +2,7 @@
 # just inside the gate: where the farms bring their milk and where it
 # becomes something that keeps. ⭐ The second venue the trade proves —
 # every vessel here is a row over dairying's classes or the kernel's.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   # The room's own size: a whitewashed workroom some five metres across, not the Delight's
   # 20 m cell: at 400 m² its lantern read `very-dim` after dark and every

@@ -1,7 +1,7 @@
 /**
  * VoidLocation — the bootstrap-pinned fallback location.
  *
- * Concrete `Location` subclass used by the `/platform/location/void` seed
+ * Concrete `Place` subclass used by the `/platform/location/void` seed
  * exclusively. Its role is the **`HasInteractive` evacuation fallback**:
  * when a `ContainerMixin` host destructs with no outer, any
  * `HasInteractive` containables escape to this singleton so live sessions
@@ -21,11 +21,11 @@
  * intent at the class level.
  */
 
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import type { VetoResult } from '../../lib/errors';
 
-export default class VoidLocation extends SingletonMixin(Location) {
+export default class VoidLocation extends SingletonMixin(Place) {
   public canDestruct(): VetoResult {
     return {
       ok: false,

@@ -22,8 +22,8 @@
 # SpatialZone can be a room's zone (`resolveZoneForPath` skips folders),
 # so a FolderZone here would be walked straight past and every yard would
 # land back in the district's zone — which is the failure this fixes.
-# `cellSize` is inert today: the rooms in here are FurnishableRooms, not
-# CartesianLocations, so nothing reads the grid. It is set to the
+# `cellSize` is inert today: the rooms in here are PersistentLocations, not
+# Locations, so nothing reads the grid. It is set to the
 # district's 6 m so that it does not lie if one ever does.
 #
 # Ownership is NOT here. Each lot's title is a row in the gated `parcels`

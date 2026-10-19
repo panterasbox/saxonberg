@@ -15,7 +15,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
@@ -129,12 +129,12 @@ function lastEchoDispatchId(giver: TestGiver): string {
 
 describe('async command dispatch', () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
     mockPmForPing();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });
@@ -323,12 +323,12 @@ describe('async command dispatch', () => {
 describe('sync is per-giver, not global', () => {
   let giverA: TestGiver;
   let giverB: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
     mockPmForPing();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giverA = makeStuff(() => new TestGiver());
     giverB = makeStuff(() => new TestGiver());
     ContainmentApi.move(giverA, location);
@@ -384,7 +384,7 @@ class ScriptGiver extends TestGiver {
 
 describe('the script verb inherits the async override', () => {
   let giver: ScriptGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -410,7 +410,7 @@ describe('the script verb inherits the async override', () => {
       find,
       findById: vi.fn(),
     } as unknown as PersistenceManager);
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new ScriptGiver());
     ContainmentApi.move(giver, location);
   });

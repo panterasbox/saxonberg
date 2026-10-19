@@ -5,7 +5,7 @@ import { TangibleMixin } from '../../../../../lib/material/Tangible';
 import { Quantity } from '../../../../../lib/quantity';
 import Good from '../../../../../lib/stuff/Good';
 import CartesianZone from '../../../location/CartesianZone';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -47,7 +47,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: CartesianLocation
+  location: Location
 ): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
@@ -72,7 +72,7 @@ describe('WeighController', () => {
 
   it('emits canonical kg for a Tangible target', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     const sword = makeStuff(() => new TangibleThing());
     sword.setName('rusty sword');

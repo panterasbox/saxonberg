@@ -51,10 +51,10 @@ does not need admitting.
 ## Three-tier room identity (residences D17: no rowless mints)
 
 - **Spine** — the pithead rooms, the adit, the authored galleries: real
-  rows, one instance each, `SingletonCartesianLocation`. Never members.
+  rows, one instance each, `Locale`. Never members.
 - **Workings** — every carved cell is a **keyed member**: scope is one of
   the venue's four type rows (`MineRoom`, the permissive
-  `CartesianLocation` face), key is `<claimExtent>/<cell>`.
+  `Location` face), key is `<claimExtent>/<cell>`.
   `PersistableApi.restoreOrSeed(room, key)` is the whole mechanism.
 - **Geology** — no identity at all.
 

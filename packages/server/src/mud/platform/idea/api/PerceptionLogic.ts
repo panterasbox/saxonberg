@@ -42,7 +42,7 @@ import type {
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
-import type Location from '../../../lib/stuff/Location';
+import type Place from '../../../lib/stuff/Place';
 import type Structure from '../Structure';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
@@ -1276,11 +1276,11 @@ function horizonAtSea(viewer: Stuff): HorizonView | null {
  */
 function horizonAshore(viewer: Stuff): HorizonView {
   const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
-  if (room === null || !room.isLocation() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
+  if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
   if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
-  // The branch predicate is the narrowing (no value import of Location —
+  // The branch predicate is the narrowing (no value import of Place —
   // it closes a load cycle through the MQL pipeline).
-  const place = room as unknown as Location;
+  const place = room as unknown as Place;
   const zone = room.getZone() as SpatialZone | null;
   const named = place.getHorizon() ?? zone?.peekField<string[]>('horizon') ?? null;
   if (!Array.isArray(named) || named.length === 0) return EMPTY_HORIZON;
@@ -1329,11 +1329,11 @@ function horizonAshore(viewer: Stuff): HorizonView {
   return view;
 }
 
-/** The room `who` stands in — through any vessel (a boat) to the Location. */
+/** The room `who` stands in — through any vessel (a boat) to the Place. */
 function roomOf(who: Stuff): (Stuff & Container) | null {
   let cur: Stuff | null = MixinApi.isContainable(who) ? who.getContainer() : null;
   for (let i = 0; cur !== null && i < 8; i++) {
-    if (cur.isLocation() && MixinApi.isContainer(cur)) return cur;
+    if (cur.isPlace() && MixinApi.isContainer(cur)) return cur;
     cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
   }
   return null;

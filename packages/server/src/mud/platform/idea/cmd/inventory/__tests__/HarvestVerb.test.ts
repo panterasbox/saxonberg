@@ -36,7 +36,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { AmbientLitMixin } from '../../../../../lib/perception/AmbientLit';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ShadowApi } from '../../../../../api/shadow';
 import { StuffApi } from '../../../../../api/stuff';
@@ -74,7 +74,7 @@ class TestGiver extends AdvancementMixin(
     this.received.push(msg);
   }
 }
-class LitRoom extends AmbientLitMixin(Location) {}
+class LitRoom extends AmbientLitMixin(Place) {}
 
 const BASE = 40_000_000;
 let now = BASE;
@@ -173,7 +173,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,

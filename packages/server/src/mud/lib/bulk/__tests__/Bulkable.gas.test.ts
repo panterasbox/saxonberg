@@ -35,7 +35,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
@@ -95,11 +95,11 @@ function material(name: string, boilingPointK: number): Material {
 
 describe('a gas', () => {
   let zone: CartesianZone;
-  let room: CartesianLocation;
+  let room: Location;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    room = makeStuff(() => new CartesianLocation());
+    room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
   });
   afterEach(() => StuffApi.clearAll());

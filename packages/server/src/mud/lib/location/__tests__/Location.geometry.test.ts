@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import CartesianLocation from '../CartesianLocation';
+import Location from '../Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
@@ -9,12 +9,12 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 function makeRoomInZone(cellSize?: number) {
   const zone = makeStuff(() => new CartesianZone());
   if (cellSize !== undefined) zone.setCellSize(cellSize);
-  const room = makeStuff(() => new CartesianLocation());
+  const room = makeStuff(() => new Location());
   Stuff._stampZone(room, zone);
   return { zone, room };
 }
 
-describe('CartesianLocation — derived geometry', () => {
+describe('Location — derived geometry', () => {
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -47,13 +47,13 @@ describe('CartesianLocation — derived geometry', () => {
   });
 
   it('room without a zone returns null for both', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     expect(room.getVolume()).toBeNull();
     expect(room.getCeilingHeight()).toBeNull();
   });
 });
 
-describe('CartesianLocation — the per-room extent override', () => {
+describe('Location — the per-room extent override', () => {
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -79,7 +79,7 @@ describe('CartesianLocation — the per-room extent override', () => {
   });
 
   it('a zoneless room reports no extent at all', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     expect(room.getLinearExtent()).toBeNull();
   });
 

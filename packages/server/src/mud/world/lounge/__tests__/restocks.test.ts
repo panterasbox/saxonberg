@@ -69,7 +69,7 @@ import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { NamedMixin } from '../../../lib/description/Named';
 import { Idea } from '../../../lib/stuff/Idea';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import {
   makeStuff,
@@ -192,9 +192,9 @@ function stock(path: string, kw: string): Stock {
 class TestRack extends ContainerMixin(Good) {}
 
 describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and receives it", () => {
-  let bar: Location;
-  let floor: Location;
-  let cashAndCarry: Location;
+  let bar: Place;
+  let floor: Place;
+  let cashAndCarry: Place;
   let counter: Stock;
   let floorStock: Stock;
   let shelf: TestRack;
@@ -254,9 +254,9 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       return m;
     }, GIN) as unknown as Material;
 
-    bar = makeStuffAtPath(() => new Location(), BAR);
-    floor = makeStuffAtPath(() => new Location(), FLOOR);
-    cashAndCarry = makeStuffAtPath(() => new Location(), CASH_AND_CARRY);
+    bar = makeStuffAtPath(() => new Place(), BAR);
+    floor = makeStuffAtPath(() => new Place(), FLOOR);
+    cashAndCarry = makeStuffAtPath(() => new Place(), CASH_AND_CARRY);
     shelf = makeStuffAtPath(() => new TestRack(), SHELF);
     shelf.setKeywords(['back-bar', 'shelf']);
     shelf.setPrimaryKeyword('back-bar');
@@ -345,7 +345,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       if (text === 'sense') return; // the teleport's own arrival sense
       lines.push(text);
       const who = giver as unknown as Hand;
-      const here = who.getContainer() as Location;
+      const here = who.getContainer() as Place;
       const [verb, ...rest] = text.split(' ');
       const find = (kw: string, from: Stuff[]): Stuff | undefined =>
         from.find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));

@@ -1,6 +1,6 @@
 # The snowfield camp — the wet cold peak. The snow lying here has lain since
 # the autumn (the standing case: constant through a drive, and exact).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: snowfield camp
   keywords: [camp, snowfield]

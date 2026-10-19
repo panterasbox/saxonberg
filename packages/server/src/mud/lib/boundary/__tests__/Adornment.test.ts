@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Good from '../../stuff/Good';
 import { AdornmentMixin } from '../Adornment';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -22,7 +22,7 @@ describe('AdornmentMixin', () => {
   });
 
   it('setAdornedTo updates and clears the back-reference', () => {
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestAdornment());
 
     fx.setAdornedTo(loc);

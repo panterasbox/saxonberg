@@ -39,7 +39,7 @@ function install(rows: readonly Row[]): void {
     { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
     ...rows.map((r) => ({
       path: P(r.leaf),
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
       data: { ...(r.exits ? { exits: r.exits } : {}) },
     })),
   ]);
@@ -591,12 +591,12 @@ describe('the extent scope is the AUTHOR\'s to choose', () => {
       { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
       {
         path: `${ZONE}/quarter/a`,
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: { exits: { north: { destination: `${ZONE}/far/b` } } },
       },
       {
         path: `${ZONE}/far/b`,
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {},
       },
     ]);

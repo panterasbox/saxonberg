@@ -63,10 +63,10 @@ sealable, every sugarbush affordance dies silently.**
 `/trade/forestry/location/Wood` (`trade-forestry/src/location/Wood.ts`):
 
 ```
-PersistableMixin(StandMixin(SoilMixin(ReservedMixin(SingletonCartesianLocation))))
+PersistableMixin(StandMixin(SoilMixin(ReservedMixin(Locale))))
 ```
 
-- **`SingletonCartesianLocation`**, not the permissive base: an authored
+- **`Locale`**, not the permissive base: an authored
   clearing is ONE row at a coordinate in its wood's zone, reached by an
   exit — the singleton cell. [location.md](./location.md) states the rule
   for the durable version (*a durable room over the permissive base would
@@ -106,7 +106,7 @@ booted world.
 
 `lint:locations` needs no roster entry: the gate derives cartesian-ness
 from the class file's `extends` chain through the import specifier
-`@saxonberg/server/mud/platform/location/SingletonCartesianLocation`
+`@saxonberg/server/mud/platform/location/Locale`
 (`Wood.test.ts` pins the specifier textually).
 
 ## The stand — `StandMixin`

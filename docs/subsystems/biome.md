@@ -656,7 +656,7 @@ override per their topology:
 - `getVolume(): Quantity<'m³'> | null`
 - `getCeilingHeight(): Quantity<'m'> | null`
 
-### `CartesianLocation` — cube cell
+### `Location` — cube cell
 
 `CartesianZone.cellSize` graduates from informational to
 **load-bearing** with a default of **3.0 m** linear (a typical

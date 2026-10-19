@@ -11,9 +11,9 @@ import "../../../test-bootstrap";
 import { StuffApi } from '../../api/stuff';
 import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import Exit from '../../lib/boundary/Exit';
 import Door from '../../platform/thing/Door';
 import {
@@ -165,9 +165,9 @@ describe('CommandGiverMixin recency stack', () => {
     expect(bucketsOf(giver)).not.toContain('peers');
   });
 
-  it('pushes sibling (peers) contributions when a giver enters a Location with content', () => {
+  it('pushes sibling (peers) contributions when a giver enters a Place with content', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
 
@@ -180,15 +180,15 @@ describe('CommandGiverMixin recency stack', () => {
     expect(bucketsOf(giver)).toContain('peers');
   });
 
-  it('pops sibling (peers) contributions when a giver leaves a Location', () => {
+  it('pops sibling (peers) contributions when a giver leaves a Place', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
     ContainmentApi.move(giver, loc);
     expect(bucketsOf(giver)).toContain('peers');
 
-    const otherLoc = makeStuff(() => new Location());
+    const otherLoc = makeStuff(() => new Place());
     ContainmentApi.move(giver, otherLoc);
 
     expect(bucketsOf(giver)).not.toContain('peers');
@@ -196,7 +196,7 @@ describe('CommandGiverMixin recency stack', () => {
 
   it('pushes contributions when a thing arrives in the giver\'s environment', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
     expect(bucketsOf(giver)).not.toContain('peers');
 
@@ -208,7 +208,7 @@ describe('CommandGiverMixin recency stack', () => {
 
   it('pops contributions when a thing leaves the giver\'s environment', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
@@ -221,7 +221,7 @@ describe('CommandGiverMixin recency stack', () => {
   it('orders contributions newest-first by pushing in chronological order', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.getAvailableCommands(); // seed self
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
     ContainmentApi.move(giver, loc);
@@ -246,7 +246,7 @@ describe('CommandGiverMixin recency stack', () => {
 
   it('returns "unknown-verb" envelope when the verb is not on the stack at all', async () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver;
-    ContainmentApi.move(giver, makeStuff(() => new Location()));
+    ContainmentApi.move(giver, makeStuff(() => new Place()));
     await (giver as unknown as CommandGiver).executeCommand('gibberishverb');
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as import('@saxonberg/types').DispatchResponseEnvelope;
@@ -261,7 +261,7 @@ describe('CommandGiverMixin recency stack', () => {
 
   it('Pipe NYI surfaces a friendly envelope on the actor', async () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver;
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
     await (giver as unknown as CommandGiver).executeCommand('ping | ping');
     expect(giver.envelopes).toHaveLength(1);
@@ -308,7 +308,7 @@ describe('affordance reach — recursion and adjacency', () => {
   it('and loses it again when the whole subtree leaves', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.getAvailableCommands();
-    const loc2 = makeStuff(() => new Location());
+    const loc2 = makeStuff(() => new Place());
 
     const pack = makeStuff(() => new Bag());
     const item = makeStuff(() => new InvProvider());
@@ -335,8 +335,8 @@ describe('affordance reach — peers one hop away', () => {
 
   function twoRooms() {
     const zone = makeStuff(() => new CartesianZone());
-    const here = makeStuff(() => new CartesianLocation());
-    const there = makeStuff(() => new CartesianLocation());
+    const here = makeStuff(() => new Location());
+    const there = makeStuff(() => new Location());
     zone.addLocation(here, 0, 0, 0);
     zone.addLocation(there, 0, 1, 0);
     return { here, there };
@@ -433,7 +433,7 @@ describe('TangibleMixin affords throw where the design says it should', () => {
   class Rock extends RockBase {}
 
   it('a rock ON THE GROUND offers `throw` to everyone in the room', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, room as never);
     giver.getAvailableCommands();
@@ -446,7 +446,7 @@ describe('TangibleMixin affords throw where the design says it should', () => {
   });
 
   it('a rock IN YOUR HAND offers it outward instead', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, room as never);
     giver.getAvailableCommands();
@@ -459,8 +459,8 @@ describe('TangibleMixin affords throw where the design says it should', () => {
   });
 
   it('and takes it away when the rock is carried out of the room', () => {
-    const room = makeStuff(() => new Location());
-    const elsewhere = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
+    const elsewhere = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, room as never);
     giver.getAvailableCommands();

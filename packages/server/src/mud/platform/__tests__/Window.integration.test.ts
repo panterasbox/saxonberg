@@ -4,7 +4,7 @@ import Window from '../thing/Window';
 import { Light } from '../../lib/perception/Light';
 import { Colour } from '../../lib/perception/Colour';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
 import Good from '../../lib/stuff/Good';
 import { BoundaryApi } from '../../api/boundary';
@@ -54,8 +54,8 @@ describe('Window — multi-room propagation integration', () => {
     zoneA.setCellSize(1); // pre-biome light calibration: 1m² scale
     const zoneB = makeStuff(() => new CartesianZone());
     zoneB.setCellSize(1);
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
     zoneA.addLocation(roomA, 0, 0, 0);
     zoneB.addLocation(roomB, 0, 0, 0);
     return { roomA, roomB };
@@ -155,9 +155,9 @@ describe('Window — multi-room propagation integration', () => {
     zoneB.setCellSize(1);
     const zoneC = makeStuff(() => new CartesianZone());
     zoneC.setCellSize(1);
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
-    const roomC = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
+    const roomC = makeStuff(() => new Location());
     zoneA.addLocation(roomA, 0, 0, 0);
     zoneB.addLocation(roomB, 0, 0, 0);
     zoneC.addLocation(roomC, 0, 0, 0);
@@ -196,7 +196,7 @@ describe('Window — multi-room propagation integration', () => {
     // intermediate rooms within budget.
     const zoneD = makeStuff(() => new CartesianZone());
     zoneD.setCellSize(1);
-    const roomD = makeStuff(() => new CartesianLocation());
+    const roomD = makeStuff(() => new Location());
     zoneD.addLocation(roomD, 0, 0, 0);
     const wCD = await StuffApi.create(() => new Window());
     wCD.setBaseTransmissivity(1);
@@ -258,9 +258,9 @@ describe('Window — multi-room propagation integration', () => {
     zoneB.setCellSize(1);
     const zoneC = makeStuff(() => new CartesianZone());
     zoneC.setCellSize(1);
-    const roomA = makeStuff(() => new CartesianLocation());
-    const roomB = makeStuff(() => new CartesianLocation());
-    const roomC = makeStuff(() => new CartesianLocation());
+    const roomA = makeStuff(() => new Location());
+    const roomB = makeStuff(() => new Location());
+    const roomC = makeStuff(() => new Location());
     zoneA.addLocation(roomA, 0, 0, 0);
     zoneB.addLocation(roomB, 0, 0, 0);
     zoneC.addLocation(roomC, 0, 0, 0);

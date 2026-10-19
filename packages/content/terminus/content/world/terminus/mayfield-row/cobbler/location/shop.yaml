@@ -4,7 +4,7 @@
 # cobbler does here what the tinker does on the road, for one kind of
 # thing, better. `order repair boots` at the slate; `sew sole` at the
 # bench to make what a re-soling wants.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords:
     x: 0

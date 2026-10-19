@@ -37,7 +37,7 @@ import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
 import Scroll from '../../../../../../content/arcana/src/thing/Scroll';
 import IdentifiableThing from '../../../platform/thing/IdentifiableThing';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import Species from '../../../platform/idea/species/Species';
 import { Character } from '../../character/Character';
 import { Template } from '../../stuff/Template';
@@ -143,7 +143,7 @@ describe('misidentify — the decoy is borrowed from the world', () => {
   });
 
   it('⭐ plants a name taken from another REAL item, not a canned string', async () => {
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     stampTemplatePathForTest(room, `/obj/test/mi-room-${seq++}`);
     const reader = makeActor();
     ContainmentApi.move(reader, room);
@@ -180,7 +180,7 @@ describe('misidentify — the decoy is borrowed from the world', () => {
   it('falls back to the canned name when the world offers no decoy', async () => {
     // The honest degradation: an empty pool must still plant SOMETHING,
     // or a cursed scroll would silently do nothing at all.
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     stampTemplatePathForTest(room, `/obj/test/mi-room-${seq++}`);
     const reader = makeActor();
     ContainmentApi.move(reader, room);

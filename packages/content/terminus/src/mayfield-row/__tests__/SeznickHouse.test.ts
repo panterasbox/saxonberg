@@ -76,8 +76,8 @@ function col(name: string): Doc[] {
  *
  * ⚠ The fixture used to hard-code these, and hard-coding is how a suite
  * goes green against a world that does not exist: the corridor moved off
- * `FurnishableRoom` (it is minted per floor and keeps no record) and the
- * lobby onto `SingletonCartesianLocation`, and every one of these tests
+ * `PersistentLocation` (it is minted per floor and keeps no record) and the
+ * lobby onto `Locale`, and every one of these tests
  * kept passing against the old classes. A fixture may stub what it does
  * not want to boot — it may not invent a DIFFERENT world.
  */
@@ -137,16 +137,16 @@ function seedDomain(): void {
       { leaf: 'main', room: `${HOUSE}/location/main` },
     ],
   });
-  add(`${HOUSE}/location/hall`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
   });
-  add(`${HOUSE}/location/main`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
   });
-  add(CORRIDOR, '/platform/location/FurnishableRoom', {
+  add(CORRIDOR, '/platform/location/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
   });
-  add(LOBBY, '/platform/location/FurnishableRoom', {
+  add(LOBBY, '/platform/location/PersistentLocation', {
     shortDescription: 'the Seznick House lobby',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });

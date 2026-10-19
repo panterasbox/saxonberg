@@ -23,7 +23,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Biome from '@saxonberg/server/mud/platform/idea/Biome';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -66,7 +66,7 @@ async function link(a: MineRoom | Stuff, b: MineRoom | Stuff, dir: string, back:
 
 /** A heading `n` cells long, hanging off an adit that breathes. */
 async function heading(n: number): Promise<MineRoom[]> {
-  const adit = makeStuffAtPath(() => new SingletonCartesianLocation(), '/world/fx-mine/location/adit');
+  const adit = makeStuffAtPath(() => new Locale(), '/world/fx-mine/location/adit');
   surface.addLocation(adit as unknown as never, 0, 0, 0);
   const chain: MineRoom[] = [];
   for (let i = 1; i <= n; i++) chain.push(working([0, i, -1]));
@@ -179,7 +179,7 @@ describe('the canary', () => {
     expect(await BiomeApi.resolveAtmosphereFor(far as unknown as Stuff & Container)).toBe('blackdamp');
 
     const second = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       '/world/fx-mine/location/adit2',
     );
     surface.addLocation(second as unknown as never, 4, 0, 0);

@@ -13,7 +13,7 @@ import { WarrenMemberMixin } from '../WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { ContainableMixin } from '../../spatial/Containable';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
@@ -26,7 +26,7 @@ import { makeStuff,
 
 // ── Test fixtures ────────────────────────────────────────────────
 
-class TestRoom extends ExitableMixin(WarrenMemberMixin(Location)) {}
+class TestRoom extends ExitableMixin(WarrenMemberMixin(Place)) {}
 
 // A countable occupant: HasInteractive + Containable, nothing else.
 class TestOccupant extends HasInteractiveMixin(ContainableMixin(Idea)) {}

@@ -162,7 +162,7 @@ not the domain*) dated 2026-08-06, with a pointer back here.
 **2. Composition.** Two new mixins + a derived read:
 - `Soilable` composes on fixtures/surfaces/bodies that acts soil (the stove, the
   bedding, a `Body`) — a banded soiling level.
-- Debris is a **room-level field** on `FurnishableRoom` (the `postedAs`/`air`
+- Debris is a **room-level field** on `PersistentLocation` (the `postedAs`/`air`
   precedent — a room already carries declared fields of its own).
 - Room condition is a **derived read** (no stored field) aggregating them.
 

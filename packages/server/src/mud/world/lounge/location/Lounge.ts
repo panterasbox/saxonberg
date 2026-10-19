@@ -21,7 +21,7 @@
  * Still no `SingletonMixin`: repeated clones are the whole point.
  */
 
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
@@ -29,14 +29,14 @@ import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed
-// per class because `Location` does NOT carry it (only
-// `CartesianLocation` does), so every room class built directly on
-// `Location` has to remember. These rows were authoring `primaryKeyword`
+// per class because `Place` does NOT carry it (only
+// `Location` does), so every room class built directly on
+// `Place` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
 const LoungeBase =
   ExitableMixin(
     CartesianCoordinatesMixin(
-        LoungeMixin(WarrenMemberMixin(Location)),
+        LoungeMixin(WarrenMemberMixin(Place)),
     ),
   );
 
@@ -54,7 +54,7 @@ export default class Lounge extends LoungeBase {
     this.verifyOutboundExits();
   }
 
-  // onDestruct inherited: ExitableMixin (exit teardown) → Location (zone
+  // onDestruct inherited: ExitableMixin (exit teardown) → Place (zone
   // detach, a no-op here) → … → Stuff terminal. WarrenMember's static
   // cleanupOnDestruct unhooks from the Warren's set on the destruct walk.
 }

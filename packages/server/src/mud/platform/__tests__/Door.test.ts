@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import Door from '../thing/Door';
 import Exit from '../../lib/boundary/Exit';
 import CartesianZone from '../idea/location/CartesianZone';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -120,8 +120,8 @@ describe('Door attachedTo back-reference + break/install', () => {
 
   it('addBidirectionalExit populates attachedTo with both exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -137,8 +137,8 @@ describe('Door attachedTo back-reference + break/install', () => {
 
   it('door.detach() clears every Exit.door and empties attachedTo', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -158,8 +158,8 @@ describe('Door attachedTo back-reference + break/install', () => {
 
   it('detach + ContainmentApi.move plants the broken door in a location', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -176,9 +176,9 @@ describe('Door attachedTo back-reference + break/install', () => {
 
   it('re-installing a detached door updates attachedTo correctly', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
-    const c = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
+    const c = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 1, 0, 0);
@@ -200,8 +200,8 @@ describe('Door attachedTo back-reference + break/install', () => {
 
   it('Exit.onDestruct unhooks itself from door.attachedTo', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 

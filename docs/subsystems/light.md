@@ -192,11 +192,11 @@ Authoring guidance:
 m²**. The propagation walk divides accumulated lumens by this scalar
 to produce lux.
 
-- `CartesianLocation.getSizeScale()` — reads its zone's `cellSize`
+- `Location.getSizeScale()` — reads its zone's `cellSize`
   (in **linear meters** as of the biome substrate, default `3.0`)
   and **squares it** to produce the m² receiving-surface area. A
   `cellSize: 3` zone reports a 9 m² scale. The override on
-  `CartesianLocation.getZone()` narrows the return type to
+  `Location.getZone()` narrows the return type to
   `CartesianZone | null` by invariant.
 - `SphericalLocation.getSizeScale()` — returns its own radius (in
   m²; v1 uses the radius scalar directly rather than computing a

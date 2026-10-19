@@ -1129,7 +1129,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       if (nowS - this.rottenSince < after) return;
       const self = this as unknown as Stuff;
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
-      if (!room || !room.isLocation()) return;
+      if (!room || !room.isPlace()) return;
       // Deferred: a read (a `look` walking the room) must not destroy what
       // it is iterating.
       ScheduleApi.schedule(0, () => {
