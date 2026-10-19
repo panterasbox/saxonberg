@@ -1426,6 +1426,21 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time — the output of `packages/wire/tests/silk.dirty.wire.test.ts`,
-the count, and what each failure was. Precedent: `farming-plan.md §
-Checkpoint A`.)*
+`packages/wire/tests/silk.dirty.wire.test.ts` (WIRE_PORT 2016, fresh DB each
+run). ⚠ **Season scope:** the world boots in winter and four 20-day jumps
+wedge a world (the taps finding), so the warm-weather steps (3–7, 13–15) are
+pinned in the pack suite and named in the file's RECORDED GAPS checkpoint.
+
+| run | result | what it found |
+|---|---|---|
+| 1 | no boot in 420 s | machine load; `WIRE_BOOT_TIMEOUT` raised |
+| 2–3 | 6/17, 8/18 | every seat is 05–19 and the clock boots at midnight (no cast); `stoke` takes the FUEL first; the tray took any sericulture row; `look tray` hit the loft's `trays` detail and its `rearing` keyword |
+| 4 | 9/18 | the copied prompt answerer read `payload.promptId` (top-level here); egg prose said "speckled" |
+| probe | — | ⭐ **the silk brains never acted**: a candidate beat claims the brain's slots before `act`, so `hasEngagement('hands')` is always true (same dead line in `weaves` — the linen mill); a forced `west` does not walk an NPC; the tray's mint passed `madeFrom` and threw for a chattel stack (frass only); `_minting` wedged on a throw; a fresh clock starts at 0 (spin start must be negative) |
+| 5 | 10/17 | the hand put UNSTIFLED cocoons on sale (typed `put cocoons` took the first stack) |
+| 6 | 10/17 | bought cocoons are titled one-unit stacks that never merge — reel pools siblings; beats are ~20 REAL seconds and a jump drains only game-time schedules |
+| probe | — | the reeler's three brains: constant `wanted` urgencies → the first-listed (`stocks`) won every beat; `stocks`/`consigns` now go idle with nothing to do, `reels` is pressing only with work on its floor |
+| 7 | **stopped by the host (low memory)** | through checkpoint 8: 8/8 before the house; house chain works end to end (hand stifles, sets out; the reeler walks up and buys; the player bought 71 stifled cocoons — the reeler took the rest); the basin reeled a skein; ⚠ the pupae did not appear |
+
+⚠ **Open at the stop:** run 8 (fix the pupae mint, re-drive), then the
+full suite, then the MR.
