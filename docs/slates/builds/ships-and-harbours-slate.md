@@ -636,10 +636,10 @@ field must interact at close range, the field buds a room for the encounter.
 parked with whaling's *chain of engagements and tether graph* (navigable § 7c):
 *"whaling will have to work out the specifics."*
 
-### Shipping as a business **[PROPOSED]**
+### Shipping as a business **[DECIDED]**
 
-Put before the story audit and not yet ruled on; the stories lean on it
-(Monte Cristo's Morrel, Moby-Dick's lay):
+Ruled by the lenses (*"I'd let the lenses speak for me on this one"*); the
+stories lean on it (Monte Cristo's Morrel, Moby-Dick's lay):
 
 - **Ownership in shares** (the registry's sixty-fourths; income split by share
   through banking).
@@ -658,3 +658,19 @@ Put before the story audit and not yet ruled on; the stories lean on it
   arrives** — credit's Terms with a verifiable arrival condition).
 - **The voyage is the accounting unit** — freight and fares in; wages or the
   lay, provisions, dues, upkeep and insurance out; profit to the shares.
+
+### The mariners' guild and the watermen — two charters **[DECIDED]**
+
+*"With guilds I feel like two is better than one most of the time."* History
+had two institutions: **Trinity House** (1514 — master mariners and pilots;
+public functions: pilot licensing, lighthouses and buoys, examining masters,
+almshouses) and **the Company of Watermen and Lightermen** (1555 — the river's
+boatmen; licensing who may ply for hire, regulated fares, seven-year
+apprenticeship). The guild slate's own rules: *the grain of a guild is a
+career* (deep-sea and river are two careers, two trades); *wings, never forks*
+is for flavours of one vocation, not two vocations. So: **the mariners' guild
+lives** (the proving case — public functions, the map room, the call to
+distress, recognition in any port); **the watermen's charter ships as a RUIN**
+— a shuttered Watermen's Hall in the harbour district, its charter readable on
+the wall, teaching the other shape (apprenticeship, licensing, a granted
+monopoly) by archaeology, reopenable when the river has the traffic.
