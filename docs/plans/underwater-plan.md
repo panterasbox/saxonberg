@@ -813,8 +813,7 @@ and `sell` needs a `buys: true` line per ITEM ROW — unbounded for fish
 species, and a category-bound buys line is a retail kernel change out
 of this scope. The AC *a diver can spear a fish and sell it* is met by
 `consign <fish> --ask N` listing it on the slab (the drive asserts the
-listing). Recorded in § Risks R6 as an interpretation the user should
-confirm.
+listing). Confirmed by the founder, 2026-10-18.
 
 **D21 — the five life findings.** (1) **Breathing is a rate**:
 `BodyPlan.breathing: BreathingSpec[]` (`{medium, apparatus, intake}`,
@@ -1307,7 +1306,7 @@ hard-hat suit, the crewed pump and the bends`.
 `InspectController.ts`, `W/thing/Conduit.ts` (`inspectionReport`),
 `src/behavior/{tends,surveys}.ts` (tender: hauls on two tugs or after
 `diving.tendSilenceS` without a signal while the diver is unconscious;
-surveys: the harbourmaster posts the three gigs when due), `src/thing/
+surveys: the PILOT, on a harbour-works seat, posts the three gigs when due), `src/thing/
 Slate.ts`? — no: the slate is a `Marked` Good row with
 `writableUnderwater`; `jot` is C5. Acceptance: `job post inspect intake
 for 30 --business` → claim → `inspect screen` at the intake mouth →
@@ -1324,8 +1323,9 @@ outfit.yaml (positions master · tender · pump-hand; `banksAt`;
 master,tender,pump-hand}.yaml (Cast; brains), location/{shop,
 offstage}.yaml, thing/counter.yaml (stone, belt, line, slate, pencil,
 tables, almanac, spear, wand-of-glowlight)}`, `bank.yaml` (`divers`
-exit, the works board prop, the harbourmaster cast — or the harbour
-works `idea/department.yaml` Business with the warden shape), `src/
+exit, the works board prop; the harbour works `idea/department.yaml`
+Business (the warden shape) whose ONE seat the existing pilot on the bank
+holds — no new Cast; the founder chose the pilot, 2026-10-18), `src/
 thing/{AirBag? (a Vessel row suffices), TideAlmanac.ts}` + rows,
 `src/idea/cmd/diving/{Jot,Ring,Spear,Lash}Controller.ts` + views,
 `lash` on `Lifeline`/`Vessel` (the pair's combined buoyancy read by
@@ -1557,11 +1557,10 @@ No AC is unmapped. One AC is met by interpretation (D20).
   in the log; `IceSheet.openWaterAreaM2()` must answer > 0 at the hole
   for the ceiling gate — the storage-and-ice drive's step 8 already
   relies on it.
-- **Open for the user (not decided here):** none that block a wave. D20
-  (R6) and whether the harbourmaster is a new Cast or a seat on an
-  existing one (the plan says a new `harbourmaster` Cast on the bank
-  with the `surveys` brain; the pilot already stands there and could
-  hold the seat instead).
+- **Closed with the founder (2026-10-18):** a blacked-out body floats
+  FACE-DOWN (D10); the speared fish is SOLD BY CONSIGNMENT (D20, R6);
+  the city's gigs are posted by the existing PILOT on a harbour-works
+  seat (C5), not a new harbourmaster Cast. Nothing open blocks a wave.
 
 ---
 
