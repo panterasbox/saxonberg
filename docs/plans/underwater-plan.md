@@ -1761,6 +1761,52 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     auto-landed `subdue` gambit: the grabbed body treads for two. No
     accountability event is written (R10 recorded, not built).
 
+- **C1–C5 ✅ (911878af6)**. Decisions:
+  - **C1:** a line's free end is a minted `LineEnd` in the hands of the
+    person on it — holding it is being ON the line, dropping it is
+    letting go, and `tug` is the END's verb (afforded to its holder).
+    Who is on a line is runtime (a line is made fast for a dive and does
+    not outlive one). The kernel `haul` verb drives a `Haulable` shape
+    (`haulBy(hauler, sense)`); fishing's own `haul` verb and controller
+    were deleted and `Trap.haulBy` absorbed them — one verb, two
+    implementers.
+  - **C2:** the bell fouls by its occupant count over time rather than
+    each occupant `exhaleInto` it (the breath engine has no per-breath
+    push); an opened air vessel carried in empties into the pocket.
+    Bell-occupant gas loading (the bends from a bell) is NOT modelled —
+    only a worn supply loads gas.
+  - **C4:** an inspection is verified by a sealed `fulfilled` row written
+    when the `inspect` verb is used on the works (or a face of them),
+    since nothing about the works' STATE changes when you look.
+    `ContractApi.recordInspection(identityPath, templatePath)` takes
+    paths, not the object (`lint:object-verbs`). The pilot's `surveys`
+    brain posts only for works whose rows are resident — it never loads
+    a place to post about it.
+  - **C5:** the slate's act is `jot slate <words>`, NOT `write` — `write`
+    is the shell's content-authoring verb (verb-collision ladder: the
+    two acts share nothing). The fish spear is a `Weapon` (pointed — the
+    weapon that still hurts below) AND draws from the reach's fishery
+    through trade-fishing's `Waters` (a speared fish is a drawn fish).
+    `lash <gear> to <load>`: a line's end made fast to a load lets the
+    tender haul it; an air bag lifts. ⭐ A line brings at most 80 kg
+    off the bottom; a load's weight in the water is taken as its MASS
+    (the few per cent a dense load displaces is not counted) — what
+    lifts it is air, at `liters × 200 / (1 + d/10) − bag mass` per bag
+    (the AirTank convention: a vessel's litres are compressed ×200). The
+    lost anchor (300 kg) wants three bags at the bed. The air barrel
+    became an `AirBag` (1 L compressed = 200 L free air, so a barrel
+    into the bell refreshes 200 L).
+  - Lint: the tender, pump hand and pilot dossiers carry `archetype:`;
+    position nouns are one word (`divemaster`, `pumper`, `pilot`); the
+    dive shop's light is a storm lantern adornment, not a bare
+    `ambientIntensity`; the pilot's `intake:`/`anchor:` config fields are
+    CITATIONS in `check-reachability`. Pack count 64 → 65.
+  - **Moved:** the tide almanac goes to D1w (it prints the tide D1
+    builds) and the wand of glowlight to M1. The lift resolves at `lash`
+    (the bags and the load rise together to `surfacePlace()`), not in
+    `WaterPlace.sink` — sinking is what an unlashed thing does, and a
+    lashed pair only ever goes up.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
