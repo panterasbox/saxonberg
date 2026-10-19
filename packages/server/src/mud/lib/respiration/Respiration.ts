@@ -219,6 +219,9 @@ export interface Respiration {
 
   /** The species breathable set (default `['air']`; water-breaters `['water']`). */
   getBreathableMedia(): readonly string[];
+  /** ⭐ A held working lets this body breathe `medium` freely (underwater D18); null ends it. */
+  setConferredBreathing(medium: string | null): void;
+  getConferredBreathing(): string | null;
   /** Whether this body respires at all (the `respires` opt-out). */
   isRespiring(): boolean;
   /** Whether a voluntary/automatic breath-hold is currently active. */
@@ -319,6 +322,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _o2StoreL: number | null = null;
 
+    /** The medium a held working lets this body breathe, or null (runtime; D18). */
+    private _conferredMedium: string | null = null;
+
     /** The share of need met by the medium now, 0..1 (runtime; D21). */
     private _intake = 0;
     /** When the store was last reconciled (game-seconds). */
@@ -402,10 +408,25 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private breathingNow(): readonly BreathingSpec[] {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isOrganism(self)) return [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
-      const species = self.getSpecies();
-      if (!species) return [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
-      return species.breathingFor(self.getLifeStage());
+      const organism = MixinApi.isOrganism(self) ? self : null;
+      const species = organism?.getSpecies() ?? null;
+      const own: readonly BreathingSpec[] = organism && species
+        ? species.breathingFor(organism.getLifeStage())
+        : [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+      const conferred = this._conferredMedium;
+      if (conferred === null) return own;
+      // ⭐ A held working (underwater D18): the medium it confers, freely.
+      return [...own.filter((b) => b.medium !== conferred), { medium: conferred, apparatus: 'working', intake: 1 }];
+    }
+
+    public setConferredBreathing(medium: string | null): void {
+      if (medium === this._conferredMedium) return;
+      this._conferredMedium = medium;
+      void this.reassess();
+    }
+
+    public getConferredBreathing(): string | null {
+      return this._conferredMedium;
     }
 
     /**

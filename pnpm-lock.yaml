@@ -917,6 +917,9 @@ importers:
       '@saxonberg/content-arcana':
         specifier: workspace:*
         version: link:../arcana
+      '@saxonberg/content-arcane-library':
+        specifier: workspace:*
+        version: link:../arcane-library
       '@saxonberg/content-corpo-goodkin':
         specifier: workspace:*
         version: link:../corpo-goodkin

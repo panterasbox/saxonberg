@@ -29,6 +29,7 @@ data:
     - { itemTemplatePath: /trade/diving/thing/spear, par: 2 }
     - { itemTemplatePath: /trade/diving/thing/air-bag, par: 3 }
     - { itemTemplatePath: /trade/diving/thing/tide-almanac, par: 3 }
+    - { itemTemplatePath: /stuff/thing/magic/wand-of-glowlight, par: 1 }
   prices:
     /trade/diving/thing/diving-stone: 4
     /trade/diving/thing/weight-belt: 10
@@ -44,3 +45,4 @@ data:
     /trade/diving/thing/spear: 9
     /trade/diving/thing/air-bag: 10
     /trade/diving/thing/tide-almanac: 2
+    /stuff/thing/magic/wand-of-glowlight: 45

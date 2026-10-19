@@ -52,9 +52,13 @@ describe("MagicEffects.validate — the closed union", () => {
       // takes the mark you named; an ITEM carries its own survey.
       { kind: "relocate" },
       { kind: "relocate", to: "/test/place/summit" },
+      // ⭐ The two held workings (underwater D18): a medium conferred,
+      // the cold kept off.
+      { kind: "confer-medium", medium: "water" },
+      { kind: "offset-ambient", deltaK: 12 },
     ];
     for (const s of samples) expect(() => MagicEffects.validate(s)).not.toThrow();
-    expect(EFFECT_KINDS).toHaveLength(12);
+    expect(EFFECT_KINDS).toHaveLength(14);
   });
 
   it("makes an unbacked effect unrepresentable — the governing invariant", () => {
@@ -84,6 +88,8 @@ describe("MagicEffects.validate — the closed union", () => {
         resist: { axis: "psychic", intensity: 1 },
       }),
     ).toThrow(/unknown axis/);
+    expect(() => MagicEffects.validate({ kind: "confer-medium" })).toThrow(/medium/);
+    expect(() => MagicEffects.validate({ kind: "offset-ambient", deltaK: 0 })).toThrow(/deltaK/);
   });
 
   it("derives the impulse/modifier family from the kind", () => {
@@ -96,6 +102,12 @@ describe("MagicEffects.validate — the closed union", () => {
       MagicEffects.familyOf(
         MagicEffects.validate({ kind: "cloak", disguise: "x" }),
       ),
+    ).toBe("modifier");
+    expect(
+      MagicEffects.familyOf(MagicEffects.validate({ kind: "confer-medium", medium: "water" })),
+    ).toBe("modifier");
+    expect(
+      MagicEffects.familyOf(MagicEffects.validate({ kind: "offset-ambient", deltaK: 12 })),
     ).toBe("modifier");
     expect(
       MagicEffects.familyOf(

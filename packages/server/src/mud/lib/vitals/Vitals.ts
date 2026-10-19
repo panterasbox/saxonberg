@@ -68,6 +68,7 @@ import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { Charge } from '../magic/Charge';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { VetoResult } from '../errors';
@@ -2801,7 +2802,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             s.tickedAt = nowS;
             continue;
           }
+          const heldFor = nowS - s.tickedAt;
           s.tickedAt = nowS;
+          // ⭐ The standing bill (underwater D18): a working the caster holds
+          // on themselves is paid from their own mana while it lasts; at
+          // nothing left it lapses — you have your breath to get up on.
+          if (!this.payStandingBill(s, heldFor)) {
+            this.releaseSustained(s);
+            continue;
+          }
           if (
             s.expiresAt !== undefined &&
             nowS >= s.expiresAt &&
@@ -3002,6 +3011,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         return;
       }
+      if (s.realizes === 'confer-medium' && MixinApi.isRespiration(self)) {
+        self.setConferredBreathing(s.dormant ? null : (s.medium ?? null));
+        return;
+      }
+      if (s.realizes === 'offset-ambient' && MixinApi.isThermalRegulation(self)) {
+        self.setWorkingOffsetK(s.dormant ? 0 : (s.deltaK ?? 0));
+        return;
+      }
       if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
         if (s.dormant) {
           self.setDisguise(null);
@@ -3016,12 +3033,39 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ Pay for a caster-held working for `elapsedS` (underwater D18) —
+     * the same standby draw a charged shell pays, from the holder's own
+     * mana. `false` when the mana has run out. A working a charged
+     * source holds up (`sustainedBy`) is billed to that source instead,
+     * and an emitter or a veil is a term bought once.
+     */
+    private payStandingBill(s: SustainedEffect, elapsedS: number): boolean {
+      if (s.sustainedBy || elapsedS <= 0) return true;
+      if (s.realizes !== 'confer-medium' && s.realizes !== 'offset-ambient') return true;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isCaster(self) || !MixinApi.isReserved(self)) return true;
+      const pool = self.getReserve('mana');
+      if (!pool) return true;
+      const attention = MixinApi.isAttired(self) ? self.attentionFactor() : 1;
+      const bill = Charge.standbyDraw(
+        magicDial(AppSettingKeys.magicChargeStandbyWatts, 5) * attention,
+        elapsedS,
+        WorldClockApi.getScale(),
+      );
+      const left = pool.current.rawValue();
+      if (bill > 0) self.adjustReserve('mana', Quantity.of(-Math.min(bill, left), pool.current.unit));
+      return left - bill > 0;
+    }
+
+    /**
      * Release a sustained magical effect — expiry and dispel both land
      * here: un-realize, destruct any bound emitter, drop the condition.
      * Public: `MagicLogic`'s tag-keyed dispel is the second caller.
      */
     public releaseSustained(s: SustainedEffect): void {
       const self = this as unknown as Stuff;
+      if (s.realizes === 'confer-medium' && MixinApi.isRespiration(self)) self.setConferredBreathing(null);
+      if (s.realizes === 'offset-ambient' && MixinApi.isThermalRegulation(self)) self.setWorkingOffsetK(0);
       if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
         self.setDisguise(null);
       }

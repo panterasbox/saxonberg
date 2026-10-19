@@ -440,6 +440,12 @@ async function prepareCastImpl(
   const shapeRefusal = targetingRefusal(spell, caster, target);
   if (shapeRefusal) return { ok: false, refusal: shapeRefusal };
 
+  // ⭐ The verbal component needs a voice that carries (underwater D18):
+  // under the water the words come out as bubbles. A wand needs none.
+  if (MixinApi.isVocal(caster) && !caster.canVocalize().ok) {
+    return { ok: false, refusal: 'You cannot speak the words here.' };
+  }
+
   // The somatic component needs working hands.
   if (
     MixinApi.isVitals(caster) &&
@@ -1286,6 +1292,12 @@ async function executeOne(
       return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
       return execEmitField(ctx, spell, effect);
+    case 'confer-medium':
+      return execHeldWorking(ctx, spell, { realizes: 'confer-medium', medium: effect.medium },
+        `The working closes round your chest; you could breathe ${effect.medium} now.`);
+    case 'offset-ambient':
+      return execHeldWorking(ctx, spell, { realizes: 'offset-ambient', deltaK: effect.deltaK },
+        effect.deltaK > 0 ? 'A warmth settles over your skin and stays.' : 'A coolness settles over your skin and stays.');
     case 'script':
       return execScript(ctx.actor, effect.source);
   }
@@ -2054,6 +2066,26 @@ function execCloak(
   );
   pokeReconcile(subject);
   return 'The veil settles — watchers will see someone, never quite you.';
+}
+
+/**
+ * ⭐ A working the actor HOLDS on themselves (underwater D18): breathing a
+ * medium, keeping the cold off. Like the veil, it settles on the actor —
+ * never the wand — and the hold is paid for while it lasts: by a charged
+ * source if one fired it, else from the caster's own mana (the standing
+ * bill, in the sustained reconcile). When the payment stops, it lapses.
+ */
+function execHeldWorking(
+  ctx: EffectContext,
+  spell: SpellDescriptor,
+  fields: Partial<SustainedEffect> & { realizes: string },
+  line: string,
+): string {
+  const subject = ctx.actor;
+  if (!MixinApi.isVitals(subject)) return 'The working finds nothing to hold to.';
+  subject.afflict(sustainedRecord(ctx, spell, fields));
+  pokeReconcile(subject);
+  return line;
 }
 
 /**

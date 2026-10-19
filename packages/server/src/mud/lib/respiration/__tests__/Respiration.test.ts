@@ -481,4 +481,33 @@ describe('RespirationMixin — the crisis core', () => {
     await trout.reassess();
     expect(trout.getEngagementByType('respiration-drain')).toBeDefined();
   });
+
+  /* ─────────────── a working held (underwater D18) ─────────────── */
+
+  it('⭐ breathe-water held: under the water it breathes; when the working lapses it is on its own breath again', async () => {
+    const diver = bodyWith({ breathableMedia: ['air'] });
+    const under: MediumRead = {
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 285, depthM: 5, waterRef: null,
+    };
+    ContainmentApi.move(diver, room('air'));
+    const now = WorldClockApi.getNow().rawValue();
+    const working = {
+      kind: 'sustained', spellId: 'breathe-water', realizes: 'confer-medium', medium: 'water',
+      magicOrigin: { tag: 'arcane' }, expiresAt: now + 900,
+    } as never;
+    diver.afflict(working);
+    diver.getVitalSign('heartRate');
+    expect(diver.getConferredBreathing()).toBe('water');
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(under);
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeUndefined();
+    // The term runs out: the working lapses, and the drain begins.
+    WorldClockApi._advanceForTesting(901_000);
+    diver.getVitalSign('heartRate');
+    await settle();
+    expect(diver.getConferredBreathing()).toBeNull();
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeDefined();
+  });
 });

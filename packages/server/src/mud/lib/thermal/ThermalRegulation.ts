@@ -80,6 +80,9 @@ type RegulationHost = Stuff &
   Containable;
 
 export interface ThermalRegulation {
+  /** ⭐ A held working's warmth on this body, K (underwater D18). */
+  setWorkingOffsetK(deltaK: number): void;
+  getWorkingOffsetK(): number;
   /** Setpoint (K) the body defends — the movable fever/magic seam. */
   setpointK: number;
   /** Cached effective ambient (raw K) — biome + warmth + clo + transforms. */
@@ -245,6 +248,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * reload is corrected by the next re-stamp.
      */
     private _ambientOffsetK = 0;
+
+    /** A held working's warmth, K (runtime; set by the sustained arm). */
+    private _workingOffsetK = 0;
 
     /** The room's own raw temperature, before any body-side transform. */
     protected async baseAmbientK(): Promise<number> {
@@ -544,7 +550,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       if (scope !== null) {
         const medium = BiomeApi.mediumFor(host as unknown as Stuff);
         if (medium.immersed && medium.tag === "water" && medium.temperatureK !== null) {
-          return Quantity.of(Math.max(0, this.exchangeWithWater(medium.temperatureK, 0)), "K");
+          return Quantity.of(Math.max(0, this.exchangeWithWater(medium.temperatureK, 0) + this._workingOffsetK), "K");
         }
       }
 
@@ -600,7 +606,24 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         ambientK += (humidity - 50) * 0.05; // crude heat-index bump
       }
 
-      return Quantity.of(Math.max(0, ambientK), "K");
+      return Quantity.of(Math.max(0, ambientK + this._workingOffsetK), "K");
+    }
+
+    /**
+     * ⭐ A working that keeps the cold off (underwater D18): while held,
+     * this body meets its surroundings `deltaK` warmer. Set by the
+     * sustained realisation; `0` when nothing is held. Its own field —
+     * `_ambientOffsetK` is the re-stamp's cache and must stay derived.
+     */
+    public setWorkingOffsetK(deltaK: number): void {
+      const next = Number.isFinite(deltaK) ? deltaK : 0;
+      if (next === this._workingOffsetK) return;
+      this._workingOffsetK = next;
+      void this.restamp();
+    }
+
+    public getWorkingOffsetK(): number {
+      return this._workingOffsetK;
     }
 
     /**
