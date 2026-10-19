@@ -14,9 +14,9 @@
  *    a `wait` suspends the detached run until the GAME clock advances (the
  *    coroutine pacing the closing-time `last-call` beat depends on).
  *
- * The crafting-integration execution of a recipe-script (`make` →
- * pour/stir/strain, paced on engagement) is proven by the P4/P6/P8 suites
- * (manual-build, named-scripts, Transcriber); here the `ping` harness
+ * Running a script's steps for real (`do` → pour/stir/strain, paced on
+ * engagement) is proven by the manual-build and named-scripts suites;
+ * here the `ping` harness
  * stands in for the build verbs so the engine proofs need no animate body.
  */
 

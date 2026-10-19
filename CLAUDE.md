@@ -177,7 +177,7 @@ behavior. Read the relevant doc before editing in its area.
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution + resolution, async override
   - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken, `format()` round-trip, `msh`
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for verbs: YAML shape, controller refs as paths, domain-local commands, categories
-  - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`make`
+  - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`do` (the script runner; no relation to crafting)
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
   - [card-surface.md](./docs/subsystems/card-surface.md) — the right column as a FEED of cards, and a LOG not an index: one birth path (a command pushes; the wire cannot name a card), pinned = the whole lifetime, live = scoped to attention (newest holds the subscription), ONE inspection card laid out by `StuffKind`, subject-bound subscriptions, one sweep, `shell.result` as a filter
@@ -818,7 +818,7 @@ reason.
   than aliased: it belonged to a discipline whose own design had already
   decided the question. ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
-  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
+  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`) and
   `retail/menu`+`order`; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
   `trade-cooking`: `cook`/`plate`/`cure`/`dry`/`smoke`/`butcher`;
