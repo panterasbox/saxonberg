@@ -5,8 +5,8 @@
 > of who is dying · how she says it.
 > **Size:** a tail (of mortality + npc-dialogue).
 
-Out of [cleanliness-requirements](../../requirements/cleanliness-requirements.md)
-§ 17, cut at planning.
+Out of the cleanliness requirements (§ 17, cut at planning; retired with
+the build — [cleanliness.md](../../subsystems/cleanliness.md) is the live doc).
 
 ## The idea
 

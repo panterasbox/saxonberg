@@ -521,11 +521,13 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
     // hand passes through it"* at the next wash), which is the feature.
     const buyer = await newPlayer('fumes', '/world/terminus/wharfside/chandlery/location/floor');
     const fumesHandle = buyer.handle;
-    await buy(buyer, 'sulfur');
+    // ⚠ One nodule (0.05 kg) in a ~27 m³ cellar sits under the trained
+    // nose's 0.2% — the chandlery's whole stock of four is what reads.
+    for (let i = 0; i < 4; i++) await buy(buyer, 'sulfur');
     buyer.close();
     const s = await goTo(fumesHandle, CELLAR);
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
-    await say(s, 'stoke sulfur into brazier');
+    for (let i = 0; i < 4; i++) await say(s, 'stoke sulfur into brazier');
     await say(s, 'ignite brazier');
     await advance('30 minutes');
     const air = await say(s, 'analyze atmosphere');
@@ -668,23 +670,21 @@ suite('⭐⭐ drive 20 — the doorman says why; a bath and a coat, and he lets 
 
 suite('⭐ drive 21 — a bath you draw yourself: cold from the tap, hot from a copper (review)', () => {
   it('a tub and its brass tap run a cold bath; a copper draws a hot one', async () => {
-    // The home bathroom's fixtures, stood in a room the drive reaches (a
-    // Hinkley house is a bought lot; its rows are the hinkley-hills tests').
-    await cloneHere(COOKHOUSE, '/stuff/thing/fixture/tub');
-    await cloneHere(COOKHOUSE, '/stuff/thing/fixture/bath-tap');
-    const s = await goTo(cookHandle, COOKHOUSE);
-    const cold = await act(s, 'fill tub from bath tap');
+    // The bathhouse's own tubs, its cold tap and its copper — no cloning:
+    // a commons fixture row is nobody's title to clone (the run-29 finding).
+    const s = await goTo(cookHandle, BATHS);
+    const cold = await act(s, 'fill 1st tub from bath tap');
     expect(cold, `fill tub from bath tap: ${cold}`).toMatch(/fill|tub/i);
     expect(cold, `the tap gives water: ${cold}`).not.toMatch(/can't|nothing to fill/i);
-    const coldBath = await act(s, 'bathe in tub');
+    const coldBath = await act(s, 'bathe in 1st tub');
     expect(coldBath, `a cold bath: ${coldBath}`).toMatch(/tub|bath|water/i);
     s.close();
     // ⭐ Hot is a copper's: the bathhouse's here, a Hinkley house's at home.
     const b = await goTo(cookHandle, BATHS);
-    const hot = await act(b, 'fill tub from copper');
+    const hot = await act(b, 'fill 2nd tub from copper');
     expect(hot, `fill tub from copper: ${hot}`).toMatch(/fill|tub/i);
     expect(hot, `the copper gives water: ${hot}`).not.toMatch(/can't|nothing to fill/i);
-    const hotBath = await act(b, 'bathe in tub');
+    const hotBath = await act(b, 'bathe in 2nd tub');
     expect(hotBath, `a hot bath: ${hotBath}`).toMatch(/tub|bath|water/i);
     b.close();
   }, 300_000);

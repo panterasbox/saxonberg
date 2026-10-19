@@ -411,7 +411,8 @@ is just a worse card.
 
 ## What this build deliberately does not ship
 
-- **`SoilableMixin`, its bands and its event** — above.
+- ~~**`SoilableMixin`, its bands and its event**~~ — ✅ shipped by the
+  cleanliness build ([cleanliness.md](./cleanliness.md)).
 - **Leatherwork and tanning** — nothing produces hide, so a tannery now
   would tan imports. Waits on ranching or a butchery faucet.
 - **Wool and everything on its left edge** (`shear`, scouring) — waits on
@@ -439,8 +440,10 @@ is just a worse card.
 - **Hair dye** — lineage must ship appearance substrate first.
 - **Individual body variance within a species** — lineage phase 2, and
   it feeds an existing seam.
-- **A laundry vocation.** Water is a precondition, not a consumable, so
-  the care loop is not an errand per wash.
+- ~~**A laundry vocation.**~~ ✅ Shipped by the cleanliness build: the
+  laundress at the lavoir (`order wash`, washing at HER band —
+  `Garment.launderBy` / `WashPolicy`), the house's cover when she ruins it.
+  See [cleanliness.md](./cleanliness.md).
 - **An adults-only seam.** Signal-only garments — lingerie: next to the
   skin, ~zero on every protective channel — are a real point in the
   purpose space, and the model needs them to be complete: not everything

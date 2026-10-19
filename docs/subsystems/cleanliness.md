@@ -4,9 +4,9 @@
 > one.* There is no clock on dirt anywhere in this subsystem — with one
 > declared exception (the byre's stalls, § Places).
 
-Built by the cleanliness build (2026-10-17; plan
-`docs/plans/cleanliness-plan.md`, decisions D1–D31 and build decisions
-B1–B50). Seeding slates: laundry, room-condition, rendering § 9,
+Built by the cleanliness build (2026-10-17 → 10-19, MR !380; the plan —
+decisions D1–D31 and build decisions B1–B58 — retired at the sweep, see
+§ History). Seeding slates: laundry, room-condition, rendering § 9,
 bathroom.
 
 ## The model
@@ -284,3 +284,84 @@ own on its `Tariff` (`houseVessel`, `houseWaterHardness`, `houseCleansers`,
 No `lib/` statics, no module functions for an act's internals. The
 tree-wide rule is [controllers-are-io-slate](../slates/builds/controllers-are-io-slate.md).
 
+## Open — the deferred seams (graduated from the plan at the sweep)
+
+Each names where it goes; a slate that does not exist yet is the line that opens it.
+
+- **The Washer at the Ford and the dying index** → `docs/slates/tails/washer-at-the-ford-slate.md`
+  (cut by the user, 2026-10-17; the slate exists). The attach point
+  is the dialogue-effect registry (`BankCounter.onCreate`'s shape) and a
+  maintained index at `beginDying`/`stabilize`/`expireDying`.
+- **Grime on a construction glass face** (rubber's hothouse roof) →
+  `glass-slate`: the attach point is rubber's `Face.transmittance()` /
+  `Exposure.faceTransmittance(face)` (asked of rubber — today its two
+  readers each read the cached figure); a face then multiplies by a
+  per-place soot term the way a `Window` does; no per-place field until
+  then. The stove house (a sooty stove under glass; a grimed roof → less
+  solar gain → a colder house → the latex tap closes) is the first
+  consumer. ⭐ Beside it: repair W7 weathers a *glazing layer* (putty)
+  while this build grimes a *Window object* — different objects until a
+  Window is a face of `Exposure`; note both in glass-slate.
+- **The house mends it** — a laundress-rotted garment is `wear`-damaged,
+  so the tailor's mend (repair's band table) is the second remedy beside
+  the cash cover → `retail`/`contract` slates with the appraisal line.
+- **Wind on the drying line, pests in a store, sawdust strewn on ice for
+  footing** — `windEnters()` is consumed once rubber lands (D11); storage's
+  `StoreConditions` reads `Floor.hasPests()` when the granary arrives
+  (storage-slate names it); strewn sand on a sheet clears at thaw (storage's
+  `clearSurface` hook) — all later.
+- **A flue on the forge and the kiln; a building's shared stack; air
+  mixing between rooms** → `structures-slate`.
+- **Dirt from the calendar** (road dust, damp, mildew) →
+  `stewardship-doctrine.md § 3a`'s legible-local-process rule; the
+  byre's stalls are the one instance and the shape to copy.
+- **Stale urine's collection** (who fills the tub) → `sanitation-slate`.
+- **An appraisal of a garment's value** (the laundress pays a cover,
+  not a value) → `retail`/`contract` slates (an `appraise` reading).
+- **Silk** → ⭐ a raw-goods chain nobody has designed (sericulture: mulberry,
+  the worm, reeling, throwing) — the user's call, 2026-10-17; no slate yet.
+  **Cotton** → `textiles` content. The laundress's ruin case uses wool.
+- **Seznick's and the dorm's windows as objects** → content, one row
+  each over `Window`, when those homes want the drive's light step.
+- **Washing soda and potash as a trade's product** beyond the one
+  evaporative row → `trade-fuel` content; glycerin's products →
+  `cosmetics-slate`.
+- **Clean-home-is-immunity** → `disease-slate`; **eyes as anatomy** →
+  `physiology-slate`; **the sterile field** → `surgery-specialty-slate`;
+  **chlorine, detergent, the machine** → `laundry-slate` / `inquiry-slate`.
+- **Hiring a cleaner onto your own premises** → `standing-instructions-slate`
+  (player-hires-player ships through the `clean` contract).
+- **The `props`-only half of `Staged`** (repair's finding) — unchanged
+  here; no NPC in this build is born holding kit.
+
+### Found by the browser walk (2026-10-19), not this build's
+
+- `smell` / `feel` / `listen` on a thing or a person print its untagged
+  VISION prose (the targeted sense keeps untagged text) → `senses-slate`.
+- The transfusion order collects its fee in the completion, outside the
+  command frame — probably free, like the bath was → the blood build's
+  `OrderController` arm.
+- The Terminus arrival hall is pitch dark at night; a fresh character
+  shivers in the lounge → content (a lamp; the lounge's warmth).
+- The client's command-slot popup swallows Enter; a teleport typed under a
+  `terminal>` slot echoed without its destination → `client-shell`.
+- `bank open` on an existing account says it opened one (it re-links the
+  implant) → `banking`.
+
+## History — the cleanliness build (MR !380, 2026-10-17 → 10-19)
+
+Built W0–W7 (`reqs/cleanliness`), then a long review that reshaped it; the
+decision log is B1–B58 (the plan, retired at this sweep — `git log --all --
+docs/plans/cleanliness-plan.md` recovers it). The review's load-bearing
+moves: logic out of controllers onto the objects (B45–B48: `Metabolic.eat`,
+`Floor.sweepInto`, `Burner.rakeGrate`, `Midden.takeRefuse`, `CleanserUse`,
+`Tub.drawFrom`, `Garment.launderBy`; the one-water wash is
+`CraftingApi.wash`, no `CleanlinessApi`); hygiene off `Attired` onto
+`HygieneMixin`; no catalogues (a material names its cleanser, a dirt kind
+loads by path, B50); a tap's dirt derived (B49); `beat` → `brush` (B46);
+the place taxonomy — `Place` · `Locale`/`Location` · `Persistent…`, every
+place on a grid but the void, a room's size its zone's cell (B51–B54);
+`RoomWarren`/`CirculationWarren` (B55); water and drying by one law, the
+towel (B56); `analyze cleanliness`, `domestic-services`, dirt that smells
+(B57); the browser walk's fixes — the lit bathhouse, the bath paid at the
+desk, the honest unlinked-implant refusal (B58).

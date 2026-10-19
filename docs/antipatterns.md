@@ -4343,6 +4343,33 @@ so `hew` returns; but a charcoal clamp still OPENS and a furnace is still
 TAPPED, because the fire did not need watching to finish. **Only the
 telling needs a listener.**
 
+### ⚠⚠ And never SETTLE MONEY in a completion
+
+The completion runs from the scheduler, OUTSIDE the command frame — so
+there is no command on the stack and `BankingApi.settle`'s acting payer
+is null. `settle` throws, a `try`-fallback (`PricedOffer.collect`
+swallows both) reports *not paid*, and the service is rendered **free**,
+silently. Found by the cleanliness browser walk (2026-10-19): every
+`order bath` was free, though the wire drive passed — a drive asserts the
+prose, and the prose was fine.
+
+```ts
+// BAD — the fee is taken where there is nobody to take it from
+this.runDurativeService(context, ms, lines, async () => {
+  giver.bathe(spec, 120);
+  const collected = await tariff.collect(key, 'a bath'); // paid: false, always
+});
+
+// GOOD — paid at the desk, in the command; refused if it does not go through
+const collected = await tariff.collect(key, 'a bath');
+if (price > 0 && !collected.paid) return serviceFail(context, …, 'cannot-pay');
+this.runDurativeService(context, ms, lines, async () => { giver.bathe(spec, 120); });
+```
+
+A service that must bill only on success (the transfusion: *"honest, and
+unbilled"*) has to carry the payer in explicitly — never lean on the
+acting principal from a completion.
+
 Found by driving (metal chain, 2026-09-01). `lint:does-nothing` cannot
 see it — the method exists and the call is well-typed.
 
