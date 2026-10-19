@@ -674,3 +674,48 @@ distress, recognition in any port); **the watermen's charter ships as a RUIN**
 — a shuttered Watermen's Hall in the harbor district, its charter readable on
 the wall, teaching the other shape (apprenticeship, licensing, a granted
 monopoly) by archaeology, reopenable when the river has the traffic.
+
+## 18. ⭐⭐ Drill-down: the harbor (2026-10-19)
+
+### The harbormaster's day **[DECIDED]**
+
+A day run **on the tide**. An arrival **hails** the harbor office and is worked
+through **health** (quarantine), **draught against the bar** (in now, or wait for
+the flood), **a pilot** if required, and **a berth or the anchorage** (by length,
+archetype — fish to the fish quay — and the queue). **Dues are derived**: tonnage
+dues from her kind's dimensions, wharfage by cargo landed, at posted rates. **The
+arrivals book** is a register the office keeps; its public face is ⭐ **the
+shipping news** (Lloyd's List, from 1734) — a press publisher posting arrivals,
+departures, ships missing, ships lost — how a town learns a ship is overdue and a
+merchant reads the market. **The seat**: an NPC brain runs the routine; a player
+harbormaster makes the judgment calls on a **posted** criterion, appealed to the
+harbor authority.
+
+### What makes ships contend — authored geometry, derived throughput **[DECIDED]**
+
+*"What's behind these judgments… are you actually going to run into other ships
+if you don't listen?"*
+
+| scarce | the author writes | derived |
+|---|---|---|
+| ⭐ berths | a quay room's **length** | how many ships fit, by their lengths |
+| ⭐ the channel at the tide | the channel's **width** and **depth**; the bar's depth | **one-way traffic** when two beams exceed the width; a deep ship crosses only in the **high-water window** — a throughput per tide; **miss the tide and wait twelve hours** |
+| the anchorage | the roads' **extent** and **bottom** | **swinging room** (length + chain) — the roads hold only so many; **holding ground** (sand and mud hold, rock does not) |
+| quay labor | cranes, stevedore gangs | how fast a hold is worked |
+| pilots | who holds the seat | who gets in first |
+
+**Ignoring the harbormaster costs TIME and MONEY first** — missing the tide; ⭐
+**demurrage** (a charterer pays for each day a ship waits beyond the agreed time —
+a contract clause, and most of harbor anger); perishable cargo spoiling; ⭐ **the
+market moving** (the tea clippers raced because the season's first tea sold at a
+premium). **Danger second, derived, never rolled** — ⭐ **fire** in a crowded
+harbor (rafted wooden ships, one cook fire — *no fires after dark* is the physics
+as a rule); ⭐ **explosion** (Halifax, 1917 — why dangerous cargo anchors apart);
+⭐ **dragging anchors** (wind against holding ground drives a ship into whatever
+is downwind — **the honest source of collisions**). **Impossible moves are refused
+by admission**, never a crash roll: the harbormaster sequences scarce capacity and
+enforces the safety rules whose violation the physics punishes. Ballast dumping
+silts the harbor (the dredger's work).
+
+Sizes in general — exits, bodies, what fits — went to
+[size-slate](./size-slate.md).
