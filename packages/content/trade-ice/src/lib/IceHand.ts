@@ -56,6 +56,23 @@ export default abstract class IceHand {
     return null;
   }
 
+  /**
+   * ⭐ OFF shift and still out on the mere: back to the bank — walking if
+   * the ice holds you, swimming if it does not (or is gone). The roster's
+   * offstage teleport is the ordinary way home; this is the hand who was
+   * left out there (the drive: the boss still on the summer water). True
+   * when it took that step.
+   */
+  protected static async offTheIce(ctx: BrainContext, host: Stuff): Promise<boolean> {
+    const room = MixinApi.isContainable(host) ? host.getContainer() : null;
+    const pool = String(ctx.config.pool ?? '');
+    if (room === null || !pool || room.getTemplatePath() !== pool) return false;
+    const here = IceHand.sheetUnder(host);
+    const back = IceHand.way(ctx, 'back', 'south');
+    await (host as unknown as CommandGiver).forceCommand(here !== null && here.supports(host) ? `go ${back}` : `swim ${back}`);
+    return true;
+  }
+
   /** The ice sheet under a host, or `null` (not on a frozen pool). */
   protected static sheetUnder(host: Stuff): IceSheet | null {
     const room = MixinApi.isContainable(host) ? host.getContainer() : null;

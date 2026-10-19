@@ -36,7 +36,8 @@ export const brain = class BossesBrain extends IceHand {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (!MixinApi.isCommandGiver(host) || !MixinApi.isContainable(host)) return;
-    if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') return;
+    if (!MixinApi.isEmployed(host)) return;
+    if (host.shiftState() !== 'on-shift') return void (await this.offTheIce(ctx, host as unknown as Stuff));
     const margin = Number.isFinite(Number(ctx.config.marginKg)) ? Number(ctx.config.marginKg) : 200;
     const floor = await this.onTheIce(ctx, host as unknown as Stuff, (ice) => ice.bears(margin));
     if (floor === null) return;

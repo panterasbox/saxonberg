@@ -330,7 +330,18 @@ classification; the active rung) · [thermal-slate](../tails/thermal-slate.md) �
 
 What the build's drive and review left open, for whoever builds next here:
 
-- **The crew walks onto ice that will not hold it.** The roster puts the
+- ⚠ **The crew across a clock jump is nondeterministic** (the pre-merge
+  sweep: three drive runs, three answers — the crew on the mere at day 11
+  or not; the boss, or both, still on the open water in summer). Brains
+  beat in REAL time and the roster ticks hourly in game time, so what a
+  hand has done by the time a months-long jump lands depends on how the
+  beats fall. What a hand does ON a beat is pinned (`ice-hands.test.ts`);
+  the open question is the unobserved catch-up — a hand's position after
+  a jump should be DERIVED from its seat and the ice at the landing time,
+  not left wherever the last beat put it (→ unobserved-economy-slate's
+  reconcile-on-read for NPCs).
+- **(Addressed at the sweep — the station is the shore.)** The crew walked
+  onto ice that would not hold it. The roster puts the
   crew and the boss at their station — the mere — on the first day of
   their season; the boss's "will it hold" gates only the WORK, not the
   walk, so on young ice the crew goes through and works the season soaked

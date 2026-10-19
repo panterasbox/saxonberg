@@ -16,6 +16,7 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -38,7 +39,8 @@ export const brain = class HarvestsBrain extends IceHand {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (!MixinApi.isCommandGiver(host) || !MixinApi.isContainable(host)) return;
-    if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') return;
+    if (!MixinApi.isEmployed(host)) return;
+    if (host.shiftState() !== 'on-shift') return void (await this.offTheIce(ctx, host as unknown as Stuff));
     // ⭐ The boss's go-ahead is a marked patch: no grid, no going out.
     const goAhead = (ice: { getLog(): readonly { kind: string; areaM2: number }[] }): boolean =>
       ice.getLog().some((p) => p.kind === 'marked' && p.areaM2 > 0);
