@@ -1134,3 +1134,49 @@ certify. ⭐ Content fact: in the Royal Navy the cook's warrant often went to a
 seaman **disabled in service**, as a pension. See
 [ships-and-harbours-slate](./ships-and-harbours-slate.md) § 15 and
 [wellbeing-slate](./wellbeing-slate.md) § 8.
+
+## ⭐⭐⭐ Designed 2026-10-19 — the MAP ROOM, the first concrete guild feature
+
+*"Maybe the first real feature we've added to guilds, and I think it's a good
+one."* Out of the mariners' guild (ships-and-harbours § 16). It makes the
+slate's first fantasy — **a door into a hidden world** — literal, and it is a
+feature of the **guild model**, not of one guild (*"a foresters' guild or
+something wants to map the woods"*).
+
+What ships ([location-graph.md](../../subsystems/location-graph.md)): a
+player's map is append-only **claims** in six channels (`walked` · `seen` ·
+`searched` · `published` · `charted` · `told`); `ChartedMixin` is *a source
+whose knowledge is claims* — reading a `Chart` writes `charted` claims, a paid
+`Pilot` writes `told` claims signed `toldBy`; the evidence firewall keeps the
+true index from every map. A shipped chart is authored once and never
+changes. **The map room is a chart its readers keep feeding.**
+
+- **Contributing** — at the guild's map room a member contributes what their
+  own map holds **within the guild's domain**; it is copied into the guild's
+  map document **dated and signed by the contributor**, appended, never merged.
+- ⭐ **Honest by construction** — a contribution can only copy claims the
+  contributor's map already holds, and only the engine writes those (walked,
+  seen, searched, measured). **Nobody can forge a channel or invent a coast**;
+  a guild map can be stale or incomplete, never fabricated. Lies stay in
+  `told`, signed.
+- **Reading** — a member reads the room and the shipped `ChartedMixin` writes
+  **`charted`** claims into their map, attributed to the guild's chart — the
+  existing mechanism with a growing source; whose survey a line came from, and
+  how old, stays visible.
+- ⭐ **Why the guild's map beats the library's** (a public map room at the
+  university or records office, the same mechanism open to all):
+  **practitioners feed it** (mariners at sea, foresters in the deep wood,
+  miners down the workings — where outsiders never go); **it is curated** (a
+  **cartographer's seat**, a master, drops the stale and flags contradictions —
+  a trusted judgement); **it is restricted** (members read it — *the map is the
+  mystery*).
+- ⭐ **The domain is the charter's region** — the mariners' channels, bars,
+  soundings, currents and wrecks (band claims, depth readings); the foresters'
+  woods; the delvers' workings and damps; the wardens' wilds and dens.
+- **Contribution is a teaching deed** — a contribution another member reads and
+  uses mints for its contributor (*teaching deeds only mint when done for
+  others*), a road to mastery.
+- ⭐ **Printing the chart** — a guild may sell a `Chart` Thing whose claims are a
+  dated snapshot of its map: revenue, and a lens 4 choice — **Portugal kept its
+  sea charts a state secret** (the *padrão real*); later admiralties published
+  for safety.

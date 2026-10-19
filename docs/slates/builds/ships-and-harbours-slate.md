@@ -516,3 +516,58 @@ derived from wellbeing and felt as manning; **refusal and mutiny** — the crew
 judging the master, lens 7 at sea — are deferred to governance. The galley cook
 as a vocation is recorded in [guild-slate](./guild-slate.md); the three-star
 other end in [wellbeing-slate](./wellbeing-slate.md) § 8.
+
+## 16. Drill-down: seafaring continued, and the mariners' guild (2026-10-19)
+
+### From boy to master **[DECIDED]**
+
+- **⭐ `seamanship` is a new discipline** (ropework, sail, the helm, boat
+  handling, anchoring and mooring) beside the shipped **navigation** and
+  **command**.
+- **The ladder** — boy → ordinary → **able seaman** (*can hand, reef and
+  steer* — a seamanship band) → bosun or mate → master — as positions whose
+  seats want bands; ⭐ **the refusal is the progression UI** (the shipping
+  master says what is missing).
+- **⭐ The master's certificate is a credential issued by the flag state**
+  (Britain from 1850, after wrecks traced to incompetent masters), the
+  register checking it before she sails; the guild **examines and vouches**.
+  Flags of convenience then also mean lax certification — the real problem.
+- **⭐ The shipping office** — articles signed **before a shipping master**, a
+  public official at a counter in the harbour district; the crew list filed
+  with the register. ⚠ **The crimp** (drink, the advance stolen, a sailor
+  delivered to a ship) is the accountability ledger's — **never a mechanic**.
+- **The sailor ashore** — paid off as the articles settle; the sailortown
+  until the next ship.
+
+### The mariners' guild — the guild model's proving case
+
+The [guild slate](./guild-slate.md) had a dormant **Watermen** charter
+(fishing, pilotage, diving); this session moved the ground (seafaring a trade;
+watermen and lightermen in haulage). History offers two institutions — **a
+mariners' guild** in the Trinity House shape (masters, mates, pilots; **public
+functions** — lights, buoys and pilot licensing as polity contracts, the
+Landwrights pattern; mutual aid across ports; an almshouse) and **the
+watermen** (the Company of Watermen and Lightermen — a livelihood guild over
+haulage: fares, licensing who may ply, apprenticeship). Whether one or two is
+open.
+
+What the mariners' guild must DO — most of the guild model: ⭐ **the mystery
+is the sea's knowledge** — its pilot books and charts, kept in **the map room**
+(designed in the guild slate: a living chart members feed and read); ⭐ **the
+call is distress** — a ship in trouble raises the shout, members are called
+(the lifeboat, rescue); ⭐ **the mark is recognition in any port** — a sailor
+stranded abroad is helped at the hall; the board posts berths; the budget is
+seamanship primary, navigation and command secondary; the hall stands in the
+harbour district with its chart room and almshouse; public work maintains
+lights and buoys and licenses pilots.
+
+**Branches** — a branch is another hall (a chapter); in a landlocked realm the
+formation rule (*a guild forms where a discipline meets demand*) says **no
+branch by default — or a recruiting office**, since many sailors came from
+inland; a thin branch dies of ordinary economics.
+
+The classics, answered by the guild slate: **the Free Company** (fighters —
+contract arms, the school, marshal's writs), **unlisted, under seal**
+(rogues — stealth, locks, appraisal), **the Chorus** (bards — performance,
+tips, venues, the stream's stage), **no magic guild** (verbs are university
+faculties; each guild's mystery is a magic noun).
