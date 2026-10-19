@@ -214,7 +214,9 @@ suite('⭐ 1. the silk house — a lit loft, its trays in words', () => {
       expect(loft).toMatch(/silk house loft/i);
       expect(loft, 'a LIT loft — not "something"').not.toMatch(/too dark|pitch/i);
       const here = await names(s, 'here:i');
-      expect(here).toMatch(/rearing tray/i);
+      // The house's own trays, named by what is on them (a house tray when
+      // bare) — never "rearing tray", which is a BOUGHT tray's name.
+      expect(here).toMatch(/house tray|tray of (silkworms|cocoons)/i);
       expect(here).toMatch(/stifling oven/i);
       expect(here).toMatch(/counter/i);
       expect(here, 'the keeper, by name').toMatch(/Ines Vale/);

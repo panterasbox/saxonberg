@@ -45,6 +45,7 @@ as a colony is the hive's ([apiculture.md](apiculture.md)). Nothing mints a
   something to climb; without one they spin a day late, on the floor,
   ×0.8. Three game days later the tray holds three `Cocoons` stacks —
   **heavy (top 20 %), middling, light** — and a sack of frass (compost).
+- **A tray is named by what is on it** — *a tray of silkworms*, *of cocoons*, *of eggs*, *of wandering/spinning/sleeping/dead silkworms* (`RearingTray.getShortDescription`), so a room of trays can be told apart and `look silkworms` finds the working one.
 - **Reads are words.** `rearingLine()` via a markup augmenter: *eggs,
   waiting for warmth* · *in their third age, eating* · *restless, heads
   raised* · *asleep for the moult* · *the sound of rain on leaves* ·
@@ -115,7 +116,7 @@ and a quarter lighter. Gummed cloth takes a dye thinly.
 ## The silk house and the mill
 
 Hearts Delight's silk house (`/world/terminus/hearts-delight/silk-house/`)
-is a loft of three persistable `HouseTray`s, a stifling oven, a counter
+is a loft of three persistable `HouseTray`s (fixed in its racks, and named *house tray* so a bought *rearing tray* set down beside them is still the one `put … in rearing tray` finds), a stifling oven, a counter
 and a mulberry walk — an orchard: an ordinary place holding one kernel
 `PermanentBed` (a bed that is a fixture of its place and remembers being
 cut) of four mulberries and a kermes oak; not a forestry `Panel`, which is
