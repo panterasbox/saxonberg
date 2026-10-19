@@ -20,6 +20,7 @@ data:
   bill:
     parts:
       - { part: kettle, template: /trade/sugar/thing/copper-kettle, count: 4, role: structural, material: /stuff/idea/material/element/copper }
-      - { part: flue, template: /trade/sugar/thing/flue-brickwork, count: 1, role: structural, material: /stuff/idea/material/ceramic/brick }
-    joints:
-      - { key: setting, method: seated, members: [kettle, flue] }
+    # ⚠ The brick flue is the train's prose, not a part: no trade makes
+    # brickwork yet (the brickmaking slate), and a bill part nobody makes
+    # is a mend nobody can know. The coppers are the power anyway.
+    joints: []
