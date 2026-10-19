@@ -689,7 +689,9 @@ first rung and a quern is a millstone.
 **D7 — Lime goes on the quarry's shelf.** One import line on
 `C/rejection/…/thing/store-counter.yaml` (`/trade/quarrying/thing/quicklime,
 par: 4`) — the same shelf the sugaring and drilling kits went on, for
-the same reason. A limeburner seat is the potash build's. The sugar
+the same reason. A limeburner seat is **unowned** (potash closed its
+scope without one, 2026-10-19); sugar does not need it — the shelf is
+the supply — so it waits in the quarrying tail. The sugar
 house buys it through a `parLines` entry (`{category: liming, unit:
 count, level: 6, supplier: …/rejection/idea/provisioning-business}`)
 served by the refiner's `purchases: true` seat and the shipped
@@ -1046,7 +1048,25 @@ class. No new guard anywhere re-narrows a host set.
 
 ## Waves
 
-### W0 — the unpaid hand walks off
+### W0 — the unpaid hand walks off ✅ DONE
+
+> **Build note (2026-10-19).** Master merged first (`reqs/sugar` was 71
+> behind; clean). As planned, with two changes. ① The worker is handed
+> the decision in **`settleShiftWageImpl`**, not in `tickBusiness`: both
+> shift ends (the roster tick and `clock off`) settle through it, so
+> one site covers both, and the tick's `void` promise stays untouched.
+> ② `Organization.endShift` now refuses to overwrite an EXITED record.
+> `clock off` awaits the settle and then calls `endShift`, so a hand who
+> quit inside the settle would otherwise have come back `off-shift`.
+> `openingsFor` = `max(headcount, distinct rostered assignees) −
+> holders`. `holdersOf` already counts a roster assignee until their
+> record says they exited, so a seat opens only on positive evidence. ⚠ That
+> evidence is read off the live NPC, so after a restart with the hand
+> unloaded the seat reads held until they load (load on use). The
+> spoken line needs a room (`toPeers`); an offstage hand just leaves.
+> The "drive step 1" wire checkpoint is written with the drive file at
+> the end of the build, not here. The test is in `credit.note.test.ts`:
+> the payroll harness lives there.
 
 **Goal.** AC 13; drive step 1. Decisions D10, D21 step 1.
 
@@ -1633,6 +1653,20 @@ Nothing unmapped.
 
 ## Risks & opens
 
+- **Potash builds in parallel (build-2, `reqs/potash`, heads-up
+  2026-10-19).** It builds none of D1–D3 and converges on them after they
+  land. Shared files, disjoint parts: `Burner.ts` (potash: ash accrual in
+  `consumeFuel`/`takeAsh`/`rakeGrate`; W1a: the heat path),
+  `Material.ts` (one field each), `DensityReading.ts` + `density.yaml`
+  (potash: the egg rung and lye strength in its own method; ours: the
+  measure arm — ⚠ when D1's dissolved-solids field lands, potash's lye
+  strength should read it, one field not two), `FireController.ts`
+  (potash: firing fractions + weakest grade), `lye.yaml` (potash adopts
+  the plateau), `soda-from-lye.yaml` (potash deletes it — drop our
+  retirement line if it is gone on master). Additive overlaps:
+  AppSettings keys, the `PackLogic.discover` pack count, package.json /
+  lockfile. Whichever lands second merges and resolves.
+
 - **The silk merge (D21).** `reqs/silk` is behind master; the catch-up
   merge into `reqs/sugar` must resolve `Burner.ts` (ash vs
   `settleRoomAir`) and take silk's deletion of `boil.yaml` /
@@ -1715,7 +1749,7 @@ Nothing unmapped.
 | lye and soda converging on the arrows | `concentratesTo` on `lye.yaml`; `soda-from-lye.yaml` retires | the potash slate |
 | a pan of strike left to cool setting hard | `reconcileBulkPhase`'s melt arm on a `strike` material with a melting point | `moulding-slate` |
 | rain into an open fire-heated pan | the plateau has no sky term (the evaporative profile's rain arm stays the brine's) | `thermal-slate` |
-| a limeburner seat at the quarry | the `burn-lime` recipe on a roster | `potash-slate` |
+| a limeburner seat at the quarry | the `burn-lime` recipe on a roster | unowned — potash declined it; a quarrying tail |
 | earthenware cones made, not stocked | the cone row's `_materialPath` + a pottery recipe | `pottery-slate` (sugar is its first customer) |
 | latitude resolved from a ship's position | `WaterExpanse` + `SpatialZone.climateSite()` | climate-and-water's seam (expanse.md) |
 | consistent positions on the globe | — | the-world slate § 5 |

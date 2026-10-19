@@ -129,8 +129,9 @@ export interface PositionData {
   fulfills?: readonly string[];
   /**
    * ⭐ **How many places this seat has.** Absent — the shipped default —
-   * means *no opening is ever advertised*: exactly today's behaviour for
-   * every seat that does not author it. A house with `headcount: 2` on a
+   * means the seat has as many places as the roster names hands for it
+   * (sugar D10: a rostered hand who walks off leaves a vacancy), and no
+   * opening at all when nobody is rostered either. A house with `headcount: 2` on a
    * seat one person holds is advertising one place, derived, so nothing
    * decrements and a `quit` reopens it by arithmetic.
    */

@@ -25,6 +25,8 @@ import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { Quantity } from "../../quantity";
 import { Idea } from "../../stuff/Idea";
+import { EmployedMixin } from "../Employed";
+import { Employment } from "../Employment";
 import { ContainerMixin } from "../../spatial/Container";
 import BusinessEntity from "../../../platform/idea/Business";
 import BankCounter from "../../../platform/thing/BankCounter";
@@ -53,6 +55,10 @@ const SHOP_COUNTER = "/test/note/shop/thing/counter";
 const BANK = "/test/note/bank/idea/business";
 const BANK_COUNTER = "/test/note/bank/thing/counter";
 const GAME_DAY_S = 86_400;
+
+class Hand extends EmployedMixin(Idea) {
+  static _mixinName = "UnpaidHand";
+}
 
 class Hands extends ContainerMixin(Idea) {
   static _mixinName = "Hands";
@@ -276,6 +282,38 @@ describe("the Arrival Note and the standing facility", () => {
     expect(shop.getPayrollArrears()).toEqual([]);
     expect(BankingApi.balanceOf(account).minor).toBe(22);
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).overdraft).toBe(0);
+  });
+
+  it("⭐⭐ the unpaid hand: works on past one refusal, walks off past the stand and SAYS so, and the seat opens (sugar D10)", async () => {
+    standUpBank(true);
+    withRows({
+      [AppSettingKeys.treasuryOpeningAdvance]: "0",
+      [AppSettingKeys.reserveLadderLoansRequired]: "1",
+      [AppSettingKeys.employmentUnpaidStandGameDays]: "3",
+    });
+    const shop = standUpShop();
+    const handKey = "/test/note/shop/agent/hand";
+    shop.rosterSlots = [{ positionKey: "keeper", assignee: handKey, schedule: [] }] as never;
+    const hand = makeStuffAtPath(() => new Hand(), handKey);
+    const shift = (since: number) =>
+      Employment.of({ organizationPath: SHOP, positionKey: "keeper", status: "on-shift", hiredAt: 0, onShiftSince: since });
+    hand.employments = [shift(gameNow).serialize()];
+    expect(shop.openingsFor("keeper")).toBe(0);
+
+    // The first refusal: on the book, and the hand works on.
+    gameNow += 8 * 3_600;
+    await EmploymentApi.settleShiftWage(shop, handKey, shift(gameNow - 8 * 3_600));
+    expect(shop.arrearsOwedTo(handKey)).toEqual({ amountMinor: 80, oldestAtS: gameNow });
+    expect(hand.getEmployment(SHOP)?.status).toBe("on-shift");
+
+    // Three game days on, still unpaid: they walk off, and say so.
+    gameNow += 3 * GAME_DAY_S;
+    await EmploymentApi.settleShiftWage(shop, handKey, shift(gameNow - 8 * 3_600));
+    expect(shop.arrearsOwedTo(handKey)?.amountMinor).toBe(160);
+    expect(hand.getEmployment(SHOP)?.status).toBe("quit");
+    // (an offstage hand has no room to say it in; the wire drive hears it)
+    // The roster still names them; the seat is a vacancy.
+    expect(shop.openingsFor("keeper")).toBe(1);
   });
 
   it("with a working-capital line earned, a short house DRAWS and pays", async () => {

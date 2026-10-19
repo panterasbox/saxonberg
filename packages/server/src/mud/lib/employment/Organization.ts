@@ -48,6 +48,7 @@ import {
   type CallVerdict,
 } from './CallPolicy';
 import {
+  EXITED_STATUSES,
   Employment,
   type EmploymentData,
   type EmploymentStatus,
@@ -644,6 +645,9 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
 
     @CallSecurity(OrganizationSurface)
     public endShift(actor: Stuff & Employed): void {
+      // A hand who walked off at the settle (sugar D10) stays gone.
+      const emp = actor.getEmployment(this.getOrganizationPath());
+      if (emp && EXITED_STATUSES.includes(emp.status)) return;
       actor._setEmploymentStatus(this.getOrganizationPath(), 'off-shift');
     }
 
@@ -732,8 +736,20 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
 
     public openingsFor(positionKey: string): number {
       const position = this.getPosition(positionKey);
-      if (!position?.headcount) return 0;
-      return Math.max(0, position.headcount - this.holdersOf(positionKey).length);
+      if (!position) return 0;
+      // ⭐ A rostered seat is a place too (sugar D10): a hand who walks off
+      // leaves the roster naming them and the house a vacancy, whether or
+      // not the Position authored a `headcount`. `holdersOf` counts a
+      // roster assignee until their record says they exited, so the seat
+      // only opens on positive evidence.
+      const rostered = new Set(
+        this.getRosterAssignments()
+          .filter((a) => a.positionKey === positionKey && a.assignee)
+          .map((a) => a.assignee),
+      ).size;
+      const places = Math.max(position.headcount ?? 0, rostered);
+      if (places <= 0) return 0;
+      return Math.max(0, places - this.holdersOf(positionKey).length);
     }
 
     public openings(): Opening[] {
