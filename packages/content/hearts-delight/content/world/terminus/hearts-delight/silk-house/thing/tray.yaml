@@ -6,3 +6,8 @@ extends: /trade/sericulture/thing/tray
 data:
   shortDescription: rearing tray
   keywords: [tray, "rearing tray", rearing]
+  # ⭐ The house's trays stand in its racks: a visitor works them (puts
+  # leaf in, takes cocoons out) and does not carry them off. A browser walk
+  # found `get rearing tray` lifting all three — the house's rearing and
+  # its cocoons with them. A tray a player BUYS stays portable.
+  fixedInPlace: true
