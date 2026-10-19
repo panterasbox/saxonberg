@@ -258,29 +258,18 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isContainable(self) || !self.getContainer()) {
         return { medium: 'air', immersed: false };
       }
-      const immersed = this.immersedIn();
-      if (immersed !== null) return { medium: immersed, immersed: true };
+      // ⭐ The one medium read (underwater D3): a vessel's liquid, a
+      // holder's own air, a water place's water — answered once.
+      // ⭐ Swimming is at the SURFACE: a body in the water there breathes
+      // the air over it; only a body under the surface is immersed.
+      const read = BiomeApi.mediumFor(self);
+      if (read.immersed && !read.atSurface) return { medium: read.substance, immersed: true };
+      const place = self.getContainer();
+      if (read.atSurface && place !== null) {
+        return { medium: await BiomeApi.resolveAtmosphereFor(place), immersed: false };
+      }
       if (!MixinApi.isContainer(self)) return { medium: 'air', immersed: false };
       return { medium: await BiomeApi.resolveAtmosphereFor(self), immersed: false };
-    }
-
-    /**
-     * The liquid this body is immersed in, or `null` when it is in none:
-     * the first ancestor on the containment chain that holds a bulk
-     * interior with anything in it answers with that material's name.
-     */
-    private immersedIn(): string | null {
-      const self = this as unknown as Stuff;
-      let at: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
-      const seen = new Set<Stuff>();
-      while (at && !seen.has(at)) {
-        seen.add(at);
-        if (MixinApi.isBulkable(at) && at.getBulkAmount('interior').rawValue() > 0) {
-          return at.getBulkMaterial('interior')?.getName() ?? null;
-        }
-        at = MixinApi.isContainable(at) ? at.getContainer() : null;
-      }
-      return null;
     }
 
     /**

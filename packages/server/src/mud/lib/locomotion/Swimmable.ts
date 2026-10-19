@@ -22,20 +22,7 @@ import { LocomotionApi } from '../../api/locomotion';
  */
 export const SWIMMING_CAPABILITY_PROP = Property.of<number>('swimming');
 
-/** Who is in a swimmable place's water, and how cold it is. */
-export interface Immersion {
-  mediumTag: 'water';
-  temperatureK: number;
-}
-
 export interface Swimmable extends Enablement {
-  /**
-   * ⭐ Is `occupant` IN this place's water (storage-and-ice D10)? Derived
-   * from SUPPORT: an occupant is immersed unless the place's floor is
-   * holding it up (it holds the floor's ground slot). A place with no
-   * floor immerses everyone. `null` when not immersed.
-   */
-  immersionOf(occupant: Stuff): Immersion | null;
   /** The water's temperature, K. Base: the place's own air. */
   waterTemperatureK(): number;
 }
@@ -72,13 +59,6 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
     public setDifficulty(value: number | null): void {
       LocomotionApi.assertEnablementDifficulty(value, 'Swimmable.setDifficulty');
       this.difficulty = value;
-    }
-
-    public immersionOf(occupant: Stuff): Immersion | null {
-      const self = this as unknown as Stuff;
-      const floor = MixinApi.isAdornable(self) ? self.getFloor() : null;
-      if (floor !== null && MixinApi.isFloor(floor) && floor.supports(occupant)) return null;
-      return { mediumTag: 'water', temperatureK: this.waterTemperatureK() };
     }
 
     /** @hook The water's temperature. Base: the place's own (last-integrated) air. */

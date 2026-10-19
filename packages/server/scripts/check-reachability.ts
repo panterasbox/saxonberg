@@ -611,7 +611,6 @@ const CITATIONS: Record<string, string> = {
   rack: "as `shelf`",
   bin: "as `shelf`",
   cold: "as `shelf` — the cold box a cook unpacks ice into (storage-and-ice)",
-  bed: "a pool's bed — the prop it sinks things into; the place's props place it (storage-and-ice)",
   store: "a stock line's `from: { store }` — the store the counter brings stock up from; the house's props place it (storage-and-ice)",
   window: "as `shelf`",
   shore: "as `shelf` — the fisher's reach",

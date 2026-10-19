@@ -1,0 +1,7 @@
+# water — the water place (underwater build): how deep is wading, how the
+# column under a deep water is banded. Shipped by the platform pack (the
+# `settings` kind: merge-missing — an operator's `config` change is never
+# touched).
+settings:
+  - key: water.column.wadeM
+    value: "1.5"

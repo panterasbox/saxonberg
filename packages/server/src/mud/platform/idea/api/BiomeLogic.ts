@@ -26,6 +26,8 @@ import {
   type WeatherField,
 } from '../../../lib/weather/WeatherType';
 import { Evaporation } from '../../../lib/material/Evaporation';
+import { MEDIA, MEDIUM_TAGS, type MediumProps } from '../../../lib/biome/Medium';
+import type { MediumRead } from '../../../api/biome';
 import type { AirSegment } from '../../../api/biome';
 import type Locality from '../Locality';
 import type { Concentrate } from '../../../lib/bulk/Concentration';
@@ -45,95 +47,20 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 const WEATHER_DEVIATED_FIELDS = new Set<string>(WEATHER_FIELDS);
 
 /**
- * Per-atmosphere density at standard conditions (1 atm, 295 K).
- * Three v1 entries; grows by one line when content needs it.
+ * ⭐ The medium's physics by tag — the one source (underwater-plan D2).
+ * The four per-tag tables that lived here are columns of
+ * {@link MEDIA} now; the reads below keep their signatures.
  */
-const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
-  air: Quantity.of(1.225, 'kg/m³'),
-  water: Quantity.of(1000, 'kg/m³'),
-  vacuum: Quantity.of(0, 'kg/m³'),
-  // Smoke — combustion products (the fire driver's incomplete-burn output).
-  // Slightly hotter/less dense than air; carries carbon monoxide.
-  smoke: Quantity.of(1.1, 'kg/m³'),
-  // ⚠ The two mine gases (metal chain M5). BLACKDAMP is air with the
-  // oxygen already breathed or rusted out of it — nitrogen and CO2, and
-  // therefore DENSER than air, which is why it lies in the bottom of a
-  // dead end and why the historical name for a low working is a `sump`.
-  // STINKDAMP is hydrogen sulfide: also heavier, and — the load-bearing
-  // difference — it STINKS, which is exactly why the canary exists for
-  // the other one.
-  blackdamp: Quantity.of(1.29, 'kg/m³'),
-  stinkdamp: Quantity.of(1.36, 'kg/m³'),
-  // Carbon dioxide — a working ferment's output (the cellar hazard,
-  // fermentation P11). Denser than air: it pools where it is made.
-  'carbon-dioxide': Quantity.of(1.98, 'kg/m³'),
-};
-
-/**
- * Per-atmosphere thermal conductivity (`W/(m·K)`) — the surrounding
- * medium's term in a Thermal object's heat-exchange resistance `R`.
- * Water conducts ~25× faster than air (the cold-water-immersion
- * danger); `vacuum` is a deliberately tiny non-zero so an insulated
- * vessel cools *slowly*, not *never* (radiation + neck-leak lumped in).
- * Parallel to {@link ATMOSPHERE_DENSITIES}; same three v1 tags, grows
- * by one line when content needs it.
- */
-const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
-  air: Quantity.of(0.026, 'W/(m·K)'),
-  water: Quantity.of(0.6, 'W/(m·K)'),
-  vacuum: Quantity.of(1e-4, 'W/(m·K)'),
-  smoke: Quantity.of(0.03, 'W/(m·K)'),
-  blackdamp: Quantity.of(0.025, 'W/(m·K)'),
-  stinkdamp: Quantity.of(0.014, 'W/(m·K)'),
-  'carbon-dioxide': Quantity.of(0.0166, 'W/(m·K)'),
-};
-
-/**
- * Per-atmosphere breathability — whether a default air-breather
- * exchanges gas in this medium. The respiration driver's medium
- * trigger reads this column; air-breathers drown in `water`/`vacuum`.
- * Sibling of {@link ATMOSPHERE_DENSITIES}; grows by one line with it.
- */
-const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
-  air: true,
-  water: false,
-  vacuum: false,
-  // Smoke displaces breathable air — an air-breather asphyxiates in it (the
-  // respiration medium crisis fires), the fire-driver's "kills by CO, not
-  // flame" seam.
-  smoke: false,
-  // ⭐⭐ The two mine gases, and the pair is the whole point: **one of
-  // them announces itself and the other does not.** Stinkdamp reeks of
-  // rotten eggs and a nose catches it; blackdamp is odourless, and the
-  // only free reading of it is a bird that stops singing. That is the
-  // historical reason for the canary, and it is why smell and the canary
-  // are COMPLEMENTARY rather than redundant.
-  blackdamp: false,
-  stinkdamp: false,
-  // CO₂ displaces breathable air the same way — the ferment cellar's
-  // hazard (asphyxia, not poison: no contaminant tag).
-  'carbon-dioxide': false,
-};
-
-/**
- * Per-atmosphere contaminant tag — the breathable≠safe axis (an
- * atmosphere carrying an inhaled toxin). **The fire driver is the first
- * consumer**: `smoke` carries `carbonMonoxide`, read by `RespirationMixin`
- * (via {@link BiomeApi.contaminantOf}) and folded into the breather's
- * metabolism toxin burden — an enclosed fire poisons as well as smothers.
- * The clean tags stay `null`.
- */
-const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
-  air: null,
-  water: null,
-  vacuum: null,
-  smoke: 'carbonMonoxide',
-  // Blackdamp poisons nobody — it is simply air with nothing left in it
-  // to breathe, which is what makes it so quiet a killer.
-  blackdamp: null,
-  stinkdamp: 'hydrogenSulfide',
-  'carbon-dioxide': null,
-};
+function mediumOf(tag: string, caller: string): MediumProps {
+  const m = MEDIA[tag];
+  if (!m) {
+    throw new Error(
+      `BiomeApi.${caller}: unknown atmosphere tag '${tag}' ` +
+        `(known: ${knownAtmospheres().join(', ')})`
+    );
+  }
+  return m;
+}
 
 /**
  * Depth guard for the chain walk. Real content shouldn't approach
@@ -199,49 +126,43 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.densityOf}. */
   @CallSecurity(BiomeApiCallers)
   public densityOf(tag: string): Quantity<'kg/m³'> {
-    const d = ATMOSPHERE_DENSITIES[tag];
-    if (!d) {
-      throw new Error(
-        `BiomeApi.densityOf: unknown atmosphere tag '${tag}' ` +
-          `(known: ${knownAtmospheres().join(', ')})`
-      );
-    }
-    return d;
+    return Quantity.of(mediumOf(tag, 'densityOf').densityKgM3, 'kg/m³');
   }
 
   /** See {@link BiomeApi.conductivityOf}. */
   @CallSecurity(BiomeApiCallers)
   public conductivityOf(tag: string): Quantity<'W/(m·K)'> {
-    const k = ATMOSPHERE_CONDUCTIVITIES[tag];
-    if (!k) {
-      throw new Error(
-        `BiomeApi.conductivityOf: unknown atmosphere tag '${tag}' ` +
-          `(known: ${knownAtmospheres().join(', ')})`
-      );
-    }
-    return k;
+    return Quantity.of(
+      mediumOf(tag, 'conductivityOf').thermalConductivity,
+      'W/(m·K)'
+    );
   }
 
   /** See {@link BiomeApi.breathableOf}. */
   @CallSecurity(BiomeApiCallers)
   public breathableOf(tag: string): boolean {
-    const b = ATMOSPHERE_BREATHABLE[tag];
-    if (b === undefined) {
-      throw new Error(
-        `BiomeApi.breathableOf: unknown atmosphere tag '${tag}' ` +
-          `(known: ${knownAtmospheres().join(', ')})`
-      );
-    }
-    return b;
+    return mediumOf(tag, 'breathableOf').breathable;
   }
 
   /** See {@link BiomeApi.contaminantOf}. */
   @CallSecurity(BiomeApiCallers)
   public contaminantOf(tag: string): string | null {
     // Unknown tags read as clean (no throw) — the contaminant axis is
-    // best-effort; a caller that already resolved a medium shouldn't crash on
-    // a tag missing from this one sparse table.
-    return ATMOSPHERE_CONTAMINANT[tag] ?? null;
+    // best-effort; a caller that already resolved a medium shouldn't
+    // crash on a tag the vocabulary does not carry.
+    return MEDIA[tag]?.contaminant ?? null;
+  }
+
+  /** See {@link BiomeApi.mediumProps}. */
+  @CallSecurity(BiomeApiCallers)
+  public mediumProps(tag: string): MediumProps {
+    return mediumOf(tag, 'mediumProps');
+  }
+
+  /** See {@link BiomeApi.mediumFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public mediumFor(stuff: Stuff): MediumRead {
+    return mediumForImpl(stuff);
   }
 
   /** See {@link BiomeApi.getRootBiome}. */
@@ -416,6 +337,16 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff,
     detailKey?: string
   ): Promise<string> {
+    // ⭐ One answer, not two: whatever `scope` is immersed in is its
+    // atmosphere (the bowl's water, the band's water); the walk below is
+    // for the air over a place.
+    // A holder with an atmosphere of its own (a sealed sub, a bell jar)
+    // answers for itself whatever it sits in.
+    const ownAir = MixinApi.isAtmospheric(scope) ? scope.getInlineAtmosphere() : null;
+    if (detailKey === undefined && ownAir === null) {
+      const medium = mediumForImpl(scope);
+      if (medium.immersed && !medium.atSurface) return medium.tag;
+    }
     return resolveStringFor(
       scope,
       detailKey,
@@ -429,7 +360,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.isKnownAtmosphere}. */
   @CallSecurity(BiomeApiCallers)
   public isKnownAtmosphere(tag: string): boolean {
-    return ATMOSPHERE_BREATHABLE[tag] !== undefined;
+    return MEDIA[tag] !== undefined;
   }
 
   /** See {@link BiomeApi.resolveAtmosphereContentsFor}. */
@@ -461,7 +392,7 @@ export class BiomeLogic extends ApiLogic {
     tag: string,
     contents: readonly Concentrate[],
   ): boolean {
-    if (ATMOSPHERE_BREATHABLE[tag] !== true) return false;
+    if (MEDIA[tag]?.breathable !== true) return false;
     return this.hasBreathableShare(contents);
   }
 
@@ -929,11 +860,12 @@ async function pressureFromElevation(
     (a, k) => readDetailMap<string>(a._detailAtmospheres, k),
     (a) => a._atmosphere,
   );
-  const density = ATMOSPHERE_DENSITIES[atmosphere];
-  // An atmosphere with no tabulated density derives nothing; a vacuum
-  // has no barometric anything (the altimeter says so in prose, and
-  // this is the same statement on the causal side).
-  if (density === undefined || density.rawValue() === 0) return null;
+  const medium = MEDIA[atmosphere];
+  // An atmosphere with no known density derives nothing; a vacuum has
+  // no barometric anything (the altimeter says so in prose, and this is
+  // the same statement on the causal side).
+  if (medium === undefined || medium.densityKgM3 === 0) return null;
+  const density = Quantity.of(medium.densityKgM3, 'kg/m³');
   const gravity = await resolveQuantityFor<'m/s²'>(
     scope,
     undefined,
@@ -947,6 +879,79 @@ async function pressureFromElevation(
   const zone = outermostZonePathOf(scope);
   return { value: Quantity.of(local, 'Pa'), zonePath: zone };
 }
+
+/** The default: a body standing in the open, in air. */
+const AIR_READ: MediumRead = {
+  tag: 'air',
+  substance: 'air',
+  immersed: false,
+  atSurface: false,
+  temperatureK: null,
+  depthM: 0,
+  waterRef: null,
+};
+
+/**
+ * ⭐⭐ **What `stuff` is IN** — the one medium read (underwater-plan D3).
+ *
+ * Walks the containment chain outward from `stuff`; the first ancestor
+ * that has an answer gives it:
+ *
+ *   (a) a vessel holding a LIQUID (a bulk interior with anything in it) —
+ *       the carp in its bowl, the man in the vat. Immersed.
+ *   (b) a holder with an inline atmosphere of its own — a bell's air, a
+ *       vacuum room.
+ *   (c) a swimmable place — whoever its floor does not hold up is in its
+ *       water, at its temperature; whoever it does is in the air above.
+ *   (d) otherwise air. Exotic biome atmospheres are the async
+ *       `resolveAtmosphereFor`'s, which consults this first.
+ *
+ * Per-occupant, which is why it is not a room tag: a body on the ice and
+ * a body in the hole share a room and not a medium.
+ */
+function mediumForImpl(stuff: Stuff): MediumRead {
+  let child: Stuff = stuff;
+  let at: Stuff | null = MixinApi.isContainable(stuff) ? stuff.getContainer() : null;
+  const seen = new Set<Stuff>();
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (at !== null && !seen.has(at) && depth-- > 0) {
+    seen.add(at);
+    if (MixinApi.isBulkable(at) && at.getBulkAmount('interior').rawValue() > 0) {
+      const name = at.getBulkMaterial('interior')?.getName() ?? null;
+      if (name !== null) {
+        const known = MEDIA[name];
+        return {
+          // Any liquid nobody named as a medium behaves as water does.
+          tag: known ? name : 'water',
+          substance: name,
+          immersed: known ? known.densityKgM3 >= LIQUID_DENSITY_KG_M3 : true,
+          atSurface: false,
+          temperatureK: null,
+          depthM: 0,
+          waterRef: null,
+        };
+      }
+    }
+    if (MixinApi.isAtmospheric(at)) {
+      const inline = at.getInlineAtmosphere();
+      if (inline !== null && MEDIA[inline] !== undefined) {
+        return {
+          ...AIR_READ,
+          tag: inline,
+          substance: inline,
+          immersed: MEDIA[inline]!.densityKgM3 >= LIQUID_DENSITY_KG_M3,
+        };
+      }
+    }
+    if (MixinApi.isWaterPlace(at)) return at.mediumFor(child);
+    child = at;
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+  return AIR_READ;
+}
+
+/** A medium at least this dense is a liquid a body is IN, not air it is under. */
+const LIQUID_DENSITY_KG_M3 = 100;
 
 /** The outermost container's zone path, for provenance reporting. */
 function outermostZonePathOf(scope: Stuff): string | null {
@@ -1586,7 +1591,7 @@ function capitalize(s: string): string {
 
 /** Every atmosphere tag the per-tag physics tables know. */
 function knownAtmospheres(): string[] {
-  return Object.keys(ATMOSPHERE_BREATHABLE);
+  return [...MEDIUM_TAGS];
 }
 
 /** One numeric dial read, falling back to the literal when unseeded. */

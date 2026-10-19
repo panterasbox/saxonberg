@@ -1,10 +1,9 @@
 # The Flooded Cistern — the respiration drown-here proof.
 #
 # A brick maintenance cistern under the Duncan Hall steps, long since
-# flooded. Its `_atmosphere` is `water`: an air-breather who climbs down
-# into it stops exchanging gas and the respiration drain engages — a real
-# drown-here hazard a body *enters* by walking (the move reassess fires on
-# the traverse). Reached via the `down` exit from the steps (auto-reversed
+# flooded — a water place (underwater D24): three metres of still black
+# water, deep enough to be over your head, with a bed under it. Its water
+# is the campus's own (`duncan:cistern`), cold and fishless. Reached via the `down` exit from the steps (auto-reversed
 # to `up`); sits one cell below at [0, 0, -1].
 #
 # This is the W1 proof content — not the Atlantis area, just a place a
@@ -14,7 +13,7 @@
 # Its way back up to the steps is declared explicitly here (exits are authored
 # on both sides — the steps declare `down` to here, this room declares `up`
 # back). One cell below the steps at [0, 0, -1].
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Pool
 data:
   shortDescription: flooded cistern
   keywords: [cistern, flooded]
@@ -28,4 +27,4 @@ data:
   exits:
     up:
       destination: /world/terminus/eternal/duncan-hall/location/steps
-  _atmosphere: water
+  water: { of: duncan:cistern, depthM: 3 }

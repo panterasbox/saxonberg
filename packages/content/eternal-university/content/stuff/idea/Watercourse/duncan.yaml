@@ -1,0 +1,13 @@
+# The Duncan Hall cistern's water (underwater D24) — a one-node still
+# water, so the flooded vault is a water place with a read of its own:
+# cold, black, fishless. The site is the campus's.
+class: /system/water/idea/Watercourse
+data:
+  key: duncan
+  name: the cistern
+  basin: duncan
+  branchesFrom: null
+  water: { pH: 7.2, hardnessDgh: 8, nitrateMgL: 1 }
+  site: { latitudeDeg: 42 }
+  nodes:
+    - { name: cistern, elevation: 31, channelWidthM: 6, meanDepthM: 3, stocks: [] }

@@ -478,6 +478,9 @@ importers:
       '@saxonberg/content-trade-ranching':
         specifier: workspace:*
         version: link:../trade-ranching
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

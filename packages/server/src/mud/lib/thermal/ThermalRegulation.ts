@@ -538,13 +538,14 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       }
       this.cachedHumidity = humidity;
 
-      // ⭐⭐ IN THE WATER (storage-and-ice D10): a swimmable place says who
-      // is in its water (whoever its floor is not holding up) and how cold
-      // it is; the body then takes the water's exchange, not the air's.
-      const water = scope as unknown as Stuff | null;
-      if (water !== null && MixinApi.isSwimmable(water)) {
-        const im = water.immersionOf(host as unknown as Stuff);
-        if (im) return Quantity.of(Math.max(0, this.exchangeWithWater(im.temperatureK, 0)), "K");
+      // ⭐⭐ IN THE WATER (storage-and-ice D10, underwater D3): the one
+      // medium read says whether this body is in a water and how cold it
+      // is; the body then takes the water's exchange, not the air's.
+      if (scope !== null) {
+        const medium = BiomeApi.mediumFor(host as unknown as Stuff);
+        if (medium.immersed && medium.tag === "water" && medium.temperatureK !== null) {
+          return Quantity.of(Math.max(0, this.exchangeWithWater(medium.temperatureK, 0)), "K");
+        }
       }
 
       // Occupied warming-slot warmth (a campfire log-seat). Read like
@@ -679,10 +680,10 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const regHost = this.regHost as unknown as { getContainer?: () => unknown } | undefined;
       const getContainer = regHost?.getContainer;
       const place = typeof getContainer === 'function' ? (getContainer.call(regHost) as Stuff | null) : null;
-      if (place && MixinApi.isSwimmable(place)) {
+      if (place) {
         const host = this.regHost as unknown as Stuff;
-        const im = place.immersionOf(host);
-        if (im && MixinApi.isAttired(host)) host.immerse();
+        const medium = BiomeApi.mediumFor(host);
+        if (medium.immersed && medium.tag === "water" && MixinApi.isAttired(host)) host.immerse();
       }
       // ⭐⭐ Remember how far the transforms moved the raw room
       // temperature — the warming slot, the wind chill, the immersion,

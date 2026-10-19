@@ -1842,6 +1842,12 @@ export const AppSettingKeys = {
    * takes on per reassess while in a contaminated (smoke) medium. */
   respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
 
+  /* ────────────────────────── the water place (underwater) ────────────────────────── */
+  /** Water — how deep an adult stands in water before it is over their
+   * head, m. Shallower is `wading` (the floor bears you); deeper is
+   * `swimming`, and a deep enough water grows a column under it. */
+  waterColumnWadeM: "water.column.wadeM",
+
   /* ────────────────────────── atmosphere (what the medium carries) ────────────────────────── */
   /** Atmosphere — the share of a scope's medium that must still be plain
    * medium for a body to go on exchanging gas. Above the fire's smother

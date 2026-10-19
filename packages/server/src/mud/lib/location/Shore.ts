@@ -174,8 +174,11 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private citedKeys(): string[] {
       const features = this.featureMap();
       const out: string[] = [];
+      // ⭐ A water place's own water needs no feature: the place IS it.
+      const self = this as unknown as Stuff;
+      const own = MixinApi.isWaterPlace(self) ? self.getWaterKey() : null;
       for (const key of Object.keys(this.waters)) {
-        if (features.has(key)) {
+        if (features.has(key) || key === own) {
           out.push(key);
           continue;
         }
