@@ -420,8 +420,12 @@ is just a worse card.
   felt at all. The `felted` fabric row ships **unreachable** (the
   `chalcopyrite` precedent) so the vocabulary is honest rather than a
   promise in prose.
-- **Cotton and silk** — a second cellulose fibre is more content and no
-  new lesson.
+- **Cotton and silk** — ⚠ this line used to call them *"a second
+  cellulose fibre … no new lesson"*, which was wrong for silk: silk is a
+  **protein** fibre (it takes alum directly, as `trade-dyeing` already
+  reads) and the richest lesson in the vertical. Silk →
+  [silk-slate](../slates/builds/silk-slate.md); cotton is its own slate,
+  later.
 - **Synthetics, mills, mass production** — trades ship medieval and
   advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`
   construction form**: material scales the resist magnitude, so a

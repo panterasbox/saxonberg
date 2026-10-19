@@ -1,29 +1,38 @@
 /**
- * RoomHeatExchange — ⭐ one term a room's envelope folds into its steady
- * state: a fixed power, and a conductance to an anchor temperature.
+ * RoomHeatExchange — ⭐⭐ **what an occupant does to the air of the room it
+ * stands in**, as one shape with two implementers (storage-and-ice D5).
  *
- * `T_ss = (U·T_out + Σ fixedW + driveW + Σ G_j·anchor_j) / (U + Σ G_j)`,
- * `τ = C / (U + Σ G_j)` — the coupled solve in closed form, no iteration.
+ * A hearth pushes a fixed power in (`fixedW`); a stack of melting ice pulls
+ * heat out through its packing toward its own melting point — a
+ * conductance (`conductanceWperK`) to an anchor temperature (`anchorK`).
+ * The envelope folds both into ONE closed-form steady state
+ * (`AtmosphericMixin.envelopeSteadyStateK`):
  *
- * ⚠⚠ DROP AT MERGE — owned by storage-and-ice (its D5/W2). This is a
- * byte-compatible copy of the owner's published shape, so the rubber
- * build's two term kinds — the sun through a transparent face (a
- * `fixedW`) and a neighbour of the same building through an interior
- * face (`conductanceWperK` to the neighbour's temperature) — ride the
- * protocol from the start. When rubber merges master over ice, this file
- * is deleted for ice's and rubber's terms fold into ice's
- * `envelopeSteadyStateK`.
+ * ```
+ * T_ss = (U·T_out + ΣfixedW + driveW + ΣG·anchor) / (U + ΣG)
+ * τ    = C / (U + ΣG)
+ * ```
+ *
+ * which is the coupled solve of a cold mass behind its insulation, exact
+ * for piecewise-constant inputs and with no iteration.
+ *
+ * Read BY SHAPE: an occupant exchanges heat iff it answers
+ * `roomHeatExchange()`. `SpaceHeatingMixin` answers `{fixedW: its output,
+ * conductance 0}`; `StoreMixin` answers `{fixedW 0, conductance through its
+ * packing to 273.15 K}` while any line is at its plateau.
  */
+
+/** One occupant's contribution to its room's heat budget. */
 export interface RoomHeatExchange {
-  /** A fixed power into the room, W (negative pulls heat out). */
+  /** Power pushed into the room regardless of its temperature, W (≥ 0 for a fire). */
   fixedW: number;
-  /** A conductance to {@link anchorK}, W/K. */
+  /** Conductance from the room's air to `anchorK`, W/K (≥ 0). */
   conductanceWperK: number;
-  /** The temperature the conductance pulls toward, K. */
+  /** The temperature the conductance pulls toward, K (ignored when conductance is 0). */
   anchorK: number;
 }
 
-/** An occupant that pushes heat into, or pulls it out of, its room. */
+/** An occupant that exchanges heat with the room it stands in. */
 export interface RoomHeatExchanging {
   roomHeatExchange(): RoomHeatExchange;
 }

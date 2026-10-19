@@ -346,9 +346,12 @@ A depot is not a new kind of thing. `DepotCounter` is an **attendant
 queue** over the trade's **shipment desk** with a `Business` behind it
 holding the positions and the account, and it affords `ship` to whoever
 stands at it — so a second depot in a second town is a row and no pack
-code. `Warehouse` beside it is the **bailee**: `deposit` takes goods into
-store and issues the receipt, and the business named by `baileePath` owes
-the duty of care. ⭐ It sells **one** product — handling, the
+code. `Warehouse` beside it is the **bailee** — a kernel store
+(`StoreMixin(Holder)`, [storage.md](./storage.md)) that keeps unique goods
+LIVE (`acceptsLiveGoods`, keyed `live:<chattelId>`, one receipt each):
+the freight desk files a consignment in through `depositFor(goods,
+depositor)`, a person through `store deposit`, and the business named by
+`baileePath` owes the duty of care. ⭐ It sells **one** product — handling, the
 consolidation and break-bulk that has real work to do because the pass
 refuses wheels; storage is the receipt and the DUTY and never a priced
 scarce good (below). ⭐ **It is sited where modes change, not at a hub
@@ -425,12 +428,14 @@ holder to nothing and stealing one accomplished nothing. A prop with a
 strong docstring attached, which is the same failure as a help example
 that cannot be typed.
 
-⭐ **The missing seam, named:** `withdraw <receipt>` at the shed —
-checking who holds what, handing the goods over, voiding the row. Build
-that and the bearer instrument comes back with a reason to exist and
-real persistence semantics to get right; the asymmetry (*one of them can
-be lost*) is a good design and it needs the act underneath it. Built
-apart, it is furniture.
+⭐ **The act underneath now exists** (storage-and-ice, 2026-10-17):
+`store withdraw <good>` at the depot book, while the warehouseman is on
+shift, hands the crate back to its depositor as itself and settles the
+receipt — the store files the receipt (`WaybillRegistry.issueReceipt` is
+gone; `receiptsOf` reads it back). The **bearer** instrument is still
+not built: a transferable receipt (`StoreReceipt.depositor` is the field
+a transfer rewrites) is the storage slate's. The asymmetry (*one of them
+can be lost*) is a good design and it now has the act it needs.
 
 ### The rate card
 
@@ -1091,3 +1096,9 @@ first thing to revisit if freight speed ever needs to mean something.
 [behavior](./behavior.md) · [advancement](./advancement.md) ·
 [content-packs](./content-packs.md) · [parcel](./parcel.md) ·
 [time](./time.md)
+
+## History
+
+- **2026-10-18 (storage-and-ice, MR !378).** The `Warehouse` became a
+  kernel store holding goods live; `store deposit`/`store withdraw` at the
+  depot book are the custody acts, `depositFor` the desk's intake.

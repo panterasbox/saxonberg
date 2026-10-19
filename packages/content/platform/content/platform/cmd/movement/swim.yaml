@@ -17,6 +17,11 @@ help: |
   You swim where the water is: into a pool from its shore, and
   about the pool once you are in it. You swim at the surface, with
   your head up, so you breathe the air over the water.
+
+  ⭐ `swim` with no way named is *swim here*: let go of what is holding
+  you up and lower yourself into the water where you are — off the ice
+  at the edge of a hole, say. `stand` gets you back out, if what you
+  climb onto will bear you.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -24,7 +29,9 @@ args:
   - name: target
     type: object
     scope: ["$focus", "reachable"]
-    required: true
+    # ⭐ Optional: with no target the verb is *swim here* (go into the
+    # water where you are) — the one shape nothing else claims.
+    required: false
     validators:
       - /lib/command/validators/canReach
     requires: any

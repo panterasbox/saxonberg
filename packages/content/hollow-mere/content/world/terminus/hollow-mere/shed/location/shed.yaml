@@ -1,0 +1,27 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: empty shed
+  keywords: [shed, empty]
+  register: definite
+  _address: terminus/hollow-mere/shed
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    An empty shed with sawdust-filled walls a forearm thick and nothing in it but a lantern and the smell of old wood.
+  coords: { x: 0, y: -1, z: 0 }
+  extent: 3.634
+  enclosure: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  # The roof is the same layer as the walls: what the envelope assumed for
+  # all five faces before rubber split the top out (rubber's `roof:`).
+  roof: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  adornments:
+    - { template: /world/terminus/hollow-mere/thing/lantern, slot: lamp:beam }
+  exits:
+    north:
+      destination: /world/terminus/hollow-mere/location/road
+      media: [ground]
+      edgeMinutes: 1
+  # The crew's shed out of season: the cutter and the boss stand here when
+  # the roster does not have them on the ice.
+  cast:
+    - /world/terminus/hollow-mere/agent/cutter
+    - /world/terminus/hollow-mere/agent/ice-boss

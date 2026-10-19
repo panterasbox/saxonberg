@@ -459,6 +459,8 @@ export const Mixins = {
   Flyable: 'FlyableMixin',
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
+  /** `props:` alone — a place's set dressing, a person's loadout (Staged.ts). */
+  Props: 'PropsMixin',
   Staged: 'StagedMixin',
   /** ⭐ The third designation beside `props:` and `cast:` — see Staged.ts. */
   Costumed: 'CostumedMixin',
@@ -544,6 +546,19 @@ export const Mixins = {
   // blade's metal is its Material ROW, and carbon on a blade would make
   // every mint guard for it.
   Alloyed: 'AlloyedMixin',
+  // The two halves of Alloyed, split 2026-10-17: COMPOSITION is what is
+  // dissolved in a piece (true of a glass or ice lump, which is why the
+  // generic Casting composes it alone); TEMPER is what a heat treatment
+  // left (true of metal only). Alloyed is the two together.
+  Composition: 'CompositionMixin',
+  Tempered: 'TemperedMixin',
+  // ⭐ STORAGE (storage-and-ice D1): a holder whose contents are a LEDGER
+  // — goods held as an amount by grade, one real exemplar (the face) per
+  // line — and the good's own declaration of how it pools.
+  Store: 'StoreMixin',
+  Poolable: 'PoolableMixin',
+  // The house's book — the instrument that affords deposit/withdraw.
+  StoreBook: 'StoreBookMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.
@@ -924,6 +939,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // `hammer` wants is a piece of metal stock, and "isn't metal stock
   // you can work" tells somebody what to go and find.
   AlloyedMixin: "{} isn't metal stock you can work",
+  CompositionMixin: "{} has no make-up to read",
+  StoreBookMixin: "{} isn't the book a store is kept in",
+  StoreMixin: "{} isn't a store you could take stock of",
+  TemperedMixin: "{} can't be tempered",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
   /*

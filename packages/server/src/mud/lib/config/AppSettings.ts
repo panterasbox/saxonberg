@@ -374,6 +374,10 @@ export const AppSettingKeys = {
    * shelf asks base × (1 + e), a shelf at par asks base.
    */
   retailStockingElasticity: "retail.stockingElasticity",
+  /** Retail — the days of supply at which a store-fed `stocking` line asks
+   * its base price (storage-and-ice D8): fewer days left in the store, a
+   * dearer counter; at or past the horizon, base. */
+  retailStockingHorizonDays: "retail.stockingHorizonDays",
   /**
    * Retail — the margin a shop asks over a supplier's price on a terms
    * good it has not priced itself (a fraction).
@@ -1318,11 +1322,11 @@ export const AppSettingKeys = {
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
-  /**
-   * ⚠ DROP AT MERGE — owned by storage-and-ice. Wetness — the water
-   * absorption capacity (%) at or below which a material is impermeable
-   * to the wet law: its pores take in nothing (rubber, glass, metal).
-   */
+  /** Wetness — ⭐ the ONE wet law's cutoff (`Material.permeability()`): a
+   * material whose `waterAbsorptionCapacity` (%) is at or below this takes
+   * no water into its pores at all — rubber, glass, oiled leather. Above
+   * it, permeability is `min(1, wAC / textiles.clo.absorptionReference)`.
+   * Shared with the rubber build (its D12.1); one key, one default. */
   wetnessImpermeableBelowPct: "wetness.impermeableBelowPct",
   /** Wetness — saturation at/above which the band reads `damp`. */
   wetnessBandDampAt: "wetness.band.dampAt",
@@ -1715,6 +1719,12 @@ export const AppSettingKeys = {
    * saturation the cold-side wind-chill / immersion term is scaled by
    * `1 + wetHeatLossFactor`. */
   thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
+  /** Thermal — ⭐ the water temperature (K) an active swimmer is comfortable
+   * in (storage-and-ice D10a): water at or above it costs nothing, and
+   * water below it pulls a body's effective ambient down by the gap AGAIN
+   * — water conducts ~23× better than air, so a near-freezing pool reads
+   * far colder than near-freezing air, and a summer swim reads warm. */
+  thermalWaterNeutralK: "thermal.waterNeutralK",
 
   /* ────────────────────────── fire (combustion) ────────────────────────── */
   /** Fire — fuel consumed per game-minute while burning (`%`-points of the

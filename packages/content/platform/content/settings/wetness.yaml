@@ -20,10 +20,11 @@ settings:
   - key: wetness.immersionSaturation
     value: "1"
 
-  # ⚠ DROP AT MERGE — owned by storage-and-ice. The water absorption
-  # capacity (%) at or below which a material is impermeable to the wet
-  # law (rubber 0.5, glass 0.1, metal 0): a soaked rubber boot conducts
-  # exactly as a dry one.
+  # ⭐ The one wet law's cutoff (Material.permeability): a material that
+  # absorbs no more than this % of its dry mass takes no water into its
+  # pores — rubber, glass, oiled leather. Above it a material's pores fill
+  # in proportion to wAC / textiles.clo.absorptionReference. Read by cloth
+  # (clo), the icehouse's sawdust packing, and rubber's contact resistance.
   - key: wetness.impermeableBelowPct
     value: "2"
 

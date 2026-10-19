@@ -1,0 +1,28 @@
+{
+  "name": "@saxonberg/content-trade-ice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The ice trade — cutting a frozen pool, keeping the ice through the summer.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
+    "@saxonberg/content-trade-carpentry": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
+    "@saxonberg/content-transport": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

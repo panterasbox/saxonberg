@@ -180,33 +180,6 @@ describe('the bill of lading', () => {
   });
 });
 
-describe('the warehouse receipt', () => {
-  it('acknowledges what is held, and for whom', async () => {
-    const depot = business(DEPOT);
-    const reg = waybills();
-    await asClerk(() =>
-      reg.issueReceipt(depot, {
-        what: 'six bags of malt',
-        goodsPath: '/stuff/thing/vessel/sack',
-        depositor: '/platform/agent/Avatar/brewer',
-      }),
-    );
-    const held = await reg.receiptsOf(depot);
-    expect(held).toHaveLength(1);
-    expect(held[0]!.depositor).toBe('/platform/agent/Avatar/brewer');
-    expect(held[0]!.bailee).toBe(DEPOT);
-  });
+// ⭐ The warehouse receipt is FILED BY THE STORE since storage-and-ice W3
+// (the depot is a `StoreMixin` holder); its tests are in Depot.test.ts.
 
-  it('refuses a receipt nobody can redeem', async () => {
-    const depot = business(DEPOT);
-    await expect(
-      asClerk(() =>
-        waybills().issueReceipt(depot, {
-          what: 'a lot',
-          goodsPath: '/x',
-          depositor: '',
-          }),
-      ),
-    ).rejects.toThrow(/no depositor/);
-  });
-});

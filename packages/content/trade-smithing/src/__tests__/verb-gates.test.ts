@@ -33,7 +33,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Casting from '@saxonberg/server/mud/platform/thing/Casting';
+import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import Bloom from '@saxonberg/content-trade-smelting/src/thing/Bloom';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -58,7 +58,7 @@ describe('⚠⚠ a verb’s arg gate must admit the things the verb is FOR', () 
   const HAMMERABLE: [string, new () => object][] = [
     ['Ingot (a wrought bar, and the cast-iron pig row)', Ingot],
     ['Bloom (consolidated by the first blow)', Bloom as unknown as new () => object],
-    ['Casting (poured metal)', Casting],
+    ['MetalCasting (poured metal)', Casting],
   ];
 
   it('⭐ every ferrous product composes the mixin `hammer` gates its target on', () => {

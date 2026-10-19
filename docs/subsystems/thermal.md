@@ -317,8 +317,9 @@ to the effective ambient (the robot/corpse limiting case — no special
 case). `effectiveAmbient()` (a `protected` re-stamp-time resolver, **not**
 an Api) sums biome ambient + occupied warming-slot `warmth` + the
 wind-chill (cold) / heat-index (hot) transforms read through the
-surrounding-medium conductivity (immersion: cold water chills far
-faster). Worn `clo` widens the comfort band downward.
+surrounding-medium conductivity. Worn `clo` widens the comfort band
+downward. A body in water reads the water instead — see *Immersion*
+below.
 
 ### ⭐⭐ Worn insulation is SURFACE-WEIGHTED PER PART, and `clo` DERIVES
 
@@ -334,8 +335,16 @@ form traps air:
 clo   = (t / k_eff) / R_CLO           R_CLO = 0.155 m²·K/W
 t     = mass / (density × A_covered)
 k_eff = k_fibre·(1 − loft) + k_void·loft
-k_void = k_air·(1 − s) + k_water·s    s = wetness × min(1, wAC / ABS_REF)
+k_void = material.wetProperty(k_air, k_water, wetness)
 ```
+
+⭐ **The wet law is the material's** (storage-and-ice D9):
+`Material.permeability()` is `0` at or under
+`wetness.impermeableBelowPct` (2 % water absorption — rubber, oiled
+leather) and `min(1, wAC / textiles.clo.absorptionReference)` above it;
+`wetProperty(dry, fluid, s) = dry + s·permeability()·(fluid − dry)`.
+Cloth's clo, the icehouse's sawdust packing and rubber's contact
+resistance all read it, so wet wool and wet sawdust cannot disagree.
 
 ⭐ `loft` is the **construction form's**, which is why *form sets the
 band* is not merely an ordering rule — a knit traps air and a plain
@@ -369,6 +378,24 @@ wetness, and it scales the wind-chill term down by
 `textiles.windproofWeight`. ⭐ There is no `shell` role word: *the dense
 oiled thing simply is one*. A jumper under an open coat does not break a
 wind, and a soaked shell stops working.
+
+### ⭐⭐ Immersion — the place says who is in its water
+
+"In the water" is derived from **support**, never a flag
+(storage-and-ice D10). `SwimmableMixin.immersionOf(occupant)` answers
+`{mediumTag: 'water', temperatureK}` unless the occupant holds the
+host's floor slot (`Pool` overrides only the temperature — the reach's
+draw, 274 K under ice). `effectiveAmbient` asks it for a swimmable
+scope and folds through **`exchangeWithWater(waterK, dtS)`** — the ONE
+immersion fold, also called per step by a bath or a river shore: the gap
+below `thermal.waterNeutralK` (297 K) is counted again, because water
+conducts ~23× better than air. No wet amplifier in water (the water IS
+the wetness — that term is a wet body's extra loss in air), so a summer
+swim chills nobody and a mountain mere chills you in July; 274 K water
+cools a body ~2.4× as fast as 274 K air. Going in soaks you and every
+exterior layer (`Attired.immerse(parts?)` — wets, computes no heat), and
+`restamp` re-immerses while you stay in, so the drain does not dry a
+swimmer.
 
 ### Cascade → conditions
 
@@ -564,7 +591,15 @@ with a timber lean-to*. The dishonesty was never *rooms differ* — it was
 - `C = C_air + ρ·c·A·activeDepth` — the **skin** of the enclosure that
   answers within the hour. The stone holding the day is literally this
   term.
-- `P = Σ spaceHeatOutputW()` over `SpaceHeating` contents.
+- `P` and `G` — what the occupants do to the air, one shape
+  (`RoomHeatExchange`, read by shape off `roomHeatExchange()`): a
+  `SpaceHeating` source pushes `fixedW`; a store of melting ice pulls
+  through its packing as a **conductance** `G` to its anchor (273.15 K).
+  ONE closed form, `AtmosphericMixin.envelopeSteadyStateK(outsideK, atS)`:
+  `T_ss = (U·T_out + ΣfixedW + driveW + ΣG·anchor) / (U + ΣG)`,
+  `τ = C / (U + ΣG)` — and a store integrating its own unwatched gap asks
+  the room the same question per weather segment (see
+  [storage.md](./storage.md)).
 
 ⚠⚠ **A reentry guard, and it is load-bearing.** The contents walk asks
 each heat source for its output; `spaceHeatOutputW()` asks `isLit()`,
@@ -792,10 +827,12 @@ cold-storage build made it the mirror: a pool at/below its melting point
 **plateaus at `mp`** while the undershoot `(mp − T)·C` is banked into
 `BulkPayload.latentRemovedJ`, and only solidifies once the bank reaches
 `mass × latentHeatOfFusion` — real ice-tray time (a 4 L pan at 255 K is a
-few game-hours). The frozen pool clones the **material's `castTemplate`**
-(water → `/stuff/thing/ice-block`; a metal → the generic
-`/stuff/thing/Casting`), mass stamped always, material/prose only when the
-clone authored none.
+few game-hours). The frozen pool clones the **material's cast template**
+(`Material.getCastTemplate()`: authored, else `/stuff/thing/metal-casting`
+for a `metal`-tagged material, else `/stuff/thing/Casting`; water authors
+`ice-lump`, an `IceBlock` that pools in a store — see
+[glass.md](./glass.md) for composition vs temper), mass stamped always,
+material/prose only when the clone authored none.
 
 ⚠ **Boil is still a flip** — no boiling feature rides this build, so steam
 is a disappearance (the pool clears; no steam cloud / burn / pressure). The
@@ -887,3 +924,9 @@ passes under it.
   `SmeltController.runIntoCrucible` now restamps the crucible and sets
   both ends of the run to the furnace's heat before the transfer. Which
   path back to *lit* skips `restampHeated` is not traced.
+- **2026-10-18 (storage-and-ice, MR !378).** The wet law moved onto
+  `Material` (`permeability` / `wetProperty`; cloth's clo byte-identical);
+  immersion became the place's say (`immersionOf`) and one fold
+  (`exchangeWithWater`, the neutral-water gap); the envelope's heat
+  budget became `RoomHeatExchange` so a cold store is a sink the room
+  feels.

@@ -50,8 +50,6 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/AppSettings';
 import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -67,6 +65,8 @@ import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { ConditionApi } from '../../api/condition';
 import { MixinApi } from '../../api/mixin';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import type { MaterialComposition } from '../../api/material';
 // eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
 import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
@@ -149,6 +149,18 @@ export interface DrainSetting {
 export interface BiologicalSource {
   speciesPath: string;
   tissueType: string;
+}
+
+/** Numeric AppSetting read for the wet law, falling back to the seeded literal. */
+function wetDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export default class Material extends SingletonMixin(
@@ -542,10 +554,10 @@ export default class Material extends SingletonMixin(
   /**
    * ⭐ The identity path a frozen pool of this material MINTS when it
    * solidifies — a `Casting`-shaped Thing. Water authors
-   * `/stuff/thing/ice-block`; a metal keeps the generic `/stuff/thing/Casting`.
-   * Authorable per row; the default is the generic cast.
+   * `/stuff/thing/ice-lump`. Authorable per row; empty means the default,
+   * which {@link getCastTemplate} derives from the tags (D17).
    */
-  public castTemplate: string = '/stuff/thing/Casting';
+  public castTemplate: string = '';
 
   /**
    * ⭐ Whether freezing RUINS this material rather than casting it — blood
@@ -567,9 +579,16 @@ export default class Material extends SingletonMixin(
    */
   public drainSetting: DrainSetting | null = null;
 
-  /** The identity path a frozen pool of this becomes. */
+  /**
+   * The identity path a frozen pool of this becomes: the authored row,
+   * else ⭐ `/stuff/thing/metal-casting` for a material tagged `metal` (a
+   * metal lump can be tempered), else the composition-only
+   * `/stuff/thing/Casting` (a glass, wax or tallow lump keeps what is
+   * dissolved in it and claims no temper).
+   */
   public getCastTemplate(): string {
-    return this.castTemplate;
+    if (this.castTemplate) return this.castTemplate;
+    return this.hasTag('metal') ? '/stuff/thing/metal-casting' : '/stuff/thing/Casting';
   }
 
   /** How this matter sets by draining, or `null` when it does not. */
@@ -1166,6 +1185,37 @@ export default class Material extends SingletonMixin(
     this.electricalConductivity = value;
   }
 
+  /**
+   * ⭐⭐ **The ONE wet law — how open this material's pores are to water**,
+   * `[0, 1]`. Zero when it absorbs no more than
+   * `wetness.impermeableBelowPct` (2 %) of its dry mass — rubber, glass,
+   * oiled leather hold water on the surface, never in the pores; above
+   * that, `min(1, wAC / textiles.clo.absorptionReference)` (40 %, where a
+   * loft counts as fully flooded — wool 33, linen 20).
+   *
+   * Readers: cloth's clo, the icehouse's sawdust packing, rubber's contact
+   * resistance. One law on the material, so wet wool, wet sawdust and a
+   * wet glove can never disagree about what water does to a pore.
+   */
+  public permeability(): number {
+    const wac = this._waterAbsorptionCapacity.rawValue();
+    if (!(wac > wetDial(AppSettingKeys.wetnessImpermeableBelowPct, 2))) return 0;
+    const reference = wetDial(AppSettingKeys.textilesCloAbsorptionReference, 40);
+    if (!(reference > 0)) return 1;
+    return Math.min(1, wac / reference);
+  }
+
+  /**
+   * A property of this material, wet: `dry + saturation × permeability() ×
+   * (fluid − dry)`. Thermal conductivity of a soaked loft is
+   * `wetProperty(k_air, k_water, wetness)`; a dry material and an
+   * impermeable one both answer `dry`.
+   */
+  public wetProperty(dry: number, fluid: number, saturation: number): number {
+    const s = Number.isFinite(saturation) ? Math.max(0, Math.min(1, saturation)) : 0;
+    return dry + s * this.permeability() * (fluid - dry);
+  }
+
   /** Read water absorption capacity (`Quantity<'%'>` of dry mass). */
   public getWaterAbsorptionCapacity(): Quantity<'%'> {
     return this._waterAbsorptionCapacity;
@@ -1203,49 +1253,6 @@ export default class Material extends SingletonMixin(
   /** Set light absorption. Strict on `Quantity<'1/m'>`; `null` = opaque. */
   public setLightAbsorption(value: Quantity<'1/m'> | null): void {
     this.lightAbsorption = value;
-  }
-
-  // ───────────── the wet law (DROP AT MERGE — owned by storage-and-ice) ─────────────
-  //
-  // ⚠⚠ storage-and-ice OWNS these two methods (its W1, D9) and migrates
-  // cloth's `k_void` onto them. This is a byte-compatible copy of its
-  // published signatures so the rubber build's electrical reader can call
-  // them before ice merges; at rubber's merge, ice's win and this block is
-  // deleted. Rubber never touches `Wearable.getClo`.
-
-  /**
-   * ⭐ How much water this material's pores take in, 0..1: 0 when it
-   * absorbs nothing to speak of (`waterAbsorptionCapacity ≤
-   * wetness.impermeableBelowPct`, 2 % — rubber, glass, metal), else its
-   * capacity against the textiles absorption reference (40 %).
-   */
-  public permeability(): number {
-    const wac = this._waterAbsorptionCapacity.rawValue();
-    if (wac <= Material.dial(AppSettingKeys.wetnessImpermeableBelowPct, 2)) return 0;
-    return Math.min(1, wac / Material.dial(AppSettingKeys.textilesCloAbsorptionReference, 40));
-  }
-
-  /**
-   * ⭐⭐ ONE law for every property water changes in a porous material:
-   * water in the pores replaces air, so a property moves from its dry
-   * value toward the fluid's by `saturation × permeability`.
-   * `dry + saturation · permeability · (fluid − dry)`.
-   */
-  public wetProperty(dry: number, fluid: number, saturation: number): number {
-    const s = Math.max(0, Math.min(1, saturation));
-    return dry + s * this.permeability() * (fluid - dry);
-  }
-
-  /** A numeric setting, falling back to its seeded literal. */
-  private static dial(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      if (raw === '' || raw == null) return fallback;
-      const n = Number.parseFloat(raw);
-      return Number.isFinite(n) ? n : fallback;
-    } catch {
-      return fallback;
-    }
   }
 
   /** Read elasticity — the strain it springs back from (`%`; `0` = rigid). */

@@ -79,6 +79,25 @@
  *     `const name` above `static fieldMeta` (the dairy's finding, missed
  *     here), so `bill`/`parts`/`joints`/`gauge`/`hands` were filed under
  *     `name.*`. The check sits below `fieldMeta` now.
+ * **Storage and the ice trade, W0 (a relabel and one field).**
+ *   - The relabel: `AlloyedMixin` split into `CompositionMixin.alloying`
+ *     and `TemperedMixin.temper`, each keeping its level-1 tag (the
+ *     figure is earned by `analyze chemistry`; that it exists is public).
+ *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
+ *     black ice is clear and white ice is white, and the trade sold by
+ *     it in the open.
+ *   - W2: `StoreMixin.lines` — **level 1**. The ledger is the world's
+ *     EXACT stock; how much is really in a house is what a stocktake
+ *     (`measure stock`) earns by competence, bracketed — the keeper's
+ *     book is a claim, the lines are the truth. `capacityKg`,
+ *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `initialLines` —
+ *     level 0: the size of a house, the shape of a stack, its floor, what
+ *     it takes and what it was built with are seen by walking in.
+ *   - W3: `StoreMixin.businessPath` / `keeperPositions` / `terms` /
+ *     `acceptsLiveGoods`, `StoreBookMixin.storePath` — level 0: who keeps
+ *     a house, who may take a deposit and the terms printed on every
+ *     receipt are posted at the door; that is what makes them terms.
+ *   - W5: `WaterSurface.areaM2` — level 0: how big a pool is, you see.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

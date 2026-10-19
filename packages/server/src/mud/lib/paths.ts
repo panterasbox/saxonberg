@@ -132,6 +132,8 @@ export const TemplatePaths = {
   // at all, and `lint:census` resolves template-path fields but not a
   // constant, so `Location.floor.test.ts` asserts it resolves.
   defaultFloor: "/stuff/thing/surface/default-floor",
+  /** ⭐ A pool's floor: the water's surface (storage-and-ice D12). */
+  waterSurface: "/stuff/thing/surface/water-surface",
 
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.

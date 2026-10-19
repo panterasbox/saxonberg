@@ -139,7 +139,7 @@ export default class Gather extends GatherBase {
       }
       (cullet as unknown as Labelled).setShortDescription("lump of cullet");
       (cullet as unknown as Labelled).setKeywords(["cullet", "lump", "glass"]);
-      if (MixinApi.isAlloyed(cullet) && alloying.length > 0) cullet.setAlloying(alloying);
+      if (MixinApi.isComposition(cullet) && alloying.length > 0) cullet.setAlloying(alloying);
       const dest =
         where && MixinApi.isContainer(where)
           ? (where as Stuff & Container)

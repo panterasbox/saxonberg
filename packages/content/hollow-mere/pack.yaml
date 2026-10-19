@@ -1,0 +1,24 @@
+id: hollow-mere
+version: 0.1.0
+root: /world/terminus/hollow-mere
+description: >-
+  Hollow Mere — a VENUE pack (storage-and-ice D22): a small mere in the
+  southern hills that freezes hard in its winter, an ice company that cuts
+  it, and the icehouses that keep the ice through the summer. ⚠
+  PLACEHOLDER geography — the mere sits at 58° S so that a fresh world's
+  first days are its first days of cold; its zone and its water both say
+  so. The pool's floor is the water pack's ice sheet; the stack is the
+  ice trade's; the counter brings blocks up from the house to order and
+  prices them on the house's days of supply. A second mere, house or
+  company is rows.
+requires:
+  groups:
+    - name: hollow-mere
+      purpose: the ice company's staff and the mere's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /world/terminus/hollow-mere, parentParcel: /world/terminus, holder: { group: hollow-mere } }
+
+boot:
+  - { template: /world/terminus/hollow-mere/idea/ice-company, role: producer, reason: "the crew works the ice and the house hand keeps the house with nobody present; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
+  - { template: /world/terminus/hollow-mere/icehouse/location/house, role: producer, reason: "the house hand stands here and the stack melts by its own physics, so the house must be live for its beat to fire; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }

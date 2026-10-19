@@ -1,0 +1,18 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Wenna
+  keywords: [wenna, keeper]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Wenna the keeper
+  register: proper
+  longDescription: |
+    A narrow, weathered woman in a sawdust-flecked coat, a pencil behind her ear and the house book never far from her hand. She knows to the hundredweight what is in the house, and says so only when asked.
+  archetype: storekeeper
+  competence:
+    - { discipline: appraisal, asserting: proficient }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

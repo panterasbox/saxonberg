@@ -1,0 +1,85 @@
+# store — goods left in a store's keeping, on a receipt (storage-and-ice D6).
+#
+# ⭐ An INSTITUTION's book, so it is one noun with subcommands, as `bank`
+# is: a deposit, a withdrawal and your receipts are three entries in the
+# same book, kept by the same keeper, under the same printed terms (the
+# storage-and-ice review — custody had been two bare verbs, `deposit` and
+# `withdraw`, beside `bank deposit` / `bank withdraw`).
+verbs: [store]
+controller: /platform/idea/cmd/custody/StoreController
+description: "Keep goods in a store — deposit / withdraw / receipts"
+help: |
+  Leave goods in a store's keeping and take them back — an icehouse, a
+  depot. Bare `store` lists your receipts here.
+
+  `store deposit <thing>` — the keeper takes it in and writes you a
+  receipt: what you left, how much, and the terms printed on it (the
+  allowance for ordinary shrinkage, and the fee per kilogram to take it
+  back out).
+
+  `store withdraw [<n>] <good>` — the keeper pays out against your
+  receipt, in whole units of the grade you deposited, and charges the fee
+  printed on it.
+
+  ⭐ Pooled goods are held IN COMMON. Your block of ice goes onto the
+  house's stack with everybody else's of the same grade, and your receipt
+  is a claim on that stack, not on that block. If the stack shrinks,
+  everyone's claim is paid short in proportion — and the receipt says
+  whether that was within the allowance printed on it.
+
+  Somebody has to be keeping the book: a deposit or a withdrawal needs the
+  keeper on shift. Staff of the house on shift work on the house's own
+  claim.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+# ⚠ No top-level `args:` — the command schema refuses them beside
+# `subcommands:`; bare `store` finds the book where you stand, as bare
+# `bank` finds the bank.
+subcommands:
+  receipts:
+    description: "Your receipts here (same as bare `store`)"
+    args:
+      - name: book
+        type: object
+        required: false
+        greedy: true
+        prepositions: [at, in]
+        default: "reachable:[mixin.StoreBookMixin]"
+        scope: [reachable]
+        requires: [StoreBookMixin]
+  deposit:
+    description: "Leave something in the store's keeping, on a receipt"
+    validators:
+      - /lib/command/validators/requiresEmbodied
+    args:
+      - name: thing
+        type: object
+        required: true
+        scope: [inventory]
+        requires: [ContainableMixin]
+      - name: book
+        type: object
+        required: false
+        greedy: true
+        prepositions: [in, at, with]
+        default: "reachable:[mixin.StoreBookMixin]"
+        scope: [reachable]
+        requires: [StoreBookMixin]
+  withdraw:
+    description: "Take goods back out against your receipt"
+    validators:
+      - /lib/command/validators/requiresEmbodied
+    args:
+      - name: what
+        type: string
+        required: true
+        greedy: true
+      - name: book
+        type: object
+        required: false
+        greedy: true
+        prepositions: [from, at]
+        default: "reachable:[mixin.StoreBookMixin]"
+        scope: [reachable]
+        requires: [StoreBookMixin]

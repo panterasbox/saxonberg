@@ -454,13 +454,13 @@ describe("general-store content integrity", () => {
    */
   it("the supplied lines are bought on terms by a seated keeper, never cloned", () => {
     const counter = load(STORE_DIR, "counter.yaml");
-    const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number; supplier?: string; pricing?: string }[];
+    const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number; from?: { supplier?: string; store?: string }; pricing?: string }[];
     const prices = counter.data?.prices as Record<string, number>;
-    const supplied = lines.filter((l) => l.supplier);
+    const supplied = lines.filter((l) => l.from?.supplier);
     expect(supplied.length).toBeGreaterThanOrEqual(2);
     const DISTRIBUTOR = "/world/terminus/counting-houses/distributor/idea/business";
     for (const line of supplied) {
-      expect(line.supplier).toBe(DISTRIBUTOR);
+      expect(line.from?.supplier).toBe(DISTRIBUTOR);
       expect(line.pricing).toBe("stocking");
       expect(prices[line.itemTemplatePath], `${line.itemTemplatePath} has no base`).toBeGreaterThan(0);
     }

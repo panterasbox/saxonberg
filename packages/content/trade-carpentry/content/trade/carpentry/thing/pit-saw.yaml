@@ -18,3 +18,5 @@ data:
   throughputKgPerHour: 30
   kgPerHourPerKw: 0
   maxThroughputKgPerHour: 0
+  # The kerf: what the blade turns to sawdust (storage-and-ice D18).
+  kerfM: 0.005

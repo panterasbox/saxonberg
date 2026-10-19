@@ -101,7 +101,7 @@ export default class GobController extends ManualBuildController<GobModel> {
     gather.setMass(Quantity.of(gatherKg, "kg"));
     gather.setStampedTemperatureK(meltK);
     gather.setForm("gather");
-    if (MixinApi.isAlloyed(gather) && alloying.length > 0) gather.setAlloying(alloying);
+    if (MixinApi.isComposition(gather) && alloying.length > 0) gather.setAlloying(alloying);
     ContainmentApi.move(gather as unknown as Stuff & Containable, pipe);
 
     const watch = new HotWorkWatch({

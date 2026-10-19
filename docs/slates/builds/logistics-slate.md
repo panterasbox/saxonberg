@@ -621,6 +621,11 @@ and neither decision was made with the other in mind.**
 
 # Part 11.5 — Warehousing: the other half of logistics
 
+> ⭐ **Designed 2026-10-16 → [storage-slate](../tails/storage-slate.md)** —
+> fungible goods as a count on a store, receipts, and the cause of
+> divergence this part was missing (the icehouse's melt, pilferage, a
+> stocktake that is a reading). Builds with the ice trade.
+
 **Captured 2026-09-03**, out of *"what about the other side of logistics
 which is warehousing… what is a warehouse. It's just a really really big
 container. But that bigness gives it certain properties and needs."*
@@ -771,3 +776,11 @@ on, a scale, and `coldStorage` with no default.
 > [settlement-model.md § 8](../../settlement-model.md). After this build
 > the second half stops being an assertion and becomes something a player
 > does.
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **The iceman's route** — the round from the icehouse counter to the
+  households and the cookhouse; today the cookhouse's ice comes by a
+  supply job `--from` the ice company's platform. The standing order a
+  household puts in the window (the ice card) is
+  [standing-instructions-slate](./standing-instructions-slate.md)'s.

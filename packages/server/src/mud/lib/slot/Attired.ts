@@ -127,6 +127,12 @@ export interface Attired {
   ): readonly (Stuff & Slottable)[];
 
   /**
+   * Go into water: the body and every worn layer at every exterior part
+   * the optional filter admits are soaked (side-effect-only — it wets).
+   */
+  immerse(parts?: (partKey: string) => boolean): void;
+
+  /**
    * The outermost thing covering `partKey`, or `null` when the part is
    * bare.
    *
@@ -175,13 +181,6 @@ export interface Attired {
    * layer passes — `permeability × saturation` of it, a bare part 1.
    */
   exposeToRain(delta: number): void;
-
-  /**
-   * ⚠ DROP AT MERGE — owned by storage-and-ice (its D11). Going into
-   * water: the body and every layer at every exterior part get soaked —
-   * only the parts `parts` admits, when given (wading soaks the feet).
-   */
-  immerse(parts?: (partKey: string) => boolean): void;
 
   /**
    * How the worn stack shifts this host's own conspicuity, in
@@ -729,36 +728,6 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    public immerse(
-      this: Stuff & Slotted & Attired,
-      parts?: (partKey: string) => boolean,
-    ): void {
-      // ⚠ DROP AT MERGE — owned by storage-and-ice. A copy of its
-      // published shape: the body (at the admitted parts' share) and
-      // every layer at every admitted exterior part get `wet(1)`.
-      const self = this as unknown as Stuff & Slotted;
-      const plan = bodyPlanOf(self);
-      if (!plan) return;
-      const saturation = dial(AppSettingKeys.wetnessImmersionSaturation, 1);
-      const seen = new Set<Stuff>();
-      let share = 0;
-      for (const part of plan.getBodyParts()) {
-        if (plan.isInterior(part.key)) continue;
-        if (parts && !parts(part.key)) continue;
-        share += plan.getPartSurfaceFraction(part.key);
-        for (const layer of this.coveringAt(part.key)) {
-          const asStuff = layer as unknown as Stuff;
-          if (seen.has(asStuff)) continue;
-          seen.add(asStuff);
-          if (MixinApi.isWet(asStuff)) asStuff.wet(saturation);
-        }
-      }
-      const body = self as unknown as Stuff;
-      if (share > 0 && MixinApi.isWet(body)) {
-        body.wet(saturation * (parts ? Math.min(1, share) : 1));
-      }
-    }
-
     public concealmentOffset(this: Stuff & Slotted & Attired): number {
       const self = this as unknown as Stuff & Slotted;
       const plan = bodyPlanOf(self);
@@ -777,6 +746,33 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         weighted += share * conspicuityOf(outer as unknown as Stuff);
       }
       return weighted * weight;
+    }
+
+    /**
+     * ⭐ **Go into water** (storage-and-ice D11): the body is soaked through,
+     * and so is every worn layer at every exterior part the optional
+     * filter admits (no filter = every part — a swim; the foot parts — a
+     * flooded cell). Side-effect-only: it WETS, and computes no heat; the
+     * body's chill is the regulation's read of the water it is in.
+     */
+    public immerse(this: Stuff & Slotted & Attired, parts?: (partKey: string) => boolean): void {
+      const self = this as unknown as Stuff;
+      if (!parts && MixinApi.isWet(self)) self.wet(1);
+      const plan = bodyPlanOf(self as unknown as Stuff & Slotted);
+      if (!plan) return;
+      const soaked = new Set<Stuff>();
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key)) continue;
+        if (parts && !parts(part.key)) continue;
+        for (const layer of this.coveringAt(part.key)) {
+          const asStuff = layer as unknown as Stuff;
+          if (soaked.has(asStuff)) continue;
+          soaked.add(asStuff);
+          if (MixinApi.isWet(asStuff)) asStuff.wet(1);
+        }
+      }
+      // ⚠ With a filter (a flooded cell soaks the boots) the body's own
+      // single wetness gauge is left alone: it cannot be wet at the feet.
     }
 
     public attentionFactor(this: Stuff & Slotted & Attired): number {

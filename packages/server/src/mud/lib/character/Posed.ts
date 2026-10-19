@@ -285,9 +285,13 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Find a slot on the target accepting this posture.
       const candidates = target.getSlotsAcceptingPosture(posture);
       let chosen: string | null = null;
+      let refusal: string | null = null;
       for (const slot of candidates) {
         if (target.isSlotFull(slot)) continue;
-        if (!target.canOccupy(actor, slot)) continue;
+        if (!target.canOccupy(actor, slot)) {
+          refusal = refusal ?? target.canOccupyReason(actor, slot);
+          continue;
+        }
         chosen = slot;
         break;
       }
@@ -298,6 +302,10 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
             reason: 'no-posture-slot',
             summary: `you can't ${verb} on ${target.getPresentation()}`,
           };
+        }
+        // ⭐ The host said why (a water surface that bears nobody).
+        if (refusal !== null) {
+          return { ok: false, reason: 'refused-by-host', summary: refusal };
         }
         return {
           ok: false,

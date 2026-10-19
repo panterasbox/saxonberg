@@ -1,0 +1,13 @@
+# Hollow Mere — the locality (storage-and-ice D22). ⚠ Placeholder. The
+# weather is pinned CLEAR and ALIVE: deterministic (a drive repeats), and
+# the seasons still run — the mere freezes in its winter and goes out in
+# its summer.
+class: /platform/idea/Locality
+data:
+  name: Hollow Mere
+  _address: terminus/hollow-mere
+  _reach: hollowmere:mere
+  _catchmentKm2: 3
+  _weatherPin:
+    type: clear
+    mode: alive
