@@ -1,0 +1,36 @@
+# The boiling floor — ⭐ a PersistentLocale (sugar D20): a copper left on
+# the lit arch mid-boil is the same pan, at the same strength and the same
+# heat, after a restart. A Locale would forget it.
+class: /platform/location/PersistentLocale
+data:
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: "boiling floor"
+  keywords: [floor, "boiling floor", boiling-house]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A hot, high room with a brick arch squatting in the middle of it and a great copper set in its mouth. Everything is sticky: the floor, the rails, the ladle hooks. A water butt stands by the wall, a quern for breaking sugar sits on a bench, and a coal heap is banked against the arch's firedoor. The curing house is through the door north and the store south; west, a door goes through to Veshko's distillery.
+  exits:
+    west:
+      destination: /world/terminus/goods-yards/veshko/location/distillery
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/goods-yards/sugar-house/location/ground/curing-house
+      bidirectional: true
+    south:
+      destination: /world/terminus/goods-yards/sugar-house/location/ground/store
+      bidirectional: true
+  props:
+    - /trade/sugar/thing/arch
+    - /trade/sugar/thing/copper
+    - /stuff/thing/vessel/pail
+    - /stuff/thing/fixture/water-butt
+    - /stuff/thing/instrument/thermometer
+    - /trade/milling/thing/quern
+    - /trade/haulage/thing/works-board
+    - { template: /trade/quarrying/thing/coal, count: 8 }
+  cast:
+    - /world/terminus/goods-yards/sugar-house/agent/refiner

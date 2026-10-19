@@ -60,6 +60,7 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { VetoResult } from '../errors';
+import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
@@ -140,6 +141,27 @@ export interface DrainSetting {
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
 }
+
+/**
+ * ⭐ One stage of a boiled-down solution (sugar D1): once the liquor's
+ * dissolved-solids mass fraction reaches `fromW` on the boil plateau, it
+ * becomes the material `becomes` — unless `minBand` is set and the
+ * vessel's grade is below it, when it becomes `elseBecomes` instead
+ * (*what will not grain is blackstrap*). The `purifiedByBoiling` shape,
+ * keyed on concentration rather than time.
+ */
+export interface ConcentrationArrow {
+  fromW: number;
+  becomes: string;
+  minBand?: GradeBand;
+  elseBecomes?: string;
+}
+
+/**
+ * Density of the dissolved solids (kg/L) the mass-fraction read assumes —
+ * sucrose's, and near enough for any sugar or salt a pan boils down.
+ */
+const SOLUTE_DENSITY_KG_PER_L = 1.6;
 
 /**
  * Link from a biological Material to the Species it came from, plus
@@ -1071,6 +1093,11 @@ export default class Material extends SingletonMixin(
       spoiler: 1,
       spoilerName: 0,
     },
+    // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
+    // thermometer and the thread, and the stages are the trade's syllabus.
+    solidsKgPerL: { persistent: true, authorable: true },
+    boilingPointElevation: { persistent: true, authorable: true },
+    concentratesTo: { persistent: true, authorable: true },
   };
 
   public getName(): string { return this.name; }
@@ -1438,6 +1465,123 @@ export default class Material extends SingletonMixin(
 
   public setPurifiedByBoiling(value: string): void {
     this.purifiedByBoiling = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ Dissolved solids a fresh litre of this carries, kg/L (sugar D1):
+   * maple sap 0.025, cane juice 0.16, raw liquor 0.6. `0` for everything
+   * that is not a solution anyone boils down. The plateau rewrites the
+   * figure on the bulk's payload as it boils water off; this is where a
+   * fill with no payload figure starts.
+   */
+  protected solidsKgPerL = 0;
+
+  public getSolidsKgPerL(): number {
+    return this.solidsKgPerL;
+  }
+  public setSolidsKgPerL(value: number): void {
+    this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * The mass fraction `w` of dissolved solids at `solidsKgPerL` — the one
+   * derived read the boil, its arrows and the hydrometer share. The water
+   * in a litre is what the solids have not displaced.
+   */
+  public solidsMassFraction(solidsKgPerL: number): number {
+    if (!(solidsKgPerL > 0)) return 0;
+    const waterKg = Math.max(0, 1 - solidsKgPerL / SOLUTE_DENSITY_KG_PER_L);
+    return solidsKgPerL / (solidsKgPerL + waterKg);
+  }
+
+  /**
+   * ⭐ How far the boiling point climbs as the solution thickens (sugar
+   * D1): `[[w, ΔK], …]`, `w` ascending in `[0, 1]`, read piecewise
+   * linearly. Empty — water's behaviour — means no elevation.
+   */
+  protected boilingPointElevation: Array<[number, number]> = [];
+
+  public getBoilingPointElevation(): ReadonlyArray<readonly [number, number]> {
+    return this.boilingPointElevation;
+  }
+  public setBoilingPointElevation(value: Array<[number, number]> | null): void {
+    if (value === null || value === undefined || value.length === 0) {
+      this.boilingPointElevation = [];
+      return;
+    }
+    let prev = -1;
+    for (const pt of value) {
+      if (
+        !Array.isArray(pt) ||
+        pt.length !== 2 ||
+        !(pt[0] >= 0 && pt[0] <= 1) ||
+        !(pt[0] > prev) ||
+        !(Number.isFinite(pt[1]) && pt[1] >= 0)
+      ) {
+        throw new RangeError(
+          'Material.setBoilingPointElevation: need [[w, ΔK], …] with w ascending in [0, 1] and ΔK >= 0',
+        );
+      }
+      prev = pt[0];
+    }
+    this.boilingPointElevation = value.map(([w, k]) => [w, k] as [number, number]);
+  }
+
+  /** The boiling point (K) at solids mass fraction `w` — the plain boil plus the elevation. */
+  public boilingPointAt(w: number): number {
+    const base = this._boilingPoint.rawValue();
+    const curve = this.boilingPointElevation;
+    if (curve.length === 0 || !(base > 0)) return base;
+    if (w <= curve[0]![0]) return base + curve[0]![1];
+    for (let i = 1; i < curve.length; i++) {
+      const [w1, k1] = curve[i]!;
+      if (w <= w1) {
+        const [w0, k0] = curve[i - 1]!;
+        return base + k0 + ((w - w0) / (w1 - w0)) * (k1 - k0);
+      }
+    }
+    return base + curve[curve.length - 1]![1];
+  }
+
+  /**
+   * ⭐ What this solution becomes as it boils down (sugar D1) — stages in
+   * ascending `fromW`. The plateau fires the highest arrow the liquor has
+   * reached. See {@link ConcentrationArrow}.
+   */
+  protected concentratesTo: ConcentrationArrow[] = [];
+
+  public getConcentratesTo(): readonly ConcentrationArrow[] {
+    return this.concentratesTo;
+  }
+  public setConcentratesTo(value: ConcentrationArrow[] | null): void {
+    if (value === null || value === undefined || value.length === 0) {
+      this.concentratesTo = [];
+      return;
+    }
+    let prev = 0;
+    for (const a of value) {
+      if (
+        a === null ||
+        typeof a !== 'object' ||
+        !(a.fromW > prev && a.fromW <= 1) ||
+        typeof a.becomes !== 'string' ||
+        a.becomes.trim() === '' ||
+        (a.minBand !== undefined && !Grade.isBand(a.minBand)) ||
+        (a.minBand === undefined) !== (a.elseBecomes === undefined) ||
+        (a.elseBecomes !== undefined &&
+          (typeof a.elseBecomes !== 'string' || a.elseBecomes.trim() === ''))
+      ) {
+        throw new RangeError(
+          'Material.setConcentratesTo: need fromW ascending in (0, 1], becomes a path, minBand a grade band, and elseBecomes present iff minBand',
+        );
+      }
+      prev = a.fromW;
+    }
+    this.concentratesTo = value.map((a) => ({
+      fromW: a.fromW,
+      becomes: a.becomes.trim(),
+      ...(a.minBand ? { minBand: a.minBand, elseBecomes: a.elseBecomes!.trim() } : {}),
+    }));
   }
 
   /** Read boiling point (`Quantity<'K'>`; `0` = does not boil). */

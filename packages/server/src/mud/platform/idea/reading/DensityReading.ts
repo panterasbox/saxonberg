@@ -62,7 +62,16 @@ export default class DensityReading extends Reading {
     }
 
     let gravity: number;
-    if (MixinApi.isMaturing(target)) {
+    // ⭐ A boiled-down solution reads its sugar (sugar D1): the glass rides
+    // higher as the pan thickens, ~0.52 per unit of mass fraction.
+    const liquor = target.getBulkMaterial('interior');
+    const solids =
+      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ??
+      liquor?.getSolidsKgPerL() ??
+      0;
+    if (liquor && solids > 0) {
+      gravity = 1 + 0.52 * liquor.solidsMassFraction(solids);
+    } else if (MixinApi.isMaturing(target)) {
       gravity = target.getGravity();
     } else {
       const material = target.getBulkMaterial('interior');

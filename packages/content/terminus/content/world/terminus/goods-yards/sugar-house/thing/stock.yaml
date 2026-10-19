@@ -1,0 +1,19 @@
+# The sugar house's counter. ⭐ The raw-sugar line is an IMPORT for now —
+# the island's estate replaces it with sugar that came off the Hesper (W6).
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: sugar house counter
+  keywords: [counter, stock, "sugar counter", shelves]
+  register: definite
+  longDescription: A scrubbed counter with scales on it, and shelves of raw sugar in sacking behind.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /world/terminus/goods-yards/sugar-house/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/sugar/thing/raw-sugar-block, par: 6 }
+  # Twenty kilograms of raw sugar: a few hours of a hand's wage, which is
+  # what makes refining it worth a day's fuel and a refiner's.
+  prices:
+    /trade/sugar/thing/raw-sugar-block: 14

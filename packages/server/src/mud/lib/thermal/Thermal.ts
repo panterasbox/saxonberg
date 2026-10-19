@@ -36,6 +36,8 @@
 import { Final, Unshadowable } from '../security/decorators';
 import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
+import type { ConcentrationArrow } from '../material/Material';
+import { Grade } from '../craft/Grade';
 import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
 import { ContainmentApi } from '../../api/containment';
@@ -78,6 +80,13 @@ declare module "../bulk/Bulkable" {
      */
     boilHeldS?: number;
     boilCheckedS?: number;
+    /**
+     * ⭐ Dissolved solids, kg per litre of these contents (sugar D1) —
+     * what boiling concentrates. Absent: the material's own
+     * `solidsKgPerL` (a fresh fill). The plateau rewrites it each time it
+     * boils water off; a pour folds it by volume.
+     */
+    dissolvedSolidsKgPerL?: number;
   }
 }
 
@@ -1496,6 +1505,51 @@ function boilJoules(
 }
 
 /**
+ * The thickest a boiling solution gets, kg of solids per litre — sugar
+ * with the last of its water gone. A pan never boils past it.
+ */
+const SOLIDS_CEILING_KG_PER_L = 1.58;
+
+/**
+ * ⭐ The boil-down's stages (sugar D1): once the liquor's mass fraction
+ * has reached an arrow's `fromW`, the highest such arrow fires — the
+ * material swaps and the payload carries (minus the boil clock), the
+ * `purifyIfHeld` shape. An arrow with `minBand` reads the VESSEL's grade
+ * (the tempering and skimming write it) and below the band fires
+ * `elseBecomes` instead: what will not grain is blackstrap. An arrow that
+ * names the material already in the pan, or a row nothing resolves, leaves
+ * it alone.
+ */
+function concentrateIfReached(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+): void {
+  const arrows = mat.getConcentratesTo();
+  if (arrows.length === 0) return;
+  const payload = v.getBulkPayload(aff) ?? {};
+  const w = mat.solidsMassFraction(
+    payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL(),
+  );
+  let arrow: ConcentrationArrow | null = null;
+  for (const a of arrows) if (a.fromW <= w) arrow = a;
+  if (arrow === null) return;
+  let into = arrow.becomes;
+  if (arrow.minBand && arrow.elseBecomes) {
+    const band = MixinApi.isGraded(v) ? v.getGrade() : null;
+    if (band === null || band.compareTo(Grade.of(arrow.minBand)) < 0) {
+      into = arrow.elseBecomes;
+    }
+  }
+  if (into === mat.getTemplatePath()) return;
+  const next = StuffApi.findByTemplatePath<Material>(into);
+  if (!next) return;
+  const { boilHeldS: _h, boilCheckedS: _c, ...rest } = payload;
+  v.setBulkMaterial(aff, next);
+  v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+}
+
+/**
  * Held at the boil long enough: the contents become what their material
  * says boiling makes of them (fouled water → water, tar → pitch). An arrow
  * that resolves to nothing leaves them alone — you boiled it, and it is
@@ -1537,7 +1591,12 @@ function reconcileBulkPhase(
   if (!mat) return;
   const temp = v.getTemperature().rawValue();
 
-  const bp = mat.getBoilingPoint().rawValue();
+  // ⭐ The boil climbs as the solution thickens (sugar D1): the boiling
+  // point is the material's at the liquor's own concentration. Water and
+  // every other material that authors no elevation boil where they did.
+  const solids =
+    v.getBulkPayload(aff)?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  const bp = mat.boilingPointAt(mat.solidsMassFraction(solids));
   if (bp > 0 && temp >= bp) {
     // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
     // point everywhere anybody stands, which is what makes it a gas, and
@@ -1560,15 +1619,31 @@ function reconcileBulkPhase(
     // with no latent heat still flashes, as the doc promises (`0` = an
     // instantaneous transition).
     const latent = mat.getLatentHeatOfVaporization().rawValue();
-    const kgPerL = mat.getDensity().rawValue() / 1000;
+    // What leaves is WATER: a solution loses a litre of it per kilogram,
+    // and keeps every gram of what was dissolved in it.
+    const kgPerL = solids > 0 ? 1 : mat.getDensity().rawValue() / 1000;
     if (latent > 0 && kgPerL > 0) {
       const held = boilHeldSeconds(v, aff, bp, clock);
       const boiledL = boilJoules(v, temp, bp, held) / latent / kgPerL;
       const left = amount - boiledL;
-      if (left > 0) {
-        v.setBulkAmount(aff, Quantity.of(left, 'L'));
+      // A solution cannot boil past its own solids: it thickens toward
+      // them instead (the arrows end it long before).
+      const floorL = solids > 0 ? (amount * solids) / SOLIDS_CEILING_KG_PER_L : 0;
+      if (left > floorL || solids > 0) {
+        // A solution at its ceiling holds there, all solids and no water
+        // left to give: it never boils away (its `burnt` arrow, if it
+        // authors one, is what ends it).
+        const keptL = Math.max(left, floorL);
+        v.setBulkAmount(aff, Quantity.of(keptL, 'L'));
+        if (solids > 0) {
+          v.setBulkPayload(aff, {
+            ...(v.getBulkPayload(aff) ?? {}),
+            dissolvedSolidsKgPerL: (solids * amount) / keptL,
+          });
+        }
         v.setContentsTemperature(bp); // the plateau
         purifyIfHeld(v, aff, mat, held?.heldS ?? null);
+        concentrateIfReached(v, aff, mat);
         return;
       }
     }

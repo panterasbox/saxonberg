@@ -1,0 +1,19 @@
+# Sugar refining — the boiler's craft. ⭐ The one judgment is WHEN TO
+# STRIKE: the pan's boiling point climbs as it thickens, so the same
+# liquor is treacle, sugar or caramel depending on when you take it off
+# the fire. The thread test is how a boiler reads it without a
+# thermometer, and the thermometer is how a boiler stops guessing.
+class: /platform/idea/Discipline
+data:
+  key: sugar-refining
+  channel: skill
+  label: Sugar refining
+  description: >-
+    Dissolving, tempering and boiling a sugar liquor down to the strike,
+    reading the stages by the thread or the thermometer, and curing what
+    grains into loaves while the molasses drains away.
+  iscedf: "0721"
+  requires: [recipe-knowledge]
+  specializes: ""
+  synergizes: [cooking, distilling]
+  conferrals: []

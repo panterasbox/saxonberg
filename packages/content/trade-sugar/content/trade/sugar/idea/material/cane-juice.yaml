@@ -1,0 +1,11 @@
+# Cane juice — what the island's mill presses out of the cane (W5). Thin:
+# a sixth sugar. It runs the same curve and the same arrows as the
+# copper's liquor, from much further down.
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: cane juice
+  keywords: [cane-juice, juice, cane]
+  appearance: pale green and cloudy, sweet and grassy
+  tags: ["liquid", "food", "cane-juice", "perishable", "once-living"]
+  solidsKgPerL: 0.16
+  waterActivity: 0.98

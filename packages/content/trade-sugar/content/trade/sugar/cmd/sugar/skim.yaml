@@ -1,0 +1,24 @@
+verbs: [skim]
+controller: /trade/sugar/idea/cmd/sugar/SkimController
+description: "Skim the scum off a tempered sugar liquor"
+help: |
+  `skim copper into pail` lifts the scum a tempered liquor throws up into
+  the pail. Keep the skimmings — they are sugar enough to feed a
+  distiller's wash. A pan left unskimmed grains dark.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: copper
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: [BulkableMixin]
+  - name: pail
+    type: object
+    required: true
+    greedy: true
+    prepositions: [into, in]
+    scope: ["reachable"]
+    requires: [BulkableMixin]

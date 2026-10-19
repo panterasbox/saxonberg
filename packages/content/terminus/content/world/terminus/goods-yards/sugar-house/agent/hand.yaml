@@ -1,0 +1,32 @@
+# The Sugar House's hand — minds the counter and carries.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Hester Wynn
+  keywords: [hand, hester, wynn, sacking, counter]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [hester, wynn]
+  shortDescription: broad-armed hand with sacking over one shoulder
+  register: indefinite
+  longDescription: |
+    A broad-armed woman with a fold of sacking over one shoulder and sugar-dust to the elbow, who weighs everything twice.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: novice }
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Raw sugar by the block. Loaves when they're cured."
+          - "Scales are honest. Ask anyone."
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "re-wraps a block in its sacking." }
+          - { kind: free, value: "taps the scales to settle them." }

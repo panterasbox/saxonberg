@@ -1,0 +1,24 @@
+# Skimmings — the scum lifted off a tempered liquor: lime, the dirt the
+# lime threw up, and enough sugar to be worth something to a distiller.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: skimmings
+  keywords: [skimmings, scum]
+  appearance: a grey-brown froth, sweet and dirty
+  density: 1100
+  specificHeat: 3500
+  thermalConductivity: 0.5
+  electricalConductivity: 0.1
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: false
+  tastes: [sweet]
+  spoilActivationEnergy: 55000
+  waterActivity: 0.95
+  nutrients: ["sugar", "water"]
+  nutrientAmounts: { sugar: 150000, water: 800000 }
+  toxicity: []
+  tags: ["liquid", "skimmings", "wash-feed"]
+  composition: []
+  biologicalSource: null

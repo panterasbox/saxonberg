@@ -1,0 +1,15 @@
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: -1, z: 0 }
+  shortDescription: "sugar store"
+  keywords: [store, "sugar store", counter]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A narrow store with a counter across it and shelves of brown blocks behind, wrapped in sacking. Loaves in blue paper stand in a row along the top shelf. The boiling floor is back north.
+  props:
+    - /world/terminus/goods-yards/sugar-house/thing/stock
+  cast:
+    - /world/terminus/goods-yards/sugar-house/agent/hand

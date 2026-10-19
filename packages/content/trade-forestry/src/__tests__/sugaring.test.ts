@@ -34,26 +34,22 @@ function data(rel: string): Record<string, never> {
 const F = 'trade-forestry/content';
 const SAP = (t: string): string => `${F}/stuff/idea/material/food/${t}-sap.yaml`;
 const SYRUP = (t: string): string => `${F}/trade/forestry/idea/material/${t}-syrup.yaml`;
-const PROFILE = (t: string): string => `${F}/trade/forestry/idea/maturation/${t}-sap.yaml`;
 const PAN = `${F}/trade/forestry/thing/sap-pan.yaml`;
 const ARCH = `${F}/trade/forestry/thing/evaporator.yaml`;
 
 describe('the sap chain — the rows agree', () => {
   for (const t of ['birch', 'maple']) {
-    it(`⭐⭐ ${t}: the sap's TAG is the profile's inputCategory`, () => {
-      // ⚠ The silent failure this exists against: a profile whose
-      // `inputCategory` matches no material tag never starts, and
-      // nothing reports it — the pan just sits there full of sap.
-      const tags = data(SAP(t)).tags as unknown as string[];
-      expect(tags).toContain(`${t}-sap`);
-      expect(data(PROFILE(t)).inputCategory).toBe(`${t}-sap`);
-    });
-
-    it(`${t}: the profile's product is the syrup material that exists`, () => {
-      expect(data(PROFILE(t)).productMaterial).toBe(
-        `/trade/forestry/idea/material/${t}-syrup`,
-      );
+    it(`⭐⭐ ${t}: the sap boils down to its syrup by the arrows (sugar D1)`, () => {
+      // The kernel's plateau does the boiling; the arrow says what the
+      // sap becomes. A sap with no latent heat would flash dry, and one
+      // with no arrow would boil to a pan of nothing in particular.
+      const sap = data(SAP(t));
+      expect(Number(sap.latentHeatOfVaporization)).toBeGreaterThan(0);
+      expect(Number(sap.solidsKgPerL)).toBeGreaterThan(0);
+      const arrows = sap.concentratesTo as unknown as Array<{ fromW: number; becomes: string }>;
+      expect(arrows[0]?.becomes).toBe(`/trade/forestry/idea/material/${t}-syrup`);
       expect(data(SYRUP(t)).name).toBe(`${t} syrup`);
+      expect(row(SYRUP(t)).extends).toBe(`/stuff/idea/material/food/${t}-sap`);
     });
 
     it(`⭐⭐ ${t} syrup is tagged \`syrup\` — and ⛔ NOT \`sugar\``, () => {
@@ -91,44 +87,21 @@ describe('the sap chain — the rows agree', () => {
     }
   });
 
-  it('⚠⚠ the arch reaches the profile’s happyK, and stops short of damage', () => {
-    // ⭐ The calibration, and it is the one set of numbers in this build
-    // that had to be CHECKED rather than chosen: a lit arch has to get a
-    // pan to a rolling boil (`happyK`) or the trade does not work at
-    // all, and it must not sit above `damageAboveK` or a tended boil
-    // would scorch no matter who was watching. The gap between 370 and
-    // 400 is where a sugarer's attention lives.
+  it('⚠⚠ the arch is hotter than the strike, so a pan on it can reach it', () => {
+    // The boiling point climbs from 373 K to ~395 K at the strike
+    // (the sucrose curve on the sap rows); a fire at or below that would
+    // stall a pan short of it forever.
     const burn = Number(data(ARCH).burnTemperatureK);
-    for (const t of ['birch', 'maple']) {
-      const p = data(PROFILE(t));
-      expect(burn).toBeGreaterThan(Number(p.happyK));
-      expect(burn).toBeLessThan(Number(p.damageAboveK));
-    }
+    expect(burn).toBeGreaterThan(373 + 22);
   });
 
-  it('⭐ the pan and the fraction give the yield the rows claim', () => {
-    const capacity = Number(data(PAN).interiorCapacity);
-    expect(capacity).toBe(40);
-    // Birch at 2% — about three-quarters of a litre off a full pan.
-    const birch = capacity * Number(data(PROFILE('birch')).productFraction);
-    expect(birch).toBeCloseTo(0.8, 1);
-    // Maple at 4% — a litre and a half, twice the sugar for less sap.
-    const maple = capacity * Number(data(PROFILE('maple')).productFraction);
-    expect(maple).toBeCloseTo(1.6, 1);
-    // ⭐ And THAT is the economy: maple is the better tree per litre
-    // gathered, birch the better tree per tree. Nobody is told; the two
-    // numbers say it.
-    expect(maple).toBeGreaterThan(birch);
-  });
-
-  it('⚠ the profile authors no strain — nothing lives in a boiling pan', () => {
-    // Two shipped evaporative profiles were silently frozen by the
-    // strain gate before the extraction build; a third would have been.
-    for (const t of ['birch', 'maple']) {
-      const p = data(PROFILE(t));
-      expect(p.requiresFlora).toBeUndefined();
-      expect(Number(p.leesFraction)).toBe(0);
-    }
+  it('⭐ maple sap carries twice the sugar of birch — and only maple strikes', () => {
+    const solids = (t: string): number => Number(data(SAP(t)).solidsKgPerL);
+    expect(solids('maple') / solids('birch')).toBeCloseTo(2, 0);
+    const arrows = (t: string) =>
+      (data(SAP(t)).concentratesTo as unknown as Array<{ becomes: string }>).map((a) => a.becomes);
+    expect(arrows('maple')).toContain('/trade/forestry/idea/material/maple-strike');
+    expect(arrows('birch').some((b) => b.endsWith('strike'))).toBe(false);
   });
 
   it('the pan is a `pan` vessel kind, like the saltern it copies', () => {
@@ -188,9 +161,9 @@ describe('the sap trees — the rows the mechanism reads', () => {
     const b = (birch().production as unknown as Array<Record<string, unknown>>)[0]!;
     const m = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
     expect(Number(b.perGameDay)).toBeGreaterThan(Number(m.perGameDay));
-    expect(
-      Number(data(PROFILE('maple')).productFraction),
-    ).toBeGreaterThan(Number(data(PROFILE('birch')).productFraction));
+    expect(Number(data(SAP('maple')).solidsKgPerL)).toBeGreaterThan(
+      Number(data(SAP('birch')).solidsKgPerL),
+    );
   });
 
   it('the standard rows name the SapStandard class and their own species', () => {

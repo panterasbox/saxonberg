@@ -589,6 +589,27 @@ export class BulkableLogic extends ApiLogic {
         }
       }
 
+      // ⭐ Dissolved solids blend by VOLUME too (sugar D1): a pail of thin
+      // juice tipped into a thick pan thins it. Either side without a
+      // figure is a fresh fill at its material's own strength.
+      const fromSolids =
+        fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
+      if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
+        const held = to.getPayload();
+        const heldMat = to.getMaterial() ?? material;
+        const toSolids = held?.dissolvedSolidsKgPerL ?? heldMat.getSolidsKgPerL();
+        const total = applied + toAmountBefore;
+        if (total > 0) {
+          to.setPayload({
+            ...(held ?? {}),
+            dissolvedSolidsKgPerL:
+              (applied * fromSolids + toAmountBefore * toSolids) / total,
+          });
+        }
+      } else if (toWasEmpty && fromSolids > 0) {
+        to.setPayload({ ...(to.getPayload() ?? {}), dissolvedSolidsKgPerL: fromSolids });
+      }
+
       if (!toWasEmpty && fromPayload?.blood) {
         const toPayload = to.getPayload();
         if (toPayload?.blood) {

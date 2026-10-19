@@ -118,7 +118,13 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `hollow-mere`, the rubber build `trade-rubber`, and the silk build
     // `trade-sericulture` (built in parallel; whoever lands second
     // recounts — the sum, whatever git says).
-    expect(ids).toHaveLength(65);
+    // ⭐ 65 → 66: the sugar build adds `trade-sugar` (potash builds in
+    // parallel and adds one too — whoever lands second recounts).
+    expect(ids).toHaveLength(66);
+    // ⭐ The sugar trade buys its lime off the quarry's shelf, and the
+    // sugar house in Terminus is built from its rows.
+    expect(ids.indexOf('trade-sugar')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-sugar'));
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

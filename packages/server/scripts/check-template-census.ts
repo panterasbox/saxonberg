@@ -244,6 +244,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ `concentratesTo` (sugar D1) — the stages a boiled-down solution
+  // becomes, resolved live on the boil plateau. A rowless arrow is a pan
+  // that boils past the strike and becomes nothing in particular.
+  if (Array.isArray(data.concentratesTo)) {
+    for (const a of data.concentratesTo as Array<Record<string, unknown>>) {
+      push('concentratesTo', a.becomes);
+      push('concentratesTo', a.elseBecomes);
+    }
+  }
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);
   }

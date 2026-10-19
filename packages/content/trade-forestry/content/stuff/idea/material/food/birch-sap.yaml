@@ -37,3 +37,22 @@ data:
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/betula/pendula
     tissueType: sap
+  # ⭐⭐ The boil-down (sugar D1), as maple's: half the sugar, so twice
+  # the boiling. Birch syrup is the end of it — it is too much fructose
+  # to grain, and nobody makes birch sugar.
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  solidsKgPerL: 0.012
+  boilingPointElevation:
+    - [0, 0]
+    - [0.5, 1.5]
+    - [0.7, 5]
+    - [0.8, 10]
+    - [0.85, 14]
+    - [0.9, 22]
+    - [0.95, 32]
+    - [0.98, 50]
+    - [0.99, 60]
+    - [1, 70]
+  concentratesTo:
+    - { fromW: 0.66, becomes: /trade/forestry/idea/material/birch-syrup }

@@ -1,0 +1,38 @@
+# The Sugar House business — a refiner who boils and a hand who carries
+# (sugar D19). The refiner's seat buys (lime off the quarry's shelf at
+# Rejection, D7).
+class: /platform/idea/Business
+data:
+  name: "the Sugar House"
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus
+  positions:
+    - key: refiner
+      noun: refiner
+      label: boiling sugar
+      wageRate: 6
+      fulfills: [sugar-refining]
+      purchases: true
+      headcount: 1
+    - key: hand
+      noun: hand
+      label: carrying for the sugar house
+      wageRate: 4
+  rosterSlots:
+    - positionKey: refiner
+      assignee: /world/terminus/goods-yards/sugar-house/agent/refiner
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
+    - positionKey: hand
+      assignee: /world/terminus/goods-yards/sugar-house/agent/hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
+  parLines:
+    - { category: liming, unit: count, level: 6, supplier: /world/terminus/rejection/idea/provisioning-business, exemplar: /trade/quarrying/thing/quicklime }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
+    - /world/terminus/goods-yards/sugar-house/location/ground/curing-house
+    - /world/terminus/goods-yards/sugar-house/location/ground/store
+    - /world/terminus/goods-yards/sugar-house/thing/stock

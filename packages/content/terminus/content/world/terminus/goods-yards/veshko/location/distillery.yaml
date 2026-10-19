@@ -35,6 +35,13 @@ data:
       destination: /world/terminus/goods-yards/yard
       media: [ground]
       edgeMinutes: 2
+    # ⭐ (sugar build) Through the east wall, the Sugar House — whose
+    # molasses is this still's rum (W3). The yard has no compass point
+    # left to spare, and next door is where a distiller wants it.
+    east:
+      destination: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
+      media: [ground]
+      edgeMinutes: 1
   props:
     # ⭐ The works board, ON the floor — and it is for PEOPLE.
     #

@@ -1,0 +1,15 @@
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/goods-yards/sugar-house
+  entrance: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
+  shortDescription: sugar house
+  register: definite
+  keywords: [house, "sugar house", refinery, chimney]
+  longDescription: >-
+    A tall narrow brick building with one fat chimney and a sweet burnt
+    smell hanging round it that you can taste. The windows on the ground
+    floor are fogged, and it is reached through Veshko's yard, whose
+    floor shares its west wall.
+  heightM: 9
+  storeys:
+    - { key: ground, extent: /world/terminus/goods-yards/sugar-house/location/ground }

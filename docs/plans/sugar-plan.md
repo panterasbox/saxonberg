@@ -1172,7 +1172,47 @@ A drive that changes is either a row to calibrate (fix it here) or a real
 finding (record it in the drive record). Commit `build(sugar W1a): the fire
 has power — a burner heats at its power, the boil spends it on steam`.
 
-### W1 — the boil, the thread test, the sugar house (Stage A)
+### W1 — the boil, the thread test, the sugar house (Stage A) ✅ CODE DONE — drive owed
+
+> **Build note (2026-10-19).** As planned, with these decisions:
+> - **Dissolving is physics, not a recipe.** A raw-sugar block put
+>   into a copper that holds water dissolves on `onContainableAdded`; a
+>   dry copper refuses it. The strength is whatever block-to-water you
+>   gave it. No crafting verb fits a bulk-into-vessel recipe by hand, and
+>   the requirements' wording ("dissolve it into a warm liquor in the
+>   pan") is the act itself. Lens 1: derivable. `recipes/dissolve.yaml`
+>   is not shipped.
+> - **The copper is `ContainerMixin(Vat)`**, so it can hold the block.
+>   `temper`/`skim` flags (`limed`, `skimmed`) ride the liquor's payload,
+>   declared by module augmentation in `Copper.ts` (not a separate lib
+>   file). The band they decide is written onto the copper (`setGrade`),
+>   which is what the kernel's strike arrow reads.
+> - **A solution holds at its solids ceiling** (1.58 kg/L) rather than
+>   boiling dry. Blackstrap, which has no arrows, would otherwise have
+>   vanished. Burnt is the arrow's job.
+> - **The house's door is off Veshko's distillery (east), not the yard.**
+>   The yard uses all eight compass points. Next door to the still that
+>   buys its molasses (W3) is where it belongs. Boiling floor: west to
+>   the distillery, north to the curing house, south to the store.
+> - **The stock needed `prices:`.** A Stock with lines and no prices
+>   sells nothing. Raw sugar is 14; quicklime at Rejection is 3.
+> - **refines (W1 steps):** pour 30 L from the butt · put a block in ·
+>   temper · skim · stoke with coal · light · heat · get copper at the
+>   strike. One verb per beat, a pure `brain.next(floor)` state machine.
+>   It works with what is in the room. Fetching blocks and lime is the
+>   hand's and the par sheet's.
+> - **Maple:** both sap profiles deleted. The saps author the boil +
+>   sucrose curve + arrows. The syrups `extends:` their sap, with their
+>   own `solidsKgPerL 0.88`. Maple strikes (`maple-strike`); birch stops
+>   at syrup. Maple's caramel/burnt arrows are NOT authored: they would
+>   need the sugar pack's rows, a forestry→sugar dependency. Evaporator
+>   390 → 470 K, `heatTransferFraction 0.5`. The sugarbush is a
+>   `PersistentLocale`. Maple sugar from the strike waits on W2's mould.
+> - ⚠ **Found, not mine:** `corrosion-narrowing.test.ts` is red on
+>   master. Cleanliness added once-living rushes, sweepings and manure
+>   after rubber's narrowing; silk adds frass. Reported, not fixed.
+> - `DensityReading`'s solids arm takes precedence over the maturing arm
+>   (the copper IS a Maturing Vat).
 
 **Goal.** AC 2, 3; drive steps 2–5 and 12. Decisions D1, D4, D7 (D2
 landed in W1a and is used here),

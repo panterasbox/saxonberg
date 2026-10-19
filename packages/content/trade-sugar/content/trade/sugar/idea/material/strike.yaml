@@ -1,0 +1,9 @@
+# The strike — the massecuite: liquor boiled to nine-tenths sugar, which
+# grains as it cools. Poured into a cone it sets into a loaf and the
+# molasses drains out of it (the cone is the mould's; W2).
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: strike
+  keywords: [strike, massecuite, sugar]
+  appearance: dark and heavy, already clouding with grain as it cools
+  tags: ["liquid", "food", "strike"]

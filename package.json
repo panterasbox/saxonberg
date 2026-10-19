@@ -59,6 +59,7 @@
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-smelting": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
+    "@saxonberg/content-trade-sugar": "workspace:*",
     "@saxonberg/content-trade-tailoring": "workspace:*",
     "@saxonberg/content-trade-tanning": "workspace:*",
     "@saxonberg/content-trade-textiles": "workspace:*",

@@ -1,0 +1,32 @@
+# The refiner — the Sugar House's boiler (sugar D19). Runs the copper by
+# the `refines` brain, one act per beat, every act a verb a player could
+# type: dissolve, temper, skim, light and stoke, heat, take it off at the
+# strike.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Ezra Candlish
+  keywords: [refiner, boiler, ezra, candlish, apron]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [ezra, candlish]
+  shortDescription: sweating refiner in a sugar-stiff apron
+  register: indefinite
+  longDescription: |
+    A thin, red-faced man in a canvas apron gone stiff and brown with sugar, a long skimmer in one hand. He watches the copper the way other men watch weather.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: competent }
+  behaviors:
+    - brain: /trade/sugar/behavior/refines
+      trigger: candidate
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the copper. It bites."
+          - "Not ready yet. Not near ready."
+          - "You want sugar, the counter's through there."
