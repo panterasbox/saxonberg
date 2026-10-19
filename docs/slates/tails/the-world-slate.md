@@ -96,6 +96,21 @@ consistent position on this globe — so a latitude means *where* as well as
 planetary anchor). Until then, a new place picks a latitude for its climate
 and a sea node for its distance, as the sugar island will.
 
+## 5b. Open — the magnetic field
+
+**Not modelled; Earth-like by declaration if a reader ever needs one.** A
+big metal core does not by itself make a strong field — a field is a dynamo,
+a liquid conducting core still convecting, plus rotation (Mercury's huge iron
+core has about 1% of Earth's field; Mars had a dynamo and lost it, because a
+small planet's core cools and freezes). So for a world this size the field is
+a free parameter, declared like the heavy-world postulate. Nothing reads one
+today: the compass reading is **true** bearing, and the celestial code's
+"declination" is the sun's and the moon's. Where it would show if modelled:
+**magnetic variation** in navigation (compass north is not true north — an
+instrument-ladder lesson for the maritime trade), **auroras** at high
+latitude, **lodestones** as the first compass's epoch rung, and the
+atmosphere's shield against the solar wind (backstory, not live physics).
+
 ## 6. Lens pass (2026-10-18)
 
 1. **Pedagogy** — gravity as radius × density; why a smaller world needs a
