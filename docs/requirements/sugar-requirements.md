@@ -33,8 +33,8 @@ decisions). Related: [unfree-labour-slate](../slates/builds/unfree-labour-slate.
   drains is **thrown away** — a cone would give no molasses.
 - **Leaching.** The cleanliness build (MR !380, **not yet merged**) ships a
   lye hopper: water through ash. Claying is the same act through sugar.
-- **Lime.** The quarry's limekiln burns quicklime; the glass batch buys it.
-  It is not on sale to anyone else.
+- **Lime.** The quarry's limekiln burns quicklime. It is on no shop's line:
+  the glasshouse has it only as set dressing.
 - **Readings.** `analyze`/`measure` over channels any pack can add: a
   thermometer reads a pan's contents; a hydrometer reads a ferment's gravity.
   No thread test.
@@ -77,8 +77,9 @@ carries cargo and survives a restart; and an unpaid worker who leaves.
 - **Sugar is produced, not conjured.** Every grain the Lounge's bar uses can
   be traced to a cane field on Waponi Woo, a boiling house, a voyage and the
   Terminus sugar house. The pantry's conjured sack retires.
-- **The rum has a feedstock.** Veshko's rum lines buy molasses and the still
-  makes rum from it; light rum from first molasses, dark from blackstrap.
+- **The rum has a feedstock.** Veshko's yard gets a still and a distiller —
+  a seat — who makes its rum from molasses; light rum from first molasses,
+  dark from blackstrap.
 - **The strike is the skill.** A boiler who reads the pan well gets a good
   grain; one who stops early gets treacle; one who pushes on gets caramel,
   then burnt. The thermometer reads concentration because boiling point rises
@@ -138,9 +139,9 @@ carries cargo and survives a restart; and an unpaid worker who leaves.
   Greywater, its people, the estate, the smallholdings, the forest and the
   volcano.
 - **The kernel seams** (the staged boil, the draining mould that keeps its
-  drainings, percolation widened from the lye hopper, the hold that persists
-  and the berth, the unpaid hand) are kernel, each with this build as its
-  first consumer.
+  drainings, percolation — which the cleanliness lye hopper can later adopt,
+  the hold that persists, the planet-radius setting from the world slate,
+  the unpaid hand) are kernel, each with this build as its first consumer.
 
 ## Collisions
 
@@ -148,8 +149,8 @@ carries cargo and survives a restart; and an unpaid worker who leaves.
   sugar house supplies the cash-and-carry instead.
 - **The cash-and-carry and the Lounge** keep buying sugar the same way —
   from a real supplier now.
-- **Veshko's yard and Hollis** — the rum lines stop cloning to par and buy
-  molasses (Hollis Cane follows Veshko).
+- **Veshko's yard and Hollis** — the rum lines stop cloning to par: the
+  yard's distiller makes them from molasses (Hollis Cane follows Veshko).
 - **The quarry's limekiln** — lime goes on sale (its new buyer is the sugar
   house).
 - **The sugarbush** (maple) gains maple sugar from the staged boil; its
@@ -157,8 +158,11 @@ carries cargo and survives a restart; and an unpaid worker who leaves.
 - **The Hesper and her crew** — they sail the sugar voyage as their trade;
   a player may also sail, crew or ship cargo.
 - **The wharf and the pilot** — where the cargo lands.
-- **The cleanliness build's lye hopper** (!380) — widened, not duplicated.
-- **The Greywater** — its reach extends to Waponi Woo's node.
+- **The cleanliness build's lye hopper** (!380) — a leach that destroys its
+  ash; claying is percolation through a loaf that survives, so it gets the
+  general mechanism and the hopper can adopt it.
+- **The Greywater** — its reach extends to Waponi Woo's node; its chart
+  re-derives from the smaller planet (a degree is 20 nm, not 60).
 
 ## Surface decisions
 
@@ -175,8 +179,12 @@ Until the first voyage lands, the sugar house buys raw sugar from a
 when the island's sugar arrives, the stocked line stops being restocked.
 
 ### Waponi Woo
-A volcanic island in the south of the Greywater, tropical (about 18° S),
-frost-free — the name from *Joe Versus the Volcano*. ⭐ **Volcanic ash makes
+A volcanic island south across the Greywater, frost-free (about 30° N — the
+latitude of Madeira and the Canaries, both volcanic sugar islands) — the
+name from *Joe Versus the Volcano*. ⭐ On the world as decided in
+[the-world-slate](../slates/tails/the-world-slate.md) (MR !398) — a planet a
+third of Earth's size — that is **about 240 nm, roughly 1.7 game days'
+sail**; the voyage wave carries the planet-radius setting that makes it so. ⭐ **Volcanic ash makes
 the cane's soil rich**, which is why it grows well there, derived from the
 ground's character. The volcano is scenery and a **second native-sulfur
 source** (rubber's cure needs it); it does not erupt in this build.
@@ -232,8 +240,10 @@ in her.
 
 ### Molasses and rum
 Molasses (with the skimmings) ferments to a molasses wash; the shipped still
-makes rum from it. **Veshko's rum lines buy molasses**; first molasses makes
-light rum, blackstrap dark. Treacle is also sold as food.
+makes rum from it. ⭐ **Veshko's yard gets a still and a distiller** — a stock
+line cannot turn one thing into another, so somebody has to make the rum, and
+the seat is a job a person or an NPC can hold. First molasses makes light
+rum, blackstrap dark. Treacle is also sold as food.
 
 ## Lens pass
 
@@ -301,8 +311,8 @@ see; "not refused" is never success.
    its grade.
 10. At the Lounge, a **mojito** is made with it. Honey offered instead is
     refused, and the refusal says honey is a different sweetener.
-11. Molasses into a wash; the still makes **rum**; **Veshko's yard** buys
-    molasses for its rum line.
+11. Molasses into a wash; the still makes **rum**; at **Veshko's yard** the
+    distiller makes the rum line from molasses — the yard no longer conjures it.
 12. At the maple sugarbush, sap boiled past syrup to the strike gives **maple
     sugar**.
 
@@ -345,7 +355,7 @@ see; "not refused" is never success.
 6. Re-boiled molasses yields second and third sugar, darker each time, and
    finally blackstrap that will not grain.
 7. Honey offered for sugar is refused, and the refusal says why.
-8. Veshko's rum is made from molasses and his yard buys it; light rum from
+8. Veshko's rum is made from molasses by a distiller at his yard; light rum from
    first molasses, dark from blackstrap.
 9. Waponi Woo is reachable by sea; cane grows there and nowhere at 42°; cut
    cane left standing gives less sugar and more molasses.
