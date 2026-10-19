@@ -75,7 +75,22 @@ export const brain = class {
     'Keeps a counter stocked against its stock lines, filling the shortfall from the house behind it.';
   static discipline = 'retail-sales';
   static claims: readonly EngagementSlot[] = ['hands'];
-  static urgency(): Urgency {
+  /**
+   * ⭐ IDLE when there is nothing to do — the counter has no supplied line
+   * short and nothing is in hand to shelve. ⚠ It was a constant `wanted`,
+   * and with one deliberation beat per agent a constant brain wins every
+   * tie it is first in: an agent with `stocks` beside other work brains
+   * (the silk mill's reeler) never did the other work (silk build).
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const counterPath = ctx.config.counter;
+    const counter = typeof counterPath === 'string' ? StuffApi.findByTemplatePath(counterPath) : null;
+    const holding =
+      MixinApi.isContainer(ctx.host) &&
+      (ctx.host.getContents() as Stuff[]).some((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
+    if (counter instanceof Stock && counter.shortSuppliedLines().length === 0 && !holding) {
+      return new Urgency('idle');
+    }
     return new Urgency('wanted', 'squares up the shelf and counts what is short');
   }
   static presenceGated = false;

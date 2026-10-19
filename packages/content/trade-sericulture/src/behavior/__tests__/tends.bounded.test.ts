@@ -181,7 +181,7 @@ describe('tends', () => {
     expect(said).toEqual([]);
     // Next beat, the oven is lit: in they go.
     await tends.act(ctx(TENDS));
-    expect(said).toEqual(['put cocoons in oven']);
+    expect(oven.getContents()).toContain(c);
   });
 
   it('at the walk with nothing in hand: harvest, then home', async () => {

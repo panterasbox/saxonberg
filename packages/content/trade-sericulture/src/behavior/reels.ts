@@ -30,6 +30,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -82,8 +83,31 @@ export const brain = class {
   static produces: readonly string[] = ['cloth'];
   static consumes: readonly string[] = ['cocoons'];
   static claims: readonly EngagementSlot[] = ['hands', 'body'];
-  static urgency(): Urgency {
-    return new Urgency('wanted', 'bends over the basin');
+  /**
+   * ⭐ PRESSING when there is silk work in reach — a reeling's worth on the
+   * crib or in hand, raw silk to throw, yarn to weave, cloth to shelve —
+   * and idle otherwise. The reeler also runs `stocks` and `consigns`, and
+   * with one deliberation beat per agent the brains have to say when they
+   * have nothing to do, or the first one listed does everything (found by
+   * the drive).
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const host = ctx.host;
+    if (!MixinApi.isContainer(host)) return new Urgency('idle');
+    const hand = host as Hand;
+    // ⚠ Away from the floor (stranded on an errand) the work is not hers to
+    // do — and a brain that won every beat while doing nothing would keep
+    // `stocks` from ever walking her home.
+    if (!MixinApi.isContainable(hand) || hand.getContainer()?.getTemplatePath() !== ctx.config.floor) {
+      return new Urgency('idle');
+    }
+    const bin = typeof ctx.config.bin === 'string' ? StuffApi.findByTemplatePath(ctx.config.bin) : null;
+    const work =
+      held(hand, YARN) >= WEAVE_CHARGE ||
+      held(hand, RAW_SILK) >= SPIN_CHARGE ||
+      held(hand, BOLT) > 0 ||
+      held(hand, COCOONS) + onHand(bin, COCOONS) >= REEL_CHARGE;
+    return work ? new Urgency('pressing', 'bends over the basin') : new Urgency('idle');
   }
   static presenceGated = false;
   static ambient = false;
@@ -132,8 +156,19 @@ export const brain = class {
         return;
       }
       await hand.forceCommand(`reel cocoons --count ${count}`);
-    } else if (onHand(StuffApi.findByTemplatePath(cribPath), COCOONS) >= REEL_CHARGE - held(hand, COCOONS)) {
-      await hand.forceCommand(`get ${REEL_CHARGE - held(hand, COCOONS)} cocoons from crib`);
+    } else {
+      // ⚠ Off the crib by OBJECT: bought cocoons are one titled unit apiece
+      // and never stack, so `get 40 cocoons` names forty things the
+      // resolver will not hand over as one (found by the drive).
+      const crib = StuffApi.findByTemplatePath(cribPath);
+      if (crib && MixinApi.isContainer(crib) && onHand(crib, COCOONS) >= REEL_CHARGE - held(hand, COCOONS)) {
+        for (const c of crib.getContents() as Stuff[]) {
+          if (held(hand, COCOONS) >= REEL_CHARGE) break;
+          if (c.getTemplatePath() !== COCOONS || !MixinApi.isContainable(c)) continue;
+          ContainmentApi.move(c as Stuff & Containable, hand);
+        }
+        MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} scoops cocoons out of the crib.`).send();
+      }
     }
 
     // Shelve the cloth — `put` is not an engagement. The silk stock is a

@@ -11,11 +11,10 @@
  * beat that grinds.
  *
  * Priority each beat, at the loft:
- *  1. stifled cocoons in hand → `put cocoons in counter` (the house's goods,
+ *  1. stifled cocoons in hand → onto the counter (the house's goods,
  *     priced — the mill reeler's errand buys them there);
- *  2. stifled cocoons in the oven → `get cocoons from oven`;
- *  3. unstifled cocoons in hand → light the oven if it is cold, else
- *     `put cocoons in oven`;
+ *  2. stifled cocoons in the oven → out;
+ *  3. unstifled cocoons in hand → light the oven if it is cold, else in;
  *  4. a tray that has spun → take its cocoons (and its frass, which goes on
  *     the floor for whoever wants it);
  *  5. a tray wandering with nothing to climb → lay a brush in it;
@@ -23,11 +22,11 @@
  *  7. a feeding tray short of leaf, none in hand → `west` to the walk.
  * At the walk: `harvest mulberry` until there is leaf in hand, then `east`.
  *
- * ⚠ The TRAYS are worked by object, not by typed word: a loft has three of
- * them, `tray` resolves to whichever the resolver meets first, and a word
- * that picks the wrong tray is the `spin line` mis-resolution in another
- * hat. Everything with ONE of it in the room — the oven, the counter, the
- * mulberry, the doors — is the literal verb, exactly as a player types it.
+ * ⚠ The trays and the cocoon stacks are worked by OBJECT, not by typed
+ * word: a loft has three trays and a hand carries stacks in different
+ * states, and a word resolves to whichever comes first — the `spin line`
+ * mis-resolution in another hat (it put unstifled cocoons on sale).
+ * The harvest at the walk is the literal verb, exactly as a player types it.
  *
  * ⭐ The oven is lit when there is a crop to stifle and not otherwise, by
  * the two calls `stoke`/`light` make (the kernel `stokes` precedent): a
@@ -171,24 +170,33 @@ export const brain = class {
     if (at !== floorPath || !here || !MixinApi.isContainer(here)) return;
     const floor = here as Stuff & Container;
 
-    // 1. Stifled cocoons in hand go on the counter.
+    // ⚠ Cocoon stacks are worked by OBJECT, chosen by their STATE: the
+    // hand carries stifled and unstifled stacks at once, and a typed
+    // `put cocoons in counter` took whichever came first — unstifled
+    // cocoons went on sale (found by the drive).
     const heldCocoons = carried.filter((s): s is Cocoons & Stuff => s instanceof Cocoons);
-    if (heldCocoons.some((c) => c.isStifled())) {
-      if (StuffApi.findByTemplatePath(counterPath)) await hand.forceCommand('put cocoons in counter');
+    const oven = (floor.getContents() as Stuff[]).find((s): s is Stuff & Burner & Container =>
+      MixinApi.isBurner(s) && MixinApi.isContainer(s),
+    );
+
+    // 1. Stifled cocoons in hand go on the counter.
+    const counter = StuffApi.findByTemplatePath(counterPath);
+    const ready = heldCocoons.filter((c) => c.isStifled());
+    if (ready.length > 0 && counter && MixinApi.isContainer(counter)) {
+      for (const c of ready) handMoves(hand, c as unknown as Stuff, counter as Stuff & Container, 'sets cocoons out on the counter.');
       return;
     }
 
     // 2. Stifled cocoons in the oven come out.
-    const oven = (floor.getContents() as Stuff[]).find((s): s is Stuff & Burner & Container =>
-      MixinApi.isBurner(s) && MixinApi.isContainer(s),
-    );
-    if (oven && cocoonsIn(oven).some((c) => c.isStifled())) {
-      await hand.forceCommand('get cocoons from oven');
+    const done = oven ? cocoonsIn(oven).filter((c) => c.isStifled()) : [];
+    if (done.length > 0) {
+      for (const c of done) handMoves(hand, c as unknown as Stuff, hand, 'takes cocoons out of the oven.');
       return;
     }
 
     // 3. Unstifled cocoons in hand: light the oven, then in they go.
-    if (heldCocoons.length > 0) {
+    const raw = heldCocoons.filter((c) => !c.isStifled() && !c.isPierced());
+    if (raw.length > 0) {
       if (!oven) return;
       if (!oven.isLit()) {
         const fuel = fuelOn(floor, hand);
@@ -198,7 +206,7 @@ export const brain = class {
         }
         return;
       }
-      await hand.forceCommand('put cocoons in oven');
+      for (const c of raw) handMoves(hand, c as unknown as Stuff, oven, 'lays cocoons on the oven shelves.');
       return;
     }
 

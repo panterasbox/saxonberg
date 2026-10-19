@@ -148,7 +148,7 @@ async function names(s: Session, q: string): Promise<string> {
 
 async function settle(s: Session, started: CommandResult): Promise<void> {
   const id = engagementIdOf(started);
-  if (id) await s.awaitActivity(id, 120_000);
+  if (id) await s.awaitActivity(id, 400_000);
   await new Promise((r) => setTimeout(r, 500));
 }
 
@@ -315,9 +315,9 @@ suite('⭐ 3–4. a lot on a tray, and leaf on the lot', () => {
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, stifles it, and sells it', () => {
   it('⭐⭐ AC 14 — while loaded, the hand takes the crop off, stifles it, and it is BOUGHT stifled at the counter', async () => {
-    // ⚠ Behaviour beats come every ~20 real seconds and a clock jump fires
-    // about one, so the house is walked in many SMALL jumps (found by the
-    // drive). ⚠ And the mill's reeler buys off the same counter (that is
+    // ⚠ Behaviour beats come every ~20 REAL seconds and a clock jump drains
+    // only game-time schedules, so each step is a small jump AND a real
+    // wait (found by the drive). ⚠ And the mill's reeler buys off the same counter (that is
     // the chain), so what is asserted is that the player can BUY stifled
     // cocoons here, not that a pile sits waiting.
     const s = await at(LOFT);
@@ -330,13 +330,15 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
           continue;
         }
         await advance('2 minutes');
-        await s.listen(800);
+        // ⚠ Behaviour beats are REAL-time (~20 s); a clock jump drains only
+        // game-time schedules. Every brain step here needs a real beat.
+        await s.listen(20_000);
       }
       expect(bought, 'eighty stifled cocoons bought off the house counter — two reelings').toBe(80);
     } finally {
       s.close();
     }
-  }, 1_800_000);
+  }, 2_700_000);
 });
 
 /* ───────────── 8–9. reel, and throw ───────────── */
@@ -361,7 +363,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
     } finally {
       s.close();
     }
-  }, 900_000);
+  }, 1_200_000);
 
   it('…and over the cookhouse oven with a hand reel', async () => {
     const s = await at(COOKHOUSE);
@@ -380,7 +382,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
     } finally {
       s.close();
     }
-  }, 900_000);
+  }, 1_200_000);
 
   it('⭐⭐ AC 8 — `spin hank` throws it: a skein of RAW SILK yarn, not linen', async () => {
     const s = await at(MILL);
@@ -394,7 +396,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
     } finally {
       s.close();
     }
-  }, 900_000);
+  }, 1_200_000);
 });
 
 /* ───────────── 16 continued — the mill reels, weaves and sells ───────────── */
@@ -404,16 +406,16 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
     const s = await at(STORE);
     try {
       let shelf = '';
-      for (let i = 0; i < 120 && !/bolt of (raw )?silk/i.test(shelf); i++) {
+      for (let i = 0; i < 70 && !/bolt of (raw )?silk/i.test(shelf); i++) {
         await advance('5 minutes');
-        await s.listen(800);
+        await s.listen(20_000);
         shelf = await names(s, 'here:i:counter:i');
       }
       expect(shelf, 'a bolt of silk on the general store counter').toMatch(/bolt of (raw )?silk/i);
     } finally {
       s.close();
     }
-  }, 1_800_000);
+  }, 2_700_000);
 
   it('⭐ AC 16 — the silk bolt is bought, and carries its weaver’s mark', async () => {
     const s = await at(STORE);
