@@ -1,0 +1,35 @@
+# The silkworm — Bombyx mori, and ⭐ an animal that no longer exists in the
+# wild. Five thousand years of selection made a moth that cannot fly and a
+# caterpillar that will not wander off a tray; it lives only where somebody
+# keeps it.
+#
+# ⚠ Below the resolution anything in this game acts at: you never draft,
+# handle or feed ONE silkworm. The tray carries the rearing (the trade
+# pack's `RearingMixin`) and this row exists for what cites it — the
+# material rows' `biologicalSource` (eggs, cocoon, raw silk) — so it has no
+# `handlingRange` (nobody tames a tray) and no `production` (the take is
+# the reel, which ends the animal; it is not a tap).
+#
+# The path is the commons' because a silkworm is a fact about the world;
+# the file ships with the trade that rears it (the honeybee's precedent).
+class: /platform/idea/species/Species
+data:
+  binomial: Bombyx mori
+  commonNames: ["silkworm", "silkworms", "silk moth"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: zw
+  reproductiveMode: sexual
+  # From hatch to the moth's death — about eight weeks in a warm loft.
+  lifespanMin: 40
+  lifespanMax: 60
+  # A fifth-age worm, the heaviest it is ever going to be.
+  adultMass: 0.005
+  circadianBand: aperiodic
+  diet: herbivore
+  longDescription: >-
+    A fat, pale grey caterpillar as long as a finger, its head rising and
+    falling over a mulberry leaf with a sound like a page turning.
+  nameBankKeys: []

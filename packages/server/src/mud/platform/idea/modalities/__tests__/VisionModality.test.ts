@@ -272,3 +272,66 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
     }
   });
 });
+
+describe('VisionModality.whileLightIsSteady — one light walk per place per read', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+    installV1QuantityTagTables();
+    buildAllModalities();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  function litRoom(flux: number): InstanceType<typeof AmbientLocation> {
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const loc = makeStuff(() => new AmbientLocation());
+    zone.addLocation(loc, 0, 0, 0);
+    loc.setAmbientFlux(flux);
+    return loc;
+  }
+
+  it('⭐ inside a steady read the place is walked once — a second read is the same Light', () => {
+    const loc = litRoom(40);
+    PerceptionApi.whileLightIsSteady(() => {
+      const first = vision().signalAt(loc);
+      // A change mid-read is NOT seen — which is why only a read that
+      // changes nothing may run inside one.
+      loc.setAmbientFlux(400);
+      expect(vision().signalAt(loc)).toBe(first);
+    });
+  });
+
+  it('⚠ the memory ends with the read — the next read sees the world as it is', () => {
+    const loc = litRoom(40);
+    PerceptionApi.whileLightIsSteady(() => vision().signalAt(loc));
+    loc.setAmbientFlux(400);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(400);
+  });
+
+  it('re-entrant: an inner steady read rides the outer, and a throw still ends it', () => {
+    const loc = litRoom(40);
+    PerceptionApi.whileLightIsSteady(() => {
+      const outer = vision().signalAt(loc);
+      PerceptionApi.whileLightIsSteady(() => {
+        expect(vision().signalAt(loc)).toBe(outer);
+      });
+      expect(vision().signalAt(loc)).toBe(outer);
+    });
+    expect(() =>
+      PerceptionApi.whileLightIsSteady(() => {
+        throw new Error('boom');
+      }),
+    ).toThrow('boom');
+    loc.setAmbientFlux(7);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(7);
+  });
+
+  it('outside any steady read, every call walks fresh (the shipped contract)', () => {
+    const loc = litRoom(40);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(40);
+    loc.setAmbientFlux(80);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(80);
+  });
+});

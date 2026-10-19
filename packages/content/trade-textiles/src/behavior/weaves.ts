@@ -54,6 +54,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type {
@@ -181,7 +182,13 @@ export const brain = class {
      * forever. Driven live with the blanket version and the mill never
      * moved: no error, no decline, just a spinner who never span.
      */
-    if (MixinApi.isEngaged(hand) && hand.hasEngagement('hands')) return;
+    //
+    // ⚠⚠⚠ …and not the BEAT's own claim (silk build, 2026-10-18): a winning
+    // candidate's beat claims this brain's slots (`hands`, `body`) BEFORE
+    // `act` runs, so `hasEngagement('hands')` was true on every beat and
+    // the floor never moved. The silk drive found it in its own two brains;
+    // this one had the same line. Busy means a NON-beat engagement.
+    if (MixinApi.isEngaged(hand) && hand.getEngagements().some((e) => e.type !== BEHAVIOR_BEAT_TYPE)) return;
 
     /*
      * ⭐ Do the act that is KNOWN to be possible, furthest along the

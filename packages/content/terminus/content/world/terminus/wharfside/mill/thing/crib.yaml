@@ -1,0 +1,25 @@
+# The cocoon crib — ⭐ the mill's input for silk: a slatted bin the reeler
+# fills by buying stifled cocoons at the Hearts Delight silk house. A
+# SUPPLIED line (silk W5): the reeler's `stocks` beat walks there and
+# buys when the crib is short of one reeling's worth.
+#
+# ⚠ Its own counter rather than a line on the flax bale store: that store
+# is the textiles pack's row, and a textiles row naming a sericulture good
+# would point the dependency the wrong way.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: "cocoon crib"
+  keywords: [crib, "cocoon crib", bin, cocoons]
+  register: definite
+  longDescription: "A slatted bin by the basin, lined with sacking, for cocoons waiting to be reeled."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 20
+  businessPath: /world/terminus/wharfside/mill/idea/outfit
+  stockLines:
+    - itemTemplatePath: /trade/sericulture/thing/cocoons
+      par: 40
+      from: { supplier: /world/terminus/hearts-delight/silk-house/idea/outfit }
+  prices: {}

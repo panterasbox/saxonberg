@@ -247,6 +247,27 @@ with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
 is a thin convenience read — it resolves the vision singleton and calls
 `signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
+### ⭐⭐ A steady read walks each place once (`whileLightIsSteady`)
+
+Every `canSee` runs this walk from scratch, and a batch that DESCRIBES
+many things for one viewer paid it once per thing — quadratic in what a
+room holds. Silk's browser walk found it: a live card over a ~300-item
+shop counter re-described every row on each restock and pinned the
+server at 100 % for minutes, with every command behind it queued (the
+wire tier never opens a live card, so it could not see it).
+
+`PerceptionApi.whileLightIsSteady(fn)` runs a **synchronous read** with
+the light at each place remembered for its length (the memo lives on the
+vision singleton, keyed by place, and dies with the call; re-entrant).
+Callers: the reachable candidate walk (`candidatesForReachable`, every
+command's argument binding) and the subscription projection loops
+(`MqlSubscriptionRegistry` — register, one-shot query, re-resolve).
+
+⚠ **Scoped to a declared READ, never to a command or a tick.** A command
+can light a lamp, or carry one into the next room, between two reads; a
+memo that outlived that would leave a player in the dark they had just
+lit. Nothing that changes a light may run inside one.
+
 ### ⭐⭐⭐ An opening cannot make you brighter than what is through it
 
 Legs (d) and (e) — light arriving from **another scope**, through a

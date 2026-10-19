@@ -1,0 +1,19 @@
+# Brushwood — dry twiggy heather or broom, bundled. ⭐ What a wandering
+# worm climbs to spin: the `mounting` tag is what the tray looks for, and
+# a tray with none on it spins a day late, on its own floor, and lighter.
+class: /platform/idea/material/Material
+data:
+  name: brushwood
+  keywords: [brushwood, brush, twigs]
+  appearance: dry, twiggy brushwood
+  density: 300
+  thermalConductivity: 0.08
+  specificHeat: 1600
+  hardness: 2
+  toughness: 2
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["wood", "plant", "organic", "mounting", "once-living"]
+  composition: []
+  biologicalSource: null

@@ -1,0 +1,34 @@
+# The silk keeper — ⭐ holds the judgment seat: which lots to rear, when to
+# mount, which cocoons to keep for seed. The hand does the motion.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Ines Vale
+  keywords: [ines, vale, keeper, "silk keeper", silkwoman]
+  alternateNames: ["ines", "vale"]
+  pronouns: she
+  shortDescription: silk keeper with leaf-stained fingers
+  register: definite
+  longDescription: >-
+    A small, quick woman with green-stained fingertips and a habit of
+    lifting a worm off a tray to look at it against the light, as though it
+    might tell her something. Usually it does.
+  archetype: farmer
+  prologue:
+    - "Keeps the valley's silk house, and keeps its eggs from one year to the next."
+    - "Will not buy a card of eggs she did not see laid."
+  competence:
+    - { discipline: sericulture, asserting: proficient }
+    - { discipline: textiles, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "lifts a worm off a tray and holds it up to the light." }
+          - { kind: free, value: "listens to the trays with her head on one side." }
+          - { kind: free, value: "weighs a cocoon in her palm and sets it on one of three heaps." }

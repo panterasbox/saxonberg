@@ -1,0 +1,9 @@
+class: /platform/location/Offstage
+data:
+  shortDescription: The Silk House — Back Room
+  keywords: [room, back, silk-house]
+  register: proper
+  # Plots like every location (`lint:locations`): beside the loft.
+  coords: { x: -12, y: 4, z: 6 }
+  longDescription: |
+    A room behind the loft with two cots in it and a stove that is never lit in summer.

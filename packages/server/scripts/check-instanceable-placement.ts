@@ -301,9 +301,15 @@ export function packBrainShapeOk(source: string): boolean {
 // 387 → 386 (the rubber build, 2026-10-17): `chemistry: null` came off
 // the rubber row, which burnt rubber `extends:` — so it would have been
 // inherited as a second orphan.
-// 386 → 378 (the potash build, 2026-10-19): `chemistry: null` came off
+// 387 → 362 (the silk build, 2026-10-18): `declaredFields` now follows a
+// cross-pack base imported by package specifier
+// (`@saxonberg/content-<pack>/src/…`). Unfollowed, every key a row
+// inherited from another pack's class read as an orphan — 25 findings the
+// reader invented.
+// Both landed (silk merged rubber, 2026-10-19): 362 − 1.
+// 361 → 353 (the potash build, 2026-10-19): `chemistry: null` came off
 // the ten wood rows, five of which the brash rows `extends:`.
-const ORPHAN_DATA_KEY_CEILING = 378;
+const ORPHAN_DATA_KEY_CEILING = 353;
 
 
 function main(): void {

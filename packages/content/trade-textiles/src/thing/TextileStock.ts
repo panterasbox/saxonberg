@@ -23,6 +23,7 @@ import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
 const TextileStockBase = StackableMixin(CraftedMixin(Good));
 
@@ -61,5 +62,22 @@ export default class TextileStock extends TextileStockBase {
       );
     }
     this.yarnCount = value;
+  }
+
+  /**
+   * ⭐ *skein of wool yarn* · *skein of raw silk yarn* — yarn is named for
+   * the FIBRE it was drawn from, which `spin` now carries onto it. Line,
+   * tow, shive and a reeled skein (`yarnCount` 0) keep their authored
+   * words: they are not yarn yet.
+   *
+   * ⚠ Until the silk build, `spin` set nothing but the count, so spun wool
+   * was a *skein of linen yarn* with linen's material — every fibre
+   * became linen at the wheel.
+   */
+  override getShortDescription(): string {
+    const stem = super.getShortDescription();
+    if (this.yarnCount <= 0) return stem;
+    const fibre = MixinApi.isTangible(this) ? this.getMaterial()?.getName() : '';
+    return fibre ? `skein of ${fibre} yarn` : stem;
   }
 }

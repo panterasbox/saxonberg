@@ -1,0 +1,25 @@
+# The silk house counter — ⭐ what the house SELLS: its stifled cocoons (set
+# here by the hand, the house's own goods, priced), cards of its own
+# grainage, and armfuls of leaf off the walk. The mill reeler's errand
+# buys the cocoons here.
+#
+# ⚠ Prices are the labour bench's (silk W6): hours at the seats' wages.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: "silk house counter"
+  keywords: [counter, "silk house counter", table, board]
+  register: definite
+  longDescription: "A scrubbed table by the door with a set of scales on it and a slate of prices chalked in a small neat hand."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 20
+  businessPath: /world/terminus/hearts-delight/silk-house/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/sericulture/thing/valley-eggs, par: 2 }
+    - { itemTemplatePath: /trade/sericulture/thing/leaf, par: 4 }
+  prices:
+    /trade/sericulture/thing/cocoons: 1
+    /trade/sericulture/thing/valley-eggs: 6
+    /trade/sericulture/thing/leaf: 1

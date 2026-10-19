@@ -1,0 +1,31 @@
+# The rearing hand — ⭐ the motion of a rearing house: picks leaf off the
+# walk and lays it on the trays, mounts a tray that has started to wander,
+# takes the cocoons off, stifles them in the oven and sets them on the
+# counter. Runs while the house is loaded (a visitor, or the mill reeler's
+# buying trip), not for an audience.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Tobin Ash
+  keywords: [tobin, ash, hand, "rearing hand", lad]
+  alternateNames: ["tobin"]
+  pronouns: he
+  shortDescription: rearing hand with an armful of leaf
+  register: indefinite
+  longDescription: >-
+    A gangling boy with leaf in his hair and green on his shirt, who moves
+    along the racks laying leaf down like a man dealing cards.
+  archetype: hand
+  competence:
+    - { discipline: sericulture, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /trade/sericulture/behavior/tends
+      trigger: candidate
+      config:
+        floor: /world/terminus/hearts-delight/silk-house/location/floor
+        walk: /world/terminus/hearts-delight/silk-house/location/walk
+        counter: /world/terminus/hearts-delight/silk-house/thing/counter

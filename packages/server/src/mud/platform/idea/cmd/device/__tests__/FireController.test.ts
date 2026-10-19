@@ -345,7 +345,8 @@ describe('the chamber, the charge and the heat', () => {
       .flat();
     expect(verbs).toContain('fire');
     expect(verbs).toContain('burn');
-    // …beside the five that were already there.
+    // …beside the ones that were already there (`boil` rides `heat`'s view
+    // as an alias since 2026-10-19).
     for (const v of ['ignite', 'douse', 'pump', 'heat', 'boil']) {
       expect(verbs, v).toContain(v);
     }

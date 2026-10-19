@@ -1,0 +1,25 @@
+# Raw silk — reeled silk still in its gum: stiff, harsh to the hand, and
+# coloured by the race (gold or cream). ⭐ Tagged `gummed` and `sericin`:
+# boiled off in the piece (the degumming profile, inputCategory `gummed`)
+# it loses about a quarter of its weight and becomes silk — soft, white
+# and lustrous. Under-boiled, the gum stops a dye from taking.
+class: /platform/idea/material/Material
+data:
+  name: raw silk
+  keywords: [silk, "raw silk"]
+  appearance: stiff, lustrous raw silk, harsh with its gum
+  density: 1330
+  thermalConductivity: 0.05
+  specificHeat: 1380
+  hardness: 3
+  toughness: 6
+  electricalConductivity: 1.0e-12
+  waterAbsorptionCapacity: 11
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "protein", "sericin", "gummed", "organic", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
+    tissueType: cocoon

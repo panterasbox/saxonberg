@@ -217,6 +217,13 @@ export function candidatesForReachable(
   giver: Stuff,
   attention?: number,
 ): ScopeCandidate[] {
+  // ⭐ Every candidate is DESCRIBED for the giver (a vision gate each), and
+  // nothing here changes a light — so the light at each place is walked
+  // once for the whole pool, not once per thing in it.
+  return PerceptionApi.whileLightIsSteady(() => reachablePool(giver, attention));
+}
+
+function reachablePool(giver: Stuff, attention?: number): ScopeCandidate[] {
   // ON-PERSON-FIRST emission order (the former `findReachable`
   // contract, now the seed's): the whole `person` pool, then the
   // surrounding location, then peers. First-match consumers (`.find`

@@ -1,0 +1,37 @@
+# A white mulberry — ⭐ grown for its leaf. Its "fruit" in the polycarp
+# cycle is a flush of leaf you cut (`harvest`, no tool: a leaf strips by
+# hand), and a tree in good heart leafs again in about a fortnight. Winter
+# stalls it through the shipped cold factor.
+class: /platform/thing/Plant
+data:
+  shortDescription: white mulberry
+  keywords: [mulberry, "mulberry tree", tree, plant]
+  register: indefinite
+  longDescription: |
+    A low, wide-headed mulberry kept pollarded at shoulder height, its broad leaves glossy and heart-shaped.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/moraceae/morus/alba
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 40
+  lifecycleState: alive
+  seedTemplatePath: /trade/sericulture/thing/seed/mulberry
+  harvestTemplatePath: /trade/sericulture/thing/leaf
+  discipline: sericulture
+  nutrientDraw: 8
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.3
+    luxHappyAt: 80
+    luxDarkAt: 10
+    rootDemand:
+      seedling: 0.5
+      young: 2
+      established: 6
+      mature: 12
+    daysToStage:
+      young: 30
+      established: 90
+      mature: 180
+    # ⭐ The leaf cycle — six armfuls a cut, a fortnight to leaf again.
+    fruitSetCount: 6
+    fruitFillDays: 12

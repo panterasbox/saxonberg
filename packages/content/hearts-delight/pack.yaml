@@ -62,6 +62,13 @@ requires:
       landUse: commercial
       # The valley is lamp-oil country — no wire reaches the creamery.
       powerBand: off-grid
+    # ⭐ The silk house (silk W5) — titled to its own outfit, like the
+    # creamery. Not booted: it runs while something loads it (a visitor,
+    # or the Wharfside reeler's buying trip).
+    - extent: /world/terminus/hearts-delight/silk-house
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/silk-house/idea/outfit }
+      landUse: agricultural
 
 # ⭐⭐ **Nothing here is booted** (the scan sweep, 2026-10-14). The three
 # herdbooks are props of the farmstead yard, so arriving there stands

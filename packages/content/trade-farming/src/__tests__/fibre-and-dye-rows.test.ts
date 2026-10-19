@@ -139,4 +139,30 @@ describe("the fibre and dye crops", () => {
       carrot.nutrientDraw as number,
     );
   });
+
+  it("⭐⭐ every dye crop STEEPS into its dyestuff — the only way a bath is charged", () => {
+    // Silk W4: `steep` is the one verb that turns a solid into a bath, and
+    // its solute must be Steepable. No crop was, so no dye bath in the game
+    // could ever be charged. A crop is Steepable now, and inert without
+    // this line.
+    for (const [crop, mat] of [
+      ["madder-root", "madder"],
+      ["weld-bundle", "weld"],
+      ["woad-leaf", "woad"],
+      ["kermes", "kermes"],
+    ] as const) {
+      const row = data(join(FARMING, "thing", "crop", `${crop}.yaml`));
+      expect(row.steepsInto).toBe(`/trade/farming/idea/material/${mat}`);
+      expect(row._materialPath).toBe(row.steepsInto);
+    }
+  });
+
+  it("⭐ kermes is an INSECT dye off an oak, gathered from a polycarp", () => {
+    const m = data(join(FARMING, "idea", "material", "kermes.yaml"));
+    expect(m.tags as string[]).toContain("mordant-dye");
+    expect(m.tags as string[]).toContain("insect");
+    const oak = data(join(FARMING, "thing", "plant", "kermes-oak.yaml"));
+    expect(oak.harvestTemplatePath).toBe("/trade/farming/thing/crop/kermes");
+    expect((oak.profile as Record<string, unknown>).fruitSetCount as number).toBeGreaterThan(0);
+  });
 });

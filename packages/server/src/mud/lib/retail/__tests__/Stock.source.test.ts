@@ -207,6 +207,15 @@ describe("⭐ the house buys what it says it buys (`sell`)", () => {
     expect(paid).toEqual([]);
   });
 
+  it("⭐ the slate lists what the counter PRICES as well as what it restocks — once each", () => {
+    // A house's own goods (the silk house's cocoons) are priced with no
+    // stock line; a slate that left them off said they were not for sale.
+    counter.setPrice("/trade/test/thing/cocoons", 1);
+    const shelves = /On the shelves: ([^.]*)\./.exec(counter.getLong())?.[1] ?? "";
+    expect(shelves).toContain("cocoons (1)");
+    expect(shelves.match(/ice-block/g)).toHaveLength(1);
+  });
+
   it("⭐ the counter says what the house buys before anybody makes the trip: its bid, full, or short of money", async () => {
     days = 200;
     vi.spyOn(store, "getCapacityKg").mockReturnValue(30_000);

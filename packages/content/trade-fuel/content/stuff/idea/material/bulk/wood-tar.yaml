@@ -8,10 +8,15 @@
 #
 # ⭐ `purifiedByBoiling` is the shipped arrow between two authored
 # materials, so boiling tar down to pitch needs no new mechanism and no
-# new verb: the `boil` verb a fire already affords does it. The word
-# *purified* is a stretch (you are driving off the light fraction, not
-# cleaning it) and the volume does not reduce; both are recorded as seams
-# rather than worked around.
+# verb of its own: hold the tar at its boil for a minute (set it on a
+# fire — `heat`, or its alias `boil`) and the phase engine swaps it. The
+# word *purified* is a stretch (you are driving off the light fraction,
+# not cleaning it) — recorded as a seam rather than worked around.
+# ⭐ The latent heat is what makes the boil a PLATEAU (the light fraction
+# — turpentine and its kin, ~300 kJ/kg): without one, the phase engine
+# flashes a liquid to vapour the instant it reaches its boiling point and
+# there would be no tar left to become pitch. The volume does reduce
+# while it boils, which is what boiling tar down IS.
 class: /platform/idea/material/Material
 data:
   name: wood tar
@@ -21,6 +26,7 @@ data:
   specificHeat: 1800
   thermalConductivity: 0.17
   boilingPoint: 520
+  latentHeatOfVaporization: 300000
   heatOfCombustion: 36
   autoignitionTemperature: 680
   purifiedByBoiling: /stuff/idea/material/bulk/pitch

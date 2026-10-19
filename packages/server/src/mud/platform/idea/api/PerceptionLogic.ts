@@ -188,6 +188,19 @@ export class PerceptionLogic extends ApiLogic {
     return resolveByName(name);
   }
 
+  /** See {@link PerceptionApi.whileLightIsSteady}. */
+  @CallSecurity(PerceptionApiCallers)
+  public whileLightIsSteady<T>(fn: () => T): T {
+    let vision: Modality | null = null;
+    try {
+      vision = resolveByName('vision');
+    } catch {
+      // No vision modality registered (pre-boot, a bare unit fixture):
+      // nothing to remember, so just read.
+    }
+    return vision === null ? fn() : (vision as VisionModality).whileLightIsSteady(fn);
+  }
+
   /** See {@link PerceptionApi.modalityByOrganKey}. */
   @CallSecurity(PerceptionApiCallers)
   public modalityByOrganKey(organKey: string): Modality | null {
