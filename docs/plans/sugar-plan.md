@@ -4,11 +4,17 @@ Executes [sugar-requirements.md](../requirements/sugar-requirements.md)
 (kind: **feature**, lead end: **content-led over kernel seams** — every
 seam's first consumer ships here). Both stages are one build on branch
 `reqs/sugar` in worktree `build-1` (WIRE_PORT **2014**). Seeding slate:
-[sugar-slate](../slates/builds/sugar-slate.md). Two unmerged MRs this
-build rides: **!398** (the-world slate — the planet radius setting, § D12)
-and **!397** (unfree-labour — only its "unpaid hand walks off" finding,
-§ D10). One unmerged MR it must NOT depend on: **!380** (cleanliness —
-the lye hopper; § D3).
+[sugar-slate](../slates/builds/sugar-slate.md). Two unmerged slate MRs
+this build rides: **!398** (the-world slate — the planet radius setting,
+§ D12) and **!397** (unfree-labour — only its "unpaid hand walks off"
+finding, § D10). ⭐⭐ **One unmerged CODE branch the boil converges on:
+`reqs/silk` (MR !395)** — silk W4 (`f45f0fe0a`) gave `reconcileBulkPhase`
+the latent-heat boil plateau and `4d8d6e55f` retired the `boil` verb to
+an alias of `heat`; § D1/D2 re-plan the staged boil onto that mechanism
+and § D21 says how the branch is stacked. **!380 (cleanliness) MERGED to
+master on 2026-10-19 (`b7b97f0c3`)** after this plan was first written:
+the place-taxonomy rename, `Maturing.matchProfile` and the lye `Hopper`
+are on master now, and every class name below is master's.
 
 Wave order (founder-agreed): **W0** the unpaid hand → **Stage A** the
 Terminus sugar house (W1 the boil · W2 the cone and the grades · W3 the
@@ -20,15 +26,96 @@ with the radius setting. Every wave lands at a commit
 
 ## Grounding
 
-Verified by opening the file, on `reqs/sugar @ 99e535261` (master
-`a084aad88`), 2026-10-18/19. `M` = `packages/server/src/mud`, `C` =
-`packages/content`, `G` = `C/terminus/content/world/terminus/goods-yards`.
+Verified by opening the file, on `reqs/sugar @ 8a064b676` (branched from
+master `a084aad88`), re-checked against master `b7b97f0c3` and
+`origin/reqs/silk` (`aa6d57de7`, carrying `f45f0fe0a` + `4d8d6e55f`) on
+2026-10-19. `M` = `packages/server/src/mud`, `C` = `packages/content`,
+`G` = `C/terminus/content/world/terminus/goods-yards`. ⚠ Line numbers are
+the branch's at `8a064b676`; master's cleanliness merge shifts
+`Maturing.ts` (+47), `Material.ts` (+106), `Burner.ts` (+123) and
+`CraftingLogic.ts` (+134).
+
+### ⭐⭐ What silk's branch changes under the boil (`f45f0fe0a`, `4d8d6e55f`)
+
+Neither is on master; both are on `origin/reqs/silk`, which itself lacks
+the cleanliness merge. Read `git show 4d8d6e55f` and
+`git show 4d8d6e55f:packages/server/src/mud/lib/thermal/Thermal.ts`
+l.1375–1480 before touching the boil.
+
+- **The latent-heat boil plateau** (silk W4): `reconcileBulkPhase(v,
+  clock)` at `temp ≥ mat.boilingPoint` no longer flashes the pool. With
+  `latentHeatOfVaporization > 0` it computes `overshootJ = (temp − bp) ×
+  v.thermalCapacityJPerK()`, `boiledL = overshootJ / latent / kgPerL`,
+  debits the pool, `setContentsTemperature(bp)` (the plateau), and
+  returns; a material with **no latent heat still flashes**. Boiled dry
+  → the slot clears. ⚠ The boil-off per read is whatever Newton overshoot
+  the read FINDS — a long unread gap spends one capacity's worth, a
+  watched pot more — and **no burner power enters it anywhere**; silk's
+  `thermal.md` l.884–905 lists *"a power-limited heat transfer"* as
+  OPEN (τ = R·C, a 30 L copper takes ~5 game hours to a simmer).
+- **`boilHeldSeconds`** integrates the time at the boil off the vessel's
+  own `temperatureTrajectory` (banked as `BulkPayload.boilHeldS` /
+  `boilCheckedS`, declared from `lib/thermal/Thermal.ts` beside
+  `latentRemovedJ`; first read looks back at most `PURIFY_LOOKBACK_S`
+  600 s and never past the horizon) — but **only for a material naming
+  `purifiedByBoiling`**; `purifyIfHeld` swaps the material at
+  `PURIFY_HOLD_S` 60 s (fouled water → water, wood tar → pitch). ⭐ That
+  arrow — *a material names what boiling makes of it, and the plateau
+  fires it* — is the shape the staged boil converges on.
+- **`boil` is retired** (`4d8d6e55f`): `BoilController`, its seed row
+  and `boil.yaml` deleted; `heat.yaml` is `verbs: [heat, boil]` and the
+  fire affords it through `Burner.commandContributions`
+  (`platform/cmd/crafting/heat.yaml` replaces the `boil.yaml` line).
+  `HeatController`'s placing arm `ContainmentApi.move(target, fire,
+  'on')` — *"set a plain vessel on the lit fire in reach"*. ⚠ Master
+  still has `boil.yaml` + `BoilController`; cleanliness added no `boil`
+  arm of its own, so the silk merge simply deletes them.
+- **`Material.purifiedByBoiling`** (silk, l.947 fieldMeta / l.1195 field)
+  is the row-extension precedent for a material arrow; `boilingPoint`
+  and `latentHeatOfVaporization` are existing fields (water authors 373 /
+  2 260 000; lye authors `boilingPoint 375` and **no latent heat**; the
+  maple-sap material authors neither).
+- **`Burner.ts` on silk** removes `settleRoomAir()` (3 call sites) and
+  swaps the `boil.yaml` contribution; **on master** cleanliness added
+  `ashKg` / `rakeGrate` / `ashChoke` (+123 lines) and a new
+  `lib/fire/Flued.ts` (`FluedMixin`, composed on `Hearth` and `Oven`: the
+  flue soots and can catch). The two sides touch different regions of
+  `Burner.ts`; a three-way merge should be clean, verify by hand.
+- Silk's textile `Copper` (`C/trade-textiles/src/thing/Copper.ts`) caps
+  `getContentsTemperature()` at the water's boiling point itself,
+  because *"between reads the vessel's own temperature runs ahead of the
+  plateau"* — the read-cadence artefact the power limit (D2) removes.
+
+### What the cleanliness merge (`b7b97f0c3`) changed under this plan
+
+- **The place rename** (`c9ca578ce`, B52): `lib/stuff/Location → Place`
+  (`isLocation() → isPlace()`); `CartesianLocation → Location`;
+  `SingletonCartesianLocation → Locale`; `FurnishableRoom →
+  PersistentLocation`; `PersistentCartesianLocation → PersistentLocale`
+  (`PersistableMixin(Locale)` — *"the kept Locale: the cookhouse, the
+  chandlery, the lavoir"*; props capture as unstamped contents, cast is
+  re-seeded, fixtures' runtime state rides the Adornable slice);
+  `SingletonSphericalLocation → SphericalLocale`. Row counts on master:
+  `Locale` 133, `PersistentLocale` 14, `PersistentLocation` 11,
+  `Location` 3, `Shore` 9, `CartesianZone` 80. The `/…/location/` PATH
+  segment is **not** renamed. The hold, the sugarbush, Veshko's
+  distillery are `Locale` on master.
+- `Maturing.matchProfile(material)` `@hook` (master l.1476) and the
+  chandlery `Hopper` overriding it (destroys its ash at match time) are
+  on master — D3's "if !380 lands" is now "it has".
+- `CraftingLogic.ts` gained the kitchen-flora inoculum and `wash`;
+  `Recipe.ts` gained `soils`; `EmploymentLogic.ts` +4 lines. None touch
+  the sites this plan edits, but the line numbers moved.
+- `soda-from-lye.yaml` (`C/trade-fuel/…/idea/maturation/`) is a third
+  fire-heated `evaporative` profile on master, beside `maple-sap`,
+  `birch-sap` and the sun-dried `brine`.
 
 ### The boil (maturation, thermal, fire)
 
 - `M/lib/maturation/Maturing.ts` — `reconcileFerment()` (l.599) takes the
   time-weighted mean of `ThermalMixin.temperatureTrajectory` and, while
-  `active`, dispatches an `evaporative` profile to
+  `active`, dispatches an `evaporative` profile (four rows: `maple-sap`,
+  `birch-sap`, `brine`, `soda-from-lye`) to
   `reconcileEvaporativeWindow(profile, tempK, amountL, nowS)` (l.698 →
   l.1351). There `f` = water removed / water to remove; `startL =
   amountL / (1 − f·shrink)` is **recovered, not stored**; `f` is clamped
@@ -41,8 +128,8 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
   `measure density` **falls** as the pan concentrates. `startBatch`
   (l.873) captures `startingSugarGPerL = material.getNutrientAmounts()['sugar']`.
   `batchInputBand` (l.~590) caps an ungraded batch's band at the input's.
-  ⚠ Master has **no** `matchProfile` hook; `origin/reqs/cleanliness`
-  adds one at its l.1476 and `Hopper` overrides it.
+  Master (since `b7b97f0c3`) has the `matchProfile` hook at l.1476 and
+  `Hopper` overrides it.
 - `M/lib/maturation/MaturationProfile.ts` — the row-extension precedent:
   `transforms` (l.350), `scaldAboveK` (l.356), `leesShare` (l.362), all
   `fieldMeta` persistent+authorable with get/set pairs; `forMaterial`
@@ -60,9 +147,26 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
 - `M/lib/thermal/Thermal.ts` — `heatSourceK()` (l.1028, **private**)
   returns a lit, fuelled `Burner`'s `getHeldTemperatureK()` when the body
   is IN it or placed ON it; `ambientTrajectory()` (l.873) returns that flat
-  and the body relaxes toward it. **No concentration dependence.**
-  `reconcileBulkPhase` (l.1313) **flashes a liquid to nothing** at
-  `temp ≥ material.boilingPoint` (sap survives because it authors none).
+  and the body relaxes toward it by `τ = R·C` (`reconcileThermal`
+  integrates stretch by stretch with `driftTowardMoving`, then runs
+  `reconcilePhase()` outside the guard). **No concentration dependence,
+  no burner power.** On this branch `reconcileBulkPhase` (l.1313) still
+  **flashes a liquid to nothing** at `temp ≥ material.boilingPoint`; on
+  silk it plateaus (above). `thermalCapacityJPerK()` and
+  `setContentsTemperature()` are public on the mixin.
+- `M/api/bulk.ts` — `transfer` step 5: a fresh fill carries the batch's
+  identity (*a Graded source stamps the destination's grade band, a
+  Crafted source the maker's mark*); `blendPayloads(from, fromL, to,
+  toL)` folds the **per-litre** payload domains by volume at a pour, a
+  recipe's bulk output and a grind. A per-litre domain is declared by
+  module augmentation from the folder that owns it
+  (`lib/metabolism/DissolvedToxins.ts`: `BulkPayload.dissolvedToxins`).
+  `BulkPayload` itself carries only `recipeId`, `appearance`, `keywords`
+  plus the declared domains.
+- `M/lib/craft/Graded.ts` / `Crafted.ts` — `getGrade(): Grade`,
+  `getGradeBand()` on any Graded host; `Vat` is Crafted (so a dissolve
+  recipe's bulk output stamps the copper, and `pour copper into cone`
+  stamps the cone).
 - `M/lib/fire/Burner.ts` — `burnPowerW()` (l.613) = min(maxBurnPowerW ×
   draught × bellows, kg × `fire.power.perKgW` 1500); `getHeldTemperatureK()`
   (l.663) = min(burnTemperatureK × bellows, fuel flame K) × completeness
@@ -229,7 +333,7 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
 - The rubber works as the venue precedent: `G/rubber-works.yaml`
   (`CartesianZone`, `cellSize 3`), `G/rubber-works/structure.yaml`
   (`Structure`, `extent`, `entrance`, `storeys`),
-  `location/ground/works/floor.yaml` (`SingletonCartesianLocation`,
+  `location/ground/works/floor.yaml` (`Locale` on master,
   `enclosure:`/`roof:`, `ambientSource: sky`, `props:`), the yard exit at
   `G/yard.yaml` l.60–63 (`west → …/rubber-works/location/ground/works/floor`).
   `C/trade-rubber/` = `pack.yaml` (`root: /trade/rubber`, `requires.title`
@@ -306,7 +410,7 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
   `speedKn 6`, `house …/idea/outfit`); `deck.yaml` (`/platform/location/Shore`,
   `cast: [lookout]`, exit `ashore` kind `/platform/idea/exits/ashore`
   destination `/world/terminus/estuary/estuary-mouth`, `waters: {sea:
-  greywater}`); **`hold.yaml` is a `SingletonCartesianLocation` ("Not
+  greywater}`); **`hold.yaml` is a `Locale` on master ("Not
   persistable")** with `props:` two charts, an adornment lamp, exit `up`;
   `idea/outfit.yaml` (Business, PM-appointed, one position `lookout`
   wage 3 headcount 1, `rosterSlots: []`, `startsShiftOnHire: true`,
@@ -325,13 +429,13 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
   (`C/terminus/content/world/terminus/estuary/estuary-mouth.yaml` l.49)
   the same. The Hesper lies at the **bar**; the working wharf is
   `estuary/lower-towpath.yaml`; `the-pool`'s room is `estuary/pool.yaml`.
-- Persistence: `M/platform/location/FurnishableRoom.ts` =
-  `Persistable → WarrenMember → Reserved → CartesianLocation`, "venue
-  generic on purpose", backing singleton rows such as
-  `C/terminus/…/mayfield-row/seznick-house/location/main.yaml`. No
-  "Persistent"-prefixed location class exists on this branch.
-  Capture at shutdown (`PersistableLogic.captureAtShutdownImpl`) and at
-  the sweep; `drop`/`put` do not call `captureHostOf`.
+- Persistence (master's names): `M/platform/location/PersistentLocale.ts`
+  = `PersistableMixin(Locale)` — the kept singleton place (14 rows);
+  `PersistentLocation.ts` = `Persistable → WarrenMember → Reserved →
+  Location` (the old `FurnishableRoom`, for rooms laid out to a plan —
+  the seznick-house `main.yaml`). Capture at shutdown
+  (`PersistableLogic.captureAtShutdownImpl`) and at the sweep;
+  `drop`/`put` do not call `captureHostOf`.
 - The wire restart precedent:
   `packages/wire/tests/assembly.dirty.wire.test.ts` l.626–650
   (`stopOwnedWorld()` … `bootOwnedWorld()`, `it.skipIf(!isOwnedTestWorld())`,
@@ -373,7 +477,9 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
   scales/offsets, `resolve(model, at, seed)` (l.275: pin > band >
   procedural). **No fertility value.**
 - `C/trade-forestry/src/location/Wood.ts` l.86 =
-  `PersistableMixin(StandMixin(SoilMixin(ReservedMixin(SingletonCartesianLocation))))`;
+  `PersistableMixin(StandMixin(SoilMixin(ReservedMixin(Locale))))` (the
+  geometry root is `Locale` on master; the branch still reads
+  `SingletonCartesianLocation`);
   row `C/rejection/…/hanging-wood/oak-clearing.yaml` (`woodName`,
   `areaM2`, `mix: [{speciesPath, name, woodMaterialPath, seedPath,
   barkPath?, standing, capacity, incrementPerYear}]`).
@@ -411,6 +517,14 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
 - `packages/server/scripts/check-no-authored-faucet.ts` counts **money**
   faucets (`openingCapital`, `mint`), not goods — an import stock line is
   not a faucet.
+- `packages/server/scripts/check-template-scans.ts` — every
+  `Template.findByPathInfix` / `findByClass` / … call in kernel or pack
+  `src/` must be on `ALLOWLIST`, and **`TEMPLATE_SCAN_CEILING` (the
+  allowlist's total) may never exceed `CENSUS_AT_LANDING = 43`** — a new
+  catalogue that scans an infix FAILS the gate without a census rise and
+  a caller audit. The rule it enforces: content is reached by following
+  an AUTHORED reference from what is loaded, never by searching the
+  table.
 - `lint:family` roster (derived from `packages/server/package.json`
   `lint:*`): the gates named in § Test & gate strategy all exist today.
 
@@ -418,51 +532,89 @@ Verified by opening the file, on `reqs/sugar @ 99e535261` (master
 
 ## Plan-level decisions
 
-**D1 — The staged boil lives on the VESSEL's batch, as data on the
-profile.** Two new `MaturationProfile` row fields:
-`boilingCurve: [[w, K], …]` (piecewise-linear, `w` = dissolved-solids
-mass fraction) and `stages: [{key, fromW, material, minBand?,
-elseMaterial?}, …]` (ordered by `fromW`). `MaturingMixin` derives the
-batch's concentration on read — `solidsKg = startL × startingSugarGPerL /
-1000`, `waterL = amountL − solidsKg / 1.6`, `w = solidsKg / (solidsKg +
-waterL)` — and publishes two reads: `boilingCapK()` (the curve at `w`, or
-`null` when the profile authors no curve) and `getStage()` (the highest
-stage whose `fromW ≤ w`; when the stage authors `minBand` and the batch
-band is below it, the stage resolves to `elseMaterial` — *what will not
-grain is blackstrap*). A staged profile lets `f` exceed 1: the
-`Math.min(1, …)` clamp and the `f ≥ 1 → finished` arm apply only to a
-profile with no `stages`; a staged batch keeps evaporating through its
-stages (the volume formula `startL × (1 − f·shrink)` already holds past
-1) and each stage change is a `ensureInteriorMaterial(stage.material)`
-swap. The **temperature cap** is the thermal side's: `Thermal`'s
-`heatSourceK()` asks `MixinApi.isMaturing(self) ? self.boilingCapK() :
-null` and returns `min(burnerK, cap)` — so `measure temperature pan`
-rises as the pan thickens, by the physics and with no new reading.
-**Burnt** stays what it is today — `damageAboveK` on the profile — now
-honest because the pan can only reach it by concentrating. ⚠ The liquor
-materials author **no `boilingPoint`** (the cap is the profile's, never
-the material's, or `reconcileBulkPhase` flashes the pan). The `measure
-density` defect is fixed in the same mixin: on an evaporative batch
-`getGravity()` returns `1 + 0.52·w` (sucrose; a grain dial on the
-profile is not warranted — brine never had a hydrometer reading that
-anyone believed).
+**D1 — ⭐⭐ The staged boil is the plateau's: the liquor's boiling point
+rises with its concentration, the latent-heat boil-off drives the
+concentration, and what the liquor BECOMES is an arrow on its material.**
+Converged on silk W4 + `4d8d6e55f`, not beside it. Three pieces:
 
-**D2 — The energy balance is a power limit on the evaporative rate, and
-the furnace's efficiency is a Burner field.** `BurnerMixin` gains
-`heatTransferFraction` (authorable, default `0.5`; an open island kettle
-over a poor arch authors `0.3`, the Jamaica train derives `0.8` from its
-parts). `reconcileEvaporativeWindow`, when a lit `Burner` heats the pan
-(the same container-or-placement-host read `Thermal.heatSourceK` makes,
-exposed as a public `Thermal.heatSource(): (Stuff & Burner) | null`),
-limits the segment's rate to `burnPowerW × heatTransferFraction ×
-seconds / 2.26 MJ` litres — latent heat is the lesson. Fuel burns as it
-does today, so a better furnace evaporates the same pan on less fuel.
-With the default 0.5 a 12 kW arch evaporates ~230 L/day, which is what
-the sap pan does today at `ratePerDay 6`; the sugarbush is unchanged in
-practice.
+1. **Concentration is bulk state.** `BulkPayload.dissolvedSolidsKgPerL`
+   — a per-litre domain declared from `lib/thermal/Thermal.ts` beside
+   `boilHeldS` (the plateau is what moves it), folded by volume in
+   `blendPayloads` like `dissolvedToxins`. A fresh fill of a solution
+   starts from its **material's** `solidsKgPerL` (new authorable field:
+   sap 0.025, cane juice 0.16, raw liquor 0.6, molasses 0.8); the plateau
+   rewrites the payload's figure every time it boils water off
+   (`solids / litresLeft`). The mass fraction `w = s / (s + (1 − s/1.6))`
+   (sucrose at 1.6 kg/L) is the one derived read everything else uses.
+2. **The law is the material's.** `Material.boilingPointElevation:
+   [[w, ΔK], …]` (piecewise-linear; `boilingPointAt(w) = boilingPoint +
+   curve(w)`; absent = no elevation, water's behaviour). Sucrose:
+   `[[0,0],[0.5,1.5],[0.7,5],[0.8,10],[0.85,14],[0.9,22],[0.95,32],[0.98,50],[0.99,60],[1,70]]`
+   (K above 373). `reconcileBulkPhase` takes `bp = mat.boilingPointAt(w)`
+   instead of `mat.getBoilingPoint()` — so the plateau **climbs as the
+   pan thickens**, `measure temperature copper` reads it, and silk's
+   `Copper` cap (`getContentsTemperature` at the water's boil) keeps
+   working because water authors no curve.
+3. **The stages are arrows, like `purifiedByBoiling`.**
+   `Material.concentratesTo: [{fromW, becomes, minBand?, elseBecomes?},
+   …]` (ordered). After the boil-off the plateau walks the arrows: the
+   highest `fromW ≤ w` fires `becomes` (the material swaps, the payload
+   carries — the `purifyIfHeld` shape); an arrow with `minBand` reads the
+   **vessel's** `getGrade()` (a Vat is Crafted; the dissolve recipe
+   stamps it, the pour carries it) and below the band fires
+   `elseBecomes` instead — *what will not grain is blackstrap*. Each
+   target material `extends:` its parent row (the `extends:` row
+   inheritance), keeping the curve and the solids, overriding tags,
+   prose and the next arrows: raw liquor → cane syrup (0.68) → strike
+   (0.90, `minBand: fair`, else blackstrap) → caramel (0.985) → burnt
+   (0.995). **Burnt is an arrow, not `damageAboveK`.** Nothing here
+   reads a maturation `f`.
 
-**D3 — Stage A does not depend on !380, and claying gets the general
-mechanism in the kernel.** A `PercolatingMixin` (`M/lib/material/Percolating.ts`,
+**What the `evaporative` maturation profile keeps.** The **sun-dried
+brine** (no fire, the air's rate, rain reversing) — unchanged. The two
+**fire-heated sap profiles retire**: `maple-sap.yaml` and
+`birch-sap.yaml` are deleted and the sap materials author `boilingPoint
+373`, `latentHeatOfVaporization 2 260 000`, `solidsKgPerL`, the sucrose
+curve and arrows (sap → syrup at `w` 0.66 → maple strike 0.90 → caramel
+→ burnt; the strike's `drainSetting` sets to maple sugar in a mould),
+so maple gets its sugar from exactly the same mechanism. `soda-from-lye`
+(fuel pack, fire-heated) is **not** converged here — it is the potash
+build's; note only that lye must author a `latentHeatOfVaporization`
+once silk lands or a lye kettle flashes dry (§ Risks). The copper, the
+kettles and the sap pan still compose `MaturingMixin` (a `Vat` does) and
+idle on a liquor no profile matches; `batchInputBand` plays no part.
+
+**`measure density`** is fixed where it reads: `DensityReading.measure`'s
+non-maturing arm returns `1 + 0.52·w` when the payload carries dissolved
+solids, else the material's density as today.
+
+**D2 — ⭐ The energy balance fills silk's open seam: a power-limited heat
+transfer on the Burner/Thermal side.** `BurnerMixin` gains
+`heatTransferFraction` (authorable field, default `0.5`; an open island
+kettle over a poor arch authors `0.3`; the Jamaica train overrides the
+getter to derive `0.8` from its parts, D17). `ThermalMixin` exposes the
+burner it is in or on as a public `heatSource(): (Stuff & Burner) |
+null` (the private `heatSourceK` reads it). Two consumers:
+
+- **The rise.** In `reconcileThermal`'s stretch loop, when `heatSource()`
+  is lit, the body's temperature gain per stretch is capped at
+  `P_in × dur / C` with `P_in = burnPowerW × heatTransferFraction` and
+  `C = thermalCapacityJPerK()` — a 30 L copper on a hearth heats at the
+  fire's real power, which is the thing silk's `thermal.md` says is open.
+  No burner → Newton as today.
+- **The plateau.** `reconcileBulkPhase` spends `min(overshootJ, P_in ×
+  Δt_at_boil)` on steam, where `Δt_at_boil` is the time at the boil since
+  the last check integrated off the trajectory — `boilHeldSeconds`
+  generalized to run for **every** plateau material (it already banks
+  `boilCheckedS`; `purifyIfHeld` keeps reading the held seconds only for
+  an arrow). No burner → the overshoot stands. So an unread pot no
+  longer boils off "one capacity's worth per gap", a watched pot no
+  longer boils faster for being watched, and a better furnace evaporates
+  the same pan on less fuel — fuel burns as it does today. Latent heat
+  (2.26 MJ/kg) is the lesson; 12 kW × 0.5 is ~230 L/day.
+
+**D3 — Claying gets the general mechanism in the kernel; the hopper
+adopts it later.** A `PercolatingMixin` (`M/lib/material/Percolating.ts`,
 kernel `Mixins.Percolating`) composes on a **porous solid**: it records
 the liquid poured through it (`receivePercolant(litres, nowS)`),
 reconciles on read against the host's `percolationDays()`, calls the
@@ -470,38 +622,47 @@ host's `@hook onPercolated(fromReach, toReach)` with the reach advanced,
 and resolves where the outflow goes — `percolatesInto()`: the host's
 container when that is a Mould with `drainsInto()` (the cone on its
 pot), else the host's placement host when Bulkable. The sugar loaf is its
-first consumer; the lye hopper's ash adopts it later (the hopper on !380
-destroys its ash at match time — that stays its own until the potash
-build). **If !380 lands mid-build:** merge master into `reqs/sugar`,
-resolve `Maturing.ts` (their `matchProfile` hook at l.~1476 and our
-`boilingCapK`/stage reads are different regions), re-run
-`pnpm test:near` + the touched packs + `lint:family`, and re-drive. If
-the place-taxonomy rename rides it, name the hold's class (D13) by what
-master then calls `FurnishableRoom`.
+first consumer. The lye `Hopper` on master destroys its ash at
+`matchProfile` time — that stays its own until the potash build, which
+is where the ash becomes a composer of this mixin. Nothing here touches
+`Maturing.ts`.
 
 **D4 — The thread test is a `boil` reading row the sugar pack ships.**
-`/trade/sugar/idea/reading/boil.yaml` (`subjectRequires: [MaturingMixin]`,
+`/trade/sugar/idea/reading/boil.yaml` (`subjectRequires: [BulkableMixin]`,
 `discipline: sugar-refining`, `eyeCeiling: proficient`, `instrument:
-thermometry`, `instrumentNoun: a thermometer`): `analyze boil <pan>` is
-the hand — a drop between finger and thumb, in words banded by competence
-(*threads / soft ball / hard ball / crack / caramel / burnt*, coarser
-below `competent`); `measure boil <pan>` with a thermometer prints the
-stage **and** the bracketed temperature — the better rung inside the same
-channel, while `measure temperature <pan>` keeps working as the plain
-thermometer. One row, both rungs, no platform file changed.
+thermometry`, `instrumentNoun: a thermometer`); the class reads the
+subject's interior payload for `w` and its material's `concentratesTo`
+for the stage names. `analyze boil <pan>` is the hand — a drop between
+finger and thumb, in words banded by competence (*threads / soft ball /
+hard ball / crack / caramel / burnt*, coarser below `competent`);
+`measure boil <pan>` with a thermometer prints the stage **and** the
+bracketed temperature — the better rung inside the same channel, while
+`measure temperature <pan>` keeps working as the plain thermometer. One
+row, both rungs, no platform file changed. ⚠ `boil` is the CHANNEL word
+on a reading row; the verb is `heat` everywhere in this plan.
 
-**D5 — Honey's refusal reads a declared family.** A kernel vocabulary
-`M/lib/craft/IngredientFamily.ts` (`INGREDIENT_FAMILIES = { sweetener:
-['sugar', 'honey', 'syrup'] }` with its validation array; `lint:closed-vocabularies`
-checks every member is slotted by some recipe and the family tag by
-none). At the two decline sites (`CraftingLogic.ts` l.2962/2979), on a
-miss, scan the same pool for a candidate whose material carries the
-family tag of the wanted category but not the category; carry it as
-`near: {name, family}` on the failure (a new optional field on the
-`insufficient-input` arm, not a new reason); `CraftingDecline` renders
-*"This wants sugar — honey is a different sweetener."* The slate's
-withdrawn `parent:` mechanism is not revived: the family is a tag the
-materials already carry; the vocabulary only says which tag is a family.
+**D5 — Honey's refusal follows an authored citation: a material names
+its family, and the family is a content row.** No kernel list, no
+catalogue (`lint:template-scans` holds the scan census at 43 and refuses
+a new infix scan without a caller audit — and a scan is the wrong shape
+anyway: *follow the authored reference*). Kernel: an instanceable Idea
+`M/platform/idea/IngredientFamily.ts` (`tag`, `members: string[]`,
+`fieldMeta` persistent+authorable) and a `Material._familyPath` citation
+(fieldMeta `ref: 'identity:relation'`, the `_speciesPath` shape) with
+`getFamily(): Promise<IngredientFamily | null>` resolved by
+`StuffApi.singleton(path)` — load on use. Content: `trade-cooking` ships
+`content/trade/cooking/idea/ingredient-family/sweetener.yaml`
+(`{tag: sweetener, members: [sugar, honey, syrup]}`), and `sugar.yaml`,
+`honey.yaml` (apiculture), `maple-syrup.yaml` (forestry), `molasses`
+and `cane-syrup` (sugar) cite it. At the two decline sites
+(`CraftingLogic.ts` l.2962/2979), on a miss, walk the same pool: a
+candidate whose material's family lists the wanted category but whose
+tags lack it is the near miss, carried as `near: {name, family}` on the
+`insufficient-input` failure (an optional field, not a new reason);
+`CraftingDecline` renders *"This wants sugar — honey is a different
+sweetener."* A second family (`fat`: tallow, lard, butter, oil) is a row
+any pack ships with no kernel edit. The slate's withdrawn `parent:` is
+not revived: membership is still the tags the materials carry.
 
 **D6 — Nipping is `cut`, pounding is `mill`.** `SugarLoaf` implements
 `Cuttable`: `cutPlan` requires a bound tool with capability `nipping`
@@ -628,10 +789,12 @@ PowerReading:276, WaterExpanse:54) read
 the water pack's own pattern. Nothing changes value but the chart.
 
 **D13 — The hold persists by re-class.** `hesper/hold.yaml` →
-`class: /platform/location/FurnishableRoom` (the authored-singleton-room
-precedent); keep `coords`, the indoor biome, the adornment and `props:`.
-Owned goods ride the estate overlay, the company's and unowned goods the
-room's record. Verify the charts are not duplicated once a record exists.
+`class: /platform/location/PersistentLocale` (master's kept singleton
+place — `PersistableMixin(Locale)`, the cookhouse/lavoir precedent);
+keep `coords`, the indoor biome, the adornment and `props:`. Owned goods
+ride the estate overlay, the company's and unowned goods the room's
+record. Verify the charts are not duplicated once a record exists
+(`StuffApi.singleton` seeds `props:` only on the first record).
 
 **D14 — The crew sails a shuttle, buys on terms, sells at the sugar
 house's buying counter; the voyage replaces the import by removing it.**
@@ -683,9 +846,11 @@ PlacingMixin(Vat)`; `put cone on pot` is the whole placement.
 boiling house's open kettles are `Vat` rows over a `/platform/thing/Oven`
 arch (`heatTransferFraction 0.3`); the **Jamaica train** is
 `C/trade-sugar/src/thing/Train.ts = AssembledMixin(Oven)` with a `bill`
-(four copper kettles + a brick flue) whose `heatTransferFraction()`
+(four copper kettles + a brick flue) whose `getHeatTransferFraction()`
 override derives from parts present and sound (0.8 whole; each missing
-or failed kettle −0.15). Bagasse is `src/thing/Bagasse.ts =
+or failed kettle −0.15). An `Oven` on master composes `FluedMixin`
+(cleanliness D18), so the train's flue soots like a hearth's and can be
+swept — free, and correct. Bagasse is `src/thing/Bagasse.ts =
 WaterActivityMixin(Firewood)` (the Turf twin, no pack dependency on
 quarrying) over a `cane-fibre` material (`heatOfCombustion 8e6`), minted
 as the crush recipe's residue at the row's authored wet moisture; `dry`
@@ -705,7 +870,7 @@ says how she came by the land). Three pack brains in
 yard; with `sellAt:` config a smallholder sells the same cut at the
 estate's cane counter), `mills` (crushes what is in the yard, spreads
 the bagasse), `boils` (stokes the train from the dry bagasse stack, else
-the woodpile; tempers, skims, boils to the strike, pours into the
+the woodpile; tempers, skims, heats to the strike, pours into the
 hogsheads; moves cured blocks and molasses to the estate store). The
 store is a `Stock` with lines `raw-sugar-block` and `molasses-cask`
 (what the brains place) and `cane` with `buys: true` (the smallholders'
@@ -720,11 +885,67 @@ store) is a Business (`idea/outfit.yaml`: `refiner` — `fulfills:
 consigns) with two Casts. `C/trade-sugar/src/behavior/refines.ts`
 (config `{copper, arch, cones, pot, quern, stock, nips}`) runs a state
 machine over the house's vessels — dissolve a block when the copper is
-empty, temper when untempered, skim, light and stoke, pour at the
-strike, clay a set loaf (W4), nip a cured one, pound a piece, put the
-sack in the stock, decant the pot into a cask — **one step per beat**,
-every step a literal verb, bounded, home re-taken in `finally`. The
-player's drive is the same verbs by hand.
+empty, temper when untempered, skim, `heat copper` (the placing arm sets
+it on the arch), `ignite`/`stoke`, `get copper` off the fire at the
+strike (read by the vessel's own `w`, never by the reading verb) and
+`pour` it into a cone, clay a set loaf (W4), nip a cured one, pound a
+piece, put the sack in the stock, decant the pot into a cask — **one
+step per beat**, every step a literal verb, bounded, home re-taken in
+`finally`. The player's drive is the same verbs by hand. ⚠ No `boil`
+anywhere: it is `heat`'s alias and the plateau does the boiling.
+
+**D20 — ⭐ Every room whose vessels carry in-progress state is a
+`PersistentLocale`.** A restart mid-boil that forgets the copper, a cone
+draining, a loaf percolating, a wash fermenting or a still's charge is
+the fiction betraying itself — exactly what `PersistentLocale` exists
+for (cleanliness D31a: *"the tub of hot water, the soap curing on the
+rack"*). Rows re-classed `Locale → PersistentLocale`: the Terminus
+boiling floor and curing house (W1/W2), Veshko's distillery (W3), the
+sugarbush (W1, the sap pan), the island's train floor and curing house
+(W5), the Hesper's hold (W6, D13). A vessel's bulk slot, payload
+(`dissolvedSolidsKgPerL`, `boilHeldS`), Thermal stamp, Mould set
+progress and the loaf's percolation record all ride the room's container
+slice as unstamped contents with their fields. ⚠ Cast is transient and
+re-seeded — the refiner and the hands come back by their rows; the
+`shiftStations` cache in `EmploymentLogic` re-moves them once. ⚠
+`PersistentLocale` is the "visit" kind (one row = one place); none of
+these rooms is laid out to a plan, so `PersistentLocation` (the old
+`FurnishableRoom`) is wrong for all of them. The wire drive **restarts
+the world mid-batch at a Stage A checkpoint** (after step 4, with the
+copper on the lit arch at the plateau and a cone draining) and again at
+W6's hold.
+
+**D21 — ⭐⭐ Stacking: W0 on master; W1+ on master + `reqs/silk`.**
+`origin/reqs/silk` (`aa6d57de7`) carries silk W4 and the boil
+retirement but **lacks the cleanliness merge**; master has cleanliness
+and lacks silk. The recommendation, in order:
+
+1. **Now, before W0:** `git merge origin/master` into `reqs/sugar` (the
+   place rename, `matchProfile`, `Flued`, the ash). Re-run `test:near` +
+   `lint:family`. W0 touches employment only and has no silk dependency.
+2. **Before W1:** `git merge origin/reqs/silk` into `reqs/sugar` — a
+   catch-up merge INTO your own branch, which CLAUDE.md allows (landing
+   is the MR's job; this is not that). Expected conflicts: `Burner.ts`
+   (cleanliness's ash region vs silk's `settleRoomAir` removal —
+   different regions, resolve by hand); `boil.yaml` + `BoilController`
+   (deleted on silk, present on master — take the deletion);
+   `thermal.md`. Then: lye's missing latent heat (§ Risks), the
+   forestry `SapStandard.test.ts` against the retired sap profiles
+   (D1), and the fire wire test's `boil` lines (already `heat` on silk).
+   Re-run `test:near`, the thermal/fire/maturation suites, every
+   touched pack, `lint:family`.
+3. **When !395 merges to master:** `git merge origin/master` again — a
+   no-op on silk's files unless review changed them; re-verify as in 2
+   and re-drive.
+4. **Open the MR only after !395 has merged**, or its diff carries
+   silk's whole build and the reviewer cannot see sugar. If !395 stalls,
+   the fallback is to open against `reqs/silk` as the target branch —
+   never to cherry-pick silk's commits (duplicate commits conflict at
+   the later merge).
+
+What the build does at each later master merge (!397, !398 are docs
+only): merge, `test:near` + touched packs + `lint:family`, recount the
+pack test (§ Risks), re-drive. Never the full suite for a merge.
 
 ---
 
@@ -732,17 +953,18 @@ player's drive is the same verbs by hand.
 
 | new thing | host | what composing it claims about the host's other composers |
 |---|---|---|
-| `MaturationProfile.boilingCurve`, `.stages` | the **profile row** (kernel Idea) | nothing until a row authors them; every shipped evaporative profile stays one-product-then-frozen |
-| `Maturing.boilingCapK()`, `.getStage()`, `.getConcentration()`, the `f > 1` walk, the gravity fix | `MaturingMixin` (on the vessel — `Vat` already composes it) | a vessel with a staged profile keeps boiling past its first product; `getGravity` changes **only** for `evaporative` batches (wine and beer read as before) |
-| the temperature cap | `ThermalMixin.heatSourceK()` | reads a sibling through `MixinApi.isMaturing`; `null` from a non-maturing or curveless host = today's answer, byte for byte |
-| `Burner.heatTransferFraction` (+ `Thermal.heatSource()` public) | `BurnerMixin` | a field nothing reads but the evaporative window; a forge, a still, a lamp are untouched |
+| `Material.solidsKgPerL`, `.boilingPointElevation`, `.concentratesTo`, `._familyPath` | the **Material** row (kernel Idea) — the `purifiedByBoiling` / `drainSetting` precedent | nothing until a row authors them; water, lye, every liquid that authors no curve and no arrow boils exactly as silk left it |
+| `BulkPayload.dissolvedSolidsKgPerL` | a per-litre payload domain declared from `lib/thermal/Thermal.ts` (beside `boilHeldS`) | folded by `blendPayloads` like `dissolvedToxins`; absent on every pour that exists today |
+| the elevated boiling point, the arrow walk, the generalized `boilHeldSeconds` | `reconcileBulkPhase` (module-private in `Thermal.ts`, silk's plateau) | every `Bulkable & Thermal` vessel — and for a material with no curve and no arrows the arithmetic is silk's, byte for byte |
+| `Burner.heatTransferFraction` (+ `getHeatTransferFraction()`); `Thermal.heatSource()` public; the power cap on the rise and on the plateau | `BurnerMixin` / `ThermalMixin.reconcileThermal` | ⚠ **every body a lit burner heats warms at `P × fraction / C` instead of Newton's `τ`** — a loaf in an oven, an ingot in a forge, a still's charge. A forge's 8–20 kW over a 2 kg bar is faster than today's τ, a hearth over a 30 L copper slower; the default `0.5` and the existing `maxBurnPowerW` rows are the calibration, and the thermal + fire + crafting suites (295 tests on silk) are the check. This is silk's open seam being filled, and it is the one change in this plan that reaches past sugar |
+| `IngredientFamily` (instanceable Idea) | `M/platform/idea/IngredientFamily.ts` + rows at `<root>/idea/ingredient-family/` | reached only by a material's citation; no catalogue, no scan |
 | `DrainSetting.drains`, `.drainPerBand`; `Mould.drainsInto()` + incremental credit | `MaturingMixin`'s sibling `MouldMixin` (the cone, the hoop) | the hoop gains whey into a pail if one is ever placed under it; on its board nothing changes |
 | `PercolatingMixin` | **kernel** `lib/material/Percolating.ts`, composed by the sugar loaf only | first consumer here; the hopper's ash is a later composer — the mixin claims nothing about any shipped class |
-| `IngredientFamily` vocabulary + `near` on the decline | kernel `lib/craft/` + `CraftingLogic` | one family today; a member slotted by no recipe fails the vocabulary lint |
+| `near` on the decline | `CraftingLogic` + `CraftingDecline` | an optional field on one failure arm; every other decline reads as before |
 | `Business.arrearsOwedTo`, `Employed.onWageRefused`, roster-derived `openingsFor` | `Business` / `EmployedMixin` / `OrganizationMixin` | every business and every worker — which is the requirement (*nobody works unpaid forever*); a player worker is told, never auto-quit |
 | `Biome._planetRadiusM`; `GeoPosition.nmPerDegree()`; the sight coefficient; four gravity reads | `Biome` row + two expanse value objects | every chart on every expanse; Earth's value when unauthored |
 | `GroundSample.nativeNitrogenPct/.nativeOrganicPct` | `GroundSample` (ground pack) read by `Field.installSoilReserves` | every field seeds from the sample instead of two literals — same numbers unless a band or pin says otherwise |
-| `FurnishableRoom` for the hold | the row only | the hold persists like any venue room |
+| `PersistentLocale` for the hold, the two Terminus sugar rooms, Veshko's distillery, the sugarbush, the island's two boiling rooms (D20) | the rows only | each persists like the cookhouse; seven more `holder_snapshots` records; cast re-seeded |
 | `InvertingMixin` / `Cane` | **pack** `trade-sugar/src/lib/`, on `Crop` | only cane; a sack of wheat does not invert |
 | `SugarLoaf` (`PercolatingMixin(Provision)` + `Cuttable`), `CuringPot` (`PlacingMixin(Vat)`), `Bagasse` (`WaterActivityMixin(Firewood)`), `Train` (`AssembledMixin(Oven)`), `Copper` (`Vat` + `temper`/`skim` methods + the verb statics), `BoilReading` | **pack** `trade-sugar/src/thing/` and `src/idea/reading/` | pack classes a second sugar house names by row; the kernel's `Vat`, `Oven`, `Provision` unchanged |
 | `distils`, `sails`, `refines`, `cuts`, `mills`, `boils` | pack brains (`trade-distilling`, `water`, `trade-sugar` ×4) | brains are modules; they claim nothing about classes |
@@ -750,8 +972,9 @@ player's drive is the same verbs by hand.
 **The narrowing test, applied.** `onWageRefused` branches on *is this an
 Avatar* — that is the person kind, not a re-narrowing of the host set
 (Employed composes on both by design, and both get an answer). The
-Thermal cap branches on *does the sibling answer* — the sibling's `null`
-is the ordinary case. No new guard anywhere re-narrows a host set.
+plateau branches on *does the material author a curve / an arrow* and
+the rise on *is a lit burner heating this* — data and a relation, not a
+class. No new guard anywhere re-narrows a host set.
 
 ---
 
@@ -760,10 +983,13 @@ is the ordinary case. No new guard anywhere re-narrows a host set.
 - **`props:` / `cast:`** on every place row; `container:` is refused by
   `lint:instanceable` (every new vessel is a prop of its room; the
   brains place what they make).
-- **Locations, not rooms**: new places are `SingletonCartesianLocation`
-  (and `FurnishableRoom` only for the hold, whose point is persistence).
-  Every room authors `enclosure:`/`roof:` (`lint:biome-sky` counts the
-  legacy flag) and sits in a zone by `coords:`.
+- **Places, by master's taxonomy**: a new place is a `Locale` (one row,
+  one place — you visit it) or, when its vessels carry state across a
+  restart (D20), a `PersistentLocale`; a landing on water is a `Shore`;
+  nothing here is laid out to a plan, so no `Location` /
+  `PersistentLocation`. Every room authors `enclosure:`/`roof:`
+  (`lint:biome-sky` counts the legacy flag) and sits in a zone by
+  `coords:`.
 - **Paths**: `/trade/sugar/<branch>/…` for the trade's rows and classes
   (`src/thing/`, `src/lib/`, `src/idea/reading/`, `src/idea/cmd/sugar/`,
   `src/behavior/`); `/world/terminus/waponi-woo/…` for the island;
@@ -795,6 +1021,12 @@ is the ordinary case. No new guard anywhere re-narrows a host set.
 - **A person keys on `getIdentityPath()`** — the worker key in
   `arrearsOwedTo` and the roster assignee are identity paths, as
   `payHouseWageImpl` already uses them.
+- **`boil` is not a verb.** Every act that brings a vessel to the boil is
+  `heat <vessel>` (silk's alias); the drive, the brains and the help
+  prose say `heat`. `boil` appears only as the reading CHANNEL (D4).
+- **Content by citation, never by scan** (`lint:template-scans`): the
+  family row is reached from the material's `_familyPath`; no new
+  catalogue in this build.
 - **No new Mongo collection, no migration.** The hold's record is a
   `holder_snapshots` row; a renamed census key means a dropped dev DB.
 - **Gates this build must satisfy**: `lint:family` in full; the ones with
@@ -806,7 +1038,11 @@ is the ordinary case. No new guard anywhere re-narrows a host set.
 
 ### W0 — the unpaid hand walks off
 
-**Goal.** AC 13; drive step 1. Decisions D10.
+**Goal.** AC 13; drive step 1. Decisions D10, D21 step 1.
+
+**First:** `git merge origin/master` into `reqs/sugar` (cleanliness),
+`pnpm install` if a pack was added or renamed, `test:near` +
+`lint:family`. W0 needs nothing from silk.
 
 **Files.**
 - `M/platform/idea/Business.ts` — `arrearsOwedTo(workerKey)`.
@@ -840,26 +1076,45 @@ in the room and the help-wanted sign on `look`). Commit
 
 **Goal.** AC 2, 3; drive steps 2–5 and 12. Decisions D1, D2, D4, D7,
 D19 (the house's rows; the refiner brain's first steps: dissolve ·
-temper · skim · stoke · pour-at-strike — the rest lands in W2/W4).
+temper · skim · heat · stoke · off-the-fire-and-pour at the strike —
+the rest lands in W2/W4), D20 (the two Terminus rooms + the sugarbush),
+D21 step 2.
+
+**First:** `git merge origin/reqs/silk` into `reqs/sugar` (D21 step 2),
+resolve, re-verify. Everything below assumes silk's `Thermal.ts`.
 
 **Kernel files.**
-- `M/lib/maturation/MaturationProfile.ts` — `boilingCurve`, `stages`
-  (+ `fieldMeta`, getters/setters with validation: `stages` sorted by
-  `fromW` in `(0, 1]`, materials non-empty, `minBand` a known band).
-- `M/lib/maturation/Maturing.ts` — `getConcentration()`, `boilingCapK()`,
-  `getStage()`, the staged `f` walk and stage swaps in
-  `reconcileEvaporativeWindow` and the `finished` branch, the power
-  limit (D2), the evaporative `getGravity()`.
-- `M/lib/thermal/Thermal.ts` — public `heatSource()`; `heatSourceK()`
-  caps by `boilingCapK()`.
+- `M/lib/material/Material.ts` — `solidsKgPerL`, `boilingPointElevation`
+  (+ validation: `w` ascending in `[0, 1]`, `ΔK ≥ 0`),
+  `boilingPointAt(w)`, `concentratesTo` (+ validation: `fromW`
+  ascending in `(0, 1]`, `becomes` non-empty, `minBand` a known band,
+  `elseBecomes` present iff `minBand`), getters; `fieldMeta`
+  persistent+authorable for the three (the `purifiedByBoiling` shape).
+- `M/lib/thermal/Thermal.ts` — the `dissolvedSolidsKgPerL` payload
+  declaration; `heatSource()` public; the rise cap in `reconcileThermal`
+  (D2); in `reconcileBulkPhase`: `bp = mat.boilingPointAt(w)`, the
+  power-limited boil-off, the solids rewrite after boil-off, the arrow
+  walk (`concentrateIfReached`, the `purifyIfHeld` shape — swaps the
+  material, keeps the payload minus the boil clock, reads the vessel's
+  `getGrade()` for `minBand`); `boilHeldSeconds` runs for every plateau
+  material.
+- `M/platform/idea/api/BulkLogic.ts` — `blendPayloads` folds
+  `dissolvedSolidsKgPerL` by volume; `transfer` seeds the payload's
+  figure from the material's `solidsKgPerL` on a fresh fill when the
+  payload carries none.
 - `M/lib/fire/Burner.ts` — `heatTransferFraction` field + `fieldMeta` +
-  accessor pair.
-- `M/platform/idea/reading/DensityReading.ts` — unchanged (it reads
-  `getGravity()`); a test proves the evaporative read now rises.
-- Tests: `Maturing.evaporative.test.ts` (a pan over a lit burner stub:
-  temperature climbs with `w`, stage order syrup → strike → caramel →
-  burnt, rain reverses, a curveless profile is byte-identical to the
-  old run), `Thermal` cap test, `Burner` field test.
+  `getHeatTransferFraction()` / setter.
+- `M/platform/idea/reading/DensityReading.ts` — the solids arm (D1).
+- Tests: `Thermal.concentrate.test.ts` (a vessel of a curve-and-arrows
+  material on a lit burner stub: the plateau climbs with `w`, the arrows
+  fire in order syrup → strike → caramel → burnt, `minBand` below the
+  band fires `elseBecomes`, a material with no curve plateaus at its
+  plain boil, a material with no latent heat still flashes — silk's
+  `Thermal.purify.test.ts` is the model), `Thermal.power.test.ts` (the
+  rise is capped at `P × fraction / C`; the boil-off over a long unread
+  gap equals `P × Δt / latent`, not one capacity's worth; no burner →
+  silk's figures), `BulkLogic.blend.test.ts` (solids fold by volume),
+  `Burner` field test, `DensityReading` solids test.
 
 **Pack `trade-sugar` (new).** `pack.yaml` (`root: /trade/sugar`, title
 holder `{organization: /compact/trade}`), `package.json`
@@ -870,24 +1125,26 @@ one matcher per tag; the reading row warms). Content:
   `sugar-boiling.yaml` (the island's; the same discipline family —
   check `docs/subsystems/advancement.md` for the Discipline row shape).
 - materials `content/trade/sugar/idea/material/`: `raw-sugar` (solid,
-  food, raw-sugar), `raw-liquor` (liquid, food, raw-liquor; sugar ~600
-  g/L; **no boilingPoint**), `cane-syrup` (liquid, food, syrup, treacle,
-  sweetener), `strike` (the massecuite; `drainSetting {days: 4,
-  becomes: loaf-sugar, drains: …/molasses, moisture: {unloaded: 0.04,
-  loaded: 0.04}, loadRef: 1, drainPerBand: 0.08}`), `caramel`,
-  `burnt-sugar`, `loaf-sugar` (solid, food, sugar, loaf-sugar,
-  sweetener), `molasses`, `blackstrap`, `skimmings`, `cane-fibre`,
-  `cane-juice` (W5 uses them; author now, they are rows).
-- profiles `content/trade/sugar/idea/maturation/raw-liquor.yaml`
-  (`evaporative`, `inputCategory: raw-liquor`, `happyK 370`,
-  `damageAboveK 450`, `ratePerDay 6`, `productFraction 0.55` (the
-  syrup), `productMaterial cane-syrup`, `boilingCurve: [[0,373],[0.5,375],[0.7,378],[0.8,383],[0.85,387],[0.9,395],[0.95,405],[0.98,423],[0.99,433],[1,443]]`,
-  `stages: [{key: syrup, fromW: 0.68, material: cane-syrup}, {key:
-  strike, fromW: 0.90, material: strike, minBand: fair, elseMaterial:
-  blackstrap}, {key: caramel, fromW: 0.985, material: caramel}, {key:
-  burnt, fromW: 0.995, material: burnt-sugar}]`), `molasses.yaml`
-  (`inputCategory: first-molasses`, the same stages), `blackstrap` has
-  no profile (it is the end).
+  food, raw-sugar), **`raw-liquor`** (liquid, food, raw-liquor;
+  `boilingPoint 373`, `latentHeatOfVaporization 2260000`, `solidsKgPerL
+  0.6`, the sucrose `boilingPointElevation` (D1), `concentratesTo:
+  [{fromW: 0.68, becomes: …/cane-syrup}, {fromW: 0.90, becomes:
+  …/strike, minBand: fair, elseBecomes: …/blackstrap}, {fromW: 0.985,
+  becomes: …/caramel}, {fromW: 0.995, becomes: …/burnt-sugar}]`),
+  `cane-syrup` (`extends: raw-liquor`; tags liquid, food, syrup, treacle,
+  sweetener; `_familyPath` the sweetener family; the same arrows from
+  the strike on), `strike` (`extends: raw-liquor`; the massecuite;
+  `drainSetting {days: 4, becomes: loaf-sugar, drains: …/molasses,
+  moisture: {unloaded: 0.04, loaded: 0.04}, loadRef: 1, drainPerBand:
+  0.08}`; arrows caramel/burnt), `caramel`, `burnt-sugar` (no arrows —
+  the end), `loaf-sugar` (solid, food, sugar, loaf-sugar, sweetener),
+  `molasses` (liquid, food, molasses, first-molasses, sweetener;
+  `solidsKgPerL 0.8`, the curve, arrows: strike at 0.90 `minBand: fair`
+  else blackstrap, caramel, burnt — the re-boil is the same arrows on a
+  lower band), `blackstrap` (liquid, food, molasses, blackstrap; **no
+  arrows**), `skimmings`, `cane-fibre`, `cane-juice` (`solidsKgPerL
+  0.16`, the same curve and arrows; W5 uses it — author now). **No
+  maturation profile in this pack**: the boil is the plateau's.
 - `content/trade/sugar/idea/reading/boil.yaml` +
   `src/idea/reading/BoilReading.ts` (D4).
 - things: `thing/copper.yaml` (class `/trade/sugar/thing/Copper`, 120 L,
@@ -899,11 +1156,15 @@ one matcher per tag; the reading row warms). Content:
   (`measure temperature` sells it already; find its row and prop one in
   the house).
 - `src/thing/Copper.ts` (`extends Vat`; `temper(by, lime)` consumes the
-  lump and records `limeKgPerL` on the batch; `skim(by, into)` moves 5 %
-  of the batch as `skimmings` into the pail and marks `skimmed`;
-  `getStage()`'s strike resolves to `elseMaterial` when untempered;
-  unskimmed caps the batch band at `fair`; `static commandContributions`
-  for `temper` and `skim`), `src/idea/cmd/sugar/TemperController.ts`,
+  lump and records `limed` on the liquor's payload (a pack-declared
+  payload field by module augmentation — the `DissolvedToxins` shape,
+  from the pack's `src/lib/Tempering.ts` declaration); `skim(by, into)`
+  moves 5 % of the liquor as `skimmings` into the pail and marks
+  `skimmed`; **the two acts write the vessel's grade**: untempered caps
+  the copper's band at `poor` (so the strike arrow's `minBand: fair`
+  fires `elseBecomes` — it will not grain), over-limed or unskimmed caps
+  at `fair` (dark); `static commandContributions` for `temper` and
+  `skim`), `src/idea/cmd/sugar/TemperController.ts`,
   `SkimController.ts`, views `content/trade/sugar/cmd/sugar/temper.yaml`
   (`temper <copper> with <lime>`: target `requires: [MaturingMixin]`,
   lime `requires: [TangibleMixin]`), `skim.yaml` (`skim <copper> into
@@ -915,35 +1176,50 @@ one matcher per tag; the reading row warms). Content:
 - `src/behavior/refines.ts` (D19) — the first five steps.
 
 **Terminus rows** (`G/sugar-house.yaml` zone, `G/sugar-house/structure.yaml`,
-`location/ground/boiling-floor.yaml` (props: copper, arch, pail, a
-quern `/trade/milling/thing/quern`, the thermometer, a works board),
-`location/ground/curing-house.yaml` (W2 props), `location/ground/store.yaml`
-(the Stock), `thing/stock.yaml` (`businessPath …/idea/outfit`; lines
-`raw-sugar-block par 6` import; `sugar-sack`, `molasses-cask`), `idea/outfit.yaml`
-(D19; `parLines` lime from Rejection, `banksAt goodkin`, operating the
-three rooms **and** the stock), `agent/refiner.yaml` (Cast, `archetype:
-artisan` or whatever the dossier vocabulary offers — check
-`lint:dossiers`' list), `agent/hand.yaml` (Cast, `consigns`), the yard
-exit in `G/yard.yaml`). `C/rejection/…/thing/store-counter.yaml` gains
-the quicklime line (D7). `C/trade-forestry/…/maturation/maple-sap.yaml`
-gains a `boilingCurve` and `stages` (`syrup` at `productFraction`,
-`strike` → `maple-strike` with `drainSetting` → `maple-sugar`;
-`caramel`, `burnt`), `evaporator.yaml` `burnTemperatureK` 390 → 470, the
-sugarbush gains a `/trade/forestry/thing/sugar-mould` prop (a
-`/platform/thing/Mould` row, `castTemplate …/thing/maple-sugar`) and the
-two new forestry materials/things. **Registration**: root
+`location/ground/boiling-floor.yaml` (**`PersistentLocale`**, D20;
+props: copper, arch, pail, a quern `/trade/milling/thing/quern`, the
+thermometer, a works board), `location/ground/curing-house.yaml`
+(**`PersistentLocale`**; W2 props), `location/ground/store.yaml`
+(`Locale`; the Stock persists itself), `thing/stock.yaml`
+(`businessPath …/idea/outfit`; lines `raw-sugar-block par 6` import;
+`sugar-sack`, `molasses-cask`), `idea/outfit.yaml` (D19; `parLines` lime
+from Rejection, `banksAt goodkin`, operating the three rooms **and** the
+stock), `agent/refiner.yaml` (Cast, `archetype: artisan` or whatever
+the dossier vocabulary offers — check `lint:dossiers`' list),
+`agent/hand.yaml` (Cast, `consigns`), the yard exit in `G/yard.yaml`).
+`C/rejection/…/thing/store-counter.yaml` gains the quicklime line (D7).
+**Forestry (D1's convergence):** delete
+`C/trade-forestry/…/idea/maturation/maple-sap.yaml` and `birch-sap.yaml`;
+`C/trade-forestry/content/stuff/idea/material/food/maple-sap.yaml` (and
+birch) author `boilingPoint 373`, `latentHeatOfVaporization 2260000`,
+`solidsKgPerL 0.025` (birch 0.012), the sucrose curve and
+`concentratesTo` (syrup at 0.66 → `maple-syrup`, which `extends:` it
+with the strike arrow → `maple-strike` (new; `drainSetting` → maple
+sugar) → caramel → burnt); new forestry rows `thing/maple-sugar.yaml`,
+`thing/sugar-mould.yaml` (a `/platform/thing/Mould`, `castTemplate
+…/thing/maple-sugar`) propped at the sugarbush; `evaporator.yaml`
+`burnTemperatureK` 390 → 470 (its comment about sitting between the
+profile's bands is rewritten: the profile is gone), `heatTransferFraction
+0.5`; `C/rejection/…/hanging-wood/sugarbush.yaml` → `PersistentLocale`
+(D20); `C/trade-forestry/src/__tests__/SapStandard.test.ts` and the
+forestry wire test re-pointed from the profile to the arrows (a sap pan
+on the lit arch reaches syrup by the plateau). **Registration**: root
 `package.json`, `C/terminus/package.json`, `PackLogic.discover.test.ts`
 64 → 65 with an order claim (`trade-sugar` after `trade-milling`),
 `pnpm install`.
 
 **Acceptance.** Drive steps 2–5 and 12 pass on a fresh world: a block
-dissolved, tempered with lime bought at Rejection, skimmed; the arch lit;
-`measure temperature copper` rises across three reads; `analyze boil
-copper` answers in words; one batch stopped at syrup reads *treacle*,
-one poured at the strike (into a plain vessel for now) reads *strike*,
-one pushed on reads *caramel* then *burnt*; at the sugarbush, sap boiled
-past syrup reads a maple strike. Commit `build(sugar W1): the staged
-boil, the thread test, the Terminus sugar house`.
+dissolved, tempered with lime bought at Rejection, skimmed; `heat
+copper` (never `boil`), the arch lit and stoked; `measure temperature
+copper` rises across three reads as the plateau climbs; `analyze boil
+copper` answers in words; one batch taken off (`get copper`) at syrup
+reads *treacle*, one at the strike (poured into a plain vessel for now)
+reads *strike*, one left on reads *caramel* then *burnt*; **the world is
+restarted with the copper on the lit arch and the plateau still reads
+and climbs afterwards** (D20); at the sugarbush, sap heated past syrup
+reads a maple strike. Commit `build(sugar W1): the boil converges on the
+plateau — elevation, the arrows, the power limit; the thread test; the
+Terminus sugar house`.
 
 ### W2 — the cone, the grades, the sack, the rum's feedstock
 
@@ -951,14 +1227,22 @@ boil, the thread test, the Terminus sugar house`.
 10. Decisions D5, D6, D9, D16.
 
 **Kernel files.** `M/lib/material/Material.ts` (`DrainSetting.drains`,
-`.drainPerBand` + validation), `M/lib/mould/Mould.ts` (`drainsInto()`,
-incremental crediting with payload + band − 1), `M/lib/craft/IngredientFamily.ts`
-(new vocabulary), `M/platform/idea/api/CraftingLogic.ts` (the near-miss
-scan at l.2962/2979), `M/lib/craft/CraftingDecline.ts` (the line),
-`lint:closed-vocabularies` gains the family check. Tests: `Mould.drain.test.ts`
-(a cone on a curing pot: the pot's interior rises as the set progresses
-and the loaf is cast with the complementary mass), `CraftingLogic.near.test.ts`
-(honey for sugar → `near`), `CraftingDecline` rendering.
+`.drainPerBand` + validation; `_familyPath` citation + `getFamily()`),
+`M/lib/mould/Mould.ts` (`drainsInto()`, incremental crediting with
+payload + band − 1), `M/platform/idea/IngredientFamily.ts` (new
+instanceable Idea: `tag`, `members`, `fieldMeta`),
+`M/platform/idea/api/CraftingLogic.ts` (the near-miss walk at
+l.2962/2979 following each candidate material's `getFamily()`),
+`M/lib/craft/CraftingDecline.ts` (the line). Content:
+`C/trade-cooking/content/trade/cooking/idea/ingredient-family/sweetener.yaml`;
+`_familyPath` on `sugar.yaml`, apiculture's `honey.yaml`, forestry's
+`maple-syrup.yaml`, the sugar pack's `cane-syrup`/`molasses`. Tests:
+`Mould.drain.test.ts` (a cone on a curing pot: the pot's interior rises
+as the set progresses and the loaf is cast with the complementary mass),
+`CraftingLogic.near.test.ts` (honey for sugar → `near`; a material
+citing no family → no near), `CraftingDecline` rendering, a
+trade-cooking row test (every member tag is slotted by some recipe, the
+family tag by none, every citer's tags include a member).
 
 **Pack files.** `src/thing/SugarLoaf.ts` (`Provision` + `Cuttable`;
 bands `[head, middle, foot]` each a grade derived from the loaf's base
@@ -981,10 +1265,11 @@ line/ask; the sugar house's hand `consigns` config (`ask: {sugar:loose:
 8, sugar:molasses: 5}`); the two tests naming `pantry:sugar`.
 
 **Acceptance.** Drive 6: pour the strike into a cone standing on the
-pot; advance four days; `look` shows the loaf in the cone and molasses in
-the pot; `get` the pot. Drive 8: pour the pot into the copper; boil to
-the strike; a second loaf reads one band darker; again; the fourth boil
-reads *blackstrap* and never grains. Drive 9: `cut loaf with nips` →
+pot; advance two days; **restart the world**; advance two more; `look`
+shows the loaf in the cone and molasses in the pot (D20); `get` the pot.
+Drive 8: pour the pot into the copper; `heat` to the strike; a second
+loaf reads one band darker; again; the fourth boil reads *blackstrap*
+and never grains. Drive 9: `cut loaf with nips` →
 three pieces; `mill piece` at the quern → a sugar sack graded as the
 piece. Drive 10: `order mojito` at the Lounge after the distributor has
 sugar from the house (`house stock` on the Lounge shows the sugar line
@@ -1004,7 +1289,9 @@ not conjured`.
 fractions and toxins; `aromaticCarry` higher for dark);
 `C/trade-distilling/src/behavior/distils.ts`; `C/trade-distilling/src/__tests__/rum.test.ts`
 (one matcher per tag; both schedules warm). `G/veshko/location/distillery.yaml`
-props a still, a mash tun, a wash bucket, bottles; `G/veshko/idea/outfit.yaml`
+→ **`PersistentLocale`** (D20: a wash fermenting in the tun and the
+still's charge survive a restart) and props a still, a mash tun, a wash
+bucket, bottles; `G/veshko/idea/outfit.yaml`
 (the `distiller` seat, `parLines` for `first-molasses` and `blackstrap`
 from the sugar house's outfit, operating the distillery), `G/veshko/agent/distiller.yaml`
 (Cast, `archetype: artisan`, competence distilling `competent`, brain
@@ -1021,7 +1308,9 @@ still — rum from molasses, light from first, dark from blackstrap`.
 
 ### W4 — claying (Stage A's last)
 
-**Goal.** AC 5 (the clayed half); drive step 7. Decision D3.
+**Goal.** AC 5 (the clayed half); drive step 7. Decision D3 (master's
+`matchProfile`/`Hopper` are untouched; the hopper's adoption is the
+potash build's).
 
 **Files.** `M/lib/material/Percolating.ts` + `Mixins.Percolating` in
 `M/lib/mixin.ts` + `MixinApi.isPercolating`; `Percolating.test.ts`;
@@ -1062,14 +1351,15 @@ terminus/waponi-woo`, `_reach: null` — off the watershed; confirm
 (a band over the cane ground: `nitrogenPct 45`, `organicPct 60`,
 `drainageScale 1.2`), `idea/deposit/vent.yaml`, `location/landing.yaml`
 (a `/platform/location/Shore` with `waters: {sea: greywater}` and the
-`aboard` exit to the Hesper's deck, `oneWay: true`), `location/track.yaml`,
-`location/cane-piece.yaml` ×2 (estate `Field` rows, `areaM2 8000`,
-props the cane plants), `location/mill-yard.yaml` (props the edge
-runner, a juice tub, the drying ground is the yard itself), the
-boiling house as a structure (`boiling-house/structure.yaml`,
-`location/train-floor.yaml` — the train, the kettle arch + two kettles,
-the bagasse stack (a `Stockpile`), the woodpile, hogsheads on curing
-pots), `location/store.yaml` (the estate Stock), `location/wood.yaml`
+`aboard` exit to the Hesper's deck, `oneWay: true`), `location/track.yaml`
+(`Locale`), `location/cane-piece.yaml` ×2 (estate `Field` rows, `areaM2
+8000`, props the cane plants), `location/mill-yard.yaml` (`Locale`;
+props the edge runner, a juice tub, the drying ground is the yard
+itself), the boiling house as a structure (`boiling-house/structure.yaml`,
+`location/train-floor.yaml` — **`PersistentLocale`**, D20 — the train,
+the kettle arch + two kettles, the bagasse stack (a `Stockpile`), the
+woodpile; `location/curing-house.yaml` — **`PersistentLocale`** —
+hogsheads on curing pots), `location/store.yaml` (the estate Stock), `location/wood.yaml`
 (a `/trade/forestry/location/Wood`, `mix:` one tropical hardwood species
 row the pack ships under `stuff/idea/species/…`), `location/volcano.yaml`
 (a scenery zone room with the view), `location/fumaroles.yaml`
@@ -1093,7 +1383,9 @@ connectivity.
 `src/thing/Bagasse.ts`, `src/thing/Train.ts` + `thing/jamaica-train.yaml`
 (the `bill`: `kettle` ×4 `/trade/sugar/thing/copper-kettle`, `flue` ×1
 `/trade/sugar/thing/flue-brickwork`; joints `set`), `thing/kettle-arch.yaml`
-(`Oven`, `heatTransferFraction 0.3`), `thing/kettle.yaml` (a `Vat`, 200 L),
+(`Oven`, `heatTransferFraction 0.3`, `burnTemperatureK 470`),
+`thing/kettle.yaml` (a `Vat`, 200 L — the juice runs the same curve and
+arrows as the copper's liquor, D1),
 `thing/edge-runner.yaml` (class `/trade/milling/thing/GristMill`,
 `{kind: millstone}`, mass 900), `thing/juice-tub.yaml`, `thing/hogshead.yaml`
 (a `Mould` row, `castTemplate …/thing/raw-sugar-block`), `thing/bagasse.yaml`
@@ -1102,7 +1394,8 @@ connectivity.
 tub, `outputPortionL 12`, `outputResidue: {template: bagasse, count: 2}`),
 profile `idea/maturation/cane-juice.yaml` (`inputCategory: cane-juice`,
 sugar 150 g/L, `productFraction 0.2`, the same curve and stages),
-`src/behavior/{cuts,mills,boils}.ts`, `src/__tests__/{inverting,train}.test.ts`.
+`src/behavior/{cuts,mills,boils}.ts` (`boils` issues `heat kettle`,
+never `boil`), `src/__tests__/{inverting,train}.test.ts`.
 `C/ground/src/idea/GroundCharacter.ts` (`nativeNitrogenPct`,
 `nativeOrganicPct` on the sample, `GroundBand.nitrogenPct?/organicPct?`
 as overrides), `C/trade-farming/src/location/Field.ts`
@@ -1137,7 +1430,7 @@ and the smallholders`.
 gravity literals; tests pinning 60 nm/° (`GeoPosition.test.ts`,
 `Expanse` sight tests) rewritten against the setting with Earth as a
 fixture; `docs/subsystems/expanse.md` and `biome.md` notes. `hesper/hold.yaml`
-re-classed (D13) + a wire checkpoint. `hesper/idea/outfit.yaml` (the
+re-classed `Locale → PersistentLocale` (D13, D20) + a wire checkpoint. `hesper/idea/outfit.yaml` (the
 `master` seat, `parLines` none — the crew buys per leg), `hesper/agent/master.yaml`
 (Cast, brain `sails` with the two-leg config: Waponi Woo's landing →
 the estate store, buy `raw-sugar-block` ×6 and `molasses-cask` ×2; the
@@ -1151,8 +1444,8 @@ and the roster tick walks `allBusinesses()`); if not, one more boot
 entry (ceiling 87 → 88, same audit).
 
 **Acceptance.** Drive 19: load six blocks and two casks into the hold;
-restart the world (the assembly precedent, run **last**); the hold holds
-them. Drive 20: with the master on shift, advance the clock through a
+restart the world (the assembly precedent — the file's **third**
+restart, after W1's mid-boil and W2's mid-drain); the hold holds them. Drive 20: with the master on shift, advance the clock through a
 round trip; the sugar house's stock holds blocks whose `madeFrom` traces
 to the estate; the row has no import; `measure` nothing — the
 checkpoint reads the stock's lines and the chart: `GeoPosition` places
@@ -1174,13 +1467,15 @@ description.
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
 | temper / skim | `trade-sugar` views `cmd/sugar/temper.yaml`, `skim.yaml` | `Copper.commandContributions` (static) | the copper row names the class | the copper is a prop of a booted room (the house's boot entry) | `target requires: [MaturingMixin]`; lime `requires: [TangibleMixin]`; pail `requires: [BulkableMixin]` |
-| the thread test | platform `analyze` / `measure` | none needed — flat over a channel | `idea/reading/boil.yaml` on the `/idea/reading/` infix, class resolves into the pack's `src/` | `ReadingCatalogue` warms lazily | `subjectRequires: [MaturingMixin]`; ⚠ a required arg with no default fails closed and silent — copy `ice.yaml`'s shape exactly |
-| the staged boil | none (`pour`, `ignite`, `stoke` are the platform's) | — | `boilingCurve` + `stages` on the profile row; **no `boilingPoint` on the liquor materials** | `MaturationProfileCatalogue` warms by the `/idea/maturation/` infix across pack roots | — |
+| the thread test | platform `analyze` / `measure` (channel word `boil`) | none needed — flat over a channel | `idea/reading/boil.yaml` on the `/idea/reading/` infix, class resolves into the pack's `src/` | `ReadingCatalogue` warms lazily | `subjectRequires: [BulkableMixin]`; ⚠ a required arg with no default fails closed and silent — copy `ice.yaml`'s shape exactly |
+| the staged boil | `heat <copper>` (silk's view; `boil` its alias), `ignite`, `stoke`, `get`, `pour` — all the platform's | the fire's `commandContributions` names `heat.yaml` (silk) | `boilingPoint` + `latentHeatOfVaporization` + `solidsKgPerL` + `boilingPointElevation` + `concentratesTo` on the liquor MATERIAL rows, each stage a row that `extends:` its parent; ⚠ **a material with no latent heat flashes** (silk) | materials warm by `MaterialCatalogue` on the `/idea/material/` infix (every root) | the arrows read the vessel's `getGrade()` — the copper must be Crafted (a `Vat` is) |
+| the power limit | none | — | `heatTransferFraction` on every arch/oven row that matters (default 0.5) | — | `Thermal.heatSource()` finds the burner the vessel is IN or ON — `heat copper` places it ON |
 | the cone's drainings | `put cone on pot`, `pour` | `Placing` on the pot (pack class) | `drainSetting.drains` on the strike material; `castTemplate` on the cone | — | `put … on` binds a Placing host |
 | nip | platform `cut` | `Cuttable` on `SugarLoaf` (interface, no static) | the nips row's `capabilities: [nipping]` | — | `cut.yaml` binds `tools requires: [ToolMixin]`; the plan refuses without nips |
 | pound | milling's `mill` | `ComminutingMixin` on the quern row (shipped) | `recipes/pound-sugar.yaml` with `toolCapabilities: [millstone]` and an item slot on `loaf-sugar` | recipes load from `content/recipes/` | the mill binds `reachable:[mixin.ComminutingMixin]` |
 | clay | `cmd/sugar/clay.yaml` | `SugarLoaf.commandContributions` | the loaf row's `clayDays`, `clayWaterL` | — | `target requires: [PercolatingMixin]` — the kernel const is `Mixins.Percolating`; `lint:mixin-names` refuses it missing |
-| honey's reason | none | — | `INGREDIENT_FAMILIES` | — | — |
+| honey's reason | none | — | the `sweetener.yaml` family row + `_familyPath` on each member material — reached by citation, loaded on use | — | a material that cites no family gives no `near` (the decline reads as today) |
+| the kept rooms (D20) | — | — | the rows' `class: /platform/location/PersistentLocale` | `StuffApi.singleton` restores the record or seeds `props:` once | — |
 | the unpaid hand | none (the tick) | — | `employment.unpaidStandGameDays` in `treasury.yaml` (merge-missing) | the roster schedule is installed at boot already | — |
 | rum | the distilling verbs the pack already affords (`pour`, `ignite`, the by-hand recipe verb) | the still row (`capabilities: [still]`), the tun (`mash-tun`) | the ten rum rows; **one matcher per tag** (`lint:fraction-schedules` + the content clash test) | Veshko's distillery is live when its hand is (the yard is a booted producer today — confirm in `C/terminus/pack.yaml` `boot:`) | the recipes' categories `first-molasses` / `blackstrap` |
 | cane, the crush | `harvest`, `mill` | `Plant` (`harvest`), `ComminutingMixin` (the edge runner row) | the species/plant/crop rows; `recipes/crush-cane.yaml` | the estate's fields are rooms of the booted island — `lint:boot-entries` | the crush's item slot `category: cane` (the crop material's tag) |
@@ -1223,10 +1518,13 @@ Nothing unmapped.
 
 ## Test & gate strategy
 
-- **Unit, kernel** (`pnpm test:near` as each lands): the staged
-  evaporative window (stage order, the cap, rain reversal, the curveless
-  profile unchanged, the power limit), the Thermal cap, the Burner field,
-  the Mould's incremental drainings, `Percolating`, the near-miss decline,
+- **Unit, kernel** (`pnpm test:near` as each lands): the plateau with
+  elevation and arrows (order, `minBand`/`elseBecomes`, no-curve = silk's
+  figures, no-latent-heat still flashes), the power-limited rise and
+  boil-off (watched and unwatched gaps agree; no burner = Newton), the
+  solids fold, the Burner field, silk's own `Thermal.purify.test.ts`
+  still green, the Mould's incremental drainings, `Percolating`, the
+  near-miss decline following a citation,
   `arrearsOwedTo` / `onWageRefused` / roster-derived openings,
   `GeoPosition.nmPerDegree` and the sight coefficient on two radii, the
   four gravity reads on a non-Earth root biome.
@@ -1245,10 +1543,13 @@ Nothing unmapped.
   off the world** at every checkpoint — a stage word, a band, a stock
   line's `from`, a material, a position — never *not refused*.
 - **Gates** (`pnpm -C packages/server lint:family`): `instanceable` (no
-  `/lib/` class in a row, no `container:`, no `hydratorClass:`),
-  `mixin-names` (`Percolating` in the kernel const), `field-meta`,
-  `closed-vocabularies` (the family), `fraction-schedules` + the content
-  clash test (one matcher per tag), `dossiers` (every Cast's
+  `/lib/` class in a row, no `container:`, no `hydratorClass:`;
+  `IngredientFamily` is an instanceable Idea in `platform/idea/`),
+  `mixin-names` (`Percolating` in the kernel const), `field-meta` (the
+  four Material fields, the Burner field, `_familyPath` as a relation
+  ref), `template-scans` (**no new scan** — the family is a citation;
+  the ceiling stays at 43), `fraction-schedules` + the content clash
+  test (one matcher per tag), `dossiers` (every Cast's
   `archetype`), `openings` (arm 5 for every new `parLines.supplier`;
   no overlapping roster slots), `boot-entries` (**ceiling 85 → 87/88
   with a caller audit in the MR**), `counters`, `perishable` (every
@@ -1272,25 +1573,47 @@ Nothing unmapped.
 
 ## Risks & opens
 
-- **The `f > 1` walk and the volume formula.** `startL` is recovered from
-  `amountL / (1 − f·shrink)`; past `f = 1` with `shrink = 1 −
-  productFraction` the formula still inverts cleanly, but a batch rained
-  into after the strike re-bases from a smaller volume. Acceptable
-  (*a setback, not a failure*); a test pins it.
-- **Thermal/Maturing read order.** `Maturing.reconcileFerment` reads
-  `temperatureTrajectory`, which runs the thermal reconcile, which now
-  asks `boilingCapK()`, which reads concentration **without**
-  re-entering the ferment reconcile (the `_reconcilingFerment` guard
-  makes a nested read return the last state). Document the order in the
-  method; a test boils a pan through three reads.
-- **The sap pan's rate.** The power limit at the default 0.5 matches
-  today's authored rate within noise; if the forestry wire test
-  (`forestry.dirty.wire.test.ts`) times a boil, re-check it after W1.
-- **Vessel state across a restart.** The copper's batch is captured only
-  if its room persists or it is a persistable fixture — parity with the
-  sap pan today, and the refiner brain re-derives its step from the
-  vessels' state, so a restart mid-batch loses the batch, not the house.
-  Not fixed here; a note in the drive record if it bites.
+- **The silk merge (D21).** `reqs/silk` is behind master; the catch-up
+  merge into `reqs/sugar` must resolve `Burner.ts` (ash vs
+  `settleRoomAir`) and take silk's deletion of `boil.yaml` /
+  `BoilController`. If !395's review changes the plateau's arithmetic,
+  W1's tests are the first to say so. The MR waits for !395 (or targets
+  `reqs/silk`).
+- **Lye flashes once silk lands.** `lye.yaml` authors `boilingPoint 375`
+  and no latent heat; on silk's plateau a lye kettle on a fire **flashes
+  dry** (silk: *"a material with no latent heat still flashes"*). Give
+  lye `latentHeatOfVaporization 2260000` at the merge (a row edit in the
+  chandlery pack) and leave `soda-from-lye` as the fire-heated
+  evaporative profile it is — the plateau and the profile both shrink
+  the pan, the profile re-bases `startL` from the amount it finds, and
+  the profile still completes by its own clock. Converging lye onto the
+  arrows is the potash build's; record it in the potash slate.
+- **The power cap reaches every heated body** (host-placement table): a
+  forge warms a bar at its power, not its τ. The thermal/fire/crafting
+  suites (295 on silk) and the smithing, cooking and distilling wire
+  tests are the check; a row whose `maxBurnPowerW` was never calibrated
+  shows up as a cold or a too-quick forge. Calibrate the row, not the
+  default.
+- **Read-cadence honesty.** With the plateau power-limited, a watched and
+  an unwatched pot boil off the same litres over the same game-time; a
+  test pins it. Without a burner (a pan in the sun) the overshoot stands
+  — silk's behaviour, unchanged.
+- **The sap profiles' retirement** touches forestry (`SapStandard.test.ts`,
+  the forestry wire test's boil checkpoint) and the sugarbush row.
+  Forestry still does not depend on `trade-sugar`: the maple strike, the
+  maple sugar and the sugar mould are forestry rows; the kernel fields
+  are shared.
+- **Grade through the plateau.** The arrows' `minBand` reads the
+  vessel's Crafted grade; the dissolve recipe's bulk output must stamp
+  the copper (verify `applyBulkOutput`'s stamp at W1 — the
+  `vessel-not-crafted` check at `CraftingLogic.ts` l.2758 says the path
+  expects a Crafted vessel) and `transfer` step 5 carries it to the cone.
+  If the bulk output does not stamp the band, `Copper.dissolve` stamps
+  it from the block's band — the pack class is the authority either way.
+- **Seven kept rooms (D20)** are seven `holder_snapshots` records
+  captured at shutdown and the sweep; a crash between captures loses
+  what happened since — the spine's existing limit, now visible on a
+  boil. Not new, noted.
 - **Brains are ~40 % of the build's code** (`refines`, `cuts`, `mills`,
   `boils`, `distils`, `sails`). Each is one step per beat, every act a
   verb, bounded, modelled on `hauls` and `consigns`. If the founder
@@ -1311,9 +1634,6 @@ Nothing unmapped.
   forestry rows; only the kernel fields are shared.
 - **`lint:water-citations` on a reach-less locality** — verify before
   authoring the island's Locality; the fallback is a small stream row.
-- **The place-taxonomy rename** (memory: *rename IN !380 after
-  compaction*) — if it lands first, `FurnishableRoom` may have a new
-  name; the hold's row names whatever master calls it.
 - **Aboard, the climate is Terminus's** — anything on deck at 30° N
   reads 42° weather (expanse.md's deferred "latitude as a resolved
   value"). The drive's `feel` is ashore; the seam stays deferred.
@@ -1330,8 +1650,10 @@ Nothing unmapped.
 
 | seam | attach point | leaves as |
 |---|---|---|
-| the hopper adopting percolation | `PercolatingMixin` on a potash-ash solid; `Hopper.matchProfile` retires | a line in the cleanliness/potash slates |
+| the hopper adopting percolation | `PercolatingMixin` on a potash-ash solid; `Hopper.matchProfile` retires | a line in the potash slate |
+| lye and soda converging on the arrows | `concentratesTo` on `lye.yaml`; `soda-from-lye.yaml` retires | the potash slate |
 | a pan of strike left to cool setting hard | `reconcileBulkPhase`'s melt arm on a `strike` material with a melting point | `moulding-slate` |
+| rain into an open fire-heated pan | the plateau has no sky term (the evaporative profile's rain arm stays the brine's) | `thermal-slate` |
 | a limeburner seat at the quarry | the `burn-lime` recipe on a roster | `potash-slate` |
 | earthenware cones made, not stocked | the cone row's `_materialPath` + a pottery recipe | `pottery-slate` (sugar is its first customer) |
 | latitude resolved from a ship's position | `WaterExpanse` + `SpatialZone.climateSite()` | climate-and-water's seam (expanse.md) |
@@ -1349,13 +1671,26 @@ Nothing unmapped.
 
 Read first, in this order:
 
-1. `docs/requirements/sugar-requirements.md`, then this plan's § Decisions.
-2. `M/lib/maturation/Maturing.ts` (l.590–720, 790–860, 1340–1450),
-   `M/lib/maturation/MaturationProfile.ts` (l.180–420),
-   `M/lib/thermal/Thermal.ts` (l.860–900, 1015–1060, 1300–1360),
-   `M/lib/fire/Burner.ts` (l.350–400, 600–680).
-3. `M/lib/mould/Mould.ts` (l.270–420), `M/lib/material/Material.ts`
-   (l.120–160, 580–630), `C/trade-dairying/src/thing/Hoop.ts`.
+1. `docs/requirements/sugar-requirements.md`, then this plan's § Decisions
+   (D1, D2, D20, D21 first).
+2. ⭐⭐ Silk's boil, on its branch: `git show 4d8d6e55f` (the whole
+   commit), `git show 4d8d6e55f:packages/server/src/mud/lib/thermal/Thermal.ts`
+   (l.60–110 the payload declarations, l.985–1080 the drift,
+   l.1375–1480 the plateau, `boilHeldSeconds`, `purifyIfHeld`),
+   `git show 4d8d6e55f:docs/subsystems/thermal.md` (l.655–800,
+   884–905), `git show 4d8d6e55f:packages/content/platform/content/platform/cmd/crafting/heat.yaml`,
+   `git show 4d8d6e55f:packages/content/trade-textiles/src/thing/Copper.ts`,
+   silk's `Thermal.purify.test.ts`. Then, on this branch:
+   `M/lib/thermal/Thermal.ts` (l.860–900, 1015–1060),
+   `M/lib/fire/Burner.ts` (l.350–400, 600–680), `M/api/bulk.ts`
+   (l.150–200, 270–300), `M/lib/metabolism/DissolvedToxins.ts` (the
+   payload-domain declaration), `M/lib/material/Material.ts`
+   (`purifiedByBoiling` on silk, `drainSetting` l.120–160, 580–630).
+   `M/lib/maturation/Maturing.ts` l.1340–1450 only to see what the
+   brine keeps.
+3. `M/lib/mould/Mould.ts` (l.270–420), `C/trade-dairying/src/thing/Hoop.ts`;
+   master's `M/platform/location/PersistentLocale.ts` header (D20) and
+   `docs/subsystems/location.md § The place taxonomy`.
 4. `M/platform/idea/api/EmploymentLogic.ts` (l.1190–1370, 1620–1790),
    `M/lib/employment/{Employed,Organization,Employment}.ts`,
    `M/platform/idea/Business.ts` (l.240–290).
@@ -1396,4 +1731,7 @@ Read first, in this order:
 *(appended at build time, not at plan time)* — the output of running
 `packages/wire/tests/sugar.dirty.wire.test.ts` against a freshly dropped
 world on port 2014: the count, each checkpoint, what each failure was and
-what it found. The record must show the run.
+what it found, including the three restarts (mid-boil after step 4,
+mid-drain in step 6, the hold in step 19 — `stopOwnedWorld` /
+`bootOwnedWorld`, `it.skipIf(!isOwnedTestWorld())`, each reopening its
+`Session`). The record must show the run.
