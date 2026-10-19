@@ -286,7 +286,7 @@ right per row is most of the civic design.
 | **archivist / librarian** | **GAP** | post | competence | the integrity branch's human face; the Museum |
 | **assessor / tax collector** | **GAP** | post | warrant | blocked with the fiscal cycle |
 | **postmaster** | designed ([delivery](./slates/builds/delivery-slate.md)) | post | the provider | the post office you can walk into |
-| **harbourmaster** | **GAP** | office | appointment | the Gate's port |
+| **harbormaster** | **GAP** | office | appointment | the Gate's port |
 | **surveyor (Lands & Works)** | **GAP** | post | instrument | the office already exists in the Civic Quarter |
 | **relief administrator** | **GAP** | post | office | the WPA floor + match |
 | soldier / militia | designed | post | muster | Garrison; the war faces outward |

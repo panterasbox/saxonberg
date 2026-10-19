@@ -12,6 +12,15 @@ platform. TypeScript across the stack within a `pnpm` monorepo
 (`packages/server`, `packages/client`, `packages/types`). For the
 product vision see [docs/vision.md](./docs/vision.md).
 
+## Language — American English
+
+**Write American English everywhere** — prose, docs, comments, content rows,
+help text, commit messages, and every new name: *harbor*, *color*, *center*,
+*behavior*, *gray*, *mold*, *meter*, *program*. The owner: *"we speak
+american here."* Shipped identifiers with British spellings (`Colour`,
+`MouldMixin`, `mould.md`, `programme`) are not renamed piecemeal; a rename is a
+deliberate sweep. Proper nouns keep their authored spelling (the Greywater).
+
 ## Documentation Map
 
 The `docs/` tree is the source of truth for architecture and subsystem

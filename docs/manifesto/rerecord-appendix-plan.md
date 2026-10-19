@@ -278,7 +278,7 @@ evidence of.**
 
 > ⭐⭐⭐ **And the business judgment rule is not optional.** Courts will not
 > second-guess a good-faith decision, even a bad one. **You need the duty
-> AND the safe harbour, or offices become unfillable** — nobody serves if
+> AND the safe harbor, or offices become unfillable** — nobody serves if
 > every unpopular call is actionable.
 
 **That pair is a module the library does not have and clearly wants.**
