@@ -1735,6 +1735,32 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     lost anchor). The bank's `steps` DETAIL was removed — a detail wins
     the binding, and `climb steps` would have read the words.
 
+- **B1–B3 ✅ (d36fced86)**. Decisions:
+  - ⭐ The fire gate is in `igniteImpl` off `mediumFor` (refused before
+    the flash check); `airShareOf` is UNTOUCHED (it reads contents, not a
+    scope) — instead `Burner.completeness()` is 0 under water and the
+    water place DOUSES whatever arrives in it and everything it carries.
+  - Seam 3 (objects): a water rung in `Thermal.restamp` below the heat
+    source and the cold holder, caching the immersed tag for
+    `mediumConductivity`. ⚠ Silk is still unmerged: its bath rung goes
+    ABOVE this one when it lands (R1c) — the merge is that ordering.
+  - Seam 9 colour: carried as the band's ambient COLOUR TEMPERATURE
+    (bluer with depth) rather than a per-channel Beer–Lambert fold
+    through `mergeAttenuated` — the vision walk's colour leg is a pane's;
+    a water colour per leg is a later refinement (recorded, not built).
+  - ⭐ `MediumRead.visibilityM` (the water's clarity under the surface) is
+    how the combat engine reads the range cap — `lint:combat-dynamics`
+    refuses a `MixinApi.isWaterPlace` in the engine. `isRespiration`
+    joined its allowlist (the breath is vitals substrate, like
+    `isMetabolic`).
+  - Launchers gained `worksUnderwater` (default false; a speargun row
+    would say true). Thrown range was NOT capped (no shipped thrower is
+    in the drive). `disarm` was NOT widened to worn gear (no helmet yet;
+    revisit at C3).
+  - ⭐ The drowning grab is a Respiration relation (`beClungTo`), not an
+    auto-landed `subdue` gambit: the grabbed body treads for two. No
+    accountability event is written (R10 recorded, not built).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
