@@ -32,7 +32,7 @@ data:
   nutrients: []
   toxicity: []
   # ⚠ No `sulfurous`, and that absence is the mechanism.
-  tags: [organic, carbon, fuel, flammable, porous]
+  tags: [organic, carbon, fuel, flammable, porous, once-living]
   composition:
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.88 }
   chemistry: null

@@ -204,17 +204,17 @@ async function castFor(s: Session, line: string, maxTicks: number, work = false)
 
 beforeAll(async () => {
   handle = uniqueHandle('angler');
+  // ⚠ `reserve override`, not `reserve issue` — the reserve stopped issuing
+  // coin by hand at the economic bootstrap, and this setup had failed
+  // ever since (found re-driving retail at the storage-and-ice review).
+  let s = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  expectOk(await s.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
-    expectOk(await gov.cmd('reserve issue 900'));
-    expectOk(await gov.cmd('drop coins'));
+    expectOk(await gov.cmd(`reserve override 900 to ${handle} "wire: fishing funding"`));
   } finally {
     gov.close();
   }
-  let s = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
-  expectOk(await s.cmd('get coins'));
-  expectOk(await s.cmd('bank open'));
-  expectOk(await s.cmd('bank deposit coins'));
   s.close();
   s = await Session.open(handle, { startLocation: STORE, wizard: true });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the

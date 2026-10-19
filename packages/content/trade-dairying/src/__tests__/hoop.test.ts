@@ -14,7 +14,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MAT, readRow } from './rows';
@@ -77,6 +77,8 @@ describe('the cheese hoop', () => {
       // The wheel row authors a placeholder material the set overwrites.
       const w = makeStuff(() => new Wheel());
       w.setMaterial(mat(MAT.softCheese));
+      // A real clone carries its row's path, and `holdsCast` reads it.
+      stampTemplatePathForTest(w, path);
       return w;
     }) as unknown as typeof StuffApi.clone);
   });

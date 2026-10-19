@@ -178,12 +178,17 @@ You arrive{% if direction %} from the {{ direction }}{% endif %}.
 `MobileMixin`):
 
 ```
-You arrive{% if direction %} from the {{ direction }}{% endif %}.
-{{ mover }} arrives{% if direction %} from the {{ direction }}{% endif %}.
+You arrive{% if from %} {{ from }}{% endif %}.
+{{ mover }} arrives{% if from %} {{ from }}{% endif %}.
 ```
 
 The directional/bland split that used to require two settings keys
-collapses into a single template using `{% if direction %}`.
+collapses into a single template using `{% if from %}`. ⭐ The mover
+hands the template ready-made phrases, `toward` (*to the north*, but
+*up*) and `from` (*from the south*, but *from above*), as well as the
+bare `direction`. A template that wrote `to the {{ direction }}` said
+*"You leave to the down"* on every ladder (found in the rubber build's
+browser drive, 2026-10-18).
 
 ## Registering custom filters
 

@@ -118,6 +118,9 @@ const TANNING_DIR = fileURLToPath(
 const TAILORING_DIR = fileURLToPath(
   new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url),
 );
+const RUBBER_DIR = fileURLToPath(
+  new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url),
+);
 
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
@@ -149,6 +152,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/chandlery/", dir: () => fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url)) },
   { prefix: "/trade/fuel/", dir: () => fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url)) },
   { prefix: "/trade/quarrying/", dir: () => fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url)) },
+  // ⭐ The rubber works' boots, gloves and coat (rubber build).
+  { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -187,6 +192,11 @@ function classOf(seed: Seed, file: string): string {
   const candidates = [
     `${STORE_DIR}${parent.replace("/world/terminus/general-store/", "")}.yaml`,
     `${OBJ_DIR}${parent.replace("/stuff/", "")}.yaml`,
+    // ⭐ A trade good may extend another trade's (the rubberized coat is
+    // the tailor's coat in other cloth): resolve through the good homes.
+    ...GOOD_HOMES.filter((h) => parent.startsWith(h.prefix)).map(
+      (h) => `${h.dir()}${parent.slice(h.prefix.length)}.yaml`,
+    ),
   ];
   for (const candidate of candidates) {
     let raw: string;
@@ -470,13 +480,13 @@ describe("general-store content integrity", () => {
    */
   it("the supplied lines are bought on terms by a seated keeper, never cloned", () => {
     const counter = load(STORE_DIR, "counter.yaml");
-    const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number; supplier?: string; pricing?: string }[];
+    const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number; from?: { supplier?: string; store?: string }; pricing?: string }[];
     const prices = counter.data?.prices as Record<string, number>;
-    const supplied = lines.filter((l) => l.supplier);
+    const supplied = lines.filter((l) => l.from?.supplier);
     expect(supplied.length).toBeGreaterThanOrEqual(2);
     const DISTRIBUTOR = "/world/terminus/counting-houses/distributor/idea/business";
     for (const line of supplied) {
-      expect(line.supplier).toBe(DISTRIBUTOR);
+      expect(line.from?.supplier).toBe(DISTRIBUTOR);
       expect(line.pricing).toBe("stocking");
       expect(prices[line.itemTemplatePath], `${line.itemTemplatePath} has no base`).toBeGreaterThan(0);
     }

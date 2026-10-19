@@ -67,8 +67,8 @@ data:
       trigger: arrival
       config:
         lines:
-          - "\"Trade only, mind — but if you're buying for a house, the board's the board.\" Tam taps the chalk on the counter."
-          - "\"Everything on the shelf came in on consignment. You want to know whose, look at the label.\""
+          - "Trade only, mind — but if you're buying for a house, the board's the board."
+          - "Everything on the shelf came in on consignment. You want to know whose, look at the label."
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

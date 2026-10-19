@@ -229,7 +229,7 @@ export default class WeatherReading extends Reading {
         } else {
           lines.push(Mml.compose`  snow lying: ${snow}${age}`);
         }
-      } else if (MixinApi.isAtmospheric(scope) && BiomeApi.isSkyExposed(scope)) {
+      } else if (MixinApi.isAtmospheric(scope) && scope.exposure().rainReaches()) {
         lines.push(Mml.compose`  snow lying: none`);
       }
     }

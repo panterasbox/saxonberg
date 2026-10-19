@@ -1,0 +1,25 @@
+# Russian dandelion — a bed of the rubber dandelion. Grown like any
+# root crop and dug in its first autumn: the roots are milled to a pulp
+# and the rubber washed out of it (`trade-rubber`'s two recipes).
+class: /platform/thing/Plant
+data:
+  shortDescription: bed of russian dandelion
+  keywords: [dandelion, "russian dandelion", kok-saghyz, crop, bed]
+  register: indefinite
+  longDescription: |
+    Low rosettes of grey-green, deeply toothed leaves and a few yellow flower heads. Snap a leaf and the stalk bleeds a white milk that sets tacky on your fingers.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/asterales/asteraceae/taraxacum/kok-saghyz
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/kok-saghyz
+  harvestTemplatePath: /trade/farming/thing/crop/dandelion-root
+  nutrientDraw: 12
+  profile:
+    moistureHappyAt: 0.28
+    moistureWiltAt: 0.06
+    litresPerGameDay: 0.08
+    luxHappyAt: 80
+    luxDarkAt: 10
+    rootDemand: { seedling: 0.2, young: 0.6, established: 1.2, mature: 1.6 }
+    # ⭐ Sown in spring, dug in its first autumn.
+    daysToStage: { young: 30, established: 90, mature: 150 }

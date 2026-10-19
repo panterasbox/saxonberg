@@ -108,6 +108,7 @@ const CLEANING_METHODS: Record<GroundKind, CleaningMethod> = {
   boards: 'scrub or sand',
   plate: 'scrub',
   contrived: 'scrub',
+  ice: 'scrape',
 };
 
 /** The debris kinds a floor gathers and a sweep takes up (D15, D17). */
@@ -208,12 +209,6 @@ export interface Floor {
   setWorked(value: boolean): void;
   /** What you are standing on, as one of the ten closed words. */
   getGroundKind(): GroundKind;
-  /**
-   * Is standing on this floor a SLOT rather than ground — a water
-   * surface you swim in, an ice sheet you stand on by its bearing (the
-   * storage-and-ice build's surfaces answer `true`)? Base `false`.
-   */
-  supportIsSlotted(): boolean;
   /**
    * ⭐ Does this floor take soil — tracked mud, spilled blood, crumbs?
    * ONE predicate, no class check: `!supportIsSlotted()`. Mud is not
@@ -322,6 +317,35 @@ export interface Floor {
    * the air over it says so.
    */
   isFrozenOver(): boolean;
+
+  // ── support (storage-and-ice D12) ──
+  /**
+   * ⭐ Does this floor hold `loadKg` up? Base `true`: ordinary ground
+   * bears anything. A water surface answers `false`; an ice sheet answers
+   * by its thickness.
+   */
+  bears(loadKg: number): boolean;
+  /**
+   * Is standing on this floor a SLOT you hold (`ground:1`), rather than
+   * the free posture? Base `false` — on ordinary ground, being in the room
+   * is being on its ground. On water it is the whole question: whoever
+   * the floor is not supporting is IN the water.
+   */
+  supportIsSlotted(): boolean;
+  /** Is `occupant` held up by this floor (it holds the floor's ground slot)? */
+  supports(occupant: Stuff): boolean;
+  /** What this floor must bear to hold `occupant`: its body and all it carries, kg. */
+  supportLoadKgOf(occupant: Stuff): number;
+  /** Square metres of open water in this floor (0 on ordinary ground). */
+  openWaterAreaM2(): number;
+  /**
+   * Drop `occupant` into the water this floor stops bearing (or that they
+   * chose to go into, when `deliberate`). Base: nothing happens — ordinary
+   * ground never gives way. Returns whether it did.
+   */
+  giveWay(occupant: Stuff, deliberate?: boolean): boolean;
+  /** Give way under everyone the floor no longer bears. Base: nothing. */
+  reconcileSupport(): void;
 }
 
 /**
@@ -575,6 +599,15 @@ export function FloorMixin<
       if (this.onGrade !== null) return this.onGrade;
       const host = this.hostOf();
       if (!host) return false;
+      // ⭐ A storey standing on another (a roof terrace) has the roof of
+      // the place below for a floor: nothing continues beneath it. The
+      // ONLY change the construction makes here — every other floor keeps
+      // the derivation below byte-for-byte.
+      try {
+        if (BiomeApi.exposureOf(host as unknown as Stuff)?.floorIsRoofOf) return false;
+      } catch {
+        // no exposure — fall through to the shipped derivation
+      }
       try {
         if (BiomeApi.isSkyExposed(host as unknown as Stuff & Container)) {
           return true;
@@ -772,10 +805,6 @@ export function FloorMixin<
       return 'contrived';
     }
 
-    public supportIsSlotted(): boolean {
-      return false;
-    }
-
     public takesSoil(): boolean {
       return !this.supportIsSlotted();
     }
@@ -928,6 +957,52 @@ export function FloorMixin<
       return !self.getBulk('surface').isEmpty();
     }
 
+    // ───────────────────── support (storage-and-ice D12) ─────────────────────
+
+    /** Ordinary ground bears anything (a water surface says otherwise). */
+    public bears(_loadKg: number): boolean {
+      return true;
+    }
+
+    /** On ordinary ground, standing is the free posture — not a slot you hold. */
+    public supportIsSlotted(): boolean {
+      return false;
+    }
+
+    public supports(occupant: Stuff): boolean {
+      if (!MixinApi.isSlottable(occupant)) return false;
+      try {
+        return occupant.getOccupiedHost() === (this as unknown as Stuff);
+      } catch {
+        // Occupying slots on two hosts (a rider and a saddle) is not
+        // standing on this floor.
+        return false;
+      }
+    }
+
+    public supportLoadKgOf(occupant: Stuff): number {
+      let kg = MixinApi.isTangible(occupant) ? occupant.getMass().rawValue() : 0;
+      if (MixinApi.isContainer(occupant)) {
+        for (const c of occupant.getDeepContents()) {
+          if (MixinApi.isTangible(c)) kg += c.getMass().rawValue();
+        }
+      }
+      return kg;
+    }
+
+    /** Ordinary ground has no open water in it. */
+    public openWaterAreaM2(): number {
+      return 0;
+    }
+
+    /** Ordinary ground never gives way. */
+    public giveWay(_occupant: Stuff, _deliberate = false): boolean {
+      return false;
+    }
+
+    /** Nothing to reconcile on ground that bears everything. */
+    public reconcileSupport(): void {}
+
     /**
      * The one sentence `look floor` appends — *"It is granite, set as
      * paving."* `null` when the floor has no material at all, because a
@@ -1010,7 +1085,7 @@ export function FloorMixin<
       const place = host as unknown as Stuff & Container;
       let sky = false;
       try {
-        sky = host !== null && BiomeApi.isSkyExposed(place);
+        sky = host !== null && (BiomeApi.exposureOf(place)?.rainReaches() ?? false);
       } catch {
         sky = false;
       }

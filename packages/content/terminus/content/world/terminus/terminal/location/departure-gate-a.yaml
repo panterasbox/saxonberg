@@ -5,6 +5,9 @@
 # cell west.
 class: /platform/location/Locale
 data:
+  # (rubber build) The terminal's brick and slate — what it is made of.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.35 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   shortDescription: Departure Gate A
   keywords: [gate, departure]
   register: proper

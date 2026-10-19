@@ -688,7 +688,7 @@ nobody counts** — a different outcome entirely, which a
 ⚠ **Corollary for the backlog:** a trade worth building is often worth
 building **with its obsolescence dated**. Ice was designed that way
 deliberately
-([ice-trade-slate](./slates/builds/ice-trade-slate.md)); whaling's
+([ice-trade-slate](./slates/tails/ice-trade-slate.md)); whaling's
 successor is already shipped **in the same row as the thing it
 replaces**.
 

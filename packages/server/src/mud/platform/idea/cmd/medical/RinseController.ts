@@ -143,7 +143,8 @@ export default class RinseController extends CommandController<RinseModel> {
       if (MixinApi.isShore(c)) {
         const pick = c.waterFor();
         if ('refusal' in pick) continue;
-        const drawn = await c.drawAt(pick.key, context.location ?? null);
+        await c.settleWater(pick.key);
+        const drawn = c.drawAt(pick.key, context.location ?? c);
         if ('draw' in drawn) return c;
         if (drawn.refusal === 'frozen') frozen = drawn.line;
         continue;

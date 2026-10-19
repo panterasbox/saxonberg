@@ -150,6 +150,22 @@ async function equipVia(
   await settle();
 }
 
+/**
+ * ⚠⚠ Dispatch as the LIVE dispatcher does: the controller is one clone per
+ * execution and is destructed the moment `execute` returns, so the dressing
+ * steps land with it gone. `equipVia` keeps it alive and could not see a
+ * completion that called back into the instance (the rubber drive did:
+ * "You put on a pair of stout leather boots" — and nothing on the feet).
+ */
+async function equipLikeDispatch(
+  ...args: Parameters<EquipController['execute']>
+): Promise<void> {
+  const controller = makeStuff(() => new EquipController());
+  await controller.execute(...args);
+  await StuffApi.destruct(controller);
+  await settle();
+}
+
 function model(target: TestGarment): Parameters<EquipController['execute']>[0] {
   return {
     target: { stuff: target as never, raw: target.getPrimaryKeyword() ?? '' },
@@ -181,6 +197,28 @@ describe('the ladder refusal', () => {
     ContainmentApi.move(body, location);
     return { body, planPath, location };
   }
+
+  it('⚠⚠ the garment goes ON though the controller is gone when the step lands', async () => {
+    const { body, planPath, location } = setup();
+    const shirt = garment(planPath, 'woven', 'shirt');
+    ContainmentApi.move(shirt, body);
+    await equipLikeDispatch(model(shirt), context(body, location));
+    expect(body.getOccupants('torso').has(shirt)).toBe(true);
+  });
+
+  it('⚠⚠ a whole kit dresses through, piece after piece, with the controller gone', async () => {
+    const { body, planPath, location } = setup();
+    const shirt = garment(planPath, 'woven', 'shirt');
+    const coat = garment(planPath, 'woven', 'coat');
+    ContainmentApi.move(shirt, body);
+    ContainmentApi.move(coat, body);
+    await equipLikeDispatch(
+      {} as ModelData as unknown as Parameters<EquipController['execute']>[0],
+      context(body, location),
+    );
+    expect(body.getOccupants('torso').has(shirt)).toBe(true);
+    expect(body.getOccupants('torso').has(coat)).toBe(true);
+  });
 
   it('⚠ refuses a shirt OVER plate, and names what is in the way', async () => {
     const { body, planPath, location } = setup();

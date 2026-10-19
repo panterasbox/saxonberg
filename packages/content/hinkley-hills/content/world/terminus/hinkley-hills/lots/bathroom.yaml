@@ -9,6 +9,9 @@
 # second hot-water house is one more row, no code.
 class: /platform/location/PersistentLocation
 data:
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   ambientSource: sky
   ambientOpening: window
   shortDescription: bathroom

@@ -107,8 +107,8 @@ Four value objects + two mixins + the concrete entity:
   with no migration — paths did not move, only the name.
 - **`Roster`** — a Business's schedule: ordered `RosterAssignment
   { positionKey, assignee /* templatePath */, schedule: ShiftEntry[] }`;
-  `ShiftEntry { days: number[], hours: [start, end) }`. `evaluate(assignment,
-  date)` is the pure day/hour-window match lifted verbatim from what the
+  `ShiftEntry { days: number[], hours: [start, end), season?: Season[] }`.
+  `evaluate(assignment, date)` is the pure day/hour-window match lifted verbatim from what the
   the retired `shifts` brain read inline before this build.
 - **`OrganizationMixin`** (`lib/employment/Organization.ts`, marker
   `_mixinName='OrganizationMixin'`) — the chart. Persistent fields
@@ -407,6 +407,27 @@ and, per roster assignment:
 The pure logic lives in the private `runTick`; the gated public `tickRoster`
 and the schedule callback both delegate to it (no intra-singleton gated
 `this.x()` call trips the gate).
+
+### ⭐ Seasonal seats (storage-and-ice, 2026-10-17)
+
+A shift window may carry `season: [winter]` — an ice crew works the
+winter, and a winter seat draws no wage in summer (the wage settles only
+on on→off). The vocabulary is the celestial model's own `Season`
+(`spring · summer · fall · winter`, `SEASONS` in `lib/employment/Roster.ts`,
+declared closed by design) and the house's season is **local**: the
+clock (`RosterClock.season`) carries `CelestialApi.seasonFor(profile, t,
+latitudeDeg)` for the house's first operating location, so a southern
+house's winter is the northern summer — there is no second season
+function. The season rides ONLY the clock and `Roster.evaluate`; a zone's
+climate site is async and the tick sync, so `EmploymentLogic` caches each
+house's latitude + sky off-band, and ⭐ **until it is known a season-bound
+window reads OFF** — a winter seat never draws a wage on a guess. Every
+roster that authors no `season` is untouched.
+
+⭐ **`Employed.isOnShiftFor(organizationPath)`** — on shift for THIS
+house, not anywhere: a cook on shift at the cookhouse is not on shift at
+the icehouse. The store's keeper check and the ice sheet's *cutting for
+the house* both read it (see [storage.md](./storage.md)).
 
 ## ⭐⭐ Capability grant — what a SEAT lets you do
 
@@ -1233,3 +1254,10 @@ the piece); the bathhouse an `attendant` (`personal-services`, by the
 hour); Goodkin a `doorman`. `Employed.isOnShiftFor(org)` (storage's shape)
 is what a doorman judges by — a SEAT, never presence. A ruined wash is the
 HAND's deed. See [cleanliness.md](./cleanliness.md) and [retail.md](./retail.md).
+
+---
+
+- **2026-10-18 (storage-and-ice, MR !378).** Seasonal shift windows
+  (`season:` on a `ShiftEntry`, read off the house's local sky);
+  `isOnShiftFor`; and a proprietor rostered on her own house never
+  covers (`reconcileCover`).

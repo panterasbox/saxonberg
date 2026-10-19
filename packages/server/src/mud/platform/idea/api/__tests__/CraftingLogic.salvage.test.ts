@@ -18,6 +18,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import Casting from '../../../thing/Casting';
+import MetalCasting from '../../../thing/MetalCasting';
 import Scrap from '../../../thing/Scrap';
 import Weapon from '../../../thing/equipment/Weapon';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -102,6 +103,8 @@ beforeEach(async () => {
 
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path === '/stuff/thing/Casting') return makeStuff(() => new Casting()) as never;
+    // ⭐ A metal yield is a MetalCasting (D17): composition AND temper.
+    if (path === '/stuff/thing/metal-casting') return makeStuff(() => new MetalCasting()) as never;
     if (path === '/stuff/thing/Scrap') return makeStuff(() => new Scrap()) as never;
     throw new Error(`unexpected clone ${path}`);
   });
@@ -157,7 +160,7 @@ describe('CraftingLogic.salvage', () => {
     expect(outcome.recoveredKg).toBeLessThan(0.5); // < the ingot's mass
     expect(outcome.outputs).toHaveLength(1);
     const cast = outcome.outputs[0]!;
-    expect(cast).toBeInstanceOf(Casting); // re-meltable, re-usable stock
+    expect(cast).toBeInstanceOf(MetalCasting); // re-meltable, re-usable metal stock
     if (!MixinApi.isTangible(cast)) return;
     expect(cast.getMaterial()?.getName()).toBe('iron');
     expect(cast.getMass().rawValue()).toBeCloseTo(0.25, 9);
@@ -178,7 +181,7 @@ describe('CraftingLogic.salvage', () => {
     if (!outcome.ok) return;
     // iron: 2 × 0.6 × 0.5 = 0.6 kg casting; leather: 2 × 0.4 × 0.5 =
     // 0.4 kg → 4 scrap units of 0.1.
-    const cast = outcome.outputs.find((o) => o instanceof Casting)!;
+    const cast = outcome.outputs.find((o) => o instanceof MetalCasting)!;
     const scrap = outcome.outputs.find((o) => o instanceof Scrap)! as Scrap;
     expect(cast).toBeDefined();
     expect(scrap).toBeDefined();

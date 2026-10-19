@@ -1,0 +1,18 @@
+# The tower room — the top of the works' tower, over the store.
+class: /platform/location/Locale
+data:
+  coords: { x: -1, y: 0, z: 1 }
+  shortDescription: "tower room"
+  keywords: [tower, "tower room"]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: window
+  details:
+    window:
+      keywords: [window]
+      description: A square window on each side, looking out over the roofs of the goods yards.
+  longDescription: |
+    A small square room at the top of the tower, a window in each wall. You can see across the goods yards to the river.

@@ -262,7 +262,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
       expect(byPath.get(`/trade/bottling/idea/material/${key}`)!.data.tags).toContain('carbonated');
     }
     expect(byPath.get('/trade/winemaking/idea/material/sparkling')!.data.tags).toContain('carbonated');
-    const ice = byPath.get('/trade/bottling/idea/material/ice')!.data;
+    const ice = byPath.get('/stuff/idea/material/bulk/ice')!.data;
     expect(ice.meltingPoint).toBe(273);
     expect(ice.latentHeatOfFusion).toBe(334000);
     expect(ice.tags).toContain('ice');

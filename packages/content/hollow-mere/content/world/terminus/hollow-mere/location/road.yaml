@@ -1,0 +1,33 @@
+class: /platform/location/Street
+data:
+  shortDescription: mere road
+  keywords: [road, track, lane]
+  register: definite
+  _address: terminus/hollow-mere/road
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 30000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A rutted track comes down out of the hills and runs along the foot of a long grey bank before it reaches the water. Sledge runners have cut it as deep as the wheels have. East, a pair of tall windowless sheds stand back to back, the near one with a loading platform along its face; a smaller house hunches by itself to the northwest, and an empty shed of the same build stands to the south. North, the track runs down to the mere.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/delight-road/crossroads
+      media: [ground]
+      edgeMinutes: 30
+    north:
+      destination: /world/terminus/hollow-mere/location/shore
+      media: [ground]
+      edgeMinutes: 2
+    east:
+      destination: /world/terminus/hollow-mere/icehouse/location/platform
+      media: [ground]
+      edgeMinutes: 1
+    northwest:
+      destination: /world/terminus/hollow-mere/small-house/location/house
+      media: [ground]
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/hollow-mere/shed/location/shed
+      media: [ground]
+      edgeMinutes: 1

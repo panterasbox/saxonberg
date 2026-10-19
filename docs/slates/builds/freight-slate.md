@@ -821,3 +821,13 @@ line, with a rung for each.
    board beside it → [logistics.md § The rate card](../../subsystems/logistics.md).
 7. **NPC haulier density** — how much background freight, and does it
    respond to real price signals or run fixed circuits?
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **Store-to-store transfer, the ship's hold, cargo.** Attach:
+  `StoreMixin.drawForHouse` / `deposit` are the two ends — a transfer is a
+  draw at one store and a deposit at the other with a bill of lading
+  between (storage-slate § 4 has the user's deferral and the hold note).
+- **Handling at scale** — poling blocks down a channel, hooking, the
+  icehouse elevator; tongs as a gate rather than flavour. Today a block is
+  an ordinary `get` under the soft encumbrance.

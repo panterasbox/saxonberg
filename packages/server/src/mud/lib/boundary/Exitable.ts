@@ -48,9 +48,11 @@ export interface ObviousNeighbourOptions {
    * propagation walks want, because the boundary-conduit walk carries
    * those with their own transmissivity. `'open-only'` keeps a doored
    * exit whose door is open, which is what the two openings counts
-   * mean by an opening.
+   * mean by an opening. `'all'` keeps every doored exit whatever its
+   * door's state — what the construction's face rule wants, because a
+   * shut door is still a doorway between two places.
    */
-  doors?: 'skip' | 'open-only';
+  doors?: 'skip' | 'open-only' | 'all';
 }
 import { BoundaryApi } from '../../api/boundary';
 import { DiagnosticApi } from '../../api/diagnostics';
@@ -549,7 +551,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const out: ObviousNeighbour[] = [];
       for (const exit of this.getObviousExits()) {
         const door = exit.getDoor();
-        if (opts.doors === 'open-only') {
+        if (opts.doors === 'all') {
+          // every doorway, shut or open
+        } else if (opts.doors === 'open-only') {
           if (door && !door.isOpen()) continue;
         } else if (door) {
           continue;

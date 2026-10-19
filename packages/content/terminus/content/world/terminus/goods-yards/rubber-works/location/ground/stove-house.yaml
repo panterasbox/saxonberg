@@ -1,0 +1,36 @@
+# The stove house — ⭐⭐ a glasshouse against the works' south wall, glass
+# all round (rubber build): the sun through it warms it by day (Beer–
+# Lambert, then solar gain), it loses heat hard by night, and a stove
+# keeps three rubber trees alive through the winter. Their latex runs on
+# the AIR of this room: between 291 and 309 K, and no other season.
+#
+# It authors NO ambientSource: its daylight is its construction's — a
+# glass roof passes the sky. The vent door onto the yard is the only way
+# to let a summer noon out.
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: 1, z: 0 }
+  shortDescription: "stove house"
+  keywords: [house, "stove house", glasshouse, greenhouse]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/glass/glass, thicknessM: 0.004 }
+  roof: { material: /stuff/idea/material/glass/glass, thicknessM: 0.004 }
+  longDescription: |
+    A long glasshouse, panes running with condensation, close and green and smelling of wet earth. Three rubber trees stand in iron-hooped tubs down its length, their trunks scored with slanting cuts, and a black stove ticks at the end. Under each tree a little cup hangs on a wire to catch the white milk that runs down the cuts. The glass door south goes back into the works; a vent in the east wall lets out onto the yard.
+  exits:
+    east:
+      destination: /world/terminus/goods-yards/yard
+      door: /world/terminus/goods-yards/rubber-works/thing/vent
+      media: [ground]
+      edgeMinutes: 1
+      # A vent onto the yard, not a way in: you can step out through it,
+      # and the yard's way into the works is the floor's door.
+      oneWay: true
+  props:
+    - /stuff/thing/stove
+    - { template: /trade/rubber/thing/hevea-tub, count: 3 }
+    - /trade/rubber/thing/coagulating-pan
+    - { template: /trade/rubber/thing/latex-cup, count: 3 }
+    - /stuff/thing/vessel/watering-can
+    - { template: /trade/quarrying/thing/coal, count: 4 }

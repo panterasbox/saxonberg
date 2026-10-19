@@ -142,9 +142,10 @@ export interface Attired {
   insulationAt(partKey: string): Quantity<'clo'>;
 
   /**
-   * The body goes INTO water (storage-and-ice's contract): the body and
-   * every layer at every part the filter admits are soaked (`wet(1)`; no
-   * filter = every part). Side-effect only. ⭐ What the water washes off is
+   * The body goes INTO water (storage-and-ice's contract, D11): every layer
+   * at every part the filter admits is soaked (`wet(1)`; no filter = every
+   * part — a swim; the feet — a flooded cell), and the body by the share of
+   * it under water (cleanliness B56). Side-effect only. ⭐ What the water washes off is
    * `HygieneMixin`'s, which overrides this to rinse.
    */
   immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
@@ -196,6 +197,14 @@ export interface Attired {
    * straight through.
    */
   windproofing(): number;
+
+  /**
+   * ⭐ Rain on a dressed body (rubber build): each DISTINCT outermost
+   * garment takes the rain once, at the summed surface share of the
+   * parts it is outermost on; the body takes what each part's outer
+   * layer passes — `permeability × saturation` of it, a bare part 1.
+   */
+  exposeToRain(delta: number): void;
 
   /**
    * How the worn stack shifts this host's own conspicuity, in
@@ -807,6 +816,48 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         weighted += share * density * (1 - wetness);
       }
       return weighted < 0 ? 0 : weighted > 1 ? 1 : weighted;
+    }
+
+    public exposeToRain(this: Stuff & Slotted & Attired, delta: number): void {
+      if (!(delta > 0)) return;
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) {
+        if (MixinApi.isWet(self)) self.wet(delta);
+        return;
+      }
+      // ⭐ ONE wet() per distinct outermost garment, at its summed share —
+      // a coat outermost on torso and both arms is rained on once.
+      const outerShare = new Map<Stuff, number>();
+      const bareShare: number[] = [];
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key)) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        const outer = this.outermostAt(part.key) as unknown as Stuff | null;
+        if (outer === null) {
+          bareShare.push(share);
+          continue;
+        }
+        outerShare.set(outer, (outerShare.get(outer) ?? 0) + share);
+      }
+      let toBody = bareShare.reduce((a, b) => a + b, 0) * delta;
+      for (const [garment, share] of outerShare) {
+        const mat = MixinApi.isTangible(garment) ? garment.getMaterial() : null;
+        // ⚠ An impermeable layer takes in NOTHING: rain beads on a
+        // rubberized coat and runs off, so the coat is not wetted at all
+        // (found by the drive: it read "soaked through"). What reaches the
+        // body is unchanged — rubber passed nothing either way.
+        if (MixinApi.isWet(garment) && (mat === null || mat.permeability() > 0)) {
+          garment.wet(delta * share);
+        }
+        const saturation = MixinApi.isWet(garment) ? garment.getWetness() : 1;
+        const pass = mat ? mat.permeability() * saturation : 1;
+        toBody += delta * share * pass;
+      }
+      if (toBody > 0 && MixinApi.isWet(self)) {
+        self.wet(toBody);
+      }
     }
 
     public concealmentOffset(this: Stuff & Slotted & Attired): number {

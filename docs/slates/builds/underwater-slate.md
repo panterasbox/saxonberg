@@ -1,212 +1,319 @@
-# Underwater slate — places below the surface, and the way back up
+# Underwater slate — water you can be in, and what it does to you
 
-> ⚠⚠ **The title is the bias, and § 8a names it.** This document was
-> written as an **exploration** slate, so its gravity is *going down and
-> surviving.* The trade half's gravity is **"what you came up with, and
-> how often"** — which is why the Journey looked like the right
-> primitive for a thing a worker does fifty times a day.
+> **Status: UNBUILT** — redesigned 2026-10-18 in one session with the
+> founder, over the September exploration draft (whose audit, § 8a there,
+> is kept below where it still holds). Nothing underwater exists: swimming
+> is at the surface only (maritime), and the ice build's `Pool` has an
+> abstract `bed:` prop. Companion: [river-slate](./river-slate.md).
+> **Left:** water as a STATE of any place (a mixin; `Pool` the class
+> retires) with `water: { of, depthM }` · the column Warren and its bands,
+> the bed band replacing the `bed:` prop · the craft size rule · breath as
+> store ÷ burn with two clocks · the blackout, neutral depth and the
+> rescuable dying clock · descent, equalizing and `drop belt` · the medium
+> as PROPERTIES and the census's twelve seams (no validator) · underwater
+> combat · the lifeline · the bell mixin · the hard-hat suit and the bends ·
+> tides from the shore, tidal streams, the surf · life across the tree (the
+> five findings) · sealants, sponges, insulation · `/trade/diving` · and,
+> marked LEAN, the tank, the submersible and domes
+> **Size:** a build — the water place first; the river, craft and the
+> harvest are later builds (§ 17)
 
-> **Status: UNBUILT** — designed 2026-09-18 out of the fishing rewrite,
-> to be built when somebody wants it; the design is the point of writing
-> it now. No underwater room, medium, column or ascent exists.
-> **Left:** ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the
-> ground build: every Location gets a floor by default, so a water band must
-> declare `noDefaultFloor: true` or the open column will be floored and
-> sittable — the ground build ships the declaration and a test, not a row) ·
-> the column — bands as zones, `depth` as a zone field,
-> `up`/`down` derived · implicit up + declared ceilings + the reach-to-air
-> gate · medium derived from the reach's level · light / temperature /
-> pressure derived from depth · buoyancy as a read (density × volume vs
-> the medium) and the placement rule · the ascent/descent **Journey** on
-> the `swim` mode with the buoyancy load factor · the lifeline and the
-> ballast stone · the tank epoch (the bends as a stop set) · per-individual
-> stature (body density) · the default column for a dive-declared body
-> · ⭐⭐ **§ 8 (2026-10-08), the TRADE half**: the **medium affordance
-> table** (water first, vacuum second) · the surface-supply rung with the
-> bends moved onto it · the bed as **ground with a cover** (forestry's
-> pattern, third consumer) · **recharge as a function of the harvest act**
-> · line signals · the **tide clock** · and § 8a's **two corrections to
-> DECIDED items.**
-> **Size:** a build — places first; hunting is the act that happens in them.
-> ⚠ § 8's trade half is **its own increment**, and *salvage ships before
-> harvest*.
+**Sits on:** [respiration.md](../../subsystems/respiration.md) (the drain,
+the worn supply, the water-breather inversion) ·
+[location.md](../../subsystems/location.md) (the **Warren**) ·
+[expanse.md](../../subsystems/expanse.md) (the frame, sea state, bands that
+set you, the Ship) · [watershed.md](../../subsystems/watershed.md) (the
+water's rows, the memoized reads, ice) · [ground.md](../../subsystems/ground.md)
+(every Location's floor) · [thermal.md](../../subsystems/thermal.md) ·
+[light.md](../../subsystems/light.md) · [combat.md](../../subsystems/combat.md)
++ [ranged.md](../../subsystems/ranged.md) · [mortality.md](../../subsystems/mortality.md)
+(the rescuable `dying` clock) · [assembly.md](../../subsystems/assembly.md)
+(parts and wear) · [fishing.md](../../subsystems/fishing.md) (the derived
+fishery, habitat) · [arcane-science.md](../../arcane-science.md) ·
+[boundary.md](../../subsystems/boundary.md) (the two-anchor object).
 
-**Sits on:** [logistics.md](../../subsystems/logistics.md) (⭐⭐ **the
-Journey — a sustained engagement whose beat is one leg; every beat issues
-the same `traverse`; the vehicle is present in every node; length is an
-event budget; express vs local is one lane with two stop sets; the fault
-table**) · [watershed.md](../../subsystems/watershed.md) (the reach and
-its level) · [location.md](../../subsystems/location.md) + `SphericalLocation`
-(no implicit adjacency, explicit exits) · [zone.md](../../subsystems/zone.md)
-(field inheritance) · [respiration.md](../../subsystems/respiration.md)
-(`breathableMedia`, the water-breather inversion, `AirTank`) ·
-[thermal.md](../../subsystems/thermal.md) (`conductivityOf(water)`) ·
-[light.md](../../subsystems/light.md) · [locomotion.md](../../subsystems/locomotion.md)
-(`Swimmable`) · [encumbrance.md](../../subsystems/encumbrance.md)
-(`LoadBearing`) · [materials-response.md](../../subsystems/materials-response.md)
-(`Material.density`, `getMass()`) · [mortality.md](../../subsystems/mortality.md)
-(the corpse) · [fishing-slate](../tails/fishing-slate.md) § 6 (layers; the reach
-as the bus) · [hunting-slate](./hunting-slate.md) (the act) ·
-[physiology-slate](./physiology-slate.md) (BMI / body density).
-
-Markers: **[DECIDED]** with the user · **[LEAN]** · **[OPEN]**.
+Markers: **[DECIDED]** with the founder · **[LEAN]** documented, the
+founder holds no strong view (*"this stuff is so far out… but it's good to
+document what we have"*) · **[PARKED]** its own conversation.
 
 ---
 
-## 1. What this is, and is not **[DECIDED]**
+## 0. How this was decided, and what it replaces
 
-Underwater content **operates on the same terms as content above water**
-— rooms, zones, exits, brains — with a little ingenuity and narrative
-licence. **Atlantis is in bounds.** It is not procgen (nobody generates
-rooms), not foraging, and not fishing's: the act below the surface is
-**hunting's** (stalk and strike), fishing owns angling and trapping from
-above. This slate is the *places*, their physics, and the journey between
-them and the air.
+The September draft was written as an exploration slate before maritime
+and the ice build put water in the game. The founder: *"most of this is
+placeholder though and never got an actual conversation."* Three of its
+pillars did not survive the conversation:
 
-## 2. ⭐⭐ The invariants **[DECIDED]**
-
-**Implicit up.** In open water, *up* is implicit the way *the sky* is
-outdoors. The mine's rule inverts: there, every room needs an authored
-way out and a collapse takes it; here every open-water node has a way to
-the surface by default, and only a **ceiling** takes it.
-
-> An underwater node has an implicit `up` unless it declares
-> `ceiling: true`. A ceiling node must reach a node with an air surface
-> through authored exits, and a gate proves it — the way `lint:locations`
-> proves every location plots.
-
-**Ceilings are declared, never inferred** — a cave, a wreck's deck, ice,
-an overhang. An air pocket in a cave is a node whose level is above the
-water's (the air bell divers find). A tidal cave whose mouth *becomes* a
-ceiling at high water is legible, predictable, and avoidable by reading
-the clock — the flat's cutoff, turned vertical.
-
-**Depth is a number on the node; the vertical exits derive from it.** An
-author writes `depth: 12` (metres below the reach's surface), never an
-`up`/`down` arrow — the watershed's move (*an uphill reach is
-unrepresentable*). Adjacent nodes at different depths get `up`/`down`
-derived; a gate refuses a column where `up` does not shrink depth.
-
-**Every water node cites its reach, and the reach's level is the
-surface.** Medium is **derived** from `level − elevation`, not authored:
-a shallow node goes dry on the ebb, a shore node goes under on the flood,
-and nobody re-authors anything. The level is already the water pack's one
-piece of state; tide is already a derive-on-read clock.
-
-**Derived, not authored, from depth and the reach:** light (surface light
-× attenuation by depth and the reach's clarity — never a per-room
-`ambientIntensity`, the lesson Rejection's twelve dark rooms taught
-forestry), temperature (the thermocline off the reach's temperature),
-pressure (a *reading* until the tank epoch), and ascent time.
-
-**Survivability is the player's arithmetic, not a guarantee.** The path
-exists and its cost is derivable: depth ÷ ascent rate = the breath you
-need; the water's cold is the second clock (`conductivityOf(water)` is
-~25× air). The deep is legitimately deadly, as the mine's bottom is. What
-must hold is *legibility* — the depth reads in the prose, the breath reads
-in the body — and one principle:
-
-> ⭐⭐ **Ascent is never gated on skill. Only on breath and ballast.**
-
-## 3. ⭐ Buoyancy — a read, and a placement rule **[DECIDED]**
-
-Every term exists: a material's `density`, a thing's `getMass()`, and the
-medium's density (`BiomeApi.densityOf('water')`, beside `breathableOf`).
-Buoyancy is `(ρ_medium − ρ_object) × volume` — no new state — and each
-outcome is a placement rule:
-
-| net | what | on `drop` in water |
+| September | 2026-10-18 | why |
 |---|---|---|
-| **sinks** | iron, stone, a weight belt, most tools | to the **bed** — the lowest node of the column |
-| **floats** | wood, cork, a corked bottle, a body with full lungs | to the **surface** |
-| **neutral** | a fish; a diver with the right ballast | stays; the **current** carries it |
+| the column is a lane of **band-zones**, the ascent a logistics **Journey** | the column is a **Warren** of real band rooms; vertical moves are ordinary traversal | ⭐ *"how do parties stay together?"* — co-presence in this engine IS the room; a depth-as-a-position model (tried first in this session) would have needed a depth filter in every channel |
+| `depth` on a zone, `up`/`down` derived | `depthM` below the water's datum on the place; vertical links are exits the Warren supplies | zones have no relative geography; *"this sounds like the exit graph by another name, and if it needs dynamism that's what Warrens are for"* |
+| a **medium affordance table** of which verbs work | **properties** on a `Medium` row, read by each subsystem's own physics | a verb list is unbounded and fails open; the census (§ 5) found the failures CLUSTER on a dozen seams |
 
-Across an abstract layer the reach is the bus (fishing § 6): a floater
-dropped in a concrete grotto under an abstract surface becomes **flotsam
-on the reach**; a sinker dropped from a boat on an abstract reach lands in
-the concrete bed room that cites it.
+And one class was reopened rather than assumed: **`Pool`**, designed inside
+the ice work and never examined for general swimming (§ 2).
 
-**The one gap is hollow things.** A sealed steel vessel floats: its
-effective density is mass over *displaced* volume. `Bulkable` knows a
-vessel's capacity, so displacement is `capacity + shell` for vessels; a
-`displacement` field on `Tangible` covers the odd sealed thing (a diving
-bell, a hull). The only addition.
+⚠ Lesson for whoever designs next, from the session itself: **a shipped
+design that never had its own conversation is not settled.** Rivers and
+`Pool` were both treated as solved and both were reopened.
 
-**Bodies** — where the deep's push-your-luck lives:
+## 1. What this is **[DECIDED]**
 
-- A body is about neutral; what you carry decides the sign. **Underwater,
-  `LoadBearing` measures net negative buoyancy, not weight** — carry a lot
-  of what floats, very little of what sinks. **The treasure's density is
-  the danger**: a bag of pearls is nothing; one ingot is a sinker with you
-  attached.
-- **Ballast is deliberate**: the pearl diver's stone takes you down fast;
-  **`drop belt` is the one verb that never fails** — instant positive
-  buoyancy, the reason the ascent principle holds.
-- **Body density is body composition** — fat floats, muscle sinks — which
-  is why the physiology slate now carries per-individual stature and BMI:
-  a heavy lean body needs less ballast going down and more effort coming
-  up; a fat one bobs. True, derivable, and never a number anyone sees.
-- The grim honest one: a drowned body sinks, then floats as decay gases
-  form. `Postmortem` already stages decay; density by stage is a line.
+Underwater content operates on the same terms as content above water —
+rooms, exits, brains — and **Atlantis is in bounds**. Two layers, split by
+the namespace test (*is it true whether or not anyone participates?*):
 
-## 4. Epochs decide the danger stack **[DECIDED]**
+- **The physics is `/system/water`** and kernel seams: water as a state,
+  the column, the body, the medium, buoyancy, tides. Rivers flow and people
+  drown with nobody employed.
+- ⭐ **Diving is a trade, `/trade/diving`** (§ 11) — practised and
+  quittable. It owns gear, a discipline and services, and **no resource**:
+  it is the alternate SITE for RGOs that already exist. *"Diving as a means
+  to an end"* (2026-10-08) and *"diving is its own trade with its own
+  content pack"* (2026-10-18) are both true at different layers.
 
-The medieval diver is a **breath-hold** diver — sponge and pearl divers, a
-stone and a rope. So the first gauntlet is **breath + cold + dark +
-buoyancy**, all shipped or derived, and *pressure is a reading*. The
-**tank epoch** (`ToolMixin.epoch`, the covenant's axis) brings the bends,
-narcosis, and the tank's own ballast — as tools, not code. Atlantis stays
-reachable to a medieval diver with a rope and a big chest.
+## 2. ⭐⭐⭐ Water is a state, not a class **[DECIDED]**
 
-**The lifeline** — a rope to the boat — is the medieval "guaranteed path":
-an object spanning the layers, hauled from an abstract surface into a
-concrete room. Historically it *is* how breath-hold divers survived;
-dropping it is the choice you regret.
+**`Pool` the class retires** (or survives as a thin default row for "a
+still water room"). Its mechanism moves onto **a mixin any Location
+composes**, and whether a place is water *right now* is derived.
 
-## 5. ⭐⭐⭐ The column is a lane; the ascent is a Journey **[DECIDED]**
+Kept from `Pool`, because it was right:
 
-Two kinds of vertical movement:
+- the floor IS the support state — the water's surface, ice, or ground —
+  and holding its slot is standing on it; no per-occupant flag;
+- you swim iff you are in the water; a body in the water leaves by swimming;
+- ⭐ the build-4 principle, generalised: **a phase change never creates or
+  removes space.** Nor does a tide, a flood or a dive. What changes is what
+  is underfoot, and what you are in.
 
-| between | act | what it is |
-|---|---|---|
-| two **authored** rooms at different depths | `swim up` / `swim down` | ordinary traversal on a derived exit — a staircase, wet |
-| a node and the surface (or the bed), with nothing authored between | `ascend` / `descend` | **a Journey** along the column |
+What a place declares:
 
-⚠ **Not a `DurativeActivity` with a transient depth** — that idea left a
-mid-rise encounter with nowhere to happen (neither the bed nor the
-surface fits it) and was not restart-safe. Logistics already built the
-right shape for wagons, and it reads unchanged with water for road:
+```yaml
+water: { of: /stuff/idea/Watercourse/hollowmere, depthM: 4 }
+# of: a still water · a river position (river-slate) · a sea node
+# depthM: the floor's depth below that water's DATUM; negative = normally dry
+```
 
-| road (logistics) | column |
+- **The datum** is the water's normal level — mean sea level, a mere's
+  summer level, a river's normal stage. A tidepool is `depthM: -0.5`; at a
+  +1.5 m tide it is a metre deep.
+- **The current medium derives** from the water's level now + `depthM`:
+  dry · wading (up to about the chest) · swimming at the surface · a
+  **column** below if deeper still · or frozen, the floor the ice sheet.
+- **A derived room** (a band, a river stretch) takes `of` and depth from the
+  Warren that budded it; it authors nothing.
+
+**The read follows the place's ref to its water** — load-on-use, never a
+reverse index. The level is a pure function of (water, time), **memoized
+per weather segment** (the flow memo, the ice memo's sibling), with a
+**sync peek** on hot paths (entry, `look`, support) warmed by an async read
+— build-4's `iceAt` / `iceAtSync` pattern. Nothing pushes the level into
+rooms: actors re-read it, an **immersed body re-reads it on its own
+respiration/thermal beat** (which is how a rising tide reaches you), and an
+unobserved room reconciles on load.
+
+⚠ **The water place must be a water SOURCE** (`ShoreMixin`'s role) — the
+census found `wash`, `rinse`, `cool`, `steep` refuse a diver surrounded by
+the sea.
+
+## 3. ⭐⭐⭐ The column **[DECIDED]**
+
+> **Any water place deeper than a body can stand in has a column beneath
+> it**, budded by a column **Warren** keyed to that surface place, from
+> the water's numbers at that point.
+
+- **Bands come from the water, never from feet:** the surface · the lit
+  layer (to where clarity kills the light) · in still water the thermocline
+  when the season sets one · the dark · **the bed**. A 4 m mere is surface +
+  bed; a deep sea node five at most. Each band is a water place citing the
+  same water at the band's `depthM`.
+- **The bed band's floor is ground** — ground's own floor, which later
+  carries the RGO cover — and it **replaces the ice build's `bed:` prop**.
+  What sinks goes to the bed band.
+- **Sideways at depth follows the surface's water exits**, copied by the
+  Warren — dive at the north cell, walk the bed south, surface in the south
+  cell, whatever zone it is in.
+- **Authored rooms below are external neighbours** (the Warren's own test:
+  their existence does not depend on its policy) — a wreck, a reef,
+  Atlantis's airlock, joined by ordinary exits.
+- **A band can appear or vanish** as the depth changes; the Warren reaps an
+  empty one.
+- **In a river the current carries on at depth** (river-slate).
+- **At sea the column is keyed to the node**, from the expanse's `depthM`
+  and bottom. ⭐ **Between nodes there is no column** — as on the surface, a
+  body in the open field is always aboard a craft.
+- **Under ice** the sheet is the surface place's floor and so the column's
+  **ceiling**; the hole is the only `up`.
+- A party is together by sharing a band room.
+
+### The craft size rule — everywhere
+
+> ⭐⭐ **A small craft is a Thing inside the water's room; a big one is its
+> own Location, positioned in the water's frame, touching the water's
+> rooms only through crossings resolved at the moment you cross.**
+
+A canoe is in the stretch room with the swimmer; a sternwheeler is beside
+it (river-slate). A two-man bell is in the band; a caisson is a Location
+positioned in the column whose open mouth is an exit to the band at its
+depth. Never a Location inside a Location.
+
+### Kept from September
+
+- **Implicit up**, unless a place declares a ceiling; a ceiling place must
+  reach air by authored exits, and a gate proves it.
+- **Ascent is never gated on skill — only on breath and ballast.** It puts
+  the skill in **yield per breath** rather than survival: a trade where
+  competence decides whether you drown is a death-check; one where it
+  decides how much you bring up is a job.
+- ⚠ **A band is not standable; its BED is** (`noDefaultFloor: true` on every
+  non-bed band) — the ground build's retrofit, and the census's posture fix
+  (§ 5).
+
+## 4. The body **[DECIDED]**
+
+### Breath — store ÷ burn, and two clocks
+
+Replaces respiration's fixed `INHALE_HOLD_SEC`:
+
+- **the store** — lung volume from stature and the body plan;
+- **the burn** — work, through the same `exert({powerW})`: kicking for the
+  bottom burns several times what hanging still does;
+- **conditioning** — the `wind` slow stock, finally driven hard;
+- **cold** — the dive reflex slows the burn.
+
+⭐⭐ **Two clocks, and only one is felt.** The **urge** (CO₂) is what you
+feel — discomfort → urgency → desperation, in the character's voice; it
+does not kill you and you can push through it. The **oxygen** you do not
+feel; at zero you black out without warning. ⭐ **Hyperventilating** delays
+the urge and adds no oxygen, so the warning comes after the blackout —
+**shallow-water blackout**, derived. ⛔ **No forced ascent** (EotL's panic
+reflex is the engine doing the player's job); going up is your decision.
+
+### After the blackout
+
+- **Neutral depth.** Lung air compresses with depth (Boyle), so a limp body
+  above its neutral depth drifts up — face-up and clear it may breathe
+  again — and below it sinks to the bed. In a river the current carries it.
+- **The dying clock.** Underwater asphyxia enters **mortality's rescuable
+  `dying` clock** rather than respiration's fixed `ANOXIA_LETHAL_SEC`;
+  **cold lengthens it**. Unconsciousness comes minutes before death — the
+  most rescuable death there is.
+- **Rescue is getting them to air, then treatment** — a buddy in the band,
+  the tender on the line.
+- ⭐ **Secondary drowning**: water in the lungs is a harm condition that
+  worsens hours later. A rescue is incomplete, not binary.
+- **The three voices** (content-craft § 2): the character goes calm; the
+  narrator appraises what the character cannot. *Drowning is the case that
+  proves the three-voice model load-bearing.*
+- ⚠ From the ice build's live walk: a body going under in the cold must be
+  **TOLD** it is. The cold clock needs a felt voice the way the urge has one.
+
+### Moving up and down
+
+- **Band traversal timed by power against net buoyancy.** Ballast takes you
+  down fast; what you carry fights you up — underwater `LoadBearing` reads
+  **net negative buoyancy** (*a bag of shells is nothing; one ingot is an
+  anchor with you attached*).
+- **`drop belt` never fails — and costs the stone** unless it is on its own
+  line (the tender hauls it back), so the cheap dive loses gear.
+- ⭐ **Equalizing caps the descent.** Descend faster than you can equalize
+  and you get **squeeze** — pain, then a burst eardrum (vertigo,
+  self-limiting). Competence raises the cap. September's lean of "no
+  pressure harm at breath-hold" is reversed: it is the trade's *you have to
+  be taught* moment, and it buys bottom time, not survival.
+- Sideways along the bed is ordinary movement on the same breath clock.
+
+⛔ **Body composition never surfaces as a number** (kept from the audit, as
+a prohibition): fat floats, muscle sinks, and the moment it reads as a
+ranking body type is a productivity stat.
+
+## 5. ⭐⭐⭐ The medium — properties, not a verb list **[DECIDED]**
+
+A `Medium` row carries **physical properties** — density, thermal
+conductivity, how sound carries, whether it supports combustion, light
+attenuation and colour transmittance per metre, breathability — and the
+water's own row supplies per-water numbers (clarity, temperature, salinity,
+dissolved oxygen). Vacuum and smoke are later rows on the same shape.
+
+⛔ **No `isNotUnderwater` validator.** Every verb author would have to
+remember it, forgetting fails open, it is wrong for half the verbs (`get`,
+`look`, `swim`, `fit`, `write` on a slate) and it puts the decision in the
+controller. **A refusal belongs to the mechanism the verb uses**, in that
+mechanism's words.
+
+⭐ **`Vocal` is the one chokepoint for anything that needs a mouth** —
+`say`, `shout`, `cast`, reading a scroll aloud, a regulator in your mouth
+(EotL's tank mutes you) — and it asks **apparatus × medium**, *can this
+body's voice carry here*: a merfolk voice carries underwater, a human one
+does not (§ 15).
+
+### The census — this section's acceptance list
+
+Run statically 2026-10-18 over **281 command views** (tables in the
+session's scratchpad; to be re-run live in a band room at build). **Zero
+verbs are refused underwater by physics today**; ~120 wrongly work. They
+collapse onto these seams, and the drive proves the list empty:
+
+1. ⭐ **No "this place is water" read exists** — respiration infers
+   immersion its own way; nothing else reads the place. § 2's mixin.
+2. **Fire burns underwater.** `BiomeApi.airShareOf` is 1 − Σ concentrates,
+   so a water place reads 1.0; a furnace's light checks fuel only. One read
+   moves ~20 verbs (forge, smelt, cook, bake, char, kiln, bellows, `cast`,
+   `zap`).
+3. **Immersion does not wet** — only dousing and electricity push `wet()`.
+   One immersion-wets-on-entry rule fixes paper, ink, salt, tinder, bandages.
+4. **Objects cool as in air** — only bodies get water's conductivity; hot
+   work survives (`hammer`, `quench`, `gob`, `shape`).
+5. **An open vessel is not full of the medium** (`pour`, `fill`, `mix`,
+   `stir`, `dye`, `tan`) — and the mirror: the water place is not a source
+   (`wash`, `rinse`, `cool`, `steep` wrongly REFUSED).
+6. **Speech ignores the medium** — `VocalMixin` emits unconditionally,
+   `talk` and `pilot` bypass `Vocal`, sound is blocked only by vacuum.
+7. **The airway is never consulted** — `eat`, `drink`, `sip`, `dose`,
+   `smell`, `taste`, `blow`.
+8. **No drag** — combat, ranged, every swung tool (`hew`, `fell`, `rive`,
+   `plough`).
+9. **Posture and floor** — `sit`, `kneel`, `dig`, `plant`, `ditch` work in
+   mid-water; § 3's floorless bands fix most.
+10. **Sight has no attenuation or colour filter** — `look`, `search`,
+    `survey`, `sense` should degrade.
+11. **An exit with no `media` admits walking anywhere** — the gate must read
+    the destination's medium (maritime's far-side rule).
+12. **Small cases** — `fish` with a rod while submerged (`reachAt`
+    resolves the reach); `splice`/`sever`/`switch` miss shock; `order` is
+    speech; `hail` from below.
+
+Plus **#94** (filed): `inhale` refills a held breath while immersed — the
+one exploit the census found.
+
+What the census confirmed should work: traps (*"a trap full of water"*),
+`release`, `sample` (sediment), `dig` on the bed, `harvest` as shellfish or
+kelp, and money (the implant).
+
+### What the properties give, when wired
+
+| underwater | from |
 |---|---|
-| the lane's nodes | **depth bands** — as many as the water's character warrants, **never one per ten feet** |
-| `edgeMinutes` on an edge | the band's thickness ÷ swim rate × the **buoyancy load factor** |
-| the driver engaged, the vehicle traverses | the diver engaged, the diver traverses — holding **`body`** (not the driver's `hands`), so hands stay free to fight and to drop the belt |
-| the vehicle is present in every node | the diver is **in each band, for real** — a predator there is an NPC with a presence trigger in a room, not a bespoke emission |
-| express / local stop sets | a breath-hold diver goes **express** to the surface; a tank diver goes **local** — ⭐ **the decompression stop is a stop set**, and the bends is what skipping it costs |
-| `route-blocked` | a ceiling that closed — the tidal cave |
-| `driver-incapable` | out of breath — the body goes limp and **buoyancy places it** (§ 3); the lifeline is the rescue |
-| server restart | the journey is gone and you are **parked in a real band at a real depth** — restart-safe |
-| being attacked does not stop the wagon | the shark biting you does not stop you kicking for the surface; stopping is your own `cancel` |
+| no fire, no lamp, no forge | combustion's air share (seam 2) |
+| no speech; sound carries far and **without direction** | `Vocal` and the medium's sound property |
+| sight to turbidity; **red goes first, blood looks black** | attenuation + `Colour` transmittance (the glass build) |
+| cold as a clock | conductivity, ~25× air |
+| spears work, swords do not | drag (§ 6) |
+| shock catches everyone touching the water | electricity's conduction spread (shipped) |
+| no rest | no standable floor off the bed, and the breath |
+| heavy things become movable | buoyancy — *the medium that takes your tools away hands you a crane* |
 
-**A mid-rise fight happens in the band you are in** — a room made for that
-depth, its light, its cold, its fauna — not at either end.
+**Communication is content**: line signals (§ 7), hand signs to someone in
+sight, and **a slate and grease pencil** — `write` works on the right
+surface.
 
-**Bands come from the physics, not from feet.** A water body has a
-surface, a lit layer down to where its clarity kills the light, a
-thermocline where the season's warm water sits on the cold, the dark
-below, and the bed. A shallow clear pond collapses to **two** bands; a
-deep murky estuary has five. So the **default column** for a
-dive-declared body derives its band count from the reach's clarity,
-temperature and depth — derivation, not procgen, and the boundaries fall
-where the *experience* changes. Atlantis authors its own bands and puts
-forty rooms in them.
+## 6. Combat **[DECIDED]**
 
-**Every band is its own zone.** The medium's properties — depth, light,
-temperature, pressure, what lives there — are **zone fields** inheriting
-through the shipped chain, as `_biomePath` and elevation already do.
-Twelve rooms at one depth share one band-zone and author none of it
-twice.
+The shipped frame holds — session, poise, gambits, tempo, terms, morale. No
+new combat system; the physics feeds it, and one thing becomes central:
+**the fight is about air.**
 
 **Coordinates are the author's choice**: `Location` for a
 gridded reef; `SphericalLocation` — exists, positions by focus and
@@ -214,570 +321,590 @@ radius, *no implicit adjacency, every exit explicit* — for a column, a
 dome, a city under one. A column's exits are `up` and `down`, derived
 from depth. `lint:locations` is satisfied either way.
 
-**The top band is always concrete.** Even under an abstract surface, the
-column's top node is a real room — *the surface at the Kestrel's mouth* —
-whose exits are the boat and the bank you dove from; the current's
-displacement over the journey (duration × the reach's flow) is *which* of
-those exits you surface at, or a shore you do not know. The reach
-citation binds it to the record and the bus.
+- **Drag in the weapon profile.** A weapon is already a derived bundle from
+  form × material × mass × length; water adds the **area presented along
+  the motion**. Swung edges and clubs collapse (energy ∝ v²); **thrusts
+  survive** — spears, daggers, harpoons. Thrown weapons die within a metre;
+  a bow will not fire; a speargun fires short range through ranged's
+  `energySource`.
+- **Footing in poise.** A swimmer has none — push someone and you push
+  yourself away. Poise is low and hard to buy back; **grappling
+  dominates**. The hard-hat diver in lead boots *has* footing on the bed.
+- **Visibility caps range** beside the room's real size: in murk every fight
+  opens at `close`.
+- ⭐ **`subdue` underwater is holding someone under** — the same gambit, its
+  consequence changed by medium (lens 5: no new verb). A crocodile's death
+  roll is the species form, a natural attack that is a hold.
+- ⭐ **Morale reads the urge.** At its peak a fighter breaks for the surface;
+  the one with more breath wins by not letting go. And **a drowning person
+  panics and grabs the nearest body** — the rescuer — which is why
+  lifeguards approach from behind, falling out of morale, not a script.
+- **`disarm` widens to any worn or held thing** — the mask, the regulator,
+  the hose, the line. Cutting a hard-hat diver's hose kills him slowly.
+- **Blood carries** — a scent plume on the current, and anything whose
+  apparatus smells blood in water comes (§ 15).
+- **Onlookers cannot shout a fight down**; they intervene physically or not
+  at all.
 
-**Express past a hunter [LEAN in].** A diver going express through a band
-where something is hunting is present for one beat — long enough for a
-presence-triggered brain to act once. The drift-by: the fast ascent is
-*safer from the water and less safe from what is in it*, a real trade,
-and the encounter is the band's fauna doing its job rather than a roll on
-the way up. If the express diver should pass untouched, that is one flag
-on the stop set.
+## 7. Gear and epochs **[DECIDED]** except where marked
 
-## 6. What it costs
+Each rung changes **what the water is to you**:
 
-Nearly nothing new. The Journey, the Route value object, the per-leg
-transaction boundary and its fault table are shipped; `swim` is a
-locomotion mode; zones inherit fields; spherical locations exist;
-respiration, thermal, light and encumbrance are shipped drivers.
-Additions: **`depth` as a zone field** (+ `ceiling` on a node, `_reach`
-citation); the **buoyancy load factor** in the leg budget (negative
-enough and the budget goes infinite until you drop something — the
-principle in one term); a **`swim`-mode Journey** holding `body`; the
-**default column** derivation; `displacement` on `Tangible`;
-per-individual stature (physiology). The bends is a stop-set rule at the
-tank epoch.
+| rung | epoch | practical depth | the water is | it kills you by |
+|---|---|---|---|---|
+| **breath-hold** | medieval and before | 10–30 m (Statti, 1913: ~80 m) | a place you visit | **staying** |
+| **the bell** | early modern (bells are ancient) | tens of metres (Halley ~18 m) | a place you work from | the air fouling |
+| **pump and helmet** | 1830s → | ~50–60 m on air | a place you work in | **ascending wrong** |
+| **tank** [LEAN] | 1940s → | as helmet on air | a place you inhabit | running out far from up |
+| **submersible** [LEAN] | 1930s → the trench | the hull's rating | a place you look at through a window | implosion — the one death with no clock |
 
-## 8. ⭐⭐⭐ Submersion as an ACCESS MODE — the trade half
+⭐ **Light is not the pre-industrial depth limit; pressure physiology is.**
+Below ~200 m any water is dark, and only the submersible goes there with its
+own lamps. What blinds a medieval diver is **clarity** (an estuary can be
+black at 3 m) and **enclosure** (a wreck's hold, a cave, a dome). Light
+underwater before electricity: the sun, bioluminescence, a lamp *inside a
+bell* (which burns the bell's air), and magic.
 
-Designed 2026-10-08, from the water-trade audit
-([navigable-water-slate](./navigable-water-slate.md) § 5c). ⚠ **This
-document's survival half is DECIDED and its TRADE half did not exist** —
-§§ 1–7 answer *how you get down and back*, and nothing answered *why you
-went or what you brought up.*
+Rider kept from the audit: **the author chooses the depth; depth is what the
+ladder buys.** Atlantis reachable by a medieval diver means Atlantis is
+shallow, not that depth is cheap.
 
-### ⛔ There is no "diving trade", and calling it one was the error
+### The lifeline
 
-Drafted first as a third RGO family beside ice and whaling. **Wrong.**
-User, 2026-10-08:
+**A boundary two-anchor object** (the door/window/bridge shape) whose diver
+end **moves with the diver**: fixed at a boat, a bank, a hole's edge or a
+bell; a real **length** (depth plus distance sideways — the leash). It
+affords **`haul`** (the tender raises the body band by band at the tender's
+power — the rescue for a diver who cannot act), **`tug`** (line signals, a
+tiny agreed vocabulary, carried by the rope regardless of the medium — one
+rope carrying the air, the safety and the only channel) and **following it
+back** (under ice the only way to the hole). Lines **foul** on what the
+bands along their path contain — a snag, wreckage — and hauling then fails
+until someone clears it.
 
-> *"I wanna distinguish 'diving' as a means to an end where the end is a
-> different thing… there's underwater mining, drilling, farming, all sorts
-> of stuff. And then there's just 'being underwater' which threads through
-> all this."*
+### The bell
 
-⭐⭐⭐ **Submersion is a TAX every underwater trade pays**, and the trades
-are whatever you are doing down there: gathering shellfish, mining,
-salvage, construction, drilling, cable-laying. So:
+A container of trapped air, **not a vehicle** — an upside-down bucket on a
+crane. ⭐ **A mixin, like `Exitable`, on either host**: a Thing for the
+two-man bell (co-present with the diver outside), a Location for the
+caisson, the habitat, Atlantis's airlock (the craft size rule). The mixin
+owns the **air stock** — compressing with depth so the water rises inside
+(Boyle), **fouling** with each breather's CO₂ at their exertion rate (the
+fire build already counts CO₂ against breathable share), refreshed by
+**Halley's weighted barrels** (1690s) and later the pump — the **waterline
+inside**, and the **position in the column**, changed by `haul` on its
+cable. Respiration already breathes the nearest container that holds a
+medium, so a body inside breathes its air. Lose the cable and the bell is a
+sinker with people in it, alive exactly as long as its stock.
 
-- ⛔ **It is not an RGO at all.**
-- ⭐⭐ **It belongs on
-  [rgo-unification-slate](./rgo-unification-slate.md)'s axis 2** —
-  *access mode · where it is · who can tap it* — which that slate already
-  calls *"the one the whole roster needs, because it is about the
-  economics rather than the fiction."* **Submerged is a missing ROW on
-  that axis**; the shellfish bank is merely the first RGO that exists
-  *only* behind it.
-- ✅ And *a different discipline entirely* survives: the discipline is
-  **being underwater**, and the same breath budget serves a gatherer, a
-  miner and a salvor.
+### The hard-hat suit
 
-⚠ **Which also explains the roster blindness** — the RGO census
-enumerated **products and places**, and submersion is neither. A family
-hid in a third axis, so the census should be re-run on it.
+The standard diving dress — copper helmet, canvas dress, lead weights and
+boots, a hose to a hand pump on deck (*"those suits that look like Big
+Daddies from Bioshock"*). Helmet, dress and boots are **wearables**; worn
+together they are a closed air system on **respiration's worn-supply path**
+(`AirTank`'s), whose source is **the hose** — a second line on the
+lifeline's shape. **The pump is a crewed device**: stop cranking and the
+`supply` drain starts. **You walk the bed** — too heavy to swim; the reverse
+of the free diver. Ascent is **hauled**, on the crew: the invariant holds.
 
-### ⭐⭐⭐ The architecture: a MEDIUM AFFORDANCE TABLE, not a diving subsystem
+- **Squeeze** — the pump stops and the helmet has no **non-return valve**:
+  the pressure drives the diver up into the helmet. The valve is a part
+  (assembly); a suit without it is a different, deadlier suit.
+- **Blow-up** — too much air inflates the dress and shoots you up: the bends
+  plus embolism. The exhaust valve is yours, and managing it is the skill.
 
-The medium is **already derived** (`level − elevation`, § 2). What is
-missing is one table saying **what a medium imposes**: which verbs work,
-which sense and comms channels carry, what the load math is, what the
-clock is.
+### The bends and narcosis
 
-⭐⭐ And `name-the-substrate-not-one-consumer` binds at once, because
-**water is not the only medium with a table**: vacuum, smoke, mud, the
-void. Same move as the `Expanse` (sea · desert · ice · space) — **name it
-the medium table, implement water, let vacuum be the second consumer.**
-The submarine, the space station and the smoke-filled room become one
-mechanism.
+⭐ **A hidden gas load**, as contamination is a silent population. Breathing
+compressed gas at depth, tissues take on dissolved gas with depth × time and
+release it with time at lower pressure — **Haldane (1908)**, a few
+compartments with half-times. Ascend faster than it leaves and it becomes
+**decompression sickness**, a harm condition reconciled on read, **after**
+you surface (joints → neurological → fatal). **Nothing in the body tells
+you**: you learn it from **dive tables**, a document bought or taught. The
+stops are **staying in a band** — September's *the stop is a stop set*,
+with no new verb. **Treatment is recompression** — back down, or a chamber a
+harbour town builds (the medic vertical's second consumer). Free divers do
+not get it, which is why it lives on the pump rung.
 
-### What submersion IMPOSES
+**Narcosis** below ~30 m on air — the rapture of the deep — is a
+three-voice condition: the character cheerful, the narrator noting what they
+just let go of.
 
-⭐⭐⭐ **No fire.** No forge, no hearth, no lamp, no cooking, no kiln, no
-smelt, no powder, no drying — and **light must be imported and is hard.**
-That one constraint decides *which crafts can exist underwater at all*,
-and the answer is almost none, which is why an underwater settlement is a
-different design problem rather than a wet town. **Everything hot happens
-topside.**
+### The tank and the submersible **[LEAN]**
 
-- **Breath** — a hard, short clock that must reserve its own exit
-- **Buoyancy** — load is *net negative*, so you carry almost nothing
-- **Speech fails** — Vocal is acoustic; water carries no intelligible voice
-- **Sight collapses** to turbidity, and ⭐ **colour is filtered**: red goes
-  first, so everything is blue-green and **blood looks black**. `Colour`
-  stores **transmittance** with `over()`/`stack()` (the glass build), so
-  **depth is a colour filter** on machinery that already exists
-- **Cold** — water conducts ~25× air, so thermal stops being flavour
-- **Pressure** — equalization, squeeze, and the bends once you breathe gas
-  at depth
-- **Most tools stop working** — you cannot swing against water
-  resistance, cannot sieve, cannot **pour**, cannot dry
-- **You cannot rest.** No sleep, no sitting, no camp. There is no staying
+- **The tank** — `AirTank` ships; the rung adds **air as an economy**:
+  tanks filled at a **powered compressor** (the grid or `ManaPowered`), a
+  counter business at a harbour, and ⭐ **bad air** — a compressor whose
+  intake breathes its own exhaust fills tanks with carbon monoxide.
+  Physiology carries over unchanged.
+- **The submersible** — a positioned Location with boundary's `Window`s, a
+  manipulator (`sample`, `get` through the hull) and a **rated hull**
+  (materials-response); below the rating, implosion, kept as a singularity.
 
-### What it EXPOSES
+### ⭐⭐ Underwater magic — a parallel ladder priced by canon **[DECIDED]**
 
-⚠ The gift half, which the exploration framing never asked for:
+*"Underwater magic sounds great; we'll want all this stuff."* Checked
+against [arcane-science.md](../../arcane-science.md) and needing no new rule:
 
-- ⭐⭐⭐ **The third dimension.** No land locomotion gives free vertical
-  movement — a diver has **volume**, not area. A new spatial affordance,
-  not a restricted one.
-- ⭐⭐⭐ **Weight becomes manageable.** You can move masses you could never
-  lift — **which is the actual reason hard-hat divers built bridges.** The
-  medium that takes your tools away hands you a crane.
-- **Preservation** — cold, dark, anoxic water keeps what the surface
-  destroys. The seabed is an **archive** (with the glacier and the ice
-  core, the realm's third).
-- **Concealment** — invisible from above and inaudible.
+- **Casting needs a voice, wands do not**; a scroll is read aloud (and paper
+  soaks — moot without a sealed case; a scroll's row may say otherwise). So
+  **you cast before you go in**, and only a wand or a worn item renews a
+  working below.
+- ⭐ **Breathing, light and warmth are HELD bindings** — *"magic is
+  excellent at what happens once and poor at what must be held"* — a
+  standing bill under Voss decay, so a pump crew undercuts magic for routine
+  work by canon, and **mundane diving keeps its market**.
+- ⭐⭐ **Underwater the built alternative is gone** — no flame burns — so
+  this is **the one place magic's expensive held bindings have no cheaper
+  rival**. The demand is real because the physics removed the competition.
+- **Casting warms you** — η < 1 dissipates in the caster — so a mage runs
+  warm against the water's cold, and a novice warmer than a master.
+- **Breathing water skips the compressed-gas ladder**: no bends, no
+  narcosis, no lung squeeze (lungs full of liquid do not compress —
+  perfluorocarbon liquid breathing is real). What still limits you is cold,
+  light, the working's clock, and the way back.
+- **Transform is unaffordable** — no spell makes a person a merfolk; gills
+  are a working that moves oxygen from water to blood for as long as it is
+  held. **Rule 6 holds**: a working that lapses at 40 m is magic generating
+  the problem and the breath arithmetic solving it.
+- EotL's shapes as rows: the bubble of air, the Kraken's crown, the
+  necklace.
 
-### ⭐⭐⭐ A mine kills you by GEOMETRY; water kills you by ARITHMETIC
+## 8. Materials for water **[DECIDED]**
 
-> You are never lost underwater in the sense of not knowing the way out.
-> **Up is always the way out.** You may simply not have the breath to
-> take it.
+What a material already carries: `waterAbsorptionCapacity` (a real % of dry
+mass), the wet law (`permeability()`, `wetProperty()`), conductivity and
+specific heat, textiles' derived clo (wet wool keeps more than wet linen),
+elasticity and toughness (rubber).
 
-⭐⭐ Which is **why § 2's *"ascent is never gated on skill"* is right** —
-not a mercy, the medium's actual topology. And it is the invariant the
-ice edge breaks (below).
+- **Sealants are a coating LAYER**, the dye stack's shape over an unchanged
+  substrate: permeability near zero, **decay modulated** (oil on iron — the
+  decomposition seam's first modifier), and **wear** — abrasion, time, heat
+  — so reapplying is upkeep and somebody's income (the caulker paying the
+  seams). ⭐ The chain already ships: pitch and tar (trade-fuel — Stockholm
+  tar is a charcoal by-product), beeswax (apiculture), tallow (butchery,
+  chandlery), linseed oil (flax), resin (forestry's sap). It makes a boat's
+  **seams an assembly part** whose permeability wears (an old hull leaks;
+  somebody bails), a tight barrel, dubbined boots, **oilskins**. One verb:
+  `coat <thing> with <material>`.
+- ⭐ **Wetness is bulk held in a porous solid.** A soaked object holds
+  capacity % × dry mass. So a **sponge is a vessel** whose capacity is its
+  material's: soaking it is `fill`, squeezing it is `pour`, and wringing a
+  wet shirt is the same act. Saturation and fill fraction are one number.
+  Natural sponge is the bed's cover (§ 12) with real processing (kill, rot,
+  beat, wash, bleach); cellulose and foam are later rows.
+- **Insulation in water** by epoch: grease (a coating on the body — channel
+  swimmers' goose fat), **wool** (the shipped wet-clo carve-out; the hard-hat
+  diver's woollens), sealskin; the **drysuit** (an outer layer of
+  permeability 0 over wool); the **wetsuit** — ⭐ **fit decides flushing**
+  (textiles' fit, so a loose wetsuit is cold) and ⭐ **foam compresses with
+  depth** (Boyle again, so neoprene insulates less deep). ⚠ Neoprene is
+  synthetic rubber, which the rubber build deferred to
+  [destructive-distillation-slate](./destructive-distillation-slate.md); sponge
+  rubber may be a rung between.
 
-### ⭐⭐ The ladder is about what the water IS to you
+## 9. Domes and air pockets **[LEAN]**
 
-Not depth and time — **relationship**, which is why each rung changes who
-you are rather than what your numbers are:
+Atlantis's dominant shape is **a town that happens to be underwater** —
+EotL's 490 rooms are mostly a theatre, shops, a whodunit and a shuttle.
 
-| rung | the water is | how it kills you |
+- **A dome is a Structure on the bed whose rooms are dry by ENVELOPE**, not
+  elevation — the room envelope (`enclosure:` material + thickness, the
+  rubber build) decides where water enters; a breach is a local flood.
+  Inside, rooms are ordinary content, and fire works.
+- **The airlock is a room that cycles its own medium** — the one mechanical
+  room; Atlantis's port docks a submersible or a shuttle there.
+- ⭐ **Air is a civic utility someone pays for** — `energy.md`'s
+  street-lighting pattern (producer, depleting store, civic bill), supplied
+  by a pump, a breathing tube to a float, an arcane source, or ⭐ **plants**:
+  a kelp garden makes oxygen only with light, so a shallow dome grows its
+  air and a deep one needs lamps and power (Biosphere 2's lesson).
+- ⭐ **Fire burns the city's air** — a forge under the sea is a permit with a
+  computable cost.
+- ⭐ **The inside pressure is the author's choice**: a **one-atmosphere dome**
+  (a rated hull; people come and go) or an **ambient habitat** (nothing to
+  implode; its people **saturate**, and reaching the surface takes days of
+  decompression — Atlantis's citizens could not simply leave). Derived from
+  the bends model.
+- **Natural air pockets** use the same air-stock physics and are often
+  **stale** — you can surface in one and not be able to breathe it.
+
+## 10. Wrecks, and what water does to things **[DECIDED]**
+
+*"I expect it will usually be players trying to salvage their own wrecks
+rather than its own enterprise."* So the question is **what an ordinary
+object endures underwater**, authored or emergent.
+
+| | cold, fresh, low-oxygen | warm and salt |
 |---|---|---|
-| **snorkel** | a **surface you look through** | it mostly does not |
-| **free dive** | a **place you visit**, on one breath | you **stay** |
-| **bell / pump** | a **place you work in** | you **ascend wrong** |
-| **scuba / sub** | a **place you inhabit** | you **run out, far from up** |
-
-⭐⭐ **And a snorkel is an INSTRUMENT, not a locomotion mode.** You stay
-in air with your face in water and **look down**, so its function is
-**reconnaissance** — survey a bed without spending breath on it. That
-slots into `instrumentation.md` as a thing raising the **ceiling on a
-sight channel**, and it means you can **prospect** before you commit.
-
-### The edges
-
-#### ⚠⚠ Tidepools — and the SIXTH orphan
-
-A tidepool is underwater **sometimes**, so it is the first place where
-**the medium itself is on a clock.**
-
-⭐⭐⭐ **And the driver already ships while the thing it drives does
-not.** `CelestialLogic` has `moonPhase`, `moonAltitudeDeg` and the
-synodic month — and `fishing.md` names *"the tide clock"* **twice, as a
-deferral** (*"the tide clock replaces this one function"*). **The moon
-shipped and the tide it drives did not** — the sixth instance of the ice
-slate's standing check, and the purest: the forcing function is complete,
-pure and memoized, and nothing asks it anything.
-
-⭐⭐ **A tidepool is the first-contact version of the whole activity:**
-no equipment, no breath cost, no risk, real yield, replenished by the
-tide, **at a time that is computable.** A newbie learns the lunar clock by
-arriving at the wrong hour and finding water — a better tutorial than any
-authored one. ⭐ And the honest danger is not deep water: **it is being
-cut off by the tide**, drowning in four feet because the causeway closed.
-The intertidal zone is also **`level − elevation`'s first dynamic
-consumer**, since the level finally moves.
-
-#### The trench — where diving stops applying entirely
-
-At full ocean depth **nothing about diving is relevant.** No body goes
-there; it is a **vehicle** problem, and the experience is the design:
-
-> ⭐⭐⭐ **The water stops being a medium you are IN and becomes a place
-> you are LOOKING AT through a window.** You are in a small lit room. The
-> room is the entire world. Outside is lethal, and beautiful.
-
-So the trench is a **spectating** experience with a different verb set —
-look, measure, sample through a manipulator — which makes it perceiver +
-instrumentation + display, **not locomotion.** ⭐ And it is the sharpest
-demonstration of *medium is derived*: still water, every affordance
-inverted.
-
-- ⭐⭐ **Implosion is the only death in the game with NO CLOCK.** Bleeding,
-  drowning, starving and freezing all give you time; a hull failure gives
-  you nothing. Keep it as a deliberate singularity — and it is bulk's
-  `sealed` rung plus materials-response, no new mechanism.
-- ⭐⭐ **Chemosynthesis.** Vent life does not run on sunlight, and the
-  entire rest of the realm's biology does. **The trench is where you learn
-  the sun is not the only energy source** — and the resource has a genuine
-  *should we*, because the vents are unique.
-- ⭐ **Bioluminescence** — the only light is made by living things.
-  `LightSource` ships. **A fish is a lamp.**
-
-#### ⭐⭐⭐ Under ice — where § 2's ascent invariant BREAKS
-
-**The ceiling is solid. Up is no longer the way out.** The hole you came
-in through is the only exit, it is dark, and the line is how you find it.
-
-> ⭐⭐⭐ **Under-ice diving converts water's arithmetic death into a
-> mine's geometric death** — the only place where both apply at once.
-
-⚠ **This is the one genuine exception to a DECIDED invariant**, and it
-emerges from **two systems neither of which was built for it**
-([climate-slate](./climate-slate.md) + this one). The lifeline stops
-being a precaution and becomes **the map.**
-
-### Drowning
-
-⚠ Requested explicitly (*"we have to talk about the experience of
-drowning however ugly it might be"*). The machinery is largely shipped:
-`respiration`'s asphyxiation + crisis drain, `mortality`'s **rescuable
-`dying` clock**, and § 5's *"the body goes limp and buoyancy places it;
-the lifeline is the rescue."*
-
-**What is true, because it decides the design.** You do not drown from
-lack of oxygen first — you drown from **CO₂**, which creates an
-involuntary, overwhelming urge to breathe. Then **laryngospasm**: the
-throat closes reflexively, so for a period you are not taking water in.
-Then hypoxia, unconsciousness, the spasm relaxes, and water enters.
-
-⭐⭐⭐ **Unconsciousness comes MINUTES before death**, which makes
-drowning **the most rescuable death there is** — especially in cold
-water. Physiologically true, and exactly the right design, because it
-makes the lifeline, the tender and the buddy **mechanically load-bearing
-instead of decorative.** The tender's attention — the thing the engine
-cannot measure — decides whether you come back, and `mortality.md`'s
-rescuable clock gets its best consumer.
-
-**And the ugly part is a design finding.** The experience is not a
-countdown; it is an escalation: **discomfort → urgency → panic → and
-then calm.** Hypoxia is euphoric; people stop struggling.
-
-⚠⚠ Which creates a transparency problem: **if the final state reads as
-peace, the player may not understand they are dying.**
-
-> ⭐⭐⭐ **The resolution is already doctrine — the three voices.** The
-> *character* experiences calm; the **narrator appraises** what the
-> character cannot. The character's sincere line says everything is fine
-> and the narrating line says it is not. **Drowning is the case that
-> proves the three-voice model is load-bearing rather than stylistic** —
-> the first place where honest perception and the truth are in direct
-> opposition, and **the gap IS the information.**
-> ([content-craft.md](../../content-craft.md) § 2.)
-
-Three more:
-
-- ⚠ `exertion.md`'s *"every limit SOFT — work never collapses a body"* is
-  in tension with drowning, and the resolution is clean: **the hard limit
-  belongs to the MEDIUM, not the body.** You never collapse from
-  exhaustion down there; you drown.
-- ⭐ **The body comes back on its own schedule** — § 3's *"a drowned body
-  sinks, then floats as decay gases form."* The thaw again: evidence
-  arriving later, unbidden.
-- ⭐⭐ **Secondary drowning.** Rescued, feels fine, dies hours later from
-  water in the lungs. Fits `harm.md`'s reconcile-on-read conditions, gives
-  the medic vertical a consumer, and **makes rescue incomplete** — far
-  better than a binary save.
-
-⚠ One content fact worth having: **most sailors historically could not
-swim.** The people most exposed to water were the least equipped for it.
-
----
-
-## 8a. ⚠⚠ The poison-pill audit — corrections to DECIDED items
-
-Run 2026-10-08 at the user's direction: *"it's the furthest along of the
-three but that also means it has the most biased design… those prior
-decisions might be the support we need or they might be poison pills."*
-Every **[DECIDED]** was asked whether it serves a **trade** or only a
-**descent**.
-
-⚠⚠ **The framing bias, first.** This document is titled *"places below
-the surface, **and the way back up**"* — an **exploration** slate, whose
-gravity is going down and surviving. A trade's gravity is **"what you came
-up with, and how often."** That bias is why the Journey looked like the
-right primitive.
-
-### ⚠⚠⚠ Pill 1 — the Journey is right for an expedition and fatal for a shift
-
-§ 5's lane/Journey model has bands, express/local stop sets, per-leg
-transaction boundaries and presence-triggered predators. Excellent for an
-expedition. But **a pearl diver does thirty to fifty dives in a working
-day** — a Journey each, with bands and per-leg faults, makes the trade
-unplayable. It is the three-year-voyage problem in miniature.
-
-⭐ **And § 5's own table already holds the answer**: *"between two
-**authored** rooms at different depths — ordinary traversal on a derived
-exit — **a staircase, wet**."* So the pill is not in the model, it is in
-**which half one reaches for.** Stated properly:
-
-> ⭐⭐⭐ **A worked bed is a PLACE you occupy, not a destination you
-> journey to.** The Journey is for *unauthored* column — exploration, an
-> uncharted wreck, Atlantis. **The shift happens in a room**, and breath
-> is the clock on how long you can *be* in it.
-
-Which is simply mining: you do not Journey into the shaft to swing a pick.
-
-### ⚠⚠ Pill 2 — the epoch ladder skips the rung that matters
-
-§ 4 goes **breath-hold → tank** and skips **surface supply** (the bell,
-the hard-hat and pump). Two problems:
-
-1. ⚠ **The bends did not arrive with tanks.** It arrived with surface
-   supply and compressed-air caissons — bridge builders, 1870s, *caisson
-   disease.* The danger-stack is **off by a rung**, attributed to the
-   latest one.
-2. ⭐⭐ **It is the rung that makes this a two-person trade.** A pumped
-   diver is **dependent** — his life held by a man turning a crank, paid
-   by the hour. Skip it and submersion stays a solo activity with a rope,
-   losing the most interesting labour relationship in it.
-
-### ⚠ Two riders
-
-- **Atlantis reachable by a medieval diver with a rope** — fine *if* the
-  reason is that Atlantis is **shallow** (an authored depth a free diver
-  can reach), not that depth is cheap. Without the rider **the epoch
-  ladder has nothing to sell**, since the top of the content sits at rung
-  one. **The author chooses the depth; depth is what the ladder buys.**
-- **`drop belt` never fails** — the right escape hatch, but it needs an
-  **economic cost** (the stone and belt are gear; historically the stone
-  came up on its own line and was reused). Otherwise risk stops being a
-  decision.
-
-### ✅ Three decisions that are load-bearing support
-
-- **"Ascent is never gated on skill. Only on breath and ballast."** Keep,
-  and note *why it is good for the TRADE* and not only for safety:
-  ⭐ **it puts the skill in yield-per-breath rather than in survival.** A
-  trade where competence decides whether you drown is a death-check; one
-  where it decides how much you bring up is a job.
-- **Net-negative buoyancy** (*"a bag of pearls is nothing; one ingot is a
-  sinker with you attached"*) — the decision that forces **trips, not
-  yield**, and therefore forces the boat and the second worker. The
-  strongest thing in the document for trade purposes.
-- **Body density from composition** — a **trade-off**, never a ranking.
-  ⛔ Promote the slate's *"never a number anyone sees"* from a note to a
-  **prohibition**: the moment it surfaces as a ranking, body type is a
-  productivity stat and it is a defect.
-
-### ⚠ One LEAN reversed
-
-§ 7 Q4: *"Pressure as harm at the breath-hold epoch — **none** (lean;
-free-divers equalize)."* **Go the other way.** **Ear squeeze for the
-untrained** is the real free-diver injury: self-limiting, nobody dies, and
-it is the trade's **"you have to be taught"** moment — a first-contact
-lesson delivered by your own body in the first ten minutes. Nothing is the
-safer choice and the duller one.
-
----
-
-## 8b. The trades behind the mode
-
-⚠ **Not a build list** — what the access mode makes possible.
-
-**The RGO (the first that exists only behind the mode).** Run the RGO law:
-
-- **Reservoir — the BED, and the bed is already GROUND.** `ground.md`
-  mints a floor for **every** Location, and § 2 already names the bed as
-  the column's terminus. So a bed can carry a seeded field exactly as a
-  `Deposit` does. ⛔ **Not fishing's derived fishery**: fishing happens at
-  a boundary and *the animal decides*; here you see it and pick it up.
-- ⭐⭐⭐ **And forestry is the precedent.** A `Wood` is *"ground with a
-  `StandMixin` cover, derive-on-read from its own soil, **stamped only by
-  the axe**."* **A sponge bank is seabed with a cover** — same shape,
-  making this the **third consumer** of that pattern (the coppice `Panel`,
-  the stand, the bed), which by the promotion rule is the signal to lift
-  it. **The mechanism ships with a different feedstock.**
-- ⭐⭐⭐ **Recharge depends on the ACT**, and this is the prize. Cut a
-  sponge above its base and the holdfast regrows; tear it out and the spot
-  is dead. **The conservation decision is inside the act**, made by hand,
-  by someone who can see what they are doing and benefits from doing it
-  wrong. So the final tranche is a complete set:
-
-| RGO | recharge | the conservation question |
-|---|---|---|
-| **ice** | 1.0, every winter | **there isn't one** — the control case |
-| **whaling** | ≈ 0 | pure **depletion** — whether to stop |
-| ⭐ **the bed** | **depends on the act** | a **technique** |
-
-  ⭐⭐ **It is the only one that teaches that sustainability is a SKILL
-  rather than a restraint** — you do not take less, you take *correctly*.
-  And coral (recharge ≈ 0, decades) means **the mode contains its own
-  depletion case**, far cheaper than whaling's.
-- **Act — trips, not yield.** Mining fills a cart; forestry drops a bole
-  you cannot lift; ⭐ **a diver brings up a handful, over and over.** The
-  bottleneck is **trips**, which is what forces the boat and the tender.
-- ⭐⭐ **Credit — the share, proven cheaply.** Whaling's hard problem is
-  that nobody owns a whale, so the **lay** must be a contract. **This has
-  the identical problem at one-tenth the size** — a diver, a tender, a
-  boat owner, a buyer, sharing a day's take. **So the share mechanism gets
-  proven here before whaling needs it to work**, which is a real argument
-  for ordering this first.
-
-**The others, which are ordinary trades paying the tax.** Underwater
-**mining** · **salvage** (§ 5c) · **construction** — bridge footings,
-harbour works, channel clearing, and the hard-hat diver's actual job, so
-submersion is also **infrastructure labour** · cable and pipe laying ·
-**recovery of a body**, which is who the town sends for · and deep-sea
-**nodule/vent** extraction at the industrial end.
-
-⭐⭐ **Products must be ROWS, not a vocabulary.** The named-work test:
-could an author build **a sacred cenote where you dive for offerings and
-it is taboo to keep anything**? That inverts the economics, and hardcoding
-shell/sponge/coral/pearl locks them out.
-
-### ⛔ The pearl is already forbidden
-
-⭐⭐⭐ A pearl is a textbook **variable-ratio reward**, and the deck
-already ratifies the refusal ([`46-reward`](../../lenses/46-reward.md))
-plus [`7-endogenous-value`](../../lenses/7-endogenous-value.md)'s
-**roulette test**. So this is doctrine, not taste — and the fix is the
-historical one: **the commodity was SHELL.** Mother-of-pearl was the
-entire industry's income and the pearl a bonus nobody budgeted.
-**The income is the work; the dream is the pearl.**
-
-### ⚠⚠ Lens 6's honest weak point
-
-**Unlike ice and whaling, the demand is NOT already shipped and unfed.**
-Ice had the icebox; whaling had `lamp-oil` with no recipe. **Nothing in
-the realm buys mother-of-pearl, sponges or coral.** Running the chain walk
-backwards gives three answers, ranked:
-
-1. ⭐⭐⭐ **Salvage is demand that already exists**, because the cargo was
-   already somebody's and already priced. **So the first consumer is the
-   wreck, not the shell** — *salvage first, harvest second.*
-2. ⭐ **Buttons and inlay** — tailoring and textiles ship.
-3. **Sponges are a cleaning tool** — couples to
-   [laundry-slate](../tails/laundry-slate.md) and room-condition.
-
----
-
-## 8c. The lens pass
-
-- **1 Pedagogy** — the strongest of the tranche. ⭐ `wind` already exists
-  as **both a Discipline row and a metabolism slow stock**, driven hard by
-  nothing; `awareness` reads a bed, `geology` if it is mineral. Four
-  derivables: **sustainability as technique** · the breath budget as
-  arithmetic · ⭐⭐ **the epochs' opposite failure modes** (staying kills
-  the free diver, ascending kills the pumped one, so rung one's lesson is
-  *actively wrong* at rung three) · and **shallow-water blackout**, where
-  the trick that extends your time kills you **without warning**.
-- **2 Expression** — ordinary case is a Location at depth with a cover
-  row, **no code**; and ⭐⭐ **because the bed is ground, anything that
-  works on ground works underwater.** Bespoke: a wreck, a flooded mine, a
-  cenote, a temple, Atlantis.
-- **3a Immersion** — ⭐⭐⭐ **you cannot talk**, and if the comms model
-  lets you, the fiction betrays itself immediately and obviously. The
-  historical answer is the content: **line signals**, a tiny agreed
-  vocabulary of tugs — **one rope carrying air, safety and the only
-  channel.** Plus the colour filter, the cold and the dark.
-- **3b Participation** — ⭐⭐ **who owns a bed?** Excludable (a fixed
-  place with extent) with **no title machinery**, since parcels are land.
-  So a polity must invent a licence, an allocation, a season or a size
-  limit — and ⭐⭐⭐ **a minimum-take rule is a conservation law the
-  mechanism will actually reward**, because recharge depends on the act.
-  **A law that works**, which is rare.
-- **4 Values** — ⭐⭐⭐ the **take-it-or-leave-it** cut: correct technique
-  costs breath and yield *now* and preserves a bank for a future you may
-  not see. **The engine measures both sides exactly and cannot say which
-  to choose.** ⛔ And the gauge temptation is a **"sustainability
-  score"** — refuse it; it is precisely the conversion lens 4 warns about.
-  ⭐⭐ Plus **the tender's attention**, which keeps a man alive and
-  **cannot be measured** — lens 4 pointed at labour rather than
-  distribution. ⚠ And *who goes down*: the pearling fleets ran on
-  indentured and Indigenous divers with appalling mortality.
-- **5 Continuity** — `descend`/`ascend`/`drop belt` answer at every rung
-  ✅, and ⭐ the test catches a real leak: **if the tank epoch needs a new
-  verb for a decompression stop, that is a failure** — § 5's *the stop is
-  a stop set* is the correct answer. ⭐⭐ And the obsolescence has class in
-  it: **the free diver is destroyed by the pump**, and the *ama* held on
-  into the 20th century partly by **refusing** the technology, because the
-  pump's economics required a boss.
-- **6 Economy** — § 8b above; the weak point is named rather than papered
-  over.
-- **7 Governance** — the licence, the season, the bed allocation, the
-  minimum take; **does the tender answer for the diver**, on what
-  criterion, with what appeal. ⭐ The minimum-take rule is a **tier C**
-  exhibit where the polity's choice has a *measurable ecological
-  consequence*, which tier C has been short of.
-
-### The Schell instruments
-
-- ⭐⭐⭐ [`62-transparency`](../../lenses/62-transparency.md) — its Q5
-  exposure is *"the clock runs while you type… move the input out of the
-  pressure window."* **The breath clock IS a pressure window**, so the
-  ruling is already written, and it converges with the no-comms physics:
-  > **The dive is decided at the surface and executed with a tiny
-  > vocabulary.** Set the plan topside; underwater the choices are few and
-  > large — keep going, take this one, drop the belt.
-
-  ⭐ Three independent constraints (Schell's pressure window, acoustic
-  physics, the 12× clock) land on the same answer.
-- ⭐⭐⭐ [`46-reward`](../../lenses/46-reward.md) +
-  [`7-endogenous-value`](../../lenses/7-endogenous-value.md) — the pearl,
-  above.
-- ⭐⭐ [`66-channels-and-dimensions`](../../lenses/66-channels-and-dimensions.md)
-  — *"we have one medium, so almost every interface decision is a
-  **dimension** decision."* Underwater **the channels themselves change**,
-  so this is a dimension decision **forced by the fiction rather than
-  chosen** — the third independent arrival at per-channel this session,
-  after the submarine and the comms failure.
-- ⭐⭐ [`27-time`](../../lenses/27-time.md) — *"his chapter is about
-  escaping time; ours about being subject to it."* ⭐ **This is the most
-  time-subject act in the design**: a hard, short clock with no pause and
-  no rewind, whose budget must reserve its own exit.
-- [`2-essential-experience`](../../lenses/2-essential-experience.md) — the
-  essence sentence, for ratification:
-  > ⭐⭐⭐ **Holding your breath and reaching for something, while
-  > somebody waits above.**
-
-  All three clauses are mechanical: the breath is the clock, the reach is
-  the gather, and *somebody waits above* is the tender, the rope, the
-  trips and the only channel.
-- ⚠ [`65-primality`](../../lenses/65-primality.md), as a counterweight —
-  by his test (*could an animal do it*) **submersion scores very high**,
-  which that entry calls *the enemy of pedagogy*. **The neocortex is in
-  the loop only because of the cut**, so the recharge-by-technique
-  decision is **load-bearing**: cut it for scope and what remains is a
-  primal hold-your-breath toy that still feels good.
-
----
-
-## 8d. What the audit changed
-
-Five things to build differently:
-
-1. ⭐⭐⭐ **A worked bed is a room, not a Journey.** The Journey is for
-   unauthored column.
-2. ⭐⭐ **Add the surface-supply rung**, and move the bends onto it.
-3. ⭐⭐⭐ **Salvage first, harvest second** — the only part whose demand
-   already exists.
-4. ⭐⭐⭐ **Shell is the income; the pearl is luck** — on ratified
-   doctrine.
-5. ⭐⭐ **Decide the dive at the surface**; underwater the vocabulary is
-   tiny.
-
-Plus: an economic cost on `drop belt` · the Atlantis-is-shallow rider ·
-ear squeeze for the untrained · body composition as a trade-off that must
-**never** surface as a number · ⛔ no sustainability gauge · and the
-**medium affordance table** as the actual substrate, with vacuum as its
-second consumer.
-
----
-
-## 7. Open
-
-1. **The abort rule for a breath-hold diver who runs out mid-column** —
-   `driver-incapable` then buoyancy places the body (lean), or the body
-   stays in the band it was in (harsher, simpler).
-2. **Where you surface** — the entry point by default with the current
-   deciding only over long ascents (lean), or the current always decides.
-3. **Ceilings and the gate** — reach-to-air within the column, or within N
-   hops across authored exits; and whether an air bell counts as air for
-   the gate (lean yes: it is where you breathe).
-4. **Pressure as harm at the breath-hold epoch** — none (lean; free-divers
-   equalize), or ear/sinus injury below a depth for the untrained.
-
-*(Retire when: the column, the medium and the ascent Journey ship and
-hunting has acted in one authored underwater place.)*
-
-## ⬅ From the maritime build (2026-10-14)
-
-- **Swimming is at the SURFACE until this build.** Respiration used to let the swim mode's medium win outright, so a person swimming across the estuary pool breathed water and drowned in seconds. It now breathes whichever of the water and the air over it the body can (a fish the water, a person the air). ⭐ Going under — the dive face, held breath, the ascent — is this slate's, and drowning while swimming comes back with it: the swimmer's position in the column (depth > 0) is what should make the swim medium the one they breathe.
+| iron | rusts slowly | **concretes** — gone inside in decades |
+| wood | waterlogged, **preserved** (the *Vasa*; Great Lakes wrecks) | **shipworm** eats it in years |
+| bronze, copper, gold, glass, stone | survive | survive |
+| cloth, leather, paper, food | only buried in anoxic silt | gone |
+| mechanisms | seize; cleanable | seize and corrode |
+| sealed containers | protect (1840s Baltic champagne was drinkable) | until the seal goes |
+
+- **Per material, from the water's salinity, temperature and oxygen**, an
+  **immersion response** on the material row beside the wet law;
+  **reconciled on read** from time submerged — a player's ship sunk ten
+  game-years ago computes once, when found.
+- **Burial in silt protects**; **fouling colonizes** — ⭐ **a wreck becomes a
+  reef**, habitat the derived fishery should read as structure.
+- ⭐ **Assembly decides functional vs scrap** — each part decays by its own
+  material: the bronze bell comes up a bell, the iron cannon a lump of
+  concretion (scrap via `salvage`), the rigging not at all.
+- **Title survives sinking** (chattel): a raised crate is still its owner's;
+  salvage of somebody else's is an award by contract, abandonment the
+  polity's call, and **the wreckers** (lights to lure ships) are
+  accountability's to record. **Lifting is displacement** — a sealed barrel
+  or a bag of air (`displacement` on a hollow thing, September's one
+  buoyancy addition).
+- Wrecks come from authors **and from play** — any craft that sinks goes to
+  the bed with cargo and title intact.
+
+⚠ **This is one consumer of a larger question** — decomposition everywhere,
+which so far exists only for corpses and food —
+**[PARKED] → [decomposition-slate](./decomposition-slate.md)**. This slate
+needs only the seam: *a material's decay rate is a function of its
+environment, reconciled on read.*
+
+## 11. Work below the waterline — `/trade/diving` **[DECIDED]**
+
+**Diving owns gear, a discipline and services; no resource.** It ships the
+stone and belt, lines, bell, the hard-hat dress and pump, dive tables; the
+discipline (equalizing, buoyancy control, line work, reading a bed); its
+verbs (`tug`, `drop belt`, `equalize` if it needs one); and the jobs, which
+are services: **tender and pump crew**, and the **diver for hire** —
+inspection, harbour works, bridge footings, cable laying, recovering a
+player's own wreck, ⭐ and **recovering a body** (who the town sends for).
+The trade-shopkeeping shape: a trade whose product is a service.
+
+⭐⭐ **The demand is REPAIR, not construction.** *"Our structures clone fully
+built or not at all"* — construction from scratch is missing everywhere, a
+cross-cutting gap **[PARKED] → [construction-slate](./construction-slate.md)**.
+But the repair build ships building upkeep, and **water wears things fastest
+of all** (§ 10): piles rot and shipworm eats them (San Francisco Bay's
+wharves, 1920s), fittings concrete, **intakes and outfalls foul and silt**,
+hulls foul, a weir's face scours. The works already exist — the Wharfside
+intake and outfall, the millsite weir, the *Hesper*'s hull, every quay —
+and once immersion decay reaches them **they need somebody below the
+waterline on a schedule physics sets**. *Upkeep is somebody's income.*
+
+- **Public gigs** — the markets faucet: clearing snags, dredging a silted
+  channel, recovering a body, inspecting a weir after a flood.
+- ⭐ **The diver's competitor is the tide.** **Careening** — beach her at
+  high water, scrape and caulk her dry at the ebb, float her off on the next
+  flood — is free with the tide tables, slow, and only where the range
+  allows. A diver is faster, works anywhere, and costs a wage.
+- Wet welding and riveting (1930s →) are the same job at a later rung.
+
+Kept from the audit: **the pumped diver is dependent** — his life held by a
+man turning a crank, paid by the hour — the most interesting labour
+relationship in it, and ⚠ **who goes down** (pearling fleets ran on
+indentured and Indigenous divers) is lens 4's, recorded on the
+**accountability ledger** (*you sent him down*), never resolved by it.
+
+## 12. The bed's harvest **[DECIDED]**, waiting on foraging
+
+- **The bed is ground with a cover** — forestry's `Wood` shape (ground with
+  a `StandMixin` cover, derived on read, changed only by the act) — making
+  it the pattern's **third consumer** (stand, coppice panel, bed), the
+  signal to lift the cover into kernel substrate.
+- ⭐⭐⭐ **Recharge depends on the harvest act's technique** — cut a sponge
+  above its base and it regrows, tear it out and the spot is dead; take the
+  big shellfish and leave the small; cut kelp at the canopy, not the
+  holdfast. **Sustainability as a skill rather than a restraint** — you do
+  not take less, you take *correctly*. ⛔ No sustainability gauge.
+- **Shell is the income; the pearl is luck** (the ratified refusal of a
+  variable-ratio reward). **Trips, not yield**. **Products are rows** — the
+  cenote where keeping anything is taboo must be authorable.
+- ⭐ **The bed is FORAGED only.** *"We generally only forage there, we don't
+  cultivate it."* Cultivation is mostly not underwater at all — oyster and
+  mussel beds worked on foot at low tide or from a boat, seaweed and pearl
+  lines from a boat, stew ponds and raceways from the bank — so it is
+  husbandry on water: **[PARKED] aquaculture**, its own thread.
+- ⚠ **It waits on foraging**, which has no slate yet: *"most of the
+  interesting content underwater is going to come after we build
+  foraging."* The harvest designs on whatever foraging decides on land.
+- ⭐ **Who owns a bed?** Water rights cover drawing water; nothing covers
+  occupying or harvesting the bed. The foreshore is often its own legal zone
+  (§ 13). A minimum-take rule is **a conservation law the mechanism will
+  actually reward**, because recharge depends on the act.
+
+## 13. ⭐⭐ Tides — from the shore **[DECIDED]**
+
+*"Most people only experience tides from the shore, either watching water
+levels change or seeing what the tide brought in… the interesting thing to
+me is tidepools, not tides, but it's all one thing."*
+
+**The mechanism is small**: a **level term on the moon clock** —
+semi-diurnal, springs at new and full moon, neaps at the quarters — with a
+**range per water** (a funnelling estuary huge, a sheltered sea small; lakes
+and rivers above the tidal reach none), feeding § 2's depth read.
+`CelestialLogic` has computed the moon for months and nothing asked it for a
+tide.
+
+- **The moving edge.** The shore is a strip of places across the range,
+  each a `depthM`; the waterline is wherever the level falls among them.
+  `look` reads it in words — *"the tide's on the turn; the rocks at the point
+  are already covered."*
+- ⭐ **What the tide brought in.** Each high water leaves a **strandline** —
+  seaweed, shells, driftwood, and whatever was floating: ⭐ **the realm's own
+  drift**. Buoyancy sends floaters up and the sea carries them, so
+  jettisoned cargo, a wreck's barrels, a body, the logs a river carried down
+  fetch up at the high-water mark: **the realm's losses arriving later,
+  unbidden**.
+- ⭐⭐ **Tidepools.** A water place in the strip with a basin: part of the sea
+  at the flood, **isolated at the ebb** — warming, salting as it
+  evaporates, short of oxygen, its stranded creatures living with it. **You
+  look into it** and reach in by hand (the trench's *"a place you look at"*
+  at its smallest). ⭐ **Zonation is the arithmetic of the tide**: barnacles
+  high, anemones and crabs lower, kelp at the bottom — derived from the
+  pool's `depthM` against exposure.
+- **The causeway that closes**, the tidal cave whose mouth becomes a
+  ceiling, the bar that floats a ship only at high water, the river's tidal
+  reach where the current reverses (river-slate).
+- **Tide tables are knowledge**, sold not shown — almanac → print → the
+  implant's calendar (lens 5).
+
+### Tidal streams — the tide offshore
+
+Offshore the tide is a **current**: it floods one way, ebbs the other, slack
+at the turn. **A tidal stream is a tide-phase term on a band's set** — a band
+declares a flood direction and a peak rate; the set runs peak × phase,
+strongest at mid-tide, zero at high and low water — integrated by the voyage
+exactly as a constant set is.
+
+- **Narrows make it fierce**: **tidal gates** (go through with the stream),
+  **races and overfalls** over shoals, and ⭐ **whirlpools** — the
+  Corryvreckan, the Maelstrom — **a hazard that exists only near peak
+  stream**, gone at slack: EotL's timed whirlpool, timed by the moon instead
+  of a random timer.
+- ⭐ **Slack water is the diver's window** — the column carries the current
+  at depth, so divers plan for slack: a dive decided at the surface by
+  reading the clock.
+- Far offshore it is negligible; an undeclared band has none.
+
+### The tide lens pass
+
+1. **Pedagogy** — the tide comes **~50 minutes later each day** (the lunar
+   day is 24 h 50 m) — the first-contact lesson is arriving at the wrong hour
+   and finding water; springs and neaps; zonation; drift.
+2. **Expression** — the smugglers' cove at low water, the tidal island
+   chapel, Mont-Saint-Michel's causeway, the mudflat crossing with a guide,
+   the drowned forest shown at the year's lowest tides, a stocked tidepool.
+3. **Immersion** — the shore is different at every visit. **Participation**
+   — the beachcomber, the cockler and bait digger, ⭐ **the guide across the
+   sands** (Morecambe Bay has had a Queen's Guide since 1548 — a seat), the
+   coastguard, the tide-table printer.
+4. **Values** — **who owns what washes up**: the finder, the lord ("right of
+   wreck") or the original owner (title survives sinking)? ⚠ And the
+   **Morecambe Bay cocklers** (2004, 23 migrant workers drowned, cut off by
+   the tide, working for a gangmaster) — risk sold to those least able to
+   refuse it.
+5. **Continuity** — the same knowledge and question at every rung.
+6. **Economy** — the wrack has shipped demand: **seaweed as fertilizer**
+   (soil's reserves), **kelp ash as soda for glass** (the Highland kelp boom),
+   driftwood as fuel and timber; cockles wait on foraging.
+7. **Governance** — **the foreshore** is often its own ownership zone in
+   law; the right of wreck; the guide as an office (criterion: the posted
+   crossing times; appeal: the polity).
+
+## 14. The surf **[DECIDED]**
+
+- **What arrives**: the expanse's sea state from local wind, plus ⭐ **swell
+  as a lagged term** — the weather field's wind over a distant band some days
+  ago, arriving long and organized (the field is stateless, so it is a pure
+  read at an earlier time and another place). A calm day can have big surf.
+- **Where it breaks**: shallower than ~1.3× its height, so ⭐ **the break
+  moves with the tide** (surfers read the same tables). **How**: by the
+  strip's slope — spilling (gentle), **plunging** (the barrel), surging and
+  the dumping shorebreak that breaks necks.
+- ⭐ **The currents are the killer, and "undertow" is the wrong word.** The
+  **longshore** current drifts you sideways; the **rip** takes piled-up water
+  back out through a gap (a sandbar, a pier, a groyne) in a narrow fast
+  channel — strongest with big surf at low tide, readable as the calm dark
+  lane between breakers. People drown swimming straight in against it; ⭐
+  **the escape is to swim parallel to the shore** — lens 1 teaching
+  something that saves real lives.
+- **The hold-down** is the breath model — two waves in a row; the shorebreak
+  impact; rocks and reef.
+- **Craft in the surf** — launching and landing through it (broaching, the
+  surfboat and lifeboat crews), the bar crossing.
+- **Surfing** — a board is a craft Thing (a hull row, paddle propulsion);
+  catching a wave is timing, riding is competence deciding *how much ride*;
+  the wipeout is everyone's physics. ⭐ **The culture is the players'** —
+  chiefs' reserved breaks in old Hawaii, *closest to the peak has the wave*
+  — a norm with nothing to compute, so no engine rule. Rivers surf too: a
+  rapid's standing wave.
+
+## 15. ⭐⭐ Life across the tree **[DECIDED]**
+
+*"'Aquatic species' is half the animal and plant kingdom and we're casting
+it off like it's one thing."* Walked case by case:
+
+| organism | holds? |
+|---|---|
+| trout, carp, eel (shipped) | ✅ gill breathers; habitat already tolerates by `oxygenMgL` |
+| an eel crossing land at night | ⚠ breathing must be a rate (finding 1) |
+| ⚠ **the shipped bullfrog** — `quadruped` plan, `air` only, lifecycle `alive, dead` | ✗ would drown underwater (no water place exists yet, so no live bug); no tadpole (findings 1, 2) |
+| mayfly, dragonfly, mosquito — larva under, adult in air | ✗ finding 2 |
+| salmon, eel — fresh and salt by life stage | ⚠ finding 5 |
+| seal, otter, whale, penguin, cormorant, turtle, crocodile | ✅ **our breath model is theirs** — a whale holds 90 minutes because its store is enormous |
+| a turtle overwintering under ice | ✅ once breathing is a rate |
+| crab, lobster walking the bed | ✅ the hard-hat diver's `walk` in the bed band |
+| clam, worm burrowing | ✅ the bed is ground |
+| coral, sponge, oyster bed, mussel bank | ✅ agent-first taxonomy: they cannot act on their own behalf → **covers** |
+| jellyfish, man o' war | ✅ a **hazard** carried by drift; a swarm is material |
+| octopus | ✅ an agent — hiding, ink as turbidity, size against a gap |
+| shark, dolphin | ⚠ finding 3 |
+| electric eel, stingray, stonefish | ✅ conduction spread, the toxin route, concealment + hazard |
+| a 30 m whale | ⚠ presence larger than the room — fine as seeded passing presence |
+| kelp, seagrass | ✅ covers, depth-limited by clarity |
+| algal bloom, cyanobacteria | ⚠ finding 4 |
+| bioluminescent plankton | ✅ a light property of the water as material |
+| cholera, schistosomiasis | ✅ watershed's contamination kind |
+| merfolk | ⚠ a hybrid plan breathing both, swimming, drying on land |
+| selkie | ✗ finding 2 |
+
+**The five findings:**
+
+1. ⭐ **Breathing is a RATE, not a medium tag.** Every body has an **oxygen
+   store** and an **intake rate per medium** by apparatus — lungs for air,
+   gills for water, skin for both, slowly. A body survives where intake
+   covers burn. § 4's breath model becomes **the general model for every
+   animal**, replacing `breathableMedia: [water]` as a yes/no.
+2. ⭐ **Apparatus and locomotion belong to the current FORM**, read per
+   lifecycle stage or shape — the tadpole and the frog, the larva and the
+   fly, the selkie's two shapes. One seam.
+3. **Every sense reads apparatus × medium** — `Vocal`'s rule generalised:
+   human smell fails underwater (you would inhale), a shark's works; the
+   **lateral line** and **electroreception** are new channels that work only
+   in water; echolocation sees through murk.
+4. ⭐ **Breathable water is a mixture, as air is** — the fire build's lesson
+   (*a breathable tag is not breathable air*) again. A fish needs **dissolved
+   oxygen**, derived: cold holds more, rapids aerate, plants add by day and
+   take by night, decay on the bed consumes. Respiration reads the same
+   `oxygenMgL` the fishery's habitat already does. It gives the tidepool
+   running short at the ebb and ⭐ **eutrophication** — the Delight's farm
+   nitrate → a bloom → an oxygen crash → fish killed **downstream**: lens 1
+   and the watershed's politics from numbers already on the row.
+5. **Salinity is a habitat tolerance**, by life stage where it changes.
+
+**Fauna presence.** *"Procedural is the population, never rooms"* (fishing):
+the bands read each species' habitat; **what is in a band now is a seeded
+field** (the expanse's traffic shape — FNV over water, band and game hour,
+weighted by the record), the same for everyone and unfarmable, read in
+words; **individuals are minted when acted on** (the hunt; a predator
+acting) — load-on-use. Authored places author their own cast (Atlantis's
+Kraken in its lair).
+
+**Aquatic people.** Breathing is respiration's inversion (amphibious
+species both). ⭐ **Merfolk dry out on land** (EotL's best idea) — a
+desiccation clock, the wet law reversed, a dip or a drink buying time: a
+water species' trips ashore as bounded as a diver's trips down. ⭐ **`Vocal`
+asks apparatus × medium**: merfolk talk to merfolk underwater while the
+human diver beside them cannot, and cannot be heard on the dock.
+
+## 16. The lens pass (2026-10-18, run at decision ~27)
+
+1. **Pedagogy** — strong: Manning, meanders, Boyle, CO₂ vs O₂ and
+   shallow-water blackout, the dive reflex, Haldane, zonation, rips. ⚠ A
+   player can only learn what they can READ: **two `Reading` rows** — current
+   speed (a float and log) and water temperature (a thermometer); competence
+   sharpens them.
+2. **Expression** — the ordinary case is a row citing a water with a
+   `depthM`; the bespoke is authored rooms as external neighbours; boats and
+   gear are assembly rows with supply-chain depth.
+3. **Immersion** — the census was this lens working. ⚠ The new risk is ours:
+   **derived band and stretch rooms will read generic** — *"you are in a
+   run"* forty times. **Prose banks with seeded variation**, plus the
+   derived delta on entry, are a **budgeted build line**, not a footnote.
+   **Participation** — tender, hauler, ferryman, river pilot, boatwright,
+   caulker, the snag-boat gig, the guide across the sands. ⚠ The hole: **who
+   owns a bed or a stretch** (§ 12).
+4. **Values** — body composition never a number; the tender's attention
+   unmeasurable; ⚠ **hiring someone to go down** belongs on the
+   accountability ledger.
+5. **Continuity** — `descend`/`ascend`/`haul`/`tug`/`drop belt` at every
+   rung; the stop is staying; one Ship and one set of Helm verbs; an oar
+   becomes an outboard by `fit`. No leaks.
+6. **Economy** — ⚠⚠ the weak lens, and it orders the builds (§ 17):
+   salvage is the only demand that existed first; **repair of submerged
+   works** (§ 11) is demand that physics creates on content that exists;
+   river craft are supply waiting for destinations.
+7. **Governance** — thin, correctly: the bed licence, the right of wreck,
+   the foreshore, the guide's seat, whether a tender answers for a diver —
+   criterion, appeal and tier as each is designed.
+
+**Altitude.** *Invariant*: the medium is derived and water a state; ascent
+never gated on skill; no roll decides what an action did; a course plans on
+claims, never truth. *Grain* (an author's default): the band and stretch
+templates and thresholds, the line-signal vocabulary, scrolls needing a
+voice, every killer's constants.
+
+September's essence sentence, still the one: ⭐⭐⭐ **Holding your breath and
+reaching for something, while somebody waits above.**
+
+## 17. Build order and dependencies
+
+Lens 6 orders them:
+
+1. **The water place** (this slate): water as a state, the column, the
+   body, the census's seams, combat's medium terms, the lifeline, the bell,
+   the hard-hat suit, `/trade/diving`'s gear and services, tides and the
+   shore, the five life findings.
+2. **The river as a line** ([river-slate](./river-slate.md)).
+3. **Craft on rivers** (river-slate) — once content along the river gives
+   anyone a reason to go somewhere on it.
+
+Waits on others: the **harvest** on foraging (no slate yet); wreck decay on
+[decomposition-slate](./decomposition-slate.md) (only the seam is needed
+here); construction-from-scratch work on
+[construction-slate](./construction-slate.md); neoprene on
+[destructive-distillation-slate](./destructive-distillation-slate.md).
+
+## 18. ⬅ From the storage-and-ice build (2026-10-18)
+
+The ice build (build-4) recorded these on this slate before merging; they
+are folded in so its merge resolves to this text.
+
+- **What exists**: a `Pool` authors `bed: <row>` — the water pack's
+  `pool-bottom`, a sealed holder — and `Pool.sinks(thing)` (material density
+  against `BiomeApi.densityOf('water')`; anything that acts, moves itself or
+  is fixed never sinks) with `Pool.sink(thing)` on arrival in open water and
+  at the thaw. The pool is the ONE seam, so § 3's bed band changes
+  `Pool.sink` and the row and nothing else. Floaters stay in the place;
+  hollow things are not modelled.
+- **The bed is LISTED** — `pool-bottom` is an ordinary prop, so the pool's
+  `look` shows "the bottom of the pool" under HERE in summer and on 7 cm of
+  black ice alike. Whether the bed is seen from the surface (clear water, a
+  sounding, never through ice) is sight through the column (§ 5, seam 10).
+- **A swim through winter ice took a body down in SILENCE** — every act
+  refused "not conscious enough" while `assess` read unhurt; cold, most
+  likely. § 4's rule: the cold clock needs a felt voice.
+- **A break-through never heals** — the sheet's broken patch still read so
+  after three days of hard frost; it should regrow like a cut one. The ice
+  build's to fix.
+- ⬅ From maritime (2026-10-14): **swimming is at the surface until this
+  build** — the swimmer breathes whichever of water and air the body can;
+  going under (depth > 0) is what makes the water the medium breathed.
+
+## 19. Parked, and open
+
+**[PARKED]**, each its own conversation: decomposition · flooding
+([flooding-slate](./flooding-slate.md)) · construction · aquaculture ·
+foraging (for the harvest). **Not yet talked through** (named by the lenses,
+offered and passed over): finding your way underwater (counting kicks, the
+bed's slope, whether a dive writes `walked` claims) · sacred water (the
+cenote of offerings, drowned gods, ordeal by water).
+
+**Open:**
+
+1. The bell mixin's and the water-state mixin's names.
+2. Where the five life findings land — respiration's own build, or this one.
+3. The `Medium` row: a new idea kind, or columns on `Biome` (⚠ the biome may
+   only say what the outside AIR is doing — which argues for its own row).
+4. Bed and foreshore ownership — the RGO pass's, with the governance lens.

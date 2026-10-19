@@ -60,6 +60,16 @@ data:
     - { itemTemplatePath: /stuff/thing/armor/mail-hauberk, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/breastplate, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/leather-boots, par: 2 }
+    # ⭐ (rubber build) Rubber boots and gloves JOIN the leather — a competing
+    # product, not a replacement: the works casts them, the store stocks them.
+    - { itemTemplatePath: /trade/rubber/thing/rubber-boots, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/rubber-gloves, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/rubberized-coat, par: 1 }
+    # ⭐ (rubber build) Off-the-rack trousers, plain and elastic, side
+    # by side: the plain pair is cut for the average body and the elastic
+    # one gives. The tailor still cuts you a pair that fits.
+    - { itemTemplatePath: /trade/tailoring/thing/trousers, par: 2 }
+    - { itemTemplatePath: /trade/rubber/thing/elastic-trousers, par: 2 }
     # ⭐⭐ **Past the medieval.** A bow and a musket on the same shelf,
     # priced so the choice between them is a real one rather than a
     # ladder you climb: the musket carries thirty times the energy and
@@ -170,6 +180,8 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/weld, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/woad, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/madder, par: 2 }
+    # ⭐ (rubber build) The rubber dandelion — a temperate rubber from a field.
+    - { itemTemplatePath: /trade/farming/thing/seed/kok-saghyz, par: 2 }
     # The homebrew line (fermentation D15/P13): the whole kit on the
     # stipend — carboy, small press, small mash tun, culture jar, and
     # the small pot still, sold openly (D11's fire is the deterrent;
@@ -322,8 +334,8 @@ data:
     # `stocking`: the ask is the market-maker's — an empty shelf asks
     # half again the base, a full one the base — an offer, never an
     # oracle, and the Reserve's price index reads it.
-    - { itemTemplatePath: /trade/farming/thing/crate-of-limes, par: 3, supplier: /world/terminus/counting-houses/distributor/idea/business, pricing: stocking }
-    - { itemTemplatePath: /trade/cooking/thing/coffee-sack, par: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, pricing: stocking }
+    - { itemTemplatePath: /trade/farming/thing/crate-of-limes, par: 3, from: { supplier: /world/terminus/counting-houses/distributor/idea/business }, pricing: stocking }
+    - { itemTemplatePath: /trade/cooking/thing/coffee-sack, par: 2, from: { supplier: /world/terminus/counting-houses/distributor/idea/business }, pricing: stocking }
     # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a bowl
     # and a twist of fish food — inputs, which is what a
     # general store sells. What comes out of the river is consigned at
@@ -421,6 +433,11 @@ data:
     # season's — armour is the most expensive thing a new player wants,
     # which is why the gambeson exists at 14.
     /stuff/thing/armor/leather-boots: 8
+    /trade/rubber/thing/rubber-boots: 11
+    /trade/rubber/thing/rubber-gloves: 6
+    /trade/rubber/thing/rubberized-coat: 18
+    /trade/tailoring/thing/trousers: 8
+    /trade/rubber/thing/elastic-trousers: 10
     /stuff/thing/armor/hide-jerkin: 12
     /stuff/thing/armor/padded-gambeson: 14
     /stuff/thing/armor/mail-hauberk: 40
@@ -448,6 +465,7 @@ data:
     /trade/farming/thing/seed/weld: 5
     /trade/farming/thing/seed/woad: 7
     /trade/farming/thing/seed/madder: 14
+    /trade/farming/thing/seed/kok-saghyz: 8
     /trade/farming/thing/seed/lime: 6
     /trade/farming/thing/seed/lemon: 6
     /trade/farming/thing/seed/orange: 6

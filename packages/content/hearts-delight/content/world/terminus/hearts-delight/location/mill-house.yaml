@@ -9,6 +9,8 @@ data:
   register: definite
   _address: terminus/hearts-delight/millsite/mill-house
   _biomePath: /stuff/idea/biome/indoor/baseline
+  # What it is made of (rubber's construction: walls and roof).
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   ambientSource: sky
   ambientOpening: windows
   ambientIntensity: 6000

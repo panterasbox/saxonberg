@@ -123,6 +123,14 @@ export interface ResistanceCandidate {
   construction: Construction | null;
 }
 
+/** How wet a contact layer is, and with what — the wet law's two inputs. */
+export interface ContactWetness {
+  /** The layer's own wetness gauge, 0..1. */
+  saturation: number;
+  /** The conductivity of what it is wet with, S/m (fresh water ≈ 0.01). */
+  fluidSigma: number;
+}
+
 export class MaterialApi {
   // The `materialOf` read-wrapper was removed: the read lives on the
   // object itself — narrow with `MixinApi.isTangible(stuff)` and call
@@ -350,9 +358,17 @@ export class MaterialApi {
    * node (`R = (L/A)/σ`). A conductor → ~0; an insulator (or unknown
    * material) → a large-but-finite ceiling (an open break). The per-layer
    * half of the covering-stack series sum — the armor inversion's engine.
+   *
+   * ⭐ `wet` (rubber build): a layer soaked in a fluid conducts by the wet
+   * law — `σ_eff = material.wetProperty(σ, fluidSigma, saturation)` — so a
+   * soaked leather boot is a conductor and a soaked rubber one is not.
+   * Dry callers are byte-identical.
    */
-  public static contactResistance(material: Material | null): Quantity<'Ω'> {
-    return logic().contactResistance(material);
+  public static contactResistance(
+    material: Material | null,
+    wet?: ContactWetness,
+  ): Quantity<'Ω'> {
+    return logic().contactResistance(material, wet);
   }
 
   /**

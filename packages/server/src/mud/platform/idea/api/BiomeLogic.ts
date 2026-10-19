@@ -7,6 +7,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
+import type { Exposure } from '../../../lib/spatial/Exposure';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import Biome from '../../../lib/biome/Biome';
 import { Quantity } from '../../../lib/quantity';
@@ -303,7 +304,7 @@ export class BiomeLogic extends ApiLogic {
     // other deviated field — a storm still reads low on the barometer,
     // over whatever base the elevation step settled. (Which is also why
     // a barometric altimeter is fooled by weather in real life.)
-    if (WeatherApi.isActive() && skyExposedWalk(scope)) {
+    if (WeatherApi.isActive() && airIsOutside(scope)) {
       const locality = await AddressApi.resolveLocalityFor(scope);
       const dev = WeatherApi.deviatedFieldFor(
         scope,
@@ -606,13 +607,19 @@ export class BiomeLogic extends ApiLogic {
     return skyExposedWalk(scope);
   }
 
+  /** See {@link BiomeApi.exposureOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public exposureOf(scope: Stuff): Exposure | null {
+    return exposureWalk(scope);
+  }
+
   // ---------- the evaporation reads (SYNC) ----------
 
   /** See {@link BiomeApi.airFor}. */
   @CallSecurity(BiomeApiCallers)
   public airFor(scope: Stuff): Evaporation {
     const base = localAir(scope);
-    if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return base;
+    if (!WeatherApi.isActive() || !airIsOutside(scope)) return base;
     // The climate substitutes for the universe constant whether or not a
     // Locality is known — a sky with no weather is still a sky with a
     // season. The weather's deviation needs the Locality (null until the
@@ -640,7 +647,7 @@ export class BiomeLogic extends ApiLogic {
     if (
       !(windowS > 0) ||
       !WeatherApi.isActive() ||
-      !skyExposedWalk(scope) ||
+      !airIsOutside(scope) ||
       locality === null
     ) {
       // Indoors, weather-absent, unresolved, or an empty window: one
@@ -656,6 +663,7 @@ export class BiomeLogic extends ApiLogic {
     }
 
     const site = climateSiteSyncOf(scope);
+    const rainReaches = exposureWalk(scope)?.rainReaches() ?? false;
     const segments = WeatherApi.segmentsBetween(
       Quantity.of(t0S, 's'),
       Quantity.of(t1S, 's'),
@@ -685,7 +693,8 @@ export class BiomeLogic extends ApiLogic {
       // A segment's type is constant, so any sub-window gives the rate.
       const hours = seg.overlapS / 3600;
       let rainMmPerH = 0;
-      if (hours > 0) {
+      // ⭐ Under an awning the air is the street's and the rain is not.
+      if (hours > 0 && rainReaches) {
         const fell = WeatherApi.precipitationBetween(
           Quantity.of(seg.startsAtS, 's'),
           Quantity.of(seg.startsAtS + seg.overlapS, 's'),
@@ -720,6 +729,34 @@ function skyExposedWalk(scope: Stuff): boolean {
     cursor = stepOutward(cursor);
   }
   return false;
+}
+
+/**
+ * ⭐⭐ The construction answer for the place `scope` is in: the innermost
+ * atmospheric scope (itself, or the first outward) and its exposure.
+ */
+function exposureWalk(scope: Stuff): Exposure | null {
+  let cursor: Stuff | null = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      return (cursor as Stuff & Atmospheric).exposure();
+    }
+    cursor = stepOutward(cursor);
+  }
+  return null;
+}
+
+/**
+ * ⭐ Is the AIR of the place `scope` is in the outside air — does the
+ * weather's deviation reach it? True when that place holds no air of its
+ * own (an open top, or no walls: a street, a pen, an awning). This is the
+ * question every weather-deviation gate below asks; for an undeclared
+ * place it is exactly the legacy biome answer.
+ */
+function airIsOutside(scope: Stuff): boolean {
+  const e = exposureWalk(scope);
+  return e !== null && !e.holdsAir();
 }
 
 /**
@@ -1068,7 +1105,7 @@ async function temperatureTraceFor(
     (a) => a._temperature,
   );
   if (trace.sourcePath !== ROOT_BIOME_PATH) return trace;
-  if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return trace;
+  if (!WeatherApi.isActive() || !airIsOutside(scope)) return trace;
   const site = await climateSiteOf(scope);
   const locality = await AddressApi.resolveLocalityFor(scope);
   const now = WorldClockApi.getNow();
@@ -1102,7 +1139,7 @@ async function liveTemperatureTraceFor(
 ): Promise<AtmosphericTrace<Quantity<'K'>>> {
   const trace = await temperatureTraceFor(scope, detailKey);
   if (trace.source === 'climate') return trace;
-  if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return trace;
+  if (!WeatherApi.isActive() || !airIsOutside(scope)) return trace;
   const locality = await AddressApi.resolveLocalityFor(scope);
   const site = await climateSiteOf(scope);
   const dev = WeatherApi.deviatedFieldFor(
@@ -1194,6 +1231,25 @@ async function resolveEnvelopeTemperature(
   envelopeResolving.add(scope.stuffId);
   try {
     host.envelopeOutsideK = await outsideKFor(scope);
+    // ⭐ (D7) One hop to the rooms of the same building this one shares a
+    // face with: resolve each one's outside if it has none, and bring it
+    // current once, so the neighbour temperature this room reads is
+    // current to this read. Never recursive — a neighbour's own reconcile
+    // reads THIS room's last value, and the reentry set holds.
+    for (const face of host.exposure().interiorFaces()) {
+      const n = face.neighbour;
+      if (!n || !MixinApi.isAtmospheric(n)) continue;
+      if (envelopeResolving.has(n.stuffId) || !n.envelopeApplies()) continue;
+      envelopeResolving.add(n.stuffId);
+      try {
+        if (n.envelopeOutsideK === null) n.envelopeOutsideK = await outsideKFor(n);
+        n.reconcileEnvelope();
+      } catch {
+        // a neighbour that fails to resolve is skipped
+      } finally {
+        envelopeResolving.delete(n.stuffId);
+      }
+    }
   } finally {
     envelopeResolving.delete(scope.stuffId);
   }
@@ -1278,7 +1334,7 @@ async function resolveQuantityFor<U extends Unit>(
   if (
     WEATHER_DEVIATED_FIELDS.has(fieldBare) &&
     WeatherApi.isActive() &&
-    skyExposedWalk(scope)
+    airIsOutside(scope)
   ) {
     const locality = await AddressApi.resolveLocalityFor(scope);
     // Pin-aware (Wave 2): when an authored pin governs this scope, fold the
@@ -1720,7 +1776,7 @@ function liveDeviation(
   scope: Stuff,
 ): { humidity: number; wind: number; temperature: number } | null {
   if (!WeatherApi.isActive()) return null;
-  if (!skyExposedWalk(scope)) return null;
+  if (!airIsOutside(scope)) return null;
   const locality = weatherLocalityOf(scope);
   if (locality === null) return null;
   const nowS = WorldClockApi.getNow();

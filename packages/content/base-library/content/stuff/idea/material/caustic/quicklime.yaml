@@ -29,7 +29,8 @@ data:
   # needs no fire, quicklime is fast and burnt, and marl survives as the
   # fuel-free path.
   tags: [mineral, caustic, alkali, liming]
-  corrosiveTo: [organic, tissue, leather, textile]
+  # (rubber build) `organic` → `once-living`: lime does not eat rubber.
+  corrosiveTo: [tissue, leather, textile, once-living]
   density: 3340
   thermalConductivity: 0.5
   specificHeat: 750

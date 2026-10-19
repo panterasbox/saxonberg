@@ -143,3 +143,32 @@ describe('a greedy field fed SEVERAL tokens is free text', () => {
     );
   });
 });
+
+describe('⭐ a TRAILING greedy OBJECT field is a name, so a lone quoted token unquotes', () => {
+  /**
+   * Found driving the rubber build in a browser: `buy "rubber boots"`
+   * bought them and the next `get "latex cup"` / `look "rubber boots"`
+   * answered *"unexpected character '\"' at position 0"* — `get` and
+   * `look` are trailing greedy object fields, whose value goes to MQL,
+   * which has no use for a quote mark. The type is what says NAME.
+   */
+  const GET = `
+verbs: [get]
+controller: /platform/idea/cmd/inventory/GetController
+description: "Pick something up"
+args:
+  - name: targets
+    type: objects
+    required: true
+    greedy: true
+`;
+
+  it('binds the unquoted phrase', () => {
+    expect(JSON.stringify(bind('get "latex cup"', GET).targets)).toContain('latex cup');
+    expect(JSON.stringify(bind('get "latex cup"', GET).targets)).not.toContain('\\"');
+  });
+
+  it('while a trailing STRING field still keeps its quotes (`say`)', () => {
+    expect(bind('post "hello world"', TRAILING).line).toBe('"hello world"');
+  });
+});

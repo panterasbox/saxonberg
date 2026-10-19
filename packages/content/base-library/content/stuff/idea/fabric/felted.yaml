@@ -17,3 +17,6 @@ data:
   # hat and a boot-liner out of.
   weaveDensity: 0.85
   drape: 0.3
+  # ⭐ (rubber build) Felting matts the fibres solid: whatever the
+  # wool would have given, a felt gives nothing.
+  stretch: 0

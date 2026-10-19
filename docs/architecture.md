@@ -196,7 +196,13 @@ adding.
   `lib/persistence/SchemaDoc.ts`'s
   `SchemaDoc` — the parsed, validated form of one authored collection
   description, no `fs` and no YAML parser, so the three readers hand it
-  an already-parsed object), an enum-like vocabulary plus
+  an already-parsed object; and the rubber build's two —
+  `lib/spatial/Exposure.ts`'s `Exposure` (the one face rule over a
+  place's construction: top, faces, `holdsAir`, `rainReaches`, sky light)
+  and `lib/material/Crosslinking.ts`'s `Crosslinking` (the cure curve as
+  data on a feedstock material), see
+  [construction.md](./subsystems/construction.md) and
+  [rubber.md](./subsystems/rubber.md)), an enum-like vocabulary plus
   its validation array (`lib/persistence/Collections.ts`'s
   `Collections` — collection *names*, no driver and no I/O, which is
   why it lives here and `backend/PersistenceManager` re-exports it
@@ -1307,6 +1313,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`, and by `CastMixin`. |
 | `lib/npc/` | `CastMixin` | the **identity rung**: `SingletonMixin` plus the authored dossier (`archetype` · `prologue` · `competence` · `renown`), seeded once at `onCreate` as `claim` evidence. ⭐ A mixin rather than a base class because identity and capability are two axes and TypeScript has single inheritance — Dave must be a `Crafter` *and* cast. Clone targets `platform/agent/Cast` / `platform/agent/Extra`. See [identity.md](./subsystems/identity.md). |
+| `lib/stuff/` | `PropsMixin` | ⭐ the `props:` half alone — what a host is BORN HOLDING, with no troupe: a person's loadout. `NPC` composes it, so a plain `Cast`/`Extra` row's `props:` lands in its hands (split out of `StagedMixin` at the storage-and-ice sweep, 2026-10-18 — undeclared, the field was dropped in silence: the ice crew, the Rejection hewers and the wharfside fisher were born empty-handed). `StagedMixin` stays flat (props + cast) — one more level of nested mixin inference collapses the deep stacks to `never` — and shares the minting walk. |
 | `lib/stuff/` | `StagedMixin` | declarative born-with content for Container hosts, in the theatre vocabulary — **`props:`** the set dressing and **`cast:`** the troupe, with `costume:` the third designation on {@link CostumedMixin} because its host is a body. ⭐ Was `PopulatesMixin`; renamed 2026-09-25 to pair with the `Offstage` room off-shift cast already wait in. `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, <member>: …}` object — ⭐ **the key IS the placement member's name** (`on`, `from`, and whatever a pack ships), placing it on an already-populated sibling via `ContainmentApi.place`. Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |

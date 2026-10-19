@@ -32,7 +32,7 @@ import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
  * sites the drive did not reach — equip's several-thing chain, a tap, the
  * ditch, grub, lime, flatten, crack, mow, plough.
  */
-export const COMPLETION_THIS_CEILING = 8;
+export const COMPLETION_THIS_CEILING = 7;
 
 export interface CompletionThisFinding {
   file: string;

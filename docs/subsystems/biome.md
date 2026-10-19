@@ -573,6 +573,12 @@ point — premature abstraction for the three v1 consumers.
 
 ## `SkyExposedMixin`
 
+> ⚠ **Since the rubber build (2026-10) this is the LEGACY discriminator.**
+> Rain, light, sky view, wind and heat ask a place's construction
+> ([construction.md](./construction.md) — `BiomeApi.exposureOf`); the
+> biome's sky bit answers only for a place whose roof is undeclared, and
+> `lint:biome-sky` counts those interiors down. At zero this mixin retires.
+
 Capability seam for biomes whose Locations look out on the open
 sky. `SkyExposedBiome extends SkyExposedMixin(Biome)` is the
 concrete subclass outdoor biome leaves extend (parallel to

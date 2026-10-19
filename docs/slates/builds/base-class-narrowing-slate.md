@@ -287,6 +287,11 @@ real objection rather than the plausible one.
   split into a props-only rail for bodies — `Staged` bundles `props:`
   WITH `cast:`, so composing it on a person claims that person contains
   a cast. Four receipts. Gus becomes a ROW the day it lands.
+  ⭐ **The split landed** (storage-and-ice sweep, MR !378): `PropsMixin`
+  is the `props:` half alone and `NPC` composes it. Left: retire `Gus`'s
+  equip code and the `Katie` / `Walter` / `Realtor` / `Tinker` classes
+  into rows over plain `Cast` (each keeps a class only for what is NOT
+  its loadout).
 - **`Livestock` over `Actor`** (E15) — a head of stock cannot today
   be attacked or walk. Ranching's call; one word after the rung landed.
 - **The clone gate reads backwards** — found by the Agent drive.

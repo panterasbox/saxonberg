@@ -8,7 +8,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import { scoreCandidate } from '../scope-walk';
+import { scoreCandidate, scoreCandidates } from '../scope-walk';
 import type { ScopeCandidate } from '../scope-walk';
 
 const cand = (name: string, keywords: string[] = []): ScopeCandidate =>
@@ -70,5 +70,28 @@ describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
     const many = MqlApi.resolveMany('reachable:net', ctx);
     expect(many.stuff.map((s) => s.stuffId)).toContain(net.stuffId);
     expect(MqlApi.resolveOne('reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
+  });
+});
+
+describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
+  /**
+   * Found driving the rubber build in a browser: `get "latex cup"` took the
+   * three cups AND the coagulating pan, whose keywords say "latex pan".
+   * Scores only ordered; a plural verb took everything above zero.
+   */
+  const cup = cand('latex cup', ['cup', 'latex cup']);
+  const pan = cand('coagulating pan', ['pan', 'latex pan']);
+
+  it('⭐ "latex cup" keeps the cup and drops the pan', () => {
+    const got = scoreCandidates([cup, pan, cup], ['latex', 'cup']);
+    expect(got.length).toBe(2);
+  });
+
+  it('with no whole match, the partials still stand (the fallback)', () => {
+    expect(scoreCandidates([pan], ['latex', 'cup']).length).toBe(1);
+  });
+
+  it('a one-word query is unaffected', () => {
+    expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
   });
 });

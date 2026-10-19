@@ -22,7 +22,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Casting from '@saxonberg/server/mud/platform/thing/Casting';
+import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';

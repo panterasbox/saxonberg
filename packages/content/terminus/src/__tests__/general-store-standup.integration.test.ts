@@ -74,6 +74,7 @@ const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/tr
 const CHANDLERY_DIR = fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url));
 const FUEL_DIR = fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url));
 const QUARRYING_DIR = fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url));
+const RUBBER_DIR = fileURLToPath(new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
 // ⭐ The four packs the reachability sweep's shelf lines reach into. Each
@@ -286,6 +287,8 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/chandlery/", dir: () => CHANDLERY_DIR },
   { prefix: "/trade/fuel/", dir: () => FUEL_DIR },
   { prefix: "/trade/quarrying/", dir: () => QUARRYING_DIR },
+  // ⭐ The rubber works' boots, gloves and coat (rubber build).
+  { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 

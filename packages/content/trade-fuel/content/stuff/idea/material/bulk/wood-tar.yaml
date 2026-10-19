@@ -27,6 +27,6 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: [bulk, organic, flammable, tar]
+  tags: [bulk, organic, flammable, tar, once-living]
   composition: []
   biologicalSource: null

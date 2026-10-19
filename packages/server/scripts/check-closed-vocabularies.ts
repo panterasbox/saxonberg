@@ -142,6 +142,11 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'A designed three-rung weapon ladder whose rungs the combat ' +
     'arithmetic reads positionally. A fourth rung rebalances every ' +
     'weapon in the game.',
+  SEASONS:
+    'The four quarters of the orbit, in the celestial model\'s own words ' +
+    '(`Season`): a seasonal shift reads the season the sky does, and a ' +
+    'fifth season is a different planet, not a row (storage-and-ice D20, ' +
+    '2026-10-17).',
   DISCIPLINE_CHANNELS:
     'The procedural / conceptual / bodily split (Bloom, Kolb) — a ' +
     'taxonomy claim about how learning works, which is the advancement ' +

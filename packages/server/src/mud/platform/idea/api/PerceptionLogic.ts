@@ -1253,7 +1253,7 @@ function horizonAtSea(viewer: Stuff): HorizonView | null {
   if (craft === null || here === null || sea === null) return null;
   // Below decks there is no horizon: the watch is kept where the sky is.
   const room = roomOf(viewer);
-  if (room === null || !BiomeApi.isSkyExposed(room)) return { things: [], traffic: [], atSea: true };
+  if (room === null || !(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return { things: [], traffic: [], atSea: true };
   const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
   const contacts = sea.sightingsAmong(
     here, craft.sightHeightFor(viewer), 'visual', hour,
@@ -1277,7 +1277,8 @@ function horizonAtSea(viewer: Stuff): HorizonView | null {
 function horizonAshore(viewer: Stuff): HorizonView {
   const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
   if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
-  if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
+  // (rubber build) a horizon is seen from where the sky is.
+  if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return EMPTY_HORIZON;
   // The branch predicate is the narrowing (no value import of Place —
   // it closes a load cycle through the MQL pipeline).
   const place = room as unknown as Place;

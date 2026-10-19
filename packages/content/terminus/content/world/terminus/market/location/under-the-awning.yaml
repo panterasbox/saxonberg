@@ -1,0 +1,20 @@
+# Under the awning — ⭐ a LONE place (rubber build): no structure, no
+# walls, and a roof of striped canvas. Rain drums on it and does not reach
+# you; the wind blows straight through; it is as warm or cold as the
+# square, because a roof and no walls holds no air of its own. Complete on
+# its own — it needs nothing else to answer every sky question.
+class: /platform/location/Locale
+data:
+  coords: { x: 1, y: 0, z: 0 }
+  shortDescription: under the awning
+  keywords: [awning, canvas, stall, shelter]
+  register: proper
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  _address: terminus/city/counting-houses/market-square
+  enclosure: none
+  roof: { material: /stuff/idea/material/textile/canvas, thicknessM: 0.002 }
+  longDescription: |
+    The fish stall's long striped awning, stretched on poles over a strip of wet cobbles, its edges dripping. Under it the stall's ice sweats in its trays and the light comes through the canvas in stripes.
+  exits:
+    west:
+      destination: /world/terminus/market/square

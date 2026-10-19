@@ -864,6 +864,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public setDraught(value: number): void {
       if (!Number.isFinite(value)) return;
+      this.settleRoomAir();
       this.draught = Math.max(0, Math.min(1, value));
       this.restampHeated();
     }
@@ -1173,12 +1174,31 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
+     * ⭐⭐ Bring the room's air CURRENT before this fire's output changes.
+     * A room's envelope integrates lazily, on read, with the heaters as
+     * they are at the read — so a stove lit just now was credited for
+     * every hour since anybody last read the room. Live (rubber browser
+     * drive): a stove lit in a cold glasshouse, and the tree tapped a
+     * moment later said *"It has gone too warm"* — the hours nobody
+     * watched had been billed at the stove's full output. Settling first
+     * closes the gap at the OLD output, so the change bills only forward.
+     * A no-op for a fire that does not warm the room (a forge).
+     */
+    private settleRoomAir(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSpaceHeating(self) || !MixinApi.isContainable(self)) return;
+      const room = self.getContainer();
+      if (room && MixinApi.isAtmospheric(room)) room.reconcileEnvelope();
+    }
+
+    /**
      * The one place lit state goes false from inside this class — so
      * the burnout edge and `_setLit(false)` restamp identically. ⚠ The
      * burnout edge wrote `this.lit = false` directly before, and
      * therefore skipped a restamp path its sibling ran.
      */
     private _goOut(): void {
+      this.settleRoomAir();
       this.lit = false;
       this.restampHeated();
     }
@@ -1187,6 +1207,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     @Final
     @Unshadowable
     public _setLit(value: boolean): void {
+      this.settleRoomAir();
       this.lit = value === true;
       // ⭐ The eighth re-stamp trigger class (the `Atmospheric
       // .setTemperature` fan-out shape): lighting or dousing changes

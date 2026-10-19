@@ -473,6 +473,19 @@ describe("BuyController — buy that stamps", () => {
     expect(stock.onHand(TORCH)).toBe(1);
   });
 
+  it("⭐ the name the shelf list PRINTS buys the good, even when its keywords differ (the rubber live drive)", () => {
+    const { stock, torch } = makeStore({
+      attendDurationMs: 0,
+      staffingPolicy: "self-service",
+      price: 5,
+    });
+    // The slate prints the template leaf; the good answers to other words.
+    torch.setKeywords(["pitch-pine brand"]);
+    expect(stock.resolveBuy("Torch")).toBe(torch);
+    expect(stock.resolveBuy("pitch-pine brand")).toBe(torch);
+    expect(stock.resolveBuy("harpsichord")).toBeNull();
+  });
+
   it("⭐ a bare shelf is SOLD OUT, not 'isn't for sale' — the counter lists what it carries (the fishing live drive)", async () => {
     const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/bare");

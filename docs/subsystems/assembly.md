@@ -378,7 +378,13 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   `saw <log> [--quarter] [at <saw>]`. Through-sawn gives the most boards;
   `--quarter` gives two-thirds as many `quartered-board`s (its own row,
   `quarterSawn: true`) that never cup. Duration = mass / rate. Afforded
-  by the `Sawmill` class.
+  by the `Sawmill` class. ⭐ **The kerf falls as sawdust** (storage-and-
+  ice, 2026-10-17): one kerf a board (two quartered) at the saw row's
+  `kerfM` (the sawmill 3 mm, the pit saw 5 mm, default 4) against a 25 mm board, minted
+  as whole kilograms of `/trade/carpentry/thing/sawdust` (a `Poolable`
+  stack, one heap per wetness band) and the boards lightened by exactly
+  what was minted — mass conserved. It is the icehouse's packing (see
+  [storage.md](./storage.md)).
 - **`carve`** (`trade-carpentry`, `CarveController`) — runs any installed
   one-slot wood recipe that asks for `cutting` and no heat (haft, handle,
   peg, dowel, leg, rail, mallet…); no list in the controller. It sets

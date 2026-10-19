@@ -61,6 +61,14 @@ settings:
   - key: textiles.fit.refuseAbove
     value: "0.35"
 
+  # ⭐ (rubber build) How much of its spring-back strain a garment is worn
+  # at. Elasticity is how far a material stretches and still comes back;
+  # nobody wears a waistband at that. At a twenty-fifth, a rubber waist
+  # (500 %) gives a fifth of its girth — a band of bodies — knitted wool
+  # a few hundredths, and linen nothing you would notice.
+  - key: textiles.fit.stretchWornFraction
+    value: "0.04"
+
   # ── the dye bath ──
   # Fraction of remaining colour a FULLY UNBOUND dye loses per wash. It
   # is scaled by `1 − fastness`, so ⭐ this number IS the failure mode:

@@ -1915,6 +1915,16 @@ shipped that way (the timber yard, the Rejection till, the lounge bar, the
 bloodworks, the haulage depot, the bale store); the assembly drive found
 it when no stave was ever sold.
 
+**`lint:water-citations` — a water a place cites is a feature of that
+place (ceiling 0; storage-and-ice build, 2026-10).** A shore honours a
+`waters:` key only when the place also has a `details:` feature of that
+name — the feature is what a player names and what the water answers to.
+A key with no feature is cited by nothing: every draw refuses with
+*"There is no water here."*, and a pool's floor never binds the reach it
+is the ice of. The only runtime trace was one boot-log warning. Found by
+the storage-and-ice drive, when Hollow Mere's pool cited `mere` with no
+`mere` detail and every walker went through ice the reach said would hold.
+
 **`lint:openings` — an opening judges a PERSON (ceiling 0).** Six arms:
 the `requires` vocabulary is closed to `{gigs, discipline, band}` (nothing
 may select on species, lineage, trait, renown or wealth); a band must be

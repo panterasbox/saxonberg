@@ -568,6 +568,12 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
   (the electricity co-immersion path) call `wet(delta)` from their async
   contexts. **"Shelter dries faster" emerges** — a sheltered object gets
   no accrual push, so the reconcile's drain wins.
+- **Rain on a dressed body** (`Attired.exposeToRain`): each garment takes
+  the rain at the share of the body it is outermost on, and the body takes
+  `permeability × saturation` of what each outer layer passes. ⚠ An
+  outer layer with `permeability() = 0` is **not wetted at all** — rain
+  beads on a rubberized coat and runs off. The rubber build's browser
+  drive (2026-10-18) found the coat reading *soaked through*.
 - **Banded, never a number** — `getWetnessBand()` → `dry|damp|wet|soaked`;
   a non-dry object shows a band line in its long description (a
   `markupAugmenter`), raw value only via `analyze`.

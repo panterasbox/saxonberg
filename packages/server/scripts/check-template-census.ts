@@ -181,6 +181,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
+    // ⭐ `bed` (the storage-and-ice review) — a Pool's bed: the prop row it
+    // sinks dense things into, found among its contents by this path.
+    'bed',
     // ⭐ The pump citations (the pump build). `mechanism` names the
     // `PumpMechanism` row a pump is built on — resolved live on every
     // spell at the handle, and a rowless one is a pump with no law: it
@@ -652,6 +655,19 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push(f, data[f]);
   }
   /*
+   * ⭐ A store book's citation (storage-and-ice W3): the STORE it keeps.
+   * Resolved live by `getStore()`; a mistyped one is a book that affords
+   * deposit and refuses every one with "There is no book here".
+   */
+  push('storePath', data.storePath);
+  // ⭐ A store's authored seed (storage-and-ice W2): the goods its ledger
+  // is seeded with — a mistyped one is a house that boots empty.
+  if (Array.isArray(data.initialLines)) {
+    for (const line of data.initialLines) {
+      if (line && typeof line === 'object') push('initialLines.goodPath', (line as Record<string, unknown>).goodPath);
+    }
+  }
+  /*
    * The warren's own citation: the working TYPE it clones per cell.
    *
    * ⚠ `typeRows` is a plain map of kind → path, which clause (d)'s
@@ -693,6 +709,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const line of stockLines) {
       if (line && typeof line === 'object') {
         push('stockLines.itemTemplatePath', (line as Record<string, unknown>).itemTemplatePath);
+        // ⭐ Where the line is refilled from (`from:` — a supplier business
+        // or a store, storage-and-ice D8): both name rows.
+        const from = (line as Record<string, unknown>).from as Record<string, unknown> | undefined;
+        if (from && typeof from === 'object') {
+          push('stockLines.from.store', from.store);
+          push('stockLines.from.supplier', from.supplier);
+        }
       }
     }
   }
@@ -774,6 +797,12 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
   'servesExtent',
+  // ⭐ A structure's STOREYS (rubber build) are extents too — each a
+  // membership prefix resolved longest-prefix, like the structure's own
+  // `extent`. A storey prefix very often names a folder no row backs
+  // (`…/location/ground` holds rooms, and is not one), and a storey whose
+  // prefix covers nothing has no members, which fails closed.
+  'storeys',
   // ⭐ A mining claim's block names a parcel EXTENT — ground somebody
   // holds title to — and staking one deliberately mints *a title and no
   // room*. That is the whole difference between `stake` and `title buy`:

@@ -27,6 +27,10 @@ data:
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/vitriol
-  corrosiveTo: [metal, organic, tissue, leather, textile]
+  # ⭐ (rubber build) No coarse `organic`: rubber and ebonite ARE organic,
+  # and acid does not eat them — so the list names what it really attacks.
+  # `once-living` is the biological-origin tag every caught row carries;
+  # every shipped corrosion outcome is unchanged except the elastomers'.
+  corrosiveTo: [metal, tissue, leather, textile, once-living]
   composition: []
   biologicalSource: null

@@ -205,6 +205,24 @@ export class VisionModality extends Modality {
       const host = target.getAdornedTo() as unknown as Stuff | null;
       if (host && MixinApi.isContainer(host)) env = host;
     }
+    // ⭐⭐ An exit's DOOR is in nobody's contents either — it rides
+    // `exit.getDoor()` (the rule `PerceptionLogic.canReach` already
+    // follows) — so every attached door rendered as *"something"*: `open
+    // door` said "You open something." and `look door` in a room with two
+    // offered "something (1)" / "something (2)". A door is seen in the
+    // light of the room you stand in when that room's exits carry it,
+    // which also covers a one-way door that has no anchor on either side.
+    // ⚠ Found by driving the rubber build in a browser (the stove house).
+    if (!env && MixinApi.isContainable(viewer)) {
+      const here = viewer.getContainer();
+      if (
+        here &&
+        MixinApi.isExitable(here) &&
+        here.getObviousExits().some((x) => x.getDoor()?.stuffId === target.stuffId)
+      ) {
+        env = here;
+      }
+    }
     if (!env) {
       return viewer.canSeeOverride(target, detail, false);
     }
@@ -427,7 +445,12 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
       ? loc.skyNoonFlux() *
         skyFactor *
         loc.getWeatherDimFactor() *
-        loc.openingTransmissivity()
+        // ⭐ What the roof and walls let through (rubber build): 1 under
+        // the open sky and for an authored `sky` rung, a glass roof's
+        // Beer–Lambert transmittance under glass — × what the named
+        // opening's pane passes (cleanliness D19: a grimed window darkens
+        // the room it lights).
+        loc.skyLightFraction() * loc.openingTransmissivity()
       : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();

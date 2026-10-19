@@ -509,6 +509,14 @@ candidate to be considered.** AND-narrow, no exceptions. The exact
 multipliers are arbitrary; they preserve Phase-4 behavior so existing
 tests keep passing.
 
+⭐ **A whole-phrase match CUTS the partials** (`scoreCandidates`): when
+any candidate names EVERY query word (in its name or a keyword), the
+candidates naming only some are dropped — scores only order, they never
+cut, so a plural verb took every partial too. Partials stay the fallback
+when nothing names the whole phrase. Found by the rubber build's browser
+drive (2026-10-18): `get "latex cup"` also picked up a coagulating pan
+keyworded *latex pan*.
+
 ⚠⚠ **The scorer was inert for every `scope:word` query until 2026-09-22.**
 A scope seed (`reachable` / `inventory` / `peers` — the default arg
 shape of most verbs) stamps each candidate 100, and the keyword narrow

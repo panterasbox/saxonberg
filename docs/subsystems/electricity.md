@@ -118,6 +118,15 @@ pool**; hand-chains, damp-not-pooled floors, and humidity are deferred.
   distribution is the deferred seam.
 - An **insulating** layer (rubber / leather / wool) instead ADDS its series
   contact resistance, collapsing the current — real protection.
+- ⭐ **Only what the current passes THROUGH is in series** (rubber build). A
+  body bridged through a pool is bridged at its FEET, so the pool walk counts
+  the layers covering the feet and nothing else — a dry shirt is not between
+  a wader and the water. A contact device (a baton on a breastplate) keeps
+  the whole worn stack: there, the armor IS the path, and that is where the
+  inversion lives. Found by the rubber drive: every newcomer's dry student
+  shirt had insulated a wader in soaked leather boots down to 0.4 µA.
+- A soaked layer is read by the wet law (`Material.wetProperty`) — leather
+  that has taken in brine conducts; rubber takes in nothing.
 
 **Wet skin** lowers body resistance ~100× (the real reason water is deadly),
 derived at resolution time (nothing stored): co-immersion in a conductive

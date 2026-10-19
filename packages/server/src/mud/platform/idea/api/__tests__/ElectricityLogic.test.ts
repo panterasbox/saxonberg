@@ -238,10 +238,12 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it('plate armor takes MORE current than bare; rubber takes LESS (inversion)', () => {
+  it('on CONTACT, plate armor takes MORE current than bare; rubber takes LESS (inversion)', () => {
+    // ⭐ The armor is IN the path when the electrodes are on it — a baton
+    // laid on a breastplate. (Rubber build: a pool's path runs through the
+    // FEET, so this lesson lives on the contact path, where it is true.)
     const room = makeRoom();
-    floodFloor(room, saltWater(), 20);
-    const wire = makeWire(room, 120);
+    const baton = makeWire(room, 120);
 
     const bare = makeBody(room);
     const plated = makeBody(room);
@@ -249,12 +251,30 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     const rubberClad = makeBody(room);
     wearTorso(rubberClad, rubber(), 'plate');
 
-    const iBare = wire.currentThrough(bare).rawValue();
-    const iPlate = wire.currentThrough(plated).rawValue();
-    const iRubber = wire.currentThrough(rubberClad).rawValue();
+    const through = (c: Creature): number =>
+      baton.shockContact(c)[0]?.currentThrough.rawValue() ?? 0;
+    const iBare = through(bare);
+    const iPlate = through(plated);
+    const iRubber = through(rubberClad);
 
     expect(iPlate).toBeGreaterThan(iBare); // metal conducts → betrays armor
     expect(iRubber).toBeLessThan(iBare); // rubber adds series R → protects
+  });
+
+  it('⭐ in a POOL the feet decide: a dry torso layer is not between the body and the water', () => {
+    // Found by the rubber drive: every newcomer wears a dry student shirt,
+    // and a whole-stack path insulated a wader in soaked leather boots
+    // down to 0.4 µA. The current enters and leaves at the feet.
+    const room = makeRoom();
+    floodFloor(room, saltWater(), 20);
+    const wire = makeWire(room, 120);
+    const bare = makeBody(room);
+    const shirted = makeBody(room);
+    wearTorso(shirted, rubber(), 'plate'); // even an insulator, on the torso
+    expect(wire.currentThrough(shirted).rawValue()).toBeCloseTo(
+      wire.currentThrough(bare).rawValue(),
+      9,
+    );
   });
 
   it('rubber-soled boots still break the ground path even under plate', () => {

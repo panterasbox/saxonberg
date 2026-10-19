@@ -111,6 +111,12 @@ import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
 import type { WaterActive } from '../lib/material/WaterActivity';
 import type { Alloyed } from '../lib/material/Alloyed';
+import type { Composition } from '../lib/material/Composition';
+import type { Tempered } from '../lib/material/Tempered';
+import type { Store } from '../lib/storage/Store';
+import type { Poolable } from '../lib/storage/Poolable';
+import type { StoreBook } from '../lib/storage/StoreBook';
+import type { Swimmable } from '../lib/locomotion/Swimmable';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1504,6 +1510,46 @@ export class MixinApi {
    */
   public static isAlloyed(obj: Stuff): obj is Stuff & Alloyed {
     return this.hasMixin(obj, Mixins.Alloyed);
+  }
+
+  /**
+   * A piece that can say what is dissolved in it — metal stock, AND a
+   * re-meltable lump of glass, wax or ice (the generic `Casting`). Ask
+   * this, not {@link isAlloyed}, when only the fractions matter.
+   */
+  public static isComposition(obj: Stuff): obj is Stuff & Composition {
+    return this.hasMixin(obj, Mixins.Composition);
+  }
+
+  /** A piece a heat treatment can leave something in — metal only. */
+  public static isTempered(obj: Stuff): obj is Stuff & Tempered {
+    return this.hasMixin(obj, Mixins.Tempered);
+  }
+
+  /**
+   * A store — a holder whose contents are a ledger: goods held as an
+   * amount per grade, one face per line (storage-and-ice D1).
+   */
+  public static isStore(obj: Stuff): obj is Stuff & Store {
+    return this.hasMixin(obj, Mixins.Store);
+  }
+
+  /** A good a store may hold as an amount, pooling by its own rule. */
+  public static isPoolable(obj: Stuff): obj is Stuff & Poolable {
+    return this.hasMixin(obj, Mixins.Poolable);
+  }
+
+  /**
+   * A place you swim in (a `Pool`) — which knows who is in its water and
+   * how cold it is (storage-and-ice D10).
+   */
+  public static isSwimmable(obj: Stuff): obj is Stuff & Swimmable {
+    return this.hasMixin(obj, Mixins.Swimmable);
+  }
+
+  /** The house's book — the custody instrument that names a store. */
+  public static isStoreBook(obj: Stuff): obj is Stuff & StoreBook {
+    return this.hasMixin(obj, Mixins.StoreBook);
   }
 
   /**

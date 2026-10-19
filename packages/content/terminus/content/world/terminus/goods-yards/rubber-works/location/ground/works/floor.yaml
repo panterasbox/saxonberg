@@ -1,0 +1,47 @@
+# The works floor — the vulcanizing oven, the moulds, a stove, and a
+# ladder to the loft. ⭐ It says what it is made of (rubber build): brick
+# walls and a slate roof; the loft standing on it makes its top a ceiling.
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: "works floor"
+  keywords: [floor, works, "works floor", oven]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: windows
+  details:
+    windows:
+      keywords: [windows, window, glass]
+      description: Tall iron-framed windows down the yard wall, grey with the smoke of the firebox.
+  longDescription: |
+    A long brick floor black with the dust of sulfur and coal. The vulcanizing oven squats at the far end with its iron chamber door, and the moulds stand on a bench beside it — boots, gloves, an apron, a flat sheet, a little ring, a long split tube. A ladder goes up through a trap to the loft. A glass door in the north wall opens into the steamy green of the stove house, the store is through the west wall, and the yard door is east.
+  exits:
+    east:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/goods-yards/rubber-works/location/ground/stove-house
+      door: /world/terminus/goods-yards/rubber-works/thing/glass-door
+      bidirectional: true
+    west:
+      destination: /world/terminus/goods-yards/rubber-works/location/ground/wing/store
+      bidirectional: true
+    up:
+      destination: /world/terminus/goods-yards/rubber-works/location/loft/loft
+      bidirectional: true
+  props:
+    - /trade/rubber/thing/oven
+    - /trade/rubber/thing/boot-mould
+    - /trade/rubber/thing/glove-mould
+    - /trade/rubber/thing/apron-mould
+    - /trade/rubber/thing/sheet-mould
+    - /trade/rubber/thing/ring-mould
+    - /trade/rubber/thing/tube-mould
+    - /stuff/thing/stove
+    # Fuel in reach of the fires (the fire build's rule): a starting
+    # condition, not a supply.
+    - { template: /trade/quarrying/thing/coal, count: 12 }

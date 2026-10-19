@@ -289,49 +289,11 @@ export default class WaybillRegistry extends Idea {
     return path;
   }
 
-  /**
-   * Issue a warehouse receipt against a bailee.
-   *
-   * ⚠ A depot that holds goods **owes a duty of care**, which is the
-   * whole of what storage is in this build. It is deliberately NOT a
-   * priced scarce good: discrete containment has no capacity in this
-   * engine (capacity is a property of a *bearer's body*, and a
-   * warehouse has no body), so nothing here fills up, charges rent or
-   * turns anyone away. See the warehousing non-goal.
+  /*
+   * ⚠ Receipts are ISSUED by the store now (storage-and-ice W3): the
+   * warehouse is a `StoreMixin` holder and files its own
+   * `warehouse-receipt` documents, readable here by `receiptsOf`.
    */
-  public async issueReceipt(
-    bailee: Stuff & Business,
-    receipt: Omit<WarehouseReceipt, 'receiptId' | 'filedAtS' | 'bailee'> &
-      Partial<Pick<WarehouseReceipt, 'receiptId'>>,
-  ): Promise<string> {
-    const baileePath = bailee.getTemplatePath() ?? '';
-    if (baileePath === '') {
-      throw new Error(
-        'WaybillRegistry.issueReceipt: the bailee has no durable path',
-      );
-    }
-    if (receipt.depositor.trim() === '') {
-      throw new Error(
-        'WaybillRegistry.issueReceipt: a receipt with no depositor is a ' +
-          'receipt nobody can redeem',
-      );
-    }
-    const receiptId = receipt.receiptId ?? SecurityApi.uuid();
-    const record: WarehouseReceipt = {
-      ...receipt,
-      receiptId,
-      bailee: baileePath,
-      filedAtS: WorldClockApi.getNow().rawValue(),
-    };
-    const path = `${baileePath}/${RECEIPTS_DIR}/${receiptId}`;
-    await DocumentApi.saveAsBusiness(
-      bailee,
-      path,
-      WAREHOUSE_RECEIPT_KIND,
-      record as unknown as Record<string, unknown>,
-    );
-    return path;
-  }
 
   /* ─────────────────────────── reading ─────────────────────────── */
 
@@ -421,7 +383,8 @@ function billOf(data: Record<string, unknown>): BillOfLading | null {
   return {
     billId: data.billId,
     what: String(data.what ?? ''),
-    goodsPath: String(data.goodsPath ?? ''),
+    // A store receipt names its good `good`; the depot's older shape `goodsPath`.
+    goodsPath: String(data.goodsPath ?? data.good ?? ''),
     howMuch: String(data.howMuch ?? ''),
     from: String(data.from ?? ''),
     to: String(data.to ?? ''),
@@ -439,7 +402,8 @@ function receiptOf(data: Record<string, unknown>): WarehouseReceipt | null {
   return {
     receiptId: data.receiptId,
     what: String(data.what ?? ''),
-    goodsPath: String(data.goodsPath ?? ''),
+    // A store receipt names its good `good`; the depot's older shape `goodsPath`.
+    goodsPath: String(data.goodsPath ?? data.good ?? ''),
     depositor: String(data.depositor ?? ''),
     bailee: String(data.bailee ?? ''),
     filedAtS: Number(data.filedAtS ?? 0),

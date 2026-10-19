@@ -1,0 +1,22 @@
+# The catwalk — ⭐ the raised steel walkway along the switch-cell's dry
+# wall (rubber build), made a place of its own so a body can step DOWN
+# into the water: the cell's hazard fires on a crossing (`onEntered`), and
+# until now the only way in was a teleport, which crosses nothing. Up
+# here you are out of the pool and untouched; down there you wade.
+class: /platform/location/Locale
+data:
+  shortDescription: raised catwalk
+  keywords: [catwalk, walkway, steel]
+  register: definite
+  longDescription: |
+    A narrow steel catwalk bolted along the dry wall of the switch-cell, a hand's breadth above the black water. A short ladder goes down into it.
+  coords:
+    x: 0
+    y: 0
+    z: 1
+  enclosure: { material: /stuff/idea/material/ceramic/concrete, thicknessM: 0.3 }
+  roof: { material: /stuff/idea/material/ceramic/concrete, thicknessM: 0.3 }
+  exits:
+    down:
+      destination: /world/substation/flooded-cell
+      bidirectional: true

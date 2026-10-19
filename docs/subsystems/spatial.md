@@ -223,7 +223,8 @@ thing IS is runtime state, set by whoever placed it and persisted by its
 container's slice:
 
 - **a place names what it holds** — `props:` / `cast:` (`StagedMixin`),
-  the dominant authoring direction;
+  the dominant authoring direction — and **a person what they are born
+  holding** (`props:` alone, `PropsMixin` on `NPC`);
 - **a thing seats itself** — `seatIn:` (fixtures), resolved through the
   target (`resolveLanding`), which decides how to take it: a Warren picks
   a member room, a location takes it;

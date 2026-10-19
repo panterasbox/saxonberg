@@ -12,6 +12,11 @@
 # Gate C, east/west to departure gates A/B, up to the ticket office mezzanine.
 class: /platform/location/Locale
 data:
+  # ⭐ (rubber build) A station train shed: brick walls and a GLASS roof.
+  # The roof passes the sky (Beer–Lambert), so the hall is daylit and
+  # dry, and the sun through it warms it — it is the drive's atrium.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.35 }
+  roof: { material: /stuff/idea/material/glass/glass, thicknessM: 0.006 }
   shortDescription: Terminus Terminal, the station hall
   keywords: [hall, terminus, terminal, station]
   register: proper

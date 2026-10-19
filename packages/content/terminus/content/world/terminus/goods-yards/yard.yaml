@@ -57,6 +57,12 @@ data:
       destination: /world/terminus/goods-yards/farm/location/yard
       media: [ground]
       edgeMinutes: 4
+    # ⭐ (rubber build) The rubber works' door — the works floor; the
+    # stove house's vent opens onto the yard too, one way.
+    west:
+      destination: /world/terminus/goods-yards/rubber-works/location/ground/works/floor
+      media: [ground]
+      edgeMinutes: 1
   # ⭐ The carrier's people wait here, because this is where the work is.
   # The rows are the haulage TRADE's; only the place is Terminus's.
   cast:

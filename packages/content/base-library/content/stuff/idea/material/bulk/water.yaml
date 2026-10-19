@@ -10,6 +10,9 @@ data:
   appearance: clear water
   density: 1000
   thermalConductivity: 0.6
+  # ⭐ Beer–Lambert α (1/m, rubber build): clear water dims light by
+  # about 40 % a metre down.
+  lightAbsorption: 0.5
   specificHeat: 4186
   # Electrical conductivity (S/m) — fresh/tap water is a poor conductor
   # (~0.01, dissolved-mineral dependent); salt water is ~500× higher.

@@ -888,7 +888,7 @@ interface) · [ranching-slate](../slates/builds/ranching-slate.md) ·
 [forestry-slate](../slates/tails/forestry-slate.md) ·
 [apiculture-slate](../slates/tails/apiculture-slate.md) (the exemplar).
 
-**Deferred to, by name:** [rubber-slate](../slates/builds/rubber-slate.md)
+**Deferred to, by name:** [rubber-slate](../slates/tails/rubber-slate.md)
 · [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)
 · [inquiry-slate](../slates/builds/inquiry-slate.md) ·
 [farming-slate](../slates/builds/farming-slate.md) ·

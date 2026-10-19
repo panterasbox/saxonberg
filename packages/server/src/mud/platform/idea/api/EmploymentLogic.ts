@@ -6,6 +6,9 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CelestialApi } from '../../../api/celestial';
+import { ZoneApi } from '../../../api/zone';
+import type { CelestialProfile, Season } from '../../../lib/time/CelestialProfile';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { Opening } from '../../../lib/employment/Opening';
@@ -816,7 +819,10 @@ function perceivedGoods(viewer: Stuff): Stuff[] {
       if (item !== viewer && !PerceptionApi.perceives(viewer, item)) continue;
       out.push(item);
       const closed = MixinApi.isSealable(item) && !item.isOpen();
-      if (!closed) walk(item);
+      // ⭐ A cold box is shut to KEEP, not to hide (storage-and-ice D21):
+      // its contents are the house's cold stock, so the sheet reads into
+      // it. A shut larder or cupboard stays invisible.
+      if (!closed || MixinApi.isCoolbox(item)) walk(item);
     }
   };
   walk(viewer);
@@ -874,7 +880,7 @@ function stockSheetForImpl(
     return { line, onHand, shortfall: Math.max(0, line.level - onHand) };
   });
   // ⭐ Plus the SUPPLIED lines of every counter the house operates
-  // (economic bootstrap D14): a `stockLines` entry with a `supplier` is a
+  // (economic bootstrap D14): a `stockLines` entry `from: { supplier }` is a
   // par line the shelf carries itself — its category the good's template,
   // its level the par, counted over the counter rather than the viewer's
   // eye. One sheet, whichever place the policy was authored.
@@ -883,15 +889,16 @@ function stockSheetForImpl(
     // ⚠ By SHAPE, not `instanceof`: `Stock` composes `PricedOffer`, which
     // reaches this logic — a value import here is an evaluation cycle.
     const live = StuffApi.findByTemplatePath(path) as (Stuff & Partial<Stock>) | null;
-    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function') continue;
+    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function' || typeof live.sourceOf !== 'function') continue;
     for (const line of live.getStockLines()) {
-      if (!line.supplier || seen.has(line.itemTemplatePath)) continue;
+      const src = live.sourceOf(line);
+      if (src.kind !== 'supplier' || seen.has(line.itemTemplatePath)) continue;
       seen.add(line.itemTemplatePath);
       const par = ParLine.fromData({
         category: line.itemTemplatePath,
         level: line.par,
         unit: 'count',
-        supplier: line.supplier,
+        supplier: src.business,
       });
       const onHand = live.onHand(line.itemTemplatePath);
       sheet.push({ line: par, onHand, shortfall: Math.max(0, line.par - onHand) });
@@ -1670,6 +1677,9 @@ export class EmploymentLogic extends ApiLogic {
     // absence — the roster stands, nobody is put on it.
     if (business.isClosed()) return;
     const roster = business.getRoster();
+    // ⭐ The house's local season rides the clock (storage-and-ice D20):
+    // read only by a season-bound window, so every other roster is as it was.
+    const clock = { ...date, season: this.seasonOf(business, nowRaw) };
     // ⭐⭐ A ROUND is roster slots (repair D13): one assignee holding one
     // seat on several slots is ONE shift — on at the first slot that says
     // so, off at the last — and the station follows the hour. Evaluated
@@ -1718,7 +1728,7 @@ export class EmploymentLogic extends ApiLogic {
       // The slot the clock is in now — the first in file order (the
       // overlap is refused by `lint:openings`). `Roster.evaluate` per slot
       // stays the ONE on-test (repair P4: a season-aware clock rides it).
-      const onSlot = slots.find((a) => roster.evaluate(a, date) === 'on-shift') ?? null;
+      const onSlot = slots.find((a) => roster.evaluate(a, clock) === 'on-shift') ?? null;
       const slotIndex = onSlot ? slots.indexOf(onSlot) : -1;
       const desired = onSlot ? 'on-shift' : 'off-shift';
       const currentlyOn = emp.status === 'on-shift';
@@ -2154,6 +2164,43 @@ export class EmploymentLogic extends ApiLogic {
 
   /** organizationPath → the game hour its last one-house pass ran in. */
   private passedAt = new Map<string, number>();
+
+  /** organizationPath → its first operating location's latitude + sky (resolved off-band). */
+  private skies = new Map<string, { latitudeDeg: number; profile: CelestialProfile }>();
+  private skiesResolving = new Set<string>();
+
+  /**
+   * The house's local season at `nowRaw`, or `undefined` while its place
+   * is still being read (a season-bound window is then off — a winter seat
+   * never draws a wage on a guess).
+   */
+  private seasonOf(business: BusinessStuff, nowRaw: number): Season | undefined {
+    const key = business.getOrganizationPath();
+    if (!key) return undefined;
+    const sky = this.skies.get(key);
+    if (sky) return CelestialApi.seasonFor(sky.profile, nowRaw, sky.latitudeDeg);
+    if (!this.skiesResolving.has(key)) {
+      this.skiesResolving.add(key);
+      void this.resolveSky(business, key).finally(() => this.skiesResolving.delete(key));
+    }
+    return undefined;
+  }
+
+  private async resolveSky(business: BusinessStuff, key: string): Promise<void> {
+    const where = business.getOperatingLocations()[0];
+    if (!where) return;
+    try {
+      // ⭐ Loaded on use, not looked up: a house whose ground nobody stands
+      // on is not resident, and a residency read left its season unknown —
+      // every season-bound seat off for good (the pre-merge audit).
+      const place = await StuffApi.singleton<Stuff>(where);
+      const site = await ZoneApi.climateSiteFor(place);
+      const profile = await CelestialApi.profileFor(place);
+      this.skies.set(key, { latitudeDeg: site.latitudeDeg, profile });
+    } catch (err) {
+      console.warn('EmploymentLogic: could not read the season of', key, err);
+    }
+  }
 
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)

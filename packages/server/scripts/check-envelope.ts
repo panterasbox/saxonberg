@@ -246,8 +246,32 @@ function isBiomeRow(row: Row, sources: readonly PackSource[]): boolean {
 }
 
 function enclosureOf(row: Row): Record<string, unknown> | null {
-  const f = row.data.enclosure;
-  return f && typeof f === "object" ? (f as Record<string, unknown>) : null;
+  const layers = layersOf(row, "enclosure");
+  return layers === null || layers === "none" ? null : (layers[0] ?? null);
+}
+
+/**
+ * ⭐ One part (`enclosure:` — the walls — or `roof:`) as its layers: a
+ * single spec is a one-element list, a list is outermost first, and the
+ * literal `none` is no such part (rubber build, D1/D1a).
+ */
+function layersOf(
+  row: Row,
+  key: "enclosure" | "roof",
+): Array<Record<string, unknown>> | "none" | null {
+  const f = row.data[key];
+  if (f === "none") return "none";
+  if (Array.isArray(f)) {
+    return f.filter((l): l is Record<string, unknown> => !!l && typeof l === "object");
+  }
+  return f && typeof f === "object" ? [f as Record<string, unknown>] : null;
+}
+
+/** The two classes a Structure row names (a `Ship` is a Structure). */
+const STRUCTURE_CLASSES = new Set(["/platform/idea/Structure", "/platform/idea/Ship"]);
+
+function isStructureRow(row: Row): boolean {
+  return STRUCTURE_CLASSES.has(row.class) || row.data.storeys !== undefined;
 }
 
 function report(): void {
@@ -325,17 +349,32 @@ function lint(): void {
     }
   }
 
-  // (b) an enclosure names a material that EXISTS and CONDUCTS
+  // (b) an enclosure names a material that EXISTS and CONDUCTS — for
+  // every layer of both parts, the walls and the roof.
   let enclosureRows = 0;
   for (const row of rows.values()) {
-    const enclosure = enclosureOf(row);
-    if (!enclosure) continue;
+    const parts = (["enclosure", "roof"] as const).flatMap((part) => {
+      const raw = row.data[part];
+      const layers = layersOf(row, part);
+      if (raw !== undefined && raw !== null && layers === null) {
+        failures.push(
+          `${row.file}: \`${part}: ${JSON.stringify(raw)}\` is neither a ` +
+            `layer \`{ material, thicknessM }\`, a list of layers (outermost ` +
+            `first), nor \`none\`.`,
+        );
+      }
+      return layers === null || layers === "none"
+        ? []
+        : layers.map((l) => ({ part, enclosure: l }));
+    });
+    if (parts.length === 0) continue;
     enclosureRows++;
+    for (const { part, enclosure } of parts) {
     // (e) the closed vocabulary
     for (const key of Object.keys(enclosure)) {
       if (ENCLOSURE_KEYS.has(key)) continue;
       failures.push(
-        `${row.file}: \`enclosure.${key}\` is not part of the EnclosureSpec ` +
+        `${row.file}: \`${part}.${key}\` is not part of the EnclosureSpec ` +
           `vocabulary (${[...ENCLOSURE_KEYS].join(", ")}). ⭐ There is no ` +
           `U-value and no insulation rating on purpose: you cannot author ` +
           `"well-insulated", you author a material and a thickness and the ` +
@@ -354,6 +393,15 @@ function lint(): void {
       );
       continue;
     }
+    // A thin layer is honest only if it is meant to pass light (glass,
+    // horn): an opaque 4 mm wall is a tin shed, said without meaning it.
+    const t = Number(enclosure.thicknessM);
+    if (t > 0 && t <= 0.005 && material.data.lightAbsorption === undefined) {
+      console.warn(
+        `  ⚠ ${row.file}: \`${part}\` is ${t} m of '${materialPath}', which ` +
+          `passes no light — is that meant to be glass?`,
+      );
+    }
     const k = material.data.thermalConductivity;
     const kValue =
       typeof k === "number"
@@ -363,12 +411,77 @@ function lint(): void {
           : NaN;
     if (!(kValue > 0)) {
       failures.push(
-        `${material.file}: named as a \`enclosure.material\` by ` +
+        `${material.file}: named as a \`${part}.material\` by ` +
           `'${row.path}' but authors no positive \`thermalConductivity\`. ` +
           `⚠ An unauthored conductivity reads ZERO, which is an infinite ` +
           `insulator — silently. That room would never lose heat and ` +
           `nothing would say why.`,
       );
+    }
+    }
+  }
+
+  // ⭐⭐ ONE PLACE OR A SET: a structure is never made of anything. Walls
+  // and roofs are each place's own, and (f) a structure's storeys are
+  // relations only — keys, what stands on what, extents inside its own.
+  for (const row of rows.values()) {
+    if (!isStructureRow(row)) continue;
+    for (const key of ["enclosure", "roof"]) {
+      if (row.data[key] === undefined) continue;
+      failures.push(
+        `${row.file}: a Structure row authoring \`${key}\`. ⛔ A structure ` +
+          `says which places are its members and which stand on which — ` +
+          `never what anything is made of. Author \`${key}:\` on each ` +
+          `member place's own row: a place decides what bounds it alone.`,
+      );
+    }
+    const storeys = row.data.storeys;
+    if (storeys === undefined) continue;
+    if (!Array.isArray(storeys)) {
+      failures.push(`${row.file}: \`storeys\` must be a list of { key, extent, on? }.`);
+      continue;
+    }
+    const extent = String(row.data.extent ?? "").replace(/\/+$/, "");
+    const byKey = new Map<string, Record<string, unknown>>();
+    for (const st of storeys as Array<Record<string, unknown>>) {
+      const key = st?.key;
+      for (const k of Object.keys(st ?? {})) {
+        if (k === "key" || k === "extent" || k === "on") continue;
+        failures.push(
+          `${row.file}: storey \`${String(key)}\` authors \`${k}\`. A storey ` +
+            `is a relation (key, extent, on) and nothing else — whether it is ` +
+            `enclosed is read off its member places' own walls and roof.`,
+        );
+      }
+      if (typeof key !== "string" || key === "") {
+        failures.push(`${row.file}: a storey with no \`key\`.`);
+        continue;
+      }
+      if (byKey.has(key)) failures.push(`${row.file}: storey \`${key}\` declared twice.`);
+      byKey.set(key, st);
+      const sx = String(st.extent ?? "").replace(/\/+$/, "");
+      if (extent === "" || (sx !== extent && !sx.startsWith(`${extent}/`))) {
+        failures.push(
+          `${row.file}: storey \`${key}\`'s extent '${sx}' lies outside the ` +
+            `structure's extent '${extent}'.`,
+        );
+      }
+    }
+    for (const [key, st] of byKey) {
+      const seen = new Set<string>([key]);
+      let on = st.on;
+      while (typeof on === "string") {
+        if (!byKey.has(on)) {
+          failures.push(`${row.file}: storey \`${key}\` stands on \`${on}\`, which is no storey.`);
+          break;
+        }
+        if (seen.has(on)) {
+          failures.push(`${row.file}: storey \`${key}\` stands on itself through \`${on}\` — a cycle.`);
+          break;
+        }
+        seen.add(on);
+        on = byKey.get(on)?.on;
+      }
     }
   }
 

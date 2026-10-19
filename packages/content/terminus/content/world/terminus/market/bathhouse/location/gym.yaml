@@ -4,6 +4,9 @@ class: /platform/location/PersistentLocale
 data:
   coords: { x: 1, y: 0, z: 0 }
   # ⭐ Daylight through the high windows (the light-sources rule).
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   ambientSource: sky
   ambientOpening: windows
   shortDescription: gymnasium

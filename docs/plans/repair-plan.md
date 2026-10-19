@@ -628,13 +628,13 @@ these files changed in dairy.
   `origin/reqs/rubber` at `a2e688ff1` (master-after-dairy merged in)
   still carries **8 docs files and no `packages/` change**; its latest
   commits re-plan its moulds onto dairy's system and add a BUILD GATE
-  (`rubber-plan.md:22–35`) that waits on THIS plan and storage-and-ice
+  (rubber's plan, since retired) that waits on THIS plan and storage-and-ice
   settling, then asks repair to *confirm its plan does not put materials
   on `Structure`* — it does not (D20: the layers' state is the
   programme's, the materials the place's). `origin/reqs/storage-and-ice`
   (`5cf06785a`) is likewise docs only. The seams W7 plans against, **as
-  rubber's plan defines them** (`git show
-  origin/reqs/rubber:docs/plans/rubber-plan.md`): **D1** (`:388`) `roof:`
+  rubber's plan defined them** (it retired at rubber's sweep; the
+  decisions now live in `docs/subsystems/construction.md`): **D1** (`:388`) `roof:`
   as `enclosure:`'s sibling on the place, `none` legal; **D1a** (`:398`)
   each is one `{material, thicknessM}` or a LIST outermost first,
   `ResolvedEnclosure` a list of resolved layers — rubber names it *the
@@ -2386,7 +2386,7 @@ For W7, additionally:
 
 16. `packages/content/residence/src/idea/HoldingWarren.ts:60–130, 540–600`, `src/idea/cmd/crafting/MaintainController.ts`, `src/behavior/maintains.ts`, `src/thing/HouseholdersKit.ts`, `content/system/residence/cmd/crafting/maintain.yaml`, `content/system/residence/thing/householders-kit.yaml`, `src/__tests__/HoldingWarren.test.ts:360–640`
 17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/location/CirculationWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
-18. `git show origin/reqs/rubber:docs/plans/rubber-plan.md` § D1–D4, D14, § Host placement (`roof`/`exposure()` on `AtmosphericMixin`), § Deferred seams — then the MERGED files once rubber lands (re-ground, § W7)
+18. `docs/subsystems/construction.md` (rubber's D1–D4, D14 and host placement — `roof`/`exposure()` on `AtmosphericMixin` — and its deferred seams; the plan retired at rubber's sweep), then the MERGED files (re-ground, § W7)
 19. `eternal-university/…/duncan-hall/{idea/college, idea/dorm-programme, location/dormroom, agent/katie}.yaml`, `terminus/…/mayfield-row/{idea/agency, agent/walter, seznick-house/unit-programme, seznick-house/location/*}.yaml`, `hinkley-hills/…/idea/house-programme.yaml`, `general-store/{business, counter}.yaml`, `trade-apiculture/…/thick-hive.yaml` (the Good that authors `enclosure:`)
 
 ---

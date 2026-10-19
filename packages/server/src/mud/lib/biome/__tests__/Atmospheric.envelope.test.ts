@@ -233,6 +233,22 @@ describe('⭐⭐ a hearth warms its room; a forge does not', () => {
     expect(settled).toBeLessThan(300);
   });
 
+  it('⭐⭐ a hearth lit after a long unwatched gap is not billed for the gap', () => {
+    // Found driving the rubber build in a browser: the envelope integrates
+    // lazily, with the heaters as they are at the READ, so a stove lit now
+    // was credited for every hour since anybody last read the room.
+    const r = room({ material: GRANITE, thicknessM: 0.3 }, 275);
+    env(r).reconcileEnvelope(); // stamp the clock: the room is read once
+    advance(6 * 3600); // six hours nobody looks
+    const fire = makeStuff(() => new Hearth()) as Hearth;
+    chargeWood(fire as unknown as Stuff & Burner, 40);
+    ContainmentApi.move(fire as never, r as never);
+    fire.ignite(); // lit NOW
+    env(r).reconcileEnvelope(); // read a moment later
+    // Still the cold room it was: the six hours were billed fire-out.
+    expect(env(r).envelopeTemperatureK!).toBeLessThan(276);
+  });
+
   it('⭐ a lit FORGE does not move the room at all — the shipped rule, kept', () => {
     // Not by a guard. `Forge` does not compose `SpaceHeatingMixin`, so
     // the envelope's contents walk never counts it, and nothing

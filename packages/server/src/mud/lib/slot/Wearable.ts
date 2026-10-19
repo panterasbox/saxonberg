@@ -86,6 +86,9 @@ export interface Wearable extends Slottable {
    */
   shrinkCut(factor: number): void;
 
+  /** How far this garment gives round the body (a fraction of girth). */
+  stretchAllowance(): number;
+
   /** The measurements this garment was cut to (`''` plan = stock). */
   getCutTo(): FitReading['cut'];
   /** Stamp the measurements — `cut`'s job. */
@@ -180,11 +183,6 @@ const CLO_DEFAULTS = {
   REFERENCE_SURFACE_M2: 1.8,
   /** Surface share assumed when a garment claims no resolvable slots. */
   DEFAULT_COVERED_FRACTION: 0.3,
-  /**
-   * `waterAbsorptionCapacity` (% of dry mass) at which a material's
-   * loft is considered fully flooded. Wool sits at 33, linen at 20.
-   */
-  ABSORPTION_REFERENCE: 40,
 } as const;
 
 /** Validate a non-negative finite measurement, naming the setter. */
@@ -383,7 +381,14 @@ export function WearableMixin<
       if (!(cutStature > 0) || !(cutGirth > 0)) return UNMEASURABLE;
 
       const dStature = (statureM - cutStature) / cutStature;
-      const dGirth = (girthIndex - cutGirth) / cutGirth;
+      const rawGirth = (girthIndex - cutGirth) / cutGirth;
+      // ⭐ Stretch (rubber build): within the garment's give, being
+      // tight costs nothing and being loose is taken up. It is the GIRTH
+      // that gives — a waistband goes round you, it does not make the
+      // legs longer — so a tall body is still short in the leg.
+      const give = this.stretchAllowance();
+      const dGirth =
+        rawGirth > 0 ? Math.max(0, rawGirth - give) : Math.min(0, rawGirth + give);
       const distance = Math.hypot(dStature, dGirth);
       // Signed: the garment is LOOSE when it was cut for a bigger body.
       const signed = (dStature + dGirth) / 2;
@@ -401,6 +406,32 @@ export function WearableMixin<
         wrongBody: !stock && cutPlan !== planPath,
         measurable: true,
       };
+    }
+
+    /**
+     * How far this garment gives round the body, as a fraction of its
+     * girth: `elasticity × textiles.fit.stretchWornFraction × the form's
+     * stretch` (rubber build). ⭐ The material is the `waist`
+     * detail's when one is set — an elastic-waisted pair of trousers is a
+     * row whose waist names rubber — else the garment's own. A felt gives
+     * nothing whatever its fibre; linen next to nothing; rubber a band.
+     */
+    public stretchAllowance(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return 0;
+      const material = self.getMaterial('waist') ?? self.getMaterial();
+      if (!material) return 0;
+      const elasticity = material.getElasticity().rawValue() / 100;
+      if (!(elasticity > 0)) return 0;
+      const form = MixinApi.isConstructed(self)
+        ? self.getConstruction()
+        : null;
+      const formStretch = form?.getFabric()?.stretch ?? 1;
+      return (
+        elasticity *
+        dial(AppSettingKeys.textilesFitStretchWornFraction, 0.04) *
+        formStretch
+      );
     }
 
     /**
@@ -436,20 +467,10 @@ export function WearableMixin<
       const loft = form?.getFabric()?.loft ?? 0;
       const kFibre = material.getThermalConductivity().rawValue();
 
-      // How much of the loft is water rather than air.
+      // How much of the loft is water rather than air — the ONE wet law
+      // on the material (`Material.wetProperty`, storage-and-ice D9).
       const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
-      const capacity = material.getWaterAbsorptionCapacity().rawValue();
-      const soak =
-        wetness *
-        Math.min(
-          1,
-          capacity /
-            dial(
-              AppSettingKeys.textilesCloAbsorptionReference,
-              CLO_DEFAULTS.ABSORPTION_REFERENCE,
-            ),
-        );
-      const kVoid = K_AIR * (1 - soak) + K_WATER * soak;
+      const kVoid = material.wetProperty(K_AIR, K_WATER, wetness);
       const kEff = kFibre * (1 - loft) + kVoid * loft;
       if (!(kEff > 0)) return Quantity.of(0, 'clo');
 

@@ -33,3 +33,5 @@ data:
   # draughty air — and rain cannot reach them.
   chambers:
     - { key: loft, template: /trade/carpentry/thing/drying-loft }
+  # The kerf: what the blade turns to sawdust (storage-and-ice D18).
+  kerfM: 0.003

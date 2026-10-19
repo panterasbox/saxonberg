@@ -1,0 +1,31 @@
+# Canvas — a heavy, tightly woven cloth (flax or hemp, in this epoch):
+# sails, tents, tarpaulins, the striped awning over a market stall.
+#
+# ⭐ Authored for the rubber build's construction model: an awning is a
+# place whose roof is canvas a couple of millimetres thick and whose
+# walls are `none`. Opaque (it authors no `lightAbsorption` — a canvas
+# roof shades), sheds a shower until it is soaked, and conducts little.
+#
+# ⚠ `cellulose`, like linen: it is a plant fibre, and the narrowed
+# vitriol list names cellulose, so acid still eats a canvas awning.
+class: /platform/idea/material/Material
+data:
+  name: canvas
+  keywords: [canvas, sailcloth, duck]
+  appearance: striped canvas
+  density: 600
+  specificHeat: 1300
+  thermalConductivity: 0.05
+  hardness: 5
+  toughness: 4
+  # Electrical conductivity (S/m) — dry plant fibre insulates.
+  electricalConductivity: 1.0e-11
+  # Water absorption capacity (% of dry mass): a heavy weave swells shut
+  # as it wets, which is why canvas sheds a shower.
+  waterAbsorptionCapacity: 25
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
+  composition: []
+  biologicalSource: null

@@ -42,6 +42,7 @@ data:
   props:
     - /trade/haulage/thing/depot-counter
     - /trade/haulage/thing/warehouse
+    - /trade/haulage/thing/depot-book
     - /trade/haulage/thing/rate-board
     # ⭐ The depot's own board. A depot is where a lane touches the local
     # economy, so it is also where somebody looking for a haul goes to

@@ -75,7 +75,7 @@ beforeEach(async () => {
     const s = new Stock();
     s.stockLines = [
       { itemTemplatePath: TORCH, par: 2 },
-      { itemTemplatePath: LIMES, par: 4, supplier: SUPPLIER, pricing: "stocking" },
+      { itemTemplatePath: LIMES, par: 4, from: { supplier: SUPPLIER }, pricing: "stocking" },
     ];
     s.prices = { [TORCH]: 2, [LIMES]: 10 };
     return s;

@@ -1,0 +1,22 @@
+# stock — the stocktake: how much is really in a store (storage-and-ice D6).
+#
+# ⭐ What a keeper sets against the book. A block taken off the stack by
+# hand changes no receipt; only a stocktake shows the gap. `measure stock`
+# gauges each line with a gauging rod (coopering's instrument kind),
+# bracketed to the reader's appraisal; `analyze stock` is the eye, in words.
+class: /platform/idea/reading/StockReading
+data:
+  channel: stock
+  kind: fact
+  scope: [subject]
+  subjectRequires: [StoreMixin]
+  discipline: appraisal
+  instrument: gauging
+  instrumentNoun: a gauging rod
+  eyeCeiling: competent
+  improves: >-
+    how much is really in a store, against what the book says is owed out
+    of it — the only way a keeper finds a gap before a depositor does
+  stakes: >-
+    a house that has been quietly robbed, a book that promises more than
+    the stack holds, a summer that ran the stock out early

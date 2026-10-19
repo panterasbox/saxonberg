@@ -43,9 +43,13 @@ consumer of a floor's material is synchronous and rung 3 is not:
 5. the plain default (a plain floor is a board floor).
 
 **3. The KIND is derived, never authored.** `f(materialClass, onGrade,
-worked, standingWater)` over `GROUND_KIND_FOLD`, closed at ten words:
+worked, standingWater)` over `GROUND_KIND_FOLD`, closed at eleven words:
 `rock · set-paving · slab · earth · mire · beaten-floor · loose · boards ·
-plate · contrived`.
+plate · ice · contrived`. ⭐ `ice` (*"frozen hard"*, from the `ice`
+material class) is the one word added since this build: a frozen pool's
+sheet IS the ground, and `contrived` would be false of a sheet you stand
+on — a puddle frozen over elsewhere stays its earth kind with a skin
+(below).
 
 ⭐ The point of deriving it is that **two rooms paved in the same stone read
 the same without anybody having chosen it** — there is no `kind:` field for
@@ -59,6 +63,10 @@ working, so an author can invent matter without a kernel MR.
 ---
 
 ## The two questions that are NOT the same question
+
+> (rubber build) A storey standing `on:` another — a roof terrace — has
+> the roof of the place below for a floor: `isOnGrade()` answers `false`
+> there. Every other floor keeps the derivation below unchanged.
 
 1. **Is there a floor here at all** — is this place *standable*?
    `noDefaultFloor`. Defaults to yes.
@@ -228,7 +236,7 @@ answers 0 and is NOT memoised (unknown must never be cached as bare).
 overlay (*"Snow lies ankle-deep."*), and at knee-deep and over the
 ground's own sentence is MASKED — nobody standing in it can see what it
 is made of. ⚠ The ground KIND is untouched: snow is on the ground, not
-what the ground is, so the ten words stay closed. `isSnowPerennial()`
+what the ground is, so the words stay closed. `isSnowPerennial()`
 says *it has not gone in years* where the walk-back found no melt-out.
 
 `isFrozenOver()` is the puddle's frozen read — standing water under air
@@ -239,6 +247,46 @@ at or below freezing (the sync air, `BiomeApi.airFor`) — and `look` says
 Seams: shovelled or trodden snow (a stored `snowRemovedMm` subtracting
 from the derivation → the locomotion-on-snow slate); meltwater into the
 room's soil (soil still discards `frozen` → field-substrate-slate).
+⭐ The **per-area** form of the cleared-snow seam shipped on ONE floor —
+the ice sheet's patch log, where a `scraped` patch is bare until the next
+snow (storage-and-ice; [watershed.md](./watershed.md) § The frozen pool).
+The general `snowRemovedMm` on ordinary ground is still the slate's.
+
+## ⭐⭐ The water's surface — a floor that may not bear you (storage-and-ice, 2026-10-17)
+
+Every floor now answers a **support protocol** on `FloorMixin`, with base
+answers that change nothing on ordinary ground: `bears(loadKg)` (`true`),
+`supportIsSlotted()` (`false` — standing is the free posture),
+`supports(occupant)` (holds the floor's slot), `supportLoadKgOf(occupant)`
+(body + everything carried), `openWaterAreaM2()` (`0`), `giveWay` (no-op)
+and `reconcileSupport` (no-op). The pool, bare `stand`, bare `swim`, the
+shore's `drawAt` gate and the animal's refusal all read this ONE typed
+protocol, never shapes.
+
+- **`platform/thing/WaterSurface`** (row `/stuff/thing/surface/water-surface`,
+  `TemplatePaths.waterSurface`) answers it the other way round:
+  `bears → false` while the water is open, `supportIsSlotted → true`
+  (standing here is holding `ground:1`; whoever does not hold it is in
+  the water), `canOccupy` refuses a load it will not bear in its own
+  words through `Slotted.canOccupyReason` (*"There is nothing here to
+  stand on but water."*), and `giveWay(occupant, deliberate?)` is the drop
+  — off the slot, swim mode engaged, soaked (`Attired.immerse`), told.
+  A plain surface over water that reads FROZEN bears you (no thickness to
+  model); a harvest pool names the water pack's `IceSheet`, which bears by
+  its thickness and patch history.
+- **`Pool` names it as its default floor** (a class default any row's
+  `floor:` overrides), so a pool's ground is water — `sit`/`lie` on the
+  estuary cove are refused honestly. The pool's hooks are generic over the
+  protocol: arriving on foot occupies the floor or gives way; arriving by
+  swim is soaked; a drop or a `get` re-runs `reconcileSupport`;
+  `canExit` lets an unsupported occupant leave only by swimming (*"You
+  are in the water; swim for it."*).
+- **An animal will not walk onto ice that will not bear it** —
+  `Beast.beforeTraverse` refuses when the destination's floor does not
+  bear its mass (the hook's second implementer, after combat's flee). A
+  person is let on and falls through; the horse's instinct is the horse's.
+- Getting out is bare `stand` (posture.md); going in deliberately is bare
+  `swim` (locomotion.md).
 
 ## Seams left open
 
@@ -400,3 +448,10 @@ an ice sheet takes none), `cleaningMethod()` exhaustive over the ground
 kinds, strewing, the sweep, the byre's stalls (the one calendar accrual),
 pests derived from debris. An earth floor refuses the scrub in words. See
 [cleanliness.md](./cleanliness.md).
+
+---
+
+- **2026-10-18 (storage-and-ice, MR !378).** The floor support protocol
+  (`bears` / `supportIsSlotted` / `giveWay` …), `WaterSurface` as the
+  pool's default floor, the eleventh kind `ice`, and the per-area snow
+  seam on the ice sheet.

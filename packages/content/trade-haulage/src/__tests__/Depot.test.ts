@@ -28,6 +28,8 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
+import { stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import DepotCounter from '../thing/DepotCounter';
 import Warehouse from '../thing/Warehouse';
 import WaybillRegistry from '../idea/WaybillRegistry';
@@ -45,6 +47,9 @@ class TestRoom extends ContainerMixin(Idea) {
 }
 class Crate extends ContainableMixin(Idea) {
   static _mixinName = 'HaulageTestCrate';
+}
+class Hand extends EmployedMixin(ContainerMixin(ContainableMixin(Idea))) {
+  static _mixinName = 'HaulageTestHand';
 }
 
 const QUAY = '/world/terminus/estuary/lower-towpath';
@@ -211,7 +216,7 @@ describe('the warehouse', () => {
     const goods = makeStuff(() => new Crate());
     ContainmentApi.move(goods, quay as unknown as Stuff & Container);
     const filed = await asClerk(() =>
-      shed.deposit(
+      shed.depositFor(
         goods as unknown as Stuff & Containable,
         '/platform/agent/Avatar/merchant',
       ),
@@ -232,7 +237,7 @@ describe('the warehouse', () => {
     ContainmentApi.move(goods, quay as unknown as Stuff & Container);
 
     await asClerk(() =>
-      shed.deposit(
+      shed.depositFor(
         goods as unknown as Stuff & Containable,
         '/platform/agent/Avatar/brewer',
       ),
@@ -241,6 +246,53 @@ describe('the warehouse', () => {
     const held = await registry.receiptsOf(business(DEPOT));
     expect(held).toHaveLength(1);
     expect(held[0]!.depositor).toBe('/platform/agent/Avatar/brewer');
+  });
+
+  it('⭐ the depositor takes the crate back at the depot, while the warehouseman keeps the book', async () => {
+    const shed = makeStuff(() => new Warehouse());
+    shed.setBaileePath(DEPOT);
+    shed.keeperPositions = ['warehouseman'];
+    stampTemplatePathForTest(shed as unknown as Stuff, '/trade/haulage/thing/warehouse');
+    ContainmentApi.move(shed as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const crate = makeStuff(() => new Crate());
+    stampTemplatePathForTest(crate as unknown as Stuff, '/stuff/thing/crate');
+    ContainmentApi.move(crate, quay as unknown as Stuff & Container);
+    const brewer = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/brewer');
+    ContainmentApi.move(brewer as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    await asClerk(() =>
+      shed.depositFor(crate as unknown as Stuff & Containable, '/platform/agent/Avatar/brewer'),
+    );
+    expect(crate.getContainer()).toBe(shed);
+
+    // Nobody on shift: refused.
+    const refused = await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'));
+    expect(refused).toMatchObject({ ok: false, reason: 'no-keeper' });
+
+    const man = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/warehouseman');
+    (man as unknown as { employments: unknown }).employments = [
+      { organizationPath: DEPOT, positionKey: 'warehouseman', status: 'on-shift', hiredAt: 0, onShiftSince: 0 },
+    ];
+    ContainmentApi.move(man as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const out = await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'));
+    expect(out.ok).toBe(true);
+    expect(crate.getContainer()).toBe(brewer);
+    expect(await registry.receiptsOf(business(DEPOT))).toEqual([
+      expect.objectContaining({ depositor: '/platform/agent/Avatar/brewer' }),
+    ]);
+  });
+
+  it('refuses a receipt nobody can redeem', async () => {
+    const shed = makeStuff(() => new Warehouse());
+    shed.setBaileePath(DEPOT);
+    ContainmentApi.move(
+      shed as unknown as Stuff & Containable,
+      quay as unknown as Stuff & Container,
+    );
+    const goods = makeStuff(() => new Crate());
+    ContainmentApi.move(goods, quay as unknown as Stuff & Container);
+    await expect(
+      asClerk(() => shed.depositFor(goods as unknown as Stuff & Containable, '')),
+    ).rejects.toThrow(/nobody to write the receipt to/);
   });
 
   it('⚠ a shed that names no bailee refuses — nobody would owe the duty', async () => {
@@ -253,7 +305,7 @@ describe('the warehouse', () => {
     ContainmentApi.move(goods, quay as unknown as Stuff & Container);
     await expect(
       asClerk(() =>
-        orphan.deposit(
+        orphan.depositFor(
           goods as unknown as Stuff & Containable,
           '/platform/agent/Avatar/brewer',
         ),

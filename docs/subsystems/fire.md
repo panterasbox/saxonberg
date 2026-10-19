@@ -368,6 +368,14 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
 
 ## ⭐ `fire` — a chamber you load, and the charge decides the product (extraction W4)
 
+> ⭐ **`fire … for <duration>` (rubber build, 2026-10).** A firing holds
+> for the stated game-time (the clock's grammar), else its recipe's
+> `holdS`, else a minute; a long hold is sealed down, so its effort is a
+> minute's. A charge loaded into a MOULD standing in the chamber comes out
+> in the mould's shape (`mould.castInto`); a feedstock whose material
+> carries a `crosslinking` spec cures by its agent fraction, heat and time
+> — see [rubber.md](./rubber.md).
+
 `platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
 **`BurnerMixin.commandContributions.peers`** beside the five already there.
 `FireController` is the **platform's**, and nothing in it names lime, clay or

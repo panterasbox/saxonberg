@@ -1,0 +1,28 @@
+# The water surface — a POOL's floor (storage-and-ice D12). A small water
+# you can see across is one place, and what is underfoot in it is the
+# water's own surface: nothing anybody stands on. `sit`, `lie` and `stand
+# on the ground` are refused here in the surface's own words, and whoever
+# the floor is not supporting is IN the water — swimming, wet, and cold as
+# the water is.
+#
+# When the water freezes, a pool that names an ice sheet as its floor
+# (`/system/water/thing/ice-sheet`, the water pack's) bears whoever the ice
+# will hold; a pool on this plain surface reads as frozen over and is
+# simply not swum.
+#
+# `onGrade: false`: nothing continues beneath — the bed is the underwater
+# slate's.
+class: /platform/thing/WaterSurface
+data:
+  shortDescription: surface of the water
+  keywords: [water, surface, floor, ground]
+  register: definite
+  longDescription: The surface of the water, moving a little with the air over it.
+  _materialPath: /stuff/idea/material/bulk/water
+  onGrade: false
+  staticSlots:
+    - name: 'ground:1'
+      accepts: SlottableMixin
+      capacity: 9007199254740991
+      postures: [sit, lie, kneel, stand]
+      userFacingDetail: floor

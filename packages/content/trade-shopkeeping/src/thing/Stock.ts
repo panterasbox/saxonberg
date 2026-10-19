@@ -26,11 +26,13 @@ export default class Stock extends StockBase {
       "platform/cmd/retail/buy.yaml",
       "platform/cmd/retail/consign.yaml",
       "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/sell.yaml",
     ],
     environment: [
       "platform/cmd/retail/buy.yaml",
       "platform/cmd/retail/consign.yaml",
       "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/sell.yaml",
     ],
   };
 }

@@ -374,6 +374,10 @@ export const AppSettingKeys = {
    * shelf asks base × (1 + e), a shelf at par asks base.
    */
   retailStockingElasticity: "retail.stockingElasticity",
+  /** Retail — the days of supply at which a store-fed `stocking` line asks
+   * its base price (storage-and-ice D8): fewer days left in the store, a
+   * dearer counter; at or past the horizon, base. */
+  retailStockingHorizonDays: "retail.stockingHorizonDays",
   /**
    * Retail — the margin a shop asks over a supplier's price on a terms
    * good it has not priced itself (a fraction).
@@ -1323,6 +1327,12 @@ export const AppSettingKeys = {
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
+  /** Wetness — ⭐ the ONE wet law's cutoff (`Material.permeability()`): a
+   * material whose `waterAbsorptionCapacity` (%) is at or below this takes
+   * no water into its pores at all — rubber, glass, oiled leather. Above
+   * it, permeability is `min(1, wAC / textiles.clo.absorptionReference)`.
+   * Shared with the rubber build (its D12.1); one key, one default. */
+  wetnessImpermeableBelowPct: "wetness.impermeableBelowPct",
   /** Wetness — saturation at/above which the band reads `damp`. */
   wetnessBandDampAt: "wetness.band.dampAt",
   /** Wetness — saturation at/above which the band reads `wet`. */
@@ -1600,6 +1610,27 @@ export const AppSettingKeys = {
    */
   envelopeActiveDepthM: "envelope.activeDepthM",
 
+  /**
+   * Light — how much a wall face counts against the roof when the sky
+   * lights a place through its construction (and, for heat, the solar
+   * gain through it). A quarter: a wall sees half the sky, and only part
+   * of that is the bright half.
+   */
+  lightSolarSideWeight: "light.solar.sideWeight",
+  /**
+   * ⭐ Light — the sun's irradiance on a horizontal surface at a clear
+   * noon, W/m² (rubber build). The ONE calibration constant of solar
+   * gain: the lux scale is a MUD scale (`light.sky.noonLux` is 80), so
+   * heat has its own number and shares only the sky factor and the dim.
+   */
+  lightSolarNoonIrradianceWm2: "light.solar.noonIrradianceWm2",
+  /**
+   * Envelope — the most pieces one reconcile splits a gap into to follow
+   * the sun through a transparent face (each at most a game hour). A room
+   * with no transmitting exterior face never splits.
+   */
+  envelopeSolarSegmentsMax: "envelope.solarSegmentsMax",
+
   /* ────────────────────────── light (the sky, envelope D1/D2/D4) ────────────────────────── */
   /** Light — degrees of sun depression per factor-of-ten twilight falloff
    * in the sky illuminance curve. Larger = a longer, gentler dusk. */
@@ -1696,6 +1727,12 @@ export const AppSettingKeys = {
    * saturation the cold-side wind-chill / immersion term is scaled by
    * `1 + wetHeatLossFactor`. */
   thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
+  /** Thermal — ⭐ the water temperature (K) an active swimmer is comfortable
+   * in (storage-and-ice D10a): water at or above it costs nothing, and
+   * water below it pulls a body's effective ambient down by the gap AGAIN
+   * — water conducts ~23× better than air, so a near-freezing pool reads
+   * far colder than near-freezing air, and a summer swim reads warm. */
+  thermalWaterNeutralK: "thermal.waterNeutralK",
 
   /* ────────────────────────── fire (combustion) ────────────────────────── */
   /** Fire — fuel consumed per game-minute while burning (`%`-points of the
@@ -2137,6 +2174,10 @@ export const AppSettingKeys = {
   /** Textiles — the fit distance above which a garment simply will not
    * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
   textilesFitRefuseAbove: "textiles.fit.refuseAbove",
+  /** Textiles — the share of a material's spring-back strain a garment
+   * is WORN at (rubber build): the give that fit takes up is
+   * `elasticity × this × the form's stretch`. */
+  textilesFitStretchWornFraction: "textiles.fit.stretchWornFraction",
 
   /*
    * ⭐⭐ Dressing DIALS. Getting a garment on is an engaged act whose
@@ -2271,6 +2312,16 @@ export const AppSettingKeys = {
   exertionCombatExchangeS: "exertion.combatExchangeS",
   /** Pump — packing condition one spell at the handle wears off (0..1). */
   pumpWearPerStroke: "pump.wearPerStroke",
+  /**
+   * Pump — the packing toughness (MJ/m³) wear is measured against: leather's
+   * 10. A tougher packing wears slower in proportion (rubber build).
+   */
+  pumpReferenceToughness: "pump.referenceToughness",
+  /**
+   * Pump — how much a springy packing's elasticity spares it: at rubber's
+   * 500 % and 0.5 relief, half the wear (rubber build).
+   */
+  pumpElasticityWearRelief: "pump.elasticityWearRelief",
   /** Pump — packing condition one RUNNING hour of a powered pump wears
    * off; integrated over the supply's trajectory, never sampled. */
   pumpWearPerRunningHour: "pump.wearPerRunningHour",

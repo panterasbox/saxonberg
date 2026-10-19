@@ -66,6 +66,8 @@ export default class Fabric extends SingletonMixin(Idea) {
   public weaveDensity = 0;
   /** How it hangs, `0..1`. Reserved: authored, not yet consumed. */
   public drape = 0.5;
+  /** How far the form lets its fibre give, × the material's elasticity. */
+  public stretch = 1;
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
@@ -73,6 +75,7 @@ export default class Fabric extends SingletonMixin(Idea) {
     loft: { persistent: true, authorable: true },
     weaveDensity: { persistent: true, authorable: true },
     drape: { persistent: true, authorable: true },
+    stretch: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -123,6 +126,16 @@ export default class Fabric extends SingletonMixin(Idea) {
     this.drape = unitFraction('setDrape', value);
   }
 
+  getStretch(): number {
+    return this.stretch;
+  }
+  setStretch(value: number): void {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new RangeError(`Fabric.setStretch: ${value} must be a number ≥ 0`);
+    }
+    this.stretch = value;
+  }
+
   /** This row as the registry's flat spec. */
   public toSpec(): FabricSpec {
     return {
@@ -131,6 +144,7 @@ export default class Fabric extends SingletonMixin(Idea) {
       loft: this.loft,
       weaveDensity: this.weaveDensity,
       drape: this.drape,
+      stretch: this.stretch,
     };
   }
 

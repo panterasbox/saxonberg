@@ -1,15 +1,18 @@
-# Native sulfur — a lump of brimstone won at Hill Quarry below the coal
-# (⚠ rubber's row, created here at rubber's path because rubber had not
-# landed; rubber adopts it). ⭐ A `Firewood`, like coal: it LIGHTS and it
-# stokes — and burnt on a brazier it fills a shut room with sulfur
-# dioxide, the bleacher's fume for wool (cleanliness D22).
+# Native sulfur — ⭐ a nodule from the Hill Quarry's caprock (rubber
+# build, D13.4): the yellow crust a salt dome wears, between the coal and
+# the rock salt. Won by `dig` with no code — the band's `wins` names it.
+#
+# ⚠ A `Firewood` (coal's shape — the cleanliness build's ask): sulfur
+# burns, so a stove takes it; and it is the agent of the rubber cure. A
+# nodule is a few tens of grams — a cure wants a few parts in a hundred,
+# so the charge is weighed by counting nodules against the rubber.
 class: /platform/thing/Firewood
 data:
-  keywords: [sulfur, sulphur, brimstone, lump, "lump of brimstone"]
-  shortDescription: lump of brimstone
+  keywords: [sulfur, sulphur, brimstone, nodule, "sulfur nodule", "nodule of sulfur"]
+  shortDescription: nodule of sulfur
   register: indefinite
   longDescription: >-
-    A crumbling lemon-yellow lump that smells faintly of struck matches
-    and leaves a yellow dust on your fingers.
+    A crumbly nodule of bright yellow crystals, glittering where it broke.
+    It smells faintly of struck matches.
   _materialPath: /stuff/idea/material/mineral/sulfur
-  mass: 1
+  mass: 0.05

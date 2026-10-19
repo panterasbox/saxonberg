@@ -440,13 +440,35 @@ export function scoreCandidates(
   queryWords: string[]
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
+  const whole: boolean[] = [];
   for (const c of candidates) {
     const score = scoreCandidate(c, queryWords);
     if (score > 0) {
       const match: MqlMatch = { stuff: c.stuff, score };
       if (c.via) match.via = c.via;
       out.push(match);
+      whole.push(namesEveryWord(c, queryWords));
     }
   }
+  // ⭐ A candidate that answers to EVERY word of the query outranks one
+  // that answers to only some, absolutely: a partial match is a fallback
+  // for when nothing names the whole phrase, never a companion to one.
+  // Without this a plural verb took every partial too — live, `get
+  // "latex cup"` picked up the three cups AND the coagulating pan (whose
+  // keywords say "latex pan"), because scores only order, they never cut.
+  if (whole.some(Boolean)) return out.filter((_, i) => whole[i]);
   return out;
+}
+
+/** Does every query word appear in the candidate's name or a keyword? */
+function namesEveryWord(
+  candidate: ScopeCandidate,
+  queryWords: string[]
+): boolean {
+  if (queryWords.length < 2) return true; // one word: matched is whole
+  const nameLower = candidate.name.toLowerCase();
+  return queryWords.every(
+    (qw) =>
+      nameLower.includes(qw) || candidate.keywords.some((kw) => kw.includes(qw))
+  );
 }

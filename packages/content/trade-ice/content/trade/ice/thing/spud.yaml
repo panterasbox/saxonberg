@@ -1,0 +1,13 @@
+# The spud — a heavy chisel on a long handle, for chopping a test hole and
+# reading the thickness of the ice off its marks (`measure ice`).
+class: /platform/thing/Tool
+data:
+  keywords: [spud, chisel, "ice spud", "ice chisel"]
+  shortDescription: ice spud
+  register: indefinite
+  longDescription: >-
+    A broad steel chisel on a straight ash handle, the handle notched in
+    inches above the blade so the hole it chops can be read.
+  mass: 3
+  capabilities: ["spudding"]
+  _materialPath: /stuff/idea/material/alloy/steel

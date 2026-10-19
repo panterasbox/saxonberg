@@ -4,6 +4,9 @@ class: /platform/location/PersistentLocale
 data:
   coords: { x: -1, y: 0, z: 0 }
   # ⭐ What light there is comes through from the lavoir's open side.
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   ambientSource: sky
   ambientOpening: doorway
   shortDescription: laundry

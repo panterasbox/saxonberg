@@ -55,9 +55,9 @@ export interface WaterRead {
   /** What a vessel drawn from it holds, or `null` when nothing comes up. */
   draw: WaterDraw | null;
   /**
-   * ⭐ The liquid UNDER the ice when it is frozen (cleanliness D13 —
-   * storage-and-ice's contract): what a hole in the ice reaches. Absent
-   * when the water is open, or the source does not model it.
+   * ⭐ The water UNDER the ice when it is frozen (storage-and-ice D15) —
+   * what comes up through a hole. A frozen read's `draw` is null, so a
+   * gate that let you through the ice would otherwise find no water.
    */
   underIce?: WaterDraw;
   /** The source's own state, returned to it in `waterLinesFor`. */

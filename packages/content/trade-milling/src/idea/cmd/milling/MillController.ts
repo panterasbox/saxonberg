@@ -274,7 +274,7 @@ export default class MillController extends CommandController<MillModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const material = MixinApi.isTangible(source) ? source.getMaterial() : null;
-    const recipeRef = this.recipeForStock(material);
+    const recipeRef = await MillController.recipeForStock(material);
     if (recipeRef === null) {
       this.decline(
         context,
@@ -283,6 +283,10 @@ export default class MillController extends CommandController<MillModel> {
       );
       return;
     }
+    // ⚠ Named BEFORE the stones take it: the craft consumes the input, and
+    // a destroyed source presents as nothing (the rubber drive's first
+    // dandelion root crashed the success line — "reading 'replace'").
+    const sourceName = source.getPresentation();
     const outcome = await CraftingApi.craft({ recipeRef, makerMode: 'self' });
     if (!outcome.ok) {
       // ⚠ `CraftController.declineToScene`'s behaviour, inlined rather
@@ -302,10 +306,16 @@ export default class MillController extends CommandController<MillModel> {
     }
     const output = outcome.output;
     if (output === null) return;
+    // A solid is swept up off the bed; a grind that fills a vessel you
+    // brought (bone meal into a sack, dandelion latex into a pail) is
+    // caught in it — say which happened.
+    const caught = MixinApi.isBulkable(output) && output.hasInteriorBulk();
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You put ${Mml.thing(source)} through the stones and sweep ${Mml.thing(output)} up off the bed.`,
+        caught
+          ? Mml.compose`You put ${sourceName} through the stones and catch what comes off in ${Mml.thing(output)}.`
+          : Mml.compose`You put ${sourceName} through the stones and sweep ${Mml.thing(output)} up off the bed.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} grinds something down at the stones.`,
@@ -316,13 +326,17 @@ export default class MillController extends CommandController<MillModel> {
   /**
    * Which recipe these stones would run for a given stock, or `null`.
    *
-   * ⚠ A tag read rather than a list of classes, so a second grindable is
-   * a material tag and a recipe row with nothing in this file changed.
+   * ⭐ Asked of the recipes, not listed here: any recipe on the
+   * `millstone` capability whose item input names one of the stock's
+   * tags. So a second grindable really is a material tag and a recipe row
+   * with nothing in this file changed — which this comment claimed while
+   * the method mapped `bone` alone, and dandelion root (rubber build) was
+   * told the stones would not take it.
    */
-  private recipeForStock(material: Material | null): string | null {
+  private static async recipeForStock(material: Material | null): Promise<string | null> {
     if (!material) return null;
-    if (material.hasTag('bone')) return 'bone-meal';
-    return null;
+    const recipe = await CraftingApi.recipeTaking('millstone', material.getTags());
+    return recipe?.recipeId ?? null;
   }
 
   private chargeFrom(source: Stuff): Charge | null {

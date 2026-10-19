@@ -69,6 +69,10 @@ data:
     # ⭐ West to the bakery — the first of the four the general store
     # fragments into (`settlement-model.md`'s specialization gradient).
     # `west` was free.
+    # ⭐ (rubber build) Under the fish stall's awning — a lone place with a
+    # canvas roof and no walls (cleanliness's bathhouse takes `north`).
+    east:
+      destination: /world/terminus/market/location/under-the-awning
     west:
       destination: /world/terminus/market/bakery
     # ⭐ North to the bathhouse (cleanliness D28): hot baths, washing taken

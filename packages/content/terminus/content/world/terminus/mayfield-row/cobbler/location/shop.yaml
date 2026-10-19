@@ -13,6 +13,10 @@ data:
   shortDescription: "cobbler's shop"
   keywords: [shop, cobbler, cobblers, "cobbler's"]
   register: definite
+  # A brick shopfront with a slate roof, like the row it stands in
+  # (rubber build: a place says what bounds it).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   longDescription: |
     A low room that smells of leather and wax and feet. A bench under the window with an iron last bolted to it, a rack of boots waiting with paper tickets in their mouths, and a box of soles cut and stacked like slices of bread.
 

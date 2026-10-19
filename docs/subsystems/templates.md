@@ -468,6 +468,17 @@ value on the instance (so `getRenownClaims()` can read it back) and phase
 3 hands the same value to the ledger. `seed: true` adds phase 3, it does
 not replace phase 1.
 
+⚠⚠ **Phase 1 writes PERSISTENT fields only.** A field marked
+`authorable` and not `persistent` is accepted on the row and reaches the
+instance as nothing — silently, and a unit test that assigns the field by
+hand cannot see it. Both of storage-and-ice's icehouses booted EMPTY for
+this reason (2026-10-17): the stack's authored lines were
+`authorable`-only. A field whose value is runtime state laid down once
+from the row is a **seed field** instead — `initialLines: { authorable:
+true, seed: true }` on `StoreMixin`, whose `seedInitialLines` holds the
+lines and lays them down only when no record restored a ledger. Test such
+a field through the real applier, not by assignment.
+
 ### The three modes
 
 | mode | caller | 1 | 2 | 3 |

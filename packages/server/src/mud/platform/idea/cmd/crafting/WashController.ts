@@ -269,7 +269,9 @@ export default class WashController extends ManualBuildController<WashModel> {
       if (MixinApi.isShore(c)) {
         const pick = c.waterFor();
         if ("refusal" in pick) continue;
-        const drawn = await c.drawAt(pick.key, room);
+        // Settle the read first: the shore's gate answers from the read.
+        await c.settleWater(pick.key);
+        const drawn = c.drawAt(pick.key, room ?? c);
         if ("refusal" in drawn) {
           if (drawn.refusal === "frozen") frozenLine = drawn.line;
           continue;

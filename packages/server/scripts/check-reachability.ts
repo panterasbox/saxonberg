@@ -522,6 +522,7 @@ export function articleShapesOf(doc: {
  * value is a `thing` path (54 fields), not from memory.
  */
 const FAUCETS: Record<string, string> = {
+  goodPath: "a store's seed line — the exemplar minted as the line's face (storage-and-ice)",
   props: "born-with placement — the row is cloned into the place",
   template: "the `{template, as}` entry form of props/cast, and floor/residue entries",
   cast: "born-with agents; kept here so an agent-shaped thing row still counts",
@@ -610,11 +611,15 @@ const CITATIONS: Record<string, string> = {
   bench: "as `shelf`",
   rack: "as `shelf`",
   bin: "as `shelf`",
+  cold: "as `shelf` — the cold box a cook unpacks ice into (storage-and-ice)",
+  bed: "a pool's bed — the prop it sinks things into; the place's props place it (storage-and-ice)",
+  store: "a stock line's `from: { store }` — the store the counter brings stock up from; the house's props place it (storage-and-ice)",
   window: "as `shelf`",
   shore: "as `shelf` — the fisher's reach",
   floor: "a brain's room, or a location's own floor citation",
   room: "a brain's room / a floorplan's location row (not a thing)",
   holdPath: "the warehouse a depot counter books into",
+  storePath: "the store a store book keeps — resolved live, propped by its room (storage-and-ice)",
   projectileTemplate: "what a launcher ACCEPTS — matched against what you carry",
   _vaultPaths: "a donation bank's vaults, filtered live to live Containers",
   value: "a setting's value",
@@ -829,7 +834,7 @@ export const PHRASE_SHAPE_CEILING = 6;
  * stale tree is opened at the wrong number.** Measure at the merge, not
  * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 120;
+export const ARTICLE_SHAPE_CEILING = 119;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase
@@ -851,8 +856,10 @@ export const ARTICLE_SHAPE_CEILING = 120;
  * 72 → 70 in the scan sweep's review (2026-10-15): the goods yards' stocks
  * began naming their lines, which brought 44 goods into this arm's scope;
  * every one was given the name it prints, and two older misses with them.
+ * The rubber drive bought a leather WATERSKIN asking for the boots: they
+ * answer to "leather boots" now (70 → 69).
  */
-export const UNNAMEABLE_GOOD_CEILING = 70;
+export const UNNAMEABLE_GOOD_CEILING = 69;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command
