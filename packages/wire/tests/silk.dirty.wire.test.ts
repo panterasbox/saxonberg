@@ -147,9 +147,18 @@ async function names(s: Session, q: string): Promise<string> {
 }
 
 async function settle(s: Session, started: CommandResult): Promise<void> {
-  const id = engagementIdOf(started);
+  // ⚠ Not every step reports an engagement note (a step can land in the
+  // same tick); wait on it when there is one, and drain either way.
+  let id: string | undefined;
+  try {
+    id = engagementIdOf(started) ?? undefined;
+  } catch {
+    id = undefined;
+  }
   if (id) await s.awaitActivity(id, 400_000);
-  await new Promise((r) => setTimeout(r, 500));
+  else await advance('30 minutes');
+  await new Promise((r) => setTimeout(r, 1_000));
+  await s.drainProse();
 }
 
 async function advance(duration: string): Promise<void> {
@@ -323,7 +332,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
     const s = await at(LOFT);
     try {
       let bought = 0;
-      for (let i = 0; i < 150 && bought < 80; i++) {
+      for (let i = 0; i < 150 && bought < 120; i++) {
         const r = await say(s, 'buy cocoon');
         if (refusedFor(r) === null) {
           bought += 1;
@@ -334,7 +343,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
         // game-time schedules. Every brain step here needs a real beat.
         await s.listen(20_000);
       }
-      expect(bought, 'eighty stifled cocoons bought off the house counter — two reelings').toBe(80);
+      expect(bought, 'a hundred and twenty stifled cocoons bought off the house counter — three reelings').toBe(120);
     } finally {
       s.close();
     }
@@ -360,6 +369,17 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       const skein = await read(s, 'look hank');
       expect(skein).toMatch(/6 cocoons to it|six cocoons/i);
       expect(skein).toMatch(/even|uneven|thick and thin/i);
+      // A second reeling at the same basin and count: skeins reeled alike
+      // stack (filament count and evenness are stack identity), and `spin`
+      // wants two in one stack.
+      const again = await say(s, 'reel cocoons --count 6 with basin');
+      expect(refusedFor(again), 'a second reeling at the basin').toBeNull();
+      await settle(s, again);
+      // ⭐ AC 8 — throw the two alike skeins here, at the mill's wheel,
+      // before a differently-reeled skein joins them.
+      const thrown = await say(s, 'spin hank');
+      expect(refusedFor(thrown), '`spin hank` throws two alike skeins').toBeNull();
+      await settle(s, thrown);
     } finally {
       s.close();
     }
@@ -384,19 +404,16 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
     }
   }, 1_200_000);
 
-  it('⭐⭐ AC 8 — `spin hank` throws it: a skein of RAW SILK yarn, not linen', async () => {
+  it('⭐⭐ AC 8 — the thrown silk is a skein of RAW SILK yarn, not linen', async () => {
     const s = await at(MILL);
     try {
-      const started = await say(s, 'spin hank');
-      expect(refusedFor(started)).toBeNull();
-      await settle(s, started);
       const kit = await names(s, 'me:i');
       expect(kit).toMatch(/raw silk yarn/i);
       expect(kit).not.toMatch(/linen yarn/i);
     } finally {
       s.close();
     }
-  }, 1_200_000);
+  }, 300_000);
 });
 
 /* ───────────── 16 continued — the mill reels, weaves and sells ───────────── */
@@ -410,6 +427,18 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
         await advance('5 minutes');
         await s.listen(20_000);
         shelf = await names(s, 'here:i:counter:i');
+      }
+      if (!/bolt of (raw )?silk/i.test(shelf)) {
+        // Diagnose before failing: where did the mill's silk stop?
+        const m = await at(MILL);
+        try {
+          console.log('DIAG mill', await names(m, 'here:i'));
+          console.log('DIAG crib', await names(m, 'here:i:crib:i'));
+          console.log('DIAG silks', await names(m, 'here:i:silks:i'));
+          console.log('DIAG reeler', await names(m, 'here:i:reeler:i'));
+        } finally {
+          m.close();
+        }
       }
       expect(shelf, 'a bolt of silk on the general store counter').toMatch(/bolt of (raw )?silk/i);
     } finally {

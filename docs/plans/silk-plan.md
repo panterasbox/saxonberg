@@ -729,6 +729,13 @@ The requirement's *"with no player present"* is therefore delivered as
 > persistence alone, which is the wrong reason to adopt a host. Trees
 > cropped for food are the orchard close's shape: a farming `Field` with
 > one garden bed per tree, which persists with what grows in it.
+> ⚠ …and that failed `lint:location-graph` (a `Field` is a KIND of place,
+> living in a land warren; an exit naming one mints a stray copy). The
+> user chose option 1: **promote the persistable bed out of forestry** to
+> the kernel's `platform/thing/PermanentBed` (forestry and the silk trade
+> share no pack ancestor). The `Panel` is that bed plus forestry's own
+> (`fell`, the stool line, the deed); the walk is an ordinary place holding
+> one `PermanentBed` of four mulberries and the kermes oak.
 
 `/trade/sericulture/thing/plant/mulberry` (`/platform/thing/Plant`;
 species `/stuff/idea/species/plantae/…/moraceae/morus/alba` shipped by

@@ -1,44 +1,28 @@
-# The mulberry walk — ⭐ the silk house's leaf, and an ORCHARD: four
-# pollarded white mulberries cropped for leaf twice a day in the fifth age,
-# and a kermes oak in the corner for the dyer.
+# The mulberry walk — ⭐ the silk house's leaf: four pollarded white
+# mulberries cropped for leaf twice a day in the fifth age, and a kermes
+# oak in the corner for the dyer. An ordinary place holding one permanent
+# bed of trees (`thing/walk`), so a tree cut yesterday is still cut after a
+# restart.
 #
-# ⭐ It is the orchard close's shape (a farming `Field`, one garden bed per
-# tree, each tree an individual), because that is how this world models
-# trees grown for a crop. ⚠ NOT a forestry `Panel`: a panel is the bed of
-# a forestry stand — stools, standards, a sugarbush — and composing it
-# claims the trees are timber (it affords `fell` and talks of stools). The
-# Field persists with what grows in it, which is all the walk needs.
-class: /trade/farming/location/Field
+# ⚠ Not a farming `Field`: a Field is a KIND of place that lives in a land
+# warren, and an exit naming one mints a stray copy (`lint:location-graph`
+# destination-is-a-kind). Not a forestry panel either — see `thing/walk`.
+class: /platform/location/SingletonCartesianLocation
 data:
-  fieldName: the mulberry walk
   shortDescription: mulberry walk
   keywords: [walk, mulberries, orchard, "mulberry walk"]
   register: definite
   _address: terminus/hearts-delight/silk-house/walk
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
   longDescription: |
     A short double row of mulberries kept low and wide, pollarded at shoulder height so a hand can strip them standing on the ground. In the corner a dense, prickly little oak grows by itself.
   coords: { x: -14, y: 3, z: 6 }
-  _biomePath: /stuff/idea/biome/outdoor/meadow
-  ambientIntensity: 40000
-  ambientColorTemperature: 5800
-  groundSpotX: 4
-  groundSpotY: 2
-  areaM2: 300
   exits:
     east:
       destination: /world/terminus/hearts-delight/silk-house/location/floor
       media: [ground]
       edgeMinutes: 1
-  # One bed per tree, each tree an individual (the close's rule: these are
-  # trees one of which will be the slow one).
   props:
-    - { template: /trade/farming/thing/bed/garden, as: bed-1 }
-    - { template: /trade/farming/thing/bed/garden, as: bed-2 }
-    - { template: /trade/farming/thing/bed/garden, as: bed-3 }
-    - { template: /trade/farming/thing/bed/garden, as: bed-4 }
-    - { template: /trade/farming/thing/bed/garden, as: bed-oak }
-    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-1 }
-    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-2 }
-    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-3 }
-    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-4 }
-    - { template: /trade/farming/thing/plant/kermes-oak, as: kermes-oak }
+    - /world/terminus/hearts-delight/silk-house/thing/walk

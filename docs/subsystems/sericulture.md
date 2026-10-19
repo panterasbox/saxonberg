@@ -116,9 +116,10 @@ and a quarter lighter. Gummed cloth takes a dye thinly.
 
 Hearts Delight's silk house (`/world/terminus/hearts-delight/silk-house/`)
 is a loft of three persistable `HouseTray`s, a stifling oven, a counter
-and a mulberry walk — an ORCHARD, the orchard close's shape (a farming
-`Field`, one garden bed per tree: four mulberries and a kermes oak; not a
-forestry `Panel`, which is the bed of a timber stand) — run by a keeper (the judgment seat) and a paid hand (`tends`: feed,
+and a mulberry walk — an orchard: an ordinary place holding one kernel
+`PermanentBed` (a bed that is a fixture of its place and remembers being
+cut) of four mulberries and a kermes oak; not a forestry `Panel`, which is
+a timber stand's bed — run by a keeper (the judgment seat) and a paid hand (`tends`: feed,
 mount, harvest, stifle, set out). ⚠ **It runs while LOADED** — by a
 visitor, or the Wharfside reeler's buying trip — never booted (the boot
 ceiling is full; an unobserved house is the unobserved-economy slate's).
