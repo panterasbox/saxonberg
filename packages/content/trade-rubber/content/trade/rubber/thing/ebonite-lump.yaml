@@ -1,0 +1,15 @@
+# A lump of ebonite — rubber over-cured with a great deal of sulfur, with
+# no mould to shape it: hard, black, and it rings when tapped.
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of ebonite
+  keywords: [ebonite, vulcanite, lump]
+  register: indefinite
+  longDescription: |
+    A hard, glossy black lump that does not give at all. Tap it and it
+    rings like horn.
+  _materialPath: /stuff/idea/material/organic/ebonite
+  mass: 0.5
+  # A cast that has cooled: it is handled at the room's temperature
+  # (a Casting otherwise starts at its pour heat and scalds the hand).
+  stampedTemperatureK: 290

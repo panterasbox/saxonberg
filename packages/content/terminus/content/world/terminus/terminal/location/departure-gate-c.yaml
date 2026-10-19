@@ -6,6 +6,9 @@
 # terminal's north frontage opens onto University Avenue).
 class: /platform/location/SingletonCartesianLocation
 data:
+  # (rubber build) The terminal's brick and slate — what it is made of.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.35 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   shortDescription: Departure Gate C
   keywords: [c, departure, gate]
   register: proper

@@ -1,0 +1,17 @@
+# A rubber apron — ⭐ one piece, cast on an apron mould (rubber build).
+# Spill vitriol on it and it runs off: the acid eats a linen apron and
+# leaves this one as it was. The tanner's and the dyer's apron.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: rubber apron
+  keywords: [apron, "rubber apron", rubber]
+  register: indefinite
+  longDescription: >
+    A heavy apron of black cured rubber from the chest to below the knee,
+    with a moulded loop for the neck and long ties.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso, legs]
+  _materialPath: /stuff/idea/material/organic/rubber
+  constructionForm: hide
+  gradeBand: fair
+  mass: 1.2

@@ -19,6 +19,8 @@ data:
   electricalConductivity: 1.0e-11
   # Water absorption capacity (% of dry mass, ASTM D570): wool holds ~a third of its weight in water.
   waterAbsorptionCapacity: 33
+  # Elasticity (% strain it springs back from; rubber build).
+  elasticity: 30
   edibility: false
   nutrients: []
   toxicity: []

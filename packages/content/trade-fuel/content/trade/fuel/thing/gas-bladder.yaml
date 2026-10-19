@@ -11,19 +11,21 @@
 # room — which is honest, dangerous and not what anybody means to do.
 class: /platform/thing/Flask
 data:
-  shortDescription: oiled-canvas gas bladder
+  shortDescription: rubberized gas bladder
   # ⚠ The printed name is a phrase, and the drilling build put this row
   # on Rejection's counter — so a buyer reads `oiled-canvas gas bladder`
   # off the shelf and must be able to type it (`lint:reachability` arm
   # naming). `"gas bladder"` too, which is what anybody would actually
   # say.
-  keywords: [bladder, bag, gas, canvas, "gas bladder", "oiled-canvas gas bladder"]
+  # (rubber build) The bladder is RUBBERIZED cloth now: it claimed to be
+  # sealed while being jute, which no gas would stay in.
+  keywords: [bladder, bag, gas, rubberized, "gas bladder", "rubberized gas bladder"]
   register: indefinite
   longDescription: >-
-    A limp bag of canvas soaked in linseed oil, with a brass tap and a
-    screw clamp at the neck. Full, it is an awkward pillow of a thing and
+    A limp bag of rubberized cloth, dull-shining and sulfur-smelling, with
+    a brass tap and a screw clamp at the neck. Full, it is an awkward pillow of a thing and
     nobody wants to be carrying it near a flame.
-  _materialPath: /stuff/idea/material/textile/jute
+  _materialPath: /stuff/idea/material/textile/rubberized-cloth
   mass: 2
   interiorBulk: true
   interiorCapacity: 400

@@ -196,7 +196,13 @@ adding.
   `lib/persistence/SchemaDoc.ts`'s
   `SchemaDoc` — the parsed, validated form of one authored collection
   description, no `fs` and no YAML parser, so the three readers hand it
-  an already-parsed object), an enum-like vocabulary plus
+  an already-parsed object; and the rubber build's two —
+  `lib/spatial/Exposure.ts`'s `Exposure` (the one face rule over a
+  place's construction: top, faces, `holdsAir`, `rainReaches`, sky light)
+  and `lib/material/Crosslinking.ts`'s `Crosslinking` (the cure curve as
+  data on a feedstock material), see
+  [construction.md](./subsystems/construction.md) and
+  [rubber.md](./subsystems/rubber.md)), an enum-like vocabulary plus
   its validation array (`lib/persistence/Collections.ts`'s
   `Collections` — collection *names*, no driver and no I/O, which is
   why it lives here and `backend/PersistenceManager` re-exports it

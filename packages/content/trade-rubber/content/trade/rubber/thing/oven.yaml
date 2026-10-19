@@ -1,0 +1,23 @@
+# The vulcanizing oven — ⭐ an `Oven` row: a brick firebox with an iron
+# chamber, held at about 430 K on a good bed of coal and about 480 K with
+# the bellows going. ⚠ That second figure is past the cure's scorch line
+# (455 K): the bellows is how you scorch a cure, and nothing says so but
+# the result. Load a mould with raw rubber and sulfur, stand it in the
+# chamber, light it and `fire the oven for 30 minutes`.
+class: /platform/thing/Oven
+data:
+  shortDescription: vulcanizing oven
+  keywords: [oven, "vulcanizing oven", chamber, firebox]
+  register: definite
+  longDescription: >-
+    A squat brick oven with an iron door on a chamber big enough for a boot
+    mould, the brick above the firebox gone black with years of it. A pair
+    of bellows hangs on a hook beside it.
+  burnTemperatureK: 430
+  bellowsMultiplier: 1.12
+  lit: false
+  mass: 900
+  emittedIntensity: 20
+  emittedColorTemperature: 1800
+  maxBurnPowerW: 8000
+  fuelCapacityKg: 40

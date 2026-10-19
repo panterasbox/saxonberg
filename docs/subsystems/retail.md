@@ -262,6 +262,13 @@ leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
 `par: 1` line hits this the moment somebody buys the last one.
 
+⭐ **And `resolveBuy` answers to the same leaf** (`Stock.resolveBuy`,
+keywords first, the leaf the fallback — matched as `carriesLine` matches
+it). Before the rubber build's browser drive (2026-10-18), `buy
+rubber-boots` — the word the shelf list prints, `rubber-boots (11)` — was
+refused as *the shelf is bare … none of it today* while a pair sat on the
+counter.
+
 ⭐ **A bought good is placed in the buyer's estate** (fishing B7,
 2026-09: a bought rod vanished at the next restart). Since the assembly
 build the movement primitive records it — `buy` stamps the title (a sale

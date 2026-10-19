@@ -1,0 +1,14 @@
+# Elastic-waisted trousers — ⭐ the tailor's linen trousers with a band of
+# rubber at the waist (rubber build): `extends:` the trousers, so the
+# cut and the cloth are the tailor's; only the WAIST detail's material
+# changes. Within the band's give a stock pair serves a range of bodies a
+# plain stock pair serves badly — the industrial epoch's answer to the
+# tailor, and it costs him the broad and the heavy first.
+extends: /trade/tailoring/thing/trousers
+data:
+  shortDescription: pair of elastic-waisted trousers
+  keywords: [trousers, "elastic-waisted trousers", "elastic trousers", elastic, waistband, pair]
+  longDescription: |
+    Plain linen trousers gathered at the waist on a band of rubber sewn into the hem, so they draw in on a thin body and give on a broad one.
+  _detailMaterialPaths:
+    waist: /stuff/idea/material/organic/rubber

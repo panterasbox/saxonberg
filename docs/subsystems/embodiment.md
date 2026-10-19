@@ -240,6 +240,15 @@ in exactly one garment. An interrupted dressing leaves what went on ON —
 the covering stack is a stack, and a shorter one is already coherent, so
 no rollback exists or is needed.
 
+⚠⚠ **The completion path is STATIC** (`EquipController.put` and the
+reads it makes). A controller is one ephemeral clone per execution,
+destructed when `execute` returns, so a step completion calling back into
+the instance ran on a destroyed Stuff and the proxy no-op'd it: *"You put
+on a pair of stout leather boots"* and the feet slot stayed empty —
+**nothing was ever worn in a live world** until the rubber build's
+browser drive (2026-10-18). ⭐ `wear` now also names the fit: *"It is
+tight on you."* / *"It hangs loose on you."* (`fitWords`).
+
 ⚠ A skip is a **caveat, not a rejection**: `equip` that got five of six
 pieces on succeeded, and says what it left and why without emitting
 `controller-rejected`.

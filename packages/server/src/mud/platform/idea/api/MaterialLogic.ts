@@ -14,6 +14,7 @@ import type {
   OutcomeBand,
   ResistanceCandidate,
 } from '../../../api/material';
+import type { ContactWetness } from '../../../api/material';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
@@ -210,8 +211,11 @@ export class MaterialLogic extends ApiLogic {
 
   /** See {@link MaterialApi.contactResistance}. */
   @CallSecurity(MaterialApiCallers)
-  public contactResistance(material: Material | null): Quantity<'Ω'> {
-    return contactResistanceImpl(material);
+  public contactResistance(
+    material: Material | null,
+    wet?: ContactWetness,
+  ): Quantity<'Ω'> {
+    return contactResistanceImpl(material, wet);
   }
 
   /** See {@link MaterialApi.seriesResistanceOfCoveringStack}. */
@@ -711,14 +715,15 @@ function previewBandImpl(
     // the same plate sheds lye and is eaten by acid — so "how does this
     // garment do against corrosion" is not a well-formed question without
     // saying against WHAT. The preview names a reference agent
-    // (`response.corrosion.previewCorrosiveTo`, seeded `organic`, the
-    // commonest caustic there is) and says so in the readout's own words.
+    // (`response.corrosion.previewCorrosiveTo`, seeded `once-living` —
+    // what lime attacks, the commonest caustic there is; rubber build:
+    // no longer the coarse `organic`) and says so in the readout's own words.
     const agent =
       channel === 'corrosion'
         ? [
             textDial(
               AppSettingKeys.responseCorrosionPreviewCorrosiveTo,
-              'organic',
+              'once-living',
             ),
           ]
         : [];
@@ -875,11 +880,15 @@ function bodyResistanceImpl(
  * A null/unknown material reads as an insulator. This is the engine of the
  * armor inversion: metal adds ~0, rubber adds orders of magnitude.
  */
-function contactResistanceImpl(material: Material | null): Quantity<'Ω'> {
+function contactResistanceImpl(
+  material: Material | null,
+  wet?: ContactWetness,
+): Quantity<'Ω'> {
   const maxOhms = dial(AppSettingKeys.electricityContactMaxOhms, 1e12);
-  const sigma = material
-    ? material.getElectricalConductivity().rawValue()
-    : 0;
+  const dry = material ? material.getElectricalConductivity().rawValue() : 0;
+  // ⭐ (rubber build) A CALLER of the wet law — owned by storage-and-ice.
+  const sigma =
+    material && wet ? material.wetProperty(dry, wet.fluidSigma, wet.saturation) : dry;
   if (sigma <= 0) return Quantity.of(maxOhms, 'Ω');
   const geo = dial(AppSettingKeys.electricityContactGeometryFactor, 0.01);
   return Quantity.of(clamp(geo / sigma, 0, maxOhms), 'Ω');

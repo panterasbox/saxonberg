@@ -1,0 +1,21 @@
+id: trade-rubber
+version: 0.1.0
+root: /trade/rubber
+description: >-
+  The rubber trade — ⭐ **the material that keeps water and current out,
+  made from a tree's milk and a rock's yellow crust.** Latex tapped from a
+  Hevea under glass (or rubber floated off milled dandelion root) is cured
+  with sulfur in a held oven: sulfur, heat and time decide whether it
+  comes out raw and weeping, as rubber, as hard ebonite, or scorched — and
+  there is no knowledge gate; anybody may try, and the window is narrow.
+  The shape is the MOULD's: a boot mould makes boots. The goods are the
+  boots and gloves that do not conduct, the apron vitriol cannot eat, the
+  coat the rain does not cross, and the pump packing that outlasts
+  leather. ⭐⭐ A second works is rows: an oven, a mould, a stove house
+  and no pack code.
+requires:
+  # The trade is placeless (the glass precedent): its mechanism is held by
+  # the Ministry of Trade — a seat, never a committee. The works sits in the
+  # world under its locality's committee.
+  title:
+    - { extent: /trade/rubber, holder: { organization: /compact/trade } }

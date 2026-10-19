@@ -214,6 +214,14 @@ export default class FeelController extends SingleSenseControllerBase {
     if (env.heatInputW > 0 && env.hottestSource) {
       return `warm from ${env.hottestSource}.`;
     }
+    // ⭐ (rubber build) The sun through the glass, and the warmth of the
+    // room next door — both reasons a player can stand in and point at.
+    if (env.solarW > 0 && inside > env.outsideK + 0.5) {
+      return `the sun through the ${material} warms it.`;
+    }
+    if (env.warmestNeighbour && inside > env.outsideK + 0.5) {
+      return `warmth comes through from ${env.warmestNeighbour}.`;
+    }
     // Within a degree of outside AND standing open: the door is the
     // reason, and it is the one a player can do something about.
     if (env.openings > 0 && Math.abs(inside - env.outsideK) < 1) {

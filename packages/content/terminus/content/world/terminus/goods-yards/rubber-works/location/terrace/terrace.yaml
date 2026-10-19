@@ -1,0 +1,14 @@
+# The roof terrace — ⭐ on the loft's roof (rubber build): a member
+# place of a storey standing on the loft, with no walls and no roof of its
+# own. Rain falls on it; its floor IS the loft's slate roof.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords: { x: 0, y: 0, z: 2 }
+  shortDescription: "roof terrace"
+  keywords: [roof, terrace, "roof terrace", leads]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A flat stretch of leaded roof between the slopes of the slates, with a low parapet and a view over the goods yards. Rubber sheets are laid out here to dry in fine weather.

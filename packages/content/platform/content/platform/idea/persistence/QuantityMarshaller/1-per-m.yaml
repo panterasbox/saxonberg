@@ -1,0 +1,3 @@
+class: /platform/idea/persistence/QuantityMarshaller
+data:
+  unit: 1/m

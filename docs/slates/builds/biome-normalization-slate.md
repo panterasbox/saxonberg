@@ -1,5 +1,16 @@
 # Biome normalization slate — what a biome is a claim ABOUT, and how narrow one may get
 
+> ⭐⭐ **Job 2 is ANSWERED by the rubber build (2026-10-16)** →
+> [construction.md](../../subsystems/construction.md) · [rubber.md](../../subsystems/rubber.md) (shipped, MR !379): sky
+> exposure leaves the biome. A place's construction is **walls + roof**
+> (material + thickness, layered, or none), owned by **the place
+> itself** — a `Structure` owns only membership and storeys (a tree,
+> `on:`; no `open:`, no materials); one rule — *a face is exterior unless
+> the space across it is an enclosed place of the same structure* — answers rain · light (Beer–Lambert) · sky
+> view · wind · heat for every face, and `onGrade` stops borrowing the
+> sky bit. `SkyExposedBiome` retires. The rest of this slate (dressing,
+> air, granularity) is untouched.
+
 > **Status: PARTIAL** — the substrate ships and works: the `Biome` Idea,
 > the outward-walking chain resolver (containment → zone → universe), the
 > `SkyExposedBiome` subclass that gates weather, rain, soil and (with the

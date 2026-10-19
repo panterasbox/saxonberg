@@ -61,9 +61,35 @@
  * field arrives with the build that reads it; the vocabulary is additive
  * and there are no migrations.
  *
- * **No `roofed`.** Derivable, and already derived: a pen is open to the
- * sky and a byre is not, which is what `BiomeApi.isSkyExposed` answers.
- * Authoring it would let a row disagree with its own biome.
+ * ## ⭐⭐ The roof is a declared part (rubber build, 2026-10-17)
+ *
+ * This file used to say *"No `roofed`. Derivable, and already derived"*
+ * — from the biome, which answered the sky with one bit. That bit is
+ * leaving the biome: a place now says what is over it, the same way it
+ * says what is around it.
+ *
+ * ```yaml
+ * enclosure:                       # the walls — one layer, or a list
+ *   - { material: /stuff/idea/material/wood/pine, thicknessM: 0.025 }
+ *   - { material: /stuff/idea/material/organic/sawdust, thicknessM: 0.3 }
+ *   - { material: /stuff/idea/material/wood/pine, thicknessM: 0.025 }
+ * roof: { material: /stuff/idea/material/glass/glass, thicknessM: 0.004 }
+ * ```
+ *
+ * Either part may be `none` — an awning has no walls, a yard inside a
+ * building no roof. A list is **outermost first**; heat crosses its
+ * layers in series, light passes the product of each layer's
+ * transmittance, and the room sees its innermost lining. ⚠ A place that
+ * authors no `roof:` is **undeclared**: the legacy biome discriminator
+ * still answers for it (a sky biome ⇒ open; anything else ⇒ its walls'
+ * material on five faces), and `lint:biome-sky` counts each such interior
+ * until none remain. ⭐ The getters return the RAW authored form — a spec,
+ * a list, `'none'`, or `null` — and that is a contract with the repair
+ * build's building upkeep, which seeds its layer state from it.
+ *
+ * ⛔ A {@link StoreySpec} lives on a `Structure` and says only which
+ * places stand on which. A structure is never made of anything: every
+ * material belongs to a place.
  *
  * **No `form`** (drystone · palings · hedge · hurdle). The same oak is a
  * plank wall or a post-and-rail fence depending on how it is worked, and
@@ -92,18 +118,71 @@ export interface EnclosureSpec {
   thicknessM?: number;
 }
 
+/**
+ * One part of a place's construction as authored: a single layer, a list
+ * of layers outermost first, or `'none'` — no such part at all.
+ */
+export type PartSpec = EnclosureSpec | readonly EnclosureSpec[] | 'none';
+
+/** The walls as authored (`enclosure:`). */
+export type EnclosurePartSpec = PartSpec;
+
+/** The roof as authored (`roof:`). */
+export type RoofSpec = PartSpec;
+
+/**
+ * ⭐ One storey of a structure — **relations only.** Membership is the
+ * longest storey `extent` prefix; `on` names the storey this one stands
+ * on (absent: the ground). Whether a storey is enclosed is never authored
+ * on it: it is read off its member places' own walls and roof.
+ */
+export interface StoreySpec {
+  key: string;
+  extent: string;
+  on?: string;
+}
+
 /** What {@link Enclosed.enclosureDefaults} answers. */
 export interface EnclosureDefaults {
   materialPath: string;
   thicknessM: number;
 }
 
+/** One resolved layer — every number read off a `Material` row. */
+export interface ResolvedLayer {
+  /** Thermal conductivity, W/(m·K). Floored above zero. */
+  kWmK: number;
+  /** Density, kg/m³. */
+  rhoKgM3: number;
+  /** Specific heat, J/(kg·K). */
+  cJkgK: number;
+  /** Thickness, m. */
+  thicknessM: number;
+  /** The `Material` template path this resolved to. */
+  materialPath: string;
+  /** `e^(−α·t)`; 0 when the material authors no `lightAbsorption`. */
+  transmittance: number;
+}
+
 /**
  * What the ladder resolved to, cached transiently on the host. Every
  * number is read off a `Material` row; none of it is authored as an
  * effect.
+ *
+ * The flat fields describe the **innermost** layer — the skin the room
+ * sees, whose heat answers within the hour — and `materialPath` is what
+ * `feel` names. `layers` is the whole part, outermost first, and the
+ * three derived figures are what the readers use.
  */
 export interface ResolvedEnclosure {
+  /** Every layer, outermost first; empty when the part is `none`. */
+  layers: ResolvedLayer[];
+  /** This part is `none` — no walls, or no roof. */
+  none: boolean;
+  /** Σ tᵢ/kᵢ — heat crosses the layers in series. m²K/W. */
+  resistanceM2KW: number;
+  /** Π e^(−αᵢ·tᵢ) — light passes the product (Beer–Lambert). */
+  transmittance: number;
   /** Thermal conductivity, W/(m·K). Floored above zero. */
   kWmK: number;
   /** Density, kg/m³. */
@@ -139,9 +218,21 @@ export interface ResolvedEnclosure {
  * that point the types do not move, only the implementation does.
  */
 export interface Enclosed {
-  /** What this scope's row says it is bounded by, or `null`. */
-  getEnclosure(): EnclosureSpec | null;
-  setEnclosure(value: EnclosureSpec | null): void;
+  /** What this scope's row says it is bounded by — raw, or `null`. */
+  getEnclosure(): EnclosurePartSpec | null;
+  setEnclosure(value: EnclosurePartSpec | null): void;
+  /** What this scope's row says is over it — raw, or `null`. */
+  getRoof(): RoofSpec | null;
+  setRoof(value: RoofSpec | null): void;
+  /**
+   * What is over a scope of this KIND when its row says nothing — `null`
+   * means *undeclared*, which hands the sky answer to the legacy biome
+   * discriminator.
+   *
+   * @hook A `Vessel` answers its own material when it declares an
+   *   interior and `'none'` when it does not (an open boat).
+   */
+  roofDefaults(): RoofSpec | null;
   /**
    * What a scope of this KIND is bounded by, when its row says nothing.
    *
@@ -151,7 +242,7 @@ export interface Enclosed {
    *   wins: an `enclosure:` on the row beats this, and this beats the
    *   universe default.
    */
-  enclosureDefaults(): EnclosureDefaults;
+  enclosureDefaults(): EnclosureDefaults | 'none';
   /** The resolved material properties of this enclosure. */
   resolveEnclosure(): ResolvedEnclosure;
 }

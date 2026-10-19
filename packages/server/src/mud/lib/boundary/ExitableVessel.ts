@@ -71,7 +71,7 @@ import { MixinApi } from '../../api/mixin';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
-import type { EnclosureDefaults } from '../spatial/Enclosed';
+import type { EnclosureDefaults, RoofSpec } from '../spatial/Enclosed';
 import type { FieldMeta } from '../mixin';
 
 /**
@@ -179,11 +179,24 @@ export default class ExitableVessel extends ExitableVesselBase {
    * `AtmosphericMixin` left (there was no `super` to call and no
    * interface to implement), so it moved with the mixin.
    */
-  public override enclosureDefaults(): EnclosureDefaults {
+  public override enclosureDefaults(): EnclosureDefaults | 'none' {
+    // An open boat has no walls of its own to speak of.
+    if (this._interiorVolume === null) return 'none';
     const material = this.getMaterial();
     const path = material?.getTemplatePath() ?? null;
     if (path === null) return super.enclosureDefaults();
     return { materialPath: path, thicknessM: VESSEL_WALL_M };
+  }
+
+  /**
+   * ⭐ A vessel is never UNDECLARED: one that states an interior is roofed
+   * by its own material, all round, and one that states none is open.
+   */
+  public override roofDefaults(): RoofSpec | null {
+    if (this._interiorVolume === null) return 'none';
+    const path = this.getMaterial()?.getTemplatePath() ?? null;
+    if (path === null) return {};
+    return { material: path, thicknessM: VESSEL_WALL_M };
   }
 
   /**

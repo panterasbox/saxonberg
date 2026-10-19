@@ -29,7 +29,19 @@ import type { Tappable } from '@saxonberg/server/mud/lib/husbandry/Tappable';
 import { STAND_MIXIN } from '../../../lib/Stand';
 
 export default class TapController extends TapActController {
-  protected tapKey(): string {
+  /**
+   * ⭐ The TREE's own tap, not a word this verb assumes: a maple gives
+   * `sap`, a Hevea `latex` — and a hard-coded `'sap'` asked the Hevea for a
+   * tap it does not give, which every reader then answered as "nothing has
+   * run yet" (found by the rubber drive). `sap` stays the default for a
+   * stem that names none.
+   */
+  protected tapKey(model: Parameters<TapActController['execute']>[0]): string {
+    const bound = model.target?.stuff ?? null;
+    if (bound !== null && MixinApi.isProducing(bound)) {
+      const first = bound.taps()[0];
+      if (first) return first.key;
+    }
     return 'sap';
   }
 

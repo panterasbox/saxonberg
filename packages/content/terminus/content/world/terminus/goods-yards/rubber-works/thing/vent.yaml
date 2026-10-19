@@ -1,0 +1,14 @@
+# The stove house's vent — a glazed door onto the yard. Shut on a cold
+# night, it keeps the heat in; propped on a summer noon, it lets the
+# overheated house fall back (rubber build, drive step 10).
+class: /platform/thing/Door
+data:
+  shortDescription: vent door
+  keywords: [vent, "vent door", door]
+  register: definite
+  longDescription: >
+    A narrow glazed door in the end wall of the stove house, hinged to be
+    propped open on a hot day.
+  open: false
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 12

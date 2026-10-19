@@ -112,6 +112,15 @@ export interface ContainerSlice {
  */
 export interface SlottedSlice {
   worn: Array<{ index: number; slots: string[] }>;
+  /**
+   * ⭐⭐ Worn goods the host OWNS. An owner-titled good is not in the
+   * container slice at all — it rides the estate — so it has no index,
+   * and recording by index dropped every bought garment's slot (and the
+   * implant's) on each restart. These are named by their durable chattel
+   * id and re-worn after the estate slice restores them. Absent on records
+   * written before the field existed.
+   */
+  wornOwned?: Array<{ chattelId: string; slots: string[] }>;
 }
 
 /**

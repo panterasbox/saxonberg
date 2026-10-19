@@ -1,0 +1,15 @@
+# A lump of cured rubber — what a good cure comes out as with no mould to
+# give it a shape: rubber's own cast (its material's `castTemplate`).
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of rubber
+  keywords: [rubber, lump, "rubber lump"]
+  register: indefinite
+  longDescription: |
+    A dense dark lump of cured rubber. It springs back from your thumb at
+    once and bounces if you drop it.
+  _materialPath: /stuff/idea/material/organic/rubber
+  mass: 0.5
+  # A cast that has cooled: it is handled at the room's temperature
+  # (a Casting otherwise starts at its pour heat and scalds the hand).
+  stampedTemperatureK: 290

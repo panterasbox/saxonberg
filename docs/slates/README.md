@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**309 slates.** 78 greenfield · 102 continuations · 63 waves · 66 tails.
+**309 slates.** 77 greenfield · 102 continuations · 64 waves · 66 tails.
 
-## ⭐ Greenfield — nothing shipped yet (78)
+## ⭐ Greenfield — nothing shipped yet (77)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -108,7 +108,6 @@ respect.
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging to be **DESIGNED** (not built — § below) |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
-| [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
 | [standing-instructions](./builds/standing-instructions-slate.md) | the whole of it — first, *may a player automate labour at all?* |
@@ -233,7 +232,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (63)
+## Waves — rides another build (64)
 
 | slate | left |
 |---|---|
@@ -285,6 +284,7 @@ are the named remainders.
 | [recognition](./tails/recognition-slate.md) | player-set nicknames (`name X as Y`) · memory decay · voice/scent recognition · algorithmic salient-feature generation (author-tunable per-species templates) … |
 | [rendering](./tails/rendering-slate.md) | **soap** (needs lye + a hygiene mechanism; `dairy-slate` owns hygiene-as-criterion) · **horn** — cut deliberately, with its buyers named (combs, cups, lantern panes, buttons; it is the pre-plastic thermoplastic, so an epoch ladder rather than a row) · **glue and gelatin from bone** — nothing demands them · **kibble** as the INDUSTRIAL rung of the dog loaf (an extruder, keeping, fortification) … |
 | [residence-ladder-design-pack](./tails/residence-ladder-design-pack.md) | `propertyCondition` as a derived aggregate over room condition · Durable wear · spoilage — and its reconciliation with the shipped calendar shell clock · the smallholding + farm/ranch rungs' ascent gates … |
+| [rubber](./tails/rubber-slate.md) | synthetic rubber and tyres (destructive-distillation-slate) · compression moulding, a pressed pan, consumed moulds (moulding-slate) · the stove house's stoker brain (standing-instructions-slate) · a published cure curve (inquiry-slate) … |
 | [scope-modality](./tails/scope-modality-slate.md) | modality as a per-verb scope axis · per-modality container permeability (⚠ today ONE `isOpenContainer` rule serves reach AND sight) · transparent containers (sight-through walls) · the modality-general feasibility validator + its adoption (`eat`, the slate's own case, carries no reach validator) |
 | [scoped-authoring](./tails/scoped-authoring-slate.md) | ⭐ the `describe` verb (the prose rung — no such verb exists; blocked on a moderation validator) · the per-field (access policy, value validator) gate on `write`, default-deny · the vetted-catalog membership validator behind `make` · authoring quotas … |
 | [script-interaction](./tails/script-interaction-slate.md) | the fail-closed guard when a controller would prompt with no `interactive`, naming the missing input · the sweep of existing fallbacks, one commit per subsystem · scripts declaring their inputs up front (and pre-resolving an MQL disambiguation — a language change) · the NPC variant, routed to `DiagnosticApi` |

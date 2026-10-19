@@ -6,7 +6,7 @@
 class: /platform/thing/equipment/Garment
 data:
   shortDescription: pair of linen trousers
-  keywords: [trousers, breeches, linen, pair]
+  keywords: [trousers, "linen trousers", breeches, linen, pair]
   register: indefinite
   longDescription: |
     Straight-legged and plainly finished, with the seams flat-felled so they will outlast whoever bought them.

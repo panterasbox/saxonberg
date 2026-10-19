@@ -1,7 +1,7 @@
 class: /platform/thing/equipment/Garment
 data:
   shortDescription: pair of stout leather boots
-  keywords: [boots, pair, stout, leather]
+  keywords: [boots, "leather boots", pair, stout, leather]
   register: indefinite
   longDescription: >
     Heavy hobnailed boots of thick tooled leather. The stout soles turn the

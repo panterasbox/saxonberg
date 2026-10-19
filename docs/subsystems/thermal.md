@@ -499,6 +499,15 @@ Honest engineering numbers, game-tuned — not CFD.
 
 ## ⭐⭐ The envelope — a room holds a state different from its outside
 
+> ⭐ **Since the rubber build (2026-10) the envelope reads the
+> construction** — [construction.md](./construction.md): a place's own
+> `enclosure:`/`roof:` (one layer, a list in series, or `none`), its loss
+> area from `Exposure.exteriorAreaM2()` (a face onto an enclosed member of
+> its structure loses nothing to the weather), solar gain through a
+> transparent face, and heat shared with its neighbours (shut ⇒
+> conduction, open ⇒ flow), all as terms of one closed form. The prose
+> below describes the base it extends.
+
 The envelope build (2026-09-24). Indoor temperature used to be a
 **decree**: one biome row authored 294 K and every interior in the realm
 inherited it, in January, at 4 a.m., with the door standing open.
@@ -511,6 +520,15 @@ because *every scope that can carry an atmosphere can hold a state
 different from its outside* — true of a room and of a wardrobe, and
 **inert where `getVolume()` is null**, which is the geometry answering
 rather than a guard.
+
+⚠ **The integration is lazy, so a change of heater settles first.** The
+envelope integrates on read, with the heaters as they are AT the read.
+A `Burner` that warms its room (`SpaceHeating`) therefore calls
+`reconcileEnvelope()` on its room *before* its lit state or its draught
+changes, so the gap up to the change is billed at the old output and the
+new output bills only forward. Without it, a stove lit in a cold room
+was credited for every hour nobody had read the room (found driving the
+rubber build in a browser, 2026-10-18).
 
 ### ⭐ Authors author CAUSES, not EFFECTS
 

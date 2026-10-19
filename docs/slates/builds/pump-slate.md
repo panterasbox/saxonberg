@@ -296,7 +296,7 @@ See also: [mining-slate](./mining-slate.md) (**the host it was promoted
 out of**; dewatering, the hoist toll, *flood not the deep*) ·
 [drilling-slate](./drilling-slate.md) (a customer, **not a parent**) ·
 [inquiry-slate](./inquiry-slate.md) (the suction limit as a candidate
-first case) · [rubber-slate](./rubber-slate.md) (the seal's **upgrade**,
+first case) · [rubber-slate](../tails/rubber-slate.md) (the seal's **upgrade**,
 never its enabler) · [energy.md](../../subsystems/energy.md) (the power
 ladder) · [watershed.md](../../subsystems/watershed.md) (`Conduit`, and
 the name collision).

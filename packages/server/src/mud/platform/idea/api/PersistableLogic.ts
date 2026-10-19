@@ -824,6 +824,28 @@ async function restoreState(
     const slice = state[c.key];
     if (slice) await c.hydrateSlice(target, slice, ctx);
   }
+
+  // (5) ⭐⭐ Worn goods the host OWNS — re-worn only now, because they are
+  // the estate's to restore (4) and have no content index for (3). Before
+  // this pass every bought garment came back carried after a restart, and
+  // the implant (a minted good too) lost its slot, so the loadout's
+  // empty-cranial guard cloned a second one on every boot. Found by
+  // driving the rubber build in a browser across a server restart.
+  if (
+    slottedSlice?.wornOwned &&
+    MixinApi.isSlotted(target) &&
+    MixinApi.isEstate(target)
+  ) {
+    for (const { chattelId, slots } of slottedSlice.wornOwned) {
+      const item = target.getEstateLive(chattelId);
+      if (item && MixinApi.isSlottable(item)) {
+        (target as Stuff & Slotted).occupyAll(
+          item as Stuff & Slottable,
+          slots,
+        );
+      }
+    }
+  }
 }
 
 /**

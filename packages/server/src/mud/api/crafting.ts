@@ -571,6 +571,20 @@ export class CraftingApi {
   }
 
   /**
+   * ⭐ The recipe an instrument would run for a stock: the one whose tool
+   * capability is `capability` and whose single item input names one of
+   * `tags` (a material's tags). So the stones take bone, or a dandelion
+   * root, because a recipe row says so — a second grindable is a row and
+   * a material tag, with no instrument's list to edit.
+   */
+  public static async recipeTaking(
+    capability: string,
+    tags: readonly string[],
+  ): Promise<RecipeView | null> {
+    return logic().recipeTaking(capability, tags);
+  }
+
+  /**
    * ⭐⭐ **Can the acting author make this?** The one read behind every
    * knowledge gate in the crafting family, applied to a player and an NPC
    * identically.

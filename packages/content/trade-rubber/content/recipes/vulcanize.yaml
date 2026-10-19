@@ -1,0 +1,34 @@
+# ⭐⭐ Vulcanize — raw rubber + sulfur, held at heat → whatever the cure
+# makes of it (rubber build). ONE recipe for every shape: the
+# shape is the MOULD's (a charge loaded into a boot mould comes out as
+# boots), and the material is the CURE's — the `crosslinking` spec on raw
+# rubber's own row reads the sulfur fraction of the whole charge, the heat
+# held and the time held, and answers raw rubber (under-cured, weeping),
+# rubber, ebonite, or scorched rubber.
+#
+# Matched on material TAGS: `elastomer-raw` (raw rubber, any source) and
+# `sulfur`. The whole matched charge is consumed — its sulfur fraction is
+# what you weighed into it.
+#
+# ⚠ `requiresHeatK: 400` lets the cure START; the works oven holds ≈ 430 K
+# and ≈ 482 K with the bellows, which is past `scorchAboveK` (455) — the
+# bellows is how you scorch. `maxHeatK: 455` records the safe ceiling and
+# stays below sulfur's 505 K autoignition. `holdS: 1800` is a default
+# hold; `fire … for <duration>` names your own.
+# ⚠ `outputTemplate` is the no-mould fallback: a cure fired loose comes
+# out as its material's own lump, and this is the cured one's.
+recipeId: vulcanize
+name: Vulcanize
+keywords: [vulcanize, vulcanise, cure, "cure rubber"]
+inputSlots:
+  - { slot: rubber, category: elastomer-raw, minGrade: poor, kind: item, count: 1 }
+  - { slot: sulfur, category: sulfur, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/rubber/thing/rubber-lump
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 400
+holdS: 1800
+maxHeatK: 455
+difficulty: standard
+discipline: chemistry

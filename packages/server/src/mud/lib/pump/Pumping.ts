@@ -432,7 +432,26 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     private wearPacking(amount: number): void {
       const part = this.packingPart();
-      if (part && amount > 0) part.wear(amount);
+      if (part && amount > 0) part.wear(amount * this.wearFactor(part));
+    }
+
+    /**
+     * ⭐ Wear reads the packing's MATERIAL (rubber build): a tougher
+     * packing wears slower, and a springy one wears slower again — it
+     * keeps its seal against the barrel instead of scuffing it away.
+     * `(referenceToughness / toughness) · (1 − min(0.8, elasticity/500 ·
+     * relief))`: leather (toughness 10, the reference) ×1.0; rubber
+     * (toughness 20, elasticity 500) ×0.25 — four strokes to leather's one.
+     */
+    private wearFactor(part: Stuff): number {
+      const mat = MixinApi.isTangible(part) ? part.getMaterial() : null;
+      if (!mat) return 1;
+      const toughness = mat.getToughness().rawValue();
+      if (!(toughness > 0)) return 1;
+      const reference = dial(AppSettingKeys.pumpReferenceToughness, 10);
+      const relief = dial(AppSettingKeys.pumpElasticityWearRelief, 0.5);
+      const spring = Math.min(0.8, (mat.getElasticity().rawValue() / 500) * relief);
+      return (reference / toughness) * (1 - spring);
     }
 
     // ---------- ⭐ the machine rung ----------
