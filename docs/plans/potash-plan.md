@@ -6,9 +6,10 @@ kernel corrections each naming a shipped consumer). The build makes a
 burner's ash **sized and strengthened by the wood** (the grate, the clamp
 and a new ash pit on one rule), gives `fell` a fourth yield (**brash**),
 derives **lye strength** in the hopper (ash, passes, hardness) and reads
-it with an **egg** on the shipped `density` channel, corrects the misnamed
-`soda-from-lye` into **lye → black salts** in an iron pot that is a mould,
-fires black salts to **pearl ash** by a `fire` recipe, re-tags the glass
+it with an **egg** on the shipped `density` channel, retires the misnamed
+`soda-from-lye` and boils **lye → black salts** in an iron pot that is a
+mould — on silk's latent-heat boil plateau, not on maturation (§ Sibling
+builds) — fires black salts to **pearl ash** by a `fire` recipe, re-tags the glass
 batch's slots (`flux` / `stabilizer`), gives the soap kettle **slaking**
 and **causticizing** for a direct hard-soap route, and stands up the
 **Hanging Wood ashery**, the glasshouse's and the chandlery's **buying
@@ -16,10 +17,140 @@ lines**, and the **ash-man's round**. Everything else is a row, a tag or a
 deletion. A new capability pack, `trade-potash` at `/trade/potash`, carries
 the trade; `trade-fuel` keeps ownership of ash itself.
 
-Branch `reqs/potash` (worktree `build-2`), cut off `origin/master` after
-the cleanliness merge (!380). ⚠ Vocabulary, from the slate: *wood ash* and
-*the ash tree*, never bare *ash* in prose or keywords that could bind the
-tree.
+Branch `reqs/potash` (worktree `build-2`, `WIRE_PORT=2013`), cut off
+`origin/master` after the cleanliness merge (!380). ⚠ Vocabulary, from the
+slate: *wood ash* and *the ash tree*, never bare *ash* in prose or
+keywords that could bind the tree.
+
+---
+
+## ⭐⭐ Sibling builds and merge order
+
+The owner's ruling (2026-10-19): **potash builds NOW, in parallel with
+sugar, around silk** — *"make sure they don't step on each other when
+silk merges; update our own plan to stay ahead of things."* Verified by
+reading the siblings read-only this session (`git -C ../build-3 diff
+$(git -C ../build-3 merge-base origin/master HEAD) HEAD`;
+`/home/bobalu/play/saxonberg/build-1/docs/plans/sugar-plan.md` § D1–D4,
+D7, D21, W1a, W1; sugar's committed diff is W0 — employment only).
+
+**Expected order:** silk (!395, `reqs/silk`, build-3) lands first; sugar
+(`reqs/sugar`, build-1) and potash (this plan) build in parallel after
+it; underwater (build-4) and the master worktree overlap nothing but
+additive hunks (AppSettings, `Burner.completeness`, the pack-count test,
+`package.json`/`pnpm-lock`).
+
+### What silk changes under this plan
+
+- **`lib/thermal/Thermal.ts`** — `reconcileBulkPhase(v, clock)` gains the
+  **latent-heat boil plateau**: a liquid with `latentHeatOfVaporization >
+  0` holds at its boiling point and boils off `overshootJ / latent /
+  kgPerL` litres per read (`overshootJ = (T − bp) × thermalCapacityJPerK`);
+  a material with **no latent heat still flashes to empty**; boiled dry →
+  the slot is cleared (`setBulkAmount 0`, `setBulkMaterial null`, the
+  payload gone). `boilHeldSeconds` / `purifyIfHeld` (`BulkPayload.
+  boilHeldS` / `boilCheckedS`, declared from `Thermal.ts`) fire a
+  `Material.purifiedByBoiling` arrow after 60 s at the boil; `enclosingBath`
+  puts an immersed solid at its bath's temperature. ⚠ No burner power
+  enters the boil-off (silk's own open item): a long unread gap spends one
+  capacity's worth, a watched pot more.
+- **`boil` is retired**: `BoilController`, its seed row and `boil.yaml`
+  deleted; `heat.yaml` is `verbs: [heat, boil]`; `Burner.commandContributions`
+  swaps the `boil.yaml` line for `heat.yaml` (the ONE `Burner.ts` hunk).
+- `FireController.test.ts` (one comment line), `PackLogic.discover.test.ts`
+  (64 → 65, `trade-sericulture`), `check-instanceable-placement.ts`,
+  `pack-roots.ts`, root `package.json`/`pnpm-lock`.
+- ⚠⚠ **On master TODAY `lye.yaml` authors `boilingPoint 375` and no latent
+  heat**, so an iron pot of lye brought past 375 K on a hearth flashes
+  EMPTY at the first read — on master (which flashes every boil) and on
+  silk alike. The plan's first draft boiled lye by an `evaporative`
+  maturation profile at `happyK 370` on a hearth: broken on both. The
+  boil is re-decided below (D8/D10/D11) onto silk's plateau, and **lye
+  authors `latentHeatOfVaporization 2260000`** the moment the pot exists.
+
+### What sugar is building that potash must NOT build a version of
+
+- **D1** `BulkPayload.dissolvedSolidsKgPerL` (declared from `Thermal.ts`,
+  folded by volume in `blendPayloads`, seeded from `Material.solidsKgPerL`
+  on a fresh fill, rewritten by the plateau at each boil-off);
+  `Material.boilingPointElevation` (the plateau's `bp` climbs with
+  concentration); `Material.concentratesTo` arrows fired by the plateau
+  (the `purifiedByBoiling` shape); **retires the fire-heated `maple-sap` /
+  `birch-sap` `evaporative` profiles** (sun-dried brine stays); edits
+  `DensityReading.measure`'s non-maturing arm to `1 + 0.52·w` when the
+  payload carries solids; explicitly leaves `soda-from-lye` and lye to
+  potash and warns lye must author latent heat.
+- **D2 (W1a, alone, after silk)** power-limited heat transfer:
+  `BurnerMixin.heatTransferFraction`, `ThermalMixin.heatSource()`, the
+  rise capped at `P_in × Δt / C`, the plateau spending `min(overshoot,
+  P_in × Δt_at_boil)`, `boilHeldSeconds` for every plateau material — so a
+  boil's TIME and FUEL follow the water's latent heat.
+- **D3 (W4)** kernel `PercolatingMixin` (`lib/material/Percolating.ts`,
+  `Mixins.Percolating`): *"the lye Hopper … stays its own until the
+  potash build, which is where the ash becomes a composer of this mixin."*
+- **D7** *"a limeburner seat is the potash build's"* — not in these
+  requirements (Deferred seams).
+
+**The rule this plan obeys:** potash builds **no** solute concentration of
+its own shape, **no** boiling-point law, **no** material arrow fired by a
+boil, **no** power limit, **no** percolation; and it does **not extend**
+the fire-heated `evaporative` maturation path sugar retires. The first
+draft's D8 (a per-batch product fraction + a fill factor on
+`reconcileEvaporativeWindow`) is **withdrawn**: it extended exactly that
+path. What potash does instead is below, and it converges on sugar's D1
+by **one named follow-up** (`potash-on-sugar`, Deferred seams).
+
+### Shared files — who edits what, and how potash avoids a collision
+
+| file | silk | sugar | potash | avoidance |
+|---|---|---|---|---|
+| `lib/thermal/Thermal.ts` | the plateau, `enclosingBath`, `boilHeldSeconds` | D1 solids rewrite + arrows, D2 power cap | **nothing** | the pot's bookkeeping is pack-local (D11); converges by deleting it |
+| `lib/fire/Burner.ts` | the `commandContributions` line | `heatTransferFraction` field + `fieldMeta` | `ashAlkaliKg` field + `fieldMeta`, `consumeFuel`, `rakeGrate` heaps | different regions; the `fieldMeta` append may touch — resolve by keeping both lines |
+| `BulkPayload` (`lib/bulk/Bulkable.ts` declaration merges) | `boilHeldS`/`boilCheckedS` from `Thermal.ts` | `dissolvedSolidsKgPerL` from `Thermal.ts` | the SAME member name, `dissolvedSolidsKgPerL?: number`, declared from `lib/cleanliness/LyeStrength.ts` | TS merges identical declarations; at the sugar merge potash's declaration is deleted (one field, one owner) |
+| `platform/idea/api/BulkableLogic.ts` | — | folds `dissolvedSolidsKgPerL` in `blendPayloads`; seeds it on a fresh fill | folds it by volume through a private `blendScalar(field)` beside hardness | at the merge keep sugar's fold, drop potash's one line; hardness stays on `blendScalar` |
+| `lib/maturation/Maturing.ts` | — | — (D1 reads no `f`; D3 touches nothing here) | **nothing** (D8 withdrawn; no `lye-boil` profile) | — |
+| `platform/idea/reading/DensityReading.ts` | — | the non-maturing `measure` arm → `1 + 0.52·w` | a NEW `analyze` override + ONE guarded early return at the top of `measure` delegating to a new private `wordLye()` | the early return sits above sugar's arm and fires only on a `lye`-tagged subject; sugar's coefficient is sucrose's and never reaches lye |
+| `platform/…/idea/reading/density.yaml` | — | — (sugar ships its own `boil` row) | `handTool: flotation` | — |
+| `lib/material/Material.ts` | `purifiedByBoiling` (field l.~1195, fieldMeta l.~947) | `solidsKgPerL`, `boilingPointElevation`, `concentratesTo` | `alkaliShare`, placed immediately after `ashFraction` (field, `fieldMeta`, get/set) | different regions; a `fieldMeta` append conflict is a union |
+| `FireController.ts` (+ test) | the test's one comment line | — | the non-mould output branch (yield rescale, grade carry); tests in a NEW `describe` at the end | — |
+| `PackLogic.discover.test.ts` | 64 → 65 | +1 (`trade-sugar`) | +1 (`trade-potash`) | *whoever lands second recounts — the sum, whatever git says* (silk's own comment); recount at every master merge |
+| `lib/config/AppSettings.ts` + settings yaml | — | `employmentUnpaidStandGameDays` (W0, `treasury.yaml`) | `fireAshHeapKg` beside `fireAshChoke*` (`fire.yaml`) | different regions |
+| root `package.json` / `pnpm-lock.yaml` | `content-trade-sericulture` | `content-trade-sugar` | `content-trade-potash` | union the dependency block; **never hand-merge the lockfile** — resolve it by `pnpm install` |
+| `trade-chandlery/src/thing/Hopper.ts` | — | untouched (D3: *stays its own until the potash build*) | the strength derivation, spent ash, passes (D6) | potash owns it; adopting `PercolatingMixin` is the convergence step, not this build |
+| `trade-chandlery/…/material/lye.yaml` | — | names the fix, does not make it | `latentHeatOfVaporization 2260000` | potash makes it (W5); if sugar lands it first, the merge is a no-op |
+| `heat.yaml` / `BoilController` | deleted / aliased | — | nothing; the drive types `put pot on hearth` (master) and may type `heat pot` after silk | take silk's deletion at the merge |
+
+### Pre-wave check, for every wave that touches a shared file
+
+```bash
+git fetch origin
+git log --oneline origin/master -- <file>                 # what landed
+git -C ../build-1 log --oneline origin/reqs/sugar -- <file>   # what sugar has pushed
+git -C ../build-3 log --oneline origin/reqs/silk  -- <file>   # what silk has pushed
+```
+
+If a sibling has pushed to the file since this plan was written, read
+its hunk before editing and keep to the region named in the table.
+
+### The silk gate (before W5, the boil)
+
+1. If !395 has merged: `git merge origin/master` into `reqs/potash`.
+2. If it has not: `git merge origin/reqs/silk` into `reqs/potash` — a
+   catch-up merge INTO our own branch (allowed; landing is the MR's job).
+   Expected conflicts: `Burner.ts` (silk's `commandContributions` line vs
+   our ash regions — different hunks, verify by hand), `boil.yaml` +
+   `BoilController` (take the deletion), the pack-count test (recount),
+   `thermal.md`. Then when !395 merges, `git merge origin/master` again
+   (a no-op on silk's files unless review changed them).
+3. Either way: `pnpm test:near`, the thermal/fire/bulk suites, every
+   touched pack, `lint:family`; re-run the W0–W4 unit suites.
+4. ⚠ **Open the MR only after !395 has merged to master** — else its diff
+   carries silk's whole build. If !395 stalls, target `reqs/silk`; never
+   cherry-pick silk's commits.
+
+At every later master merge (sugar landing included): merge, `test:near`
++ touched packs + `lint:family`, recount the pack test, re-drive. Never
+the full suite for a merge.
 
 ---
 
@@ -174,7 +305,15 @@ the requirements or the task brief, it says so inline.
   `Material.getCastTemplate()` clone dropped beside it. So a batch that
   finishes as a `solid`-tagged material at room temperature sets on the
   next thermal reconcile — which is how the shipped soda profile would
-  have produced a cast lump beside the pan, had it ever run.
+  have produced a cast lump beside the pan, had it ever run. ⚠ The SAME
+  function's boil arm (line ~1333, master) **flashes a liquid-holding
+  vessel empty** the instant its material's `boilingPoint` is exceeded;
+  `lye.yaml` authors `boilingPoint 375` and no latent heat, so a pot of
+  lye on a hearth (pinned toward the hearth's `burnTemperatureK`) empties
+  at the first read — the maple pan survives only because its sap
+  material authors no `boilingPoint`. Silk replaces the flash with a
+  latent-heat plateau (§ Sibling builds); the boil in this plan stands on
+  that plateau and on nothing in maturation.
 - `packages/server/src/mud/lib/mould/Mould.ts` — `castTemplateFor`,
   `castInto(pool: SetPool {material, massKg, payload, stampMaterial})`,
   the mould's grade → the cast's grade; composer precedent
@@ -419,53 +558,86 @@ left a fork, the lens that chose is named.
   counter prices per heap, and a tonne of oak becomes seventeen heaps you
   can count — the tonne-to-kilo lesson made visible. A hearth's daily
   0.1 kg is one small heap.
-- **D5 — Lye strength is a kernel payload field with a value object.**
+- **D5 — Lye strength IS the liquor's dissolved solids: one payload
+  field, sugar's name, a value object to read it.**
   `packages/server/src/mud/lib/cleanliness/LyeStrength.ts` — the
   `WaterHardness` twin: `declare module '../bulk/Bulkable' { interface
-  BulkPayload { alkaliGPerL?: number } }`, class `LyeStrength(gPerL)` with
+  BulkPayload { dissolvedSolidsKgPerL?: number } }` — ⭐ **sugar's member
+  name and unit** (its D1 declares the identical member from
+  `Thermal.ts`; TypeScript merges identical declarations, and potash's
+  copy is deleted at the sugar merge), so lye's alkali and cane juice's
+  sucrose are one field from day one and the follow-up is a deletion, not
+  a rename. Class `LyeStrength(kgPerL)` — instance methods only — with
   `band()` (*water · weak · soap-strength · strong*, thresholds as
-  `potash.lye.*` dials), `gradeBand()`, `gravity()` (`1 + gPerL × 9e-4`),
-  `words(band: CompetenceBandName)` (the egg's three words at ≤ novice,
-  five at competent). The pour blends it by volume in `BulkableLogic`
-  beside hardness, refactored into one private `blendScalar(field)` on the
-  logic singleton so the third such field is a one-liner. *Why kernel:* the
-  hopper, the pot, the reading and the kettle all read it, and they are
-  three packs; substrate with no common pack ancestor goes to the kernel.
+  `potash.lye.*` dials in kg/L), `gradeBand()`, `gravity()` (`1 + kgPerL ×
+  0.9`), `words(band: CompetenceBandName)` (three words at ≤ novice, five
+  at competent), and `isLye(material)` (the read is honest only on a
+  `lye`-tagged bulk). The pour blends it by volume in `BulkableLogic`
+  through one private `blendScalar(field)` beside hardness (potash's one
+  line for this field is dropped at the merge in favour of sugar's fold).
+  *Why kernel:* the hopper, the pot, the reading and the kettle all read
+  it across three packs. *Decided by* the sibling rule (no parallel
+  mechanism) and lens 5 (the same field answers the same reading under
+  the next epoch's chemistry).
 - **D6 — The hopper derives it, leaves spent ash, and takes passes.**
   `Hopper.matchProfile` (trade-chandlery): for water OR lye poured onto
   `potash`-tagged contents — alkali kg = Σ(heap mass × fractionOf(POTASH),
   0.1 for a non-Composition heap); each heap becomes a
   `/trade/fuel/thing/spent-ash` of 0.9 × its mass (material
   `organic/spent-ash`: `[mineral, residue, liming, once-living]`, no
-  `potash`); the payload's `alkaliGPerL` += `alkaliKg × 1000 / litres ×
+  `potash`); the payload's `dissolvedSolidsKgPerL` += `alkaliKg / litres ×
   (1 − potash.lye.hardnessWastePerDgh × hardnessDgh)`; the hopper's
   own grade is set to the strength's band (so the pour carries it, by the
   shipped `carryBatchIdentity`). Returns `lye-leach` either way (a pass
   re-leaches for half a day). The read side (`LyeStrength`) answers only
   when the bulk material carries `lye`, so water-with-pending-alkali reads
   as water until the leach finishes. ⚠ Order is the hopper's shipped
-  one: ash in, then pour.
+  one: ash in, then pour. **Pack-local on purpose, and the convergence is
+  named:** sugar's D3 ships a kernel `PercolatingMixin` and says the ash
+  becomes its composer in the potash build; that build is this one, but
+  the mixin is not on master — so the hopper keeps deriving at
+  `matchProfile` time now, and the follow-up (`potash-on-sugar`, Deferred
+  seams) composes `PercolatingMixin` on `/trade/fuel/thing/Ash` and lets
+  the water percolate through heaps that STAY in the hopper as spent ash.
+  Potash builds no percolation of its own.
 - **D7 — The egg is the eye rung's hand tool, and it is a kept test
   egg.** `density.yaml` gains `handTool: flotation`; `DensityReading`
   implements `analyze` (with the egg in reach: the lye's `words(band)`;
   water: *the egg sinks*; no egg: the base refusal naming the route) and
   `measure` words a `lye`-tagged subject instead of printing a figure (AC
-  12). The egg is `/trade/potash/thing/test-egg`, a `/platform/thing/Tool`
+  12). ⭐ **Structured to miss sugar's edit:** the lye words live in ONE
+  new private method `wordLye(ctx, target, band)` called from the new
+  `analyze` override and from a single guarded early return at the TOP
+  of `measure` (`if (LyeStrength.isLye(material)) return this.wordLye(…)`);
+  sugar's D1 rewrites the non-maturing gravity arm BELOW it (`1 + 0.52·w`
+  — sucrose's coefficient, which the early return keeps from ever
+  reaching lye). Both read the same `dissolvedSolidsKgPerL`. The egg is
+  `/trade/potash/thing/test-egg`, a `/platform/thing/Tool`
   (`capabilities: [flotation]`, `gradeBand: poor` → ceiling `competent`),
   propped at the ashery and the chandlery. ⚠ The hen's egg stays food
   (Grounding); *any fresh egg floats* is a deferred seam.
-- **D8 — The boil is per-batch.** Kernel `Maturing` gains one `@hook`
-  `batchProductFraction(profile): number` (default the profile's) used by
-  the evaporative window and the finish, and the window's rate is scaled by
-  the **fill factor** `clamp(interiorCapacity / startL, 1, 4)` — a pan a
-  third full dries three times as fast per fraction, a full pan exactly as
-  before (brine and sap unchanged at full). The iron pot overrides the hook
-  from `LyeStrength`: cake litres = `(alkaliKg / purity) / density(black
-  salts)`, so yield follows strength and a weak lye boiled for the same
-  potash is a fuller pot for longer — time, and therefore the hearth's
-  fuel, follow. ⚠ At EQUAL VOLUME a weak and a strong lye take nearly the
-  same time (the water is the same); the drive compares equal potash
-  (Risks).
+- **D8 — ⭐⭐ The boil is the plateau's. Potash touches neither
+  `Maturing.ts` nor `Thermal.ts`.** (Replaces the first draft's per-batch
+  product fraction + fill factor on `reconcileEvaporativeWindow`, which
+  extended the fire-heated maturation path sugar's D1 retires — withdrawn
+  under the sibling rule.) Lye is a water solution; what boiling it does
+  is take the water off, and silk's `reconcileBulkPhase` already does that
+  for any liquid that authors a latent heat: the pot holds at the lye's
+  boiling point and loses litres per read. The alkali is **conserved
+  across the boil-off** (it does not leave with the steam), so the
+  concentration at any moment is `alkaliKg / litres`, and the cake is the
+  alkali over the black salts' purity. Yield follows strength (AC 6, AC 3);
+  time and fuel follow the WATER — **weakly on silk alone** (the boil-off
+  per read is a fraction of the pot's capacity, so an unread pot of any
+  size dries in the same number of reads — silk's recorded artefact) and
+  **honestly once sugar's D2 lands** (`min(overshoot, P_in × Δt)`: litres
+  per hour at the fire's power, so 60 L of weak lye is three times the
+  hours and the wood of 20 L of strong). The drive compares EQUAL POTASH
+  (the owner's answer) and records both halves of AC 5 separately: the
+  fuel per kilogram of potash now, the hours when the power limit is on
+  master (Risks § the one remaining question). *Decided by* lens 1 (latent
+  heat is the lesson, and the plateau is where it lives) and the sibling
+  rule (one boil mechanism in the game).
 - **D9 — Materials: potash in the commons, black salts the trade's.**
   `base-library/…/material/mineral/potash.yaml` (`/stuff/idea/material/mineral/potash`:
   potassium carbonate — tags `[solid, mineral, alkali, potash, <flux-tag>]`,
@@ -477,25 +649,49 @@ left a fork, the lens that chose is named.
   `castTemplate` of the pot) and `/trade/potash/thing/pearl-ash`, both over
   `/trade/fuel/thing/Ash` (D1 — pearl ash is ash), authoring `alloying`
   0.65 / 0.85 of `potash` as the row default.
-- **D10 — `soda-from-lye` is deleted, not renamed.** The row leaves
-  `trade-fuel`; `/trade/potash/idea/maturation/lye-boil.yaml` replaces it
-  (`evaporative`, `inputCategory: lye`, `happyK 370`, `stallBelowK 273`,
-  `damageAboveK 420`, `ratePerDay 6`, product black-salts, `productFraction
-  0.05` as the reference the pot overrides). The washing-soda material's
-  header stops claiming it is boiled from lye; the general store's bag
-  stays a stocked line (AC 11).
-- **D11 — The iron pot is a mould that matures.**
-  `/trade/potash/src/thing/IronPot.ts` =
-  `MouldMixin(DurableMixin(MaturingMixin(CraftVessel)))` (the Hoop's
-  order with Maturing inside Durable), row `/trade/potash/thing/iron-pot`
-  (`castTemplate: /trade/potash/thing/black-salts`, `reusable: true`,
-  `discipline: ashery`, cast iron, `interiorCapacity 40`). It overrides
-  `batchProductFraction` (D8) and `castInto` (super, then `setAlloying`
-  on the cake from the black-salts purity and the cake's grade from its
-  own — the mould already does the grade). The black-salts material is
-  `solid`, so `Thermal.reconcileBulkPhase` sets the cake IN the pot at the
-  first read after the finish — *pot ash*, by the shipped set site. The
-  pot stands ON the ashery hearth (`Placing`), the SoapKettle precedent.
+- **D10 — `soda-from-lye` is deleted, not renamed, and NOTHING replaces
+  it in maturation.** The row leaves `trade-fuel`; there is no `lye-boil`
+  profile — the boil is D8's. `trade-chandlery/…/idea/material/lye.yaml`
+  gains `latentHeatOfVaporization: 2260000` (keeps `boilingPoint 375`), so
+  on silk's plateau a pot of lye boils down instead of flashing (sugar's
+  Risks name this fix and leave it to potash; if sugar lands it first the
+  merge is a no-op). The washing-soda material's header stops claiming it
+  is boiled from lye; the general store's bag stays a stocked line (AC
+  11). ⚠ On master before silk, lye on a fire still flashes — which is why
+  the pot wave (W5) sits behind the silk gate.
+- **D11 — The iron pot is a mould that keeps count of its alkali, and
+  sets the cake itself when the water is gone — pack-locally, until
+  sugar's arrows make the kernel do it.** `/trade/potash/src/thing/IronPot.ts`
+  = `MouldMixin(DurableMixin(CraftVessel))` (the Hoop minus `Placing`; the
+  pot is placed ON a hearth, it hosts nothing; **no `MaturingMixin`** — no
+  profile runs in it), row `/trade/potash/thing/iron-pot` (`castTemplate:
+  /trade/potash/thing/black-salts`, `reusable: true`, `discipline: ashery`,
+  cast iron, `interiorCapacity 40`, open). Two persistent runtime fields of
+  its own, `alkaliKg` and `lastSeenL`, and one private `reconcileBoil()`
+  run from its reads (`getContents`, `holdsCast`, `setState`, the look
+  augmenter): if the litres ROSE since `lastSeenL`, a pour came in —
+  re-base `alkaliKg = payload.dissolvedSolidsKgPerL × litres`; if they
+  FELL, the plateau boiled water off — `alkaliKg` is conserved and the
+  payload's `dissolvedSolidsKgPerL` is rewritten to `alkaliKg / litres`
+  (the pot does for its own liquor what sugar's plateau will do for
+  every liquor); if the slot is EMPTY and `alkaliKg > 0`, the water is
+  gone — `castInto({material: blackSalts, massKg: alkaliKg / purity,
+  payload: null, stampMaterial: true})` mints the cake IN the pot (the
+  shipped `Mould.castInto`, the mould's grade riding onto the cast as it
+  already does), `setAlloying` the cake's potash fraction to the purity,
+  and zero the count. *Pot ash*, by the mould. The pot's grade is the
+  lye's band carried in by the pour (`carryBatchIdentity` writes the
+  holder's grade). ⚠ Honest limits, stated: the cake appears at the first
+  read after dry, not at the instant; a pour and a boil-off between two
+  reads are read as the net (a pot nobody watches is a pot nobody
+  measures). **Convergence (`potash-on-sugar`):** when sugar's D1 is on
+  master, lye authors `solidsKgPerL` and `concentratesTo: [{fromW: ~0.5,
+  becomes: /trade/potash/idea/material/black-salts}]`; the plateau then
+  rewrites the field and fires the arrow, the freeze edge sets the cake by
+  the shipped set site, and `reconcileBoil`, `alkaliKg` and `lastSeenL`
+  are **deleted** — the pot becomes `MouldMixin(DurableMixin(CraftVessel))`
+  with no overrides. The pot stands ON the ashery hearth (the SoapKettle
+  precedent; after silk, `heat pot` sets it there too).
 - **D12 — Pearl ash is a `fire` recipe, and the firing carry is
   corrected twice.** `/trade/potash/content/recipes/calcine.yaml`
   (`category: black-salts`, count 1, `requiresHeatK 900`, `massYield
@@ -506,12 +702,14 @@ left a fork, the lens that chose is named.
   grade is the **weakest** of the Graded inputs (`Grade.weakest`), the
   same rule a craft and a batch already follow. Consumers: pearl ash, the
   glass melt (AC 3's "glass grade" — verify `/trade/glass/thing/melt`'s
-  class composes `Crafted`; if not, compose it in W4), burnt lime.
-- **D13 — Tags: `stabilizer` is new; the flux word waits on
-  STOP-AND-ASK #1.** `quicklime.yaml` gains `stabilizer`; both glass batch
-  rows' lime slot becomes `category: stabilizer`. The flux slot and the
-  potash family's tag are written per the user's answer (W4 is blocked on
-  it, nothing else is). `alkali` stays on lye, washing soda, potash — the
+  class composes `Crafted`; if not, compose it in W3), burnt lime.
+- **D13 — Tags: `stabilizer` is new; `flux` is the potash family's
+  (owner's answer to STOP-AND-ASK #1: option (a)).** `quicklime.yaml`
+  gains `stabilizer`; both glass batch rows' lime slot becomes `category:
+  stabilizer` and the flux slot asks `flux`; potash, black salts and pearl
+  ash carry `flux`; limestone's smelting tag becomes `smelting-flux`
+  (`SmeltController.ts:962` + its test + `mining.md`) and `burn-lime`'s
+  charge slot `carbonate` — all in W3. `alkali` stays on lye, washing soda, potash — the
   cleansing family — and glass stops reading it. Wood ash keeps the flux
   tag too: forest glass IS ash glass (lens 1), and the grade carry (D12b)
   is what makes pearl ash the better batch.
@@ -600,11 +798,11 @@ re-narrows the host set means the host is wrong.*
 | `ashAlkaliKg` (runtime state) | `BurnerMixin`, beside `ashKg` | every fire that leaves ash leaves ash of SOME strength — true of a lamp (0) and a forge alike | a Firebox-only field would need a guard in `consumeFuel`, which runs on the mixin |
 | `heapKg` unit + heap loop | `BurnerMixin.rakeGrate` | a raked grate yields countable heaps on every burner | — |
 | `Ash` class (`Composition(Crafted(Good))`) | `/trade/fuel/thing/Ash` — pack class | nothing: new leaf | `Provision` claims rot; `Casting` claims melting; the kernel has no Crafted+Composition twin and does not need one for a trade's residue |
-| `alkaliGPerL` payload field | `BulkPayload` via declaration merge in `lib/cleanliness/LyeStrength.ts` | any liquor may carry an alkali concentration; a read is only honest on a `lye`-tagged material and `LyeStrength` says so | a pack cannot teach the pour to blend a field |
-| `blendScalar(field)` | `BulkableLogic` (private) | hardness and alkali blend by the same rule | — |
-| strength derivation, spent ash, passes | `Hopper` (trade-chandlery) overrides | the hopper is already "its own chemistry" (`matchProfile`) | a kernel rule in `Maturing.matchProfile` would claim leaching of every vat |
-| `batchProductFraction` hook + fill factor | `MaturingMixin` | every evaporative batch may size its own product; the default is the profile's, so brine and sap are byte-for-byte at a full pan | — |
-| `IronPot` (`Mould(Durable(Maturing(CraftVessel)))`) | `/trade/potash/thing/IronPot` | new leaf; the overrides are the pot's own chemistry | the SoapKettle is the chandlery's and not a mould; the kernel `Mould` twin does not mature |
+| `dissolvedSolidsKgPerL` payload field (sugar's member, declared here too until sugar lands) | `BulkPayload` via declaration merge in `lib/cleanliness/LyeStrength.ts` | any liquor may carry dissolved solids per litre; a lye READ is only honest on a `lye`-tagged material and `LyeStrength.isLye` says so | a pack cannot teach the pour to blend a field; two differently named fields for one quantity would be the parallel mechanism the sibling rule forbids |
+| `blendScalar(field)` | `BulkableLogic` (private) | hardness and dissolved solids blend by the same rule | — |
+| strength derivation, spent ash, passes | `Hopper` (trade-chandlery) overrides | the hopper is already "its own chemistry" (`matchProfile`) | a kernel rule in `Maturing.matchProfile` would claim leaching of every vat; `PercolatingMixin` is sugar's and not on master |
+| `latentHeatOfVaporization` on lye | the `lye` material ROW | lye boils down instead of flashing, on silk's plateau | — |
+| `IronPot` (`Mould(Durable(CraftVessel))`) + its own `alkaliKg`, `lastSeenL`, `reconcileBoil()` | `/trade/potash/thing/IronPot` | new leaf; the bookkeeping is the pot's own and is deleted at `potash-on-sugar` | the SoapKettle is the chandlery's and not a mould; the kernel `Mould` twin must not learn about alkali; `Thermal.ts` is sugar's region |
 | slaking, causticizing, direct hard soap | `SoapKettle` (trade-chandlery) | the kettle already owns "its chemistry" (`soapTransform`) | a slaking tub would be a second `ContainerMixin(Vat)` twin for one act |
 | `analyze` + worded `measure` on lye | `DensityReading` | the channel words what cannot honestly be a figure to a player | — |
 | `handTool: flotation` | the density ROW | — | — |
@@ -617,7 +815,8 @@ re-narrows the host set means the host is wrong.*
 ⛔ **Not placed, deliberately:** nothing on `Thing`, `Good`, `Vat` or
 `CraftVessel`; no `Freshness`/`Provision` on ash; no `ToolMixin` on food
 (the hen's egg); no new kernel class; no new Api, logic singleton, free
-helper, collection or module category.
+helper, collection or module category; **nothing in `Thermal.ts` or
+`Maturing.ts`** (sugar's regions — § Sibling builds).
 
 ---
 
@@ -641,7 +840,8 @@ helper, collection or module category.
 - **Locations** — `Locale` for the ashery (outdoor, sky-lit by its biome);
   no `Room`.
 - **Verbs on objects** — `Burner.rakeGrate`, `Hopper.matchProfile`,
-  `SoapKettle.soapTransform`, `IronPot.batchProductFraction`; controllers
+  `SoapKettle.soapTransform`, `IronPot.reconcileBoil` (private, the
+  pot's own count); controllers
   untouched except `FireController` (the carry) and `CharController`
   (the mint). No `XApi.verb(host, …)`; `lint:object-verbs` stays 0.
 - **No new verb** — every act is shipped (`fell`, `stoke`, `ignite`,
@@ -682,7 +882,17 @@ Each wave lands independently, ends at a commit, and is driven by
 `pnpm test:near` + the touched packs' own vitest + `lint:family`. The full
 suite runs once before the MR and once at `/finalize`.
 
+**Order (revised 2026-10-19 for the siblings):** the waves that need
+neither silk nor sugar go first — **W0 → W1 → W2 → W3 → W4** — then the
+**silk gate** (§ Sibling builds), then **W5** (the boil, the one wave
+that needs silk's plateau), **W6**, **W7**. Every wave that touches a
+file in the shared-files table runs the **pre-wave check** before its
+first edit and keeps to the region the table names.
+
 ### W0 — ash sized and strengthened: the grate, the clamp, the `Ash` class
+
+**Pre-wave check:** `Burner.ts`, `Material.ts`, `AppSettings.ts`,
+`fire.yaml` (shared-files table).
 
 **Files**
 - `packages/server/src/mud/lib/material/Material.ts` — `alkaliShare`
@@ -700,10 +910,9 @@ suite runs once before the MR and once at `/finalize`.
 - `packages/content/platform/content/settings/fire.yaml` +
   `lib/config/AppSettings.ts` — `fire.ash.heapKg` (0.6).
 - `packages/content/base-library/content/stuff/idea/material/mineral/potash.yaml`
-  — the commons material (D9; the `cleanser:` pointer lands in W4 — leave
-  it `''` here, or ship the Cleanser row in this wave under the pack; the
-  pack skeleton is W2, so W0 ships potash with no cleanser and W4 fills
-  it).
+  — the commons material (D9; the `cleanser:` pointer lands in W3 — leave
+  it `''` here; the pack skeleton is W2, so W0 ships potash with no
+  cleanser and W3 fills it).
 - Wood rows (10) + `organic/oak-bark.yaml`: `alkaliShare` (beech 0.18,
   elm 0.17, oak 0.15, ash 0.15, maple 0.15, hazel 0.14, birch 0.12,
   willow 0.12, yew 0.10, pine 0.08; oak bark 0.20). Grain, with a
@@ -759,6 +968,9 @@ kg of ash in heaps; `lint:family` green; `pnpm test:near`.
 
 ### W2 — the pack, the leach, and the egg
 
+**Pre-wave check:** `BulkableLogic.ts`, `DensityReading.ts`,
+`density.yaml`, `PackLogic.discover.test.ts`, root `package.json`.
+
 **Files**
 - `packages/content/trade-potash/{pack.yaml,package.json,tsconfig.json,vitest.config.ts,README.md}`
   (the trade-glass template; `root: /trade/potash`; `requires.title`
@@ -770,8 +982,9 @@ kg of ash in heaps; `lint:family` green; `pnpm test:near`.
 - `packages/server/src/mud/lib/cleanliness/LyeStrength.ts` (D5) +
   `__tests__/LyeStrength.test.ts`.
 - `platform/idea/api/BulkableLogic.ts` — `blendScalar('hardnessDgh')`,
-  `blendScalar('alkaliGPerL')` replacing the inline hardness block;
-  `BulkPayload.test.ts` covers both.
+  `blendScalar('dissolvedSolidsKgPerL')` replacing the inline hardness
+  block (the second line is the one dropped at the sugar merge);
+  `BulkPayload.test.ts` covers both, in a new `describe` at the end.
 - `trade-chandlery/src/thing/Hopper.ts` — D6; `lye-leach.yaml` header
   updated; `trade-chandlery/src/__tests__/soap.test.ts` gains the leach
   cases (strength from mass and litres; a second pass raises it; hard
@@ -786,41 +999,26 @@ kg of ash in heaps; `lint:family` green; `pnpm test:near`.
   15`, `soapAtGPerL 30`, `strongAtGPerL 60`, `hardnessWastePerDgh 0.04`).
 
 **Acceptance** — in the chandlery test: 3 kg of 0.15 ash in 20 L of
-1 °dH water gives ~22 g/L (*weak*); a second 3 kg pass ~45 g/L
-(*soap-strength*); the same at 12 °dH ~12 g/L; `analyze density hopper`
-with the egg in reach prints the band's words and no digit; the pack
-boots under `SAXONBERG_PACKS` with the roster.
+1 °dH water gives ~0.022 kg/L (*weak*); a second 3 kg pass ~0.045 kg/L
+(*soap-strength*); the same at 12 °dH ~0.012 kg/L; `analyze density
+hopper` with the egg in reach prints the band's words and no digit; the
+pack boots under `SAXONBERG_PACKS` with the roster. **Also in this wave,
+so no later wave regresses it:** `soda-from-lye.yaml` is deleted and the
+washing-soda material header corrected (D10) — the row has no consumer
+to lose; `grep -r soda-from-lye packages/ docs/` is empty but for
+history.
 
-**Commit** — `build(potash W2): the trade-potash pack; lye strength derived in the hopper and read with an egg`
+**Commit** — `build(potash W2): the trade-potash pack; lye strength derived in the hopper and read with an egg; soda-from-lye retired`
 
-### W3 — the boil: lye → black salts in an iron pot
-
-**Files**
-- `lib/maturation/Maturing.ts` — `batchProductFraction(profile)` hook;
-  the fill factor in `reconcileEvaporativeWindow`; `Maturing.test.ts`
-  evaporative cases (a full pan unchanged; a third-full pan three times
-  as fast; an overridden fraction sizes the finish).
-- `trade-potash/src/thing/IronPot.ts` (D11) + `__tests__/IronPot.test.ts`
-  (a 30 L lye at 60 g/L sets a cake of ~2.8 kg IN the pot, graded as the
-  lye; the cake's alloying is the black-salts purity).
-- `trade-potash/content/trade/potash/{idea/maturation/lye-boil.yaml,idea/material/black-salts.yaml,thing/black-salts.yaml,thing/iron-pot.yaml}`.
-- **Delete** `trade-fuel/content/trade/fuel/idea/maturation/soda-from-lye.yaml`;
-  edit the washing-soda material header; keep the bag.
-- Docs touched in-wave: none (the sweep's).
-
-**Acceptance** — the pot on a lit hearth with strong lye finishes in the
-test's advanced hours and `getContents()` holds a `black-salts` cake; the
-same volume of weak lye finishes in the same time with a cake a third the
-mass; `grep -r soda-from-lye packages/ docs/` is empty but for history.
-
-**Commit** — `build(potash W3): lye → black salts in an iron pot; soda-from-lye retired`
-
-### W4 — pearl ash by fire; flux and stabilizer; the grade carry
+### W3 — pearl ash by fire; flux and stabilizer; the grade carry
 
 ✅ **Flux decided (owner, 2026-10-19): option (a).** The potash family
 carries `flux`; limestone's smelting role becomes `smelting-flux`
 (`limestone.yaml`, `SmeltController.ts:962`, `OpenWorking.test.ts:75`,
 mining.md) and `burn-lime`'s slot becomes `carbonate`.
+
+**Pre-wave check:** `FireController.ts` (+ its test — silk touched one
+comment line in it; potash's tests go in a new `describe` at the end).
 
 **Files**
 - `platform/idea/cmd/device/FireController.ts` — D12 (a)+(b);
@@ -832,19 +1030,35 @@ mining.md) and `burn-lime`'s slot becomes `carbonate`.
   `trade-potash/content/trade/potash/{thing/pearl-ash.yaml,idea/Discipline/ashery.yaml,idea/Cleanser/potash.yaml}`;
   the potash material's `cleanser:` filled; black-salts material tags.
 - `trade-glass/content/recipes/glass-batch{,-amber}.yaml` — lime slot →
-  `stabilizer`; flux slot stays `flux` (now the potash family's). `base-library/…/caustic/quicklime.yaml`
-  gains `stabilizer`. Verify `trade-glass/src/thing/Melt.ts` composes
-  `Crafted`; compose it if not.
+  `stabilizer`; flux slot `category: flux` (now the potash family's).
+  `base-library/…/caustic/quicklime.yaml` gains `stabilizer`;
+  `rock/limestone.yaml` `flux` → `smelting-flux`;
+  `trade-quarrying/content/recipes/burn-lime.yaml` slot → `carbonate`;
+  `trade-smelting/src/idea/cmd/smelting/SmeltController.ts:962` reads
+  `smelting-flux`; `trade-quarrying/src/__tests__/OpenWorking.test.ts:75`
+  follows. Verify `trade-glass/src/thing/Melt.ts` composes `Crafted`;
+  compose it if not.
+- The black-salts material and the two `thing` rows (cake, pearl ash —
+  over `/trade/fuel/thing/Ash`, D9) land HERE so the recipe has an input
+  and an output; the pot that MAKES the cake is W5's, so until then the
+  test clones a cake.
 - `glass.md`/`mining.md` one-line notes are the sweep's.
 
 **Acceptance** — a cake fired in a test `Oven` at 900 K yields pearl ash
 at 0.8 mass with potash fraction 0.81 and the cake's grade; a glass batch
 of pearl ash + quicklime fires; a flask of lye in the kiln fires no
-recipe; `lint:capabilities`, `lint:closed-vocabularies` green.
+recipe; the smelt still finds limestone as its flux; `lint:capabilities`,
+`lint:closed-vocabularies` green.
 
-**Commit** — `build(potash W4): pearl ash by fire; flux and stabilizer on the glass batch; a firing carries its charge's grade`
+**Commit** — `build(potash W3): pearl ash by fire; flux and stabilizer on the glass batch; a firing carries its charge's grade`
 
-### W5 — lime: slaking, causticizing, hard soap direct
+### W4 — lime: slaking, causticizing, hard soap direct
+
+**Pre-wave check:** none of the shared files (the kettle and its
+materials are the chandlery's). ⚠ `hard-soap-paste.yaml` copies
+`soap-paste.yaml`'s THERMAL fields exactly — no `boilingPoint` it does
+not already author — so the kettle at the boil behaves on master as the
+cleanliness drive proved it does.
 
 **Files**
 - `trade-chandlery/src/thing/SoapKettle.ts` — D14; `soap.test.ts`:
@@ -862,9 +1076,49 @@ recipe; `lint:capabilities`, `lint:closed-vocabularies` green.
 **Acceptance** — both soap routes end in a bar in the frame; the direct
 route's bar is graded by the lye's band.
 
-**Commit** — `build(potash W5): slaking and causticizing in the soap kettle; hard soap direct`
+**Commit** — `build(potash W4): slaking and causticizing in the soap kettle; hard soap direct`
+
+### ⛔ The silk gate
+
+Run § Sibling builds › *The silk gate* here, before W5. Record in this
+plan which path was taken (master had !395 · merged `origin/reqs/silk`
+into the branch) and the conflict list as resolved. If silk is not yet
+on master AND cannot be merged in cleanly, W5 waits and W6 lands first
+without the pot and the egg's lye checkpoints (the ashery row props the
+pot only once W5 exists) — never a pack-local flash workaround.
+
+### W5 — the boil: lye → black salts in an iron pot (needs silk's plateau)
+
+**Pre-wave check:** `Thermal.ts` (read-only — potash edits nothing in
+it; confirm the plateau is present: `grep -n "latent-heat plateau"
+packages/server/src/mud/lib/thermal/Thermal.ts`), `lye.yaml` (has sugar
+already given it latent heat?).
+
+**Files**
+- `trade-chandlery/content/trade/chandlery/idea/material/lye.yaml` —
+  `latentHeatOfVaporization: 2260000` (D10).
+- `trade-potash/src/thing/IronPot.ts` (D11) + `__tests__/IronPot.test.ts`:
+  on a lit hearth stub, 30 L of lye at 0.06 kg/L read every game-hour
+  boils down (the plateau), the payload's `dissolvedSolidsKgPerL` climbs
+  as `1.8 / litres`, the egg's words climb a band, and at dry a
+  `black-salts` cake of `1.8 / 0.65 ≈ 2.8 kg` sits IN the pot graded as
+  the lye, its alloying the purity; the same reads on 30 L at 0.02 kg/L
+  give a cake a third the mass in the same reads; a pour INTO a working
+  pot re-bases the count; an empty pot with no count mints nothing.
+- `trade-potash/content/trade/potash/thing/iron-pot.yaml`.
+- `docs/subsystems/potash.md` draft note on the plateau's read-cadence
+  limit and the named convergence (W7 finishes it).
+
+**Acceptance** — the test above; `lint:family`; the drive's steps 9–10
+run end to end on a booted world with the clock advanced in slices and
+`look pot` between them.
+
+**Commit** — `build(potash W5): lye → black salts in an iron pot, on the boil plateau`
 
 ### W6 — the venues: the ashery, the buying lines, the ash-man's round
+
+**Pre-wave check:** `PackLogic.discover.test.ts` (recount), root
+`package.json`.
 
 **Files**
 - `trade-potash/src/thing/AshPit.ts` + `content/trade/potash/thing/ash-pit.yaml`
@@ -902,11 +1156,13 @@ appended with the output and count. Docs: a new
 `docs/subsystems/potash.md` (the chain, the strength model, the egg, the
 boil arithmetic, the round's arithmetic) and one-paragraph updates to
 `cleanliness.md` (the grate, the hopper, soap's second route),
-`fire.md` (ash strength + heaps), `mining.md` § the clamp, `forestry.md`
-(brash), `maturation.md` (per-batch product fraction + fill factor),
-`instrumentation.md` (the density eye rung), `glass.md` (the slots, the
-grade carry), `retail.md` (two more buying lines) — the CLAUDE.md map line
-is the sweep's.
+`fire.md` (ash strength + heaps), `mining.md` § the clamp (and the
+`smelting-flux` word), `forestry.md` (brash), `thermal.md` (a second
+consumer of the plateau, the pot's pack-local count and its named
+convergence), `maturation.md` (`soda-from-lye` gone; the evaporative
+roster is brine + sap until sugar), `instrumentation.md` (the density eye
+rung), `glass.md` (the slots, the grade carry), `retail.md` (two more
+buying lines) — the CLAUDE.md map line is the sweep's.
 
 **Commit** — `drive(potash): <what driving found>` then
 `build(potash W7): fixes from the drive; the potash subsystem doc`.
@@ -926,8 +1182,8 @@ gate — each fails closed and silent.
 | fell for brash | `fell` | `StandMixin` from `inventory` (shipped) | stand `mix:` entries, brash rows, species rows | — | axe on `capability.felling` |
 | leach | `put`, `pour`, `fill` | platform inventory/bulk views | the hopper row; `lye-leach` by key; `spent-ash` row | the profile roster warms by key (`MaturationProfileRef.byKey`) — verify a pack root's profile resolves (forestry's sap rows prove it) | `pour` target Bulkable |
 | read strength | `analyze density`, `measure density` | the Avatar's (readings are global); `ReadingCatalogue` by `/idea/reading/` infix | `density.yaml` `handTool: flotation`; the `test-egg` row `capabilities: [flotation]`; the hydrometer | lazy warm + `onCreate` | `subjectRequires [BulkableMixin]`; `tool requires [ToolMixin]` (the egg IS a Tool) |
-| boil | `put pot on hearth`, `pour lye into pot` | platform | `iron-pot.yaml` (`placements`/Placing on the Hearth row), `lye-boil` | — | `Placing.canPlace` on the hearth |
-| the cake | `get cake from pot` | `Mould.getContents` (a plain `get` reaches into an open mould) | `black-salts.yaml` | — | — |
+| boil | `put pot on hearth` (after silk also `heat pot`), `pour lye into pot`, `look pot` | platform (`heat` is afforded by `BurnerMixin` after silk) | `iron-pot.yaml` (Placing on the Hearth row); lye's `latentHeatOfVaporization`; **no profile row** | — | `Placing.canPlace` on the hearth; ⚠ the plateau runs on READ — the drive reads the pot between clock slices |
+| the cake | `get cake from pot` | `Mould.getContents` (a plain `get` reaches into an open mould); `IronPot.reconcileBoil` runs on that read | `black-salts.yaml` | — | — |
 | calcine | `fire kiln` | `BurnerMixin` peers (shipped) | `calcine.yaml`; the kiln row propped at the ashery | the recipe catalogue (shipped loader over `content/recipes/`) | the charge in the chamber matches `category: black-salts` by material tag |
 | glass batch | `fire kiln` | shipped | retagged slots; pearl-ash/potash tags; quicklime `stabilizer` | — | tag match |
 | slake / causticize / hard soap | `put lime in kettle`, `pour water`, `pour lye`, `pour tallow`, `pour kettle into frame` | platform | the three materials, the caustic profile | — | `CraftVessel` is a Container (`put`); `classifyForeignPour` override |
@@ -947,15 +1203,15 @@ the ashery `Locale` is on the ride's exit graph (`lint:location-graph`).
 |---|---|---|
 | 1 pearl ash to the glasshouse, no new verb | W0–W4, W6; every act shipped | steps 1–11 |
 | 2 ash mass follows what burned (pit, grate, clamp) | W0 (`consumeFuel`, D3, D4) | steps 3, 5 |
-| 3 strength follows the wood and carries | W0 (Composition + band), W2 (hopper grade), W3 (pot grade → cake), W4 (fire carry), W5 (soap input band) | steps 3–4, 7, 9–12 |
+| 3 strength follows the wood and carries | W0 (Composition + band), W2 (hopper grade), W5 (pot grade → cake), W3 (fire carry), W4 (soap input band) | steps 3–4, 7, 9–12 |
 | 4 lye responds to ash, passes, hardness; egg reads words | W2 | steps 6–8 |
-| 5 weak lye costs more fuel and time | W3 (fill factor + per-batch fraction) | step 9, recorded per cake |
-| 6 boiled lye yields potash, never soda | W3 (D10) | step 9 |
-| 7 hard soap direct, salting-out still works | W5 | step 12 |
-| 8 lye refused in the lime slot; potash/pearl ash fill flux | W4 | step 11 |
+| 5 weak lye costs more fuel and time | W5 (the plateau; alkali conserved, so the cake per boil follows strength) — **the fuel half now** (fuel per kilogram of potash, equal potash); **the time half when sugar's D2 is on master** (Risks § the one remaining question) | step 9, recorded per cake and per kg of wood |
+| 6 boiled lye yields potash, never soda | W2 (the soda row gone), W5 (the cake) | step 9 |
+| 7 hard soap direct, salting-out still works | W4 | step 12 |
+| 8 lye refused in the lime slot; potash/pearl ash fill flux | W3 | step 11 |
 | 9 chandlery buys; the round; living or supplement | W6 + the drive's record | steps 13–14 |
 | 10 brash is a by-product and burns | W1, W0 | steps 1–2 |
-| 11 washing soda stocked; potash softens | W3 (the bag stays), W4 (Cleanser) | step 15 |
+| 11 washing soda stocked; potash softens | W2 (the bag stays, the soda row gone), W3 (Cleanser) | step 15 |
 | 12 no number for strength or grade | W0 (band words), W2 (worded reading), W3/W4 (grade words) | step 16, asserted on every strength line |
 
 ---
@@ -995,15 +1251,32 @@ the ashery `Locale` is on the ride's exit graph (`lint:location-graph`).
    (the requirements' word changes). Recommendation: **(a)** — `flux`
    unqualified is the glassmaker's word and the smelter already names the
    melt it serves; and (b) would make `burn-lime` keep a slot called
-   `flux` that lime is the stabilizer of. W4's two lines wait on this;
-   nothing else does.
+   `flux` that lime is the stabilizer of. **Answered: (a)** — landed in
+   W3 (D13).
 2. **AC 5's wording vs the physics.** At equal VOLUME a weak lye boils in
    about the same time as a strong one (the water is the same); the true
-   cost is per kilogram of potash. D8 makes the pot honest (yield by
-   strength, time by volume) and the drive compares equal potash (20 L
-   strong vs 60 L weak), which is 3× the hours and the wood. If the owner
-   wants equal volumes to differ visibly, that is a different (and false)
-   model — say so.
+   cost is per kilogram of potash. The drive compares equal potash (20 L
+   strong vs 60 L weak) — answered: equal potash.
+
+### The one remaining question for the owner
+
+**AC 5's TIME half lands with sugar's W1a, not with this build.** On
+silk's plateau alone the boil-off per read is `(T − bp) × C / latent`
+with `C` the contents' capacity — a FRACTION of whatever is in the pot —
+so 60 L and 20 L both dry in the same number of reads, and only the
+**fuel per kilogram of potash** (3× for the weak lye, from the same
+hearth over the same reads) is honestly visible now. Sugar's D2 (the
+power-limited plateau, its W1a, "after silk, alone, with a blast-radius
+check") makes litres-per-hour follow the fire's power, and then 60 L IS
+three times the hours. Potash must not build that limit (the sibling
+rule). Two ways to read AC 5, the owner's call:
+(a) **accept** — the drive records cake mass per boil and per kg of wood
+now, states the time half as *"true once the fire has power (sugar
+W1a)"*, and `potash-on-sugar` adds the equal-potash timing checkpoint;
+(b) **hold W5** until sugar's W1a is on master (sugar's own order puts
+W1a right after silk) and the drive asserts both halves at once.
+Recommendation: **(a)** — W5 is otherwise independent of sugar, and
+holding the boil holds the venues and the drive behind it.
 
 ### Requirements-vs-code disagreements recorded, not reshaped
 
@@ -1033,6 +1306,24 @@ the ashery `Locale` is on the ride's exit graph (`lint:location-graph`).
   drive records which stops paid.
 - `BURNER_DEFAULTS.MAX_REASONABLE_GAP_SEC` may cap a 12-hour clock jump so
   the pit does not burn down in one jump; advance in slices.
+- **The plateau runs on read** (silk): a pot nobody looks at boils off
+  one capacity's worth per gap. The drive and `IronPot.test.ts` read the
+  pot every slice; the subsystem doc states the limit and names sugar's
+  D2 as what closes it.
+- **The silk merge may move `Thermal.ts` line numbers and `thermal.md`**
+  under this plan's Grounding; nothing here edits either file, so the
+  risk is a stale citation, not a conflict.
+- **If sugar lands before potash's MR merges:** re-run the merge recipe
+  in § Sibling builds; expected textual conflicts are the `BulkPayload`
+  declaration (keep sugar's, delete ours), the `blendPayloads` fold (keep
+  sugar's), `DensityReading.measure` (ours above, theirs below), the pack
+  count, `Material.ts`/`Burner.ts` `fieldMeta` appends (union),
+  `package.json` (union), the lockfile (`pnpm install`). Then open the
+  `potash-on-sugar` follow-up (Deferred seams) rather than folding it in.
+- **If silk's review changes the plateau's shape** before !395 merges
+  (e.g. the boiled-dry branch stops clearing the payload), `IronPot.
+  reconcileBoil` reads the slot's emptiness, not the payload's absence,
+  so it survives either way — verify at the gate.
 - A Material row's `extends:` across packs (`<species>-brash` extends the
   wood) — proven within base-library; the brash rows are base-library's
   too, so no cross-pack extend.
@@ -1076,8 +1367,25 @@ opens it.
 - **Person-to-person purchase** (the ash-man pays a hearth owner outside
   any verb) → `retail-slate` (a `buy <thing> from <person>` or the
   contract board as the player route).
-- **The evaporative rate as a true area × deficit flux** (the fill factor
-  is a bounded stand-in) → `maturation` follow-on in `bulkable-slate`.
+- ⭐⭐ **`potash-on-sugar` — the named convergence, one small MR after
+  sugar's D1/D2/D3 are on master** (owner: potash; opened by whoever
+  lands second): (1) delete potash's `BulkPayload.dissolvedSolidsKgPerL`
+  declaration and its `blendScalar` line — sugar's own; (2) lye authors
+  `solidsKgPerL` and `concentratesTo: [{fromW ~0.5, becomes:
+  /trade/potash/idea/material/black-salts}]`; the plateau rewrites the
+  field and fires the arrow, the freeze edge sets the cake in the pot;
+  **delete** `IronPot.reconcileBoil`, `alkaliKg`, `lastSeenL`; (3) the
+  drive gains the equal-potash TIMING checkpoint (AC 5's time half, true
+  under the power limit); (4) `/trade/fuel/thing/Ash` composes
+  `PercolatingMixin`, the hopper's `matchProfile` stops destroying ash and
+  the water percolates through heaps that stay in it as spent ash
+  (sugar D3's own sentence). Until then nothing of sugar's is rebuilt
+  here.
+- **The limeburner seat** — sugar's D7 says *"a limeburner seat is the
+  potash build's"*; these requirements name none (the ashery buys lime
+  from the quarry's shelf, sugar's import line). **Unowned**: it goes to
+  the quarrying/extraction slate as a seat at Rejection's kiln when a
+  consumer wants a burner on shift.
 - **Smoke as a nuisance; leave to burn on another's wood** →
   `governance` slates (a criterion and an appeal).
 - **River freight for potash** → `river-slate`.
@@ -1097,8 +1405,8 @@ Kernel
 - `packages/server/src/mud/lib/fire/Burner.ts` — `ashAlkaliKg`, heaps, alloying
 - `packages/server/src/mud/lib/cleanliness/LyeStrength.ts` — new
 - `packages/server/src/mud/platform/idea/api/BulkableLogic.ts` — `blendScalar`
-- `packages/server/src/mud/lib/maturation/Maturing.ts` — `batchProductFraction`, fill factor
-- `packages/server/src/mud/platform/idea/reading/DensityReading.ts` — eye rung, worded lye
+- ⛔ NOT `lib/maturation/Maturing.ts`, NOT `lib/thermal/Thermal.ts` (sugar's regions)
+- `packages/server/src/mud/platform/idea/reading/DensityReading.ts` — `analyze` rung, `wordLye` + one early return in `measure`
 - `packages/server/src/mud/platform/idea/cmd/device/FireController.ts` — yield rescale, grade carry
 - `packages/server/src/mud/lib/config/AppSettings.ts` + `packages/content/platform/content/settings/fire.yaml` — `fire.ash.heapKg`
 - `packages/content/platform/content/platform/idea/reading/density.yaml`
@@ -1107,7 +1415,8 @@ Packs
 - `packages/content/trade-fuel/src/thing/Ash.ts`; `…/thing/{wood-ash,ash,spent-ash}.yaml`; `…/material/organic/spent-ash.yaml`; `src/idea/cmd/fuel/CharController.ts`; `soda-from-lye.yaml` (deleted)
 - `packages/content/base-library/content/stuff/idea/material/{mineral/potash.yaml, wood/*.yaml, wood/*-brash.yaml, organic/oak-bark.yaml, caustic/quicklime.yaml}`
 - `packages/content/trade-forestry/src/{lib/Stand.ts, idea/cmd/forestry/FellController.ts}`; `…/thing/brash.yaml`
-- `packages/content/trade-chandlery/src/thing/{Hopper,SoapKettle}.ts`; `…/idea/material/{milk-of-lime,caustic-lye,hard-soap-paste}.yaml`; `…/idea/maturation/saponification-caustic.yaml`
+- `packages/content/trade-chandlery/src/thing/{Hopper,SoapKettle}.ts`; `…/idea/material/{lye (latent heat),milk-of-lime,caustic-lye,hard-soap-paste}.yaml`; `…/idea/maturation/saponification-caustic.yaml`
+- `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts:962` (`smelting-flux`); `trade-quarrying/content/recipes/burn-lime.yaml` (`carbonate`); `trade-quarrying/src/__tests__/OpenWorking.test.ts:75`; `base-library/…/rock/limestone.yaml`
 - `packages/content/trade-potash/**` — new pack: `src/thing/{AshPit,IronPot}.ts`, `src/behavior/ashes.ts`, `content/trade/potash/{thing/*,idea/*}`, `content/recipes/calcine.yaml`, `content/settings/potash.yaml`
 - `packages/content/trade-glass/content/recipes/glass-batch{,-amber}.yaml`; `trade-glass/src/thing/Melt.ts` (verify Graded)
 - `packages/content/rejection/content/world/terminus/rejection/hanging-wood/{ashery,glasshouse,ride,oak-clearing}.yaml`, `…/agent/ash-burner.yaml`, `…/idea/ashery-business.yaml`, `…/hanging-wood/glasshouse/thing/counter.yaml`; `rejection/{package.json,pack.yaml}`
