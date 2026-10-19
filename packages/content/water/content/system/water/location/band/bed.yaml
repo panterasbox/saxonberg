@@ -1,0 +1,20 @@
+# The bed — the bottom of the water (underwater D8): ground, under the
+# whole weight of the water. Its row authors no floor, so the place mints
+# the default ground, and its depth below the surface puts it on grade.
+# What sinks lies here.
+class: /system/water/location/Band
+data:
+  shortDescription: bottom
+  keywords: [bottom, bed, floor]
+  register: definite
+  longDescription: You are on the bottom, under all the water.
+  _biomePath: /stuff/idea/biome/water/under
+  enclosure: none
+  roof: none
+  proseBank:
+    look:
+      - "You are down on the bottom. Silt lifts round you at every movement and hangs in the water, slow to settle, and the whole weight of the water is over you."
+      - "The bed is soft and grey under you, scattered with stones and the black shapes of old wood sunk long ago. Above, the water goes up into the gloom."
+      - "Here is the bottom: mud and stones and weed, and the cold of the deep pressing on you. Everything that ever went down here is still here somewhere."
+      - "The bed stretches away into the murk on every side. Your feet raise a slow cloud from it, and things half-buried in the silt catch at the edge of your sight."
+      - "You stand on the bottom, heavy and slow. The water's weight is on your chest and in your ears, and the surface is a long way above."

@@ -352,6 +352,13 @@ export default class BodyPlan extends SingletonMixin(Idea) {
    */
   protected respires: boolean = true;
 
+  /**
+   * ⭐ The lungs of a body of this plan at its base mass, litres (an adult
+   * human's 6) — what one full breath holds (underwater D10). A bigger
+   * or smaller body scales it by its mass over the plan's `baseMass`.
+   */
+  protected lungVolumeL: number = 6;
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     slots: { persistent: true },
@@ -364,6 +371,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     thermalStrategy: { persistent: true },
     breathableMedia: { persistent: true },
     respires: { persistent: true },
+    lungVolumeL: { persistent: true },
   };
 
   public getName(): string { return this.name; }
@@ -396,6 +404,14 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   }
 
   public getBaseStature(): number { return this.baseStature; }
+  /** What one full breath holds at the plan's base mass, litres. */
+  public getLungVolumeL(): number { return this.lungVolumeL; }
+  public setLungVolumeL(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+      throw new RangeError(`BodyPlan.setLungVolumeL: must be a positive number, got ${String(value)}`);
+    }
+    this.lungVolumeL = value;
+  }
   public setBaseStature(value: number): void {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
       throw new RangeError(

@@ -6,10 +6,7 @@ import {
   ClimbableMixin,
   CLIMBING_CAPABILITY_PROP,
 } from '../../lib/locomotion/Climbable';
-import {
-  SwimmableMixin,
-  SWIMMING_CAPABILITY_PROP,
-} from '../../lib/locomotion/Swimmable';
+import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { FlyableMixin } from '../../lib/locomotion/Flyable';
 import { Idea } from '../../lib/stuff/Idea';
 import Good from '../../lib/stuff/Good';
@@ -279,16 +276,15 @@ describe('LocomotionApi', () => {
         expect(guard.gate).toBe('enablement');
       });
 
-      it('returns gate=capability when SWIMMING_CAPABILITY_PROP too low', () => {
+      it('⭐ swimming is a cost, not a check (underwater D12): no water refuses a body for want of skill', () => {
         const swim = buildMode('swim');
         const loc = makeStuff(() => new SwimLocation());
         loc.setAxes(['*']);
-        loc.setDifficulty(4);
         const actor = makeStuff(() => new Actor());
-        actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
         ContainmentApi.move(actor, loc);
         const guard = LocomotionApi.checkEnablement(actor, swim, 'down');
-        expect(guard.gate).toBe('capability');
+        expect(guard.ok).toBe(true);
+        expect(() => loc.setDifficulty(4)).toThrow(/cost, not a check/);
       });
     });
 
@@ -323,17 +319,15 @@ describe('LocomotionApi', () => {
         expect(guard.gate).toBe('enablement');
       });
 
-      it('the far side still gates capability', async () => {
+      it('the far side admits any body: going in is never a skill check', async () => {
         const swim = buildMode('swim');
         const strand = makeStuff(() => new Location());
         const pool = makeStuff(() => new SwimLocation());
         pool.setAxes(['*']);
-        pool.setDifficulty(4);
         const actor = makeStuff(() => new Actor());
-        actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
         ContainmentApi.move(actor, strand);
         const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, pool), swim, 'east');
-        expect(guard.gate).toBe('capability');
+        expect(guard.ok).toBe(true);
       });
     });
 

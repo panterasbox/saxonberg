@@ -91,6 +91,10 @@ const DRAW_VERBS = [
   // must BE the water — a `Pool`). A riverbank or a deck affords the verb
   // and refuses the way in words; it is never itself swimmable.
   'platform/cmd/movement/swim.yaml',
+  // ⭐ Into the water and up and down it (underwater D19) — the place
+  // decides what down means: beside a water, into it; in one, its column.
+  'platform/cmd/movement/descend.yaml',
+  'platform/cmd/movement/ascend.yaml',
 ];
 
 export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {

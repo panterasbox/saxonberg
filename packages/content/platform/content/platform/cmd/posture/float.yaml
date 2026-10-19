@@ -1,0 +1,14 @@
+# ⭐ Lie back on the water and rest (underwater D12): staying up costs
+# nothing while you float. A swimmer can; a body that cannot swim tries,
+# goes under for a moment, and comes up thrashing — told so in words.
+verbs: [float]
+controller: /platform/idea/cmd/posture/FloatController
+description: "Lie back on the water and rest — floating costs nothing."
+help: |
+  In deep water, staying up costs effort — less the better you swim.
+  `float` lies you back on the water to rest at no cost, if you can swim
+  at all. You float until you go under, swim somewhere, or leave the
+  water. Too much weight on you and the water will not hold you up.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

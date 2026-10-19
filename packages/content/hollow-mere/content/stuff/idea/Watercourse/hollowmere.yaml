@@ -8,6 +8,7 @@ data:
   basin: hollowmere
   branchesFrom: null
   water: { pH: 7.0, hardnessDgh: 4, nitrateMgL: 0.4 }
+  clarityM: 8
   site: { latitudeDeg: -58, continentality: 1, offsetK: -12 }
   nodes:
     - { name: mere, elevation: 300, channelWidthM: 300, meanDepthM: 5, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }

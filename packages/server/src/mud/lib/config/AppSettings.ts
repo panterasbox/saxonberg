@@ -1847,6 +1847,8 @@ export const AppSettingKeys = {
    * head, m. Shallower is `wading` (the floor bears you); deeper is
    * `swimming`, and a deep enough water grows a column under it. */
   waterColumnWadeM: "water.column.wadeM",
+  /** Water — the thinnest a band of a column may be, m. */
+  waterColumnMinBandM: "water.column.minBandM",
 
   /* ────────────────────────── atmosphere (what the medium carries) ────────────────────────── */
   /** Atmosphere — the share of a scope's medium that must still be plain

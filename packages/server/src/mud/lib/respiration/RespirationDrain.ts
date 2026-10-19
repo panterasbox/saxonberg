@@ -137,3 +137,45 @@ export class RespirationRecovery implements SustainedEngagement {
   }
 }
 
+
+/**
+ * ⭐ Treading water (underwater D12) — the cost of staying up. Runs while
+ * a body is in water over its head at the surface and nothing holds it
+ * up: every tick it pays the tread in effort, cheaper the better it
+ * swims, and a body that has nothing left goes under. Same slot as the
+ * drain and the recovery: a body is doing one of the three.
+ */
+export class RespirationTread implements SustainedEngagement {
+  engagementId = '';
+  readonly type = 'respiration-tread';
+  readonly actor: Stuff & Engaged;
+  startedAt = 0;
+  readonly slots: ReadonlySet<EngagementSlot> = new Set<EngagementSlot>([
+    'body',
+  ]);
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
+  readonly cancelable = true;
+  readonly emissions: readonly ScheduledEmission[];
+
+  constructor(actor: Stuff & Engaged & Respiration) {
+    this.actor = actor;
+    this.emissions = [
+      {
+        intervalMs: RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS,
+        event: (): void => actor.respirationTreadTick(this),
+      },
+    ];
+  }
+
+  onStart(): void {
+    this.startedAt = gameStartedAtMs();
+  }
+
+  onAbort(_reason: AbortReason): void {
+    void _reason;
+  }
+
+  getHost(): Stuff | null {
+    return this.actor;
+  }
+}

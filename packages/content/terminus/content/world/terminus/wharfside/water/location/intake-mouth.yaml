@@ -1,0 +1,24 @@
+# The intake's mouth — ⭐ an authored room beside the basin's DARK band
+# (underwater D23): the underwater face of the city intake, its screen
+# and its suction, where the city sends a diver to see what is fouling
+# it. A band of the basin's water in its own right — under the river at
+# the dark band's depth, cold, and dark without a light — reached only
+# through the column (`upstream` from the dark band).
+class: /system/water/location/Band
+data:
+  shortDescription: mouth of the intake
+  keywords: [intake, mouth, screen, grate]
+  register: definite
+  longDescription: |
+    The river pulls you toward a square iron mouth set in a stone footing, the screen across it furred with weed and the trash of the whole upstream valley pressed flat against the bars. The water here never stops moving toward it.
+  coords: { x: 1, y: 0, z: -2 }
+  surface: /world/terminus/wharfside/water/location/basin
+  band: dark
+  enclosure: none
+  roof: none
+  _biomePath: /stuff/idea/biome/water/under
+  details:
+    screen:
+      keywords: [screen, grate, bars, grille]
+      description: |
+        Iron bars a hand's breadth apart, the whole face of them matted with weed, rag and the leaves of last autumn. Through them, black, the pipe goes on toward the pump.

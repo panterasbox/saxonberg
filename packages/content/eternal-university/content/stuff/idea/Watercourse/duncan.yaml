@@ -8,6 +8,7 @@ data:
   basin: duncan
   branchesFrom: null
   water: { pH: 7.2, hardnessDgh: 8, nitrateMgL: 1 }
+  clarityM: 2
   site: { latitudeDeg: 42 }
   nodes:
     - { name: cistern, elevation: 31, channelWidthM: 6, meanDepthM: 3, stocks: [] }

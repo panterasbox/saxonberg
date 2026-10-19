@@ -1,0 +1,14 @@
+# ⭐ Clear your ears (underwater D15). Going down presses the water's
+# weight on the eardrum; equalize between bands and it never hurts.
+verbs: [equalize]
+controller: /platform/idea/cmd/posture/EqualizeController
+description: "Clear your ears against the pressure of the water."
+help: |
+  As you go down, the water presses on your ears. Pinch your nose and
+  blow gently — `equalize` — and the pressure clears. Do it every band or
+  two on the way down and your ears never hurt; forget, and the squeeze
+  comes, and after it a burst eardrum. An expert diver does it without
+  thinking.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

@@ -99,6 +99,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     stock: { persistent: true, authorable: true },
     waterTemperatureK: { persistent: true, authorable: true },
     salinityPpt: { persistent: true, authorable: true },
+    clarityM: { persistent: true, authorable: true },
   };
 
   /** Depth where no band says otherwise, metres. */
@@ -110,6 +111,8 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   protected stock: Record<string, number> = {};
   protected waterTemperatureK = 285;
   protected salinityPpt = 35;
+  /** How deep light reaches, m (underwater D6). Open sea is clear. */
+  protected clarityM = 10;
 
   /**
    * Place path → the craft whose deck it is (`''` = none), resolved once
@@ -160,6 +163,8 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       name,
       // No sea ice is modelled; a frozen water is a reach's.
       frozen: false,
+      levelM: 0,
+      clarityM: this.clarityM,
       draw: { materialPath: SALT_WATER_PATH, temperatureK: this.waterTemperatureK },
       opaque,
     };

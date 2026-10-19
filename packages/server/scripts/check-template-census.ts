@@ -189,6 +189,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // OPEN (the tap runs as its own source), so the census is what says
     // the plumbing was never connected.
     'mechanism', 'suppliedBy',
+    // ⭐ `surface` (the underwater build) — the water place an authored
+    // room beside a column lies under (the intake's mouth under the
+    // Wharfside basin). Resolved live by every read of the band; a
+    // rowless one is a room under no water at all.
+    'surface',
     // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
     // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
     // the solidify edge of `reconcileBulkPhase`, and a rowless one is a

@@ -35,12 +35,15 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import { ReactionApi } from '../../api/reaction';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { BiomeApi } from '../../api/biome';
 import type { CommandContributions } from '../../api/command';
 
 export interface Vocal {
-  say(text: string, target?: Stuff): void;
-  whisper(text: string, target?: Stuff): void;
-  shout(text: string, target?: Stuff): void;
+  say(text: string, target?: Stuff): VocalResult;
+  whisper(text: string, target?: Stuff): VocalResult;
+  shout(text: string, target?: Stuff): VocalResult;
+  /** Can this voice be heard now — breath to drive it, a medium to carry it? */
+  canVocalize(): VocalResult;
 }
 
 /**
@@ -63,6 +66,11 @@ const DB = {
   shout: 90,
 } as const;
 
+/** What a voice did: heard, or why it could not be (in the body's words). */
+export type VocalResult =
+  | { ok: true }
+  | { ok: false; reason: 'no-breath' | 'no-air'; line: string };
+
 export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VocalMixin extends Base {
     static _mixinName = 'VocalMixin';
@@ -76,8 +84,35 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: [],
     };
 
-    say(text: string, target?: Stuff): void {
-      vocalEmit(this as unknown as Stuff, text, {
+    /**
+     * ⭐ Can this voice be heard now (underwater D12, D29 seam 5)? A voice
+     * needs breath to drive it and a medium that carries it: a body in
+     * the drowning response has no breath to call out with, and under
+     * water an air voice comes out as bubbles. Emotes and implant
+     * messages are not voice — they ride the aether and still work.
+     */
+    canVocalize(): VocalResult {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isRespiration(self) && self.isInDrowningResponse()) {
+        return { ok: false, reason: 'no-breath', line: 'You cannot get the breath to call out.' };
+      }
+      const medium = BiomeApi.mediumFor(self);
+      if (medium.immersed && !medium.atSurface) {
+        let carries = false;
+        try {
+          carries = BiomeApi.mediumProps(medium.tag).carriesVoice;
+        } catch {
+          carries = false;
+        }
+        if (!carries) {
+          return { ok: false, reason: 'no-air', line: 'Your words come out as a gout of bubbles, and nobody hears them.' };
+        }
+      }
+      return { ok: true };
+    }
+
+    say(text: string, target?: Stuff): VocalResult {
+      return vocalEmit(this as unknown as Stuff, text, {
         topic: 'speech.vocal',
         verb: 'say',
         acousticDb: DB.say,
@@ -85,8 +120,8 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       });
     }
 
-    whisper(text: string, target?: Stuff): void {
-      vocalEmit(this as unknown as Stuff, text, {
+    whisper(text: string, target?: Stuff): VocalResult {
+      return vocalEmit(this as unknown as Stuff, text, {
         topic: 'speech.vocal',
         verb: 'whisper',
         acousticDb: DB.whisper,
@@ -94,8 +129,8 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       });
     }
 
-    shout(text: string, target?: Stuff): void {
-      vocalEmit(this as unknown as Stuff, text, {
+    shout(text: string, target?: Stuff): VocalResult {
+      return vocalEmit(this as unknown as Stuff, text, {
         topic: 'speech.vocal',
         verb: 'shout',
         acousticDb: DB.shout,
@@ -121,7 +156,19 @@ function vocalEmit(
   speaker: Stuff,
   text: string,
   opts: VocalEmitOptions,
-): void {
+): VocalResult {
+  const can = (speaker as unknown as { canVocalize(): VocalResult }).canVocalize();
+  if (!can.ok) {
+    // What others see is the attempt: bubbles, or a mouth working at the
+    // air. The words reach nobody.
+    if (can.reason === 'no-air' && MixinApi.isContainable(speaker)) {
+      MessageApi.scene(speaker)
+        .topic('act.deed')
+        .toPeers(Mml.compose`Bubbles break from ${Mml.actor(speaker)}'s mouth.`)
+        .send();
+    }
+    return can;
+  }
   const parsed = Mml.markdownToMml(
     text,
     Mml.perceiverMentionResolver(speaker),
@@ -182,4 +229,5 @@ function vocalEmit(
   }
 
   scene.send();
+  return { ok: true };
 }

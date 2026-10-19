@@ -123,6 +123,12 @@ export interface CompiledReach {
   courseKey: string;
   /** The course's display name ("the Kestrel") — what prose calls the water. */
   courseName: string;
+  /**
+   * ⭐ How deep light reaches in this water, m (underwater D6) — the
+   * depth at which 1 % is left. The course's `water.clarityM`, else a
+   * river's 3; fouled water reads 1 whatever the course says.
+   */
+  clarityM: number;
   nodeName: string;
   basin: string;
   /** Position on its own course, source-first. */
@@ -418,6 +424,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       atS: nowS,
       name: reach.courseName || reach.courseKey,
       frozen,
+      levelM: 0,
+      clarityM: fouled ? Math.min(FOULED_CLARITY_M, reach.clarityM) : reach.clarityM,
       draw: frozen
         ? null
         : {
@@ -1124,6 +1132,7 @@ async function loadIndex(): Promise<CompiledIndex> {
         ref,
         courseKey: course.key,
         courseName: course.name,
+        clarityM: course.clarityM ?? RIVER_CLARITY_M,
         nodeName: node.name,
         basin: course.basin,
         index: i,
@@ -1499,6 +1508,10 @@ const SECONDS_PER_DAY = 86_400;
 /** The register a shore's fishery read comes from (a path, not an import — no cycle). */
 const FISHERY_PATH = '/system/water/idea/FisheryRegistry';
 /** What a pail drawn from clean fresh water holds. */
+/** How deep light reaches in a river nobody described, m. */
+const RIVER_CLARITY_M = 3;
+/** How deep light reaches in fouled water, m. */
+const FOULED_CLARITY_M = 1;
 const FRESH_WATER_PATH = '/stuff/idea/material/bulk/water';
 /** What a pail drawn below an outfall holds — no sense announces it. */
 const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
@@ -1905,6 +1918,7 @@ function descriptorOf(
     branchesFrom: str(data.branchesFrom) === '' ? null : str(data.branchesFrom),
     ...(water ? { water } : {}),
     ...(site ? { site } : {}),
+    ...(typeof data.clarityM === 'number' && data.clarityM > 0 ? { clarityM: data.clarityM } : {}),
   };
 }
 

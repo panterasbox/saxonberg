@@ -1,0 +1,18 @@
+# The quay steps — ⭐ the way out of the river (underwater D23): worn stone
+# going down into the water at the foot of the embankment. A thing
+# standing in both rooms (the climb enablement walk reads the room's
+# contents), serving the vertical both ways. The wall beside them is not
+# climbable; the steps are what you climb.
+class: /platform/thing/Ladder
+data:
+  shortDescription: quay steps
+  keywords: [steps, stair, stairs, "quay steps"]
+  register: definite
+  longDescription: >-
+    Worn stone steps going down the face of the embankment into the river,
+    green and slippery below the summer line. Iron rings are set into the
+    wall beside them for the boats.
+  mass: 2000
+  fixedInPlace: true
+  axes: [down, up]
+  difficulty: null

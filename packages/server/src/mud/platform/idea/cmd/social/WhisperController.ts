@@ -35,6 +35,7 @@ export default class WhisperController extends CommandController<WhisperModel> {
       return;
     }
     const target = model.target?.stuff ?? undefined;
-    speaker.whisper(model.message, target);
+    const out = speaker.whisper(model.message, target);
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
   }
 }

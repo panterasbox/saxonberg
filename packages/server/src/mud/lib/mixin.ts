@@ -445,6 +445,9 @@ export const Mixins = {
   // `Pool` and the water pack's column bands; never on a bank or a quay,
   // which are BESIDE water.
   WaterPlace: 'WaterPlaceMixin',
+  // *This Idea grows the column under a deep water* — the seam the water
+  // pack's `ColumnWarren` implements (the WaterSource shape).
+  WaterColumn: 'WaterColumnMixin',
   // *This Idea can read a named water for a place* — the seam the water
   // pack's reach catalogue and seas implement (the GroundSource shape).
   WaterSource: 'WaterSourceMixin',
@@ -871,6 +874,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   GroundSourceMixin: "{} doesn't know what the ground is made of",
   ShoreMixin: "{} isn't beside any water",
   WaterPlaceMixin: "{} isn't a water you can be in",
+  WaterColumnMixin: "{} doesn't grow a water column",
   WaterSourceMixin: "{} can't read a water",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",

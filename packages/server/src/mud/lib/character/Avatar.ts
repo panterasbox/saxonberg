@@ -19,6 +19,7 @@ import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
+import { BiomeApi } from "../../api/biome";
 import type { Containable } from "../spatial/Containable";
 import type { Container } from "../spatial/Container";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
@@ -1166,6 +1167,9 @@ export default abstract class Avatar extends AvatarBase {
     this.sessionActive = true;
     // A returning connection cancels any pending deliberate-leave intent.
     this.leaveIntent = false;
+    // ⭐ Back in control: the water lets go of a body it was holding up
+    // (underwater D11). You are treading water again.
+    if (MixinApi.isRespiration(this)) this.releaseHold();
     this.announceSessionPresence(reconnect, interactive);
   }
 
@@ -1575,6 +1579,11 @@ export default abstract class Avatar extends AvatarBase {
     // reads present parked as present-but-unreachable, never offline.
     // (Sandbox Decision P — a suppression, no new event.)
     if (this.parked) return;
+    // ⭐ In the water when the line went (underwater D11): the water holds
+    // a disconnected body face-up at the surface, breathing, until its
+    // player comes back. The water-only answer; the general rule for a
+    // disconnected body is the physiology slate's.
+    void this.holdIfInWater();
     // Split deliberate departures from involuntary drops. A sign-out /
     // switch-character closes the socket with the intentional-leave code,
     // which the connection layer recorded via `setLeaveIntent` — that's a
@@ -1600,6 +1609,19 @@ export default abstract class Avatar extends AvatarBase {
     }
     // Persist the stamp; a save failure must not break teardown.
     this.save().catch(() => undefined);
+  }
+
+  /** Bring this body up and hold it at the surface of the water it is in. */
+  private async holdIfInWater(): Promise<void> {
+    try {
+      const medium = BiomeApi.mediumFor(this);
+      if (!medium.immersed || medium.tag !== 'water') return;
+      const place = this.getContainer();
+      if (place !== null && MixinApi.isWaterPlace(place)) await place.holdAtSurface(this);
+    } catch {
+      // A hold that fails leaves the body where it was — the drain is
+      // frozen while linkdead in any case.
+    }
   }
 
   /* ── sandbox parking (Decision P) ──

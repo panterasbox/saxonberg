@@ -134,6 +134,12 @@ export const TemplatePaths = {
   defaultFloor: "/stuff/thing/surface/default-floor",
   /** ⭐ A pool's floor: the water's surface (storage-and-ice D12). */
   waterSurface: "/stuff/thing/surface/water-surface",
+  /**
+   * ⭐ The water column under every deep water (underwater D5) — the water
+   * pack's singleton, found by path and narrowed by `isWaterColumn`, so the
+   * kernel never imports it (the `WaterSource` seam's shape).
+   */
+  waterColumn: "/system/water/idea/ColumnWarren",
 
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.
@@ -174,6 +180,12 @@ export const TemplatePaths = {
   // Respiration anoxia condition — the affliction the drain accrues
   // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).
   respirationAsphyxiation: "/platform/idea/Condition/respiration/asphyxiation",
+  /** Water in the lungs after a blackout under water (underwater D10). */
+  respirationAspiration: "/platform/idea/Condition/respiration/aspiration",
+  /** Pain in the ears from an unequalized descent (underwater D15). */
+  respirationSqueeze: "/platform/idea/Condition/respiration/squeeze",
+  /** A burst eardrum: vertigo (underwater D15). */
+  respirationBurstEardrum: "/platform/idea/Condition/respiration/burst-eardrum",
 } as const;
 
 /**

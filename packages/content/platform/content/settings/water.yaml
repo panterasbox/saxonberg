@@ -5,3 +5,5 @@
 settings:
   - key: water.column.wadeM
     value: "1.5"
+  - key: water.column.minBandM
+    value: "2"

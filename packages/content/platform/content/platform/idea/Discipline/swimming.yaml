@@ -1,0 +1,13 @@
+# Swimming — ⭐ a skill that makes the water CHEAPER, never one that lets
+# you in (underwater D12). Anyone can go into water; staying up costs
+# effort, and the band is how much: an untrained body thrashes at three
+# times a swimmer's tread and is spent in about a minute, a novice can lie
+# back and `float` for nothing, an expert barely moves. Earned by time in
+# the water — every beat of treading credits it.
+class: /platform/idea/Discipline
+data:
+  key: swimming
+  channel: skill
+  label: Swimming
+  iscedf: "1014"
+  description: Staying up in water, and moving through it, for less than it costs anyone else — the stroke, the breath, lying back on the water to rest. Never a gate on going in; what it changes is what the water costs you.

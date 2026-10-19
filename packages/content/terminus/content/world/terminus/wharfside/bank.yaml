@@ -131,6 +131,13 @@ data:
       destination: /world/terminus/wharfside/knackers/location/yard
       media: [ground]
       edgeMinutes: 7
+    # ⭐ Into the river itself (underwater D23). The bank is a QUAY —
+    # beside the water, never in it — and the water you go down into is
+    # the basin below it: `descend` (or `dive`, `jump`) goes in, `climb
+    # down` the quay steps does it slowly. `down` stays the knacker's.
+    river:
+      destination: /world/terminus/wharfside/water/location/basin
+      media: [water, vertical]
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
@@ -167,6 +174,11 @@ data:
     # silly, and the depot at Wharfside is where those belong."* This is
     # that place.
     - /system/transport/thing/barge
+    # ⭐ The steps down into the river (underwater D23) — a thing you
+    # climb, standing in both rooms. The old `steps` detail is gone: a
+    # detail wins the binding, and `climb steps` would have read the words
+    # instead of the stone.
+    - /world/terminus/wharfside/water/thing/quay-steps
   cast:
     - /world/terminus/wharfside/agent/fisher
     - /world/terminus/wharfside/agent/pilot
@@ -183,10 +195,6 @@ data:
       keywords: [river, kestrel, water, confluence]
       description: |
         Brown, wide and moving faster than it looks. In spring it comes up the steps and over the third one; in August you can see the gravel out in the middle of it. Everything anybody upstream has done to it is in here somewhere, thinned out.
-    steps:
-      keywords: [steps, stair, stairs, embankment]
-      description: |
-        Worn stone going down into the water, green below the summer line and black below the spring one. People have drawn water from these steps for as long as there has been a city, which is the arrangement the intake was built to replace.
     arch:
       keywords: [arch, brick, discharge]
       description: |

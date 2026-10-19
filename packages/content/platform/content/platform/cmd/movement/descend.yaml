@@ -1,0 +1,19 @@
+# ⭐ Down into the water (underwater D19). Beside a water, into it; in a
+# water, down its column, swum, band by band to the bed. The PLACE decides
+# what down means — every water (`ShoreMixin`) affords the verb, and says
+# in words when there is no deeper water.
+verbs: [descend, dive, jump]
+controller: /platform/idea/cmd/movement/DescendController
+description: "Go down into the water, or deeper in it."
+help: |
+  Beside a water — a quay, a strand, the edge of a hole in the ice —
+  `descend` (or `dive`, or `jump`) takes you into it. In the water,
+  `descend` swims you down: under the surface, down through the light,
+  into the dark, and to the bottom. `ascend` (or `surface`) brings you
+  back up a band at a time.
+
+  Every band costs breath. Nobody drags you up: you come up when you
+  choose to, or you do not.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

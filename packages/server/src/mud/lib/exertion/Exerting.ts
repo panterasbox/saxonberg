@@ -59,6 +59,9 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { Vitals } from '../vitals/Vitals';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 import { LOAD_BEARING_DEFAULTS } from '../encumbrance/LoadBearing';
 import {
   COMPETENCE_BANDS,
@@ -104,6 +107,12 @@ export interface Exerting {
    * body stock (`wind`, `alcohol-tolerance`), never a Transcript fold.
    */
   conditioningBand(stock: string): CompetenceBandName;
+  /**
+   * ⭐ The power this body is putting out NOW, W — the last exertion's,
+   * fading over half a minute after it. What a held breath reads to know
+   * how fast it is burning (underwater D10).
+   */
+  currentPowerW(): number;
   /** The lean margin on peak power and carry capacity: 0.6 at lean 0, 1.4 at lean 100. */
   leanMargin(): number;
   /**
@@ -192,11 +201,24 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
     // chain's inferred type hundreds of files away.
     static _mixinName: string = 'ExertingMixin';
 
+    /** The last exertion's power and when it was (game-seconds), for {@link currentPowerW}. */
+    private _lastPowerW = 0;
+    private _lastPowerAtS: number | null = null;
+
+    public currentPowerW(): number {
+      const nowS = exertionNowS();
+      if (this._lastPowerAtS === null || nowS === null) return 0;
+      const fade = Math.max(0, 1 - (nowS - this._lastPowerAtS) / CURRENT_POWER_FADE_S);
+      return this._lastPowerW * fade;
+    }
+
     public exert(e: Exertion): void {
       const self = this as unknown as ExertingHost;
       const durationS = Math.max(0, e.durationS);
       const powerW = Math.max(0, e.powerW);
       if (durationS <= 0 || powerW <= 0) return;
+      this._lastPowerW = powerW;
+      this._lastPowerAtS = exertionNowS();
       const windBefore = this.conditioningBand('wind');
       const sustain = this.sustainableW();
 
@@ -531,4 +553,13 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isAdvancing(self)) void self.refreshConferrals();
     }
   };
+}
+
+/** How long an effort keeps a body breathing hard after it, game-seconds. */
+const CURRENT_POWER_FADE_S = 30;
+
+/** Game-seconds now, or null before the world clock exists (a unit test). */
+function exertionNowS(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+  return WorldClockApi.getNow().rawValue();
 }

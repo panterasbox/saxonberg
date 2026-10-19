@@ -1,0 +1,42 @@
+# The basin below the quay — ⭐ the water itself (underwater D23): the
+# Kestrel at the confluence, six metres deep at the foot of the steps.
+#
+# The bank is a QUAY — beside the water, never in it — so the water you
+# go down into is this place, off the bank's `river` way. Its column is
+# budded under it as somebody descends: the light, the dark, and the bed,
+# because six metres of silty river is deeper than its light reaches.
+#
+# ⭐ The intake's underwater face is an AUTHORED room beside the dark
+# band (`column.neighbours`) — the bespoke case is rooms beside the
+# column, never a column of its own.
+class: /platform/location/Pool
+data:
+  shortDescription: water below the quay
+  keywords: [water, river, basin, kestrel]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  longDescription: |
+    You are in the river at the foot of the quay steps, the stone of the embankment going straight up out of the water beside you, green below the summer line. The current pulls at you, brown and cold, and the city stands over you with its back turned.
+  coords: { x: 0, y: 0, z: 0 }
+  water: { of: kestrel:confluence, depthM: 6 }
+  column:
+    neighbours:
+      - band: dark
+        direction: upstream
+        destination: /world/terminus/wharfside/water/location/intake-mouth
+        opposite: downstream
+  details:
+    wall:
+      keywords: [wall, embankment, quay, stone]
+      description: |
+        Dressed stone going straight up out of the water, slimed and sheer. Nobody climbs that; it is what the steps are for.
+  exits:
+    up:
+      destination: /world/terminus/wharfside/bank
+      media: [vertical]
+  props:
+    - /world/terminus/wharfside/water/thing/quay-steps
+    # ⭐ The city's lost anchor (underwater C4/C5) — dense iron, it goes to
+    # the bed the moment it is here, where a diver finds it and the city
+    # pays to have it lifted.
+    - /world/terminus/wharfside/water/thing/lost-anchor

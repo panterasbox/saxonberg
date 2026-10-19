@@ -1673,6 +1673,68 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   now depends on the water pack). `SwimController`'s `instanceof` was
   left (it works; narrowing is cosmetic).
 
+- **A2–A5 ✅** — landed as one commit: the column, breath, the swim and
+  the hold share `WaterPlace.ts` and `Respiration.ts` too closely to land
+  apart. Decisions the build made:
+  - ⭐ **The column hangs off a kernel SEAM, `WaterColumnMixin`**
+    (`S/lib/location/WaterColumn.ts`, `Mixins.WaterColumn`,
+    `TemplatePaths.waterColumn`) — the `WaterSource` shape: the kernel
+    `WaterPlace` finds the water pack's `ColumnWarren` by path and narrows
+    by shape, so `ensureColumnExits`, `sink` → the bed, `takeUnder` and
+    `holdAtSurface` live on the kernel mixin and never import the pack.
+  - `WaterPlace.bandsNow()` reads `clarityM` off the read: the
+    `Watercourse` row gained a top-level `clarityM` (Hollow Mere 8, the
+    cistern 2, a river 3 by default, fouled water ≤ 1), `WaterExpanse`
+    one (sea 10). Bands: the basin (6 m, 3) lit·dark·bed; Hollow Mere
+    (5 m, 8) lit·bed; the cove (4 m, 10) lit·bed; the cistern (3 m) bed.
+  - ⭐ Bands are keyed `<surface>#<band>`, captured to their snapshot when
+    they empty of people (what sank stays sunk across a restart), reaped
+    only when the surface no longer has them. **Sideways copies between
+    two neighbouring waters' columns were NOT built** — nothing shipped
+    has two water places side by side; recorded for river-slate.
+  - Neighbours use a new exit kind `/system/water/idea/exits/underwater`
+    (`media: [water]`). An authored room beside a band is itself a
+    `Band` row with authored `surface`/`band` (the intake's mouth).
+  - ⭐ `MediumRead` for a band is always immersed, never at the surface,
+    at the band's depth — standing on the bed too.
+  - The under-ice ceiling and *"no deeper water that way now"* are
+    checked BEFORE the mode gate in `ColumnExit.canTraverse` (they hold
+    whatever stroke you use).
+  - **A3:** the breath is `_o2StoreL` + `_co2Urge` on Respiration, all
+    runtime. ⭐ A body the water takes by surprise has a TIDAL breath
+    (half), a deep `inhale` in the last 30 s a full one — that keeps
+    *prepared outlasts unprepared* true from physics after the grace
+    timers went (tidal ~37 s, deep ~75 s for an untrained 70 kg adult at
+    rest). `_lungFill` (the gas volume, for buoyancy) is tracked apart
+    from the oxygen store. Gills hold no breath (a body whose plan does
+    not breathe air has a zero store). `currentPowerW()` on Exerting
+    reads the game clock. The drain's *"You can't breathe!"* cue is
+    skipped under water (the hold is silent; the urge speaks on
+    `self.body`).
+  - **A4:** ⭐ `Swimmable.difficulty` is gone in effect —
+    `setDifficulty(non-null)` throws *"a cost, not a check"* (the
+    `Enablement` contract keeps the method). ⭐ **D16's `quickRelease` was
+    NOT built**: `DropController.dropOperand` already releases worn gear
+    through `tryReleaseFromSlots`, so `drop belt` works today; the D28
+    disarm widening will read worn-or-held. The tread is a third body-slot
+    engagement, `RespirationTread`; the recovery tick treads too. ⭐
+    `Vocal.canVocalize()` landed whole here (the drowning response AND the
+    medium's `carriesVoice`), and `say`/`whisper`/`shout` now RETURN a
+    `VocalResult` the three controllers render — NPC callers ignore it.
+    Ascent duration by buoyancy was NOT modelled (no traverse-time seam
+    worth building); weight shows as the refusal to rise and as the tread.
+    *Only `get` works in the drowning response* was NOT built (the voice
+    refusal is the AC's observable half).
+  - **A5 / D11:** ⭐ the hold is a BREATHING state on `RespirationMixin`
+    (`holdUp`/`releaseHold`/`isHeldUp`), set by `WaterPlace.holdAtSurface`
+    — not an Avatar field as the plan said: respiration is what reads it,
+    and an Avatar field would be a shape-read across mixins. The Avatar
+    decides WHEN (`onLinkdead` → hold; `enter` → release).
+  - **A5 / D23:** the Wharfside water is a sub-zone
+    `/world/terminus/wharfside/water` (basin, intake mouth, quay steps,
+    lost anchor). The bank's `steps` DETAIL was removed — a detail wins
+    the binding, and `climb steps` would have read the words.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

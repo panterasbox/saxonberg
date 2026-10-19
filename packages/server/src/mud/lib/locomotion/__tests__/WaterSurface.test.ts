@@ -240,6 +240,6 @@ describe('⭐ what sinks — a water you can stand in keeps it (the column\'s be
     ContainmentApi.move(iron as never, p as never);
     await settle();
     expect(iron.getContainer()).toBe(p);
-    expect(p.sink(iron as unknown as Stuff)).toBe(false);
+    expect(await p.sink(iron as unknown as Stuff)).toBe(false);
   });
 });

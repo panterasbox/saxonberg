@@ -55,7 +55,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { CommandContributions } from '../../api/command';
 import type { RespirationCause } from './RespirationDrain';
-import { RespirationDrain, RespirationRecovery } from './RespirationDrain';
+import { RespirationDrain, RespirationRecovery, RespirationTread } from './RespirationDrain';
 
 /**
  * Every respiration dial as a module const-object (the
@@ -76,10 +76,49 @@ export const RESPIRATION_DEFAULTS = {
     supply: 1.5,
     channel: 2.0,
   } as Record<RespirationCause, number>,
-  /** Automatic breath-hold grace on first submersion (game-seconds). */
-  UNPREPARED_GRACE_SEC: 15,
-  /** Voluntary breath-hold extension set by `inhale` (game-seconds). */
-  INHALE_HOLD_SEC: 45,
+  /**
+   * ⭐ The breath is a STORE (underwater D10): litres of oxygen a body can
+   * spend without breathing, per litre of lung — a resting adult's full
+   * breath is about ninety seconds of basal burn. Burned at
+   * {@link BASAL_O2_L_PER_S} scaled by effort, cold and conditioning.
+   */
+  USABLE_O2_PER_LUNG_L: 0.075,
+  /** Basal oxygen burn of a resting body, litres per game-second. */
+  BASAL_O2_L_PER_S: 0.3 / 60,
+  /** Default lung volume when a plan does not say, litres (an adult). */
+  LUNG_VOLUME_L: 6,
+  /** What `exhale` leaves in the lungs: a fraction of a full store. */
+  RESIDUAL_FRACTION: 0.2,
+  /**
+   * What ordinary breathing keeps in the lungs: half a full breath. A
+   * body the water takes by surprise has this much; one that took a deep
+   * breath first (`inhale`) has all of it.
+   */
+  TIDAL_FRACTION: 0.5,
+  /** How long a deep breath stays taken before it is let go, game-seconds. */
+  DEEP_BREATH_SEC: 30,
+  /** Seconds of breathing to refill an emptied store. */
+  REFILL_SEC: 10,
+  /** Repeated `inhale`s within this many seconds are hyperventilating. */
+  HYPERVENTILATE_WINDOW_SEC: 10,
+  /** How far each hyperventilating breath lowers where the urge starts. */
+  HYPERVENTILATE_URGE_STEP: 0.15,
+  /** The lowest the urge can be pushed down (it starts there). */
+  HYPERVENTILATE_URGE_FLOOR: -0.45,
+  /** Water colder than this takes your breath on entry, K. */
+  COLD_SHOCK_K: 288,
+  /** How long the gasp of cold shock caps the breath, game-seconds. */
+  COLD_SHOCK_SEC: 60,
+  /** Effort over this many watts doubles the burn (`1 + P/this`). */
+  EFFORT_W_PER_DOUBLING: 100,
+  /** What staying up costs an adequate swimmer, W (the tread). */
+  TREAD_W: 150,
+  /** Seconds a spent body keeps its head up before it goes under. */
+  DROWNING_RESPONSE_SEC: 60,
+  /** Holding something that floats you this hard (N) holds you up. */
+  FLOAT_SUPPORT_N: 30,
+  /** Unequalized descent that hurts, metres (raised by diving). */
+  SQUEEZE_AT_M: 3,
   /** `spo2` recovery rate per game-second on return to breathable air. */
   RECOVER_PER_SEC: 4.0,
   /** Lethal floor: dwell at/below this `spo2` accrues toward death. */
@@ -98,10 +137,50 @@ export const RESPIRATION_DEFAULTS = {
   } as Record<RespirationCause, string>,
   /**
    * Dying window (game-seconds) once the anoxia cascade turns lethal.
-   * Short — the brain does not wait.
+   * Short — the brain does not wait. ⭐ Lengthened by cold water (the
+   * dive reflex and a cold brain): see {@link coldWindowFactor}.
    */
   DYING_WINDOW_SEC: 90,
 };
+
+/** The urge crossings, and what the body says at each (`self.body`). */
+const URGE_CUES: ReadonlyArray<readonly [number, string]> = [
+  [0.5, 'You want to breathe.'],
+  [0.75, 'Your chest is burning.'],
+  [0.9, "You can't hold it much longer."],
+];
+
+/** The burn by wind conditioning: an untrained body spends its breath fast. */
+const WIND_BURN: Readonly<Record<string, number>> = {
+  untrained: 1.2,
+  novice: 1.0,
+  competent: 0.9,
+  proficient: 0.85,
+  expert: 0.8,
+};
+
+/** The tread by swimming band: an untrained body thrashes; an expert barely moves. */
+const SWIM_TECHNIQUE: Readonly<Record<string, number>> = {
+  untrained: 3.0,
+  novice: 2.0,
+  competent: 1.3,
+  proficient: 1.0,
+  expert: 0.8,
+};
+
+/** How far a diver can go down before the squeeze, by diving band (× the base). */
+const SQUEEZE_BY_DIVING: Readonly<Record<string, number>> = {
+  untrained: 1,
+  novice: 2,
+  competent: 3,
+  proficient: 4,
+  expert: Infinity,
+};
+
+/** What `inhale` did. */
+export type InhaleResult =
+  | { ok: true; hyperventilating: boolean }
+  | { ok: false; reason: 'nothing-to-breathe'; line: string };
 
 /** Numeric AppSetting read, falling back to the seeded literal (test-safe). */
 function respirationDial(key: string, fallback: number): number {
@@ -147,11 +226,52 @@ export interface Respiration {
   respirationDrainTick(drain: RespirationDrain): void;
   /** Emission body of the recovery engagement. */
   respirationRecoverTick(recovery: RespirationRecovery): void;
+  /** Emission body of the tread engagement (staying up costs). */
+  respirationTreadTick(tread: RespirationTread): void;
+  /**
+   * ⭐ The instinctive drowning response (underwater D12): a body with
+   * nothing left to tread with, its head tipping back. It cannot call
+   * out; it can still grab what floats within reach.
+   */
+  isInDrowningResponse(): boolean;
+  /** Lying back on the water at no cost (`float`). */
+  isFloating(): boolean;
+  /** Float on your back — or refuse, in words, when you cannot. */
+  float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
+  /** Clear the pressure on your ears (`equalize`). */
+  equalize(): void;
+  /** The unequalized pressure on your ears, metres of descent. */
+  getPressureDebtM(): number;
+  /**
+   * ⭐ Held up face-up at the surface (underwater D11) — by the water's
+   * answer to a disconnected player. Breathing, at no cost, until
+   * {@link releaseHold}.
+   */
+  holdUp(): void;
+  releaseHold(): void;
+  isHeldUp(): boolean;
 
-  /** Take and hold a breath — extend the breath-hold grace (free-diving). */
-  inhale(): void;
-  /** Let the held breath out — clear the grace. */
+  /**
+   * Take a full breath — fill the store, where there is air to fill it
+   * from. Under water there is nothing to breathe (#94): refused.
+   * Repeated quickly it is hyperventilating: no more oxygen, and the
+   * warning comes later.
+   */
+  inhale(): Promise<InhaleResult>;
+  /** Let the breath out — the store falls to the residual. */
   exhale(): void;
+  /** Litres of oxygen the body can still spend without breathing. */
+  getO2StoreL(): number;
+  /** The urge to breathe, 0 (none) … 1 (you cannot hold it). */
+  getBreathUrge(): number;
+  /** What a full breath holds, litres of usable oxygen. */
+  fullO2StoreL(): number;
+  /**
+   * The air in the lungs now, litres at the surface — a full breath's
+   * worth after `inhale`, the residual after `exhale`. What the water
+   * reads for buoyancy.
+   */
+  getLungAirL(): number;
 }
 
 export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -179,11 +299,47 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     public respirationClockStamp = 0;
 
     /**
-     * Runtime-only: the `inhale` grace deadline (game-seconds). Not
-     * persisted — a reloaded body isn't mid-hold. TypeScript `private`
-     * (not `#`): mixin instance state lives on the proxy target.
+     * ⭐ Runtime-only: the breath (underwater D10). `null` is a full
+     * store. Not persisted — a reloaded body has been breathing.
+     * TypeScript `private` (not `#`): mixin instance state lives on the
+     * proxy target.
      */
-    private _heldBreathUntil: number | null = null;
+    private _o2StoreL: number | null = null;
+    /** When the store was last reconciled (game-seconds). */
+    private _storeStampS: number | null = null;
+    /** Whether the store was being refilled (exchanging) since the stamp. */
+    private _storeFilling = true;
+    /** The urge to breathe, 0..1 (it may start below 0 when hyperventilated). */
+    private _co2Urge = 0;
+    /** Where the next hold's urge starts (hyperventilation lowers it). */
+    private _urgeStart = 0;
+    /** The last urge crossing spoken (0 = none). */
+    private _urgeCued = 0;
+    /** The last `inhale`, for hyperventilation. */
+    private _lastInhaleS: number | null = null;
+    /** Cold shock caps the breath until this time. */
+    private _coldShockUntilS: number | null = null;
+    /** Whether the body was under water at the last reassess. */
+    private _wasUnder = false;
+    /** Whether this body blacked out under water (the rescued cough). */
+    private _blackedOutUnder = false;
+    /** Held face-up at the surface (a disconnected body, underwater D11). */
+    private _heldUp = false;
+    /** Floating on your back (`float`) — no tread, until you go under or out. */
+    private _floating = false;
+    /** When the instinctive drowning response began, game-seconds. */
+    private _drowningSinceS: number | null = null;
+    /** The unequalized descent on your ears, metres. */
+    private _pressureDebtM = 0;
+    /** How deep you were at the last reassess, metres. */
+    private _lastDepthM = 0;
+    /** The squeeze stages suffered since the last equalize (0, 1 squeeze, 2 eardrum). */
+    private _squeezeStage = 0;
+    /** The last swimming and diving bands read, warmed at reassess. */
+    private _swimBand = 'untrained';
+    private _diveBand = 'untrained';
+    /** How full the lungs are of gas, 0..1 of their volume (tidal by default). */
+    private _lungFill: number = RESPIRATION_DEFAULTS.TIDAL_FRACTION;
 
     /** Runtime debounce for the one-shot blackout cue. */
     private _blackoutCued = false;
@@ -468,6 +624,17 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // conflict, silently suppressing the crisis).
       const { exchanging, cause } = await this.assessExchange();
       if (self.isDestroyed()) return;
+      // ⭐ Into cold water: the gasp (underwater D13). Read on the
+      // transition into the water, at the surface or under it.
+      const medium = BiomeApi.mediumFor(self);
+      const inWater = medium.immersed && medium.tag === 'water';
+      const nowS = this.respirationNowSeconds();
+      if (inWater && !this._wasUnder && nowS !== null && medium.temperatureK !== null &&
+          medium.temperatureK < RESPIRATION_DEFAULTS.COLD_SHOCK_K) {
+        this.coldShock(nowS);
+      }
+      this._wasUnder = inWater;
+      if (exchanging && nowS !== null) this.reconcileStore(nowS, true);
       // Inhaled-contaminant fold (the fire driver's first consumer of the
       // biome `contaminant` seam): a body breathing a contaminated medium
       // (smoke → carbon monoxide) takes on the toxin as a metabolism burden,
@@ -478,9 +645,27 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const drain = engaged.getEngagementByType('respiration-drain');
       const recovery = engaged.getEngagementByType('respiration-recovery');
 
+      // ⭐ Down the water: the pressure on your ears (underwater D15).
+      this.notePressure(medium);
+      await this.warmWaterBands();
+      if (self.isDestroyed()) return;
+      const tread = engaged.getEngagementByType('respiration-tread');
+      const treading = exchanging && medium.immersed && medium.atSurface && medium.tag === 'water';
+      if (!medium.immersed || !medium.atSurface) {
+        this._floating = false;
+        this._heldUp = false;
+        this._drowningSinceS = null;
+      }
+
       if (exchanging) {
         if (drain) SchedulerApi.cancelByType(engaged, 'respiration-drain');
-        if (!recovery) {
+        if (!treading && tread) SchedulerApi.cancelByType(engaged, 'respiration-tread');
+        if (treading && !tread && !recovery) {
+          this.seedClock();
+          SchedulerApi.start(new RespirationTread(engaged));
+          return;
+        }
+        if (!recovery && !tread) {
           const host = this as unknown as RespirationHost;
           const baseline = host.getVitalBand('spo2').baseline;
           const spo2 = host.getVitalSign('spo2').rawValue();
@@ -494,6 +679,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Not exchanging.
       if (recovery) SchedulerApi.cancelByType(engaged, 'respiration-recovery');
+      if (tread) SchedulerApi.cancelByType(engaged, 'respiration-tread');
       if (!drain) {
         this.armDrain();
         SchedulerApi.start(new RespirationDrain(engaged, cause ?? 'medium'));
@@ -559,15 +745,30 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.respirationClockStamp = nowS;
 
-      if (!this._drainCued) {
+      // ⭐ Under water the hold IS the store, and it is silent: nobody
+      // tells you the air is gone, your chest does (`self.body`). A room
+      // that fills with smoke you notice at once.
+      const under = drain.cause === 'medium' && this.underWater();
+      if (!this._drainCued && !under) {
         this._drainCued = true;
         this.cueDrainBegin();
       }
 
-      // Held-breath grace burns first — no `spo2` drop while holding.
-      if (this._heldBreathUntil !== null && nowS < this._heldBreathUntil) {
-        void this.reassess();
-        return;
+      // ⭐⭐ The breath burns first (underwater D10): store ÷ burn, and the
+      // urge as a second clock that can lie (hyperventilation).
+      if (drain.cause !== 'supply' || !this.hasWornAir()) {
+        const store = this.reconcileStore(nowS, false);
+        if (store > 0) {
+          const burn = this.burnO2LPerS();
+          const spent = Math.min(store, burn * elapsed);
+          this._o2StoreL = store - spent;
+          this._storeStampS = nowS;
+          const full = this.fullO2StoreL();
+          if (full > 0) this._co2Urge += spent / full;
+          this.speakUrge();
+          void this.reassess();
+          return;
+        }
       }
 
       // Carried-supply tap (W2): a worn air tank with air left holds spo2
@@ -591,7 +792,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const survivableMin = host.getVitalBand('spo2').survivableMin;
       if (next <= survivableMin && !this._blackoutCued) {
         this._blackoutCued = true;
-        this._heldBreathUntil = null; // a blackout force-ends any hold
+        this._o2StoreL = 0;
+        if (under) this._blackedOutUnder = true;
         this.cueBlackout();
       }
 
@@ -645,15 +847,225 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         host.relieve(existing);
       }
 
+      // Breathing again fills the store and drops the urge.
+      this.reconcileStore(nowS, true);
+      this._co2Urge = 0;
+      this._urgeCued = 0;
+
       // Regained consciousness → gasp cue, once.
       if (this._blackoutCued && next > survivableMin) {
         this._blackoutCued = false;
         this.cueRecover();
+        // ⭐ Pulled out of the water after blacking out in it: the water
+        // is in your lungs, and it will tell you so later (D10).
+        if (this._blackedOutUnder) {
+          this._blackedOutUnder = false;
+          const path = TemplatePaths.respirationAspiration;
+          if (!this.findAffliction(path)) {
+            host.afflict({ kind: 'affliction', templatePath: path, stage: 0, elapsed: 0 });
+          }
+        }
       }
 
       // Re-pin at baseline and self-cancel (benign steady state = nothing).
       if (next >= baseline) {
         SchedulerApi.cancel(recovery, 'preconditions-changed');
+        // At the surface of deep water, staying up takes over.
+        void this.reassess().catch(() => {});
+        return;
+      }
+      // Recovering at the surface is still treading.
+      this.treadBeat(elapsed);
+    }
+
+    public respirationTreadTick(tread: RespirationTread): void {
+      const self = this as unknown as Stuff;
+      const nowS = this.respirationNowSeconds();
+      if (nowS === null) return;
+      if (this.respirationClockStamp === 0) {
+        this.respirationClockStamp = nowS;
+        return;
+      }
+      if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
+        this.respirationClockStamp = nowS;
+        return;
+      }
+      const elapsed = nowS - this.respirationClockStamp;
+      if (elapsed <= 0 || elapsed > RESPIRATION_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+        this.respirationClockStamp = nowS;
+        return;
+      }
+      this.respirationClockStamp = nowS;
+      const medium = BiomeApi.mediumFor(self);
+      if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) {
+        SchedulerApi.cancel(tread, 'preconditions-changed');
+        void this.reassess().catch(() => {});
+        return;
+      }
+      this.treadBeat(elapsed);
+    }
+
+    /**
+     * ⭐⭐ One beat of staying up (underwater D12): swimming is a COST,
+     * never a check. Floating on your back is free (if you can); holding
+     * something that floats you is free; otherwise the tread is paid in
+     * effort — three times what a swimmer pays if you cannot swim — and a
+     * body with nothing left goes into the drowning response, and then
+     * under.
+     */
+    protected treadBeat(elapsedS: number): void {
+      const self = this as unknown as Stuff;
+      const nowS = this.respirationNowSeconds() ?? 0;
+      const medium = BiomeApi.mediumFor(self);
+      if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) return;
+      if (this._floating || this._heldUp) return;
+      const lift = this.netBuoyancyN(medium);
+      if (lift >= RESPIRATION_DEFAULTS.FLOAT_SUPPORT_N) {
+        // Held up by something that floats — the drowning stops.
+        this._drowningSinceS = null;
+        return;
+      }
+      if (!MixinApi.isExerting(self)) return;
+      const technique = SWIM_TECHNIQUE[this._swimBand] ?? SWIM_TECHNIQUE.untrained!;
+      const buoyancy = lift > 0 ? 0.5 : 1 + Math.min(3, -lift / 50);
+      const powerW = RESPIRATION_DEFAULTS.TREAD_W * technique * buoyancy;
+      self.exert({ durationS: elapsedS, powerW });
+      if (MixinApi.isAdvancing(self)) {
+        void self.creditDeed({ discipline: 'swimming', difficulty: 'easy', outcome: 'success' }).catch(() => {});
+      }
+      const spent = self.breathBand() === 'spent';
+      if (!spent) {
+        this._drowningSinceS = null;
+        return;
+      }
+      if (this._drowningSinceS === null) {
+        this._drowningSinceS = nowS;
+        this.drowningScene();
+        return;
+      }
+      if (nowS - this._drowningSinceS >= RESPIRATION_DEFAULTS.DROWNING_RESPONSE_SEC) {
+        this._drowningSinceS = null;
+        const place = MixinApi.isContainable(self) ? self.getContainer() : null;
+        if (place !== null && MixinApi.isWaterPlace(place)) void place.takeUnder(self);
+      }
+    }
+
+    /** The water's lift on this body now, N (positive floats). */
+    private netBuoyancyN(medium: { depthM: number; substance: string }): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isLoadBearing(self)) return 0;
+      let rho = 1000;
+      try {
+        rho = BiomeApi.densityOf('water').rawValue() || 1000;
+      } catch {
+        /* fresh water */
+      }
+      return self.getNetBuoyancyN(rho, medium.depthM);
+    }
+
+    /** What the drowning look like from outside — the victim says nothing. */
+    private drowningScene(): void {
+      const self = this as unknown as Stuff;
+      try {
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toPeers(Mml.compose`${Mml.actor(self)} is upright in the water, head tipped back, arms pressing down at the surface — not calling, not waving.`)
+          .send();
+      } catch {
+        // decoration
+      }
+    }
+
+    public holdUp(): void {
+      this._heldUp = true;
+      this._drowningSinceS = null;
+    }
+
+    public releaseHold(): void {
+      this._heldUp = false;
+    }
+
+    public isHeldUp(): boolean {
+      return this._heldUp;
+    }
+
+    public isInDrowningResponse(): boolean {
+      return this._drowningSinceS !== null;
+    }
+
+    public isFloating(): boolean {
+      return this._floating;
+    }
+
+    public async float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }> {
+      const self = this as unknown as Stuff;
+      const medium = BiomeApi.mediumFor(self);
+      if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) {
+        return { ok: false, reason: 'not-at-surface', line: 'You would need to be in the water, at the surface.' };
+      }
+      await this.warmWaterBands();
+      if (this._swimBand === 'untrained') {
+        return { ok: false, reason: 'cannot-float', line: 'You try to lie back, and the water closes over your face. You come up thrashing.' };
+      }
+      if (this.netBuoyancyN(medium) < -RESPIRATION_DEFAULTS.FLOAT_SUPPORT_N) {
+        return { ok: false, reason: 'too-heavy', line: 'You are too heavy to float; the water will not hold you.' };
+      }
+      this._floating = true;
+      this._drowningSinceS = null;
+      return { ok: true };
+    }
+
+    public equalize(): void {
+      this._pressureDebtM = 0;
+      this._squeezeStage = 0;
+    }
+
+    public getPressureDebtM(): number {
+      return this._pressureDebtM;
+    }
+
+    /**
+     * ⭐ Going down without clearing your ears (underwater D15): each metre
+     * of descent since the last `equalize` is pressure on the eardrum. At
+     * the squeeze depth it hurts; at twice it bursts. Coming up eases it;
+     * a trained diver can take more.
+     */
+    private notePressure(medium: { immersed: boolean; atSurface: boolean; depthM: number }): void {
+      const depth = medium.immersed && !medium.atSurface ? medium.depthM : 0;
+      const delta = depth - this._lastDepthM;
+      this._lastDepthM = depth;
+      if (delta < 0) {
+        this._pressureDebtM = Math.max(0, this._pressureDebtM + delta);
+        return;
+      }
+      if (delta === 0) return;
+      this._pressureDebtM += delta;
+      const at = RESPIRATION_DEFAULTS.SQUEEZE_AT_M * (SQUEEZE_BY_DIVING[this._diveBand] ?? 1);
+      const host = this as unknown as RespirationHost;
+      if (this._pressureDebtM >= 2 * at && this._squeezeStage < 2) {
+        this._squeezeStage = 2;
+        if (!this.findAffliction(TemplatePaths.respirationBurstEardrum)) {
+          host.afflict({ kind: 'affliction', templatePath: TemplatePaths.respirationBurstEardrum, stage: 0, elapsed: 0 });
+        }
+        this.bodyCue('Something gives in your ear with a stab of pain, and the water spins.');
+      } else if (this._pressureDebtM >= at && this._squeezeStage < 1) {
+        this._squeezeStage = 1;
+        if (!this.findAffliction(TemplatePaths.respirationSqueeze)) {
+          host.afflict({ kind: 'affliction', templatePath: TemplatePaths.respirationSqueeze, stage: 0, elapsed: 0 });
+        }
+        this.bodyCue('Your ears ache with the weight of the water.');
+      }
+    }
+
+    /** Warm the swimming and diving bands the hot ticks read. */
+    private async warmWaterBands(): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAdvancing(self)) return;
+      try {
+        this._swimBand = await self.competenceBandFor('swimming');
+        this._diveBand = await self.competenceBandFor('diving');
+      } catch {
+        /* the floor */
       }
     }
 
@@ -685,7 +1097,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (record.elapsed >= RESPIRATION_DEFAULTS.ANOXIA_LETHAL_SEC) {
           host.beginDying(
             RESPIRATION_DEFAULTS.DEATH_CAUSE_BY_CAUSE[cause],
-            RESPIRATION_DEFAULTS.DYING_WINDOW_SEC,
+            RESPIRATION_DEFAULTS.DYING_WINDOW_SEC * this.coldWindowFactor(),
           );
           return true;
         }
@@ -718,20 +1130,64 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /* ──────────────────── voluntary breath control ──────────────────── */
 
-    public inhale(): void {
-      const nowS = this.respirationNowSeconds();
-      const base = nowS ?? 0;
-      this._heldBreathUntil = base + RESPIRATION_DEFAULTS.INHALE_HOLD_SEC;
+    public async inhale(): Promise<InhaleResult> {
+      const nowS = this.respirationNowSeconds() ?? 0;
+      const { exchanging } = await this.assessExchange();
+      if (!exchanging) {
+        return { ok: false, reason: 'nothing-to-breathe', line: 'There is nothing to breathe here.' };
+      }
+      // ⭐ Quick breaths in a row are hyperventilating: no more oxygen than
+      // one breath holds, and the warning starts later — the shallow-water
+      // blackout, learned the way divers learn it.
+      const quick = this._lastInhaleS !== null &&
+        nowS - this._lastInhaleS <= RESPIRATION_DEFAULTS.HYPERVENTILATE_WINDOW_SEC;
+      this._lastInhaleS = nowS;
+      this._urgeStart = quick
+        ? Math.max(
+            RESPIRATION_DEFAULTS.HYPERVENTILATE_URGE_FLOOR,
+            this._urgeStart - RESPIRATION_DEFAULTS.HYPERVENTILATE_URGE_STEP,
+          )
+        : 0;
+      this._o2StoreL = this.capByColdShock(this.fullO2StoreL(), nowS);
+      this._storeStampS = nowS;
+      this._lungFill = 1;
+      this._co2Urge = this._urgeStart;
+      this._urgeCued = 0;
+      return { ok: true, hyperventilating: quick };
     }
 
     public exhale(): void {
-      this._heldBreathUntil = null;
+      this._lungFill = RESPIRATION_DEFAULTS.RESIDUAL_FRACTION;
+      this._o2StoreL = this.fullO2StoreL() * RESPIRATION_DEFAULTS.RESIDUAL_FRACTION;
+      this._storeStampS = this.respirationNowSeconds();
     }
 
+    /** Holding a breath: under water with oxygen still in the store. */
     public isHoldingBreath(): boolean {
+      return this.underWater() && this.getO2StoreL() > 0;
+    }
+
+    public getO2StoreL(): number {
       const nowS = this.respirationNowSeconds();
-      if (nowS === null || this._heldBreathUntil === null) return false;
-      return nowS < this._heldBreathUntil;
+      return nowS === null ? (this._o2StoreL ?? this.fullO2StoreL()) : this.reconcileStore(nowS, this._storeFilling);
+    }
+
+    public getBreathUrge(): number {
+      return Math.max(0, Math.min(1, this._co2Urge));
+    }
+
+    public getLungAirL(): number {
+      if (this.fullO2StoreL() <= 0) return 0;
+      // The gas in the lungs is what you last breathed in or out — a held
+      // breath does not shrink as its oxygen is spent (the CO₂ takes its
+      // place), so a diver who exhales sinks and one who inhales floats.
+      return this.lungVolumeL() * this._lungFill;
+    }
+
+    public fullO2StoreL(): number {
+      // Gills hold nothing: only a body that breathes air carries a breath.
+      if (!this.getBreathableMedia().includes('air')) return 0;
+      return this.lungVolumeL() * RESPIRATION_DEFAULTS.USABLE_O2_PER_LUNG_L;
     }
 
     /* ──────────────────── internals ──────────────────── */
@@ -749,8 +1205,130 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.respirationClockStamp = nowS;
       this._blackoutCued = false;
       this._drainCued = false;
-      const auto = nowS + RESPIRATION_DEFAULTS.UNPREPARED_GRACE_SEC;
-      this._heldBreathUntil = Math.max(this._heldBreathUntil ?? 0, auto);
+      // The store as it stands is the hold: whatever you had in your lungs
+      // when the water closed over you. A full breath taken first is the
+      // free-diver's whole preparation.
+      this.reconcileStore(nowS, this._storeFilling);
+      this._storeFilling = false;
+      this._co2Urge = Math.max(this._co2Urge, this._urgeStart);
+    }
+
+    /* ──────────────────── the breath store (underwater D10) ──────────────────── */
+
+    /**
+     * The store now: refilled while the body was breathing since the last
+     * stamp (over {@link RESPIRATION_DEFAULTS.REFILL_SEC}), and held while
+     * it was not. Reconcile-on-read; the drain tick spends it.
+     */
+    private reconcileStore(nowS: number, filling: boolean): number {
+      const full = this.fullO2StoreL();
+      // Breathing keeps a tidal breath in the lungs; a deep breath taken
+      // in the last half-minute keeps all of it.
+      const deep = this._lastInhaleS !== null &&
+        nowS - this._lastInhaleS <= RESPIRATION_DEFAULTS.DEEP_BREATH_SEC;
+      const target = deep ? full : full * RESPIRATION_DEFAULTS.TIDAL_FRACTION;
+      let store = this._o2StoreL ?? target;
+      const since = this._storeStampS;
+      if (filling && since !== null && nowS > since && store < target) {
+        store = Math.min(target, store + (full * (nowS - since)) / RESPIRATION_DEFAULTS.REFILL_SEC);
+      }
+      if (filling && store > target) store = target;
+      // Breathing again, the lungs settle back to an ordinary breath.
+      if (filling && since !== null && nowS > since) {
+        this._lungFill = deep ? 1 : RESPIRATION_DEFAULTS.TIDAL_FRACTION;
+      }
+      if (filling) store = this.capByColdShock(store, nowS);
+      this._o2StoreL = store;
+      this._storeStampS = nowS;
+      this._storeFilling = filling;
+      return store;
+    }
+
+    /** The gasp of cold shock: for a while after, half a breath is all you get. */
+    private capByColdShock(store: number, nowS: number): number {
+      if (this._coldShockUntilS === null || nowS >= this._coldShockUntilS) return store;
+      return Math.min(store, this.fullO2StoreL() / 2);
+    }
+
+    /** The body's lungs, litres — its plan's, scaled by its mass. */
+    private lungVolumeL(): number {
+      const self = this as unknown as Stuff;
+      const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
+      const base = plan?.getLungVolumeL() ?? RESPIRATION_DEFAULTS.LUNG_VOLUME_L;
+      const massKg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
+      const ref = plan?.getBaseMass() || 70;
+      return massKg > 0 && ref > 0 ? base * Math.min(4, Math.max(0.05, massKg / ref)) : base;
+    }
+
+    /**
+     * ⭐ Litres of oxygen burned per second now: basal × effort × cold ×
+     * conditioning. A kicking diver burns it two and a half times as fast
+     * as a still one; cold water slows it (the dive reflex); a trained
+     * wind spends it carefully.
+     */
+    private burnO2LPerS(): number {
+      const self = this as unknown as Stuff;
+      let factor = 1;
+      if (MixinApi.isExerting(self)) {
+        factor *= 1 + self.currentPowerW() / RESPIRATION_DEFAULTS.EFFORT_W_PER_DOUBLING;
+        factor *= WIND_BURN[self.conditioningBand('wind')] ?? 1;
+      }
+      const water = BiomeApi.mediumFor(self);
+      if (water.tag === 'water' && water.temperatureK !== null && water.temperatureK < RESPIRATION_DEFAULTS.COLD_SHOCK_K) {
+        factor *= 0.8;
+      }
+      return RESPIRATION_DEFAULTS.BASAL_O2_L_PER_S * factor;
+    }
+
+    /** Under the water now — not at the surface, not in a bell. */
+    private underWater(): boolean {
+      const read = BiomeApi.mediumFor(this as unknown as Stuff);
+      return read.immersed && !read.atSurface && read.tag === 'water';
+    }
+
+    /** A worn supply with air still in it. */
+    private hasWornAir(): boolean {
+      const slot = this.findWornAirSupply();
+      return slot !== null && slot.available() > 0;
+    }
+
+    /**
+     * ⭐ How much longer a drowning brain lasts in cold water: 1 at 288 K,
+     * rising to 4 in water near freezing (about six minutes). The
+     * cold-water survival lesson, derived from the water's temperature.
+     */
+    private coldWindowFactor(): number {
+      const read = BiomeApi.mediumFor(this as unknown as Stuff);
+      if (read.tag !== 'water' || read.temperatureK === null) return 1;
+      return Math.max(1, Math.min(4, 1 + (RESPIRATION_DEFAULTS.COLD_SHOCK_K - read.temperatureK) / 8));
+    }
+
+    /** The urge, spoken at its crossings — one line each, never a nag. */
+    private speakUrge(): void {
+      const urge = this.getBreathUrge();
+      for (let i = URGE_CUES.length - 1; i >= 0; i--) {
+        const [at, line] = URGE_CUES[i]!;
+        if (urge >= at && this._urgeCued < i + 1) {
+          this._urgeCued = i + 1;
+          this.bodyCue(line);
+          return;
+        }
+      }
+    }
+
+    /**
+     * ⭐ Cold shock (underwater D13): going into water colder than the
+     * threshold takes your breath — half the store gone and the urge up,
+     * before you have held anything. Once a minute at most.
+     */
+    private coldShock(nowS: number): void {
+      if (this._coldShockUntilS !== null && nowS < this._coldShockUntilS) return;
+      this._coldShockUntilS = nowS + RESPIRATION_DEFAULTS.COLD_SHOCK_SEC;
+      const store = this.reconcileStore(nowS, this._storeFilling);
+      this._o2StoreL = Math.min(store, this.fullO2StoreL() / 2);
+      this._co2Urge = Math.max(this._co2Urge, 0.6);
+      this._urgeCued = Math.max(this._urgeCued, 1);
+      this.bodyCue('The cold takes your breath.');
     }
 
     /* ──────────────────── player cues (best-effort) ──────────────────── */
@@ -764,6 +1342,17 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         MessageApi.scene(self).topic('act.deed').toSelf(body).send();
       } catch {
         // swallow — the crisis is authoritative, the cue is decoration.
+      }
+    }
+
+    /** A line in the body's own voice (`self.body`), best-effort. */
+    private bodyCue(text: string): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSensor(self)) return;
+      try {
+        MessageApi.scene(self).topic('self.body').toSelf(Mml.compose`${text}`).send();
+      } catch {
+        // swallow — the body is authoritative, the cue is decoration.
       }
     }
 
