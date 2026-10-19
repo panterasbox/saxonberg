@@ -137,7 +137,7 @@ describe('the fold is total', () => {
     const f = floorOf({ tags: ['rubbery', 'pink', 'limbo'] });
     expect(f.getGroundKind()).toBe('contrived');
     // AC 18: nothing had to change to allow it.
-    expect(GROUND_KINDS).toHaveLength(10);
+    expect(GROUND_KINDS).toHaveLength(11); // `ice` joined (storage-and-ice D12)
   });
 
   it('no material at all → contrived rather than a throw', () => {

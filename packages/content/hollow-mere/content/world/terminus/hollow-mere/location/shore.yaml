@@ -1,0 +1,35 @@
+class: /platform/location/Shore
+data:
+  shortDescription: mere shore
+  keywords: [shore, bank, edge]
+  register: definite
+  _address: terminus/hollow-mere/shore
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 30000
+  ambientColorTemperature: 5800
+  longDescription: |
+    The shore of a small mere in a hollow of the hills — a few hundred strides across to a far bank of reeds and alder. The ground is beaten bare where the sledges come and go. The water is the mere's own, and in its winter it is the mere's ice.
+  coords: { x: 0, y: 1, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/hollow-mere/location/road
+      media: [ground]
+      edgeMinutes: 2
+    north:
+      destination: /world/terminus/hollow-mere/location/pool
+      media: [ground, water]
+      edgeMinutes: 1
+      conditional: true
+  details:
+    mere:
+      keywords: [mere, water, hollow]
+      description: |
+        A small mere, deep enough that it never warms much, still enough that it freezes hard.
+  waters:
+    mere: hollowmere:mere
+  props:
+    - /trade/ice/thing/ice-saw
+    - /trade/ice/thing/spud
+    - /trade/ice/thing/scraper
+    - /trade/ice/thing/hand-marker
+    - /trade/ice/thing/ice-plough

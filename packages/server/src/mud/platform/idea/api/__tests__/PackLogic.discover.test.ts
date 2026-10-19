@@ -114,10 +114,16 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `trade-coopering`; 60 → 61: the dairy build adds `trade-dairying`
     // (⚠ the hazard above: a sibling branch adding a pack merges clean and
     // lands red — this one merged with a conflict instead).
-    // ⭐ 61 → 62: the silk build adds `trade-sericulture` (⚠ the hazard
-    // above, a sixth time: count off whatever master holds at merge).
-    expect(ids).toHaveLength(62);
+    // ⭐ 61 → 63: the storage-and-ice build adds `trade-ice` and its venue
+    // `hollow-mere`; 63 → 64: the silk build adds `trade-sericulture` (the
+    // hazard above again: rubber, repair and cleanliness build in parallel
+    // — whoever lands second recounts).
+    expect(ids).toHaveLength(64);
     expect(ids[0]).toBe('platform');
+    // ⭐ The venue orders after its trade and the water system its pool
+    // and its sheet are.
+    expect(ids.indexOf('hollow-mere')).toBeGreaterThan(ids.indexOf('trade-ice'));
+    expect(ids.indexOf('hollow-mere')).toBeGreaterThan(ids.indexOf('water'));
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).
     expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('generic-objects'));

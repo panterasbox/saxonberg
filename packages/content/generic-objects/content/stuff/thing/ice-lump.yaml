@@ -5,13 +5,13 @@
 # gives the squared `ice-block`; anything else gives this. Authored with its
 # material and prose so a frozen bucket reads *a lump of ice*, never
 # *a cast lump of water*. Mass is stamped by the pool at the freeze.
-class: /platform/thing/Casting
+class: /platform/thing/IceBlock
 data:
   shortDescription: lump of ice
   keywords: [ice, lump, ice-lump]
   register: indefinite
   longDescription: |
     A lump of ice, clouded and dripping, the shape of whatever it froze in.
-  _materialPath: /trade/bottling/idea/material/ice
+  _materialPath: /stuff/idea/material/bulk/ice
   mass: 1
   stampedTemperatureK: 268

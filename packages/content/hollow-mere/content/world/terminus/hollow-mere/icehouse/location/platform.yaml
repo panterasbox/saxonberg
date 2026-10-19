@@ -1,0 +1,30 @@
+# The loading platform — the company's counter and the house's book. The
+# keeper stands here: a deposit or a withdrawal needs her on shift.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: icehouse platform
+  keywords: [platform, dock, loading]
+  register: definite
+  _address: terminus/hollow-mere/icehouse/platform
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A covered loading platform along the face of the icehouse, at sledge-bed height, swept and wet. A counter stands at one end for the town's buyers; on a shelf by the door into the house, the house's book.
+  coords: { x: 1, y: 0, z: 0 }
+  extent: 4
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.2 }
+  adornments:
+    - { template: /world/terminus/hollow-mere/thing/lantern, slot: lamp:beam }
+  exits:
+    west:
+      destination: /world/terminus/hollow-mere/location/road
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/hollow-mere/icehouse/location/house
+      media: [ground]
+  cast:
+    - /world/terminus/hollow-mere/agent/keeper
+  props:
+    - /world/terminus/hollow-mere/icehouse/thing/counter
+    - /world/terminus/hollow-mere/icehouse/thing/book
+    - /world/terminus/hollow-mere/icehouse/thing/stock-rod

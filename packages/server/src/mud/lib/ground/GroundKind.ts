@@ -59,6 +59,14 @@ export const GROUND_KINDS = [
   /** Metal. */
   'plate',
   /**
+   * ⭐ Ice that IS the ground — a frozen pool's sheet (storage-and-ice
+   * D12). The one word added since the ground build closed the list, and
+   * for the reason the fold exists: it is a word anyone underfoot has, and
+   * `contrived` would be false of a sheet you stand on. A frozen PUDDLE is
+   * still its earth with a skin; only a floor made of ice folds here.
+   */
+  'ice',
+  /**
    * Something the fold has no word for. ⭐ Not an error and not a gap: a
    * material nobody anticipated lands here and everything downstream
    * still works, which is what keeps the list from needing to grow.
@@ -78,7 +86,8 @@ export type GroundMaterialClass =
   | 'earth'
   | 'granular'
   | 'timber'
-  | 'metal';
+  | 'metal'
+  | 'ice';
 
 /**
  * Material tag → the class the fold reads it as. The **recognised set**;
@@ -96,6 +105,7 @@ export const GROUND_TAG_CLASSES: Readonly<Record<string, GroundMaterialClass>> =
     wood: 'timber',
     metal: 'metal',
     alloy: 'metal',
+    ice: 'ice',
   };
 
 /**
@@ -107,6 +117,7 @@ export const GROUND_TAG_CLASSES: Readonly<Record<string, GroundMaterialClass>> =
  * granular**"*.
  */
 export const GROUND_CLASS_PRECEDENCE: readonly GroundMaterialClass[] = [
+  'ice',
   'metal',
   'timber',
   'granular',
@@ -158,6 +169,9 @@ export const GROUND_KIND_FOLD: readonly GroundFoldRule[] = [
   // Timber and metal answer the same on grade or off it.
   { materialClass: 'timber', kind: 'boards' },
   { materialClass: 'metal', kind: 'plate' },
+
+  // Ice — a sheet you stand on, on grade or off it.
+  { materialClass: 'ice', kind: 'ice' },
 ];
 
 /**
@@ -177,5 +191,6 @@ export const GROUND_KIND_PHRASES: Readonly<Record<GroundKind, string>> = {
   loose: 'loose underfoot',
   boards: 'laid as boards',
   plate: 'plated over',
+  ice: 'frozen hard',
   contrived: 'of no material anything underfoot has a word for',
 };

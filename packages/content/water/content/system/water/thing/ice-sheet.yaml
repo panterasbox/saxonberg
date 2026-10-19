@@ -1,0 +1,25 @@
+# The ice sheet — the floor of a pool that freezes (storage-and-ice D12).
+# A pool row names it as `floor: { template: <this, or a row extending it> }`
+# and authors the sheet's `areaM2` on its own extending row.
+#
+# It bears by its thickness: whoever the ice holds is ON it (holding its
+# ground slot), and whoever it stops holding is in the water under it. Its
+# log is the sheet's history — scraped, marked, cut, broken, holed — and
+# each patch's ice is the reach's own ice walk run with that history. The
+# thaw wipes it.
+class: /system/water/thing/IceSheet
+data:
+  shortDescription: sheet of ice
+  keywords: [ice, sheet, field, floor, ground]
+  register: definite
+  longDescription: A wide sheet of ice over the water, ringing faintly under the cold.
+  _materialPath: /stuff/idea/material/bulk/ice
+  onGrade: false
+  areaM2: 4000
+  patchFootprintM2: 1
+  staticSlots:
+    - name: 'ground:1'
+      accepts: SlottableMixin
+      capacity: 9007199254740991
+      postures: [sit, lie, kneel, stand]
+      userFacingDetail: floor

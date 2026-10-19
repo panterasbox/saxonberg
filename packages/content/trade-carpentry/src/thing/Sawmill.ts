@@ -59,6 +59,7 @@ export default class Sawmill extends SawmillBase {
     throughputKgPerHour: { persistent: true, authorable: true },
     kgPerHourPerKw: { persistent: true, authorable: true },
     maxThroughputKgPerHour: { persistent: true, authorable: true },
+    kerfM: { persistent: true, authorable: true },
   };
 
   /**
@@ -78,6 +79,17 @@ export default class Sawmill extends SawmillBase {
   public kgPerHourPerKw = 0;
   /** The frame's own ceiling, however much water there is; 0 = none. */
   public maxThroughputKgPerHour = 0;
+  /**
+   * The width of the cut, m (storage-and-ice D18): what a blade turns to
+   * sawdust. A frame saw's thin blades run ~3 mm, a pit saw's heavy one
+   * ~5 mm; 0 = the default kerf.
+   */
+  public kerfM = 0;
+
+  /** The width of this saw's cut, m (default 4 mm when unauthored). */
+  public getKerfM(): number {
+    return this.kerfM > 0 ? this.kerfM : 0.004;
+  }
 
   /** Runtime only — a frame saw cuts one log at a time. */
   private _sawing = false;

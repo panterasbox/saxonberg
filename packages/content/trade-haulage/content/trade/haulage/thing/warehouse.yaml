@@ -1,9 +1,9 @@
 # The warehouse — the bailee's shed.
 #
-# ⚠ It has no capacity, and that is the design rather than an omission:
-# capacity in this engine is a property of a bearer's BODY, and a shed
-# has no bearer. Nothing fills up, charges rent or turns anyone away.
-# What ships is the RECEIPT and the DUTY. See the warehousing non-goal.
+# ⭐ A store (storage-and-ice W3): it holds a consignment LIVE, on a
+# receipt filed under the depot's branch, and gives it back to whoever
+# holds the receipt at the depot book — `withdraw crate` — while the
+# warehouseman is on shift. Capacity, when a row wants one, is mass.
 class: /trade/haulage/thing/Warehouse
 data:
   shortDescription: goods shed
@@ -12,3 +12,5 @@ data:
   longDescription: |
     A long timber shed open at both ends, with a raised plank floor at cart-bed height and a chalked grid on the boards dividing it into bays. Most of the bays have something in them and every one of those has a docket nailed to the post beside it.
   baileePath: /trade/haulage/idea/depot-business
+  # Who can take a deposit or pay one out: the depot's warehouseman.
+  keeperPositions: [warehouseman]

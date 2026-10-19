@@ -27,7 +27,7 @@ import { RecipeKnowledge } from '@saxonberg/server/mud/lib/script/RecipeKnowledg
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Casting from '@saxonberg/server/mud/platform/thing/Casting';
+import Casting from '@saxonberg/server/mud/platform/thing/MetalCasting';
 import Scrap from '@saxonberg/server/mud/platform/thing/Scrap';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
 import Whetstone from '../../../../thing/Whetstone';
@@ -76,7 +76,7 @@ beforeEach(async () => {
       w.setLength(Quantity.of(0.2, 'm'));
       return w as never;
     }
-    if (path === '/stuff/thing/Casting') return makeStuff(() => new Casting()) as never;
+    if (path === '/stuff/thing/metal-casting') return makeStuff(() => new Casting()) as never;
     if (path === '/stuff/thing/Scrap') return makeStuff(() => new Scrap()) as never;
     throw new Error(`unexpected clone ${path}`);
   });

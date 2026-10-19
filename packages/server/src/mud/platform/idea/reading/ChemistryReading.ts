@@ -10,7 +10,7 @@
  *
  * ⭐⭐ **And, for metal stock, what is dissolved in THIS piece.** A
  * `Material` is a singleton: it says what steel is as a kind and cannot
- * say how your bar came out of your furnace. {@link AlloyedMixin} is the
+ * say how your bar came out of your furnace. {@link CompositionMixin} is the
  * per-instance half, and this is the instrument that reads it — which
  * is what makes carbon a number a player can ACT on (charge less fuel,
  * carburize again, stop before the band) rather than a number the smelt
@@ -27,7 +27,8 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Tangible } from '../../../lib/material/Tangible';
-import type { Alloyed } from '../../../lib/material/Alloyed';
+import type { Composition } from '../../../lib/material/Composition';
+import type { Tempered } from '../../../lib/material/Tempered';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
@@ -116,8 +117,11 @@ export default class ChemistryReading extends Reading {
     // plus this instance's own entries. A bar of steel and a bar of
     // steel with twice the carbon read differently here, which is the
     // whole point of the instrument.
-    const alloyed = MixinApi.isAlloyed(target.stuff as Stuff)
-      ? (target.stuff as Stuff & Alloyed)
+    const alloyed = MixinApi.isComposition(target.stuff as Stuff)
+      ? (target.stuff as Stuff & Composition)
+      : null;
+    const tempered = MixinApi.isTempered(target.stuff as Stuff)
+      ? (target.stuff as Stuff & Tempered)
       : null;
     const composition = alloyed
       ? alloyed.getEffectiveComposition()
@@ -128,11 +132,11 @@ export default class ChemistryReading extends Reading {
         lines.push(Mml.compose`    - ${c.materialPath}: ${c.fraction}`);
       }
     }
-    if (alloyed && alloyed.getTemper() !== 'none') {
+    if (tempered && tempered.getTemper() !== 'none') {
       // ⚠ Recorded and reported, with no mechanical consumer yet. The
       // next `heat` anneals it back, because heating past the critical
       // temperature is what annealing IS.
-      lines.push(Mml.compose`  temper: ${alloyed.getTemper()}`);
+      lines.push(Mml.compose`  temper: ${tempered.getTemper()}`);
     }
     const bio = material.getBiologicalSource();
     if (bio) {

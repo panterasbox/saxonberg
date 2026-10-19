@@ -1,0 +1,14 @@
+# The ice saw — a long, coarse, one-handled saw with its teeth raked to
+# cut on the down stroke, worked standing on the ice along a marked line.
+# What `cut` asks of the tools in reach on a frozen pool (`ice-sawing`).
+class: /trade/ice/thing/IceSaw
+data:
+  keywords: [saw, "ice saw", ice-saw]
+  shortDescription: ice saw
+  register: indefinite
+  longDescription: >-
+    A saw nearly as tall as a man, its single handle crossways at the top
+    and its teeth a finger long, raked to bite on the down stroke.
+  mass: 6
+  capabilities: ["ice-sawing"]
+  _materialPath: /stuff/idea/material/alloy/steel

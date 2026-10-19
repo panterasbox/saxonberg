@@ -229,7 +229,7 @@ async function crack(giver: Stuff, piece: Stuff & Alloyed): Promise<void> {
     if (MixinApi.isTangible(half)) {
       half.setMass(Quantity.of(Number((wholeKg / 2).toFixed(3)), 'kg'));
     }
-    if (MixinApi.isAlloyed(half)) half.setAlloying(carbon);
+    if (MixinApi.isComposition(half)) half.setAlloying(carbon);
     if (MixinApi.isContainable(half)) ContainmentApi.move(half, where);
   }
   if (giver.isDestroyed()) return;

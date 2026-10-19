@@ -803,7 +803,7 @@ Smaller, and each one a row or a place rather than a system.
 
 - [taps.md](../../subsystems/taps.md) — the window kinds, and the maple
   row that is waiting for this
-- [ice-trade-slate](./ice-trade-slate.md) — blocked on this slate;
+- [ice-trade-slate](../tails/ice-trade-slate.md) — blocked on this slate;
   ⚠ its **altitude gift** is corrected here (altitude is zero on an
   expanse, so it cannot be the only spatial axis)
 - [navigable-water-slate](./navigable-water-slate.md) — the `Expanse`,
@@ -835,3 +835,11 @@ The mechanism shipped (see the status block). Three seams it left here:
 - **Firn, névé and glaciers.** The walk's **perennial cap** (1500 mm, or
   no melt-out within 720 days) is where a glacier model begins: a
   `perennial` pack or sheet is the attach point.
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **Climate's crossings onto the pool model.** The Circle and the north
+  cross their ice by `IceCrossingExit` (the mover's mass against the
+  sheet, `iceAt` by shape) without standing on it; storage-and-ice made a
+  frozen water a `Pool` whose FLOOR is an ice sheet you stand on while it
+  bears you. Bringing the crossings onto that model is a later pass.

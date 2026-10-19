@@ -348,3 +348,12 @@ soil-leaching → nitrate join land in the RGO unification pass, not here.
   season. Never empty — but thin.
 - `butcher` is the cookhouse's block; a fish is butchered at Hearthworks,
   not on the bank. A gutting knife the angler carries is the noun wave's.
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **Ice-fishing gear and behaviour** (tip-ups, shanties, the cold-water
+  bite). Frozen water is fished only through a hole: the attach point is
+  the frozen gate in `FishingController.reachFor` (the shore's
+  `drawAt(key, room)`). A hole is `cut hole` with the ice saw today;
+  boring one with forestry's auger (no `bore` verb — it is consumed only
+  by `tap`) is this slate's.

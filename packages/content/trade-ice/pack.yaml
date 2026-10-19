@@ -1,0 +1,17 @@
+id: trade-ice
+version: 0.1.0
+root: /trade/ice
+description: >-
+  The ice trade — natural ice, cut off a frozen pool in winter and kept
+  through the summer in an icehouse. ⭐ The ice is the pool's FLOOR: you
+  stand on it while it bears you and you are in the water under it when
+  it does not, and what a harvest does to it is a history — scraped bare
+  (it grows faster, and black), marked off in a grid, cut out in blocks
+  whose weight follows the ice's thickness. The acts are `scrape` and
+  `mark` (with the tools that afford them), the kernel's `cut` with an
+  ice saw, and `measure ice` with a spud. The stack an icehouse keeps is
+  a kernel store whose stock melts by its own physics, packed in the
+  sawdust the saw leaves behind. A second pool, house or company is rows.
+requires:
+  title:
+    - { extent: /trade/ice, holder: { organization: /compact/trade } }

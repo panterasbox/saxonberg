@@ -87,6 +87,15 @@ import {
  */
 export const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
+/**
+ * ⭐ Skim ice is open water: at or under this thickness a cast, a bucket or
+ * a body breaks it without trying. ONE threshold for the read (is the reach
+ * frozen — can it be drawn or fished) and the sheet (is a patch open water),
+ * so the two never disagree about the same ice (the storage-and-ice review:
+ * a 5 mm night skim on a slow river refused fishing as "frozen over").
+ */
+export const OPEN_WATER_BELOW_M = 0.005;
+
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
 
@@ -290,6 +299,18 @@ export interface IceRecord {
   perennial: boolean;
 }
 
+/**
+ * ⭐ The history of one patch of a sheet (storage-and-ice D12): the ice
+ * walk run as if the patch were open water from `openedAtS` (a cut, a
+ * break, a hole — it regrows from nothing) and bare of snow from
+ * `bareFromS` until the next snow (a scraping — it grows faster, and
+ * black). The field patch has no history: the plain walk.
+ */
+export interface IceHistory {
+  openedAtS?: number;
+  bareFromS?: number;
+}
+
 /** Everything a flow query worked out, for `analyze` and for tests. */
 export interface FlowReading {
   /** The reach it describes. */
@@ -342,8 +363,12 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   private flowCacheSegment = -1;
 
   /** Per-segment ice memo — the flow memo's sibling, same clearing rule. */
-  private iceCache = new Map<ReachRef, IceRecord>();
+  private iceCache = new Map<string, IceRecord>();
   private iceCacheSegment = -1;
+  /** The compiled index once loaded — what the sync ice read uses. */
+  private loaded: CompiledIndex | null = null;
+  /** Reaches the async read found running (the sync read honours it). */
+  private runningRefs = new Set<ReachRef>();
 
   /* ───────────── the water a shore cites (maritime revision 3) ───────────── */
 
@@ -379,7 +404,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const contamination =
       standing?.contamination ?? (await this.contaminationAt(citation, nowS).catch(() => null));
     const water = standing?.water ?? (await this.waterStateAt(citation, nowS).catch(() => null));
-    const frozen = ice !== null && ice.thicknessM > 0;
+    const frozen = ice !== null && ice.thicknessM > OPEN_WATER_BELOW_M;
     const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
     const opaque: ReachReadState = {
       reach,
@@ -399,6 +424,16 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
             materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
             temperatureK: water?.temperatureK ?? UNDER_ICE_K,
           },
+      // ⭐ The water under the ice (storage-and-ice D15): what comes up
+      // through a hole — the reach's own water, at the under-ice floor.
+      ...(frozen
+        ? {
+            underIce: {
+              materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
+              temperatureK: UNDER_ICE_K,
+            },
+          }
+        : {}),
       opaque,
     };
   }
@@ -474,6 +509,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     this.flowCacheSegment = -1;
     this.iceCache.clear();
     this.iceCacheSegment = -1;
+    this.loaded = null;
   }
 
   /**
@@ -495,34 +531,55 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
    * - **It bears `σ·h²`** (Gold's formula): about a person at 6 cm, a
    *   horse at 14, a loaded cart at 20.
    */
-  public async iceAt(ref: ReachRef, nowS: number): Promise<IceRecord | null> {
+  public async iceAt(
+    ref: ReachRef,
+    nowS: number,
+    history?: IceHistory,
+  ): Promise<IceRecord | null> {
     const index = await this.index();
     const reach = index.reaches.get(ref);
     if (reach === undefined) return null;
+    this.rollIceCache(nowS);
+    const key = iceKey(ref, history);
+    const hit = this.iceCache.get(key);
+    if (hit !== undefined) return hit;
+
+    const water = await this.waterStateAt(ref, nowS);
+    const still = dial('water.ice.stillWaterMps', 0.5);
+    const running = water !== null && water.currentMps >= still;
+    if (running) this.runningRefs.add(ref);
+    else this.runningRefs.delete(ref);
+    const record: IceRecord = running ? runningRecord(ref) : computeIce(reach, nowS, history);
+    this.iceCache.set(key, record);
+    return record;
+  }
+
+  /**
+   * ⭐ The ice of a patch NOW, synchronously — what a floor's `bears` asks
+   * (storage-and-ice D12). `null` until the drainage has been compiled
+   * once (an async `iceAt` warms it). The running check is the last async
+   * read's; the walk itself is exact and cached per weather segment.
+   */
+  public iceAtSync(ref: ReachRef, nowS: number, history?: IceHistory): IceRecord | null {
+    const index = this.loaded;
+    if (index === null) return null;
+    const reach = index.reaches.get(ref);
+    if (reach === undefined) return null;
+    this.rollIceCache(nowS);
+    const key = iceKey(ref, history);
+    const hit = this.iceCache.get(key);
+    if (hit !== undefined) return hit;
+    const record = this.runningRefs.has(ref) ? runningRecord(ref) : computeIce(reach, nowS, history);
+    this.iceCache.set(key, record);
+    return record;
+  }
+
+  private rollIceCache(nowS: number): void {
     const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
     if (segment !== this.iceCacheSegment) {
       this.iceCache.clear();
       this.iceCacheSegment = segment;
     }
-    const hit = this.iceCache.get(ref);
-    if (hit !== undefined) return hit;
-
-    const water = await this.waterStateAt(ref, nowS);
-    const still = dial('water.ice.stillWaterMps', 0.1);
-    const record: IceRecord =
-      water !== null && water.currentMps >= still
-        ? {
-            ref,
-            thicknessM: 0,
-            quality: 'none',
-            rotting: false,
-            bearsKg: 0,
-            reason: 'running',
-            perennial: false,
-          }
-        : computeIce(reach, nowS);
-    this.iceCache.set(ref, record);
-    return record;
   }
 
   // ---------- reads ----------
@@ -1003,6 +1060,9 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     if (inFlight !== null) return inFlight;
     const started = loadIndex();
     this.loading = started;
+    void started.then((idx) => {
+      if (this.loading === started) this.loaded = idx;
+    }, () => undefined);
     // A failed load must not stick: drop the promise so the next caller
     // retries (and sees the parse error) rather than inheriting a
     // rejected one forever.
@@ -1619,7 +1679,24 @@ function computeNaturalFlow(
  * The sheet on a still reach, walked over the kernel's exact snow walk
  * (which hands every segment's air and snow) from a capped start.
  */
-function computeIce(reach: CompiledReach, nowS: number): IceRecord {
+function iceKey(ref: ReachRef, history?: IceHistory): string {
+  if (!history) return ref;
+  return `${ref}|${history.openedAtS ?? ''}|${history.bareFromS ?? ''}`;
+}
+
+function runningRecord(ref: ReachRef): IceRecord {
+  return {
+    ref,
+    thicknessM: 0,
+    quality: 'none',
+    rotting: false,
+    bearsKg: 0,
+    reason: 'running',
+    perennial: false,
+  };
+}
+
+function computeIce(reach: CompiledReach, nowS: number, history?: IceHistory): IceRecord {
   const alphaClear = dial('water.ice.growthClear', 0.027);
   const alphaSnow = dial('water.ice.growthUnderSnow', 0.017);
   const meltPerKd = dial('water.ice.meltMPerKd', 0.005);
@@ -1627,8 +1704,19 @@ function computeIce(reach: CompiledReach, nowS: number): IceRecord {
   const capM = dial('water.ice.perennialMaxM', 2.0);
   const bearing = dial('water.ice.bearingKgPerM2', 2.5e4);
 
-  let h = capM;
-  let opened = false;
+  // ⭐ A patch opened (a cut, a break, a hole) is open water on its date:
+  // nothing before it matters, and it regrows from nothing.
+  const openedAtS = history?.openedAtS;
+  const bareFromS = history?.bareFromS;
+  let h = openedAtS !== undefined ? 0 : capM;
+  let opened = openedAtS !== undefined;
+  /** A scraped patch is bare until the first snow after it. */
+  let bare = bareFromS !== undefined;
+  /**
+   * ⭐ Scraping planes the white top off: the grade from then on is the new
+   * growth's, so the snow-ice fraction restarts at the scraping.
+   */
+  let planed = bareFromS === undefined;
   let fddTotal = 0;
   let fddUnderSnow = 0;
   /** Thawing degree-days per step, for the rot window. */
@@ -1636,7 +1724,24 @@ function computeIce(reach: CompiledReach, nowS: number): IceRecord {
   const freezeK = 273.15;
 
   WeatherApi.snowCoverAt(reach.site, climateOf(reach), Quantity.of(nowS, 's'), {
-    onStep: (step) => {
+    onStep: (raw) => {
+      let step = raw;
+      if (openedAtS !== undefined) {
+        const end = step.startsAtS + step.overlapS;
+        if (end <= openedAtS) return;
+        if (step.startsAtS < openedAtS) {
+          step = { ...step, startsAtS: openedAtS, overlapS: end - openedAtS };
+        }
+      }
+      if (bareFromS !== undefined && step.startsAtS + step.overlapS > bareFromS) {
+        if (!planed) {
+          planed = true;
+          fddTotal = 0;
+          fddUnderSnow = 0;
+        }
+        if (bare && step.phase === 'snow' && step.startsAtS >= bareFromS) bare = false;
+        if (bare) step = { ...step, packMm: 0 };
+      }
       const days = step.overlapS / SECONDS_PER_DAY;
       if (step.airK < freezeK) {
         const fdd = (freezeK - step.airK) * days;

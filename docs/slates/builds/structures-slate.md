@@ -259,3 +259,40 @@ Sketch only, to be argued with rather than implemented:
 Left as a line here rather than in a retired plan.
 
 - **The flue as an object, and inter-room air mixing.** The fire build derives a scope's ventilation from its openings (`achPerOpening` / `achInterior` / `achLeak`) but nothing transports a medium BETWEEN scopes, so a chimney is a hole with a number rather than a thing. ⚠ Its four forward-compat constraints held: contents resolve through the same outward walk, no room field was added for a stack, and building condition is untouched.
+
+## ⬅ Building materials, erection and upkeep (recorded 2026-10-16, from the storage-and-ice requirements)
+
+> *"We've said maybe structures have a bill of goods you need to erect /
+> maintain them and it's paid in RGO outputs."* — user
+
+> ⭐ **The UPKEEP half is now designed — the repair build's W7** (`reqs/repair`,
+> build-3, gated on rubber): layers weather by material, `maintain` lays them
+> under each layer's trade, buildings and materials opt in. What stays here is
+> the ERECTION half: the bill of goods to put a building up.
+
+**Not designed anywhere yet** (there is no bill of goods in structures, towns
+or property). The shape the owner described: **a building has a bill of goods to
+erect it and an upkeep to keep it standing, both paid in RGO outputs** — stone,
+timber, lime, slate, glass, sawdust fill.
+
+- ⭐ **It is what connects a building's construction to the economy.** Today
+  a room's walls are a material and a thickness on its row (`enclosure:`, and
+  `roof:` with the rubber build) — authored, costing nothing, wearing nothing.
+  An icehouse's sawdust-filled double wall is the first case where that
+  matters: the wall fill settles and rots, and historically it was replaced.
+- ⭐ **The likely seam:** the construction already names a material and a
+  thickness per face, so the bill can **derive** from it (area × thickness ×
+  density = the mass of each material owed), and upkeep from what time does
+  to each material — the same "the good decides what time does to it" rule
+  as [storage-slate](../tails/storage-slate.md).
+- **Where it builds: AFTER the rubber build**, in neither it nor
+  storage-and-ice (decided 2026-10-16, after reading the two side by side):
+  rubber's **layered** walls and roof are the seam the bill derives from —
+  each layer's material × area × thickness is a line of it. Consumers waiting: the icehouse wall, the hothouse's
+  glass and its stove house, every building rubber's construction model
+  describes.
+- ⚠ **Upkeep, by declaration** (from storage-and-ice, MR !378): the repair
+  build's W7 weathers layers by `Material.weatheringDays` and `maintain`
+  lays them under the layer's `laying` trade. The icehouse and sawdust are
+  deliberately OFF there (sawdust authors no `laying`/`weathers`) and opt
+  in by declaration once a supply reaches the icehouse.

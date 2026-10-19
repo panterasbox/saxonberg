@@ -273,6 +273,15 @@ who force-bypassed / who was gagged."
 7. **NPC / system subjects** — system-initiated actions bypass (the
    `SystemRoot`/null-caller path); NPCs are normal actors. Confirm the
    bypass boundary.
+8. **`clone`'s representative is order-dependent** (from storage-and-ice,
+   MR !378, 2026-10-18). `CloneController` answers title through a row's
+   FIRST LIVE INSTANCE (access.md § the clone row), so any venue that
+   `props:` a shared row can change who may clone it: Hollow Mere propped
+   the cooper's gauging rod, booted first, and the assembly drive's
+   founder was refused `access-denied` at the cooperage. Worked around by
+   giving the icehouse its own row (`extends:` the cooper's). The
+   code-maintenance doctrine would ask the ROW's title (`canAtPath`);
+   changing `CloneController` was out of that build.
 
 ---
 

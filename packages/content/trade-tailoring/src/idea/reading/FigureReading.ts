@@ -57,7 +57,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import MeasureBook from '../../thing/MeasureBook';
-import { measurementsOf } from '../cmd/tailoring/CutController';
+import { measurementsOf } from '../../thing/CuttingTool';
 
 const TOPIC = 'act.deed';
 

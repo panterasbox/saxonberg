@@ -477,7 +477,7 @@ used to be a single list copied verbatim onto two rows:
 | platform `heat` (alias `boil`) on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
-| tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
+| platform `cut` (planned by the target or the tool — § One `cut`) | the SHEARS — and the bench is the same class, faster; the ICE SAW | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) · `/trade/ice/thing/IceSaw` |
 | tailoring `sew`, `alter` + platform `repair`, `salvage` | the NEEDLE | `/trade/tailoring/thing/SewingTool` (needle-case) |
 | smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
 | platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
@@ -501,6 +501,31 @@ unions a class's own contributions with every *mixin* in its chain, but
 a base **class** is not a mixin and `getContributions` is a plain
 property read — so a subclass's static shadows its base's outright.
 **Mixins union; base classes shadow.**
+
+### ⭐ One `cut` — the target or the tool plans it (storage-and-ice, 2026-10-17)
+
+`cut` is ONE kernel view (`platform/cmd/crafting/cut.yaml`, controller
+`/platform/idea/cmd/crafting/CutController`) over a by-shape protocol in
+`lib/craft/Cuttable.ts` — the collision ladder's first rung, unify
+behind an interface; tailoring's own `cut` view and controller were
+deleted. The controller is dumb and asks two sides in order:
+
+1. the **target**, when it is `Cuttable` (`cutPlan(req)`) — or, when the
+   target was a bare word (`cut marked`, `cut hole`), the room's floor
+   if THAT is `Cuttable` (the ice sheet; see
+   [watershed.md](./watershed.md) § The ice sheet);
+2. else the first bound **tool** that is a `CutPlanner`
+   (`cutPlanFor(target, req)`, `null` = not mine) — tailoring's
+   `CuttingTool` plans any cloth, because the bolt is the weaver's and
+   the pattern the tailor's.
+
+A plan is an engaged step (`durationMs`, `effortW`, `beginSelf`/
+`beginPeers`, `onComplete`), so **the planner owns its completion
+message and its mint**; a `CutRefusal` is declined in the planner's
+words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
+the request as an option bag. A second cuttable good (a saddler's hide)
+answers either side with no kernel edit, and the instrument affords the
+verb (`CuttingTool`, `IceSaw`).
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -1235,11 +1260,12 @@ every fault, whether this hand can mend it here, and what it would draw.
 **`salvage <item>`** (`CraftingApi.salvage` — the one generic lossy
 melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields in its natural raw form —
-`metal` → a re-meltable `/stuff/thing/Casting` at
-`crafting.salvageRate`; a **meltable non-metal** (a material with a
-melting point and no `metal` tag — glass, wax) → a re-meltable
-`/stuff/thing/Casting` **whole** (rate 1.0), carrying the piece's
-instance alloying, because breaking is not melting and glass pays its
+`metal` → a re-meltable `/stuff/thing/metal-casting` (`AlloyedMixin`:
+composition AND temper) at `crafting.salvageRate`; a **meltable
+non-metal** (a material with a melting point and no `metal` tag — glass,
+wax) → a re-meltable `/stuff/thing/Casting` (`CompositionMixin` only —
+see [glass.md](./glass.md) § Composition vs temper) **whole** (rate
+1.0), carrying the piece's instance alloying, because breaking is not melting and glass pays its
 entropy in colour rather than mass (the one-way-toward-green arrow, not
 a mass sink — glass build D7); anything else → an `/stuff/thing/Scrap`
 stack (a `StackableMixin(Good)`, material-stamped, **quantity by mass**
@@ -1535,7 +1561,7 @@ capability packs and add **eight verbs and no more**:
 |---|---|---|---|
 | textiles | `scutch` `spin` `weave` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` | **how fine you can go before it breaks** |
 | dyeing | `mordant` `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` | **fastness and repeatability**, never a hue |
-| tailoring | `cut` `sew` `alter` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
+| tailoring | `sew` `alter` (`tailoring`) + the platform `cut` it plans | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
 
 ⭐ Two more affordances ship as **stanzas on views that already exist** —
 `measure figure` on the platform's `measure` (the `measure strike`
@@ -1747,3 +1773,10 @@ the feed was dropped. It folds the source payload through
   and no deed; a pour into a mould credits its discipline. See
   [mould.md](./mould.md).
 - The commons **pail is a `CraftVessel`** (washable, a surface load).
+
+## History — storage-and-ice (MR !378, 2026-10-18)
+
+- `cut` became one kernel
+  view over the `Cuttable`/`CutPlanner` protocol (tailoring and the ice
+  sheet implement it); salvage and the off-spec lump mint
+  `metal-casting` for metal and a composition-only `Casting` otherwise.

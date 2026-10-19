@@ -1,5 +1,13 @@
 # Sugar — requirements
 
+> ⚠ **A DRAFT, superseded where they differ by
+> [sugar-slate](../slates/builds/sugar-slate.md)** (designed with the founder
+> 2026-10-18). Changed there: the sugar house before the island (no shipped
+> place can grow cane); the fuel trade-off is the boil's efficiency, not the
+> press; "no rum" becomes "no new rum mechanism" (molasses feeds Veshko's rum
+> line); the sweetener vocabulary already shipped as tags; beet is a later
+> epoch. `/requirements` rewrites this document.
+
 **Kind:** feature (an RGO chain)
 **Leads from:** [rgo-unification-slate](../slates/builds/rgo-unification-slate.md)
 § 3 *the sweetener vocabulary* · the census's **one unresolved demand

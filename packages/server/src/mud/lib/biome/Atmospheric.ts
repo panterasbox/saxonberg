@@ -63,6 +63,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
+import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 
 export interface Atmospheric {
   // ---------- biome reference ----------
@@ -324,6 +325,15 @@ export interface Atmospheric {
 
   /** ⭐ The setpoint a driven scope clamps toward, else `null`. */
   climateSetpointK(): number | null;
+
+  /**
+   * ⭐⭐ The temperature this scope would settle at for a given outside,
+   * at `atS` — THE steady-state formula the envelope integrates toward
+   * (storage-and-ice D5): `(U·T_out + ΣfixedW + driveW + ΣG·anchor) /
+   * (U + ΣG)` over its occupants' {@link RoomHeatExchange}s, clamped by a
+   * driven scope's setpoint. `null` when no envelope applies.
+   */
+  envelopeSteadyStateK(outsideK: number, atS: number): number | null;
 
   /**
    * The scope's own temperature (K), or `null` when no envelope
@@ -1203,15 +1213,10 @@ export function AtmosphericMixin<
 
       this._envelopeReconciling = true;
       try {
-        let heatW = 0;
         const self = this as unknown as Stuff;
-        for (const occupant of this.occupants()) {
-          if (!MixinApi.isSpaceHeating(occupant)) continue;
-          heatW += occupant.spaceHeatOutputW();
-        }
-
-        const tau = coeff.capacityJPerK / coeff.uWperK;
-        const setpoint = this.climateSetpointK();
+        // ⭐ The occupants' exchanges (D5): fires push, cold stock pulls.
+        const budget = this.envelopeHeatBudget();
+        const tau = coeff.capacityJPerK / (coeff.uWperK + budget.conductanceWperK);
         const ring = new TrajectoryLog(this.envelopeLog);
         const startStamp = now - elapsed;
 
@@ -1230,15 +1235,7 @@ export function AtmosphericMixin<
             this.envelopeTemperatureK as number,
             powered,
           );
-          let steadyState = outside + (heatW + driveW) / coeff.uWperK;
-          // ⭐ A thermostat does not sail past its dial: a cooling drive
-          // clamps the steady state from below, a heating drive from above,
-          // so an over-strong unit HOLDS the setpoint rather than
-          // overshooting it.
-          if (setpoint !== null) {
-            if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
-            if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
-          }
+          const steadyState = this.envelopeSteadyStateFrom(outside, coeff.uWperK, budget, driveW);
           ring.record(
             segStartS,
             this.envelopeTemperatureK as number,
@@ -1289,6 +1286,75 @@ export function AtmosphericMixin<
      */
     public envelopeDriveW(_interiorK: number, _powered: boolean): number {
       return 0;
+    }
+
+    /**
+     * ⭐⭐ **THE steady state** (storage-and-ice D5) — see the interface.
+     * One formula, two callers: the envelope's own integration and a
+     * store integrating its stock across a gap nobody watched, which asks
+     * the room what it would have settled at under each segment's outside.
+     */
+    public envelopeSteadyStateK(outsideK: number, atS: number): number | null {
+      if (!this.envelopeApplies()) return null;
+      const coeff = this.envelopeCoefficients();
+      if (coeff === null) return null;
+      const self = this as unknown as Stuff;
+      const supply = poweredTrajectoryOf(self, atS, atS + 1);
+      const powered =
+        supply !== null &&
+        supply.stretches.some((st) => (st.startValue + st.target) / 2 > 0.5);
+      const driveW = this.envelopeDriveW(this.envelopeTemperatureK ?? outsideK, powered);
+      return this.envelopeSteadyStateFrom(
+        outsideK,
+        coeff.uWperK,
+        this.envelopeHeatBudget(),
+        driveW,
+      );
+    }
+
+    /**
+     * The closed form itself, clamped by a driven scope's setpoint: a
+     * thermostat does not sail past its dial — a cooling drive clamps the
+     * steady state from below, a heating drive from above.
+     */
+    private envelopeSteadyStateFrom(
+      outsideK: number,
+      uWperK: number,
+      budget: RoomHeatExchange,
+      driveW: number,
+    ): number {
+      const g = budget.conductanceWperK;
+      let steadyState =
+        (uWperK * outsideK + budget.fixedW + driveW + g * budget.anchorK) / (uWperK + g);
+      const setpoint = this.climateSetpointK();
+      if (setpoint !== null) {
+        if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
+        if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+      }
+      return steadyState;
+    }
+
+    /**
+     * Σ over the occupants that exchange heat with this room (read BY
+     * SHAPE — `roomHeatExchange()`): the fixed power in, the total
+     * conductance, and that conductance's weighted anchor.
+     */
+    private envelopeHeatBudget(): RoomHeatExchange {
+      let fixedW = 0;
+      let g = 0;
+      let gAnchor = 0;
+      for (const occupant of this.occupants()) {
+        const ex = (occupant as unknown as { roomHeatExchange?(): RoomHeatExchange })
+          .roomHeatExchange;
+        if (typeof ex !== 'function') continue;
+        const x = ex.call(occupant);
+        if (Number.isFinite(x.fixedW)) fixedW += x.fixedW;
+        if (Number.isFinite(x.conductanceWperK) && x.conductanceWperK > 0) {
+          g += x.conductanceWperK;
+          gAnchor += x.conductanceWperK * x.anchorK;
+        }
+      }
+      return { fixedW, conductanceWperK: g, anchorK: g > 0 ? gAnchor / g : 0 };
     }
 
     /**

@@ -34,9 +34,44 @@
 
 import { Actor } from '../../lib/creature/Actor';
 import { BehavedMixin } from '../../lib/behavior/Behaved';
+import { MixinApi } from '../../api/mixin';
+import type Exit from '../../lib/boundary/Exit';
+import type { TraversalGuard } from '../../lib/boundary/Exit';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 const BeastBase = BehavedMixin(Actor);
 
-export class Beast extends BeastBase {}
+export class Beast extends BeastBase {
+  /**
+   * @hook ⭐ **An animal will not step onto a floor that will not bear it**
+   * (storage-and-ice D12) — the mover's own say, beside combat's flee. A
+   * person is let onto thin ice and falls through; a horse balks, which
+   * is the horse's instinct and not the engine's mercy. Chains any inner
+   * `beforeTraverse` first.
+   */
+  public beforeTraverse(via: Exit): TraversalGuard {
+    const inner = (BeastBase.prototype as { beforeTraverse?: (v: Exit) => TraversalGuard })
+      .beforeTraverse;
+    if (typeof inner === 'function') {
+      const said = inner.call(this, via);
+      if (!said.ok) return said;
+    }
+    let dest: Stuff | null = null;
+    try {
+      dest = via.getDestination();
+    } catch {
+      return { ok: true }; // a lazy destination not yet faulted in: nothing to judge
+    }
+    const floor = (dest ? (MixinApi.isAdornable(dest) ? dest.getFloor() : null) : null);
+    if (floor === null || !MixinApi.isFloor(floor)) return { ok: true };
+    if (!floor.supportIsSlotted()) return { ok: true };
+    if (floor.bears(floor.supportLoadKgOf(this as unknown as Stuff))) return { ok: true };
+    return {
+      ok: false,
+      gate: 'blocked',
+      reason: `${(this as unknown as Stuff).getPresentation()} will not go out on it.`,
+    };
+  }
+}
 
 export default Beast;

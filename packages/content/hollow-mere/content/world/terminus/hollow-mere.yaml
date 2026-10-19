@@ -1,0 +1,17 @@
+# Hollow Mere — the zone (storage-and-ice D22). ⚠ PLACEHOLDER geography.
+# ⭐ The zone authors the SAME climate site as its water: the rooms' air,
+# the body's cold, the icehouse's outside and the ice company's seasons
+# all read the zone, and a zone that inherited Terminus's 42° N would put
+# a southern water under northern air. The offset is tuned (a unit test
+# pins it) so a fresh world's day 0 is the mere's first days of cold: the
+# ice will not hold a person on day 0, holds one by day 2, a horse by
+# about day 13, and goes out before day 280.
+class: /platform/idea/location/CartesianZone
+data:
+  name: Hollow Mere
+  cellSize: 20.0
+  address: terminus/hollow-mere
+  latitude: -58
+  continentality: 1
+  elevation: 300
+  climateOffsetK: -12

@@ -1,0 +1,13 @@
+# metal-casting — the template a frozen pool of METAL clones into, and the
+# lump an off-spec metal working or a metal salvage comes back as. The
+# generic Casting plus a temper (storage-and-ice D17): a glass or wax lump
+# keeps what is dissolved in it and claims no temper; only metal can be
+# hardened. Material / mass / prose are stamped per freeze.
+class: /platform/thing/MetalCasting
+data:
+  shortDescription: cast lump of metal
+  keywords: [cast, casting, lump, metal]
+  register: indefinite
+  # A placeholder the freeze/mint overwrites with the pool's own mass
+  # (lint:mass: a Tangible row says what it weighs).
+  mass: 1

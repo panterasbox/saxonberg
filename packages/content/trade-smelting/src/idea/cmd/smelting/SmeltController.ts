@@ -529,7 +529,7 @@ async function runCharge(
   // ⭐ The carbon and the trapped slag are set BEFORE it moves, so the
   // capture the move takes is of the finished product.
   await pour(furnace, row, productKg, owner, (product) => {
-    if (MixinApi.isAlloyed(product) && carbon > 0) {
+    if (MixinApi.isComposition(product) && carbon > 0) {
       product.setFractionOf(CARBON, carbon);
     }
     if (bloom) {
@@ -675,7 +675,7 @@ function dominantMetalOf(charge: ChargeLot[]): Material | null {
 function carbonIn(charge: ChargeLot[]): number | null {
   let found: number | null = null;
   for (const lot of charge) {
-    if (!MixinApi.isAlloyed(lot.stuff)) continue;
+    if (!MixinApi.isComposition(lot.stuff)) continue;
     found = (found ?? 0) + lot.stuff.fractionOf(CARBON);
   }
   return found;
@@ -946,7 +946,7 @@ function isOre(item: Stuff): boolean {
  * charge regime needs and what an ore lump is not.
  */
 function isStock(item: Stuff): boolean {
-  return !isOre(item) && MixinApi.isAlloyed(item) && MixinApi.isTangible(item);
+  return !isOre(item) && MixinApi.isComposition(item) && MixinApi.isTangible(item);
 }
 
 /**
