@@ -1509,6 +1509,20 @@ No AC is unmapped. One AC is met by interpretation (D20).
   touch `Floor.ts` and can start now; if cleanliness has not landed by
   A2, build A2 on master and expect the `Floor.ts` merge to be the one
   real conflict of the build.
+- **R1c — silk (reqs/silk, build-3) is NOT merged yet; it overlaps by
+  DESIGN** (checked 2026-10-18, 20 commits). (a) `S/lib/thermal/Thermal.ts`
+  +175: a **bath** holder rung (`enclosingBath` — a thing immersed in a
+  vessel of water is at the water's temperature, beside the Coolbox
+  rung). ⭐ B1's "objects cool as in water" (D29 seam 3) must EXTEND that
+  ladder — coolbox → bath → the water place — not add a parallel ambient
+  path in `restamp`; two answers to *the water around this object* is
+  the duplicate this repo removes on sight. Merge master (silk) before
+  B1. (b) Fishing: silk unified `reel` (one verb, the rod or the basin
+  decides; a `Reelable` shape in trade-fishing's `lib/`) — the precedent
+  C1's `haul` unification follows (read silk's W3 before writing the
+  `Haulable` shape; place it by the same "common pack ancestor" test).
+  (c) Silk's Wharfside mill/dyehouse rows and the water pack's
+  `fouled-water` material are its own ground — no conflict expected.
 - **R2 — `haul` unification deletes a fishing view and controller.**
   The fishing wire drive's haul steps and `verbs.test.ts` must pass
   with the kernel view (no `default:` trap arg — the kernel cannot name
