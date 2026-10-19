@@ -301,7 +301,9 @@ export function packBrainShapeOk(source: string): boolean {
 // 387 → 386 (the rubber build, 2026-10-17): `chemistry: null` came off
 // the rubber row, which burnt rubber `extends:` — so it would have been
 // inherited as a second orphan.
-const ORPHAN_DATA_KEY_CEILING = 386;
+// 386 → 378 (the potash build, 2026-10-19): `chemistry: null` came off
+// the ten wood rows, five of which the brash rows `extends:`.
+const ORPHAN_DATA_KEY_CEILING = 378;
 
 
 function main(): void {

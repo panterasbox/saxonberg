@@ -97,6 +97,15 @@ export const LOGS_PER_STANDARD = 4;
  */
 export const BARK_BUNDLES_PER_STANDARD = 4;
 export const BARK_FRACTION_OF_BOLE = 0.08;
+/**
+ * ⭐⭐ **Brash, the felling's fifth yield and the wood's waste** (potash
+ * D18): the crown's twigs and lop, trimmed off where the tree lies. Every
+ * felling leaves it — it is not a species fact, as bark is — and it is the
+ * richest feed an ash pit has, because twigs carry more ash per kilo than
+ * heartwood. Six bundles summing to a fifth of the bole's mass.
+ */
+export const BRASH_BUNDLES_PER_STANDARD = 6;
+export const BRASH_FRACTION_OF_BOLE = 0.2;
 /** Mass of a whole felled tree, by stage — the carryable case. */
 export const FELLED_TREE_KG: Record<string, number> = { young: 8, established: 30 };
 
@@ -107,6 +116,7 @@ const BOLE_PATH = '/trade/forestry/thing/bole';
 const TIMBER_PATH = '/trade/forestry/thing/timber';
 const LOG_PATH = '/trade/forestry/thing/log';
 const FELLED_TREE_PATH = '/trade/forestry/thing/felled-tree';
+const BRASH_PATH = '/trade/forestry/thing/brash';
 
 export interface FellModel extends CommandModel {
   /** A bole, a planted tree, or a bare species word (`stuff: null`). */
@@ -296,6 +306,7 @@ async function dropStandard(
   woodMaterialPath: string,
   seedPath: string | null,
   barkPath: string | null = null,
+  brashMaterialPath: string | null = null,
 ): Promise<Bole | null> {
   const wood = await materialAt(woodMaterialPath);
   const density = wood ? wood.getDensity().rawValue() : 750;
@@ -329,6 +340,27 @@ async function dropStandard(
         // ⚠ A missing bark row is a content gap, not a reason to lose the
         // timber — the bole and the logs are already down.
         console.warn(`FellController: no bark at '${barkPath}':`, err);
+        break;
+      }
+    }
+  }
+
+  // ⭐ The brash is trimmed off where the tree lies: of the species' own
+  // brash material when the stand names one, else of the wood.
+  {
+    const boleKg = bole.getMass().rawValue();
+    const each = (boleKg * BRASH_FRACTION_OF_BOLE) / BRASH_BUNDLES_PER_STANDARD;
+    const brashMaterial = (brashMaterialPath ? await materialAt(brashMaterialPath) : null) ?? wood;
+    for (let i = 0; i < BRASH_BUNDLES_PER_STANDARD; i += 1) {
+      try {
+        const bundle = await StuffApi.clone<Stuff & Containable>(BRASH_PATH);
+        if (MixinApi.isTangible(bundle)) {
+          if (brashMaterial) bundle.setMaterial(brashMaterial);
+          bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
+        }
+        ContainmentApi.move(bundle, room);
+      } catch (err) {
+        console.warn(`FellController: no brash at '${BRASH_PATH}':`, err);
         break;
       }
     }
@@ -389,6 +421,7 @@ async function fellStandard(
     sp.woodMaterialPath,
     sp.seedPath,
     sp.barkPath ?? null,
+    sp.brashMaterialPath ?? null,
   );
   await capture(stand);
   // ⚠ And the FELLER. The room's record never carries a player's goods
@@ -478,7 +511,7 @@ async function fellPlantedTree(
     // ⭐ A planted oak that has grown to a standard gives its bark too —
     // the stand's entry knows, and a planted tree of a species this
     // ground does not carry gives none, which is honest.
-    await dropStandard(giver, room, woodPath, seedPath, entry?.barkPath ?? null);
+    await dropStandard(giver, room, woodPath, seedPath, entry?.barkPath ?? null, entry?.brashMaterialPath ?? null);
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(

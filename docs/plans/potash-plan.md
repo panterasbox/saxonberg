@@ -891,6 +891,21 @@ first edit and keeps to the region the table names.
 
 ### W0 — ash sized and strengthened: the grate, the clamp, the `Ash` class
 
+✅ **Done — `b1619dbea`.** Build decisions: (1) the heap loop is ONE public
+Burner method, `mintAshHeaps(kg, alkaliKg, {template, madeFrom, into})`,
+which the clamp (a Burner) calls too — so D3 is the grate's code, not a
+copy; `rakeGrate` returns `ash: Stuff[]`. (2) The alkali's composition
+key is a setting, `fire.ash.alkaliMaterial` (the `cleanliness.ashTemplate`
+precedent), not a kernel const naming a commons path. (3) A raked heap's
+grade is its strength only when the row says `gradedByStrength: true`
+(wood-ash, ash) — black salts and pearl ash carry a PURITY in the same
+entry and their grade from the chain, so `Ash.setAlloying` must not
+re-grade them. Bands: <0.10 poor · <0.165 fair · <0.22 fine · <0.30
+exceptional. (4) Oak bark gets no figure: its own row forbids fuel use.
+(5) The `spent-ash` rows moved to W2 (`lint:reachability` ceiling 0 — the
+hopper is their minter). ⚠ `corrosion-narrowing.test.ts` fails on
+rushes/sweepings/manure — pre-existing on master, rows untouched here.
+
 **Pre-wave check:** `Burner.ts`, `Material.ts`, `AppSettings.ts`,
 `fire.yaml` (shared-files table).
 

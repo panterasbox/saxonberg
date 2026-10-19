@@ -121,8 +121,10 @@ describe('the Hanging Wood', () => {
       expect(r.data.woodName).toBe('the Hanging Wood');
       expect(r.data.areaM2).toBe(100);
     }
-    // Thirty-six standards over three rooms: 24 oak, 12 ash.
-    expect(standards).toBe(36);
+    // Fifty-six standards over three rooms: 24 oak, 12 ash, and on the
+    // ride 12 beech and 8 pine — the strongest ash and the weakest
+    // (potash D16).
+    expect(standards).toBe(56);
   });
 
   it('every exit resolves, and the hillside climbs into it', () => {

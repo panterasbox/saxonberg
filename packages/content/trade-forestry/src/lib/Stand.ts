@@ -124,6 +124,12 @@ export interface StandSpecies {
    * so.
    */
   barkPath?: string | null;
+  /**
+   * ⭐ What this species' BRASH is made of (potash D18) — the crown's
+   * twigs and lop, richer in ash per kilo than the heartwood. `null`
+   * drops brash of the wood itself; every felling leaves brash either way.
+   */
+  brashMaterialPath?: string | null;
   /** Whole standards, true at `standStamp`. */
   standing: number;
   /** What this ground carries. */
@@ -293,6 +299,7 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
             woodMaterialPath: String(sp.woodMaterialPath ?? ''),
             seedPath: sp.seedPath ? String(sp.seedPath) : null,
             barkPath: sp.barkPath ? String(sp.barkPath) : null,
+            brashMaterialPath: sp.brashMaterialPath ? String(sp.brashMaterialPath) : null,
             standing: Math.max(0, Number(sp.standing) || 0),
             capacity: Math.max(0, Number(sp.capacity) || 0),
             incrementPerYear: Math.max(0, Number(sp.incrementPerYear) || 0),

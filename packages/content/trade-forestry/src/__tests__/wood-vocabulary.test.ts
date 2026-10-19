@@ -71,14 +71,23 @@ describe('the wood vocabulary — ten woods, ten trees, each naming the other', 
     // ⭐ The ten woods are the rows that come from a TREE (a species). A
     // wood PRODUCT shares the directory and names no one tree — sawdust,
     // from the saw's kerf (storage-and-ice W1) — and is counted apart.
+    // ⭐ A BRASH row is a tree's wood by `extends:` (potash D18) — the same
+    // timber with a richer ash — so it is neither a tree nor a product.
     const all = readdirSync(WOOD_DIR)
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => ({
         name: f.replace(/\.yaml$/, ''),
         doc: YAML.parse(readFileSync(join(WOOD_DIR, f), 'utf8')) as {
-          data: { biologicalSource: { speciesPath?: string } | null; tags?: string[] };
+          extends?: string;
+          data: { biologicalSource?: { speciesPath?: string } | null; tags?: string[] };
         },
-      }));
+      }))
+      .filter((r) => {
+        if (!r.doc.extends) return true;
+        expect(r.name, r.name).toMatch(/-brash$/);
+        expect(TEN.map((w) => `/stuff/idea/material/wood/${w}`)).toContain(r.doc.extends);
+        return false;
+      });
     const fromATree = all.filter((r) => r.doc.data.biologicalSource?.speciesPath).map((r) => r.name).sort();
     expect(fromATree).toEqual([...TEN].sort());
     const products = all.filter((r) => !r.doc.data.biologicalSource?.speciesPath);

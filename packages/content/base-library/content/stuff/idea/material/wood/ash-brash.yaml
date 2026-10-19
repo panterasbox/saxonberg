@@ -1,0 +1,11 @@
+# ash brash — the twigs and lop of a felled ash (potash D18). ⭐ The same
+# wood as the trunk in every way a fire or a saw reads, except what it
+# leaves in the grate: a twig is mostly bark and growing tip, so its ash
+# is about three times the heartwood's and a little stronger. Grain: an
+# author's numbers.
+extends: /stuff/idea/material/wood/ash
+data:
+  name: ash brash
+  keywords: ["ash brash", brash]
+  ashFraction: 0.03
+  alkaliShare: 0.195
