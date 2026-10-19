@@ -1850,6 +1850,23 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   - The frog is a `Beast` with a new kernel brain `surfaces` (one beat:
     pressing to come up on the urge, wanted to dive after `restS`).
 
+- **M1 ✅ (a40645b0b)**. Decisions:
+  - Both workings ride the shipped `SustainedEffect` arm (`realizes:
+    'confer-medium' | 'offset-ambient'`) rather than a new mechanism; the
+    realisation pushes into `Respiration.setConferredBreathing` and
+    `ThermalRegulation.setWorkingOffsetK` (its own field — the plan's
+    warning about `_ambientOffsetK` held: that is the re-stamp's cache).
+  - The standing bill uses the charged shell's own standby draw
+    (`magic.charge.standbyWatts` × attention) against the caster's mana;
+    only these two realisations are billed (a veil and a glowlight stay
+    terms bought once, as they shipped). At 5 W the bill is small: the
+    TERM (15 game-minutes) is what a diver meets first, and the mana is
+    the ceiling on renewing it.
+  - The voice gate is in `prepareCastImpl`, after the caster and spell
+    checks and before hands — the mixin decides, the controller renders.
+  - The wand of glowlight is an arcane-library row stocked at Morrow's,
+    so terminus now depends on arcane-library (a new pack edge).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
