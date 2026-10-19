@@ -27,7 +27,7 @@ import SphericalLocation from '../../../platform/location/SphericalLocation';
 import SphericalLocale from '../../../platform/location/SphericalLocale';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Offstage from '../../../platform/location/Offstage';
-import VoidLocation from '../../../platform/location/VoidLocation';
+import Void from '../../../platform/location/Void';
 import Crossing from '../../../platform/location/Crossing';
 import CircleFloor from '../../../platform/location/sandbox/CircleFloor';
 import Floor from '../../../platform/thing/Floor';
@@ -443,11 +443,11 @@ describe('⭐ the roster — every concrete kernel Place class', () => {
     });
   }
 
-  it('VoidLocation is the ONE kernel class that opts out — by its row', async () => {
+  it('Void is the ONE kernel class that opts out — by its row', async () => {
     // The class itself has no opinion; `noDefaultFloor: true` is authored
-    // on `void.yaml`. A bare `new VoidLocation()` therefore DOES get one,
+    // on `void.yaml`. A bare `new Void()` therefore DOES get one,
     // and that is correct: the opt-out is content's to declare.
-    const room = await StuffApi.create(() => new VoidLocation());
+    const room = await StuffApi.create(() => new Void());
     expect(room.getFloor()).not.toBeNull();
     room.setNoDefaultFloor(true);
     expect(room.isNoDefaultFloor()).toBe(true);

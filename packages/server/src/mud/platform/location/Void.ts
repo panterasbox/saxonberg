@@ -1,7 +1,9 @@
 /**
- * VoidLocation — the bootstrap-pinned fallback location.
+ * Void — the bootstrap-pinned fallback: the ONE place with no coordinates.
  *
- * Concrete `Place` subclass used by the `/platform/location/void` seed
+ * ⭐ Every other place sits on a grid, cartesian or spherical (the place
+ * taxonomy, `location.md`); the void is nowhere, so it alone extends
+ * `Place` bare. Concrete `Place` subclass used by the `/platform/location/void` seed
  * exclusively. Its role is the **`HasInteractive` evacuation fallback**:
  * when a `ContainerMixin` host destructs with no outer, any
  * `HasInteractive` containables escape to this singleton so live sessions
@@ -25,7 +27,7 @@ import Place from '../../lib/stuff/Place';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import type { VetoResult } from '../../lib/errors';
 
-export default class VoidLocation extends SingletonMixin(Place) {
+export default class Void extends SingletonMixin(Place) {
   public canDestruct(): VetoResult {
     return {
       ok: false,

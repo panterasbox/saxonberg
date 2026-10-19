@@ -2,7 +2,7 @@
 
 > **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18).**
 > **Left:** the `/…/location/` path segment (branch folder + content trees)
-> · `VoidLocation`'s name.
+> · ✅ `VoidLocation` → `Void` (B53).
 > **Size:** a sweep.
 
 ## The decision (user, 2026-10-18)
@@ -48,7 +48,7 @@ line says it.
 | `platform/location/FurnishableRoom` | `PersistentLocation` | 48 files |
 | `platform/location/SingletonSphericalLocation` | `SphericalLocale` | 1 row |
 | `platform/location/SphericalLocation` | unchanged | — |
-| `platform/location/VoidLocation` | ? — a place that is neither (builds on `Place`, one row); not renamed | 14 files |
+| `platform/location/VoidLocation` | `Void` ✅ — the one place with no coordinates, on bare `Place` (B53) | 14 files |
 | `PersistentCartesianLocation` | `PersistentLocale` | ✅ done (14 rows) |
 | `Field`, `MineRoom` (minted, kept, keyed) | keep their names, the `PersistentLocation` shape | — |
 | `Wood`, `OpenWorking`, `Turbary` (authored, kept) | keep their names, the `PersistentLocale` shape | — |

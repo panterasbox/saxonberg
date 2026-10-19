@@ -49,17 +49,20 @@ beforeEach(() => {
  * still refused one. Type-checked, and every suite stayed green.
  */
 describe("the faces inherit the grid, they do not re-compose it", () => {
-  it("⭐⭐ a furnished room is NOT on the grid — it would go dark", () => {
-    // A Location derives `getSizeScale()` from its zone's
-    // `cellSize²`, and the light walk divides flux by it. Putting the
-    // furnished interior on the cartesian base made every zoned room
-    // `cellSize²` dimmer — a Hinkley yard at 600 lumens of open sky read
-    // 16.7 lux, under its own crop's floor. It shipped that way for one
-    // commit. Not one furnished row authors `coords`; a floorplan is not
-    // a grid.
-    expect(PersistentLocation.prototype instanceof LibLocation).toBe(false);
+  it("⭐⭐ a furnished room is ON the grid, and its size is its own", () => {
+    // Every place but the void has coordinates (the place taxonomy,
+    // cleanliness B53), so a furnished room is a `Location` — its holding
+    // lays it out from the floorplan. ⚠ But NOT sized by its zone's cell:
+    // a Location derives `getSizeScale()` from `cellSize²` and the light
+    // walk divides flux by it, so a Hinkley yard at 600 lumens of open sky
+    // read 16.7 lux on a 6 m cell, under its own crop's floor (it shipped
+    // that way for one commit, years ago). Unsized, it reads as it always
+    // has; an authored `extent` sizes it.
+    expect(PersistentLocation.prototype instanceof LibLocation).toBe(true);
     const room = makeStuffAtPath(() => new PersistentLocation(), "/x/y/room");
     expect(room.getSizeScale()).toBe(1.0);
+    room.setExtent(4);
+    expect(room.getSizeScale()).toBe(16);
   });
 
   it("⭐ every cartesian face carries the cardinal-rule addExit", () => {
@@ -70,7 +73,7 @@ describe("the faces inherit the grid, they do not re-compose it", () => {
       "addExit",
     );
     expect(own, "the lib class owns the rule").toBeTruthy();
-    for (const cls of [Location, Locale]) {
+    for (const cls of [Location, Locale, PersistentLocation]) {
       expect(
         cls.prototype instanceof LibLocation ||
           Object.getPrototypeOf(cls.prototype) === LibLocation.prototype,

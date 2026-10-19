@@ -30,9 +30,7 @@
  * second one.
  */
 
-import Place from '../../lib/stuff/Place';
-import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { PerceptibleMixin } from '../../lib/description/Perceptible';
+import Location from '../../lib/location/Location';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type Exit from '../../lib/boundary/Exit';
@@ -44,34 +42,31 @@ import type { FieldMeta } from '../../lib/mixin';
 /** The kind row every tombstone is cloned from. */
 export const TOMBSTONE_ROW = '/platform/location/tombstone';
 
-// ⭐ `PerceptibleMixin` is composed per class because `Place` does
-// NOT carry it — only `Location` does — so a room class built
-// directly on `Place` has to remember, or it authors
-// `primaryKeyword` into a void (`lint:presentation` clause (d)).
-const TombstoneBase = ExitableMixin(PerceptibleMixin(Place));
-
-export default class Tombstone extends TombstoneBase {
+// ⭐ A `Location` — one minted per offlined extent — and, like every place
+// but the void, it has coordinates: a tombstone stands alone in a frame
+// of its own, at that frame's origin. Its one exit (`out`) leaves it.
+export default class Tombstone extends Location {
   static fieldMeta: FieldMeta = {
     // ⚠ Authorable but NOT persistent: a tombstone is minted per
     // offlining with a data overlay and reaped when the last reader
     // leaves, so there is nothing about it worth remembering across a
     // restart — the parcel's flag is the durable fact.
-    extent: { authorable: true },
+    takenDownExtent: { authorable: true },
     takenDownBy: { authorable: true },
   };
 
   /** The extent whose content was taken down. */
-  public extent = '';
+  public takenDownExtent = '';
 
   /** Who took it down, as a readable name — never a key. */
   public takenDownBy = '';
 
-  public getExtent(): string {
-    return this.extent;
+  public getTakenDownExtent(): string {
+    return this.takenDownExtent;
   }
 
-  public setExtent(value: string): void {
-    this.extent = value;
+  public setTakenDownExtent(value: string): void {
+    this.takenDownExtent = value;
   }
 
   public getTakenDownBy(): string {

@@ -57,10 +57,8 @@
  * smoke and carbon monoxide, and self-smothers (D12).
  */
 
-import Place from "../../lib/stuff/Place";
+import Location from "../../lib/location/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { StagedMixin } from "../../lib/stuff/Staged";
-import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
@@ -74,53 +72,33 @@ import type { FieldMeta } from "../../lib/mixin";
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
-// ⭐⭐ **It is NOT one of the four Place classes, and that is a claim
-// about what a furnished room IS.**
+// ⭐⭐ **On the grid, in its HOLDING's frame** (the place taxonomy,
+// cleanliness B53 — the user: *"every place has coordinates"*).
 //
 // **Minted**, yes: many live rooms per row, keyed per holding — three
 // houses on three lots are three halls from one `hall.yaml`. Never a
-// singleton.
+// singleton — so a `Location`, one of many laid out to a plan.
 //
-// **But not CARTESIAN**, and this is the part that is easy to get wrong,
-// because a floorplan looks like a small grid: the authored exits say
-// `{ to: kitchen, direction: east }`, rooms sit north and east of one
-// another, and it is tempting to conclude there is a coordinate system
-// underneath. There is not, and the give-away is that not one shipped
-// row authors `coords`.
+// ⚠ The PLAN is the holding's floorplan, not the street's grid. A lot's
+// rooms on the lots zone's grid would land on the next lot's, and a
+// generic `/stuff/location/room/*` row resolves no zone at all. So the
+// holding lays its rooms out in its own frame (`HoldingWarren.layOut`,
+// the floorplan's cardinal exits from the entry room) and stamps each
+// room's coordinates; a door out of the holding — the dorm's `out`, the
+// corridor's `unit-3` — crosses frames (`Warren.laysOutOwnFrame`).
 //
-// ⚠ The cost of getting it wrong is not abstract. A `Location`
-// derives its cell geometry from its ZONE — `getSizeScale()` is
-// `cellSize²` — and the light walk divides flux by that to get lux. A
-// furnished room on the cartesian base therefore reads
-// `cellSize²`-times dimmer the moment it is zoned: a Hinkley yard at 600
-// lumens of open sky came out at **16.7 lux**, under the light floor its
-// own crop needs, and every interior went the same way on its fixtures.
-// This class was cartesian for one commit and did exactly that. A lot is
-// not a grid cell of the street either — N lots cannot share one
-// coordinate.
+// ⚠ And its SIZE is its own. This class was cartesian once before, for
+// one commit, and the zone's cell became every room's floor area: a
+// Hinkley yard at 600 lumens of open sky read **16.7 lux** on a 6 m
+// cell, under its own crop's light floor. So `sizedByZoneCell()` is
+// false: an authored `extent` sizes the room, and an unsized one reads
+// as it always has.
 //
-// So: plain `Place` with the room mixins, plus the three things a
-// room somebody FURNISHES needs and a bare cell does not — a record of
-// its own (`Persistable`), a warren to belong to (`WarrenMember`), and
-// the ability to author a finite `air` budget (`Reserved`).
+// The three things a room somebody FURNISHES needs and a bare cell does
+// not: a record of its own (`Persistable`), a warren to belong to
+// (`WarrenMember`), and a finite `air` budget it can author (`Reserved`).
 const PersistentLocationBase = PersistableMixin(
-  WarrenMemberMixin(
-      ExitableMixin(
-        // ⭐⭐ `PerceptibleMixin` beside `Visible` — a furnished room is
-        // addressable by keyword, and **all ten shipped rows already say
-        // so**: every one authors `primaryKeyword` / `keywords` /
-        // `alternateNames`, and until 2026-09-11 the applier discarded
-        // every one of them, because this stack builds on `Place`
-        // rather than `Location` and so never composed it.
-        //
-        // Same shape as the 48 agent rows W3 fixed: when authored
-        // content asserts a field the class does not declare, the class
-        // is wrong, not the content. Found by `lint:presentation`
-        // clause (d) the day the clause existed.
-        
-          ReservedMixin(StagedMixin(Place)),
-      ),
-  ),
+  WarrenMemberMixin(ReservedMixin(Location)),
 );
 
 /** Structural view of the warren surface the population witness pokes. */
@@ -132,6 +110,11 @@ export default class PersistentLocation extends PersistentLocationBase {
   static fieldMeta: FieldMeta = {
     postedAs: { persistent: true, authorable: true },
   };
+
+  /** A furnished room is sized by its own `extent`, never its zone's cell. */
+  protected override sizedByZoneCell(): boolean {
+    return false;
+  }
 
   /**
    * **What the sign on the door says** — `unisex`, `gendered`, `staff`,

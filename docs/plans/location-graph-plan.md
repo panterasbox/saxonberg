@@ -336,7 +336,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
     "scheme 2 mints identity" is wrong**: the per-instance durable handle
     of a holding room is **row + key** — requirements decision 9.
   - **Singleton places** (`Locale`,
-    `SphericalLocale`, `Offstage`, `VoidLocation`, the
+    `SphericalLocale`, `Offstage`, `Void`, the
     crossing's `Street` lineage) have no stamp and no key; their one
     instance IS the row, so the row is the right handle — the behaviour
     the bar's secret door relies on.
@@ -446,7 +446,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `evacuationFallback` (line 54) are the two global fallbacks;
   `lib/spatial/Container.ts:286` escapes `HasInteractive` occupants to
   the evacuation fallback on a host destruct with no outer.
-  `platform/location/VoidLocation.ts` (bootstrap-pinned, refuses
+  `platform/location/Void.ts` (bootstrap-pinned, refuses
   destruct) and `platform/location/Offstage.ts` (a `SingletonMixin(OffstageMixin(Location))`,
   deliberately not Exitable) are the two shipped "nowhere" rooms.
 - **G6 — the Api↔Logic pair.** `api/navigation.ts:56` `NavigationApi`
@@ -1268,7 +1268,7 @@ new gates), `sandbox.md` (the method override; *wire body* throughout).
 | `onPerceivedPlace?` · `onReadTimetable?` | `Perceiver` interface (optional `@hook`s) | declaring an optional hook claims nothing of a composer that does not implement it (an NPC perceiver stays a no-op); the only implementer is `Avatar`. ⭐ No guard is needed in `Sense`/`Look`/`Teleport`: they already narrow on `isPerceiver`, and calling an optional member is the `Mobile.canTraverse?` idiom. |
 | the three map writers (`onPerceivedPlace`, `onReadTimetable`, `onTraversed`) | ⚠ **CORRECTED IN REVIEW** → `CartographerMixin` (`lib/location/Cartographer.ts`). *Was:* `Avatar`, on the reasoning that *players own a `/home/<self>` branch* — which is about where the DOCUMENT goes, not about who may keep a map. The tell was a private `writesMaps()` predicate re-narrowing the host set from inside `Avatar`: this plan's own host-placement test says that means the host is wrong. And the row's own last sentence (*"if an NPC guide ever wants a map, it implements the hooks"*) was the giveaway — under that shape it would have had to reimplement ~220 lines of private conversion. The mixin owns the policy, the conversion and the routing; `Avatar` keeps only `keepsMaps()`, the one fact the family can answer. ⚠ The `map` VERB stays on `Avatar`: writing is a capability, reading is a person's. |
 | `publishedStops()` | the `TravelNode` shape (kernel) · implemented by `FastTravelMixin` (tpa pack) | a travel network can say what it advertises; a node without the method advertises nothing. |
-| `Tombstone` | `platform/location/Tombstone.ts` + the kind row | an instanceable Location; `Offstage`/`VoidLocation` are its siblings. Named for what it IS (a marker where a place stood), a noun. |
+| `Tombstone` | `platform/location/Tombstone.ts` + the kind row | an instanceable Location; `Offstage`/`Void` are its siblings. Named for what it IS (a marker where a place stood), a noun. |
 | `map` verb | `Avatar.commandContributions.self` | the read is the player's; see D17. |
 | `title publish` / `title offline` | the existing `title` view + `TitleController` | no new affordance. |
 

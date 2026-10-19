@@ -42,6 +42,7 @@
 
 import { Warren } from './Warren';
 import { PlatPlan } from './PlatPlan';
+import Location from './Location';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { ParcelApi } from '../../api/parcel';
@@ -498,6 +499,10 @@ export abstract class OuterWarren extends Warren {
     }
     this._circulationByNode.set(nodeId, room);
     await this.wireCirculationNode(nodeId, room);
+    // ⭐ Every place has coordinates: a minted node takes the cell its
+    // wiring says it is in — one step from the neighbour it was wired to.
+    // An authored node authors its own `coords:`.
+    if (!authoredPath && room instanceof Location) room.plotBesideNeighbour();
 
     // Entry edges for every provisioned holding on this node.
     for (const key of this._provisionedKeys) {

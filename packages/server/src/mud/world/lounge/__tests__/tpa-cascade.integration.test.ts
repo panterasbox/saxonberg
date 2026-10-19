@@ -101,7 +101,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_ROOM,
-    class: "/platform/location/VoidLocation",
+    class: "/platform/location/Void",
     data: { shortDescription: "the Terminus arrival gate" },
   },
 ];

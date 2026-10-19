@@ -2896,8 +2896,8 @@ Read first, in this order.
   `Location` (the lib geometry root shares the twin's name, the default for
   lib/platform pairs — no `CartesianPlace` coined); `SingletonCartesian
   Location` → `Locale`; `FurnishableRoom` → `PersistentLocation` (it is not
-  on the grid, so it builds on `Place` and does not extend `Location` —
-  recorded in location.md); `SingletonSphericalLocation` → `SphericalLocale`.
+  on the grid — WRONG, corrected by B53: it is a `Location` in its
+  holding's frame); `SingletonSphericalLocation` → `SphericalLocale`.
   Scripted over ~690 files, root first so the two `Location`s never meet.
   Hand fixes where the root was named by STRING: the runtime branch-file
   allowlist in `Stuff._registerTopLevelBranch` (tsc cannot see it; a boot
@@ -2909,6 +2909,26 @@ Read first, in this order.
   `FURNISHED`, the archetype test's `Midden`, and `Wet.dryingOutlook`'s
   `BiomeApi` import cycle (the read moved to `Atmospheric.dryingConditions`
   — the air is the place's to describe).
+- **B53 — Every place has coordinates but the void** (review, the user:
+  *"PersistentLocation is most definitely a grid … the only exception
+  would be the Void"*). `VoidLocation` → `Void`, the one class on bare
+  `Place`; `PersistentLocation`, the dorm `Corridor`, `Lounge`,
+  `CircleFloor`, `Tombstone` → `Location`; `Offstage` → `Locale` (its five
+  rows author a cell behind their venue). The cells: a minted node takes
+  the one beside the neighbour it was wired to
+  (`Location.plotBesideNeighbour`, from `OuterWarren.ensureNode`; it
+  refuses rather than overwrite, which the grid never checked); a holding
+  lays its rooms out in its OWN frame from the floorplan
+  (`HoldingWarren.layOut`), because a plat's houses would share the
+  street's cells and the generic room rows have no zone — so a door out
+  of a holding crosses frames (`Warren.laysOutOwnFrame`, read by
+  `Location.addExit`: the dorm's `unit-N`/`out` would otherwise throw).
+  The rooms that moved off bare `Place` keep their size their own
+  (`sizedByZoneCell()` false) — their light was tuned unsized; authoring
+  extents is open. `Tombstone.extent` (a path) → `takenDownExtent`, which
+  had collided with `Location`'s metres. Found on the way: the Hearthworks
+  cellar and cookhouse both authored (2,0,0) and the grid kept one
+  silently — the cellar is under the cookhouse now, (2,0,-1).
 
 ## Drive record
 

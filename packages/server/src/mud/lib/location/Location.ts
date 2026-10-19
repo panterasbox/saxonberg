@@ -27,6 +27,7 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { StagedMixin } from '../stuff/Staged';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
+import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 import type CartesianZone from '../../platform/idea/location/CartesianZone';
 import type Exit from '../boundary/Exit';
@@ -119,6 +120,11 @@ export default class Location extends LocationBase {
       // or runtime-only test object). Permissive — allow.
       return super.addExit(exit);
     }
+    // ⭐ A holding lays its rooms out in its OWN frame (a dorm room, a
+    // house's hall), so a door between a holding's room and the corridor
+    // or street outside it crosses frames even when both resolve to one
+    // zone — the dorm's `unit-3` and `out`.
+    if (this.crossesHoldingFrame(exit)) return super.addExit(exit);
     const sourceZone = await ZoneApi.resolveZoneForPath(sourcePath);
     const destZone = await ZoneApi.resolveZoneForPath(destPath);
     if (sourceZone && destZone && sourceZone === destZone) {
@@ -208,7 +214,91 @@ export default class Location extends LocationBase {
    * derivations below read.
    */
   public override getLinearExtent(): number | null {
-    return this._extent ?? this.getZone()?.getCellSize() ?? null;
+    if (this._extent !== null) return this._extent;
+    return this.sizedByZoneCell() ? (this.getZone()?.getCellSize() ?? null) : null;
+  }
+
+  /**
+   * Whether an UNSIZED room (no authored `extent`) takes its zone's
+   * `cellSize` as its size. Yes for a cell of the zone's grid.
+   *
+   * ⚠ No for the rooms that joined `Location` from bare `Place` in the
+   * place taxonomy (cleanliness B53): a furnished room, a dorm corridor,
+   * a lounge — their rows' light (`ambientIntensity`) was tuned for an
+   * unsized room, and a 6 m Hinkley cell would read their yard at 16.7
+   * lux, under its own crop's light floor. Their size is their own: an
+   * authored `extent` sizes them, and until a row authors one they read
+   * as they always have. Authoring extents (and retuning that light) is
+   * the open work this flag names.
+   */
+  protected sizedByZoneCell(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐ **Take the cell beside a plotted neighbour** — how a place a warren
+   * MINTS gets its coordinates (a reach of lane, a corridor per floor).
+   * Its exits already say where it is: an exit `down` to a lobby at
+   * (0,1,0) puts this room at (0,1,1). The first cardinal exit to a
+   * neighbour that is on this room's zone grid decides, and the room
+   * joins that grid there.
+   *
+   * Refuses (returns `false`, and says why) rather than overwriting when
+   * another place already holds the cell — the grid itself does not check.
+   */
+  public plotBesideNeighbour(): boolean {
+    const self = this as unknown as Stuff;
+    const zone = this.getZone();
+    if (!zone) return false;
+    if (zone.hasRoomAt(...this.getCoordinates(), this)) return true;
+    for (const [direction, exit] of this.getExits()) {
+      const off = NavigationApi.directionOffset(direction);
+      if (!off) continue;
+      let near: Stuff | null = null;
+      try {
+        near = exit.getDestination();
+      } catch {
+        continue;
+      }
+      if (!(near instanceof Location) || near.getZone() !== zone) continue;
+      const [x, y, z] = near.getCoordinates();
+      if (!zone.hasRoomAt(x, y, z, near)) continue;
+      const cell: [number, number, number] = [x - off[0], y - off[1], z - off[2]];
+      if (zone.hasRoomAt(...cell)) {
+        console.warn(
+          `Location.plotBesideNeighbour: ${self.getIdentityPath() ?? self.stuffId} ` +
+            `wants (${cell.join(',')}) beside ${near.getIdentityPath() ?? near.stuffId}, ` +
+            `and another place holds it — left off the grid.`,
+        );
+        return false;
+      }
+      zone.addLocation(this, ...cell);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Does this exit cross between a holding's own frame and another? A
+   * place belongs to a holding's frame when it is a member of a warren
+   * that {@link Warren.laysOutOwnFrame lays out its own}; two places in
+   * different such frames (or one in a frame and one outside) are on
+   * different grids, whatever zone their rows resolve to.
+   */
+  private crossesHoldingFrame(exit: Exit): boolean {
+    let dest: Stuff | null = null;
+    try {
+      dest = exit.getDestination();
+    } catch {
+      return false;
+    }
+    return this.holdingFrameOf(this as unknown as Stuff) !== this.holdingFrameOf(dest);
+  }
+
+  private holdingFrameOf(place: Stuff): Stuff | null {
+    if (!MixinApi.isWarrenMember(place)) return null;
+    const warren = place.getWarren();
+    return warren && warren.laysOutOwnFrame() ? warren : null;
   }
 
   /**

@@ -293,6 +293,24 @@ describe('the residential programme (D16)', () => {
     expect(holding.getUpkeepTerm()).toBe('owner-all');
   });
 
+  it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {
+    // Every place but the void has coordinates. A holding's rooms take
+    // theirs from the floorplan's cardinal exits, the entry at the origin:
+    // the hall at (0,0,0), the bedroom north of it.
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const cell = (r: unknown) =>
+      (r as { getCoordinates(): [number, number, number] }).getCoordinates();
+    expect(cell(hall)).toEqual([0, 0, 0]);
+    expect(cell(holding.roomForLeaf('bedroom'))).toEqual([0, 1, 0]);
+    // A frame of its own — a door out of it may be named, like a door
+    // between zones.
+    expect(holding.laysOutOwnFrame()).toBe(true);
+  });
+
   it('⭐ sleeps and wakes WHOLE — rooms + fixtures + placed goods together', async () => {
     seedLot();
     await bootRegistries();
@@ -679,6 +697,11 @@ describe('⭐ admitPlot — the break-ground seam (farmstead W3)', () => {
     expect(
       (field as unknown as Stuff & Exitable).getExit('out'),
     ).toBeTruthy();
+    // ⭐ A plot hung off the house by NAME is not reached by the cardinal
+    // plan, so it sits in the row beyond the house (B53).
+    expect(
+      (field as unknown as { getCoordinates(): number[] }).getCoordinates(),
+    ).toEqual([0, 2, 0]);
   });
 
   it('⭐ it PERSISTS, by the same machinery that stands up a hall', async () => {

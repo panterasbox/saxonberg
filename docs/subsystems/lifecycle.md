@@ -415,7 +415,7 @@ class SpatialZone extends Zone {
   }
 }
 
-class VoidLocation extends SingletonMixin(Location) {
+class Void extends SingletonMixin(Location) {
   // Bootstrap-pinned singleton — `ContainerMixin.cleanupOnDestruct`
   // evacuates HasInteractive bodies to `/world/void` via sync
   // `findByTemplatePath`, so the void must stay live for the

@@ -6,6 +6,13 @@
  * ⚠ A Place is the NOUN; a *placement* (`on`·`in`·`from`, the `Placing`
  * mixin, the `place` verb) is the RELATION of a thing to where it sits.
  *
+ * ⭐⭐ **Every place has coordinates, cartesian or spherical — except the
+ * void** (`platform/location/Void`, the one class that extends this bare).
+ * Everything else extends `Location` or `SphericalLocation`: an authored
+ * row says its `coords:`; a place a warren mints takes the cell its
+ * wiring says it is in (`Location.plotBesideNeighbour`); a holding lays
+ * its rooms out in a frame of its own (`Warren.laysOutOwnFrame`).
+ *
  * Root for spatial containers in the world.
  *
  * Pure structural role: a Place is any Stuff that can hold other

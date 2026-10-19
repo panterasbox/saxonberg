@@ -3,6 +3,8 @@
 # Materialized on demand by shifts; players cannot reach it.
 class: /platform/location/Offstage
 data:
+  # Every place but the void has a cell (the place taxonomy) — behind the stalls, north of the square.
+  coords: { x: 0, y: 1, z: 0 }
   shortDescription: Farmers Market — behind the stalls
   keywords: [behind, stalls, yard, market, back]
   register: proper

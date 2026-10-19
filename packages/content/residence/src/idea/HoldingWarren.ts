@@ -38,6 +38,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -313,6 +314,7 @@ export default class HoldingWarren extends ProgrammeBase {
     for (const edge of this.getFloorplanExits()) {
       if (edge.from === spec.leaf) await this.wireEdge(edge);
     }
+    this.layOut();
     await PersistableApi.capture(this as unknown as Stuff, this.holdingKey() ?? undefined);
     return room;
   }
@@ -338,6 +340,74 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     for (const edge of this.getFloorplanExits()) {
       await this.wireEdge(edge);
+    }
+    this.layOut();
+  }
+
+  /** ⭐ A holding is a frame of its own — see {@link layOut}. */
+  public override laysOutOwnFrame(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐⭐ **Every place has coordinates — a holding's rooms in the
+   * HOLDING's frame** (the place taxonomy, cleanliness B53).
+   *
+   * The entry room is the origin, and the floorplan's cardinal exits lay
+   * the rest out from it: the Hinkley house's yard (0,0,0), its hall one
+   * north at (0,1,0), the kitchen east of the hall at (1,1,0). Nothing is
+   * authored that was not already: the exits always said where each room
+   * was. Not the street's grid — every house of a plat would share one
+   * set of cells, and a generic room row resolves no zone at all.
+   *
+   * A room the cardinal plan does not reach (a field plotted off the yard
+   * by NAME, `field-1`) sits in a row beyond the house, in floorplan
+   * order. A cell two edges disagree about keeps its first room; the
+   * second is laid out with the unreached. Re-run on every wake and every
+   * admitted plot — it is derived, never stored on the floorplan.
+   */
+  public layOut(): void {
+    const plan = this.getFloorplan();
+    const entry = plan.find((r) => r.entry) ?? plan[0];
+    if (!entry) return;
+    const leafOf = (l: string | undefined): string => l ?? '';
+    const keyOf = (c: readonly number[]): string => c.join(',');
+    const cells = new Map<string, [number, number, number]>();
+    const taken = new Set<string>();
+    const place = (leaf: string, cell: [number, number, number]): void => {
+      cells.set(leaf, cell);
+      taken.add(keyOf(cell));
+    };
+    place(leafOf(entry.leaf), [0, 0, 0]);
+    const edges = this.getFloorplanExits();
+    const queue = [leafOf(entry.leaf)];
+    while (queue.length > 0) {
+      const from = queue.shift()!;
+      const at = cells.get(from)!;
+      for (const e of edges) {
+        const forward = e.from === from;
+        const next = forward ? e.to : e.to === from ? e.from : null;
+        const dir = forward ? e.direction : e.opposite;
+        if (next === null || cells.has(next) || !dir) continue;
+        const off = NavigationApi.directionOffset(dir);
+        if (!off) continue;
+        const cell: [number, number, number] = [at[0] + off[0], at[1] + off[1], at[2] + off[2]];
+        if (taken.has(keyOf(cell))) continue;
+        place(next, cell);
+        queue.push(next);
+      }
+    }
+    const beyond = Math.max(...[...cells.values()].map((c) => c[1])) + 1;
+    let x = 0;
+    for (const r of plan) {
+      const leaf = leafOf(r.leaf);
+      if (cells.has(leaf)) continue;
+      while (taken.has(keyOf([x, beyond, 0]))) x += 1;
+      place(leaf, [x, beyond, 0]);
+    }
+    for (const [leaf, cell] of cells) {
+      const room = this.roomForLeaf(leaf || undefined);
+      if (room && MixinApi.isCartesianCoordinates(room)) room.setCoordinates(cell);
     }
   }
 

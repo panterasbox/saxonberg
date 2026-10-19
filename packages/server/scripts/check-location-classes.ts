@@ -339,11 +339,13 @@ export function orphanedZones(rows: readonly Row[], files: readonly string[]): s
  * boot error rather than a warning.
  *
  * It is a merge hazard, not a typo, which is why it is worth a gate:
- * `PersistentLocation` is deliberately NOT cartesian, so a `coords:` block
- * on one is inert data nobody reads. Move that row to
- * `Locale` — as the residences build did for three
- * trade floors — and the dead block becomes LIVE, in a directory that
- * never needed a zone before. Nothing else notices until a boot.
+ * a `coords:` block on a row whose class never read it is inert data
+ * nobody notices. Move that row to `Locale` — as the residences build did
+ * for three trade floors — and the dead block becomes LIVE, in a
+ * directory that never needed a zone before. Nothing else notices until a
+ * boot. (`PersistentLocation` was such a class until the place taxonomy,
+ * cleanliness B53; it is on the grid now, but its HOLDING lays it out, so
+ * its rows still author no coords.)
  *
  * Three rows shipped in exactly that state and the metal-chain build
  * found them by booting: `trade-distilling`'s cash-and-carry,
@@ -405,7 +407,14 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * `placeInGrid` stamps the coordinates, which is precisely the
  * warren-manages-them-dynamically case.
  *
- * ⭐ The fifth is the FIELD, and it is the same case reached from the
+ * ⭐ The dorm CORRIDOR and the LOUNGE are minted the same way: a corridor
+ * per live floor takes the cell its `down` stair says it is in
+ * (`Location.plotBesideNeighbour`, from `OuterWarren.ensureNode`), and a
+ * lounge satellite the cell off its host its star direction names
+ * (`LoungeWarren.wireHubExit`). Both joined `Location` from bare `Place`
+ * in the place taxonomy (cleanliness B53).
+ *
+ * ⭐ The FIELD is the same case reached from the
  * other side. `HoldingWarren.admitPlot` clones one per `plot` and hangs
  * it off the holding's floorplan; a holding's rooms are not on the
  * street's grid (*a lot's room is NOT on the street's grid* — the
@@ -424,10 +433,24 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
   "trade-farming/content/trade/farming/location/field.yaml",
+  "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
+  "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
+];
+
+/**
+ * Rows minted as a FRAME OF THEIR OWN — the place is its frame's origin,
+ * with no neighbour on any grid (the place taxonomy, cleanliness B53:
+ * every place but the void has coordinates). A circle's floor is the
+ * circle; a tombstone stands alone where an offlined extent stood, with
+ * one exit out. Nothing assigns a cell because there is no other cell.
+ */
+export const OWN_FRAME = [
+  "platform/content/platform/location/sandbox/CircleFloor.yaml",
+  "platform/content/platform/location/tombstone.yaml",
 ];
 
 export function unplottedLocations(rows: readonly Row[]): string[] {
-  const exempt = new Set<string>([...MINTED_ROWS, ...FURNISHED, ...WARREN_PLACED]);
+  const exempt = new Set<string>([...MINTED_ROWS, ...FURNISHED, ...WARREN_PLACED, ...OWN_FRAME]);
   const zones = new Set(
     rows.filter((r) => isZoneClass(r.cls)).map((r) => stemOf(r.file)),
   );
@@ -558,10 +581,8 @@ function main(): void {
         `\`coords:\` with NO CartesianZone over them. \`setCoords\` calls ` +
         `\`zone.addLocation\`, so these throw at hydrate — and a row in a ` +
         `pack's \`boot:\` list turns that into a FATAL boot error.\n\n` +
-        `  ⚠ Usually the block is dead data that came alive: ` +
-        `\`PersistentLocation\` is deliberately NOT cartesian, so \`coords:\` ` +
-        `on one is ignored — and moving the row to ` +
-        `Locale makes it live.\n\n` +
+        `  ⚠ Usually the block is dead data that came alive: a row ` +
+        `moved onto a class that reads \`coords:\` (\`Locale\`).\n\n` +
         `  ⚠⚠ GIVE IT A ZONE. An earlier revision of this message said to ` +
         `delete the coords instead, and that advice was taken and was ` +
         `WRONG: coords are the MEMBERSHIP operation, so deleting them ` +

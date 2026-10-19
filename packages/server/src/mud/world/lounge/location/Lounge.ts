@@ -16,16 +16,14 @@
  *
  * Composition — the member-side mixins plus coordinates and the usual
  * description/exit surface:
- *   WarrenMember → Lounge(Mixin) → Visible → Detailed → Cartesian → Exitable
+ *   Lounge(Mixin) → WarrenMember → Location
  *
  * Still no `SingletonMixin`: repeated clones are the whole point.
  */
 
-import Place from '../../../lib/stuff/Place';
-import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
+import Location from '../../../lib/location/Location';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
-import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed
@@ -33,28 +31,19 @@ import type { FieldMeta } from '../../../lib/mixin';
 // `Location` does), so every room class built directly on
 // `Place` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-const LoungeBase =
-  ExitableMixin(
-    CartesianCoordinatesMixin(
-        LoungeMixin(WarrenMemberMixin(Place)),
-    ),
-  );
+const LoungeBase = LoungeMixin(WarrenMemberMixin(Location));
 
 export default class Lounge extends LoungeBase {
   static fieldMeta: FieldMeta = {};
 
-  /**
-   * Wire any inverse exit pointers (host fixtures are imperatively
-   * installed by the Warren, so there is rarely pending work). The
-   * instruction-field `warren` self-registration has already run via the
-   * applier's Phase 2 (`applyWarren`) by the time this hook fires.
-   */
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate(context);
-    this.verifyOutboundExits();
+  /** Sized by its own `extent`, not the lounge zone's cell — its rows'
+   *  light was tuned for an unsized room (the place taxonomy, B53). */
+  protected override sizedByZoneCell(): boolean {
+    return false;
   }
 
-  // onDestruct inherited: ExitableMixin (exit teardown) → Place (zone
-  // detach, a no-op here) → … → Stuff terminal. WarrenMember's static
+  // onCreate inherited: `Location.onCreate` wires the inverse exit
+  // pointers. onDestruct inherited: ExitableMixin (exit teardown) → Place
+  // (zone detach) → … → Stuff terminal. WarrenMember's static
   // cleanupOnDestruct unhooks from the Warren's set on the destruct walk.
 }

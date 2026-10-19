@@ -683,14 +683,37 @@ descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
 
 Cartesian is the default and goes unprefixed; a spherical place says so.
 
-⚠ Two things the names do not say. The grid geometry the cartesian pair
-shares is `lib/location/Location` (the twin shares its instanceable
-class's name, as every lib/platform pair does), so a `Locale` IS-A grid
-`Location` in code while meaning *one place* in the taxonomy. And
-`PersistentLocation` is NOT on the grid — a lot or a dorm room is placed
-by its warren, not a coordinate — so it builds on `Place` directly and does
-not extend `Location`. The few places that are neither (`Offstage`,
-`Tombstone`, `VoidLocation`) build on `Place` too.
+⭐⭐ **Every place has coordinates, cartesian or spherical — except the
+void** (user, 2026-10-18). `Void` is the one class that extends `Place`
+bare; everything else is a `Location` or a `SphericalLocation`. Who gives a
+place its cell:
+
+| the place | its cell |
+|---|---|
+| an authored row (`Locale`, `Street`, `Offstage`…) | its own `coords:` in its zone |
+| a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `OuterWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
+| a lounge satellite, a mine cell | its warren (`LoungeWarren.wireHubExit`, `MineWarren.placeInGrid`) |
+| a holding's room (a house, a let unit, a dorm room, a field) | the HOLDING's own frame — `HoldingWarren.layOut`: the entry room at the origin, the floorplan's cardinal exits from it; a room plotted off by name sits in the row beyond the house |
+| a circle's floor, a tombstone | the origin of a frame of its own |
+
+⚠ A holding is a frame, not a patch of the street's grid: every house of a
+plat would otherwise claim the same cells, and the generic
+`/stuff/location/room/*` rows resolve no zone. So a door between a
+holding's room and the grid outside it (the dorm's `unit-3` and `out`)
+crosses frames and may be named, as a door between zones may
+(`Warren.laysOutOwnFrame`, read in `Location.addExit`).
+
+⚠ A room that joined `Location` from bare `Place` is sized by its OWN
+`extent`, not its zone's cell (`sizedByZoneCell()` false on
+`PersistentLocation`, the dorm `Corridor`, `Lounge`): their rows' light was
+tuned for an unsized room, and a 6 m Hinkley cell reads the yard at 16.7
+lux. Authoring extents and retuning that light is open work.
+
+The grid geometry the cartesian pair shares is `lib/location/Location` (the
+twin shares its instanceable class's name, as every lib/platform pair
+does), so a `Locale` IS-A grid `Location` in code while meaning *one place*
+in the taxonomy.
+
 A kept place must be one place (a locale) or keyed (a location in a warren)
 — `PersistableLocations.test` holds it. `PersistableMixin` is composed
 OUTERMOST over a place's own substrate, which is why a kept place with
