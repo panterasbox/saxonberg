@@ -1,18 +1,22 @@
 # Laundry — the trade that is paid for an absence
 
-> **Status: UNBUILT** — and ⚠ **blocked on a producer, not on itself**:
-> `SoilableMixin` does not ship. `textiles.md` defers soiling's gauge and
-> bands to [room-condition](../builds/room-condition-design-pack.md), so **there
-> is currently no dirt for a laundry to remove.**
-> **Left:** the **congruence** read (not a cleanliness score) · the
-> doorman as the refusal surface · soap as a chain (fat + wood ash) ·
-> the **soft/hard** water consumer · bleaching as **deliberate fade** ·
-> the laundress's **liability** failure mode · the public *lavoir*.
-> ⛔ **Three refusals:** no engine gauge from dress to regard (it is a
-> **brain**, in a pack) · no verb conferral, ever · and no
-> time-integrated soiling.
-> **Size:** a tail — it is one mixin's consumer plus content, once
-> room-condition lands.
+> **Status: PARTIAL** — the trade shipped in the cleanliness build (MR
+> !380, 2026-10-19): `SoilableMixin`, the wash chemistry, the laundress
+> and her method by band, the house's cover, the lavoir, the bathhouse,
+> the doorman's dress code, soap from ash-lye, hardness on the water, the
+> bleach green — [cleanliness.md](../../subsystems/cleanliness.md) is the
+> live doc. Compacted 2026-10-19.
+> **Left:** the next epochs of the same verbs (chlorine · detergent · the
+> machine, § Lens 5) · the small-claims hearing of a ruined-garment
+> liability (§ Lens 7) · the lavoir as gossip — the laundress-as-witness,
+> aggregated · work songs / fulling · wash day · the laundress who does
+> not ask (§ pleasure pass) · `analyze dress` as a `Reading` row (Q4) ·
+> the second set of clothes (Q5) · the house mends it · an appraisal · the
+> laundress's par loop · the till payout of a cover to a cash customer ·
+> stale urine's collection (→ sanitation) (§ Left by the cleanliness
+> build).
+> **Size:** a tail — content and small seams, each riding another build
+> (repair, retail/contract, sanitation, the machine epoch).
 
 Designed 2026-10-08, out of the water-trade audit
 ([navigable-water-slate](../builds/navigable-water-slate.md) § 5c). ⭐ Raised as
@@ -22,89 +26,20 @@ liability gate, a shipped-but-inverted verb, and the cleanest instance of
 
 ---
 
-## ⚠⚠ The finding: `wash` ships and removes the wrong thing
+*The finding (`wash` stripped dye and nothing deposited dirt) and the
+textiles refusal of a laundry vocation were both answered by the
+cleanliness build: `SoilableMixin` ships and `Soilable.washSite` removes
+dirt by kind — [cleanliness.md § The wash](../../subsystems/cleanliness.md);
+the laundress, her method by band and the house's cover —
+[cleanliness.md § People](../../subsystems/cleanliness.md).*
 
-`wash <garment>` **already exists** (`textiles.md` § *Dye, wash and
-fade*): it takes the launder branch and **strips colour** in proportion to
-`1 − fastness`, so an un-mordanted piece washes straight out on the first
-launder.
-
-And **`SoilableMixin` does not ship at all** — asserted absent, with the
-gauge, the bands and the attributed deposit log all belonging to
-room-condition. Soiling's only shipped piece is **a method, not a
-signal**: `wearer.outermostAt(partKey)`, which answers *which layer takes
-the stain* for a stain nothing deposits.
-
-> ⚠⚠ **So the verb that exists fades your shirt and cannot clean it.**
-
-⭐⭐⭐ **That is the FIFTH instance of the ice slate's standing check** —
-*when a bidirectional mechanism ships, one direction gets its driver and
-the other waits for a consumer, and the waiting half is invisible because
-the engine looks complete.* The roster now reads: **the melt got its
-ambient driver and the freeze did not** · **glass transmissivity carried
-light and withheld sight** · **the turbine shipped and the pump did not**
-· **soiling's host method shipped with zero emitters** · **and `wash`
-removes dye, not dirt.**
-
-## ⚠ And the standing refusal, met head-on
-
-`textiles.md` § *What this build deliberately does not ship*:
-
-> *"**A laundry vocation.** Water is a precondition, not a consumable, so
-> the care loop is not an errand per wash."*
-
-⭐ **That argument is right about your own laundry and silent about
-somebody else's.** What makes it a vocation is not the errand — it is the
-**liability**, which is § *Lens 6* below. The loop is not *an errand per
-wash*; it is **a liability per garment**, and the skill is knowing what
-*not* to do.
-
-(Per [[regression-risk-is-not-a-lens]]'s sibling rule: a doc's
-prohibition can be lifted, and the way to lift one is to answer its
-stated reason rather than outvote it.)
-
----
-
-## ⭐⭐⭐ The model: it is not about dirt, it is about CONGRUENCE
-
-The single decision this slate makes.
-
-**A tanner in tannery clothes IN THE TANNERY is correctly dressed.** The
-same clothes at a banker's table are a problem. So the thing being read
-is **not a cleanliness score** — it is **whether your appearance matches
-where you are.** The same outfit passes in one room and fails in another,
-and ⭐⭐ **nobody is ever "underlevelled."**
-
-Which also makes sense of the apron, already designed as *"sacrificial
-soiling **plus** station signal, which is why it is white."* A white apron
-says *I am a professional whose work shows* — and a **stained** white
-apron says it more strongly. **In a kitchen a clean apron is
-suspicious.**
-
-### ⭐⭐ And it must cut both ways
-
-The rule that makes this a **costume** system rather than a cleanliness
-tax: if clean linen opens the banker's door, **a gentleman's coat on the
-docks marks you as an outsider, a mark, or an informer.**
-
-⭐⭐⭐ **Dress is a CLAIM about who you are, and different rooms test the
-claim differently.** That is lens 4 precisely — the engine measures
-soiling and **what it means is decided by a cast, differently in each
-room** — and it makes the natural home the **shipped** disguise / regard /
-recognition machinery (`belief.md`, `presentation.md`) rather than any new
-gauge.
-
-### ⭐⭐ The abuse is already prevented by a decision made for other reasons
-
-`textiles.md`: *"Dirt is **act-deposited and freezes in absence**: a coat
-in a wardrobe does not get dirty. Soiling is **not time-integrated**, and
-there is no clock stamp anywhere in this build."*
-
-⭐⭐⭐ **So laundry can never become a maintenance treadmill.** You do not
-get dirty by existing; you get dirty by **doing things**. Spend the day in
-the tannery and you look like it; sit in the lounge and you do not. That
-one decision is the whole anti-abuse guarantee, and the
-`stewardship-doctrine.md` anti-treadmill survey is the reason it matters.
+*The congruence model shipped as the `doorman` brain's dress code
+(`turnsAway: {outer, soiledAbove, bare}` as data on his row) and the
+`remarks` brain (a banker's coat on the wharf) —
+[cleanliness.md § People — the doorman](../../subsystems/cleanliness.md),
+[behavior.md § doorman and remarks](../../subsystems/behavior.md); no clock
+on dirt anywhere — [cleanliness.md](../../subsystems/cleanliness.md)'s
+epigraph.*
 
 ### ⛔ The five refusals
 
@@ -125,71 +60,23 @@ one decision is the whole anti-abuse guarantee, and the
 
 ## The lens pass
 
-### Lens 1 — pedagogy
-
-Washing is **three contributions traded against each other**: mechanical
-(agitation), chemical (surfactant), thermal (hot water). More scrubbing,
-or hotter water, or more soap — a real optimization where **the wrong
-trade destroys the cloth.**
-
-- ⭐ **Soap is fat plus lye, and lye is wood ash** — the same ash that
-  fluxes glass ([glass-slate](./glass-slate.md)), the same alkali family
-  as tanning's lime. **Three trades on one chemistry**, and
-  `trade-chandlery` already ships **two fats**. Every input exists.
-- ⭐⭐ **Hard water does not lather.** Famous, true, immediately teachable
-  — and **`soft / hard` is already a shipped read on the `Shore`** with no
-  consumer (the same orphan § 5b found for brewing). **Your laundry works
-  better in some towns than others, and the reason is readable with a verb
-  that already exists.**
-- ⭐⭐ **Bleaching is sunlight.** Crofting: linen laid on grass for days or
-  weeks. So bleaching is **deliberate fade** — and fade **already
-  ships**, gaining a second, *intentional* driver. ⭐ Gated on daylight,
-  so **you cannot bleach in a polar winter**
-  ([climate-slate](../builds/climate-slate.md)).
-
-### Lens 2 — creative expression
-
-Ordinary: a tub, a line, a copper. **No code.** Bespoke: a laundry that
-is a front, a bathhouse, a dyeworks sharing the vats. ⭐ And **laundry
-marks** — a laundress marks garments to tell whose is whose: a
-per-instance authored detail on an otherwise fungible good, and the
-natural hook for monogramming and identity.
-
-### Lens 3a — immersion
-
-⭐⭐⭐ **The laundress knows what is on your clothes.** Blood. Somebody
-else's scent. Mud from a place you said you had never been. She is an
-**investigator by accident**, through an entirely ordinary domestic
-process — **the thaw's sibling**: evidence arriving sideways through a
-mechanism that exists for another reason. Couples to accountability and
-concealment with nothing new.
+*Lenses 1–4 shipped: heat × effort × cleanser with the wrong trade
+ruining the cloth, soap from fat and ash-lye (`trade-chandlery`'s
+`lye-leach` → `saponification`), hardness riding the water, sunlight as
+the slow oxidiser of the bleach green —
+[cleanliness.md § The wash](../../subsystems/cleanliness.md); the tub, the
+line, the copper and the laundry mark (`label`) as rows and one verb; the
+laundress reading the garment at her band and the blood sample on the
+stain — [cleanliness.md § The model · § People](../../subsystems/cleanliness.md);
+the civic-infrastructure pattern is in
+[design-lenses.md](../../design-lenses.md) and the lavoir is content
+(`world/terminus/wharfside/lavoir`); the doorman's judgment, never a stat
+check — [behavior.md § doorman](../../subsystems/behavior.md).*
 
 ### Lens 3b — participation
 
 A laundry is a heavy water draw **and** a heavy fouler, so it is
 downstream politics at domestic scale.
-
-⭐⭐⭐ **And the public washhouse is the third instance of a pattern:
-CIVIC INFRASTRUCTURE REDISTRIBUTES A PRIVATE CAPABILITY.** The warming
-house redistributes **heat**; the staff gauge redistributes
-**knowledge**; the washhouse redistributes **access**. (Promoted to
-[design-lenses.md](../../design-lenses.md).) ⭐ **A town that builds a
-*lavoir* has given its working class the ability to enter rooms** — and
-the *lavoir* is historically attested as a municipal build, so it is not
-a conceit.
-
-### Lens 4 — values
-
-⭐⭐ Clean linen was **the** class marker — not the cut of the coat, the
-whiteness of the shirt. And `textiles.md` has **already located this
-correctly**:
-
-> *"No engine gauge from dress to regard. **Engine measures; subject
-> values.** NPC reaction to dress lives in a **brain**, in a pack."*
-
-That is `measurement.md`'s three layers in one sentence, already decided.
-So this is an **access** mechanic enforced by a doorman's judgment, never
-a stat check.
 
 ### Lens 5 — continuity, with a twist the others do not have
 
@@ -203,12 +90,9 @@ interesting of them.
 
 ### Lens 6 — economy, and the answer to the refusal
 
-**Consumes five shipped things:** soap · soft water · **fuel** (heating
-water is a serious draw — straight into climate-slate's fuel ration) ·
-labor · and **drying space**, which is land, and which in a cold realm
-barely exists. ⭐ And it is the most **recurrent** service demand there is
-— a small repeated expense, which makes it **a money sink that is not a
-purchase.**
+*The five inputs ship — soap spent by use, hardness on the water, the
+copper's fire, the hand's wage, the drying ground —
+[cleanliness.md § The wash · § People](../../subsystems/cleanliness.md).*
 
 On `vocations.md`'s criteria:
 
@@ -247,66 +131,13 @@ meets governance and the **appeal** mechanism, and the strongest argument
 that institutional laundry is **a LULU with people in it.** To be handled
 as history, not as colour.
 
-### The person
-
-Historically a women's trade. ⭐ **A washerwoman with real standing who
-handles everybody's clothes and therefore knows everybody's business is
-one of the strongest minor positions in any setting** — and by
-`content-craft.md`'s rule she is **genuine**, not comic relief.
-
----
-
-## ⭐⭐⭐ The folklore, which will outlast the mechanism
-
-**The Washer at the Ford** — *bean nighe* in Scottish Highland folklore,
-kin to the Irish *bean sídhe*. A woman at a ford, at night, washing
-**bloodstained clothes**. If you see her she is washing the shroud of
-someone about to die, and in some tellings, **if you ask, she tells you
-whose.**
-
-⭐⭐ That is *the laundress knows what is on your clothes* existing as
-**real folklore, independently, for the same reason**: everyone
-understood that the woman who handles your clothes knows what you have
-done. Culturally genuine rather than invented, so it sits exactly on
-`content-craft.md`'s **homage in the details, never the description**, and
-it gives the washerwoman a mythic register she can be played straight
-against.
-
----
-
-## The history, because the mechanism is in it
-
-⭐ **Soap had been invented** — Babylonian, then Roman — but it was
-**expensive and frequently taxed**, so ordinary people used **lye leached
-from wood ash**, directly. The process was **bucking** (buck-washing,
-buck-lye):
-
-1. **buck** — steep the linen in ash-lye, for hours or days
-2. **beat** — a wooden bat against a stone: the **mechanical**
-   contribution, and the reason for the river
-3. **rinse** — in the running water, **the only reason you are at the
-   river at all**
-4. ⭐ **croft / grass** — lay it out to **sun-bleach**. Bleach greens were
-   real, named, mapped pieces of land
-
-⭐⭐ **Which gives the trade TWO siting constraints, both physical:**
-**running water to carry the lye away**, and **flat sunny ground to
-bleach on.** Authored as terrain, not as a rule.
-
-⭐ **The built form has a name: the *lavoir*** — a public, often roofed,
-spring-fed washing basin. France built thousands in the 19th century and
-many still stand.
-
-Two more real details worth having:
-
-- ⭐ **Urine was a detergent.** Stale urine is ammonia, and Roman fullers
-  collected it from public urinals — **Vespasian taxed it** (*pecunia non
-  olet*). True, revolting, and it connects fulling and laundry through a
-  shared input.
-- ⭐ **The downstream ordering was municipal law**: drinking water above,
-  laundry below, tanning and dyeing below that and outside the walls.
-  **Our contamination-by-kind plus the rights ordering — attested, not
-  invented.**
+*The washerwoman is content (`wharfside/lavoir/agent/washerwoman`). The
+Washer at the Ford → [washer-at-the-ford-slate](./washer-at-the-ford-slate.md)
+(cut from the build 2026-10-17, its own slate). The history shipped as
+rows: lye and the bucking method (the untrained hand reaches for lye),
+`brush`/`beat`, the lavoir's running trough and the drying ground, stale
+urine as a `Cleanser` row (its collection → sanitation) —
+[cleanliness.md § The model · § Places · § People](../../subsystems/cleanliness.md).*
 
 ---
 
@@ -347,39 +178,25 @@ Added 2026-10-17 from [stewardship-doctrine.md](../../stewardship-doctrine.md)
   ritual is upkeep you look forward to (Stardew, Animal Crossing) — and
   because the lavoir is busiest then, the ritual is also a *when to be
   somewhere*, which is a reason to meet.
-- ⭐ **The visible before-and-after, in prose** (PowerWash Simulator's
-  whole loop). The read of a garment changes in words a player enjoys:
-  *grey at the cuffs* → *white, and smelling of the sun.* Linen laid on
-  the bleach green **whitens over days you can watch** — the one fade the
-  owner chooses.
-- **Sorting is a puzzle, not a chore.** Dye bleeds by fastness (shipped),
-  so a red wash with whites is a real mistake with a real, visible
-  result. Knowing what goes together is the skill (*Strange Horticulture*'s
-  identification under uncertainty, at domestic scale).
-- **The bathhouse is a destination.** Beside the gym (exertion's sweat
-  is the first body-soiling producer) and with a bar in it: the workout
-  has somewhere to end. *Spirited Away*'s bathhouse is the tonal model —
-  dignity in the work, a whole society in the steam.
 - **Cleaning to hide is a scene too.** Washing blood out *cold*, burning a
   shirt, finding a laundress who does not ask — the concealment side of
   the forensic read.
 
-⛔ **And what stays refused** (doctrine § 3a principle 9): no meter, no
-nag, nothing that dirties you for being away. The pleasure is in the act
-and the company, never in relief from a penalty.
+*Shipped from this list: the before-and-after in words (`soilPhrase`, the
+bleach green whitening by day), sorting (an unfast dye bleeds onto the
+co-wash in `CraftingApi.wash`), the bathhouse beside the gym (`market/
+bathhouse/location/gym`; the bar is content), and the refusal of any meter
+— [cleanliness.md](../../subsystems/cleanliness.md).*
 
 ---
 
 ## Open questions
 
-1. **Does this wait for room-condition, or does it supply the producer?**
-   Soiling's gauge is room-condition's by decision. ⚠ But **laundry is the
-   only consumer that makes a garment gauge worth having**, so the two may
-   be one build.
-2. **Where does the doorman's judgment live?** A brain, in a pack, per
-   textiles.md. ⭐ Which pack — the venue's, or a shared `trade-laundry`?
-3. **Soap: a trade or a row?** Fat + ash is a recipe on shipped inputs,
-   so it may be rows in `trade-chandlery` rather than anything new.
+*Q1 resolved: one build (cleanliness). Q2 resolved: the `doorman` brain
+in the kernel's `lib/behavior/`, the criterion as data on the keeper's row
+— [behavior.md § doorman](../../subsystems/behavior.md). Q3 resolved: rows
+in `trade-chandlery` (`lye-leach`, `saponification`, the soap kettle).*
+
 4. **Is the congruence read a `Reading` row?** `analyze dress` as a
    channel any pack can ship would make the *player's* read of their own
    appearance derivable — and competence would resolve **how well you can
@@ -393,8 +210,9 @@ and the company, never in relief from a penalty.
 
 - [textiles.md](../../subsystems/textiles.md) — the layering model, the
   dye/wash/fade loop, the soiling seam, and the refusal this slate answers
-- [room-condition-design-pack](../builds/room-condition-design-pack.md) — owns
-  the gauge, the bands and the attributed deposit log
+- [room-condition-design-pack](../builds/room-condition-design-pack.md) — what
+  remains of room condition (attributed events, tidiness); the gauge and
+  bands shipped as `SoilableMixin` ([cleanliness.md](../../subsystems/cleanliness.md))
 - [stewardship-doctrine.md](../../stewardship-doctrine.md) — the pillar,
   and the anti-treadmill survey
 - [navigable-water-slate](../builds/navigable-water-slate.md) § 5c — where this
@@ -404,3 +222,20 @@ and the company, never in relief from a penalty.
 - [measurement.md](../../measurement.md) ·
   [belief.md](../../subsystems/belief.md) ·
   [presentation.md](../../subsystems/presentation.md)
+
+## Left by the cleanliness build (2026-10-17)
+
+The lavoir, the laundress, the bathhouse and the wash chemistry shipped
+(`docs/subsystems/cleanliness.md`). Still open:
+
+- **The house mends it** — a ruined garment is wear-damaged; the tailor's
+  mend is the second remedy beside the cash cover.
+- **An appraisal** — the house pays its posted cover, not the garment's
+  value.
+- **The house's soap is not spent by a paid wash**, and no `restocks`
+  brain keeps the laundress's or the attendant's par — the par loop.
+- **A cash customer is told the house owes them**; the coin payout from
+  the till is not built.
+- **Stale urine's collection** (who fills the tub) → sanitation.
+- **Chlorine, detergent, the machine** — the next epochs of the same
+  verbs.

@@ -1,10 +1,18 @@
 # ⚠ The MUCK slot, and it is not a waste-disposal problem: it is the
 # RETURN LEG of the nitrogen ledger. A byre with nowhere to put the muck
 # is a byre throwing away half of what the animals are for.
-class: /platform/thing/Thing
+class: /platform/thing/Midden
 data:
   shortDescription: steaming midden
   keywords: [midden, steaming]
   register: indefinite
   longDescription: >-
     A heap of straw and dung with the rain steaming off it, turned at one end and settled at the other.
+  # ⭐ A bulk holder of compost (cleanliness D15): what `dispose` adds to and
+  # `fill sack from midden` takes from.
+  interiorBulk: true
+  interiorCapacity: 2000
+  interiorMaterial: /stuff/idea/material/bulk/compost
+  interiorAmount: 200
+  fixedInPlace: true
+  mass: 500

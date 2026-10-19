@@ -3,7 +3,9 @@
 # open-container gather path — flip the lid, cook), the kitchen board,
 # and the cook. Order a meal, or make it yourself with their tools — the
 # DIY floor.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentLocale
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
@@ -41,6 +43,9 @@ data:
     z: 0
   props:
     - /stuff/thing/Oven
+    # ⭐ The opening the daylight comes in by, as a real pane: the hearth's
+    # soot greys it and the room darkens (cleanliness D19).
+    - /stuff/thing/fixture/window
     - /trade/cooking/thing/cook-pot
     # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
     # `medium: water` and must MATCH an input carrying the water tag, so a
@@ -174,8 +179,3 @@ data:
   cast:
     - /world/terminus/hearthworks/agent/cook
     - /world/terminus/hearthworks/agent/cookhand
-  details:
-    window:
-      keywords: [window, glass, light]
-      description: |
-        A wide unglazed window over the wash bench, shuttered at night and open to the yard by day.

@@ -37,6 +37,7 @@
 import Firebox from '../../lib/fire/Firebox';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
+import { FluedMixin } from '../../lib/fire/Flued';
 
 /**
  * Hearth dials. Playtest-tuned, not plan decisions.
@@ -63,7 +64,9 @@ const HEARTH = {
 // the chain, which is exactly the difference between a hearth and a
 // forge: a lit forge heats what you put in it, a lit hearth heats the
 // air. The difference is composed, not dialled.
-const HearthBase = SpaceHeatingMixin(PlacingMixin(Firebox));
+// ⭐ And a FLUE (cleanliness D18): a hearth indoors soots its chimney, and
+// a foul one catches under a roaring fire. A brazier is the flueless one.
+const HearthBase = FluedMixin(SpaceHeatingMixin(PlacingMixin(Firebox)));
 
 export default class Hearth extends HearthBase {
   /**

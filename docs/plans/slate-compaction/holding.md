@@ -164,7 +164,7 @@ reference incentive (batch finding 2) and the structure/contents split.
 The GATE shipped; the CONDITION the pack designed did not. Shipped
 condition is `shellCondition` + `shellStamp` on the programme instance,
 reconciled on read against game-days (`residence/src/idea/HoldingWarren.ts`,
-`OuterWarren.conditionOf`; `holding.md § Condition`) — a stored clock, not
+`CirculationWarren.conditionOf`; `holding.md § Condition`) — a stored clock, not
 a derived aggregate over room condition / Durable wear / spoilage, none of
 which feed it. No `StewardshipApi`, no `propertyCondition` symbol anywhere.
 `ParcelRecord.allowance` is still `unknown | null` with no consumer
@@ -333,7 +333,7 @@ Terminus terminal + newbie-wilds). No elevator (batch finding 1).
 - `## The north-star — why Eternal City` (+ its three subsections) — the un-genred / obvious-fabrication / strangeness-is-a-finish thesis. Q6 asks whether it belongs in `design-philosophy.md` (which does not mention it — `grep -i "un-genre"` is empty); the coordinator's call
 
 ### Uncertain — kept
-- `### Topology` + *Rooms, roommates* bullet 3 — *"Duncan Hall lobby (terminal #2)"* / *"The TPA terminal is public (lobby only)"*: no node in the lobby. The network has since been reshaped (`fasttravel.md`: the VERB is the kernel's, the NETWORK the `tpa` pack's, meeting over `TravelNode`; the board-for-everyone), so a campus node is a row on that shape, not this slate's "terminal" design. Kept; the requirements pass should re-read against `fasttravel.md`. The *start-loc is personal, can be your private room* half shipped in substance (`OuterWarren.admitFor` — *log out in your own yard, log back into the same yard*, `holding.md § Owned goods`); kept because the bullet is one paragraph
+- `### Topology` + *Rooms, roommates* bullet 3 — *"Duncan Hall lobby (terminal #2)"* / *"The TPA terminal is public (lobby only)"*: no node in the lobby. The network has since been reshaped (`fasttravel.md`: the VERB is the kernel's, the NETWORK the `tpa` pack's, meeting over `TravelNode`; the board-for-everyone), so a campus node is a row on that shape, not this slate's "terminal" design. Kept; the requirements pass should re-read against `fasttravel.md`. The *start-loc is personal, can be your private room* half shipped in substance (`CirculationWarren.admitFor` — *log out in your own yard, log back into the same yard*, `holding.md § Owned goods`); kept because the bullet is one paragraph
 - `### Campus services — the pattern` — the MECHANISM shipped (closed-choice dialogue `dispatch`ing an existing verb: `npc-dialogue.md § dispatch`; Katie's intake is its first instance, `residence.md § Provisioning`); the campus SERVICES that would use it (registrar / clinic / housing office / outfitter) have no rows. Kept as the campus-content design; `Left` says *as campus content*
 - `### Duncan Hall` → *Growth & vacancy* — lazy growth, floor-budding and gap reuse shipped (`residence.md § Provisioning`: lowest-free slot, *reusing gaps left by unprovision before a new floor*); the *vacancy-keyed purge — days, not a beat* did not (`residence.md § Deferred`: *timed auto-revert on expiry*, *reap grace period*). Kept whole; `Left` names the purge
 - `### Duncan Hall` → *Rooms, roommates* bullet 1 — *shared, max two occupants, both with room-level write* — CONTRADICTED by the shipped single-leaseholder unit (`ProvisionController` refuses a double-provision; `UseGrant` has one `holder`). The roommate design is `dorm-warren-slate`'s; kept here because the pairing-by-lounge-flavor-tags idea is only here

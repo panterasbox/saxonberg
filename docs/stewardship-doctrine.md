@@ -73,7 +73,7 @@ question: **what starts the clock?**
 
 | # | Archetype | Clock starts at | Time behavior | Restored by | Today |
 |---|---|---|---|---|---|
-| **1** | **Act-driven** (wear *or* deposition) | **an act** — of use, or of living-in | **no clock — freezes in absence** | a *service* or an *act of care* (`repair`, `sharpen`, `clean`) | ✅ `Durable`/`Keen` (wear); ◐ **room condition** (deposition — designed) |
+| **1** | **Act-driven** (wear *or* deposition) | **an act** — of use, or of living-in | **no clock — freezes in absence** | a *service* or an *act of care* (`repair`, `sharpen`, `clean`) | ✅ `Durable`/`Keen` (wear); ✅ **room condition** (deposition — `SoilableMixin`, cleanliness build; the byre's stalls the one calendar exception) |
 | **2** | **Flux** (a *continuous* natural process) | **an act starts it** (plant, catch, cook), then it runs on its own | **runs over absence** — integrates the *full* gap, logged in or not | **slowed by care, never stopped** (water, cold, salt) | ◐ husbandry + soil **ship**; **food-spoilage is the gap** |
 | **3** | **Body-affliction** | **an injury / intake event** | **presence-freezes** (fairness — you don't starve while away) | healing / clearance / treatment | ✅ vitals `Condition` (metabolism/harm) — *except the dying arm, which opts out* |
 

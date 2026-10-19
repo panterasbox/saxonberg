@@ -441,6 +441,14 @@ which is what lets a **fixture** ask about the ground under the room it
 stands in without being a room. See
 [drilling.md](./drilling.md).
 
+## The floor's soil (2026-10-17)
+
+The `Floor` twin composes `SoilableMixin`: `takesSoil` (a water surface or
+an ice sheet takes none), `cleaningMethod()` exhaustive over the ground
+kinds, strewing, the sweep, the byre's stalls (the one calendar accrual),
+pests derived from debris. An earth floor refuses the scrub in words. See
+[cleanliness.md](./cleanliness.md).
+
 ---
 
 - **2026-10-18 (storage-and-ice, MR !378).** The floor support protocol

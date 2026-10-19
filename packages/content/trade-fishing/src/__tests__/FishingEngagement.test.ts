@@ -18,7 +18,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { EngagedMixin } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -79,7 +79,7 @@ function registry(standing: FisheryStanding | null): FisheryRegistry & { drawn: 
 }
 
 let sent: string[] = [];
-let room: Location;
+let room: Place;
 let rod: Rod;
 
 function engagement(actor: Stuff, reg: FisheryRegistry, bait: Stuff | null = null, twilight = 1): FishingEngagement {
@@ -107,7 +107,7 @@ beforeEach(() => {
   makeStuff(() => new WorldClockRegistry());
   WorldClockApi._resetForTesting();
   sent = [];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   rod = makeStuff(() => new Rod());
   vi.spyOn(Mml, 'compose').mockImplementation(((strings: TemplateStringsArray, ...vals: unknown[]) =>
     strings.raw.map((s, i) => s + (i < vals.length ? String(vals[i]) : '')).join('')) as never);

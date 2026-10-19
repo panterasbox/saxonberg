@@ -4,7 +4,7 @@
 # of how much of a rock is not ore. A bar comes out of here, goes to a
 # smith, comes back as a pick head, and gets swung at the ground it came
 # out of — with a real sink at the end, because picks wear out.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: smelter
   keywords: [smelter, furnace, works]

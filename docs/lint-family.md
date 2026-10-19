@@ -389,7 +389,7 @@ dossier, 2026-09).
   `issueCash`, `mint`; a call to them from anywhere else counts). Census
   10 at W3 of the bootstrap; **0** at W6, where the gate holds.
 - **`lint:locations`** — three checks over the location vocabulary: the
-  `FurnishableRoom` roster and the minted `CartesianLocation` roster are
+  `PersistentLocation` roster and the minted `Location` roster are
   enumerated (adding a row is a design question a reviewer should see),
   and structurally, **a zone row that zones nothing fails**.
 - **`lint:schema`** — the collection ↔ schema doc ↔ record class ↔
@@ -1227,6 +1227,20 @@ test, so the gate covers those. ⚠ Its first draft asked *does the FILE
 mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and a wall-screen class,
 none of which is a room — the honest test is the class walk
 (`composesMixin(classPath, 'Location')`).
+
+### `lint:completion-this` — a completion must not call its controller (2026-10)
+
+A controller is one clone per execution, destructed in `_executeOne`'s
+`finally` the moment `execute` returns — while the engagement it started
+is still pending. A completion calling `this.<method>` runs on a dead
+proxy and does **nothing, silently**: the scene plays and the world is
+unchanged. Learned and written down three times (the mining acts, the
+smelt, `WorkedActController`), found a fourth time by the cleanliness
+drive: over the wire `wear` had never put anything on. The gate counts
+`onComplete:` closures that mention `this.` (comments stripped) in every
+kernel and pack controller; ceiling = the census (8), may only fall. The
+fix is to resolve what the completion needs before engaging, or call a
+module function or a `static`.
 
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 

@@ -23,7 +23,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -160,7 +160,7 @@ export default class LeaseController extends LettingController<LeaseModel> {
       const extent = record.getExtent();
       let cond: { condition: number; band: string } | null = null;
       try {
-        cond = await OuterWarren.conditionOf(extent);
+        cond = await CirculationWarren.conditionOf(extent);
       } catch {
         cond = null;
       }

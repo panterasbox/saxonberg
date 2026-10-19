@@ -32,7 +32,7 @@ import OpenWorkingLocation from '../location/OpenWorking';
 import Block from '../thing/Block';
 import Spade from '@saxonberg/server/mud/platform/thing/Spade';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
 import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
@@ -53,7 +53,7 @@ import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type Location from '@saxonberg/server/mud/lib/stuff/Location';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
 import {
   makeStuff,
@@ -134,7 +134,7 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     expect(verbs(OpenWorkingLocation, 'self')).not.toContain('dig'); // a giver's bucket
     expect(verbs(OpenWorkingLocation, 'inventory')).toContain('dig');
     // …and a plain room does not, which is what keeps it from being a global.
-    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('dig');
+    expect(verbs(Locale, 'inventory')).not.toContain('dig');
     // ⭐⭐ The block affords its own splitting, wherever it lies — and on
     // `peers`, which the live drive corrected: `self` reaches nobody on a
     // thing (it is read only off a command giver), and nobody holds a
@@ -175,13 +175,13 @@ type Drive =
   | { stage: 'ok'; target: string; raw: string; tool: string };
 
 describe('dig.yaml through the whole binder', () => {
-  let room: SingletonCartesianLocation;
+  let room: Locale;
   let giver: TestGiver;
 
   beforeEach(() => {
     StuffApi.clearAll();
     room = makeStuffAtPath(() => {
-      const r = new SingletonCartesianLocation();
+      const r = new Locale();
       r.setShortDescription('the bench');
       return r;
     }, '/world/_test/quarry/bench');
@@ -226,7 +226,7 @@ describe('dig.yaml through the whole binder', () => {
     const ctx: CommandContext = CommandApi.createCommandContext({
       commandGiver: giver as unknown as CommandContext['commandGiver'],
       interactive: {} as Interactive,
-      location: room as unknown as Location,
+      location: room as unknown as Place,
       commandText: line,
       executionId: 'test-exec',
       commandId: 'test-cmd',

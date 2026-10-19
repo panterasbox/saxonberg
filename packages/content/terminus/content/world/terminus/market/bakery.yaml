@@ -8,7 +8,7 @@
 # — a field, a mill, a miller's toll and a baker's oven.
 #
 # West off the square, which was a free exit.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: bakery
   keywords: [bakery, baker, bakehouse, shop]

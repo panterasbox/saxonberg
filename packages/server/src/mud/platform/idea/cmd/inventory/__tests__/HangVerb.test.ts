@@ -22,7 +22,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { AdornmentMixin } from "../../../../../lib/boundary/Adornment";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../../api/stuff";
 import { ShadowApi } from "../../../../../api/shadow";
@@ -67,7 +67,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   verb: string,
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -95,8 +95,8 @@ function getModel(stuff: Stuff[], raw: string) {
   >[0];
 }
 
-function scene(): { loc: Location; giver: TestGiver; sconce: Sconce } {
-  const loc = makeStuff(() => new Location());
+function scene(): { loc: Place; giver: TestGiver; sconce: Sconce } {
+  const loc = makeStuff(() => new Place());
   const giver = makeStuff(() => new TestGiver());
   ContainmentApi.move(giver, loc);
   const sconce = makeStuff(() => {
@@ -164,7 +164,7 @@ describe("taking it down", () => {
 
   /** Hang the sconce and hand back the pieces. */
   async function hung(): Promise<{
-    loc: Location;
+    loc: Place;
     giver: TestGiver;
     sconce: Sconce;
   }> {

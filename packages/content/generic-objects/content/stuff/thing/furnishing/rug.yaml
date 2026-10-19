@@ -1,0 +1,10 @@
+# A rag rug — laid on a floor, it gathers what the floor would (cleanliness
+# D15), and is taken out and BEATEN rather than swept.
+class: /platform/thing/Rug
+data:
+  shortDescription: rag rug
+  keywords: [rug, mat, "rag rug"]
+  register: indefinite
+  longDescription: A braided rug of old rag strips in faded colours.
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 3

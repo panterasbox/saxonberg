@@ -1,0 +1,10 @@
+# A forkful of muck — what `muck out` takes up off a byre floor (cleanliness
+# D20). The midden for it, and the field after.
+class: /platform/thing/Heap
+data:
+  shortDescription: heap of muck
+  keywords: [muck, manure, dung, heap, "heap of muck"]
+  register: indefinite
+  longDescription: A steaming heap of dung and trodden straw.
+  _materialPath: /trade/ranching/idea/material/manure
+  mass: 0.1

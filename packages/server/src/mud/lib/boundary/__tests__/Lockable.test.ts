@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach  } from 'vitest';
 import { LockableMixin } from '../Lockable';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { SensorMixin } from '../../message/Sensor';
@@ -79,12 +79,12 @@ describe('LockableMixin', () => {
 
 describe('Exit.canTraverse — locked gate', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
+  let locA: Location;
   let mover: TestMover;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
     locA.setShortDescription('Location A');
     zone.addLocation(locA, 0, 0, 0);
     mover = makeStuff(() => new TestMover());
@@ -191,14 +191,14 @@ describe('Exit.canTraverse — locked gate', () => {
  */
 describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
+  let locA: Location;
   let mover: TestMover;
   const KEYWAY = 'kw-front-door';
 
   beforeEach(() => {
     seedKernelContentStore();
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
     locA.setShortDescription('Location A');
     zone.addLocation(locA, 0, 0, 0);
     mover = makeStuff(() => new TestMover());

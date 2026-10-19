@@ -28,7 +28,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import Structure from '../../Structure';
 import InventoryController from '../inventory/InventoryController';
 
@@ -127,7 +127,7 @@ export default class QueryController extends CommandController<QueryModel> {
     const view: HorizonView = PerceptionApi.horizonFor(viewer);
     const onHorizon = new Map(view.things.map((t) => [t.stuff.stuffId, t]));
     const room = context.location;
-    const featuredPaths = room instanceof Location ? room.getFeatured() : [];
+    const featuredPaths = room instanceof Place ? room.getFeatured() : [];
     const where = (b: number | null, r: number | null): string =>
       b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
     const featured: Mml[] = [];

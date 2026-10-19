@@ -1,0 +1,3 @@
+# Vinegar — a mild acid: scale, hard-water crust, rust.
+class: /platform/idea/Cleanser
+data: {key: vinegar, agent: vinegar, action: acid-mild, consumesPerWash: 0.05, skinHarshness: 0.2}

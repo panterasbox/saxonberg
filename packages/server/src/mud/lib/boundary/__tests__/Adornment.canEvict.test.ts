@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Good from '../../stuff/Good';
 import { AdornmentMixin } from '../Adornment';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class TestAdornment extends AdornmentMixin(Good) {}
@@ -25,7 +25,7 @@ describe('AdornmentMixin.canEvict', () => {
   });
 
   it('a fixture of a live host vetoes, with a reason', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestAdornment());
     fx.setAdornedTo(room);
 
@@ -35,7 +35,7 @@ describe('AdornmentMixin.canEvict', () => {
   });
 
   it('a fixture whose host is destroyed falls through to super', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const fx = makeStuff(() => new TestAdornment());
     fx.setAdornedTo(room);
     expect(fx.canEvict(ctx).ok).toBe(false);

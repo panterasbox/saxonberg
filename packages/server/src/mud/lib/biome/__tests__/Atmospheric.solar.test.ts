@@ -14,7 +14,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Material from '../../material/Material';
 import Biome from '../Biome';
@@ -56,7 +56,7 @@ function material(path: string, k: number, rho: number, c: number, alpha?: numbe
   }, path);
 }
 
-type Cell = CartesianLocation & {
+type Cell = Location & {
   setEnclosure(v: EnclosurePartSpec | null): void;
   setRoof(v: RoofSpec | null): void;
   exposure(): Exposure;
@@ -69,7 +69,7 @@ type Cell = CartesianLocation & {
 function cell(walls: EnclosurePartSpec, roof: RoofSpec, outsideK = 280): Cell {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation()) as Cell;
+  const r = makeStuff(() => new Location()) as Cell;
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = OUTDOOR;
   r.setEnclosure(walls);

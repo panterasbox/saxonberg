@@ -489,10 +489,10 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
     ]) {
       const doc = row(file);
       // ⚠ A PREFIX, not one exact class name. This pinned
-      // `SingletonCartesianLocation` verbatim, which made an honest
+      // `Locale` verbatim, which made an honest
       // reparent read as a regression: `wharfside/bank` became a
       // `/platform/location/Street` when the public-lighting service
-      // moved off the `CartesianLocation` catch-all and onto the class
+      // moved off the `Location` catch-all and onto the class
       // that actually has lamps (review, 2026-09-24). The claim this
       // test makes is *ordinary platform content, no gate* — so it
       // checks that, and any platform location class satisfies it.

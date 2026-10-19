@@ -236,7 +236,7 @@ describe('nodeIdentityOf — one computer of the string', () => {
   const linear = PlatPlan.parse({ shape: 'linear', frontagesPerNode: 3 });
   const branched = PlatPlan.parse(BRANCHED);
 
-  it('⭐ returns exactly the string OuterWarren.ensureNode already minted', () => {
+  it('⭐ returns exactly the string CirculationWarren.ensureNode already minted', () => {
     // A move, not a new shape: `${parentExtent}/${nodeId}`. Two
     // computers of one identity is what a single home prevents — the
     // warren that mints the node and anything that must name the same

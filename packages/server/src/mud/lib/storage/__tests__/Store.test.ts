@@ -17,7 +17,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Material from '../../material/Material';
 import Good from '../../../platform/thing/Good';
@@ -128,10 +128,10 @@ function dust(kg: number): Packing {
 }
 
 /** A shed of `volumeM3` with 0.4 m sawdust walls, outside at `outsideK`. */
-function shed(volumeM3: number, outsideK = 293): CartesianLocation {
+function shed(volumeM3: number, outsideK = 293): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(Math.cbrt(volumeM3));
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   (r as unknown as { setEnclosure(f: unknown): void }).setEnclosure({
@@ -143,7 +143,7 @@ function shed(volumeM3: number, outsideK = 293): CartesianLocation {
   return r;
 }
 
-function stack(room: CartesianLocation, capacityKg = 0): Stockpile {
+function stack(room: Location, capacityKg = 0): Stockpile {
   const s = makeStuff(() => new Stockpile());
   s.capacityKg = capacityKg;
   ContainmentApi.move(s, room);
@@ -156,7 +156,7 @@ async function seeded(
   iceKg: number,
   dustKg: number,
   dustSaturation = 0,
-): Promise<{ room: CartesianLocation; store: Stockpile }> {
+): Promise<{ room: Location; store: Stockpile }> {
   const room = shed(volumeM3);
   const store = stack(room);
   store.initialLines = [

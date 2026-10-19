@@ -1,6 +1,6 @@
 # The south station — 89° S, entering the polar night. Lit by its brazier
 # so it is never pitch dark; `analyze sky` says when the sun stops rising.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: south station
   keywords: [station, hut]

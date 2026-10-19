@@ -35,7 +35,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import LaneCatalogue, {
   LANE_CATALOGUE_PATH,
   type CompiledLane,
@@ -364,7 +364,7 @@ export default class JourneyController extends CommandController<JourneyModel> {
    * node row). A sea you cannot see from here is not one you would name.
    */
   private async seaNodeNamed(raw: string, here: Stuff | null): Promise<string | null> {
-    if (!(here instanceof Location)) return null;
+    if (!(here instanceof Place)) return null;
     const zone = here.getZone();
     const named = here.getHorizon()
       ?? zone?.peekField<string[]>('horizon') ?? null;

@@ -1,0 +1,35 @@
+# The vestibule — the door off the square, the slate, the attendant's desk.
+class: /platform/location/PersistentLocale
+data:
+  coords: { x: 0, y: 0, z: 0 }
+  # ⭐ Daylight through the high windows (the light-sources rule).
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: windows
+  shortDescription: bathhouse vestibule
+  keywords: [vestibule, bathhouse, entrance, hall]
+  register: definite
+  longDescription: |
+    A warm tiled hall that smells of steam and soap, with a bench along one wall for boots and a doorway through to the baths where the prices are chalked up. Warm damp air comes through from the baths beyond; a second door, propped open, gives onto the thump of a gymnasium.
+  # A lamp kept lit — it keeps evening hours (cleanliness, the browser walk).
+  adornments:
+    - { template: /world/terminus/market/bathhouse/thing/bath-lamp, slot: lamp:vestibule }
+  exits:
+    south:
+      destination: /world/terminus/market/square
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/market/bathhouse/location/baths
+      media: [ground]
+      edgeMinutes: 1
+    east:
+      destination: /world/terminus/market/bathhouse/location/gym
+      media: [ground]
+      edgeMinutes: 1
+  details:
+    windows:
+      keywords: [windows, window]
+      description: High small windows, misted on the inside, letting in a grey daylight.

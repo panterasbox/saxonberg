@@ -24,6 +24,9 @@ data:
   # Wood chars rather than melts — no melting/boiling point.
   autoignitionTemperature: 570
   heatOfCombustion: 16
+  # ⭐ What burning it leaves in the grate (cleanliness D24) — the
+  # lye-maker's ash.
+  ashFraction: 0.01
   # ⚠⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Oak
   # authored NEITHER until this build, and it is the oak WASTER's
   # material — the practice sword the combat gym benches bruises with.

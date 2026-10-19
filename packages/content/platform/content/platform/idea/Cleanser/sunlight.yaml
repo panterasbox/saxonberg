@@ -1,0 +1,10 @@
+# Sunlight — the slow oxidiser of the bleach green: it whitens linen by
+# day and YELLOWS wool. Ambient: read from where a thing hangs, never held.
+class: /platform/idea/Cleanser
+data:
+  key: sunlight
+  agent: sunlight
+  action: oxidiser-slow
+  ambient: true
+  damages:
+  - {fibreTag: protein, effect: yellows}

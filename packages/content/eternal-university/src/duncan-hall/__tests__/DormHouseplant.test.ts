@@ -61,7 +61,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -423,7 +423,7 @@ function reset(): void {
 function ctxFor(giver: Stuff, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: verb,
     executionId: 'test',
     commandId: 'test',
@@ -1051,7 +1051,7 @@ describe('the dorm houseplant — durability', () => {
     const pot = potIn(room)!;
     const key = plant.getPersistenceKey()!;
 
-    const transient = makeStuff(() => new Location());
+    const transient = makeStuff(() => new Place());
     ContainmentApi.move(pot, transient);
     expect(plant.getBed()).toBe(pot);
 

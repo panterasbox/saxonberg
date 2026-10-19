@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TouchModality } from '../TouchModality';
 import { Touch } from '../../../../lib/perception/Touch';
 import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import { StuffApi } from '../../../../api/stuff';
 import { PerceptionApi } from '../../../../api/perception';
@@ -15,7 +15,7 @@ import { buildAllModalities } from '../../../../lib/perception/modalities/__test
 const touchSingleton = () =>
   PerceptionApi.modalityByName('touch') as TouchModality;
 
-class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
+class AtmosphericLocation extends AtmosphericMixin(Location) {}
 
 describe('TouchModality', () => {
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('TouchModality', () => {
   it('signalAt returns null for a non-Atmospheric location', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new CartesianLocation());
+    const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
     expect(touchSingleton().signalAt(loc)).toBeNull();
   });

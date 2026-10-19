@@ -1,16 +1,16 @@
-# The `bar` bundle — what a bar-room is furnished with, as a FurnishableRoom
+# The `bar` bundle — what a bar-room is furnished with, as a PersistentLocation
 # row a venue instances or EXTENDS: a venue with its own class — Dave's
 # Bar — names this row as its parent and states only what differs. Every station the menu exposes, and
 # NO bottles: the rail is stocked by ORDERING (the keeper's `restocks`
 # beat posts a carriage bounty and clears the receiving bench onto the
 # rail — logistics D11; she stopped travelling to the supplier), never by
 # `populates` magic.
-# An ordinary location, not a FurnishableRoom: that class is the
+# An ordinary location, not a PersistentLocation: that class is the
 # FURNISHING archetypes' base. A trade floor's durability lives on its
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid

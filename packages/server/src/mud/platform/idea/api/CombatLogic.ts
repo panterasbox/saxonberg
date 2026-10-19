@@ -40,7 +40,7 @@ import type { EnergyInflictSpec, ShockInflictSpec } from "../../../api/condition
 import type { ConductionOutcome } from "../../../api/electricity";
 import { Quantity } from "../../../lib/quantity";
 import Weapon from "../../thing/equipment/Weapon";
-import { TRAUMA_BEHAVIOR } from "../Condition";
+import { TRAUMA_BEHAVIOR, BLEED_FAMILY } from "../Condition";
 import type { OutcomeBand } from "../../../api/material";
 import type { BrainContext, BrainStatics } from "../../../lib/behavior/brain";
 import {
@@ -93,7 +93,7 @@ import { DeliveryProfile } from "../../../lib/combat/DeliveryProfile";
 import type { EnergySourceKind } from "../../../lib/combat/EnergySource";
 import { AimResolution, type Placement } from "../../../lib/combat/AimResolution";
 import type { RangeBandConfig } from "../../../lib/combat/RangeBand";
-import Location from "../../../lib/stuff/Location";
+import Place from "../../../lib/stuff/Place";
 import { Gambit, type GambitSpec } from "../../../lib/combat/Gambit";
 import { Sharpness, type SharpnessConfig } from "../../../lib/combat/Sharpness";
 import {
@@ -883,19 +883,19 @@ function rangeBandConfig(): RangeBandConfig {
  * extent, never authored. A 3 m cell affords only the melee tiers; an
  * authored 20 m outdoor cell affords `far`.
  *
- * Reads the combatant's environment rather than taking a Location, because
+ * Reads the combatant's environment rather than taking a Place, because
  * the callers all have a fighter in hand and a fighter is always somewhere.
  * A combatant in no location, or in one that reports no extent, gets the
  * conservative melee cap.
  */
 function arenaMaxBandFor(who: Stuff): RangeState {
   const env = MixinApi.isContainable(who) ? who.getContainer() : null;
-  // `instanceof Location` is the shipped narrowing for the sibling
+  // `instanceof Place` is the shipped narrowing for the sibling
   // geometry accessors (VisionModality does exactly this for
-  // `getSizeScale`) — Location is a class, not a mixin, so there is no
+  // `getSizeScale`) — Place is a class, not a mixin, so there is no
   // MixinApi predicate to reach for.
   const extent =
-    env !== null && env instanceof Location ? env.getLinearExtent() : null;
+    env !== null && env instanceof Place ? env.getLinearExtent() : null;
   return RangeBand.maxForExtent(extent, rangeBandConfig());
 }
 
@@ -2555,6 +2555,16 @@ function commitInflict(
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {
     targetState.lastStruckBy = actorState.combatant;
+    // ⭐ (cleanliness D6, D8) A blow that draws blood leaves it — the
+    // BLEEDER's, sample and all — on the outer layer at the struck part,
+    // and on the hands that struck. A coat is evidence after a fight.
+    if (BLEED_FAMILY.has(outcome.trauma.type)) {
+      const amount = Math.min(0.6, 0.15 * Math.max(0.5, outcome.trauma.severity));
+      if (MixinApi.isHygienic(target) && site) {
+        target.soilBodyPart(site, 'blood', amount, target);
+      }
+      if (MixinApi.isHygienic(attacker)) attacker.soilHands('blood', amount / 2, target);
+    }
   }
   // Drain the augment ctx's queued consequences — the sequence position
   // the old energized stun-baton branch held (Phase 3 folded it onto the
@@ -2804,7 +2814,7 @@ function venueOf(anchor: Stuff | null | undefined): Stuff | null {
 /**
  * Presence-dispatch an optional venue hook (DECISION G — the
  * `callTraverseHook` shape: present → called, absent → skipped; the base
- * `Location` is untouched; a shadow defining the hook participates).
+ * `Place` is untouched; a shadow defining the hook participates).
  */
 function callVenueHook(
   room: Stuff,

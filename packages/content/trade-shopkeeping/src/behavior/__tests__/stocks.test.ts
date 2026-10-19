@@ -31,8 +31,8 @@ import StockBase from "@saxonberg/server/mud/lib/retail/Stock";
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
@@ -78,9 +78,9 @@ async function step(
   walked.push(path);
   return { ok: true };
 }
-let shop: CartesianLocation;
-let market: CartesianLocation;
-let hall: CartesianLocation;
+let shop: Location;
+let market: Location;
+let hall: Location;
 let counter: Stock;
 let supplierCounter: Stock;
 let keeper: Extra;
@@ -133,7 +133,7 @@ async function dispatch(text: string): Promise<void> {
   typed.push(text);
   const [verb, ...rest] = text.split(' ');
   const kw = rest[0] ?? '';
-  const room = keeper.getContainer() as Location;
+  const room = keeper.getContainer() as Place;
   if (verb === 'wallet') return;
   if (verb === 'bank') {
     // `bank borrow <n> --for stock` — the window lends what was asked.
@@ -178,9 +178,9 @@ beforeEach(async () => {
   // wrong direction on her row fails the test the way it fails the shop.
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(1);
-  shop = makeStuffAtPath(() => new CartesianLocation(), SHOP);
-  market = makeStuffAtPath(() => new CartesianLocation(), MARKET);
-  hall = makeStuffAtPath(() => new CartesianLocation(), HALL);
+  shop = makeStuffAtPath(() => new Location(), SHOP);
+  market = makeStuffAtPath(() => new Location(), MARKET);
+  hall = makeStuffAtPath(() => new Location(), HALL);
   zone.addLocation(shop, 0, 0, 0);
   zone.addLocation(hall, -1, 0, 0); // the window, one west
   zone.addLocation(market, 0, -1, 0); // the wholesaler, one south

@@ -1,0 +1,4 @@
+# Washing soda — a mild alkali that softens hard water.
+class: /platform/idea/Cleanser
+data: {key: washing-soda, agent: washing-soda, action: alkali-mild, softens: true, consumesPerWash: 0.02,
+  skinHarshness: 0.4}

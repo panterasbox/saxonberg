@@ -24,7 +24,7 @@ substrate + the lounge that uses it.
 
 ## Locations
 
-`lib/stuff/Location.ts` is the abstract base. Pure structural role:
+`lib/stuff/Place.ts` is the abstract base. Pure structural role:
 "any Stuff that can hold other Stuff but doesn't itself live inside
 something." Composition layers
 `AddressableMixin(AmbientLitMixin(AtmosphericMixin(AdornableMixin(
@@ -53,7 +53,7 @@ particular vessel has a meaningful interior volume).
 
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 
-- **`CartesianLocation`** = `Exitable(CartesianCoords(Visible(Location)))`.
+- **`Location`** = `Exitable(CartesianCoords(Visible(Location)))`.
   Overrides `addExit` (async — awaits zone resolution) per the
   **cardinal-only-intra-zone exit invariant**: cardinal directions
   (`north`/`south`/`east`/`west`/diagonals/`up`/`down`) are accepted
@@ -73,14 +73,14 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   One row, one room, in a zone's grid, whose `props:` write back to
   `holder_snapshots` — for the bespoke stateful venue: a hand-authored
   farm whose beds must keep their soil state (`captureHostOf` walks to
-  the nearest persistable ancestor, and a plain `CartesianLocation`
+  the nearest persistable ancestor, and a plain `Location`
   gives it none). The shape is
 
-      PersistableMixin( … SingletonCartesianLocation)
+      PersistableMixin( … Locale)
 
   with `Persistable` **outermost** (its `cleanupOnDestruct` must fire
   before the inner `Container` evacuates, and its `applyProps`/`applyCast`
-  wrap `Staged`), and over `SingletonCartesianLocation` rather than the
+  wrap `Staged`), and over `Locale` rather than the
   permissive base — ⚠⚠ **a durable room over the permissive base would
   silently share ONE `holder_snapshots` scope across every mint.**
   `StuffApi.singleton` is the establishing context (restore-or-seed, the
@@ -89,17 +89,17 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   The shipped example is forestry's `Wood`
   ([forestry.md](./forestry.md)), which is this shape with two mixins
   inside the outermost `Persistable`. ⚠ A one-line
-  `PersistentCartesianLocation` class existed for this cell of the
+  `PersistentLocale` class existed for this cell of the
   taxonomy and **no row ever named it** — the one real consumer could not
   extend it anyway, because it needed mixins inside the outermost layer.
   It was retired by the base-class narrowing build; the RULE is what was
   load-bearing, and it is written here now instead of being inferred from
   a class nobody instanced. The keyed multi-instance interior unit
-  remains `FurnishableRoom`; the spherical twin is derived the same way
+  remains `PersistentLocation`; the spherical twin is derived the same way
   when a spherical venue first needs one.
 
 - ⭐ **A place beside a named water** — `platform/location/Shore`
-  (`ShoreMixin` over `SingletonCartesianLocation`: a mere's shore, the
+  (`ShoreMixin` over `Locale`: a mere's shore, the
   heath by its tarn, a ship's deck, the headland) and
   `platform/location/Quay` (`ShoreMixin` over `Street`: a lit public
   waterfront, the wharfside bank). Maritime revision 3. Like `Street`,
@@ -110,7 +110,7 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   of any OTHER class (a riverside dyehouse) needs its own composed class
   — the recorded cost (`shore-as-place-slate`).
 - ⭐ **A place that IS a small water** — `platform/location/Pool`
-  (`SwimmableMixin(ShoreMixin(SingletonCartesianLocation))`: the cove
+  (`SwimmableMixin(ShoreMixin(Locale))`: the cove
   off the estuary strand). The PLACE is the water: being in it makes its
   ways swimmable, an exit whose destination is one is swimmable INTO it
   (`LocomotionLogic`'s far-side rule), and it cites the water it is
@@ -126,12 +126,12 @@ description; `NamedMixin` is opt-in for rooms that take proper names
 ("Town Square").
 
 Both override `getZone()` with a narrowed return type:
-`CartesianLocation.getZone(): CartesianZone | null` and
+`Location.getZone(): CartesianZone | null` and
 `SphericalLocation.getZone(): SphericalZone | null`. The cast-by-
 invariant lives at the boundary method (each `Zone.addLocation`
 rejects mismatched coordinate types), so call sites within the
 concrete location see the narrowed type for free —
-`CartesianLocation.getSizeScale()` reads `getZone()?.getCellSize()`
+`Location.getSizeScale()` reads `getZone()?.getCellSize()`
 without any local cast. See
 [antipatterns.md § "instanceof, virtual methods, and cast-by-invariant"](../antipatterns.md)
 for the underlying pattern.
@@ -161,7 +161,7 @@ single coherent change rather than three partial states.
 
 **One number, and everything that cares about room size derives from
 it.** `Location.getLinearExtent(): number | null` returns the room's
-edge length in metres — `CartesianLocation` reads its own persistent
+edge length in metres — `Location` reads its own persistent
 `extent` field and falls back to the zone's cell size, so an authored
 room can be larger or smaller than its zone's default;
 `SphericalLocation` returns `2 × radius`; the base returns null (size
@@ -210,9 +210,9 @@ declares).
 ([biome.md](./biome.md)). Default `3.0` linear meters (a typical
 room). It drives:
 
-- `CartesianLocation.getVolume()` → `cellSize³` (27 m³ at default).
-- `CartesianLocation.getCeilingHeight()` → `cellSize` (3 m default).
-- `CartesianLocation.getSizeScale()` → `cellSize²` (9 m² —
+- `Location.getVolume()` → `cellSize³` (27 m³ at default).
+- `Location.getCeilingHeight()` → `cellSize` (3 m default).
+- `Location.getSizeScale()` → `cellSize²` (9 m² —
   receiving-surface area for the light substrate, derived by
   squaring the linear cellSize rather than authored separately).
 
@@ -327,7 +327,7 @@ the barrier-subclass pattern documented in
 
 ### The setter-with-side-effects pattern
 
-`CartesianLocation.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
+`Location.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
 and `Window.setAttachedHosts([pathA, pathB])` share a single
 declarative-content shape: a public setter that **stores the value
 AND performs cross-object side effects** atomically. The shape is:
@@ -393,17 +393,17 @@ geometry classes documented above):**
 | File | Role |
 |---|---|
 | `Warren.ts` | Abstract base — the generic mechanism. Declares `occupantsOf` **abstract**, so every warren must choose a tier. |
-| `InnerWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
-| `OuterWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
+| `RoomWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
+| `CirculationWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
 
 ⭐ **Every warren ends in `Warren`, and picks one of the two tiers.**
 The tier is not decoration — it *is* what "who is in here" means, and
-the leaf answer used to be a concrete default on `Warren` that the outer
+the leaf answer used to be a concrete default on `Warren` that the circulation
 tier had to remember to override. A warren that forgot read every
 holding as empty and would reap an occupied one. Abstract on the root
 means the compiler asks. See
-[holding.md](./holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks).
+[holding.md](./holding.md#every-warren-is-a-roomwarren-or-a-circulationwarren-and-the-compiler-asks).
 
 **Content — `world/lounge/` (the lounge area; class paths
 `/world/lounge/<branch>/*`, branch subdirs since content packs wave 4b —
@@ -415,7 +415,7 @@ mirrors it):**
 | `location/Lounge.ts` | The one room template every lounge instance clones from. |
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
-| `idea/LoungeWarren.ts` | Concrete singleton **`InnerWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `OuterWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
+| `idea/LoungeWarren.ts` | Concrete singleton **`RoomWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `CirculationWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
@@ -599,7 +599,7 @@ deferring to `super` when its own condition is false:
 Precedence falls out of composition order: `Persistable` always sits
 above `Stuff`, so a key beats a stamp; `Singleton` only ever fills in a
 `null`. Nothing narrows on a mixin from `Stuff`, and nothing anywhere
-asks `if (isLocation(x))` — the handle is every object's question, and
+asks `if (isPlace(x))` — the handle is every object's question, and
 `Stuff` answers it honestly with `null`.
 
 ⭐ **The `#` joiner is load-bearing.** The row is the *substance* of a
@@ -666,3 +666,64 @@ way out of the lounge — there is no placeholder campus exit),
 item-spawn-into-a-Warren (reuses `getHost()` as a separate instruction),
 the procedural-spatial Warren family (dungeon/desert), and the
 Warren-as-containment-tier evolution.
+
+## The place taxonomy (decided 2026-10-18; renamed in the cleanliness MR, !380)
+
+A noun is a person, place, thing or idea, and the four branches are the
+same: `Agent`, **`Place`**, `Thing`, `Idea`. Every place is a `Place` (the
+root, `lib/stuff/Place`). Under it, ONE
+descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
+
+| | transient | kept |
+|---|---|---|
+| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` | `PersistentLocation` (lots, dorm rooms, let units; `Field`, `MineRoom` in shape) |
+| spherical, one place | `SphericalLocale` | `PersistentSphericalLocale` when wanted |
+| spherical, one of many | `SphericalLocation` (unchanged) | `PersistentSphericalLocation` when wanted |
+
+Cartesian is the default and goes unprefixed; a spherical place says so.
+
+⭐⭐ **Every place has coordinates, cartesian or spherical — except the
+void** (user, 2026-10-18). `Void` is the one class that extends `Place`
+bare; everything else is a `Location` or a `SphericalLocation`. Who gives a
+place its cell:
+
+| the place | its cell |
+|---|---|
+| an authored row (`Locale`, `Street`, `Offstage`…) | its own `coords:` in its zone |
+| a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
+| a lounge satellite, a mine cell | its warren (`LoungeWarren.wireHubExit`, `MineWarren.placeInGrid`) |
+| a holding's room (a house, a let unit, a dorm room, a field) | the HOLDING's own frame — `HoldingWarren.layOut`: the entry room at the origin, the floorplan's cardinal exits from it; a room plotted off by name sits in the row beyond the house |
+| a circle's floor, a tombstone | the origin of a frame of its own |
+
+⚠ A holding is a frame, not a patch of the street's grid: every house of a
+plat would otherwise claim the same cells, and the generic
+`/stuff/location/room/*` rows resolve no zone. So a door between a
+holding's room and the grid outside it (the dorm's `unit-3` and `out`)
+crosses frames and may be named, as a door between zones may
+(`Warren.laysOutOwnFrame`, read in `Location.addExit`).
+
+⭐ **A room's size is its zone's cell** (user: *"room size need to be
+bound to the zone — if it's not that's a bug"*); an authored `extent`
+overrides it, nothing else does. So a holding's rooms stand in the zone the
+HOLDING does — `StuffApi.clone`'s `zoneFrom: <room key>` resolves the zone
+from `…/lots/lot-7/bedroom` while the identity stays the row (the
+`(scope, key)` record's scope) — and a generic `/stuff/location/room/*` row
+is a 6 m room in a Hinkley house and a 3 m one in Seznick House.
+
+⚠ An authored `ambientIntensity` is a FLUX, read over that area. The
+furnished rows were tuned when they were unsized (1 m²), so each was scaled
+by its cell's area to read the lux it was tuned to (the yard 600 → 21,600
+on 36 m²). A generic row is lit for the one plat that uses it; a second
+user of a different cell size wants lux authoring, not a flux.
+
+The grid geometry the cartesian pair shares is `lib/location/Location` (the
+twin shares its instanceable class's name, as every lib/platform pair
+does), so a `Locale` IS-A grid `Location` in code while meaning *one place*
+in the taxonomy.
+
+A kept place must be one place (a locale) or keyed (a location in a warren)
+— `PersistableLocations.test` holds it. `PersistableMixin` is composed
+OUTERMOST over a place's own substrate, which is why a kept place with
+substrate composes the shape rather than subclassing the plain kept class.
+

@@ -1,0 +1,23 @@
+verbs: [strew]
+controller: /platform/idea/cmd/inventory/StrewController
+description: "Strew rushes or sawdust over a floor"
+help: |
+  `strew rushes` — lay a carried bundle of rushes (or a heap of sawdust)
+  over the floor where you stand. ⭐ It is how an earth floor is kept: the
+  strewing soaks up what is spilt on it — blood, grease — and when it is
+  foul you sweep the lot out and strew fresh. Only something dry and
+  absorbent will strew; you cannot strew a floor of water or ice.
+examples:
+  - cmd: strew rushes
+    note: Strew fresh rushes over the floor
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    greedy: true
+    scope: "inventory"
+    requires: any

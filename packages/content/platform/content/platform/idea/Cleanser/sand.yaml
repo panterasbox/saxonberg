@@ -1,0 +1,11 @@
+# Sand — an abrasive for baked-on dirt, and it scours the surface too:
+# it scratches glass.
+class: /platform/idea/Cleanser
+data:
+  key: sand
+  agent: silica
+  action: abrasive
+  consumesPerWash: 0.1
+  damages:
+  - {fibreTag: glass, effect: scratches}
+  skinHarshness: 0.5

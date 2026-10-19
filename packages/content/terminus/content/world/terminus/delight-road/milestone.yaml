@@ -4,7 +4,7 @@
 # things have to be true here. This one is where the road tells you how
 # far it is, and where two hundred years of people have said what they
 # thought of that.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: milestone
   keywords: [milestone]

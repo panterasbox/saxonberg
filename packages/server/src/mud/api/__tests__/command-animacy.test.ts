@@ -7,7 +7,7 @@ import Species from '../../platform/idea/species/Species';
 import Clade from '../../platform/idea/species/Clade';
 import { Character } from '../../lib/character/Character';
 import { Idea } from '../../lib/stuff/Idea';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -27,7 +27,7 @@ function makeContext(
   // Minimal context — the requiresAnimate validator only reads
   // `commandGiver`. Other fields are set to plausible-but-unused values
   // so the type checks.
-  const location = makeStuff(() => new Location());
+  const location = makeStuff(() => new Place());
   return CommandApi.createCommandContext({
     commandGiver: giver as CommandContext['commandGiver'],
     location: location as CommandContext['location'],

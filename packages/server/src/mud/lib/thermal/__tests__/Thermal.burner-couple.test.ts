@@ -20,7 +20,7 @@ import { chargeHot } from '../../fire/__tests__/burner-fuel';
 import type { Stuff } from '../../stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
 import { ReservedMixin, Reserve } from "../../reserve";
@@ -57,7 +57,7 @@ class TestCampfire extends BurnerMixin(
 class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = "ThermalThingCouple";
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 const SCALE = 12;
 let real = 0;

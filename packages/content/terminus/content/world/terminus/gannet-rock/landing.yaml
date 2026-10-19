@@ -1,6 +1,6 @@
 # The landing on Gannet Rock — iron rungs and a ledge, and the way aboard
 # whatever is lying off.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: landing on Gannet Rock
   keywords: [landing, rock, ledge, gannet]

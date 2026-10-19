@@ -14,5 +14,8 @@ data:
   nutrients: ["water"]
   toxicity: []
   tags: ["liquid", "vinegar", "condiment"]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/vinegar
   composition: []
   biologicalSource: null

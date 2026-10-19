@@ -22,7 +22,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { Idea } from '../../lib/stuff/Idea';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -65,7 +65,7 @@ class Bag extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
  */
 class Hosted extends NamedMixin(Idea) {
   static _mixinName = 'Hosted';
-  constructor(private readonly host: Location) {
+  constructor(private readonly host: Place) {
     super();
   }
   public override jurisdictionHost(): Stuff | null {
@@ -87,13 +87,13 @@ class Vocabulary extends NamedMixin(Idea) {
   static boundaryRole: BoundaryRole = 'commons';
 }
 
-function roomAt(path: string): Location {
-  const room = makeStuff(() => new Location());
+function roomAt(path: string): Place {
+  const room = makeStuff(() => new Place());
   stampTemplatePathForTest(room, path);
   return room;
 }
 
-function probeAt(templatePath: string | null, room: Location | null): Probe {
+function probeAt(templatePath: string | null, room: Place | null): Probe {
   const p = makeStuff(() => new Probe());
   if (templatePath !== null) stampTemplatePathForTest(p, templatePath);
   if (room !== null) ContainmentApi.move(p as never, room as never);

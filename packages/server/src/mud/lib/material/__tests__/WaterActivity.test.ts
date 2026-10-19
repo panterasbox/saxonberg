@@ -20,7 +20,7 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { PlacingMixin } from '../../spatial/Placing';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -271,9 +271,9 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
   // the air reaches it is a number the support carries. These six pins are
   // the whole contract.
 
-  function room(humidityPct: number, windMs = 0, tempK = 293): CartesianLocation {
+  function room(humidityPct: number, windMs = 0, tempK = 293): Location {
     return makeStuff(() => {
-      const r = new CartesianLocation();
+      const r = new Location();
       r.setHumidity(Quantity.of(humidityPct, '%'));
       r.setWind(Quantity.of(windMs, 'm/s'));
       r.setTemperature(Quantity.of(tempK, 'K'));
@@ -283,7 +283,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
 
   class TestRack extends PlacingMixin(Good) {}
 
-  function rackIn(where: CartesianLocation, exposure = 1): TestRack {
+  function rackIn(where: Location, exposure = 1): TestRack {
     const rack = makeStuff(() => {
       const t = new TestRack();
       t.setMass(Quantity.of(20, 'kg'));

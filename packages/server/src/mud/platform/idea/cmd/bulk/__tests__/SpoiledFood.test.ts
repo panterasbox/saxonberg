@@ -19,7 +19,7 @@ import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Condition from "../../../Condition";
 import Provision from "../../../../thing/Provision";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { Quantity } from "../../../../../lib/quantity";
@@ -158,7 +158,7 @@ describe("spoiled food poisons — the whole reach", () => {
     WorldClockApi._setNowProviderForTesting(() => now);
     WorldClockApi.setScale(1000);
     ensurePtomaine();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     eater = makeStuff(() => new TestEater());
     (eater as unknown as { setName(n: string): void }).setName("bob");
     ContainmentApi.move(eater as never, loc as never);

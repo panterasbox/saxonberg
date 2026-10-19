@@ -39,8 +39,8 @@ import { Mixins } from '../../lib/mixin';
 import { Template } from '../../lib/stuff/Template';
 import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
 import { PlatPlan } from '../../lib/location/PlatPlan';
-import { OuterWarren } from '../../lib/location/OuterWarren';
-import Location from '../../lib/stuff/Location';
+import { CirculationWarren } from '../../lib/location/CirculationWarren';
+import Place from '../../lib/stuff/Place';
 import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
 import type { AttachmentKind } from '../../api/navigation';
 import {
@@ -533,8 +533,8 @@ export default class LocationGraphRegistry extends Idea {
   /**
    * Is this class a place, a kind of place, a warren, or none of those?
    *
-   * ⭐ A **place** is a Location that composes `SingletonMixin` — *one
-   * row IS one place*. Everything else that is a Location is a KIND,
+   * ⭐ A **place** is a Place that composes `SingletonMixin` — *one
+   * row IS one place*. Everything else that is a Place is a KIND,
    * minted many times through a warren or a programme, and is not a
    * node: the elastic half of the world is perceived live and never
    * stored.
@@ -548,8 +548,8 @@ export default class LocationGraphRegistry extends Idea {
         prototype?: unknown;
       };
       if (typeof cls === 'function') {
-        if (cls.prototype instanceof OuterWarren) verdict = 'warren';
-        else if (cls.prototype instanceof Location) {
+        if (cls.prototype instanceof CirculationWarren) verdict = 'warren';
+        else if (cls.prototype instanceof Place) {
           verdict = MixinApi.hasMixin(
             cls as never,
             Mixins.Singleton,

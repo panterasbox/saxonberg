@@ -19,7 +19,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Good from "../../../../../lib/stuff/Good";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
 import CraftVessel from "../../../../thing/CraftVessel";
 import Cutlery from "../../../../thing/Cutlery";
@@ -157,7 +157,7 @@ describe("eating with cutlery (AC11a)", () => {
       m.setNutrients(["sugar"]);
       return m;
     }, APPLE);
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     eater = makeStuff(() => new TestEater());
     (eater as unknown as { setName(n: string): void }).setName("bob");
     ContainmentApi.move(eater as never, loc as never);
@@ -201,7 +201,7 @@ describe("eating with cutlery (AC11a)", () => {
 
   it("a SOILED utensil is passed over — you do not eat off a dirty spoon", async () => {
     const dirty = utensil("spoon", loc);
-    dirty.soil();
+    dirty.markUsed();
     await eat(apple(loc));
     expect(self!).toContain("with your fingers");
 
@@ -302,7 +302,7 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
       m.setNutrients(['carb']);
       return m;
     }, APPLE);
-    loc2 = makeStuff(() => new Location()) as unknown as Stuff;
+    loc2 = makeStuff(() => new Place()) as unknown as Stuff;
     eater2 = makeStuff(() => new TestEater());
     (eater2 as unknown as { setName(n: string): void }).setName('ann');
     ContainmentApi.move(eater2 as never, loc2 as never);

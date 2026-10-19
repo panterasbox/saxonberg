@@ -17,7 +17,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Good from '../../stuff/Good';
 import Floor from '../../../platform/thing/Floor';
 import { AdornmentMixin } from '../Adornment';
@@ -34,18 +34,18 @@ describe('Adornable.getFloor', () => {
   });
 
   it('is null in a room with no fixtures at all', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     expect(room.getFloor()).toBeNull();
   });
 
   it('is null in a room whose fixtures are not floors', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.addFixture(makeStuff(() => new TestFixture()), 'sign:left');
     expect(room.getFloor()).toBeNull();
   });
 
   it('finds the floor among other fixtures, in any order', () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     room.addFixture(makeStuff(() => new TestFixture()), 'sign:left');
     const floor = makeStuff(() => new Floor());
     room.addFixture(floor, 'floor');
@@ -57,7 +57,7 @@ describe('Adornable.getFloor', () => {
     // The old resolvers keyed on `hasSurfaceBulk()`, so a floor with no
     // puddle slot was not the floor as far as any of them could tell —
     // which is exactly why `forge-floor` was invisible to two of them.
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const floor = makeStuff(() => new Floor());
     expect(floor.hasSurfaceBulk()).toBe(false);
     room.addFixture(floor, 'floor');
@@ -71,7 +71,7 @@ describe('applyAdornments rebuilds rather than doubles', () => {
   });
 
   it('a second hydrate leaves ONE fixture, not two', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const first = makeStuff(() => new TestFixture());
     const second = makeStuff(() => new TestFixture());
     vi.spyOn(StuffApi, 'clone')
@@ -89,7 +89,7 @@ describe('applyAdornments rebuilds rather than doubles', () => {
   });
 
   it('a room re-hydrated with a floor still has exactly one floor', async () => {
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const a = makeStuff(() => new Floor());
     const b = makeStuff(() => new Floor());
     vi.spyOn(StuffApi, 'clone')
@@ -108,7 +108,7 @@ describe('applyAdornments rebuilds rather than doubles', () => {
     // Chattel is owner-persisted, one collection over, and was never in
     // `_appliedFixtures` — so the clear pass must not see it. Getting this
     // wrong would destroy a bought lamp on every CMS go-live.
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     const hung = makeStuff(() => new TestHangable());
     room.addFixture(hung, 'hook:1');
 

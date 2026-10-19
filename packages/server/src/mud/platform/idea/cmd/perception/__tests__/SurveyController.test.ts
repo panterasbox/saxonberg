@@ -26,11 +26,11 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import SurveyController from '../SurveyController';
 import ArchetypeCatalogue from '../../../ArchetypeCatalogue';
-import SingletonCartesianLocation from '../../../../location/SingletonCartesianLocation';
+import Locale from '../../../../location/Locale';
 import CartesianZone from '../../../location/CartesianZone';
 import { BiomeApi } from '../../../../../api/biome';
-import FurnishableRoom from '../../../../location/FurnishableRoom';
-import { InnerWarren } from '../../../../../lib/location/InnerWarren';
+import PersistentLocation from '../../../../location/PersistentLocation';
+import { RoomWarren } from '../../../../../lib/location/RoomWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
@@ -162,7 +162,7 @@ function bed(): Chair {
  * the residential class — the point of the seam is that the kernel never
  * names it, and a stand-in with the right SHAPE proves exactly that.
  */
-class FakeProgramme extends InnerWarren {
+class FakeProgramme extends RoomWarren {
   public band = 'sound';
   public cause: string | null = null;
   conditionBand(): string {
@@ -196,7 +196,7 @@ class FakeProgramme extends InnerWarren {
 
 /** Put `rooms` in a holding whose shell reads `band` because of `cause`. */
 function holding(
-  rooms: FurnishableRoom[],
+  rooms: PersistentLocation[],
   band: string,
   cause: string | null,
 ): FakeProgramme {
@@ -258,8 +258,8 @@ describe('survey', () => {
   });
 
   it('reads the bare room against all four, and says no to each', async () => {
-    const room = makeStuff(() => new SingletonCartesianLocation());
-    const actor = makeStuff(() => new SingletonCartesianLocation()); // any Stuff will do as a giver
+    const room = makeStuff(() => new Locale());
+    const actor = makeStuff(() => new Locale()); // any Stuff will do as a giver
     await survey(actor, room);
     expect(captured).toContain('You take stock of the room');
     for (const label of ['a bedroom', 'a kitchen', 'a bathroom', 'a living room']) {
@@ -270,20 +270,20 @@ describe('survey', () => {
   });
 
   it('names what answered — the bed, by name', async () => {
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     const b = bed();
     ContainmentApi.move(
       b as unknown as Stuff & Containable,
       room as unknown as Stuff & Container,
     );
-    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
+    await survey(makeStuff(() => new Locale()), room);
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toMatch(/sleeping \(.*bed.*\)/);
   });
 
   it('at home it reads the WHOLE place, and adds the shell and the term', async () => {
-    const hall = makeStuff(() => new FurnishableRoom());
-    const bedroom = makeStuff(() => new FurnishableRoom());
+    const hall = makeStuff(() => new PersistentLocation());
+    const bedroom = makeStuff(() => new PersistentLocation());
     ContainmentApi.move(
       bed() as unknown as Stuff & Containable,
       bedroom as unknown as Stuff & Container,
@@ -295,7 +295,7 @@ describe('survey', () => {
     );
 
     // Standing in the HALL, which has nothing in it at all.
-    await survey(makeStuff(() => new SingletonCartesianLocation()), hall);
+    await survey(makeStuff(() => new Locale()), hall);
     expect(captured).toContain('You take stock of the place as a whole');
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
@@ -307,9 +307,9 @@ describe('survey', () => {
   });
 
   it('bands and words only — no number anywhere in the readout', async () => {
-    const hall = makeStuff(() => new FurnishableRoom());
+    const hall = makeStuff(() => new PersistentLocation());
     holding([hall], 'sound', null);
-    await survey(makeStuff(() => new SingletonCartesianLocation()), hall);
+    await survey(makeStuff(() => new Locale()), hall);
     // The one thing D4 forbids: a gauge. `0.87` or `87%` must never appear.
     expect(captured).not.toMatch(/\d+(\.\d+)?\s*%/);
     expect(captured).not.toMatch(/\b0\.\d+\b/);
@@ -330,8 +330,8 @@ describe('survey', () => {
 
   it("an `off-room` archetype never appears in a room survey", async () => {
     await warmWith([scopedDoc('haulage-rig', 'a haulage rig', 'off-room')]);
-    const room = makeStuff(() => new SingletonCartesianLocation());
-    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
+    const room = makeStuff(() => new Locale());
+    await survey(makeStuff(() => new Locale()), room);
     // A rig is surveyed by NAMING it, never by standing somewhere.
     expect(captured).not.toContain('a haulage rig');
     // …and the shipped four are untouched.
@@ -340,9 +340,9 @@ describe('survey', () => {
 
   it("a `corridor` archetype stays off an INDOOR survey", async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(false);
-    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
+    await survey(makeStuff(() => new Locale()), room);
     // ⭐ The whole point of the second field: five new archetypes must not
     // print in every bedroom in the game.
     expect(captured).not.toContain('a way');
@@ -351,11 +351,11 @@ describe('survey', () => {
   it("a `corridor` archetype reports over ALL of a corridor's rooms at once (AC15l)", async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
     const here = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       '/test/way/here',
     );
     const along = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       '/test/way/along',
     );
     // ⚠ A LANE, not a zone. A zone is not a way — it used to be the unit
@@ -370,21 +370,21 @@ describe('survey', () => {
     );
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
-    await survey(makeStuff(() => new SingletonCartesianLocation()), here);
+    await survey(makeStuff(() => new Locale()), here);
     expect(captured).toContain('a way: yes');
   });
 
   it('a corridor missing its shelter reports the gap and blocks nothing', async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
     const here = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       '/test/way/lonely',
     );
     installLane([here]);
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
     const ctx = await survey(
-      makeStuff(() => new SingletonCartesianLocation()),
+      makeStuff(() => new Locale()),
       here,
     );
     expect(captured).toContain('a way: no');
@@ -406,27 +406,27 @@ describe('survey', () => {
      */
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
     const courtyard = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       '/test/way/courtyard',
     );
     // A lane exists in the realm — it just does not run through here.
     installLane([
       makeStuffAtPath(
-        () => new SingletonCartesianLocation(),
+        () => new Locale(),
         '/test/way/elsewhere',
       ),
     ]);
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
     await survey(
-      makeStuff(() => new SingletonCartesianLocation()),
+      makeStuff(() => new Locale()),
       courtyard,
     );
     expect(captured).not.toContain('a way');
   });
 
   it('is afforded actor-side, beside `look`', () => {
-    class Viewer extends PerceiverMixin(SingletonCartesianLocation) {}
+    class Viewer extends PerceiverMixin(Locale) {}
     const verbs = CommandApi.collectSelfDefs(Viewer)
       .map((d) => d.verbs)
       .flat();

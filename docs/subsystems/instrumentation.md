@@ -240,3 +240,17 @@ a novice how many times; a competent eye the worst hand in it, in words
 (*an unpractised hand*), and the grade; a proficient one part by part; an
 expert the menders by name. Never a digit. See
 [assembly.md](./assembly.md) and [crafting.md § The lifecycle](./crafting.md).
+
+## The cleanliness build (2026-10-18)
+
+The `cleanliness` channel (`CleanlinessReading`, eye rung only,
+`subjectRequires: [SoilableMixin]`, discipline **`domestic-services`** —
+ISCED-F 1012, new with it and credited by `wash`/`sweep`/`brush`): anybody
+reads the look line and the wet; a novice where, site by site, and what
+has SET; a competent hand what lifts each kind — read off the dirt row's
+own `answersTo`/`setAnswersTo` (`Soilable.liftedBy`), so the advice is
+derivable; a proficient one what was DONE to it (the wash and heat
+stamps, as evidence: *boiled and not handled since — fit to dress a
+wound*); an expert how long ago. ⛔ Never the microbes — `cleanTier()`
+reads contamination, which is silent (spoilage.md), so the reading speaks
+only from the process record. See [cleanliness.md](./cleanliness.md).

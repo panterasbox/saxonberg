@@ -20,7 +20,7 @@ import type { Containable } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import Floor from '../../../platform/thing/Floor';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Stuff } from '../../stuff/Stuff';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -252,7 +252,7 @@ describe('Bulkable — closure retention + drain-through', () => {
 
   it('an open vessel drains through to the floor puddle', () => {
     const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const floor = makeStuff(() => {
       const f = new Floor();
       f.surfaceBulk = true;
@@ -295,7 +295,7 @@ describe('Bulkable — Floor surface-bulk vs discrete containment', () => {
   });
 
   it('a dropped item is container=room, not resting on the floor', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const floor = makeStuff(() => {
       const f = new Floor();
       f.surfaceBulk = true;

@@ -46,7 +46,7 @@ beforeEach(() => {
     { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
     {
       path: HALL,
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
       data: {
         _address: 'test/hall',
         exits: { north: { destination: YARD, bidirectional: true } },
@@ -54,11 +54,11 @@ beforeEach(() => {
     },
     {
       path: YARD,
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
       data: {},
     },
-    // A KIND: a plain CartesianLocation, minted many times.
-    { path: KIND, class: '/platform/location/CartesianLocation', data: {} },
+    // A KIND: a plain Location, minted many times.
+    { path: KIND, class: '/platform/location/Location', data: {} },
     /*
      * ⭐ Two exit KINDS and a place that names them. The kind rows are
      * what carry `media` / `wheelPassable` / `conditional` in real
@@ -79,7 +79,7 @@ beforeEach(() => {
     },
     {
       path: BANK,
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
       data: {
         exits: {
           up: { destination: HALL, kind: STAIR_KIND },

@@ -3,6 +3,8 @@
 # Players cannot reach it (no Exitable).
 class: /platform/location/Offstage
 data:
+  # Every place but the void has a cell (the place taxonomy) — behind the office, clear of the lounge's star ring.
+  coords: { x: 0, y: 2, z: 0 }
   shortDescription: Dave's Bar — Back office
   keywords: [office, "dave's", dave, bar, back]
   register: proper

@@ -1012,3 +1012,23 @@ temperature-sensitive as real milk pathogens, so a flash pasteurization
 (72 °C for seconds) under-kills here; a batch hold at ~63 °C behaves
 honestly. A retune of the kill's activation energy is this subsystem's,
 not dairy's.
+
+## Cleanliness: pests and the kitchen (2026-10-17)
+
+- **Pests** add `cleanliness.pests.ratePerHour` to an open food's growth
+  while the room's floor has them — derived from debris over
+  `cleanliness.pests.debrisAt` plus open food, never a field; sampled once
+  per reconcile beside light-strike.
+- **The kitchen tier** — a board, knife or hand short of *sanitised*
+  inoculates the food it touches with `staph-aureus` before the working's
+  kill (perishable inputs only). See [cleanliness.md](./cleanliness.md).
+
+## Rot away (cleanliness, 2026-10-18)
+
+Food that has read **rotten** for `freshness.rotAwayAfterS` (three game
+days), lying loose in a room, rots AWAY: it is destroyed, and what is left
+is crumbs on the floor (`rottenSince` is the one stamp). In a pot, a pack
+or a hand it waits. A midden takes rotten food as refuse whatever its
+material (`Midden.takeRefuse`). How waste gets to being gone is
+[waste-slate](../slates/builds/waste-slate.md).
+

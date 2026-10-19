@@ -3,7 +3,7 @@
 # demonstrator: `north` leads into the trapped corridor; `south` climbs back
 # out to the treeline (the one cross-zone edge from inside this sphere — its
 # partner, the inbound `north`, is authored on the treeline seed).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: mouth of the delve
   keywords: [delve, mouth]

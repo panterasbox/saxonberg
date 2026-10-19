@@ -401,7 +401,7 @@ and `CostumedMixin` records `_costumeWorn` — **one once-flag per list**:
 cast). Each applier no-ops once its flag is set.
 Singletons were already safe (the applier skips one already placed);
 this covers the plain-clone branch. `PersistableMixin` hosts (every
-`FurnishableRoom`) were never exposed — that override only *retains*
+`PersistentLocation`) were never exposed — that override only *retains*
 the specs and lets the establishing context seed them once via
 `seedBornWith` — and the guard now makes that idempotent too.
 
@@ -451,7 +451,7 @@ written to a ledger.
   `MixinApi.getAllPersistentFields(host.constructor)`, prefer
   `await target.set<PascalCase(field)>(value)` when that method exists,
   else `target[field] = value`. The async-first dispatch lets a setter
-  with side effects (`CartesianLocation.setCoords` registers with the
+  with side effects (`Location.setCoords` registers with the
   zone) finish before the next field. The bracket-assign fallback still
   fires an accessor pair declared on the prototype, so a shape invariant
   on a `set` accessor continues to gate the write.
@@ -693,7 +693,7 @@ RAW row an author means to state:
 
 ```typescript
 await TemplateApi.saveTemplate('/narnia/castle/foyer', {
-  class: '/lib/location/CartesianLocation',
+  class: '/lib/location/Location',
   data: { /* persistent fields */ },
 });
 ```

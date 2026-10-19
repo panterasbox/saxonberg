@@ -27,7 +27,7 @@ import type { Mml } from '../../../../../api/mml';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -47,7 +47,7 @@ const COUNTER = '/stuff/test/sign/thing/counter';
 const BIZ = '/stuff/test/sign/idea/business';
 const ALICE = '/platform/agent/Avatar/alice';
 
-class Room extends VisibleMixin(NamedMixin(ContainerMixin(Location))) {
+class Room extends VisibleMixin(NamedMixin(ContainerMixin(Place))) {
   static _mixinName = 'SignRoom';
 }
 class Counter extends ContainableMixin(NamedMixin(Idea)) {

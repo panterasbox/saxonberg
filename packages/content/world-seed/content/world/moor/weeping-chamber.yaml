@@ -1,5 +1,5 @@
 # The weeping chamber — the *indoor* authored-rain demonstrator (weather =
-# sky dynamics; authored atmosphere = anywhere). A sheltered CartesianLocation
+# sky dynamics; authored atmosphere = anywhere). A sheltered Location
 # with NO sky, yet it rains: a **scope-tier** weather pin (`AtmosphericMixin.
 # _weatherPin`) declares a frozen rain, and an authored humidity override sets
 # the sodden air directly. The consequence layer is source-indifferent — this
@@ -9,7 +9,7 @@
 # The field deviations stay SkyExposed-gated (an indoor scope gets no storm
 # wind-chill); the precipitation read is NOT sky-gated (the pin rains). No
 # exits wired (reachable by teleport).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: weeping chamber
   keywords: [chamber, weeping]

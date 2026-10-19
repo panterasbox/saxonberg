@@ -17,9 +17,9 @@ import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
+import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -61,7 +61,7 @@ const LOT1 = `${PARENT}/lot-1`;
 
 /** The generic institution the programme hangs off (a PlatWarren stand-in). */
 class TestInstitution extends SingletonMixin(
-  OuterWarren,
+  CirculationWarren,
 ) {
   static _mixinName = 'ProgTestInstitution';
   protected async standUpHolding(key: string): Promise<MemberStuff> {
@@ -134,17 +134,17 @@ function seedDomain(): void {
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
   });
-  add(ROOM_A, '/platform/location/FurnishableRoom', {
+  add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
     props: ['/world/prog-test/coatrack'],
   });
-  add(ROOM_B, '/platform/location/FurnishableRoom', {
+  add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
-  add(STREET, '/platform/location/FurnishableRoom', {
+  add(STREET, '/platform/location/PersistentLocation', {
     shortDescription: 'the lane',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
@@ -269,7 +269,7 @@ describe('the residential programme (D16)', () => {
     // The entry is the hall (floorplan `entry: true`), a keyed instance
     // of the REAL row — templatePath resolves to the row (D17), the
     // instance identity is the (scope, key) pair.
-    expect(entry).toBeInstanceOf(FurnishableRoom);
+    expect(entry).toBeInstanceOf(PersistentLocation);
     expect(entry.getTemplatePath()).toBe(ROOM_A);
     expect(
       (entry as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
@@ -291,6 +291,43 @@ describe('the residential programme (D16)', () => {
     ).toBe('prog-test/lot-1/bedroom');
     // The upkeep term reads on the programme (D5).
     expect(holding.getUpkeepTerm()).toBe('owner-all');
+  });
+
+  it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {
+    // Every place but the void has coordinates. A holding's rooms take
+    // theirs from the floorplan's cardinal exits, the entry at the origin:
+    // the hall at (0,0,0), the bedroom north of it.
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const cell = (r: unknown) =>
+      (r as { getCoordinates(): [number, number, number] }).getCoordinates();
+    expect(cell(hall)).toEqual([0, 0, 0]);
+    expect(cell(holding.roomForLeaf('bedroom'))).toEqual([0, 1, 0]);
+    // A frame of its own — a door out of it may be named, like a door
+    // between zones.
+    expect(holding.laysOutOwnFrame()).toBe(true);
+  });
+
+  it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
+    // A room's size is its zone's cell. The rows live at `/world/prog-test/`
+    // (no zone), the lot under a 4 m zone — so the rooms take the lot's.
+    col('content').push({
+      _id: `d-${++idCounter}`,
+      path: PARENT,
+      class: '/platform/idea/location/CartesianZone',
+      data: { name: 'the lots', cellSize: 4 },
+    });
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    expect(hall).toBeInstanceOf(PersistentLocation);
+    expect(hall.getTemplatePath()).toBe(ROOM_A);
+    expect(hall.getZone()?.getTemplatePath()).toBe(PARENT);
+    expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(16);
   });
 
   it('⭐ sleeps and wakes WHOLE — rooms + fixtures + placed goods together', async () => {
@@ -679,6 +716,11 @@ describe('⭐ admitPlot — the break-ground seam (farmstead W3)', () => {
     expect(
       (field as unknown as Stuff & Exitable).getExit('out'),
     ).toBeTruthy();
+    // ⭐ A plot hung off the house by NAME is not reached by the cardinal
+    // plan, so it sits in the row beyond the house (B53).
+    expect(
+      (field as unknown as { getCoordinates(): number[] }).getCoordinates(),
+    ).toEqual([0, 2, 0]);
   });
 
   it('⭐ it PERSISTS, by the same machinery that stands up a hall', async () => {

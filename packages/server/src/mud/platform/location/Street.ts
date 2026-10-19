@@ -2,7 +2,7 @@
  * Street — ⭐⭐ **a public way, which is the only kind of place a town
  * lights.**
  *
- * The one thing this class adds over {@link SingletonCartesianLocation}
+ * The one thing this class adds over {@link Locale}
  * is {@link PublicLightingMixin}: a row declares that the lighting
  * service runs here (`publicLighting:`), and whether the lamps are
  * actually burning is derived from the hour and from whether the
@@ -12,7 +12,7 @@
  * reserves reconciling to produce the same number.
  *
  * ⚠⚠ **Why this class exists, and it is a correction.** The envelope
- * build composed `PublicLightingMixin` onto `CartesianLocation` — the
+ * build composed `PublicLightingMixin` onto `Location` — the
  * base under very nearly every room in the game — on the reasoning that
  * *"any cartesian cell may be lit by a funded public service."* That
  * sentence is a rationalization for a catch-all bucket: the cookhouse,
@@ -31,13 +31,13 @@
  * exactly who a lamp-post belongs to.
  *
  * Singleton, because one row IS one street. A *kind* of way minted many
- * times (nine reaches of one lane) wants plain `CartesianLocation` and
+ * times (nine reaches of one lane) wants plain `Location` and
  * has no lighting service to declare.
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { PublicLightingMixin } from '../../lib/perception/PublicLighting';
 
 export default class Street extends PublicLightingMixin(
-  SingletonCartesianLocation,
+  Locale,
 ) {}

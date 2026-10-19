@@ -15,7 +15,7 @@
 # ninety metres* is negative information about a structure, filed where
 # a buyer can read it and the seller cannot change it. The next person
 # who looks at this country will pay for that sentence.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: cairn rise

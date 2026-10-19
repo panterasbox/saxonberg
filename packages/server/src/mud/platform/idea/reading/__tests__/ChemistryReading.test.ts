@@ -7,7 +7,7 @@ import { TangibleMixin } from '../../../../lib/material/Tangible';
 import Material from '../../../../lib/material/Material';
 import Good from '../../../../lib/stuff/Good';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -54,7 +54,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: CartesianLocation
+  location: Location
 ): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
@@ -82,7 +82,7 @@ describe('ChemistryReading', () => {
 
   it('emits chemistry data with canonical Quantity markup', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
 
     // Build a synthetic iron Material via clone-by-template would
@@ -124,7 +124,7 @@ describe('ChemistryReading', () => {
 
   it('rejects a non-Tangible target', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     // Plain Idea isn't Tangible.
     const idea = makeStuff(() => new Idea());

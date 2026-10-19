@@ -40,6 +40,48 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Cleanliness (the soiling model, the cleansers, the kept places).**
+ * Every field level 0 but two, and why:
+ *   - ⚠ `SoilableMixin.stains` — **`spoiler: 2`**. A blood stain carries the
+ *     bleeder's TRUE type, system and person key: exactly what `analyze
+ *     blood <garment>` is for. A panel that printed it would answer the
+ *     forensic question for free — the murderer's shirt read without a
+ *     reading. `donorIdentityPath` is never surfaced by any line.
+ *   - `Recipe.soils` — `spoiler: 1, spoilerName: 0`, its recipe siblings'
+ *     tag: *that a making dirties you* is public; how much is the trade's.
+ *   - `SoilableMixin.deposits` / `.setDeposits` / `.washes` / `.heat` —
+ *     runtime state read out in words (*soiled, bloodied and greasy*; the
+ *     clean tiers), never as figures; what an act did, visible to anyone
+ *     who looks.
+ *   - `DirtKind` ×9, `Cleanser` ×9 — the vocabulary rows: what a dirt is
+ *     called and what lifts it; what a cleanser does and to what. The
+ *     requirements' own table (§ 6) is the content; the chemistry is the
+ *     lesson, and the textiles band reads it before a wash.
+ *   - `Material.combustionProducts` / `.flammableLimit` /
+ *     `.vapourLPerLPerHour` / `.vapourMaterial` / `.ashFraction` —
+ *     `spoiler: 1, spoilerName: 0`, the tag `heatOfCombustion` and
+ *     `toxicity` carry: that sulfur burns to something, that a dust can
+ *     flash, that a fuel leaves ash is public; the figures are measured.
+ *   - `MaturationProfile.offGas` — level 0: what a vat breathes is what
+ *     the nose and a shut room tell you; `WaterFixture.hardnessDgh` —
+ *     level 0: the tap's own look line says *soft* or *hard*.
+ *   - `Garment.sunYellow` / `.airingStamp`, `BurnerMixin.ashKg`,
+ *     `FluedMixin.flueSoot`, `FloorMixin.strewn` / `.stallsStamp` —
+ *     runtime state, read out in words (*yellowed*, *caked with soot*,
+ *     *rushes strewn*); `FloorMixin.stalls` — level 0, an authored
+ *     reference to the herd book whose beasts foul the floor;
+ *     `FloorMixin.sweepsInto` — level 0, the row a broom heaps into
+ *     (sweepings, the byre's muck): what you get is what you hold.
+ *   - `Material.cleanser` — level 0: what a material washes AS (a bar of
+ *     soap is soap); the row it names loads with it (cleanliness B50).
+ *   - `Tariff.serviceDisciplines` — level 0: which trade answers a paid
+ *     service is posted on the slate; `KeptDoor.keptBy` — level 0, the
+ *     house whose doorman keeps the door, which the doorman says himself;
+ *     `Copper.copperLit` / `.heatsToK` — level 0: a copper's steam and the
+ *     heat of what you draw from it are what anyone standing there feels.
+ *   - Retired: `HygieneMixin.washedAt` — the hands clock, deleted;
+ *     `DressingMixin.dressingQuality` — authored, now derived from the
+ *     dressing's clean tier (a row could claim a sterile bandage).
  * **The rubber build (construction, W0: 2 fields).** Both level 0:
  *   - `AtmosphericMixin.roof` — what is over a place, as its sibling
  *     `enclosure` is what is around it: a material and a thickness you

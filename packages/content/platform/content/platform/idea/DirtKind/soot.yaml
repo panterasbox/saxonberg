@@ -1,0 +1,10 @@
+# Soot — what a smoky fire leaves on hands, panes and lamp glass. Water
+# barely shifts it; soap, an alkali or a scouring does.
+class: /platform/idea/DirtKind
+data:
+  key: soot
+  adjective: sooty
+  form: film
+  answersTo: [surfactant, alkali-mild, alkali-strong, solvent, abrasive]
+  waterLifts: 0.1
+  brushLifts: 0.3

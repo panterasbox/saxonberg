@@ -25,7 +25,7 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { ContainmentApi } from '../containment';
 import { NamedMixin } from '../../lib/description/Named';
 
@@ -47,12 +47,12 @@ async function bootRegistry(): Promise<void> {
 async function setup(): Promise<{
   avatar: Avatar;
   interactive: Interactive;
-  location: Location;
+  location: Place;
   swords: Good[];
   envelopes: Array<{ type: string; promptId?: string; outcome?: { notes: Array<{ kind: string; [k: string]: unknown }> } }>;
 }> {
   await bootRegistry();
-  const location = await StuffApi.create(() => new Location());
+  const location = await StuffApi.create(() => new Place());
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName('Alice');
   ContainmentApi.move(avatar, location);

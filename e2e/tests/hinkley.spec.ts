@@ -17,7 +17,7 @@ import {
  *   1. the lane's authored exit named the SHARED yard template, so it
  *      stood the template up as an unowned place and then collided with
  *      the minted per-lot identities;
- *   2. a per-lot room cannot be a `CartesianLocation` at all (N lots,
+ *   2. a per-lot room cannot be a `Location` at all (N lots,
  *      one coordinate) — and as one it read 16.7 lux, under a carrot's
  *      light floor;
  *   3. the lots needed a spatial zone of their own before the

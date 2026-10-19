@@ -152,6 +152,9 @@ async function land(
   const giver = context.commandGiver;
   const result = await subject.completeWork(giver, tool, plan.token);
   if (giver.isDestroyed()) return;
+  if (result.soils && result.soils.length > 0 && MixinApi.isHygienic(giver)) {
+    giver.soilFrom(result.soils);
+  }
   const scene = MessageApi.scene(giver)
     .topic(WORK_TOPIC)
     .toSelf(Mml.fromMarkup(result.self));

@@ -12,7 +12,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Exit from '../Exit';
 import { StuffApi } from '../../../api/stuff';
 import { Template } from '../../stuff/Template';
@@ -83,14 +83,14 @@ function mockKindTemplates(): void {
 
 describe('exit-kind templates', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
 
   beforeEach(() => {
     StuffApi.clearAll();
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     mockKindTemplates();

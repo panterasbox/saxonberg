@@ -7,7 +7,7 @@
 # The furnace, the blowpipe and the marver are its capital; the charcoal,
 # the lime and the ash are a starting condition (bounded props, never
 # restocked — the Hearthworks shape). The sand you win yourself at the pit.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: glasshouse
   keywords: [glasshouse, glassworks, furnace, "glass house"]

@@ -287,6 +287,18 @@ Left as a line here rather than in a retired plan.
 
 - **The flue as an object, and inter-room air mixing.** The fire build derives a scope's ventilation from its openings (`achPerOpening` / `achInterior` / `achLeak`) but nothing transports a medium BETWEEN scopes, so a chimney is a hole with a number rather than a thing. ⚠ Its four forward-compat constraints held: contents resolve through the same outward walk, no room field was added for a stack, and building condition is untouched.
 
+## From the cleanliness build (2026-10-17)
+
+- A **flue on the forge and the kiln** — `FluedMixin` composes on `Hearth`
+  and `Oven` only; a forge and a kiln have stacks of their own and soot
+  nothing yet.
+- A **building's shared stack** — each Flued fire keeps its own
+  `flueSoot`; one chimney serving several hearths is the stack this slate
+  already names.
+- **Air mixing between rooms** — fumes (sulfur, ammonia, smoke, dust)
+  build in the room that made them and clear through an opening; no air
+  moves room to room.
+
 ## ⬅ Building materials, erection and upkeep (recorded 2026-10-16, from the storage-and-ice requirements)
 
 > *"We've said maybe structures have a bill of goods you need to erect /

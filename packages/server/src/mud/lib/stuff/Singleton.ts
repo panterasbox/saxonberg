@@ -15,7 +15,7 @@
  * Use cases:
  *   - Zones (each zone template is a unique world entity).
  *   - Content-author leaves that should be unique-by-path (e.g., a singleton
- *     `TownSquare extends CartesianLocation`).
+ *     `TownSquare extends Location`).
  *
  * No fields and no `persistentFields`. The `_mixinName` is what
  * `MixinApi.hasMixin` matches against. It carries exactly one method,

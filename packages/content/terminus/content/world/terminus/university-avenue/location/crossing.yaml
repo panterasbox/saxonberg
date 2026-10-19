@@ -7,7 +7,7 @@
 # reachable), EAST soft-walled by Gus in dialogue (no real exit that way; the
 # paddle gates nothing — see the crossing-guard sheet).
 #
-# The room is a `/platform/location/Crossing` (CartesianLocation subclass) for one reason:
+# The room is a `/platform/location/Crossing` (Location subclass) for one reason:
 # the dynamic `tower` detail reads the world clock directly and appends the
 # terminal clock tower's honest civic hour (the drift-reveal). The tower
 # itself is prose, not Stuff. Everything else is plain seed data.

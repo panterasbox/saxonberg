@@ -34,3 +34,7 @@ outputApplication: bulk
 outputMaterial: /stuff/idea/material/food/dough
 difficulty: standard
 discipline: baking
+# Kneading: flour on the hands and on the floor (cleanliness D6).
+soils:
+- { kind: flour, amount: 0.2, where: hands }
+- { kind: flour, amount: 0.05, where: floor }

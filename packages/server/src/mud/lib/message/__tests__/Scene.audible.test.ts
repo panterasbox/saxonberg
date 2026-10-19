@@ -16,7 +16,7 @@ import { PerceptionApi } from '../../../api/perception';
 import { SensorMixin } from '../Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
@@ -39,12 +39,12 @@ class Emitter extends ContainableMixin(Idea) {}
 // A carrier (Container + Containable) to test enclosing-room resolution.
 class Holder extends ContainerMixin(ContainableMixin(Idea)) {}
 
-function room(zone: CartesianZone, x: number, y: number): CartesianLocation {
-  const loc = makeStuff(() => new CartesianLocation());
+function room(zone: CartesianZone, x: number, y: number): Location {
+  const loc = makeStuff(() => new Location());
   zone.addLocation(loc, x, y, 0);
   return loc;
 }
-function earIn(loc: CartesianLocation): RecordingEar {
+function earIn(loc: Location): RecordingEar {
   const e = makeStuff(() => new RecordingEar());
   ContainmentApi.move(e, loc);
   return e;

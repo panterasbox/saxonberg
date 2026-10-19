@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../message';
 import { MessageLogic } from '../../platform/idea/api/MessageLogic';
 import { SecurityError } from '../../lib/security/errors';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
@@ -48,17 +48,17 @@ class MobileSensor extends MobileSensorBase {
   lastMessage?: unknown;
 }
 
-// Create a simple non-sensor object for testing — containable so it can live in a Location
+// Create a simple non-sensor object for testing — containable so it can live in a Place
 class NonSensor extends ContainableMixin(Idea) {}
 
 describe('MessageApi', () => {
-  let location: Location;
+  let location: Place;
   let sensor1: TestSensor;
   let sensor2: TestSensor;
   let nonSensor: NonSensor;
 
   beforeEach(() => {
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
 
     sensor1 = makeStuff(() => new TestSensor());
 
@@ -265,7 +265,7 @@ describe('MessageApi', () => {
     });
 
     it('should isolate messages to container', () => {
-      const location2 = makeStuff(() => new Location());
+      const location2 = makeStuff(() => new Place());
 
       const sensorInRoom1 = makeStuff(() => new TestSensor());
       const sensorInRoom2 = makeStuff(() => new TestSensor());
@@ -276,7 +276,7 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message = makeFrame('test', 'Location 1 only');
+      const message = makeFrame('test', 'Place 1 only');
 
       MessageApi.messageContainer(source, message);
 

@@ -34,7 +34,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ManualBuildMixin } from '../../../../../lib/craft/ManualBuild';
 import { ToolMixin } from '../../../../../lib/craft/Tooled';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
 import { CommandApi } from '../../../../../api/command';
@@ -77,13 +77,13 @@ const ref = (stuff: Stuff | null): MqlOneResult =>
   ({ stuff, raw: 'it' }) as unknown as MqlOneResult;
 
 let actor: TestActor;
-let room: Location;
+let room: Place;
 let now = 0;
 let seq = 0;
 
 /** A lit hearth (Placing) or a lit forge (not Placing) in the room. */
 async function stand(kind: 'hearth' | 'forge' | 'cold-hearth'): Promise<Stuff> {
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   await ContainmentApi.move(actor as never, room as never);
   const f =

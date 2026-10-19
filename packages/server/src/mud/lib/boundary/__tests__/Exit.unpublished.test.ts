@@ -18,7 +18,7 @@ import Exit from '../Exit';
 import { ParcelApi } from '../../../api/parcel';
 import { StuffApi } from '../../../api/stuff';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Door from '../../../platform/thing/Door';
 import {
   makeStuff,
@@ -44,9 +44,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function here(): CartesianLocation {
+function here(): Location {
   const zone = makeStuff(() => new CartesianZone());
-  const loc = makeStuffAtPath(() => new CartesianLocation(), HERE);
+  const loc = makeStuffAtPath(() => new Location(), HERE);
   zone.addLocation(loc, 0, 0, 0);
   return loc;
 }
@@ -59,7 +59,7 @@ function here(): CartesianLocation {
  * exit onto itself. The constructor is the shape every other boundary
  * suite uses for a standalone exit.
  */
-function exitTo(source: CartesianLocation, path: string): Exit {
+function exitTo(source: Location, path: string): Exit {
   return makeStuff(
     () =>
       new Exit({

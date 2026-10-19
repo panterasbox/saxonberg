@@ -30,6 +30,7 @@
  */
 
 import { Grade } from './Grade';
+import { SoilSpecs, type SoilSpec } from '../cleanliness/SoilSpec';
 import { DIFFICULTIES } from '../advancement/ActSignature';
 import {
   AROMAS,
@@ -205,6 +206,7 @@ export class Recipe {
     cure: { persistent: true, spoiler: 1, spoilerName: 0 },
     imparts: { persistent: true, spoiler: 1, spoilerName: 0 },
     volatiles: { persistent: true, spoiler: 1, spoilerName: 0 },
+    soils: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -322,6 +324,13 @@ export class Recipe {
    * place that already knows this charge's chemistry.
    */
   volatiles: RecipeVolatile[] = [];
+
+  /**
+   * ⭐ What making this DIRTIES (cleanliness D6) — grease on the renderer's
+   * hands and apron, flour on the baker's floor. Landed on the maker by
+   * the craft mint, the one choke every make passes. `[]` = a clean make.
+   */
+  soils: SoilSpec[] = [];
 
   /** Output-application kind word; empty = `'bulk'` (the bar's default). */
   outputApplication: string = '';
@@ -507,7 +516,13 @@ export class Recipe {
     r.cure = Recipe.cureFrom(data.cure, r.recipeId);
     r.imparts = Recipe.impartsFrom(data.imparts, r.recipeId);
     r.volatiles = Recipe.volatilesFrom(data.volatiles, r.recipeId);
+    r.soils = [...new SoilSpecs(data.soils, `Recipe '${r.recipeId}'`).entries];
     return r;
+  }
+
+  /** What making this dirties, and where. */
+  public getSoils(): readonly SoilSpec[] {
+    return this.soils;
   }
 
   /** What this firing drives off the charge. */

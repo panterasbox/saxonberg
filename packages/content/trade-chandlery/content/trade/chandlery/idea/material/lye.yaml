@@ -1,0 +1,24 @@
+# Lye — the caustic liquor from the ash hopper (cleanliness D24). It cuts
+# grease, fat and protein, and it rots wool and burns skin: its
+# `corrosiveTo` names what (never `organic` or `textile` — rubber gloves
+# stay outside it). In the eyes it blinds until rinsed.
+class: /platform/idea/material/Material
+data:
+  name: lye
+  keywords: [lye, liquor, potash, caustic]
+  appearance: a clear, slippery, faintly yellow liquor
+  density: 1100
+  specificHeat: 3800
+  thermalConductivity: 0.6
+  meltingPoint: 271
+  boilingPoint: 375
+  edibility: false
+  nutrients: []
+  toxicity: []
+  corrosiveTo: [protein, tissue]
+  tags: [liquid, caustic, alkali, lye]
+  # ⭐ What it washes as (cleanliness B50): the wash reads this row,
+  # loaded with the material — never a search of cleansers by tag.
+  cleanser: /platform/idea/Cleanser/lye
+  composition: []
+  biologicalSource: null

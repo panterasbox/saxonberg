@@ -187,7 +187,7 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
   if (state.entryRoom && !state.entryRoom.isDestroyed()) {
     return state.entryRoom;
   }
-  const { default: Location } = await import('../../../lib/stuff/Location');
+  const { default: Location } = await import('../../../lib/stuff/Place');
 
   const { Template } = await import('../../../lib/stuff/Template');
   const room = await ExecutionContextApi.runRootGuarded(

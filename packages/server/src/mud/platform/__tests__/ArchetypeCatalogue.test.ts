@@ -20,7 +20,7 @@ import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/qu
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
-import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
+import Locale from '../location/Locale';
 import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { PlacingMixin } from '../../lib/spatial/Placing';
@@ -114,7 +114,7 @@ describe('the venue archetype', () => {
       cloned.push(path);
       const s: Stuff =
         path === '/platform/location/venue'
-          ? (makeStuff(() => new SingletonCartesianLocation()) as unknown as Stuff)
+          ? (makeStuff(() => new Locale()) as unknown as Stuff)
           : path.endsWith('bench')
             ? (makeStuff(() => new Bench()) as unknown as Stuff)
             : (makeStuff(() => new Tool()) as unknown as Stuff);

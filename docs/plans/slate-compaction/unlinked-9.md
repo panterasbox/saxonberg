@@ -26,7 +26,7 @@ Batch-wide findings first:
 
 The stamp said *"no bathroom content, state or fixture exists"*; the
 residences build shipped exactly that. `packages/content/generic-objects/content/stuff/location/room/bathroom.yaml`
-(a `FurnishableRoom` row with `props:` toilet · basin · tub),
+(a `PersistentLocation` row with `props:` toilet · basin · tub),
 `content/archetypes/bathroom.yaml` (the capability archetype:
 `bulkSource: water` + `presence: toilet`), and the three fixture rows under
 `content/stuff/thing/fixture/` (`toilet.yaml` prose-only, `basin.yaml` a

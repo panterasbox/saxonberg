@@ -6,7 +6,7 @@
 # throw at hydration. It is unreachable in play: the gate Door is closed +
 # locked, so nobody ever stands here. A dead-end stub (no exits) on purpose;
 # the real campus entry replaces it when EU content lands.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: university gatehouse
   keywords: [gatehouse, university]

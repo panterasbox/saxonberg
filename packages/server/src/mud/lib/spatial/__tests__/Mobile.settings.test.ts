@@ -13,7 +13,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { EnvironmentMixin } from '../../shell/Environment';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
@@ -43,14 +43,14 @@ class AvatarLike extends AvatarLikeBase {
 
 describe('Mobile movement-message settings (Phase E)', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
     locA.setShortDescription('A');
-    locB = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new Location());
     locB.setShortDescription('B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);

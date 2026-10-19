@@ -1,4 +1,4 @@
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: empty shed
   keywords: [shed, empty]

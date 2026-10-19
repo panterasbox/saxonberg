@@ -1,16 +1,16 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import CartesianZone from '../../idea/location/CartesianZone';
-import CartesianLocation from '../../../lib/location/CartesianLocation';
+import Location from '../../../lib/location/Location';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 describe('CartesianZone', () => {
   let zone: CartesianZone;
-  let center: CartesianLocation;
+  let center: Location;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    center = makeStuff(() => new CartesianLocation());
+    center = makeStuff(() => new Location());
     zone.addLocation(center, 0, 0, 0);
   });
 
@@ -21,7 +21,7 @@ describe('CartesianZone', () => {
   });
 
   it('getNeighbor returns the location at the offset cell (a geometry query)', () => {
-    const a = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
     zone.addLocation(a, 1, 0, 0);
     expect(zone.getNeighbor(center, 'east')).toBe(a);
     expect(zone.getNeighbor(center, 'west')).toBeUndefined();
@@ -30,7 +30,7 @@ describe('CartesianZone', () => {
   it('the grid does NOT synthesize exits — a room connects only to what it declares', () => {
     // A neighbour placed one cell north creates NO exit on its own; exits are
     // authored explicitly. `getExit('north')` is undefined until declared.
-    const north = makeStuff(() => new CartesianLocation());
+    const north = makeStuff(() => new Location());
     zone.addLocation(north, 0, 1, 0);
     expect(center.getExit('north')).toBeUndefined();
     expect(center.getObviousExits()).toHaveLength(0);

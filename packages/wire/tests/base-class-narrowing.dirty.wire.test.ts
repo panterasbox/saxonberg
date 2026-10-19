@@ -685,7 +685,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
     /*
      * ⚠⚠ **`startLocation`, not `goto`, and that is a fact about the
      * world.** `goto` binds its target through MQL, which resolves LIVE
-     * objects — and a `SingletonCartesianLocation` that nobody has
+     * objects — and a `Locale` that nobody has
      * visited has no instance yet, so `goto /world/newbie-wilds/delve/
      * corridor-1` answers `unknown-target`. Opening a session AT the
      * path materializes it. The same is true of the hill lane.
@@ -1228,9 +1228,9 @@ suite('H — a room can be named, and a cellar can be read', () => {
 
   it('⭐ Dave’s Bar is in the grid — its `coords:` used to be discarded', async () => {
     /*
-     * `Bar` restated `SingletonCartesianLocation`'s mixin set on a
+     * `Bar` restated `Locale`'s mixin set on a
      * plain `Location`, which composes the `coordinates` FIELD and not
-     * `coords` — `coords` lives on the `CartesianLocation` CLASS. The
+     * `coords` — `coords` lives on the `Location` CLASS. The
      * row authored `coords:` under a comment reading *"`coords:` is
      * the MEMBERSHIP operation"* and the applier dropped it: the bar
      * belonged to no zone, inside a `/world/lounge` that IS a

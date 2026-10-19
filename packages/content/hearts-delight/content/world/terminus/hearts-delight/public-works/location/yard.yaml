@@ -4,7 +4,7 @@
 # `container:`), a receiving bench where the carter drops the casks the warden
 # ordered, and a works board carrying the valley's carriage. The warden works
 # the yard on shift and runs the `restocks` loop from it.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 2, y: 0, z: 0 }
   shortDescription: public-works yard

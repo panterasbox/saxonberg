@@ -1,7 +1,7 @@
 # The Brewhouse — the brewing trade's ground, and ⭐ **the reason a
 # production floor needs a zone at all.**
 #
-# ⚠⚠ `coords:` is not decoration. `CartesianLocation.setCoords` is the
+# ⚠⚠ `coords:` is not decoration. `Location.setCoords` is the
 # ONLY path by which an authored row joins a zone, so a cartesian room
 # that authors no coords is not sitting at the origin — **it is in no
 # grid at all**, and it silently inherits nothing: no address and so no

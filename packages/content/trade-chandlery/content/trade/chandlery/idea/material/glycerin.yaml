@@ -1,0 +1,19 @@
+# Glycerin — the sweet, syrupy lees of the soap boil (cleanliness D24),
+# drawn off the kettle's bottom. The apothecary's and the cosmetic
+# trade's input; the chandler sells it by the jar.
+class: /platform/idea/material/Material
+data:
+  name: glycerin
+  keywords: [glycerin, glycerine, lees]
+  appearance: a clear, sweet, syrupy liquid
+  density: 1260
+  specificHeat: 2400
+  thermalConductivity: 0.29
+  meltingPoint: 291
+  boilingPoint: 563
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glycerin]
+  composition: []
+  biologicalSource: null

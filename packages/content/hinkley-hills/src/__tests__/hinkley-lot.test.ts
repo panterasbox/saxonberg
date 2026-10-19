@@ -48,11 +48,11 @@ describe("the yard ships the kit that makes it workable", () => {
     expect(populates).toContain(`/${HINKLEY}/thing/standpipe`);
   });
 
-  it("is NOT a CartesianLocation — a per-lot room is off the grid", () => {
+  it("is NOT a Location — a per-lot room is off the grid", () => {
     // N lots cannot share one coordinate, and a cartesian yard divided
     // its open sky by the zone's cellSize² down to 16.7 lux — under the
     // light floor its own crop needs.
-    expect(yard.class).toBe("/platform/location/FurnishableRoom");
+    expect(yard.class).toBe("/platform/location/PersistentLocation");
     expect(yard.data?.coords).toBeUndefined();
   });
 });
@@ -119,5 +119,23 @@ describe("one lot ships already sold", () => {
     for (const r of rooms) {
       expect(String(r.room ?? '')).toMatch(/^\//);
     }
+  });
+});
+
+describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
+  it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
+    const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
+    const rooms = (programme.data?.floorplan ?? []) as Array<{ leaf?: string; room?: string }>;
+    const bath = rooms.find((r) => r.leaf === "bathroom");
+    expect(bath?.room).toBe(`/${HINKLEY}/lots/bathroom`);
+    const row = read(`${HINKLEY}/lots/bathroom.yaml`);
+    expect(row.class).toBe("/platform/location/PersistentLocation");
+    expect(row.data?.props).toEqual(
+      expect.arrayContaining([
+        "/stuff/thing/fixture/tub",
+        "/stuff/thing/fixture/bath-tap",
+        "/stuff/thing/fixture/copper",
+      ]),
+    );
   });
 });

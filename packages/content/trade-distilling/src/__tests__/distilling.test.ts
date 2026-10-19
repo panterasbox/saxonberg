@@ -71,7 +71,7 @@ function fillLikeAClone(bottle: { setBulkMaterial: (a: string, m: never) => void
   bottle.setBulkAmount('interior', Quantity.of(litres, 'L'));
 }
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { brain as consigns } from '@saxonberg/content-trade-shopkeeping/src/behavior/consigns';
 import Extra from '@saxonberg/server/mud/platform/agent/Extra';
@@ -132,10 +132,10 @@ const COUNTER_ROOM = '/stuff/test/distilling/cash-and-carry';
  * exactly what these two tests would then catch.
  */
 
-/** A room with doors — the base `Location` is not `Exitable`, and the
- * shipped rooms this fixture stands for (`SingletonCartesianLocation`)
+/** A room with doors — the base `Place` is not `Exitable`, and the
+ * shipped rooms this fixture stands for (`Locale`)
  * are. The floor needs one because the hand WALKS to the counter now. */
-class TestRoom extends ExitableMixin(Location) {
+class TestRoom extends ExitableMixin(Place) {
   static _mixinName = 'TestRoom';
 }
 
@@ -552,7 +552,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       // not the brain's line; dropped from the record.
       if (text === 'sense') return;
       lines.push(text);
-      const here = (giver as unknown as TestHand).getContainer() as Location;
+      const here = (giver as unknown as TestHand).getContainer() as Place;
       const [verb, ...rest] = text.split(' ');
       if (verb === 'get') {
         // `get 1 <kw>` — the quantity form the beat uses so a lift takes

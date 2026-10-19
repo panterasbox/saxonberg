@@ -18,6 +18,10 @@ data:
   thermalConductivity: 0.2
   meltingPoint: 388
   heatOfCombustion: 9.2
+  # ⭐ Burnt, it fills a shut room with sulfur dioxide — the bleacher's
+  # fume for wool (cleanliness D22).
+  combustionProducts:
+    - { material: /stuff/idea/material/gas/sulfur-dioxide, litresPerKg: 700 }
   autoignitionTemperature: 505
   hardness: 20
   toughness: 1

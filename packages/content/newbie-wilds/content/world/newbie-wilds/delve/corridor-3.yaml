@@ -4,7 +4,7 @@
 # a careful walker notices it, a runner barrels into it — the care-speed
 # demonstrator's "run springs what walk avoids" case. It trips; it does not
 # block — pick yourself up and the vault is one step north.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: last span before the vault
   keywords: [vault, last, span, before]

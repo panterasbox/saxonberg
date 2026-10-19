@@ -1,0 +1,13 @@
+# A scrubbing brush (cleanliness D25) — stiff bristles in a wooden back. A
+# floor, a board, a pot scrubbed with it comes cleaner faster; bare hands
+# scrub at half the rate.
+class: /platform/thing/Tool
+data:
+  shortDescription: scrubbing brush
+  keywords: [brush, "scrubbing brush", "scrub brush", scrubber]
+  register: indefinite
+  longDescription: |
+    A block of beech with a hank of stiff bristle set into it, worn down to a slant at one end.
+  capabilities: [scrubbing]
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 0.3

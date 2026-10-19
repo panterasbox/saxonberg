@@ -48,7 +48,7 @@ approximate (±10).
   `ambientIntensity` (lumens, default 0) and `ambientColorTemperature`,
   both `{persistent, authorable}`; transient `_weatherDimFactor` with
   `get/setWeatherDimFactor()`. Composed at the **`Location` base**
-  (`lib/stuff/Location.ts:110`:
+  (`lib/stuff/Place.ts:110`:
   `AddressableMixin(AmbientLitMixin(AtmosphericMixin(AdornableMixin(ContainerMixin(PostRegistrationMixin(Stuff))))))`),
   so every Location is AmbientLit; `Vessel` is
   `AtmosphericMixin(ContainerMixin(Thing))` (`lib/stuff/Vessel.ts:50`) and
@@ -71,9 +71,9 @@ approximate (±10).
   (`0 · 1 · 5 · 20 · 60 · 200` lux). `REQUIRED_BAND_FOR_DETAIL`: shape
   `very-dim`, figure `dim`, detail `lit`, fine `bright`. `canSee` is what
   makes an object read *"something"* in the dark.
-- lux = lumens ÷ `getSizeScale()`; `CartesianLocation.getSizeScale()` =
+- lux = lumens ÷ `getSizeScale()`; `Location.getSizeScale()` =
   `extent²`, extent = own `extent` else the zone `cellSize`
-  (`lib/location/CartesianLocation.ts:200`). The Terminus zones ship
+  (`lib/location/Location.ts:200`). The Terminus zones ship
   `cellSize: 3.0` (9 m²); Rejection's `pithead-yard.yaml` authors 8000 lm
   against 10 m cells (80 lux, `bright`); the Duncan Hall dorm room authors
   30 lm against a 1 m² plain-Location scale.
@@ -140,8 +140,8 @@ approximate (±10).
 - `packages/server/src/mud/lib/biome/Atmospheric.ts` — composed on
   `Location` and `Vessel`. Owns `_temperature` (own override), the detail
   maps, `getVolume()`/`getCeilingHeight()` (null by default;
-  `CartesianLocation` overrides as `extent³` / `extent`,
-  `lib/location/CartesianLocation.ts:220`). `setTemperature()` fans
+  `Location` overrides as `extent³` / `extent`,
+  `lib/location/Location.ts:220`). `setTemperature()` fans
   `restamp()` over Thermal contents; ⚠ **zero production callers**
   (grep across `src/mud` excluding tests and the mixin).
 - `packages/server/src/mud/platform/idea/api/BiomeLogic.ts` —
@@ -207,7 +207,7 @@ approximate (±10).
   `{template, onto}` places onto a `Surfaced` host only
   (`lib/stuff/Staged.ts:93`). Only 2 rows run the `eats` brain.
 - `Offstage` (`platform/location/Offstage.ts:31`) extends `Location`
-  directly (no `CartesianLocation`) → `getVolume()` is `null`.
+  directly (no `Location`) → `getVolume()` is `null`.
 
 ### Fire, furnaces, the hearth
 
@@ -252,10 +252,10 @@ approximate (±10).
 - `packages/server/src/mud/platform/location/Crossing.ts` — the one
   dynamic-detail precedent: overrides `getDetail(id, …)` and appends the
   clock reading when `id === 'tower'`. A bespoke class per room.
-- `DetailedMixin` composes on `CartesianLocation`
-  (`lib/location/CartesianLocation.ts:60`:
+- `DetailedMixin` composes on `Location`
+  (`lib/location/Location.ts:60`:
   `Staged(Detailed(Perceptible(Exitable(CartesianCoordinates(Visible(Location))))))`),
-  on `FurnishableRoom` and on `Offstage`; **not** on the `Location`
+  on `PersistentLocation` and on `Offstage`; **not** on the `Location`
   base. Details are static strings; no Liquid rendering in details
   (`lib/description/Detailed.ts`: `details:` applier only).
 - `packages/server/src/mud/platform/idea/Locality.ts` —
@@ -433,7 +433,7 @@ the honest version cheap:
   third dead seam this build joins (sun→light, fuel→lamp, and this).
   `getDensity()` and `getSpecificHeat()` (`Material.ts:800, 821`) give
   the fabric's heat capacity the same way.
-- `FloorSpec` (`lib/stuff/Location.ts:38`) is the authoring shape: *"the
+- `FloorSpec` (`lib/stuff/Place.ts:38`) is the authoring shape: *"the
   Location's own say in what its floor is, without authoring a floor
   row… a room that just wants cobbles, laid writes three words here."*
   Mirror it exactly.
@@ -652,7 +652,7 @@ object; their fuel is D7's bill.
 extent, and a schedule at sunset.**
 
 - `PublicLightingMixin` (`lib/perception/PublicLighting.ts`) composed on
-  **`platform/location/Street`** (⚠ it went on `CartesianLocation` during
+  **`platform/location/Street`** (⚠ it went on `Location` during
   the build and was corrected at review — see the host-placement table):
   authorable `publicLighting: {
   flux: number, colorTemperature?: number, detail: string, seniority:
@@ -848,7 +848,7 @@ tests pin the winter numbers. Recorded in Risks.
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
 | `getEmittedFlux()` lit-gate | `BurnerMixin` | *A fuelled appliance casts light only while lit.* True of all five composers (Campfire, Forge, Oven, Kiln, Lamp, Hearth); chains `super` only if the base emits. Fixes the shipped campfire defect. |
-| `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | ⚠ **`platform/location/Street`** — corrected at review, 2026-09-24 | It shipped on `CartesianLocation`, reasoned as *"any cartesian cell may be lit by a funded public service."* ⚠⚠ **That is a rationalization for a catch-all bucket** and the review caught it: the base under very nearly every room in the game, so a sealed cellar, a smithy, a mine heading and a ploughed field all carried a lighting field and a `postRegister` hook to answer for. ⭐ The tell was already in the code — `if (this.publicLighting === null) return;` at the top of that hook is a mixin **re-narrowing its own host set**, which is the documented signal for the wrong host. **Five rows in the realm declare the service.** They get a class; nothing else pays. |
+| `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | ⚠ **`platform/location/Street`** — corrected at review, 2026-09-24 | It shipped on `Location`, reasoned as *"any cartesian cell may be lit by a funded public service."* ⚠⚠ **That is a rationalization for a catch-all bucket** and the review caught it: the base under very nearly every room in the game, so a sealed cellar, a smithy, a mine heading and a ploughed field all carried a lighting field and a `postRegister` hook to answer for. ⭐ The tell was already in the code — `if (this.publicLighting === null) return;` at the top of that hook is a mixin **re-narrowing its own host set**, which is the documented signal for the wrong host. **Five rows in the realm declare the service.** They get a class; nothing else pays. |
 | `_publicLighting` (fuel rate + supplier) + `_lightingNight` + `_lightingLitStreets` + `settleStreetLighting()` | `Locality` | *An extent may fund a service and keep the record of what it lit.* The same tier that carries `_weatherPin`, `_governmentKey`, `_reach`. The verb is on the object; `AddressApi.settleStreetLighting()` only iterates. |
 | `wears: string[]` | `NPC` (`lib/npc/NPC.ts` → `Cast`, `Extra`) | *Any non-player person can be authored dressed.* Honest of both rungs. Not on `Agent`/`Creature` (an animal is not dressed by a row) and not on `Avatar` (players dress at enroll). |
 | solar temperature term | `WeatherLogic` (`deviatedFieldFor`) | *Weather is sky dynamics*; the sun's annual/diurnal temperature is the same term the type deviation is. Reaches sky-exposed scopes through the existing fold and envelope hosts through D3c; nothing else. |
@@ -872,8 +872,8 @@ geometry answer); a `wears` applier that checks the NPC's species.
   touches (`smithy.yaml:41,54`; `populates:` appears nowhere in content).
   New hearth placements go under `props:`.
 - **Locations, not rooms** — every new class is a `Thing`; the only
-  location-side changes are mixins on `CartesianLocation`/`Location`
-  bases. `FurnishableRoom` is untouched (`lint:locations`).
+  location-side changes are mixins on `Location`/`Location`
+  bases. `PersistentLocation` is untouched (`lint:locations`).
 - **Paths** — `/platform/thing/Hearth`, `/platform/thing/Lamp` (kernel
   classes); rows `/stuff/thing/Hearth` (generic-objects), lantern/torch
   stay `/world/terminus/general-store/thing/*`; settings at
@@ -1229,7 +1229,7 @@ toward outside, and bodies feel it and are told why.
 **Decisions.** D3 (a–e), D15.
 **Files.** `platform/idea/api/WeatherLogic.ts` (the solar term in
 `deviatedFieldFor`; memo); `settings/weather.yaml` (two dials);
-`lib/stuff/Location.ts` (`EnclosureSpec`, `fabric` + `fieldMeta`,
+`lib/stuff/Place.ts` (`EnclosureSpec`, `fabric` + `fieldMeta`,
 `enclosureDefaults()`, `getFabric()`); `lib/biome/Atmospheric.ts` (the
 three stamps, `_envelopeResolved`, the fabric ladder, `envelopeApplies`,
 `reconcileEnvelope`, `envelopeTemperatureSync`,
@@ -1392,7 +1392,7 @@ cookhouse that is cold until somebody lights the fire.
 when unpaid.
 **Decisions.** D7.
 **Files.** `lib/perception/PublicLighting.ts`;
-`lib/location/CartesianLocation.ts` (composition);
+`lib/location/Location.ts` (composition);
 `platform/idea/modalities/VisionModality.ts` (leg (a′));
 `platform/idea/Locality.ts` (fields + `settleStreetLighting`, calling
 the shipped `BankingApi.appropriate`); `api/address.ts` +
@@ -1991,8 +1991,8 @@ Read first, in this order:
     `transfer`, `payWage`), `platform/idea/WorldClockRegistry.ts`
     (`registerSystemSchedules`)
 11. `packages/server/src/mud/platform/location/Crossing.ts`,
-    `lib/location/CartesianLocation.ts` (lines 50–75, 190–240),
-    `lib/stuff/Location.ts` (lines 36–130 — `FloorSpec`, the space-not-
+    `lib/location/Location.ts` (lines 50–75, 190–240),
+    `lib/stuff/Place.ts` (lines 36–130 — `FloorSpec`, the space-not-
     matter doctrine, `floorDefaults` at ~352)
 12. `packages/server/src/mud/lib/npc/NPC.ts`,
     `packages/server/src/backend/TestHooks.ts` (lines 270–310)

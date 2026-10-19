@@ -12,7 +12,7 @@
  * via `StuffApi.singleton`).
  */
 
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // `StagedMixin` lets the bar stock itself declaratively from the seed's
@@ -34,15 +34,15 @@ import type { FieldMeta } from '../../../lib/mixin';
  */
 // ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed
 // per class because `Location` does NOT carry it (only
-// `CartesianLocation` does), so every room class built directly on
+// `Location` does), so every room class built directly on
 // `Location` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
 // ⭐⭐ **Dave's Bar was in no grid, and its own row said so.**
 //
-// This class restated `SingletonCartesianLocation`'s mixin set on a
+// This class restated `Locale`'s mixin set on a
 // plain `Location` — `Singleton(Staged(CartesianCoordinates(Exitable(
 // Location))))` — which composes the `coordinates` FIELD but not the
-// `coords` field, because `coords` lives on the `CartesianLocation`
+// `coords` field, because `coords` lives on the `Location`
 // CLASS, not on a mixin. `bar.yaml` authors `coords:` under a comment
 // reading *"`coords:` is the MEMBERSHIP operation"*, and the applier
 // discarded it silently: the bar held no position and belonged to no
@@ -52,13 +52,13 @@ import type { FieldMeta } from '../../../lib/mixin';
 // filters on cartesian CLASSES, and this was not one. The orphan
 // inventory had it all along as `bar.yaml: data.coords`.
 //
-// ⭐ Extending the real class is the whole fix. `CartesianLocation`
+// ⭐ Extending the real class is the whole fix. `Location`
 // already overrides `onCreate` to chain and then call
 // `verifyOutboundExits()`, which is the only thing this class's own
 // override did — so the body is empty now. ⚠ Deleting the class
 // outright (the `Bench` precedent) is the further step and is FILED,
 // not taken: four lounge test files import it, and a locality class
 // with a name is not the same smell as a duplicated base.
-export default class Bar extends SingletonCartesianLocation {
+export default class Bar extends Locale {
   static fieldMeta: FieldMeta = {};
 }

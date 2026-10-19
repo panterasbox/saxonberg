@@ -4,7 +4,7 @@ import { withRow } from './row';
 import { driveAnalyze, instrumentWith } from './drive';
 import LightReading from '../LightReading';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import Good from '../../../../lib/stuff/Good';
@@ -30,7 +30,7 @@ import type Interactive from '../../Interactive';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 
-class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLoc extends AmbientLitMixin(Location) {}
 class Lamp extends LightSourceMixin(NamedMixin(Good)) {}
 
 // ⚠ `AdvancementMixin` is not decoration: `bandOf` narrows with

@@ -43,7 +43,7 @@ import OrganizationEntity from '../../platform/idea/Organization';
 import PressBoard from '../../platform/idea/PressBoard';
 import OfficeRegistry from '../../platform/idea/OfficeRegistry';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { PressRoutes } from '../../../backend/PressRoutes';
 import { PressApi } from '../press';
 import { AppApi } from '../app';
@@ -204,7 +204,7 @@ function seedGoogleUser(playerId: string, email: string): void {
 function contextFor(giver: Stuff, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: verb,
     executionId: 'test',
     commandId: 'test',

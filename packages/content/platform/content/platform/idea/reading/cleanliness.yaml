@@ -1,0 +1,24 @@
+# cleanliness — how clean a thing is, where it is not, and what would make
+# it so (cleanliness B57). `analyze cleanliness <thing>`.
+#
+# ⭐ An eye rung only (`instrument: ""`): the `domestic-services` band
+# unfolds DETAIL, never access — the look line for anybody; site by site
+# and the set stains for a novice; what lifts each kind (off the dirt's own
+# row) for a competent hand; the wash and heat record as evidence for a
+# proficient one; how long ago for an expert. ⛔ Never the microbes —
+# contamination is silent (spoilage.md).
+class: /platform/idea/reading/CleanlinessReading
+data:
+  channel: cleanliness
+  kind: fact
+  scope: [subject]
+  subjectRequires: [SoilableMixin]
+  discipline: domestic-services
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    knowing what a stain wants before you ruin the cloth, and whether a
+    dressing or a board is fit to use
+  stakes: >-
+    blood washed hot and set for good; a bandage that looked clean laid on
+    a wound

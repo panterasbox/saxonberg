@@ -712,7 +712,7 @@ describe('StudioLogic.listMixins — bases with implied mixin sets', () => {
 
     // Every offered base is present in `bases`.
     const byName = new Map(palette.bases.map((b) => [b.name, b]));
-    for (const base of ['Idea', 'Thing', 'Location', 'Character', 'Creature', 'Agent']) {
+    for (const base of ['Idea', 'Thing', 'Place', 'Character', 'Creature', 'Agent']) {
       expect(byName.has(base), `expected base ${base}`).toBe(true);
     }
 

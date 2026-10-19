@@ -24,7 +24,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { SchedulerApi } from '../../../../../api/scheduler';
 import { StuffApi } from '../../../../../api/stuff';
@@ -56,7 +56,7 @@ function stubCommand(): CommandDefinition {
   );
 }
 
-function makeContext(actor: TestActor, location: Location): CommandContext {
+function makeContext(actor: TestActor, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
@@ -117,7 +117,7 @@ describe('CancelController', () => {
   });
 
   it('bare cancel narrates "You cancel what you were doing." and clears every engagement', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
 
@@ -139,7 +139,7 @@ describe('CancelController', () => {
   });
 
   it('cancel <type> aborts the matching engagement only', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
 
@@ -162,7 +162,7 @@ describe('CancelController', () => {
   });
 
   it('cancel <type> with no matching engagement emits empty-result', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
 
@@ -183,7 +183,7 @@ describe('CancelController', () => {
   });
 
   it('bare cancel against an empty engagement map is a clean no-op', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, loc);
 

@@ -1,0 +1,45 @@
+verbs: [sweep, muck]
+controller: /platform/idea/cmd/inventory/SweepController
+description: "Sweep a floor clean — or a hearth's grate, or its flue"
+help: |
+  Sweep the floor where you stand — `sweep`, or `sweep floor` — and what
+  you take up goes into a heap: crumbs, grit, the old rushes and whatever
+  they soaked up, the dust out of the air. `dispose` the heap on a midden.
+  A broom does it properly; bare hands are slow.
+
+  ⭐ How a floor is kept depends on what it is: earth is strewn with fresh
+  rushes or sawdust and the old swept out; paving and boards are SCRUBBED
+  (`scrub floor`) and swept only of what lies on them. `muck out` the byre
+  and the dung goes to the field.
+
+  `sweep hearth` rakes the ash out of its grate — the lye-maker's ash. With
+  a flue brush, it sweeps the CHIMNEY: soot builds there from every smoky
+  fire, and a foul flue catches when the fire roars.
+examples:
+  - cmd: sweep
+    note: Sweep the floor of this room into a heap
+  - cmd: sweep hearth with brush
+    note: Sweep the chimney before it catches
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # Optional: bare, the floor you stand on. A hearth names its grate (or,
+  # with a flue brush, its chimney).
+  - name: target
+    type: object
+    required: false
+    greedy: true
+    scope: "reachable"
+    requires: any
+  # ⭐ WHAT WITH — DECLARED (`lint:instrument-args`): a broom for a floor,
+  # a flue brush for a chimney; bare hands work, slowly.
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "me:i:[capability.sweeping or capability.flue-brushing],reachable:[capability.sweeping or capability.flue-brushing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -19,7 +19,7 @@ import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type Location from '@saxonberg/server/mud/lib/stuff/Location';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import Bole, { TIMBER_MASS_KG } from '../thing/Bole';
@@ -36,7 +36,7 @@ const RIVE = 'trade/forestry/cmd/forestry/rive.yaml';
 
 const ctx = {
   commandGiver: {} as Stuff & CommandGiver,
-  location: {} as Location,
+  location: {} as Place,
 };
 
 function bind(text: string): Record<string, unknown> {

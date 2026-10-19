@@ -14,7 +14,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
 import { StuffApi } from '../../../api/stuff';
@@ -25,15 +25,15 @@ import {
 
 describe('getObviousNeighbours', () => {
   let zone: CartesianZone;
-  let here: CartesianLocation;
-  let there: CartesianLocation;
+  let here: Location;
+  let there: Location;
 
   beforeEach(() => {
     seedKernelContentStore();
     zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    here = makeStuff(() => new CartesianLocation());
-    there = makeStuff(() => new CartesianLocation());
+    here = makeStuff(() => new Location());
+    there = makeStuff(() => new Location());
     zone.addLocation(here, 0, 0, 0);
     zone.addLocation(there, 0, 1, 0);
   });

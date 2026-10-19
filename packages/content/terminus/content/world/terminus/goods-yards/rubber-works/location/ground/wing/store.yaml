@@ -1,6 +1,6 @@
 # The store — under the works' tower: the tower standing on it makes its
 # top a ceiling (rubber build, drive step 6).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: -1, y: 0, z: 0 }
   shortDescription: "works store"

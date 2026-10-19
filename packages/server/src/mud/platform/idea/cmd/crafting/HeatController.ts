@@ -30,6 +30,8 @@ import { ContainmentApi } from '../../../../api/containment';
 
 const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
+/** An instrument held in the flame is held this long (D14: ≥ 60 s). */
+const FLAME_HOLD_S = 60;
 
 interface HeatModel extends CommandModel {
   target?: MqlOneResult;
@@ -41,6 +43,17 @@ export default class HeatController extends ManualBuildController<HeatModel> {
 
     const target: Stuff | null =
       model.target?.stuff ?? null;
+    // ⭐ An instrument held in the flame (cleanliness D14): the heat it
+    // took is stamped on it, and past 433 K for a minute it is sterile.
+    if (
+      target &&
+      !MixinApi.isBuildVessel(target) &&
+      MixinApi.isTool(target) &&
+      MixinApi.isSoilable(target)
+    ) {
+      this.holdInFlame(giver, target, context);
+      return;
+    }
     if (
       target &&
       !MixinApi.isBuildVessel(target) &&
@@ -100,6 +113,45 @@ export default class HeatController extends ManualBuildController<HeatModel> {
           .topic(TOPIC)
           .toSelf(Mml.compose`${Mml.thing(target)} takes the heat, glowing with it.`)
           .toPeers(Mml.compose`${Mml.actor(giver)} works ${Mml.thing(target)} in the heat.`)
+          .send();
+      },
+    });
+  }
+
+  /** The flame arm — an instrument held in the fire until it is sterile. */
+  private holdInFlame(
+    giver: Stuff,
+    target: Stuff,
+    context: CommandContext,
+  ): void {
+    const reachableK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+    if (reachableK <= 0) {
+      this.declineStep(
+        context,
+        Mml.compose`There's no flame here to hold ${Mml.thing(target)} in.`,
+        'insufficient-heat',
+      );
+      return;
+    }
+    this.engageStep(context, {
+      durationMs: HEAT_MS,
+      effortW: 100,
+      beginSelf: Mml.compose`You hold ${Mml.thing(target)} in the flame, turning it.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} holds ${Mml.thing(target)} in the flame.`,
+      onComplete: () => {
+        if (target.isDestroyed() || !MixinApi.isSoilable(target)) return;
+        const finalK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+        if (finalK <= 0) return;
+        // ⭐ The instrument's own act: a DRY heat — past the spores.
+        target.holdAtHeat(finalK, FLAME_HOLD_S, { wet: false });
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            target.cleanTier() === 'sterile'
+              ? Mml.compose`${Mml.thing(target)} comes out of the flame too hot to touch. Nothing lives on it.`
+              : Mml.compose`${Mml.thing(target)} comes out of the flame warm — not hot enough to kill what is on it.`,
+          )
+          .toPeers(Mml.compose`${Mml.actor(giver)} draws ${Mml.thing(target)} out of the flame.`)
           .send();
       },
     });

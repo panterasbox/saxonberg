@@ -1,4 +1,4 @@
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: foot of the Circle pass
   keywords: [pass, foot]

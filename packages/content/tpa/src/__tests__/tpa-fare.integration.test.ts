@@ -18,7 +18,7 @@ import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { FastTravelMixin, type FastTravel } from "../lib/FastTravel";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
-import Location from "@saxonberg/server/mud/lib/stuff/Location";
+import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
 import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
 import BusinessEntity from "@saxonberg/server/mud/platform/idea/Business";
@@ -149,9 +149,9 @@ function makeWalletTraveller(name: string): Traveller {
 function seedNetwork(
   fee: number,
   opts: { surcharge?: number; destOperator?: boolean } = {},
-): { dRoom: Location } {
-  const dRoom = makeStuffAtPath(() => new Location(), D_ROOM);
-  const rRoom = makeStuffAtPath(() => new Location(), R_ROOM);
+): { dRoom: Place } {
+  const dRoom = makeStuffAtPath(() => new Place(), D_ROOM);
+  const rRoom = makeStuffAtPath(() => new Place(), R_ROOM);
   const depart = makeStuffAtPath(() => new Node(), DEPART);
   depart.setDirectionality("departure");
   depart.setStatus("operational");

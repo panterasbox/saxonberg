@@ -185,3 +185,9 @@ a permissions system). What remains is the gift loop, the supply, the
 window, the readings, and the harm-on-mismatch row above. Post-mortem
 body/organ donation — which DOES have a matrix — is deferred to
 `blood-slate`.
+
+## The stain names its bleeder (2026-10-17)
+
+Blood soiled onto a garment keeps a `StainRecord` (the bleeder's type,
+system, species, identity — spoiler level 2); washed hot it SETS.
+`analyze` reads the type off a stained garment. See [cleanliness.md](./cleanliness.md).

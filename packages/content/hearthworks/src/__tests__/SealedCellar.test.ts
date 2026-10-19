@@ -22,7 +22,7 @@ describe('SealedCellar (hearthworks)', () => {
     // this cellar starves a fire because it is a shut stone room — and
     // ⛔ the four Terminus cellars that authored the identical budget and
     // silently dropped it (no `ReservedMixin` anywhere in a
-    // `SingletonCartesianLocation` chain) behave the same way, which
+    // `Locale` chain) behave the same way, which
     // they never did before. What remains here is the granite, which is
     // a fact about cellars rather than a number somebody typed.
     expect(MixinApi.hasMixin(SealedCellar, Mixins.Reserved)).toBe(false);

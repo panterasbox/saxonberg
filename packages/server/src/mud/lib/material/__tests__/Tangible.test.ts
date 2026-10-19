@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Material from '../Material';
 import Good from '../../stuff/Good';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
 import { Idea } from '../../stuff/Idea';
@@ -23,16 +23,16 @@ describe('TangibleMixin', () => {
     StuffApi.clearAll();
   });
 
-  it('Thing/Vessel/Agent compose Tangible (matter); Location + Idea do not', () => {
+  it('Thing/Vessel/Agent compose Tangible (matter); Place + Idea do not', () => {
     const thing = makeStuff(() => new Good());
-    const location = makeStuff(() => new Location());
+    const location = makeStuff(() => new Place());
     const vessel = makeStuff(() => new Vessel());
     const agent = makeStuff(() => new Agent());
     const idea = makeStuff(() => new Idea());
     expect(MixinApi.isTangible(thing)).toBe(true);
     expect(MixinApi.isTangible(vessel)).toBe(true);
     expect(MixinApi.isTangible(agent)).toBe(true);
-    // A Location represents *space*, not *matter* — not Tangible.
+    // A Place represents *space*, not *matter* — not Tangible.
     expect(MixinApi.isTangible(location)).toBe(false);
     expect(MixinApi.isTangible(idea)).toBe(false);
   });

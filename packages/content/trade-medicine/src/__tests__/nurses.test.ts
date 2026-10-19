@@ -14,7 +14,7 @@ import { brain as NursesBrain } from '../behavior/nurses';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { EngagedMixin } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Bandage from '@saxonberg/server/mud/platform/thing/Bandage';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -73,7 +73,7 @@ afterEach(() => {
 
 describe('the nurses brain', () => {
   it('⭐⭐ dresses a wounded patient from the ward supply, and spends it', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const nurse = makeStuff(() => new Nurse());
     ContainmentApi.move(nurse, room);
     const patient = makeStuff(() => new Creature());
@@ -89,7 +89,7 @@ describe('the nurses brain', () => {
   });
 
   it('⭐ treats the more urgent patient first (triage is deterministic)', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const nurse = makeStuff(() => new Nurse());
     ContainmentApi.move(nurse, room);
     const light = makeStuff(() => new Creature());
@@ -108,7 +108,7 @@ describe('the nurses brain', () => {
   });
 
   it('⚠ off shift, she does nothing', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const nurse = makeStuff(() => new Nurse());
     (nurse as unknown as { shiftState: () => string }).shiftState = () => 'off-shift';
     ContainmentApi.move(nurse, room);

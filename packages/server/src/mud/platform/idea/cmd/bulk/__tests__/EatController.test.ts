@@ -15,7 +15,7 @@ import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Good from "../../../../../lib/stuff/Good";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import Material from "../../../../../lib/material/Material";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../../api/stuff";
@@ -89,7 +89,7 @@ describe("EatController", () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     StuffApi.clearAll();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    loc = makeStuff(() => new Place()) as unknown as Stuff;
     eater = makeStuff(() => new TestEater());
     (eater as unknown as { setName(n: string): void }).setName("bob");
     ContainmentApi.move(eater as never, loc as never);

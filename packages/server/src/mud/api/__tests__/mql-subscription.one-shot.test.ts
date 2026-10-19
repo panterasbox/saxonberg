@@ -32,7 +32,7 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 // The legacy `_MqlAdminFlag` test seam was retired with
 // `api/mql/permissions.ts`. Tests that exercised the gate now
 // carried a permission snapshot (retired — resolving is never a permission); the
@@ -59,11 +59,11 @@ interface CapturedEnvelope {
 async function setup(): Promise<{
   interactive: Interactive;
   avatar: Avatar;
-  location: Location;
+  location: Place;
   envelopes: CapturedEnvelope[];
 }> {
   await bootRegistry();
-  const location = await StuffApi.create(() => new Location());
+  const location = await StuffApi.create(() => new Place());
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName('Alice');
   ContainmentApi.move(avatar, location);

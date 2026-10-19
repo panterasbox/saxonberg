@@ -3,7 +3,7 @@
 # into the water: the cell's hazard fires on a crossing (`onEntered`), and
 # until now the only way in was a teleport, which crosses nothing. Up
 # here you are out of the pool and untouched; down there you wade.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: raised catwalk
   keywords: [catwalk, walkway, steel]

@@ -63,6 +63,8 @@ import type { VetoResult } from '../errors';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import type Cleanser from '../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../../platform/idea/Cleanser';
 import { ConditionApi } from '../../api/condition';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -803,6 +805,53 @@ export default class Material extends SingletonMixin(
   protected combustionImparts: AromaTag[] = [];
 
   /**
+   * ⭐ What BURNING this gives off into the room, beyond the fire's own CO₂
+   * and smoke (cleanliness D22) — litres of a gas per kilogram burnt.
+   * Sulfur burns to SULFUR DIOXIDE, which is why a lump of it on a brazier
+   * in a shut room bleaches wool and chokes whoever is in there. `[]` for
+   * nearly everything: wood and coal give off what the fire already does.
+   */
+  protected combustionProducts: { material: string; litresPerKg: number }[] = [];
+
+  /**
+   * ⭐ The share of the air (a volume fraction) at which this, suspended in
+   * the air, FLASHES on a spark — its own lower flammable limit
+   * (cleanliness D22). `0` = the global dial (`fire.flammable.ignitesAt`).
+   * Mill dust and naphtha vapour author theirs: a dusty mill explodes.
+   */
+  protected flammableLimit = 0;
+
+  /**
+   * ⭐ How fast an open vessel of this liquid gives off its vapour, litres
+   * of gas per litre per game-hour (cleanliness D22) — `0` for anything
+   * that does not evaporate to speak of. Naphtha's is high; a rag of it by
+   * the hearth is a fire.
+   */
+  protected vapourLPerLPerHour = 0;
+
+  /**
+   * ⭐ The VAPOUR this liquid gives off — the gas row its evaporation
+   * becomes (naphtha → naphtha vapour). `''` = none.
+   */
+  protected vapourMaterial = '';
+
+  /**
+   * ⭐ The CLEANSER this material is (cleanliness B50) — a bar of soap, a
+   * flask of lye: the `Cleanser` row a wash reads. Named by the material,
+   * so the row loads WITH it (`identity:constituent`) and the wash asks the
+   * thing in hand what it is — never a search of the cleanser rows by tag.
+   * `''` = not a cleanser.
+   */
+  protected cleanser = '';
+
+  /**
+   * ⭐ The share of a solid fuel's burnt mass left as ASH in the grate
+   * (cleanliness D24) — oak ≈ 1 %. What a hearth leaves for the sweep, and
+   * the first input of lye. `0` for a fuel that leaves none.
+   */
+  protected ashFraction = 0;
+
+  /**
    * ⭐ **The basic tastes this substance carries** — a closed five-word
    * vocabulary (`sweet` · `salty` · `sour` · `bitter` · `umami`), the
    * physiology's own list and not a flavour-note bank.
@@ -999,6 +1048,15 @@ export default class Material extends SingletonMixin(
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
     combustionImparts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ (cleanliness D22, D24) What burning it gives off, what share of the
+    // air it flashes at, how fast it evaporates and into what, what ash it
+    // leaves — measured facts, collapsed like their siblings.
+    combustionProducts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    flammableLimit: { persistent: true, spoiler: 1, spoilerName: 0 },
+    vapourLPerLPerHour: { persistent: true, spoiler: 1, spoilerName: 0 },
+    vapourMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
+    cleanser: { persistent: true, authorable: true, ref: 'identity:constituent' },
+    ashFraction: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
     // from two sides. "This water poisons you" and "boiling fixes it"
     // are the two halves of the John Snow lesson, and shipping the
@@ -1088,6 +1146,54 @@ export default class Material extends SingletonMixin(
   }
   public setCombustionImparts(value: AromaTag[]): void {
     this.combustionImparts = validateCombustionImparts(value);
+  }
+  /** What burning this gives off into the room (litres per kg burnt). */
+  public getCombustionProducts(): readonly { material: string; litresPerKg: number }[] {
+    return this.combustionProducts;
+  }
+  public setCombustionProducts(value: { material: string; litresPerKg: number }[]): void {
+    this.combustionProducts = (Array.isArray(value) ? value : []).filter(
+      (p) => p && typeof p.material === 'string' && p.material.length > 0 && p.litresPerKg > 0,
+    );
+  }
+  /** Its own flash point as a share of the air, or `0` (the global dial). */
+  public getFlammableLimit(): number {
+    return this.flammableLimit;
+  }
+  public setFlammableLimit(value: number): void {
+    this.flammableLimit = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  /** Litres of vapour per litre per game-hour from an open vessel. */
+  public getVapourLPerLPerHour(): number {
+    return this.vapourLPerLPerHour;
+  }
+  public setVapourLPerLPerHour(value: number): void {
+    this.vapourLPerLPerHour = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  /** The gas row this liquid's vapour is, or `''`. */
+  public getVapourMaterial(): string {
+    return this.vapourMaterial;
+  }
+  public setVapourMaterial(value: string): void {
+    this.vapourMaterial = typeof value === 'string' ? value : '';
+  }
+  /** The cleanser this material acts as, as the wash reads it — or `null`. */
+  public getCleanser(): CleanserDescriptor | null {
+    if (!this.cleanser) return null;
+    return StuffApi.findByTemplatePath<Cleanser>(this.cleanser)?.descriptor() ?? null;
+  }
+  public getCleanserPath(): string {
+    return this.cleanser;
+  }
+  public setCleanser(value: string): void {
+    this.cleanser = typeof value === 'string' ? value : '';
+  }
+  /** The share of a burnt fuel's mass left as ash. */
+  public getAshFraction(): number {
+    return this.ashFraction;
+  }
+  public setAshFraction(value: number): void {
+    this.ashFraction = Number.isFinite(value) && value > 0 ? Math.min(1, value) : 0;
   }
   public setToxicity(value: ToxinTag[]): void {
     if (!Array.isArray(value)) {

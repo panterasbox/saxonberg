@@ -207,7 +207,32 @@ export interface BrainStatics {
    * @hook
    */
   open?(args: DialogueOpenArgs): Promise<DialogueOpenResult>;
+  /**
+   * The **door-judgment seam** (cleanliness D29) — implemented by a brain
+   * that keeps a door (`doorman`). A kept exit finds a keeper on either
+   * side and asks this whether `mover` may pass through `door`; the keeper
+   * decides whether he is on duty for the house the door names
+   * (`door.getKeptBy()`), and the refusal is his words — the criterion is
+   * the brain's `config`, on the row.
+   *
+   * @hook
+   */
+  judge?(
+    host: Stuff,
+    mover: Stuff,
+    config: Record<string, unknown>,
+    door: KeptDoorShape,
+  ): DoorJudgment;
 }
+
+/** What a keeper reads off the door he keeps. */
+export interface KeptDoorShape {
+  /** The house whose seat keeps this door. */
+  getKeptBy(): string;
+}
+
+/** What a door's keeper says to somebody at it. */
+export type DoorJudgment = { admit: true } | { admit: false; reason: string };
 
 /** Arguments to {@link BrainStatics.open}. */
 export interface DialogueOpenArgs {

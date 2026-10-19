@@ -1,0 +1,12 @@
+# Chalk — the soft white top of the limestone at Hill Quarry (cleanliness
+# D25): ground and rubbed on a grease spot, it drinks the oil.
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [chalk, lump, "lump of chalk"]
+  shortDescription: lump of chalk
+  register: indefinite
+  longDescription: >-
+    A soft white lump that marks everything it touches.
+  _materialPath: /stuff/idea/material/rock/chalk
+  mass: 2
+  quantity: 1

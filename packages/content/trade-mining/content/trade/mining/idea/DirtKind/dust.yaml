@@ -1,0 +1,11 @@
+# Rock dust — what hewing a face and splitting stone leave on the hands
+# and the trunk. ⭐ A trade's own dirt, shipped under the trade's root and
+# found by the platform's catalogue with no engine change (cleanliness
+# AC 23): the quarry and the mine deposit it, water and a scrub lift it.
+class: /platform/idea/DirtKind
+data:
+  key: dust
+  adjective: dusty
+  form: film
+  answersTo: [surfactant, alkali-mild, abrasive]
+  waterLifts: 0.6

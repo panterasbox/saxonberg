@@ -17,7 +17,7 @@ import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { StackableMixin } from '../../../../../lib/stuff/Stackable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
@@ -79,7 +79,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -114,7 +114,7 @@ describe('DropController — bareword path (no quantity)', () => {
   });
 
   it('drops a single item from inventory to the location', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const sword = makeStuff(() => {
@@ -133,7 +133,7 @@ describe('DropController — bareword path (no quantity)', () => {
   });
 
   it('reports failure when nothing matches the raw query', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -165,7 +165,7 @@ describe('DropController — quantity-bearing path', () => {
 
   it('drops 5 of a 30-coin stack (lenient count)', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const stack = makeStuffAtPath(() => {
@@ -191,7 +191,7 @@ describe('DropController — quantity-bearing path', () => {
 
   it('clamps when the lenient count exceeds available units (partial)', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const stack = makeStuffAtPath(() => {
@@ -216,7 +216,7 @@ describe('DropController — quantity-bearing path', () => {
 
   it('rejects strictly when the count exceeds supply', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const stack = makeStuffAtPath(() => {
@@ -252,7 +252,7 @@ describe('DropController — quantity-bearing path', () => {
 
   it('drops everything with all-kind', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const stack = makeStuffAtPath(() => {
@@ -278,7 +278,7 @@ describe('DropController — quantity-bearing path', () => {
   });
 
   it('reports empty-result when no candidates are in inventory', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
 
@@ -304,7 +304,7 @@ describe('DropController — quantity-bearing path', () => {
 
   it('distributes a multi-match count across two stacks (apples + oranges shape)', async () => {
     stubCoinClone();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const gold = makeStuffAtPath(() => {

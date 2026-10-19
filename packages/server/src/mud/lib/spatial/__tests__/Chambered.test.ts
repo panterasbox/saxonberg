@@ -15,7 +15,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ChamberedMixin } from '../Chambered';
 import Good from '../../stuff/Good';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import Chamber from '../../../platform/thing/Chamber';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
@@ -27,7 +27,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 class TestMill extends ChamberedMixin(Good) {
   static _mixinName: string = 'ChamberedTestMill';
 }
-class TestYard extends Location {}
+class TestYard extends Place {}
 
 const LOFT = '/test/chambered/drying-loft';
 const NOT_A_CHAMBER = '/test/chambered/plank';

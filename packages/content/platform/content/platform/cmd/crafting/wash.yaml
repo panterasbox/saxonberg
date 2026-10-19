@@ -1,42 +1,73 @@
 verbs: [wash]
 controller: /platform/idea/cmd/crafting/WashController
-description: "Wash something clean at water — a glass, a garment, or your own hands"
+description: "Wash something at water — a glass, a shirt, a floor — or your own hands"
 help: |
-  Wash a thing clean at water — `wash coupe`, `wash apron`. You need
-  water in reach (the basin, the tap, a jug). A used glass gives up its
-  dregs and comes back to the pool; a soiled pot gives up its surface
-  grime; a dyed garment sheds a little colour each time. Takes a moment.
+  Wash a thing at water — `wash apron`, `wash shirt in basin with soap`.
+  You need water in reach: a basin, a tap, a tub, a pail, a river.
 
-  Bare `wash` — with no thing named — washes your own HANDS clean. Clean
-  hands treat a wound without infecting it, and handling a bleeding wound
-  dirties them, so a careful medic washes between patients. Hands stay
-  clean for a while, then need doing again.
+  ⭐ What comes out depends on three things: the WATER'S HEAT, the TIME
+  you give it, and the CLEANSER you use. Mud comes out in water. Grease
+  will not — it wants soap or lye. Blood comes out in COLD water; hot
+  water sets it, and then only a bleach will shift it. Soap in hard water
+  scums and washes worse (washing soda softens it); the water's own look
+  says whether it is soft or hard.
+
+  ⚠ Washing can ruin a thing. Boiling felts wool, and felted wool is
+  smaller and never stretches back. Hot water shrinks cloth. A harsh
+  cleanser can eat the fibre. A colour that is not fast runs into
+  everything washed with it. A trained eye can tell what a fibre will
+  survive before it goes in; an untrained one finds out after.
+
+  A washed garment comes out WET, and dries by itself — or faster by
+  `dry`, on a line in the sun or a rack by the fire.
+
+  Bare `wash` — with no thing named — washes your own HANDS (or your
+  gloves, if you are wearing them). Clean hands treat a wound without
+  infecting it, and handling a bleeding wound dirties them, so a careful
+  medic washes between patients. Hands stay clean until something
+  dirties them.
+
+  `scrub` is the same act, harder and slower.
+examples:
+  - cmd: wash shirt in basin with soap
+    note: Wash a shirt with soap in the basin
+  - cmd: wash
+    note: Wash your hands at the water in reach
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ OPTIONAL. Named, we wash that thing; bare, we wash your hands —
-  # the medic's old `scrub`, folded in. Hygiene has NO object arg (the
-  # hands are always your own body), so making this optional widens no
-  # check: a body never reaches the `requires` gate below. This is the
-  # exact reason `rinse` — which takes a body ARG — could NOT fold in.
+  # ⭐ OPTIONAL and PLURAL (cleanliness D10). Named, we wash those things —
+  # in ONE water, which is what lets an unfast dye bleed from one onto
+  # another; bare, we wash your hands. ONE mixin, no alternation: every
+  # washable thing composes Soilable (garments, vessels, kit, bandages,
+  # floors, panes, lamps, seats).
   - name: target
-    type: object
+    type: objects
     required: false
     scope: "reachable"
-    requires: CraftedMixin
-  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`).
-  # Bare, the binder hands over every reachable vessel and the controller
-  # takes the first holding water — a question about the CONTENTS, which
-  # no predicate asks. `wash the glass in the basin` names one.
+    requires: SoilableMixin
+  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`). A
+  # vessel of water, or the water a shore is beside — `wash shirt in
+  # river`. The controller's narrowing (water or brine) is the check, and
+  # a frozen water is refused unless there is a hole in it.
   - name: water
     type: objects
     required: false
-    prepositions: [in, under, with]
-    # ⭐ A vessel of water, or the water a shore is beside (maritime
-    # revision 3) — `wash shirt in river`. The controller's narrowing (a
-    # slot whose matter is water or brine) is the check.
+    greedy: true
+    prepositions: [in, under, at]
     default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    scope: ["reachable"]
+    requires: any
+  # ⭐ WHAT WITH — a cleanser: anything whose material a Cleanser row's
+  # agent tag names (soap, lye, washing soda, fuller's earth, vinegar…).
+  # Two may be used at once (`with soap and soda`). A thing that is no
+  # cleanser is refused in words.
+  - name: cleanser
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
     scope: ["reachable"]
     requires: any

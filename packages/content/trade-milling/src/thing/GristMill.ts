@@ -30,6 +30,7 @@ import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -51,6 +52,18 @@ interface FlowSource {
 const GristMillBase = ComminutingMixin(ToolMixin(Good));
 
 export default class GristMill extends GristMillBase {
+  /**
+   * ⭐ The race that drives the stones, by path (cleanliness D22) — a mill
+   * HOUSE stands beside its wheel, not in the river, so the power is an
+   * authored reference followed on use. `''` = the room sibling, as every
+   * mill that stands in its race's own place has always read it.
+   */
+  public powerFrom = '';
+
+  static fieldMeta: FieldMeta = {
+    powerFrom: { persistent: true, authorable: true, ref: 'identity:relation' },
+  };
+
   /**
    * ⭐ The instrument affords the verb — a quern in your hands or a mill
    * in the room is what makes `mill` sayable. A static on the class,
@@ -95,6 +108,17 @@ export default class GristMill extends GristMillBase {
   /** The room sibling that makes the power, if there is one. */
   private powerTake(): PowerTake | null {
     const self = this as unknown as Stuff;
+    if (this.powerFrom) {
+      const named = StuffApi.findByTemplatePath<Stuff>(this.powerFrom);
+      const duck = named as unknown as Partial<PowerTake> | undefined;
+      if (duck && typeof duck.generationW === 'function' && typeof duck.getReachRef === 'function') {
+        return duck as PowerTake;
+      }
+      // ⚠ Never minted from here: the race is a prop of its OWN room and
+      // lives when that room does (a singleton clone would be a second,
+      // unplaced race). Not resident = nothing driving the stones yet.
+      return null;
+    }
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return null;
     for (const occ of room.getContents()) {

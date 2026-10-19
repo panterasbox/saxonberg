@@ -23,7 +23,7 @@ import YAML from 'yaml';
 import WorkedFlame from '../thing/WorkedFlame';
 import GlowlightMote from '../thing/GlowlightMote';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -47,12 +47,12 @@ function row(rel: string): Record<string, unknown> {
 
 describe('the worked flame', () => {
   let zone: CartesianZone;
-  let cell: CartesianLocation;
+  let cell: Location;
 
   beforeEach(() => {
     installV1QuantityMarshallers();
     zone = makeStuff(() => new CartesianZone());
-    cell = makeStuff(() => new CartesianLocation());
+    cell = makeStuff(() => new Location());
     cell.setExtent(2); // a sealed 8 m³ test cell
     zone.addLocation(cell, 0, 0, 0);
   });

@@ -2,11 +2,11 @@
  * check-location-classes' pure decision core: two enumerated rosters over
  * the shipped rows' `class:`.
  *
- * The `FurnishableRoom` half asks *does a player furnish this?* — that
+ * The `PersistentLocation` half asks *does a player furnish this?* — that
  * class carries a persistence record, so a room nobody furnishes was
  * getting `holder_snapshots` writes nothing read back.
  *
- * The `CartesianLocation` half is the cross-branch trap: the name used to
+ * The `Location` half is the cross-branch trap: the name used to
  * be `Room` and used to carry `SingletonMixin`, so the same string means
  * opposite things depending on which branch a row came from, and a
  * textually clean merge would strip the singleton guard in silence.
@@ -24,9 +24,9 @@ import {
   type Row,
 } from '../check-location-classes';
 
-const FURNISHABLE = '/platform/location/FurnishableRoom';
-const MINTED = '/platform/location/CartesianLocation';
-const SINGLETON = '/platform/location/SingletonCartesianLocation';
+const FURNISHABLE = '/platform/location/PersistentLocation';
+const MINTED = '/platform/location/Location';
+const SINGLETON = '/platform/location/Locale';
 
 /** The real roster entries the script ships, used as the "listed" cases. */
 const A_FURNISHED = 'generic-objects/content/stuff/location/room/bedroom.yaml';
@@ -39,13 +39,13 @@ const r = (file: string, cls: string): Row => ({
   exits: [],
 });
 
-describe('check-location-classes.classify (FurnishableRoom)', () => {
+describe('check-location-classes.classify (PersistentLocation)', () => {
   it('a rostered row passes', () => {
     const out = classify([r(A_FURNISHED, FURNISHABLE)]);
     expect(out.unexpected).toEqual([]);
   });
 
-  it('an unrostered row on FurnishableRoom is unexpected', () => {
+  it('an unrostered row on PersistentLocation is unexpected', () => {
     const out = classify([
       r(A_FURNISHED, FURNISHABLE),
       r('trade-distilling/content/trade/distilling/location/warehouse.yaml', FURNISHABLE),
@@ -116,7 +116,7 @@ describe('check-location-classes.classifyMinted (the cross-branch trap)', () => 
  */
 describe('check-location-classes.orphanedZones', () => {
   const ZONE = '/platform/idea/location/CartesianZone';
-  const ROOM = '/platform/location/FurnishableRoom';
+  const ROOM = '/platform/location/PersistentLocation';
 
   it('a zone with rows under it is fine', () => {
     const files = ['p/seznick-house/location.yaml', 'p/seznick-house/location/hall.yaml'];
@@ -153,7 +153,7 @@ describe('check-location-classes.orphanedZones', () => {
  * passes, which is why these tests assert that each one FIRES on a
  * known-bad shape rather than only that a clean tree is clean.
  *
- *   1. the class filters matched on the NAME `CartesianLocation`, so
+ *   1. the class filters matched on the NAME `Location`, so
  *      every pack room was invisible;
  *   2. the extends walk read the first identifier after `extends`, which
  *      for `class X extends WorkingMixin(Base)` is the MIXIN;
@@ -167,7 +167,7 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
   it('⚠ a cartesian row with coords and NO covering zone is caught', () => {
     expect(
       unzonedCoords([
-        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
       ]),
     ).toEqual(['p/content/trade/t/location/floor.yaml']);
   });
@@ -176,7 +176,7 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     expect(
       unzonedCoords([
         { file: 'p/content/trade/t/location.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
-        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
       ]),
     ).toEqual([]);
   });
@@ -184,8 +184,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
   it('⚠ a NON-CARDINAL exit between two rows one zone covers is caught', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
-      { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/platform/location/Locale', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
     expect(sameZoneNamedExits(rows)[0]).toContain("'out'");
@@ -195,14 +195,14 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     expect(
       sameZoneNamedExits([
         ZONE,
-        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['north', '/test/x/b']] },
-        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [['north', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/Locale', coords: false, exits: [] },
       ]),
     ).toEqual([]);
   });
 
   it('⭐⭐ a PACK room class is seen — the derivation walks THROUGH the mixin call', () => {
-    // `AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`.
+    // `AuthoredWorking extends WorkingMixin(Locale)`.
     // Reading the first identifier after `extends` yields `WorkingMixin`
     // and the row goes uninspected; every candidate in the clause has to
     // be resolved.
@@ -254,14 +254,14 @@ describe('check-location-classes.unplottedLocations', () => {
   it('⭐ a cartesian room with no coords does not plot', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual(['p/content/test/x/a.yaml']);
   });
 
   it('⚠ coords with NO covering zone does not plot either — it is not a grid', () => {
     const rows = [
-      { file: 'p/content/test/lone.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/lone.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual(['p/content/test/lone.yaml']);
   });
@@ -269,7 +269,7 @@ describe('check-location-classes.unplottedLocations', () => {
   it('coords under a covering zone is the passing shape', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual([]);
   });
@@ -307,7 +307,7 @@ describe('check-location-classes.unplottedLocations', () => {
     // it was written. This pins the shape at the row level.
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/inline.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/inline.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual([]);
   });

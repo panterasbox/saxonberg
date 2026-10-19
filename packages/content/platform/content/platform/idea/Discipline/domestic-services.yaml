@@ -1,0 +1,12 @@
+# Domestic services — keeping a house and what is in it clean: washing,
+# laundering, sweeping, brushing (cleanliness B57). Read by the
+# `cleanliness` reading; credited by `wash`, `sweep` and `brush`.
+class: /platform/idea/Discipline
+data:
+  key: domestic-services
+  channel: skill
+  label: Domestic services
+  iscedf: "1012"  # ISCED-F 2013 — Domestic services
+  description: Keeping a house and its things clean — what lifts a stain, what sets it, what makes a cloth fit for a kitchen or a wound. Improves by doing, in context.
+  specializes:
+    - personal-services

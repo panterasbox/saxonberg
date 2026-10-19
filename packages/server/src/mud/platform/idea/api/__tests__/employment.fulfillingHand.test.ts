@@ -19,7 +19,7 @@ import { AppSettings } from "../../../../lib/config/AppSettings";
 import { Quantity } from "../../../../lib/quantity";
 import { installStore, type Doc } from "../../../../lib/persistence/__tests__/backend-store";
 import TemplateApplier from "../../TemplateApplier";
-import Location from "../../../../lib/stuff/Location";
+import Place from "../../../../lib/stuff/Place";
 import Tariff from "../../../thing/Tariff";
 import { EmployedMixin } from "../../../../lib/employment/Employed";
 import { MobileMixin } from "../../../../lib/spatial/Mobile";
@@ -74,7 +74,7 @@ function atHour(hour: number): void {
 }
 
 describe("the paid mend's hand, through the real roster", () => {
-  let room: Location;
+  let room: Place;
   let smith: Worker;
   let customer: Worker;
   let tariff: Tariff;
@@ -84,7 +84,7 @@ describe("the paid mend's hand, through the real roster", () => {
     installStore(docs(proprietor, cook));
     await AppSettings.warm();
     attachGraph({ [ROOM]: [[BIZ, "house"]] });
-    room = makeStuffAtPath(() => new Location(), ROOM);
+    room = makeStuffAtPath(() => new Place(), ROOM);
     smith = makeStuffAtPath(() => new Worker(), SMITH);
     customer = makeStuffAtPath(() => new Worker(), CUSTOMER);
     tariff = makeStuffAtPath(() => new Tariff(), TARIFF);

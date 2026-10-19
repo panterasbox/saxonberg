@@ -17,7 +17,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -44,7 +44,7 @@ function stubCommand(): CommandDefinition {
 
 function makeContext(
   actor: TestActor,
-  location: Location,
+  location: Place,
   barId: string,
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -74,13 +74,13 @@ function modes(actor: TestActor): Record<string, string> {
 
 describe('CliController', () => {
   let actor: TestActor;
-  let location: Location;
+  let location: Place;
   let pushSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, location);
     pushSpy = vi

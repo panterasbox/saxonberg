@@ -43,6 +43,34 @@ export default class BloodReading extends Reading {
   ): Promise<void> {
     const giver = this.actorOf(context);
     const target = subject ?? giver;
+    // ⭐ (cleanliness D8) Blood on CLOTH is a sample — the drawn-unit rule:
+    // a stain reads its true type the way a bag does, so a murderer's
+    // shirt is evidence. Washed out cold, there is nothing to read; washed
+    // hot it has set, and still reads.
+    if (!MixinApi.isVitals(target) && MixinApi.isSoilable(target)) {
+      const stains = target.stainsOf('blood');
+      if (stains.length === 0) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`There is no blood on ${Mml.thing(target)} to read.`)
+          .send();
+        return;
+      }
+      const types = [...new Set(stains.map((s) => s.type))];
+      const lines = [
+        types.length === 1
+          ? `The blood on ${target.getPresentation()} is type ${Mml.strong(types[0]!).toString()}.`
+          : `There is more than one person's blood on ${target.getPresentation()}: types ${types.join(', ')}.`,
+      ];
+      if (at(band, 'competent') && stains.some((s) => s.set)) {
+        lines.push('It has set into the cloth — washed hot, at some point.');
+      }
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.fromMarkup(lines.join(' ')))
+        .send();
+      return;
+    }
     if (!MixinApi.isVitals(target) || target.bloodType() === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)

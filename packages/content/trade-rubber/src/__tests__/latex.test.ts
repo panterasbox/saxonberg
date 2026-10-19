@@ -21,7 +21,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import Casting from '@saxonberg/server/mud/platform/thing/Casting';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -50,10 +50,10 @@ let now = 0;
 /** A plain cup: bulk and thermal, and NOT a mould. */
 class Cup extends ThermalMixin(BulkableMixin(Good)) {}
 
-function room(airK: number): CartesianLocation {
+function room(airK: number): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as { _temperature: Quantity<'K'> })._temperature = Quantity.of(airK, 'K');
   return r;

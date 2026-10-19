@@ -1,0 +1,11 @@
+# Sweat — what hard work leaves on the innermost layer.
+class: /platform/idea/DirtKind
+data:
+  key: sweat
+  adjective: sweat-stained
+  form: film
+  answersTo: [surfactant, alkali-mild, alkali-strong]
+  waterLifts: 0.5
+  # What it smells of — ppm per unit of load (B57): a soiled thing's
+  # odour is derived from what is on it.
+  odour: { identity: stale sweat, ppmPerLoad: 40 }

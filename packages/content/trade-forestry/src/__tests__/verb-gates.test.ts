@@ -29,7 +29,7 @@ import Bole from '../thing/Bole';
 import Panel from '../thing/Panel';
 import SapStandard from '../thing/SapStandard';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
 import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
@@ -47,7 +47,7 @@ import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type Location from '@saxonberg/server/mud/lib/stuff/Location';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
@@ -76,7 +76,7 @@ describe('fell.yaml — the arg gates', () => {
       CommandApi.collectContributions(ctor, bucket).map((d) => d.verbs).flat();
     expect(verbs(Wood, 'inventory')).toContain('fell');
     expect(verbs(Wood, 'environment')).not.toContain('fell');
-    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('fell');
+    expect(verbs(Locale, 'inventory')).not.toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('harvest'); // the copied-in four
     expect(verbs(Bole, 'peers')).toContain('fell'); // `self` is a giver's, never read off a bole
@@ -140,8 +140,8 @@ describe('tap.yaml — the arg gates and the three-way contest', () => {
     // 4. And a plain room has neither verb, so at the treeline `tap` and
     // `fell` give the SAME not-afforded answer. That parity is the thing
     // the drive checks: the design is legible from the refusals.
-    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('tap');
-    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('fell');
+    expect(verbs(Locale, 'inventory')).not.toContain('tap');
+    expect(verbs(Locale, 'inventory')).not.toContain('fell');
   });
 });
 
@@ -210,7 +210,7 @@ describe('fell.yaml through the whole binder', () => {
     const ctx: CommandContext = CommandApi.createCommandContext({
       commandGiver: giver as unknown as CommandContext['commandGiver'],
       interactive: {} as Interactive,
-      location: room as unknown as Location,
+      location: room as unknown as Place,
       commandText: line,
       executionId: 'test-exec',
       commandId: 'test-cmd',

@@ -16,7 +16,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import IceCrossingExit from '../idea/IceCrossingExit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { installModes } from './transport-fixtures';
 
 const CATALOGUE = '/system/water/idea/WatercourseCatalogue';
@@ -48,8 +48,8 @@ function installWater(): FakeWater {
 
 function crossing(): IceCrossingExit {
   const zone = makeStuff(() => new CartesianZone());
-  const here = makeStuff(() => new SingletonCartesianLocation());
-  const there = makeStuff(() => new SingletonCartesianLocation());
+  const here = makeStuff(() => new Locale());
+  const there = makeStuff(() => new Locale());
   zone.addLocation(here, 0, 0, 0);
   zone.addLocation(there, 0, 1, 0);
   return makeStuff(

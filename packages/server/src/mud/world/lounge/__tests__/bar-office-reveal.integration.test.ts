@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import SearchController from '../../../platform/idea/cmd/perception/SearchController';
 import GoController from '../../../platform/idea/cmd/movement/GoController';
 import Bar from '../location/Bar';
-import CartesianLocation from '../../../lib/location/CartesianLocation';
+import Location from '../../../lib/location/Location';
 import Exit from '../../../lib/boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -40,7 +40,7 @@ import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { Idea } from '../../../lib/stuff/Idea';
 import type Interactive from '../../../platform/idea/Interactive';
-import type Location from '../../../lib/stuff/Location';
+import type Place from '../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
@@ -87,7 +87,7 @@ function installStore(): void {
     },
     {
       path: '/world/lounge/location/office',
-      class: '/platform/location/SingletonCartesianLocation',
+      class: '/platform/location/Locale',
       data: { shortDescription: "Dave's office", primaryKeyword: 'office' },
     },
     // The default locomotion mode so `go north` (defaultModeFor → walk) can
@@ -137,7 +137,7 @@ function stub(verb: string): CommandDefinition {
   );
 }
 
-function ctx(actor: Patron, location: Location, verb: string): CommandContext {
+function ctx(actor: Patron, location: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     interactive: {} as Interactive,
@@ -232,7 +232,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
     expect(resolveTarget(patron, 'north').stuff).not.toBeNull();
 
     // `go north` succeeds — the patron ends up in the office.
-    const office = await StuffApi.singleton<CartesianLocation>(
+    const office = await StuffApi.singleton<Location>(
       '/world/lounge/location/office',
     );
     const goC = makeStuff(() => new GoController());

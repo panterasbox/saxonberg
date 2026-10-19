@@ -13,7 +13,7 @@
 
 import { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { LocationZoneMixin } from '../../../lib/zone/LocationZone';
-import type Location from '../../../lib/stuff/Location';
+import type Place from '../../../lib/stuff/Place';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { MixinApi } from '../../../api/mixin';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -30,9 +30,9 @@ export default class SphericalZone extends SingletonMixin(LocationZoneMixin(Spat
    * map stores the most recently added. Not used by exit lookup.
    * Host-internal storage; external callers go through `getFocusIndex()`.
    */
-  protected readonly focusIndex: Map<string, Location> = new Map();
+  protected readonly focusIndex: Map<string, Place> = new Map();
 
-  public getFocusIndex(): ReadonlyMap<string, Location> { return this.focusIndex; }
+  public getFocusIndex(): ReadonlyMap<string, Place> { return this.focusIndex; }
 
   /**
    * Parallel of `CartesianZone.hasRoomAt` — true iff the location at
@@ -46,7 +46,7 @@ export default class SphericalZone extends SingletonMixin(LocationZoneMixin(Spat
    */
   public hasLocationAtFocus(
     focus: [number, number, number],
-    location?: Location
+    location?: Place
   ): boolean {
     const here = this.focusIndex.get(focusKey(focus));
     if (!here) return false;
@@ -57,7 +57,7 @@ export default class SphericalZone extends SingletonMixin(LocationZoneMixin(Spat
     name: { persistent: true },
   };
 
-  public override addLocation(location: Location): void {
+  public override addLocation(location: Place): void {
     if (!MixinApi.isSphericalCoordinates(location)) {
       throw new Error(
         'SphericalZone.addLocation: location must compose SphericalCoordinatesMixin.'
@@ -67,7 +67,7 @@ export default class SphericalZone extends SingletonMixin(LocationZoneMixin(Spat
     this.focusIndex.set(focusKey(location.getCoordinates()), location);
   }
 
-  public override removeLocation(location: Location): boolean {
+  public override removeLocation(location: Place): boolean {
     if (!MixinApi.isSphericalCoordinates(location)) {
       throw new Error(
         'SphericalZone.removeLocation: location must compose SphericalCoordinatesMixin.'

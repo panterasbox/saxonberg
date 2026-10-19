@@ -30,3 +30,6 @@ outputPortionL: 0.16
 # Beeswax melts at 335 K; the pot has to get there.
 requiresHeatK: 340
 maxHeatK: 480
+# Melted wax gets on the hands (cleanliness D6).
+soils:
+- { kind: grease, amount: 0.15, where: hands }

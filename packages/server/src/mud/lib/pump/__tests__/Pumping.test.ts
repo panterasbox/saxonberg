@@ -27,7 +27,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
 import Well from '../../../platform/thing/Well';
@@ -106,8 +106,8 @@ function material(path: string, name: string, densityKgM3: number): Material {
 }
 
 /** A room at `elevationM` (or at sea level with none). */
-async function room(elevationM: number | null = null): Promise<CartesianLocation> {
-  const r = makeStuff(() => new CartesianLocation());
+async function room(elevationM: number | null = null): Promise<Location> {
+  const r = makeStuff(() => new Location());
   if (elevationM !== null) {
     const zone = await StuffApi.singleton<SpatialZone>('/hill');
     zone.setElevation(elevationM);
@@ -117,7 +117,7 @@ async function room(elevationM: number | null = null): Promise<CartesianLocation
   return r;
 }
 
-function well(at: CartesianLocation, depthM: number, troughL = 20): Well {
+function well(at: Location, depthM: number, troughL = 20): Well {
   const w = makeStuff(() => new Well());
   w.setShortDescription('well');
   w.setDepthM(depthM);

@@ -15,7 +15,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Stuff } from '../../stuff/Stuff';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
@@ -56,7 +56,7 @@ interface Built {
   setRoof(v: RoofSpec | null): void;
   getRoof(): RoofSpec | null;
 }
-type Room = CartesianLocation & Built;
+type Room = Location & Built;
 
 let zone: CartesianZone;
 let n = 0;
@@ -65,7 +65,7 @@ function place(
   path: string,
   opts: { enclosure?: EnclosurePartSpec; roof?: RoofSpec; biome?: string } = {},
 ): Room {
-  const r = makeStuffAtPath(() => new CartesianLocation(), path) as Room;
+  const r = makeStuffAtPath(() => new Location(), path) as Room;
   zone.addLocation(r, n++, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = opts.biome ?? INDOOR;
   if (opts.enclosure !== undefined) r.setEnclosure(opts.enclosure);

@@ -38,7 +38,7 @@ import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import Biome from "../../biome/Biome";
 import Icebox from "../../../platform/thing/Icebox";
-import CartesianLocation from "../../location/CartesianLocation";
+import Location from "../../location/Location";
 import CartesianZone from "../../../platform/idea/location/CartesianZone";
 import { Vessel } from "../../stuff/Vessel";
 import { Creature } from "../../creature/Creature";
@@ -99,10 +99,10 @@ function loaf(k: number): Loaf {
  * biome default, so a reader that fell through to the chain would be
  * caught by the number rather than flattered by it.
  */
-function room(envelopeK: number): CartesianLocation {
+function room(envelopeK: number): Location {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  const r = makeStuff(() => new CartesianLocation());
+  const r = makeStuff(() => new Location());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
   (r as unknown as { setEnclosure(f: unknown): void }).setEnclosure({

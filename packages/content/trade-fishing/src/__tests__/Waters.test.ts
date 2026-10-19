@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -26,25 +26,25 @@ describe('reachAt — the Locality fallback', () => {
     const locality = makeStuffAtPath(() => new Locality(), '/stuff/idea/Locality/hearts-delight');
     locality.setReach('delight:flats');
     vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue(locality);
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     expect(await waters().reachAt(room)).toBe('delight:flats');
   });
 
   it('a room under no Locality, or one citing no reach, has no water', async () => {
     vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue(null);
-    expect(await waters().reachAt(makeStuff(() => new Location()))).toBeNull();
+    expect(await waters().reachAt(makeStuff(() => new Place()))).toBeNull();
     const dry = makeStuffAtPath(() => new Locality(), '/stuff/idea/Locality/terminus-city');
     vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue(dry);
-    expect(await waters().reachAt(makeStuff(() => new Location()))).toBeNull();
+    expect(await waters().reachAt(makeStuff(() => new Place()))).toBeNull();
   });
 });
 
 describe('bandOf', () => {
   it('reads the floor for a viewer with no transcript, and the fishing band for one with', () => {
     const w = waters();
-    const nobody = makeStuff(() => new Location());
+    const nobody = makeStuff(() => new Place());
     expect(w.bandOf(nobody)).toBe('untrained');
-    const angler = makeStuff(() => new Location());
+    const angler = makeStuff(() => new Place());
     vi.spyOn(MixinApi, 'isAdvancing').mockImplementation(((s: Stuff) => s === angler) as never);
     (angler as unknown as { competenceDigestCached: () => unknown }).competenceDigestCached = () => [
       { discipline: 'mining', band: 'expert' },

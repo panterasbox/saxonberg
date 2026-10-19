@@ -5,6 +5,9 @@
  * can carry a surface load.
  */
 import '../../../../test-bootstrap';
+import { ContainmentApi } from '../../../api/containment';
+import Location from '../../location/Location';
+import Floor from '../../../platform/thing/Floor';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducingMixin } from '../Producing';
 import { Creature } from '../../../lib/creature/Creature';
@@ -26,7 +29,6 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 
 const DAY = 86_400;
-const HOUR = 3600;
 const SPECIES_PATH = '/stuff/idea/species/_test/pour-cow';
 const MILK = '/stuff/idea/material/_test/pour-milk';
 
@@ -116,7 +118,6 @@ describe('the hand on the milk', () => {
   it('the slot names the milker by identity path', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
     advance(0.5 * DAY);
     const p = pail(() => new PlainPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
@@ -128,7 +129,7 @@ describe('the hand on the milk', () => {
     const c = cow();
     const who = milker();
     advance(0.5 * DAY);
-    who.scrub();
+    who.washHands();
     const p = pail(() => new FoodPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     const slot = BulkableApi.slotFor(p, undefined)!;
@@ -139,8 +140,9 @@ describe('the hand on the milk', () => {
   it('dirty hands put e-coli in the milk and on a food pail, scaled by the dirt', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
-    advance(12 * HOUR); // six game-hours is filthy; twelve is past it
+    // ⭐ Dirt is put there by an act, never by the clock (cleanliness D4).
+    who.soilHands('manure', 0.8);
+    advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new FoodPail());
     // ⚠ Spied rather than read back: with no pathogen roster standing in a
     // unit test, the pail's own reconcile has no organism to grow. That the
@@ -158,8 +160,8 @@ describe('the hand on the milk', () => {
   it('a plain vessel carries no surface load — only the milk is dirtied', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
-    advance(12 * HOUR);
+    who.soilHands('manure', 0.8);
+    advance(0.5 * DAY); // a let-down to draw
     const p = pail(() => new PlainPail());
     await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     const slot = BulkableApi.slotFor(p, undefined)!;
@@ -169,7 +171,6 @@ describe('the hand on the milk', () => {
   it('⭐ a CraftVessel pail (the shipped pail since the dairy build) takes the milk', async () => {
     const c = cow();
     const who = milker();
-    who.scrub();
     advance(0.5 * DAY);
     const p = makeStuff(() => {
       const v = new CraftVessel();
@@ -180,5 +181,33 @@ describe('the hand on the milk', () => {
     const r = await c.completeTap(who, 'milk', null, p, { key: 'milk' });
     expect(r.self).not.toMatch(/on the floor/);
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
+  });
+
+  it('⭐ (cleanliness D6) the take soils the taker by the byre — AFTER the milk is drawn', async () => {
+    const c = cow();
+    const byre = makeStuff(() => new Location());
+    ContainmentApi.move(c as never, byre as never);
+    const floor = makeStuff(() => new Floor());
+    vi.spyOn(byre, 'getFloor').mockReturnValue(floor as never);
+    floor.soil('manure', 1); // a fouled byre
+    const who = milker();
+    advance(0.5 * DAY);
+    const p = pail(() => new FoodPail());
+    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    // The first milk with clean hands is clean…
+    const slot = BulkableApi.slotFor(p, undefined)!;
+    expect(new Contamination(slot).loads()['e-coli'] ?? 0).toBe(0);
+    // …and the hands are dung-spattered now, from the floor she stood in.
+    expect(who.soilKinds('body.arm.left.hand').concat(who.soilKinds())).toContain('manure');
+  });
+
+  it('⭐ a cow from a clean byre leaves the hands clean (only the pail splashes)', async () => {
+    const c = cow();
+    const who = milker();
+    advance(0.5 * DAY);
+    const p = pail(() => new FoodPail());
+    await c.completeTap(who, 'milk', null, p, { key: 'milk' });
+    const hands = who.handSites().flatMap((h) => who.soilKinds(h));
+    expect(hands).not.toContain('manure');
   });
 });

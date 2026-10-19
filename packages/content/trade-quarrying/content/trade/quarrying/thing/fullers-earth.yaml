@@ -1,0 +1,14 @@
+# Fuller's earth — a soft greasy clay that drinks oil (cleanliness D25),
+# won from a seam inside the clay at Hill Quarry. The fuller's absorbent:
+# rubbed into a greasy coat and brushed out, it takes the grease with it.
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [earth, fuller, "fuller's earth", lump, "lump of fuller's earth"]
+  shortDescription: lump of fuller's earth
+  register: indefinite
+  longDescription: >-
+    A soft grey-green lump that crumbles to a soapy powder between your
+    fingers.
+  _materialPath: /stuff/idea/material/earth/fullers-earth
+  mass: 2
+  quantity: 1

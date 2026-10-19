@@ -1192,7 +1192,7 @@ export abstract class Stuff {
    * subclass or a third-party file.
    */
   static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
-    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.(ts|js)$/,
+    /\/mud\/lib\/stuff\/(Thing|Place|Idea|Agent|Shadow)\.(ts|js)$/,
   ];
 
   static #branchRegistrationCache: Map<string, boolean> = new Map();
@@ -1233,7 +1233,7 @@ export abstract class Stuff {
     if (!allowed) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
+          `five branch files (lib/stuff/{Thing,Place,Idea,Agent,Shadow}.ts) ` +
           `may register branches.`
       );
     }
@@ -1299,7 +1299,7 @@ export abstract class Stuff {
    * was excluded from its own contents.
    *
    * ⭐ One of **four** branch predicates — `isAgent` · `isThing` ·
-   * `isIdea` · `isLocation` — so no caller anywhere has to import a
+   * `isIdea` · `isPlace` — so no caller anywhere has to import a
    * branch class to ask which branch something is. The fifth branch,
    * `Shadow`, deliberately has none: it is a framework attachment that
    * rides another Stuff rather than a world object anything asks about,
@@ -1336,7 +1336,7 @@ export abstract class Stuff {
    *
    * @hook Overridden once, by `Location`. Nothing else should.
    */
-  public isLocation(): boolean {
+  public isPlace(): boolean {
     return false;
   }
 

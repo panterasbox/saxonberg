@@ -10,7 +10,7 @@
 # The refusal names the reason. A wagon turned back by a message that
 # says "you can't wheeled that way" teaches nothing; one turned back at
 # a stair-pitch with a gate and a sign teaches where bulk breaks.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: pass
   keywords: [pass]

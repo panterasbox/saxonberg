@@ -233,3 +233,12 @@ properly; the others should move toward it, not it toward them.
 Left as a line here rather than in a retired plan.
 
 - **`Material` has nothing for smell, and `tar` is not an aroma word.** The fire build reports tar reek by material NAME in the air reading rather than as an aroma tag, which is honest and is not a smell model.
+
+## ⬅ From the cleanliness build (2026-10-18, !380)
+
+Dirt smells now (`DirtKind.odour`, B57): an INSTANCE-layer emission derived
+from soil loads, read by `SmellModality`'s contents leg. ⚠ Its identities
+(*stale sweat*, *dung*, *sour milk*, *old blood*, *rancid fat*) are free
+text on the dirt rows — when the aroma vocabulary becomes rows (above),
+they join it rather than becoming a second list. NPCs reacting to it:
+[senses-slate § NPCs reacting to smell](./senses-slate.md).

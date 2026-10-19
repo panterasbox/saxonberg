@@ -23,7 +23,7 @@ import { EngagedMixin } from '../../activity/Engaged';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Bonded } from '../Bonded';
 import { SchedulerApi } from '../../../api/scheduler';
@@ -66,8 +66,8 @@ class Beast extends ContainableMixin(Idea) {
 let toSelf: string[];
 
 function world() {
-  const lane = makeStuff(() => new Location());
-  const yard = makeStuff(() => new Location());
+  const lane = makeStuff(() => new Place());
+  const yard = makeStuff(() => new Place());
   const keeper = makeStuff(() => new Keeper());
   const beast = makeStuff(() => new Beast());
   const scrap = makeStuff(() => new Scrap());

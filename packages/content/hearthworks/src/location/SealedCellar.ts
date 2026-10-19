@@ -20,10 +20,10 @@
  * Backs `/world/terminus/hearthworks/location/SealedCellar`.
  */
 
-import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/lib/location/Locale';
 import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 
-export default class SealedCellar extends SingletonCartesianLocation {
+export default class SealedCellar extends Locale {
   /**
    * ⭐ **A cellar is cut into the rock, and the rock is thick.**
    *

@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { EXIT_KIND_TEST_ROWS } from '../../security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Window from '../../../platform/thing/Window';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
@@ -13,7 +13,7 @@ import { StuffApi } from '../../../api/stuff';
  * structural-field-shape side of the declarative-content slate.
  *
  * Substrate-only Duncan Hall demo: one `CartesianZone` with two
- * `CartesianLocation` rooms (each with `coords` + `exits`) and one
+ * `Location` rooms (each with `coords` + `exits`) and one
  * `Window` connecting them via `attachedHosts`. Hydrates lazily on
  * first `StuffApi.singleton` access; verifies the entire wiring graph
  * comes out correct end-to-end without TypeScript glue, without
@@ -89,10 +89,10 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
         class: '/platform/idea/location/CartesianZone',
         data: { name: 'test zone', cellSize: 25 },
       },
-      // CartesianLocation A — has coords + exits → roomB.
+      // Location A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {
           coords: { x: 0, y: 0, z: 0 },
           exits: {
@@ -100,12 +100,12 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
           },
         },
       },
-      // CartesianLocation B — declares its OWN exit back (exits are explicit on both
+      // Location B — declares its OWN exit back (exits are explicit on both
       // sides; no auto-reciprocal). roomA's `north` still triggers roomB's
       // clone when the applier resolves the destination via singleton.
       {
         path: '/test/declarative/zone/roomB',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {
           coords: { x: 0, y: 1, z: 0 },
           exits: {
@@ -128,13 +128,13 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     ]);
 
     // ── Step 1. Trigger cascade by resolving roomA.
-    const roomA = await StuffApi.singleton<CartesianLocation>(
+    const roomA = await StuffApi.singleton<Location>(
       '/test/declarative/zone/roomA'
     );
 
     // roomA is registered.
     expect(roomA).toBeDefined();
-    expect(roomA).toBeInstanceOf(CartesianLocation);
+    expect(roomA).toBeInstanceOf(Location);
 
     // The zone is registered (lazy-cloned via ZoneApi.resolveZoneForPath
     // during roomA's clone).
@@ -153,7 +153,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     // the north exit, which triggered roomB's clone.
     const roomB = StuffApi.findByTemplatePath(
       '/test/declarative/zone/roomB'
-    ) as CartesianLocation | null;
+    ) as Location | null;
     expect(roomB).toBeTruthy();
     expect(roomB!.getCoords()).toEqual({ x: 0, y: 1, z: 0 });
 
@@ -188,7 +188,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     expect(roomB!.getFixtureBoundaries()).toContain(w);
 
     // ── Step 5. Sanity: second singleton hit returns same instance.
-    const roomAAgain = await StuffApi.singleton<CartesianLocation>(
+    const roomAAgain = await StuffApi.singleton<Location>(
       '/test/declarative/zone/roomA'
     );
     expect(roomAAgain).toBe(roomA);
@@ -208,7 +208,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       },
       {
         path: '/back/zone/a',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {
           coords: { x: 0, y: 0, z: 0 },
           exits: { north: { destination: '/back/zone/b' } },
@@ -219,7 +219,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // and no-op.
       {
         path: '/back/zone/b',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {
           coords: { x: 0, y: 1, z: 0 },
           exits: { south: { destination: '/back/zone/a' } },
@@ -227,10 +227,10 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       },
     ]);
 
-    const a = await StuffApi.singleton<CartesianLocation>('/back/zone/a');
+    const a = await StuffApi.singleton<Location>('/back/zone/a');
     const b = StuffApi.findByTemplatePath(
       '/back/zone/b'
-    ) as CartesianLocation;
+    ) as Location;
 
     // Both rooms wired, each with a single exit on its declared
     // direction (no duplicates from the redundant declaration).

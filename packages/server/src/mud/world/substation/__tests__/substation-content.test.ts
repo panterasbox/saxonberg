@@ -42,7 +42,7 @@ describe('The Drowned Substation — content integrity', () => {
     expect(seed('world/substation').class).toBe('/platform/idea/location/CartesianZone');
   });
 
-  it('the flooded-cell room is a CartesianLocation subclass at authored coords', () => {
+  it('the flooded-cell room is a Location subclass at authored coords', () => {
     const cell = seed('world/substation/flooded-cell');
     expect(cell.class).toBe('/world/substation/FloodedCell');
     expect(cell.data?.coords).toEqual({ x: 0, y: 0, z: 0 });

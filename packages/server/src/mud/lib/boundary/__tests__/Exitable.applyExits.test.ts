@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Door from '../../../platform/thing/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -77,8 +77,8 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     await a.applyExits({
       north: { destination: '/zone/b' },
@@ -98,8 +98,8 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     await a.applyExits({
       north: { destination: '/zone/b', bidirectional: true },
@@ -117,8 +117,8 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
     const door = await makeStuffAtPathAsync(() => new Door(), '/door1');
     door.setShortDescription('oak door');
 
@@ -144,8 +144,8 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    makeStuffAtPath(() => new Location(), '/zone/b');
     await a.applyExits({ north: { destination: '/zone/b' } });
     const exitCount = a.getExits().size;
     // Second apply with matching spec.
@@ -163,9 +163,9 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    makeStuffAtPath(() => new CartesianLocation(), '/zone/c');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    makeStuffAtPath(() => new Location(), '/zone/b');
+    makeStuffAtPath(() => new Location(), '/zone/c');
     await a.applyExits({ north: { destination: '/zone/b' } });
     await expect(
       a.applyExits({ north: { destination: '/zone/c' } })
@@ -180,8 +180,8 @@ describe('Exitable.applyExits', () => {
         data: {},
       },
     ]);
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     const hydrator = makeStuff(() => new TemplateApplier());
     await hydrator.apply(a, { exits: { north: { destination: '/zone/b' } } }, { mode: 'mint' });

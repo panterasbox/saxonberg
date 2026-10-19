@@ -11,7 +11,9 @@
 # and the zone beside it is what a room joins — a floor with no coords
 # is in no grid and inherits nothing. That was a real defect twice
 # before this build.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentLocale
 data:
   coords:
     x: 0

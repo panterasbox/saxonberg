@@ -124,7 +124,7 @@ a pair so neither collapses into the other is the right shape.
 
 ## 6. `TitledRoom` — we converged, and you found it the harder way
 
-`FurnishableRoom` (`lib/location/`) is `Persistable → PostRegistration →
+`PersistentLocation` (`lib/location/`) is `Persistable → PostRegistration →
 Exitable → Detailed → Visible → Reserved → Populates → Location` — persistable
 and non-singleton, so the same shape you needed.
 
@@ -135,7 +135,7 @@ shipped as `Persistable(Reserved(Location))` and composed **no `Populates`,
 seed-shape tests passed. Caught in review, not by the suite.
 
 Your "a test stub more capable than the real class" is the same failure
-wearing different clothes. If `TitledRoom` and `FurnishableRoom` are
+wearing different clothes. If `TitledRoom` and `PersistentLocation` are
 converging on one shape, that's an argument for one class — worth a look
 after both merge rather than now.
 

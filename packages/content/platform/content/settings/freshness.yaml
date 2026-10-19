@@ -58,6 +58,12 @@ settings:
   - key: freshness.band.rottenAt
     value: "0.85"
 
+  # ⭐ Rotten food lying loose in a room ROTS AWAY after this long (game
+  # seconds) — three days — leaving crumbs on the floor for the broom and
+  # the midden (cleanliness). In a pot, a pack or a hand it waits.
+  - key: freshness.rotAwayAfterS
+    value: "259200"
+
   # Nothing under this load carries a dose at all — a barely-turned ration
   # is unpleasant, not poisonous.
   - key: freshness.dose.onsetLoad

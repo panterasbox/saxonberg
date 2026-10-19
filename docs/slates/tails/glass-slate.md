@@ -761,3 +761,14 @@ strategic-resource role) · [thermal-slate](../tails/thermal-slate.md)
 (the two sitings) · [instrumentation](../../subsystems/instrumentation.md)
 (the tube's customers) · [bulk.md § `category`](../../subsystems/bulk.md)
 (the empty↔product tie, and the crate defect).
+
+## From the cleanliness build (2026-10-17)
+
+- **Grime on a construction glass face** (a hothouse roof): a `Window`
+  grimes (`transmissivity()` × the soil band), a construction face has no
+  object to carry soil. The attach point is the face's transmittance
+  method; the first consumer is a sooty stove under glass (less solar
+  gain, a colder house).
+- A one-sided pane as a room's sky opening shipped
+  (`AmbientLit.openingTransmissivity`); Seznick's and the dorm's windows
+  are still prose and want one row each.

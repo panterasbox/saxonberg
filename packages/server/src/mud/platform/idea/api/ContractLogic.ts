@@ -343,6 +343,22 @@ function claimantStuff(record: ContractRecord): Stuff | null {
 
 /** Whether the condition is satisfied at `dest` — one, or a tally. */
 function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
+  if (condition.template === 'clean') {
+    // ⭐ A `clean` clause names the place itself (its floor) or a thing in
+    // it (a hearth, a garment brought there); either way it holds when the
+    // subject is clean NOW (cleanliness D30).
+    const clause = new Condition(condition);
+    if (
+      condition.item.kind === 'template' &&
+      condition.item.path === condition.destinationPath
+    ) {
+      return clause.cleanHolds(dest);
+    }
+    return (
+      findDeliveredItemAt(dest, condition, 0, (item) => clause.cleanHolds(item)) !==
+      null
+    );
+  }
   if (condition.template === 'supply') {
     return (
       countDeliveredItemsAt(dest, condition) >= new Condition(condition).countOf()
@@ -355,12 +371,14 @@ function findDeliveredItemAt(
   dest: Stuff,
   condition: ConditionData,
   depth = 0,
+  accept: (item: Stuff) => boolean = () => true,
 ): Stuff | null {
   if (MixinApi.isPlacing(dest)) {
     for (const item of dest.getPlaced()) {
       if (
         new Condition(condition).matchesItem(item) &&
-        new Condition(condition).holdsFor(item)
+        new Condition(condition).holdsFor(item) &&
+        accept(item)
       ) {
         return item;
       }
@@ -371,11 +389,12 @@ function findDeliveredItemAt(
     if (item instanceof Creature) continue;
     if (
       new Condition(condition).matchesItem(item) &&
-      new Condition(condition).holdsFor(item)
+      new Condition(condition).holdsFor(item) &&
+      accept(item)
     ) {
       return item;
     }
-    const inner = findDeliveredItemAt(item, condition, depth + 1);
+    const inner = findDeliveredItemAt(item, condition, depth + 1, accept);
     if (inner) return inner;
   }
   return null;

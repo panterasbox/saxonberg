@@ -26,7 +26,7 @@ import { AppSettingKeys } from '../../config/AppSettings';
 import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
 import Good from '../../stuff/Good';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -36,7 +36,7 @@ class TestGood extends CirculatingMixin(Good) {}
 const REGION = '/test/spawn/spawn-batch-zone';
 const STOCK = '/test/spawn/spawn-batch-zone/thing/stock';
 
-let room: SingletonCartesianLocation;
+let room: Locale;
 let settings: Record<string, string>;
 
 /**
@@ -64,7 +64,7 @@ describe('the spawn sweep — draw until the region declines', () => {
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
     // The "stock counter" the rows name — a live room the mints land in,
     // so the census counts them in the row's own region.
-    room = makeStuff(() => new SingletonCartesianLocation());
+    room = makeStuff(() => new Locale());
     stampTemplatePathForTest(room, STOCK);
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue({
       getTemplatePath: () => REGION,

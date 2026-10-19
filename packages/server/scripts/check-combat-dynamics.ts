@@ -58,6 +58,11 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   // changed name without changing meaning. ⚠ The gate is why that was
   // noticed at all: a rename breaks the DEPENDENTS, not what you edited.
   "isAttired",
+  // ⭐ `isHygienic` is the same move again (the cleanliness review, !380): a blow's
+  // blood on the struck site and on the striker's hands was `Attired`'s
+  // `soilHands` until hygiene left the clothes module for `HygieneMixin`.
+  // It reads nothing back into the exchange — evidence, not physics.
+  "isHygienic",
   "isCombatReactive",
   "isCombatant",
   // The EVIDENCE TAIL's narrowing (the Api OO sweep, waves C1–C3): the

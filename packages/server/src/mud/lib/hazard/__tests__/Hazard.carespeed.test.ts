@@ -34,7 +34,7 @@ import { MobileMixin } from '../../spatial/Mobile';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
@@ -88,7 +88,7 @@ async function warmedMover(path: string, band: string): Promise<CareSpeedMover> 
   const c = makeStuff(() => new CareSpeedMover());
   c.setSpecies(sharedSpecies);
   stampTemplatePathForTest(c, path);
-  ContainmentApi.move(c, makeStuff(() => new Location()));
+  ContainmentApi.move(c, makeStuff(() => new Place()));
   vi.spyOn(
     c as unknown as { competenceBandFor(d: string): Promise<string> },
     'competenceBandFor',

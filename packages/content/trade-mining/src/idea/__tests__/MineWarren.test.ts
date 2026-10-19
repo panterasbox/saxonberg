@@ -24,7 +24,7 @@ import CartesianZone from '@saxonberg/server/mud/platform/idea/location/Cartesia
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -272,7 +272,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
   it('airAt degrades along a dead end and RECOVERS when it is holed through', async () => {
     const { zone } = await mine();
     // The adit: a Spine singleton in its OWN zone, so it breathes.
-    const adit = makeStuffAtPath(() => new SingletonCartesianLocation(), ADIT);
+    const adit = makeStuffAtPath(() => new Locale(), ADIT);
     const surface = makeStuffAtPath(() => new CartesianZone(), '/world/fx-mine/pithead');
     surface.addLocation(adit as unknown as never, 0, 0, 0);
 
@@ -292,7 +292,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
 
     // Hole it through to a second adit two steps off: the distance drops
     // and the air comes back. ⭐ Planning a connection is a real decision.
-    const second = makeStuffAtPath(() => new SingletonCartesianLocation(), '/world/fx-mine/location/adit2');
+    const second = makeStuffAtPath(() => new Locale(), '/world/fx-mine/location/adit2');
     surface.addLocation(second as unknown as never, 4, 0, 0);
     await (far as unknown as { addBidirectionalExit(o: unknown, d: string, opts: unknown): Promise<void> })
       .addBidirectionalExit(second, 'east', { opposite: 'west', keepLiveDestination: true });
