@@ -71,8 +71,10 @@ slate); the berth as the liveaboard's address.
 
 ## 1. ⭐⭐⭐ Boats and ships — where each can be **[DECIDED]**
 
-> **A boat is one space and a Thing, and only ever sits in a water room. A
-> ship is many spaces and a Structure, and only ships enter the open field.**
+> **A boat is one space and a Thing; a ship is many spaces and a Structure.**
+> ⚠ *Corrected the same day (§ 17): "only ships enter the open field" was too
+> strict — a boat crosses the field the way a ship does (positioned under way,
+> a Thing in a budded room when stopped).*
 > ⛔ **Never a Location inside a Location; never a Thing standing in for a
 > Structure.**
 
@@ -571,3 +573,88 @@ contract arms, the school, marshal's writs), **unlisted, under seal**
 (rogues — stealth, locks, appraisal), **the Chorus** (bards — performance,
 tips, venues, the stream's stage), **no magic guild** (verbs are university
 faculties; each guild's mystery is a magic noun).
+
+## 17. ⭐⭐ The stories — lens 2's audit, and what it changed (2026-10-19)
+
+*"There are so many great stories that take place at sea or in harbour towns…
+what stories do we want our seafarers to tell?"* Lens 2's real test is
+**can an author make THESE with no code**:
+
+| story | needs | |
+|---|---|---|
+| **The Count of Monte Cristo** — the *Pharaon* into Marseille, the owner making Dantès captain, false denunciation, the island prison, the escape sewn into a corpse's sack and thrown into the sea, the treasure, Morrel ruined by lost ships | the managing owner hiring the master; courts; ⭐ surviving being thrown in (buoyancy, breath, cold); a shipowner ruined (shares, insurance) | ✅ but the courts |
+| **Treasure Island** | ⭐ a treasure map is an authored Chart; the shipping office; ⭐ **marooning is `course … leaving them`**; `dig` | ✅ but mutiny |
+| **Moby-Dick** | ⭐ Ishmael haggling his **lay**; command and loyalty; a coffin as a lifebuoy (buoyancy) | ✅ the harbour; the chase is whaling's |
+| **Robinson Crusoe** | ⭐ raiding the wreck before she breaks up — **the wreck as her own rooms** | ✅; survival leans on foraging |
+| ⭐ **Lord Jim** — an officer abandons a ship full of pilgrims | **leaving people is a deliberate, recorded act** — the stranding refusal IS the story's moral | ✅ the strongest validation |
+| **Titanic** | the ship's social geography; sinking takes time; ⭐ **boat capacity derived — *not enough boats* is arithmetic** | ✅ |
+| ⭐ **Whisky Galore** | title survives sinking; salvage; customs | ✅ |
+| **Captains Courageous** | man overboard; the ladder; the fishing lay | ✅ |
+| **Peter Grimes** | accountability; regard; the town's talk | ✅ |
+| **Jaws** | seeded fauna + an authored cast; tourism; governance against safety | ✅ |
+| **Billy Budd** | ⚠ the press gang — never a mechanic | ✅ as authored narrative; ⛔ as a system players wield |
+| **The Ancient Mariner** | ⭐ superstition — *mysticism as a correlation, never a mechanism* | ✅ as culture |
+| **Swallows and Amazons**, **The Wind in the Willows** | leisure boating on a lake and a river | ✅ |
+| **Huck Finn**, **The African Queen** | rivers | ✅ the river slate |
+| ⚠ **Mutiny on the Bounty**'s open launch, **Kon-Tiki**, survivors rowing for land, **The Old Man and the Sea** | ⚠ **a boat crossing the open field** | ⛔ under § 1 as first written → **corrected below** |
+
+**The corpus mostly validates the design** — marooning, Lord Jim, the wreck as
+her rooms, the lay, class aboard, slow sinking and too few boats all come from
+decisions made for other reasons. **Known gaps, parked**: mutiny (governance),
+courts, foraging, whaling's chase.
+
+### ⭐ Boats cross the field like ships **[DECIDED]**
+
+A *carried* room was refused (*"it makes the boat a carnival ride — you just sit
+there while the environment changes around you"*). Instead **a boat in the open
+field is treated exactly like a ship there**: **under way it holds a position**
+(as the shipped `Boat` already does — *"they sort of already do, they just have
+to ride on the ship"*); **stopped, the sea Warren buds the room and the boat is a
+Thing in it**; under way again it leaves and the room is reaped if empty.
+Everyone aboard is inside the boat throughout. **It is not a ride, because the
+work is theirs** — the crew's rowing (exertion) or sail sets the speed, the helm
+holds the course, and **an open boat's freeboard against the sea state means
+bailing or swamping**, derived; an open boat is exposed (rubber: `none`
+overhead). The stranding refusal applies. Bligh's launch — hunger, rationing,
+bailing, navigation — is the boat's own physics. The constraints hold: never a
+Location inside a Location, never a hull Thing.
+
+### The sea is bounded; rooms bud only at ENCOUNTERS **[DECIDED]**
+
+*"Is it infinite or bounded?"* — **bounded by the expanse's own extent** (its
+chart region, nodes and bands), and **rooms are budded at encounters, not across
+the sea**: a stopped craft is a one-craft encounter, two ships hove to share one
+(the cell rule), everywhere else is field. The count of rooms is the count of
+things happening at sea now.
+
+**The geography a chase runs on already ships**: **bands** (set, fog, races, sea
+state, and **`stock`** — ⭐ *a whaling ground is a band*), **nodes** (rocks,
+shoals, islands, wrecks), **depth and bottom** per band, **sight** by curvature
+with fog in the bands. **The principle for close quarters**: when things in the
+field must interact at close range, the field buds a room for the encounter.
+⚠ **A MOVING encounter** (the tow — a boat dragged behind a running whale) is
+parked with whaling's *chain of engagements and tether graph* (navigable § 7c):
+*"whaling will have to work out the specifics."*
+
+### Shipping as a business **[PROPOSED]**
+
+Put before the story audit and not yet ruled on; the stories lean on it
+(Monte Cristo's Morrel, Moby-Dick's lay):
+
+- **Ownership in shares** (the registry's sixty-fourths; income split by share
+  through banking).
+- **Three roles** — the **owners**; ⭐ the **managing owner** (*the ship's
+  husband* — the house that runs her: cargoes, the master, the bills); the
+  **master** (often a shareholder).
+- **Three earnings** — ⭐ **the liner** (a scheduled service sailing *full or
+  not* — the Black Ball Line, 1818; a timetable the `published` map channel
+  reads); **the tramp** (any cargo, haulage's market); ⭐ **the charter** (hiring
+  the whole ship — the university's research vessel).
+- ⭐ **The sea's financial instruments** — **insurance** began here (Lloyd's,
+  1680s: underwriters take shares of a ship's risk; the premium is their
+  judgement, never an engine gauge); ⭐ **general average** (Rhodian law: cargo
+  jettisoned to save the ship is a loss **every owner shares in proportion** —
+  derivable); ⭐ **bottomry** (a loan secured on the ship, **repaid only if she
+  arrives** — credit's Terms with a verifiable arrival condition).
+- **The voyage is the accounting unit** — freight and fares in; wages or the
+  lay, provisions, dues, upkeep and insurance out; profit to the shares.
