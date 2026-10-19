@@ -44,7 +44,7 @@ describe('the shipped fouled water', () => {
     expect(data(CLEAN).toxicity).toEqual([]);
   });
 
-  it('⭐ boiling it names plain water, so `boil` is an answer and not a gesture', () => {
+  it('⭐ boiling it names plain water — held a minute at the boil, it IS water', () => {
     expect(data(FOULED).purifiedByBoiling).toBe(
       '/stuff/idea/material/bulk/water',
     );

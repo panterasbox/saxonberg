@@ -1,4 +1,10 @@
-verbs: [heat]
+# ⭐ `boil` is an ALIAS, not a verb (2026-10-19): boiling is heating
+# something to its boiling point, and the pot does the rest — the liquid
+# holds at the boil (the latent-heat plateau) and a material that boiling
+# improves turns into what it names once it has been held there a minute.
+# A second verb for "heat it until it boils" taught that boiling was a
+# separate act, which is the opposite of the cooking lesson.
+verbs: [heat, boil]
 controller: /platform/idea/cmd/crafting/HeatController
 description: "Work a build in the fire (a manual step, both branches)"
 help: |
@@ -10,6 +16,12 @@ help: |
   Anything else that holds heat — a cheese vat, a pail of milk — is set
   on the fire in reach (`heat vat`), and warms there until you take it
   off (`get vat`). A thermometer tells you how far it has come.
+
+  `boil` is the same act. A pot of water brought to a boil holds there
+  while it boils away, and a minute at a rolling boil makes bad water fit
+  to drink — or tar into pitch. ⚠ It does not fix everything: a river
+  fouled by a smelter boils into hot poison, because heat kills what
+  lives in water and does nothing to lead.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

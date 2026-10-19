@@ -331,11 +331,11 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
         'platform/cmd/device/pump.yaml',
+        // ⭐ The fire is what affords heating — and with it boiling, which
+        // is `heat`'s alias (a pot held at its boiling point is boiling;
+        // the phase engine does the rest). The counterplay ladder's middle
+        // rung hangs off this one line.
         'platform/cmd/crafting/heat.yaml',
-        // ⭐ The fire is what affords boiling — you cannot boil without
-        // one, and there is no separate "kettle" to own. The whole
-        // counterplay ladder's middle rung hangs off this one line.
-        'platform/cmd/crafting/boil.yaml',
         // ⭐ …and you warm a frozen body by it (recovery build) — the same
         // way you learn every other thing a fire is for: by standing at one.
         'platform/cmd/medical/warm.yaml',
