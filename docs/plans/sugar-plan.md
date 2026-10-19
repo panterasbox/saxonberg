@@ -16,10 +16,12 @@ master on 2026-10-19 (`b7b97f0c3`)** after this plan was first written:
 the place-taxonomy rename, `Maturing.matchProfile` and the lye `Hopper`
 are on master now, and every class name below is master's.
 
-Wave order (founder-agreed): **W0** the unpaid hand → **Stage A** the
+Wave order (founder-agreed, revised 2026-10-19): **W0** the unpaid hand
+(now, on master) → *silk (!395) merges* → **W1a** the fire has power (the
+general physics, alone, with a blast-radius check) → **Stage A** the
 Terminus sugar house (W1 the boil · W2 the cone and the grades · W3 the
-rum · W4 claying, last) → **Stage B** the island (W5) → **W6** the voyage
-with the radius setting. Every wave lands at a commit
+rum · W4 claying, last) → **Stage B** the island (W5) → *the ship design
+settles* → **W6** the voyage with the radius setting. Every wave lands at a commit
 `build(sugar W<n>): …` and is independently landable.
 
 ---
@@ -589,7 +591,14 @@ non-maturing arm returns `1 + 0.52·w` when the payload carries dissolved
 solids, else the material's density as today.
 
 **D2 — ⭐ The energy balance fills silk's open seam: a power-limited heat
-transfer on the Burner/Thermal side.** `BurnerMixin` gains
+transfer on the Burner/Thermal side — landed ALONE, as W1a.** The founder
+wants it *fixed for real*, and it reaches every heated body in the game
+(forge bars, oven loaves, stills, the glasshouse, the bath), not just
+sugar's pans. So it is not folded into the sugar boil: it lands as its own
+wave, first after silk merges and before any sugar boiling, with a
+**blast-radius check** as its acceptance (§ W1a) — if a forge or an oven
+now behaves wrong, it surfaces and is fixed in that wave, never tangled
+with the boil. `BurnerMixin` gains
 `heatTransferFraction` (authorable field, default `0.5`; an open island
 kettle over a poor arch authors `0.3`; the Jamaica train overrides the
 getter to derive `0.8` from its parts, D17). `ThermalMixin` exposes the
@@ -933,7 +942,8 @@ and lacks silk. The recommendation, in order:
    forestry `SapStandard.test.ts` against the retired sap profiles
    (D1), and the fire wire test's `boil` lines (already `heat` on silk).
    Re-run `test:near`, the thermal/fire/maturation suites, every
-   touched pack, `lint:family`.
+   touched pack, `lint:family`. **Then W1a (the fire has power) lands
+   before W1.**
 3. **When !395 merges to master:** `git merge origin/master` again — a
    no-op on silk's files unless review changed them; re-verify as in 2
    and re-drive.
@@ -1072,16 +1082,61 @@ step 1 written in `packages/wire/tests/sugar.dirty.wire.test.ts`
 in the room and the help-wanted sign on `look`). Commit
 `build(sugar W0): the unpaid hand walks off and the roster shows the seat`.
 
+### W1a — the fire has power (after silk; before W1)
+
+**Goal.** D2 alone: a burner warms what it heats at its real power, and the
+boil plateau spends the fire's power on steam — the general physics, with
+no sugar in it. **Waits on:** silk (!395) merged into `reqs/sugar` (D21
+step 2).
+
+**Files.**
+- `M/lib/fire/Burner.ts` — `heatTransferFraction` field + `fieldMeta` +
+  `getHeatTransferFraction()` / setter (default `0.5`).
+- `M/lib/thermal/Thermal.ts` — `heatSource()` public; the rise cap in
+  `reconcileThermal` (`P_in × dur / C`); in `reconcileBulkPhase` the
+  power-limited boil-off (`min(overshootJ, P_in × Δt_at_boil)`) and
+  `boilHeldSeconds` running for every plateau material.
+- Tests: `Thermal.power.test.ts` (the rise is capped at `P × fraction /
+  C`; the boil-off over a long unread gap equals `P × Δt / latent`, not
+  one capacity's worth; a watched and an unwatched pot boil off the same
+  litres; no burner → silk's figures), the `Burner` field test.
+- Row calibration as the check finds it: a row whose `maxBurnPowerW` was
+  never calibrated is fixed **on the row**, never by moving the default.
+- `docs/subsystems/thermal.md` — silk's open "power-limited heat
+  transfer" item closed, with the history note.
+
+**Acceptance — the blast-radius check.** `pnpm test:near`, the thermal,
+fire, crafting, bulk and maturation suites, every pack whose rows heat
+something, and `lint:family`; then **the wire drives of every trade that
+heats things**, each on a fresh world, each compared with its last green
+run on master:
+
+| trade | drive (in `packages/wire/tests/`) | what to watch |
+|---|---|---|
+| smithing | `crafting.dirty.wire.test.ts -t 'the smithy'` | a bar reaches forging heat at the forge's power |
+| cooking | the cooking drive | oven loaves, the range, the copper |
+| glass | the glass drive | the furnace melt, the gather's working window |
+| distilling | the fermentation/libations still checkpoints | the still's heat-up and the cut |
+| rubber | `rubber.dirty.wire.test.ts -t 'the cure\|stove house'` | the oven's hold at ~430 K; the stove house |
+| cleanliness | the bath checkpoints | a heated bath |
+| taps | the sugarbush checkpoints | the maple pan |
+| fire | `fire.dirty.wire.test.ts` | the hearth, the furnace |
+
+A drive that changes is either a row to calibrate (fix it here) or a real
+finding (record it in the drive record). Commit `build(sugar W1a): the fire
+has power — a burner heats at its power, the boil spends it on steam`.
+
 ### W1 — the boil, the thread test, the sugar house (Stage A)
 
-**Goal.** AC 2, 3; drive steps 2–5 and 12. Decisions D1, D2, D4, D7,
+**Goal.** AC 2, 3; drive steps 2–5 and 12. Decisions D1, D4, D7 (D2
+landed in W1a and is used here),
 D19 (the house's rows; the refiner brain's first steps: dissolve ·
 temper · skim · heat · stoke · off-the-fire-and-pour at the strike —
 the rest lands in W2/W4), D20 (the two Terminus rooms + the sugarbush),
 D21 step 2.
 
-**First:** `git merge origin/reqs/silk` into `reqs/sugar` (D21 step 2),
-resolve, re-verify. Everything below assumes silk's `Thermal.ts`.
+**First:** silk merged in and W1a landed (D21 step 2). Everything below
+assumes silk's `Thermal.ts` with W1a's power limit.
 
 **Kernel files.**
 - `M/lib/material/Material.ts` — `solidsKgPerL`, `boilingPointElevation`
@@ -1091,9 +1146,9 @@ resolve, re-verify. Everything below assumes silk's `Thermal.ts`.
   `elseBecomes` present iff `minBand`), getters; `fieldMeta`
   persistent+authorable for the three (the `purifiedByBoiling` shape).
 - `M/lib/thermal/Thermal.ts` — the `dissolvedSolidsKgPerL` payload
-  declaration; `heatSource()` public; the rise cap in `reconcileThermal`
-  (D2); in `reconcileBulkPhase`: `bp = mat.boilingPointAt(w)`, the
-  power-limited boil-off, the solids rewrite after boil-off, the arrow
+  declaration; in `reconcileBulkPhase`: `bp = mat.boilingPointAt(w)`,
+  W1a's power-limited boil-off (used, not added), the solids rewrite
+  after boil-off, the arrow
   walk (`concentrateIfReached`, the `purifyIfHeld` shape — swaps the
   material, keeps the payload minus the boil clock, reads the vessel's
   `getGrade()` for `minBand`); `boilHeldSeconds` runs for every plateau
@@ -1102,19 +1157,14 @@ resolve, re-verify. Everything below assumes silk's `Thermal.ts`.
   `dissolvedSolidsKgPerL` by volume; `transfer` seeds the payload's
   figure from the material's `solidsKgPerL` on a fresh fill when the
   payload carries none.
-- `M/lib/fire/Burner.ts` — `heatTransferFraction` field + `fieldMeta` +
-  `getHeatTransferFraction()` / setter.
 - `M/platform/idea/reading/DensityReading.ts` — the solids arm (D1).
 - Tests: `Thermal.concentrate.test.ts` (a vessel of a curve-and-arrows
   material on a lit burner stub: the plateau climbs with `w`, the arrows
   fire in order syrup → strike → caramel → burnt, `minBand` below the
   band fires `elseBecomes`, a material with no curve plateaus at its
   plain boil, a material with no latent heat still flashes — silk's
-  `Thermal.purify.test.ts` is the model), `Thermal.power.test.ts` (the
-  rise is capped at `P × fraction / C`; the boil-off over a long unread
-  gap equals `P × Δt / latent`, not one capacity's worth; no burner →
-  silk's figures), `BulkLogic.blend.test.ts` (solids fold by volume),
-  `Burner` field test, `DensityReading` solids test.
+  `Thermal.purify.test.ts` is the model), `BulkLogic.blend.test.ts`
+  (solids fold by volume), `DensityReading` solids test.
 
 **Pack `trade-sugar` (new).** `pack.yaml` (`root: /trade/sugar`, title
 holder `{organization: /compact/trade}`), `package.json`
@@ -1423,6 +1473,16 @@ and the smallholders`.
 
 **Goal.** AC 12; drive steps 19–20. Decisions D12, D13, D14.
 
+⚠ **Before starting W6: check the ship design.** A ship design
+conversation was in progress in the `master` worktree on 2026-10-19 (how
+ships carry cargo, crew and sail). Before writing a line of W6, read what
+it decided (new or changed slates under `docs/slates/` touching ships,
+cargo, the hold, berths or crews — `git log origin/master --oneline` since
+`b7b97f0c3`, and ask the founder if nothing landed). If it changes how a
+hold keeps cargo, how a crew sails, or how a ship berths, **re-plan W6 in
+place** (D13/D14 and this section) before building it. The radius setting
+(D12) does not depend on it.
+
 **Files.** `M/platform/idea/Biome.ts` (`_planetRadiusM`), `M/api/biome.ts`
 (`planetRadiusM()`), `C/base-library/…/biome/universe.yaml`
 (`_planetRadiusM: 2124000`), `M/lib/expanse/GeoPosition.ts`
@@ -1588,7 +1648,8 @@ Nothing unmapped.
   the pan, the profile re-bases `startL` from the amount it finds, and
   the profile still completes by its own clock. Converging lye onto the
   arrows is the potash build's; record it in the potash slate.
-- **The power cap reaches every heated body** (host-placement table): a
+- **The power cap reaches every heated body** (host-placement table) —
+  which is why it is its own wave (W1a) with a blast-radius check: a
   forge warms a bar at its power, not its τ. The thermal/fire/crafting
   suites (295 on silk) and the smithing, cooking and distilling wire
   tests are the check; a row whose `maxBurnPowerW` was never calibrated
