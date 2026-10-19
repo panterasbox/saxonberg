@@ -17,6 +17,31 @@ data:
     bloodPressureDiastolic: { baseline: 20, survivableMin: 8, survivableMax: 40 }
     spo2: { baseline: 95, survivableMin: 50, survivableMax: 100 }
     bloodVolume: { baseline: 0.03, survivableMin: 0.018, survivableMax: 0.03 }
+  # ⭐ How a frog breathes, by stage (underwater D21): a tadpole on gills,
+  # a froglet on gills and new lungs, the adult on lungs — and its skin,
+  # which takes three-quarters of what it needs from the water, so it stays
+  # under four times as long as its breath alone would let it, and still
+  # has to come up.
+  breathingByStage:
+    newborn:
+      - { medium: water, apparatus: gills, intake: 1 }
+    juvenile:
+      - { medium: water, apparatus: gills, intake: 0.6 }
+      - { medium: air, apparatus: lungs, intake: 0.6 }
+    adult:
+      - { medium: air, apparatus: lungs, intake: 1 }
+      - { medium: water, apparatus: skin, intake: 0.75 }
+    aged:
+      - { medium: air, apparatus: lungs, intake: 1 }
+      - { medium: water, apparatus: skin, intake: 0.75 }
+  # ⭐ What water a tadpole needs (underwater D21): fresh, and not foul — the
+  # adult has its lungs and the bank; the tadpole has only the water.
+  habitatByStage:
+    newborn:
+      role: forage
+      tolerances:
+        salinityPpt: { max: 2, margin: 3 }
+        oxygenMgL: { min: 4, margin: 2 }
   lifecycleStates: ["alive", "dead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

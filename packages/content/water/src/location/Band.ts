@@ -128,6 +128,7 @@ export default class Band extends BandBase {
       depthM: this.getDepthM(),
       waterRef: this.getWater()?.of ?? null,
       visibilityM: this.seeingM(),
+      oxygenMgL: this.getSurface()?.oxygenNowMgL() ?? null,
     };
   }
 

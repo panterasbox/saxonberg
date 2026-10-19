@@ -69,6 +69,31 @@ export interface SensoryPort {
   count: number;
   /** `'frontal'`, `'lateral'`, `'dorsal'`, `'forward'`, `'circumferential'`. */
   position: string;
+  /**
+   * ⭐ The media this organ works in (underwater D21). Unset: vision,
+   * touch and hearing work in air and water; smell and taste in air only —
+   * under the water you would breathe it in. A shark's nose says `[water]`.
+   */
+  media?: string[];
+}
+
+/** What an organ works in when its row does not say. */
+const PORT_MEDIA_DEFAULT: Readonly<Record<string, readonly string[]>> = {
+  smell: ['air'],
+  taste: ['air'],
+};
+
+/**
+ * ⭐ One way a body takes oxygen from one medium (underwater D21): lungs
+ * from air, gills from water, a frog's skin from either. `intake` is the
+ * share of the body's basal need it meets there — `1` breathes freely,
+ * `0.25` makes a breath last four times as long, and the store still runs
+ * out.
+ */
+export interface BreathingSpec {
+  medium: string;
+  apparatus: 'lungs' | 'gills' | 'skin' | string;
+  intake: number;
 }
 
 /**
@@ -331,16 +356,21 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   protected thermalStrategy: 'endotherm' | 'ectotherm' = 'endotherm';
 
   /**
-   * The atmosphere tags this body plan exchanges gas in — the
-   * respiration driver's medium-trigger determinant. Default
-   * `['air']` (the air-breathing biped); a species **inverts** by
-   * authoring `['water']` (a fish drowns in air, breathes water).
-   * Sibling of {@link locomotionModes}. An empty array is the
-   * crisis-everywhere trap, NOT an opt-out — {@link respires} is the
-   * opt-out. Read via `getBreathableMedia()`; the engine resolves the
-   * surrounding medium against this set.
+   * ⭐ How this body breathes (underwater D21): one spec per medium it
+   * takes oxygen from, each with the share of its need met there. Default
+   * lungs in air (the biped); a fish authors gills in water; a crab gills
+   * in water and, poorly, in air. The media it breathes FREELY (intake 1)
+   * are {@link getBreathableMedia} — derived, never authored. An empty
+   * list is the crisis-everywhere trap, NOT an opt-out — {@link respires}
+   * is the opt-out.
    */
-  protected breathableMedia: string[] = ['air'];
+  protected breathing: BreathingSpec[] = [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+
+  /**
+   * ⭐ The media a voice from this body carries in (underwater D21) —
+   * `['air']` unless authored (merfolk: `['air', 'water']`).
+   */
+  protected voice: { media: string[] } = { media: ['air'] };
 
   /**
    * Whether a body of this plan respires at all — the respiration
@@ -369,7 +399,8 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     baseMass: { persistent: true },
     baseStature: { persistent: true },
     thermalStrategy: { persistent: true },
-    breathableMedia: { persistent: true },
+    breathing: { persistent: true },
+    voice: { persistent: true },
     respires: { persistent: true },
     lungVolumeL: { persistent: true },
   };
@@ -454,29 +485,55 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     this.locomotionModes = value;
   }
 
-  public getBreathableMedia(): readonly string[] {
-    return this.breathableMedia;
+  /** The ways this body breathes (underwater D21). */
+  public getBreathing(): readonly BreathingSpec[] {
+    return this.breathing;
   }
-  public setBreathableMedia(value: string[]): void {
-    // Per-field invariant (the project rule): non-empty strings, no
-    // duplicates — the `assertUniqueNonEmpty` shape from LocomotionMode.
-    // (An EMPTY array is permitted and meaningful: a body that breathes
-    // *nothing*. The opt-out is `respires: false`, not `[]`.)
+
+  public setBreathing(value: BreathingSpec[]): void {
+    // Per-field invariant: a medium once, an intake in [0, 1].
     const seen = new Set<string>();
+    const out: BreathingSpec[] = [];
     for (const v of value) {
-      if (typeof v !== 'string' || v.length === 0) {
-        throw new TypeError(
-          'BodyPlan.setBreathableMedia: entries must be non-empty strings',
-        );
+      if (!v || typeof v.medium !== 'string' || v.medium === '') {
+        throw new TypeError('BodyPlan.setBreathing: each entry needs a medium');
       }
-      if (seen.has(v)) {
-        throw new TypeError(
-          `BodyPlan.setBreathableMedia: duplicate entry '${v}'`,
-        );
+      if (seen.has(v.medium)) throw new TypeError(`BodyPlan.setBreathing: duplicate medium '${v.medium}'`);
+      seen.add(v.medium);
+      const intake = Number(v.intake);
+      if (!Number.isFinite(intake) || intake < 0 || intake > 1) {
+        throw new RangeError(`BodyPlan.setBreathing: intake for '${v.medium}' must be in [0, 1]`);
       }
-      seen.add(v);
+      out.push({ medium: v.medium, apparatus: String(v.apparatus ?? 'lungs'), intake });
     }
-    this.breathableMedia = value;
+    this.breathing = out;
+  }
+
+  /** The media this body breathes freely — the intake-1 specs. Derived. */
+  public getBreathableMedia(): readonly string[] {
+    return this.breathing.filter((b) => b.intake >= 1).map((b) => b.medium);
+  }
+
+  /** The media a voice from this body carries in. */
+  public getVoiceMedia(): readonly string[] {
+    return this.voice.media;
+  }
+
+  public setVoice(value: { media: string[] } | null): void {
+    const media = Array.isArray(value?.media) ? value!.media.filter((m) => typeof m === 'string' && m !== '') : [];
+    this.voice = { media: media.length > 0 ? media : ['air'] };
+  }
+
+  /** The media one sense organ works in — its row's, or the default for its kind. */
+  public portMedia(port: SensoryPort): readonly string[] {
+    return port.media ?? PORT_MEDIA_DEFAULT[port.modality] ?? ['air', 'water'];
+  }
+
+  /** ⭐ The senses this body has that work in `medium` (underwater D21). */
+  public getModalitiesIn(medium: string): SenseChannel[] {
+    return Array.from(new Set(
+      this.sensoryPorts.filter((p) => this.portMedia(p).includes(medium)).map((p) => p.modality),
+    ));
   }
 
   public isRespiring(): boolean { return this.respires; }

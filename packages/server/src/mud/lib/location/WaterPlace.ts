@@ -114,6 +114,12 @@ export interface WaterSpec {
    * one — `fill bucket from mere`. Default {@link WATER_KEY}.
    */
   feature?: string;
+  /**
+   * ⭐ A basin's rim, m above its floor (underwater D25): when the water
+   * falls below it the basin keeps this much of its own — cut off, a
+   * tidepool at low water, its oxygen going as the hours pass.
+   */
+  rimM?: number;
 }
 
 /** What a water place is like, now. */
@@ -199,6 +205,13 @@ export interface WaterPlace {
   sink(thing: Stuff): Promise<boolean>;
   /** At the thaw: everything here that sinks goes down. */
   sinkWhatSinks(): void;
+  /** ⭐ Below its rim: a basin the water has left, keeping its own (D25). */
+  isCutOff(): boolean;
+  /**
+   * ⭐ The dissolved oxygen here now, mg/L (underwater D21): the water's,
+   * falling by the hour while the basin is cut off.
+   */
+  oxygenNowMgL(): number | null;
   getTide(): TideSpec | null;
   setTide(value: TideSpec | null): void;
   /** Game-second `thing` came into this water, if it is known (runtime). */
@@ -245,6 +258,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     /** What the tide leaves here (a strandline), or null. */
     public tide: TideSpec | null = null;
 
+    /** When the ebb left this basin cut off, game-seconds (runtime). */
+    private _cutOffSinceS: number | null = null;
+
     /** stuffId → game-second it came into this water (runtime; lost on restart). */
     private _arrivals = new Map<string, number>();
 
@@ -272,6 +288,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         of: value.of.trim(),
         depthM: Number.isFinite(depthM) ? depthM : 0,
         ...(feature ? { feature } : {}),
+        ...(Number(value.rimM) > 0 ? { rimM: Number(value.rimM) } : {}),
       };
       const self = this as unknown as Shore;
       self.setWaters({ ...self.getWaters(), [this.getWaterKey()]: this.water.of });
@@ -358,7 +375,36 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public depthNow(): number {
       if (this.water === null) return 0;
-      return this.water.depthM + this.levelNow();
+      const open = this.water.depthM + this.levelNow();
+      // A basin keeps what its rim holds when the water goes down.
+      return Math.max(open, this.water.rimM ?? Number.NEGATIVE_INFINITY);
+    }
+
+    public isCutOff(): boolean {
+      const rim = this.water?.rimM;
+      return rim !== undefined && this.water!.depthM + this.levelNow() < rim;
+    }
+
+    public oxygenNowMgL(): number | null {
+      if (this.water === null) return null;
+      const read = (this as unknown as Shore).peekWaterRead(this.getWaterKey());
+      const open = read?.oxygenMgL;
+      if (typeof open !== 'number') return null;
+      let nowS = 0;
+      try {
+        nowS = WorldClockApi.getNow().rawValue();
+      } catch {
+        return open;
+      }
+      if (!this.isCutOff()) {
+        this._cutOffSinceS = null;
+        return open;
+      }
+      // ⭐ Cut off since the ebb left it (load on use: first seen cut off).
+      this._cutOffSinceS ??= nowS;
+      const hours = Math.max(0, (nowS - this._cutOffSinceS) / 3600);
+      const warm = Math.pow(2, (this.waterTemperatureK() - 288) / 10);
+      return Math.max(0, open - hours * warm * dial('water.tidepool.o2DecayPerHour', 1));
     }
 
     public stateNow(): WaterState {
@@ -512,6 +558,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         temperatureK: this.waterTemperatureK(),
         depthM: 0,
         waterRef: this.water?.of ?? null,
+        oxygenMgL: this.oxygenNowMgL(),
       };
     }
 

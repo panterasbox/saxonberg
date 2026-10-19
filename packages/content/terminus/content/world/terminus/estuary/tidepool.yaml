@@ -19,7 +19,9 @@ data:
     x: 4
     y: -1
     z: 0
-  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: -0.5, feature: tidepool }
+  # ⭐ The rim keeps forty centimetres when the sea goes down (D25): cut
+  # off, the pool's oxygen falls by the hour until the flood comes back.
+  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: -0.5, feature: tidepool, rimM: 0.4 }
   cast:
     - /trade/fishing/agent/grey-mullet
   exits:

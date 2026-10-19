@@ -182,6 +182,8 @@ export interface MediumRead {
    * place lets you.
    */
   readonly visibilityM?: number | null;
+  /** ⭐ Dissolved oxygen in the water here, mg/L (underwater D21); absent in air. */
+  readonly oxygenMgL?: number | null;
 }
 
 export class BiomeApi {

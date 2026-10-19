@@ -37,6 +37,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import type { Vitals } from '../vitals/Vitals';
 import type { Organism } from '../species/Organism';
+import type { BreathingSpec } from '../../platform/idea/species/BodyPlan';
 import type { Engaged } from '../activity/Engaged';
 import type Exit from '../boundary/Exit';
 import type { AfflictionRecord } from '../../platform/idea/Condition';
@@ -317,6 +318,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      * proxy target.
      */
     private _o2StoreL: number | null = null;
+
+    /** The share of need met by the medium now, 0..1 (runtime; D21). */
+    private _intake = 0;
     /** When the store was last reconciled (game-seconds). */
     private _storeStampS: number | null = null;
     /** Whether the store was being refilled (exchanging) since the stamp. */
@@ -388,9 +392,43 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     /* ──────────────────── species config reads ──────────────────── */
 
     public getBreathableMedia(): readonly string[] {
+      return this.breathingNow().filter((b) => b.intake >= 1).map((b) => b.medium);
+    }
+
+    /**
+     * ⭐ How this body breathes now (underwater D21): its species' breathing
+     * at its life stage, else its plan's — a tadpole on gills, the frog on
+     * lungs and its skin.
+     */
+    private breathingNow(): readonly BreathingSpec[] {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isOrganism(self)) return ['air'];
-      return self.getSpecies()?.getBodyPlan()?.getBreathableMedia() ?? ['air'];
+      if (!MixinApi.isOrganism(self)) return [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+      const species = self.getSpecies();
+      if (!species) return [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+      return species.breathingFor(self.getLifeStage());
+    }
+
+    /**
+     * ⭐ The share of this body's need it takes from `medium` here, now
+     * (underwater D21): the apparatus's intake, and for gills in water the
+     * water's oxygen against what the species can live on — a trout in
+     * foul, oxygen-poor water breathes, and not enough.
+     */
+    private intakeIn(medium: string): number {
+      const spec = this.breathingNow().find((b) => b.medium === medium);
+      if (!spec) return 0;
+      let intake = spec.intake;
+      const self = this as unknown as Stuff;
+      if (spec.apparatus === 'gills' && medium === 'water' && MixinApi.isOrganism(self)) {
+        const o2 = BiomeApi.mediumFor(self).oxygenMgL;
+        const species = self.getSpecies();
+        if (typeof o2 === 'number' && species) {
+          // The habitat of this body's stage — a tadpole's, not the frog's.
+          const habitat = species.getHabitatByStage()[self.getLifeStage() ?? 'adult'] ?? species.getHabitat();
+          intake *= species.toleranceIn(habitat, 'oxygenMgL', o2);
+        }
+      }
+      return Math.max(0, Math.min(1, intake));
     }
 
     public isRespiring(): boolean {
@@ -502,7 +540,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the proxy is inert now and every read answers `undefined`.
       const set = this.getBreathableMedia() as readonly string[] | undefined;
       if (!set) return { exchanging: true, cause: null };
-      if (set.includes(medium)) {
+      const intake = this.intakeIn(medium);
+      // ⭐ A partial intake (a frog's skin, gills in poor water) slows the
+      // drain by what it takes in (underwater D21); it does not stop it.
+      this._intake = intake >= 1 ? 1 : intake;
+      if (intake >= 1) {
         // ⭐⭐ **A breathable medium is not the same as breathable air.**
         // The tag says what the medium IS; the contents say how much of
         // it is left. A room filling with a fire's exhaust reports `air`
@@ -531,7 +573,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // sits in is a liquid whether or not the biome table names it — a
       // man in a vat of ale, a fish in fouled water — and neither
       // breathes it.
-      let known = immersed;
+      let known = immersed || intake > 0;
       if (!known) {
         try {
           BiomeApi.breathableOf(medium);
@@ -789,7 +831,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (drain.cause !== 'supply' || !this.hasWornAir()) {
         const store = this.reconcileStore(nowS, false);
         if (store > 0) {
-          const burn = this.burnO2LPerS();
+          const burn = this.burnO2LPerS() * (1 - this._intake);
           const spent = Math.min(store, burn * elapsed);
           this._o2StoreL = store - spent;
           this._storeStampS = nowS;
@@ -814,7 +856,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
-      const drainPerSec = RESPIRATION_DEFAULTS.DRAIN_PER_SEC_BY_CAUSE[drain.cause];
+      const drainPerSec = RESPIRATION_DEFAULTS.DRAIN_PER_SEC_BY_CAUSE[drain.cause] *
+        (drain.cause === 'medium' ? 1 - this._intake : 1);
       const cur = host.getVitalSign('spo2').rawValue();
       const next = Math.max(0, cur - drainPerSec * elapsed);
       host.setVitalSign('spo2', Quantity.of(next, '%'));
@@ -1384,9 +1427,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
       const base = plan?.getLungVolumeL() ?? RESPIRATION_DEFAULTS.LUNG_VOLUME_L;
-      const massKg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
-      const ref = plan?.getBaseMass() || 70;
-      return massKg > 0 && ref > 0 ? base * Math.min(4, Math.max(0.05, massKg / ref)) : base;
+      return base * this.sizeFactor();
     }
 
     /**
@@ -1406,7 +1447,19 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (water.tag === 'water' && water.temperatureK !== null && water.temperatureK < RESPIRATION_DEFAULTS.COLD_SHOCK_K) {
         factor *= 0.8;
       }
-      return RESPIRATION_DEFAULTS.BASAL_O2_L_PER_S * factor;
+      // ⭐ A small body burns as little as its lungs hold (D21): the burn
+      // scales with mass as the store does, so a frog's breath lasts as
+      // long as its size allows, not a fraction of a man's.
+      return RESPIRATION_DEFAULTS.BASAL_O2_L_PER_S * factor * this.sizeFactor();
+    }
+
+    /** This body's mass over its plan's base, clamped as the lungs are. */
+    private sizeFactor(): number {
+      const self = this as unknown as Stuff;
+      const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
+      const massKg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
+      const ref = plan?.getBaseMass() || 70;
+      return massKg > 0 && ref > 0 ? Math.min(4, Math.max(0.05, massKg / ref)) : 1;
     }
 
     /** Under the water now — not at the surface, not in a bell. */

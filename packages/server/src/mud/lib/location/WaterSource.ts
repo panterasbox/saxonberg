@@ -84,6 +84,8 @@ export interface WaterRead {
    * shore says about it in words and an almanac prints.
    */
   tide?: WaterTide;
+  /** ⭐ Dissolved oxygen, mg/L (underwater D21) — what a gill breathes. */
+  oxygenMgL?: number;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
 }

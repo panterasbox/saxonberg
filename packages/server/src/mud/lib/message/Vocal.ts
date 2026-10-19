@@ -98,12 +98,16 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const medium = BiomeApi.mediumFor(self);
       if (medium.immersed && !medium.atSurface) {
+        // ⭐ A voice carries in what the medium carries AND the body can
+        // speak into (underwater D21): merfolk speak water; a man does not.
         let carries = false;
         try {
           carries = BiomeApi.mediumProps(medium.tag).carriesVoice;
         } catch {
           carries = false;
         }
+        const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
+        if (plan?.getVoiceMedia().includes(medium.tag)) carries = true;
         if (!carries) {
           return { ok: false, reason: 'no-air', line: 'Your words come out as a gout of bubbles, and nobody hears them.' };
         }

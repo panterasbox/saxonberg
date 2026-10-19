@@ -430,6 +430,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       frozen,
       levelM: tide?.levelM ?? 0,
       ...(tide !== null ? { tide: tide.tide } : {}),
+      ...(water ? { oxygenMgL: fouled ? water.oxygenMgL * 0.3 : water.oxygenMgL } : {}),
       clarityM: fouled ? Math.min(FOULED_CLARITY_M, reach.clarityM) : reach.clarityM,
       draw: frozen
         ? null

@@ -22,6 +22,9 @@ data:
       keywords: [mere, water]
       description: |
         The mere itself — the water you are out on, or in.
+  # ⭐ The mere's frog (underwater D21): dives, stays, has to come up.
+  cast:
+    - /world/terminus/hollow-mere/agent/frog
   exits:
     south:
       destination: /world/terminus/hollow-mere/location/shore

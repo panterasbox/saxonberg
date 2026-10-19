@@ -130,7 +130,7 @@ export default class WaterReading extends Reading {
         this.say(giver, pick.refusal);
         return;
       }
-      await this.reachReport(giver, pick.ref, pick.read);
+      await this.reachReport(giver, pick.ref, pick.read, target);
       return;
     }
     if (target !== null) {
@@ -157,7 +157,7 @@ export default class WaterReading extends Reading {
     if (MixinApi.isShore(scope as Stuff)) {
       const pick = await (scope as Stuff & Shore).waterRefFor();
       if (!('refusal' in pick)) {
-        await this.reachReport(giver, pick.ref, pick.read);
+        await this.reachReport(giver, pick.ref, pick.read, scope as Stuff);
         return;
       }
       if (pick.reason !== 'no-water') {
@@ -191,11 +191,11 @@ export default class WaterReading extends Reading {
    * by physics. A sea (an `@` ref) reports what the water is instead: a
    * sea has no catchment to drain.
    */
-  private async reachReport(giver: Stuff, reach: string, read: WaterRead | null): Promise<void> {
+  private async reachReport(giver: Stuff, reach: string, read: WaterRead | null, place: Stuff | null = null): Promise<void> {
     if (reach.includes('@')) {
       const lines = [`water: ${read?.name ?? 'the sea'}`, 'salt'];
       if (read?.draw) lines.push(`${(read.draw.temperatureK - 273.15).toFixed(0)} °C at the surface`);
-      lines.push(...this.tideLines(read));
+      lines.push(...this.tideLines(read), ...this.oxygenLines(read, place));
       MessageApi.scene(giver)
         .topic('sense.reading')
         .toSelf(Mml.compose`${lines.join('\n')}\n`)
@@ -228,6 +228,7 @@ export default class WaterReading extends Reading {
         : `no snow left on the catchment`,
       flow.navigable ? `a boat would get through` : `too little for a boat`,
       ...this.tideLines(read),
+      ...this.oxygenLines(read, place),
     ];
     // ⭐⭐ What is IN it — the gauge (maritime shore revision, AC 53).
     // Fouling announces itself to no sense; the instrument is how anybody
@@ -292,6 +293,20 @@ export default class WaterReading extends Reading {
         `range today ${tide.rangeM.toFixed(1)} m, the level ${(read.levelM ?? 0) >= 0 ? '+' : ''}${(read.levelM ?? 0).toFixed(1)} m`,
       stream,
     ];
+  }
+
+  /**
+   * ⭐ The dissolved oxygen (underwater D21): the place's own where it is
+   * a water — a tidepool the ebb has cut off reads what it has left —
+   * else the water's.
+   */
+  private oxygenLines(read: WaterRead | null, place: Stuff | null): string[] {
+    const own = place !== null && MixinApi.isWaterPlace(place) ? place.oxygenNowMgL() : null;
+    const o2 = own ?? read?.oxygenMgL;
+    if (typeof o2 !== 'number') return [];
+    const words = o2 < 3 ? ' — stale; a fish here is gasping' : o2 < 5 ? ' — short of it' : '';
+    const cut = place !== null && MixinApi.isWaterPlace(place) && place.isCutOff() ? ' (cut off from the sea)' : '';
+    return [`oxygen: ${o2.toFixed(1)} mg/L${words}${cut}`];
   }
 
   /** Print a waterworks' own report, over the shape. */

@@ -1,7 +1,7 @@
 # Fish — the body plan of a thing that breathes WATER. One torso, a head,
 # a tail, gills where a lung would be; it swims and nothing else.
 #
-# ⚠ `breathableMedia: [water]` is the load-bearing line. `Respiration`
+# ⚠ `breathing: gills in water` is the load-bearing line. `Respiration`
 # reads the body plan, not the species, and a plan that left the default
 # would read `['air']` — so a landed fish would be perfectly comfortable
 # in your hand and drown in its bowl. The species test pins it.
@@ -17,7 +17,8 @@ data:
   locomotionModes:
     - swim
   defaultLocomotionMode: swim
-  breathableMedia: [water]
+  breathing:
+    - { medium: water, apparatus: gills, intake: 1 }
   respires: true
   sensoryPorts:
     - { modality: vision, count: 2, position: lateral }

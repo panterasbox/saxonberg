@@ -251,3 +251,24 @@ describe('the tide reaches the place (D11, D25)', () => {
     expect(hold).toHaveBeenCalledWith(body);
   });
 });
+
+describe('a basin the ebb leaves (D21, D25)', () => {
+  it('⭐ below its rim a tidepool keeps its water, cut off, and its oxygen falls by the hour', async () => {
+    const { pool: tidepool } = await pool({ of: '/sea', depthM: -0.5 });
+    tidepool.setWater({ of: '/sea', depthM: -0.5, rimM: 0.4 } as never);
+    const read = (levelM: number): WaterRead => ({
+      ref: 'r', atS: 0, name: 'the sea', frozen: false,
+      draw: { materialPath: '/m/salt', temperatureK: 288 }, levelM, oxygenMgL: 8,
+    });
+    vi.spyOn(tidepool, 'peekWaterRead').mockReturnValue(read(1.5));
+    expect(tidepool.isCutOff()).toBe(false);
+    expect(tidepool.oxygenNowMgL()).toBe(8);
+    vi.spyOn(tidepool, 'peekWaterRead').mockReturnValue(read(-1.5));
+    expect(tidepool.isCutOff()).toBe(true);
+    expect(tidepool.depthNow()).toBeCloseTo(0.4, 5);
+    expect(tidepool.stateNow()).toBe('wading');
+    expect(tidepool.oxygenNowMgL()).toBeCloseTo(8, 5);
+    WorldClockApi._advanceForTesting(5 * 3600 * 1000);
+    expect(tidepool.oxygenNowMgL()!).toBeLessThan(4);
+  });
+});

@@ -1,11 +1,12 @@
 # Crustacean — a shore crab's plan: a carapace, eight legs and two claws,
 # and gills that work in air for a while. It walks and it swims.
 #
-# ⭐ `breathableMedia: [water, air]` is what makes a crab a crab and not a
-# fish: a pot lifted onto the bank holds crabs that are still alive an
-# hour later, and a bowl is not the only place one can be kept. The
-# shore crab is the `bait` role of the fishery and the one species here
-# that will not drown in your hand.
+# ⭐ Gills that work in air for a while are what make a crab a crab and not
+# a fish: water fully, air at nine-tenths (underwater D21 — breathing is a
+# RATE). A pot lifted onto the bank holds crabs that are still alive hours
+# later, and a bowl is not the only place one can be kept — but a crab
+# left on a hot quay for days is not. The shore crab is the `bait` role of
+# the fishery and the one species here that will not drown in your hand.
 class: /platform/idea/species/BodyPlan
 data:
   name: crustacean
@@ -14,7 +15,9 @@ data:
     - walk
     - swim
   defaultLocomotionMode: walk
-  breathableMedia: [water, air]
+  breathing:
+    - { medium: water, apparatus: gills, intake: 1 }
+    - { medium: air, apparatus: gills, intake: 0.9 }
   respires: true
   sensoryPorts:
     - { modality: vision, count: 2, position: frontal }

@@ -28,7 +28,7 @@ import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { RESPIRATION_DEFAULTS } from '../Respiration';
 import { StuffApi } from '../../../api/stuff';
-import { BiomeApi } from '../../../api/biome';
+import { BiomeApi, type MediumRead } from '../../../api/biome';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -105,6 +105,7 @@ function room(atmosphere: string): TestLocation {
 let speciesSeq = 0;
 function bodyWith(config: {
   breathableMedia?: string[];
+  breathing?: { medium: string; apparatus: string; intake: number }[];
   respires?: boolean;
 }): Character {
   speciesSeq += 1;
@@ -112,7 +113,12 @@ function bodyWith(config: {
     () => new BodyPlan(),
     `/test/respiration/bodyplan-${speciesSeq}`,
   );
-  if (config.breathableMedia) bp.setBreathableMedia(config.breathableMedia);
+  if (config.breathableMedia) {
+    bp.setBreathing(config.breathableMedia.map((medium) => ({
+      medium, apparatus: medium === 'water' ? 'gills' : 'lungs', intake: 1,
+    })));
+  }
+  if (config.breathing) bp.setBreathing(config.breathing);
   if (config.respires !== undefined) bp.setRespires(config.respires);
   const sp = makeStuffAtPath(
     () => new Species(),
@@ -427,5 +433,52 @@ describe('RespirationMixin — the crisis core', () => {
     tick(40);
     expect(spo2(construct)).toBe(before);
     expect(construct.getLifecycleState()).not.toBe('dead');
+  });
+
+  /* ─────────────── breathing is a rate (underwater D21) ─────────────── */
+
+  it('⭐ a frog\'s skin takes three-quarters of its need from the water: its breath lasts four times as long', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    const frog = bodyWith({ breathing: [
+      { medium: 'air', apparatus: 'lungs', intake: 1 },
+      { medium: 'water', apparatus: 'skin', intake: 0.75 },
+    ] });
+    for (const c of [man, frog]) c.setMass(Quantity.of(70, 'kg'));
+    const under: MediumRead = {
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 293, depthM: 3, waterRef: null,
+    };
+    ContainmentApi.move(man, room('air'));
+    ContainmentApi.move(frog, room('air'));
+    await man.reassess();
+    await frog.reassess();
+    const fullMan = man.getO2StoreL();
+    const fullFrog = frog.getO2StoreL();
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(under);
+    await man.reassess();
+    await frog.reassess();
+    expect(frog.getEngagementByType('respiration-drain')).toBeDefined();
+    tick(4);
+    const spentMan = fullMan - man.getO2StoreL();
+    const spentFrog = fullFrog - frog.getO2StoreL();
+    expect(spentMan).toBeGreaterThan(0);
+    expect(spentFrog / spentMan).toBeCloseTo(0.25, 1);
+  });
+
+  it('⭐ gills in foul, oxygen-poor water breathe, and not enough: the drain runs; in good water it does not', async () => {
+    const trout = bodyWith({ breathableMedia: ['water'] });
+    const sp = (trout as unknown as { getSpecies(): Species }).getSpecies();
+    sp.setHabitat({ role: 'predator', tolerances: { oxygenMgL: { min: 7, margin: 2 } } } as never);
+    const at = (o2: number): MediumRead => ({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 285, depthM: 1, waterRef: null, oxygenMgL: o2,
+    });
+    ContainmentApi.move(trout, room('air'));
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(at(10));
+    await trout.reassess();
+    expect(trout.getEngagementByType('respiration-drain')).toBeUndefined();
+    read.mockReturnValue(at(4));
+    await trout.reassess();
+    expect(trout.getEngagementByType('respiration-drain')).toBeDefined();
   });
 });

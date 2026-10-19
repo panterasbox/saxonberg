@@ -169,6 +169,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     }
     const opaque: SeaReadState = { line, standing, disciplineKey };
     const tide = this.tideAt(nowS);
+    const oxygenMgL = this.oxygenMgL(await this.roughnessAt(at, place).catch(() => 0.3));
     return {
       ref,
       atS: nowS,
@@ -177,6 +178,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       frozen: false,
       levelM: tide?.levelM ?? 0,
       ...(tide !== null ? { tide: tide.tide } : {}),
+      oxygenMgL,
       clarityM: this.clarityM,
       draw: { materialPath: SALT_WATER_PATH, temperatureK: this.waterTemperatureK },
       opaque,
@@ -348,7 +350,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       temperatureK: this.waterTemperatureK,
       currentMps: (band?.getSetKn() ?? 0) * 0.5144,
       salinityPpt: this.salinityPpt,
-      oxygenMgL: 8,
+      oxygenMgL: this.oxygenMgL(await this.roughnessAt(pos, null).catch(() => 0.3)),
       pH: 8.1,
       hardnessDgh: 50,
       nitrateMgL: 0.5,
@@ -356,6 +358,20 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       nitriteMgL: 0,
       contamination: 0,
     };
+  }
+
+  /**
+   * ⭐ Dissolved oxygen, mg/L (underwater D21): saturation at the water's
+   * temperature, less for salt (sea water holds a fifth less than fresh),
+   * times how well the surface is mixed — a rough sea is at saturation, a
+   * flat calm a little under it.
+   */
+  private oxygenMgL(roughness: number): number {
+    const t = Math.max(0, Math.min(1, (this.waterTemperatureK - 273) / 30));
+    const fresh = 14.6 + (7.5 - 14.6) * t;
+    const salt = 1 - 0.006 * Math.max(0, this.salinityPpt);
+    const mixing = 0.85 + 0.15 * Math.max(0, Math.min(1, roughness));
+    return fresh * salt * mixing;
   }
 
   /** The wind the realm's weather gives here, m/s. */

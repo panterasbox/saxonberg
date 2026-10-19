@@ -1,0 +1,19 @@
+# A bullfrog in the mere (underwater D21) — an air-breather that lives in
+# the water. It dives and stays down as long as its breath and its skin let
+# it — four times what its lungs alone would — and then it has to come up.
+# Nothing times it but the breath model.
+class: /platform/agent/Beast
+data:
+  shortDescription: bullfrog
+  keywords: [frog, bullfrog]
+  register: indefinite
+  longDescription: >-
+    A big olive frog with a pale throat and gold-ringed eyes, sitting low
+    in the water with only its eyes and nostrils above it.
+  _speciesPath: /stuff/idea/species/animalia/chordata/amphibia/anura/ranidae/lithobates/catesbeianus
+  lifecycleState: alive
+  mass: 0.5
+  behaviors:
+    - brain: /lib/behavior/surfaces
+      trigger: candidate
+      config: { restS: 120 }
