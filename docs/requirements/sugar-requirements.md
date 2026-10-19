@@ -1,183 +1,375 @@
 # Sugar — requirements
 
-> ⚠ **A DRAFT, superseded where they differ by
-> [sugar-slate](../slates/builds/sugar-slate.md)** (designed with the founder
-> 2026-10-18). Changed there: the sugar house before the island (no shipped
-> place can grow cane); the fuel trade-off is the boil's efficiency, not the
-> press; "no rum" becomes "no new rum mechanism" (molasses feeds Veshko's rum
-> line); the sweetener vocabulary already shipped as tags; beet is a later
-> epoch. `/requirements` rewrites this document.
+**Kind:** feature (an RGO chain, from the cane to the cocktail)
+**Leads from:** content — a trade and two places, over a handful of kernel
+seams the chain is the first to need (the staged boil, a mould that keeps its
+drainings, percolation, a ship's hold that survives a restart, an unpaid hand
+who walks off). Every seam's first consumer ships in this build.
 
-**Kind:** feature (an RGO chain)
-**Leads from:** [rgo-unification-slate](../slates/builds/rgo-unification-slate.md)
-§ 3 *the sweetener vocabulary* · the census's **one unresolved demand
-root**
-**First consumer, in this build:** the three shipped cocktails that ask
-for sugar and have never been able to get any.
+⭐⭐⭐ **Sugar is the last demand root nothing feeds — and there are two.**
+Simple syrup, the mojito, the old-fashioned and sweet vermouth ask for
+`sugar`, and the only sugar in the realm is a sack the pantry conjures to par.
+And the realm already pours **rum no cane was ever crushed for**: Veshko's
+yard and Hollis's private label make it up from nothing. This build makes
+both real — a **sugar house in Terminus** that refines raw sugar into loaves,
+muscovado and molasses, and a **sugar island, Waponi Woo**, across the
+Greywater, where cane is grown, crushed and boiled and shipped home in the
+Hesper's hold.
 
-⭐⭐⭐ **The thesis: this is the last demand root in the realm that
-nothing feeds.**
-
-Simple syrup, the mojito and the old-fashioned all call for `sugar`, and
-sugar is **produced by nothing** — the one hole left after salt shipped.
-A sack of it sits in the cooking pack as floor stock with no maker, which
-is the same shape as a lamp-oil with no recipe and an icebox with nothing
-to put in it.
-
-> ⭐⭐ **And it carries a decision three builds need and none owns: what a
-> SWEETENER is.** Sugar, honey and maple syrup are three members of one
-> vocabulary, and *"three builds each inventing their own category is the
-> duplicate-ground hazard."* It is a vocabulary rather than a mechanism,
-> so it costs nothing now and gets expensive the moment two builds guess
-> differently.
-
----
+Seeding slate: [sugar-slate](../slates/builds/sugar-slate.md) (designed with
+the founder 2026-10-18; this document supersedes its build order — both
+stages are one build — and its lens-4 line on plantations, see § Surface
+decisions). Related: [unfree-labour-slate](../slates/builds/unfree-labour-slate.md)
+(a separate build, decided here).
 
 ## What already exists
 
-- **Two of the three sweeteners are already made.** Honey comes off a
-  colony, and maple syrup comes off a tapped tree and a boil.
-- ⭐⭐ **And the boil is the piece that matters most**: an evaporator that
-  reduces a dilute sap to a concentrate over a fire, with a finite
-  firewood budget and a judgment about when to stop. **Sugar's boiling
-  house is the same act with a different feedstock.**
-- **The saltern** is the other precedent — a dilute solution, a
-  concentration step, and a grade that depends on how it was driven off.
-- **Growing ground** ships: beds, soil with its own reserves, a
-  limiting-factor harvest, winter, and land use as a closed vocabulary.
-- **Milling** ships, which is a crushing step with stones.
-- **Fermentation and distilling** ship, which is what molasses is *for.*
-- ⚠ And the field pattern is **seeded** everywhere it exists. ⭐ Whoever
-  ships the first **derived** field defines that interface, and the
-  decision is recorded to do it deliberately rather than by accident.
+- **The boil.** Maple and birch sap boil to syrup in a pan over an arch —
+  an `evaporative` maturation: a liquor concentrates as water leaves, by fire.
+  Brine dries the same way by the sun. Cane juice is a third feedstock of the
+  same thing. ⚠ Today the boil has **one product and one failure** (boiling
+  dry): no stages, and the pan's temperature does not rise as it thickens.
+- **The draining mould.** The cheese hoop sets curd and drains whey. ⚠ What
+  drains is **thrown away** — a cone would give no molasses.
+- **Leaching.** The cleanliness build (MR !380, **not yet merged**) ships a
+  lye hopper: water through ash. Claying is the same act through sugar.
+- **Lime.** The quarry's limekiln burns quicklime; the glass batch buys it.
+  It is not on sale to anyone else.
+- **Readings.** `analyze`/`measure` over channels any pack can add: a
+  thermometer reads a pan's contents; a hydrometer reads a ferment's gravity.
+  No thread test.
+- **Sugar as tags.** The sweetener vocabulary shipped (taps build): `sugar`,
+  `honey`, `syrup` slottable, `sweetener` gating nothing. Honey is already
+  refused where `sugar` is asked — the refusal says *"There isn't enough
+  sugar to make that"*, not why honey doesn't count.
+- **The sugar we have.** A `sugar-sack` the Terminus pantry yard **conjures
+  to par**, consigned to the counting-houses cash-and-carry, from which the
+  Lounge restocks its bar.
+- **Rum.** Veshko's yard stocks dark and light rum, cloned up to par with no
+  feedstock; Hollis Cane is Hollis's private label of it. The distiller's
+  chain (a mash ferments to a wash, the still makes spirit, the cut is the
+  skill) takes a new feedstock as rows.
+- **Milling.** `mill` grinds grain and malt (and, since rubber, asks the
+  recipes what a capability takes). No mortar; nothing nips a loaf.
+- **The sea.** The Greywater: Terminus's estuary, Gannet Rock, the roads, the
+  open sea, ~400 km of it. One ship, the **Hesper**, with a crew outfit and a
+  **hold**. ⚠ The hold does not survive a restart, and a ship cannot berth
+  anywhere but home.
+- **Climate.** Every authored place is at 42° N or colder; cane will not grow
+  at any of them, correctly.
+- **Work.** Rosters, shifts, wages. ⚠ An NPC whose wage goes unpaid **keeps
+  working forever** — arrears are recorded with them as creditor, and nothing
+  makes them stop. The engine models forced labour by accident.
+- **Disciplines.** cooking, baking, mixology, distilling, fermenting,
+  quarrying, silviculture. No confectionery or refining.
 
-### ⚠ What is broken or absent
-
-1. ⛔ **Nothing makes sugar**, and three recipes ask for it.
-2. ⛔ **There is no sweetener vocabulary**, so honey closing the sugar
-   root would destroy the sugar chain's reason to exist before it is
-   built. ⚠ **Honey must not satisfy sugar**, and that has to be settled
-   in the data rather than remembered.
-3. ⚠ **Molasses does not exist**, so the byproduct that makes the whole
-   trade pay has nowhere to go.
-
----
+**Therefore what is genuinely new here is:** the cane (a crop that only grows
+on frost-free ground, and that inverts within a day of cutting); a boil that
+**stages** — its temperature rises as it thickens and where you stop decides
+what you get; the **thread test**; a cone that **keeps its molasses**;
+**claying** (percolation through a loaf) and the grades it leaves; re-boiling
+down to blackstrap; a molasses wash for the still; the Jamaica train and the
+fuel balance against the forest; a sugar island and its estate; a voyage that
+carries cargo and survives a restart; and an unpaid worker who leaves.
 
 ## Goals
 
-- ⭐⭐⭐ **A person can grow, crush, boil and sell sugar**, and the three
-  cocktails that have always wanted it can finally be made from
-  something somebody produced.
-- **The crop is a crop**, grown on ground somebody holds, limited by what
-  the soil and the season give, and harvested at a grade.
-- ⭐⭐ **Crushing is where most of the juice is lost or won.** A pressing
-  recovers some fraction of what the cane holds, and ⭐ **what you leave
-  in the fibre is what you burn** — the crushed stalk is the boiling
-  house's fuel, so the trade heats itself, and a greedier pressing leaves
-  you short of firewood.
-- ⭐⭐ **Boiling is a judgment under a deadline**, the way the sugarhouse
-  already is: cut juice spoils, so the mill and the boil must run
-  together or the crop is lost. **The cut is the skill** — stop early and
-  you have syrup, go further and you have crystals, go too far and you
-  have something burnt.
-- ⭐⭐⭐ **And what runs off the crystals is the point.** Molasses is the
-  byproduct that is worth more than it looks, because **it is what rum is
-  made of** — and distilling already ships, so the chain closes on a
-  trade that exists.
-- ⭐ **A sweetener is a declared kind with three members**, so a recipe
-  can ask for *a* sweetener or for *this* one, and ⛔ **honey and syrup
-  and sugar are not interchangeable**: honey syrup and simple syrup are
-  different drinks, and a cocktail that wants one must be able to refuse
-  the others.
-- ⭐⭐ **A grade that means something**: the first boiling gives the
-  whitest sugar and each later one gives darker, so ⭐ **the cheap sugar
-  and the expensive sugar come out of the same pan at different times**,
-  and an author can price them apart without inventing two crops.
-- **Both temperate and tropical are expressible** — cane where it is warm
-  and beet where it is not — so the chain is not confined to one climate
-  band and ⭐ a cold realm has its own route to the same good.
-
----
+- **Sugar is produced, not conjured.** Every grain the Lounge's bar uses can
+  be traced to a cane field on Waponi Woo, a boiling house, a voyage and the
+  Terminus sugar house. The pantry's conjured sack retires.
+- **The rum has a feedstock.** Veshko's rum lines buy molasses and the still
+  makes rum from it; light rum from first molasses, dark from blackstrap.
+- **The strike is the skill.** A boiler who reads the pan well gets a good
+  grain; one who stops early gets treacle; one who pushes on gets caramel,
+  then burnt. The thermometer reads concentration because boiling point rises
+  as water leaves.
+- **One loaf, several grades.** Clay a loaf and its head whitens while its
+  foot stays brown; skip the clay and it is muscovado. Re-boil the molasses
+  for second and third sugar, until what is left will not grain: blackstrap.
+- **Freshness is grade.** Cut cane left standing inverts: less sugar, more
+  molasses, derived — never a fail state.
+- **Fuel is a choice.** The boiling house burns dried bagasse, and what the
+  boil's efficiency leaves short is firewood. A better furnace — the Jamaica
+  train, a built row of kettles over one flue — burns less wood. Neglect it
+  and the island's forest goes.
+- **The estate and the smallholder are both there.** One owner's estate runs
+  cane, mill and boiling house together on waged hands; smallholders grow
+  cane and sell it to the mill. Why the estate tends to win (inversion, mill
+  capital, crop-time labour) is derivable.
+- **The sea has a cargo.** Raw sugar and molasses sail from Waponi Woo to the
+  Terminus wharf in the Hesper's hold, and a restart does not lose them.
+- **Nobody works for nothing by accident.** A hand whose wages go unpaid
+  long enough walks off, and the business has a vacancy.
+- **Maple gets maple sugar** from the same staged boil, for free.
 
 ## Non-goals
 
-- ⛔ **No plantation, and no plantation labour.** The social history of
-  this crop is real and it is **not** this build. A smallholding and a
-  boiling house.
-- ⛔ **No refining beyond the boiling house** — no bone char, no
-  centrifuge, no white-sugar industry. Those are a later epoch and they
-  need machinery this realm does not have.
-- ⛔ **No rum.** Molasses exists and ferments; the spirit is the
-  distiller's and it already has a mechanism.
-- ⛔ **No derived field.** ⚠ The first derived field is a **deliberate**
-  decision reserved for a build that wants it, and ⛔ **this build must
-  not accidentally become it.** Sugar's yield is seeded like every other.
-- ⛔ **No sweetener in the metabolism or the body.** Sugar is an
-  ingredient, not a nutrient model.
-- ⛔ **No new crushing verb if the shipped milling act will serve** — and
-  ⚠ it probably will, because the stones do not care what is between
-  them.
+- **Slavery, indenture, debt bondage on the estate** →
+  [unfree-labour-slate](../slates/builds/unfree-labour-slate.md) (MR !397),
+  its own build; the estate runs on **waged** hands here.
+- **Customs duty at the wharf** → the markets slate (a polity lever over
+  imports, with a computable price effect).
+- **Beet sugar** → nowhere, deliberately for now: a later-epoch row on the
+  same chain (sugar slate § 1).
+- **Earthenware cones** → pottery (`pottery-slate`): the cones are stocked
+  rows here, and sugar is pottery's first customer when it ships.
+- **The three-roller mill, the vacuum pan, bone char, the centrifuge** →
+  later continuity rows on the same acts (sugar slate § 7.5).
+- **Revolt, eruptions, volcanic heat for the boil** → the volcano is scenery,
+  fertile soil and a sulfur source here; an eruption hazard and geothermal
+  boiling are notes on the sugar slate.
+- **General ship cargo design** (manifests, freight rates, insurance) →
+  `navigable-water` / freight slates; this build makes a hold keep what is in
+  it and a ship berth where it sails.
+- **Dunder** (spent wash recycled) → distilling, a hook.
+- **A grocer** who cuts loaves by grade at a counter → the settlement model's
+  fragmentation (the general store still sells fruit "until the grocer
+  fragments off it"); the sugar house sells its own loaves here.
 
----
+## Placement
+
+- **A `trade-sugar` pack** at `/trade/sugar`: the trade's rows — cane, the
+  cones, the mill and boiling-house rows, the cane-juice and molasses
+  profiles, the sugar goods, the thread test reading. **A second sugar house
+  or a second island is rows, no pack code.**
+- **The Terminus sugar house** sits in the goods yards (terminus pack), beside
+  Veshko and the pantry, the way the rubber works does.
+- **Waponi Woo** is a new locality pack: the island, its node on the
+  Greywater, its people, the estate, the smallholdings, the forest and the
+  volcano.
+- **The kernel seams** (the staged boil, the draining mould that keeps its
+  drainings, percolation widened from the lye hopper, the hold that persists
+  and the berth, the unpaid hand) are kernel, each with this build as its
+  first consumer.
 
 ## Collisions
 
-| | |
-|---|---|
-| ⚠⚠ **the sweetener vocabulary is SHARED** | it touches honey (shipped), maple syrup (shipped) and sugar (new). ⛔ **This build settles it for all three**, which means it edits two shipped trades' rows. Nobody else may define a competing category |
-| ⚠ **the assembly build** | both want a **mill**. ⭐ The crushing mill is **this build's**, because a cask does not need one — name it in both docs |
-| ⚠ **the climate build** | cane wants warmth and beet does not. ⭐ This build should **not** depend on the new climate landing; author the two crops against what ships and let the climate build make the siting honest |
-| ⚠ **the shipped cocktails** | three recipes change from unsatisfiable to satisfiable. **That is the drive's last checkpoint** |
+- **The pantry yard** conjures the sugar sack: that line **retires**; the
+  sugar house supplies the cash-and-carry instead.
+- **The cash-and-carry and the Lounge** keep buying sugar the same way —
+  from a real supplier now.
+- **Veshko's yard and Hollis** — the rum lines stop cloning to par and buy
+  molasses (Hollis Cane follows Veshko).
+- **The quarry's limekiln** — lime goes on sale (its new buyer is the sugar
+  house).
+- **The sugarbush** (maple) gains maple sugar from the staged boil; its
+  syrup is unchanged.
+- **The Hesper and her crew** — they sail the sugar voyage as their trade;
+  a player may also sail, crew or ship cargo.
+- **The wharf and the pilot** — where the cargo lands.
+- **The cleanliness build's lye hopper** (!380) — widened, not duplicated.
+- **The Greywater** — its reach extends to Waponi Woo's node.
 
----
+## Surface decisions
+
+### Both stages, one build
+The founder's call. The island is where most of the teaching lives
+(inversion, the energy balance, the forest) and it gives the sea its first
+cargo. **Order:** the unpaid hand → the sugar house → the island → the
+voyage; claying is the sugar house's last step, so the build can start before
+cleanliness merges.
+
+### Raw sugar before the island
+Until the first voyage lands, the sugar house buys raw sugar from a
+**stocked line** (the pattern Veshko uses). **The voyage replaces it** —
+when the island's sugar arrives, the stocked line stops being restocked.
+
+### Waponi Woo
+A volcanic island in the south of the Greywater, tropical (about 18° S),
+frost-free — the name from *Joe Versus the Volcano*. ⭐ **Volcanic ash makes
+the cane's soil rich**, which is why it grows well there, derived from the
+ground's character. The volcano is scenery and a **second native-sulfur
+source** (rubber's cure needs it); it does not erupt in this build.
+
+### The estate and the smallholders — waged
+Plantations are in the design, as an emergent combination: one owner's
+holding, the cane, the mill and the boiling house under one roster. ⭐ The
+estate's owner is a **named person** (a resident, with a history), not a
+faceless business. Its hands are **waged**. The sugar slate's line *"the
+island must not become a plantation by default"* is withdrawn; its line that
+coercion is never a mechanic is replaced by the unfree-labour slate.
+
+### The unpaid hand walks off
+An NPC whose wages have gone unpaid past what they will stand **leaves the
+job**, and the business sees the vacancy. Their own decision, said aloud. It
+applies to every business, not only the estate.
+
+### The steps a person does
+- **Temper**: lime into the warm cane liquor (too little and it won't grain;
+  too much and it comes out dark). **Skim**: the scum lifted off — the
+  skimmings go to the distiller's wash.
+- **Boil** to the strike over the arch or the train; **read** it by the
+  thread test (by hand) or a thermometer.
+- **Pour** into the cones; the loaf sets, the molasses **drains into a pot
+  below and is kept**.
+- **Clay** the loaf: wet clay on the wide end, the water percolates down and
+  carries molasses out. The head whitens.
+- **Nip** a loaf (sugar nips) and **pound** it (a mortar, or the mill) into
+  the loose sugar a bar uses.
+- **Re-boil** molasses for second and third sugar; what will not grain is
+  blackstrap.
+- On the island: **cut** cane (a harvest), **mill** it (an edge-runner — the
+  stones don't care what's between them), **dry** the bagasse, **burn** it.
+
+### Grades
+**Grade end to end:** crop · freshness (inversion) · temper · skimming ·
+strike · claying reach · sequence (first, second, third sugar). One loaf
+carries several grades — head, middle, foot — and each can be cut and sold
+by grade.
+
+### Sugar is tags
+Produced sugar carries `sugar` + `sweetener`; grades live within `sugar`, so
+a recipe's minimum grade already handles a cocktail that wants the good
+stuff. ⭐ **Honey's refusal says why**: *"this wants sugar — honey is a
+different sweetener."*
+
+### The voyage
+The Hesper **berths at Waponi Woo**, loads raw sugar and molasses into her
+hold, sails home, and **unloads at the Terminus wharf**. ⭐ **The hold keeps
+what is in it across a restart.** Her crew sails it as their trade, so the
+world runs without players; a player can sail, crew, or ship their own cargo
+in her.
+
+### Molasses and rum
+Molasses (with the skimmings) ferments to a molasses wash; the shipped still
+makes rum from it. **Veshko's rum lines buy molasses**; first molasses makes
+light rum, blackstrap dark. Treacle is also sold as food.
+
+## Lens pass
+
+1. **Pedagogy** — boiling-point elevation (why a thermometer reads
+   concentration); crystallization and the strike; why each boiling is
+   darker; inversion; lime tempering; percolation; the energy balance
+   (efficiency against firewood, Madeira's and Barbados's forests); why the
+   plantation emerged (inversion + mill capital + crop-time labour).
+2. **Expression** — a second sugar house or island is rows; personalization
+   from the chain (your loaf's grade is your temper, your strike, your
+   claying); jaggery, palm sugar, date syrup are tag rows for other realms.
+3. **Immersion** — the boiling house at night in crop time, the curing house
+   dripping, the blue-papered loaves, the volcano over the cane.
+   **Participation** — cutter, miller, boiler (the skilled seat), curing-house
+   hand, estate owner, smallholder, sugar-house refiner, distiller, the
+   Hesper's master; ⭐ *can the polity do something we didn't want?* — **strip
+   Waponi Woo's forest to boil sugar**, derived from the energy balance.
+4. **Values** — the choice it forces: **buy the estate's cheaper sugar or the
+   smallholders'**; whether to burn the forest for a better crop. The
+   heaviest history (slavery) is its own slate, decided here: players never
+   hold a coercive role.
+5. **Continuity** — edge-runner → rollers → steam; open kettles → the Jamaica
+   train → vacuum pans; the thread test → the thermometer; claying → bone
+   char → the centrifuge. The same acts, the same commands.
+6. **Economy** — demand first: four recipes and Veshko's rum. Consumes cane,
+   lime, firewood, cones; produces loaves by grade, muscovado, treacle,
+   molasses, skimmings, bagasse ash (for the ashery), and the sea's first
+   cargo.
+7. **Governance** — who holds Waponi Woo's land (one estate or many
+   holdings); wage terms on the estate; the forest as a commons the boil
+   eats; customs duty is a named later lever.
+
+**Altitude** — *invariant*: sugar is a tag, never a mechanism; honey never
+satisfies sugar; nobody works unpaid forever. *Grain*: recovery fractions,
+the temper window, the strike temperatures, how long an unpaid hand stays.
+*Title*: the Terminus sugar house, Waponi Woo, the estate's owner.
 
 ## The drive
 
-1. **Plant the crop** on ground you hold, and be refused on ground that
-   cannot take it, for a stated reason.
-2. **Grow it through a season** and harvest it at a grade.
-3. ⭐ **Crush it**, and read how much juice you got and how much is left
-   in the fibre.
-4. **Burn the crushed fibre** in the boiling house, and ⭐ **run short of
-   fuel because you pressed too hard.**
-5. **Let cut cane sit** and watch the crop spoil, because the mill and
-   the boil run together or not at all.
-6. **Boil it**, and stop at three different points: a syrup, a crystal,
-   and something you ruined.
-7. ⭐ **Take the first boiling and a later one**, and have them come out
-   at **different grades** from the same pan.
-8. **Draw off the molasses**, and hand it to a distiller who can use it.
-9. ⭐⭐ **Make a simple syrup from sugar you produced**, and then **a
-   mojito and an old-fashioned** — the three recipes that have always
-   asked for it.
-10. ⛔ **Try to satisfy the same recipe with honey and be refused**, in
-    words that say why.
-11. **Make a honey syrup and a simple syrup** and have them be different
-    drinks.
-12. **Grow the temperate crop** somewhere the tropical one will not take.
+Run against a freshly dropped world. Each step names what the player must
+see; "not refused" is never success.
 
----
+**The unpaid hand**
+
+1. A business that cannot pay a hand's wage: the hand keeps working for a
+   while, then **walks off and says so**; the business shows the vacancy.
+
+**The sugar house (Terminus)**
+
+2. At the sugar house, buy raw sugar from its stocked line.
+3. Dissolve it into a warm liquor in the pan; **temper** it with lime bought
+   from the quarry; **skim** the scum off (the skimmings are kept).
+4. Light the arch and boil. `measure temperature` on the pan rises as it
+   thickens; the **thread test** reads the stages in words.
+5. Stop early: **cane syrup (treacle)**. Another batch to the strike: it
+   **grains** as it cools. A third pushed on: **caramel**, then **burnt** —
+   and it says so.
+6. Pour the strike into a **cone**; it sets into a loaf; **molasses drains
+   into the pot below** and is there to pick up.
+7. **Clay** the loaf: in time its head reads white and its foot brown —
+   **one loaf, three grades**. A second loaf, unclayed, is **muscovado**.
+8. **Re-boil** the molasses: second sugar, darker; again, third; what is left
+   will not grain — **blackstrap**.
+9. **Nip and pound** the white head into loose sugar; it reads as sugar of
+   its grade.
+10. At the Lounge, a **mojito** is made with it. Honey offered instead is
+    refused, and the refusal says honey is a different sweetener.
+11. Molasses into a wash; the still makes **rum**; **Veshko's yard** buys
+    molasses for its rum line.
+12. At the maple sugarbush, sap boiled past syrup to the strike gives **maple
+    sugar**.
+
+**Waponi Woo**
+
+13. Sail (or ride the Hesper) from Terminus to **Waponi Woo**; she berths.
+14. On the island: `feel` warm, frost-free air; the soil reads rich
+    (volcanic); the volcano is there to look at; native sulfur can be taken
+    from its vents.
+15. On the **estate**, cut cane and **mill** it at once: juice and bagasse.
+    Cut cane left a day reads **inverted**; milled late, it gives less sugar
+    and more molasses.
+16. **Dry** the bagasse; boil the juice in the boiling house **on the
+    Jamaica train**, burning bagasse; then on open kettles — **firewood** is
+    needed to make up the shortfall, and the island's wood reads thinner.
+17. A **smallholder** sells cane to the estate's mill.
+18. The estate's hands are paid; the owner is a named person you can talk
+    to.
+
+**The voyage**
+
+19. Load raw sugar and molasses into the **Hesper's hold**; **restart the
+    server**; the cargo is still there.
+20. Sail home; unload at the **Terminus wharf**; the sugar house's raw sugar
+    now comes from the island — its stocked line no longer restocks.
 
 ## Acceptance criteria
 
-1. ⭐ **Sugar is produced by somebody**, and the realm's last unfed
-   demand root is closed.
-2. The chain is **grow → crush → boil → sell**, with a real decision at
-   the crush and a real decision at the boil.
-3. **The crushed stalk fuels the boil**, so pressing harder costs fuel —
-   and the trade-off is **visible in the drive**, not just in the model.
-4. **Cut juice spoils**, so the harvest and the boil are coupled under a
-   deadline.
-5. **Grade varies by boiling**, so one pan yields a premium and a cheap
-   product without two crops.
-6. **Molasses exists** and the shipped distiller can take it.
-7. ⭐⭐ **A sweetener vocabulary exists with three members**, settled in
-   data for honey, maple syrup and sugar at once.
-8. ⛔ **Honey does not satisfy sugar**, and the refusal names why.
-9. **The three shipped cocktails can be made** from produced sugar.
-10. ⛔ **No derived field was introduced**, deliberately.
-11. **Both a warm-climate and a cool-climate crop are authored**, and
-    neither depends on the climate build having landed.
-12. ⛔ **No new verb** unless the shipped milling act genuinely cannot
-    serve, and if a new one lands, the collision ladder was run and
-    recorded.
+1. The cocktails and recipes that ask for sugar are made with sugar that came
+   from the sugar house; the pantry no longer conjures a sack.
+2. A pan of cane liquor boiled over an arch rises in temperature as it
+   thickens, and the batch becomes treacle, grain, caramel or burnt by where
+   it was stopped; maple sap does the same and can become maple sugar.
+3. A player can read the strike by the thread test without an instrument, and
+   by a thermometer more precisely.
+4. A cone keeps the molasses that drains from the loaf, in a vessel a player
+   can pick up.
+5. A clayed loaf has a white head and a darker foot that read and sell as
+   different grades; an unclayed one is muscovado.
+6. Re-boiled molasses yields second and third sugar, darker each time, and
+   finally blackstrap that will not grain.
+7. Honey offered for sugar is refused, and the refusal says why.
+8. Veshko's rum is made from molasses and his yard buys it; light rum from
+   first molasses, dark from blackstrap.
+9. Waponi Woo is reachable by sea; cane grows there and nowhere at 42°; cut
+   cane left standing gives less sugar and more molasses.
+10. The boiling house's fuel comes from bagasse plus firewood, the Jamaica
+    train burns less wood than open kettles, and the island's forest thins
+    when it is cut.
+11. The estate and the smallholders both exist; the estate's owner is a named
+    person; its hands are paid.
+12. Cargo in the Hesper's hold survives a server restart, and the island's
+    raw sugar replaces the sugar house's stocked line when it lands.
+13. An NPC whose wages go unpaid long enough leaves the job, says so, and the
+    business shows the vacancy.
+
+## Cross-references
+
+- Seeding slate: [sugar-slate](../slates/builds/sugar-slate.md)
+- [unfree-labour-slate](../slates/builds/unfree-labour-slate.md) (MR !397)
+- Subsystems: [maturation.md](../subsystems/maturation.md) ·
+  [mould.md](../subsystems/mould.md) · [crafting.md](../subsystems/crafting.md)
+  (the sweetener vocabulary) · [fractionation.md](../subsystems/fractionation.md)
+  · [employment.md](../subsystems/employment.md) ·
+  [expanse.md](../subsystems/expanse.md) · [taps.md](../subsystems/taps.md) ·
+  [instrumentation.md](../subsystems/instrumentation.md) ·
+  [soil.md](../subsystems/soil.md) · [forestry.md](../subsystems/forestry.md)
+- In flight: cleanliness (MR !380 — the lye hopper this build widens)
+- Related slates: potash (`tails/potash-slate.md`, on !380), moulding,
+  pottery, markets, navigable-water
