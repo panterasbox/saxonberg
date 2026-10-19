@@ -1,0 +1,12 @@
+# A rubberized coat — ⭐ the tailor's coat, cut from cloth faced with
+# rubber (rubber build): `extends:` the linen coat, so it is a sewn cloth
+# garment and keeps its construction; only its MATERIAL changes. Rain
+# runs off it — the cloth takes in nothing — and the body underneath
+# stays dry, where a wool coat soaks through.
+extends: /trade/tailoring/thing/coat
+data:
+  shortDescription: rubberized coat
+  keywords: [coat, "rubberized coat", mackintosh, waterproof, rubber]
+  longDescription: |
+    A long coat of cloth faced on the outside with a skin of rubber, so it shines dully and smells faintly of sulfur. The seams are taped. Rain stands on it in beads.
+  _materialPath: /stuff/idea/material/textile/rubberized-cloth

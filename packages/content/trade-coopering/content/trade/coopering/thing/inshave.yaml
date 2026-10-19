@@ -1,6 +1,6 @@
 # An inshave — a curved drawknife for hollowing a stave's inside, and for
 # shaving a spent cask back to clean wood before it is re-fired.
-class: /platform/thing/AssembledTool
+class: /platform/thing/Tool
 data:
   keywords: [inshave, "hollowing knife"]
   shortDescription: inshave

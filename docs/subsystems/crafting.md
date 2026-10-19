@@ -425,7 +425,13 @@ still deferred — not faked.
 > set: the tell that the host is wrong ([antipatterns.md § a mixin composed on a
 > broad family](../antipatterns.md#a-mixin-composed-on-a-broad-family-then-guarded-back-down)). `MixinApi.isAssembled` is now the
 > whole question, and `lint:bills` arm 7 holds *a row has a bill ⇔ its
-> class composes `AssembledMixin`* both ways. The full model — bills, joints,
+> class composes `AssembledMixin`* both ways.
+>
+> ⚠ **Superseded by the repair build (W1, 2026-10-17):** the twins were
+> folded back into their families, and a billless member is *one piece*
+> rather than a non-assembly — the guard problem is gone because every
+> method is total on one piece. See [assembly.md § Host
+> placement](./assembly.md#host-placement--the-families-a-monolith-is-one-piece). The full model — bills, joints,
 > wear, the grain carry — is [assembly.md](./assembly.md).
 
 ## The offer: `CommerceMenu` + the venue subclasses
@@ -471,7 +477,7 @@ used to be a single list copied verbatim onto two rows:
 | platform `boil` | the FURNACE — you cannot boil without a heat source | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
-| tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
+| platform `cut` (planned by the target or the tool — § One `cut`) | the SHEARS — and the bench is the same class, faster; the ICE SAW | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) · `/trade/ice/thing/IceSaw` |
 | tailoring `sew`, `alter` + platform `repair`, `salvage` | the NEEDLE | `/trade/tailoring/thing/SewingTool` (needle-case) |
 | smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
 | platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
@@ -495,6 +501,31 @@ unions a class's own contributions with every *mixin* in its chain, but
 a base **class** is not a mixin and `getContributions` is a plain
 property read — so a subclass's static shadows its base's outright.
 **Mixins union; base classes shadow.**
+
+### ⭐ One `cut` — the target or the tool plans it (storage-and-ice, 2026-10-17)
+
+`cut` is ONE kernel view (`platform/cmd/crafting/cut.yaml`, controller
+`/platform/idea/cmd/crafting/CutController`) over a by-shape protocol in
+`lib/craft/Cuttable.ts` — the collision ladder's first rung, unify
+behind an interface; tailoring's own `cut` view and controller were
+deleted. The controller is dumb and asks two sides in order:
+
+1. the **target**, when it is `Cuttable` (`cutPlan(req)`) — or, when the
+   target was a bare word (`cut marked`, `cut hole`), the room's floor
+   if THAT is `Cuttable` (the ice sheet; see
+   [watershed.md](./watershed.md) § The ice sheet);
+2. else the first bound **tool** that is a `CutPlanner`
+   (`cutPlanFor(target, req)`, `null` = not mine) — tailoring's
+   `CuttingTool` plans any cloth, because the bolt is the weaver's and
+   the pattern the tailor's.
+
+A plan is an engaged step (`durationMs`, `effortW`, `beginSelf`/
+`beginPeers`, `onComplete`), so **the planner owns its completion
+message and its mint**; a `CutRefusal` is declined in the planner's
+words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
+the request as an option bag. A second cuttable good (a saddler's hide)
+answers either side with no kernel edit, and the instrument affords the
+verb (`CuttingTool`, `IceSaw`).
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -1220,27 +1251,52 @@ about 83 % of a steel one on an edge, which is what makes the metal
 chain's whole question worth asking. See
 [materials-response.md](./materials-response.md).
 
-**`repair <item>`** (`CraftingApi.repair` — deficit-priced
-reverse-craft): cost mass = `item mass × (1 − condition) ×
-crafting.repair.costFactor`, **doubled broken**
-(`crafting.repair.brokenFactor`); domain-gated by matter — `metal`
-wants reachable heat ≥ `crafting.repair.metalHeatK` (the forge),
-soft goods a reachable `mending` tool (the sewing kit — the whetstone
-is *sharpening's* tool, never repair's); stock drawn by the same
-gather walk (a glob debits partially; a discrete donor is consumed
-whole only when its mass ≤ 2× the need). Restores to full —
-**ceiling-free** (the maintenance-relationship thesis: gear never
-obsoletes, it asks for care; scarcity is the material cost, not decay
-ratchets).
+**`repair <item>`** (`CraftingApi.repair`) — ⭐⭐ **a mend can be done
+badly** (repair D8, 2026-10-17). Per part, under the trade that MADE the
+part, at the HAND's band in that trade, by `MEND_BY_BAND` — derived,
+never rolled (`uncertainty.md`: *roll to decide what the world is, never
+what your action did*):
+
+| band | ceiling | grade | joints | stock |
+|---|---|---|---|---|
+| untrained | 0.60 | −1 | left just slack | ×1 |
+| novice | 0.75 | −1 | — | ×1 |
+| competent | sound | — | — | ×1 |
+| proficient | sound | — | — | ×0.85 |
+| expert | sound | — | — | ×0.70 |
+
+The condition comes up to the ceiling, never down; the grade loss
+COMPOUNDS (a second untrained mend loses another band). The trade is
+`disciplineOf(line)` — the recipe that made the member, else the recipe
+that makes its row (`RecipeCatalogue.recipeFor`, `tangible` recipes
+only), else the trade of the mould it was cast in (`Crafted.castDiscipline`);
+a part with no knowable trade is mended as if competent (`lint:bills`
+arm 8 names every such part). The instrument is the PART's material's:
+metal at reachable heat ≥ `crafting.repair.metalHeatK` (the anvil, when
+present, is the control instrument), wood a `cutting` tool, anything else
+a `mending` kit. Cost mass = `part mass × (1 − condition) ×
+crafting.repair.costFactor × stock(band)`, doubled broken
+(`crafting.repair.brokenFactor`), drawn from stock of the part's own
+material first, then a family tag, ⛔ never `organic`. A thing of parts
+runs the ladder in `assembly.md § repair`; a thing of one piece is one
+line on its own fields. ⭐ A FAILED metal part is **re-made** at its
+recipe's heat and tools (a broken pick-head wants 1200 K, a worn one
+900 K) — and a part that bore a name loses it, and the reforger may name
+it once (Narsil's rule). Every mend appends a `MendRecord` (`Durable.mends`
+— who, their band, the trade, sound or short); `look` prints the condition
+WORD and *mended by …*, and `analyze condition` is the appraiser's
+detail. `CraftingApi.diagnose` runs the same ladder without committing —
+every fault, whether this hand can mend it here, and what it would draw.
 
 **`salvage <item>`** (`CraftingApi.salvage` — the one generic lossy
 melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields in its natural raw form —
-`metal` → a re-meltable `/stuff/thing/Casting` at
-`crafting.salvageRate`; a **meltable non-metal** (a material with a
-melting point and no `metal` tag — glass, wax) → a re-meltable
-`/stuff/thing/Casting` **whole** (rate 1.0), carrying the piece's
-instance alloying, because breaking is not melting and glass pays its
+`metal` → a re-meltable `/stuff/thing/metal-casting` (`AlloyedMixin`:
+composition AND temper) at `crafting.salvageRate`; a **meltable
+non-metal** (a material with a melting point and no `metal` tag — glass,
+wax) → a re-meltable `/stuff/thing/Casting` (`CompositionMixin` only —
+see [glass.md](./glass.md) § Composition vs temper) **whole** (rate
+1.0), carrying the piece's instance alloying, because breaking is not melting and glass pays its
 entropy in colour rather than mass (the one-way-toward-green arrow, not
 a mass sink — glass build D7); anything else → an `/stuff/thing/Scrap`
 stack (a `StackableMixin(Good)`, material-stamped, **quantity by mass**
@@ -1536,7 +1592,7 @@ capability packs and add **eight verbs and no more**:
 |---|---|---|---|
 | textiles | `scutch` `spin` `weave` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` | **how fine you can go before it breaks** |
 | dyeing | `mordant` `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` | **fastness and repeatability**, never a hue |
-| tailoring | `cut` `sew` `alter` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
+| tailoring | `sew` `alter` (`tailoring`) + the platform `cut` it plans | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
 
 ⭐ Two more affordances ship as **stanzas on views that already exist** —
 `measure figure` on the platform's `measure` (the `measure strike`
@@ -1750,3 +1806,10 @@ the feed was dropped. It folds the source payload through
   and no deed; a pour into a mould credits its discipline. See
   [mould.md](./mould.md).
 - The commons **pail is a `CraftVessel`** (washable, a surface load).
+
+## History — storage-and-ice (MR !378, 2026-10-18)
+
+- `cut` became one kernel
+  view over the `Cuttable`/`CutPlanner` protocol (tailoring and the ice
+  sheet implement it); salvage and the off-spec lump mint
+  `metal-casting` for metal and a composition-only `Casting` otherwise.

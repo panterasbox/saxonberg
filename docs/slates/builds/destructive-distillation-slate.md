@@ -149,7 +149,7 @@ build, and it is beautiful here for four reasons:
    byproducts. ⭐ That is the business ladder the settlement model
    already describes, arriving inside one trade.
 3. ⭐⭐ **It disrupts the naval-stores tapper.** Wood tar from a retort
-   undercuts pine tar from tapping ([rubber-slate](./rubber-slate.md) /
+   undercuts pine tar from tapping ([rubber-slate](../tails/rubber-slate.md) /
    [tapping-slate](./tapping-slate.md)). **This is the first time a new
    technology destroys an existing player vocation** — which is real
    industrial history, is extraordinary to teach honestly, and must be
@@ -240,7 +240,7 @@ whole and nothing is lost by stopping at the curve.
 
 ## ⭐ Sulfur has two waiting consumers, not one
 
-[rubber-slate](./rubber-slate.md) needs sulfur and leans on a smelting
+[rubber-slate](../tails/rubber-slate.md) needs sulfur and leans on a smelting
 byproduct. It is not the only claimant: **`bulk/vitriol` already ships**
 — oil of vitriol, density 1840, authored as the corrosion channel's
 liquid agent and **purchasable at the Terminus general store with no
@@ -306,7 +306,7 @@ argued.
 
 ---
 
-See also: [rubber-slate](./rubber-slate.md) (the law, and the first
+See also: [rubber-slate](../tails/rubber-slate.md) (the law, and the first
 polymer) · [drilling-slate](./drilling-slate.md) (the sibling vertical) ·
 [inquiry-slate](./inquiry-slate.md) (the epoch on-ramp — ⚠ **blocks
 Stage B only**, not this slate) · [tapping-slate](./tapping-slate.md) (the vocation this

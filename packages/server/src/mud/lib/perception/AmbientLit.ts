@@ -73,6 +73,12 @@ export interface AmbientLit {
    */
   isSkyLit(): boolean;
   /**
+   * How much of the open sky lights this scope, 0–1: 1 for an authored
+   * `ambientSource: sky` (the authored rung is never multiplied) or an
+   * open top; otherwise what its roof and walls pass (Beer–Lambert).
+   */
+  skyLightFraction(): number;
+  /**
    * The flux this scope would read at a clear noon overhead sun: the
    * authored `ambientIntensity` if the row calibrated one, else
    * `light.sky.noonLux` times its own floor area. The walk multiplies
@@ -333,9 +339,16 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     isSkyLit(): boolean {
       if (this._ambientSource === 'sky') return true;
       if (this._ambientSource !== null) return false;
-      return BiomeApi.isSkyExposed(
-        this as unknown as Stuff & Container
-      );
+      // ⭐ The construction answers (rubber build): open above, or a
+      // roof/walls that pass light. An undeclared interior reads exactly
+      // what its biome said.
+      return BiomeApi.exposureOf(this as unknown as Stuff)?.skyVisible() ?? false;
+    }
+
+    skyLightFraction(): number {
+      if (this._ambientSource === 'sky') return 1;
+      if (this._ambientSource !== null) return 0;
+      return BiomeApi.exposureOf(this as unknown as Stuff)?.skyLightFraction() ?? 0;
     }
 
     /**

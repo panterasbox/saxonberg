@@ -103,6 +103,12 @@ pump; the pump holds one and vetoes everything else. It wears per spell
 ⚠ **integrated over `poweredTrajectory`, never sampled** — the switch has
 no history, so `ElectricPump.setOn` reconciles first).
 
+⭐ **Wear reads the packing's MATERIAL** (the rubber build, 2026-10-18;
+`Pumping.wearFactor`): `(referenceToughness / toughness) · (1 −
+min(0.8, elasticity/500 · relief))`, leather the reference ×1.0, rubber
+(tougher, and springy enough to keep its seal) ×0.25 — four strokes to
+leather's one. `pump.referenceToughness` is the dial.
+
 ⚠⚠ **The running-hour rate ships at ZERO, until the keeper exists.** A
 powered pump's packing sits two containers deep in its main and the pump is
 fixed in place, so nothing a player can do reaches it to re-pack or repair.

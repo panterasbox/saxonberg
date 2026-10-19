@@ -1,0 +1,14 @@
+# The icehouse — the platform and the house behind it, one building
+# (storage-and-ice D22): under rooms-share-heat the two couple through
+# their shared wall, which is real.
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/hollow-mere/icehouse
+  entrance: /world/terminus/hollow-mere/icehouse/location/platform
+  shortDescription: icehouse
+  register: definite
+  keywords: [icehouse, house, sheds]
+  longDescription: >-
+    A tall windowless timber house with walls a forearm thick, a loading
+    platform along its face and a single door.
+  heightM: 8

@@ -36,11 +36,18 @@ import ServingVessel from '@saxonberg/server/mud/platform/thing/ServingVessel';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 // ⭐ `CraftVessel` = `Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`.
 // Every strand of it is one a pot genuinely wants — see the class doc.
-const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(ServingVessel)));
+//
+// ⭐ Assembled (repair D4): a cook pot is a recipe output that wears, so
+// it is of a family that is parts or one piece — a cast pot is one piece,
+// says so, and is mended as one. `lint:bills` arm 7d is the rule.
+const CookPotBase = AssembledMixin(
+  ManualBuildMixin(ToolMixin(DurableMixin(ServingVessel))),
+);
 
 // ⚠⚠ **Three verbs, and all three are a POT's.** `cure`, `dry`, `smoke`
 // and `butcher` lived here for one build, which handed a saucepan the

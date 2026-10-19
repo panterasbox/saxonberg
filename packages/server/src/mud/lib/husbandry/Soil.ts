@@ -511,7 +511,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         // rather than the realm default (the climate build).
         if (MixinApi.isAtmospheric(scope)) await scope.resolveClimateSite();
         this._rainLocalityPath = locality?.getTemplatePath() ?? null;
-        this._rainSkyExposed = BiomeApi.isSkyExposed(scope);
+        // ⭐ Rain reaches the bed only under an open top (rubber build):
+        // a glasshouse's beds stay dry whatever the biome says.
+        this._rainSkyExposed = BiomeApi.exposureOf(scope)?.rainReaches() ?? false;
         this._rainResolved = true;
       } catch {
         // A failed walk leaves the ref UNRESOLVED rather than resolving

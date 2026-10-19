@@ -6,6 +6,9 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CelestialApi } from '../../../api/celestial';
+import { ZoneApi } from '../../../api/zone';
+import type { CelestialProfile, Season } from '../../../lib/time/CelestialProfile';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { Opening } from '../../../lib/employment/Opening';
@@ -816,7 +819,10 @@ function perceivedGoods(viewer: Stuff): Stuff[] {
       if (item !== viewer && !PerceptionApi.perceives(viewer, item)) continue;
       out.push(item);
       const closed = MixinApi.isSealable(item) && !item.isOpen();
-      if (!closed) walk(item);
+      // ⭐ A cold box is shut to KEEP, not to hide (storage-and-ice D21):
+      // its contents are the house's cold stock, so the sheet reads into
+      // it. A shut larder or cupboard stays invisible.
+      if (!closed || MixinApi.isCoolbox(item)) walk(item);
     }
   };
   walk(viewer);
@@ -874,7 +880,7 @@ function stockSheetForImpl(
     return { line, onHand, shortfall: Math.max(0, line.level - onHand) };
   });
   // ⭐ Plus the SUPPLIED lines of every counter the house operates
-  // (economic bootstrap D14): a `stockLines` entry with a `supplier` is a
+  // (economic bootstrap D14): a `stockLines` entry `from: { supplier }` is a
   // par line the shelf carries itself — its category the good's template,
   // its level the par, counted over the counter rather than the viewer's
   // eye. One sheet, whichever place the policy was authored.
@@ -883,15 +889,16 @@ function stockSheetForImpl(
     // ⚠ By SHAPE, not `instanceof`: `Stock` composes `PricedOffer`, which
     // reaches this logic — a value import here is an evaluation cycle.
     const live = StuffApi.findByTemplatePath(path) as (Stuff & Partial<Stock>) | null;
-    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function') continue;
+    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function' || typeof live.sourceOf !== 'function') continue;
     for (const line of live.getStockLines()) {
-      if (!line.supplier || seen.has(line.itemTemplatePath)) continue;
+      const src = live.sourceOf(line);
+      if (src.kind !== 'supplier' || seen.has(line.itemTemplatePath)) continue;
       seen.add(line.itemTemplatePath);
       const par = ParLine.fromData({
         category: line.itemTemplatePath,
         level: line.par,
         unit: 'count',
-        supplier: line.supplier,
+        supplier: src.business,
       });
       const onHand = live.onHand(line.itemTemplatePath);
       sheet.push({ line: par, onHand, shortfall: Math.max(0, line.par - onHand) });
@@ -965,26 +972,27 @@ async function moveForShift(
   assignment: RosterAssignment,
   actor: Stuff,
   onShift: boolean,
-): Promise<void> {
-  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return;
+): Promise<string | null> {
+  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return null;
   if (!onShift) {
     const offstage = business.getOffstage();
-    if (!offstage) return;
+    if (!offstage) return null;
     try {
       // ⭐ The one legitimate clone here: an offstage room is
       // materialized on demand and nothing else owns it.
       const dest = await StuffApi.singletonOrClone(offstage);
-      if (!MixinApi.isContainer(dest)) return;
+      if (!MixinApi.isContainer(dest)) return null;
       const current = actor.getContainer();
-      if (current && current.stuffId === dest.stuffId) return;
+      if (current && current.stuffId === dest.stuffId) return offstage;
       actor.teleport(dest as Stuff & Container);
+      return offstage;
     } catch (err) {
       console.error(
         `EmploymentLogic: shift move offstage to '${offstage}' failed`,
         err,
       );
     }
-    return;
+    return null;
   }
 
   /**
@@ -1025,18 +1033,20 @@ async function moveForShift(
       break;
     }
   }
-  if (!place) return;
+  if (!place) return null;
   try {
     const dest = place;
     const current = actor.getContainer();
-    if (current && current.stuffId === dest.stuffId) return;
+    if (current && current.stuffId === dest.stuffId) return targetPath;
     actor.teleport(dest as Stuff & Container);
+    return targetPath;
   } catch (err) {
     console.error(
       `EmploymentLogic: shift move to '${targetPath}' failed`,
       err,
     );
   }
+  return null;
 }
 
 /**
@@ -1065,6 +1075,13 @@ async function reconcileCover(
   if (!proprietorKey) return;
   const proprietor = StuffApi.findByTemplatePath(proprietorKey);
   if (!proprietor || !MixinApi.isEmployed(proprietor)) return;
+  // ⭐ A proprietor who holds a seat on this house's OWN roster is the
+  // roster's: their employment is a shift, not a cover, and standing a
+  // "cover" down deletes the house's employment outright (`endCover`). The
+  // storage-and-ice drive found it — the ice company's keeper is also its
+  // proprietor, and every pass that found the house hand on shift erased
+  // her, so nobody was ever keeping the book.
+  if (business.getRoster().getAssignments().some((a) => a.assignee === proprietorKey)) return;
 
   let rosteredOnShift = false;
   for (const assignment of business.getRoster().getAssignments()) {
@@ -1642,6 +1659,13 @@ export class EmploymentLogic extends ApiLogic {
    * returned EARLY when the business was already live, so the one venue that
    * needed the pass never got it. It calls this now.
    */
+  /**
+   * Where each round (assignee + seat) was last moved to while on shift —
+   * so a station change mid-shift moves them, and an unchanged one does
+   * not. A cache: empty after a restart, which re-moves once.
+   */
+  private shiftStations = new Map<string, { slot: number; at: string }>();
+
   private tickBusiness(
     business: BusinessStuff,
     date: ReturnType<InstanceType<typeof DefaultCalendar>['decompose']>,
@@ -1653,7 +1677,23 @@ export class EmploymentLogic extends ApiLogic {
     // absence — the roster stands, nobody is put on it.
     if (business.isClosed()) return;
     const roster = business.getRoster();
+    // ⭐ The house's local season rides the clock (storage-and-ice D20):
+    // read only by a season-bound window, so every other roster is as it was.
+    const clock = { ...date, season: this.seasonOf(business, nowRaw) };
+    // ⭐⭐ A ROUND is roster slots (repair D13): one assignee holding one
+    // seat on several slots is ONE shift — on at the first slot that says
+    // so, off at the last — and the station follows the hour. Evaluated
+    // per assignee, never per slot: two slots evaluated apart had a later
+    // slot's off-turn end the shift an earlier slot had just begun.
+    const rounds = new Map<string, RosterAssignment[]>();
     for (const assignment of roster.getAssignments()) {
+      const key = `${assignment.assignee}\u0000${assignment.positionKey}`;
+      const slots = rounds.get(key);
+      if (slots) slots.push(assignment);
+      else rounds.set(key, [assignment]);
+    }
+    for (const [roundKey, slots] of rounds) {
+      const assignment = slots[0]!;
       const actor = StuffApi.findByTemplatePath(assignment.assignee);
       if (!actor || !MixinApi.isEmployed(actor)) {
         console.warn(
@@ -1685,12 +1725,34 @@ export class EmploymentLogic extends ApiLogic {
       }
       if (TERMINAL.includes(emp.status)) continue;
 
-      const desired = roster.evaluate(assignment, date);
+      // The slot the clock is in now — the first in file order (the
+      // overlap is refused by `lint:openings`). `Roster.evaluate` per slot
+      // stays the ONE on-test (repair P4: a season-aware clock rides it).
+      const onSlot = slots.find((a) => roster.evaluate(a, clock) === 'on-shift') ?? null;
+      const slotIndex = onSlot ? slots.indexOf(onSlot) : -1;
+      const desired = onSlot ? 'on-shift' : 'off-shift';
       const currentlyOn = emp.status === 'on-shift';
-      if (desired === 'on-shift' && !currentlyOn) {
+      const moveTo = (slot: RosterAssignment): void => {
+        void moveForShift(business, slot, actor, true).then((landed) => {
+          // ⭐ Remember the slot and WHERE it landed — a stop that is not
+          // standing falls back to the house's room, and is taken on a
+          // later pass once it stands.
+          if (landed) this.shiftStations.set(roundKey, { slot: slotIndex, at: landed });
+        });
+      };
+      const was = this.shiftStations.get(roundKey);
+      const stray =
+        !!onSlot &&
+        (!was || was.slot !== slotIndex || (!!onSlot.station && was.at !== onSlot.station));
+      if (onSlot && !currentlyOn) {
         business.beginShift(employed, nowRaw);
-        void moveForShift(business, assignment, actor, true);
+        moveTo(onSlot);
+      } else if (onSlot && currentlyOn && stray) {
+        // ⭐ Mid-shift, the hour moved the round to its next stop. A
+        // restart re-moves once (the map starts empty).
+        moveTo(onSlot);
       } else if (desired === 'off-shift' && currentlyOn) {
+        this.shiftStations.delete(roundKey);
         // Settle off the captured record (has `onShiftSince`) at this
         // tick's instant, before the synchronous clear below — no race.
         void settleShiftWageImpl(
@@ -2102,6 +2164,43 @@ export class EmploymentLogic extends ApiLogic {
 
   /** organizationPath → the game hour its last one-house pass ran in. */
   private passedAt = new Map<string, number>();
+
+  /** organizationPath → its first operating location's latitude + sky (resolved off-band). */
+  private skies = new Map<string, { latitudeDeg: number; profile: CelestialProfile }>();
+  private skiesResolving = new Set<string>();
+
+  /**
+   * The house's local season at `nowRaw`, or `undefined` while its place
+   * is still being read (a season-bound window is then off — a winter seat
+   * never draws a wage on a guess).
+   */
+  private seasonOf(business: BusinessStuff, nowRaw: number): Season | undefined {
+    const key = business.getOrganizationPath();
+    if (!key) return undefined;
+    const sky = this.skies.get(key);
+    if (sky) return CelestialApi.seasonFor(sky.profile, nowRaw, sky.latitudeDeg);
+    if (!this.skiesResolving.has(key)) {
+      this.skiesResolving.add(key);
+      void this.resolveSky(business, key).finally(() => this.skiesResolving.delete(key));
+    }
+    return undefined;
+  }
+
+  private async resolveSky(business: BusinessStuff, key: string): Promise<void> {
+    const where = business.getOperatingLocations()[0];
+    if (!where) return;
+    try {
+      // ⭐ Loaded on use, not looked up: a house whose ground nobody stands
+      // on is not resident, and a residency read left its season unknown —
+      // every season-bound seat off for good (the pre-merge audit).
+      const place = await StuffApi.singleton<Stuff>(where);
+      const site = await ZoneApi.climateSiteFor(place);
+      const profile = await CelestialApi.profileFor(place);
+      this.skies.set(key, { latitudeDeg: site.latitudeDeg, profile });
+    } catch (err) {
+      console.warn('EmploymentLogic: could not read the season of', key, err);
+    }
+  }
 
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)

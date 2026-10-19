@@ -107,8 +107,8 @@ Four value objects + two mixins + the concrete entity:
   with no migration — paths did not move, only the name.
 - **`Roster`** — a Business's schedule: ordered `RosterAssignment
   { positionKey, assignee /* templatePath */, schedule: ShiftEntry[] }`;
-  `ShiftEntry { days: number[], hours: [start, end) }`. `evaluate(assignment,
-  date)` is the pure day/hour-window match lifted verbatim from what the
+  `ShiftEntry { days: number[], hours: [start, end), season?: Season[] }`.
+  `evaluate(assignment, date)` is the pure day/hour-window match lifted verbatim from what the
   the retired `shifts` brain read inline before this build.
 - **`OrganizationMixin`** (`lib/employment/Organization.ts`, marker
   `_mixinName='OrganizationMixin'`) — the chart. Persistent fields
@@ -408,6 +408,27 @@ The pure logic lives in the private `runTick`; the gated public `tickRoster`
 and the schedule callback both delegate to it (no intra-singleton gated
 `this.x()` call trips the gate).
 
+### ⭐ Seasonal seats (storage-and-ice, 2026-10-17)
+
+A shift window may carry `season: [winter]` — an ice crew works the
+winter, and a winter seat draws no wage in summer (the wage settles only
+on on→off). The vocabulary is the celestial model's own `Season`
+(`spring · summer · fall · winter`, `SEASONS` in `lib/employment/Roster.ts`,
+declared closed by design) and the house's season is **local**: the
+clock (`RosterClock.season`) carries `CelestialApi.seasonFor(profile, t,
+latitudeDeg)` for the house's first operating location, so a southern
+house's winter is the northern summer — there is no second season
+function. The season rides ONLY the clock and `Roster.evaluate`; a zone's
+climate site is async and the tick sync, so `EmploymentLogic` caches each
+house's latitude + sky off-band, and ⭐ **until it is known a season-bound
+window reads OFF** — a winter seat never draws a wage on a guess. Every
+roster that authors no `season` is untouched.
+
+⭐ **`Employed.isOnShiftFor(organizationPath)`** — on shift for THIS
+house, not anywhere: a cook on shift at the cookhouse is not on shift at
+the icehouse. The store's keeper check and the ice sheet's *cutting for
+the house* both read it (see [storage.md](./storage.md)).
+
 ## ⭐⭐ Capability grant — what a SEAT lets you do
 
 A position grants two things, and both are **data on the position**:
@@ -438,6 +459,20 @@ and be credited with `cooking`.
 which is predictable rather than right — two cooks in one kitchen wants a
 queue. That is arbitration and belongs to the crew substrate
 ([call-slate](../slates/builds/call-slate.md)).
+
+### ⭐ A fulfilling hand MENDS (repair, 2026-10-17)
+
+`fulfills` is also what puts a person behind a priced SERVICE: `order
+repair <thing>` asks `CraftingApi.fulfillingHand(giver, tariff)` for an
+on-shift hand of the house the Tariff's money goes to (no discipline — the
+hand's own bands per part decide the result, not the seat), and the mend
+is THEIRS: their reach, their heat, their band in each part's trade, their
+name on it. A `per-settlement` seat (`compensation: {basis:
+per-settlement, rate}`) is paid one piece per paid mend
+(`settlePiecework`, out of the house the fee went to) — the cobbler's
+seat is the shipped one; a time-wage seat is paid by its shift. Nobody on
+shift is the refusal *"There's nobody here to do the work."* See
+[retail.md § A priced service is performed by a PERSON](./retail.md).
 
 ### ⚠ What this replaced, and why
 
@@ -658,6 +693,21 @@ retired.
   config — four rows all saying `offstage: /world/lounge/location/offstage`
   — which is the shape that lets one of them say something different by
   accident.
+- ⭐⭐ **A ROUND is roster slots** (repair D13, 2026-10-17). One assignee
+  holding one seat on several slots is ONE shift: `tickBusiness` groups
+  the slots by assignee + seat, is on while any slot's window is (the
+  first in file order — `lint:openings` refuses two that overlap, days ×
+  hours × seasons), begins the shift once, ends it once, and moves the
+  assignee to the current slot's `station` when the hour moves the round
+  on. `Roster.evaluate` per slot stays the one on-test. Where each round
+  last LANDED is a cache on the logic (`shiftStations`: the slot and the
+  path it reached), so a stop that is not standing — the hourly move is
+  live-only — falls back to the house's room and is taken on a later
+  pass, and a restart re-moves once. ⚠ Evaluated per slot, a later
+  slot's off-turn used to end the shift an earlier slot had just begun.
+  The tinker's round (five stops) is the shipped one; a postman's or a
+  roadmender's is the same rows. Walking between stops when watched is
+  a deferred seam (`trade-roster-slate`).
 - **`Offstage`** — the off-shift parking role (content packs wave 4b,
   graduated out of the lounge): `OffstageMixin` in `lib/employment/`
   (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,
@@ -692,6 +742,18 @@ retired.
   governs the proprietor). `endCover` drops it when a rostered bartender is
   back on. A house with **no** fulfilling seat is never covered — there is
   nothing to cover.
+  ⚠⚠ **A proprietor who holds a seat on her OWN roster never covers**
+  (owner's ruling, 2026-10-17). Two builds found the same defect the
+  same week — the Hearthworks (Berta owns the smithy and is its smith)
+  and storage-and-ice's ice company (its keeper is its proprietor): a
+  cover record and a rostered one are the same shape, so the reconcile
+  read her own shift as a cover and, whenever another hand was on, ended
+  it — and `endCover` drops the house's whole record, so she stood at
+  her own forge employed by nobody. `reconcileCover` now returns early
+  when the proprietor is an assignee on the house's roster: she is the
+  roster's, works her shift and goes home, and a house whose owner is its
+  only smith SHUTS outside her hours. Cover is for the proprietor who is
+  not on the roster (the bar's owner stepping behind an empty bar).
   Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
   (the move, the station, the missing `offstage`, cover both ways), plus
   one content test per venue beside its rows
@@ -1184,3 +1246,10 @@ unreachable by construction. Found by driving.
 no-runtime-setter constraint on `positions` permits rather than blocks:
 what seats a business has is a fact about the KIND of business, so one
 authored row serves every outfit minted at every siting in the realm.
+
+---
+
+- **2026-10-18 (storage-and-ice, MR !378).** Seasonal shift windows
+  (`season:` on a `ShiftEntry`, read off the house's local sky);
+  `isOnShiftFor`; and a proprietor rostered on her own house never
+  covers (`reconcileCover`).

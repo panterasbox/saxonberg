@@ -1,0 +1,29 @@
+# Ottilie Marrow — the cobbler (repair D16). She mends what you walk in,
+# and she can tell you who mended it last, and how badly.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/tweed-jacket
+  name: Ottilie Marrow
+  keywords: [cobbler, ottilie, marrow, apron, leather]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["ottilie", "marrow"]
+  shortDescription: "cobbler in a leather apron worn shiny at the knee"
+  register: indefinite
+  longDescription: |
+    A leather apron worn shiny where a boot sits on her knee, tacks in the corner of her mouth, and hands that are mostly calluses. She looks at your feet before she looks at you.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  # ── the dossier (`lint:dossiers`) ───────────────────────────────
+  # ⭐ Competent at leatherwork (soles, heels), a learner at the stitching
+  # of an upper — so a sole comes back sound and a torn upper serviceable,
+  # and she says which before she takes your money. Competent at
+  # appraisal: she can tell who mended a boot last.
+  archetype: proprietor
+  competence:
+    - { discipline: leatherwork, asserting: competent }
+    - { discipline: tailoring, asserting: novice }
+    - { discipline: appraisal, asserting: competent }

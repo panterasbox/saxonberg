@@ -9,7 +9,7 @@ data:
   category: ice-bag
   interiorBulk: true
   interiorCapacity: 5.5
-  interiorMaterial: /trade/bottling/idea/material/ice
+  interiorMaterial: /stuff/idea/material/bulk/ice
   interiorAmount: 5.45
   closure: liquidTight
   gradeBand: fair

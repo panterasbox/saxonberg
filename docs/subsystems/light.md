@@ -431,6 +431,13 @@ currently loaded — reads as ZERO rather than paging in.
 
 ## `LightSourceMixin` and `AmbientLitMixin`
 
+> ⭐ **Light through matter (rubber build, 2026-10).** A place's sky light
+> is its construction's — `Exposure.skyLightFraction()`: 1 open, 0 under a
+> ceiling, else its roof's Beer–Lambert transmittance (`Material.
+> lightAbsorption`, 1/m; absent = opaque) plus a quarter per transmitting
+> wall. `isSkyLit()` and the `VisionModality` sky term read it; an
+> authored `ambientSource` still wins. See [construction.md](./construction.md).
+
 Both follow the same shape: typed Quantity values exposed at the
 runtime API, decomposed into named scalar fields for storage per
 the persistence subsystem's scalar-default rule. The setter

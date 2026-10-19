@@ -229,3 +229,14 @@ The `pump` channel (`PumpReading`, eye rung only): the mechanism in words,
 the packing in five words and no digit, and — for a pump that pulls —
 about how deep it will draw from where it stands, bracketed. It never
 names the air. See [pump.md](./pump.md).
+
+## The repair build (2026-10-17)
+
+The `condition` channel (`ConditionReading`, eye rung only,
+`subjectRequires: [DurableMixin]`, discipline **`appraisal`** — its first
+code reader): competence resolves detail, never access. Every band reads
+the condition word and whether it was mended (what `look` already says);
+a novice how many times; a competent eye the worst hand in it, in words
+(*an unpractised hand*), and the grade; a proficient one part by part; an
+expert the menders by name. Never a digit. See
+[assembly.md](./assembly.md) and [crafting.md § The lifecycle](./crafting.md).

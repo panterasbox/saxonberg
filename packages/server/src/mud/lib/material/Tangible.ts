@@ -103,6 +103,8 @@ export interface Tangible {
    * coercion at the hydration boundary.
    */
   getMass(): Quantity<'kg'>;
+  /** Mass in kg without the water it has soaked up (the store's ledger reads it). */
+  getDryMass(): Quantity<'kg'>;
 
   /**
    * Set the Stuff's mass. Strict on `Quantity<'kg'>`; callers
@@ -412,6 +414,16 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         this._mass.rawValue() * (1 + (wetness * capacity) / 100),
         'kg',
       );
+    }
+
+    /**
+     * Mass in kg **dry** — what the object weighs without the water it has
+     * soaked up. The ledger a store keeps counts matter, not the water it
+     * took on (storage-and-ice D2: wet sawdust is the same sawdust, its
+     * wetness is the line's state).
+     */
+    public getDryMass(): Quantity<'kg'> {
+      return this._mass;
     }
 
     /**

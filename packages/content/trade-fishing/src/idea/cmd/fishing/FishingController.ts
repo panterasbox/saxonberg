@@ -42,7 +42,14 @@ export abstract class FishingController<M extends CommandModel = CommandModel> e
       const name = shore.via?.detailPath?.[0];
       if (MixinApi.isShore(shore.stuff)) {
         const pick = await shore.stuff.waterRefFor(name);
-        return 'refusal' in pick ? pick : { reach: pick.ref };
+        if ('refusal' in pick) return pick;
+        // ⭐ Frozen water is fished only through a hole (storage-and-ice
+        // D15): THE gate is the shore's, shared with washing.
+        const gate = shore.stuff.drawAt(pick.key, room ?? shore.stuff);
+        if ('refusal' in gate && gate.refusal === 'frozen') {
+          return { refusal: gate.line, reason: 'frozen' };
+        }
+        return { reach: pick.ref };
       }
       return { refusal: `There is no water in the ${shore.raw ?? 'that'}.`, reason: 'not-water' };
     }

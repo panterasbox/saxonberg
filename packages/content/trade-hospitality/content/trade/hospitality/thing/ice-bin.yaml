@@ -9,5 +9,5 @@ data:
   longDescription: A deep insulated bin under the rail with a scoop hooked on its lip.
   interiorBulk: true
   interiorCapacity: 30
-  interiorMaterial: /trade/bottling/idea/material/ice
+  interiorMaterial: /stuff/idea/material/bulk/ice
   mass: 8

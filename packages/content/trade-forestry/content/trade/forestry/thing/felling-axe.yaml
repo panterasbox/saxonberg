@@ -3,7 +3,7 @@
 # offers it (a billhook cuts; it does not fell an oak). `epoch: medieval`
 # is the stamp the land-use covenant's predicate will read — a parcel
 # that admits axes and refuses chainsaws asks the INSTRUMENT.
-class: /platform/thing/AssembledTool
+class: /platform/thing/Tool
 data:
   keywords: [axe, felling-axe, felling]
   shortDescription: felling axe
@@ -22,7 +22,7 @@ data:
   # `head`. Re-hanging a head on a fresh helve is `fit helve to axe`.
   bill:
     parts:
-      - { part: axe-head, template: /trade/smithing/thing/axe-head, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: axe-head, template: /trade/smithing/thing/axe-head, count: 1, role: structural, material: /stuff/idea/material/element/iron, form: bladed }
       - { part: helve, template: /trade/carpentry/thing/axe-haft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
     joints:
       - { key: hafting, method: wedged, members: [axe-head, helve] }

@@ -696,10 +696,17 @@ shapes:
   (`HasInteractive` — persists itself), a player-stamped good
   (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a
   `Behaved` NPC (**cast, never content** — see *The third skip* below).
-- **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) — worn/equipped
-  occupancy by **position** (indices into the container slice) + the slot
-  names each item claims; non-content occupants (a rider, a sitter) resolve
-  to −1 and are skipped.
+- **slotted** (`{ worn, wornOwned? }`, `SlottedMixin.captureSlice`) —
+  worn/equipped occupancy by **position** (indices into the container
+  slice) + the slot names each item claims; non-content occupants (a
+  rider, a sitter) resolve to −1 and are skipped. ⭐ **Except an owned
+  good**: an owner-persisted chattel worn by the host rides the ESTATE, not
+  the contents order, so it has no index — `wornOwned` names it by
+  `chattelId`, and `restoreState` re-wears it in pass (5), after the
+  estate slice restores (`getEstateLive`). ⚠ Before (the rubber build's
+  browser drive across a restart, 2026-10-18) every bought garment and the
+  implant came back *carried*, and the loadout cloned a second implant
+  each boot.
 
 The recursion seam (`CaptureContext`) lets a mixin's `captureSlice` descend
 into item state without importing `PersistableLogic` (breaking the lib →
@@ -896,7 +903,9 @@ cranial implant (Container + Slotted slices), so loadout-first would
 double-occupy the slot, while the aether-hosted apps (comms / forums / the
 credential wallet) are deliberately session-scoped and *not* in the
 snapshot, so they must re-provision every login (the loadout's own
-occupancy + hosted-update guards make the re-run idempotent). Two restore
+occupancy + hosted-update guards make the re-run idempotent; ⚠ an implant
+the record left CARRIED is re-occupied, never re-cloned — that guard
+missing cloned a second implant every boot until 2026-10-18). Two restore
 subtleties the ordering implies: `materialize` preloads the organism's
 anatomy between field hydrate and Slotted occupancy (the slots are defined
 by the just-restored species' body plan, and no loadout has run yet), and

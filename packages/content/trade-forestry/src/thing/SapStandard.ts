@@ -143,7 +143,10 @@ export default class SapStandard extends SapStandardBase {
       case 'cold':
         return 'It is too cold; nothing is moving in the wood.';
       case 'warm':
-        return 'It has gone too warm. The run is finished.';
+        // ⚠ Not "the run is finished": the window is a BAND, and a stove
+        // house that cools reopens it — the drive's step 10 is exactly
+        // that lesson. Found driving the rubber build in a browser.
+        return 'It has gone too warm; nothing will run until it cools.';
       default:
         return super.tapRefusal(key, reason);
     }
@@ -156,7 +159,9 @@ export default class SapStandard extends SapStandardBase {
   }
 
   public override tapBeginPhrase(_key: string): string {
-    return 'You unhook the pail and let it run.';
+    // The vessel is whatever the tapper brought (a pail, a latex cup),
+    // so the line names none.
+    return 'You hold it under the cut and let it run.';
   }
 
   /**
@@ -179,6 +184,13 @@ export default class SapStandard extends SapStandardBase {
     // boring a hole into a stem that will not run for three months, and
     // the sentence a player wants is about the season rather than about
     // their auger.
+    // ⚠ A tap this stem does not give is the mixin's `no-such-tap`
+    // refusal, never a closed window with no reason (which every refusal
+    // below would read as "nothing has run yet").
+    if (!this.taps().some((t) => t.key === key)) {
+      return super.planTap(by, key, tool, vessel, what);
+    }
+    await this.bringTapAirCurrent();
     const window = this.tapWindow(key);
     if (!window.open && window.reason !== null) {
       return {
@@ -192,6 +204,18 @@ export default class SapStandard extends SapStandardBase {
     // path, including the vessel and the pour.
     if (this.standingIn(key) > 0.01) {
       return super.planTap(by, key, tool, vessel, what);
+    }
+
+    // ⚠ Every cut this stem will take is already open and nothing has
+    // run yet: that is waiting, not girth (found by the rubber drive — the
+    // works' Hevea carry their two cuts and said they were too slender).
+    // Holding a spile, you mean to set another: that IS the girth lesson.
+    if (this.spiles > 0 && this.spiles >= this.maxSpiles() && !findSpile(by)) {
+      return {
+        kind: 'refusal',
+        reason: 'empty',
+        prose: this.tapEmptyPhrase(key),
+      };
     }
 
     // Nothing has run — so this is the setting phase.

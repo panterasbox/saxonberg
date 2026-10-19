@@ -71,6 +71,7 @@ import type {
 } from '../../platform/idea/species/Species';
 import { CelestialApi } from '../../api/celestial';
 import { WeatherApi } from '../../api/weather';
+import { BiomeApi } from '../../api/biome';
 import type { Atmospheric } from '../biome/Atmospheric';
 import { EARTH_LIKE } from '../time/CelestialProfile';
 import {
@@ -155,6 +156,8 @@ export interface TapTake {
 export interface Producing extends Tappable {
   /** Reconcile every tap over elapsed game-time. Sync, read-triggered. */
   reconcileProduction(): void;
+  /** Refresh the air at this producer's place before a window is read. */
+  bringTapAirCurrent(): Promise<void>;
   /** The taps this animal's species authors. */
   taps(): readonly TapSpec[];
   /** What is standing in one tap, reconciled. */
@@ -250,6 +253,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     public productionStamp = 0;
 
     protected _reconcilingProduction = false;
+    /**
+     * The air a tap just RESOLVED (the thermometer's own read), kept for
+     * the game minute it was taken — transient, never persisted. The
+     * window reads it in preference to any synchronous estimate.
+     */
+    protected _tapAir: { k: number; atS: number } | null = null;
 
     public taps(): readonly TapSpec[] {
       const self = this as unknown as Stuff;
@@ -388,15 +397,14 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
               }
             }
           }
-          // The temperature term, when the host has one to read. Absent
-          // is unmodelled, which is open.
-          const self = this as unknown as Stuff;
-          if (MixinApi.isThermal(self)) {
-            const k = self.getTemperature()?.rawValue();
-            if (k !== undefined) {
-              if (k < spec.minK) return { open: false, reason: 'cold' };
-              if (k > spec.maxK) return { open: false, reason: 'warm' };
-            }
+          // ⭐ The temperature term reads the AIR at the host's place
+          // (rubber build): a 290 kg stem's own body lags its house
+          // by hours, and a tree's xylem follows the air — the reason
+          // `freeze-thaw` already reads it. Absent is unmodelled: open.
+          const k = this.windowAirK();
+          if (k !== null) {
+            if (k < spec.minK) return { open: false, reason: 'cold' };
+            if (k > spec.maxK) return { open: false, reason: 'warm' };
           }
           return OPEN;
         }
@@ -469,6 +477,94 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * The `biome` window's hook. Default open — a producer whose supply
      * is the land around it overrides (a hive reads its forage census).
      */
+    /**
+     * The air temperature at this host's place, K: the enclosing
+     * scope's own (an envelope's last value, or an authored one), else
+     * the sync chain's air there; the host's own body only when nothing
+     * encloses it; `null` when nothing answers.
+     */
+    private windowAirK(): number | null {
+      const self = this as unknown as Stuff;
+      // ⭐ What the act just resolved, while it is current: the window
+      // reads exactly what a thermometer beside the tree reads.
+      const now = nowSeconds();
+      if (this._tapAir !== null && now !== null && Math.abs(now - this._tapAir.atS) < 60) {
+        return this._tapAir.k;
+      }
+      const place = this.tapAirPlace();
+      if (place !== null) {
+        // ⚠ Brought CURRENT, not the last integrated figure: a tree that
+        // reads a stale envelope taps in a house the thermometer beside
+        // it calls cold (found by the rubber drive, 284 K before dawn).
+        const air = place as Stuff & Atmospheric;
+        // ⚠ Only a finite NUMBER is a temperature: a proxy no-op answers
+        // `undefined`, which passes `!== null` and compares false against
+        // both bounds — a window read as OPEN by an answer that is no answer.
+        const finite = (v: unknown): v is number =>
+          typeof v === 'number' && Number.isFinite(v);
+        const synced = air.envelopeTemperatureSync();
+        if (finite(synced)) return synced;
+        const own = air.getOwnTemperatureK();
+        if (finite(own)) return own;
+        try {
+          const k = BiomeApi.airFor(place).tempK;
+          if (finite(k)) return k;
+        } catch {
+          // fall through to the host's own body
+        }
+      }
+      const body = MixinApi.isThermal(self) ? self.getTemperature()?.rawValue() : null;
+      return typeof body === 'number' && Number.isFinite(body) ? body : null;
+    }
+
+    /**
+     * The nearest scope with air of its own, walking out from the host.
+     * ⚠ A planted tree stands in its pot's SLOT, not its contents: step out
+     * through whichever holds it (found by the rubber drive — the stove
+     * house's trees read their own bodies, not the house).
+     */
+    private tapAirPlace(): Stuff | null {
+      const outward = (s: Stuff): Stuff | null => {
+        const c = MixinApi.isContainable(s) ? s.getContainer() : null;
+        if (c !== null) return c;
+        return MixinApi.isSlottable(s) ? s.getOccupiedHost() : null;
+      };
+      let cursor: Stuff | null = outward(this as unknown as Stuff);
+      let depth = 16;
+      while (cursor !== null && depth-- > 0) {
+        if (MixinApi.isAtmospheric(cursor)) return cursor;
+        cursor = outward(cursor);
+      }
+      return null;
+    }
+
+    /**
+     * ⭐ Bring the air at this producer's place current before a window
+     * is read (rubber build). The envelope's synchronous read integrates
+     * against the OUTSIDE temperature it last fetched, which only the
+     * async resolve refreshes — so a tree asked at dawn, after a night
+     * nobody measured, answered with the afternoon's outside air. The
+     * act is async; the window is not; this is the seam between them.
+     * ⚠ The RESOLVED figure is kept and read back (`_tapAir`): a later
+     * synchronous estimate still drifted from the thermometer in the
+     * whole-file drive (the works floor next door had been firing).
+     */
+    public async bringTapAirCurrent(): Promise<void> {
+      const place = this.tapAirPlace();
+      if (place === null) return;
+      try {
+        const k = (await BiomeApi.resolveTemperatureFor(place)).rawValue();
+        const atS = nowSeconds();
+        this._tapAir = Number.isFinite(k) && atS !== null ? { k, atS } : null;
+      } catch (err) {
+        // An unresolvable place reads as before — said, never silent.
+        console.warn(
+          `Producing.bringTapAirCurrent: ${place.getTemplatePath() ?? '?'} did not resolve:`,
+          err,
+        );
+      }
+    }
+
     public biomeWindowOpen(_spec: TapSpec): boolean {
       return true;
     }
@@ -758,6 +854,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           prose: this.tapRefusal(key, 'wrong-sex'),
         };
       }
+      await this.bringTapAirCurrent();
       const window = this.tapWindow(key);
       if (!window.open && window.reason !== null) {
         return {

@@ -1,0 +1,15 @@
+# The Rubber Works — the rubber trade's premises IN THE CITY (rubber
+# build): a brick works off the goods yards with a glass stove house where
+# three rubber trees are kept alive through the winter. The MECHANISM —
+# the cure, the moulds, the latex — is `trade-rubber`'s (`/trade/rubber`);
+# these rows only name it. A sub-zone of its own so its rooms keep their
+# own coords; the district zone is its parent.
+#
+# ⭐⭐ A BUILDING, and the first that says what it is made of: every room
+# authors its own `enclosure:` (walls) and `roof:` — the place owns its
+# materials — and `structure.yaml` beside it says only which rooms stand
+# on which (D3). A second works is rows.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Rubber Works
+  cellSize: 3.0

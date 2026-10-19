@@ -117,15 +117,43 @@ describe('fish', () => {
       asked.push(n);
       return { key: 'river', ref: 'kestrel:confluence', read: {} };
     };
+    (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
+      draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 285 },
+    });
     vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === shore) as never);
     await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'kestrel', via: { detailPath: ['kestrel'] } } }, angler, room, 'fish kestrel');
     expect((angler.getEngagementByType(FISHING_TYPE) as unknown as { reachRef: string }).reachRef).toBe('kestrel:confluence');
     expect(asked).toEqual(['kestrel']);
   });
 
+  it('⭐ frozen water is refused except through a hole — the shore\'s one gate (storage-and-ice D15)', async () => {
+    localityWith('delight:flats');
+    const shore = makeStuff(() => new Location());
+    (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
+      draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 285 },
+    });
+    (shore as unknown as { waterRefFor: () => Promise<unknown> }).waterRefFor = async () => ({
+      key: 'mere',
+      ref: 'hollowmere:mere',
+      read: {},
+    });
+    (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
+      refusal: 'frozen',
+      line: 'The water is frozen over; you would need a hole.',
+    });
+    vi.spyOn(MixinApi, 'isShore').mockImplementation(((x: unknown) => x === shore) as never);
+    const ctx = await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'mere' } }, angler, room, 'fish mere');
+    expect(rejected(ctx)).toBe('frozen');
+    expect(angler.getEngagementByType(FISHING_TYPE)).toBeUndefined();
+    expect(sent.join(' ')).toMatch(/frozen over/);
+  });
+
   it('⭐ naming something that is not water is refused in the place\'s words', async () => {
     localityWith('delight:flats');
     const shore = makeStuff(() => new Location());
+    (shore as unknown as { drawAt: () => unknown }).drawAt = () => ({
+      draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 285 },
+    });
     (shore as unknown as { waterRefFor: () => Promise<unknown> }).waterRefFor = async () => ({
       refusal: 'There is no water in the lamps.',
       reason: 'not-water',

@@ -1,0 +1,9 @@
+# Offstage — where the cobbler is when the shop is shut (the Hearthworks'
+# precedent). Materialized on demand; players cannot reach it.
+class: /platform/location/Offstage
+data:
+  shortDescription: The Cobbler's — Back room
+  keywords: [room, cobbler, back]
+  register: proper
+  longDescription: |
+    A narrow back room behind the shop: a cot, a kettle, and a shelf of boots that were never called for.

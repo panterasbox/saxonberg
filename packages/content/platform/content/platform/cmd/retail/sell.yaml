@@ -1,0 +1,37 @@
+# sell — the house BUYS a good from you (storage-and-ice review). The
+# counter's own act, refused in the counter's words: a line the house buys
+# (`buys: true`), somebody behind the counter, a good that is yours, room in
+# the store it goes to, an account to be paid into, and a house that can
+# pay. The bid is DERIVED from the house's ask, never authored.
+verbs: [sell]
+controller: /platform/idea/cmd/retail/SellController
+description: "Sell a good to a house that buys it"
+help: |
+  Sell something to a house that buys it — `sell block` at the ice
+  company's counter. The house pays its bid into your bank account: its
+  own asking price less the margin a shop keeps on what it buys in, so
+  when the house is short it pays more as well as asking more. What it
+  buys goes where it keeps that good — a block of ice into the icehouse
+  stack, on the house's own account.
+
+  Not every counter buys, and a counter buys only the lines it says it
+  does: a general store sells you limes, it does not take yours. You can
+  only sell what is yours.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: thing
+    type: object
+    required: true
+    scope: [inventory]
+    requires: [ContainableMixin]
+  - name: counter
+    type: object
+    required: false
+    greedy: true
+    prepositions: [to, at]
+    default: "reachable:[mixin.ConsignmentShelfMixin]"
+    scope: [reachable]
+    requires: [ConsignmentShelfMixin]

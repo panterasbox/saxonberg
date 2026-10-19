@@ -56,10 +56,12 @@
  * Not presence-gated and not ambient: the back loop runs unwatched, on
  * the authored cadence.
  *
- * config: `{ shelf: string, rack?: string, bin?: string, batch?: number,
- * board?: string, bench?: string, reward?: number }` — template paths of
- * the fixtures in the keeper's own room (bottles and crates go ON the
- * shelf, glasses IN the rack, ice is poured INTO the bin); `batch` caps
+ * config: `{ shelf: string, rack?: string, bin?: string, cold?: string,
+ * batch?: number, board?: string, bench?: string, reward?: number }` —
+ * template paths of the fixtures in the keeper's own room (bottles and
+ * crates go ON the shelf, glasses IN the rack, crushed ice is poured INTO
+ * the bin, a block of ice goes IN the cold box and the box is shut again);
+ * `batch` caps
  * the orders per beat (default 12); `board` the works board she posts
  * to, `bench` the receiving bench orders land on, and `reward` what the
  * house pays for one delivered line — **goods plus carriage**, because
@@ -204,9 +206,16 @@ export const brain = class {
     const shelfKw = fixtureKeyword(home, shelfPath);
     const rackKw = fixtureKeyword(home, ctx.config.rack);
     const binKw = fixtureKeyword(home, ctx.config.bin);
+    const coldKw = fixtureKeyword(home, ctx.config.cold);
     for (const item of bought) {
       const kw = keywordOf(item);
       if (!kw) continue;
+      // ⭐ Ice goes in the cold box, and the box is shut again
+      // (storage-and-ice D21).
+      if (coldKw && isSolidIce(item)) {
+        await unpackIntoCold(keeper, kw, coldKw);
+        continue;
+      }
       if (isIce(item) && binKw) {
         await keeper.forceCommand(`pour ${kw} into ${binKw}`);
       } else if (isGlass(item) && rackKw) {
@@ -284,6 +293,29 @@ function fixtureKeyword(room: Stuff & Container, templatePath: unknown): string 
 function keywordOf(thing: Stuff): string | null {
   if (!MixinApi.isPerceptible(thing)) return null;
   return thing.getPrimaryKeyword() || (thing.getKeywords()[0] ?? null);
+}
+
+/**
+ * ⭐ A delivered good that goes in the house's COLD box (storage-and-ice
+ * D21) — a block or lump of ice, not a bag of crushed ice (that pours into
+ * a bin). Read off the material's `ice` tag, like `isIce`.
+ */
+function isSolidIce(thing: Stuff): boolean {
+  if (MixinApi.isBulkable(thing) && thing.hasInteriorBulk()) return false;
+  if (!MixinApi.isTangible(thing)) return false;
+  return thing.getMaterial()?.hasTag('ice') ?? false;
+}
+
+/**
+ * ⭐ Unpack into the cold (storage-and-ice D21): open the box, put the
+ * good in, shut it again — a cold box is shut to KEEP. ONE named branch
+ * with a plain `cold:` config option, so a move of the receive step onto
+ * the business carries it whole (the repair build's W7).
+ */
+async function unpackIntoCold(keeper: Keeper, kw: string, coldKw: string): Promise<void> {
+  await keeper.forceCommand(`open ${coldKw}`);
+  await keeper.forceCommand(`put ${kw} in ${coldKw}`);
+  await keeper.forceCommand(`close ${coldKw}`);
 }
 
 function isIce(thing: Stuff): boolean {

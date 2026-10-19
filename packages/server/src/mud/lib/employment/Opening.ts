@@ -15,8 +15,6 @@
  */
 
 import { Position } from './Position';
-import { Money } from '../banking/Money';
-import { BankingApi } from '../../api/banking';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import { GrammarApi } from '../../api/grammar';
 
@@ -67,10 +65,8 @@ export class Opening {
   /** The sign's line: *HELP WANTED — a hand, four zorkmids a game-hour; two completed gigs asked.* */
   public describe(): string {
     const what = this.position.noun ?? this.position.key;
-    const pay =
-      this.position.wageRate > 0
-        ? `, ${Money.of(this.position.wageRate, BankingApi.compactCurrency()).render()} a game-hour`
-        : '';
+    const terms = this.position.payPhrase();
+    const pay = terms ? `, ${terms}` : '';
     const asks = this.wants();
     const plural = this.open > 1 ? ` (${String(this.open)} places)` : '';
     return `HELP WANTED — ${what}${pay}${plural}; ${asks === 'no prerequisite' ? 'no prerequisite' : `${asks} asked`}.`;

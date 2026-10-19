@@ -1,0 +1,13 @@
+# Hollow Mere — the water (storage-and-ice D22). The site is the ZONE's:
+# 58° S, the tuned offset, so the ice the mere grows is the cold its own
+# air has. Wide and deep, so the water is still and freezes over.
+class: /system/water/idea/Watercourse
+data:
+  key: hollowmere
+  name: Hollow Mere
+  basin: hollowmere
+  branchesFrom: null
+  water: { pH: 7.0, hardnessDgh: 4, nitrateMgL: 0.4 }
+  site: { latitudeDeg: -58, continentality: 1, offsetK: -12 }
+  nodes:
+    - { name: mere, elevation: 300, channelWidthM: 300, meanDepthM: 5, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }

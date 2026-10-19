@@ -51,6 +51,7 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'm/s',
   'MPa',
   'MJ/m³',
+  '1/m',
 ];
 
 /**

@@ -17,3 +17,6 @@ data:
   # honest pairing and the reason you wear something over it.
   weaveDensity: 0.35
   drape: 0.8
+  # ⭐ (rubber build) The loops give before the yarn does: a knit
+  # stretches by its fibre's elasticity and then some (1 + its loft).
+  stretch: 1.45

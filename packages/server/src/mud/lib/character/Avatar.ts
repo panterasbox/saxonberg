@@ -1311,7 +1311,19 @@ export default abstract class Avatar extends AvatarBase {
       // cranial implant to confer attunement.
       if (!MixinApi.isActive(this, "AetherMixin")) {
         try {
-          if (this.getOccupants("cranial").size === 0) {
+          // ⚠ An implant already CARRIED (a record from before worn
+          // owned goods were restored, or any other way it fell out of
+          // the slot) is put back, never doubled: this guard used to
+          // clone a fresh one beside it on every boot.
+          const carried =
+            this.getOccupants("cranial").size === 0
+              ? (this as unknown as Stuff & Container)
+                  .getContents()
+                  .find((c) => c.getTemplatePath() === AetherImplant.TEMPLATE_PATH)
+              : undefined;
+          if (carried) {
+            this.occupy(carried as unknown as AetherImplant, "cranial");
+          } else if (this.getOccupants("cranial").size === 0) {
             const implant = await StuffApi.clone<AetherImplant>(
               AetherImplant.TEMPLATE_PATH,
             );

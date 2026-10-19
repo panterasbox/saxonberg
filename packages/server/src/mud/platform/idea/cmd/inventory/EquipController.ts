@@ -78,6 +78,8 @@ import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
 
 const TOPIC = 'sense.survey';
+/** A misfit (signed, `0..`) under this reads as a fit and says nothing. */
+const FIT_WORDS_ABOVE = 0.05;
 
 interface EquipModel extends CommandModel {
   /** Absent for bare `equip` — the whole-kit form. */
@@ -223,7 +225,7 @@ export default class EquipController extends CommandController<EquipModel> {
       return;
     }
     const one = model.target.stuff;
-    const skip = this.canEquip(one, giver, mode);
+    const skip = EquipController.canEquip(one, giver, mode);
     if (skip) {
       this.refuseOne(one, skip, mode, context, giver);
       return;
@@ -235,15 +237,15 @@ export default class EquipController extends CommandController<EquipModel> {
      * told which of the two just happened rather than a word that covers
      * both and says neither.
      */
-    const held = this.claimAs(one, mode) === 'wield';
+    const held = EquipController.claimAs(one, mode) === 'wield';
     await this.engage(one, context, giver, () => {
-      this.put(one, giver, mode);
+      EquipController.put(one, giver, mode);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           held
             ? Mml.compose`You wield ${Mml.thing(one)}.`
-            : Mml.compose`You put on ${Mml.thing(one)}.`,
+            : Mml.compose`You put on ${Mml.thing(one)}.${EquipController.fitWords(one, giver)}`,
         )
         .toPeers(
           held
@@ -252,6 +254,21 @@ export default class EquipController extends CommandController<EquipModel> {
         )
         .send();
     });
+  }
+
+  /**
+   * ⭐ How it sits on you, said at the moment you put it on (rubber build,
+   * D16). A tight or a loose fit already costs — burden, seam wear, the
+   * air gap's warmth — and a cost nobody is told about is the feed, not
+   * the mirror. Within a garment's stretch there is nothing to say.
+   */
+  private static fitWords(item: Stuff, giver: Stuff): string {
+    if (!MixinApi.isWearable(item)) return '';
+    const fit = item.fitOn(giver);
+    if (!fit.measurable) return '';
+    if (fit.tightness > FIT_WORDS_ABOVE) return ' It is tight on you.';
+    if (fit.looseness > FIT_WORDS_ABOVE) return ' It hangs loose on you.';
+    return '';
   }
 
   /**
@@ -270,7 +287,7 @@ export default class EquipController extends CommandController<EquipModel> {
     context: CommandContext,
     giver: Stuff,
   ): boolean {
-    if (this.claimAs(item, mode) !== 'wield') return false;
+    if (EquipController.claimAs(item, mode) !== 'wield') return false;
     if (!MixinApi.isHauling(giver) || !giver.isHitched()) return false;
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -331,7 +348,7 @@ export default class EquipController extends CommandController<EquipModel> {
      * for what the sort cannot know (what is ALREADY on).
      */
     remaining.sort((a, b) => layerDepthOf(a) - layerDepthOf(b));
-    this.dressNext(remaining, [], [], context, giver);
+    EquipController.dressNext(remaining, [], [], context, giver);
     return Promise.resolve();
   }
 
@@ -350,7 +367,7 @@ export default class EquipController extends CommandController<EquipModel> {
    * so a piece that was blocked becomes legal the moment the thing it
    * was waiting on is on.
    */
-  private dressNext(
+  private static dressNext(
     remaining: Stuff[],
     worn: Stuff[],
     skipped: Array<[Stuff, SkipReason]>,
@@ -362,10 +379,10 @@ export default class EquipController extends CommandController<EquipModel> {
       for (let i = 0; i < remaining.length; i++) {
         const item = remaining[i]!;
         const hauling =
-          this.claimAs(item, 'either') === 'wield' &&
+          EquipController.claimAs(item, 'either') === 'wield' &&
           MixinApi.isHauling(giver) &&
           giver.isHitched();
-        const skip = hauling ? 'busy' : this.canEquip(item, giver, 'either');
+        const skip = hauling ? 'busy' : EquipController.canEquip(item, giver, 'either');
         if (skip === null) {
           next = item;
           remaining.splice(i, 1);
@@ -383,12 +400,12 @@ export default class EquipController extends CommandController<EquipModel> {
         // Nothing legal remains: whatever is left is ladder-blocked.
         for (const item of remaining) skipped.push([item, 'layer']);
         remaining.length = 0;
-        this.report(worn, skipped, context, giver);
+        EquipController.report(worn, skipped, context, giver);
         return;
       }
       const item = next;
       if (!MixinApi.isEngaged(giver)) {
-        this.put(item, giver, 'either');
+        EquipController.put(item, giver, 'either');
         worn.push(item);
         continue; // no clock in play — keep going inline
       }
@@ -396,16 +413,16 @@ export default class EquipController extends CommandController<EquipModel> {
         actor: giver,
         durationMs: donDurationMs(item),
         onComplete: () => {
-          this.put(item, giver, 'either');
+          EquipController.put(item, giver, 'either');
           worn.push(item);
-          this.dressNext(remaining, worn, skipped, context, giver);
+          EquipController.dressNext(remaining, worn, skipped, context, giver);
         },
         onAbort: () => {
           // ⭐ What went on stays on. The stack is just shorter, and the
           // report says what never got its turn.
           for (const left of remaining) skipped.push([left, 'busy']);
           remaining.length = 0;
-          this.report(worn, skipped, context, giver);
+          EquipController.report(worn, skipped, context, giver);
         },
       });
       const result = SchedulerApi.start(step);
@@ -414,7 +431,7 @@ export default class EquipController extends CommandController<EquipModel> {
       skipped.push([item, 'busy']);
       for (const left of remaining) skipped.push([left, 'busy']);
       remaining.length = 0;
-      this.report(worn, skipped, context, giver);
+      EquipController.report(worn, skipped, context, giver);
       return;
     }
   }
@@ -424,7 +441,7 @@ export default class EquipController extends CommandController<EquipModel> {
    * passed over. Six pieces must not spam the room with six lines, and
    * a silent omission is worse than any refusal.
    */
-  private report(
+  private static report(
     worn: readonly Stuff[],
     skipped: ReadonlyArray<readonly [Stuff, SkipReason]>,
     context: CommandContext,
@@ -479,7 +496,7 @@ export default class EquipController extends CommandController<EquipModel> {
    * right: a gauntlet you `equip` alongside a sword should end up on
    * your hand, not instead of the sword.
    */
-  private claimAs(item: Stuff, mode: EquipMode): 'wear' | 'wield' | null {
+  private static claimAs(item: Stuff, mode: EquipMode): 'wear' | 'wield' | null {
     const wearable = MixinApi.isWearable(item);
     const wieldable = MixinApi.isWieldable(item);
     if (mode === 'wear') return wearable ? 'wear' : null;
@@ -491,16 +508,16 @@ export default class EquipController extends CommandController<EquipModel> {
    * The gates, in the order the old `wear` applied them. Returns the
    * reason it cannot go on, or `null` when it can.
    */
-  private canEquip(
+  private static canEquip(
     item: Stuff,
     giver: Stuff & Slotted & Attired,
     mode: EquipMode,
   ): SkipReason | null {
-    const as = this.claimAs(item, mode);
+    const as = EquipController.claimAs(item, mode);
     if (as === null) return 'no-slots';
     const plan = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!plan) return 'no-slots';
-    const slots = this.slotsFor(item, plan, as);
+    const slots = EquipController.slotsFor(item, plan, as);
     if (slots.length === 0) return 'no-slots';
     // ⚠ The impossible fit is a HARD refusal, independent of the ladder:
     // a coat cut for a halfling fails on a NUMBER, so a heavy human and
@@ -545,7 +562,7 @@ export default class EquipController extends CommandController<EquipModel> {
    * the two readings from quietly becoming one call site if the mixins
    * ever diverge.
    */
-  private slotsFor(
+  private static slotsFor(
     item: Stuff,
     plan: string,
     as: 'wear' | 'wield',
@@ -556,11 +573,21 @@ export default class EquipController extends CommandController<EquipModel> {
     return MixinApi.isWieldable(item) ? item.getSlotClaim(plan) : [];
   }
 
-  /** Claim the slots. Atomic via `occupyAll`. */
-  private put(item: Stuff, giver: Stuff & Slotted & Attired, mode: EquipMode): void {
+  /**
+   * Claim the slots. Atomic via `occupyAll`.
+   *
+   * ⚠⚠ STATIC, and so are the reads it makes: it runs in a dressing
+   * step's COMPLETION, and a controller is one ephemeral clone per
+   * execution, destructed the moment `execute` returns — a completion
+   * calling back into the instance runs on a destroyed Stuff and the proxy
+   * answers with a silent no-op (FireController's lesson). Found by the
+   * rubber drive: *"You put on a pair of stout leather boots."* — and the
+   * feet slot stayed empty.
+   */
+  private static put(item: Stuff, giver: Stuff & Slotted & Attired, mode: EquipMode): void {
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-    const as = this.claimAs(item, mode);
-    const slots = as === null ? [] : this.slotsFor(item, plan, as);
+    const as = EquipController.claimAs(item, mode);
+    const slots = as === null ? [] : EquipController.slotsFor(item, plan, as);
     giver.occupyAll(item as Parameters<typeof giver.occupyAll>[0], [...slots]);
   }
 
@@ -580,8 +607,8 @@ export default class EquipController extends CommandController<EquipModel> {
   ): void {
     if (reason === 'slot-full') {
       const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-      const as = this.claimAs(item, mode);
-      const slots = as === null ? [] : this.slotsFor(item, plan, as);
+      const as = EquipController.claimAs(item, mode);
+      const slots = as === null ? [] : EquipController.slotsFor(item, plan, as);
       const full = slots.find((sl) => giver.isSlotFull(sl)) ?? 'slot';
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -600,8 +627,8 @@ export default class EquipController extends CommandController<EquipModel> {
       // cannot grip — a fracture of body.arm.left.hand"* is one they can
       // act on, and it tells them the refusal will lift when it heals.
       const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-      const as = this.claimAs(item, mode);
-      const slots = as === null ? [] : this.slotsFor(item, plan, as);
+      const as = EquipController.claimAs(item, mode);
+      const slots = as === null ? [] : EquipController.slotsFor(item, plan, as);
       const why = MixinApi.isVitals(giver)
         ? slots
             .map((sl) => giver.slotRefusalReason(sl))
@@ -625,7 +652,7 @@ export default class EquipController extends CommandController<EquipModel> {
     // ⚠ `wield`'s shipped no-slots line was about HANDS, not the body,
     // and it stays that way: "doesn't fit your body" about a sword is
     // the kind of answer that makes a player doubt the model.
-    const held = this.claimAs(item, mode) === 'wield';
+    const held = EquipController.claimAs(item, mode) === 'wield';
     const line =
       reason === 'fit'
         ? Mml.compose`${Mml.thing(item)} was not cut for a body like yours — it will not go on.`

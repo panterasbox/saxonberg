@@ -1,0 +1,13 @@
+# The icehouse's gauging rod — a cooper's rule, kept on the platform for the
+# stocktake (`measure stock`). Its OWN row: a prop of the coopering row here
+# made the first live gauging rod in the world stand at the mere (the venue
+# boots its rooms), and `clone` answers title through a row's first live
+# instance — the founder could no longer clone a cooper's rod anywhere (the
+# assembly drive, at this build's W10).
+extends: /trade/coopering/thing/gauging-rod
+data:
+  shortDescription: icehouse gauging rod
+  keywords: [rod, "gauging rod", "stock rod"]
+  longDescription: >-
+    A cooper's square rule of box, graduated down two faces, its foot shod in
+    brass and dark with the wet of the stack.

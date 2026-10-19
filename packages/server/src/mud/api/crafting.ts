@@ -22,6 +22,7 @@
  * {@link CraftingLogic} singleton at `/platform/idea/api/crafting`.
  */
 
+import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Grade } from '../lib/craft/Grade';
 import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
@@ -220,7 +221,100 @@ export interface RepairRequest {
    * fallback, never a wire value.
    */
   makerPath?: string;
+  /**
+   * ⭐ The hand that does the work, when it is not the person asking —
+   * the on-shift smith at a paid mend (repair D12). World state resolved
+   * by the service, never a wire value: the hand's bands, reach and heat
+   * decide the result, and the mend records the hand.
+   */
+  hand?: Stuff;
 }
+
+/**
+ * ⭐ One part a mend reached (repair D8). `part` is absent for a thing of
+ * one piece. `result` is `short` when the hand could not bring it back
+ * sound — an unpractised hand's mend.
+ */
+export interface MendOutcome {
+  part?: string;
+  kind: 'mended' | 'reforged' | 'tightened' | 'refired';
+  /** The trade it was mended under (`''` when none could be known). */
+  discipline: string;
+  /** The hand's band in that trade. */
+  band: string;
+  result: 'sound' | 'short';
+}
+
+/**
+ * ⭐ What a hand's band makes of a mend (repair D8): the condition it can
+ * bring a part to, the grade bands it costs, whether it leaves the joints
+ * it touched slack, and the share of the stock it needs.
+ */
+export interface MendTerms {
+  ceiling: number;
+  gradeLoss: number;
+  slackens: boolean;
+  stock: number;
+}
+
+/** One part a mend could NOT reach, and why — said back in words. */
+export interface SkippedPart {
+  part: string;
+  reason: RepairDeclineReason;
+  /** The heat, the tool, the stock, the trade — what would cure it. */
+  detail?: string;
+}
+
+/**
+ * ⭐ The refusal for a priced service with nobody on shift to do it — one
+ * sentence, shared by every service arm (repair P1).
+ */
+export const NOBODY_TO_WORK = "There's nobody here to do the work.";
+
+/**
+ * ⭐ One fault a hand finds in a thing (repair D12) — what the paid mend
+ * quotes from and what `repair` would do. Read-only: finding a fault
+ * changes nothing.
+ */
+export interface Fault {
+  /** The part (`''` for a thing of one piece), or the joint for `slack`. */
+  part: string;
+  kind: 'worn' | 'failed' | 'slack' | 'spent';
+  /** What the hand can call it — below a joint's band, *something about the staves*. */
+  named: string;
+  /** What mending it would be. */
+  action: MendOutcome['kind'];
+  discipline: string;
+  /** The hand's band in that trade. */
+  band: string;
+  /** Can THIS hand mend it here, now? */
+  mendable: boolean;
+  /** How it would come back, when mendable. */
+  result?: 'sound' | 'short';
+  /** Why not, when not — and the cure, in `detail`. */
+  reason?: RepairDeclineReason;
+  detail?: string;
+  /** The stock it would draw (kg). */
+  stockKg: number;
+}
+
+/** What a hand finds in a thing — every fault, mendable or not. */
+export interface Diagnosis {
+  ok: true;
+  item: Stuff;
+  /** The hand that looked it over. */
+  hand: Stuff;
+  faults: Fault[];
+}
+
+/** Ask a hand to look a thing over (repair D12). */
+export interface DiagnoseRequest {
+  item: Stuff;
+  /** The hand; absent, the person asking. */
+  hand?: Stuff;
+}
+
+export type DiagnoseOutcome = Diagnosis | RepairFailure;
 
 /** Why a repair was infeasible (rendered diegetically). */
 export type RepairDeclineReason =
@@ -252,9 +346,16 @@ export interface RepairSuccess {
    * slack joint (consumes nothing), `refired` a spent cask, or `restored`
    * wear with material. Absent on a thing that is not made of parts.
    */
-  rung?: 'tightened' | 'refired' | 'restored';
+  rung?: 'tightened' | 'refired' | 'restored' | 'reforged';
   /** What the rung acted on — the joints tightened, in words. */
   named?: string;
+  /**
+   * ⭐ Every part the mend reached, in the order the ladder took them
+   * (repair D8) — a whole mends every line it can.
+   */
+  mended: MendOutcome[];
+  /** Every part it could not, and what would cure each. */
+  skipped: SkippedPart[];
 }
 
 export interface RepairFailure {
@@ -414,6 +515,33 @@ export class CraftingApi {
   }
 
   /**
+   * ⭐ Who does a paid service's work (repair D12): someone on shift in the
+   * room whose seat fulfils `discipline` (any, when absent — a Tariff row
+   * may name one per service), working for the house `offer`'s money goes
+   * to, chosen by that house's own call rule. `null` when nobody is — the
+   * service is refused in words (`NOBODY_TO_WORK`), never done free.
+   * See {@link CraftingLogic.fulfillingHand}.
+   */
+  public static async fulfillingHand(
+    giver: Stuff,
+    offer: Stuff & PricedOffer,
+    discipline?: string,
+  ): Promise<Stuff | null> {
+    return logic().fulfillingHand(giver, offer, discipline);
+  }
+
+  /**
+   * ⭐ A hand looks a thing over (repair D12): every fault — a worn part, a
+   * failed one, a slack joint, a spent cask — whether this hand can mend
+   * it here and now, how it would come back, and the stock it would draw.
+   * Read-only: finding a fault changes nothing. The hand defaults to the
+   * person asking. See {@link CraftingLogic.diagnose}.
+   */
+  public static async diagnose(request: DiagnoseRequest): Promise<DiagnoseOutcome> {
+    return logic().diagnose(request);
+  }
+
+  /**
    * Salvage a Tangible — the one generic lossy melt-down: each
    * constituent material returns `mass × fraction × crafting.salvageRate`
    * in its natural raw form (metal → a re-meltable casting, organics → a
@@ -447,6 +575,20 @@ export class CraftingApi {
   /** The display views for a `Menu`'s offered recipes. */
   public static async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return logic().offeredRecipes(menu);
+  }
+
+  /**
+   * ⭐ The recipe an instrument would run for a stock: the one whose tool
+   * capability is `capability` and whose single item input names one of
+   * `tags` (a material's tags). So the stones take bone, or a dandelion
+   * root, because a recipe row says so — a second grindable is a row and
+   * a material tag, with no instrument's list to edit.
+   */
+  public static async recipeTaking(
+    capability: string,
+    tags: readonly string[],
+  ): Promise<RecipeView | null> {
+    return logic().recipeTaking(capability, tags);
   }
 
   /**

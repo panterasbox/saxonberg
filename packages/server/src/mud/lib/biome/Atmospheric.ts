@@ -55,6 +55,9 @@ import type {
   Enclosed,
   EnclosureSpec,
   EnclosureDefaults,
+  EnclosurePartSpec,
+  RoofSpec,
+  ResolvedLayer,
   ResolvedEnclosure,
 } from '../spatial/Enclosed';
 import { AppApi } from '../../api/app';
@@ -63,6 +66,12 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
+import { NavigationApi } from '../../api/navigation';
+import { Exposure, type Face } from '../spatial/Exposure';
+import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
+import { CelestialApi } from '../../api/celestial';
+import type Exit from '../boundary/Exit';
+import type Structure from '../../platform/idea/Structure';
 
 export interface Atmospheric {
   // ---------- biome reference ----------
@@ -292,11 +301,27 @@ export interface Atmospheric {
    * Inert everywhere else with no guard needed: `Offstage` and a plain
    * `Location` have no volume, so the geometry answers.
    */
-  /** What this scope's row says it is built of, or `null`. */
-  getEnclosure(): EnclosureSpec | null;
-  setEnclosure(value: EnclosureSpec | null): void;
+  /** What this scope's row says it is built of — raw, or `null`. */
+  getEnclosure(): EnclosurePartSpec | null;
+  setEnclosure(value: EnclosurePartSpec | null): void;
   /** What a scope of this KIND is built of when its row says nothing. */
-  enclosureDefaults(): EnclosureDefaults;
+  enclosureDefaults(): EnclosureDefaults | 'none';
+  /** What this scope's row says is over it — raw, or `null`. */
+  getRoof(): RoofSpec | null;
+  setRoof(value: RoofSpec | null): void;
+  /** What is over a scope of this KIND; `null` = undeclared. */
+  roofDefaults(): RoofSpec | null;
+  /**
+   * ⭐ The walls and the roof as resolved, with the legacy biome
+   * discriminator answering for a scope whose roof is undeclared.
+   */
+  construction(): Construction;
+  /** ⭐⭐ What is over and around this place — see {@link Exposure}. */
+  exposure(): Exposure;
+  /** ⭐ The sun through a transparent face, W, at game-time `atS`. */
+  solarGainW(atS: number): number;
+  /** ⭐ What this scope would settle at for a given outside, at `atS`. */
+  envelopeSteadyStateK(outsideK: number, atS: number): number | null;
 
   envelopeApplies(): boolean;
 
@@ -324,6 +349,15 @@ export interface Atmospheric {
 
   /** ⭐ The setpoint a driven scope clamps toward, else `null`. */
   climateSetpointK(): number | null;
+
+  /**
+   * ⭐⭐ The temperature this scope would settle at for a given outside,
+   * at `atS` — THE steady-state formula the envelope integrates toward
+   * (storage-and-ice D5): `(U·T_out + ΣfixedW + driveW + ΣG·anchor) /
+   * (U + ΣG)` over its occupants' {@link RoomHeatExchange}s, clamped by a
+   * driven scope's setpoint. `null` when no envelope applies.
+   */
+  envelopeSteadyStateK(outsideK: number, atS: number): number | null;
 
   /**
    * The scope's own temperature (K), or `null` when no envelope
@@ -360,6 +394,10 @@ export interface Atmospheric {
     openings: number;
     enclosureMaterialPath: string;
     hottestSource: string | null;
+    /** The sun through its transparent faces right now, W. */
+    solarW: number;
+    /** The warmest enclosed neighbour warmer than this room. */
+    warmestNeighbour: string | null;
   } | null;
 
   /** The room's heat-loss coefficient and heat capacity, or `null`. */
@@ -379,6 +417,18 @@ export interface Atmospheric {
   envelopeTemperatureK: number | null;
   envelopeClockStamp: number;
   envelopeOutsideK: number | null;
+}
+
+/**
+ * ⭐ A scope's two parts, resolved. `declared` is false when the ROOF came
+ * from neither the row nor the class hook — the legacy biome
+ * discriminator answered, and the scope is an interior `lint:biome-sky`
+ * still counts (or an outdoor row, which is never debt).
+ */
+export interface Construction {
+  walls: ResolvedEnclosure;
+  roof: ResolvedEnclosure;
+  declared: boolean;
 }
 
 /**
@@ -420,6 +470,7 @@ export function AtmosphericMixin<
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
       enclosure: { persistent: true, authorable: true },
+      roof: { persistent: true, authorable: true },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -505,14 +556,54 @@ export function AtmosphericMixin<
      * else. `null` — the ordinary case — falls through to
      * {@link enclosureDefaults}.
      */
-    protected enclosure: EnclosureSpec | null = null;
+    protected enclosure: EnclosurePartSpec | null = null;
 
-    public getEnclosure(): EnclosureSpec | null {
+    /**
+     * What this place says is over it — one layer, a list outermost
+     * first, or `none`. `null` — today's ordinary case — is UNDECLARED:
+     * the legacy biome discriminator answers (see {@link construction}).
+     * Authored-only: never runtime state.
+     */
+    protected roof: RoofSpec | null = null;
+
+    /** Transient: the resolved roof. */
+    private _resolvedRoof: ResolvedEnclosure | null = null;
+    /** Transient: the last {@link exposure}, and what it was built against. */
+    private _exposure: Exposure | null = null;
+    private _exposureKey = '';
+    private _exposureHead = '';
+    private _exposureCheckedMs = 0;
+
+    /** ⭐ The RAW authored form — a contract with the repair build. */
+    public getEnclosure(): EnclosurePartSpec | null {
       return this.enclosure;
     }
-    public setEnclosure(value: EnclosureSpec | null): void {
+    public setEnclosure(value: EnclosurePartSpec | null): void {
       this.enclosure = value;
       this._resolvedEnclosure = null;
+      this._resolvedRoof = null;
+      this._exposure = null;
+    }
+
+    /** ⭐ The RAW authored form — a contract with the repair build. */
+    public getRoof(): RoofSpec | null {
+      return this.roof;
+    }
+    public setRoof(value: RoofSpec | null): void {
+      this.roof = value;
+      this._resolvedRoof = null;
+      this._exposure = null;
+    }
+
+    /**
+     * What is over a scope of this KIND when its row says nothing.
+     * `null` here: a `Location` that authors no `roof:` is undeclared.
+     *
+     * @hook A `Vessel` answers its own material when it declares an
+     *   interior, and `'none'` when it does not.
+     */
+    public roofDefaults(): RoofSpec | null {
+      return null;
     }
 
     /**
@@ -524,7 +615,7 @@ export function AtmosphericMixin<
      *   The row still wins: a `fabric:` on the row beats this, and this
      *   beats the universe default.
      */
-    public enclosureDefaults(): EnclosureDefaults {
+    public enclosureDefaults(): EnclosureDefaults | 'none' {
       return {
         materialPath: envelopeDialStr(
           AppSettingKeys.enclosureDefaultMaterial,
@@ -828,10 +919,10 @@ export function AtmosphericMixin<
       if (!(litres > 0)) return 0;
       const volumeL = this.mediumLitres();
       if (volumeL === null) return 0;
-      const self = this as unknown as Stuff;
       // Open to the sky: it goes up, and that is the whole lesson of
-      // running a fire outdoors.
-      if (BiomeApi.isSkyExposed(self)) return 0;
+      // running a fire outdoors. An open top or no walls holds nothing:
+      // it is the outside air.
+      if (!this.exposure().holdsAir()) return 0;
       this.reconcileAtmosphereContents();
       const headroom = Math.max(0, 1 - this.contentsSum());
       const wanted = litres / volumeL;
@@ -970,8 +1061,8 @@ export function AtmosphericMixin<
      * room's air mixes with the next room's long before its heat does.
      */
     public airChangesPerHour(): number {
-      const self = this as unknown as Stuff;
-      if (BiomeApi.isSkyExposed(self)) return Infinity;
+      // ⭐ An awning or a lavoir does not hold gas like a shut room.
+      if (!this.exposure().holdsAir()) return Infinity;
       const { exterior, interior } = this.openingsByKind();
       const perOpening = envelopeDial(AppSettingKeys.fireAirAchPerOpening, 4);
       const perInterior = envelopeDial(AppSettingKeys.fireAirAchInterior, 1);
@@ -1040,10 +1131,9 @@ export function AtmosphericMixin<
      *    an envelope would have it drift toward itself.
      */
     public envelopeApplies(): boolean {
-      const self = this as unknown as Stuff;
       if (this.getVolume() === null) return false;
       if (this._temperature !== null) return false;
-      return !BiomeApi.isSkyExposed(self);
+      return this.exposure().holdsAir();
     }
 
     /**
@@ -1099,7 +1189,11 @@ export function AtmosphericMixin<
      *   per obvious exit on a read that sits on the thermal hot path.
      */
     protected isThreshold(far: Stuff): boolean {
-      return BiomeApi.isSkyExposed(far);
+      // ⭐ The far side holds no air of its own — a street, a yard, an
+      // awning. An enclosed neighbour is interior whether or not it is
+      // of the same structure (a party threshold couples nothing yet).
+      const e = BiomeApi.exposureOf(far);
+      return e === null ? false : !e.holdsAir();
     }
 
     /**
@@ -1129,26 +1223,313 @@ export function AtmosphericMixin<
      */
     public resolveEnclosure(): ResolvedEnclosure {
       if (this._resolvedEnclosure !== null) return this._resolvedEnclosure;
+      const resolved = this.resolvePart(
+        this.getEnclosure(),
+        this.enclosureDefaults(),
+      );
+      this._resolvedEnclosure = resolved;
+      return resolved;
+    }
 
-      const spec = this.getEnclosure();
-      const defaults = this.enclosureDefaults();
-      const materialPath = spec?.material ?? defaults.materialPath;
-      const thicknessM =
-        typeof spec?.thicknessM === 'number'
+    /**
+     * Resolve one part — a single layer, a list outermost first, or
+     * `none` — falling back to `defaults` for anything a layer leaves
+     * out. ⭐ The flat fields describe the INNERMOST layer.
+     */
+    private resolvePart(
+      spec: EnclosurePartSpec | null,
+      defaults: EnclosureDefaults | 'none',
+    ): ResolvedEnclosure {
+      const base =
+        defaults === 'none' ? AtmosphericMixin.universeEnclosure() : defaults;
+      const effective: EnclosurePartSpec =
+        spec ?? (defaults === 'none' ? 'none' : {});
+      if (effective === 'none') {
+        const skin = AtmosphericMixin.resolveLayer({}, base);
+        return {
+          ...skin,
+          layers: [],
+          none: true,
+          resistanceM2KW: 0,
+          transmittance: 1,
+        };
+      }
+      const specs: readonly EnclosureSpec[] = Array.isArray(effective)
+        ? effective
+        : [effective as EnclosureSpec];
+      const layers = (specs.length > 0 ? specs : [{}]).map((l) =>
+        AtmosphericMixin.resolveLayer(l, base),
+      );
+      const inner = layers[layers.length - 1] as ResolvedLayer;
+      return {
+        ...inner,
+        layers,
+        none: false,
+        resistanceM2KW: layers.reduce((r, l) => r + l.thicknessM / l.kWmK, 0),
+        transmittance: layers.reduce((t, l) => t * l.transmittance, 1),
+      };
+    }
+
+    /** One layer off its `Material` row. */
+    private static resolveLayer(
+      spec: EnclosureSpec,
+      defaults: EnclosureDefaults,
+    ): ResolvedLayer {
+      const materialPath = spec.material ?? defaults.materialPath;
+      const authored =
+        typeof spec.thicknessM === 'number'
           ? spec.thicknessM
           : defaults.thicknessM;
-
+      const thicknessM = authored > 0 ? authored : 0.3;
       const material =
         StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
-      const resolved: ResolvedEnclosure = {
+      // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
+      const alpha = material?.getLightAbsorption()?.rawValue();
+      return {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,
         cJkgK: material?.getSpecificHeat().rawValue() || 900,
-        thicknessM: thicknessM > 0 ? thicknessM : 0.3,
+        thicknessM,
         materialPath,
+        transmittance:
+          typeof alpha === 'number' && alpha >= 0 ? Math.exp(-alpha * thicknessM) : 0,
       };
-      this._resolvedEnclosure = resolved;
-      return resolved;
+    }
+
+    /** The universe default — what a part with nothing authored is made of. */
+    private static universeEnclosure(): EnclosureDefaults {
+      return {
+        materialPath: envelopeDialStr(
+          AppSettingKeys.enclosureDefaultMaterial,
+          '/stuff/idea/material/rock/granite',
+        ),
+        thicknessM: envelopeDial(
+          AppSettingKeys.enclosureDefaultThicknessM,
+          0.3,
+        ),
+      };
+    }
+
+    /** The roof as declared: row → class hook → `null` (undeclared). */
+    private resolveDeclaredRoof(): ResolvedEnclosure | null {
+      if (this._resolvedRoof !== null) return this._resolvedRoof;
+      const spec = this.getRoof() ?? this.roofDefaults();
+      if (spec === null) return null;
+      this._resolvedRoof = this.resolvePart(spec, this.enclosureDefaults());
+      return this._resolvedRoof;
+    }
+
+    /**
+     * ⭐⭐ The walls and the roof as they stand — and, for a place whose
+     * roof is UNDECLARED, the legacy answer exactly as the biome gave it:
+     * a sky biome is open (no roof, and no walls unless the row authors
+     * them), anything else is its walls' material on five faces.
+     *
+     * ⚠ The legacy branch is the counted transition (`lint:biome-sky`):
+     * at ceiling zero both `Location` defaults become `none` and it goes.
+     */
+    public construction(): Construction {
+      const declaredRoof = this.resolveDeclaredRoof();
+      const walls = this.resolveEnclosure();
+      if (declaredRoof !== null) {
+        return { walls, roof: declaredRoof, declared: true };
+      }
+      if (AtmosphericMixin.legacySky(this as unknown as Stuff)) {
+        const none = this.resolvePart('none', 'none');
+        return {
+          walls: this.getEnclosure() === null ? none : walls,
+          roof: none,
+          declared: false,
+        };
+      }
+      const roof = walls.none
+        ? this.resolvePart(null, AtmosphericMixin.universeEnclosure())
+        : walls;
+      return { walls, roof, declared: false };
+    }
+
+    /**
+     * ⭐⭐⭐ **What is over and around this place** — the one rule, applied
+     * once: *a face is exterior unless the space across it is an enclosed
+     * place of the same structure.* See {@link Exposure}.
+     *
+     * Cached transiently and rebuilt when the structure this place
+     * belongs to, or its resident neighbours, change: a structure stands
+     * up asynchronously after its rooms, and a memo taken before it stood
+     * would say *no structure* forever (the Floor snow precedent — re-run
+     * until the place answers). Door state is never cached; it is read
+     * live.
+     */
+    public exposure(): Exposure {
+      const self = this as unknown as Stuff;
+      const path = self.getTemplatePath();
+      let structure: Structure | null = null;
+      if (path) {
+        try {
+          structure = NavigationApi.structureAtNow(path);
+        } catch {
+          structure = null;
+        }
+      }
+      // ⚠ An UNDECLARED place's answer is its biome's, and a biome
+      // resolves after the room materializes (the Floor snow lesson) — so
+      // the legacy bit is part of the key, re-read every call.
+      let head = structure?.stuffId ?? '';
+      if (this.resolveDeclaredRoof() === null) {
+        head += AtmosphericMixin.legacySky(self) ? '|sky' : '|in';
+      }
+      // ⚠⚠ The hot path (found by the first wire run): the envelope's gate,
+      // the air changes and every threshold test ask this, many times per
+      // command. The structure and the legacy bit are cheap and read every
+      // call; resolving the NEIGHBOURS (a pass over the exits, each one's
+      // destination resolved) is not, so it is re-checked at most once a
+      // real second — a neighbour that loads or an exit that opens shows
+      // up within the second, which no reader can tell from immediately.
+      const nowMs = Date.now();
+      if (
+        this._exposure !== null &&
+        this._exposureHead === head &&
+        nowMs - this._exposureCheckedMs < 1000
+      ) {
+        return this._exposure;
+      }
+      const neighbours = MixinApi.isExitable(self)
+        ? self.getObviousNeighbours({ doors: 'all' })
+        : [];
+      let key = head;
+      for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
+      this._exposureCheckedMs = nowMs;
+      this._exposureHead = head;
+      if (this._exposure !== null && this._exposureKey === key) {
+        return this._exposure;
+      }
+      const built = this.buildExposure(path, structure, neighbours);
+      this._exposure = built;
+      this._exposureKey = key;
+      return built;
+    }
+
+    private buildExposure(
+      path: string | null,
+      structure: Structure | null,
+      neighbours: ReadonlyArray<{ exit: Exit; dest: Stuff }>,
+    ): Exposure {
+      const self = this as unknown as Stuff;
+      const own = this.construction();
+      const volume = this.getVolume()?.rawValue() ?? 0;
+      const side = volume > 0 ? Math.cbrt(volume) : 0;
+      const faceArea = side * side;
+
+      const storey =
+        structure !== null && path !== null ? structure.storeyOf(path) : null;
+      const enclosed = (m: Stuff): boolean => {
+        if (!MixinApi.isAtmospheric(m)) return false;
+        const c = m.construction();
+        return !c.walls.none || !c.roof.none;
+      };
+
+      // ── the top ──
+      let top: 'open' | 'roof' | 'ceiling' = own.roof.none ? 'open' : 'roof';
+      if (structure !== null && storey !== null) {
+        for (const above of structure.storeysStandingOn(storey.key)) {
+          if (structure.membersOf(above.key).some(enclosed)) {
+            top = 'ceiling';
+            break;
+          }
+        }
+      }
+
+      // ── the walls: openings are exits ──
+      const walls: Face[] = [];
+      const seen = new Set<string>();
+      let openSides = 0;
+      let wallsShared = 0;
+      for (const { exit, dest } of neighbours) {
+        const vertical = AtmosphericMixin.isVertical(exit.getDirection());
+        const destPath = dest.getTemplatePath();
+        const sameStructure =
+          structure !== null && destPath !== null && structure.hasMember(destPath);
+        if (sameStructure && enclosed(dest)) {
+          if (seen.has(dest.stuffId)) continue;
+          seen.add(dest.stuffId);
+          walls.push({
+            material: own.walls.none ? null : own.walls,
+            areaM2: faceArea,
+            exterior: false,
+            neighbour: dest,
+            exit,
+          });
+          if (!vertical) wallsShared += 1;
+          continue;
+        }
+        if (vertical || exit.getDoor() !== null) continue;
+        // ⚠ A doorless exit to another ENCLOSED place is not an opening:
+        // the face stays a solid exterior wall, as it always has.
+        // ⚠ Only a DECLARED place has open sides: an undeclared interior
+        // keeps today's one material on five faces (its doorway is the
+        // shipped `U_open` term, never a missing wall).
+        if (!own.declared) continue;
+        if (!MixinApi.isAtmospheric(dest) || !enclosed(dest)) openSides += 1;
+      }
+      wallsShared = Math.min(wallsShared, 4);
+      openSides = Math.min(openSides, 4 - wallsShared);
+      if (!own.walls.none) {
+        const exteriorWalls = 4 - wallsShared - openSides;
+        for (let i = 0; i < exteriorWalls; i++) {
+          walls.push({ material: own.walls, areaM2: faceArea, exterior: true });
+        }
+      }
+
+      // ── the floor ──
+      let floorIsRoofOf: Stuff | null = null;
+      let onGrade: boolean;
+      if (structure !== null) {
+        onGrade = storey === null || !storey.on;
+        if (storey?.on) {
+          const below = structure.membersOf(storey.on);
+          floorIsRoofOf =
+            below.find((b) => neighbours.some((n) => n.dest === b)) ??
+            below[0] ??
+            null;
+        }
+      } else {
+        const coords = (self as unknown as {
+          getCoordinates?: () => readonly number[] | null;
+        }).getCoordinates?.();
+        onGrade = top === 'open' || (coords != null && (coords[2] ?? 0) < 0);
+      }
+
+      return new Exposure({
+        structure,
+        storey: storey?.key ?? null,
+        declared: own.declared,
+        top,
+        roof:
+          top === 'roof'
+            ? { material: own.roof, areaM2: faceArea, exterior: true }
+            : null,
+        walls,
+        wallsNone: own.walls.none,
+        openSides,
+        onGrade,
+        floorIsRoofOf,
+        openOpenings: () => this.openExteriorOpenings(),
+        sideWeight: envelopeDial(AppSettingKeys.lightSolarSideWeight, 0.25),
+      });
+    }
+
+    /** The legacy biome discriminator, guarded (no biome reads `false`). */
+    private static legacySky(scope: Stuff): boolean {
+      try {
+        return BiomeApi.isSkyExposed(scope);
+      } catch {
+        return false;
+      }
+    }
+
+    /** An exit up or down a storey couples, but consumes no wall. */
+    private static isVertical(direction: string): boolean {
+      return direction === 'up' || direction === 'down';
     }
 
     /**
@@ -1203,54 +1584,62 @@ export function AtmosphericMixin<
 
       this._envelopeReconciling = true;
       try {
-        let heatW = 0;
         const self = this as unknown as Stuff;
-        for (const occupant of this.occupants()) {
-          if (!MixinApi.isSpaceHeating(occupant)) continue;
-          heatW += occupant.spaceHeatOutputW();
-        }
-
-        const tau = coeff.capacityJPerK / coeff.uWperK;
-        const setpoint = this.climateSetpointK();
+        // ⭐ The occupants' exchanges (storage-and-ice D5: fires push, cold
+        // stock pulls) and the room's own (rubber: the sun through glass,
+        // the rooms of the same building) are ONE budget, read per piece.
         const ring = new TrajectoryLog(this.envelopeLog);
         const startStamp = now - elapsed;
 
         // Integrate one segment of the gap under a fixed supply state,
         // recording a breakpoint so bodies can read the curve back.
+        // ⭐ (rubber build) A room with a transparent exterior face follows
+        // the sun: the segment is split into pieces no longer than a game
+        // hour, each with the sun at its midpoint. Every opaque room has no
+        // solar term and integrates the segment whole, exactly as before.
+        const solar = this.hasSolarFaces();
+        const maxPieces = Math.max(
+          1,
+          Math.floor(envelopeDial(AppSettingKeys.envelopeSolarSegmentsMax, 48)),
+        );
         const integrateSegment = (
           powered: boolean,
           segStartS: number,
           segDur: number,
         ): void => {
-          // ⭐ A driven term — a cooler/heater the scope hosts
-          // (`ClimateControlMixin` answers a negative capacity while
-          // supplied and above setpoint; the base is 0). Folded into the
-          // heat budget so the envelope needs no second time constant.
-          const driveW = this.envelopeDriveW(
-            this.envelopeTemperatureK as number,
-            powered,
-          );
-          let steadyState = outside + (heatW + driveW) / coeff.uWperK;
-          // ⭐ A thermostat does not sail past its dial: a cooling drive
-          // clamps the steady state from below, a heating drive from above,
-          // so an over-strong unit HOLDS the setpoint rather than
-          // overshooting it.
-          if (setpoint !== null) {
-            if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
-            if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+          const pieces = solar
+            ? Math.min(maxPieces, Math.max(1, Math.ceil(segDur / 3600)))
+            : 1;
+          const pieceS = segDur / pieces;
+          for (let i = 0; i < pieces; i++) {
+            const pieceStartS = segStartS + i * pieceS;
+            // ⭐ A driven term — a cooler/heater the scope hosts
+            // (`ClimateControlMixin` answers a negative capacity while
+            // supplied and above setpoint; the base is 0). Folded into the
+            // heat budget so the envelope needs no second time constant.
+            const driveW = this.envelopeDriveW(
+              this.envelopeTemperatureK as number,
+              powered,
+            );
+            const budget = this.envelopeBudgetAt(pieceStartS + pieceS / 2);
+            const conductanceWperK = coeff.uWperK + budget.conductanceWperK;
+            // Coupled to nothing that has resolved yet: hold, do not drift.
+            if (!(conductanceWperK > 0)) continue;
+            const steadyState = this.envelopeSteadyStateFrom(outside, coeff.uWperK, budget, driveW);
+            const pieceTau = coeff.capacityJPerK / conductanceWperK;
+            ring.record(
+              pieceStartS,
+              this.envelopeTemperatureK as number,
+              steadyState,
+              pieceTau,
+            );
+            this.envelopeTemperatureK = Decay.toward(
+              this.envelopeTemperatureK as number,
+              steadyState,
+              pieceS,
+              pieceTau,
+            );
           }
-          ring.record(
-            segStartS,
-            this.envelopeTemperatureK as number,
-            steadyState,
-            tau,
-          );
-          this.envelopeTemperatureK = Decay.toward(
-            this.envelopeTemperatureK as number,
-            steadyState,
-            segDur,
-            tau,
-          );
         };
 
         // ⭐ If the scope draws a supply that can be cut (a `ColdStore` /
@@ -1275,6 +1664,121 @@ export function AtmosphericMixin<
     }
 
     /**
+     * ⭐ What this room is exchanging heat with besides its outside and
+     * its occupants, at game-time `atS` — each a {@link RoomHeatExchange}
+     * term: the sun through a transparent face (D6). Neighbours of the
+     * same building join in W3.
+     */
+    protected envelopeExchanges(atS: number): RoomHeatExchange[] {
+      const out: RoomHeatExchange[] = [];
+      const solarW = this.solarGainW(atS);
+      if (solarW > 0) out.push({ fixedW: solarW, conductanceWperK: 0, anchorK: 0 });
+      // ⭐⭐ (D7) The rooms of one building share heat through their
+      // interior faces: each neighbour is a conductance to its LAST
+      // integrated temperature — read, never integrated here, so the
+      // coupling is bounded and recursion-free. A neighbour that has never
+      // resolved contributes nothing (adiabatic, not exterior).
+      for (const face of this.exposure().interiorFaces()) {
+        const n = face.neighbour;
+        if (!n || !MixinApi.isAtmospheric(n)) continue;
+        const anchorK = n.envelopeTemperatureLast();
+        if (anchorK === null) continue;
+        const g = this.interiorConductanceWperK(face, n);
+        if (g > 0) out.push({ fixedW: 0, conductanceWperK: g, anchorK });
+      }
+      return out;
+    }
+
+    /**
+     * ⭐ **Shut ⇒ conduction, open ⇒ flow** (D7), and SYMMETRIC, so heat
+     * is conserved between the two rooms: each side computes the same
+     * number from the same two rows.
+     *
+     *  - a doored exit whose door is shut couples by conduction through
+     *    the party wall — both places' own walls back to back, in series
+     *    with the films: `A / (R_this + R_far + R_films)`;
+     *  - a doorless exit or an open door couples by air exchange at the
+     *    open-opening flow constant: `openingUPerM3 · min(V_this, V_far)` —
+     *    the inside air moving, which is why the loft warms within the hour
+     *    and a shut door between them makes it an afternoon.
+     */
+    private interiorConductanceWperK(face: Face, n: Stuff & Atmospheric): number {
+      const vThis = this.getVolume()?.rawValue() ?? 0;
+      const vFar = n.getVolume()?.rawValue() ?? 0;
+      if (!(vThis > 0) || !(vFar > 0)) return 0;
+      const door = face.exit?.getDoor() ?? null;
+      const open = door === null || door.isOpen();
+      if (open) {
+        return envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) * Math.min(vThis, vFar);
+      }
+      const side = Math.cbrt(Math.min(vThis, vFar));
+      const area = side * side;
+      const rFilms = envelopeDial(AppSettingKeys.envelopeSurfaceResistanceM2KPerW, 0.17);
+      const rThis = this.construction().walls.resistanceM2KW;
+      const rFar = n.construction().walls.resistanceM2KW;
+      return area / (rThis + rFar + rFilms);
+    }
+
+    /**
+     * The warmest enclosed neighbour of the same building, when it is
+     * warmer than this room — what `feel` names as the warmth's source.
+     */
+    private warmestNeighbour(insideK: number): string | null {
+      let best: string | null = null;
+      let bestK = insideK + 0.5;
+      for (const face of this.exposure().interiorFaces()) {
+        const n = face.neighbour;
+        if (!n || !MixinApi.isAtmospheric(n)) continue;
+        const k = n.envelopeTemperatureLast();
+        if (k === null || k <= bestK) continue;
+        bestK = k;
+        best = n.getPresentation();
+      }
+      return best;
+    }
+
+    /** Σ T·A·w over the transparent exterior faces; 0 when there are none. */
+    private solarAperture(): number {
+      const e = this.exposure();
+      if (!e.declared) return 0;
+      let a = 0;
+      if (e.top === 'roof' && e.roof) a += e.faceTransmittance(e.roof) * e.roof.areaM2;
+      const side = envelopeDial(AppSettingKeys.lightSolarSideWeight, 0.25);
+      for (const w of e.walls) {
+        if (!w.exterior || w.material === null) continue;
+        a += side * e.faceTransmittance(w) * w.areaM2;
+      }
+      return a;
+    }
+
+    /** Does the sun reach this room's air through any face? */
+    private hasSolarFaces(): boolean {
+      return this.solarAperture() > 0;
+    }
+
+    /**
+     * ⭐⭐ **The sun through a transparent face, in W, at game-time `atS`**
+     * (rubber build): `I_noon · skyFactor(t) · weatherDim · Σ T·A·w`.
+     * The sky factor is the light walk's own curve; the dim is the scope's
+     * cached cloud factor; `I_noon` is the one calibration dial. 0 for
+     * every room with no transparent exterior face.
+     */
+    public solarGainW(atS: number): number {
+      const aperture = this.solarAperture();
+      if (!(aperture > 0)) return 0;
+      const irradiance = envelopeDial(AppSettingKeys.lightSolarNoonIrradianceWm2, 700);
+      let sky = 0;
+      try {
+        sky = CelestialApi.skyFactorAt(atS, this.climateSite().latitudeDeg);
+      } catch {
+        sky = 0;
+      }
+      const self = this as unknown as Stuff;
+      const dim = MixinApi.isAmbientLit(self) ? self.getWeatherDimFactor() : 1;
+      return irradiance * sky * dim * aperture;
+    }
+
+    /**
      * ⭐ `@hook` **A driven heat term folded into the envelope's budget**,
      * in watts, evaluated at the current interior temperature. The base is
      * `0` — most scopes drive nothing. `ClimateControlMixin` overrides it
@@ -1289,6 +1793,98 @@ export function AtmosphericMixin<
      */
     public envelopeDriveW(_interiorK: number, _powered: boolean): number {
       return 0;
+    }
+
+    /**
+     * ⭐⭐ **THE steady state** (storage-and-ice D5) — see the interface.
+     * One formula, two callers: the envelope's own integration and a
+     * store integrating its stock across a gap nobody watched, which asks
+     * the room what it would have settled at under each segment's outside.
+     */
+    public envelopeSteadyStateK(outsideK: number, atS: number): number | null {
+      if (!this.envelopeApplies()) return null;
+      const coeff = this.envelopeCoefficients();
+      if (coeff === null) return null;
+      const self = this as unknown as Stuff;
+      const supply = poweredTrajectoryOf(self, atS, atS + 1);
+      const powered =
+        supply !== null &&
+        supply.stretches.some((st) => (st.startValue + st.target) / 2 > 0.5);
+      const driveW = this.envelopeDriveW(this.envelopeTemperatureK ?? outsideK, powered);
+      return this.envelopeSteadyStateFrom(
+        outsideK,
+        coeff.uWperK,
+        this.envelopeBudgetAt(atS),
+        driveW,
+      );
+    }
+
+    /**
+     * The closed form itself, clamped by a driven scope's setpoint: a
+     * thermostat does not sail past its dial — a cooling drive clamps the
+     * steady state from below, a heating drive from above.
+     */
+    private envelopeSteadyStateFrom(
+      outsideK: number,
+      uWperK: number,
+      budget: RoomHeatExchange,
+      driveW: number,
+    ): number {
+      const g = budget.conductanceWperK;
+      let steadyState =
+        (uWperK * outsideK + budget.fixedW + driveW + g * budget.anchorK) / (uWperK + g);
+      const setpoint = this.climateSetpointK();
+      if (setpoint !== null) {
+        if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
+        if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+      }
+      return steadyState;
+    }
+
+    /**
+     * Σ over the occupants that exchange heat with this room (read BY
+     * SHAPE — `roomHeatExchange()`): the fixed power in, the total
+     * conductance, and that conductance's weighted anchor.
+     */
+    private envelopeHeatBudget(): RoomHeatExchange {
+      let fixedW = 0;
+      let g = 0;
+      let gAnchor = 0;
+      for (const occupant of this.occupants()) {
+        const ex = (occupant as unknown as { roomHeatExchange?(): RoomHeatExchange })
+          .roomHeatExchange;
+        if (typeof ex !== 'function') continue;
+        const x = ex.call(occupant);
+        if (Number.isFinite(x.fixedW)) fixedW += x.fixedW;
+        if (Number.isFinite(x.conductanceWperK) && x.conductanceWperK > 0) {
+          g += x.conductanceWperK;
+          gAnchor += x.conductanceWperK * x.anchorK;
+        }
+      }
+      return { fixedW, conductanceWperK: g, anchorK: g > 0 ? gAnchor / g : 0 };
+    }
+
+    /**
+     * ⭐⭐ The room's WHOLE heat budget at game-time `atS`: its occupants'
+     * exchanges ({@link envelopeHeatBudget} — storage-and-ice D5) summed
+     * with the room's own ({@link envelopeExchanges} — rubber: the sun
+     * through a transparent face, the rooms of the same building through
+     * an interior face). One {@link RoomHeatExchange}, so ONE closed form
+     * ({@link envelopeSteadyStateFrom}) serves both builds' terms.
+     */
+    private envelopeBudgetAt(atS: number): RoomHeatExchange {
+      const own = this.envelopeHeatBudget();
+      let fixedW = own.fixedW;
+      let g = own.conductanceWperK;
+      let gAnchor = own.conductanceWperK * own.anchorK;
+      for (const x of this.envelopeExchanges(atS)) {
+        if (Number.isFinite(x.fixedW)) fixedW += x.fixedW;
+        if (Number.isFinite(x.conductanceWperK) && x.conductanceWperK > 0) {
+          g += x.conductanceWperK;
+          gAnchor += x.conductanceWperK * x.anchorK;
+        }
+      }
+      return { fixedW, conductanceWperK: g, anchorK: g > 0 ? gAnchor / g : 0 };
     }
 
     /**
@@ -1372,6 +1968,12 @@ export function AtmosphericMixin<
      *   here — it would move a shipped temperature the drive asserts on.
      */
     protected envelopeExposedAreaM2(volumeM3: number): number {
+      // ⭐ The construction answers it now (rubber build): the exterior
+      // walls and the roof when it is one. A place in no structure is
+      // five faces, exactly as before; a member's faces onto an enclosed
+      // member are interior and lose nothing to the weather.
+      const area = this.exposure().exteriorAreaM2();
+      if (area > 0 || this.getVolume() !== null) return area;
       const side = Math.cbrt(volumeM3);
       return 5 * side * side;
     }
@@ -1385,7 +1987,11 @@ export function AtmosphericMixin<
       const volume = volQ ? volQ.rawValue() : 0;
       if (!(volume > 0)) return null;
       const area = this.envelopeExposedAreaM2(volume);
-      if (!(area > 0)) return null;
+      // ⭐ A room with no exterior face at all (every side a member of its
+      // building, a ceiling over it) still has an envelope: it exchanges
+      // heat with its neighbours (D7), never with the weather.
+      const coupled = this.exposure().interiorFaces().length > 0;
+      if (!(area > 0) && !coupled) return null;
 
       const enclosure = this.resolveEnclosure();
       // ⭐⭐ **Conduction through the wall IN SERIES with the air films
@@ -1407,14 +2013,16 @@ export function AtmosphericMixin<
         AppSettingKeys.envelopeSurfaceResistanceM2KPerW,
         0.17,
       );
-      const rWall = enclosure.thicknessM / enclosure.kWmK + rFilms;
+      // ⭐ Layers in series (D1a): Σ t/k, then the films. One layer is
+      // exactly today's t/k.
+      const rWall = enclosure.resistanceM2KW + rFilms;
       const uFabric = area / rWall;
       const uOpen =
         envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) *
         volume *
         this.openExteriorOpenings();
       const uWperK = uFabric + uOpen;
-      if (!(uWperK > 0)) return null;
+      if (!(uWperK > 0) && !coupled) return null;
 
       const activeDepth = envelopeDial(
         AppSettingKeys.envelopeActiveDepthM,
@@ -1457,6 +2065,8 @@ export function AtmosphericMixin<
       openings: number;
       enclosureMaterialPath: string;
       hottestSource: string | null;
+      solarW: number;
+      warmestNeighbour: string | null;
     } | null {
       const inside = this.envelopeTemperatureLast();
       const outsideK = this.envelopeOutsideK;
@@ -1481,6 +2091,14 @@ export function AtmosphericMixin<
         openings: this.openExteriorOpenings(),
         enclosureMaterialPath: this.envelopeEnclosureMaterialPath(),
         hottestSource,
+        solarW: (() => {
+          try {
+            return this.solarGainW(WorldClockApi.getNow().rawValue());
+          } catch {
+            return 0;
+          }
+        })(),
+        warmestNeighbour: this.warmestNeighbour(inside),
       };
     }
 

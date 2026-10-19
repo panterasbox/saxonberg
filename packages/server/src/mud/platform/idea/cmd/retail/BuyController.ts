@@ -94,7 +94,12 @@ export default class BuyController extends CommandController<BuyModel> {
     // One counter can be both the house's shelf and a brokerage (`Stock`
     // composes the shelf): a good that carries a live listing is a
     // consignment wherever it sits, never a priced stock line.
-    const candidate = stock?.resolveBuy(model.thing) ?? null;
+    let candidate = stock?.resolveBuy(model.thing) ?? null;
+    // ⭐ A store-fed line is brought up TO ORDER (storage-and-ice D8): a
+    // bare shelf asks the store for one before the counter says it is out.
+    if (candidate === null && stock && (await stock.bringUpFor(model.thing)) > 0) {
+      candidate = stock.resolveBuy(model.thing);
+    }
     const listed =
       candidate && shelf && MixinApi.isChattel(candidate)
         ? shelf.listingFor(candidate.getChattelId()) !== null

@@ -340,27 +340,27 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
-        default: 'You leave to the {{ direction }}.',
+        default: 'You leave {{ toward }}.',
         description: 'Message you see when you leave a room.',
       },
       {
         key: 'messages.movement.departPeers',
         type: SettingTypes.String,
-        default: '{{ mover }} leaves to the {{ direction }}.',
+        default: '{{ mover }} leaves {{ toward }}.',
         description: 'Message peers see when you leave a room.',
       },
       {
         key: 'messages.movement.arriveSelf',
         type: SettingTypes.String,
         default:
-          'You arrive{% if direction %} from the {{ direction }}{% endif %}.',
+          'You arrive{% if from %} {{ from }}{% endif %}.',
         description: 'Message you see when arriving in a room.',
       },
       {
         key: 'messages.movement.arrivePeers',
         type: SettingTypes.String,
         default:
-          '{{ mover }} arrives{% if direction %} from the {{ direction }}{% endif %}.',
+          '{{ mover }} arrives{% if from %} {{ from }}{% endif %}.',
         description: 'Message peers see when you arrive in a room.',
       },
       {
@@ -792,7 +792,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.departSelf',
       ) ?? '';
-      return ProseApi.format(tpl, { direction: Mml.direction(exit.getDirection()) });
+      const d = exit.getDirection();
+      return ProseApi.format(tpl, { direction: Mml.direction(d), toward: towardPhrase(d) });
     }
 
     protected defaultDeparturePeers(exit: Exit): Mml {
@@ -803,6 +804,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       return ProseApi.format(tpl, {
         mover: Mml.actor(this as unknown as Stuff),
         direction: Mml.direction(exit.getDirection()),
+        toward: towardPhrase(exit.getDirection()),
       });
     }
 
@@ -812,7 +814,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'messages.movement.arriveSelf',
       ) ?? '';
       const dir = arriveDirection(exit);
-      return ProseApi.format(tpl, dir ? { direction: Mml.direction(dir) } : {});
+      return ProseApi.format(
+        tpl,
+        dir ? { direction: Mml.direction(dir), from: fromPhrase(dir) } : {},
+      );
     }
 
     protected defaultArrivalPeers(exit: Exit): Mml {
@@ -824,7 +829,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const ctx: Record<string, Mml> = {
         mover: Mml.actor(this as unknown as Stuff),
       };
-      if (dir) ctx.direction = Mml.direction(dir);
+      if (dir) {
+        ctx.direction = Mml.direction(dir);
+        ctx.from = fromPhrase(dir);
+      }
       return ProseApi.format(tpl, ctx);
     }
 
@@ -869,6 +877,37 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
  * Returns `undefined` when the topology has no inverse — the bland
  * arrival message is used in that case.
  */
+/**
+ * ⭐ The way a mover leaves, as a phrase: *to the north*, but *up* and
+ * *down* — "You leave to the down" was what a ladder said (found driving
+ * the rubber build's flooded substation in a browser).
+ */
+function towardPhrase(direction: string): Mml {
+  if (direction === 'up' || direction === 'down' || direction === 'in' || direction === 'out') {
+    return Mml.direction(direction);
+  }
+  return Mml.compose`to the ${Mml.direction(direction)}`;
+}
+
+/**
+ * Where an arrival came from, given the way BACK (the inverse exit's
+ * direction): back up means you came *from above*, not "from the up".
+ */
+function fromPhrase(wayBack: string): Mml {
+  switch (wayBack) {
+    case 'up':
+      return Mml.compose`from above`;
+    case 'down':
+      return Mml.compose`from below`;
+    case 'out':
+      return Mml.compose`from outside`;
+    case 'in':
+      return Mml.compose`from inside`;
+    default:
+      return Mml.compose`from the ${Mml.direction(wayBack)}`;
+  }
+}
+
 function arriveDirection(exit: Exit): string | undefined {
   return exit.getInverse()?.getDirection() ?? NavigationApi.invertDirection(exit.getDirection());
 }

@@ -370,3 +370,13 @@ house's first wage come later, on revenue this creates.
    after ice (lamp oil is half-shipped already).
 3. **Piecework's first venue** — Dave's Bar, paid per drink served?
 4. **Multi-town from the start**, or one locality's series first.
+5. **Hours as the source of a luxury's price** (from
+   [silk-slate](./silk-slate.md) § 6, 2026-10-18). Labour is commands
+   regardless of vocation, so an hour-heavy good is only somewhat dearer.
+   Silk's answer is that a PAID hand converts time into money at the
+   wage, so scarcity holds iff (a) **status demand** exists for anything
+   to be a luxury for, and (b) **NPC hands are a finite labour pool** —
+   infinite cheap hands make every hour-heavy good cheap. Both cut across
+   every trade, so they are this slate's; silk's labour bench (hours per
+   kilo, linen vs wool vs silk) is the instrument that will show whether
+   prices follow.

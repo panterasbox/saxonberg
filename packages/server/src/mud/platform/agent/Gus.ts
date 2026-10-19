@@ -21,8 +21,10 @@
  * as bespoke equip code. ⭐ The honest fix is a superclass meaning *a
  * person who boots with a loadout*, and it is blocked on a kernel split:
  * `StagedMixin` bundles `props:` WITH `cast:`, so composing it on a
- * person claims that person contains a cast. Filed with its four
- * receipts; Gus becomes a ROW the day it lands.
+ * person claims that person contains a cast. ⭐ **That split LANDED**
+ * (`PropsMixin`, the storage-and-ice sweep, 2026-10-18): every `NPC` now
+ * takes `props:` alone. Gus and the four loadout classes becoming ROWS is
+ * the follow-up (base-class-narrowing-slate).
  *
  * WHY A CLASS (and not pure seed data), as of when this was written:
  * there was no declarative seed path to

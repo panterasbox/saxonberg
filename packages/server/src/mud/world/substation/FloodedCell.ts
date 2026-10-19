@@ -29,6 +29,10 @@
 import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
 import { MixinApi } from '../../api/mixin';
 import { ElectricityApi } from '../../api/electricity';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 
@@ -40,13 +44,64 @@ export default class FloodedCell extends SingletonCartesianLocation {
    * inflicts each. Faction-blind (allies included), grounding/insulation
    * emergent. A no-op if no source is present or all are de-energized.
    */
-  public onEntered(_mover: Stuff, _exit: unknown): void {
+  public onEntered(mover: Stuff, _exit: unknown): void {
     const self = this as unknown as Stuff & Container;
+    // ⭐ (rubber build) Wading soaks the feet and what is on them, BEFORE
+    // the walk reads them — so a leather boot conducts (the wet law) and
+    // a rubber one, which takes in nothing, does not.
+    if (MixinApi.isAttired(mover) && this.floorPoolLitres() > 0) {
+      mover.immerse((part) => part.includes('foot'));
+    }
     for (const content of self.getContents()) {
       // `isEnergized` narrows the containable to `Stuff & Energized`.
       if (MixinApi.isEnergized(content)) {
-        content.conduct();
+        for (const outcome of content.conduct()) {
+          this.narrateShock(outcome.victim, outcome.currentThrough.rawValue());
+        }
       }
     }
+  }
+
+  /**
+   * ⭐ Say what the water did (rubber build). `inflict` is silent — the
+   * narration is the caller's — and this trigger used to conduct without a
+   * word, so a wader could be dying of electrocution and be told nothing
+   * but the room description. In words, by the shipped current bands
+   * (tingle · let-go · fibrillation), never a number.
+   */
+  private narrateShock(victim: Stuff, amps: number): void {
+    const band = (key: string, fallback: number): number => {
+      try {
+        const n = Number.parseFloat(AppApi.setting(key) ?? '');
+        return Number.isFinite(n) ? n : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+    // Only a body that senses can be told (a test body, a corpse cannot).
+    if (!(amps > 0) || !MixinApi.isSensor(victim)) return;
+    const letGo = band(AppSettingKeys.electricityLetGoAmps, 0.01);
+    const fibrillation = band(AppSettingKeys.electricityFibrillationAmps, 0.1);
+    const self =
+      amps >= fibrillation
+        ? Mml.compose`The water bites. Current slams up through your feet, your legs lock rigid, and your heart stumbles.`
+        : amps >= letGo
+          ? Mml.compose`Current jolts up through your feet from the water and your legs lock — you cannot step out of it.`
+          : Mml.compose`A tingle runs up through your feet from the water.`;
+    // `act.deed` — the topic every hazard's delivery speaks on.
+    const scene = MessageApi.scene(victim).topic('act.deed').toSelf(self);
+    if (amps >= letGo) {
+      scene.toPeers(Mml.compose`${Mml.actor(victim)} jerks rigid in the water.`);
+    }
+    scene.send();
+  }
+
+  /** Litres standing on this cell's floor — the water you wade. */
+  private floorPoolLitres(): number {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isAdornable(self)) return 0;
+    const floor = self.getFloor() as unknown as Stuff | null;
+    if (!floor || !MixinApi.isBulkable(floor)) return 0;
+    return floor.getBulkAmount('surface').rawValue();
   }
 }

@@ -1,0 +1,26 @@
+# The loft — over the works floor, its boards warm when the stove below
+# is lit (rubber build: the open ladder couples the two by the air).
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords: { x: 0, y: 0, z: 1 }
+  shortDescription: "works loft"
+  keywords: [loft, "works loft"]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: dormer
+  details:
+    dormer:
+      keywords: [dormer, window]
+      description: A dormer window in the slope of the roof.
+  longDescription: |
+    A low loft under the slates, the boards warm underfoot over the works. Rubber sheets hang over poles to cure. A stair climbs to a hatch onto the roof, and a doorway leads through to the tower.
+  exits:
+    up:
+      destination: /world/terminus/goods-yards/rubber-works/location/terrace/terrace
+      bidirectional: true
+    west:
+      destination: /world/terminus/goods-yards/rubber-works/location/tower/tower
+      bidirectional: true

@@ -1,0 +1,45 @@
+# Dandelion latex — russian-dandelion roots WET-MILLED (rubber build,
+# D13.3): the roots go under the stones with water and the crushed root
+# gives up its latex into it — a thin milk, run off into an empty pail. It
+# then SETS the way the Hevea's does: poured into a coagulating pan, a game
+# day later it is a sheet of raw rubber. One set process for both
+# supplies, the dairy's drain set, already proven by the stove house.
+#
+# It is the milling trade's shipped `mill`/`grind`: a second input for the
+# same stones. A hand quern does it as well as a mill; the capital decides
+# your time, not your access.
+#
+# ⚠ The shape the drive arrived at. It shipped as roots → pulp (`mill`)
+# → raw rubber (`make raw-rubber-from-pulp`), and the drive found the
+# second step unreachable three ways: `make` runs a player's own SCRIPT
+# behind the knowledge gate, not a catalogue recipe; no other verb washes
+# a pulp; and its output (`raw-rubber`, a `Casting`) is not a craft
+# output at all (a craft mints only what composes `CraftedMixin`). The
+# stones now do the extraction and the pan does the set.
+#
+# ⚠ No ladder placement (`discipline` / `difficulty`), deliberately: the
+# requirements decided rubber has no knowledge gate, and a placed recipe
+# would be gated ("a recipe with no ladder placement gates on nothing").
+recipeId: dandelion-latex
+name: Dandelion latex
+keywords: ["dandelion-latex", "dandelion latex", "latex"]
+inputSlots:
+- slot: roots
+  kind: item
+  category: rubber-root
+  minGrade: poor
+  count: 1
+- slot: water
+  kind: bulk
+  category: water
+  minGrade: poor
+  measureL: 5
+toolCapabilities:
+- millstone
+outputApplication: bulk
+# The run-off goes into an EMPTY pail you bring (the water came in another).
+outputTemplate: /stuff/thing/vessel/pail
+outputMaterial: /stuff/idea/material/organic/latex
+# A kilo of root gives up about half a litre of milk — a small sheet.
+outputPortionL: 0.5
+outputAppearance: a thin grey-white milk

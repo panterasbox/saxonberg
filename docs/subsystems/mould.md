@@ -12,6 +12,15 @@ Source: `packages/server/src/mud/lib/mould/Mould.ts` (`MouldMixin`, the
 
 ## ⭐⭐ The container decides; the material sets
 
+> ⭐ **A firing asks the mould too (rubber build, 2026-10).** `fire`
+> reaches one level into a mould standing in its chamber and hands it the
+> outcome as a pool — the same `castInto` the freeze edge calls — so a
+> rubber charge in a boot mould comes out as boots; the cast takes the
+> weaker of the mould's grade and the cure's. And `holdsCast()` is true
+> only for a CAST (a thing of the mould's shape, or a cracked mould's
+> lump): a mould charged with solids waiting to be fired is not "set".
+> The seam is moulding-slate § 5's. See [rubber.md](./rubber.md).
+
 Before moulds, two things decided the shape of a set solid and neither
 was the container:
 
@@ -60,6 +69,10 @@ narrowing on the clone:
   which a fill into an empty mould carries in);
 - the mould's grade → the cast's grade (a scalded vat's `poor` rides into
   the wheel);
+- ⭐ the mould's `discipline` → `Crafted.castDiscipline` (repair D1,
+  2026-10-17): the cast remembers WHICH TRADE its mould is, because that
+  is the trade that mends it — the pour credits the pourer and forgets,
+  and a consumed mould is gone after the cast, so it rides as a value;
 - `freshness` → `Fresh.setMicrobialLoad`; `pathogens` → `Contaminable`;
 - a drain set's moisture → `WaterActive.setWaterState`;
 - `madeFrom` (the material a maturing batch was made from — maturation's

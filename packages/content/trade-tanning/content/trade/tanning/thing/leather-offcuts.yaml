@@ -1,0 +1,16 @@
+# Leather offcuts (repair W6) — what a cobbler patches a worn sole from:
+# the trimmings of bend leather, sold and kept by weight. ⭐ Not a hide: a
+# mend that wants a fifth of a kilo should not consume two (the overshoot
+# bound refuses it), and a cobbler never did — she cut a patch from the
+# box of offcuts under the bench.
+class: /platform/thing/Scrap
+data:
+  shortDescription: box of leather offcuts
+  keywords: [offcuts, leather, scraps, trimmings, "leather offcuts"]
+  register: indefinite
+  longDescription: >-
+    A shallow box of leather trimmings, the curved ends of soles and the
+    strips cut off uppers, sorted roughly by thickness.
+  mass: 0.1
+  quantity: 20
+  _materialPath: /stuff/idea/material/organic/leather

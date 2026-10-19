@@ -1,0 +1,35 @@
+# ⭐ The ice trade's one model, stated so a player can predict it.
+class: /platform/idea/HelpConcept
+data:
+  key: the-ice
+  title: The ice
+  summary: The ice is the pool's floor — on it while it bears you, in the water when it does not.
+  keywords: [ice, frozen, pool, thickness, bear, scrape, mark, cut, icehouse, black, snow-ice]
+  seeAlso: [the-cut]
+  body: |
+    A frozen pool is the same place it was in summer; what changed is
+    what is underfoot. While the ice holds you, you stand ON it. When it
+    does not, you are in the water under it — cold as the water is,
+    soaked through, and the only ways out are to swim or to climb onto
+    ice that will bear you (`stand`).
+
+    ## What the ice bears
+
+    About 6 cm holds a person, 14 a horse, 20 a loaded sledge. It
+    thickens as the root of the cold it has had, because its own
+    thickness insulates the water beneath. `measure ice` with a spud
+    reads it; `analyze ice` is your eye.
+
+    ## Black and white
+
+    Snow on the ice insulates it: it grows slower and white (snow-ice,
+    the poor grade). Scrape the snow off and the patch freezes black —
+    clear, hard, the grade the icehouses paid for — until it snows again.
+
+    ## The harvest
+
+    `scrape`, then `mark` a grid, then `cut marked` with an ice saw: each
+    block weighs what the ice's thickness and the grid make it. A cut
+    patch is open water, and regrows thinner from nothing. `cut hole`
+    saws a hole for a line instead. The thaw takes the sheet and every
+    trace of the harvest with it.

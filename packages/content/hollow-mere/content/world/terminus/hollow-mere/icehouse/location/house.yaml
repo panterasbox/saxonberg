@@ -1,0 +1,29 @@
+# The house — 48 m³ of sawdust-walled dark, and the stack (storage-and-ice
+# D22). The walls are 0.4 m of sawdust between boards; the stack pulls
+# heat out of the room's air as it melts, which is why this room reads
+# colder than the empty shed of the same build down the road.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: icehouse
+  keywords: [house, icehouse, inside]
+  register: definite
+  _address: terminus/hollow-mere/icehouse/house
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    Inside the icehouse the air is cold and wet and smells of sawdust. A lantern hangs from a beam. The stack takes up nearly all of it — tier on tier of blocks to the rafters, each bedded in sawdust, the whole buried in it at the walls.
+  coords: { x: 1, y: 1, z: 0 }
+  extent: 3.634
+  enclosure: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  # The roof is the same layer as the walls: what the envelope assumed for
+  # all five faces before rubber split the top out (rubber's `roof:`).
+  roof: { material: /stuff/idea/material/wood/sawdust, thicknessM: 0.4 }
+  adornments:
+    - { template: /world/terminus/hollow-mere/thing/lantern, slot: lamp:beam }
+  exits:
+    south:
+      destination: /world/terminus/hollow-mere/icehouse/location/platform
+      media: [ground]
+  cast:
+    - /world/terminus/hollow-mere/agent/house-hand
+  props:
+    - /world/terminus/hollow-mere/icehouse/thing/stack

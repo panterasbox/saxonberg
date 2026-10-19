@@ -40,6 +40,64 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **The rubber build (construction, W0: 2 fields).** Both level 0:
+ *   - `AtmosphericMixin.roof` — what is over a place, as its sibling
+ *     `enclosure` is what is around it: a material and a thickness you
+ *     can walk in and look up at.
+ *   - `Structure.storeys` — which of a building's places stand on which;
+ *     you learn it by climbing the stair.
+ *   - (W2) `Material.lightAbsorption` — how much light a thickness of it
+ *     passes: you hold a pane up to the sky and see.
+ *   - (W4) `Material.elasticity` — how far it stretches and springs back:
+ *     you pull it. `Material.crosslinking` — ⚠ arguably a spoiler (it is
+ *     the cure's whole curve), and deliberately level 0: the trade is a
+ *     curve you find by firing, and the requirements rule there is no
+ *     knowledge gate; a published curve is inquiry-slate's.
+ *
+ * **Repair — assemblies part two (4 fields, and a relabel).** Every one
+ * level 0, and why:
+ *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
+ *     been mended (by Berta)* and `analyze condition` reads the rest by
+ *     the appraiser's band; the panel shows what a look already does.
+ *   - `CraftedMixin.castDiscipline` — the trade of the mould a thing set
+ *     in. It is which trade MENDS it, and the mend's own refusal names
+ *     that trade; nothing to hide.
+ *   - ⭐ The question this build was asked to settle — is an un-revealed
+ *     heirloom's name a spoiler? — answered with NO new field: a thing's
+ *     proper name is `NamedMixin.name` (already level 0, now composed on
+ *     Tool and Weapon), and a part's rides its line. A name is what a
+ *     thing is CALLED — *Hollin* on `look`, in the room and in your hands,
+ *     and how you ask for it. What a name may hide (where it came from,
+ *     who carried it) is the row's prose. The first cut added
+ *     `AssembledMixin.seatName`/`.nameGrant`, a second name concept; it
+ *     was folded onto `Named` in review, the grant derived from the
+ *     reforge's mend record (`MendRecord.nameLost`).
+ *   - `Vat.emptySince` (was `Cask.emptySince`) and `Timber.condition` —
+ *     the fold-back: the cask's drying clock moved onto every vat, and a
+ *     stave's wear is stack identity. Runtime state, read out in words.
+ *   - ⚠ The relabel: `AssembledMixin.__validateComposition__` declared a
+ *     `const name` above `static fieldMeta` (the dairy's finding, missed
+ *     here), so `bill`/`parts`/`joints`/`gauge`/`hands` were filed under
+ *     `name.*`. The check sits below `fieldMeta` now.
+ * **Storage and the ice trade, W0 (a relabel and one field).**
+ *   - The relabel: `AlloyedMixin` split into `CompositionMixin.alloying`
+ *     and `TemperedMixin.temper`, each keeping its level-1 tag (the
+ *     figure is earned by `analyze chemistry`; that it exists is public).
+ *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
+ *     black ice is clear and white ice is white, and the trade sold by
+ *     it in the open.
+ *   - W2: `StoreMixin.lines` — **level 1**. The ledger is the world's
+ *     EXACT stock; how much is really in a house is what a stocktake
+ *     (`measure stock`) earns by competence, bracketed — the keeper's
+ *     book is a claim, the lines are the truth. `capacityKg`,
+ *     `stackShapeFactor`, `drainage`, `acceptsPoolKeys`, `initialLines` —
+ *     level 0: the size of a house, the shape of a stack, its floor, what
+ *     it takes and what it was built with are seen by walking in.
+ *   - W3: `StoreMixin.businessPath` / `keeperPositions` / `terms` /
+ *     `acceptsLiveGoods`, `StoreBookMixin.storePath` — level 0: who keeps
+ *     a house, who may take a deposit and the terms printed on every
+ *     receipt are posted at the door; that is what makes them terms.
+ *   - W5: `WaterSurface.areaM2` — level 0: how big a pool is, you see.
  * **The dairy (24 fields, and a relabel).** Every one level 0, and why:
  *   - `MaturationProfile.scaldAboveK` / `.leesShare` / `.transforms` — a
  *     profile's curve facts, tagged as its siblings `killK` and

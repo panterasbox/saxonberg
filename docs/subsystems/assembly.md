@@ -24,7 +24,7 @@ drop spindle, the hive frame, the smoker.
 
 Kernel: `lib/craft/Assembled.ts` (`AssembledMixin`),
 `platform/idea/{Joint,JointCatalogue}.ts`, the assembly arm and the three
-verbs' rungs in `platform/idea/api/CraftingLogic.ts`, the narrow host
+verbs' rungs in `platform/idea/api/CraftingLogic.ts`, the family host
 classes listed below.
 
 ## The model — a bill on the kind, a record on the instance
@@ -135,7 +135,7 @@ Discipline, which must exist when the row ships** (`lint:bills` arm 5):
 
 | pack | rows |
 |---|---|
-| `platform` | `friction`, `wedged`, `seated`, `glued` (hand, no competence) · `riveted` (tool `striking`, smithing) · `soldered` (premises, no instrument — there is no `heat` capability — smithing) |
+| `platform` | `friction`, `wedged`, `seated`, `glued` (hand, no competence) · `riveted` (tool `striking`, smithing, `never`) · ⭐ `peened` (tool `striking`, smithing novice, **`effort`** — a sword's tang hammered over its pommel: the one joint a smith EXPECTS to undo, so a blade outlives its hilts; the pommel is lost; repair D17) · `soldered` (premises, no instrument — there is no `heat` capability — smithing) |
 | `trade-tailoring` | `stitched` (tool `mending`, tailoring) |
 | `trade-carpentry` | `pegged` (tool `driving`, carpentry novice) |
 | `trade-coopering` | `slack-hooped` novice · `hooped` competent · `tight-hooped` proficient (tool `driving`) |
@@ -156,39 +156,77 @@ inside a blow. A cold peek answers `null` (wear uses a default strength
 0.5) and kicks the warm. A malformed row is skipped and named, never
 thrown.
 
-## Host placement — only things that ARE made of parts
+## Host placement — the families; a monolith is one piece
 
 `AssembledMixin` requires `DurableMixin` beneath it
 (`__validateComposition__` throws otherwise — an assembly's wear has to
-have somewhere to go). ⭐⭐ **It composes only on classes every row of
-which has a bill.** The first cut put it on whole families (`Tool`, `Vat`,
-`Lamp`, `Chair`, `Receptacle`, `Weapon`, `Garment`) on the theory that it
-was vacuous for one-input things — 62 of 69 tools and every receptacle had
-no parts, and every caller grew an `isAssembly()` guard to re-narrow the
-host set. That is the *mixin on the wrong host* tell. `isAssembly()` and
-the guards are gone; **`MixinApi.isAssembled` is the only question**, and
-`lint:bills` arm 7 holds *bill ⇔ composes AssembledMixin* in both
-directions.
+have somewhere to go). ⭐⭐ **It composes on the FAMILIES we write recipes
+for, and a thing with no bill is ONE PIECE** (repair D4, owner's ruling
+2026-10-16): a pick and a whetstone are both `Tool`s, a cask and a carboy
+both `Vat`s. `isOnePiece()` (no bill, no record) is the mixin's own
+answer, and every method is total on it — `getParts()` is `[]`, wear and
+edge and name and mends are the host's own fields, `fit x to it` refuses
+*"It is one piece."*, `look` says so, `salvage` finds no joints and melts.
 
-| class | composition | rows |
+| class | composition | parts or one piece |
 |---|---|---|
-| `platform/thing/Assembly` | `AssembledMixin(CraftedMixin(DurableMixin(Good)))` | the made-of-parts thing with no other capability: cask head, frame, cushion, mattress, bellows. A noun — the twin of `Good` on this axis |
-| `platform/thing/AssembledTool` | `AssembledMixin(Tool)` | pick, felling axe, froe, drawknife, croze, inshave, plough |
-| `equipment/AssembledWeapon` · `AssembledLauncher` · `AssembledGarment` | `AssembledMixin(<family>)` | spear/mace/warhammer/flail · hunting bow · leather boots |
+| `platform/thing/Tool` | `AssembledMixin(NamedMixin(KeenMixin(CraftedMixin(ToolMixin(DurableMixin(ConstructedMixin(Good)))))))` | pick, felling axe, froe, drawknife, croze, inshave, plough · every other tool one piece |
+| `equipment/Weapon` (→ `Launcher`) | `Wieldable(Slottable(Keen(Assembled(Named(Crafted(Durable(Constructed(Good))))))))` — Keen OUTSIDE (it reads outward to edged lines) | spear/mace/warhammer/flail, hunting bow · dagger, sword-as-shipped one piece |
+| `equipment/Garment` | `Wearable(Slottable(Assembled(Crafted(Durable(Constructed(Dyed(Good)))))))` | leather boots · every other garment |
 | `equipment/Shield` | composes it directly | every shield row is a face over boards |
-| `platform/thing/Cask` | `AssembledMixin(DurableMixin(Vat))` | the commons `cask` and `dry-cask` and the rows that `extends:` the cask |
+| `platform/thing/Vat` | `Assembled(Durable(VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable(Good))))))))` | cask, dry-cask and its `extends:` · carboy, culture jar, crock |
+| `platform/thing/Lamp` | `Assembled(Crafted(Durable(Burner(LightSource(Bulkable(Thermal(Good)))))))` | lantern · torch |
+| `platform/thing/Chair` | `Assembled(Crafted(Durable(Postured(Slotted(Good)))))` | armchair, bed · stool, tub |
+| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — ⚠ NOT Crafted: on a bulk holder Crafted is the BATCH's identity (`wash`/`rinse`/`cool` skip a crafted holder; a pour carries maker and recipe holder to holder) | every receptacle one piece today |
+| `platform/thing/Assembly` | `AssembledMixin(CraftedMixin(DurableMixin(Good)))` | the made-of-parts thing with no other capability: cask head, frame, cushion, mattress, bellows. A noun — the twin of `Good` on this axis |
 | `platform/thing/Barrel` | `AssembledMixin(DurableMixin(CraftedMixin(SealableMixin(ContainerMixin(Good)))))` | `slack-barrel` — a container of staves, not a vessel |
-| `platform/thing/Lantern` | `AssembledMixin(CraftedMixin(DurableMixin(Lamp)))` | the lantern (the torch stays a `Lamp`) |
-| `platform/thing/AssembledChair` | `AssembledMixin(CraftedMixin(DurableMixin(Chair)))` | armchair, bed (the tub stays a `Chair`) |
-| pack: `AssembledSurveyInstrument` (mining) · `AssembledSpinningTool` (textiles) · `Frame`, `Smoker` (apiculture) | | compass · drop spindle · hive frame · smoker |
+| pack: `CookPot` (cooking) — a recipe output that wears | `Assembled(ManualBuild(ToolMixin(Durable(ServingVessel))))` | one piece |
+| pack `Tool` subclasses (`SurveyInstrument`, `SpinningTool`, `Whetstone`, …), apiculture `Frame`, `Smoker` | inherit it | compass, drop spindle · the rest one piece |
 
-⚠ **Base-class statics shadow; mixin statics union.** A narrow subclass
-that has its own `commandContributions` would hide the parent's, so
-`AssembledLauncher` restates `Launcher`'s (`shoot`), and the pack
-subclasses restate theirs. ⛔ Not on `Good`, `Thing`, `Fitting`, `Chest`,
-`WaterFixture`, `Bottle`, `Provision`, `Receptacle` — and the hive rows
-stay billless on purpose (a hive is a box you put frames IN; `lint:bills`
-refuses a bill on it).
+`Timber` composes `Durable` (its condition is stack identity — a worn haft
+never merges with a sound one) but NOT the mixin: a stave is stock, it
+goes INTO a whole. ⛔ Not on `Good`, `Thing`, `Fitting`, `Chest`,
+`WaterFixture`, `Bottle`, `Provision`, `CraftVessel` (a recipe FILLS a
+glass, it does not make one), the moulds (no recipe makes one yet —
+the moulding build's one line), and the hive rows stay billless on
+purpose (a hive is a box you put frames IN; `lint:bills` refuses a bill on
+it).
+
+⭐ **The gate that keeps the guard from coming back is "every method
+total", not a narrowing.** `lint:bills` arm 7 holds what is checkable: a
+bill on a class without the mixin (7a), a two-part `tangible` recipe output
+with no bill (7b — a census of seven, `UNDECLARED_ASSEMBLIES`), and the
+owner's rule (7d — a recipe output that wears composes the mixin; stock is
+exempt). Arm 8 holds that every bill part is MADE by some recipe, or is
+named on `UNMADE_PARTS` with why — the trade that mends a part must be
+derivable.
+
+⚠ **Base-class statics shadow; mixin statics union.** A class's own
+`commandContributions` hides its parent's, but the mixin's verbs
+(`fit`/`repair`/`salvage`) are collected from the mixin chain regardless —
+which is why, with the mixin deep inside the family, no subclass restates
+anything. (The narrow twins had to: `AssembledLauncher` restated `shoot`.)
+
+### ⭐ A name — `Named`'s, living in the part that bears it
+
+A proper name is `NamedMixin`'s and nothing else's (repair D18, folded
+onto `Named` in review). `Tool` and `Weapon` compose it BENEATH the
+mixin — a sword may be *Hollin*, a grandfather's axe may have a name; a
+pail bears none. What an assembly adds is WHERE it lives: a fitted part is
+not an object of its own, so its name rides its line (`PartLine.name`),
+and `Assembled.getName()` reads the named part before the host's own
+field. So a drawn blade carries the name onto the loose blade's `Named`
+field, a re-hilted sword answers to it, and because the name IS the
+presentation, a typed `Hollin` binds by the scope walk's name score — no
+keyword is added. A found thing names its part from the bill
+(`BillPart.name`); a crafted one is nameless.
+
+⭐ **Narsil's rule is history, not a grant.** A named part re-made by a
+reforge loses its name, and the reforge's `MendRecord` says which
+(`nameLost`). `canBeNamedBy(hand)` is DERIVED from that record: the thing
+bears no name now, and the latest mend that took one was this hand's. The
+name a reforger gives goes on the part that lost the old one. Once it
+bears a name the right is spent — there is no field to clear.
 
 ## Wear — routed to the part that answers it
 
@@ -221,9 +259,9 @@ slack. ⭐ Everything downstream reads those and nothing else:
 
 | host | what a part's state moves |
 |---|---|
-| `Cask` | `getClosure()` is `'open'` while `leaks()` — the authored closure is the ceiling, the joints the floor |
-| `Lantern` | `getEmittedFlux()` × `lamp.crackedGlassFlux` (0.35) per failed `facing` pane — the room is darker |
-| `AssembledChair` | `getRestQuality()` scales by structural condition; a failed cushion leaves you on the bare frame (`chair.bareFrameRest`, 0.5) |
+| `Vat` | `getClosure()` is `'open'` while `leaks()` — the authored closure is the ceiling, the joints the floor (a vat with no joints never leaks this way) |
+| `Lamp` | `getEmittedFlux()` × `lamp.crackedGlassFlux` (0.35) per failed `facing` pane — the room is darker; the ONE funnel for what a pane does to the light |
+| `Chair` | `getRestQuality()` scales by structural condition; a failed cushion leaves you on the bare frame (`chair.bareFrameRest`, 0.5) |
 | an instrument | `Reading.ceilingOf` already reads `getCondition()` — a damaged compass reads coarser for free |
 | the plough | the bout wears the share; ploughing refuses naming a failed part |
 
@@ -269,24 +307,33 @@ slack. ⭐ Everything downstream reads those and nothing else:
   nothing else answers to: four colliding keywords were removed (`whorl`,
   `needle`, `bellows`, `wick`, and `pick`/`handle` off the haft).
 
-### `repair` — the ladder (`repairAssemblyRungs`, before the wear rung)
+### `repair` — the ladder (`mendAssembly`, one pass)
 
-1. ⭐ **a failed part** — refused, naming the part and so the cure (*the
-   haft is split*). This comes FIRST: tightening the joints round a
-   warped haft once called the pick mended. Below the joint's band the
-   name is the SET (*something about the staves*) — the diagnosis rung.
-2. **a slack joint** — tightened if `tightenable`, gated on the joint's
-   instrument and band; consumes nothing (`rung: 'tightened'`).
-3. **a spent character** (a Maturing host, `isSpent()`) — the cooper's
-   re-fire: reachable heat ≥ `crafting.refireHeatK` (573), a `shaving`
-   tool, and the band of the vessel's OWN joints (never a Discipline the
-   kernel names).
-4. **wear** — the shipped material-priced restore; `setCondition` on an
-   assembly restores every line's wear, never its failures.
+(Rewritten by repair W2, 2026-10-17 — a mend is per part and can be done
+badly; the numbers are `crafting.md § The lifecycle`.) One pass, every
+rung, and the whole mends every line it can and reports what it could
+not (`RepairSuccess.mended` / `.skipped`); it is a refusal only when
+nothing was mended:
 
-⚠ `repair.yaml` gates on `requires: DurableMixin` — which is why every
-narrow class composes Durable beneath Assembled (a cask was not Durable,
-and `repair <cask>` died at the binder with every controller test green).
+1. **A failed member** — metal is RE-MADE at its recipe's heat and tools
+   (`requiresHeatK`, `toolCapabilities`; a named part loses its name, and
+   the mend records it — `nameLost`, from which the reforger's right to
+   name it again is read); anything else is skipped as
+   `part-failed`, naming the part (below the joint's band, *something
+   about the staves*). The cure is `fit`.
+2. **Slack joints** are tightened, consuming nothing — never round a
+   member that is still failed.
+3. **A spent cask** is re-fired (unchanged).
+4. **Every worn line** is mended by its own material's instrument under
+   its own trade at the hand's band (`Assembled.mendLine` — the ONE write:
+   condition up to the ceiling, grade down, joints slackened by an
+   untrained hand, the `MendRecord` on the line, the hand among its
+   makers).
+
+The whole's grade is then its worst line's. ⭐ `CraftingApi.diagnose` is
+this ladder run without committing — what the paid mend quotes from, and
+what `repair` reads up front so a thing with nothing mendable is refused
+before the spell of work, not after it.
 
 ### `salvage` — by the joints, then the melt
 
@@ -332,7 +379,13 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   `saw <log> [--quarter] [at <saw>]`. Through-sawn gives the most boards;
   `--quarter` gives two-thirds as many `quartered-board`s (its own row,
   `quarterSawn: true`) that never cup. Duration = mass / rate. Afforded
-  by the `Sawmill` class.
+  by the `Sawmill` class. ⭐ **The kerf falls as sawdust** (storage-and-
+  ice, 2026-10-17): one kerf a board (two quartered) at the saw row's
+  `kerfM` (the sawmill 3 mm, the pit saw 5 mm, default 4) against a 25 mm board, minted
+  as whole kilograms of `/trade/carpentry/thing/sawdust` (a `Poolable`
+  stack, one heap per wetness band) and the boards lightened by exactly
+  what was minted — mass conserved. It is the icehouse's packing (see
+  [storage.md](./storage.md)).
 - **`carve`** (`trade-carpentry`, `CarveController`) — runs any installed
   one-slot wood recipe that asks for `cutting` and no heat (haft, handle,
   peg, dowel, leg, rail, mallet…); no list in the controller. It sets
@@ -404,8 +457,8 @@ competence IS is how tight the hoops are driven:
 | hand | joint | product (commons, `/stuff/thing/vessel/`) | holds |
 |---|---|---|---|
 | novice | `slack-hooped` | `slack-barrel` — a `Barrel` | things (nails, apples); you cannot pour into it — it is not a vessel |
-| competent | `hooped` | `dry-cask` — a `Cask`, `closure: dryTight` | granular bulk (`requiredClosureFor` asks `dryTight` of a `granular` material; the flours carry the tag) |
-| proficient | `tight-hooped` | `cask` — a `Cask`, `liquidTight` | liquor |
+| competent | `hooped` | `dry-cask` — a `Vat` with a bill, `closure: dryTight` | granular bulk (`requiredClosureFor` asks `dryTight` of a `granular` material; the flours carry the tag) |
+| proficient | `tight-hooped` | `cask` — a `Vat` with a bill, `liquidTight` | liquor |
 
 `fit cask` by a hand short of proficient is refused naming the band.
 `dryTight` is a new `ClosureLevel` between `open` and `liquidTight`. The
@@ -415,7 +468,7 @@ unchanged; the charred cask is the plain cask with `charLevel: 1`). ⚠ The
 fuel pack's oil casks are `Bottle`s and the water-butt is a source; both
 are untouched.
 
-- **Dry-out** (`Cask.reconcileDrying`, on read — including `getJoints()`,
+- **Dry-out** (`Vat.reconcileDrying`, on read — including `getJoints()`,
   so `look` sees it): the first read that finds it empty starts the
   clock; after `cask.dryOutDays` (7) empty every joint slackens once by
   0.6 with every stave sound — the joint failing with no part damaged,
@@ -564,3 +617,13 @@ walk found: held affordances, subtractive carving, `wideFace`). The
 master scan-sweep merge took `JointCatalogue` off the boot list and
 retired `EmploymentApi.ensureOrganization` (an organization resolves at
 the act through `StuffApi.singleton`).
+
+**Repair — assemblies part two** (2026-10-17, plan `repair-plan.md`)
+reversed (3): the owner ruled that two classes for one kind of thing was
+the wrong answer to *is this made of parts*, so the mixin composes on the
+families and a monolith is one piece; the nine twins (`AssembledTool`,
+`AssembledChair`, `Cask`, `Lantern`, `AssembledWeapon`,
+`AssembledLauncher`, `AssembledGarment`, mining's
+`AssembledSurveyInstrument`, textiles' `AssembledSpinningTool`) retired
+and their 23 rows re-point to the family. What made the reversal safe is
+that every method had become total on an empty record.

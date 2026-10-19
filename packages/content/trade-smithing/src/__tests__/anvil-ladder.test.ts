@@ -130,7 +130,9 @@ describe('the anvil ladder', () => {
 
   it('⭐⭐ the nine arms are all makeable, and more metal is more work', () => {
     // The forged arms: one piece of metal, shaped whole at the anvil.
-    const forged = ['dagger', 'sword', 'mail-hauberk', 'breastplate'];
+    // ⭐ The sword's BLADE is forged whole (repair D17); the sword is
+    // fitted from it — see the assembled arms below.
+    const forged = ['dagger', 'sword-blade', 'mail-hauberk', 'breastplate'];
     const byId = new Map(recipes.map((r) => [r.recipeId, r]));
     for (const id of forged) {
       const r = byId.get(id);
@@ -143,7 +145,7 @@ describe('the anvil ladder', () => {
     const stockOf = (id: string): number =>
       byId.get(id)!.inputSlots!.find((s) => s.category === 'forgeable')!.count ?? 1;
     expect(stockOf('dagger')).toBe(1);
-    expect(stockOf('sword')).toBe(2);
+    expect(stockOf('sword-blade')).toBe(2);
     expect(stockOf('breastplate')).toBe(4);
   });
 
@@ -164,6 +166,8 @@ describe('the anvil ladder', () => {
       warhammer: 'warhammer-head',
       flail: 'flail-head',
       shield: 'shield-boss',
+      // ⭐ repair D17: blade, guard, grip, pommel — the tang peened over.
+      sword: 'sword-blade',
     };
     for (const [arm, part] of Object.entries(assembled)) {
       const r = all.get(arm);

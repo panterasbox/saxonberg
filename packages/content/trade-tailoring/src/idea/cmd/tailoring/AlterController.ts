@@ -33,7 +33,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import { measurementsOf } from './CutController';
+import { measurementsOf } from '../../../thing/CuttingTool';
 
 const TOPIC = 'act.deed';
 

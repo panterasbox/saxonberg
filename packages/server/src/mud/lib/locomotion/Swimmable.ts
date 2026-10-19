@@ -22,13 +22,28 @@ import { LocomotionApi } from '../../api/locomotion';
  */
 export const SWIMMING_CAPABILITY_PROP = Property.of<number>('swimming');
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface Swimmable extends Enablement {}
+/** Who is in a swimmable place's water, and how cold it is. */
+export interface Immersion {
+  mediumTag: 'water';
+  temperatureK: number;
+}
+
+export interface Swimmable extends Enablement {
+  /**
+   * ⭐ Is `occupant` IN this place's water (storage-and-ice D10)? Derived
+   * from SUPPORT: an occupant is immersed unless the place's floor is
+   * holding it up (it holds the floor's ground slot). A place with no
+   * floor immerses everyone. `null` when not immersed.
+   */
+  immersionOf(occupant: Stuff): Immersion | null;
+  /** The water's temperature, K. Base: the place's own air. */
+  waterTemperatureK(): number;
+}
 
 export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class SwimmableMixin extends Base implements Enablement {
+  return class SwimmableMixin extends Base implements Swimmable {
     static _mixinName = 'SwimmableMixin';
     static fieldMeta: FieldMeta = {
       axes: { persistent: true, authorable: true },
@@ -57,6 +72,19 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
     public setDifficulty(value: number | null): void {
       LocomotionApi.assertEnablementDifficulty(value, 'Swimmable.setDifficulty');
       this.difficulty = value;
+    }
+
+    public immersionOf(occupant: Stuff): Immersion | null {
+      const self = this as unknown as Stuff;
+      const floor = MixinApi.isAdornable(self) ? self.getFloor() : null;
+      if (floor !== null && MixinApi.isFloor(floor) && floor.supports(occupant)) return null;
+      return { mediumTag: 'water', temperatureK: this.waterTemperatureK() };
+    }
+
+    /** @hook The water's temperature. Base: the place's own (last-integrated) air. */
+    public waterTemperatureK(): number {
+      const own = (this as unknown as { getOwnTemperatureK?(): number | null }).getOwnTemperatureK?.();
+      return typeof own === 'number' && own > 0 ? own : 288;
     }
 
     public canBeEngagedBy(actor: Stuff): boolean {

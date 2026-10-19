@@ -1,0 +1,22 @@
+# sheet mould — a rubber works' mould (rubber build): ⭐ a dairy `Mould` row.
+# Load it with raw rubber and sulfur, stand it in the oven, and `fire`
+# the oven: the charge comes out in this mould's shape — rubber-sheet — and the
+# mould keeps it until you take it out. Reusable; it wears by a cast.
+# ⭐ `discipline: chemistry` is deliberately the MENDING trade of what it
+# casts: a moulded good is one piece, and its mending is a chemist's.
+class: /platform/thing/Mould
+data:
+  shortDescription: sheet mould
+  keywords: [mould, mold, sheet-mould, "sheet mould", "sheet mold"]
+  register: indefinite
+  longDescription: >-
+    A shallow bronze tray with a lid that clamps down flat, for pressing a sheet.
+  interiorBulk: true
+  interiorCapacity: 2
+  closure: liquidTight
+  castTemplate: /trade/rubber/thing/rubber-sheet
+  reusable: true
+  discipline: chemistry
+  gradeBand: fine
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 6

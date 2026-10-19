@@ -1,0 +1,19 @@
+# ice — how thick the ice is where you stand, and what grade
+# (storage-and-ice D19). `measure ice [<patch>]` chops a hole with a spud
+# and reads the thickness, bracketed to your ice-harvesting; `analyze ice`
+# is the eye, in words. The patch words: field, scraped, marked, cut, hole.
+class: /trade/ice/idea/reading/IceReading
+data:
+  channel: ice
+  kind: fact
+  scope: [here]
+  discipline: ice-harvesting
+  instrument: spudding
+  instrumentNoun: a spud
+  eyeCeiling: competent
+  improves: >-
+    whether the ice will bear you, a horse or a loaded sledge, and how big
+    a block it will cut and of what grade
+  stakes: >-
+    a crew through the ice in January; a house filled with snow-ice nobody
+    will pay for

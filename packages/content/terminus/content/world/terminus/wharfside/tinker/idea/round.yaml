@@ -1,0 +1,62 @@
+# The tinker's round — a Business of one (repair D13, D15).
+#
+# ⭐⭐ A ROUND IS ROSTER SLOTS: one seat, five slots, each with a station.
+# The roster holds ONE shift across them and moves him stop to stop as
+# the hour turns — the hourly presence every rostered hand has, read on
+# arrival (a stop brings his house current when anyone comes), watched or
+# not. Walking between stops when watched is a deferred seam.
+#
+# Every stop and every slate is in `operatingLocations`: a slate's fee
+# attributes to this house self-first, and he is "fulfilling" wherever he
+# stands. No boot entry (repair P9 — load on use).
+class: /platform/idea/Business
+data:
+  name: "the tinker's round"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/tinker/agent/tinker
+  call: rota
+  positions:
+    - key: tinker
+      noun: tinker
+      label: on his round
+      wageRate: 3
+      headcount: 1
+      fulfills: [smithing, carpentry, tailoring, leatherwork]
+  rosterSlots:
+    - positionKey: tinker
+      assignee: /world/terminus/wharfside/tinker/agent/tinker
+      station: /world/terminus/wharfside/tinker/location/yard
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 8] }
+    - positionKey: tinker
+      assignee: /world/terminus/wharfside/tinker/agent/tinker
+      station: /world/terminus/delight-road/crossroads
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 10] }
+    - positionKey: tinker
+      assignee: /world/terminus/wharfside/tinker/agent/tinker
+      station: /world/terminus/hearts-delight/location/valley-gate
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [10, 12] }
+    - positionKey: tinker
+      assignee: /world/terminus/wharfside/tinker/agent/tinker
+      station: /world/terminus/delight-road/crossroads
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [12, 14] }
+    - positionKey: tinker
+      assignee: /world/terminus/wharfside/tinker/agent/tinker
+      station: /world/terminus/rejection/location/smelter
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [14, 17] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/tinker/location/yard
+    - /world/terminus/wharfside/tinker/thing/slate
+    - /world/terminus/delight-road/crossroads
+    - /world/terminus/delight-road/thing/tinkers-slate
+    - /world/terminus/hearts-delight/location/valley-gate
+    - /world/terminus/hearts-delight/thing/tinkers-slate
+    - /world/terminus/rejection/location/smelter
+    - /world/terminus/rejection/thing/mending-slate
+  offstage: /world/terminus/wharfside/tinker/location/offstage

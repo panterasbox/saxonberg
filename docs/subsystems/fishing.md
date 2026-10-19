@@ -171,6 +171,16 @@ reads the ice by `physics`: presence for anyone; whether it would bear
 you at competent; thickness, black or snow-ice, and what it bears (a
 person · a horse · a loaded cart) at proficient.
 
+⭐ **Frozen water is fished only through a hole** (storage-and-ice,
+2026-10-17). `FishingController.reachFor` — the one seam `fish`, `lay`
+and `release` share — asks the shore's `drawAt(key, room)` gate
+(watershed.md § The frozen pool): a reach thicker than skim ice
+(`OPEN_WATER_BELOW_M`, 5 mm) with no open water in the room's floor
+refuses *"The water is frozen over; you would need a hole."*; a `cut hole`
+in an ice sheet (0.1 m², the ice saw) or a cut channel is open water, and
+fishing through it is the same reach and unchanged. Ice-fishing gear and
+behaviour are the fishing slate's.
+
 ⚠ The room's own `look` does not carry the read — a prop contributes
 nothing to its room's prose (only the floor puddle has a kernel hook). A
 room-level contribution hook is a finding for the sweep.

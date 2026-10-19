@@ -40,11 +40,49 @@ that owns the capability** and inlines nothing: `repair` →
 pack code: a venue that could define its own service kinds would need
 pack code, and then a second venue would too. ⭐ **A second clinic is a
 `Tariff` row and a `Business` row** — the shipped proof is a repair tariff
-at the hearthworks smithy and a second one, at a different price, in the
-Rejection provisioning shed.
+at the hearthworks smithy and a second one, at a different price, at the
+Rejection smelter (it stood in the provisioning shed until the repair
+build — a shed with no fire and nobody whose trade a mend is).
+
+### ⭐⭐ A priced service is performed by a PERSON (repair, 2026-10-17)
+
+Until the repair build the `repair` arm mended as the CUSTOMER — at their
+band, with nobody in the shop — and `collect` took the money: a priced
+service with no worker in it. Now:
+
+1. **The hand.** `CraftingApi.fulfillingHand(giver, tariff, discipline?)`
+   — someone on shift in the room whose seat `fulfills` the work (any,
+   when no discipline is named; a Tariff row may name one per service),
+   working for the house the Tariff's money goes to (`tariff.house()`:
+   the fixture's own operator first, else the room's — so a shared room
+   never sends another house's hand), chosen by that house's `call` rule.
+   ⛔ Nobody is a refusal in words — `NOBODY_TO_WORK`, *"There's nobody
+   here to do the work."* — one sentence for every service, never a free
+   service.
+2. **The quote, before the money.** The hand looks it over
+   (`CraftingApi.diagnose`, read-only — the same ladder the mend runs) and
+   names each fault and its price: `Tariff.quoteFor(lines)` prices `{key,
+   label, qty}` lines, a repair key the row does not price (`tighten`,
+   `reforge`, `refire`) deriving from `repair` (×¼, ×2, ×1, grain), any
+   other unpriced key staying unpriced (null — never derived). A fault the
+   hand cannot mend here is said with its cure and not priced; a hand who
+   can only make a part serviceable says so.
+3. **Can you pay?** `PricedOfferMixin.canSettle(amount)` (`BankingApi
+   .canSettle` — credential balance, else coin in hand) BEFORE the work: a
+   mend nobody can pay for is refused, not done on the house.
+4. **Yes or no.** `context.interactive.promptConfirm` (`prompt-confirm` on
+   the wire); no interactive — a scripted caller — answers no.
+5. **The mend is the hand's**: `CraftingApi.repair({item, hand})` — their
+   reach, heat and bands; their name on the `MendRecord`.
+6. **One settlement.** Every arm returns `{ok, detail, charge?, hand?}`;
+   `doService` settles once — `collectMinor(charge)` for a computed quote,
+   else `collect(key)` — and pays a `per-settlement` hand
+   (`EmploymentApi.settlePiecework`, one piece) out of the house the fee
+   went to; a time-wage hand is paid by the shift and not twice.
 
 `PricedOfferMixin.collect(key, reason)` is the one settlement path for a
-SERVICE, so a `Menu` and a `Tariff` share it. A SALE (a stock good, a
+SERVICE (`collectMinor(amount, reason)` its computed-charge form), so a
+`Menu` and a `Tariff` share it. A SALE (a stock good, a
 consignment line, a priced menu recipe) settles through
 `EmploymentApi.settleSale(venuePath, amount, taxable, reason, splits?)` —
 the single path `buy` and `order` both run (it replaced a hand-rolled copy
@@ -159,11 +197,25 @@ newcomer path, a closed counter refuses), and `ResettableMixin` (topped to
 par on the reset sweep). The `BankCounter` precedent (a Vessel that
 composes its capability).
 
-- **`stockLines`** — authored `{ itemTemplatePath, par, brandKey? }`; the
-  offer key is the item template path.
-- **`reset()`** (the `ResettableMixin` hook) tops each line back to par by
-  cloning fresh goods from `itemTemplatePath` — **items, never money**
-  (Law 2). `resetsWhilePresent() → true` (restock while browsed is fine).
+- **`stockLines`** — authored `{ itemTemplatePath, par, brandKey?, from?,
+  pricing?, buys? }`; the offer key is the item template path.
+- ⭐ **The shelf is always instances; a line says where it is REFILLED
+  from — exactly one source, `from:`** (storage-and-ice review). Absent: an
+  **import**, cloned from nothing at the sweep. `{ supplier: <business> }`:
+  **bought**, by the keeper's `stocks` beat, on terms. `{ store: <store> }`:
+  **brought up** from a store (`lib/storage`) on the house's own claim, at
+  the sweep and to order. `setStockLines` refuses a line naming two sources
+  (and the retired `supplier:` / `source:` keys); `Stock.sourceOf` is the
+  one place the shape is decoded. ⚠ The source is per LINE, never per
+  counter class: one general store may carry imported, supplied and
+  store-fed lines on the same counter, and a second venue is rows.
+- **`reset()`** (the `ResettableMixin` hook) tops each import line back to
+  par by cloning fresh goods from `itemTemplatePath` — **items, never
+  money** (Law 2) — skips a supplied line, and brings a store-fed line up.
+  `resetsWhilePresent() → true` (restock while browsed is fine).
+- **One matcher** — `Stock.lineForWord(word)` is how a typed word names a
+  line (the template leaf, or one word of it: `block` for `ice-block`);
+  `buy`'s sold-out refusal and the bring-up both ask it.
 - **Self-stocks on standup**: `onCreate` calls `reset()`, so the same
   one mechanism handles boot-stock and ongoing topup.
 - **One counter is both** (libations): `Stock` composes
@@ -209,6 +261,13 @@ line with reason `sold-out` and prose that says so. ⚠ The match is the
 leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
 `par: 1` line hits this the moment somebody buys the last one.
+
+⭐ **And `resolveBuy` answers to the same leaf** (`Stock.resolveBuy`,
+keywords first, the leaf the fallback — matched as `carriesLine` matches
+it). Before the rubber build's browser drive (2026-10-18), `buy
+rubber-boots` — the word the shelf list prints, `rubber-boots (11)` — was
+refused as *the shelf is bare … none of it today* while a pair sat on the
+counter.
 
 ⭐ **A bought good is placed in the buyer's estate** (fishing B7,
 2026-09: a bought rod vanished at the next restart). Since the assembly
@@ -284,6 +343,17 @@ its mixin and surfaces stay in `lib/retail/Consignment.ts`) composes
 consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient
 shelf would drop it).
+
+⚠ **A relog, not a restart — unless the counter establishes its own
+record** (found by the repair drive, 2026-10-17). A `props:` counter like
+the general store's is cloned fresh at every boot and has no persistence
+key, so it never captures at shutdown and never materializes — and the
+owner overlay that would put a consigned good back runs only on
+materialize. The good is not lost (its owner's estate keeps it, placed
+at the counter); it is never placed. `MarketStalls.hydrationSource` is
+the fix on the market square; whether every `Stock` should carry one
+(a boot-time read per counter, and a keyless restore on a rented stall
+before it is keyed) is open.
 
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
@@ -364,11 +434,15 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   its supplier). The cash-and-carry says `purchasing: terms`; so does every
   rented stall. `reclaim` admits the house an actor buys for, so a
   supplier's hand takes an unpaid crate back.
-- **`StockLine.supplier` / `pricing`**: a line with a supplier is bought
-  by the keeper's `stocks` beat and never cloned by `reset()`; a line
-  without one is an import. `pricing: stocking` derives the ask from the
-  shelf against par (`retail.stockingElasticity`); `Stock.priceFor` is
-  the override, `basePriceFor` the authored number, `house price <thing>
+- **`from: { supplier }` / `pricing`**: a supplied line is bought by the
+  keeper's `stocks` beat and never cloned by `reset()`. `pricing: stocking`
+  derives the ask as `base × (1 + e × scarcity)` (`retail.stockingElasticity`),
+  where ⭐ **scarcity is asked of the line's source** (`Stock.scarcityOf`):
+  a shelf line against its par (`1 − onHand/par`), a store-fed line against
+  the HOUSE's days of supply in the store over `retail.stockingHorizonDays`
+  (`Store.houseDaysOfSupply`: its claim paid pro rata, its share of the
+  loss, its own draws — a depositor taking their goods home is not the
+  house selling). `Stock.priceFor` is the override, `basePriceFor` the authored number, `house price <thing>
   <ask>` the keeper's hand on it. A good the shop never priced asks the
   supplier's price × (1 + `retail.termsMargin`).
 - **`look` at a counter good says the ask** — `Stock.termsLineFor`,
@@ -415,6 +489,37 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
     emptied counter. A pitch-keyed record that outlives its let hands
     the next renter the previous keeper's counter, rent apparently
     already paid. A given-up pitch remembers nothing.
+
+## ⭐ The house buys — `sell <thing>` (storage-and-ice review)
+
+The counter's act, `Stock.buyFrom(seller, item)`, returning its refusal in
+its own words; `SellController` is dumb. A line says the house buys it —
+`buys: true` (an ice company buys a cutter's blocks; a general store does
+not take your limes). ⭐ **The bid is derived, never authored**:
+`Stock.bidFor` = the ask ÷ (1 + `retail.termsMargin`) — the terms rung's
+markup run backwards — so a house that is short both asks and PAYS more,
+which is the price a harvester reads. Every gate is asked before money
+moves: a line it buys; somebody behind the counter; the good is the
+seller's own; a store-fed line's store will take it (its acceptance list —
+an icehouse takes `ice` and `sawdust`, a pool KIND or one key); the seller
+has an account; the house can pay. Then `BankingApi.payTerms` (the house
+paying a supplier: cost of goods on its books), and the good goes where
+the line is refilled from — into the store on the house's claim, or onto
+the shelf as the house's.
+
+⭐ **The counter says what the house buys before anybody makes the trip**
+(a `look` at the counter): the bid; or *"its store is full"* (the store's
+`capacityKg`); or *"it is short of money"* — remembered from the last sale
+that failed on the house's account and cleared by the next good one,
+because a look cannot read a balance. A buying line's store-fed ask is
+the counter's own (`bringUpFor` brings a block up **to order** when the
+shelf is bare, so an empty store is an empty counter).
+
+⚠ **Many sellers, one counter** is held by the market, not a cap: the bid
+falls with the house's days of supply, and its store and its money run
+out. Exclusivity of a harvest (who may cut a pond) is a use of the reach
+→ [navigable-water-slate](../slates/builds/navigable-water-slate.md) § Ice
+harvest as a use of the reach.
 
 ## Deferred
 

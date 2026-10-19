@@ -267,3 +267,11 @@ retired `sovereign`/`crown` names had never been seen by a player"*).
 5. **Is there a floor on issuer obligations** — must an issuer redeem?
    A currency nobody must honour is a pure confidence game, which may be
    exactly the point, or may be a griefing surface.
+
+## From storage-and-ice (MR !378, 2026-10-18)
+
+- **The bank vault as a store** — recorded in
+  [storage-slate](../tails/storage-slate.md) § 4: the vault as a second consumer
+  of the store mechanism (coin lines per denomination, the audit as
+  stocktake), claims kept in the sealed `bank_ledger`, never in receipt
+  documents.

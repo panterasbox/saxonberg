@@ -185,6 +185,79 @@ describe('the shift move', () => {
   });
 });
 
+describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repair D13)', () => {
+  beforeEach(() => StuffApi.clearAll());
+  afterEach(() => vi.restoreAllMocks());
+
+  function round(world: World, stops: { hours: [number, number]; station?: string }[]): void {
+    world.business.rosterSlots = stops.map((s) => ({
+      positionKey: 'bartender',
+      assignee: MARA,
+      schedule: [{ days: [0, 1, 2, 3, 4], hours: s.hours }],
+      ...(s.station ? { station: s.station } : {}),
+    }));
+  }
+
+  it('⭐ begins ONE shift, moves stop to stop as the hour turns, and ends it once', async () => {
+    const world = seed({ offstage: OFFSTAGE });
+    round(world, [
+      { hours: [6, 8], station: BAR },
+      { hours: [8, 10], station: CELLAR },
+      { hours: [10, 12] },
+    ]);
+    const begin = vi.spyOn(world.business, 'beginShift');
+    const end = vi.spyOn(world.business, 'endShift');
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    ContainmentApi.move(mara as never, world.rooms.get(OFFSTAGE) as never);
+    const at = (): string | undefined => mara.getContainer()?.stuffId;
+
+    atClock(2, 7);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(at()).toBe(world.rooms.get(BAR)!.stuffId);
+
+    atClock(2, 9);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(at()).toBe(world.rooms.get(CELLAR)!.stuffId);
+
+    atClock(2, 11);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(at()).toBe(world.rooms.get(BAR)!.stuffId); // no station: the first operating location
+
+    atClock(2, 13);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(at()).toBe(world.rooms.get(OFFSTAGE)!.stuffId);
+    // ⭐ One shift: a later slot's "off" never ended an earlier slot's "on".
+    expect(begin).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(1);
+  });
+
+  it('a stop that is not standing is skipped, and taken on the next pass', async () => {
+    const world = seed({ offstage: OFFSTAGE });
+    const YARD = '/test/location/yard';
+    round(world, [{ hours: [6, 8] }, { hours: [8, 12], station: YARD }]);
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    ContainmentApi.move(mara as never, world.rooms.get(OFFSTAGE) as never);
+
+    atClock(2, 7);
+    EmploymentApi.tickRoster();
+    await settle();
+    atClock(2, 9);
+    EmploymentApi.tickRoster();
+    await settle();
+    // The yard is not standing: she stays where she was, still on shift.
+    expect(mara.getContainer()?.stuffId).toBe(world.rooms.get(BAR)!.stuffId);
+    // Somebody arrives at the yard; it stands; the next pass takes her there.
+    const yard = makeStuffAtPath(() => new Room(), YARD) as unknown as Stuff;
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()?.stuffId).toBe(yard.stuffId);
+  });
+});
+
 describe('cover, on demand', () => {
   beforeEach(() => StuffApi.clearAll());
   afterEach(() => vi.restoreAllMocks());
@@ -227,6 +300,35 @@ describe('cover, on demand', () => {
 
     expect(mara.getEmployment(BUSINESS)?.status).toBe('on-shift');
     expect(dave.getEmployment(BUSINESS)?.status).not.toBe('on-shift');
+  });
+
+  it('⭐⭐ a proprietor who holds a roster seat is never "stood down" — their shift is not a cover (storage-and-ice drive)', async () => {
+    const { business, rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    // Dave keeps the book on a seat of his own; Mara tends the bar.
+    business.positions = [
+      ...business.positions,
+      { key: 'keeper', label: 'keeping the book', wageRate: 4, fulfills: ['appraisal'] },
+    ];
+    business.rosterSlots = [
+      ...business.rosterSlots,
+      { positionKey: 'keeper', assignee: DAVE, schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 20] }] },
+    ];
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    const dave = makeStuffAtPath(() => new Worker(), DAVE);
+    ContainmentApi.move(mara as never, rooms.get(BAR) as never);
+    ContainmentApi.move(dave as never, rooms.get(BAR) as never);
+
+    atClock(2, 10); // both windows open
+    EmploymentApi.tickRoster();
+    await settle();
+    EmploymentApi.tickRoster();
+    await settle();
+
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('on-shift');
+    // ⚠ Before the fix the second pass saw Mara on shift and Dave "covering",
+    // and `endCover` deleted Dave's employment outright.
+    expect(dave.getEmployment(BUSINESS)?.positionKey).toBe('keeper');
+    expect(dave.getEmployment(BUSINESS)?.status).toBe('on-shift');
   });
 
   it('⚠ a house with no fulfilling seat is never covered — there is nothing to cover', async () => {

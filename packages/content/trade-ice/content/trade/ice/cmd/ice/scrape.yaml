@@ -1,0 +1,25 @@
+verbs: [scrape]
+controller: /trade/ice/idea/cmd/ice/ScrapeController
+description: "Scrape the snow off the ice so it freezes black"
+help: |
+  Standing on a frozen pool with an ice scraper, `scrape` clears the snow
+  off a patch of the ice. ⭐ Snow insulates: under it the ice grows slower
+  and white (snow-ice, the poor grade). Scraped bare, the patch thickens
+  faster and freezes black — the grade the icehouses paid for — until the
+  next snow covers it again. `measure ice scraped` reads the patch.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patch
+    type: string
+    required: false
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "reachable:[capability.scraping]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

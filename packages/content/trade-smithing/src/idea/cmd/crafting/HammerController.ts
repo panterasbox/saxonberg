@@ -172,7 +172,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
  */
 function isUnforgeable(target: Stuff): boolean {
   if (MixinApi.isTangible(target) && target.hasMaterialTag('brittle')) return true;
-  return MixinApi.isAlloyed(target) && target.fractionOf(CARBON) >= C_CAST_FLOOR;
+  return MixinApi.isComposition(target) && target.fractionOf(CARBON) >= C_CAST_FLOOR;
 }
 
 /** A bloom: the one thing that can say how much slag is trapped in it. */

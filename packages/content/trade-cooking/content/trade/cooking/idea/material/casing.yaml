@@ -21,4 +21,4 @@ data:
   nutrients: [protein]
   nutrientAmounts:
     protein: 15000
-  tags: [food, casing, offal, organic, edible, raw]
+  tags: [food, casing, offal, organic, edible, raw, once-living]

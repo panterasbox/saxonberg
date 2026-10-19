@@ -185,6 +185,13 @@ export interface FabricSpec {
   weaveDensity: number;
   /** How it hangs, `0..1`. Reserved: authored, not yet consumed. */
   drape: number;
+  /**
+   * How far the construction lets its fibre give, as a multiple of the
+   * material's own elasticity (rubber build). Absent = `1`, the
+   * fibre's own; `0` locks it (felting matts the fibres solid); a knit's
+   * loops give more than the yarn does.
+   */
+  stretch?: number;
 }
 
 /**
@@ -429,6 +436,7 @@ export class Construction {
       ['loft', spec.loft],
       ['weaveDensity', spec.weaveDensity],
       ['drape', spec.drape],
+      ['stretch', spec.stretch ?? 1],
     ] as const) {
       if (!Number.isFinite(value)) {
         throw new RangeError(
@@ -458,6 +466,11 @@ export class Construction {
             `is outside 0..1`,
         );
       }
+    }
+    if ((spec.stretch ?? 1) < 0) {
+      throw new RangeError(
+        `Construction.registerFabric('${spec.key}'): stretch ${spec.stretch} is negative`,
+      );
     }
     FABRICS.set(spec.key, { ...spec });
   }

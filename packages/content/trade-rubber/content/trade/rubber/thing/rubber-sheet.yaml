@@ -1,0 +1,13 @@
+# A rubber sheet — cured rubber pressed flat in a sheet mould (rubber
+# build): the stuff of gaskets, mats, a waterproof cover, the inner layer
+# of a rubberized coat.
+class: /platform/thing/Thing
+data:
+  shortDescription: sheet of rubber
+  keywords: [sheet, "rubber sheet", rubber, mat]
+  register: indefinite
+  longDescription: >
+    A flat black sheet of cured rubber, a finger thick, that rolls up and
+    springs back flat.
+  _materialPath: /stuff/idea/material/organic/rubber
+  mass: 1

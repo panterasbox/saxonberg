@@ -22,14 +22,15 @@ import LoftedSawmill from '../thing/LoftedSawmill';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Blank from '../thing/Blank';
 import Board from '../thing/Board';
-import { boardsFrom, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
+import { boardsFrom, kerfSawdustKg, BOARD_KG, QUARTER_YIELD } from '../idea/cmd/carpentry/SawController';
+import Sawdust from '../thing/Sawdust';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACK = join(here, '..', '..');
@@ -169,6 +170,48 @@ describe('the cut — how many boards a log gives', () => {
     expect(q.data!.mass).toBeUndefined();
     expect(q.data!.quarterSawn).toBe(true);
     expect(d.quarterSawn).toBeUndefined();
+  });
+});
+
+describe('⭐ sawdust by kerf (storage-and-ice D18)', () => {
+  it('the dust grows with the cuts, and quartering doubles them', () => {
+    // 24 kg through-sawn at a 4 mm kerf: four cuts of a 25 mm board.
+    expect(kerfSawdustKg(4, false, 0.004)).toBeCloseTo(3.84, 9);
+    expect(kerfSawdustKg(8, false, 0.004)).toBeCloseTo(7.68, 9);
+    expect(kerfSawdustKg(2, true, 0.004)).toBeCloseTo(kerfSawdustKg(4, false, 0.004), 9);
+    expect(kerfSawdustKg(4, false, 0.003)).toBeLessThan(kerfSawdustKg(4, false, 0.005));
+  });
+
+  it('⭐⭐ mass is conserved to the gram: boards × board + dust = boards × BOARD_KG', () => {
+    // The boards are lighter by exactly what is minted (whole kilograms —
+    // a heap's unit is a kilogram), as `finishSaw` does it.
+    for (const [boards, quarter, kerf] of [[4, false, 0.004], [2, true, 0.004], [4, false, 0.005], [1, false, 0.003]] as const) {
+      const dust = Math.round(kerfSawdustKg(boards, quarter, kerf));
+      const boardKg = dust > 0 ? BOARD_KG - dust / boards : BOARD_KG;
+      expect(Math.round((boards * boardKg + dust) * 1000)).toBe(boards * BOARD_KG * 1000);
+    }
+  });
+
+  it('the two saws author their kerf, and an unauthored saw cuts 4 mm', () => {
+    expect(row('sawmill').data!.kerfM).toBe(0.003);
+    expect(row('pit-saw').data!.kerfM).toBe(0.005);
+    expect(makeStuff(() => new Sawmill()).getKerfM()).toBe(0.004);
+  });
+
+  it('the heap is a kilogram a unit, of sawdust, and wet dust is its own heap', () => {
+    const d = row('sawdust');
+    expect(d.class).toBe('/trade/carpentry/thing/Sawdust');
+    expect(d.data!.mass).toBe(1);
+    expect(d.data!._materialPath).toBe('/stuff/idea/material/wood/sawdust');
+    const a = makeStuff(() => new Sawdust());
+    const b = makeStuff(() => new Sawdust());
+    const c = makeStuff(() => new Sawdust());
+    for (const x of [a, b, c]) stampTemplatePathForTest(x, '/trade/carpentry/thing/sawdust');
+    expect(a.canMergeWith(c)).toBe(true);
+    b.wet(0.9);
+    expect(a.getWetnessBand()).not.toBe(b.getWetnessBand());
+    // ⭐ The band veto is the class's own: a soaked heap stays a soaked heap.
+    expect(a.canMergeWith(b)).toBe(false);
   });
 });
 

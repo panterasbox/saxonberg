@@ -17,7 +17,6 @@ data:
     A slate hung by the door, ruled into two columns and written up in a small square hand. What the house does on the left; what the house charges on the right. Somebody has gone over the figures more than once with a damp cloth and written them in again a little lower.
   prices:
     treatment: 12
-    repair: 8
   # ⭐⭐ Priced by the labour it restores (recovery D13): a `treatment`'s
   # bill bends with the customer's wage × how badly the harm has impaired
   # them. A well-paid body with a failing leg pays more than an unemployed
@@ -26,8 +25,8 @@ data:
   labourIndexed: true
   # What each priced key MEANS, from the kernel's closed vocabulary.
   # `treatment` — the house sees to what is wrong with you.
-  # `repair`    — the physician's hands are steady and the surgery has a
-  #               vice; a strap, a buckle, a snapped haft gets mended.
+  # ⚠ No `repair` (repair D19, 2026-10-17): a mend is the work of a hand
+  # whose trade made the thing, and the physician's is not that trade —
+  # the smith, the tinker and the cobbler mend.
   services:
     treatment: treatment
-    repair: repair

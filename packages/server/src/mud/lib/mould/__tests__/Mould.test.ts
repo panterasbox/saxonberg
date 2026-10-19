@@ -27,7 +27,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { Stuff } from '../../stuff/Stuff';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
@@ -166,7 +166,11 @@ describe('moulds — the container decides the shape', () => {
     cloned = [];
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       cloned.push(path);
-      return makeStuff(() => new TestCast());
+      // A real clone carries its row's path — and `holdsCast` reads it
+      // (rubber build: a mould holds a CAST, not merely something).
+      const c = makeStuff(() => new TestCast());
+      stampTemplatePathForTest(c, path);
+      return c;
     }) as unknown as typeof StuffApi.clone);
   });
   afterEach(() => {
@@ -196,6 +200,15 @@ describe('moulds — the container decides the shape', () => {
     await settle();
     expect(cloned).toEqual([LUMP]);
     expect(contentsOf(r)).toHaveLength(2); // the pail and the lump
+  });
+
+  it('⭐ a cast remembers WHICH TRADE its mould is — the trade that mends it (repair D1)', async () => {
+    const m = fillVessel(mould(BLOCK), water(), 1, 150);
+    m.setDiscipline('smelting');
+    m.reconcilePhase();
+    await settle();
+    const cast = contentsOf(m)[0] as unknown as { getCastDiscipline(): string };
+    expect(cast.getCastDiscipline()).toBe('smelting');
   });
 
   it('a cracked mould casts a lump; a whole one wears by wearPerCast', async () => {

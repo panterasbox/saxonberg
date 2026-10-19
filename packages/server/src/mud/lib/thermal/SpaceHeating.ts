@@ -38,6 +38,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from '../fire/Burner';
+import type { RoomHeatExchange } from './RoomHeatExchange';
 
 /** Public shape added by SpaceHeatingMixin. */
 export interface SpaceHeating {
@@ -47,6 +48,8 @@ export interface SpaceHeating {
    * out or out of fuel.
    */
   spaceHeatOutputW(): number;
+  /** The room-heat protocol: `{fixedW: spaceHeatOutputW(), conductance 0}`. */
+  roomHeatExchange(): RoomHeatExchange;
   /** The authored output while burning (W). */
   getHeatOutputW(): number;
   setHeatOutputW(value: number): void;
@@ -103,6 +106,14 @@ export function SpaceHeatingMixin<TBase extends MixinConstructor<Stuff>>(
       // change nothing; the docstring's promise is kept.
       if (typeof host.burnPowerW !== 'function') return this.heatOutputW;
       return Math.min(this.heatOutputW, host.burnPowerW());
+    }
+
+    /**
+     * ⭐ The room-heat protocol (`RoomHeatExchange`, storage-and-ice D5): a
+     * fire pushes a fixed power in and anchors nothing.
+     */
+    public roomHeatExchange(): RoomHeatExchange {
+      return { fixedW: this.spaceHeatOutputW(), conductanceWperK: 0, anchorK: 0 };
     }
   };
 }

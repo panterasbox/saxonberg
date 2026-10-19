@@ -24,4 +24,4 @@ data:
   nutrients: [protein, water]
   nutrientAmounts:
     protein: 18000
-  tags: [food, meat, offal, organic, edible, raw]
+  tags: [food, meat, offal, organic, edible, raw, once-living]

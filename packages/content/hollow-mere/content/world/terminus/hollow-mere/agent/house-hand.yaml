@@ -1,0 +1,19 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Col
+  keywords: [col, hand]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: Col the house hand
+  register: proper
+  longDescription: |
+    A broad young man with a shovel and arms like the beams of the house, wet to the elbows with meltwater.
+  archetype: labourer
+  competence:
+    - { discipline: ice-harvesting, asserting: competent }
+  behaviors:
+    - brain: /trade/ice/behavior/keeps-house
+      trigger: candidate
+      config: { stack: stack }

@@ -1,0 +1,17 @@
+# Sawdust — the heap the saw's kerf leaves where the boards fall
+# (storage-and-ice D18). One unit is one kilogram, so a heap's count is its
+# weight; the saw mints it as `cuts × kerf / board thickness × board mass`,
+# and the boards come out lighter by exactly that much.
+#
+# What it is for: the icehouse packs its stack in it (the `trade-ice`
+# store holds it as a line by wetness), a floor can be strewn with it.
+class: /trade/carpentry/thing/Sawdust
+data:
+  shortDescription: heap of sawdust
+  keywords: [sawdust, dust, heap, "heap of sawdust"]
+  register: indefinite
+  longDescription: |
+    A heap of pale sawdust, fine as meal, smelling of the wood it came out of.
+  _materialPath: /stuff/idea/material/wood/sawdust
+  mass: 1
+  quantity: 1

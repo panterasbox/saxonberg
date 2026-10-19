@@ -81,3 +81,35 @@ describe('Roster', () => {
     expect(Roster.fromData(null).getAssignments()).toEqual([]);
   });
 });
+
+describe('⭐ seasonal shifts (storage-and-ice D20)', () => {
+  const crew: RosterAssignment = {
+    positionKey: 'crew',
+    assignee: '/x/crew',
+    schedule: [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 16], season: ['winter'] }],
+  };
+  const keeper: RosterAssignment = {
+    positionKey: 'keeper',
+    assignee: '/x/keeper',
+    schedule: [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 16] }],
+  };
+  const roster = Roster.of([crew, keeper]);
+
+  it('a winter seat is on in winter and off in summer; an unseasoned seat is on in both', () => {
+    expect(roster.evaluate(crew, { weekday: 1, hour: 10, season: 'winter' })).toBe('on-shift');
+    expect(roster.evaluate(crew, { weekday: 1, hour: 10, season: 'summer' })).toBe('off-shift');
+    expect(roster.evaluate(keeper, { weekday: 1, hour: 10, season: 'summer' })).toBe('on-shift');
+  });
+
+  it('⚠ a season-bound seat is OFF while the house\'s season is unknown; nobody else notices', () => {
+    expect(roster.evaluate(crew, { weekday: 1, hour: 10 })).toBe('off-shift');
+    expect(roster.evaluate(keeper, { weekday: 1, hour: 10 })).toBe('on-shift');
+  });
+
+  it('a row\'s season list keeps only the four words', () => {
+    const r = Roster.fromData([
+      { positionKey: 'p', assignee: '/a', schedule: [{ days: [0], hours: [0, 24], season: ['winter', 'mud'] }] },
+    ]);
+    expect(r.getAssignments()[0]!.schedule[0]!.season).toEqual(['winter']);
+  });
+});

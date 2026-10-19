@@ -541,7 +541,14 @@ export interface LocomotionGateFailedNote {
     | 'door'
     | 'terrain'
     | 'breakaway'
-    | 'veto';
+    | 'veto'
+    // ⭐ The guards that had no word of their own and reported as
+    // `exit-mode` (the storage-and-ice drive: a laden swimmer refused for
+    // the load read as a way that does not swim).
+    | 'encumbrance'
+    | 'locked'
+    | 'unbuilt'
+    | 'unpublished';
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }

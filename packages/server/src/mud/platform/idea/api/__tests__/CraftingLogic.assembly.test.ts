@@ -29,7 +29,6 @@ import Material from '../../../../lib/material/Material';
 import Scrap from '../../../thing/Scrap';
 import Casting from '../../../thing/Casting';
 import Tool from '../../../thing/Tool';
-import AssembledTool from '../../../thing/AssembledTool';
 import Timber from '../../../thing/Timber';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import JointCatalogue from '../../JointCatalogue';
@@ -86,8 +85,8 @@ function part(material: string, keywords: string[], massKg: number): Tool {
   return t;
 }
 
-function pickRow(): AssembledTool {
-  const t = makeStuff(() => new AssembledTool());
+function pickRow(): Tool {
+  const t = makeStuff(() => new Tool());
   t.setKeywords(['pick']);
   t.setBill({
     parts: [
@@ -106,14 +105,14 @@ function as<T>(fn: () => Promise<T>): Promise<T> {
   }) as unknown as Promise<T>;
 }
 
-async function makePick(): Promise<AssembledTool> {
+async function makePick(): Promise<Tool> {
   ContainmentApi.move(part(IRON, ['pick-head', 'head'], 1.8), smith);
   ContainmentApi.move(part(ASH, ['pick-haft', 'haft'], 0.8), smith);
   const out = await as<CraftOutcome>(() =>
     CraftingApi.craft({ recipeRef: 'pick', makerMode: 'self' }),
   );
   if (!out.ok) throw new Error(`craft declined: ${JSON.stringify(out)}`);
-  return out.output as unknown as AssembledTool;
+  return out.output as unknown as Tool;
 }
 
 beforeEach(async () => {
@@ -167,7 +166,7 @@ beforeEach(async () => {
   );
   vi.spyOn(Template, 'findByPath').mockImplementation(async (p: string) => {
     if (p === HAFT) return { path: p, class: '/platform/thing/Tool', data: { mass: 0.8 } } as never;
-    if (p === PICK) return { path: p, class: '/platform/thing/AssembledTool', data: { bill: pickRow().getBill() } } as never;
+    if (p === PICK) return { path: p, class: '/platform/thing/Tool', data: { bill: pickRow().getBill() } } as never;
     return null as never;
   });
   makeStuffAtPath(() => new JointCatalogue(), TemplatePaths.jointCatalogue);
@@ -224,7 +223,7 @@ describe('CraftingLogic — assembly', () => {
       CraftingApi.craft({ recipeRef: 'pick', makerMode: 'self' }),
     );
     expect(out.ok, JSON.stringify(out)).toBe(true);
-    const pick = (out as unknown as { output: AssembledTool }).output;
+    const pick = (out as unknown as { output: Tool }).output;
     expect(pick.getParts().map((l) => l.part)).toEqual(['head', 'haft']);
     expect(pick.getMarkupLong(smith)).toMatch(/made of/);
   });
@@ -245,6 +244,15 @@ describe('CraftingLogic — assembly', () => {
     expect(pick.isBroken()).toBe(false);
     expect(pick.getLine('head')!.failed).toBe(0);
     expect(pick.getLine('haft')!.condition).toBe(1);
+  });
+
+  it('⭐ fit refuses a thing of ONE piece — there is no line in it (repair D4)', async () => {
+    const whetstone = part(ASH, ['whetstone'], 0.3);
+    const haft = part(ASH, ['pick-haft', 'haft'], 0.8);
+    ContainmentApi.move(haft, smith);
+    const out = await as<FitOutcome>(() => CraftingApi.fit({ part: haft, whole: whetstone }));
+    expect(out).toMatchObject({ ok: false, reason: 'no-line', detail: 'one-piece' });
+    expect(haft.isDestroyed()).toBe(false);
   });
 
   it('⭐ a slack joint is TIGHTENED by repair — consuming nothing', async () => {

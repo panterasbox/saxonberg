@@ -1,0 +1,7 @@
+extends: /trade/ice/thing/stack
+data:
+  capacityKg: 3000
+  businessPath: /world/terminus/hollow-mere/idea/ice-company
+  initialLines:
+    - { goodPath: /stuff/thing/ice-block, amountKg: 2000, grade: black, state: { temperatureK: 272 } }
+    - { goodPath: /trade/carpentry/thing/sawdust, amountKg: 200, state: { saturation: 0 } }
