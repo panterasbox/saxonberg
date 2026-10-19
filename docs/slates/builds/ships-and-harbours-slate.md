@@ -478,3 +478,41 @@ cut): the voyage's weather, combat, whaling's chase.
 4. The sea-room cell size (grain).
 5. Where the ship registry lives (a civics document tree per government — no
    new collections).
+
+## 15. ⭐⭐ Drill-down: `trade-seafaring` (2026-10-19)
+
+### The crew, and why a ship needs one **[DECIDED]**
+
+- ⭐ **Manning decides performance** — a ship under way needs hands at her
+  **stations**: the helm (unsteered, she yaws and drifts with the set), sails
+  or oars (too few hands, she cannot make full sail), the pumps (a leak gains),
+  the lookout (the deck's sight only), the galley (wellbeing, scurvy), the
+  bosun's work (tarring, splicing — decomposition's upkeep). **A ship kind
+  declares her complement**; the archetype says which stations exist; **an
+  under-manned ship is slower, steers worse and leaks faster** — derived.
+- **The crew is employment, shipped**: ⭐ **ranks are positions** (master, mate,
+  bosun, cook, able and ordinary seaman, boy) with seats; ⭐ **the watch is the
+  rota** (`call: rota` — larboard and starboard, four on and four off; the
+  roster tick puts the watch on deck — where *watches break sleep* comes from);
+  ⭐ **the articles are a contract** (the contract subsystem's clauses and
+  escrow — terms, wage or share, desertion forfeiting pay).
+- ⭐ **Pay is wages or a LAY** — merchant crews by the month; fishing and whaling
+  by **a share of the catch** (the boy 1/200, the master 1/12). **The share is
+  defined once**, a payment term on the articles, for seafaring, fishing, diving
+  and whaling (the underwater slate: *proven before whaling needs it*).
+
+### The cook **[DECIDED]**
+
+Ships carried cooks for **necessity** (salt meat and biscuit inedible raw; the
+galley stove **the only fire allowed aboard** — the fire subsystem's spread
+makes the cook a safety post; fuel and water rationed through one kitchen) and
+**morale** (the Potemkin mutiny began over maggoty meat). ⭐ **The ship's cook
+is the wellbeing design's proving ground** — captive diners, months of the same
+stores, scurvy, and the crew's wellbeing feeding **manning**. The cook's
+competence turns preserved stores into meals whose taste and variety are
+derived (plum duff on Sundays as ritual variety); rations and **the purser**
+are lens 4. **NPC crew discontent may go as far as desertion in port**,
+derived from wellbeing and felt as manning; **refusal and mutiny** — the crew
+judging the master, lens 7 at sea — are deferred to governance. The galley cook
+as a vocation is recorded in [guild-slate](./guild-slate.md); the three-star
+other end in [wellbeing-slate](./wellbeing-slate.md) § 8.
