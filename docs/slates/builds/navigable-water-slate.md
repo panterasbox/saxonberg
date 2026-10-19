@@ -53,6 +53,13 @@
 > [underwater-slate](./underwater-slate.md) § 2 (water as a state; `Pool`
 > retires). The sea half stands.
 
+> ⚠ **§ 7a (vessels) superseded where they differ, 2026-10-19** — by
+> [ships-and-harbours-slate](./ships-and-harbours-slate.md): boats in water
+> rooms only, ships alone in the field; *a ship is always alongside a room*
+> with exits wired on arrival; the berth housed on the quay; ship kinds as
+> floorplans instanced by key; the berth was argued on *"a ship's interior is
+> minted per ship"*, which did not hold.
+
 *Opened 2026-10-08, out of "we definitely need one or more seas." The
 conversation started at whaling and never got there, deliberately: ⭐ the
 goal is that **every body of water gives the player a consistent,
