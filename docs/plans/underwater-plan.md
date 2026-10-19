@@ -1499,6 +1499,16 @@ No AC is unmapped. One AC is met by interpretation (D20).
   when A0 starts, write A0 against master and expect a re-merge: the
   table deletion touches lines rubber does not (`:50-135`), the walk
   edits (`:714/:739`) may conflict — small.
+- **R1b — cleanliness (reqs/cleanliness, build-2) is NOT merged yet and
+  DOES overlap** (checked 2026-10-18, 64 commits): it adds ~326 lines to
+  `S/lib/ground/Floor.ts` (the floor protocol A2's `OpenWater` and the bed
+  extend), plus small edits (1–19 lines) to `Warren.ts`, `MineWarren.ts`,
+  `WatercourseCatalogue.ts`, `Conduit.ts`, the cistern and steps rows,
+  `wharfside/bank.yaml`, the estuary rows and fishing's `verbs.test.ts`.
+  ⭐ Merge master again (bringing cleanliness) BEFORE A2 — A0/A1 do not
+  touch `Floor.ts` and can start now; if cleanliness has not landed by
+  A2, build A2 on master and expect the `Floor.ts` merge to be the one
+  real conflict of the build.
 - **R2 — `haul` unification deletes a fishing view and controller.**
   The fishing wire drive's haul steps and `verbs.test.ts` must pass
   with the kernel view (no `default:` trap arg — the kernel cannot name
