@@ -242,6 +242,9 @@ describe('the premises have what the trades need', () => {
       '/trade/chandlery/thing/glycerin-jar',
       '/trade/quarrying/thing/sulfur',
       '/trade/fuel/thing/wood-ash',
+      // ⭐ …and the ashery's cake and pearl ash, which it BUYS (potash D17).
+      '/trade/potash/thing/black-salts',
+      '/trade/potash/thing/pearl-ash',
     ]);
   });
 

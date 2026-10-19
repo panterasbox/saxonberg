@@ -13,3 +13,7 @@ settings:
   # leach, so the Kestrel (12 °dH) makes a lye half as strong as rain.
   - key: potash.lye.hardnessWastePerDgh
     value: "0.04"
+  # ⭐ The ash round (potash D17): the least ash in a grate worth raking —
+  # a few days of a household hearth.
+  - key: potash.round.minKg
+    value: "0.05"

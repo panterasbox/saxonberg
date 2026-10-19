@@ -1,0 +1,27 @@
+# The ash pit (potash D2) — a scraped hollow ringed with stones where an
+# ash-burner keeps a big fire fed with brash and cordwood, the draught wide
+# open, until there is nothing left of it but ash. A big Burner: `stoke`
+# it, `ignite` it, `sweep` it when it burns down.
+class: /trade/potash/thing/AshPit
+data:
+  shortDescription: ash pit
+  keywords: ["ash pit", pit, fire, hollow]
+  register: indefinite
+  longDescription: >-
+    A broad scraped hollow ringed with blackened stones, grey to the
+    knee with old ash, where a fire is kept big and open and fed until it
+    has burned everything in it down to nothing.
+  fixedInPlace: true
+  mass: 500
+  _materialPath: /stuff/idea/material/rock/granite
+  burnTemperatureK: 900
+  bellowsMultiplier: 1.0
+  lit: false
+  # ⭐ The darkness sweep's ceiling — a big open wood fire.
+  emittedIntensity: 400
+  emittedColorTemperature: 1900
+  # ⭐ A big fire, wide open: it is meant to burn its charge, all of it.
+  # 300 kW against a two-tonne bed eats about sixty kilos of wood an hour.
+  draught: 1.0
+  maxBurnPowerW: 300000
+  fuelCapacityKg: 2000

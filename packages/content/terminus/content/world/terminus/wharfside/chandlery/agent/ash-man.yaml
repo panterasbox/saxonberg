@@ -1,0 +1,30 @@
+# The ash-man (potash D17) — the chandlery's hand on the ash round: he
+# calls at the town's hearths, rakes them out, pays for the ash at the
+# counter's own bid, and carries it back to be leached for soap.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  keywords: ["ash-man", ashman, "ash man"]
+  shortDescription: ash-man
+  register: definite
+  longDescription: >-
+    A stooped man in a grey smock with a sack over one shoulder and a
+    short iron rake through his belt, ash in every crease of him. He looks
+    at a fireplace the way a cat looks at a mousehole.
+  # ⚠ A best-guess dossier, explicitly provisional.
+  archetype: ash-man
+  prologue:
+    - "Knows every grate on the wharf and which of them nobody has raked since spring."
+  competence:
+    - { discipline: retail-sales, asserting: novice }
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+  behaviors:
+    - brain: /trade/potash/behavior/ashes
+      trigger: candidate
+      config:
+        counter: /world/terminus/wharfside/chandlery/thing/counter

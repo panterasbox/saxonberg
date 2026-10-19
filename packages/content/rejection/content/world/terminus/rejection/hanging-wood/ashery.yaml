@@ -18,15 +18,26 @@ data:
   ambientIntensity: 4500
   ambientColorTemperature: 5600
   longDescription: |
-    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A lean-to of rough boards shelters a hearth with an iron pot on it, crusted white round the lip, and beside it a tall hopper on legs with a stone channel under its spigot. A tarred rain butt stands under the eaves.
+    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A broad pit ringed with blackened stones takes up the middle of it, and a squat brick kiln stands at the far side. A lean-to of rough boards shelters a hearth with an iron pot on it, crusted white round the lip, and beside it a tall hopper on legs with a stone channel under its spigot. A tarred rain butt stands under the eaves.
 
     Everything here smells of wet ash and lye, and there is not a green thing growing within a cart's length of the hearth.
   coords: { x: -1, y: 2, z: 0 }
+  cast:
+    - /world/terminus/rejection/agent/ash-burner
   exits:
     east:
       destination: /world/terminus/rejection/hanging-wood/oak-clearing
       edgeMinutes: 2
   props:
+    # ⭐ The burn (potash D2): a big Burner fed with the wood's waste.
+    - /trade/potash/thing/ash-pit
+    # ⭐ Its own kiln for the calcining (potash D16), so the ashery and the
+    # glasshouse never wait on each other.
+    - /stuff/thing/Kiln
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-1 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-2 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-3 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-4 }
     - /stuff/thing/Hearth
     - { template: /trade/potash/thing/iron-pot, on: /stuff/thing/Hearth }
     - /trade/chandlery/thing/hopper

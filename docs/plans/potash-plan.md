@@ -1180,6 +1180,24 @@ run end to end on a booted world with the clock advanced in slices and
 
 ### W6 — the venues: the ashery, the buying lines, the ash-man's round
 
+✅ **Done** (commit below). ⚠⚠ **The round re-decided.** The chandlery is
+deliberately VACANT (`noxious-trades.test.ts`: *the work is there and
+nobody is doing it* — a chandler-shaped hole a player fills), so the
+ash-man cannot be its hand. He is a **sole trader** with his own Business
+(`chandlery/idea/ash-round.yaml`, the tinker's shape, `operatingLocations:
+[]` — naming another house's premises would make him an operator there):
+at a stop he rakes each grate past `potash.round.minKg` (by
+`Burner.rakeGrate`, the act `sweep` performs — a broom is a player's
+convenience), pays the heap's owner the counter's own bid from **his own**
+account, takes title, and at the chandlery types `sell wood ash` like
+anybody. So he makes money only by volume, never margin — AC 9's question,
+answered by the drive. The ownerShare dial was dropped (the price is the
+counter's). Buying lines: chandlery wood-ash 3 (`buys`), black salts 12,
+pearl ash 20; the glasshouse's chalked board buys pearl ash 20 and black
+salts 12 (`par: 1` each — a buys line wants a par). The ashery gained the
+pit, its own Kiln, four cordwood and the ash-burner (`archetype:
+ash-burner`, a free string).
+
 **Pre-wave check:** `PackLogic.discover.test.ts` (recount), root
 `package.json`.
 

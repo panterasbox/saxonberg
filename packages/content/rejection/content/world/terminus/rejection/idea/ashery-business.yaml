@@ -1,0 +1,23 @@
+# The Hanging Wood ashery (potash D16) — one seat anyone can take: the
+# pit, the hopper, the pot and the kiln are the business's, and what you
+# make with them is yours to sell to the glasshouse or cart to town.
+class: /platform/idea/Business
+data:
+  name: "the Hanging Wood ashery"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/rejection/agent/ash-burner
+  positions:
+    - key: ash-burner
+      noun: ash-burner
+      label: tending the pit
+      wageRate: 4
+      purchases: true
+  rosterSlots:
+    - positionKey: ash-burner
+      assignee: /world/terminus/rejection/agent/ash-burner
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/rejection/hanging-wood/ashery

@@ -1,0 +1,33 @@
+# The ash-burner (potash D16) — who keeps the Hanging Wood's pit and pot.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  keywords: ["ash-burner", burner, asher]
+  shortDescription: ash-burner
+  register: definite
+  longDescription: >-
+    A lean man grey to the eyebrows with ash, his hands raw and cracked
+    from lye, with a hen's egg kept in his waistcoat pocket the way
+    another man keeps a watch.
+  # ── the dossier: evidence, never values (seeded once) ────────────
+  # ⚠ A best-guess pass, explicitly provisional.
+  archetype: ash-burner
+  prologue:
+    - "Can tell beech ash from oak by the taste of it, and does."
+  competence:
+    - { discipline: ashery, asserting: expert }
+  dispositions:
+    - { disposition: patience, valence: 60 }
+    - { disposition: diligence, valence: 70 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "drops the egg into the hopper's channel, watches it, and fishes it out again." }
+          - { kind: free, value: "rakes the pit over and throws on another armful of brash." }
+          - { kind: free, value: "says, \"Beech and brash, and keep it out of the rain. Pine'll give you ash, but it won't give you much else.\"" }
