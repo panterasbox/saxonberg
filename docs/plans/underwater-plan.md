@@ -1807,6 +1807,49 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     `WaterPlace.sink` — sinking is what an unlashed thing does, and a
     lashed pair only ever goes up.
 
+- **D1w ✅ (53fe60b3c)**. Decisions:
+  - `Tide` is a value object (instance methods — `lint:lib-statics`) the
+    caller hands the moon's phase; θ = 4π(t/day − moonPhase) gives the
+    lunar semidiurnal period with no synodic constant in the level.
+  - The river's sea-level reaches take the tide from a realm dial
+    (`water.tide.rangeM`, 3 m) rather than reading the Greywater row:
+    the catalogue has no forward ref to the sea, and adding one for a
+    number the realm can dial is the wrong direction.
+  - ⭐ A tidal read refreshes every 10 game-minutes, not every six-hour
+    segment (`ShoreMixin` memo) — a six-hour memo would have held a
+    tidepool dry through half a flood. Shore gains an `onWaterRead`
+    hook; WaterPlace reconciles on it and on entry. No timer anywhere.
+  - Strandline drift keys on runtime arrival times (lost on restart —
+    a restart forgets which tide a plank came in on, and it then waits
+    one more tide). The flood hold reads `isLinkdead()`; a logged-out
+    body is not in the world to be held.
+  - The tide in words is the Shore's (`look` on any tidal water), the
+    figures `analyze water`'s; the estuary's `tide` WaterFixture retired
+    — `fill pan from tide` now draws from the channel the mouth cites
+    (its detail answers to *tide*). Exits are cardinal (`north` to the
+    channel, `south` to the tidepool, `up` to the strandline) —
+    `lint:locations` refuses a named direction inside one zone.
+  - The tide almanac's pages are computed when read (a book that is
+    always this week's — the one liberty taken).
+- **D2w ✅ (4a66a7b6b)**. Decisions:
+  - ⭐ The plan's arithmetic was off: a drain at `burn × (1 − intake)`
+    with skin intake 0.25 lasts 1.33×, not 4×. The frog's adult water
+    intake is 0.75. And the burn now scales with body mass as the lungs
+    already did — without it a half-kilo frog's breath lasted 1/20th of
+    a man's.
+  - The crab breathes air at 0.9 (not 0.4): at 0.4 a potted crab would
+    be dead within the hour the row's own comment promises it lives.
+  - A cut-off basin is `water.rimM` on the spec: below the rim the place
+    keeps its own water (wading) and its oxygen decays from the moment
+    it is first SEEN cut off (load on use; the dial
+    `water.tidepool.o2DecayPerHour` × a Q10 of 2).
+  - Salinity-by-stage is authored (`habitatByStage`) and read by the gill
+    intake's oxygen tolerance only — salinity as a cause of death is the
+    fishery's fit, not respiration's. The unconsumed-seams ratchet made
+    respiration the outside reader.
+  - The frog is a `Beast` with a new kernel brain `surfaces` (one beat:
+    pressing to come up on the urge, wanted to dive after `restS`).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
