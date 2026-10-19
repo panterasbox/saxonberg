@@ -1800,6 +1800,12 @@ export const AppSettingKeys = {
   fireAshChokeFullShare: "fire.ash.chokeFullShare",
   /** Fire — the draught multiplier a fully choked grate leaves. */
   fireAshChokedDraught: "fire.ash.chokedDraught",
+  /** Fire — the mass (kg) of one raked heap of ash (potash D4): a grate's
+   * ash comes out as countable heaps, the last one the remainder. */
+  fireAshHeapKg: "fire.ash.heapKg",
+  /** Fire — the material a heap's alkali is counted as, a composition key
+   * on the raked ash (potash D1): potassium carbonate. */
+  fireAshAlkaliMaterial: "fire.ash.alkaliMaterial",
   /** Fire — the power ceiling (W) a burner row that authors none falls back
    * to. */
   fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",

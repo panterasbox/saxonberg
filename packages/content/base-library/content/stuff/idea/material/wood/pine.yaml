@@ -31,6 +31,10 @@ data:
   # ⭐ What burning it leaves in the grate (cleanliness D24) — the
   # lye-maker's ash.
   ashFraction: 0.005
+  # ⭐ The share of that ash which is alkali (potash D1) — what a lye
+  # leaches out of it. Grain: an author's numbers, broadleaves strong,
+  # conifers weak.
+  alkaliShare: 0.08
   hardness: 22
   toughness: 30
   edibility: false

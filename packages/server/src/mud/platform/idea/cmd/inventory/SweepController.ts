@@ -136,7 +136,8 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     }
     // ⭐ The grate's own act: the ash into your hands, the hearth owner's.
     const { ash } = await hearth.rakeGrate(giver);
-    if (!ash) {
+    const first = ash[0];
+    if (!first) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`)
@@ -145,7 +146,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You rake the grate out into ${Mml.thing(ash)}.`)
+      .toSelf(
+        ash.length === 1
+          ? Mml.compose`You rake the grate out into ${Mml.thing(first)}.`
+          : Mml.compose`You rake the grate out into ${String(ash.length)} heaps of ash.`,
+      )
       .toPeers(Mml.compose`${Mml.actor(giver)} rakes out the grate.`)
       .send();
   }
