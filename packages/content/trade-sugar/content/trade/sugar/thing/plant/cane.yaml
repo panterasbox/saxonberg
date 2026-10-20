@@ -34,7 +34,9 @@ data:
     # abstraction that still costs the cut, the carry, the crush and the
     # boil). As an annual — which it shipped as — a cut ENDED the plant:
     # the estate's twenty-four stands were about four blocks of sugar,
-    # ever (sugar drive 8). Three bundles a cut (ninety kilos in the arms
-    # is enough to carry), a fortnight round.
-    fruitSetCount: 3
-    fruitFillDays: 15
+    # ever (sugar drive 8). ONE bundle a cut, five days round: a cut is
+    # what one person carries to the mill — three thirty-kilo bundles
+    # (the first try) froze every cutter in place, `locomotion-gate-failed`
+    # on every step of the errand.
+    fruitSetCount: 1
+    fruitFillDays: 5
