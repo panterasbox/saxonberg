@@ -16,6 +16,8 @@ is self-bootstrapping and the design conversation is finished.
 ## ⭐⭐ The completion contract: the build does not stop
 
 > **Run to the MR. Decide what needs deciding, record it, keep going.**
+> **And the MR opens READY at code-complete — verification never makes
+> the user wait.**
 
 Not "prefer not to stop" — **do not stop.** Not at a wave boundary, not
 to report progress, not to confirm something the plan already decided,
@@ -118,13 +120,36 @@ reconstructed from. Write it for the person who has forgotten.
 place** and the build continues (`plan(bulk): W2 done; W3's premise was
 wrong` is the precedent). That is not a stop.
 
-### 3. The full suite — once
+### 3. Push and open the MR — READY, at code-complete
+
+⭐⭐⭐ The moment the last wave lands green (`test:near` + touched packs
++ `lint:family`), push and open the MR against `master` **ready for
+review — never as a draft** — and report the number to the user in the
+same turn. Do not hold it for the drive or the full suite: they run
+alongside review and their findings are commits on the open MR, same as
+a review fix. See `docs/workflow.md § The user's time comes first`.
+
+The description carries:
+
+- what shipped, wave by wave;
+- ⭐ **every decision the build made** that the plan did not, and what
+  decided it;
+- what verification is still running (drive, suite) and that it does
+  not block review;
+- anything the user should look at first.
+
+⚠⚠ **Anything the user waits on must justify itself in the message that
+makes them wait** — what it is, why their next step cannot start
+without it, how long. If you cannot write that sentence, hand over now.
+
+### 4. The full suite — once
 
 `pnpm test` (~15 min) runs at exactly two moments in a cycle: **here,
-before the MR opens**, and again at `/finalize`. Everything in between
-is `test:near` + the lint family. Never start it in the background.
+after the MR opens and alongside review**, and again at `/finalize`.
+Everything in between is `test:near` + the lint family. Never start it
+in the background.
 
-### 4. Drive it — the exit criterion
+### 5. Drive it — the exit criterion for the MERGE
 
 Run the **drive script** from the requirements doc against the running
 game, and append the result to the plan as the **drive record**.
@@ -154,18 +179,13 @@ closed and silent. The fifth is a view's `args[].requires`: a target
 that does not compose the named mixin is refused at the binder, which
 no controller test can see.
 
-### 5. Push and open the MR
+⚠ **A standing world is held only while driving.** Tear the server
+down (by PID) between runs and while waiting on the user; an idle 3 GB
+world starves the sibling builds.
 
-Push the branch and open the MR against `master` — neither is gated on
-the user; only the merge is. The description carries:
+When it passes: drive record into the plan, MR description updated.
 
-- what shipped, wave by wave;
-- ⭐ **every decision the build made** that the plan did not, and what
-  decided it;
-- what the drive found;
-- anything the user should look at first.
-
-### 6. Report the MR number, and stop there
+### 6. Report, and stay for review
 
 Review is the user's, and it is a conversation — not a comment-thread
 loop. Stay in this session for it: the build context is what makes

@@ -438,7 +438,9 @@ pnpm gen:schema       # regenerate Collections / the two policy tables
 
 ⚠⚠ **`pnpm test` runs at exactly TWO moments in a build cycle:**
 
-1. **before the MR opens** — the build is done, prove the tree once;
+1. **at code-complete** — alongside review, never ahead of it (the MR
+   opens READY first; see [workflow.md](./docs/workflow.md) § *The
+   user's time comes first*);
 2. **at `/finalize`** — the pre-merge sweep.
 
 Everything in between — every review round, every merge from master,
