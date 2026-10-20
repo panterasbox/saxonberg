@@ -1,6 +1,7 @@
 verbs: [exhale]
 controller: /platform/idea/cmd/posture/ExhaleController
-description: "Breathe all the way out — sink, at the cost ofhelp: |
+description: "Breathe all the way out — sink, at the cost of your air"
+help: |
   Breathe out hard, all the way. The air in your lungs is part of what
   floats you, so with it gone you sink — the way a free diver gets down
   without fighting their own float. It costs you the air: what you were
@@ -9,8 +10,6 @@ description: "Breathe all the way out — sink, at the cost ofhelp: |
   `inhale` is the other way: a deep breath fills you, buys you time
   under, and floats you higher. Out of the water, letting your breath
   out does nothing that matters.
- it
-  back.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
