@@ -248,6 +248,22 @@ async function layCourse(s: Session, node: string): Promise<void> {
   expect(said, `course ${node}: ${said}`).toMatch(/lay a course/i);
 }
 
+/** The house's own books where `where` is, read by the founder — evidence for a failure. */
+async function books(where: string): Promise<string> {
+  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  try {
+    const out: string[] = [];
+    for (const c of ['house roster', 'house pnl']) {
+      out.push((await (await f.cmd(c)).said()).replace(/\n+/g, ' | '));
+    }
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] books at ${where}: ${out.join(' || ')}`);
+    return out.join('\n');
+  } finally {
+    f.close();
+  }
+}
+
 /** Advance to the next `hour`:00. */
 async function toHourOfDay(hour: number): Promise<void> {
   const now = await worldClockNow();
@@ -266,7 +282,24 @@ async function toSundayMorning(): Promise<void> {
   await advance(target - now);
 }
 
-/** The copper's liquor, by the name its material reads as. */
+/**
+ * ⭐ Keep the fire in: a boil is hours of fuel, and an arch that has
+ * burned out leaves the copper sitting at syrup (drive 6 — twelve hours
+ * of "thick and golden" over a cold arch). A boiler looks, and stokes.
+ */
+async function tend(s: Session): Promise<void> {
+  const arch = await say(s, 'look arch');
+  if (!/It is cold/.test(arch)) return;
+  await say(s, 'stoke coal into arch');
+  await say(s, 'light arch');
+}
+
+/**
+ * The copper's liquor, as a player sees it: `look` says what the liquor
+ * LOOKS like (the material's `appearance`), never what it is called —
+ * thin and brown (liquor) · thick and golden (syrup) · clouding with
+ * grain (the strike) · thick as tar (blackstrap).
+ */
 async function copperHolds(s: Session): Promise<string> {
   // `look` renders the contents line; the row's description never names them.
   return (await say(s, 'look copper')).toLowerCase();
@@ -335,7 +368,8 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
         // reaches after the clock has moved — listen long enough for it.
         heard += await watcher.listen(10_000).catch(() => '');
       }
-      expect(heard, 'the hand never walked off').toMatch(/done here|walks off/i);
+      const ledger = await books(PANTRY);
+      expect(heard, `the hand never walked off: ${ledger}`).toMatch(/done here|walks off/i);
       // The notice is read by daylight — a carried jar is too dim to read by.
       await toHourOfDay(10);
       watcher.close();
@@ -376,7 +410,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     expect(tempered).toMatch(/lime goes in|scum/i);
     const skimmed = await say(boiler, 'skim copper into pail');
     expect(skimmed).toMatch(/scum off|runs clear/i);
-    expect(await examine(boiler, 'pail')).toMatch(/skimmings|scum/i);
+    expect(await examine(boiler, 'pail')).toMatch(/grey-brown froth|skimmings|scum/i);
   }, 600_000);
 
   it('4. ⭐⭐ the arch lit, the copper heated: the boil CLIMBS, and the thread names it (no `boil` verb)', async () => {
@@ -402,7 +436,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     boiler.close();
     await restartWorld();
     boiler = await goTo(boilerHandle, FLOOR);
-    expect(await copperHolds(boiler), 'the liquor was lost in the restart').toMatch(/liquor|syrup|strike/);
+    expect(await copperHolds(boiler), 'the liquor was lost in the restart').toMatch(/thin and brown|thick and golden|clouding with grain/);
     await advance(30 * 60);
     const after = await copperTemp(boiler);
     expect(after, `the plateau did not survive: ${before} → ${after}`).toBeGreaterThanOrEqual(before - 1);
@@ -410,15 +444,16 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
 
   it('5. ⭐ treacle on the way, the STRIKE at last; off the fire into a cone on its pot', async () => {
     let holds = '';
-    for (let i = 0; i < 24 && !/strike/.test(holds); i++) {
+    for (let i = 0; i < 24 && !/clouding with grain/.test(holds); i++) {
+      await tend(boiler);
       await advance(30 * 60);
       holds = await copperHolds(boiler);
-      if (/syrup|treacle/.test(holds)) {
+      if (/thick and golden/.test(holds)) {
         // eslint-disable-next-line no-console -- the drive's own record
         console.log('  [drive]   the copper reads syrup on the way');
       }
     }
-    expect(holds, 'the copper never reached the strike').toMatch(/strike/);
+    expect(holds, 'the copper never reached the strike').toMatch(/clouding with grain/);
     await say(boiler, 'get copper');
     await say(boiler, 'put cone on pot');
     await say(boiler, 'pour copper into cone');
@@ -434,7 +469,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     const cone = await examine(boiler, 'cone');
     expect(cone, `no loaf in the cone: ${cone}`).toMatch(/loaf|set/i);
     const pot = await examine(boiler, 'pot');
-    expect(pot, `no molasses in the pot: ${pot}`).toMatch(/molasses/i);
+    expect(pot, `no molasses in the pot: ${pot}`).toMatch(/dark brown and sticky|molasses/i);
   }, 1_800_000);
 
   it('7. ⭐ clayed, the loaf washes white at the head and stays brown at the foot', async () => {
@@ -472,11 +507,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     await say(boiler, 'pour pot into copper');
     await say(boiler, 'heat copper');
     let holds = '';
-    for (let i = 0; i < 48 && !/strike|blackstrap/.test(holds); i++) {
+    for (let i = 0; i < 48 && !/clouding with grain|thick as tar/.test(holds); i++) {
+      await tend(boiler);
       await advance(30 * 60);
       holds = await copperHolds(boiler);
     }
-    expect(holds, `the second boil reached neither: ${holds}`).toMatch(/strike|blackstrap/);
+    expect(holds, `the second boil reached neither: ${holds}`).toMatch(/clouding with grain|thick as tar/);
   }, 1_800_000);
 
   it('12. ⭐ at the sugarbush the arch takes its cordwood and lights hot enough to strike (the sap boil is pinned by unit tests)', async () => {
@@ -679,6 +715,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
       }
       while (bought < blocks && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
     }
+    if (bought < blocks) await books(`${W}/location/store`);
     expect(bought, 'the estate never had blocks to sell').toBe(blocks);
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
