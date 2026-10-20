@@ -719,3 +719,70 @@ silts the harbor (the dredger's work).
 
 Sizes in general — exits, bodies, what fits — went to
 [size-slate](./size-slate.md).
+
+## 19. Drill-down: pilots, quarantine, customs (2026-10-19)
+
+### Pilots and the bar **[DECIDED]**
+
+Two pilotages share a word (navigable § 3b) — the sea navigator knows *where
+you are*; ⭐ **the bar or harbor pilot knows where the water is deep this
+month**. The bar's depth moves with the tide, and ⭐ **its channel moves too** —
+storms and floods shift the sand, so the deep line wanders: **the channel's
+position is a seeded field that drifts** with storms and seasons. ⭐ **So charts
+go stale — the point of a pilot**: a chart is a dated claim; **the pilot sells
+fresher claims** (his own soundings; the pilots' **map room**).
+
+⭐ **Grounding, at the bar only, remedied by the tide** (grounding was deferred
+for its coordination; at the bar the tide is the remedy): ground where your
+claims said deep and she **sticks until the flood floats her** — the cost is
+time (a tide, the queue, demurrage, spoiling cargo); ⭐ **unless the sea is
+breaking** — waves break on a bar (the surf design), so a ship aground in a
+heavy swell is **pounded** (hull damage, a leak, possibly lost — the Columbia
+bar, *the graveyard of the Pacific*), derived from sea state against depth,
+never rolled. Lightering and kedging stay deferred.
+
+**The pilot's work**: ⭐ the **pilot cutter** waits outside the bar; an incoming
+ship meets it (an encounter, a budded room) and the pilot boards — ⭐ cutters
+**raced** to be first, the first aboard taking the fee; **the pilot takes the
+conn** (her course follows his claims); the fee by draught and size at posted
+rates; ⭐ **compulsory pilotage** above a size, by the harbormaster's posted
+criterion; **licensing** by the flag state or the mariners' guild; ⚠ **the
+master keeps legal responsibility** — fault is the accountability ledger's,
+lens 4.
+
+### Quarantine **[DECIDED]** — waits on contagious disease
+
+Venice's *quaranta giorni* (1370s); the yellow **Q flag** until **pratique**.
+⭐ **The disease is real, not declared** — conditions and pathogens with
+**incubation** (why quarantine works: hold her past it and the infected show);
+the harbormaster reads what can be read (visible signs, her port of departure
+from the shipping news, a **bill of health** — a document that can be wrong or
+forged); a health officer (a physic seat) examines, competence deciding what is
+spotted; **holding is an anchorage with no landing**; ⭐ the **lazaretto** (an
+island or a hulk) is content; ⭐ the **yellow flag is a Thing** — not flying it
+while sick is a lie the ledger records; ⭐ **breaking quarantine lets the actual
+pathogen ashore**. Lens 4 and 7: crews trapped aboard, the merchant's ruin, the
+town's survival; the criterion posted, with an appeal. ⚠ **Depends on
+person-to-person contagion** — the health-vertical slate's outbreak work;
+quarantine is its first maritime consumer.
+
+### Customs, smuggling, and the border **[DECIDED]**
+
+- **The customs house** — a counter and a seat; a **manifest** (a document);
+  **duty** by goods and value at posted rates; ⭐ flag-differential duties live
+  here; ⭐ **the bonded warehouse** (goods under seal, duty unpaid, until sold or
+  re-exported); **inspection** is a `search` of the hold.
+- **Smuggling is emergent** — concealment's bands and false bulkheads; ⭐ landing
+  **at night in a cove** (authored shore rooms, the tide, the dark — *avoiding
+  the harbormaster's book* is the method); a false manifest the ledger can catch;
+  the revenue cutter; the community's complicity (regard decides who informs).
+  Lens 4: duties were hated and smuggling popular; lens 6: high duties make it pay.
+- ⭐⭐ **Customs is the land-use covenant's BORDER form** — designed in
+  [land-use-covenant-slate](./land-use-covenant-slate.md) § *Goods at the
+  border*: a general **customs post** (a Structure archetype) at any crossing
+  between jurisdictions, scaled by staffing (a harbor customs house · a road post
+  · a remote hut · none); the **bonded store is shipped custody** (`store
+  deposit | withdraw | receipts`); ⭐ **retrieval at any customs house through the
+  TPA network**, priced by mass in mana; ⭐ crossings become **break-of-bulk
+  hubs**; posts only where **jurisdiction-level** covenants differ, at
+  **designated ports of entry**.
