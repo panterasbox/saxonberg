@@ -40,6 +40,18 @@ export default class DensityReading extends Reading {
     handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
+    if (
+      handTool === null &&
+      target &&
+      MixinApi.isBulkable(target) &&
+      !target.isBulkEmpty('interior') &&
+      target.getBulkMaterial('interior')?.hasTag('lye')
+    ) {
+      // ⭐ Name the folk route too: an egg reads a lye (found by the drive —
+      // the base refusal named only the hydrometer).
+      this.decline(ctx, Mml.compose`You cannot tell a lye's strength by eye. Float an egg in it, or a hydrometer.`, 'no-eye-rung');
+      return;
+    }
     if (handTool === null || !target || !MixinApi.isBulkable(target) || target.isBulkEmpty('interior')) {
       await super.analyze(ctx, target, band, handTool, param);
       return;
