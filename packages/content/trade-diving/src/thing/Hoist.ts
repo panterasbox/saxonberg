@@ -7,7 +7,7 @@
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
+import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -17,7 +17,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-export default class Hoist extends Tool implements Pullable {
+export default class Hoist extends PullableMixin(Tool) {
   static commandContributions: CommandContributions = {
     self: [],
     // The hoist stands on the quay: whoever is there works it.
@@ -44,7 +44,7 @@ export default class Hoist extends Tool implements Pullable {
    * the place the bell hangs in. Up from the top band is the surface; the
    * bell comes no higher than that on the cable.
    */
-  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
+  public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     const bell = this.getBell();
     if (bell === null || !MixinApi.isContainable(bell)) {
       return { ok: false, reason: 'no-bell', line: 'There is no bell on the hoist.' };

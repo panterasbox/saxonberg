@@ -17,7 +17,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { FishingController, FISHING_TOPIC } from './FishingController';
 import { FishingEngagement, FISHING_TYPE } from '../../../lib/FishingEngagement';
-import type { TakesFish } from '../../../lib/TakesFish';
+import { TAKES_FISH_MIXIN, type TakesFish } from '../../../lib/TakesFish';
 import Rod from '../../../thing/Rod';
 
 interface FishModel extends CommandModel {
@@ -26,9 +26,9 @@ interface FishModel extends CommandModel {
   shore?: MqlOneResult;
 }
 
-/** Does `s` take a fish itself (a spear)? */
+/** Does `s` take a fish itself (a spear)? By the protocol mixin's name. */
 function isTakesFish(s: Stuff): s is Stuff & TakesFish {
-  return typeof (s as unknown as { takeFishBy?: unknown }).takeFishBy === 'function';
+  return MixinApi.hasMixin(s.constructor as never, TAKES_FISH_MIXIN as never);
 }
 
 export default class FishController extends FishingController<FishModel> {

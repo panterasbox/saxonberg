@@ -11,12 +11,19 @@
  * (goods moved by cart and wagon; the kernel's `HaulableMixin` is a cart
  * you hitch), and a rope verb must not take that word from it.
  *
- * Not a mixin: nothing about being pulled is shared state. A host
- * implements `pullBy`; the controller narrows by SHAPE (the `Pumpable`
- * precedent) and renders what the host returns. Every refusal is the
- * host's own sentence.
+ * ⭐ A **protocol mixin** (underwater review): nothing about being pulled
+ * is shared state — every host's answer is its own — but the protocol has
+ * a NAME, so a view can say `requires: [PullableMixin]`, a controller can
+ * ask `MixinApi.isPullable`, and Studio shows a row author that a thing
+ * can be pulled. The default refuses; each host overrides `pullBy`.
+ *
+ * **IS for:** a thing on the end of a line, chain or rope you take in —
+ * a set pot, a lifeline, a bell's hoist; later a bell-rope or a lever.
+ * **IS NOT for:** moving a thing yourself (`get`, `push`), a cart you
+ * hitch (`HaulableMixin` — haulage), or drawing a liquid (`pump`).
  */
 
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mml } from '../../api/mml';
 
@@ -46,4 +53,17 @@ export interface Pullable {
    * thing's natural way (a pot comes up, a diver comes up).
    */
   pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome>;
+}
+
+export function PullableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class PullableMixin extends Base implements Pullable {
+    static _mixinName = 'PullableMixin';
+
+    /** @hook Override on the host: what pulling it means. Default: nothing comes. */
+    public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
+      void puller;
+      void sense;
+      return { ok: false, reason: 'not-pullable', line: `Nothing comes when you pull on ${(this as unknown as Stuff).getPresentation()}.` };
+    }
+  };
 }

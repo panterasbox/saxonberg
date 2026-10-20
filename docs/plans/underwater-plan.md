@@ -2036,6 +2036,21 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     literacy; the shipped `label` verb's reconciliation with label-as-noun
     (cannery-and-bottling slate).
 
+- **R13 · Verb protocols are protocol mixins.** The owner asked why
+  these classes carry bare interfaces when the codebase composes mixins.
+  Decided rule (now in mixins.md): what a verb narrows its target on is a
+  thin protocol mixin (`_mixinName`, a refusing default, each host
+  overrides), never a bare interface. A bare shape cannot be named in
+  `requires:`, has no `MixinApi.isX`, and is invisible in Studio. Done
+  here: `PullableMixin` and `TossableMixin` (kernel, registered in
+  `Mixins`, refusal phrases, `MixinApi.isPullable/isTossable`) and the
+  fishing pack's `TakesFishMixin` (`TAKES_FISH_MIXIN`, `_mixinRefusal`).
+  The lifeline, hoist, trap and spear compose them; `pull.yaml` requires
+  `PullableMixin`; the controllers lost their duck checks. TypeScript is
+  clean. The shipped bare shapes (`Workable` family, `Pumpable`,
+  `Tappable`, `Cuttable`) go to the verb-interfaces slate as a census and
+  ratchet sweep.
+
 ## Drive record
 
 

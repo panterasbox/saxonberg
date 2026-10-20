@@ -34,7 +34,6 @@ import { BulkableApi } from "../../../../api/bulk";
 import { ConditionApi } from "../../../../api/condition";
 import { CombatApi } from "../../../../api/combat";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Tossable } from "../../../../lib/spatial/Tossable";
 import type Material from "../../../../lib/material/Material";
 import type { TermsProposal } from "../../../../lib/combat/CombatTerms";
 import type { Combatant } from '../../../../lib/combat/Combatant';
@@ -58,10 +57,7 @@ interface ThrowModel extends CommandModel {
   recipient?: string;
 }
 
-/** Does `s` speak the toss protocol? */
-function isTossable(s: Stuff): s is Stuff & Tossable {
-  return typeof (s as unknown as { tossTo?: unknown }).tossTo === 'function';
-}
+
 
 export default class ThrowController extends CommandController<ThrowModel> {
   async execute(model: ThrowModel, context: CommandContext): Promise<void> {
@@ -87,7 +83,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
     // answer is thrown AT someone, or handed over. ──
     const recipient = (model.recipient ?? '').trim();
     if (recipient !== '') {
-      if (!isTossable(item)) {
+      if (!MixinApi.isTossable(item)) {
         return this.fail(context, `You can throw ${item.getPresentation()} AT someone, or give it to them.`, "not-tossable");
       }
       const out = await item.tossTo(giver, recipient);

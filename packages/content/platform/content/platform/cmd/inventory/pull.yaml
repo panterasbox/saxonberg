@@ -20,13 +20,13 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ `requires: any` — a pot, a line and a hoist share no mixin; the
-  # controller narrows by SHAPE (the `Pullable` protocol).
+  # ⭐ `PullableMixin` — the protocol mixin a pot, a line and a hoist each
+  # answer in their own way; the binder refuses anything else in words.
   - name: target
     type: object
     required: false
     scope: ["reachable"]
-    requires: any
+    requires: [PullableMixin]
   - name: sense
     type: string
     required: false

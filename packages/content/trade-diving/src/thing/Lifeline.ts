@@ -28,8 +28,8 @@
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import type { Tossable, TossOutcome } from '@saxonberg/server/mud/lib/spatial/Tossable';
-import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
+import { TossableMixin, type TossOutcome } from '@saxonberg/server/mud/lib/spatial/Tossable';
+import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -83,7 +83,7 @@ export interface LineSignal {
 /** What a line act did — the line's own words, or why not. */
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-export default class Lifeline extends Tool implements Pullable, Tossable {
+export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) throws and pulls
@@ -161,7 +161,7 @@ export default class Lifeline extends Tool implements Pullable, Tossable {
    * here or in the water one way from here — a thrown line crosses that
    * gap where a hand cannot.
    */
-  public async tossTo(thrower: Stuff, who: string): Promise<TossOutcome> {
+  public override async tossTo(thrower: Stuff, who: string): Promise<TossOutcome> {
     const target = this.personWithinReach(thrower, who.trim().toLowerCase());
     if (target === null) {
       return { ok: false, reason: 'no-such-person', line: `You see no ${who} to throw it to.` };
@@ -284,7 +284,7 @@ export default class Lifeline extends Tool implements Pullable, Tossable {
    * the steps, conscious or not. The way up is the water's own: the
    * band's `up`, the basin's way up to the quay.
    */
-  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
+  public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     if (sense === 'down') {
       return { ok: false, reason: 'pay-out', line: 'You pay out line; the weight on the end takes it down.' };
     }

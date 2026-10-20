@@ -12,7 +12,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Pullable, PullOutcome, PullSense } from '../../../../lib/spatial/Pullable';
+import type { PullOutcome, PullSense } from '../../../../lib/spatial/Pullable';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { MqlApi } from '../../../../api/mql';
@@ -25,19 +25,13 @@ interface PullModel extends CommandModel {
   sense?: string;
 }
 
-/** Does `s` speak the pull protocol? */
-function isPullable(s: Stuff | null | undefined): s is Stuff & Pullable {
-  return s !== null && s !== undefined &&
-    typeof (s as unknown as { pullBy?: unknown }).pullBy === 'function';
-}
-
 export default class PullController extends CommandController<PullModel> {
   async execute(model: PullModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     let target: Stuff | null = model.target?.stuff ?? null;
     if (target === null && !model.target?.raw) {
       const reach = MqlApi.resolveMany('reachable', { commandGiver: giver, scope: 'reachable' });
-      target = (reach.stuff ?? []).find((s) => isPullable(s)) ?? null;
+      target = (reach.stuff ?? []).find((s) => MixinApi.isPullable(s)) ?? null;
     }
     if (target === null) {
       const named = model.target?.raw;
@@ -47,7 +41,7 @@ export default class PullController extends CommandController<PullModel> {
         'nothing-to-pull',
       );
     }
-    if (!isPullable(target)) {
+    if (!MixinApi.isPullable(target)) {
       return this.refuse(context, 'act.deed', `You can't pull ${target.getPresentation()}.`, 'not-pullable');
     }
     const word = (model.sense ?? '').trim().toLowerCase();

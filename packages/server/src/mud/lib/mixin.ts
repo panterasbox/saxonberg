@@ -643,6 +643,12 @@ export const Mixins = {
   CredentialWallet: 'CredentialWalletMixin',
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
+  // ⭐ *A thing on the end of a line you take in* — a protocol mixin
+  // (underwater review): no state, a name; each host answers `pull`.
+  Pullable: 'PullableMixin',
+  // ⭐ *A thing thrown TO someone, to be caught* — a protocol mixin; the
+  // host answers `throw … to`.
+  Tossable: 'TossableMixin',
   Hauler: 'HaulerMixin',
   // Employment — the org chart (positions + holders + the appointing
   // authority), the Business that trades on top of it, and an actor's
@@ -982,6 +988,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   MountableMixin: "you can't ride {}",
   DrivableMixin: "you can't drive {}",
   HaulableMixin: "{} isn't something you can hitch",
+  PullableMixin: "{} isn't on a line you can pull",
+  TossableMixin: "{} isn't something anybody catches",
   HaulerMixin: "{} can't pull a cart",
 
   // Storefronts.

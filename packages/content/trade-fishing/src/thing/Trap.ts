@@ -35,7 +35,7 @@ import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { HabitatRole } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Species';
-import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
+import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -55,7 +55,7 @@ const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
 const AGENT_PREFIX = '/trade/fishing/agent/';
 
-export default class Trap extends TrapBase implements Pullable {
+export default class Trap extends PullableMixin(TrapBase) {
   static commandContributions: CommandContributions = {
     self: [],
     // `peers` = whoever stands where it lies (a set trap in the water);
@@ -177,7 +177,7 @@ export default class Trap extends TrapBase implements Pullable {
    * already IN it (a keepnet's fish) comes up too; the water it held
    * drains away (fishing B8). A pot only comes up: `sense` is ignored.
    */
-  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
+  public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     void sense;
     if (!this.isSet()) return { ok: false, reason: 'not-set', line: 'It is not set.' };
     if (!MixinApi.isContainer(puller)) return { ok: false, reason: 'not-pullable', line: "You can't pull that." };

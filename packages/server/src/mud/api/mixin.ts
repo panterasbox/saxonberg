@@ -165,6 +165,8 @@ import type { GroundSource } from '../lib/ground/GroundSource';
 import type { Shore } from '../lib/location/Shore';
 import type { WaterPlace } from '../lib/location/WaterPlace';
 import type { WaterColumn } from '../lib/location/WaterColumn';
+import type { Pullable } from '../lib/spatial/Pullable';
+import type { Tossable } from '../lib/spatial/Tossable';
 import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
@@ -1808,6 +1810,14 @@ export class MixinApi {
   /** The Idea that grows a column under a deep water (the water pack's). */
   public static isWaterColumn(obj: Stuff): obj is Stuff & WaterColumn {
     return this.hasMixin(obj, Mixins.WaterColumn);
+  }
+
+  public static isPullable(obj: Stuff): obj is Stuff & Pullable {
+    return this.hasMixin(obj, Mixins.Pullable);
+  }
+
+  public static isTossable(obj: Stuff): obj is Stuff & Tossable {
+    return this.hasMixin(obj, Mixins.Tossable);
   }
 
   /** Can this Idea read a named water for a place? */
