@@ -1,0 +1,27 @@
+# Slip — clay stirred into water until it pours like cream. What a handle is
+# stuck on with at leather-hard, what a mould is filled with in slip casting
+# (ceramics W7 gives it its drain set), and the clay a glaze is suspended in.
+class: /platform/idea/material/Material
+data:
+  name: slip
+  keywords: [slip, "clay slip"]
+  appearance: thick, creamy liquid clay
+  density: 1700
+  specificHeat: 3200
+  thermalConductivity: 0.8
+  electricalConductivity: 1.0e-2
+  meltingPoint: 273
+  boilingPoint: 373
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  laysCoat: false
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "slip", "clay"]
+  composition:
+    - { materialPath: /stuff/idea/material/mineral/clay-mineral, fraction: 0.45 }
+    - { materialPath: /stuff/idea/material/earth/sand, fraction: 0.10 }
+    - { materialPath: /stuff/idea/material/bulk/water, fraction: 0.45 }
+  biologicalSource: null

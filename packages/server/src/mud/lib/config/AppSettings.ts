@@ -1877,6 +1877,15 @@ export const AppSettingKeys = {
   /** Thermal shock — the wall's own response time, s: the rate a body
    * tolerates is ΔT_tolerated ÷ this. */
   impactShockWallS: "impact.shockWallS",
+  /** Green ware — the dryness (0 just thrown … 1 as dry as the air allows)
+   * at which a green piece is leather-hard: trim, join, stamp (ceramics M4). */
+  greenLeatherAt: "green.leatherAt",
+  /** Green ware — the dryness at which it is bone-dry: ready for the kiln. */
+  greenBoneDryAt: "green.boneDryAt",
+  /** Green ware — a rise in wetness this large between looks slumps it. */
+  greenSlumpWetting: "green.slumpWetting",
+  /** Green ware — drying rate (dryness/hour) × crack risk past this cracks it. */
+  greenCrackRate: "green.crackRate",
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

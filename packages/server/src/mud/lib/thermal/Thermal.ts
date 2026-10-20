@@ -1328,6 +1328,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // A material that becomes vapor in a lit chamber (salt at peak
         // heat) leaves the piece and enters the chamber's air (ruling B).
         if (this.vaporizeIfHot(current)) return;
+        // ⭐ Green ware reads its weather BEFORE the heat converts it (R2):
+        // a wet piece in a kiln bursts as steam, and a rung would end the
+        // green state before the burst was seen.
+        const piece = this as unknown as Stuff;
+        if (MixinApi.isGreenware(piece)) piece.reconcileGreen();
         const rec = this.heatWork;
         const source =
           rec !== null && rec.origin !== null && rec.origin !== current.getTemplatePath()

@@ -392,6 +392,20 @@ The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
 registry tier — weather is stateless, so the singleton itself is the
 whole backend.
 
+## ⭐ The freeze-thaw count (the ceramics build, 2026-10)
+
+`WeatherApi.freezeThawDaysAt(site, locality, fromS, toS)` counts the
+game-days in a window whose coldest hour was below 273.15 K and whose
+warmest above it — the days the air CROSSED freezing. Stateless over
+`dailyRangeAt` per day (the `snowCoverAt` shape), walking at most the last
+400 days, so it is right after any absence. A place answers it for itself:
+`AtmosphericMixin.freezeThawDaysSince(atS)`, and ⭐ **`0` for a place that
+holds its own air** — a clay heap kept in a shed stops weathering. Readers:
+a clay heap's winter weathering (`trade-quarrying`'s `Clay.weatheredDays`,
+day-aligned so a read never counts a day twice), frost on green ware, and
+next a wall's spalling (repair W7). The count, not a frost FLAG: a heap
+weathers by how many times the water in it froze and thawed.
+
 ## Why procedural, not simulated
 
 Weather is **chaotic** — a real atmospheric sim (a) is enormously

@@ -134,6 +134,7 @@ import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { MixingVessel } from '../lib/material/Mixing';
 import type { Faced } from '../lib/material/Faced';
+import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
@@ -1684,6 +1685,10 @@ export class MixinApi {
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {
     return this.hasMixin(obj, Mixins.Faced);
+  }
+
+  public static isGreenware(obj: Stuff): obj is Stuff & Greenware {
+    return this.hasMixin(obj, Mixins.Greenware);
   }
 
   public static isBurner(obj: Stuff): obj is Stuff & Burner {

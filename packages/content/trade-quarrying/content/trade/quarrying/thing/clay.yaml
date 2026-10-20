@@ -8,7 +8,13 @@
 # ⚠ Reuses the shipped `earth/clay` material (the ground build authored it)
 # rather than minting a `mineral/clay` beside it — which is the whole reason
 # the plan's own instruction to create one was wrong.
-class: /trade/quarrying/thing/Lump
+#
+# ⭐ (ceramics W3) A `Clay`, not a plain `Lump`: a lump of clay is a
+# COMPOSITION — plasticity, cracking, fired colour and refractoriness read
+# off what is in it — and it weathers by the winters it lies out. A band that
+# wins this row stamps its own material on it (Rejection's fireclay band
+# mints a clay lump of FIRECLAY).
+class: /trade/quarrying/thing/Clay
 data:
   keywords: [clay, lump]
   shortDescription: lump of clay

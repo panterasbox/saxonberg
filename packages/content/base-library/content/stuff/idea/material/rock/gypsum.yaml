@@ -1,0 +1,24 @@
+# Gypsum — calcium sulphate, a soft white rock you can scratch with a nail,
+# laid down where an old sea dried. ⭐ Burnt gently it becomes PLASTER, and
+# plaster mixed with water sets again in any shape it is poured into: the
+# mould-maker's material (ceramics W7 gives it that transition). A commons
+# row (ceramics R4 — gypsum has ONE home): the quarry's lump row names it,
+# and the hill's band stamps it.
+class: /platform/idea/material/Material
+data:
+  name: gypsum
+  keywords: [gypsum, alabaster, selenite]
+  appearance: soft, white, faintly glittering gypsum
+  density: 2300
+  specificHeat: 1090
+  thermalConductivity: 0.5
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 3
+  hardness: 20
+  toughness: 3
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["rock", "mineral", "sedimentary", "sulphate", "gypsum"]
+  composition: []
+  biologicalSource: null

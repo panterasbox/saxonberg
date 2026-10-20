@@ -688,6 +688,9 @@ export const Mixins = {
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
   // inside; each carries coats, outermost first". On every Good.
   Faced: 'FacedMixin',
+  // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
+  // whether I can be trimmed, fired, or ruined by the weather".
+  Greenware: 'GreenwareMixin',
   // Burner — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
@@ -967,6 +970,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StackableMixin: "{} doesn't come in stacks",
   MixingVesselMixin: "{} isn't something you mix in",
   FacedMixin: "{} has no face you could lay a coat on",
+  GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the
   // floor is just a lump.

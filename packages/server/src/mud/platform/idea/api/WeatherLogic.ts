@@ -1820,6 +1820,33 @@ export class WeatherLogic extends ApiLogic {
     return { minK, maxK };
   }
 
+  /** See {@link WeatherApi.freezeThawDaysAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public freezeThawDaysAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    fromS: Quantity<'s'>,
+    toS: Quantity<'s'>,
+  ): number {
+    const dayS = EARTH_LIKE.dayLengthSeconds;
+    const end = toS.rawValue();
+    const start = Math.max(fromS.rawValue(), end - 400 * dayS);
+    if (!(end > start)) return 0;
+    const d = climateDials();
+    let count = 0;
+    for (let t0 = Math.floor(start / dayS) * dayS; t0 < end; t0 += dayS) {
+      let minK = Number.POSITIVE_INFINITY;
+      let maxK = Number.NEGATIVE_INFINITY;
+      for (let h = 0; h < 24; h++) {
+        const k = temperatureAtSite(site, locality, t0 + h * 3600, d);
+        if (k < minK) minK = k;
+        if (k > maxK) maxK = k;
+      }
+      if (minK < 273.15 && maxK > 273.15) count += 1;
+    }
+    return count;
+  }
+
   /** See {@link WeatherApi.snowCoverAt}. Pure, SYNC. */
   @CallSecurity(WeatherApiCallers)
   public snowCoverAt(

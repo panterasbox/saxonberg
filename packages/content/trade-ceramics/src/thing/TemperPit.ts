@@ -1,0 +1,148 @@
+/**
+ * TemperPit — ⭐ where a brickmaker's clay is tempered: a pit of water you
+ * tread clay and sand into until the whole mass is even and at the WINDOW —
+ * wet enough to throw into a mould, stiff enough to stand (ceramics S3, D34).
+ *
+ * Mixing is ONE rule (R1): what is put in the pit becomes one blend whose
+ * make-up is the inputs' by mass. The pit's row names the clay's own row and
+ * material as the blend, so tempered clay is still `Clay` — a stack whose
+ * composition now records the sand, grog and breeze kneaded in, and whose
+ * `crackRisk()` falls with every shovel of sand. No recipe and no ratio: a
+ * little more sand is a leaner clay.
+ *
+ * What the pit adds to the kernel's blend is the WATER: the pit must hold
+ * some (`it wants water` otherwise), the tread takes up
+ * `ceramics.temper.waterLPerKg` of it per kilogram of clay, and the clay comes
+ * out plastic. The pit's water is never a constituent of the clay.
+ *
+ * `Thing`, not `Good`: a temper pit is dug into the yard and goes nowhere.
+ */
+
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type {
+  KneadPlan,
+  KneadRefusal,
+  KneadRequest,
+} from '@saxonberg/server/mud/lib/craft/Kneadable';
+import { MixingVesselMixin } from '@saxonberg/server/mud/lib/material/Mixing';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(String(raw));
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const TemperPitBase = MixingVesselMixin(ContainerMixin(BulkableMixin(ThermalMixin(Thing))));
+
+export default class TemperPit extends TemperPitBase {
+  static fieldMeta: FieldMeta = {
+    // The Discipline a knead here credits — brickmaking at a brickfield.
+    discipline: { persistent: true, authorable: true },
+  };
+
+  public discipline = 'brickmaking';
+
+  /** Does the pit hold water to temper with? */
+  private waterLitres(): number {
+    const held = this.getBulkMaterial('interior');
+    if (held === null || !held.hasTag('water')) return 0;
+    return this.getBulkAmount('interior').rawValue();
+  }
+
+  public override async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+    const self = this as unknown as Stuff;
+    const pieces = this.getContents().filter((c) => MixinApi.isTangible(c)) as Stuff[];
+    if (pieces.length === 0) {
+      return {
+        ok: false,
+        reason: 'empty',
+        line: Mml.compose`${Mml.thing(self)} has no clay in it. Put the clay and whatever you mean to temper it with in first.`,
+      };
+    }
+    if (!(this.waterLitres() > 0)) {
+      return {
+        ok: false,
+        reason: 'no-water',
+        line: Mml.compose`The clay in ${Mml.thing(self)} is dry. It wants water before it will come to the window.`,
+      };
+    }
+    const giver = req.actor;
+    const minutes = dial('ceramics.temper.minutes', 20);
+    return {
+      ok: true,
+      durationMs: minutes * 60_000,
+      effortW: 450,
+      beginSelf: Mml.compose`You wet the clay in ${Mml.thing(self)} and get in, treading it and turning it over with the spade.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} treads the clay in ${Mml.thing(self)}.`,
+      onComplete: () => {
+        void this.temper(giver);
+      },
+    };
+  }
+
+  /**
+   * The blend, with the water held back: lift the pit's water out of the
+   * fold, blend the solids by mass, carry the heap's weathering into the
+   * tempered clay, wet it to the window, and put back what the tread did not
+   * take up.
+   */
+  private async temper(giver: Stuff): Promise<void> {
+    const waterMat = this.getBulkMaterial('interior');
+    const waterL = this.waterLitres();
+    const payload = this.getBulkPayload('interior');
+    let weathered = 0;
+    let weighed = 0;
+    for (const c of this.getContents()) {
+      const piece = c as unknown as Stuff;
+      if (!MixinApi.isTangible(piece)) continue;
+      const kg = piece.getMass().rawValue();
+      const heap = piece as unknown as { getWeatheredDays?(): number };
+      if (typeof heap.getWeatheredDays === 'function') {
+        weathered += heap.getWeatheredDays() * kg;
+        weighed += kg;
+      }
+    }
+    this.setBulkAmount('interior', Quantity.of(0, 'L'));
+    this.setBulkMaterial('interior', null);
+    let out: Awaited<ReturnType<TemperPit['mixBy']>> | null = null;
+    try {
+      out = await this.mixBy(giver, 'knead');
+    } finally {
+      // ⚠ The water goes back whatever happened to the blend.
+      const usedL =
+        out !== null && out.ok
+          ? Math.min(waterL, out.massKg * dial('ceramics.temper.waterLPerKg', 0.05))
+          : 0;
+      if (waterMat !== null && waterL - usedL > 0) {
+        this.setBulkMaterial('interior', waterMat);
+        this.setBulkAmount('interior', Quantity.of(waterL - usedL, 'L'));
+        if (payload !== null) this.setBulkPayload('interior', payload);
+      }
+    }
+    if (!out.ok || out.product === null) return;
+    const clay = out.product as Stuff & {
+      setWeatheredDays?(d: number): void;
+      setWaterState?(w: { moisture: number; solute: number }): void;
+    };
+    if (weighed > 0) clay.setWeatheredDays?.(weathered / weighed);
+    // ⭐ At the window: plastic, as wet as clay is.
+    clay.setWaterState?.({ moisture: 1, solute: 0 });
+    if (!giver.isDestroyed() && MixinApi.isAdvancing(giver) && this.discipline !== '') {
+      await giver.creditDeed({ discipline: this.discipline, difficulty: 'standard', outcome: 'success' });
+    }
+  }
+}

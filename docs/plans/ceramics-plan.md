@@ -1341,6 +1341,27 @@ left a fork the lens that chose is named.
   `name jug …` is refused `not-nameable`.
 - **B27 (W2) — `ring` carries** by `toAudible` at 50 + 10·log₁₀(kg) dB for a
   sound body (a bell to the next street), 35 dB for a knock.
+- **B28 (W3) — The freeze-thaw count is stateless** over `dailyRangeAt`,
+  walking at most 400 days; `AtmosphericMixin.freezeThawDaysSince` answers 0
+  for a place that holds its own air.
+- **B29 (W3) — Green ware's dials are the KERNEL's** (`green.*` in
+  `AppSettingKeys` + `settings/green.yaml`), not `ceramics.green.*`: the
+  mixin is kernel and dairying's setting pan composes it.
+- **B30 (W3) — Green state is DRYNESS against the air**, `(1 − m) ÷ (1 −
+  equilibrium)`, so *bone-dry* means as dry as this air allows (the shipped
+  water model's equilibrium is h/100, which would otherwise pin a piece at
+  leather-hard in a 50 % room forever).
+- **B31 (W3) — The weather's ruin is a FLAG** (`slumped` | `shattered`, plus
+  a crack flaw), not a destruction: the piece stays to be looked at and
+  re-kneaded. The heat-work reconcile asks green ware to read its weather
+  first, so a wet piece's steam burst is seen before a rung swaps it. A
+  too-fast drying leaves a `check`.
+- **B32 (W3) — Clay rows extend the commons clay** (`extends:
+  /stuff/idea/material/earth/clay`): alluvial clay inherits the three
+  transitions, fireclay overrides them (terracotta at 1250 K, refractory at
+  1550 K, clinker only past 1800 K); gypsum and clay-mineral are base-library
+  rows (R4). The temper-pit ROW waits for W6's brickfield (nothing props it
+  yet, `lint:reachability`).
 
 ## ⭐⭐ Host placement
 
@@ -1859,6 +1880,14 @@ on Tangible, thermal shock on the heat history, ring finds the hidden
 crack; the 22 rows read their bodies`
 
 ### W3 — clay's year: the composition, the count, the temper, green ware
+
+> ✅ **DONE (W3).** `WeatherApi.freezeThawDaysAt` + the place's
+> `freezeThawDaysSince`; `Clay` (composition, weathering by winters,
+> plasticity/fired color/refractoriness/crack risk, `analyze clay`); the
+> temper pit (knead = blend by mass, water to the window); green ware's three
+> states and its weather (slump, frost, steam burst, drying check) with green
+> ending at firing; clay-mineral, breeze, slip, alluvial clay, fireclay and
+> gypsum, two new quarry-hill bands. Decisions B28–B32.
 
 **Goal.** M3 M4 S2 S3 S7: `Clay` with a composition; the freeze-thaw
 weather fact; weathering; tempering on the W0 `knead`; `Greenware`.

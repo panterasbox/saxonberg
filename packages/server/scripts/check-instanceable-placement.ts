@@ -307,7 +307,10 @@ export function packBrainShapeOk(source: string): boolean {
 // inherited from another pack's class read as an orphan — 25 findings the
 // reader invented.
 // Both landed (silk merged rubber, 2026-10-19): 362 − 1.
-const ORPHAN_DATA_KEY_CEILING = 361;
+// ⭐ 361 → 360 (ceramics W3): `earth/clay`'s dead `chemistry: null` is gone —
+// and with it the copy two `extends:` children (alluvial clay, fireclay)
+// would have inherited.
+const ORPHAN_DATA_KEY_CEILING = 360;
 
 
 function main(): void {

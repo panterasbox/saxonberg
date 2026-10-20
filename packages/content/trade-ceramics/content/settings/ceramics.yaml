@@ -1,0 +1,20 @@
+# ceramics — the ceramics pack's own dials (the `settings` kind: merge-missing
+# — a key the app_settings singleton lacks is merged in; a value the operator
+# changed via `config` is never touched).
+#
+# ⚠ The green-ware dials are NOT here: green ware is a KERNEL mixin
+# (`Greenware`, composed by dairying's setting pan too), so its dials are the
+# platform's `green.*` keys. These are the trade's own.
+settings:
+  # A clay heap stops getting better after about forty freeze-thaw days — a
+  # good winter out (ceramics S2).
+  - key: ceramics.weathering.ceilingDays
+    value: "40"
+
+  # Kneading a temper pit's clay: game-minutes of both hands in it, and the
+  # litres of the pit's water a kilogram of clay takes up to the window.
+  - key: ceramics.temper.minutes
+    value: "20"
+
+  - key: ceramics.temper.waterLPerKg
+    value: "0.05"
