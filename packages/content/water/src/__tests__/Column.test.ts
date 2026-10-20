@@ -178,6 +178,22 @@ describe('the column (underwater A2)', () => {
     expect((await surface(1.2, 3)).bandsNow()).toEqual([]);
   });
 
+  it('⭐ a way up leads to the band above as the column is NOW, not as it was budded (drive run 32)', async () => {
+    // Budded before the river's read: clarity 5 in six meters is lit + bed.
+    const p = await surface(6, 5);
+    const warren = await column();
+    const bed = (await warren.bandOf(p, 'bed')) as unknown as Band;
+    expect(p.bandsNow()).toEqual(['lit', 'bed']);
+    // The read lands: the river is silty, and a dark band opens between.
+    vi.spyOn(p, 'peekWaterRead').mockReturnValue({
+      ref: 'fx', atS: 0, name: 'the water', frozen: false,
+      draw: { materialPath: '/stuff/idea/material/bulk/water', temperatureK: 283 }, levelM: 0, clarityM: 3,
+    });
+    expect(p.bandsNow()).toEqual(['lit', 'dark', 'bed']);
+    const up = await (bed.getExit('up') as ColumnExit).resolveDestination();
+    expect((up as unknown as Band).getBand()).toBe('dark');
+  });
+
   it('⭐ deep water repeats the dark about every atmosphere, to a cap — the depth is in the swim, not the rooms', async () => {
     // 60 m, light to 10 m: fifty meters of dark in five bands of ten.
     const sea = await surface(60, 10);

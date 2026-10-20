@@ -24,6 +24,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import Band from '../../location/Band';
 
 /** Where a column exit leads: a band, or back up to the surface. */
 export type ColumnTarget = ColumnBand | 'surface';
@@ -37,8 +38,11 @@ export default class ColumnExit extends DeferredDestinationExit {
   /** The surface place this column is under — an identity path. */
   public surfacePath = '';
 
-  /** The band this way leads to. */
+  /** The band this way leads to — when it was last taken (see `targetNow`). */
   public target: ColumnTarget = 'lit';
+
+  /** The band it led to when last resolved (runtime). */
+  private _now: (Stuff & Container) | null = null;
 
   /** Name the column and the band (the `installExit` configure step). */
   public configureColumn(surfacePath: string, target: ColumnTarget): void {
@@ -55,6 +59,40 @@ export default class ColumnExit extends DeferredDestinationExit {
     return s && !s.isDestroyed() && MixinApi.isContainer(s) ? s : null;
   }
 
+  /**
+   * ⭐ Where this way leads NOW (found by the drive, run 32). A column's
+   * bands are derived — the tide raises the water, a fresh read of its
+   * clarity moves where the dark begins — so a way fixed when its band was
+   * budded can skip a band that exists now (a bed budded before the
+   * river's read landed went straight up to the lit band). Up is the band
+   * above this one in the column as it is; down the band below; the
+   * surface's down the first band.
+   */
+  private targetNow(): ColumnTarget {
+    const surface = this.surface();
+    if (surface === null || !MixinApi.isWaterPlace(surface)) return this.target;
+    const bands = surface.bandsNow();
+    const from = this.getSource() as unknown as Stuff;
+    if (from === (surface as unknown as Stuff)) return bands[0] ?? this.target;
+    if (!(from instanceof Band)) return this.target;
+    const i = bands.indexOf(from.getBand());
+    if (i < 0) return this.target;
+    if (this.getDirection() === 'up') return i === 0 ? 'surface' : bands[i - 1]!;
+    return bands[i + 1] ?? this.target;
+  }
+
+  /** Resolve where this way leads now — never a stale band from the bud. */
+  public override async resolveDestination(): Promise<Stuff & Container> {
+    this.target = this.targetNow();
+    this._now = await this.computeDestination();
+    return this._now;
+  }
+
+  public override getDestination(): Stuff & Container {
+    if (this._now !== null && !this._now.isDestroyed()) return this._now;
+    return super.getDestination();
+  }
+
   protected override async computeDestination(): Promise<Stuff & Container> {
     const surface = this.surface() ?? (await StuffApi.singleton<Stuff & Container>(this.surfacePath));
     if (this.target === 'surface') return surface;
@@ -64,6 +102,15 @@ export default class ColumnExit extends DeferredDestinationExit {
       throw new Error(`ColumnExit: ${this.surfacePath} has no ${this.target} band now`);
     }
     return band;
+  }
+
+  /**
+   * ⭐ The column wires both ends as it buds; the far side is computed per
+   * column from a SHARED band row, so a by-path topology check would find
+   * another water's band and block this way (found by the drive, run 32).
+   */
+  public override wiresItsOwnInverse(): boolean {
+    return true;
   }
 
   /**

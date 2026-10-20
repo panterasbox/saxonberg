@@ -977,6 +977,20 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * @hook ⭐ Does this way wire its own way back (underwater drive, run
+   * 32)? The topology verifier checks an exit by looking its destination
+   * PATH up and asking that place for the way back — right for an
+   * authored room, wrong for a way whose far side is computed per
+   * instance from a shared row (every column's `dark` band is the same
+   * row): the lookup finds SOME band of that row, its way back is not
+   * ours, and the verifier blocks a good way. A way whose warren wires
+   * both ends says so here and is never verified by path.
+   */
+  public wiresItsOwnInverse(): boolean {
+    return false;
+  }
+
+  /**
    * @hook ⭐ How long crossing this way takes `mover`, in REAL seconds
    * (underwater review). An ordinary way is a step, `0`. A way whose
    * LENGTH is the cost — a swim down through the water — says it here, and
