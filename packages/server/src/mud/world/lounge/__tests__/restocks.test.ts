@@ -598,6 +598,79 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     expect(lines[1]).toContain('supply 1.5 litres of gin');
   });
 
+  it('⭐ a line priced PER UNIT orders only what the house can fund (sugar W6)', async () => {
+    // Twelve in the till at ten a litre: one litre of the 1.5 short.
+    await BankingApi.mint(barAccount, Money.of(12, BankingApi.compactCurrency()), "harness");
+    barBiz.setParLine({
+      category: 'gin',
+      level: 1.5,
+      unit: 'L',
+      supplier: DISTRIBUTION,
+      exemplar: '/trade/distilling/thing/gin',
+      rewardPerUnit: 10,
+    });
+    ginBottle();
+    const lines = installDispatcher();
+
+    await restocks.act(brainCtx());
+
+    expect(lines, JSON.stringify(lines)).toHaveLength(2);
+    expect(lines[1]).toBe(
+      `job post supply 1 litres of gin to ${BENCH} for 10 ` +
+        `--bounty --business --from ${CASH_AND_CARRY}`,
+    );
+    const open = await gigs();
+    expect(open).toHaveLength(1);
+    expect(BankingApi.balanceOf(barAccount).minor).toBe(2);
+  });
+
+  it('⭐ a house that cannot fund ONE unit posts nothing rather than a refused order', async () => {
+    await BankingApi.mint(barAccount, Money.of(5, BankingApi.compactCurrency()), "harness");
+    barBiz.setParLine({
+      category: 'gin',
+      level: 1.5,
+      unit: 'L',
+      supplier: DISTRIBUTION,
+      exemplar: '/trade/distilling/thing/gin',
+      rewardPerUnit: 10,
+    });
+    ginBottle();
+    const lines = installDispatcher();
+    await restocks.act(brainCtx());
+    // ⚠ Not vacuous: the same line at a price it CAN fund posts (above).
+    expect(lines.filter((l) => l.startsWith('job post'))).toEqual([]);
+    expect(await gigs()).toHaveLength(0);
+  });
+
+  it('⭐⭐ a FUNGIBLE count line is ordered by its tag, never its row (sugar W6 — the lime)', async () => {
+    // A stack has no identity a kind-bound gig can count, so the board
+    // refuses "supply 6 <row>" — the sugar house's lime was never ordered.
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
+    const coin = makeStuffAtPath(() => new Coin(), '/test/thing/lump');
+    expect(MixinApi.isStackable(coin)).toBe(true);
+    barBiz.setParLine({
+      category: 'liming',
+      level: 3,
+      unit: 'count',
+      supplier: DISTRIBUTION,
+      exemplar: '/test/thing/lump',
+    });
+    const lines = installDispatcher();
+
+    await restocks.act(brainCtx());
+
+    expect(lines).toContain(
+      `job post supply 3 pieces of liming to ${BENCH} for ${REWARD} ` +
+        `--bounty --business --from ${CASH_AND_CARRY}`,
+    );
+    const open = await gigs();
+    expect(open.map((g) => g.clause?.condition.item)).toContainEqual({
+      kind: 'category',
+      category: 'liming',
+      unit: 'count',
+    });
+  });
+
   it('the bussing beat: a soiled, empty glass loose in the bar is collected, washed and racked', async () => {
     barBiz.removeParLine('gin'); // nothing to order this beat — only the glass line
     const dirty = makeStuffAtPath(() => new CraftVessel(), '/trade/hospitality/thing/coupe');

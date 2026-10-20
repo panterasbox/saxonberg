@@ -38,8 +38,14 @@ data:
     # receiving bench. With none on the floor the refiner buys the import
     # off this house's own counter, which keeps the house boiling and caps
     # what island sugar is worth here.
-    - { category: raw-sugar, unit: count, level: 8, supplier: /world/terminus/waponi-woo/idea/estate, exemplar: /trade/sugar/thing/raw-sugar-block }
-    - { category: liming, unit: count, level: 6, supplier: /world/terminus/rejection/idea/provisioning-business, exemplar: /trade/quarrying/thing/quicklime }
+    # ⭐ A block pays 14 delivered — the import's price, because the import
+    # is the CEILING on what island sugar is worth landed here; the run
+    # earns that less the estate's price. She orders what the till can
+    # fund at that rate, so a young house asks for three, not eight.
+    - { category: raw-sugar, unit: count, level: 8, rewardPerUnit: 14, supplier: /world/terminus/waponi-woo/idea/estate, exemplar: /trade/sugar/thing/raw-sugar-block }
+    # Lime is a stack, so it is ordered by its tag (`supply 4 pieces of
+    # liming`): 3 at Rejection's counter, and the carriage.
+    - { category: liming, unit: count, level: 6, rewardPerUnit: 5, supplier: /world/terminus/rejection/idea/provisioning-business, exemplar: /trade/quarrying/thing/quicklime }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor

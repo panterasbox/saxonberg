@@ -58,7 +58,7 @@ describe('refines — one act per beat', () => {
       'put block in copper',
       'temper copper with lime',
       'skim copper into pail',
-      'stoke arch with coal',
+      'stoke coal into arch',
       'light arch',
       'heat copper',
     ]);
@@ -104,7 +104,7 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...island, juice: true }, w)).toBe('pour tub into kettle');
     expect(brain.next({ ...island, juice: false }, w)).toBeNull();
     const ready = { ...island, liquor: 'liquor' as const, limed: 1, skimmed: true, fuel: 'bagasse' };
-    expect(brain.next(ready, w)).toBe('stoke train with bagasse');
+    expect(brain.next(ready, w)).toBe('stoke bagasse into train');
     expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true }, w)).toBe('get kettle');
     expect(brain.next({ ...island, liquor: 'struck' as const, coneReady: true }, w)).toBe('pour kettle into hogshead');
     expect(brain.next({ ...island, setBlock: true }, w)).toBe('get block from hogshead');

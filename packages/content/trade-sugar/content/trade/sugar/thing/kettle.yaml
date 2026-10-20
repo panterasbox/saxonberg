@@ -11,6 +11,6 @@ data:
     bright inside where the ladles scrape it.
   _materialPath: /stuff/idea/material/element/copper
   interiorCapacity: 200
-  closure: open
+  closure: liquidTight
   open: true
   mass: 80

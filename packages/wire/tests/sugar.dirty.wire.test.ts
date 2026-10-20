@@ -312,7 +312,8 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
       watcher.close();
       const wiz2 = await Session.open('founder', { startLocation: PANTRY, wizard: true });
       try {
-        await wiz2.cmd('config treasury.openingAdvance 500');
+        await wiz2.cmd('config treasury.openingAdvance 50');
+        await wiz2.cmd('config employment.unpaidStandGameDays 3');
       } finally {
         wiz2.close();
       }
@@ -345,7 +346,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
   }, 600_000);
 
   it('4. ⭐⭐ the arch lit, the copper heated: the boil CLIMBS, and the thread names it (no `boil` verb)', async () => {
-    await say(boiler, 'stoke arch with coal');
+    await say(boiler, 'stoke coal into arch');
     await say(boiler, 'light arch');
     await say(boiler, 'heat copper');
     await advance(1 * HOUR);
@@ -446,7 +447,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     const sugarer = await goTo(boilerHandle, SUGARBUSH);
     try {
       await say(sugarer, 'get 2 log');
-      await say(sugarer, 'stoke evaporator with log');
+      await say(sugarer, 'stoke log into evaporator');
       await say(sugarer, 'light evaporator');
       const arch = (await say(sugarer, 'look evaporator')).toLowerCase();
       expect(arch).toMatch(/burn|fire|lit|flame/);

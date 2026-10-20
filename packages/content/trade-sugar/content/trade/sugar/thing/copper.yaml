@@ -13,6 +13,6 @@ data:
     A long-handled skimmer and a ladle hang from its rim.
   _materialPath: /stuff/idea/material/element/copper
   interiorCapacity: 120
-  closure: open
+  closure: liquidTight
   open: true
   mass: 45

@@ -9,6 +9,6 @@ data:
   category: tub
   interiorBulk: true
   interiorCapacity: 40
-  closure: open
+  closure: liquidTight
   open: true
   mass: 15

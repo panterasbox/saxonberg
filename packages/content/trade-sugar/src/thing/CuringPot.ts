@@ -14,6 +14,6 @@ export default class CuringPot extends PlacingMixin(Vat) {
     super();
     this.category = 'pot';
     this.setInteriorCapacity(Quantity.of(10, 'L'));
-    this.setClosure('open');
+    this.setClosure('liquidTight');
   }
 }

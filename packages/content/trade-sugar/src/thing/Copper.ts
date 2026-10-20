@@ -2,7 +2,7 @@
  * The sugar copper — ⭐ the pan a refinery boils its liquor in, and the
  * thing whose GRADE decides whether the liquor will grain.
  *
- * A `Vat` (open, 120 L) that also holds a block of raw sugar long enough
+ * A `Vat` (lidless, 120 L) that also holds a block of raw sugar long enough
  * to dissolve it. Everything the boil does — the climbing boiling point,
  * the water boiled off, the stages — is the kernel's plateau reading the
  * liquor's own material (sugar D1). What this class adds is the three
@@ -70,7 +70,7 @@ export default class Copper extends ContainerMixin(Vat) {
     super();
     this.category = 'copper';
     this.setInteriorCapacity(Quantity.of(120, 'L'));
-    this.setClosure('open');
+    this.setClosure('liquidTight');
   }
 
   /** A block of raw sugar goes in only where there is liquid to take it. */

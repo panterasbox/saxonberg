@@ -178,7 +178,7 @@ export const brain = class {
       return f.counterLime ? errand('wallet use house', 'buy quicklime') : null;
     }
     if (!f.skimmed) return `skim ${w.kettle} into pail`;
-    if (!f.fireFuelled) return f.fuel ? `stoke ${w.fire} with ${f.fuel}` : null;
+    if (!f.fireFuelled) return f.fuel ? `stoke ${f.fuel} into ${w.fire}` : null;
     if (!f.fireLit) return `light ${w.fire}`;
     if (!f.onFire) return `heat ${w.kettle}`;
     return null;
