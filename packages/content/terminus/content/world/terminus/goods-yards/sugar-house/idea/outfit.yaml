@@ -21,6 +21,9 @@ data:
       noun: hand
       label: carrying for the sugar house
       wageRate: 4
+      # The hand consigns the house's sacks and casks AS the house, which
+      # takes the house card — a purchasing seat (the annex suite holds it).
+      purchases: true
   rosterSlots:
     - positionKey: refiner
       assignee: /world/terminus/goods-yards/sugar-house/agent/refiner

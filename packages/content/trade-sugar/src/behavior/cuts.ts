@@ -95,7 +95,11 @@ export const brain = class {
     const verbs = brain.next(plot, brain.errand(ctx.config));
     if (verbs === null) return;
     for (const verb of verbs.split('\n')) {
-      await (host as Stuff & CommandGiver).forceCommand(verb);
+      // NOT forced: the work is the hand's own act, and a forced frame is
+      // unattributable by design — the maker verbs (`mill`, `cut`) read
+      // the acting author and found none, so the estate's miller declined
+      // `no-maker` at every bundle (sugar drive 8; `prints`' precedent).
+      await (host as Stuff & CommandGiver).executeCommand(verb);
     }
   }
 };

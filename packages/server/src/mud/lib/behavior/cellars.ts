@@ -268,7 +268,12 @@ export const brain = class {
       const which = crushes[beats % crushes.length] ?? crushes[0]!;
       for (let i = 0; i < CRUSHES_PER_BEAT; i++) {
         if (inputsInReach(home, inputKeyword) < inputMin) break;
-        await hand.forceCommand(`order ${which}`);
+        // NOT forced: the crush is the hand's own work, and `order` finds
+        // its maker through the acting author — which a forced frame never
+        // has, so every crush declined `no-maker` (the vermouth winery's
+        // hand, fifteen times a run; found by the sugar drive, whose rum
+        // runs through this brain). `prints`' precedent.
+        await hand.executeCommand(`order ${which}`);
         await hand.forceCommand(`pour bucket into vat`);
         if (ctx.config.pitchJar === true) {
           await hand.forceCommand(`pour jar into vat`);
