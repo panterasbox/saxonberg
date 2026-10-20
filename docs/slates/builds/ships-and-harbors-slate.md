@@ -786,3 +786,36 @@ quarantine is its first maritime consumer.
   TPA network**, priced by mass in mana; ⭐ crossings become **break-of-bulk
   hubs**; posts only where **jurisdiction-level** covenants differ, at
   **designated ports of entry**.
+
+## 20. Drill-down: the sailortown (2026-10-19) **[DECIDED]**
+
+- ⭐ **Its economy is the voyage cycle** — a ship comes in and **her crew is paid
+  off** (the articles settle — wages or the lay); **they spend it** (*a sailor
+  ashore is rich for a week*); **the money runs out**; **they sign on again**,
+  often taking **an advance** on their wages for gear — the *advance note*, the same
+  shape as the shipped **Arrival Note**, and how crimps robbed sailors. ⭐ **A
+  fleet's arrival is a boom** — derived: a surge of paid-off demand; the
+  sailortown's calendar is the fleet's.
+- **Its places** — taverns (hospitality); the boarding house (short tenancy; ⚠ its
+  keeper often the crimp); ⭐ **the seamen's mission and sailors' home** (a bed, a
+  reading room, a chapel, and ⭐ **a savings bank** — founded to protect sailors' pay
+  from crimps; banking's custodial accounts); the slop shop (ready-made sea clothes —
+  the oilskins); ⭐ **the pawnbroker** (gear pawned between voyages — credit
+  secured on a good); the shipping office (§ 16); the tattooist.
+- ⭐ **Tattoos are a sailor's chronicle** — a swallow per 5,000 miles, a turtle for
+  crossing the equator, an anchor for the Atlantic: **a deed made visible on the
+  body** (the chronicle's identity ledger, read by presentation) — you can read where
+  a stranger has sailed from their arms, and **wearing a turtle you did not earn is a
+  lie**.
+- **The sea's rites** — ⭐ **crossing the line** (King Neptune's court; a pollywog
+  becomes a shellback) is a chronicle deed at a place on the chart; ⭐ **shanties
+  paced the crew's hauling together** — the cooperative-effort slate, the Chorus's
+  music as work; superstitions are culture, never mechanism.
+- ⚠ **Crimping and shanghaiing** — the accountability ledger, never a mechanic; the
+  waterfront's other trades are content an author may depict. **Lens 7**: the
+  mission and the savings bank are the town's answer to the crimp — a polity may
+  license boarding houses, regulate the advance note, found the sailors' home.
+
+The owner's produce-terminal memory, out of this thread, seeded
+[wholesale-market-slate](./wholesale-market-slate.md) — the fish quay is its
+waterside case.
