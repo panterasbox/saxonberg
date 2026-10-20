@@ -109,7 +109,7 @@ numbers.
   gasp), which is why cold water drowns people who can swim.
 - **Things go where their weight sends them**: something dropped from the
   quay sinks to the bed or floats; a drowned body lies on the bed with what
-  it carried, and recovering it is a job. Armour and heavy kit sink you.
+  it carried, and recovering it is a job. Armor and heavy kit sink you.
 - **What still reaches you underwater is what never needed a voice**: the
   implant's messages and emotes (both the aether) work as anywhere; a slate
   and grease pencil let you write; a bell struck below is heard by every
@@ -207,7 +207,7 @@ thaw and a dive all change what is underfoot without moving anything
 
 ### The column is rooms, and a party shares one
 Below the surface the water is a stack of rooms by what the water does
-(lit, dark, the bed), not by metre. *Why:* being together in this engine
+(lit, dark, the bed), not by meter. *Why:* being together in this engine
 is sharing a room; depth as a hidden number would need every channel
 filtered.
 
@@ -269,7 +269,7 @@ them in this build.
 ### The water's own properties are not the weather's
 How water carries light, sound, heat and breath is a property of the water
 and of the medium, not of the outside air. *Why:* the outside air's
-weather says nothing true about a metre down.
+weather says nothing true about a meter down.
 
 ## Lens pass
 
@@ -295,7 +295,7 @@ weather says nothing true about a metre down.
 6. **Economy** — demand that existed first: the city's works below the
    waterline, recovering what was lost (a body, an anchor) and the
    fishmonger's market for fish; produced: wages for divers,
-   tenders and pump crews; consumed: gear, rope, the pump's labour. ⚠ The
+   tenders and pump crews; consumed: gear, rope, the pump's labor. ⚠ The
    thinnest lens — the harvest (foraging) and decay (decomposition) are
    what will make diving pay broadly.
 7. **Governance** — thin, correctly: the diver for hire and the city's
@@ -338,7 +338,7 @@ stages.
 8c. Jump into the winter mere's hole: the cold takes your breath — the
     gasp costs breath before you have held it.
 8d. Drop a sword from the quay: it lies on the bed (seen there by a diver);
-    drop a cork float: it stays at the surface. Go down in armour: you sink
+    drop a cork float: it stays at the surface. Go down in armor: you sink
     fast and cannot swim up in it.
 8e. Disconnect a character on the bed: they float up and are held at the
     surface; reconnect: they are breathing, on the surface.
@@ -447,14 +447,14 @@ stages.
 - Seawater harms the drinker.
 - A disconnected character in water — or on a strand the tide reaches — is
   held safe at the surface until they return.
-- The existing pool, cistern, estuary and storage-and-ice behaviours still
+- The existing pool, cistern, estuary and storage-and-ice behaviors still
   work.
 
 ## Cross-references
 
 - Seeding: [underwater-slate](../slates/builds/underwater-slate.md) ·
   [river-slate](../slates/builds/river-slate.md)
-- Neighbours: [flooding-slate](../slates/builds/flooding-slate.md) ·
+- Neighbors: [flooding-slate](../slates/builds/flooding-slate.md) ·
   [decomposition-slate](../slates/builds/decomposition-slate.md) ·
   [construction-slate](../slates/builds/construction-slate.md) ·
   [respiration-slate](../slates/tails/respiration-slate.md) ·

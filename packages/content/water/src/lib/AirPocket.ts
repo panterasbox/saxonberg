@@ -8,7 +8,7 @@
  *
  *  - **Boyle.** The pocket holds `airM3` at the surface; at depth `d` the
  *    water's weight squeezes it to `airM3 / (1 + d/10)` and the water
- *    rises inside to fill the rest — at ten metres the bell is half
+ *    rises inside to fill the rest — at ten meters the bell is half
  *    full of water.
  *  - **Fouling.** Every breather in it turns oxygen into CO₂ at a
  *    resting rate; the CO₂ is the pocket's atmosphere content, and the
@@ -33,10 +33,10 @@ import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ScheduleApi, type ScheduleHandle } from '@saxonberg/server/mud/api/schedule';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 
-/** What a breathing body puts out, litres of CO₂ a game-second at rest. */
+/** What a breathing body puts out, liters of CO₂ a game-second at rest. */
 const CO2_L_PER_S = 0.2 / 60;
 
-/** What a burning lamp puts out, litres of CO₂ a game-second. */
+/** What a burning lamp puts out, liters of CO₂ a game-second. */
 const LAMP_CO2_L_PER_S = 1 / 60;
 
 /** The CO₂ material the pocket accumulates. */
@@ -51,11 +51,11 @@ export interface AirPocket {
   pocketDepthM(): number;
   /** The share of the pocket the water has risen into, 0..1. */
   waterlineFraction(): number;
-  /** Litres of air in the pocket now (squeezed by depth). */
+  /** Liters of air in the pocket now (squeezed by depth). */
   airLitres(): number;
   /** Foul the pocket by `seconds` of what is breathing and burning in it. */
   foul(seconds: number): void;
-  /** Push `litres` of fresh air in: the foul air goes out. */
+  /** Push `liters` of fresh air in: the foul air goes out. */
   refresh(litres: number): void;
 }
 

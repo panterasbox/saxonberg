@@ -172,7 +172,7 @@ export interface MediumRead {
   readonly atSurface: boolean;
   /** The medium's temperature when the answering place knows it. */
   readonly temperatureK: number | null;
-  /** Metres below the water's surface (0 in air or at the surface). */
+  /** Meters below the water's surface (0 in air or at the surface). */
   readonly depthM: number;
   /** The water citation a water place answered with, else null. */
   readonly waterRef: string | null;

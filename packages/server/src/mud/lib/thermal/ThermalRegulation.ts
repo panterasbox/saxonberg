@@ -613,7 +613,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     /**
      * ⭐ A working that keeps the cold off (underwater D18): while held,
      * this body meets its surroundings `deltaK` warmer. Set by the
-     * sustained realisation; `0` when nothing is held. Its own field —
+     * sustained realization; `0` when nothing is held. Its own field —
      * `_ambientOffsetK` is the re-stamp's cache and must stay derived.
      */
     public setWorkingOffsetK(deltaK: number): void {

@@ -195,10 +195,10 @@ data:
     - /world/terminus/wharfside/water/thing/heaving-line
     # ⭐ The bell hoist over the basin (underwater C2).
     - /world/terminus/wharfside/water/thing/bell-hoist
-    # ⭐ The dive shop's air pump on the quay, and the harbour works'
+    # ⭐ The dive shop's air pump on the quay, and the harbor works'
     # board (underwater C3/C4).
     - /trade/diving/thing/air-pump
-    - /world/terminus/wharfside/thing/harbour-board
+    - /world/terminus/wharfside/thing/harbor-board
   cast:
     - /world/terminus/wharfside/agent/fisher
     - /world/terminus/wharfside/agent/pilot

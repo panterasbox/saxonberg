@@ -143,7 +143,7 @@ export interface LoadBearing {
 /** Standard gravity, m/s². */
 const G = 9.81;
 
-/** What a thing with no material is taken to weigh per litre: neutral. */
+/** What a thing with no material is taken to weigh per liter: neutral. */
 const NEUTRAL_DENSITY_KG_M3 = 1000;
 
 /**

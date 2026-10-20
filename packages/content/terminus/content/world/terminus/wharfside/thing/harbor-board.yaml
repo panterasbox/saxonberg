@@ -1,9 +1,9 @@
-# The harbour board (underwater C4) — where the harbour works post the
+# The harbor board (underwater C4) — where the harbor works post the
 # city's work below the waterline: inspections, recoveries, the lifting.
 class: /platform/thing/JobBoard
 data:
-  shortDescription: harbour board
-  keywords: [board, "harbour board", notices, jobs, job-board]
+  shortDescription: harbor board
+  keywords: [board, "harbor board", notices, jobs, job-board]
   register: definite
   longDescription: >
     A tarred board on the quay wall under a little roof of its own, the

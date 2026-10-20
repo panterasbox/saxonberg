@@ -1,6 +1,8 @@
 # Where the dive shop's people are when they are not working.
 class: /platform/location/Offstage
 data:
+  # Every place but the void has a cell (the place taxonomy) — behind the shop.
+  coords: { x: 0, y: 1, z: 0 }
   shortDescription: The Dive Shop — Back Room
   keywords: [room, back]
   register: proper

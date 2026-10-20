@@ -1,13 +1,13 @@
 # The basin below the quay — ⭐ the water itself (underwater D23): the
-# Kestrel at the confluence, six metres deep at the foot of the steps.
+# Kestrel at the confluence, six meters deep at the foot of the steps.
 #
 # The bank is a QUAY — beside the water, never in it — so the water you
 # go down into is this place, off the bank's `river` way. Its column is
 # budded under it as somebody descends: the light, the dark, and the bed,
-# because six metres of silty river is deeper than its light reaches.
+# because six meters of silty river is deeper than its light reaches.
 #
 # ⭐ The intake's underwater face is an AUTHORED room beside the dark
-# band (`column.neighbours`) — the bespoke case is rooms beside the
+# band (`column.neighbors`) — the bespoke case is rooms beside the
 # column, never a column of its own.
 class: /platform/location/Pool
 data:
@@ -20,7 +20,7 @@ data:
   coords: { x: 0, y: 0, z: 0 }
   water: { of: kestrel:confluence, depthM: 6 }
   column:
-    neighbours:
+    neighbors:
       - band: dark
         direction: upstream
         destination: /world/terminus/wharfside/water/location/intake-mouth

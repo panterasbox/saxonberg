@@ -17,7 +17,7 @@ data:
   electricalConductivity: 5
   edibility: false
   nutrients: []
-  # ~35 g of salt a litre: the toxin dose per litre drunk.
+  # ~35 g of salt a liter: the toxin dose per liter drunk.
   toxicity:
     - { type: salt, amount: 35 }
   tags: [liquid, brine, conductive]

@@ -14,7 +14,7 @@ data:
     Out on the mere itself, the hollow of the hills all round and the sky very wide over it. The shore is a few strokes behind you to the south, the far bank of reeds across the water to the north.
   coords: { x: 0, y: 2, z: 0 }
   floor: { template: /world/terminus/hollow-mere/thing/sheet }
-  # ⭐ The place IS the water (underwater D1): the mere, five metres over
+  # ⭐ The place IS the water (underwater D1): the mere, five meters over
   # the bed, known here by its `mere` feature (`fill bucket from mere`).
   water: { of: hollowmere:mere, depthM: 5, feature: mere }
   details:

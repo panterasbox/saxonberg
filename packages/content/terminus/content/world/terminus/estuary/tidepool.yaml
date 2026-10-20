@@ -1,5 +1,5 @@
 # The tidepool (underwater D25) — a basin in the rocks under the headland,
-# half a metre above mean water: the tide fills it at the flood and leaves
+# half a meter above mean water: the tide fills it at the flood and leaves
 # it at the ebb, cut off, the fish in it living on what water it kept.
 class: /platform/location/Pool
 data:

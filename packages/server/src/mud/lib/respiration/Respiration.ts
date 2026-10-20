@@ -78,15 +78,15 @@ export const RESPIRATION_DEFAULTS = {
     channel: 2.0,
   } as Record<RespirationCause, number>,
   /**
-   * ⭐ The breath is a STORE (underwater D10): litres of oxygen a body can
-   * spend without breathing, per litre of lung — a resting adult's full
+   * ⭐ The breath is a STORE (underwater D10): liters of oxygen a body can
+   * spend without breathing, per liter of lung — a resting adult's full
    * breath is about ninety seconds of basal burn. Burned at
    * {@link BASAL_O2_L_PER_S} scaled by effort, cold and conditioning.
    */
   USABLE_O2_PER_LUNG_L: 0.075,
-  /** Basal oxygen burn of a resting body, litres per game-second. */
+  /** Basal oxygen burn of a resting body, liters per game-second. */
   BASAL_O2_L_PER_S: 0.3 / 60,
-  /** Default lung volume when a plan does not say, litres (an adult). */
+  /** Default lung volume when a plan does not say, liters (an adult). */
   LUNG_VOLUME_L: 6,
   /** What `exhale` leaves in the lungs: a fraction of a full store. */
   RESIDUAL_FRACTION: 0.2,
@@ -118,7 +118,7 @@ export const RESPIRATION_DEFAULTS = {
   DROWNING_RESPONSE_SEC: 60,
   /** Holding something that floats you this hard (N) holds you up. */
   FLOAT_SUPPORT_N: 30,
-  /** Unequalized descent that hurts, metres (raised by diving). */
+  /** Unequalized descent that hurts, meters (raised by diving). */
   SQUEEZE_AT_M: 3,
   /**
    * ⭐ The bends (underwater D27): three tissue compartments, Haldane's
@@ -252,7 +252,7 @@ export interface Respiration {
   float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
   /** Clear the pressure on your ears (`equalize`). */
   equalize(): void;
-  /** The unequalized pressure on your ears, metres of descent. */
+  /** The unequalized pressure on your ears, meters of descent. */
   getPressureDebtM(): number;
   /** Dissolved gas per tissue compartment, atm (the bends, D27). */
   getGasLoad(): readonly number[];
@@ -276,14 +276,14 @@ export interface Respiration {
   inhale(): Promise<InhaleResult>;
   /** Let the breath out — the store falls to the residual. */
   exhale(): void;
-  /** Litres of oxygen the body can still spend without breathing. */
+  /** Liters of oxygen the body can still spend without breathing. */
   getO2StoreL(): number;
   /** The urge to breathe, 0 (none) … 1 (you cannot hold it). */
   getBreathUrge(): number;
-  /** What a full breath holds, litres of usable oxygen. */
+  /** What a full breath holds, liters of usable oxygen. */
   fullO2StoreL(): number;
   /**
-   * The air in the lungs now, litres at the surface — a full breath's
+   * The air in the lungs now, liters at the surface — a full breath's
    * worth after `inhale`, the residual after `exhale`. What the water
    * reads for buoyancy.
    */
@@ -357,9 +357,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _floating = false;
     /** When the instinctive drowning response began, game-seconds. */
     private _drowningSinceS: number | null = null;
-    /** The unequalized descent on your ears, metres. */
+    /** The unequalized descent on your ears, meters. */
     private _pressureDebtM = 0;
-    /** How deep you were at the last reassess, metres. */
+    /** How deep you were at the last reassess, meters. */
     private _lastDepthM = 0;
     /** The squeeze stages suffered since the last equalize (0, 1 squeeze, 2 eardrum). */
     private _squeezeStage = 0;
@@ -1181,7 +1181,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ Going down without clearing your ears (underwater D15): each metre
+     * ⭐ Going down without clearing your ears (underwater D15): each meter
      * of descent since the last `equalize` is pressure on the eardrum. At
      * the squeeze depth it hurts; at twice it bursts. Coming up eases it;
      * a trained diver can take more.
@@ -1463,7 +1463,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return Math.min(store, this.fullO2StoreL() / 2);
     }
 
-    /** The body's lungs, litres — its plan's, scaled by its mass. */
+    /** The body's lungs, liters — its plan's, scaled by its mass. */
     private lungVolumeL(): number {
       const self = this as unknown as Stuff;
       const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
@@ -1472,7 +1472,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ Litres of oxygen burned per second now: basal × effort × cold ×
+     * ⭐ Liters of oxygen burned per second now: basal × effort × cold ×
      * conditioning. A kicking diver burns it two and a half times as fast
      * as a still one; cold water slows it (the dive reflex); a trained
      * wind spends it carefully.

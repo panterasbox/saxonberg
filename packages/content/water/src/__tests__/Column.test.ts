@@ -1,9 +1,9 @@
 /**
  * ⭐⭐ The column under a deep water (underwater A2, D5–D9).
  *
- *  - A water six metres deep with three metres of clarity has a lit band,
- *    a dark band and a bed; a clear five metres has no dark band; three
- *    metres is only the bed.
+ *  - A water six meters deep with three meters of clarity has a lit band,
+ *    a dark band and a bed; a clear five meters has no dark band; three
+ *    meters is only the bed.
  *  - The bands bud on demand, keyed `<surface>#<band>`, wired up and down
  *    with lazy column exits; the surface gets its way down.
  *  - Under the surface you are in the water at the band's depth — even

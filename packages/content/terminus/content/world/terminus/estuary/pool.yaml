@@ -25,7 +25,7 @@ data:
       keywords: [pool, cove, water, shallows]
       description: |
         Clear green water over sand, still enough to see the bottom.
-  # ⭐ The place IS the water (underwater D1): the Greywater, four metres
+  # ⭐ The place IS the water (underwater D1): the Greywater, four meters
   # over the sand.
   water: { of: /stuff/idea/WaterExpanse/greywater, depthM: 4, feature: pool }
   exits:

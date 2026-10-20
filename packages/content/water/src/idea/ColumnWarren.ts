@@ -14,14 +14,14 @@
  *    `ColumnExit`s; the surface gets its `down` from
  *    {@link ColumnWarren.ensureColumnExits}. Nothing wires a live ref
  *    between bands: each room's ways fault their far side in.
- *  - **Neighbours.** A surface row may author rooms beside one band
- *    (`column: { neighbours: … }`) — the bespoke case is authored rooms
+ *  - **Neighbors.** A surface row may author rooms beside one band
+ *    (`column: { neighbors: … }`) — the bespoke case is authored rooms
  *    beside the column. They are wired both ways when the band buds.
  *  - **Keeping.** A band is captured to its snapshot when it empties of
  *    people, so what sank to the bed is there after a restart. A band is
  *    reaped only when its surface no longer has it (the water went down).
  *
- * ⚠ Sideways between two neighbouring waters' columns is the river's
+ * ⚠ Sideways between two neighboring waters' columns is the river's
  * (`river-slate`): nothing that ships has two water places side by side.
  */
 
@@ -132,7 +132,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
     return room;
   }
 
-  /** `up` and `down` along the column, then the authored neighbours. */
+  /** `up` and `down` along the column, then the authored neighbors. */
   private async wire(
     room: Band & MemberStuff,
     surface: SurfaceStuff,
@@ -147,7 +147,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
     if (below !== undefined && !ex.getExit('down')) {
       await this.installColumnExit(ex, 'down', surfacePath, below);
     }
-    for (const n of surface.getColumn().neighbours ?? []) {
+    for (const n of surface.getColumn().neighbors ?? []) {
       if (n.band !== room.getBand() || ex.getExit(n.direction)) continue;
       const beside = await StuffApi.singleton<Stuff>(n.destination);
       if (!MixinApi.isExitable(beside) || !MixinApi.isContainer(beside)) continue;

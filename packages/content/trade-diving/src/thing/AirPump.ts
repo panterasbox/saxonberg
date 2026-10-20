@@ -43,7 +43,7 @@ export default class AirPump extends Tool implements Pumpable {
     spellSeconds: { persistent: true, authorable: true },
   };
 
-  /** Air sent down the hose per spell at the handles, litres. */
+  /** Air sent down the hose per spell at the handles, liters. */
   public litresPerSpell = 30;
 
   /** How long a spell at the handles takes, game-seconds. */

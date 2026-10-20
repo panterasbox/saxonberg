@@ -125,7 +125,7 @@ four surveys the plan was briefed with, re-checked where it leans.
   `PersistableApi.restoreOrSeed(room, key)`, `wireHubExit`);
   `memberKeyOf` (`:348`); `roomAt`; `abandon` reaps; `reconcile` culls
   empty provisional cells; `wireHubExit` overridden to wire
-  neighbours; `admitArrival`/`attachmentFor` no-ops. `WarrenMemberMixin`
+  neighbors; `admitArrival`/`attachmentFor` no-ops. `WarrenMemberMixin`
   (`S/lib/location/WarrenMember.ts`) is the member back-ref; the keyed
   durable handle is `<row>#<key>` (`docs/subsystems/location.md` §
   durable handle). `DeferredDestinationExit`
@@ -297,7 +297,7 @@ four surveys the plan was briefed with, re-checked where it leans.
   (`platform/cmd/posture/sit.yaml:20`); with `noDefaultFloor` the binder
   fails generically; the worded refusal is `WaterSurface.canOccupyReason`.
 - **9 sight** — `VisionModality.walkFluxAt` (`:541`) folds `ownFlux` +
-  child legs through `mergeAttenuated(tau, colour)`; Beer–Lambert exists
+  child legs through `mergeAttenuated(tau, color)`; Beer–Lambert exists
   only for glass (`trade-glass/src/lib/Tinted.ts:103`). `AmbientLit`
   (`S/lib/perception/AmbientLit.ts`): ambient is DERIVED from the biome's
   sky exposure (`isSkyLit()` `:333`); `/stuff/idea/biome/water/open.yaml`
@@ -472,7 +472,7 @@ water* — not "swimmable" (a quality), not "watered". `Mixins.WaterPlace
 vacuum, smoke, blackdamp, stinkdamp, carbon-dioxide}.yaml` carrying
 `density`, `thermalConductivity`, `breathable`, `contaminant`,
 `supportsCombustion`, `soundHopTau`, `soundCarriesDirection`,
-`lightAttenuationPerM: {r, g, b}` (a `Colour`-shaped per-metre
+`lightAttenuationPerM: {r, g, b}` (a `Color`-shaped per-meter
 transmittance), `drag`. `S/platform/idea/MediumCatalogue.ts` warms
 by template-path infix `/idea/Medium/` (the `MaterialCatalogue` reader
 rule — never an allowlist of roots; a pack adds a medium by adding a
@@ -480,7 +480,7 @@ row). `BiomeLogic`'s four tables are deleted; `BiomeApi.densityOf /
 conductivityOf / breathableOf / contaminantOf / isKnownAtmosphere` keep
 their signatures and read the catalogue (callers untouched);
 `BiomeApi.mediumProps(tag): MediumProps` is the one new read. Reason:
-the biome says what the outside AIR is doing; a metre down it says
+the biome says what the outside AIR is doing; a meter down it says
 nothing true, and the slate's census needs properties every seam can
 read by tag. `lint:closed-vocabularies` loses the tag list (a win).
 
@@ -568,12 +568,12 @@ Deferred). Band depth for the breath/pressure arithmetic: lit =
 `wade + (litDepth − wade)/2`, dark = `(litDepth + d)/2`, bed = `d`.
 
 **D7 — `down`/`up` are `ColumnExit`s the Warren supplies; sideways
-copies the surface's water exits; authored neighbours are declared on
+copies the surface's water exits; authored neighbors are declared on
 the surface row.** `W/idea/exits/ColumnExit.ts` extends
 `DeferredDestinationExit` with `{surface, band, sense: 'down' | 'up' |
-'sideways' | 'neighbour', neighbourPath?}`; `computeDestination` asks
+'sideways' | 'neighbor', neighbourPath?}`; `computeDestination` asks
 the Warren for `bandFor(surface, band)` (buds on first traversal) or
-resolves the neighbour path. `media: ['water']` on every column exit
+resolves the neighbor path. `media: ['water']` on every column exit
 (swim), plus `['ground']` on bed-band sideways exits (the hard-hat
 walks the bed). The surface place's `down` is installed by
 `WaterPlace.ensureColumnExits()` at `postRegister`/on the first
@@ -584,9 +584,9 @@ water below the quay is a NEW place (D23) whose own `down` is free.
 Sideways: when the Warren buds band B of surface S it copies each exit
 of S whose destination is a WaterPlace with a column and whose
 `media` includes `water` as a `sideways` ColumnExit to the same band
-of that destination (lazy, budded on traversal). Neighbours: the
-surface row's `column: { neighbours: [{ band, direction, destination,
-opposite? }] }` (authorable) — each becomes a `neighbour` ColumnExit
+of that destination (lazy, budded on traversal). Neighbors: the
+surface row's `column: { neighbors: [{ band, direction, destination,
+opposite? }] }` (authorable) — each becomes a `neighbor` ColumnExit
 on that band plus the reverse exit on the authored room (installed when
 the band buds, via the authored room's `Exitable.addBidirectionalExit`
 with `keepLiveDestination`). The under-ice ceiling: a column `up`
@@ -715,7 +715,7 @@ descent/ascent duration (`traverse` of a column exit takes `bandGapM /
 v`, `v = clamp(|F|/k, 0.2, 2) m/s` plus the swimmer's thrust, `exertion.
 swimThrustN` 40 × technique); `ascend` refuses when `F + thrust < 0`
 (*"You are too heavy to swim up — drop something."*; never a skill
-refusal); `drop belt`/dropping the ingot always works (D16). Armour
+refusal); `drop belt`/dropping the ingot always works (D16). Armor
 (density ~7800) sinks you fast and defeats the thrust; a cork float
 holds a body up (D12's grab).
 
@@ -858,7 +858,7 @@ columns read differently.
 **D23 — the Wharfside water is a NEW place below the quay.**
 `T/wharfside/location/basin.yaml` (`Pool`, `water: {of:
 kestrel:confluence, depthM: 6}`, `_biomePath` open-water, `column:
-{neighbours: [{band: dark, direction: upstream, destination:
+{neighbors: [{band: dark, direction: upstream, destination:
 …/wharfside/location/intake-mouth}]}`, props `quay-steps` (a `Ladder`
 row, `axes: [up]`), exits `up` → bank `media: [vertical]`). The bank
 gains `exits.river: {destination: basin, media: [water, vertical]}`
@@ -866,7 +866,7 @@ gains `exits.river: {destination: basin, media: [water, vertical]}`
 `quay-steps` prop, `axes: [down]`) — and keeps `down` → knackers. The
 intake mouth `T/wharfside/location/intake-mouth.yaml` is an authored
 WaterPlace (`Pool`, `depthM: 5`, no column of its own: the
-`column.neighbours` link is its way in and out; props `intake-screen`
+`column.neighbors` link is its way in and out; props `intake-screen`
 — the works' underwater face, `Inspectable` via the intake Conduit it
 cites) — *the bespoke case is authored rooms beside the column*. A
 second water place under the outfall is NOT authored (the wall refusal
@@ -893,7 +893,7 @@ detail so it is a shore; its `tide` WaterFixture prop is deleted — the
 channel is the brine source), `tidepool.yaml` (`Pool`, `depthM: −0.5`,
 off the strand's `rocks` exit; `cast:` one shipped fish row for the
 drive — the builder picks a trade-fishing agent row with an estuary
-habitat, e.g. the grey mullet), `strandline.yaml` (`Pool`, `depthM:
+habitat, e.g. the gray mullet), `strandline.yaml` (`Pool`, `depthM:
 −1.3`, between strand and headland; `tide: { collectsFrom:
 […/estuary/channel] }`). The strandline's `reconcileOccupants` (on
 entry/look) moves every floating Thing that has lain in a `collectsFrom`
@@ -990,8 +990,8 @@ an immersed air-breather cannot drink or eat (*"You would take in
 water."*); `Drink`/`Sip`/`Eat` ask before transferring (the order fix).
 (7) D28. (8) D8. (9) `VisionModality.ownFlux` of a WaterPlace band
 = the surface place's flux × `transmittance^depth` per channel (the
-Medium's per-metre colour × clarity); `mergeAttenuated` multiplies the
-same colour over a column leg — red goes first, blood reads black;
+Medium's per-meter color × clarity); `mergeAttenuated` multiplies the
+same color over a column leg — red goes first, blood reads black;
 `Band.getAmbientFlux()` reads its surface (an authored ref). (10)
 `LocomotionLogic.canTraverseExit`: a ground mode into a destination
 whose `stateNow()` is `swimming` or deeper is refused — *"You would be
@@ -1009,7 +1009,7 @@ everyone immersed is in the graph.
 | `WaterPlaceMixin`, `Haulable`, `Inspectable`, the `Medium` Idea + catalogue, `BiomeApi.mediumFor`, breath/buoyancy/pressure/gas-load, the seams, `descend`/`ascend`/`equalize`/`float`/`haul`/`inspect`, the swimming + diving Discipline rows, the Condition rows, the two Effect kinds | kernel + platform pack | composed/read by classes with no common pack ancestor; any body swims and dives |
 | `ColumnWarren`, `Band`, `ColumnExit`, `OpenWater`, `Tide`, `AirPocketMixin`, the level/tide reads, the band rows and their prose banks, the column biome row | `water` pack (`/system/water`) | true whether or not anyone dives |
 | `Lifeline`, `Bell`, `Hoist`, `AirPump`, `TideAlmanac`, `Slate`, the gear rows, `tug`/`heave`/`jot`/`ring`/`spear`/`lash`, the `tends`/`cranks`/`surveys` brains, the dive tables | new `trade-diving` pack (`/trade/diving`, depends on water, trade-fishing, trade-shopkeeping, platform) | practised and quittable; owns no resource |
-| the basin, intake mouth, quay steps, the heaving line, the dive shop, its outfit and cast, the harbour works department, the lost anchor, the estuary's channel/tidepool/strandline | `terminus` | the venue; a second site is rows |
+| the basin, intake mouth, quay steps, the heaving line, the dive shop, its outfit and cast, the harbor works department, the lost anchor, the estuary's channel/tidepool/strandline | `terminus` | the venue; a second site is rows |
 | breathe-water, keep-warm, wand-of-glowlight | `arcane-library` | rows beside glowlight |
 | the cistern's water row | `eternal-university` | its locality |
 
@@ -1020,7 +1020,7 @@ everyone immersed is in the graph.
 | new thing | host | what composing/placing it claims |
 |---|---|---|
 | `WaterPlaceMixin` + `water` field | `Pool` (kernel twin) and the water pack's `Band`; authored WaterPlaces are `Pool` rows | only a place that cites a water is water. ⛔ NOT on `Location`, not on `Shore`/`Quay` (a bank is beside water, not in it) — the guard *is this place water* must never be needed. A host must also compose `Shore` + `Swimmable` (a class rule, pinned by a test, not a runtime guard) |
-| `column` neighbours field | `WaterPlaceMixin` | the surface declares what lies beside its column; a band never authors |
+| `column` neighbors field | `WaterPlaceMixin` | the surface declares what lies beside its column; a band never authors |
 | `surface`, `band` identity stamps | `Band` only | a band knows its surface; nothing else does |
 | `heldAtSurface`, `drowningResponse`, `floating` | `Avatar` (`heldAtSurface`); `RespirationMixin` (`drowningResponse`, `floating`) | the hold is a player-connection fact (Avatar only); the response and the float are breathing states any breather can have |
 | `o2StoreL`, `co2Urge`, `gasLoad`, `pressureDebtM`, the burn | `RespirationMixin` | the gas you breathe and the pressure it is at are respiration's physics; ⛔ not on `Vitals`, not on `Exerting` ("breath" there is endurance) |
@@ -1033,7 +1033,7 @@ everyone immersed is in the graph.
 | `AirPocketMixin` | `ExitableVessel` hosts in the diving pack (`Bell`); a Location later | *a thing you can go inside is a place with air* — ExitableVessel already earned `Atmospheric`; the pocket adds depth |
 | `Haulable`, `Inspectable` | shapes (interfaces), implemented by `Trap`, `Lifeline`, `Hoist`, `Conduit` | the Workable/Pumpable category — no mixin, a controller narrows by shape |
 | `inspection` template, `identity` ref | `Condition` (employment) | a predicate the engine can check; no chokepoint |
-| `confer-medium`, `offset-ambient` | `Effect` union; realised on the HOST body (`RespirationMixin.conferredBreathing`, `ThermalRegulation._ambientOffsetK`) | held workings act on the body that holds them |
+| `confer-medium`, `offset-ambient` | `Effect` union; realized on the HOST body (`RespirationMixin.conferredBreathing`, `ThermalRegulation._ambientOffsetK`) | held workings act on the body that holds them |
 | the standing bill | the sustained reconcile on `Vitals` debiting the caster's `mana` | the caster pays, as a charged item pays |
 | `treadW`, swim/diving competence reads | `RespirationMixin`'s immersion beat calling `Exerting.exert` | the beat that already runs while immersed; exertion stays the one ledger |
 | `ColumnExit` | `DeferredDestinationExit` subclass | the lazy far side, exactly DormDoor's shape |
@@ -1084,7 +1084,7 @@ the plan's voice media, a read every speaker has).
   `verb-collisions` (fishing's `haul` view deleted; every new verb
   free), `reachability` (each new verb conferred — § Reachability),
   `boot-entries`, `water-citations` (taught the `water:` key),
-  `census` (`water.of`, `column.neighbours[].destination`,
+  `census` (`water.of`, `column.neighbors[].destination`,
   `tide.collectsFrom` added as citation keys; `bed` removed),
   `conditions`/`condition-arms` (the new rows' laws and signatures),
   `closed-vocabularies` (the medium tags leave the kernel; the
@@ -1234,13 +1234,13 @@ salt-poisoning.yaml`. Acceptance: unit tests per seam; the drive's
 flame, no drink; everything wet and cold`.
 
 **B2 — sight, sound, exits, electricity, posture (seams 8–12).**
-Files: `VisionModality.ts` (the per-metre colour fold; `Band.
+Files: `VisionModality.ts` (the per-meter color fold; `Band.
 getAmbientFlux`), `AudienceGather.ts` + `Modality.ts` (hop tau by
 medium, direction null), `LocomotionLogic.ts` (the `medium` gate),
 `ElectricityLogic.ts` (the water place as a pool), `OpenWater.ts`
 (already A2 — the posture test lands here). Acceptance: a night dive
 reads dark and a held glowlight lights the band; red reads dark at
-depth (a colour test); a walker into the basin is refused in words;
+depth (a color test); a walker into the basin is refused in words;
 a shock in salt water reaches every immersed body. Drive 10b.
 Commit: `build(underwater B2): sight to the water's clarity, sound
 without direction, no walking in`.
@@ -1306,7 +1306,7 @@ hard-hat suit, the crewed pump and the bends`.
 `InspectController.ts`, `W/thing/Conduit.ts` (`inspectionReport`),
 `src/behavior/{tends,surveys}.ts` (tender: hauls on two tugs or after
 `diving.tendSilenceS` without a signal while the diver is unconscious;
-surveys: the PILOT, on a harbour-works seat, posts the three gigs when due), `src/thing/
+surveys: the PILOT, on a harbor-works seat, posts the three gigs when due), `src/thing/
 Slate.ts`? — no: the slate is a `Marked` Good row with
 `writableUnderwater`; `jot` is C5. Acceptance: `job post inspect intake
 for 30 --business` → claim → `inspect screen` at the intake mouth →
@@ -1323,7 +1323,7 @@ outfit.yaml (positions master · tender · pump-hand; `banksAt`;
 master,tender,pump-hand}.yaml (Cast; brains), location/{shop,
 offstage}.yaml, thing/counter.yaml (stone, belt, line, slate, pencil,
 tables, almanac, spear, wand-of-glowlight)}`, `bank.yaml` (`divers`
-exit, the works board prop; the harbour works `idea/department.yaml`
+exit, the works board prop; the harbor works `idea/department.yaml`
 Business (the warden shape) whose ONE seat the existing pilot on the bank
 holds — no new Cast; the founder chose the pilot, 2026-10-18), `src/
 thing/{AirBag? (a Vessel row suffices), TideAlmanac.ts}` + rows,
@@ -1370,7 +1370,7 @@ apparatus and stage`.
 ### Magic
 
 **M1 — the two workings and the voice (D18).** Files: `Effect.ts`,
-`MagicEffects` parse, the realise arms on `Respiration` (`conferred
+`MagicEffects` parse, the realize arms on `Respiration` (`conferred
 Breathing`) and `ThermalRegulation`, `Vitals` sustained reconcile (the
 caster's bill), `CastActivity` voice gate, Spell rows, the wand row.
 Acceptance: cast breathe-water on the quay, descend, stay past the
@@ -1416,7 +1416,7 @@ found`. Docs (`docs/subsystems/underwater.md` new; `respiration.md`,
 | the bell | `haul bell down/up`, `enter`/`exit` (ExitableVessel's) | `Hoist` (`environment`) | hoist prop on the basin | — | — |
 | the suit | `wear`/`remove`, `pump` | shipped; `AirPump` implements `Pumpable` (device `pump` affords via the pump's own `commandContributions`, the well's precedent) | rows | — | — |
 | inspect | `inspect` | `Inspectable` hosts (`Conduit`/`intake-screen`: `peers`) | — | — | `requires: any` + shape |
-| the jobs | `job post inspect/recover/deliver`, `claim`, `fulfill`, `job complete` | shipped (`JobBoard`) | the works board prop on the bank; the harbour works Business; the `surveys` brain | none (the business loads with the room, `lint:openings` rule 3) | the phrase parser |
+| the jobs | `job post inspect/recover/deliver`, `claim`, `fulfill`, `job complete` | shipped (`JobBoard`) | the works board prop on the bank; the harbor works Business; the `surveys` brain | none (the business loads with the room, `lint:openings` rule 3) | the phrase parser |
 | tender/pump-crew wages | `apply`, `clock on/off`, `collect` | shipped | positions on the outfit row | none | `openings` vocabulary |
 | sell a fish | `consign` | the stall (shipped) | — | — | the freshness refusal |
 | the almanac / tables | `read` | `Marked` (shipped) | rows; the almanac's derived text | — | — |
@@ -1457,7 +1457,7 @@ proof.
 | the almanac tells the truth | C5 + D1w (drive 15d) |
 | seawater harms | B1 (drive 10c) |
 | a disconnected character held safe at the surface, in water or on a strand the tide reaches | A5, D1w (drive 8e, 17a) |
-| existing pool, cistern, estuary, storage-and-ice behaviours still work | A1 (the sibling wire drives rerun each wave) |
+| existing pool, cistern, estuary, storage-and-ice behaviors still work | A1 (the sibling wire drives rerun each wave) |
 
 No AC is unmapped. One AC is met by interpretation (D20).
 
@@ -1583,8 +1583,8 @@ No AC is unmapped. One AC is met by interpretation (D20).
   relies on it.
 - **Closed with the founder (2026-10-18):** a blacked-out body floats
   FACE-DOWN (D10); the speared fish is SOLD BY CONSIGNMENT (D20, R6);
-  the city's gigs are posted by the existing PILOT on a harbour-works
-  seat (C5), not a new harbourmaster Cast. Nothing open blocks a wave.
+  the city's gigs are posted by the existing PILOT on a harbor-works
+  seat (C5), not a new harbormaster Cast. Nothing open blocks a wave.
 
 ---
 
@@ -1690,9 +1690,9 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   - ⭐ Bands are keyed `<surface>#<band>`, captured to their snapshot when
     they empty of people (what sank stays sunk across a restart), reaped
     only when the surface no longer has them. **Sideways copies between
-    two neighbouring waters' columns were NOT built** — nothing shipped
+    two neighboring waters' columns were NOT built** — nothing shipped
     has two water places side by side; recorded for river-slate.
-  - Neighbours use a new exit kind `/system/water/idea/exits/underwater`
+  - Neighbors use a new exit kind `/system/water/idea/exits/underwater`
     (`media: [water]`). An authored room beside a band is itself a
     `Band` row with authored `surface`/`band` (the intake's mouth).
   - ⭐ `MediumRead` for a band is always immersed, never at the surface,
@@ -1744,10 +1744,10 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     source and the cold holder, caching the immersed tag for
     `mediumConductivity`. ⚠ Silk is still unmerged: its bath rung goes
     ABOVE this one when it lands (R1c) — the merge is that ordering.
-  - Seam 9 colour: carried as the band's ambient COLOUR TEMPERATURE
+  - Seam 9 color: carried as the band's ambient COLOR TEMPERATURE
     (bluer with depth) rather than a per-channel Beer–Lambert fold
-    through `mergeAttenuated` — the vision walk's colour leg is a pane's;
-    a water colour per leg is a later refinement (recorded, not built).
+    through `mergeAttenuated` — the vision walk's color leg is a pane's;
+    a water color per leg is a later refinement (recorded, not built).
   - ⭐ `MediumRead.visibilityM` (the water's clarity under the surface) is
     how the combat engine reads the range cap — `lint:combat-dynamics`
     refuses a `MixinApi.isWaterPlace` in the engine. `isRespiration`
@@ -1792,7 +1792,7 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     off the bottom; a load's weight in the water is taken as its MASS
     (the few per cent a dense load displaces is not counted) — what
     lifts it is air, at `liters × 200 / (1 + d/10) − bag mass` per bag
-    (the AirTank convention: a vessel's litres are compressed ×200). The
+    (the AirTank convention: a vessel's liters are compressed ×200). The
     lost anchor (300 kg) wants three bags at the bed. The air barrel
     became an `AirBag` (1 L compressed = 200 L free air, so a barrel
     into the bell refreshes 200 L).
@@ -1853,12 +1853,12 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
 - **M1 ✅ (a40645b0b)**. Decisions:
   - Both workings ride the shipped `SustainedEffect` arm (`realizes:
     'confer-medium' | 'offset-ambient'`) rather than a new mechanism; the
-    realisation pushes into `Respiration.setConferredBreathing` and
+    realization pushes into `Respiration.setConferredBreathing` and
     `ThermalRegulation.setWorkingOffsetK` (its own field — the plan's
     warning about `_ambientOffsetK` held: that is the re-stamp's cache).
   - The standing bill uses the charged shell's own standby draw
     (`magic.charge.standbyWatts` × attention) against the caster's mana;
-    only these two realisations are billed (a veil and a glowlight stay
+    only these two realizations are billed (a veil and a glowlight stay
     terms bought once, as they shipped). At 5 W the bill is small: the
     TERM (15 game-minutes) is what a diver meets first, and the mana is
     the ceiling on renewing it.

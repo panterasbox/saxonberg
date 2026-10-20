@@ -1,6 +1,6 @@
 /**
  * ⭐⭐ The diving bell (underwater C2, D26): the water rises inside it with
- * depth (Boyle — half full at ten metres); breathing in it fouls it; an
+ * depth (Boyle — half full at ten meters); breathing in it fouls it; an
  * air barrel brought in freshens it.
  */
 
@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describe('the diving bell (C2)', () => {
-  it('⭐ the water rises inside it with depth: half full at ten metres', () => {
+  it('⭐ the water rises inside it with depth: half full at ten meters', () => {
     const b = bell();
     const read = vi.spyOn(BiomeApi, 'mediumFor');
     read.mockReturnValue(at(0));

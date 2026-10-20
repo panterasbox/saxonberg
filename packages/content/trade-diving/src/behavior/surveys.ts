@@ -1,8 +1,8 @@
 /**
- * `surveys` brain (`/trade/diving/behavior/surveys`) — **the harbour works
+ * `surveys` brain (`/trade/diving/behavior/surveys`) — **the harbor works
  * posting the city's work below the waterline** (underwater C4/C5).
  *
- * Whoever holds the harbour-works seat (the Wharfside pilot) keeps three
+ * Whoever holds the harbor-works seat (the Wharfside pilot) keeps three
  * kinds of work on the board, each posted with the same `job post` a
  * player types and paid from the department's account:
  *
@@ -42,10 +42,10 @@ interface SurveyConfig {
 export const brain = class {
   static label = 'surveys';
   static kind: TaskKind = 'work';
-  static summary = 'Keeps the harbour works\' jobs below the waterline posted on the board.';
+  static summary = 'Keeps the harbor works\' jobs below the waterline posted on the board.';
   static claims: readonly EngagementSlot[] = ['hands'];
   static urgency(): Urgency {
-    return new Urgency('idle', 'keeps the harbour board');
+    return new Urgency('idle', 'keeps the harbor board');
   }
   static presenceGated = false;
   static ambient = false;

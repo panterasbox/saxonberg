@@ -1,6 +1,6 @@
 # The intake's screen, under the river (underwater D17, D23) — the city
 # intake's underwater face, at the mouth beside the basin's dark band.
-# The harbour works send a diver down to look at it; `inspect screen` is
+# The harbor works send a diver down to look at it; `inspect screen` is
 # the job.
 class: /system/water/thing/WorksFace
 extends: /system/water/thing/works-face

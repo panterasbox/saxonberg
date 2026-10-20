@@ -32,7 +32,7 @@
  * | `carriesVoice` | speech: a voice needs the medium it was made for |
  * | `soundHopTau` | how much of a sound reaches the next room |
  * | `soundCarriesDirection` | whether a hearer can tell where it came from |
- * | `lightTransmittancePerM` | sight: the fraction of each colour left after a metre |
+ * | `lightTransmittancePerM` | sight: the fraction of each color left after a meter |
  * | `drag` | combat: a swung weapon is slowed by a thick medium |
  */
 
@@ -62,7 +62,7 @@ export interface MediumProps {
    */
   readonly soundCarriesDirection: boolean;
   /**
-   * The fraction of each colour that survives one metre of the medium.
+   * The fraction of each color that survives one meter of the medium.
    * `1` for clear air; water takes red first, so blood reads black at
    * depth. A water's own clarity scales this (`clarityM`).
    */
@@ -143,7 +143,7 @@ export const MEDIA: Readonly<Record<string, MediumProps>> = {
   // ⭐⭐ The two mine gases, and the pair is the whole point: one of them
   // announces itself and the other does not. BLACKDAMP is air with the
   // oxygen breathed or rusted out of it — denser than air, so it lies in
-  // the bottom of a dead end, and odourless, so the only free reading of
+  // the bottom of a dead end, and odorless, so the only free reading of
   // it is a bird that stops singing. STINKDAMP is hydrogen sulfide: also
   // heavier, and it STINKS.
   blackdamp: {

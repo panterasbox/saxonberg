@@ -6,7 +6,7 @@
  * the `ColumnWarren` on first traversal: the **lit** band where the
  * surface's light still reaches, the **dark** band below it, and the
  * **bed**. Which of them exist is derived from the water's depth and
- * clarity (`WaterPlace.bandsNow()`), so a clear five metres is lit to the
+ * clarity (`WaterPlace.bandsNow()`), so a clear five meters is lit to the
  * bed and the Kestrel's six goes dark before it.
  *
  * A band is a water place like its surface, and it authors nothing of
@@ -245,7 +245,7 @@ export default class Band extends BandBase {
   /**
    * ⭐ Red goes first in water: what reaches you is green-blue, and bluer
    * the deeper you are — so blood reads black at depth. Carried as the
-   * colour temperature of the light that is left.
+   * color temperature of the light that is left.
    */
   public getAmbientColorTemperature(): Quantity<'K'> | null {
     const depth = this.getDepthM();

@@ -1,4 +1,4 @@
-# A lifeline (underwater C1) — twenty metres of tarred rope, the line a
+# A lifeline (underwater C1) — twenty meters of tarred rope, the line a
 # tender holds while their diver works below. Heave the end to your diver
 # before they go down; they signal up it (one tug, two, three); you haul
 # them up on it, conscious or not.
@@ -8,7 +8,7 @@ data:
   keywords: [lifeline, line, rope]
   register: indefinite
   longDescription: >-
-    Twenty metres of tarred rope coiled down neat, a bowline already in
+    Twenty meters of tarred rope coiled down neat, a bowline already in
     the end of it. It smells of tar and the river.
   _materialPath: /stuff/idea/material/textile/jute
   mass: 3

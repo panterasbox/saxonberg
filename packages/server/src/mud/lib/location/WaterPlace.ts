@@ -9,7 +9,7 @@
  * ```
  *
  * and everything else is derived from the water's level now: a tidepool
- * whose floor is half a metre above the mean is dry at low water and deep
+ * whose floor is half a meter above the mean is dry at low water and deep
  * at high water with no state moved, because nothing about the place
  * changed — the water did.
  *
@@ -34,7 +34,7 @@
  * feature.
  *
  * Everything the retired `Pool` kind did about support, swimming and
- * sinking lives here, unchanged in behaviour.
+ * sinking lives here, unchanged in behavior.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -142,7 +142,7 @@ export interface ColumnNeighbour {
 
 /** What a surface says about the column under it. */
 export interface ColumnSpec {
-  neighbours?: ColumnNeighbour[];
+  neighbors?: ColumnNeighbour[];
 }
 
 /** Public shape added by WaterPlaceMixin. */
@@ -160,7 +160,7 @@ export interface WaterPlace {
   /**
    * ⭐ The bands of the column under this water now, surface downward —
    * `[]` where you can stand. Derived from the depth and the water's
-   * clarity (underwater D6): a clear five metres is lit to the bed, the
+   * clarity (underwater D6): a clear five meters is lit to the bed, the
    * Kestrel's six goes dark before it.
    */
   bandsNow(): ColumnBand[];
@@ -423,12 +423,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     /* ─────────────────────────── the column ─────────────────────────── */
 
     public getColumn(): ColumnSpec {
-      return { neighbours: [...(this.column.neighbours ?? [])] };
+      return { neighbors: [...(this.column.neighbors ?? [])] };
     }
 
     public setColumn(value: ColumnSpec | null): void {
       const out: ColumnNeighbour[] = [];
-      for (const n of value?.neighbours ?? []) {
+      for (const n of value?.neighbors ?? []) {
         if (!n || !COLUMN_BANDS.includes(n.band)) continue;
         if (typeof n.direction !== 'string' || typeof n.destination !== 'string') continue;
         out.push({
@@ -438,7 +438,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
           ...(typeof n.opposite === 'string' ? { opposite: n.opposite } : {}),
         });
       }
-      this.column = { neighbours: out };
+      this.column = { neighbors: out };
     }
 
     public bandsNow(): ColumnBand[] {

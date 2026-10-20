@@ -1,7 +1,7 @@
 # The Flooded Cistern — the respiration drown-here proof.
 #
 # A brick maintenance cistern under the Duncan Hall steps, long since
-# flooded — a water place (underwater D24): three metres of still black
+# flooded — a water place (underwater D24): three meters of still black
 # water, deep enough to be over your head, with a bed under it. Its water
 # is the campus's own (`duncan:cistern`), cold and fishless. Reached via the `down` exit from the steps (auto-reversed
 # to `up`); sits one cell below at [0, 0, -1].

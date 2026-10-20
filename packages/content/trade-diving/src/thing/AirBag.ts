@@ -20,11 +20,11 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 
-/** Air at the surface weighs nothing worth counting; water ~1 kg a litre. */
+/** Air at the surface weighs nothing worth counting; water ~1 kg a liter. */
 const WATER_KG_PER_L = 1;
 
 /**
- * Litres of free air per litre of bag: the bag's interior is filled from
+ * Liters of free air per liter of bag: the bag's interior is filled from
  * a pump or a barrel at pressure, so it holds more than its own volume
  * of surface air.
  */
@@ -53,7 +53,7 @@ export default class AirBag extends BulkableMixin(Good) {
     return (this.airLitres() * AIR_SCALE * WATER_KG_PER_L) / squeeze - this.getMass().rawValue();
   }
 
-  /** Litres of air in it now. */
+  /** Liters of air in it now. */
   public airLitres(): number {
     const mat = this.getBulkMaterial('interior');
     return mat !== null && mat.getName() === 'air' ? this.getBulkAmount('interior').rawValue() : 0;

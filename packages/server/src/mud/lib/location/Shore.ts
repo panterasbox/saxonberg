@@ -420,7 +420,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
 /**
  * ⭐ The tide in a shore's words (underwater D25): which way it is going,
- * how long to the turn, and the stream — never a number of metres.
+ * how long to the turn, and the stream — never a number of meters.
  */
 function tideWords(read: WaterRead): string | null {
   const tide = read.tide;
