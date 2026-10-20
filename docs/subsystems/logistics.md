@@ -490,7 +490,7 @@ depot.
 | to take it yourself | `journey to <stop>` | no market — your time, your rig, your risk |
 | a carrier to take it, for a posted tariff | `ship <goods> to <place>` | a **freight company**: you hand over custody, get a bill of lading, and pay the rate on the board |
 | *anyone* to take it, for a price you set | `job post deliver … for <n>` | a **spot market**: escrow up front, first to satisfy it is paid |
-| *anyone* to bring you N of something | `job post supply <n> <kind> … for <n>` | the same spot market, denominated in QUANTITY |
+| *anyone* to bring you N of something | `job post supply <n> <kind> … for <n>` · `supply <n> litres\|kilos\|pieces of <category>` | the same spot market, denominated in QUANTITY — by row, or by what the house actually wants (`pieces` is the counted category, stacks included: a fungible good can only be ordered this way) |
 | somebody in a seat, ongoing | `appoint <who> to <position> at <org>` | **employment** — a wage, a roster, a chart |
 
 ⚠ `job` and `appoint` are the pair most often confused, and the names
@@ -561,7 +561,11 @@ transferred from NPCs to players.
 - **`restocks`** posts what the rail is short of and **receives** what a
   hauler leaves on the bench. The hauler buys at the supplier and is
   reimbursed on delivery, so the distributor is still paid and the
-  consignors still see their resale.
+  consignors still see their resale. ⭐ A par line that carries
+  `rewardPerUnit` is priced by the unit, and the keeper orders only what
+  the house can fund at that rate — a young house asks for three blocks,
+  not eight it cannot pay for (sugar W6; a refused posting ordered
+  nothing at all). A stackable line is ordered by its tag, never its row.
 - **`hauls`** (the carter) covers any posting nobody took inside its
   window, on the **same `Journey` object** a player drives.
 - **`consigns`** ⚠ **walks**, and does not post. See below — the reason
