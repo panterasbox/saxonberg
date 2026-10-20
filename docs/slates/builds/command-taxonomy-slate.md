@@ -80,6 +80,41 @@ peers.
    per-view flag; audit the ~25 views that name `inventory` first and the
    158+ on `reachable`.
 
+7. ⭐⭐ **One verb per ACT, not per word — and `reel` is the first case
+   to undo** (user, the silk review, 2026-10-19). The silk build (MR
+   !395) made silk reeling share fishing's `reel` view behind a
+   `Reelable` shape. ⚠ That was a false unification by command-spec's own
+   tell (*"if unifying would need a guard that re-asks which mechanic,
+   the models are distinct"*): `ReelController` now narrows on the target
+   (`reelableOf`) to choose between landing a fish (a turn in a live
+   contest, no product) and reeling silk (a production step — cocoons in,
+   a skein and pupae out, a sibling of `spin`/`weave`). The costs it
+   shipped:
+   - fishing's view grew a target, a `with <reel>` tool and `--count`
+     that only silk uses, and `help reel` reads two trades;
+   - `trade-sericulture` depends on `trade-fishing` for a WORD
+     (`src/lib/Reelable.ts` lives in fishing);
+   - the controller dispatches on target type — the thing
+     `controllers-are-io-slate.md` wants out of controllers.
+
+   **The undo, as discussed (not done — deferred to this sweep):**
+   fishing's `reel` view and `ReelController` restored to their pre-silk
+   shape (no target/tool/count; `Reelable.ts` and `reel-unified.test.ts`
+   gone, and the sericulture → fishing dependency with them); silk gets
+   its own view + controller in `trade-sericulture` (proposed word:
+   **`unwind`** — free, plain English for the act, rung 1 taken by the
+   challenger; `wind` is the University Avenue clock's and `draw` is
+   banking's), afforded by `ReelingTool`, calling the plan/complete
+   methods that already live on `Cocoons`. The `reels` brain and the silk
+   drive's `reel cocoons …` steps follow the word. Docs: sericulture.md
+   § *The reel*, fishing.md's note.
+
+   **The policy to write into command-spec.md:** two claimants are one
+   verb only if ONE controller serves both without narrowing on the
+   target to decide what it is doing; a controller that branches on the
+   target's type is the census's smell (count it beside the institution
+   verbs in step 3).
+
 ## Open questions
 
 - Does `category:` replace the directory, or mirror it (with a gate that

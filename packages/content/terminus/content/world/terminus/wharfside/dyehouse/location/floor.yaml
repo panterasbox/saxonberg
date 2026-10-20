@@ -28,5 +28,13 @@ data:
     - /world/terminus/wharfside/dyehouse/thing/counter
     - /trade/dyeing/thing/dye-vat
     - /trade/dyeing/thing/woad-vat
+    # ⭐ The coppers the prose always promised (silk W4): a copper to boil
+    # cloth in — raw silk degums in one — over its own fire, with wood to
+    # light it. Bounded props; fuel supply is the fuel trade's.
+    - /trade/textiles/thing/copper
+    - /stuff/thing/brazier
+    - { template: /stuff/thing/items/dry-log, count: 3 }
+    # …and water to fill it from: a dyehouse is a wet trade.
+    - /stuff/thing/fixture/water-butt
   cast:
     - /world/terminus/wharfside/dyehouse/agent/dyer

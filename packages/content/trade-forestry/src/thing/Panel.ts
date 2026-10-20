@@ -8,23 +8,12 @@
  * standing capital: what it remembers across a bounce is the whole of
  * what makes charcoal a crop rather than a prop.
  *
- * ## The stack, and why each layer
+ * ## The stack
  *
- * `PersistableMixin(SingletonMixin(GardenBed))`:
- *
- * - **`GardenBed`** — the same ground as every bed: soil with its own two
- *   checkpoints, N plant slots, the four cultivation verbs. A panel is a
- *   bed with a bigger number, and nothing here changes how a stool grows.
- * - **`SingletonMixin`** — one row is one panel. A room's `props:` mints a
- *   singleton through `StuffApi.singleton`, which is the one path that
- *   restores-or-seeds a keyless persistable: restore when a record
- *   exists under the scope, else seed the born-with stools and capture
- *   the first record. A second cant is a second row.
- * - **`PersistableMixin`** OUTERMOST — the host rule (its cleanup runs
- *   before the inner container evacuates; its `applyProps` wraps the
- *   bed's so the stools are seeded exactly once, through the gate). The
- *   stools are keyed nested hosts in the panel's container slice, so a
- *   harvested stool comes back cut, with its game-year fill running.
+ * The kernel's `PermanentBed` — `PersistableMixin(SingletonMixin(GardenBed))`,
+ * a bed that is a fixture of its place and remembers what grows in it
+ * (see that file for why each layer). It was this class's own stack until
+ * the silk build promoted it; a panel is that bed plus what follows.
  *
  * ## The ready line
  *
@@ -54,9 +43,7 @@
  * views are copied in beside the trade's own.
  */
 
-import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
-import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import PermanentBed from '@saxonberg/server/mud/platform/thing/PermanentBed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
@@ -73,9 +60,12 @@ import { STAND_MIXIN, type Stand } from '../lib/Stand';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
-const PanelBase = PersistableMixin(
-  SingletonMixin(GardenBed),
-);
+/**
+ * ⭐ The persistable bed is the kernel's `PermanentBed` now (promoted in
+ * the silk build: the silk house's mulberry walk wanted the same bed). What
+ * stays here is forestry's own — the ready line, `fell`, the deed.
+ */
+const PanelBase = PermanentBed;
 
 /**
  * The panel's own reading — one line for the whole panel, derived from

@@ -70,6 +70,14 @@ import {
 declare module "../bulk/Bulkable" {
   interface BulkPayload {
     latentRemovedJ?: number;
+    /**
+     * ⭐ Seconds these contents have spent AT the boil (the purification
+     * clock — `Material.purifiedByBoiling` swaps once it reaches
+     * `PURIFY_HOLD_S`), and the game-second it was last integrated to.
+     * Cleared with the payload when the slot empties, and on the swap.
+     */
+    boilHeldS?: number;
+    boilCheckedS?: number;
   }
 }
 
@@ -83,6 +91,23 @@ declare module "../bulk/Bulkable" {
 export const THERMAL_DEFAULTS = {
   /** Far-past absence guard (game-seconds) — reuse metabolism's. */
   MAX_REASONABLE_GAP_SEC: 4 * 3600,
+
+  /**
+   * ⭐ How long contents must be HELD at their boiling point before a
+   * material's `purifiedByBoiling` arrow fires (game-seconds) — "a
+   * rolling boil for a minute", the standing public-health instruction.
+   * Boiling is a temperature, not a verb: anything that holds the pot at
+   * the boil (a fire, a stove, a spell) purifies it.
+   */
+  PURIFY_HOLD_S: 60,
+
+  /**
+   * How far back the purification clock looks on its FIRST read of a
+   * boiling pot (game-seconds) — the trajectory already knows how long it
+   * has been at the boil, so a pot nobody read while it boiled is still
+   * credited for it.
+   */
+  PURIFY_LOOKBACK_S: 600,
 
   /** Stamped temperature a fresh host starts at (room, ~22 °C). */
   DEFAULT_TEMPERATURE_K: 295,
@@ -480,6 +505,29 @@ function enclosingCoolbox(host: Stuff): (Stuff & Coolbox & Thermal) | null {
   return scope.isHoldingCold() ? scope : null;
 }
 
+/**
+ * ⭐ **The bath holding this body**, or null — the second holder rung
+ * (silk W4): a solid IMMERSED in a vessel's bulk is at the bulk's
+ * temperature, not the room's air. A bolt of raw silk in a copper of
+ * simmering water is at the water's temperature; so is a wheel in brine
+ * and a fish in a keepnet. Before this rung every one of them read the
+ * room, which made boiling anything in a liquid unrepresentable.
+ *
+ * ⚠ Immediate holder only (the {@link enclosingCoolbox} discipline), and
+ * any interior bulk counts: a body buried in a sack of grain is at the
+ * grain's temperature too. Fails fast for a body in a room — one
+ * `isBulkable` lookup that answers no.
+ */
+function enclosingBath(host: Stuff): (Stuff & Thermal) | null {
+  const scope = ambientScopeOf(host);
+  if (scope === null) return null;
+  if (!MixinApi.isBulkable(scope) || !MixinApi.isThermal(scope)) return null;
+  if (!MixinApi.isContainer(scope)) return null;
+  if (!scope.hasInteriorBulk()) return null;
+  if (!(scope.getBulkAmount("interior").rawValue() > 0)) return null;
+  return scope;
+}
+
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new RangeError(
@@ -716,7 +764,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     public reconcilePhase(): void {
-      reconcilePhaseImpl(this as unknown as Stuff);
+      // ⚠ Reentry-guarded HERE, for every caller: the boil arm reads the
+      // body's trajectory (the purification clock), which reconciles the
+      // body, which would otherwise run the phase pass again inside this
+      // one against stale amounts.
+      if (this._phaseReconciling) return;
+      this._phaseReconciling = true;
+      try {
+        reconcilePhaseImpl(this as unknown as Stuff, {
+          nowS: this.thermalNowSeconds(),
+          horizonS: this.thermalRing().horizonS(),
+        });
+      } finally {
+        this._phaseReconciling = false;
+      }
     }
 
     /**
@@ -1003,16 +1064,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Outside the `try`, so the plateau's own `setContentsTemperature`
       // is not swallowed by the reentry guard.
       if (
-        !this._phaseReconciling &&
-        (MixinApi.isMeltable(self) ||
-          (MixinApi.isBulkable(self) && MixinApi.isThermal(self)))
+        MixinApi.isMeltable(self) ||
+        (MixinApi.isBulkable(self) && MixinApi.isThermal(self))
       ) {
-        this._phaseReconciling = true;
-        try {
-          this.reconcilePhase();
-        } finally {
-          this._phaseReconciling = false;
-        }
+        this.reconcilePhase();
       }
     }
 
@@ -1062,7 +1117,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     private holderK(): number | null {
       const self = this.thermalHost;
       const holder = enclosingCoolbox(self);
-      if (holder === null) return null;
+      if (holder === null) {
+        // ⭐ Rung two: immersed in a bath, a body is at the bath's
+        // temperature (see `enclosingBath`). Read in the same position
+        // on the pull and the push side as the coolbox, for the same
+        // reason.
+        const bath = enclosingBath(self);
+        return bath === null ? null : bath.getContentsTemperature().rawValue();
+      }
       const coldest = holder.coldestMass() as unknown as Stuff | null;
       if (coldest !== null && coldest.stuffId === (self as Stuff).stuffId) {
         return null;
@@ -1243,7 +1305,17 @@ function massToLitres(massKg: number, mat: Material): number {
   return (massKg / density) * 1000; // m³ → L
 }
 
-function reconcilePhaseImpl(stuff: Stuff): void {
+/**
+ * What the phase pass knows about time: now, and how far back the body's
+ * own temperature record reaches (a purification clock may not credit
+ * history the body never had).
+ */
+interface PhaseClock {
+  nowS: number | null;
+  horizonS: number | null;
+}
+
+function reconcilePhaseImpl(stuff: Stuff, clock: PhaseClock): void {
   // A solid object melting: the latent-heat plateau, then the flow to bulk.
   if (MixinApi.isMeltable(stuff) && MixinApi.isThermal(stuff)) {
     reconcileMelt(stuff as Stuff & Meltable & Thermal);
@@ -1252,7 +1324,7 @@ function reconcilePhaseImpl(stuff: Stuff): void {
   // A liquid-holding vessel: freeze below its material's melting point (a
   // casting) or boil above its boiling point (steam).
   if (MixinApi.isBulkable(stuff) && MixinApi.isThermal(stuff)) {
-    reconcileBulkPhase(stuff as Stuff & Bulkable & Thermal);
+    reconcileBulkPhase(stuff as Stuff & Bulkable & Thermal, clock);
   }
 }
 
@@ -1304,13 +1376,77 @@ function doMelt(m: Stuff & Meltable, mat: Material | null): void {
 }
 
 /**
+ * ⭐ The purification clock: seconds the contents have now spent at
+ * their boiling point, integrated off the vessel's OWN temperature
+ * trajectory since the last read (the cocoon's stifle idiom), banked on
+ * the payload. Only a material that names a `purifiedByBoiling` arrow
+ * keeps the clock — everything else boils without the bookkeeping.
+ * `null` without a world clock (a unit test, a spell with no clock): the
+ * hold cannot be timed, so it never completes.
+ */
+function boilHeldSeconds(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  bp: number,
+  clock: PhaseClock,
+): number | null {
+  const { nowS, horizonS } = clock;
+  if (nowS === null) return null;
+  const mat = v.getBulkMaterial(aff);
+  if (mat === null || mat.getPurifiedByBoiling() === '') return null;
+  const payload = v.getBulkPayload(aff) ?? {};
+  let held = payload.boilHeldS ?? 0;
+  // ⚠ Never before the body's own record begins: the trajectory HOLDS its
+  // oldest value backwards, which would credit a pot that arrived at the
+  // boil with ten minutes of boiling it never did.
+  const fromS =
+    payload.boilCheckedS ??
+    Math.max(nowS - THERMAL_DEFAULTS.PURIFY_LOOKBACK_S, horizonS ?? nowS);
+  if (nowS > fromS) {
+    // ⚠ Half a kelvin of slack: the plateau clamps the contents AT the
+    // boiling point, and a curve that sits exactly on it is boiling.
+    for (const s of v.temperatureTrajectory(fromS, nowS).samples(8)) {
+      if (s.value >= bp - 0.5) held += s.durationS;
+    }
+  }
+  v.setBulkPayload(aff, { ...payload, boilHeldS: held, boilCheckedS: nowS });
+  return held;
+}
+
+/**
+ * Held at the boil long enough: the contents become what their material
+ * says boiling makes of them (fouled water → water, tar → pitch). An arrow
+ * that resolves to nothing leaves them alone — you boiled it, and it is
+ * unchanged, only hotter.
+ */
+function purifyIfHeld(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  heldS: number | null,
+): void {
+  if (heldS === null || heldS < THERMAL_DEFAULTS.PURIFY_HOLD_S) return;
+  const into = StuffApi.findByTemplatePath<Material>(
+    mat.getPurifiedByBoiling(),
+  );
+  if (!into) return;
+  const payload = v.getBulkPayload(aff) ?? {};
+  const { boilHeldS: _h, boilCheckedS: _c, ...rest } = payload;
+  v.setBulkMaterial(aff, into);
+  v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+}
+
+/**
  * A liquid-holding vessel's onward transitions, keyed on its held bulk's
  * material + the vessel's own temperature: boil to gas above the boiling point
  * (steam — the bulk shrinks away), or solidify below the melting point (a cast
  * solid `Thing` drops into the vessel's scope). The reverse of the melt above,
  * driven by the same heat read — so ice → water → steam falls out for free.
  */
-function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
+function reconcileBulkPhase(
+  v: Stuff & Bulkable & Thermal,
+  clock: PhaseClock,
+): void {
   const aff: BulkAffordance = v.hasInteriorBulk() ? 'interior' : 'surface';
   const amount = v.getBulkAmount(aff).rawValue();
   if (amount <= 0) return;
@@ -1330,7 +1466,31 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
     // `requiredClosureFor` makes, so there is one definition of "gas"
     // and it lives on the material.
     if (BulkableApi.requiredClosureFor(mat) === 'sealed') return;
-    // Boil — the liquid flashes to gas (steam); the pool shrinks away.
+    // ⭐⭐ **The latent-heat plateau** (silk W4) — the boil twin of
+    // `reconcileMelt`, and what `Material.latentHeatOfVaporization` always
+    // said it was for: the heat above the boiling point is spent turning
+    // liquid to steam, and the liquid HOLDS at the boil while it lasts.
+    // Before this the whole interior flashed to steam the instant it
+    // reached the boiling point, so every pot on every fire in the game
+    // boiled dry at 100 °C and nothing could be held at a simmer — which
+    // made boiling cloth (and anything else) unrepresentable. A material
+    // with no latent heat still flashes, as the doc promises (`0` = an
+    // instantaneous transition).
+    const latent = mat.getLatentHeatOfVaporization().rawValue();
+    const kgPerL = mat.getDensity().rawValue() / 1000;
+    if (latent > 0 && kgPerL > 0) {
+      const heldS = boilHeldSeconds(v, aff, bp, clock);
+      const overshootJ = (temp - bp) * v.thermalCapacityJPerK();
+      const boiledL = overshootJ / latent / kgPerL;
+      const left = amount - boiledL;
+      if (left > 0) {
+        v.setBulkAmount(aff, Quantity.of(left, 'L'));
+        v.setContentsTemperature(bp); // the plateau
+        purifyIfHeld(v, aff, mat, heldS);
+        return;
+      }
+    }
+    // Boiled dry (or no plateau to hold) — the liquid is gone to steam.
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     return;

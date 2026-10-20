@@ -1,0 +1,27 @@
+# Mulberry leaf — ⭐ the only thing a silkworm eats, and it will not wait.
+#
+# Cut leaf wilts within about a day in a warm room, and wilted leaf feeds
+# worse (the tray weights each leaf by its freshness band), which is why a
+# rearing house stands beside its mulberry walk and why a hand picks twice
+# a day in the fifth age. `silkworm-fodder` is the tag the tray reads; the
+# leaf is a plant tissue and spoils like one, a little faster.
+class: /platform/idea/material/Material
+data:
+  name: mulberry leaf
+  keywords: [mulberry, leaf, leaves]
+  appearance: broad, glossy mulberry leaves
+  density: 600
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  edibility: true
+  # ⚠ Tuned so a cut leaf leaves `fresh` within about a game day at room
+  # temperature — asserted in src/__tests__/leaf-wilt.test.ts.
+  spoilActivationEnergy: 60000
+  waterActivity: 0.97
+  nutrients: ["cellulose", "water"]
+  toxicity: []
+  tags: ["tissue", "plant", "organic", "edible", "silkworm-fodder", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/moraceae/morus/alba
+    tissueType: leaf

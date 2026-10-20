@@ -173,7 +173,7 @@ spend is three lines inline). `FELL_MS = 30 000` game-ms (2.5 real s at
 12×), `FELL_COST = 10`; `CROSSCUT_MS = 15 000`, `CROSSCUT_COST = 5`.
 
 **The target is polymorphic, so the view declares `requires: any`** (the
-`boil.yaml` shape — declared, gating nothing; `lint:arg-kinds` refuses an
+`heat.yaml` shape — declared, gating nothing; `lint:arg-kinds` refuses an
 object arg with no `requires`). Three things can stand in the slot and
 share no mixin: a `Bole` on the floor (cross-cut), a growing `Plant`
 (felled where it stands), or a bare species word that binds NOTHING —
@@ -270,8 +270,13 @@ for a cross-cut.
 
 ## The panel — the coppice, and it remembers being cut
 
-`/trade/forestry/thing/Panel` =
-`PersistableMixin(SingletonMixin(GardenBed))`.
+`/trade/forestry/thing/Panel` extends the kernel's
+`/platform/thing/PermanentBed` = `PersistableMixin(SingletonMixin(GardenBed))`.
+⭐ The persistable bed was this class's own stack until the silk build
+promoted it (2026-10-18): the silk house's mulberry walk — an orchard, not
+a stand — wanted a bed that remembers being cut, and forestry and the silk
+trade share no pack ancestor. A panel is that bed plus what is forestry's:
+the ready line, `fell`, and the woodland deed.
 One row is one panel: a room's `props:` mints a singleton through
 `StuffApi.singleton`, the one path that restores-or-seeds a keyless
 persistable, so a cut panel comes back cut and its rotation runs across a
@@ -513,7 +518,7 @@ when they write a farm where the wood used to be, not a verb.
 |---|---|
 | `packages/content/trade-forestry/src/lib/Stand.ts` | `StandMixin` — the cover; `STAND_MIXIN` |
 | `…/src/location/Wood.ts` | the place that is ground |
-| `…/src/thing/Panel.ts` | the persistable singleton bed; the ready line; the deed hook |
+| `…/src/thing/Panel.ts` | the kernel `PermanentBed` + the ready line, `fell` and the deed hook |
 | `…/src/thing/Bole.ts` | the felled trunk; `lengthsLeft`, `takeLength()`; affords its cut |
 | `…/src/idea/cmd/forestry/FellController.ts` | `fell` — the standard, the bole, the planted tree |
 | `…/content/trade/forestry/cmd/forestry/fell.yaml` | the view: `target` `requires: any`, `axe` on the felling atom |

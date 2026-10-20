@@ -1008,42 +1008,24 @@ pay for treatment — discoverable, never sensed.
 Only a **supply** can be `fouled`: a sewer carrying filth is a sewer
 working.
 
-### `boil` — the one new verb in the build, and it is an ACT
+### Boiling is a temperature — `boil` is an alias of `heat`
 
-The extend-before-inventing check found a home for everything else;
-`boil` had none, and it is `crafting` — it transforms matter with heat,
-like the shipped `heat`. The **fire affords it** (`BurnerMixin`'s
-contributions), because you cannot boil without one and there is no
-separate kettle to own.
+⭐⭐ **Retired as a verb 2026-10-19.** Boiling is heating something to its
+boiling point; it does not need a verb of its own, and having one taught
+the opposite of the cooking lesson. `boil` now rides `heat`'s view as an
+alias: `heat pail` (or `boil pail`) sets the vessel on the lit fire in
+reach, and the **phase engine** does the rest
+([thermal.md](./thermal.md) § the boil plateau):
 
-⭐ **What boiling does is decided by what you boiled, never by the
-controller.** Two consequences, neither privileged, and a target may
-earn both:
+- the liquid climbs to its own boiling point and **holds there** while the
+  heat above it boils it away (the latent-heat plateau);
+- a material that declares **`purifiedByBoiling`** becomes what that
+  names once its contents have been **held at the boil for a minute**
+  (`THERMAL_DEFAULTS.PURIFY_HOLD_S`, timed off the vessel's own
+  temperature trajectory — so it does not matter what held it there, or
+  whether anyone watched). Fouled water → water; wood tar → pitch.
 
-| if the target is… | boiling… |
-|---|---|
-| a **build** (`Builds` — a cook pot) | latches the heat it reached and records the method `boiled`, which a recipe's reverse-match reads |
-| a **vessel** (`Bulkable`) whose contents declare `purifiedByBoiling` | swaps the material for what that names |
-
-⚠ **The first cut of this verb was a purifier, and that was a defect.**
-Its arg required `BulkableMixin`, it recorded nothing, and its single
-consequence was hardcoded — so a `CookPot`, which is
-`ManualBuild + Tool + Durable` and *not* `Bulkable`, was refused
-outright; no recipe could ever have required "boiled"; and a second
-consequence would have meant a **kernel edit per trade**, which the pack
-doctrine forbids. The cooking trade would have had to fight this verb
-rather than extend it.
-
-It now follows the shape the crafting branch already uses twice — `heat`
-latches `noteHeat` on any `Builds` host, `stir` records a method, and
-the **recipes** decide what those mean. `Technique` is an open
-vocabulary by construction, so `boiled` costs no kernel list, and a
-cooking pack gets boiling by authoring
-`{ requiresHeatK: 373, method: boiled }` and changing nothing in the
-kernel.
-
-Purification is therefore a property of the **material**
-(`Material.purifiedByBoiling`), not the definition of the verb. It is a
+Purification is a property of the **material**, never of a verb. It is a
 change of material rather than a mutation, because a `Material` is a
 **shared reference Idea**: one row backs every litre of that stuff in
 the world, so purifying by editing the material would clean every river
@@ -1052,12 +1034,18 @@ at once. The closed-material doctrine says the same from the other side
 water is different now" is to name a different material.
 
 ⭐ **The most important behaviour is still the one where boiling does
-nothing.** A material that declares no counterpart just gets hot — the
-command is not refused, because you really did boil it — so boiling a
-lead-fouled river gives you hot lead-fouled river, and the player learns
-the difference between organic and persistent contamination the way it
-is actually learned. The threshold is the contents' **own** boiling
-point, not a dial.
+nothing.** A material that declares no counterpart just gets hot, so
+boiling a lead-fouled river gives you hot lead-fouled river, and the
+player learns the difference between organic and persistent
+contamination the way it is actually learned. The threshold is the
+contents' **own** boiling point, not a dial.
+
+> History: `boil` shipped here (W8) as a purifier, was rewritten in review
+> as an ACT with two consequences (a build latched the method `boiled`; a
+> vessel purified), and retired in 2026-10 — no recipe ever read
+> `boiled` (a wet recipe is `requiresHeatK` + `medium: water`; the medium
+> caps the heat at the boiling point, which is what "boiled" means), and
+> the purify arm belonged to the physics.
 
 ### The toxin route needs no new machinery
 
@@ -1090,8 +1078,8 @@ check:
 - **`switch`** covers a conduit's valve: `Conduit` composes
   `SwitchableMixin` and that is the whole of its on/off surface.
 - **`analyze`** gained a `water` subcommand rather than a new verb.
-- **`boil`** is the one act with no plausible existing home (W8), and it
-  is `crafting`, afforded by the fire.
+- **`boil`** shipped as the one new act (W8); it has since been retired
+  to an alias of `heat` — boiling is a temperature (above).
 
 ### `analyze water` — the stanza is the platform's, the controller is ours
 
@@ -1274,7 +1262,7 @@ length, recovery by half-life, `standingAt` / `readFor(band)` / `draw` /
 
 | | |
 |---|---|
-| **kernel — the physics** | zone elevation (`lib/zone/Zone.ts` + `ZoneApi.elevationFor`) · the precipitation integral and the segment walk (`api/weather.ts` + `platform/idea/api/WeatherLogic.ts`) · the pressure fallback (`platform/idea/api/BiomeLogic.ts`) · the rain→soil edge (`lib/husbandry/Cultivable.ts`) · the supply vocabulary (`lib/supply/SupplyState.ts`) · the `water-right` kind (`lib/document/DocumentKinds.ts`) · `ParcelRecord.reach` · `Material.purifiedByBoiling` · `analyze water` + `boil` |
+| **kernel — the physics** | zone elevation (`lib/zone/Zone.ts` + `ZoneApi.elevationFor`) · the precipitation integral and the segment walk (`api/weather.ts` + `platform/idea/api/WeatherLogic.ts`) · the pressure fallback (`platform/idea/api/BiomeLogic.ts`) · the rain→soil edge (`lib/husbandry/Cultivable.ts`) · the supply vocabulary (`lib/supply/SupplyState.ts`) · the `water-right` kind (`lib/document/DocumentKinds.ts`) · `ParcelRecord.reach` · `Material.purifiedByBoiling` (fired by the thermal phase engine) · `analyze water` |
 | **`water` pack — the works** | `Watercourse`, `WatercourseCatalogue`, `Conduit`, `ControlStructure`, `StorageNode`, `WaterRightRegistry` at **`/system/water/<branch>/`** — `packages/content/water/src/` |
 | **content** | the basins and Terminus's works — `world-seed` (the watercourses + the localities' declarations), `terminus` (Wharfside, the valley road, the aqueduct), `hinkley-hills` (the District tank) |
 
@@ -1334,7 +1322,8 @@ each one is a rule rather than a detail:
   required "boiled", and its one consequence was hardcoded, so a second
   would have meant **a kernel edit per trade**. ⭐ The general rule: *a
   verb names what you DO; what it accomplishes is a property of what you
-  did it to.*
+  did it to.* (Followed to its end in 2026-10: what you do is HEAT it, so
+  `boil` became `heat`'s alias and purification the phase engine's.)
 - **The pack moved from `/water` to `/system/water`**, taking `/arcana`
   and `/residence` with it, once the question *"what class of thing does
   water belong to?"* was asked. The five-axis namespace taxonomy in

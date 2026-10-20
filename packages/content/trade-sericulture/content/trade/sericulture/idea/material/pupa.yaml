@@ -1,0 +1,22 @@
+# Silkworm pupa — ⭐ what is left inside a cocoon once the silk is reeled
+# off it: a brown, nutty, protein-rich chrysalis, eaten roasted wherever
+# silk is reeled. It goes off like any meat.
+class: /platform/idea/material/Material
+data:
+  name: silkworm pupa
+  keywords: [pupa, pupae, chrysalis]
+  appearance: brown, glossy silkworm pupae
+  density: 1050
+  specificHeat: 3200
+  thermalConductivity: 0.4
+  edibility: true
+  spoilActivationEnergy: 80000
+  waterActivity: 0.96
+  nutrients: ["protein", "fat", "water"]
+  tastes: ["umami"]
+  toxicity: []
+  tags: ["tissue", "animal", "organic", "edible", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
+    tissueType: pupa

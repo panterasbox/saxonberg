@@ -272,3 +272,66 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
     }
   });
 });
+
+describe('PerceptionApi.holdLightSteady — one light walk per place per read', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+    installV1QuantityTagTables();
+    buildAllModalities();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  function litRoom(flux: number): InstanceType<typeof AmbientLocation> {
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const loc = makeStuff(() => new AmbientLocation());
+    zone.addLocation(loc, 0, 0, 0);
+    loc.setAmbientFlux(flux);
+    return loc;
+  }
+
+  it('⭐ inside a hold the place is walked once — a second read is the same Light', () => {
+    const loc = litRoom(40);
+    const release = PerceptionApi.holdLightSteady();
+    try {
+      const first = vision().signalAt(loc);
+      // A change mid-hold is NOT seen — which is why only a read that
+      // changes nothing may run inside one.
+      loc.setAmbientFlux(400);
+      expect(vision().signalAt(loc)).toBe(first);
+    } finally {
+      release();
+    }
+  });
+
+  it('⚠ the memory ends with the release — the next read sees the world as it is', () => {
+    const loc = litRoom(40);
+    const release = PerceptionApi.holdLightSteady();
+    vision().signalAt(loc);
+    release();
+    loc.setAmbientFlux(400);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(400);
+  });
+
+  it('re-entrant: an inner hold rides the outer, and only the opener releases', () => {
+    const loc = litRoom(40);
+    const outer = PerceptionApi.holdLightSteady();
+    const first = vision().signalAt(loc);
+    const inner = PerceptionApi.holdLightSteady();
+    loc.setAmbientFlux(400);
+    inner();
+    // The inner release is a no-op: the outer hold still stands.
+    expect(vision().signalAt(loc)).toBe(first);
+    outer();
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(400);
+  });
+
+  it('outside any hold, every call walks fresh (the shipped contract)', () => {
+    const loc = litRoom(40);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(40);
+    loc.setAmbientFlux(80);
+    expect(vision().signalAt(loc).intensity.rawValue()).toBe(80);
+  });
+});

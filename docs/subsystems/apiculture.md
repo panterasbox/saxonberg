@@ -352,3 +352,11 @@ is the build's own participation finding, and it is two findings:
   point poorly, and why that is right
 - [smallholding.md](./smallholding.md), [soil.md](./soil.md) — the Field
   and its sward
+
+## The valley's second party (silk, 2026-10-18)
+
+Hearts Delight now holds a silk house beside its hives — a rearing loft
+with a mulberry walk, run by paid hands, selling cocoons to the Wharfside
+mill ([sericulture.md](./sericulture.md)). The two share the
+population-as-body SHAPE (the box carries the population, reconcile-on-
+read, no far-past guard) and no mechanism; `ColonyMixin` was not promoted.

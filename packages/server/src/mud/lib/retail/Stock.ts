@@ -540,10 +540,20 @@ export default class Stock extends StockBase {
 
   override getLong(): string {
     const base = super.getLong();
-    const lines = this.stockLines
-      .map((l) => {
-        const price = this.priceFor(l.itemTemplatePath);
-        const name = l.itemTemplatePath.split("/").pop() ?? l.itemTemplatePath;
+    // ⭐ Everything the counter SELLS, not only what it restocks: a house's
+    // own goods (the silk house's cocoons, set out by its hand) are priced
+    // with no stock line, and a slate that leaves them off tells a buyer
+    // the one thing on the table is not for sale (silk's browser walk).
+    const keys = [
+      ...new Set([
+        ...this.stockLines.map((l) => l.itemTemplatePath),
+        ...this.pricedKeys(),
+      ]),
+    ];
+    const lines = keys
+      .map((key) => {
+        const price = this.priceFor(key);
+        const name = key.split("/").pop() ?? key;
         return price != null ? `${name} (${price})` : name;
       })
       .join(", ");

@@ -1,0 +1,53 @@
+# The reeler — ⭐ the silk side of the mill, and the bottleneck seat paid
+# least (the mill's own lesson: the worst-paid job is the one every bolt
+# waits on). Buys cocoons at the silk house, reels them at the basin,
+# throws and weaves the silk, and consigns the cloth to the general store.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Liss Orrin
+  keywords: [reeler, liss, orrin, basin]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["liss", "orrin"]
+  shortDescription: "reeler with scalded red fingers"
+  register: indefinite
+  longDescription: |
+    Her hands are red to the wrist from the basin and quite steady. She finds a cocoon's end with a twig in hot water the way other people find a pocket.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: textiles, asserting: competent }
+  behaviors:
+    - brain: /trade/shopkeeping/behavior/stocks
+      trigger: candidate
+      config:
+        counter: /world/terminus/wharfside/mill/thing/crib
+        # ⭐ A bolt's worth per trip: a warp is four yarn, a spin is two
+        # skeins, a reeling forty cocoons — 160 cocoons to a bolt. At 40 a
+        # trip the reeler walked to Hearts Delight four times per bolt on
+        # real-time beats and no bolt reached the store inside the drive's
+        # window (drive 26).
+        batch: 160
+        ways:
+          - to: /world/terminus/hearts-delight/silk-house/location/floor
+            go: [north, south, south, south, south, south, south, west, north]
+            back: [south, east, north, north, north, north, north, north, southeast]
+    - brain: /trade/sericulture/behavior/reels
+      trigger: candidate
+      config:
+        floor: /world/terminus/wharfside/mill/location/floor
+        bin: /world/terminus/wharfside/mill/thing/crib
+        stock: /world/terminus/wharfside/mill/thing/silk-stock
+        count: 8
+    - brain: /trade/shopkeeping/behavior/consigns
+      trigger: candidate
+      config:
+        stock: /world/terminus/wharfside/mill/thing/silk-stock
+        shelf: /world/terminus/general-store/counter
+        batch: 2
+        # ⭐ The labour bench's figure (silk W6): the cocoons plus the
+        # reeler's hours at her wage, per bolt — about twice linen's.
+        defaultAsk: 84

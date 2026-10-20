@@ -1,0 +1,26 @@
+# Degumming — ⭐ boiling the sericin out of raw silk, in the piece.
+#
+# A quarter of a raw-silk thread's weight is gum. Held at a simmer in a
+# copper of water (soap and lye in life; the water's heat is the model) it
+# comes out over a couple of hours, and what is left is silk: soft, white,
+# lustrous, and lighter in the hand. Under-boiled cloth keeps its gum, and
+# a dye will not take on gum (the dyer's bond penalty reads `gummed`).
+#
+# Matched by the bolt's material TAG `gummed` (raw silk carries it; so does
+# a cocoon, which is never in a copper). Below 343 K nothing happens; full
+# rate at 363 K, a simmer; held hotter than 383 K it is boiled too hard and
+# the finish costs a band — but a copper of water never reads above its
+# boil, so only something that is not water could do that.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: degumming
+  inputCategory: gummed
+  mechanism: chemical
+  stallBelowK: 343
+  happyK: 363
+  damageAboveK: 383
+  # ≈ two game hours at a simmer (12 per game day ⇒ 1 in 1/12 day).
+  ratePerDay: 12
+  productMaterial: /trade/sericulture/idea/material/silk
+  productFraction: 0.75
+  wildStrain: ''

@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
+import { PerceptionApi } from '../../../api/perception';
 
 import type { Container } from '../../../lib/spatial/Container';
 import type {
@@ -86,6 +87,25 @@ function consensusVia(
 }
 
 /**
+ * ⭐ A resolution is a READ: every candidate is described for the viewer
+ * (a vision gate each) and nothing changes a light, so the light at each
+ * place is walked once for the whole resolution, whatever the scope — the
+ * reachable pool, `peers`, `here`. See `PerceptionApi.holdLightSteady`
+ * (silk's browser walk: `buy`'s counter resolution pinned the server).
+ */
+function steadyResolve(
+  query: string,
+  ctx: MqlContext,
+): ReturnType<typeof resolveWithQuantity> {
+  const release = PerceptionApi.holdLightSteady();
+  try {
+    return resolveWithQuantity(query, ctx);
+  } finally {
+    release();
+  }
+}
+
+/**
  * MqlLogic — the hot-reloadable logic singleton behind {@link MqlApi}.
  *
  * Lives at `/platform/idea/api/mql` (a stateless `Stuff` singleton, no backing
@@ -106,7 +126,7 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveOne}. */
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {
-    const { matches, quantity, scan, isSet } = resolveWithQuantity(query, ctx);
+    const { matches, quantity, scan, isSet } = steadyResolve(query, ctx);
     if (matches.length === 0) {
       const empty: MqlOne = { stuff: null };
       if (isSet) empty.isSet = true;
@@ -126,7 +146,7 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveMany}. */
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
-    const { matches, quantity, scan, isSet } = resolveWithQuantity(query, ctx);
+    const { matches, quantity, scan, isSet } = steadyResolve(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };

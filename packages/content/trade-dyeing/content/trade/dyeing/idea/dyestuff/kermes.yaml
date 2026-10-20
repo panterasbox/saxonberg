@@ -1,0 +1,33 @@
+# Kermes — ⭐ crimson, the colour of courts. A MORDANT dye, like madder
+# but redder and deeper on alum; a fourth dyestuff is this row and two
+# farming rows, and no code (silk W4, AC 17).
+class: /trade/dyeing/idea/Dyestuff
+data:
+  key: kermes
+  materialPath: /trade/farming/idea/material/kermes
+  chemistry: mordant
+  shades:
+    - mordant: "alum"
+      colour: "a deep crimson"
+      fastness: 0.82
+      transmitR: 0.8
+      transmitG: 0.05
+      transmitB: 0.18
+    - mordant: "iron"
+      colour: "a dark claret"
+      fastness: 0.78
+      transmitR: 0.36
+      transmitG: 0.06
+      transmitB: 0.16
+    - mordant: "tannin"
+      colour: "a dull brick"
+      fastness: 0.6
+      transmitR: 0.6
+      transmitG: 0.26
+      transmitB: 0.22
+    - mordant: ""
+      colour: "a red that will not hold"
+      fastness: 0.02
+      transmitR: 0.8
+      transmitG: 0.34
+      transmitB: 0.34

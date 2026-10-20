@@ -1,0 +1,13 @@
+# A bag of kermes grains — gathered off a kermes oak. ⭐ `steep` it in a
+# vat of water and the bath is a kermes bath; mordant cloth with alum and
+# `dye` it there for crimson. No code: a fourth dyestuff is rows.
+class: /platform/thing/Crop
+data:
+  shortDescription: bag of kermes grains
+  keywords: [kermes, grains, bag, "kermes grains", dyestuff]
+  register: indefinite
+  longDescription: |
+    A small cloth bag of hard round grains the size of peppercorns, dull outside and a startling crimson where one has cracked.
+  _materialPath: /trade/farming/idea/material/kermes
+  steepsInto: /trade/farming/idea/material/kermes
+  mass: 0.2

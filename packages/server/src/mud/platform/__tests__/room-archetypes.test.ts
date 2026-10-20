@@ -222,6 +222,9 @@ describe("the bathroom — PRESENCE (D13)", () => {
       // The tub's brass tap, made real (cleanliness): cold water to fill
       // it. Hot is a copper's, and a house that has one says so in rows.
       "/stuff/thing/fixture/bath-tap",
+      // …and a towel on its rail (cleanliness): a bath you cannot dry off
+      // from leaves you wet.
+      "/stuff/thing/gear/towel",
     ]);
   });
 

@@ -247,6 +247,37 @@ with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
 is a thin convenience read — it resolves the vision singleton and calls
 `signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
+### ⭐⭐ A steady read walks each place once (`holdLightSteady`)
+
+Every `canSee` runs this walk from scratch, and a batch that DESCRIBES
+many things for one viewer paid it once per thing — quadratic in what a
+room holds. Silk's browser walk found it with a CPU profile of the live
+server: a live card over a ~300-item shop counter re-described every row
+on each restock and pinned the server at 100 % for minutes, and `buy`'s
+counter resolution did the same per candidate, with every command behind
+it queued (the wire tier never opens a live card, so it could not see
+it).
+
+`const release = PerceptionApi.holdLightSteady(); try { … } finally {
+release(); }` brackets a **synchronous read**: until the release,
+`VisionModality.signalAt` remembers each place's light (the memo lives on
+the vision singleton, keyed by place; an inner hold rides the outer and
+only the opener releases). Holders: **every MQL resolution**
+(`MqlLogic.resolveOne`/`resolveMany` — whatever the scope) and the
+subscription projection loops (`MqlSubscriptionRegistry` — register,
+one-shot query, re-resolve).
+
+⚠ **A bracket around a declared READ, never a command or a tick.** A
+command can light a lamp, or carry one into the next room, between two
+reads; a memo that outlived that would leave a player in the dark they
+had just lit. Nothing that changes a light may run inside a hold.
+
+⚠⚠ **A hold/release pair, never a callback.** The first cut was
+`whileLightIsSteady(fn)`, and a callback runs inside the gated Logic
+method's call frame — so every gated call the read made was attributed to
+the perception module, and the world-seat query's module-gated read was
+refused. A pair keeps the read in its caller's frame.
+
 ### ⭐⭐⭐ An opening cannot make you brighter than what is through it
 
 Legs (d) and (e) — light arriving from **another scope**, through a

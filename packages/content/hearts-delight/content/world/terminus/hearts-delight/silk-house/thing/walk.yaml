@@ -1,0 +1,52 @@
+# The walk's ground — ⭐ an orchard bed: one PERMANENT bed of the place
+# (the kernel's `PermanentBed`), so the trees remember being cut across a
+# restart. Four mulberries and the kermes oak, each an individual (one of
+# them will be the slow one).
+#
+# ⚠ Not a forestry `Panel`: a panel is a timber stand's bed and claims its
+# trees are forestry's (`fell`, stools, the woodland deed). The persistable
+# bed was promoted out of forestry for exactly this walk.
+class: /platform/thing/PermanentBed
+data:
+  shortDescription: orchard bed
+  keywords: [bed, "orchard bed", ground, rows]
+  register: indefinite
+  longDescription: |
+    Bare trodden ground between the trees, swept, with the leaf litter raked under them.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 2400
+  fixedGround: true
+  landRequirementM2: 80
+  interiorBulk: true
+  interiorCapacity: 160
+  interiorMaterial: /stuff/idea/material/bulk/potting-soil
+  interiorAmount: 160
+  reserves:
+    moisture:
+      capacityValue: 80
+      currentValue: 80
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+    nitrogen:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: cultivation
+      floorEffect: spent
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 6
+      userFacingDetail: planting
+  props:
+    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-1 }
+    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-2 }
+    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-3 }
+    - { template: /world/terminus/hearts-delight/silk-house/thing/walk-mulberry, as: mulberry-4 }
+    - { template: /trade/farming/thing/plant/kermes-oak, as: kermes-oak }
+  details:
+    planting:
+      keywords: [ground, rows, litter]
+      description: |
+        Bare trodden ground, swept, with the leaf litter raked under the trees.

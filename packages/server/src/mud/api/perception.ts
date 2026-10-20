@@ -124,6 +124,25 @@ export class PerceptionApi {
   }
 
   /**
+   * ⭐ Hold the light steady for a synchronous READ that describes many
+   * things — the light at each place is then walked once, not once per
+   * thing. Returns the release; call it in a `finally`:
+   *
+   * ```ts
+   * const release = PerceptionApi.holdLightSteady();
+   * try { … } finally { release(); }
+   * ```
+   *
+   * MQL resolution and a live card's projection use it. Nothing that might
+   * change a light (light, douse, carry a lamp) may run inside a hold. A
+   * pair rather than a callback so the read runs in its CALLER's frame —
+   * see `VisionModality.holdSteadyLight`.
+   */
+  public static holdLightSteady(): () => void {
+    return logic().holdLightSteady();
+  }
+
+  /**
    * Resolve a modality singleton by its BodyPlan organ key. Used by
    * `sensorium` when walking `BodyPlan.sensoryPorts.modality` strings
    * (which are organ keys, not modality names). Returns null when no

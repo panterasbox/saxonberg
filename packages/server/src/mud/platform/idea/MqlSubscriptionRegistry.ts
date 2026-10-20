@@ -379,10 +379,17 @@ export default class MqlSubscriptionRegistry extends Idea {
       return null;
     }
 
+    // ⭐ One light walk per place for the whole projection (a vision gate
+    // per row) — see `PerceptionApi.holdLightSteady`.
     const lastResult = new Map<string, RecordValue>();
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-      lastResult.set(stuff.stuffId, rec);
+    const release = PerceptionApi.holdLightSteady();
+    try {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
+        lastResult.set(stuff.stuffId, rec);
+      }
+    } finally {
+      release();
     }
 
     const registrantScope = ExecutionContextApi.getCircleScope();
@@ -482,30 +489,35 @@ export default class MqlSubscriptionRegistry extends Idea {
     const expandedQuery = ShellApi.expandVariables(query, giver);
     let stuffList: Stuff[];
     try {
-      const ctx = { commandGiver: giver, scope: expandedQuery };
-      if (cardinality === 'one') {
-        const one = MqlApi.resolveOne(expandedQuery, ctx);
-        stuffList = one.stuff ? [one.stuff] : [];
-      } else {
-        const many = MqlApi.resolveMany(expandedQuery, ctx);
-        stuffList = many.stuff;
+        const ctx = { commandGiver: giver, scope: expandedQuery };
+        if (cardinality === 'one') {
+          const one = MqlApi.resolveOne(expandedQuery, ctx);
+          stuffList = one.stuff ? [one.stuff] : [];
+        } else {
+          const many = MqlApi.resolveMany(expandedQuery, ctx);
+          stuffList = many.stuff;
+        }
+      } catch (err) {
+        const reason: MqlSubscriptionErrorReason =
+          err instanceof MqlPermissionError ? 'permission' : 'parse';
+        this.emitQueryError(
+          interactive,
+          queryId,
+          reason,
+          err instanceof Error ? err.message : String(err),
+        );
+        return;
       }
-    } catch (err) {
-      const reason: MqlSubscriptionErrorReason =
-        err instanceof MqlPermissionError ? 'permission' : 'parse';
-      this.emitQueryError(
-        interactive,
-        queryId,
-        reason,
-        err instanceof Error ? err.message : String(err),
-      );
-      return;
-    }
 
-    const result: RecordValue[] = [];
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-      result.push(rec);
+      const result: RecordValue[] = [];
+    const release = PerceptionApi.holdLightSteady();
+      try {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
+        result.push(rec);
+      }
+    } finally {
+      release();
     }
 
     const template: Omit<MqlQueryResultEnvelope, 'frameId'> = {
@@ -859,28 +871,35 @@ export default class MqlSubscriptionRegistry extends Idea {
 
     let stuffList: Stuff[];
     try {
-      stuffList = sub.subjectId
-        ? resolveSubjectBound(sub.subjectId, viewer)
-        : resolveByQuery(sub.query, sub.cardinality, giver);
-    } catch (err) {
-      const reason: MqlSubscriptionErrorReason =
-        err instanceof MqlPermissionError ? 'permission' : 'resolve';
-      this.emitError(
-        sub.interactive,
-        sub.subscriptionId,
-        reason,
-        err instanceof Error ? err.message : String(err),
-      );
-      this.teardownSubscription(sub);
-      bucket.delete(sub.subscriptionId);
-      if (bucket.size === 0) this.registry.delete(sub.interactive);
-      return;
-    }
+        stuffList = sub.subjectId
+          ? resolveSubjectBound(sub.subjectId, viewer)
+          : resolveByQuery(sub.query, sub.cardinality, giver);
+      } catch (err) {
+        const reason: MqlSubscriptionErrorReason =
+          err instanceof MqlPermissionError ? 'permission' : 'resolve';
+        this.emitError(
+          sub.interactive,
+          sub.subscriptionId,
+          reason,
+          err instanceof Error ? err.message : String(err),
+        );
+        this.teardownSubscription(sub);
+        bucket.delete(sub.subscriptionId);
+        if (bucket.size === 0) this.registry.delete(sub.interactive);
+        return;
+      }
 
-    const newResult = new Map<string, RecordValue>();
-    for (const stuff of stuffList) {
-      const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
-      newResult.set(stuff.stuffId, rec);
+      // ⭐ The re-resolve that pinned the server over a shop counter: one
+      // light walk per place, not one per row (silk's browser walk).
+      const newResult = new Map<string, RecordValue>();
+    const release = PerceptionApi.holdLightSteady();
+      try {
+      for (const stuff of stuffList) {
+        const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
+        newResult.set(stuff.stuffId, rec);
+      }
+    } finally {
+      release();
     }
 
     const changes = this.diff(sub.lastResult, newResult, sub.cardinality);

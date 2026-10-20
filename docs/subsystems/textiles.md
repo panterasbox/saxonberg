@@ -429,7 +429,7 @@ is just a worse card.
   cellulose fibre … no new lesson"*, which was wrong for silk: silk is a
   **protein** fibre (it takes alum directly, as `trade-dyeing` already
   reads) and the richest lesson in the vertical. Silk →
-  [silk-slate](../slates/builds/silk-slate.md); cotton is its own slate,
+  [silk-slate](../slates/tails/silk-slate.md); cotton is its own slate,
   later.
 - **Synthetics, mills, mass production** — trades ship medieval and
   advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`
@@ -744,3 +744,23 @@ contradicting Kell, not extending it.
 [race.md](./race.md) · [encumbrance.md](./encumbrance.md) ·
 [maturation.md](./maturation.md) ·
 [content-packs.md](./content-packs.md)
+
+## The fibre carries through, and cloth is finished in the piece (silk build, 2026-10-18)
+
+- ⭐ **`spin` and `weave` keep the input's MATERIAL and stamp the maker.**
+  Until the silk build they cloned their fixed rows (linen) and set only a
+  count and a band, so spun wool was *a skein of linen yarn*. Now the yarn
+  and the bolt take the fibre, answer to its name, and derive their short
+  description from it (*skein of wool yarn*, *bolt of raw silk*); line,
+  tow and a reeled skein (`yarnCount` 0) keep their authored words.
+- ⭐ **`FinishingMixin`** (`trade-textiles/src/lib/Finishing.ts`) on
+  `ClothBolt` (which is now `Thermal` too): a bolt is finished by a
+  `MaturationProfile` matched on its material tag, integrated over its own
+  temperature — raw silk degums in a **copper** (`thing/Copper.ts`, 12 L,
+  its contents read capped at the boil) through the kernel's immersion
+  rung ([thermal.md](./thermal.md)), and comes out silk, ×0.75. The
+  recorded next consumers: a garment, wool scouring, piece-bleaching.
+- Dyeing pays the bond penalty in **depth** as well as fastness, and gum
+  is a penalty for both chemistries ([sericulture.md](./sericulture.md)).
+- Silk is no longer a non-goal here: it is its own trade
+  ([sericulture.md](./sericulture.md)); cotton remains one.

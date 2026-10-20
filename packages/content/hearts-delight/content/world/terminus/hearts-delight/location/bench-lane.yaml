@@ -19,9 +19,9 @@ data:
   longDescription: |
     A stony lane climbing out of the orchards in three long zigzags. The irrigation ditches stop about a third of the way up — there is a last one, cut and lined and dry, and then nothing above it but what the sky brings.
 
-    ⭐ That line is the whole economy of the valley written on a hillside. Below it, water; above it, not. Below it, fruit worth carting; above it, corn.
+    That line is the whole economy of the valley written on a hillside. Below it, water; above it, not. Below it, fruit worth carting; above it, corn.
 
-    The lane goes on west to a farmstead. Down to the south you can hear water falling — the river goes over a ledge there, and there is a roof beside it.
+    The lane goes on west to a farmstead. Just above the last ditch a long, low loft stands side-on to the lane, shuttered, a ladder up to its door and mulberry trees at its gable — the silk house. Down to the south you can hear water falling — the river goes over a ledge there, and there is a roof beside it.
   coords: { x: -12, y: 0, z: 6 }
   exits:
     east:
@@ -36,6 +36,11 @@ data:
       destination: /world/terminus/hearts-delight/location/millsite
       media: [ground]
       edgeMinutes: 5
+    # ⭐ Up the ladder to the silk house loft (silk W5).
+    north:
+      destination: /world/terminus/hearts-delight/silk-house/location/floor
+      media: [ground]
+      edgeMinutes: 2
   details:
     # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
     # appends the live state.

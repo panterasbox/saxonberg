@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**326 slates.** 90 greenfield · 102 continuations · 65 waves · 69 tails.
+**330 slates.** 93 greenfield · 102 continuations · 65 waves · 70 tails.
 
-## ⭐ Greenfield — nothing shipped yet (90)
+## ⭐ Greenfield — nothing shipped yet (93)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -64,7 +64,7 @@ respect.
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [command-taxonomy](./builds/command-taxonomy-slate.md) | the rule, written · `category:` on every view · a census then a ratchet · the sweep … |
 | [committee](./builds/committee-slate.md) | the three-question facade · per-committee **seats** (generalising `OFFICE_APPARATUS`) · the model menu as rows · the optional `answerableFor` resolver + its shipped implementations … |
-| [construction](./builds/construction-slate.md) | the whole conversation — a structure that exists half-built, and the labour that raises it |
+| [construction](./builds/construction-slate.md) | the `ConstructionSite` as a third kind of `Structure` beside the building and the `Ship` · site KINDS (a building site, a shipyard slip, a bridge site) instanced per project, places budding by phase · the project's ELEMENTS with a derived bill, raised by their trades in a derived order (W7's `maintain` from zero) · completion popping the authored or minted structure into place … |
 | [content-declaration](./builds/content-declaration-slate.md) | the declaration schema itself (the field list) · the |
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [controllers-are-io](./builds/controllers-are-io-slate.md) | the census gate (`lint:controller-mutations`) · the burn-down, controller by controller, of 132 controllers / 408 mutating calls · the outcome-type convention · where an engaged step's DURATION lives. |
@@ -72,6 +72,7 @@ respect.
 | [decomposition](./builds/decomposition-slate.md) | ⭐ AUTHORED decay states in model-native terms — per part, by mechanism — that behave, read, repair and continue · authored as a STATE or as a HISTORY the physics derives once at creation · per-material susceptibility per mechanism · the exposure clock kept as the rule (an act starts it, shelter stops it — Law 2 intact) and built only where a consumer needs it … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
+| [diplomacy](./builds/diplomacy-slate.md) | the embassy as a jurisdiction that cuts the HOST'S SEATS, never its laws (inviolability) · the envoy's immunity and persona non grata as the host's one remedy · the diplomatic bag and the tax exemption · asylum (it falls out) … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
 | [end-of-life](./builds/end-of-life-slate.md) | custody of the body + terminal decay → **remains** · the |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
@@ -117,7 +118,8 @@ respect.
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
 | [sericulture](./builds/sericulture-slate.md) | all of it: the mulberry, the worm, the rearing, the stifling decision, reeling, throwing, degumming, wild silk, the disease, the venue and its climate. |
-| [silk](./builds/silk-slate.md) | the mulberry leaf crop · the rearing (a tray as one organism, its ages derived from warmth, hunger soft through the limiting factor) · the ten-day deadline and the stifle-or-keep decision · `reel` (the one new verb) … |
+| [ships-and-harbors](./builds/ships-and-harbors-slate.md) | boats in water rooms only, ships alone in the field · boats as minted, Durable, chattel assemblies with capacity and derived draught · the expanse Warren budding sea rooms where ships stop · *a ship is always alongside a room* — exits wired on arrival, unwired on departure, named for her, transient … |
+| [size](./builds/size-slate.md) | sizes as real measures, derived where they can be · a body's envelope (stature × posture, girth, plus what it carries, worn and mounted) · exits with a clearance and defaults by kind · refusals that say what would work, never auto-posture … |
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
 | [standing-instructions](./builds/standing-instructions-slate.md) | the whole of it — first, *may a player automate labour at all?* |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
@@ -130,6 +132,7 @@ respect.
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [waste](./builds/waste-slate.md) | whether waste must be COLLECTED and moved before it is destroyed · transformation on the way (composting, rotting, salvage) · who does the collecting · abandoned things' ownership … |
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
+| [wholesale-market](./builds/wholesale-market-slate.md) | the wholesale market as a place (its archetype, its hours, its layout, trade-only access) · relationships under the spot trade (standing orders, regard, family history) · ⭐ allocation instead of auction (the Crane melon) · grade judged on the spot … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbor's TEXT is wizard-bar-slate's) · subject notification on record access … |
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
@@ -315,7 +318,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (69)
+## Tails — small and opportunistic (70)
 
 | slate | left |
 |---|---|
@@ -374,6 +377,7 @@ are the named remainders.
 | [routing](./tails/routing-slate.md) | seven attach points, each with a named destination; two content gaps the build surfaced and did not close (75 of 128 places declare no address; a `walked` claim does not record what you were driving); and one vacancy — `knows:` makes a **guide** an economically coherent role for the first time. |
 | [sandbox](./tails/sandbox-slate.md) | chronicle presentation of wire deeds · what counts as "power" at the release gate + combination exploits + instancing · draft-overlay compose · circle transfer (move / sell an owned circle) … |
 | [scripting](./tails/scripting-slate.md) | the piping model over the built `Pipeline` AST node + the value→field binder + the two-channel/ByValue compatibility design · the block-value fork (`it`-only vs explicit params on the generic `Block` value — `def`'s named params are a separate mechanism and already shipped) · the `improv` seam · LLM-director authoring … |
+| [silk](./tails/silk-slate.md) | the conditioning house · the leaf market · status demand and the finite labour pool (markets-slate) · a booted silk house (unobserved-economy-slate) … |
 | [social-graph](./tails/social-graph-slate.md) | message-restyle live wiring (needs a sync contacts fast-path) · recognition-gated bucketing (deferred to the recognition-family build) · account-level bucket federation across characters · comms trust-tiered message policy (foes drop / friends bypass filters — comms-slate territory, untouched) … |
 | [social-inspection](./tails/social-inspection-slate.md) | the `who --group <g>` filter · the `privacy.showSpecies` threshold (Q2) · the `profile` card rendered into the inspection card with a per-viewer subscribable projection (Q6 — no `opens_card` today) · `who` at scale (Q7) … |
 | [storage](./tails/storage-slate.md) | § Open after — the repack, the stocking horizon, the receipt kind; and every ⛔ below. ⛔ **Deferred:** store-to-store transfer, the ship's hold, any cargo (→ freight, *after every RGO is designed*) · damp and spontaneous combustion · vermin · transferable receipts … |

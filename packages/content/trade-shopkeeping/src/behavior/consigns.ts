@@ -108,7 +108,19 @@ export const brain = class {
     'Carries the outfit floor stock to a distributor counter and consigns it as the business, at the authored ask.';
   static discipline = 'retail-sales';
   static claims: readonly EngagementSlot[] = ['hands', 'body'];
-  static urgency(): Urgency {
+  /**
+   * ⭐ IDLE when there is nothing to carry — the floor stock holds no
+   * goods and nothing is in hand. ⚠ It was a constant `wanted`; see
+   * `stocks`' urgency for what that cost an agent with more than one
+   * work brain (silk build).
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const stockPath = ctx.config.stock;
+    const stock = typeof stockPath === 'string' ? StuffApi.findByTemplatePath(stockPath) : null;
+    const goods = (x: Stuff): boolean =>
+      MixinApi.isContainer(x) &&
+      (x.getContents() as Stuff[]).some((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
+    if (stock && !goods(stock) && !goods(ctx.host)) return new Urgency('idle');
     return new Urgency('wanted', 'gathers up an armful of stock for the counter');
   }
   static presenceGated = false;

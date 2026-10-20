@@ -1,0 +1,18 @@
+# A house tray — the base the three working trays extend. ⭐ A persistable
+# singleton (`HouseTray`): a rearing in a room nobody owns survives a
+# restart, the forestry panel's shape.
+class: /trade/sericulture/thing/HouseTray
+extends: /trade/sericulture/thing/tray
+data:
+  # ⭐ A HOUSE tray, by name: `put`'s target is chosen among the room's
+  # things and takes the first that answers, so a bought "rearing tray"
+  # set down beside three house ones that also answered to it lost its
+  # eggs to the house's (silk's browser walk). The house's trays answer
+  # to `house tray`; yours is the only `rearing tray` in the loft.
+  shortDescription: house tray
+  keywords: [tray, "house tray", house-tray]
+  # ⭐ The house's trays stand in its racks: a visitor works them (puts
+  # leaf in, takes cocoons out) and does not carry them off. A browser walk
+  # found `get rearing tray` lifting all three — the house's rearing and
+  # its cocoons with them. A tray a player BUYS stays portable.
+  fixedInPlace: true

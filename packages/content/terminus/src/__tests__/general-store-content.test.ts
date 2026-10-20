@@ -76,6 +76,7 @@ const MEDICINE_DIR = fileURLToPath(
 const APICULTURE_DIR = fileURLToPath(
   new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url),
 );
+const SERICULTURE_DIR = fileURLToPath(new URL("../../../trade-sericulture/content/trade/sericulture/", import.meta.url));
 
 /**
  * ⭐ Where a stocked good's row lives, by the prefix of its template
@@ -144,6 +145,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   // because a general store's job IS importing — and the one line that
   // mints life (the nucleus) belongs in a shop for the same reason.
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
+  { prefix: "/trade/sericulture/", dir: () => SERICULTURE_DIR },
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
@@ -422,6 +424,13 @@ describe("general-store content integrity", () => {
     "/trade/apiculture/thing/HiveBox",
     "/trade/apiculture/thing/Frame",
     "/trade/apiculture/thing/Smoker",
+    // ⭐ The silk grower's line (sericulture). An `EggLot` is a card of
+    // eggs a tray adopts on `put`; a `RearingTray` is the box the worms
+    // are the state of. The brush is a plain Good, the sapling a Seed.
+    "/trade/sericulture/thing/EggLot",
+    "/trade/sericulture/thing/RearingTray",
+    "/trade/sericulture/thing/ReelingTool",
+    "/trade/textiles/thing/Copper",
     // ⭐ The wear-part line (assembly W6): a pane is the glasshouse's
     // `Sheet`, and a cushion or a smoker's bellows is an `Assembly` — a
     // made thing of parts with no other capability. All discrete: you

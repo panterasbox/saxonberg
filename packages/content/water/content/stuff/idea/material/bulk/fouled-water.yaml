@@ -50,8 +50,9 @@ data:
   # river below the town recovers on its own over a few reaches.
   toxicity:
     - { type: dysentery, amount: 12 }
-  # ⭐ Boil it and you have water. Personal, per-use, costing fuel and
-  # time every single time — which is precisely why a town eventually
+  # ⭐ Boil it and you have water — held a minute at a rolling boil (the
+  # phase engine times it; `heat`/`boil` only sets it on the fire).
+  # Personal, per-use, costing fuel and time every single time — which is precisely why a town eventually
   # buys treatment instead.
   purifiedByBoiling: /stuff/idea/material/bulk/water
   # ⚠ It keeps the `water` IDENTITY tag, unlike `salt-water`, because it

@@ -395,3 +395,11 @@ The design question lives at
 - ⚠ **Found by the drive too:** the `UnboundedReceptacle` row `pourTake`
   pours through had no interior, so every volume take kept nothing (*"it
   all goes on the floor"*) — see [bulk.md](./bulk.md).
+
+## The fourth row: the take ends the animal (silk, 2026-10-18)
+
+Silk ([sericulture.md](./sericulture.md)) is the feedback law's fourth
+row: reeling a cocoon kills the pupa inside it (stifling must come first,
+or the moth cuts the thread), so the act does not feed back on a rate —
+it ENDS the animal, and the decision is what to keep alive for seed. It is
+not a tap (the silkworm species row has no `production`).
