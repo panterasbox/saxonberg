@@ -331,7 +331,7 @@ suite('C · the line', () => {
     // The line, taken up again for this step (the rest stays on the quay:
     // a swimmer carrying all of it is refused — "carrying too much").
     expectOk(await diver.cmd('get here:i:lifeline'));
-    expectOk(await diver.cmd(`heave lifeline to ${BUDDY}`));
+    expectOk(await diver.cmd(`throw lifeline to ${BUDDY}`));
     const feels = diver.listen(6_000);
     expectOk(await buddy.cmd('tug line'));
     expectOk(await buddy.cmd('tug line'));
@@ -369,7 +369,7 @@ suite('C · the city\'s work', () => {
     await breathe(diver);
     expectOk(await diver.cmd('swim'));
     expectOk(await stroke(diver, 'descend'));
-    const r = await diver.cmd('spear fish');
+    const r = await diver.cmd('fish using spear');
     const said = squash(await r.said());
     expect(said, said).not.toMatch(/don't understand/i);
     expect(said).toMatch(/spear comes back/i);

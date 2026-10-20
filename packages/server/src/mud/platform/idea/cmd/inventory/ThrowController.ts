@@ -34,6 +34,7 @@ import { BulkableApi } from "../../../../api/bulk";
 import { ConditionApi } from "../../../../api/condition";
 import { CombatApi } from "../../../../api/combat";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import type { Tossable } from "../../../../lib/spatial/Tossable";
 import type Material from "../../../../lib/material/Material";
 import type { TermsProposal } from "../../../../lib/combat/CombatTerms";
 import type { Combatant } from '../../../../lib/combat/Combatant';
@@ -53,6 +54,13 @@ const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
 interface ThrowModel extends CommandModel {
   item?: MqlOneResult;
   target?: MqlOneResult;
+  /** `throw <thing> to <who>` — a toss meant to be caught. */
+  recipient?: string;
+}
+
+/** Does `s` speak the toss protocol? */
+function isTossable(s: Stuff): s is Stuff & Tossable {
+  return typeof (s as unknown as { tossTo?: unknown }).tossTo === 'function';
 }
 
 export default class ThrowController extends CommandController<ThrowModel> {
@@ -72,6 +80,22 @@ export default class ThrowController extends CommandController<ThrowModel> {
 
     if (target === giver) {
       return this.fail(context, "You can't throw that at yourself.", "self-target");
+    }
+
+    // ── ⭐ A toss TO somebody (underwater review): the thing decides what
+    // catching it means and how far it carries; a thing that has no
+    // answer is thrown AT someone, or handed over. ──
+    const recipient = (model.recipient ?? '').trim();
+    if (recipient !== '') {
+      if (!isTossable(item)) {
+        return this.fail(context, `You can throw ${item.getPresentation()} AT someone, or give it to them.`, "not-tossable");
+      }
+      const out = await item.tossTo(giver, recipient);
+      if (!out.ok) return this.fail(context, out.line, out.reason);
+      const scene = MessageApi.scene(giver).topic("act.deed").toSelf(out.self);
+      if (out.peers) scene.toPeers(out.peers);
+      scene.send();
+      return;
     }
 
     // ── The throw-away parse: no target, no gate, no fight. ──

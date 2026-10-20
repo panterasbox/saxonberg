@@ -18,6 +18,7 @@ import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Waters, { WATERS_PATH } from '@saxonberg/content-trade-fishing/src/idea/Waters';
+import type { TakesFish, TakeFishOutcome } from '@saxonberg/content-trade-fishing/src/lib/TakesFish';
 
 /** Below this share of what the reach can hold, nothing comes close enough. */
 const SPEARABLE_LEVEL = 0.15;
@@ -25,15 +26,17 @@ const SPEARABLE_LEVEL = 0.15;
 /** A spear's thrust, as effort: short and hard. */
 const THRUST = { durationS: 10, powerW: 400 };
 
-export default class Spear extends Weapon {
+export default class Spear extends Weapon implements TakesFish {
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['trade/diving/cmd/diving/spear.yaml'],
+    // ⭐ `fish` with the spear in hand (underwater review: no `spear` verb
+    // named for the tool) — the spear answers it as `TakesFish`.
+    environment: ['trade/fishing/cmd/fishing/fish.yaml'],
     peers: [],
   };
 
   /** ⭐ Thrust at what the water holds here. The water decides; the spear takes. */
-  public async thrust(by: Stuff): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }> {
+  public async takeFishBy(by: Stuff): Promise<TakeFishOutcome> {
     if (this.getContainer() !== by) {
       return { ok: false, reason: 'not-holding', line: 'You need the spear in your hand.' };
     }

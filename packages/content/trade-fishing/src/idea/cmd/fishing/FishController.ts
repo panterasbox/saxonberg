@@ -17,6 +17,8 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { FishingController, FISHING_TOPIC } from './FishingController';
 import { FishingEngagement, FISHING_TYPE } from '../../../lib/FishingEngagement';
+import type { TakesFish } from '../../../lib/TakesFish';
+import Rod from '../../../thing/Rod';
 
 interface FishModel extends CommandModel {
   rod: MqlOneResult;
@@ -24,12 +26,41 @@ interface FishModel extends CommandModel {
   shore?: MqlOneResult;
 }
 
+/** Does `s` take a fish itself (a spear)? */
+function isTakesFish(s: Stuff): s is Stuff & TakesFish {
+  return typeof (s as unknown as { takeFishBy?: unknown }).takeFishBy === 'function';
+}
+
 export default class FishController extends FishingController<FishModel> {
   async execute(model: FishModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const rod = model.rod?.stuff as Stuff | undefined;
+    const named = model.rod?.stuff as Stuff | undefined;
+    // ⭐ A tool that takes a fish itself (a spear): named, or in hand when
+    // no rod is — it decides what fishing with it means.
+    const held: Stuff[] = MixinApi.isContainer(giver) ? giver.getContents() : [];
+    const striker: (Stuff & TakesFish) | null = named !== undefined
+      ? (isTakesFish(named) ? named : null)
+      : held.find(isTakesFish) ?? null;
+    if (striker !== null) {
+      const out = await striker.takeFishBy(giver);
+      if (!out.ok) {
+        this.decline(context, out.line, out.reason);
+        return;
+      }
+      MessageApi.scene(giver)
+        .topic(FISHING_TOPIC)
+        .toSelf(Mml.compose`${out.line}`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} thrusts a spear into the water and draws it back.`)
+        .send();
+      return;
+    }
+    const rod = named;
     if (!rod) {
       this.decline(context, 'You have nothing to fish with.', 'no-rod');
+      return;
+    }
+    if (!(rod instanceof Rod)) {
+      this.decline(context, `You can't fish with ${rod.getPresentation()}.`, 'not-a-rod');
       return;
     }
     if (!MixinApi.isEngaged(giver)) {

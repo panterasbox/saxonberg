@@ -1989,6 +1989,31 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   would have played its line and never arrived. Both completions now run
   module functions with everything resolved before the engagement.
 
+- **R9 · One act per way down; `dive` from a quay.** `swim down` skipped
+  the timed swim that `descend` ran: two verbs for one act, disagreeing.
+  The time now belongs to the way. The kernel `Exit` gains a
+  `crossingRealS(mover)` hook (0 for an ordinary step), `ColumnExit`
+  answers it with the meters over the body's vertical speed, and the
+  movement base asks it on every crossing. A timed crossing checks the gates
+  first, holds the hands that long, and crosses at the end. So `descend`,
+  `dive` and `swim down` are one act. `WaterPlace.wayDown/wayUp` pick the
+  way and refuse in words. `dive` moves to swim's words: from a quay it
+  goes in, in the water it goes down.
+- **R10 · `heave` is `throw … to`.** `throw` gains a `to <name>` form
+  for a toss meant to be caught, over a kernel `Tossable` shape
+  (`lib/spatial/Tossable.ts`). The lifeline answers it, keeping its reach
+  into the water below a quay; anything else is told to throw it AT
+  someone or hand it over. `heave` is one of throw's words. The
+  `HeaveController` and its view are deleted. A binder test pins
+  `throw rock to mara`.
+- **R11 · `spear` is `fish` with the spear in hand.** `TakesFish`
+  (`trade-fishing/src/lib/TakesFish.ts`) is the shape of a tool that
+  takes a fish itself. `FishController` narrows by shape: a held striker,
+  or a named one with `fish using spear`, strikes; a `Rod` casts. The rod
+  arg's `requires` is now `any` so a weapon can be named, and anything
+  that is neither refuses. The spear affords `fish`; `SpearController` and
+  its view are deleted.
+
 ## Drive record
 
 

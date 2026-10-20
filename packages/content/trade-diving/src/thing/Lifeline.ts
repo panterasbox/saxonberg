@@ -7,7 +7,7 @@
  * somebody in the water who needs it. Everything the trade does with a
  * line is one of three acts on this object:
  *
- *  - **`heave <line> to <person>`** — the holder throws the free end to
+ *  - **`throw <line> to <person>`** (`heave`) — the holder throws the free end to
  *    somebody here or in the water beside here. A body in the water that
  *    has the line is held up by it while it is held (the throw that saves
  *    a drowning swimmer: *reach, throw, don't go*).
@@ -28,6 +28,7 @@
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import type { Tossable, TossOutcome } from '@saxonberg/server/mud/lib/spatial/Tossable';
 import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -82,16 +83,14 @@ export interface LineSignal {
 /** What a line act did — the line's own words, or why not. */
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-export default class Lifeline extends Tool implements Pullable {
+export default class Lifeline extends Tool implements Pullable, Tossable {
   static commandContributions: CommandContributions = {
     self: [],
-    // Whoever holds it (`environment` — item → holder) heaves and hauls;
+    // Whoever holds it (`environment` — item → holder) throws and pulls
+    // (`throw` is everyone's verb; the line answers it as `Tossable`);
     // the person on the free end tugs on the END they hold (`LineEnd`). A
     // line lying on the quay is `peers` to whoever stands there.
-    environment: [
-      'trade/diving/cmd/diving/heave.yaml',
-      'platform/cmd/inventory/pull.yaml',
-    ],
+    environment: ['platform/cmd/inventory/pull.yaml'],
     peers: ['platform/cmd/inventory/pull.yaml'],
   };
 
@@ -155,6 +154,25 @@ export default class Lifeline extends Tool implements Pullable {
     this._end = null;
     this._tugs = [];
     if (end !== null && !end.isDestroyed()) StuffApi.destruct(end);
+  }
+
+  /**
+   * ⭐ `throw <line> to <person>` (`heave`): the free end, to somebody
+   * here or in the water one way from here — a thrown line crosses that
+   * gap where a hand cannot.
+   */
+  public async tossTo(thrower: Stuff, who: string): Promise<TossOutcome> {
+    const target = this.personWithinReach(thrower, who.trim().toLowerCase());
+    if (target === null) {
+      return { ok: false, reason: 'no-such-person', line: `You see no ${who} to throw it to.` };
+    }
+    const out = await this.heaveTo(thrower, target);
+    if (!out.ok) return { ok: false, reason: out.reason, line: out.line };
+    return {
+      ok: true,
+      self: Mml.compose`${out.line}`,
+      peers: Mml.compose`${Mml.actor(thrower)} throws the end of a line to ${Mml.actor(target)}.`,
+    };
   }
 
   /* ─────────────────────────── heave ─────────────────────────── */
