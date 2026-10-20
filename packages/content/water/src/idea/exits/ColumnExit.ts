@@ -22,6 +22,7 @@ import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn'
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 
 /** Where a column exit leads: a band, or back up to the surface. */
@@ -63,6 +64,19 @@ export default class ColumnExit extends DeferredDestinationExit {
       throw new Error(`ColumnExit: ${this.surfacePath} has no ${this.target} band now`);
     }
     return band;
+  }
+
+  /**
+   * ⭐ The swim between two depths takes time (underwater review): the
+   * meters over this body's own vertical speed, in real seconds, breath
+   * burning the whole way. Every verb that takes this way waits it out.
+   */
+  public override async crossingRealS(mover: Stuff): Promise<number> {
+    if (!MixinApi.isRespiration(mover)) return 0;
+    const dest = await this.resolveDestination();
+    const fromM = BiomeApi.mediumFor(mover).depthM;
+    const toM = MixinApi.isWaterPlace(dest) ? dest.mediumFor(mover).depthM : fromM;
+    return mover.verticalSwimSeconds(Math.abs(toM - fromM), toM < fromM);
   }
 
   public override async canTraverse(

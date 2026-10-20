@@ -977,6 +977,18 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * @hook ⭐ How long crossing this way takes `mover`, in REAL seconds
+   * (underwater review). An ordinary way is a step, `0`. A way whose
+   * LENGTH is the cost — a swim down through the water — says it here, and
+   * the movement verbs hold the mover's hands that long and cross at the
+   * end, so no verb that takes this way skips the time.
+   */
+  public async crossingRealS(mover: Stuff): Promise<number> {
+    void mover;
+    return 0;
+  }
+
+  /**
    * Can `mover` traverse this exit right now?
    *
    * Returns `{ ok: false, reason, gate }` on the first failing gate

@@ -2,16 +2,18 @@
 # by band to the bed. Only a water affords it (`WaterPlaceMixin`) — beside
 # one, the way in is `swim` (underwater review: "down into it" was swim's
 # act under a second name, and a dry bank has no up).
-verbs: [descend, dive]
+verbs: [descend]
 controller: /platform/idea/cmd/movement/DescendController
 description: "Swim down through the water, toward the bottom."
 help: |
-  In the water, `descend` (or `dive`) swims you down: under the surface,
+  In the water, `descend` (or `dive`, or `swim down`) swims you down: under the surface,
   down through the light, into the dark, and to the bottom. From the ice
   at the edge of a hole it takes you in and under. `ascend` (or
   `surface`) brings you back up a band at a time.
 
-  To get into the water from beside it — a quay, a strand — `swim`.
+  To get into the water from beside it — a quay, a strand — `swim`,
+  `jump` or `dive`. Every band takes time to swim: the deeper the water,
+  the longer the way back to the air.
 
   Every band costs breath. Nobody drags you up: you come up when you
   choose to, or you do not.

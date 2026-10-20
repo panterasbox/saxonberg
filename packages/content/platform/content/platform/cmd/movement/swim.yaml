@@ -6,8 +6,9 @@
 # in words where a way cannot be swum; ⛔ a shore or a deck is never
 # itself swimmable. (The `StillWater` thing that stood in the pool and on
 # the strand is retired: water is not an instrument you set down.)
-# `jump` is the same act from a quay — in, off the edge (underwater review).
-verbs: [swim, jump]
+# `jump` and `dive` are the same act from a quay — in, off the edge; in
+# the water, `dive` is down (underwater review).
+verbs: [swim, jump, dive]
 controller: /platform/idea/cmd/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."
 help: |
@@ -21,7 +22,8 @@ help: |
 
   ⭐ `swim` with no way named takes you into the water from where you
   stand: off a quay or a strand into the water beside it, or off the
-  ice at the edge of a hole. `stand` gets you back out, if what you
+  ice at the edge of a hole. `jump` and `dive` say the same. Once you
+  are in, `dive` (like `swim down` or `descend`) takes you down. `stand` gets you back out, if what you
   climb onto will bear you.
 validators:
   - /lib/command/validators/requiresAnimate

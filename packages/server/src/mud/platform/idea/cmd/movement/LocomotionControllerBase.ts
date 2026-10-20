@@ -34,6 +34,10 @@ import type { LocomotionMode } from '../../LocomotionMode';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { WorldClockApi } from '../../../../api/worldclock';
+import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import type { Mobile } from '../../../../lib/spatial/Mobile';
 
 export interface LocomotionModel extends CommandModel {
   target?: MqlOneResult;
@@ -129,8 +133,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // conveyance host, engagement and the move all live in
     // `Mobile.traverse`, the one authoritative sequence. The controller
     // chose the exit and the mode; it reports what the crossing said.
-    const guard = await actor.traverse(exit, mode.getName());
-    if (!guard.ok) this.emitRejection(guard, mode, model, context);
+    await this.cross(actor, exit, mode, model, context);
   }
 
   /**
@@ -142,8 +145,60 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     if (!MixinApi.isMobile(actor)) return;
     await LocomotionApi.preloadActorAnatomy(actor);
     const mode = await LocomotionApi.loadMode(this.modeName(context));
+    await this.cross(actor, exit, mode, {} as LocomotionModel, context);
+  }
+
+  /**
+   * ⭐ The one crossing every movement verb ends in. A way that takes TIME
+   * (`Exit.crossingRealS` — a swim down the water) is asked first whether
+   * it will let you through at all, then holds your hands that long and
+   * crosses at the end: `stop` leaves you where you were. Any other way is
+   * the instant crossing. The crossing decides; this reports what it said.
+   */
+  private async cross(
+    actor: Stuff & Mobile,
+    exit: Exit,
+    mode: LocomotionMode,
+    model: LocomotionModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const realS = await exit.crossingRealS(actor);
+    if (realS > 0 && MixinApi.isEngaged(actor) && MixinApi.isContainable(actor)) {
+      // Asked BEFORE the time is spent: a way that will refuse at the end
+      // (the ice overhead, too heavy to rise) refuses now.
+      const gate = await exit.canTraverse(actor, mode.getName());
+      if (!gate.ok) {
+        this.emitRejection(gate, mode, model, context);
+        return;
+      }
+      const modeName = mode.getName();
+      const scale = WorldClockApi.getScale();
+      const step = new ManualBuildStep({
+        actor,
+        slots: ['hands'],
+        durationMs: realS * 1000 * (Number.isFinite(scale) && scale > 0 ? scale : 1),
+        // ⚠ Never back into this controller: it is destructed when
+        // `execute` returns (`lint:completion-this`).
+        onComplete: () => {
+          void arriveAfter(actor, exit, modeName);
+        },
+      });
+      const started = SchedulerApi.start(step);
+      if (!started.ok) {
+        MessageApi.scene(actor).topic('shell.result').toSelf(Mml.compose`Your hands are already busy.`).send();
+        context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'engagement-conflict' });
+        return;
+      }
+      const way = exit.getDirection();
+      MessageApi.scene(actor)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You ${modeName} ${way}.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} ${modeName}s ${way}.`)
+        .send();
+      return;
+    }
     const guard = await actor.traverse(exit, mode.getName());
-    if (!guard.ok) this.emitRejection(guard, mode, {} as LocomotionModel, context);
+    if (!guard.ok) this.emitRejection(guard, mode, model, context);
   }
 
   /**
@@ -235,5 +290,19 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
     case 'unbuilt': return 'unbuilt';
     case 'unpublished': return 'unpublished';
     default: return 'exit-mode';
+  }
+}
+
+/**
+ * A timed crossing lands: the crossing itself, unless the mover blacked
+ * out on the way (they got no further). A refusal at the last is said in
+ * the crossing's own words.
+ */
+async function arriveAfter(actor: Stuff & Mobile, exit: Exit, mode: string): Promise<void> {
+  if (actor.isDestroyed()) return;
+  if (MixinApi.isVitals(actor) && actor.getConsciousness() !== 'conscious') return;
+  const guard = await actor.traverse(exit, mode);
+  if (!guard.ok) {
+    MessageApi.scene(actor).topic('shell.result').toSelf(Mml.fromMarkup(guard.reason ?? 'You can\'t get there.')).send();
   }
 }

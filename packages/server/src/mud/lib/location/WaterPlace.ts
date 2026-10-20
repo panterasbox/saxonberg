@@ -178,6 +178,15 @@ export interface WaterPlace {
   /** Give this water its way down when it has a column (load on use). */
   ensureColumnExits(): Promise<void>;
   /**
+   * ⭐ The way down the water from here for `actor` — or why there is
+   * none, in words (underwater review: the place decides; `descend`,
+   * `dive` and `swim down` render). Off the ice at a hole, you let go of
+   * what holds you up first.
+   */
+  wayDown(actor: Stuff): Promise<{ exit: Exit } | { reason: string; line: string }>;
+  /** The way up the water from here, or why there is none. */
+  wayUp(): { exit: Exit } | { reason: string; line: string };
+  /**
    * ⭐ A body with nothing left to stay up with goes under (underwater
    * D12): into the first band of the column, silently. `false` when this
    * water has no column (you would be standing).
@@ -512,7 +521,31 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       await column?.ensureColumnExits(self);
     }
 
-        public async takeUnder(body: Stuff): Promise<boolean> {
+        public async wayDown(actor: Stuff): Promise<{ exit: Exit } | { reason: string; line: string }> {
+      const floor = this.waterFloor();
+      if (floor !== null && floor.supportIsSlotted() && floor.supports(actor)) {
+        if (!(floor.openWaterAreaM2() > 0)) {
+          return { reason: 'no-open-water', line: 'There is no open water here to go down into.' };
+        }
+        floor.giveWay(actor, true);
+      }
+      await this.ensureColumnExits();
+      const exit = (this as unknown as Stuff & Exitable).getExit('down');
+      return exit ? { exit } : { reason: 'no-deeper', line: 'The water is no deeper here.' };
+    }
+
+    public wayUp(): { exit: Exit } | { reason: string; line: string } {
+      // ⭐ At the top of the water there is no further up (found by the
+      // drive): the basin's own `up` is the quay WALL. Out of the water is
+      // `climb`, by something you can climb.
+      if (this.surfacePlace() === (this as unknown as Stuff)) {
+        return { reason: 'at-surface', line: 'You are already at the surface.' };
+      }
+      const exit = (this as unknown as Stuff & Exitable).getExit('up');
+      return exit ? { exit } : { reason: 'at-surface', line: 'You are already at the surface.' };
+    }
+
+    public async takeUnder(body: Stuff): Promise<boolean> {
       const first = this.bandsNow()[0];
       if (first === undefined || !MixinApi.isContainable(body)) return false;
       const column = await waterColumn();

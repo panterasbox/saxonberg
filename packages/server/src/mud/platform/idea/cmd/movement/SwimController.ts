@@ -32,6 +32,14 @@ export default class SwimController extends LocomotionControllerBase {
     if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    // ⭐ `dive` in the water is down (underwater review): the place picks
+    // the way, the same as `descend`.
+    // Off the ice at a hole, the water place lets go of you first.
+    if (context.verb === 'dive' && room !== null && MixinApi.isWaterPlace(room)) {
+      const way = await room.wayDown(giver);
+      if (!('exit' in way)) return this.refuse(context, 'act.deed', way.line, way.reason);
+      return this.crossPicked(giver, way.exit, context);
+    }
     const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
     if (!(floor instanceof WaterSurface) && room !== null && MixinApi.isShore(room) && !MixinApi.isWaterPlace(room)) {
       const way = room.wayIntoWater();
