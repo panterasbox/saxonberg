@@ -31,25 +31,35 @@ data:
       wageRate: 3
       headcount: 1
       purchases: true
+  # ⭐ Every seat names its STATION: a shift starts by moving the hand to
+  # it, and without one that is the house's first room — the store — so
+  # the cutters stood in the shop with no cane in sight and the estate
+  # never made a block (sugar drive 8). Each is the room its errand
+  # starts from.
   rosterSlots:
     - positionKey: cutter
       assignee: /world/terminus/waponi-woo/agent/cutter-1
+      station: /world/terminus/waponi-woo/location/cane-piece
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
     - positionKey: cutter
       assignee: /world/terminus/waponi-woo/agent/cutter-2
+      station: /world/terminus/waponi-woo/location/cane-piece
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
     - positionKey: miller
       assignee: /world/terminus/waponi-woo/agent/miller
+      station: /world/terminus/waponi-woo/location/mill-yard
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
     - positionKey: boiler
       assignee: /world/terminus/waponi-woo/agent/boiler
+      station: /world/terminus/waponi-woo/boiling-house/location/train-floor
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [8, 20] }
     - positionKey: hand
       assignee: /world/terminus/waponi-woo/agent/hand
+      station: /world/terminus/waponi-woo/location/store
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
   banksAt: goodkin

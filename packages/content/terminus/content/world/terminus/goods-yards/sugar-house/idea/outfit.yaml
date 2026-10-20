@@ -24,10 +24,12 @@ data:
   rosterSlots:
     - positionKey: refiner
       assignee: /world/terminus/goods-yards/sugar-house/agent/refiner
+      station: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
     - positionKey: hand
       assignee: /world/terminus/goods-yards/sugar-house/agent/hand
+      station: /world/terminus/goods-yards/sugar-house/location/ground/store
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
   parLines:

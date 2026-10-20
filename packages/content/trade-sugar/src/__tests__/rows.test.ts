@@ -37,6 +37,12 @@ describe('trade-sugar rows', () => {
     }
   });
 
+  it('⭐ cane is a RATOON: a cut keeps the stand (an annual was four blocks, ever)', () => {
+    const cane = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/plant/cane'), 'utf8'));
+    expect(cane.data.profile.fruitSetCount).toBeGreaterThan(0);
+    expect(cane.data.profile.fruitFillDays).toBeGreaterThan(0);
+  });
+
   it('every extends names a shipped parent', () => {
     for (const { file, row } of rows) {
       if (row?.extends?.startsWith('/trade/sugar/')) {

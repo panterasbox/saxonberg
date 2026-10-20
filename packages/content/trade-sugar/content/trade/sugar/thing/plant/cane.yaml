@@ -27,3 +27,14 @@ data:
     warmHappyK: 300
     rootDemand: { seedling: 0.3, young: 1.5, established: 3.0, mature: 4.0 }
     daysToStage: { young: 30, established: 120, mature: 330 }
+    # ⭐⭐ RATOON — cut, and it comes again from the root (the polycarp
+    # cycle; the plant keeps its place). A stand is one cutting block of
+    # its piece and the gang works the piece round, so `fruitFillDays` is
+    # the ROTATION back to this block, not the plant's own year (an
+    # abstraction that still costs the cut, the carry, the crush and the
+    # boil). As an annual — which it shipped as — a cut ENDED the plant:
+    # the estate's twenty-four stands were about four blocks of sugar,
+    # ever (sugar drive 8). Three bundles a cut (ninety kilos in the arms
+    # is enough to carry), a fortnight round.
+    fruitSetCount: 3
+    fruitFillDays: 15

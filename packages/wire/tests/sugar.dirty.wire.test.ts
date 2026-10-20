@@ -264,6 +264,17 @@ async function books(where: string): Promise<string> {
   }
 }
 
+/**
+ * Wait for daylight if it is night: a carried glowcap is too dim to make a
+ * place out by, and drive 8 reached the island at dusk — every Stage B
+ * look read "pitch dark" or "shapes and edges".
+ */
+async function daylight(): Promise<void> {
+  const now = await worldClockNow();
+  const hour = (now - Math.floor(now / DAY) * DAY) / HOUR;
+  if (hour < 7 || hour >= 17) await toHourOfDay(8);
+}
+
 /** Advance to the next `hour`:00. */
 async function toHourOfDay(hour: number): Promise<void> {
   const now = await worldClockNow();
@@ -573,6 +584,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   }, 600_000);
 
   it('13. ⭐ sailed from the estuary to Waponi Woo: she raises the island and lies off its landing', async () => {
+    // ⭐ Away at dawn: the peak comes up about a day and a half out, and a
+    // lookout cannot raise an island in the dark.
+    await toHourOfDay(6);
+    sailor.close();
+    sailor = await goTo(sailorHandle, MOUTH);
     // What Terminus feels like tonight, for step 14 to compare against.
     homeFeel = await say(sailor, 'analyze temperature');
     await say(sailor, 'go aboard');
@@ -605,6 +621,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
 
   it('14. ⭐ warm air, rich ground, the volcano, and sulfur won at the vents', async () => {
     sailor.close();
+    await daylight();
     sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
     // ⭐ Warmer than Terminus — not "warm": thirty degrees in January is
     // Madeira's winter (a night reads ~284 K against the estuary's 273).
@@ -627,6 +644,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
 
   it('15. ⭐ cut cane, milled at once: juice and bagasse; a bundle left a day reads inverted', async () => {
     sailor.close();
+    await daylight();
     sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
     await act(sailor, 'harvest cane');
     await act(sailor, 'harvest cane');
@@ -645,6 +663,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
 
   it('16. ⭐ wet bagasse will not light; the train burns better than the open kettle', async () => {
     sailor.close();
+    await daylight();
     sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
     const train = await examine(sailor, 'train');
     expect(train).toMatch(/copper|flue|train/i);
@@ -653,6 +672,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
 
   it('17. ⭐ cane sells at the estate counter, and the owner is a named person', async () => {
     sailor.close();
+    await daylight();
     sailor = await goTo(sailorHandle, `${W}/location/lower-piece`);
     await act(sailor, 'harvest cane');
     sailor.close();
@@ -667,18 +687,19 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // loaded): ripe cane is cut and carried, crushed, the juice boiled on
     // the train, struck into a hogshead, and the cured block shelved.
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
-    let counter = '';
-    for (let i = 0; i < 12 && !/raw sugar|block/i.test(counter); i++) {
+    // ⭐ Proven by BUYING one: the counter's own description names sugar
+    // whether or not it holds any (drive 8 passed this on a bare shelf).
+    // She stays ON the island through the wait: its hands work while it is
+    // loaded, and a sailor who leaves takes the island's attention with her.
+    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    let bought = '';
+    for (let i = 0; i < 14 && !/you buy/i.test(bought); i++) {
       await advance(12 * HOUR);
-      counter = await examine(sailor, 'kettle');
-      sailor.close();
-      sailor = await goTo(sailorHandle, `${W}/location/store`);
-      counter = await examine(sailor, 'counter');
-      sailor.close();
-      sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
+      await daylight();
+      bought = await say(sailor, 'buy block');
     }
-    expect(counter, 'the estate never shelved a block of its own sugar').toMatch(/raw sugar|block/i);
+    if (!/you buy/i.test(bought)) await books(`${W}/location/store`);
+    expect(bought, 'the estate never shelved a block of its own sugar').toMatch(/you buy/i);
   }, 3_600_000);
 
   it('19. ⭐⭐ cargo in the Hesper\'s hold survives a restart (D13)', async () => {

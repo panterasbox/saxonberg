@@ -5,3 +5,9 @@
 extends: /trade/sugar/thing/plant/cane
 data:
   growthStage: mature
+  # The first crop stands ripe (the mulberry walk's fields: thriving, the
+  # cycle open and full), so the gang has cane to cut on a fresh boot.
+  _vigor: 0.9
+  _flowering: true
+  _seedSet: true
+  _fruitFill: 1
