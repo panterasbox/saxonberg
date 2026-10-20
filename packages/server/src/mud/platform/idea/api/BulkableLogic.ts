@@ -18,6 +18,8 @@ import type {
 } from '../../../lib/bulk/Bulkable';
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
+import type { CompositionEntry } from '../../../lib/material/Material';
+import '../../../lib/material/Composition';
 import { Freshness } from '../../../lib/material/Freshness';
 import { WaterActivity } from '../../../lib/material/WaterActivity';
 import { Contamination } from '../../../lib/material/Contaminable';
@@ -139,6 +141,12 @@ export class BulkableLogic extends ApiLogic {
     // ⚠ A side with no age at all (new spirit, water) does not pull the
     // answer to zero; it simply has nothing to say. Only two aged
     // parcels can make a blend younger than its oldest half.
+    // ⭐ A pool's composition (ceramics ruling C) folds by volume — the
+    // dissolved-toxin shape over `materialPath`.
+    const alloying = blendComposition(from?.alloying, fromL, to?.alloying, toL);
+    if (alloying.length === 0) delete base.alloying;
+    else base.alloying = alloying;
+
     const ages = [from?.maturedDays, to?.maturedDays].filter(
       (d): d is number => typeof d === 'number' && d > 0,
     );
@@ -576,6 +584,16 @@ export class BulkableLogic extends ApiLogic {
       // destination just carried the source's payload across above.
       // ⭐ Water hardness blends by VOLUME (cleanliness D12): a pail of the
       // Kestrel tipped into a copper of rainwater makes it a little hard.
+      // ⭐ A molten pool's composition blends by VOLUME (ceramics ruling
+      // C): a green cullet tipped into a clear melt tints it.
+      if (!toWasEmpty && (fromPayload?.alloying || to.getPayload()?.alloying)) {
+        const held = to.getPayload();
+        const alloying = blendComposition(fromPayload?.alloying, applied, held?.alloying, toAmountBefore);
+        const next: BulkPayload = { ...(held ?? {}) };
+        if (alloying.length > 0) next.alloying = alloying;
+        else delete next.alloying;
+        to.setPayload(next);
+      }
       const fromDgh = fromPayload?.hardnessDgh;
       if (!toWasEmpty && typeof fromDgh === 'number') {
         const held = to.getPayload();
@@ -873,4 +891,29 @@ function draughtL(): number {
   } catch {
     return 0.25;
   }
+}
+
+/**
+ * Two pools' compositions, folded by volume. ⚠ `Concentration.blend` is
+ * typed `{type, amount}`; a composition is `{materialPath, fraction}`, so
+ * the fold is its own — the same arithmetic over the other key.
+ */
+function blendComposition(
+  a: readonly CompositionEntry[] | undefined,
+  aL: number,
+  b: readonly CompositionEntry[] | undefined,
+  bL: number,
+): CompositionEntry[] {
+  const total = Math.max(0, aL) + Math.max(0, bL);
+  if (!(total > 0)) return [];
+  const acc = new Map<string, number>();
+  for (const [list, l] of [[a, aL], [b, bL]] as const) {
+    for (const e of list ?? []) {
+      if (!e || !(e.fraction > 0)) continue;
+      acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * (Math.max(0, l) / total));
+    }
+  }
+  return [...acc]
+    .filter(([, f]) => f > 1e-6)
+    .map(([materialPath, fraction]) => ({ materialPath, fraction }));
 }

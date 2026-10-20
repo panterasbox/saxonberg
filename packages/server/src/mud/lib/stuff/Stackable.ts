@@ -43,6 +43,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
+import type { Thermal } from '../thermal/Thermal';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
 import { StuffApi } from '../../api/stuff';
@@ -234,6 +235,19 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
        */
       if (titled(self) || titled(other)) return false;
 
+      // ⭐ Two piles of different MATTER are not one pile (ceramics M1). A
+      // piece keeps its row through a firing and its material changes, so a
+      // lump of quicklime and a lump of limestone share a template path —
+      // and a half-burnt lump is neither. Same material, and fired alike.
+      if (MixinApi.isTangible(self) && MixinApi.isTangible(other)) {
+        if (self.getMaterial()?.getTemplatePath() !== other.getMaterial()?.getTemplatePath()) {
+          return false;
+        }
+      }
+      if (MixinApi.isThermal(self) && MixinApi.isThermal(other)) {
+        if (firedSignature(self) !== firedSignature(other)) return false;
+      }
+
       // Union of both classes' stackIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
       // the inter-stuff contract); falls through to property access for
@@ -348,6 +362,16 @@ function titled(stuff: Stuff): boolean {
   return typeof asChattel.getChattelId === 'function'
     ? (asChattel.getChattelId() ?? '').length > 0
     : false;
+}
+
+/** How far a piece's firing went, coarsely — two piles fired alike merge. */
+function firedSignature(s: Stuff & Thermal): string {
+  const rec = s.getHeatWork();
+  if (rec === null) return '';
+  return Object.entries(rec.conversions)
+    .map(([k, c]) => `${k}:${Math.round(c.degree * 20)}`)
+    .sort()
+    .join(',');
 }
 
 /**

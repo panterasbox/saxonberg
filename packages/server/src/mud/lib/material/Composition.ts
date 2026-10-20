@@ -25,6 +25,23 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CompositionEntry } from './Material';
 
+// ⭐ A molten pool carries its composition (ceramics ruling C, revision 2):
+// declared from the folder that owns the concept (the five-extender
+// pattern). Seeded by `doMelt` from the melting piece's alloying, folded by
+// volume on every pour, and stamped back onto a `Composition` cast at the
+// set — so a green bottle remelted comes back green, and a pig's carbon
+// rides the crucible into the ingot.
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /**
+     * What is dissolved in this pool, by mass fraction — the piece's own
+     * `alloying`, molten. ⚠ Not `composition`: that name is the drink
+     * blend's (`BlendPart[]`).
+     */
+    alloying?: CompositionEntry[];
+  }
+}
+
 /** The smallest fraction worth keeping — below this, the entry is dropped. */
 const EPSILON = 1e-6;
 
@@ -43,6 +60,12 @@ export interface Composition {
    * authored a composition summing to 1.
    */
   getEffectiveComposition(): CompositionEntry[];
+  /**
+   * ⭐ Fold `entries` in as `massKg` of input against what this piece
+   * already is (its current mass), mass-weighted — the arithmetic a mixing
+   * vessel and a many-input craft share (ceramics D34).
+   */
+  absorbComposition(entries: readonly CompositionEntry[], massKg: number, intoKg: number): void;
 
   // Public so the applier can reflect into it; in-class code reads it
   // directly. Not the inter-Stuff contract (that is the methods).
@@ -106,6 +129,26 @@ export function CompositionMixin<TBase extends MixinConstructor>(Base: TBase) {
         else out.push({ materialPath: entry.materialPath, fraction });
       }
       this.alloying = out;
+    }
+
+    public absorbComposition(
+      entries: readonly CompositionEntry[],
+      massKg: number,
+      intoKg: number,
+    ): void {
+      const add = Math.max(0, massKg);
+      const have = Math.max(0, intoKg);
+      const total = add + have;
+      if (!(total > 0)) return;
+      const acc = new Map<string, number>();
+      for (const e of this.alloying) {
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * (have / total));
+      }
+      for (const e of entries ?? []) {
+        if (!e || typeof e.materialPath !== 'string') continue;
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + clamp01(e.fraction) * (add / total));
+      }
+      this.setAlloying([...acc].map(([materialPath, fraction]) => ({ materialPath, fraction })));
     }
 
     public setFractionOf(materialPath: string, fraction: number): void {

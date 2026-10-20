@@ -33,6 +33,14 @@ data:
   # charcoal or coke in the firebox, because oak's flame tops out near
   # 1340 K and the starvation factor eats into that.
   burnTemperatureK: 1500
+  # ⭐⭐ A retort is SHUT (ceramics ruling A): its charge sits in a sealed
+  # iron or brick chamber with no air to burn in, so its completeness
+  # must stay below `fire.air.flamingCompleteness` (0.6) — at 0.3 it is
+  # ≈ 0.35, the wood and coal in it char and coke by their own
+  # transitions and nothing catches. Held ≈ 1500 × 0.84 ≈ 1260 K with
+  # charcoal in the firebox — still past coal's 1100 K reference. Open the
+  # draught wide and the charge catches and burns: a retort fired open.
+  draught: 0.3
   bellowsMultiplier: 1
   lit: false
   maxBurnPowerW: 14000

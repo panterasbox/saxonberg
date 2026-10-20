@@ -1,0 +1,18 @@
+# masonry — ⭐ laying fired and dressed units with a joint: a furnace lining
+# relined with firebrick, a wall, a flue. Credited by the joint row a
+# lining's part line names (ceramics D29), so `fit lining to furnace` is
+# masonry wherever the furnace stands.
+#
+# ISCED-F 2013 **0732 — Building and civil engineering**.
+class: /platform/idea/Discipline
+data:
+  key: masonry
+  channel: skill
+  label: Masonry
+  iscedf: "0732"
+  description: >-
+    Laying brick and stone true with a joint that holds: relining a
+    furnace with firebrick before its heat falls away, and knowing which
+    joint a course wants.
+  specializes: []
+  requires: []

@@ -1,0 +1,22 @@
+# Stoneware — clay fired until it vitrifies: dense, grey, nearly impervious,
+# and it RINGS. Holds water without a glaze, which is why a sourdough
+# starter lives in a stoneware crock. ⚠ Brittle under a sudden heat — its
+# glassy body cannot take a cook fire (the thermal-shock read, W2).
+class: /platform/idea/material/Material
+data:
+  name: stoneware
+  keywords: [stoneware, pottery, clay, fired]
+  appearance: dense grey stoneware that rings when tapped
+  density: 2300
+  specificHeat: 880
+  thermalConductivity: 1.5
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 1.5
+  hardness: 90
+  toughness: 7
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "stoneware"]
+  composition: []
+  biologicalSource: null

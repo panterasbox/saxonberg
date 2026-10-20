@@ -439,6 +439,11 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
     const solute = p?.water?.solute ?? 0;
     cast.setWaterState({ moisture: pool.moisture, solute });
   }
+  // ⭐ What was dissolved in the pool sets into the cast (ceramics ruling
+  // C): a green bottle remelted comes back green; a pig's carbon rides.
+  if (p?.alloying && p.alloying.length > 0 && MixinApi.isComposition(cast)) {
+    cast.setAlloying(p.alloying);
+  }
   if (p?.madeFrom) {
     const probe = cast as unknown as Partial<MadeFromHolding>;
     if (typeof probe.setMadeFrom === 'function') probe.setMadeFrom(p.madeFrom);

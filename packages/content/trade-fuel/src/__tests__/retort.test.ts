@@ -26,7 +26,7 @@ import Gasometer from '../thing/Gasometer';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Location from '@saxonberg/server/mud/lib/location/Location';
-import { Recipe } from '@saxonberg/server/mud/lib/craft/Recipe';
+import { HeatTransition, type HeatTransitionSpec } from '@saxonberg/server/mud/lib/material/HeatTransition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
@@ -41,13 +41,16 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 
 const PACK = fileURLToPath(new URL('../../', import.meta.url));
+/** ⭐ The commons rows moved to base-library (ceramics R4). */
+const BASE = fileURLToPath(new URL('../../../base-library/', import.meta.url));
 const TAR = '/stuff/idea/material/bulk/wood-tar';
 const COAL_TAR = '/stuff/idea/material/bulk/coal-tar';
 const COAL_GAS = '/stuff/idea/material/gas/coal-gas';
 
 /** A content row, read off disk. */
 function row(rel: string): Record<string, unknown> {
-  const file = join(PACK, 'content', rel);
+  const own = join(PACK, 'content', rel);
+  const file = existsSync(own) ? own : join(BASE, 'content', rel);
   if (!existsSync(file)) throw new Error(`no row at ${rel}`);
   return YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
 }
@@ -118,51 +121,44 @@ describe('the retort', () => {
   }
 
   describe('the rows say what the mechanism needs', () => {
-    it('⭐ the two firings declare their volatiles, and the keys validate', () => {
-      const wood = Recipe.fromData(row('recipes/retort-wood.yaml'));
-      expect(wood.getVolatiles()).toEqual([
-        { material: TAR, litresPerKg: 0.08 },
-      ]);
-      const coal = Recipe.fromData(row('recipes/retort-coal.yaml'));
-      expect(coal.getVolatiles().map((v) => v.material)).toEqual([
-        COAL_TAR,
-        COAL_GAS,
-      ]);
+    /** A material row's heat transition, by key. */
+    function transition(rel: string, key: string): HeatTransitionSpec {
+      const specs = (row(rel).data as { heatTransitions: HeatTransitionSpec[] }).heatTransitions;
+      const t = specs.find((x) => x.key === key);
+      if (!t) throw new Error(`${rel} has no '${key}' transition`);
+      return t;
+    }
+
+    it('⭐ the two charges declare their volatiles on their MATERIALS, and the keys validate', () => {
+      // ⭐ Ceramics ruling A: no retort recipe — wood chars and coal cokes
+      // by their own heat transitions, and the tar and gas are the
+      // transitions' third product, wherever the charge is held.
+      const wood = new HeatTransition(transition('stuff/idea/material/wood/hazel.yaml', 'char'));
+      expect(wood.getVolatiles()).toEqual([{ material: TAR, litresPerKg: 0.08 }]);
+      const coal = new HeatTransition(transition('stuff/idea/material/mineral/coal.yaml', 'coke'));
+      expect(coal.getVolatiles().map((v) => v.material)).toEqual([COAL_TAR, COAL_GAS]);
     });
 
     it('⚠ a misspelt volatiles key fails at READ, not silently', () => {
       // A retort that quietly made no tar would still produce its char
       // and still look right, which is the shape of defect this refuses.
-      //
-      // ⭐ Asserted through `fromData` — the path a pack install actually
-      // takes — rather than through the validator directly. The
-      // validator is private (`lint:lib-statics`: one caller), and this
-      // is the better test for it anyway.
-      const base = row('recipes/retort-wood.yaml') as Record<string, unknown>;
-      const withVolatiles = (v: unknown): Record<string, unknown> => ({
-        ...base,
-        volatiles: v,
-      });
-      expect(() =>
-        Recipe.fromData(withVolatiles([{ material: TAR, litresPerKG: 0.08 }])),
-      ).toThrow(/litresPerKg|unknown key/);
-      expect(() =>
-        Recipe.fromData(withVolatiles([{ material: '', litresPerKg: 1 }])),
-      ).toThrow(/material/);
-      expect(() =>
-        Recipe.fromData(withVolatiles([{ material: TAR, litresPerKg: 0 }])),
-      ).toThrow(/litresPerKg/);
-      expect(() => Recipe.fromData(withVolatiles('tar'))).toThrow(/volatiles/);
+      const base = transition('stuff/idea/material/wood/hazel.yaml', 'char');
+      const withVolatiles = (v: unknown): HeatTransitionSpec =>
+        ({ ...base, volatiles: v }) as HeatTransitionSpec;
+      expect(() => new HeatTransition(withVolatiles([{ material: TAR, litresPerKG: 0.08 }]))).toThrow(/litresPerKg/);
+      expect(() => new HeatTransition(withVolatiles([{ material: TAR, litresPerKg: 0 }]))).toThrow(/litresPerKg/);
     });
 
-    it('⭐⭐ the charges are told apart by TAG — coal is not just `fuel`', () => {
-      // ⚠ Coal shares `fuel` and `carbon` with charcoal and coke, so
-      // without a tag meaning *this substance* a `fire` on a loaded
-      // retort could not tell a coal charge from a charcoal one.
-      expect(Recipe.fromData(row('recipes/retort-wood.yaml')).inputSlots[0])
-        .toMatchObject({ category: 'wood' });
-      expect(Recipe.fromData(row('recipes/retort-coal.yaml')).inputSlots[0])
-        .toMatchObject({ category: 'coal' });
+    it('⭐⭐ the charges are told apart by MATERIAL — wood chars, coal cokes', () => {
+      // ⚠ Coal shares `fuel` and `carbon` with charcoal and coke; nothing
+      // has to tell them apart by tag any more, because each charge's own
+      // material says what heat makes of it.
+      expect(transition('stuff/idea/material/wood/hazel.yaml', 'char').ladder.at(-1)!.becomes)
+        .toBe('/stuff/idea/material/organic/charcoal');
+      expect(transition('stuff/idea/material/mineral/coal.yaml', 'coke').ladder.at(-1)!.becomes)
+        .toBe('/stuff/idea/material/organic/coke');
+      // Both only where a flame cannot burn — a SHUT retort.
+      expect(transition('stuff/idea/material/mineral/coal.yaml', 'coke').requiresStarvedAir).toBe(true);
     });
 
     it('⭐ coke is tagged for the smelt and NOT sulfurous', () => {
@@ -181,7 +177,7 @@ describe('the retort', () => {
         purifiedByBoiling: string;
       };
       expect(tar.purifiedByBoiling).toBe('/stuff/idea/material/bulk/pitch');
-      expect(existsSync(join(PACK, 'content/stuff/idea/material/bulk/pitch.yaml')))
+      expect(existsSync(join(BASE, 'content/stuff/idea/material/bulk/pitch.yaml')))
         .toBe(true);
     });
   });

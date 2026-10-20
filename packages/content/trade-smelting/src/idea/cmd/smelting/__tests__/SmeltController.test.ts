@@ -849,6 +849,9 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
     // and one that is not.
     furnace.setBellowsActive(true);
     ContainmentApi.move(lump(1.4, 3, 0.12, GOETHITE), furnace);
+    // ⭐ Three 6 kg baskets: fuel is reckoned by MASS (ceramics W0), and a
+    // run wants 16 kg of it.
+    ContainmentApi.move(cokeBasket(), furnace);
     ContainmentApi.move(cokeBasket(), furnace);
     ContainmentApi.move(cokeBasket(), furnace);
     await smelt();

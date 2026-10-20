@@ -47,3 +47,21 @@ data:
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/salicaceae/salix/alba
     tissueType: wood
+  # ⭐⭐ Charcoal is this wood's transition (ceramics ruling A): held hot
+  # where a flame CANNOT burn — a turfed clamp, a shut retort, below
+  # `fire.air.flamingCompleteness` — it cooks its volatiles out and keeps a
+  # quarter of its mass as carbon. Starved too far (too cool) it only gets
+  # to brands; given air it catches and burns to ash instead. One rule.
+  heatTransitions:
+    - key: char
+      referenceK: 650
+      zK: 40
+      fullDoseS: 90000
+      massRetained: 0.25
+      requiresStarvedAir: true
+      volatiles:
+        - { material: /stuff/idea/material/bulk/wood-tar, litresPerKg: 0.08 }
+      ladder:
+        - { atDegree: 0.08, becomes: /stuff/idea/material/organic/half-burnt-wood, describes: half-burnt }
+        - { atDegree: 0.8, becomes: /stuff/idea/material/organic/charcoal, describes: charred }
+      discipline: colliery

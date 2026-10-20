@@ -206,6 +206,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // positioned thing's `expanse` the sea it is on, a chart's or a
     // pilot's `of` the sea they know.
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
+    // ⭐ The mixing citations (ceramics R1): what a vessel's blend IS and
+    // the row a solid blend is minted as. Resolved live at the end of a
+    // `stir` or a `knead`, and a rowless one is a blend that consumes its
+    // inputs and mints nothing.
+    'blendMaterial', 'blendTemplate',
   ] as const) {
     push(f, data[f]);
   }
@@ -246,6 +251,35 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);
+  }
+  // ⭐ `heatTransitions[]` (ceramics M1) — what heat makes of a material:
+  // each rung's `becomes` and `reducing`, the `over` and `scorched`
+  // materials, the agent, the volatiles and the vapor coats. Every one is
+  // resolved live in a reconcile nobody watches, and a rowless rung is a
+  // firing that banks heat-work and never changes the piece.
+  if (Array.isArray(data.heatTransitions)) {
+    for (const t of data.heatTransitions as Array<Record<string, unknown>>) {
+      if (!t || typeof t !== 'object') continue;
+      for (const r of (Array.isArray(t.ladder) ? t.ladder : []) as Array<Record<string, unknown>>) {
+        if (!r || typeof r !== 'object') continue;
+        push('heatTransitions', r.becomes);
+        push('heatTransitions', r.reducing);
+      }
+      push('heatTransitions', t.over);
+      push('heatTransitions', t.scorched);
+      if (t.agent && typeof t.agent === 'object') {
+        push('heatTransitions', (t.agent as Record<string, unknown>).material);
+      }
+      for (const v of (Array.isArray(t.volatiles) ? t.volatiles : []) as Array<Record<string, unknown>>) {
+        if (v && typeof v === 'object') push('heatTransitions', v.material);
+      }
+      if (t.vapor && typeof t.vapor === 'object') {
+        for (const [k, v] of Object.entries(t.vapor as Record<string, unknown>)) {
+          push('heatTransitions', k);
+          push('heatTransitions', v);
+        }
+      }
+    }
   }
 
   // ⭐ `costume:` — the garments an authored person has on, the third

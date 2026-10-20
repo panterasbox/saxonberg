@@ -164,6 +164,66 @@ The census-ratchet `lint:reconcile-chains` holds the line: a new
 (a logout), but dead matter integrates its absence, which is what makes a
 fridge losing power for a week spoil its contents.
 
+### ⭐⭐⭐ Heat-work — a body that has been hot carries what the heat did (ceramics M1)
+
+Firing is ONE rule, and it lives here. `ThermalMixin` keeps one persistent
+runtime record, `heatWork: HeatWorkRecord | null`, and one private
+`reconcileHeatWork()` called at the end of `reconcileThermal()` — after the
+phase pass, outside the reentry guard, under its own guard. It is **inert**
+(one material lookup that answers no) unless the body's material declares
+`heatTransitions`; a plate on a shelf never keeps a record, and a cold lump
+of limestone keeps none until it has been hot.
+
+For each transition (`lib/material/HeatTransition.ts`):
+
+- **dose** `+= ∫ 10^((T − referenceK)/zK) dt` off the body's OWN
+  `temperatureTrajectory` since `heatWork.checkedS` — so a brick nobody read
+  for three days is credited for three days (the trajectory contract above,
+  and the same integrand as `ThermalDose`);
+- **degree** `= min(1, dose/fullDoseS) · min(1, agent/optimum)`, the agent
+  read off the piece's OWN composition (`fractionOf(agent.material)`) — never
+  summed from neighbours (ruling B);
+- a **rung** is reached when the degree passes its `atDegree`: the piece's
+  MATERIAL swaps (its reducing twin when the dose-weighted burner
+  completeness sat below `thermal.heatWork.reducingBelow`; the `over`
+  material when its agent is at or past `agent.over`; the `scorched`
+  material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
+  (1 − massRetained))`, and its prose is restamped (the old material's name
+  swapped, or the rung's `describes` word put in front — never stacked);
+- **volatiles** leave as the degree rises, to the holder's
+  `receiveVolatiles` probe or else the air of the place;
+- standing in a `Mould` that is not its own cast, the piece instead hands
+  the mould a pool at the rung (`castInto`) and is destructed — the cast
+  `adoptHeatWork`s the record, so a cure keeps grading as its degree rises;
+- `requiresStarvedAir` (pyrolysis) accrues only in a burner chamber below
+  `fire.air.flamingCompleteness` — the dial `FireLogic.mediumBurns` reads; a
+  `Burning` combustible accrues nothing.
+
+The transitions read are the ORIGIN material's (`heatWork.origin`), so a clay
+keeps climbing through terracotta to stoneware. ⭐ The piece keeps its
+identity throughout: the same jug comes out of the kiln it went in. `fire`
+stamps `heatWork.firedBy`; a rung records its `discipline` in
+`heatWork.uncredited`, which `Burner.settleFiring` drains to the firer — an
+unwatched rung waits for whoever held the firing. Two stacks of different
+material, or fired differently, no longer merge (`Stackable.canMergeWith`).
+
+⚠ The ring is 24 breakpoints: a long burn re-stoked many times unread could
+lose its oldest stretch. The settle reads every body at the end of a hold.
+
+⚠ Ceramic heat-work is STEEP in temperature (an Orton cone drops ~20 K for a
+ten-times-longer soak), so `earth/clay` authors THREE transitions —
+terracotta, earthenware, stoneware — each with its own reference heat: time
+finishes the band you are in and cannot carry a terracotta firing to
+stoneware.
+
+**A molten pool keeps its composition** (ruling C): `BulkPayload.alloying`
+(⚠ not `composition`, which is the drink blend's) is seeded by `doMelt` from
+the melting piece's `getAlloying()`, folded by volume on every pour, and set
+back into a `Composition` cast at the freeze edge — so a green bottle remelted
+comes back green. `doMelt` pools into a vessel standing in the same chamber
+(empty, or holding the same material; never a mould) before it falls to the
+floor.
+
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 
 The rule under `heatSourceK` was never about heat: **what HOLDS this

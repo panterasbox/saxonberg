@@ -64,6 +64,13 @@ settings:
   - key: fire.air.smotherAirShare
     value: "0.70"
 
+  # ⭐ A flame needs air (ceramics R3). A burner below this completeness is
+  # a STARVED chamber: what is shut in it cannot catch, and wood in it
+  # chars instead of burning — the clamp at draught 0.45 (≈ 0.53) chars, at
+  # `draught wide` it burns. The same number the heat-work reconcile reads.
+  - key: fire.air.flamingCompleteness
+    value: "0.6"
+
   - key: fire.air.achPerOpening
     value: "4"
 

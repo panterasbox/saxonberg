@@ -1,0 +1,37 @@
+# The glass batch — sand, a flux and a stabilizer, mixed and not yet melted.
+#
+# ⭐⭐ It is a MIX and then a FIRING, and neither is a recipe (ceramics W0,
+# R1 and M1). The batch pot folds what was put in it by mass, so the iron
+# in this batch IS the iron its sand carried (and the carbon, when there was
+# charcoal in the pot — amber); then the heat does the rest, by the one rule:
+# held above the liquidus the batch gives up its gas and melts to glass,
+# keeping 72 % of its mass and everything dissolved in it.
+#
+# ⚠ No `meltingPoint`: a batch does not melt as a batch. It BECOMES glass
+# at its rung, and glass melts from then on.
+class: /platform/idea/material/Material
+data:
+  name: glass batch
+  keywords: [batch, "glass batch", frit]
+  appearance: a gritty pale batch of sand and ash
+  density: 1500
+  specificHeat: 840
+  thermalConductivity: 0.3
+  waterAbsorptionCapacity: 5
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["granular", "solid", "batch"]
+  composition: []
+  biologicalSource: null
+  heatTransitions:
+    - key: melt
+      # Above the liquidus — a kiln reaches it with the bellows going.
+      referenceK: 1400
+      zK: 60
+      fullDoseS: 3600
+      # The gall and the gases leave; the glass keeps 72 % of the batch.
+      massRetained: 0.72
+      discipline: glasswork
+      ladder:
+        - { atDegree: 1, becomes: /stuff/idea/material/glass/glass }

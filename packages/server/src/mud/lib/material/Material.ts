@@ -50,7 +50,7 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
+import { HeatTransition, type HeatTransitionSpec } from './HeatTransition';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -512,11 +512,12 @@ export default class Material extends SingletonMixin(
     this._elasticity = value;
   }
 
-  // ⭐⭐ The cure as data (rubber build): how this feedstock crosslinks
-  // with an agent under heat and time. `null` — every material but a raw
-  // elastomer — is inert. Validated by constructing the value object, so
-  // a curve that cannot be evaluated fails at the row.
-  private _crosslinking: Crosslinking | null = null;
+  // ⭐⭐ What heat does to this material (ceramics M1 — the rubber build's
+  // cure, generalised): the transitions a body of it undergoes as it
+  // banks heat-work. Empty — almost every material — is inert. Validated
+  // by constructing each value object, so a curve that cannot be
+  // evaluated fails at the row.
+  private _heatTransitions: HeatTransition[] = [];
 
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
 
@@ -1029,7 +1030,6 @@ export default class Material extends SingletonMixin(
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-    crosslinking: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1071,6 +1071,10 @@ export default class Material extends SingletonMixin(
       spoiler: 1,
       spoilerName: 0,
     },
+    // ── What heat does to it (ceramics M1) — a firing is one rule ──
+    // ⭐ Measured facts like the boiling point: what a kiln teaches you.
+    heatTransitions: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    vaporizesAboveK: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string { return this.name; }
@@ -1370,20 +1374,42 @@ export default class Material extends SingletonMixin(
     this.elasticity = value;
   }
 
-  /** ⭐ The cure this feedstock answers, or `null` (inert). */
-  public getCrosslinking(): Crosslinking | null {
-    return this._crosslinking;
+  /** ⭐ The transitions heat drives in this material (empty = inert). */
+  public getHeatTransitions(): readonly HeatTransition[] {
+    return this._heatTransitions;
   }
-  /** The authored spec as stored (the row's own shape), or `null`. */
-  protected get crosslinking(): CrosslinkSpec | null {
-    return this._crosslinking?.toSpec() ?? null;
+  /** The authored specs as stored (the row's own shape). */
+  protected get heatTransitions(): HeatTransitionSpec[] {
+    return this._heatTransitions.map((t) => t.toSpec());
   }
-  protected set crosslinking(value: CrosslinkSpec | null) {
-    this._crosslinking = value === null || value === undefined ? null : new Crosslinking(value);
+  protected set heatTransitions(value: HeatTransitionSpec[] | null) {
+    const list = Array.isArray(value) ? value : [];
+    const seen = new Set<string>();
+    this._heatTransitions = list.map((spec) => {
+      const t = new HeatTransition(spec);
+      if (seen.has(t.getKey())) {
+        throw new RangeError(`Material.heatTransitions: duplicate key '${t.getKey()}'`);
+      }
+      seen.add(t.getKey());
+      return t;
+    });
   }
-  /** Set the cure spec; throws on a curve that cannot be evaluated. */
-  public setCrosslinking(value: CrosslinkSpec | null): void {
-    this.crosslinking = value;
+  /** Set the transitions; throws on a curve that cannot be evaluated. */
+  public setHeatTransitions(value: HeatTransitionSpec[] | null): void {
+    this.heatTransitions = value;
+  }
+
+  /**
+   * ⭐ Above this temperature a lump of this material in a lit chamber
+   * becomes VAPOR in the chamber's air (salt at ~1350 K) — what a salt
+   * glaze is made from. `0` = never.
+   */
+  protected vaporizesAboveK = 0;
+  public getVaporizesAboveK(): number {
+    return this.vaporizesAboveK;
+  }
+  public setVaporizesAboveK(value: number): void {
+    this.vaporizesAboveK = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */

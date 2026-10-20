@@ -35,6 +35,8 @@ data:
       bidirectional: true
   props:
     - /trade/rubber/thing/oven
+    # ⭐ Where the sulfur is milled into the rubber (ceramics R1).
+    - /trade/rubber/thing/mixing-tub
     - /trade/rubber/thing/boot-mould
     - /trade/rubber/thing/glove-mould
     - /trade/rubber/thing/apron-mould

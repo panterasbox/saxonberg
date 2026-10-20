@@ -40,11 +40,15 @@ describe('the coppice', () => {
     const timber = row('trade-mining/content/recipes/timber-set.yaml') as unknown as {
       inputSlots: Array<{ category: string }>;
     };
-    const charcoal = row('trade-fuel/content/recipes/charcoal.yaml') as unknown as {
-      inputSlots: Array<{ category: string }>;
-    };
     expect(timber.inputSlots[0]!.category).toBe('wood');
-    expect(charcoal.inputSlots[0]!.category).toBe('wood');
+    // ⭐ The collier's side is the WOOD's own heat transition now
+    // (ceramics ruling A): hazel chars where a flame cannot burn.
+    const hazel = row('base-library/content/stuff/idea/material/wood/hazel.yaml').data as {
+      tags: string[];
+      heatTransitions: Array<{ key: string; requiresStarvedAir: boolean }>;
+    };
+    expect(hazel.tags).toContain('wood');
+    expect(hazel.heatTransitions.find((t) => t.key === 'char')?.requiresStarvedAir).toBe(true);
   });
 
   it('⭐ the stool is cut with a billhook, credits silviculture, and is READY on a fresh boot', () => {
@@ -89,32 +93,23 @@ describe('the coppice', () => {
     const lengthsPerYear = stools.length * stool.profile.fruitSetCount; // 48
     expect(lengthsPerYear).toBe(48);
 
-    const charcoal = row('trade-fuel/content/recipes/charcoal.yaml') as unknown as {
-      inputSlots: Array<{ count: number }>;
+    // ⭐⭐ Ceramics ruling A changed this arithmetic, and it is MASS now:
+    // a length chars to a quarter of itself (the wood's `char`
+    // transition, `massRetained`), so a panel's year is
+    // 48 × 3.2 kg × 0.25 ≈ 38 kg of charcoal — every length, no baskets.
+    const cordwood = row('trade-forestry/content/trade/forestry/thing/cordwood.yaml').data as { mass: number };
+    const hazel = row('base-library/content/stuff/idea/material/wood/hazel.yaml').data as {
+      heatTransitions: Array<{ key: string; massRetained: number }>;
     };
-    const perBurn = charcoal.inputSlots[0]!.count; // 8
-    const burns = Math.floor(lengthsPerYear / perBurn); // 6
-    expect(burns).toBe(6);
-
-    // The clamp's yield at a draught of 0.45 — the pit's own formula,
-    // reproduced: floor(lengths × yieldRatio × (1 − 0.4 × |d − centre| /
-    // halfWidth)) over the chars band [0.3, 0.62].
-    const clamp = row('trade-fuel/content/trade/fuel/thing/clamp.yaml').data as { yieldRatio: number };
-    const centre = (0.3 + 0.62) / 2;
-    const halfWidth = (0.62 - 0.3) / 2;
-    const efficiency = 1 - 0.4 * (Math.abs(0.45 - centre) / halfWidth);
-    const basketsPerBurn = Math.floor(perBurn * clamp.yieldRatio * efficiency);
-    expect(basketsPerBurn).toBe(2);
-
-    const smelt = row('trade-smelting/content/recipes/bloomery-iron.yaml') as unknown as {
-      inputSlots: Array<{ slot: string; count: number }>;
-    };
-    const perSmelt = smelt.inputSlots.find((s) => s.slot === 'fuel')!.count; // 2
-    const smeltsPerPanelPerYear = Math.floor((burns * basketsPerBurn) / perSmelt);
-    expect(smeltsPerPanelPerYear).toBe(6);
-    // …and the row SAYS so, in words a reader can check against this.
+    const retained = hazel.heatTransitions.find((t) => t.key === 'char')!.massRetained;
+    const charcoalKgPerYear = lengthsPerYear * cordwood.mass * retained;
+    expect(charcoalKgPerYear).toBeCloseTo(38.4, 1);
+    // ⚠ OPEN (ceramics W0): the panel rows' headers still state SIX SMELTS
+    // a year off the retired clamp yield (12 baskets of 8 kg). The smelt's
+    // `fuel` slot counts ITEMS, and a charred length is one, so the item
+    // arithmetic now reads 24. Which is right is a smelting question —
+    // fuel by mass — recorded for the sweep rather than pinned here.
     const header = readFileSync(`${CONTENT}${YARD_PANEL}`, 'utf8');
-    expect(header).toMatch(/SIX SMELTS per panel per game year/);
     expect(header.replace(/\n# ?/g, " ")).toMatch(/not a number to raise when somebody runs out/);
   });
 });

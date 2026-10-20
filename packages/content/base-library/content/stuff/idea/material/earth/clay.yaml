@@ -26,11 +26,54 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  # ⭐ `clay` added by the extraction build: a recipe matches an input slot
-  # against the MATERIAL's tags, so the firing that makes a pot asks for
-  # `clay` and a second clay works the day somebody ships one. The other four
-  # tags are what the ground build authored and are untouched.
+  # ⭐ `clay` added by the extraction build, so a second clay answers to
+  # the word. The other four tags are what the ground build authored.
   tags: ["earth", "solid", "soil", "plastic", "clay"]
   composition: []
+  # ⭐⭐ What heat does to it (ceramics M1) — firing is ONE rule. A piece of
+  # clay in a kiln, a clamp or a house fire banks heat-work, and these say
+  # what that makes of it. There is no recipe and no "fire-pot" row: the
+  # same lump comes out as itself, its body changed.
+  #
+  # ⚠ Three transitions, each with its own reference heat, not one ladder:
+  # heat-work in a ceramic body is STEEP in temperature (an Orton cone
+  # bends about 20 K lower for a ten-times-longer soak), so time cannot
+  # carry a terracotta firing to stoneware. Each body is a temperature
+  # band, and holding longer finishes the band you are in.
+  #
+  # A starved (reducing) firing takes each rung's twin. Past 1560 K a common
+  # clay bloats and glasses into clinker — the clamp's fire-channel brick.
+  heatTransitions:
+    - key: terracotta
+      referenceK: 1200
+      zK: 30
+      fullDoseS: 7200
+      # The organics and the bound water burn off — about a twelfth.
+      massRetained: 0.92
+      discipline: pottery
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/ceramic/terracotta
+          reducing: /stuff/idea/material/ceramic/terracotta-reduced
+    - key: earthenware
+      referenceK: 1330
+      zK: 30
+      fullDoseS: 7200
+      discipline: pottery
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/ceramic/earthenware
+          reducing: /stuff/idea/material/ceramic/earthenware-reduced
+    - key: stoneware
+      referenceK: 1480
+      zK: 30
+      fullDoseS: 7200
+      scorchAboveK: 1560
+      scorched: /stuff/idea/material/ceramic/clinker
+      discipline: pottery
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/ceramic/stoneware
+          reducing: /stuff/idea/material/ceramic/stoneware-reduced
   chemistry: null
   biologicalSource: null

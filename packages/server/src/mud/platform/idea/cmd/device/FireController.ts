@@ -1,51 +1,34 @@
 /**
- * FireController — `fire <kiln>` / `burn <kiln>`: ⭐⭐ **run whatever is
- * loaded in a chamber, at whatever heat it is holding.**
+ * FireController — `fire [<kiln>] [--draught <word>] [for <hold>]` /
+ * `burn …`: ⭐⭐ **hold a lit chamber at heat; decide nothing about the
+ * charge.**
  *
  * ## Why this is the PLATFORM's, on the appliance
  *
- * The plan had this verb afforded by an open working and living in the
- * quarrying trade, and accepted that *"a potter's shed affording `fire` is
- * the ceramics build's own class"* — which is the named failure mode *a
- * feature whose second instance requires a kernel edit*. And the
- * contradicting doctrine was already written in the kernel, on
- * `BurnerMixin` itself:
- *
- * > *"The fire-appliance verbs are **afforded by the appliance** … a room
- * > with a furnace affords lighting it, dousing it, working its bellows, and
- * > bringing a workpiece to its fire."*
- *
- * Five platform verbs already hang off that principle. Firing a loaded
- * chamber is the sixth, and it holds from Rome to New York: a limekiln, a
- * bread oven, a bottle kiln and a crucible furnace are one mechanism on
+ * Firing a loaded chamber is afforded by the chamber (`BurnerMixin`'s
+ * contributions), and it holds from Rome to New York: a limekiln, a bread
+ * oven, a bottle kiln and a crucible furnace are one mechanism on
  * different dials.
  *
- * ## ⭐⭐ The recipes do the work, and that is the whole expressiveness claim
+ * ## ⭐⭐ Firing is ONE rule (ceramics M1), and it is not here
  *
- * There is **no list of firings in this file**. The controller reads the
- * charge, asks the catalogue which recipe takes it, and runs that. So a pack
- * that ships a glass batch, a crucible charge or a brick clamp ships **a
- * recipe row** and touches no code — where the plan's version shipped two
- * recipe rows *"for the ladder and `help`"* while a bespoke act did the real
- * work, which is a ladder that lies.
+ * Until the ceramics build this controller scanned the recipe catalogue
+ * for a firing whose slots the charge satisfied, and ran it — a second
+ * path beside the physics, so a pot fired in a house fire and a pot fired
+ * in a kiln were different events. Now every body that has been hot
+ * carries its own heat history (`ThermalMixin.heatWork`), and its
+ * material says what that history makes of it (`Material.heatTransitions`).
+ * This verb **lights nothing and decides nothing**: it sets the air, holds
+ * the chamber at heat for as long as you tend it, and at the end asks the
+ * chamber to settle (`Burner.settleFiring`) — each piece reads itself — and
+ * says what came out by reading each piece's record.
  *
- * ⚠ **And it does the transform itself rather than calling
- * `CraftingApi.craft`, deliberately.** A craft picks its inputs out of the
- * actor's **reach**; a firing consumes what is **in the chamber**. Handing
- * the pick to reach would let a player fire a kiln using the limestone in
- * their own arms while the kiln's charge sat there, which is not what firing
- * is. `SmeltController.runCharge` made the same decision for the same
- * reason and is the shipped precedent; what is new here is that *which*
- * transform runs is a row rather than a branch.
- *
- * ## ⚠ `fire` is not `ignite`, and the synonym is not decoration
+ * ## ⚠ `fire` is not `ignite`
  *
  * *"Fire the kiln"* ambiguously means *light it* — which `ignite` owns — so
- * the chamber must already be lit and up to heat, and the refusal says which
- * of the two is missing (the smelt's own hard-won distinction: an unlit
- * furnace is a *cold* one, and telling somebody to work the bellows on a
- * stone-cold shaft sends them in a circle). **And a lime-burner burns lime**,
- * which is why `burn` is on the same view rather than being a second verb.
+ * the chamber must already be lit, and the refusal says so (the smelt's
+ * own hard-won distinction: an unlit furnace is a *cold* one). **And a
+ * lime-burner burns lime**, which is why `burn` is on the same view.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -53,63 +36,37 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Burner } from '../../../../lib/fire/Burner';
-import type { Recipe, RecipeInputSlot } from '../../../../lib/craft/Recipe';
-import type RecipeCatalogue from '../../RecipeCatalogue';
-import type { Atmospheric } from '../../../../lib/biome/Atmospheric';
+import type { HeatWorkRecord } from '../../../../lib/material/HeatTransition';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { StuffApi } from '../../../../api/stuff';
-import { ContainmentApi } from '../../../../api/containment';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
-import { Quantity } from '../../../../lib/quantity';
-import type { CompositionEntry } from '../../../../lib/material/Material';
-import type Material from '../../../../lib/material/Material';
-import type { Mould } from '../../../../lib/mould/Mould';
-import type { CrosslinkOutcome } from '../../../../lib/material/Crosslinking';
 
 const TOPIC = 'act.deed';
 
-/** Where the recipe roster lives. */
-const CATALOGUE_PATH = '/platform/idea/RecipeCatalogue';
-
-/** Game-ms a firing holds the chamber at heat. */
+/** Game-ms a firing is tended when no hold is named. */
 const FIRE_MS = 60_000;
 
 /** Metabolic watts of tending a firing — stoking and watching, not swinging. */
 const FIRE_EFFORT_W = 420;
 
+/** The draught ladder's words — the `draught` verb's own (DraughtController). */
+const DRAUGHTS: Readonly<Record<string, number>> = {
+  wide: 1,
+  open: 1,
+  half: 0.5,
+  low: 0.2,
+  banked: 0.05,
+};
+
 export interface FireModel extends CommandModel {
   kiln?: MqlOneResult;
   /** `for 30 minutes` — how long to hold the chamber at heat. */
   hold?: string;
-}
-
-/** One matched slot: the recipe's demand, and the items that answer it. */
-interface MatchedSlot {
-  slot: RecipeInputSlot;
-  items: Stuff[];
-}
-
-/** A firing, resolved: which recipe, what it consumes, how many it makes. */
-interface Firing {
-  recipe: Recipe;
-  matched: MatchedSlot[];
-  /** How many whole output units the charge supports. */
-  batches: number;
-  /** The mould the charge stands in, when it stands in one. */
-  mould: (Stuff & Mould) | null;
-}
-
-/** What `runFiring` is told about the act beyond the recipe. */
-interface FiringAct {
-  /** Game-seconds the chamber is held at heat. */
-  holdS: number;
-  /** The temperature it was holding when the firing began, K. */
-  heldK: number;
+  /** `--draught low` — the air to fire at. */
+  draught?: string;
 }
 
 export default class FireController extends CommandController<FireModel> {
@@ -127,33 +84,36 @@ export default class FireController extends CommandController<FireModel> {
     }
     const kiln = bound as Stuff & Container & Burner;
 
-    // ⭐ The charge is what the chamber holds — and, one level down, what a
-    // MOULD standing in it holds (the firing asks the mould for its shape).
-    // A mould is the only container this reaches into, and it asks
-    // `isMould`, never a class.
-    const loaded: Stuff[] = kiln.getContents().filter((c) => MixinApi.isTangible(c));
-    const moulds: Array<Stuff & Container & Mould> = [];
-    for (const c of loaded) {
-      if (MixinApi.isMould(c) && MixinApi.isContainer(c)) {
-        moulds.push(c as Stuff & Container & Mould);
+    let draught: number | null = null;
+    if (typeof model.draught === 'string' && model.draught.trim() !== '') {
+      draught = DRAUGHTS[model.draught.trim().toLowerCase()] ?? null;
+      if (draught === null) {
+        this.decline(
+          context,
+          Mml.compose`Fire it at what draught? Say wide, open, half, low or banked.`,
+          'bad-draught',
+        );
+        return;
       }
     }
-    const charged = moulds.filter((m) =>
-      m.getContents().some((c: Stuff) => MixinApi.isTangible(c)),
-    );
-    if (charged.length > 1) {
-      this.decline(
-        context,
-        Mml.compose`There is a charge in more than one mould in ${Mml.thing(kiln)}. Fire one mould at a time.`,
-        'mixed-charge',
-      );
-      return;
+
+    let holdS = FIRE_MS / 1000;
+    if (typeof model.hold === 'string' && model.hold.trim() !== '') {
+      const parsed = FireController.parseHoldS(model.hold);
+      if (parsed === null) {
+        this.decline(
+          context,
+          Mml.compose`Fire it for how long? Say it the way a clock does — "for 30 minutes", "for 2 hours".`,
+          'bad-duration',
+        );
+        return;
+      }
+      holdS = parsed;
     }
-    const mould = charged[0] ?? null;
-    const charge: Stuff[] =
-      mould !== null
-        ? mould.getContents().filter((c: Stuff) => MixinApi.isTangible(c))
-        : loaded.filter((c) => !MixinApi.isMould(c));
+
+    // ⭐ The charge is whatever is IN the chamber — and in a mould standing
+    // in it. Never an argument: the heat reaches what is there.
+    const charge = kiln.getContents().filter((c) => MixinApi.isTangible(c));
     if (charge.length === 0) {
       this.decline(
         context,
@@ -163,47 +123,9 @@ export default class FireController extends CommandController<FireModel> {
       return;
     }
 
-    // `for <how long>` — the world clock's own grammar.
-    let holdOverrideS: number | null = null;
-    if (typeof model.hold === 'string' && model.hold.trim() !== '') {
-      holdOverrideS = FireController.parseHoldS(model.hold);
-      if (holdOverrideS === null) {
-        this.decline(
-          context,
-          Mml.compose`Fire it for how long? Say it the way a clock does — "for 30 minutes", "for 2 hours".`,
-          'bad-duration',
-        );
-        return;
-      }
-    }
-
-    const firings = await this.firingsFor(charge, mould);
-    if (firings.length === 0) {
-      this.decline(
-        context,
-        Mml.compose`Nothing in ${Mml.thing(kiln)} matches a firing. Whatever is in there, heat is not what it wants.`,
-        'no-firing',
-      );
-      return;
-    }
-    // ⚠ One firing at a time. Two charges wanting different heats averaged
-    // together would be answering a question nobody asked — the smelt's
-    // `mixed-charge` rule, one appliance over.
-    if (firings.length > 1) {
-      this.decline(
-        context,
-        Mml.compose`There is more than one thing in ${Mml.thing(kiln)} that wants firing, and they do not want the same heat. Take one or the other out.`,
-        'mixed-charge',
-      );
-      return;
-    }
-    const firing = firings[0]!;
-
-    // ⚠⚠ **Unlit is COLD, not cool.** `getHeldTemperatureK()` is the
-    // temperature this chamber WOULD pin at, computed without reference to
-    // whether anything is burning — so a stone-cold kiln reports its full
-    // figure, and answering it with *"work the bellows"* sends a player in a
-    // circle. The smelt learned this by being driven in a browser.
+    // ⚠⚠ **Unlit is COLD, not cool.** The smelt learned this in a browser:
+    // telling somebody to work the bellows on a stone-cold shaft sends them
+    // in a circle.
     if (!kiln.isLit()) {
       this.decline(
         context,
@@ -213,85 +135,27 @@ export default class FireController extends CommandController<FireModel> {
       return;
     }
 
-    const held = kiln.getHeldTemperatureK();
-    const wanted = firing.recipe.getRequiresHeatK();
-    if (held < wanted) {
-      const bellowsLeft = !kiln.isBellowsActive();
-      this.decline(
-        context,
-        bellowsLeft
-          ? Mml.compose`${Mml.thing(kiln)} is holding ${String(Math.round(held))} K and this firing wants ${String(Math.round(wanted))} K. Work the bellows.`
-          : Mml.compose`${Mml.thing(kiln)} is holding ${String(Math.round(held))} K with the bellows already going, and this firing wants ${String(Math.round(wanted))} K. The draught is not the problem — this fuel does not burn hot enough.`,
-        'insufficient-heat',
-      );
-      return;
-    }
-
-    // ⭐ The hold: the one you named, else the recipe's own, else a minute.
-    const authoredHoldS = firing.recipe.getAuthoredHoldS();
-    const holdS =
-      holdOverrideS ?? (authoredHoldS > 0 ? authoredHoldS : FIRE_MS / 1000);
-    const act: FiringAct = { holdS, heldK: held };
-    this.engage(context, holdS * 1000, held, () => {
-      // ⚠⚠ A module function over captured locals, never `this.<method>`: a
-      // controller is one ephemeral clone per execution and is destructed the
-      // moment `execute` returns, while a firing holds the chamber at heat
-      // for a game minute. A completion calling back into it would run on a
-      // destroyed Stuff and the proxy would answer with a silent no-op — the
-      // charge would go in and nothing would ever come out.
-      void runFiring(context, kiln, firing, act);
-    });
-  }
-
-  /**
-   * Every firing the charge supports, resolved from the CATALOGUE.
-   *
-   * ⭐ This is the whole of the expressiveness claim: the set of firings is
-   * the set of recipe rows whose input slots the chamber's contents satisfy.
-   * Nothing here names limestone, clay or glass.
-   *
-   * ⚠ A recipe qualifies only if **every** item slot it declares is
-   * satisfied, and only item slots are considered — a firing is a dry
-   * transform of solids in a chamber, and a bulk slot means the recipe wants
-   * a vessel and a measure, which is somebody else's act.
-   */
-  private async firingsFor(
-    charge: readonly Stuff[],
-    mould: (Stuff & Mould) | null,
-  ): Promise<Firing[]> {
-    const catalogue = StuffApi.findByTemplatePath<RecipeCatalogue>(CATALOGUE_PATH);
-    if (catalogue === null || catalogue === undefined) return [];
-    const out: Firing[] = [];
-    for (const recipe of catalogue.allRecipes()) {
-      if (recipe.getRequiresHeatK() <= 0) continue;
-      const slots = recipe.getInputSlots();
-      if (slots.length === 0) continue;
-      if (slots.some((s) => s.kind !== 'item')) continue;
-
-      const matched: MatchedSlot[] = [];
-      let batches = Number.POSITIVE_INFINITY;
-      let ok = true;
-      const claimed = new Set<string>();
-      for (const slot of slots) {
-        const items = charge.filter(
-          (c) =>
-            !claimed.has(c.stuffId) &&
-            MixinApi.isTangible(c) &&
-            c.hasMaterialTag(slot.category),
-        );
-        const per = Math.max(1, slot.count ?? 1);
-        if (items.length < per) {
-          ok = false;
-          break;
-        }
-        for (const i of items) claimed.add(i.stuffId);
-        matched.push({ slot, items });
-        batches = Math.min(batches, Math.floor(items.length / per));
+    if (draught !== null) kiln.setDraught(draught);
+    const giver = context.commandGiver;
+    const identity = giver.getIdentityPath() ?? '';
+    // ⭐ Whoever holds the firing is credited for what it makes — stamped
+    // on every body now, so a rung reached while nobody watched still
+    // knows whose firing it was.
+    for (const body of chargeBodies(kiln)) {
+      if (MixinApi.isThermal(body)) {
+        body.getTemperature();
+        if (identity !== '') body.stampFiredBy(identity);
       }
-      if (!ok || !(batches >= 1)) continue;
-      out.push({ recipe, matched, batches, mould });
     }
-    return out;
+
+    const heldK = kiln.getHeldTemperatureK();
+    this.engage(context, holdS * 1000, heldK, () => {
+      // ⚠⚠ A module function over captured locals, never `this.<method>`: a
+      // controller is one ephemeral clone per execution and is destructed
+      // the moment `execute` returns, while a firing holds the chamber at
+      // heat over game time.
+      void settle(context, kiln);
+    });
   }
 
   /**
@@ -309,11 +173,9 @@ export default class FireController extends CommandController<FireModel> {
   }
 
   /**
-   * Hold the chamber at heat over game time — the smelt's engagement.
-   *
-   * ⭐ A long hold is SEALED DOWN and watched, not worked: the tending is
-   * a minute's stoking spread over the hold, so the effort is the same
-   * whatever the hold, and a two-hour cure does not exhaust anybody.
+   * Hold the chamber at heat over game time. ⭐ A long hold is SEALED DOWN
+   * and watched, not worked: the tending is a minute's stoking spread over
+   * the hold, so a two-hour firing does not exhaust anybody.
    */
   private engage(
     context: CommandContext,
@@ -324,10 +186,7 @@ export default class FireController extends CommandController<FireModel> {
     const giver = context.commandGiver;
     const durationMs = Math.max(FIRE_MS, holdMs);
     const effortW = (FIRE_EFFORT_W * FIRE_MS) / durationMs;
-    if (
-      MixinApi.isExerting(giver) &&
-      !giver.canExert(effortW, durationMs / 1000)
-    ) {
+    if (MixinApi.isExerting(giver) && !giver.canExert(effortW, durationMs / 1000)) {
       this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
       return;
     }
@@ -346,9 +205,9 @@ export default class FireController extends CommandController<FireModel> {
     if (result.ok && result.status !== 'completed-sync') context.note(result.note);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      // ⭐ Say the heat it holds: the cure turns on it (≈ 430 K cures, past
-      // 455 K scorches), and a firing that will not say is a guess.
-      .toSelf(Mml.compose`You seal the chamber down and settle in to hold it at about ${String(Math.round(heldK / 5) * 5)} K.`)
+      .toSelf(
+        Mml.compose`You seal the chamber down and settle in to hold it at about ${String(Math.round(heldK / 5) * 5)} K.`,
+      )
       .toPeers(Mml.compose`${Mml.actor(giver)} sets a firing going.`)
       .send();
   }
@@ -363,317 +222,79 @@ export default class FireController extends CommandController<FireModel> {
   }
 }
 
+/** The chamber's bodies, and one level down what a mould standing in it holds. */
+function chargeBodies(kiln: Stuff & Container): Stuff[] {
+  const out: Stuff[] = [];
+  for (const c of kiln.getContents()) {
+    out.push(c);
+    if (MixinApi.isMould(c) && MixinApi.isContainer(c)) {
+      for (const inner of c.getContents()) out.push(inner);
+    }
+  }
+  return out;
+}
+
+/** How a piece reads after a firing, from its own record — or `null`. */
+function firedWord(body: Stuff): string | null {
+  if (!MixinApi.isThermal(body)) return null;
+  const rec: Readonly<HeatWorkRecord> | null = body.getHeatWork();
+  if (rec === null) return null;
+  const degrees = Object.values(rec.conversions).map((c) => c.degree);
+  if (degrees.length === 0) return null;
+  const d = Math.max(...degrees);
+  if (d <= 0) return null;
+  if (d < 1 && Object.values(rec.conversions).every((c) => c.rung < 0)) {
+    return 'burnt to the skin and raw at the heart';
+  }
+  return null;
+}
+
 /**
- * The firing itself: consume what the recipe asked for, mint what it says,
- * leave the rest in the chamber.
+ * The firing's end: the chamber settles (each piece reads its own heat
+ * history), the firer is soiled and credited, and what came out is said.
  *
  * ⚠⚠ A module function — the controller is long gone. And the actor may be
  * too: a player can log out inside a firing. ⭐ **The chamber still fires**,
- * because a kiln does not stop because somebody left; only the telling of it
- * needs a listener.
+ * because a kiln does not stop because somebody left; only the telling of
+ * it needs a listener.
  */
-/**
- * Put `litres` of a substance into the air of whatever place `from` is
- * standing in. The outward walk to the first `Atmospheric` ancestor with
- * a volume — the same one a fire's exhaust takes.
- */
-function emitIntoScope(from: Stuff, materialPath: string, litres: number): void {
-  let at: Stuff | null = from;
-  let depth = 32;
-  while (at !== null && depth-- > 0) {
-    if (
-      MixinApi.isAtmospheric(at) &&
-      MixinApi.isContainer(at) &&
-      (at as unknown as Atmospheric).getVolume() !== null
-    ) {
-      (at as unknown as Atmospheric).addAtmosphereContent(materialPath, litres);
-      return;
-    }
-    at = MixinApi.isContainable(at) ? at.getContainer() : null;
-  }
-}
-
-/**
- * ⭐ The cure's own grade on a cast — the weaker of the cure's and the
- * mould's (weakest link: a fine mould cannot rescue a scorched cure, and a
- * cracked mould spoils a fine one) — and who made it.
- */
-function stampCure(cast: Stuff, cure: CrosslinkOutcome | null, makerPath: string): void {
-  if (MixinApi.isCrafted(cast) && makerPath !== '' && cast.getMaker() === '') {
-    cast.setMaker(makerPath);
-  }
-  if (cure === null || !MixinApi.isGraded(cast)) return;
-  cast.setGrade(cast.getGrade().min(cure.grade));
-}
-
-/** The material a tangible is made of, or `null`. */
-function materialOf(s: Stuff): Material | null {
-  if (!MixinApi.isTangible(s)) return null;
-  return (s as Stuff & { getMaterial(): Material | null }).getMaterial() ?? null;
-}
-
-/**
- * ⭐⭐ The cure (rubber build): when a consumed input's MATERIAL carries
- * a `crosslinking` spec, the charge's agent fraction (the agent-tagged
- * mass over the whole consumed mass — what the player weighed), the heat
- * held and the time held decide which material comes out. No table, no
- * rubber word: a material with no spec never enters this.
- */
-function cureOf(consumed: readonly Stuff[], act: FiringAct): CrosslinkOutcome | null {
-  const feed = consumed.map(materialOf).find((m) => m?.getCrosslinking()) ?? null;
-  const spec = feed?.getCrosslinking() ?? null;
-  if (spec === null) return null;
-  let total = 0;
-  let agent = 0;
-  for (const c of consumed) {
-    if (!MixinApi.isTangible(c)) continue;
-    const kg = c.getMass().rawValue();
-    total += kg;
-    if (c.hasMaterialTag(spec.getAgent())) agent += kg;
-  }
-  return spec.outcome({
-    agentFraction: total > 0 ? agent / total : 0,
-    heldK: act.heldK,
-    holdS: act.holdS,
-  });
-}
-
-async function runFiring(
-  context: CommandContext,
-  kiln: Stuff & Container & Burner,
-  firing: Firing,
-  act: FiringAct,
-): Promise<void> {
+async function settle(context: CommandContext, kiln: Stuff & Container & Burner): Promise<void> {
   const giver = context.commandGiver;
-  const watching = !giver.isDestroyed();
+  const settled = await kiln.settleFiring(giver.isDestroyed() ? null : giver);
+  const disciplines = [...settled.disciplines];
 
-  // Consume exactly `batches × count` out of each slot, and no more: a
-  // charge of seven where the firing takes two yields three and leaves one,
-  // which is what a lime-burner's odd stone actually does.
-  //
-  // ⭐ Except a CURE, which is one piece: everything the slots matched is
-  // the charge, because the agent fraction is what the player weighed into
-  // it, and a counted batch would decide it for them.
-  const consumed: Stuff[] = [];
-  const allMatched = firing.matched.flatMap((m) => m.items);
-  const cure = cureOf(allMatched, act);
-  if (cure !== null) {
-    consumed.push(...allMatched);
-  } else {
-    for (const m of firing.matched) {
-      const per = Math.max(1, m.slot.count ?? 1);
-      consumed.push(...m.items.slice(0, per * firing.batches));
-    }
+  // ⭐ (cleanliness D14) The hold is a DRY HEAT on everything Soilable in
+  // the chamber — the ACTUAL peak and hold off each body's own record, not
+  // a recipe's figures.
+  for (const body of chargeBodies(kiln)) {
+    if (body.isDestroyed() || !MixinApi.isSoilable(body) || !MixinApi.isThermal(body)) continue;
+    const rec = body.getHeatWork();
+    const peak = rec?.peakK ?? body.getTemperature().rawValue();
+    body.recordHeat(peak, rec?.aboveS ?? 0);
   }
-  // ⭐ The firing CARRIES its charge (D6). Two intensive/extensive facts
-  // the output inherits when the recipe authors them, and nothing more:
-  //   - under a `massYield > 0`, the output's mass is the consumed
-  //     charge's summed mass × yield ÷ batches (a remelt mints no glass
-  //     from nothing; a batch loses the gall and the gases);
-  //   - an Alloyed output inherits the charge's minor constituents,
-  //     mass-weighted, ON TOP of whatever the output row authored (the
-  //     pot's own iron pickup) — `setAlloying` sums a repeated material.
-  // A recipe that authors neither (burn-lime, every shipped firing) is
-  // byte-identical to before: the clone keeps its template mass and its
-  // own alloying.
-  const massYield = firing.recipe.getMassYield();
-  const totalConsumedKg = consumed.reduce(
-    (n, c) => n + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0),
-    0,
-  );
-  const mergedCharge: CompositionEntry[] = [];
-  if (totalConsumedKg > 0) {
-    const acc = new Map<string, number>();
-    for (const c of consumed) {
-      if (!MixinApi.isComposition(c) || !MixinApi.isTangible(c)) continue;
-      const weight = c.getMass().rawValue() / totalConsumedKg;
-      for (const e of c.getAlloying()) {
-        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
-      }
-    }
-    for (const [materialPath, fraction] of acc) {
-      mergedCharge.push({ materialPath, fraction });
+
+  if (giver.isDestroyed()) return;
+  if (MixinApi.isAdvancing(giver)) {
+    for (const discipline of new Set(disciplines)) {
+      await giver.creditDeed({ discipline, difficulty: 'standard', outcome: 'success' });
     }
   }
 
-  const outputs: Stuff[] = [];
-  const cureMaterial =
-    cure !== null ? StuffApi.findByTemplatePath<Material>(cure.materialPath) ?? null : null;
-  const makerPath = giver.isDestroyed() ? '' : giver.getIdentityPath() ?? '';
-  const castKg = massYield > 0 ? totalConsumedKg * massYield : totalConsumedKg;
-
-  // ⭐⭐ THE MOULD SEAM (rubber build; owned by
-  // docs/slates/builds/moulding-slate.md § 5). A charge that stood in a mould comes out in the MOULD's
-  // shape: the firing hands the mould a pool and the mould mints the cast,
-  // exactly as the freeze edge does — shape, material, mass, wear and its
-  // grade all ride the mould's one path. No rubber word here: bread in a
-  // tin and a fired brick take the same branch.
-  if (firing.mould !== null) {
-    const material =
-      cureMaterial ??
-      (firing.recipe.getOutputMaterial()
-        ? StuffApi.findByTemplatePath<Material>(firing.recipe.getOutputMaterial()) ?? null
-        : null) ??
-      materialOf(consumed[0] as Stuff);
-    if (material === null) {
-      console.error(`FireController: no material to cast for '${firing.recipe.getRecipeId()}'`);
-      return;
-    }
-    const cast = await firing.mould.castInto({
-      material,
-      massKg: castKg,
-      payload: null,
-      stampMaterial: true,
-    });
-    if (cast === null) {
-      if (watching) {
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`The firing comes to nothing — and that is a fault in the books, not in your work.`)
-          .send();
-      }
-      return;
-    }
-    stampCure(cast, cure, makerPath);
-    // ⭐ A mould's shape row is authored for the GOOD cure (boots are
-    // rubber boots); a charge that came out as something else says so in
-    // its own words — the material's appearance (found by the drive: an
-    // under-cured boot read exactly like a good one).
-    if (cure !== null && cure.kind !== 'cured' && cureMaterial !== null) {
-      const v = cast as Stuff & { getLongDescription?(): string; setLongDescription?(s: string): void };
-      const looks = cureMaterial.getAppearance() || cureMaterial.getName();
-      if (typeof v.setLongDescription === 'function' && looks) {
-        const was = v.getLongDescription?.() ?? '';
-        v.setLongDescription(`${was.trimEnd()}\n\nIt is ${looks}.`);
-      }
-    }
-    outputs.push(cast);
-  } else if (cure !== null) {
-    // No mould: the cure comes out as its material's own lump.
-    const lump = cureMaterial?.getCastTemplate() || firing.recipe.getOutputTemplate();
-    try {
-      const made = await StuffApi.clone<Stuff>(lump);
-      if (cureMaterial !== null) {
-        (made as Stuff & { setMaterial?(m: Material): void }).setMaterial?.(cureMaterial);
-      }
-      if (MixinApi.isTangible(made)) made.setMass(Quantity.of(castKg, 'kg'));
-      stampCure(made, cure, makerPath);
-      if (MixinApi.isContainable(made)) ContainmentApi.move(made as Stuff & Containable, kiln);
-      outputs.push(made);
-    } catch {
-      console.error(`FireController: cure lump '${lump}' did not resolve`);
-      return;
-    }
-  }
-  const shapedOrCured = outputs.length > 0;
-  for (let i = 0; !shapedOrCured && i < firing.batches; i += 1) {
-    try {
-      const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate());
-      if (massYield > 0 && MixinApi.isTangible(made)) {
-        made.setMass(
-          Quantity.of((totalConsumedKg * massYield) / firing.batches, 'kg'),
-        );
-      }
-      if (MixinApi.isComposition(made) && mergedCharge.length > 0) {
-        made.setAlloying([...made.getAlloying(), ...mergedCharge]);
-      }
-      if (MixinApi.isContainable(made)) {
-        // Landed, not moved: a fired good is somebody's, and a good moved
-        // into a kiln by nobody has no recorded place to come back to.
-        ContainmentApi.move(made as Stuff & Containable, kiln);
-      }
-      outputs.push(made);
-    } catch {
-      // ⚠ A missing output row is a content gap. The charge is NOT consumed
-      // in that case — an act that eats the stone and gives nothing back is
-      // worse than one that refuses.
-      console.error(
-        `FireController: output row '${firing.recipe.getOutputTemplate()}' did not resolve`,
-      );
-      if (watching) {
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            Mml.compose`The firing comes to nothing — and that is a fault in the books, not in your work.`,
-          )
-          .send();
-      }
-      return;
-    }
-  }
-  // ⭐⭐ **The volatiles — the third product of a firing.** What leaves
-  // the charge is as valuable as what stays: wood gives tar, coal gives
-  // tar and a gas. The litres are computed off the mass actually
-  // consumed, and then **the CHAMBER routes them** — the platform never
-  // names a trade's receiver.
-  //
-  // ⚠ A structural probe (`receiveVolatiles` on the host), not a mixin
-  // narrowing: the `analyze water` shape-not-mixin rule. The kernel
-  // cannot import `trade-fuel`'s Retort, and it does not need to — it
-  // needs to know whether this chamber knows what to do with vapour.
-  // A chamber that does not emits into its own scope, which is why
-  // firing a retort with no condenser makes the room smell of tar.
-  const volatiles = firing.recipe.getVolatiles();
-  if (volatiles.length > 0) {
-    let chargeKg = 0;
-    for (const item of consumed) {
-      if (MixinApi.isTangible(item)) chargeKg += item.getMass().rawValue();
-    }
-    if (chargeKg > 0) {
-      const receiver = kiln as unknown as {
-        receiveVolatiles?: (materialPath: string, litres: number) => void;
-      };
-      for (const v of volatiles) {
-        const litres = v.litresPerKg * chargeKg;
-        if (!(litres > 0)) continue;
-        if (typeof receiver.receiveVolatiles === 'function') {
-          receiver.receiveVolatiles(v.material, litres);
-        } else {
-          emitIntoScope(kiln, v.material, litres);
-        }
-      }
-    }
-  }
-
-  // ⭐ (cleanliness D6, D14) A firing is two acts on what is near it. The
-  // recipe's `soils` land on the firer — else `soils:` on a glass, lime or
-  // vulcanize row would be silently dead — and the hold is a DRY HEAT on
-  // everything Soilable left in the chamber: an oven held hot is how an
-  // instrument is sterilised, so the heat is stamped by the act that
-  // reached it.
-  if (!giver.isDestroyed() && MixinApi.isHygienic(giver)) {
-    giver.soilFrom(firing.recipe.getSoils());
-  }
-  const heldK = firing.recipe.getRequiresHeatK();
-  if (heldK > 0) {
-    const spent = new Set<Stuff>(consumed);
-    for (const c of kiln.getContents()) {
-      if (spent.has(c) || !MixinApi.isSoilable(c)) continue;
-      c.recordHeat(heldK, firing.recipe.getHoldS());
-    }
-  }
-
-  for (const item of consumed) await StuffApi.destruct(item);
-
-  if (MixinApi.isAdvancing(giver) && !giver.isDestroyed()) {
-    await giver.creditDeed({
-      discipline: firing.recipe.getDiscipline(),
-      difficulty: 'standard',
-      outcome: 'success',
-    });
-  }
-  if (!watching || giver.isDestroyed()) return;
-
-  const made = outputs[0];
-  const count = outputs.length;
+  const bodies = chargeBodies(kiln).filter((b) => !b.isDestroyed() && MixinApi.isTangible(b));
+  const first = bodies[0];
+  const partial = bodies.map(firedWord).find((w) => w !== null) ?? null;
   MessageApi.scene(giver)
     .topic(TOPIC)
     .toSelf(
-      made === undefined
-        ? Mml.compose`The chamber cools and there is nothing in it.`
-        : count === 1
-          ? Mml.compose`The chamber cools. ${Mml.thing(made)} has come out of it.`
-          : Mml.compose`The chamber cools. ${String(count)} of them have come out of it, starting with ${Mml.thing(made)}.`,
+      first === undefined
+        ? settled.burnt > 0
+          ? Mml.compose`The chamber cools on nothing but ash. It drew too much air, and what was in it burned.`
+          : Mml.compose`The chamber cools and there is nothing in it.`
+        : partial !== null
+          ? Mml.compose`The chamber cools. ${Mml.thing(first)} is in it — ${partial}.`
+          : bodies.length === 1
+            ? Mml.compose`The chamber cools. ${Mml.thing(first)} is in it.`
+            : Mml.compose`The chamber cools. ${String(bodies.length)} things are in it, ${Mml.thing(first)} among them.`,
     )
     .toPeers(Mml.compose`${Mml.actor(giver)} draws a firing.`)
     .send();

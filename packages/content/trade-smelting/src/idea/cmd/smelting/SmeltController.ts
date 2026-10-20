@@ -99,7 +99,7 @@ const SMELT_EFFORT_W = 425;
  * the whole of the carbon decision above copper. You charge a furnace;
  * you do not meter it.
  */
-const CHARCOAL_MINIMUM = 2;
+const CHARCOAL_MINIMUM_KG = 16;
 
 // ---------- ⭐ the Fe–C facts, and they are facts ----------
 
@@ -268,10 +268,14 @@ export default class SmeltController extends CommandController<SmeltModel> {
       );
       return;
     }
-    if (fuel.length < CHARCOAL_MINIMUM) {
+    // ⭐ Fuel is reckoned by MASS (ceramics W0): charcoal comes out of a
+    // clamp as the lengths that went in, a quarter of their weight each,
+    // so a count of pieces no longer means a count of baskets.
+    const fuelKg = massOf(fuel);
+    if (fuelKg < CHARCOAL_MINIMUM_KG) {
       this.decline(
         context,
-        Mml.compose`Not enough charcoal in the furnace — a run wants at least ${String(CHARCOAL_MINIMUM)} baskets and there ${fuel.length === 1 ? 'is' : 'are'} ${String(fuel.length)}.`,
+        Mml.compose`Not enough charcoal in the furnace — a run wants at least ${String(CHARCOAL_MINIMUM_KG)} kg of it and there is ${String(Math.round(fuelKg * 10) / 10)} kg.`,
         'no-fuel',
       );
       return;
@@ -337,7 +341,7 @@ export default class SmeltController extends CommandController<SmeltModel> {
     }
 
     const carbon = ferrous
-      ? carbonFor(charge, fuel.length, ore.length > 0, held)
+      ? carbonFor(charge, fuelKg, ore.length > 0, held)
       : 0;
 
     // ⚠⚠ A free function, never `this.<method>`: a controller is one
@@ -479,7 +483,7 @@ async function runCharge(
   // the player's next act (`pour crucible into mould`). With no crucible
   // the metal pools on the hearth and sets as a lump in the furnace.
   if (liquid) {
-    const run = await runIntoCrucible(furnace, productMaterial, metalKg, heldK, owner);
+    const run = await runIntoCrucible(furnace, productMaterial, metalKg, heldK, owner, carbon);
     await pour(furnace, SLAG_ROW, Math.max(chargeKg - metalKg, 0), owner);
     consume();
     if (!watching) return;
@@ -691,7 +695,7 @@ function carbonIn(charge: ChargeLot[]): number | null {
  */
 function carbonFor(
   charge: ChargeLot[],
-  baskets: number,
+  fuelKg: number,
   fromOre: boolean,
   heldK: number,
 ): number {
@@ -705,7 +709,7 @@ function carbonFor(
     return heldK >= meltingPointOf(carburized) ? C_SAT : carburized;
   }
 
-  const ratio = (baskets * FUEL_KG_PER_BASKET) / chargeKg;
+  const ratio = fuelKg / chargeKg;
   // ⭐ The EXCESS over what reduction itself consumes — see `R_STOICH`.
   const surplus = Math.max(0, ratio - R_STOICH);
   const solid = Math.min(C_ORE_MAX, C_BLOOM + K_ORE * surplus);
@@ -715,12 +719,12 @@ function carbonFor(
   return heldK >= meltingPointOf(solid) ? C_SAT : solid;
 }
 
-/**
- * Charcoal in a basket, kg. ⚠ A constant here rather than the basket's
- * own mass so the ratio is about how many baskets a player counted in,
- * which is the thing they can actually decide.
- */
-const FUEL_KG_PER_BASKET = 8;
+/** The summed mass of some pieces of matter, kg. */
+function massOf(items: readonly Stuff[]): number {
+  let kg = 0;
+  for (const i of items) if (MixinApi.isTangible(i)) kg += i.getMass().rawValue();
+  return kg;
+}
 
 /** The ferrous material a carbon figure and a phase add up to. */
 async function ferrousMaterialFor(
@@ -806,6 +810,7 @@ async function runIntoCrucible(
   kg: number,
   heldK: number,
   madeFrom: readonly Stuff[],
+  carbon = 0,
 ): Promise<CrucibleRun> {
   const metal = StuffApi.findByTemplatePath<Material>(metalPath) ?? null;
   if (metal === null || kg <= 0) return 'hearth';
@@ -838,6 +843,12 @@ async function runIntoCrucible(
     try {
       source.setContentsTemperature(heldK);
       source.setBulkMaterial('interior', metal);
+      // ⭐ The carbon rides the run (ceramics ruling C): the pool carries
+      // what the charge put in it, and the ingot the crucible pours takes
+      // it off the pool at the set.
+      if (carbon > 0) {
+        source.setBulkPayload('interior', { alloying: [{ materialPath: CARBON, fraction: carbon }] });
+      }
       source.setContentsTemperature(heldK);
       const from = BulkableApi.slotFor(source, undefined);
       if (from && to) {
@@ -925,13 +936,18 @@ function meltingPointKOf(metal: Material): number {
  * a trade keeping tests over its own content.
  *
  * The lesson generalises: **duck-typing on a field is only honest while
- * the field is the thing's own.** `outcomeFor` is the clamp's and will
- * stay the clamp's — it is the trade's reading of the kernel's dial, and
- * a trade's reading of a shared number is exactly what does not
- * generalise.
+ * the field is the thing's own.** It then probed `outcomeFor`, the clamp's
+ * threshold table — which the ceramics build deleted (ruling A: charcoal
+ * is the wood's own heat transition, so the clamp keeps no table). ⭐ What
+ * is still the clamp's own is the ACT it affords: a clamp is the furnace
+ * you `char`. Read off the class's static affordance, so this pack still
+ * gains no dependency on the fuel trade.
  */
+const CHAR_VIEW = 'trade/fuel/cmd/fuel/char.yaml';
 function isClamp(item: Stuff): boolean {
-  return typeof (item as unknown as { outcomeFor?: unknown }).outcomeFor === 'function';
+  const ctor = (item as unknown as { constructor?: { commandContributions?: { peers?: readonly string[]; environment?: readonly string[] } } }).constructor;
+  const c = ctor?.commandContributions;
+  return Boolean(c?.peers?.includes(CHAR_VIEW) || c?.environment?.includes(CHAR_VIEW));
 }
 
 /** An ore lot: anything that can say what fraction of it is a given metal. */

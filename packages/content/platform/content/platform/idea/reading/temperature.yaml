@@ -17,6 +17,10 @@ data:
   discipline: awareness
   instrument: thermometry
   instrumentNoun: a thermometer
+  # ⭐ A lit kiln reads by its GLOW with nothing in hand at all (ceramics
+  # D31). The cones' `handTool: pyrometry` rung lands with the cones
+  # themselves (the potter's shop) — a capability nothing offers is a gate
+  # nobody can pass (`lint:capabilities`).
   eyeCeiling: competent
   improves: >-
     whether a room will keep a batch, ripen a cheese, or kill you slowly

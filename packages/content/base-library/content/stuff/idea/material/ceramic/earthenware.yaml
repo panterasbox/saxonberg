@@ -1,0 +1,22 @@
+# Earthenware — clay fired hard enough to begin to close its pores, but not
+# to vitrify. Still porous unless glazed; the body of most of a household's
+# crocks, jugs and bowls (ceramics S1). The second rung of a common clay's
+# heat history.
+class: /platform/idea/material/Material
+data:
+  name: earthenware
+  keywords: [earthenware, pottery, clay, fired]
+  appearance: hard-fired buff-red earthenware
+  density: 2000
+  specificHeat: 860
+  thermalConductivity: 1.0
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 8
+  hardness: 60
+  toughness: 6
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "earthenware"]
+  composition: []
+  biologicalSource: null

@@ -1,0 +1,18 @@
+# The batch pot — ⭐ a MIXING VESSEL, not a recipe (ceramics W0, R1). Put
+# sand, a flux and lime in it and `stir` it: the batch comes out of what you
+# put in, by mass. Two sand to one ash and one lime is the glasshouse's
+# habit, not a law — a leaner or fatter batch is just what you weighed. Put
+# a lump of charcoal in with it and the glass comes out amber.
+class: /platform/thing/MixingVessel
+data:
+  shortDescription: batch pot
+  keywords: [pot, "batch pot", tub, mixing]
+  register: indefinite
+  longDescription: >-
+    A squat earthenware pot crusted with old batch, a paddle leaning in it.
+    Whatever goes in comes out one even charge.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 12
+  fixedInPlace: true
+  blendMaterial: /trade/glass/idea/material/batch
+  blendTemplate: /trade/glass/thing/batch

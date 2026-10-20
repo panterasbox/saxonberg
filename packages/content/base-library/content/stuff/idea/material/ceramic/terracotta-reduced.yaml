@@ -1,0 +1,22 @@
+# Reduced terracotta — the same clay fired in a starved kiln: the iron
+# stays black instead of rusting red, and the body comes out smoke-grey.
+# ⭐ The reducing twin of `ceramic/terracotta` (ceramics D3): which one a
+# piece becomes is decided by the firing's air, not by a recipe.
+class: /platform/idea/material/Material
+data:
+  name: grey terracotta
+  keywords: [terracotta, clay, grey, reduced, fired]
+  appearance: smoke-grey terracotta, fired starved of air
+  density: 1900
+  specificHeat: 850
+  thermalConductivity: 0.8
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 14
+  hardness: 52
+  toughness: 5
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "terracotta", "reduced"]
+  composition: []
+  biologicalSource: null

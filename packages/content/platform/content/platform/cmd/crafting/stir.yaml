@@ -8,6 +8,11 @@ help: |
 
   `churn churn` works a butter churn's cream: at the right warmth it
   breaks into butter and buttermilk; too cold and it will not come.
+
+  ⭐ `stir` a mixing vessel — a batch pot, a glaze bucket — and what is in
+  it becomes one blend, its make-up the inputs' by mass. No recipe: a
+  little more sand is a leaner batch. `knead` is the same act for a
+  plastic mass.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -20,7 +25,7 @@ args:
     # ⭐ Bare `stir` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:instrument-args`).
-    default: "reachable:[mixin.ManualBuildMixin]"
+    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.MixingVesselMixin]"
     # ⭐ `any`, narrowed by the controller: a build vessel records the
     # method; a hand-worked vessel (a churn — dairy D5) works its charge.
     requires: any

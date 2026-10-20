@@ -1834,6 +1834,15 @@ export const AppSettingKeys = {
    * {@link atmosphereBreathableAirShare}, so a person in the room is warned
    * before the fire goes out. */
   fireAirSmotherAirShare: "fire.air.smotherAirShare",
+  /** Fire — ⭐ the burner completeness at or above which a FLAME can burn
+   * in a chamber (ceramics R3, "a flame needs air"). Below it a combustible
+   * shut in that chamber cannot catch, and a material whose transition is
+   * pyrolysis (`requiresStarvedAir`) chars instead. One dial, two readers:
+   * `FireLogic.mediumBurns` and the heat-work reconcile. */
+  fireAirFlamingCompleteness: "fire.air.flamingCompleteness",
+  /** Thermal — the dose-weighted completeness below which a firing was
+   * REDUCING (ceramics D3): a rung takes its `reducing` twin. */
+  thermalHeatWorkReducingBelow: "thermal.heatWork.reducingBelow",
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

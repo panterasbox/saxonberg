@@ -1,0 +1,20 @@
+# Reduced stoneware — fired starved of air, the iron in the body and glaze
+# turned to the grey-green the Chinese called celadon. ⭐ The reducing twin.
+class: /platform/idea/material/Material
+data:
+  name: celadon stoneware
+  keywords: [stoneware, celadon, grey, reduced, fired]
+  appearance: grey-green celadon stoneware, fired starved of air
+  density: 2300
+  specificHeat: 880
+  thermalConductivity: 1.5
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 1.2
+  hardness: 92
+  toughness: 7
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "stoneware", "reduced"]
+  composition: []
+  biologicalSource: null

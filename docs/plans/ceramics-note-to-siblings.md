@@ -46,7 +46,9 @@ ours if you land second, delete yours if we did):
    and body (the vessel the mould stands ON). We use it for the salt pan's
    bittern (W8) and the ceramic water filter.
 5. **`Thermal.heatSource(): (Stuff & Burner) | null`** — public, your
-   signature and doc (we need it for the atmosphere read).
+   signature and doc (we need it for the atmosphere read). ⚠ Ours looks
+   ONE hop further, through a mould standing in the burner (a charge in a
+   boot mould in an oven must heat) — keep that hop at the merge.
 
 What we add beside yours in the same files:
 
@@ -66,9 +68,10 @@ What we add beside yours in the same files:
   once; rename the call.
 - `Material.ts`: `heatTransitions` replaces `crosslinking` (one line in
   `fieldMeta`, one field, one get/set pair); everything else appended.
-- `BulkPayload.composition?: CompositionEntry[]` (from
-  `Composition.ts`) — a molten pool keeps what was dissolved in what
-  melted into it; folded by volume beside `dissolvedToxins`.
+- `BulkPayload.alloying?: CompositionEntry[]` (from `Composition.ts`;
+  ⚠ NOT `composition` — that name is already the drink blend's
+  `BlendPart[]`) — a molten pool keeps what was dissolved in what melted
+  into it; folded by volume beside `dissolvedToxins`.
 - `mould.md` is rewritten (envelope, impressions, the pour, pressing,
   cure). Your drainings paragraph (D16) stays verbatim under *The drain
   set*; if we land first, add it there.

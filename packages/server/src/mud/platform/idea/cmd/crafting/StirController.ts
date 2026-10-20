@@ -44,6 +44,21 @@ export default class StirController extends ManualBuildController<StirModel> {
 
     const vessel: Stuff | null =
       model.vessel?.stuff ?? null;
+    // ⭐ A mixing vessel (ceramics R1): what is in it becomes one blend,
+    // its make-up the inputs' by mass — the slurry, powder and liquid twin
+    // of `knead`. No recipe is consulted.
+    if (vessel && MixinApi.isMixingVessel(vessel)) {
+      const mixing = vessel;
+      this.engageStep(context, {
+        durationMs: this.paceMs(STIR_MS * 2, vessel, ["shaker", "mixing-glass", "pot"]),
+        effortW: 150,
+        beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
+        onComplete: () => {
+          void mixing.mixBy(giver, verb);
+        },
+      });
+      return;
+    }
     if (vessel && !MixinApi.isBuildVessel(vessel) && isHandWorked(vessel)) {
       this.workByHand(vessel, method, verb, context);
       return;

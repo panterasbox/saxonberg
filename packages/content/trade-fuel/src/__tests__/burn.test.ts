@@ -1,159 +1,248 @@
 /**
- * The burn (metal chain F2) — ⭐⭐ **airflow is the decision, and the
- * failure mode is the point.**
+ * The burn — ⭐⭐ **airflow is the decision, and the failure mode is the
+ * point** — now as ONE rule (ceramics ruling A).
  *
- * Charring is not lighting a fire; it is running a fire that is
- * deliberately starving. The collier's whole job is holding the draught
- * between two ways of losing everything, and the assertions here are that
- * both ways are REAL:
+ * The clamp used to read its draught against a threshold table and mint
+ * one of three rows. It is a real fire now, and the assertions here are
+ * that the three outcomes FALL OUT of the shipped rows:
  *
- *  - too much air → **ash**, and a week's cutting is gone;
- *  - too little → **half-burnt brands**, worth a fraction;
- *  - between them → charcoal, and dead centre is the best burn there is.
+ *  - at the row's draught (0.45 → completeness ≈ 0.53, below the flaming
+ *    dial) the heap is starved and hazel cordwood chars through in three
+ *    days — the same lengths, a quarter of their mass;
+ *  - drawn too tight (0.3) the heap runs too cool and three days only
+ *    reach **brands**;
+ *  - opened wide, a flame can burn in it: the wood catches, goes onto the
+ *    bed, and the burn is **ash** in the grate.
  *
- * ⚠ It is a THRESHOLD, never a roll. The collier's uncertainty is
- * epistemic: the number was always going to do this, and a collier who
- * learns where the band is gets it right every time. What competence
- * buys is knowing what to set, not being allowed to.
+ * ⚠ Still a THRESHOLD, never a roll: the same draught, the same answer.
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import CharcoalPit, { CHARS_FROM, CHARS_TO } from '../thing/CharcoalPit';
+import CharcoalPit from '../thing/CharcoalPit';
+import Crop from '@saxonberg/server/mud/platform/thing/Crop';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
+import Material from '@saxonberg/server/mud/lib/material/Material';
+import type { HeatTransitionSpec } from '@saxonberg/server/mud/lib/material/HeatTransition';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 const PACK = fileURLToPath(new URL('../../', import.meta.url));
+const BASE = fileURLToPath(new URL('../../../base-library/content/', import.meta.url));
 
 function row(rel: string): Record<string, unknown> {
   return YAML.parse(readFileSync(`${PACK}content/${rel}`, 'utf8')) as Record<string, unknown>;
 }
-
-function clamp(): CharcoalPit {
-  const p = makeStuff(() => new CharcoalPit());
-  p.setYieldRatio(0.35);
-  return p;
+function baseRow(rel: string): Record<string, unknown> {
+  return YAML.parse(readFileSync(`${BASE}${rel}`, 'utf8')) as Record<string, unknown>;
 }
 
-describe('the charcoal burn', () => {
-  beforeEach(() => {
-    StuffApi.clearAll();
+const HAZEL = '/stuff/idea/material/wood/hazel';
+const CHARCOAL = '/stuff/idea/material/organic/charcoal';
+const BRANDS = '/stuff/idea/material/organic/half-burnt-wood';
+
+/** A material at its REAL path, from its REAL row's numbers. */
+function material(path: string): Material {
+  const data = baseRow(`${path.replace('/stuff/', 'stuff/')}.yaml`).data as Record<string, unknown>;
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName(String(data.name));
+    const n = (k: string): number => Number(data[k] ?? 0);
+    m.setDensity(Quantity.of(n('density'), 'kg/m³'));
+    m.setSpecificHeat(Quantity.of(n('specificHeat'), 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(n('thermalConductivity'), 'W/(m·K)'));
+    m.setWaterAbsorptionCapacity(Quantity.of(n('waterAbsorptionCapacity'), '%'));
+    m.setAutoignitionTemperature(Quantity.of(n('autoignitionTemperature'), 'K'));
+    m.setHeatOfCombustion(Quantity.of(n('heatOfCombustion'), 'MJ/kg'));
+    m.setAshFraction(n('ashFraction'));
+    if (data.heatTransitions) m.setHeatTransitions(data.heatTransitions as HeatTransitionSpec[]);
+    return m;
+  }, path) as unknown as Material;
+}
+
+class Yard extends Place {}
+
+const SCALE = 12;
+let real = 0;
+function advance(gameSec: number): void {
+  real += (gameSec / SCALE) * 1000;
+}
+
+/** The clamp as its row authors it, standing in a yard. */
+async function clamp(draught: number): Promise<CharcoalPit> {
+  const data = row('trade/fuel/thing/clamp.yaml').data as Record<string, unknown>;
+  const yard = makeStuff(() => {
+    const y = new Yard();
+    y.setTemperature(Quantity.of(288, 'K'));
+    return y;
+  });
+  const pit = makeStuff(() => new CharcoalPit());
+  pit.setBurnTemperatureK(Number(data.burnTemperatureK));
+  pit.setMaxBurnPowerW(Number(data.maxBurnPowerW));
+  pit.setFuelCapacityKg(Number(data.fuelCapacityKg));
+  (pit as unknown as { fuelBed: Record<string, number> }).fuelBed = {
+    ...(data.fuelBed as Record<string, number>),
+  };
+  pit.setDraught(draught);
+  await ContainmentApi.move(pit, yard);
+  if (!pit.isLit()) pit.ignite();
+  return pit;
+}
+
+/** A length of cordwood, as the forestry row mints it. */
+function cordwood(): Crop {
+  return makeStuff(() => {
+    const c = new Crop();
+    c.setMaterial(StuffApi.findByTemplatePath<Material>(HAZEL)!);
+    c.setMass(Quantity.of(3.2, 'kg'));
+    c.setKeywords(['cordwood', 'wood', 'length']);
+    c.setShortDescription('length of cordwood');
+    c.setStampedTemperatureK(288);
+    c.setLastAmbientK(288);
+    return c;
+  });
+}
+
+async function burn(draught: number, lengths = 4): Promise<{ pit: CharcoalPit; wood: Crop[] }> {
+  const pit = await clamp(draught);
+  const wood: Crop[] = [];
+  for (let i = 0; i < lengths; i++) {
+    const c = cordwood();
+    await ContainmentApi.move(c, pit);
+    await c.restamp();
+    c.reconcileThermal();
+    wood.push(c);
+  }
+  // Three days, read every two hours (the fire's own tick runs between).
+  for (let step = 0; step < 36; step++) {
+    advance(2 * 3600);
+    pit.reconcileBurnerFuel();
+    pit.catchContents();
+    for (const c of wood) if (!c.isDestroyed()) c.getTemperature();
+  }
+  await pit.settleFiring(null);
+  return { pit, wood };
+}
+
+function materialOf(c: Crop): string {
+  return c.getMaterial()?.getTemplatePath() ?? '';
+}
+
+describe('the charcoal burn — one rule', () => {
+  // ⚠ No `clearAll`: the world clock's registry must outlive each test
+  // (the purify test's precedent), so the materials are made once.
+  beforeAll(() => {
     installV1QuantityMarshallers();
+    material(CHARCOAL);
+    material(BRANDS);
+    material(HAZEL);
+  });
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    real = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => real);
     vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
   afterEach(() => {
     vi.restoreAllMocks();
-    StuffApi.clearAll();
+    WorldClockApi._resetForTesting();
   });
 
-  it('⭐ a well-tended burn yields charcoal at the authored ratio', () => {
-    const pit = clamp();
-    const centre = (CHARS_FROM + CHARS_TO) / 2;
-    pit.setDraught(centre);
-    expect(pit.outcomeFor()).toBe('charcoal');
-    // Dead centre is full efficiency: 20 lengths × 0.35.
-    expect(pit.yieldFor(20)).toBe(7);
-  });
-
-  it('⚠ TOO MUCH air yields ash and nothing else — the whole burn is lost', () => {
-    const pit = clamp();
-    pit.setDraught(CHARS_TO + 0.05);
-    expect(pit.outcomeFor()).toBe('ash');
-    expect(pit.yieldFor(20)).toBe(0);
-  });
-
-  it('⚠ TOO LITTLE yields half-burnt brands — drawn too tight, worth a fraction', () => {
-    const pit = clamp();
-    pit.setDraught(CHARS_FROM - 0.05);
-    expect(pit.outcomeFor()).toBe('brands');
-    expect(pit.yieldFor(20)).toBe(0);
-  });
-
-  it('⭐ inside the band the yield still VARIES — there is a right answer and a nearly-right one', () => {
-    const pit = clamp();
-    const centre = (CHARS_FROM + CHARS_TO) / 2;
-    pit.setDraught(centre);
-    const best = pit.yieldFor(40);
-    pit.setDraught(CHARS_FROM + 0.01);
-    const edge = pit.yieldFor(40);
-    expect(edge).toBeGreaterThan(0);
-    expect(edge).toBeLessThan(best);
-    // …which is what makes a burn worth WATCHING rather than setting and
-    // walking away.
-  });
-
-  it('⚠ it is a THRESHOLD, never a roll: a hundred evaluations, one answer', () => {
-    const pit = clamp();
-    pit.setDraught(0.5);
-    const answers = new Set<string>();
-    const yields = new Set<number>();
-    for (let i = 0; i < 100; i++) {
-      answers.add(pit.outcomeFor());
-      yields.add(pit.yieldFor(20));
+  it('⭐ at the row’s draught the heap is starved, and the lengths come out charcoal', async () => {
+    const pit = await clamp(0.45);
+    expect(pit.completeness()).toBeLessThan(0.6);
+    const { wood } = await burn(0.45);
+    for (const c of wood) {
+      expect(c.isDestroyed()).toBe(false);
+      expect(materialOf(c)).toBe(CHARCOAL);
+      // A quarter of its mass: the volatiles went up the vents.
+      expect(c.getMass().rawValue()).toBeCloseTo(0.8, 1);
+      expect(c.getShortDescription()).toBe('charred length of cordwood');
     }
-    expect(answers.size).toBe(1);
-    expect(yields.size).toBe(1);
   });
 
-  it('the draught is clamped to a fraction — a row cannot author 300% open', () => {
-    const pit = clamp();
+  it('⚠ drawn too tight the heap runs cool, and three days only reach brands', async () => {
+    const { wood } = await burn(0.3);
+    for (const c of wood) expect(materialOf(c)).toBe(BRANDS);
+  });
+
+  it('⚠ opened wide a flame can burn in it — the wood catches and the burn is ash', async () => {
+    const { pit, wood } = await burn(1);
+    expect(pit.completeness()).toBeGreaterThanOrEqual(0.6);
+    for (const c of wood) expect(c.isDestroyed()).toBe(true);
+    // Burning on the bed: nothing charred, ash in the grate as it goes.
+    expect(pit.getAshKg()).toBeGreaterThan(0);
+  });
+
+  it('⚠ it is a THRESHOLD, never a roll: the same draught, the same answer', async () => {
+    const a = await burn(0.45, 1);
+    const b = await burn(0.45, 1);
+    expect(materialOf(a.wood[0]!)).toBe(materialOf(b.wood[0]!));
+    expect(a.wood[0]!.getMass().rawValue()).toBeCloseTo(b.wood[0]!.getMass().rawValue(), 6);
+  });
+
+  it('the draught is clamped to a fraction — a row cannot author 300% open', async () => {
+    const pit = await clamp(0.45);
     pit.setDraught(5);
     expect(pit.getDraught()).toBe(1);
     pit.setDraught(-1);
     expect(pit.getDraught()).toBe(0);
   });
 
-  it('the clamp is a Burner and a Container — it holds a charge and holds a heat', () => {
-    const pit = clamp();
+  it('the clamp is a Burner and a Container — it holds a charge and holds a heat', async () => {
+    const pit = await clamp(0.45);
     expect(MixinApi.isBurner(pit)).toBe(true);
     expect(MixinApi.isContainer(pit)).toBe(true);
   });
 
-  it('⭐ charcoal reaches copper and wood does not — the reason the trade exists', () => {
-    const clampRow = row('trade/fuel/thing/clamp.yaml').data as Record<string, number>;
-    // Copper melts at 1358 K. Charcoal's burn heat clears it; wood's
-    // ~1200 K does not, which is the whole reason a metal age needs a
-    // collier standing between the wood and the smelter.
-    expect(clampRow.burnTemperatureK).toBeGreaterThan(1358);
+  it('⭐ the retort row is SHUT — what is in it chars, never catches', () => {
+    const retort = row('trade/fuel/thing/retort.yaml').data as Record<string, number>;
+    // completeness = draught × air / 0.85 in clean air.
+    expect((retort.draught ?? 1) / 0.85).toBeLessThan(0.6);
+  });
+});
+
+describe('charcoal, read off the MATERIAL', () => {
+  it('⭐ charcoal’s flame reaches copper and wood’s does not — the reason the trade exists', () => {
+    // A flame's temperature is derived from heatOfCombustion
+    // (≈ 300 + 65 × MJ/kg). Copper melts at 1358 K.
+    const flame = (mjPerKg: number): number => 300 + 65 * mjPerKg;
+    const charcoal = baseRow('stuff/idea/material/organic/charcoal.yaml').data as Record<string, number>;
+    const oak = baseRow('stuff/idea/material/wood/oak.yaml').data as Record<string, number>;
+    expect(flame(charcoal.heatOfCombustion!)).toBeGreaterThan(1358);
+    expect(flame(oak.heatOfCombustion!)).toBeLessThan(1358);
   });
 
   it('⚠ charcoal’s fuel value and ignition read off the MATERIAL, never authored twice', () => {
     const product = row('trade/fuel/thing/charcoal.yaml').data as Record<string, unknown>;
-    expect(product._materialPath).toBe('/stuff/idea/material/organic/charcoal');
-    // The thing row says WHICH material it is and stops there.
+    expect(product._materialPath).toBe(CHARCOAL);
     expect(product).not.toHaveProperty('autoignitionPoint');
     expect(product).not.toHaveProperty('fuelValue');
-    const material = row('stuff/idea/material/organic/charcoal.yaml').data as Record<string, unknown>;
-    // ⚠⚠ The key is `autoignitionTemperature`. This row said
-    // `autoignitionPoint` — which is not a field — for the life of the
-    // pack, so charcoal's autoignition read ZERO and `tryAutoignite`
-    // would never have caught it from a neighbouring fire. ⭐ The
-    // assertion asserted the DEFECT: it pinned the misspelling in place,
-    // which is what an authored-key test does when it is written off the
-    // row instead of off the field.
+    const material = baseRow('stuff/idea/material/organic/charcoal.yaml').data as Record<string, unknown>;
     expect(material.autoignitionTemperature).toBe(620);
     expect(material).not.toHaveProperty('autoignitionPoint');
-    // ⭐ And the number the fire build actually reads: 30 MJ/kg is why
-    // charcoal reaches a smelting ceiling and oak (16) does not.
     expect(material.heatOfCombustion).toBe(30);
     expect((material.tags as string[])).toContain('fuel');
   });
 
-  it('⭐ the three outcomes all have rows, so a lost burn is a THING you can see', () => {
-    for (const rel of [
-      'trade/fuel/thing/charcoal.yaml',
-      'trade/fuel/thing/brands.yaml',
-      'trade/fuel/thing/ash.yaml',
-    ]) {
-      expect(row(rel).class).toBe('/platform/thing/Provision');
+  it('⭐ every wood chars to the same two commons rows (ruling A, R4)', () => {
+    for (const w of ['ash', 'beech', 'birch', 'elm', 'hazel', 'maple', 'oak', 'pine', 'willow', 'yew']) {
+      const data = baseRow(`stuff/idea/material/wood/${w}.yaml`).data as {
+        heatTransitions: HeatTransitionSpec[];
+      };
+      const char = data.heatTransitions.find((t) => t.key === 'char')!;
+      expect(char.requiresStarvedAir).toBe(true);
+      expect(char.ladder.map((r) => r.becomes)).toEqual([BRANDS, CHARCOAL]);
     }
-    // …and the two failures are visibly WORSE, not merely different.
-    expect((row('trade/fuel/thing/brands.yaml').data as Record<string, string>).gradeBand).toBe('poor');
-    expect((row('trade/fuel/thing/ash.yaml').data as Record<string, string>).gradeBand).toBe('poor');
   });
+
 });

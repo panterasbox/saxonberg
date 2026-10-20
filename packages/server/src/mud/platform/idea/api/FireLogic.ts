@@ -252,6 +252,10 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
+  // ⭐ No flame where there is no air (ceramics R3; underwater D29 seam 1
+  // is the medium arm of the same gate): a log shut in a starved chamber
+  // is refused BEFORE anything is struck.
+  if (!mediumBurns(stuff)) return { lit: false, reason: 'no-air' };
   // ⭐⭐⭐ **Striking a light is how you find out.** The tick's flash check
   // runs where a fire already burns; this is the other half, and it is
   // the one that actually kills people — a miner walks into a gassy
@@ -304,12 +308,33 @@ function igniteImpl(stuff: Stuff): IgniteOutcome {
 function tryAutoigniteImpl(stuff: Stuff): boolean {
   if (!MixinApi.isCombustible(stuff)) return false;
   if (stuff.isBurning()) return false;
+  // ⭐ The heat-threshold path is how a log in a clamp would catch, so the
+  // gate stands here too (R3): hot enough is not enough without air.
+  if (!mediumBurns(stuff)) return false;
   if (stuff.getFuelRemaining() <= 0) return false;
   const eff = stuff.getEffectiveAutoignitionK();
   if (eff <= 0) return false; // non-flammable material
   if (stuff.getTemperature().rawValue() < eff) return false;
   igniteNow(stuff);
   return true;
+}
+
+/**
+ * ⭐⭐ **Can a flame burn where `stuff` is?** — *a flame needs air*, ONE
+ * gate (ceramics R3). The chamber-air arm: a thing whose immediate
+ * container is a `Burner` chamber burns only while that burner's
+ * `completeness()` is at or above `fire.air.flamingCompleteness` — so
+ * cordwood sealed in a clamp at draught 0.45 (≈ 0.53) or in a shut retort
+ * chars by its material's transition and never catches, and at `draught
+ * wide` it burns. ⚠ The medium arm (a thing under water, in a medium that
+ * does not support combustion) is underwater's, and lands INSIDE this same
+ * function — never a second gate beside it.
+ */
+function mediumBurns(stuff: Stuff): boolean {
+  if (!MixinApi.isContainable(stuff)) return true;
+  const holder = stuff.getContainer() as unknown as Stuff | null;
+  if (holder === null || holder === stuff || !MixinApi.isBurner(holder)) return true;
+  return holder.completeness() >= dial(AppSettingKeys.fireAirFlamingCompleteness, 0.6);
 }
 
 /** Set the Burning state (born complete — Phase 5 flips it by air supply). */
@@ -399,6 +424,9 @@ function advanceFireInRoom(room: Stuff & Container): void {
     if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
     if (!s.isLit()) continue;
     s.heatContents();
+    // ⭐ A flame needs air (R3): a well-drawing chamber burns what in it is
+    // hot enough to catch; a starved one leaves it to char.
+    s.catchContents();
     s.exhaustTick(tickS);
   }
 

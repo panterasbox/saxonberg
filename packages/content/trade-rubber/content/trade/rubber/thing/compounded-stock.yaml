@@ -1,0 +1,15 @@
+# A piece of compounded stock — raw rubber milled with sulfur, ready to be
+# put in a mould and cured. ⭐ A `Casting` (Composition over Thermal): it
+# carries its own sulfur fraction, and its heat history is what cures it.
+# Its material authors no melting point, so it never runs.
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of compounded rubber
+  keywords: [stock, compound, "compounded rubber", rubber, lump]
+  register: indefinite
+  longDescription: |
+    A grey-brown lump of rubber milled through with yellow sulfur, tacky to
+    the touch and smelling faintly of matches.
+  _materialPath: /stuff/idea/material/organic/compounded-rubber
+  mass: 0.5
+  stampedTemperatureK: 290

@@ -118,7 +118,9 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `hollow-mere`, the rubber build `trade-rubber`, and the silk build
     // `trade-sericulture` (built in parallel; whoever lands second
     // recounts — the sum, whatever git says).
-    expect(ids).toHaveLength(65);
+    // ⭐ 65 → 66: the ceramics build adds `trade-ceramics` (sugar and potash
+    // add packs in parallel — whoever lands second recounts the sum).
+    expect(ids).toHaveLength(66);
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

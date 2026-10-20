@@ -12,11 +12,14 @@ Source: `packages/server/src/mud/lib/mould/Mould.ts` (`MouldMixin`, the
 
 ## ⭐⭐ The container decides; the material sets
 
-> ⭐ **A firing asks the mould too (rubber build, 2026-10).** `fire`
-> reaches one level into a mould standing in its chamber and hands it the
-> outcome as a pool — the same `castInto` the freeze edge calls — so a
-> rubber charge in a boot mould comes out as boots; the cast takes the
-> weaker of the mould's grade and the cure's. And `holdsCast()` is true
+> ⭐ **A firing asks the mould too (rubber build, 2026-10; since the
+> ceramics build it is the HEAT TRANSITION, not the verb).** A piece whose
+> heat-work reaches a rung while it stands in a mould that is not its own
+> cast hands the mould a pool — the same `castInto` the freeze edge calls —
+> so a compounded-rubber charge in a boot mould comes out as boots; the cast
+> adopts the piece's heat history and takes the weaker of the mould's grade
+> and the cure's, re-read as the cure goes on. See [thermal.md](./thermal.md)
+> § heat-work. And `holdsCast()` is true
 > only for a CAST (a thing of the mould's shape, or a cracked mould's
 > lump): a mould charged with solids waiting to be fired is not "set".
 > The seam is moulding-slate § 5's. See [rubber.md](./rubber.md).

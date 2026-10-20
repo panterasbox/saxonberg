@@ -211,6 +211,30 @@ export interface Burner extends Pumpable {
    * furnace's new lit state. */
   restampHeated(): void;
 
+  /**
+   * ⭐ The heat this fire holds for ONE body in it (ceramics D3). Default:
+   * the same for everything, `getHeldTemperatureK()`. A clamp answers by
+   * where the brick stands in it.
+   */
+  heldTemperatureKFor(body: Stuff): number;
+  /** What has vaporized into this chamber's air, kg by material path. */
+  getChamberVapors(): Readonly<Record<string, number>>;
+  /** A lump of `materialPath` became vapor in this chamber. */
+  addChamberVapor(materialPath: string, kg: number): void;
+  /**
+   * ⭐ Settle a firing: bring every body in the chamber current (each
+   * reconciles its own heat-work, transitions and volatiles), let what can
+   * burn here burn, and hand back the Disciplines the rungs completed —
+   * the one completion `fire` and `char` share.
+   */
+  settleFiring(by: Stuff | null): Promise<SettledFiring>;
+  /**
+   * ⭐ A flame needs air (R3), from the chamber's side: while this burner
+   * draws at or above `fire.air.flamingCompleteness`, anything in it hot
+   * enough to catch goes onto the bed and burns. Below it, nothing catches.
+   */
+  catchContents(): void;
+
   // Authorable configuration.
   setBurnTemperatureK(value: number): void;
   setBellowsMultiplier(value: number): void;
@@ -219,6 +243,16 @@ export interface Burner extends Pumpable {
   setFlameEnclosed(value: boolean): void;
   // Gated (Api) lit-state writer.
   _setLit(value: boolean): void;
+}
+
+/** What `settleFiring` hands back. */
+export interface SettledFiring {
+  /** The bodies still in the chamber, after it settled. */
+  contents: Stuff[];
+  /** Disciplines the rungs reached in this firing credit, in order. */
+  disciplines: string[];
+  /** Bodies that caught and went onto the bed. */
+  burnt: number;
 }
 
 /**
@@ -383,7 +417,115 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       flameEnclosed: { persistent: true, authorable: true },
       burnerFuelClockStamp: { persistent: true, runtimeState: true },
       ashKg: { persistent: true, runtimeState: true },
+      chamberVapors: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ What vaporized in this chamber (ceramics ruling B): salt thrown in
+     * at peak heat is salt vapor in the kiln's air, and a stoneware body
+     * reaching its rung under it takes a salt-glaze coat. Cleared when the
+     * fire goes out — the vapor goes up the flue.
+     */
+    public chamberVapors: Record<string, number> = {};
+
+    public getChamberVapors(): Readonly<Record<string, number>> {
+      return this.chamberVapors;
+    }
+
+    public addChamberVapor(materialPath: string, kg: number): void {
+      if (typeof materialPath !== 'string' || materialPath === '' || !(kg > 0)) return;
+      this.chamberVapors = {
+        ...this.chamberVapors,
+        [materialPath]: (this.chamberVapors[materialPath] ?? 0) + kg,
+      };
+    }
+
+    /**
+     * @hook The heat this fire holds for `body`. Override where a fire is
+     * hotter in one place than another (a clamp's fire channels).
+     */
+    public heldTemperatureKFor(_body: Stuff): number {
+      return this.getHeldTemperatureK();
+    }
+
+
+    public async settleFiring(_by: Stuff | null): Promise<SettledFiring> {
+      const self = this as unknown as Stuff;
+      this.catchContents();
+      const disciplines: string[] = [];
+      const contents: Stuff[] = [];
+      const beforeIds = new Set<string>();
+      if (MixinApi.isContainer(self)) {
+        for (const c of self.getContents()) beforeIds.add((c as unknown as Stuff).stuffId);
+        // ⭐ Each body reconciles its OWN heat history — the firing decides
+        // nothing about the charge. A read is the whole act.
+        for (const c of [...self.getContents()]) {
+          const body = c as unknown as Stuff;
+          if (body.isDestroyed()) continue;
+          if (MixinApi.isThermal(body)) {
+            body.getTemperature();
+            // A piece that vaporized (salt) left the chamber on that read.
+            if (body.isDestroyed()) continue;
+            for (const d of body.drainHeatWorkCredits()) disciplines.push(d);
+          }
+        }
+        for (const c of [...self.getContents()]) {
+          const body = c as unknown as Stuff;
+          if (body.isDestroyed()) continue;
+          // ⭐ One level into a mould: the charge standing in it reads too.
+          if (MixinApi.isMould(body) && MixinApi.isContainer(body)) {
+            for (const inner of [...body.getContents()]) {
+              const piece = inner as unknown as Stuff;
+              if (piece.isDestroyed() || !MixinApi.isThermal(piece)) continue;
+              piece.getTemperature();
+              // ⚠ A piece that reached its rung in a mould was poured into
+              // the cast and destructed by the read above: its credits
+              // went with its record to the cast, which is drained below.
+              if (piece.isDestroyed()) continue;
+              for (const d of piece.drainHeatWorkCredits()) disciplines.push(d);
+            }
+          }
+          if (MixinApi.isThermal(body)) await body.settleTransitions();
+          // The casts a rung just minted in a mould carry the credit now.
+          if (MixinApi.isMould(body) && MixinApi.isContainer(body)) {
+            for (const inner of body.getContents()) {
+              const cast = inner as unknown as Stuff;
+              if (!cast.isDestroyed() && MixinApi.isThermal(cast)) {
+                for (const d of cast.drainHeatWorkCredits()) disciplines.push(d);
+              }
+            }
+          }
+        }
+        for (const c of self.getContents()) {
+          const body = c as unknown as Stuff;
+          if (!body.isDestroyed()) contents.push(body);
+        }
+      }
+      return { contents, disciplines, burnt: Math.max(0, beforeIds.size - contents.length) };
+    }
+
+    public catchContents(): void {
+      const self = this as unknown as Stuff;
+      if (!this.lit || !MixinApi.isContainer(self)) return;
+      if (this.completeness() < burnerDial(AppSettingKeys.fireAirFlamingCompleteness, 0.6)) return;
+      for (const c of [...self.getContents()]) {
+        const body = c as unknown as Stuff;
+        if (body.isDestroyed() || !MixinApi.isTangible(body) || !MixinApi.isThermal(body)) continue;
+        // A Combustible catches by its own heat-threshold path (FireLogic).
+        if (MixinApi.isCombustible(body)) continue;
+        const mat = body.getMaterial();
+        if (mat === null) continue;
+        const ignK = mat.getAutoignitionTemperature().rawValue();
+        if (!(ignK > 0) || !(mat.getHeatOfCombustion().rawValue() > 0)) continue;
+        if (body.getTemperature().rawValue() < ignK) continue;
+        // ⭐ It is fuel now: onto the bed, where the burner's own path burns
+        // it and leaves its ash in the grate. No second combustion model.
+        // ⚠ Not through `stoke`'s too-wet refusal: that gate is about a
+        // HAND-flame drying a sodden log, and a piece already at its
+        // ignition point inside a drawing chamber has driven its water off.
+        this.bedItem(body);
+      }
+    }
 
     /**
      * ⭐ The ash in the grate, kg (cleanliness D24): every kilogram of a
@@ -990,6 +1132,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       if (burnerFireLogic().tooWetToCatch(item)) {
         return { ok: false, reason: 'too-wet' };
       }
+      return this.bedItem(item);
+    }
+
+    /** Lay a piece of fuel matter on the bed — `stoke` past its wet gate. */
+    private bedItem(item: Stuff): StokeOutcome {
+      if (!MixinApi.isTangible(item)) return { ok: false, reason: 'not-matter' };
+      const material = item.getMaterial();
+      if (!material) return { ok: false, reason: 'not-fuel' };
       const kg = item.getMass().rawValue();
       if (!(kg > 0)) return { ok: false, reason: 'not-matter' };
       if (this.fuelRemaining() + kg > this.effectiveCapacityKg()) {
@@ -1200,6 +1350,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     private _goOut(): void {
       this.settleRoomAir();
       this.lit = false;
+      this.chamberVapors = {};
       this.restampHeated();
     }
 
@@ -1209,6 +1360,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     public _setLit(value: boolean): void {
       this.settleRoomAir();
       this.lit = value === true;
+      if (!this.lit) this.chamberVapors = {};
       // ⭐ The eighth re-stamp trigger class (the `Atmospheric
       // .setTemperature` fan-out shape): lighting or dousing changes
       // the ambient of everything the furnace heats, and the cached

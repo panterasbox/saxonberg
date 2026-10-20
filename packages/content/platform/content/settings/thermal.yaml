@@ -12,3 +12,9 @@ settings:
   # than near-freezing air, and a summer swim chills nobody (storage-and-ice).
   - key: thermal.waterNeutralK
     value: "297"
+
+  # ⭐ A firing whose dose-weighted burner completeness sat below this was
+  # REDUCING (ceramics D3): a clay rung takes its reducing twin — the blue
+  # brick, celadon. The clamp's banked draught (≈ 0.53) is reducing.
+  - key: thermal.heatWork.reducingBelow
+    value: "0.55"

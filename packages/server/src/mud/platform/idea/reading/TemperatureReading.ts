@@ -64,6 +64,17 @@ export default class TemperatureReading extends BiomeReading {
     _handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
+    // ⭐⭐ A kiln reads by its GLOW (ceramics D31): incandescence is a
+    // colour anybody can see, and potters fired by it for millennia —
+    // dull red, cherry, orange, yellow, white. The eye reads the fire,
+    // not a figure; a pyrometric cone in the spy-hole reads finer.
+    if (target && MixinApi.isBurner(target) && target.isLit()) {
+      const held = target.getHeldTemperatureK();
+      if (held >= 800) {
+        this.report(context, Mml.compose`${glowOf(held)}\n`);
+        return;
+      }
+    }
     const value = await this.subjectValue(target, param);
     if (!value) {
       this.decline(
@@ -122,6 +133,18 @@ export default class TemperatureReading extends BiomeReading {
       Quantity<Unit>
     >;
   }
+}
+
+/**
+ * ⭐ The colour of a fire's heat — Draper's point (~800 K) onward. The
+ * words a potter and a smith share; no instrument needed.
+ */
+function glowOf(kelvin: number): string {
+  if (kelvin < 950) return 'Inside, it glows a dull red you can barely see by day.';
+  if (kelvin < 1150) return 'It glows cherry red.';
+  if (kelvin < 1300) return 'It glows a bright orange.';
+  if (kelvin < 1500) return 'It glows yellow, too bright to look into for long.';
+  return 'It is white-hot inside — you cannot look into it at all.';
 }
 
 /** What an untrained body can say about the air, and no more. */

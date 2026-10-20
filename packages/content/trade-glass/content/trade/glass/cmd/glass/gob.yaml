@@ -9,20 +9,28 @@ help: |
   the glass is COOLING — you have seconds to `shape` and `crack` it before
   it sets, or `reheat` it at the glory hole to buy more time. A stiff pot
   refuses the pipe; fire it again.
+
+  ⭐ Any hot glass will gather: a fired batch, a lump of cullet brought
+  back up in the kiln, an old bottle put in to heat. What colour it blows
+  is what was in it.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ WHICH POT — declared, the binder resolves it (lint:instrument-args).
-  # Narrowed to a Melt in the controller; the arg gate keeps non-glass out.
+  # ⭐ WHAT GLASS — declared, the binder resolves it (lint:instrument-args).
+  # Any hot piece of glass that knows what is dissolved in it (ceramics W0,
+  # ruling C): a fired batch, a cullet lump brought back up in the kiln, a
+  # bottle put in hot. The controller asks the material's `glass` tag and
+  # the working heat. The default reaches a pot of melt first, then a lump
+  # (a bottle is named: `gob from bottle`).
   - name: melt
     type: object
     required: false
     prepositions: [from, in]
-    default: "reachable:[class.Melt]"
+    default: "reachable:[class.Melt],reachable:[class.Casting]"
     scope: ["reachable"]
-    requires: AlloyedMixin
+    requires: CompositionMixin
   # ⭐ WHICH PIPE — the empty blowpipe in hand.
   - name: pipe
     type: objects

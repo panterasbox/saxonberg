@@ -1,0 +1,52 @@
+# Compounded rubber — raw rubber milled with sulfur, before the cure.
+#
+# ⭐⭐ THE CURE IS A HEAT TRANSITION ON THIS ROW (ceramics M1, generalised
+# from the rubber build's `crosslinking`). The sulfur is IN the piece: it
+# went in at the mixing tub, where `knead` folds raw rubber and sulfur into
+# one compound by mass (ceramics R1), so the agent fraction below is
+# `fractionOf(sulfur)` on the piece itself — what you weighed in, never a
+# sum over whatever else is in the oven.
+#
+# Below a degree of 0.6 the piece has not cured: it stays this —
+# tacky and weeping. At the rung it becomes rubber; with a fifth or more
+# sulfur in it, ebonite; held past 455 K at any point, scorched. A charge
+# standing in a mould comes out in the mould's shape (the mould seam).
+# There is no knowledge gate: anybody may try, and the window is narrow.
+class: /platform/idea/material/Material
+data:
+  name: compounded rubber
+  keywords: [rubber, "compounded rubber", compound, stock]
+  appearance: tacky, weeping compounded rubber
+  density: 960
+  specificHeat: 1850
+  thermalConductivity: 0.15
+  hardness: 1
+  toughness: 4
+  electricalConductivity: 1.0e-12
+  waterAbsorptionCapacity: 0.5
+  elasticity: 250
+  castTemplate: /trade/rubber/thing/compounded-stock
+  heatTransitions:
+    - key: cure
+      referenceK: 418
+      zK: 12
+      fullDoseS: 1800
+      agent:
+        # The quarry's sulfur lump is `mineral/sulfur`, whole (its row
+        # authors no composition), so this is the path the mixing fold
+        # files its share under.
+        material: /stuff/idea/material/mineral/sulfur
+        optimum: 0.03
+        over: 0.20
+      scorchAboveK: 455
+      ladder:
+        - { atDegree: 0.6, becomes: /stuff/idea/material/organic/rubber }
+      over: /stuff/idea/material/organic/ebonite
+      scorched: /stuff/idea/material/organic/rubber-scorched
+      discipline: chemistry
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "elastomer", "compounded", "insulating", "polymer"]
+  composition: []
+  biologicalSource: null

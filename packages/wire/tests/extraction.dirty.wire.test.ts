@@ -39,6 +39,7 @@ import {
   uniqueHandle,
   expectOk,
   engagementIdOf,
+  advanceWorldClock,
 } from '../src/harness';
 
 /**
@@ -232,6 +233,36 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     ).toBe('no-pick');
   }, 300_000);
 
+  it('⭐⭐ ceramics W0 — clay dug on the way down FIRES to terracotta, by the one rule', async () => {
+    /*
+     * The spading above went down through the clay band (−1 … −1.6 m) on its
+     * way to the granite, and the band mints clay lumps into the pit. Firing
+     * is ONE rule since the ceramics build: there is no `fire-pot` recipe; a
+     * lump of clay held hot banks heat-work and its material's own heat
+     * transition makes it terracotta — the same lump, which says so.
+     */
+    const clay = await q.query('here:i:[keyword.clay]');
+    expect(
+      clay.length,
+      'no clay lump in the pit after spading through the clay band — the ' +
+        'band\u2019s `wins:` row did not mint',
+    ).toBeGreaterThan(0);
+    expectOk(await q.cmd('get clay'));
+    // The limekiln may be cold; light it (an already-lit kiln refuses, fine).
+    await q.cmd('ignite limekiln');
+    expectOk(await q.cmd('put clay in limekiln'));
+    const fired = await q.cmd('fire limekiln for 3 hours');
+    expectOk(fired);
+    expect(refusedFor(fired), 'fire refused a lit, loaded limekiln').toBeNull();
+    await advanceWorldClock('4 hours');
+    await new Promise((r) => setTimeout(r, 1500));
+    const inside = await q.prose('look in limekiln');
+    expect(
+      inside,
+      'the clay did not fire — no terracotta in the limekiln after the hold',
+    ).toMatch(/terracotta/i);
+  }, 300_000);
+
   it('6. ⭐⭐ a block comes off the granite, and you CANNOT LIFT IT', async () => {
     await dig(q, 'dig with pick');
     const blocks = await q.query('here:i:[keyword.block]');
@@ -307,9 +338,11 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
       '`fire` did not reach the controller at the pit — check that ' +
         'BurnerMixin affords `platform/cmd/device/fire.yaml` on `peers`',
     ).toBeTruthy();
-    // Empty, or cold, or nothing in it that wants heat — all three are the
-    // chamber answering rather than the verb not existing.
-    expect(['no-charge', 'not-lit', 'no-firing']).toContain(reason);
+    // Empty, or cold — both are the chamber answering rather than the verb
+    // not existing. ⭐ There is no third (`no-firing`) since ceramics W0:
+    // firing is one rule, and whatever heat is held makes of the charge
+    // what its own material says.
+    expect(['no-charge', 'not-lit']).toContain(reason);
 
     // ⭐ And `burn` is the same act: a lime-burner burns lime.
     const burn = await q.cmd('burn kiln');

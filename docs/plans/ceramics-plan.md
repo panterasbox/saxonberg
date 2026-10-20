@@ -1222,6 +1222,74 @@ left a fork the lens that chose is named.
   by* lens 1 (a blend is arithmetic a player can predict) and the owner's
   R1.
 
+### Build decisions (recorded as the build made them)
+
+- **B1 (W0) — Clay is THREE transitions, not one ladder.** Ceramic heat-work
+  is steep in temperature (an Orton cone bends ~20 K lower for a ten-times
+  soak), so one dose cannot carry a terracotta firing to stoneware without
+  making time a substitute for heat. `earth/clay` authors `terracotta`
+  (ref 1200 K), `earthenware` (1330 K), `stoneware` (1480 K, scorched →
+  clinker above 1560 K), zK 30, each its own reference — same evaluator.
+  *Lens 1* (cones measure exactly this).
+- **B2 (W0) — The pool field is `BulkPayload.alloying`, not `composition`.**
+  `composition` is already the drink blend's (`BlendPart[]`). It is the
+  piece's own `alloying`, molten. ⚠ The sibling note's name changes.
+- **B3 (W0) — `requiresStarvedAir: true`, not `requiresAtmosphereBelow: <n>`.**
+  One dial, two readers (R3): the transition and `FireLogic.mediumBurns` both
+  read `fire.air.flamingCompleteness`; a number on each wood row would drift.
+- **B4 (W0) — A rung restamps prose without re-classing.** The old
+  material's name is swapped in the short description (*lump of limestone →
+  lump of quicklime*); where the name is absent the rung's `describes` word
+  goes in front (*charred length of cordwood*); the long description gains
+  one sentence of the new appearance, replaced (never stacked) next rung.
+- **B5 (W0) — The lost burn is the BED's.** `Burner.catchContents()` (fire
+  tick + `settleFiring`): in a chamber at or above the flaming dial, a
+  non-`Combustible` piece of a fuel material above its autoignition goes
+  onto the bed (skipping the too-wet stoke gate) and burns by the burner's
+  own path, its ash in the grate. Cordwood is a `Crop`, not a `Combustible`,
+  so R3's "it ignites" needed a home; the burner is it.
+- **B6 (W0) — `heatSource()` looks one hop through a mould** to a lit burner
+  (the rubber worker): stock in a boot mould in an oven otherwise never
+  heated. ⚠ Sugar's identical `heatSource()` text now differs by that hop.
+- **B7 (W0) — The census is by retired ROW ID.** The old `firingsFor` shape
+  (heat > 0, item slots, no tools) also matched eight live rows other verbs
+  run (`smelt`'s charges, smoke-cure, the toasts, melt-wax) — a kiln could
+  have "fired" a smoke-cure. `FireController.test` asserts the ten retired
+  ids are gone instead.
+- **B8 (W0) — Smelt fuel is reckoned by MASS** (≥ 16 kg; ratio = fuel kg ÷
+  charge kg). Charcoal now comes out of a clamp as the lengths that went in
+  at a quarter of their mass (≈ 21 % of dry wood — real), where the old yield
+  was 84 %; counting pieces would have quadrupled a coppice. A panel is now
+  ≈ 38 kg ≈ two smelts a year (the panel headers restated). *Lens 1*.
+- **B9 (W0) — The reducing threshold is the kernel's**
+  (`thermal.heatWork.reducingBelow` 0.55), not `ceramics.atmosphere.*`: the
+  rung's twin is the heat-work reconcile's read.
+- **B10 (W0) — Different matter does not stack.** `Stackable.canMergeWith`
+  refuses two pieces of different material or fired differently (a lump of
+  quicklime keeps the limestone row).
+- **B11 (W0) — Fuel rows.** The clamp holds a charring heap's 720 K (not the
+  1420 K forge figure) with a 40 kg hazel kindling bed (`char` stokes one
+  length when empty); the retort's row draught is 0.3 (its default 1 was
+  flaming); `pitch.yaml` moved with `wood-tar` (R4). `brands.yaml` is half-
+  burnt wood.
+- **B12 (W0) — Glass.** `Melt` is not `Meltable` (it IS the molten pot); `gob`
+  defaults to `class.Melt` ∪ `class.Casting` and a bottle is named (`gob from
+  bottle`); `reconcilePhaseImpl` takes the melt branch for a meltable VESSEL
+  only at/above its melting point (else a bottle's contents never froze or
+  boiled). ⚠ Remelted cullet no longer comes back a step greener — that
+  step was the deleted melt row's own iron; `glass.pot.ironPickup` was never
+  read. Recorded as a seam in `glass.md`.
+- **B13 (W0) — Rubber.** The cure's agent is `/stuff/idea/material/mineral/
+  sulfur` (the quarry nodule mixes in under its own path); the stock row is a
+  `Casting`; a conversion records its `agentFraction` so a cast (not a
+  `Composition`) keeps grading; the cast's cure grade is set at its mint.
+- **B14 (W0) — Rows nothing mints any more are deleted, not kept.** A
+  firing changes the piece in place, so the old recipe OUTPUT rows were
+  reached by nothing (`lint:reachability` arm R): `/stuff/thing/clay-pot`
+  (W2/W4 name the potter's pot rows instead), `/trade/fuel/thing/{brands,
+  coke}`, `/trade/glass/thing/{melt,amber-melt}`. The batch row (class `Melt`)
+  IS the melt now. `blendTemplate` is a FAUCET (a mixing vessel mints it).
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of
@@ -1337,6 +1405,16 @@ still pass), and leaves a consumer running. Kernel substrate lands first
 with a consumer each time; no wave waits on a sibling.
 
 ### W0 — one rule fires everything (the kernel's M1)
+
+> ✅ **DONE (W0).** Heat-work on `ThermalMixin`, `HeatTransition` (←
+> `Crosslinking`), `fire` without a recipe path, `mediumBurns` (chamber arm,
+> both call sites), `MixingVessel` + `stir`'s arm + `knead` promoted,
+> `BulkPayload.alloying` + `poolVesselIn`, the glow reading, the
+> `trade-ceramics` pack born (66 packs). Ten firing rows retired; lime,
+> clay, wood, coal, the glass batch and compounded rubber ride materials.
+> Decisions B1–B13 above. Surprises: clay needed three transitions (B1); the
+> lost burn needed the bed (B5); charcoal by mass rebalanced the smelt (B8).
+> Three workers did glass, rubber and fuel in parallel.
 
 **Goal.** Heat-work on `ThermalMixin`; `HeatTransition` folds
 `Crosslinking`; `fire` has no recipe path; the five shipped firings ride

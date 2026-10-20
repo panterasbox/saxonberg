@@ -76,7 +76,9 @@ export default class IgniteController extends CommandController<IgniteModel> {
             ? "It's too wet to catch."
             : outcome.reason === 'no-fuel'
               ? 'There is no fuel in it. Stoke it first.'
-              : "That won't burn.";
+              : outcome.reason === 'no-air'
+                ? 'The flame dies as you strike it. There is not the air in there for a flame.'
+                : "That won't burn.";
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)

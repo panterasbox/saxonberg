@@ -1,0 +1,21 @@
+# Reduced earthenware — the blue brick. Hard-fired in a starved kiln, its
+# iron held black: the dense blue-black engineering brick and the
+# Staffordshire blue. ⭐ The reducing twin (ceramics D3).
+class: /platform/idea/material/Material
+data:
+  name: blue earthenware
+  keywords: [earthenware, blue, brick, reduced, fired]
+  appearance: dense blue-black earthenware, fired starved of air
+  density: 2100
+  specificHeat: 860
+  thermalConductivity: 1.1
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 5
+  hardness: 70
+  toughness: 6
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "earthenware", "reduced"]
+  composition: []
+  biologicalSource: null

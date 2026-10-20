@@ -27,6 +27,9 @@ data:
     - /stuff/thing/Kiln
     - /trade/glass/thing/blowpipe
     - /trade/glass/thing/marver
+    # ⭐ The batch is MIXED here (ceramics W0): sand, ash and lime go in,
+    # `stir pot` makes one charge of batch out of them, by mass.
+    - /trade/glass/thing/batch-pot
     - { template: /trade/fuel/thing/charcoal, as: charcoal-1 }
     - { template: /trade/fuel/thing/charcoal, as: charcoal-2 }
     - { template: /trade/fuel/thing/charcoal, as: charcoal-3 }

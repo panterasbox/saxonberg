@@ -25,6 +25,10 @@ import type { Engaged } from "@saxonberg/server/mud/lib/activity/Engaged";
 import Gather, { GLASSWORK_TOPIC } from "../../../thing/Gather";
 import Melt from "../../../thing/Melt";
 import { HotWorkWatch } from "../../../lib/HotWork";
+import type { Composition } from "@saxonberg/server/mud/lib/material/Composition";
+import type { Thermal } from "@saxonberg/server/mud/lib/thermal/Thermal";
+import type { Tangible } from "@saxonberg/server/mud/lib/material/Tangible";
+import type { CompositionEntry } from "@saxonberg/server/mud/lib/material/Material";
 
 const GATHER_ROW = "/trade/glass/thing/gather";
 
@@ -45,6 +49,39 @@ interface GobModel extends CommandModel {
 }
 
 /** The first bound blowpipe that is not already holding a gather. */
+type GlassPiece = Stuff & Composition & Thermal & Tangible;
+
+/**
+ * ⭐ A piece of glass that remembers what is in it — any `Composition &
+ * Thermal` whose MATERIAL is tagged `glass` (ceramics W0, ruling C). A
+ * fired batch, a cullet lump, a bottle: one test, no class list.
+ */
+function isGlass(s: Stuff): s is GlassPiece {
+  if (!MixinApi.isComposition(s) || !MixinApi.isThermal(s) || !MixinApi.isTangible(s)) return false;
+  return s.getMaterial()?.hasTag("glass") === true;
+}
+
+/** Hot enough to gather — the Melt's own floor (0.9 × the melting point). */
+function isWorkable(p: GlassPiece): boolean {
+  if (p instanceof Melt) return p.isFluid();
+  const mp = p.getMaterial()?.getMeltingPoint().rawValue() ?? 0;
+  if (mp <= 0) return false;
+  return p.getTemperature().rawValue() >= 0.9 * mp;
+}
+
+/**
+ * Take a gather off a piece that is not a pot of melt: its composition
+ * comes with the glass; what is left is lighter, and a scrap too small to
+ * gather again is gone into the gather.
+ */
+function takeFrom(p: GlassPiece, kg: number): CompositionEntry[] {
+  const alloying = p.getAlloying().map((e) => ({ ...e }));
+  const left = p.getMass().rawValue() - Math.min(kg, p.getMass().rawValue());
+  if (left < kg * 0.5) void StuffApi.destruct(p);
+  else p.setMass(Quantity.of(left, "kg"));
+  return alloying;
+}
+
 function emptyPipe(bound: MqlManyResult | undefined): (Stuff & Container) | null {
   for (const p of bound?.stuff ?? []) {
     if (!MixinApi.isContainer(p)) continue;
@@ -59,7 +96,7 @@ export default class GobController extends ManualBuildController<GobModel> {
     const giver = context.commandGiver;
     const melt = model.melt?.stuff ?? null;
 
-    if (!melt || !(melt instanceof Melt)) {
+    if (!melt || !isGlass(melt)) {
       this.declineStep(
         context,
         Mml.compose`Gather from what? You need a pot of molten glass.`,
@@ -67,7 +104,7 @@ export default class GobController extends ManualBuildController<GobModel> {
       );
       return;
     }
-    if (!melt.isFluid()) {
+    if (!isWorkable(melt)) {
       this.declineStep(
         context,
         Mml.compose`${Mml.thing(melt)} has stiffened — there is no gathering from it cold. Work the bellows and fire it again.`,
@@ -94,8 +131,8 @@ export default class GobController extends ManualBuildController<GobModel> {
     }
 
     const gatherKg = dial("glass.hotwork.gatherKg", 0.4);
-    const alloying = melt.takeGather(gatherKg);
     const meltK = melt.getTemperature().rawValue();
+    const alloying = melt instanceof Melt ? melt.takeGather(gatherKg) : takeFrom(melt, gatherKg);
 
     const gather = await StuffApi.clone<Gather>(GATHER_ROW);
     gather.setMass(Quantity.of(gatherKg, "kg"));
