@@ -1,4 +1,8 @@
-verbs: [write]
+# ⭐ `edit`, not `write` (underwater review): `write` is the world's verb
+# for putting words on a thing. The authoring verbs pivot onto their trees
+# later (`content edit …`, `source edit …`, `docs cat …` — command-taxonomy
+# slate); until then this is `edit`.
+verbs: [edit]
 controller: /platform/idea/cmd/shell/WriteController
 description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
 help: |
@@ -13,7 +17,7 @@ help: |
   come through a structured form, not bare text on the command
   line.
 
-  `write` follows your `workspace.tree` default, but under mirror
+  `edit` follows your `workspace.tree` default, but under mirror
   mode it can't guess — pass `-c` for content or `-s` for source
   explicitly. The two flags are mutually exclusive. Pass `--mql`
   to target wherever a query resolves.

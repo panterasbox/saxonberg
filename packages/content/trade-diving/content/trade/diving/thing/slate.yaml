@@ -1,6 +1,6 @@
 # A diver's slate (underwater C5) — white-painted, a grease pencil on a
 # string through a hole in the corner. Scratched, not inked: the water
-# leaves it legible. `jot slate <words>`; `read slate`.
+# leaves it legible. `write <words> on slate`; `read slate`.
 class: /trade/diving/thing/Slate
 data:
   shortDescription: diver's slate
@@ -12,3 +12,5 @@ data:
   _materialPath: /stuff/idea/material/rock/slate
   mass: 0.4
   markForm: embossed
+  # Room for a few lines before it wants wiping, characters.
+  writingRoom: 240

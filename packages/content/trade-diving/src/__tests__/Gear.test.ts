@@ -108,19 +108,34 @@ afterEach(() => {
 });
 
 describe('the slate (C5)', () => {
-  it('⭐ words jotted on it stay on it, and anybody reads them', () => {
+  it('⭐ words written on it stay on it, and anybody reads them', () => {
     const diver = body();
     const slate = makeStuff(() => new Slate());
     slate.setMarkForm('embossed');
+    slate.setWritingRoom(240);
     ContainmentApi.move(slate as never, diver as never);
-    expect(slate.jot(diver as unknown as Stuff, 'anchor is here').ok).toBe(true);
-    expect(slate.jot(diver as unknown as Stuff, 'bring bags').ok).toBe(true);
+    expect(slate.writeOn(diver as unknown as Stuff, 'anchor is here').ok).toBe(true);
+    expect(slate.writeOn(diver as unknown as Stuff, 'bring bags').ok).toBe(true);
     expect(slate.getMarkText()).toBe('anchor is here / bring bags');
   });
 
   it('a slate not in your hand is not written on', () => {
     const slate = makeStuff(() => new Slate());
-    expect(slate.jot(body() as unknown as Stuff, 'x')).toMatchObject({ ok: false, reason: 'not-holding' });
+    slate.setWritingRoom(240);
+    expect(slate.writeOn(body() as unknown as Stuff, 'x')).toMatchObject({ ok: false, reason: 'not-holding' });
+  });
+
+  it('⭐ a surface with no room takes no writing, and room runs out (underwater review)', () => {
+    const diver = body();
+    const printed = makeStuff(() => new Slate());
+    ContainmentApi.move(printed as never, diver as never);
+    expect(printed.writeOn(diver as unknown as Stuff, 'x')).toMatchObject({ ok: false, reason: 'no-room' });
+    const small = makeStuff(() => new Slate());
+    small.setWritingRoom(10);
+    ContainmentApi.move(small as never, diver as never);
+    expect(small.writeOn(diver as unknown as Stuff, 'anchor').ok).toBe(true);
+    expect(small.writeOn(diver as unknown as Stuff, 'bring the bags')).toMatchObject({ ok: false, reason: 'full' });
+    expect(small.getMarkText()).toBe('anchor');
   });
 });
 

@@ -2014,6 +2014,28 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   that is neither refuses. The spear affords `fish`; `SpearController` and
   its view are deleted.
 
+- **R12 · `write` is the world's verb; `jot` is gone; the shell's verb is
+  `edit`.** The owner: a label is a noun (bottling will affix one); a
+  personal note is writing on a personal thing, and there is no writing
+  only its author can read. A notes app on the implant is the exception,
+  and it goes in the personal-calendar slate. Done here:
+  - The shell's authoring view `write` becomes `edit` (`shell/edit.yaml`;
+    the class stays `WriteController`, which the CMS and Studio gates
+    cite). Docs follow. The tree pivot (`content edit`, `source ls`, …)
+    is recorded as command-taxonomy item 8.
+  - `MarkedMixin` gains `writingRoom` (authored characters; 0 = takes no
+    writing) and `writeOn(by, words)`: held, or fixed where it stands,
+    within the room, appended after what is there. How it reads is the
+    surface's own form (ink needs light and runs; a scratch doesn't).
+    `write` is afforded beside `read` by everything Marked, and
+    `write <words> on <thing>` is the kernel `WriteOnController`. A binder
+    test pins the free-text-then-`on` shape.
+  - The slate is a thin `MarkedMixin(Good)` with `writingRoom: 240`; `jot`,
+    `JotController` and `Slate.jot` are deleted.
+  - Not done (recorded): a writing implement (pencil, chalk, knife) and
+    literacy; the shipped `label` verb's reconciliation with label-as-noun
+    (cannery-and-bottling slate).
+
 ## Drive record
 
 

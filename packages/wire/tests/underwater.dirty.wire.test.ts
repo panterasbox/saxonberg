@@ -286,8 +286,8 @@ suite('A · the water place', () => {
     expectRefused(sit);
   });
 
-  it('10a · a slate jotted below is read by the other diver; a struck bell is heard from nowhere', async () => {
-    expectOk(await diver.cmd('jot slate the anchor is here'));
+  it('10a · a slate written on below is read by the other diver; a struck bell is heard from nowhere', async () => {
+    expectOk(await diver.cmd('write the anchor is here on slate'));
     const give = await diver.cmd(`give slate to ${BUDDY}`);
     expect(give.status, squash(await give.said())).toBe('ok');
     expect(await say(buddy, 'read slate')).toMatch(/the anchor is here/);

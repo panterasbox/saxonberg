@@ -2,7 +2,7 @@
 
 The **in-runtime VCS** subsystem turns runtime source edits into version
 control. Authors edit engine TypeScript live through the CMS or the
-`write` verb, and hot-reload makes the change take effect immediately —
+`edit` verb (`write` until the underwater review), and hot-reload makes the change take effect immediately —
 but nothing captured those edits into git. `GitApi` closes that: a gated
 surface that commits the live working tree and pushes it to GitLab, giving
 **version history, review, rollback, and durability across redeploy** —
