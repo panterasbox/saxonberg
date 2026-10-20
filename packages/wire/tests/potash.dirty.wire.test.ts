@@ -199,6 +199,18 @@ async function count(s: Session, scope: string, name: RegExp): Promise<number> {
   return (await named(s, scope, name)).length;
 }
 
+/**
+ * What a VESSEL holds, by name — read off its own `contents` field. ⚠ A
+ * `<vessel>:i` query lists nothing for a hopper (found by the drive: the
+ * heaps were there, the count said none).
+ */
+async function inside(s: Session, vessel: string, name: RegExp): Promise<number> {
+  const rows = (await s.query(vessel, { fields: 'detail' }).catch(() => [])) as unknown as {
+    contents?: { displayName?: string }[];
+  }[];
+  return (rows[0]?.contents ?? []).filter((c) => name.test(String(c.displayName ?? ''))).length;
+}
+
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, n = 1): Promise<void> {
   const f = await Session.open('founder', { startLocation: where, wizard: true });
@@ -312,7 +324,8 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
     // ⚠ One bundle: a bare `get brash` lifts more than one, and a stray
     // bundle in hand later answers to "ash" — MQL's partial match is a
     // substring one, and b-r-ASH (the slate's vocabulary hazard, met).
-    await say(r, 'get 1 brash');
+    // By its wood: the ride still holds the last felling's bundles.
+    await say(r, `get 1 ${species} brash`);
     r.close();
     const p = await goTo(handle, ASHERY);
     const fed = await say(p, 'stoke brash into pit');
@@ -387,7 +400,7 @@ suite('⭐ drive 1–4 — brash, the pit, and ash of a strength (AC 2, 3, 10)',
     const { heaps } = await burnAndSweep(ashMaker);
     const words = heaps.map((h) => h.longDescription).join('\n');
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] ⭐ pine: ${heaps.length} heap(s): ${words.slice(0, 200)}`);
+    console.log(`  [drive] ⭐ pine: ${heaps.length} heap(s): ${JSON.stringify(heaps.map((h) => [h.mass?.value, h.longDescription.split('\n').pop()]))}`);
     expect(heaps.length, 'pine heaps').toBeGreaterThanOrEqual(1);
     expect(words, `pine ash: ${words}`).toMatch(/grey/i);
     expect(words, `pine ash: ${words}`).not.toMatch(/strong ash/i);
@@ -447,7 +460,7 @@ let firstPass = -1;
 suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC 4, 12)', () => {
   it('⭐ drive 6 — beech ash and rain make a lye; the egg reads it in words; the ash is SPENT, not gone', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
-    expect(await count(s, 'hopper:i', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
+    expect(await inside(s, 'hopper', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
     await say(s, 'get pail');
     await say(s, 'fill pail from butt');
     await say(s, 'pour pail into hopper');
@@ -455,7 +468,7 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     await waitAway(ashMaker, 14);
     await toDaylight();
     s = await goTo(ashMaker, LEAN_TO);
-    expect(await count(s, 'hopper:i', /spent ash/i), 'spent ash left in the hopper').toBeGreaterThanOrEqual(1);
+    expect(await inside(s, 'hopper', /spent ash/i), 'spent ash left in the hopper').toBeGreaterThanOrEqual(1);
     const { said, rank } = await eggOf(s);
     firstPass = rank;
     // eslint-disable-next-line no-console -- the drive's own record
@@ -487,14 +500,34 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
   }, 1_800_000);
 
   it('⭐ drive 8 — four heaps in Kestrel water read WEAKER than four in rain: the hardness', async () => {
-    // The chandlery's own hopper and butt, and ash off its counter. The
-    // pail is the lean-to's; it travels with you.
+    // The control: four heaps off the chandlery's counter, in its own
+    // hopper, in rain from its own butt. (The pail is the lean-to's; it
+    // travels with you.)
     let s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'get "test egg"').catch(() => '');
-    for (let i = 0; i < 8; i++) await say(s, 'buy "wood ash"');
-    // Rain first — the control.
+    for (let i = 0; i < 4; i++) await say(s, 'buy "wood ash"');
     for (let i = 0; i < 4; i++) await say(s, 'put "wood ash" in hopper');
     await say(s, 'fill pail from butt');
+    await say(s, 'pour pail into hopper');
+    s.close();
+    // Four more heaps of the same row, off the general store's shelf.
+    s = await goTo(ashMaker, STORE);
+    for (let i = 0; i < 4; i++) await say(s, 'buy "wood ash"');
+    s.close();
+    // The strong second-pass lye goes into the first pot, drained dry, so
+    // the lean-to's hopper is free for the river water.
+    s = await goTo(ashMaker, LEAN_TO);
+    for (let i = 0; i < 2; i++) {
+      await say(s, 'pour hopper into pail');
+      await say(s, 'pour pail into "first pot"');
+    }
+    for (let i = 0; i < 4; i++) await say(s, 'put "wood ash" in hopper');
+    s.close();
+    s = await goTo(ashMaker, WHARF_BANK);
+    const filled = await say(s, 'fill pail from river');
+    expect(filled, `fill pail from river: ${filled}`).toMatch(/You fill/i);
+    s.close();
+    s = await goTo(ashMaker, LEAN_TO);
     await say(s, 'pour pail into hopper');
     s.close();
     await waitAway(ashMaker, 14);
@@ -503,27 +536,12 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     const rain = await eggOf(s);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ four heaps, rain: ${rain.said}`);
-    await say(s, 'pour hopper into pail');
-    await say(s, 'spill pail');
     s.close();
-    // Then the Kestrel, from the wharf.
-    s = await goTo(ashMaker, WHARF_BANK);
-    const filled = await say(s, 'fill pail from river');
-    expect(filled, `fill pail from river: ${filled}`).toMatch(/You fill/i);
-    s.close();
-    s = await goTo(ashMaker, CHANDLERY);
-    for (let i = 0; i < 4; i++) await say(s, 'put "wood ash" in hopper');
-    await say(s, 'pour pail into hopper');
-    s.close();
-    await waitAway(ashMaker, 14);
-    await toDaylight();
-    s = await goTo(ashMaker, CHANDLERY);
+    s = await goTo(ashMaker, LEAN_TO);
     const hard = await eggOf(s);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ four heaps, the Kestrel (12 °dH): ${hard.said}`);
     expect(hard.rank, `hard ${hard.said} vs rain ${rain.said}`).toBeLessThan(rain.rank);
-    // Carry the weak lye back for the second pot.
-    await say(s, 'pour hopper into pail');
     s.close();
   }, 2_400_000);
 });
@@ -545,9 +563,11 @@ async function pots(s: Session): Promise<{ name: string; holds: string[] }[]> {
 suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black salts (AC 3, 5, 6)', () => {
   it('⭐ both boil down; the strong lye leaves the heavier cake — the weak one cost the same fire for less', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
-    await say(s, 'pour pail into "second pot"');
-    await say(s, 'pour hopper into pail');
-    await say(s, 'pour pail into "first pot"');
+    // The weak (Kestrel) lye into the second pot; the strong is in the first.
+    for (let i = 0; i < 2; i++) {
+      await say(s, 'pour hopper into pail');
+      await say(s, 'pour pail into "second pot"');
+    }
     for (let i = 0; i < 4; i++) {
       await say(s, 'get cordwood');
       await say(s, 'stoke cordwood into hearth');
@@ -591,8 +611,8 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
 suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC 1, 8)', () => {
   it('⭐ drive 10 — black salts fired at a red heat whiten to pearl ash', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
-    await say(s, 'get cake from "first pot"');
-    await say(s, 'get cake from "second pot"');
+    await say(s, 'get cake from first pot');
+    await say(s, 'get cake from second pot');
     for (let i = 0; i < 4; i++) await say(s, 'get cordwood');
     s.close();
     s = await goTo(ashMaker, ASHERY);
@@ -674,7 +694,6 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'put lime in kettle');
     await say(s, 'get pail').catch(() => '');
-    await say(s, 'spill pail').catch(() => '');
     await say(s, 'fill pail from butt');
     const slaked = await say(s, 'pour pail into kettle');
     const kettle = await examine(s, 'kettle');

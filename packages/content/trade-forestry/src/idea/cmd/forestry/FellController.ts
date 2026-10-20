@@ -359,6 +359,16 @@ async function dropStandard(
           if (brashMaterial) bundle.setMaterial(brashMaterial);
           bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
         }
+        // ⭐ Named for its wood — beech brash and pine brash are worth
+        // different things to an ash-burner, and a bundle that only said
+        // "brash" could not be told apart (found by the potash drive).
+        const woodName = brashMaterial?.getName() ?? '';
+        const named = bundle as Stuff & { setShortDescription?(s: string): void; getKeywords?(): string[]; setKeywords?(k: string[]): void };
+        if (woodName && named.setShortDescription) {
+          named.setShortDescription(`bundle of ${woodName}`);
+          // The whole name only: a bare `beech` stays the TREE's word.
+          named.setKeywords?.([...(named.getKeywords?.() ?? []), woodName]);
+        }
         ContainmentApi.move(bundle, room);
       } catch (err) {
         console.warn(`FellController: no brash at '${BRASH_PATH}':`, err);

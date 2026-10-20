@@ -55,7 +55,7 @@ export default class Hopper extends ContainerMixin(Vat) {
       const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
       return m?.hasTag('potash') ?? false;
     });
-    if (ash.length === 0) return null;
+    if (ash.filter((a) => !this.spending.has(a)).length === 0) return null;
     this.leach(ash);
     return MaturationProfileRef.byKey(LEACH);
   }
@@ -69,9 +69,14 @@ export default class Hopper extends ContainerMixin(Vat) {
    * The hopper takes the strength's grade, so the lye drawn off it carries
    * the band (a pour carries the holder's grade).
    */
-  private leach(ash: Stuff[]): void {
+  /** Heaps already leached and on their way to spent ash — never twice. */
+  private spending = new Set<Stuff>();
+
+  private leach(heaps: Stuff[]): void {
     const litres = this.getBulkAmount('interior').rawValue();
     if (!(litres > 0)) return;
+    const ash = heaps.filter((h) => !this.spending.has(h));
+    if (ash.length === 0) return;
     const alkaliPath = (() => {
       try {
         return AppApi.setting(AppSettingKeys.fireAshAlkaliMaterial) || '/stuff/idea/material/mineral/potash';
@@ -103,7 +108,10 @@ export default class Hopper extends ContainerMixin(Vat) {
     const kgPerL = carried + (alkaliKg / litres) * kept;
     this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
     this.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
-    for (const heap of ash) void this.spend(heap);
+    for (const heap of ash) {
+      this.spending.add(heap);
+      void this.spend(heap).finally(() => this.spending.delete(heap));
+    }
   }
 
   /** A leached heap becomes spent ash, the owner's still (made from it). */
@@ -117,6 +125,28 @@ export default class Hopper extends ContainerMixin(Vat) {
       console.warn(`Hopper: no spent ash at '${SPENT_ASH}':`, err);
     }
     await StuffApi.destruct(heap);
+  }
+
+  /**
+   * ⭐ Ash put into liquor ALREADY in the hopper leaches too (found by the
+   * potash drive: a hopper drained not quite dry took the lye back as a
+   * top-up, never re-matched, and the second pass added nothing). Into
+   * water, the batch is re-keyed so the leach runs as a fill would; into a
+   * lye, the heap is leached straight into it.
+   */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    const m = MixinApi.isTangible(thing) ? thing.getMaterial() : null;
+    if (!m?.hasTag('potash')) return;
+    const liquor = this.getBulkMaterial('interior');
+    if (!liquor || this.getBulkAmount('interior').rawValue() <= 0) return;
+    if (liquor.hasTag('lye')) {
+      this.leach([thing]);
+      return;
+    }
+    if (liquor.hasTag('water')) {
+      const path = liquor.getTemplatePath();
+      if (path) this.rekeyBatch(path);
+    }
   }
 
   /** Drawn bare-handed, a caustic splashes the face (D23). */
