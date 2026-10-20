@@ -1526,3 +1526,26 @@ Noted, not changed (engine or design questions, for the MR):
   seats start at 05:00: a visitor at dawn sees "something"s.
 - The memory budget: the host reaped the world three times (sibling worlds +
   the desktop VS Code WSL server, which was killed with the user's say-so).
+
+### Drives 26–27 (2026-10-19, all RAM given to this build)
+
+- **Drive 26: 13/17.** The spin/weave pooling fix (ca6d846af) cured AC 7, the
+  "first basin reel" failure since run 9: the reel always worked, but a
+  player's titled skeins never stacked and `spin` refused `too-little`.
+  Two roots remained. The cookhouse hand reel: the player held 39 cocoons,
+  because the buy loop counted a non-sale, so the drive now counts only
+  "You buy a cocoon". The mill: it restocked 40 a trip against a 160-cocoon
+  bolt, so it now buys a bolt's worth (d3a11d5a4).
+- **Drive 27: 14/17.** Every player checkpoint is green (12/12), plus AC 19
+  and the recorded gaps.
+- ⚠ **RECORDED GAP — the mill-to-store chain (AC 14 store bolt → AC 16 buy
+  → AC 9 degum).** The house sells only what its hand has set out, about 170
+  cocoons in the run. The drive's player buys 120 of them before the mill's
+  turn, and the reeler ends holding one skein, the pupae and 10 cocoons:
+  about 50 in all, against the 160 a bolt needs. That is the economy being
+  right (silk is scarce and one buyer took the crop); the drive's ORDER sets
+  the player against the mill. Fix when next touched: run the mill section
+  before the player's 120-cocoon buy (or let the house stock its full crop),
+  then AC 16 and AC 9 have a bolt. No silk code is implicated.
+- Also seen, not silk's: the mill's linen spinner (Sefa Roke) is dead in
+  both runs.
