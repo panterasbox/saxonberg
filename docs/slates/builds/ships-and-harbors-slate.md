@@ -936,3 +936,51 @@ the ship's motion**, derived from the sea state: the shipped instrumentation mod
 (*competence resolves detail, never access*; **the instrument sets a ceiling**) — a
 gimballed instrument's ceiling holds in a seaway, a lab instrument's collapses. Lens 1:
 *why every instrument on a ship looks the way it does* is the sea's physics.
+
+## 23. Drill-down: the passenger's voyage, and the cruise ship (2026-10-19) **[DECIDED]**
+
+### The passenger's voyage
+
+- **Passage is a ticket** — a liner sails on a date; a fare by class bought at the line's
+  office; the ticket is a document and the contract of carriage, naming your berth. ⭐ **The
+  class IS the berth** — a cabin aft, a shared berth in steerage forward: the ship's social
+  geography is what you buy.
+- ⭐ **Sleep through it** (§ 8) — the berth's **rest quality** (a cabin's bunk against
+  steerage's hammock and foul air) decides how you wake: **the class you paid for is how
+  rested you arrive**, derived. **Awake**, the ship is a small town for days — fixed
+  mealtimes (the captain's table, the cook's mess), the deck, the saloon — ⭐ **a closed
+  social space with strangers you cannot leave**.
+- ⭐ **Seasickness** — the eyes and the inner ear disagreeing; driven by the expanse's **sea
+  state**; ⭐ **worst forward and high, easiest amidships and low, better on deck with the
+  horizon than below** (steerage, forward and below, is the worst place to be seasick — the
+  class line drawn in nausea); ⭐ **sea legs** come over days and are **lost after time
+  ashore**; ⭐ **susceptibility is seeded** like the taste profile; felt through wellbeing's
+  five channels (no appetite, no focus, less capacity) — **never control**.
+- **Arrival** — on deck as the land comes up; the pilot at the bar; customs; the quay or the
+  boats; the shipping news has already printed her arriving.
+
+### The cruise ship — a city that moves
+
+*"What about the modern cruise ship? That's bigger than some cities, as far as the mass of
+content that could be created for it."*
+
+- ⭐ **Held as a moving `BuildingWarren`** — the cabins are residence's **`DormWarren`**: a
+  cabin **buds when booked and occupied**, keyed to the passenger, and sleeps when they leave
+  (holding: *the floorplan is the initial mint, never the closed set*); the public spaces
+  (atrium, dining rooms, theater, pool deck) are authored rooms in the floorplan.
+  **Whole-ship dormancy refines to whole-WARREN dormancy** — the public decks one unit, each
+  cabin its own; only what is occupied is live, however big she is.
+- ⭐ **The voyage is the destination** — the packet passenger sleeps through it, the cruise
+  passenger stays awake for it: **businesses aboard** (restaurants — the three-star at sea —
+  the theater, the casino, the spa, the shops), **each a venue archetype leasing space from
+  the line** (concessions — ⭐ **player businesses can rent space aboard**, a mall that moves);
+  **the crew is a town's workforce** — the **deck department** sails her, the **hotel
+  department** runs the town; ports of call and shore excursions (the itinerary a timetable).
+- ⭐ **Big ships move less** — a ship much longer than the waves spans several, so she pitches
+  and rolls less: **seasickness falls with her length against the wave length** (real,
+  derived); **stabilizer fins** are a modern part. Epoch: modern, with **the ocean liner**
+  (the *Titanic*, the *Queen Mary*) as its earlier rung — the same model at a different size.
+- **Lenses** — lens 4: crews drawn from poorer countries at low wages, recorded; ⭐ **lens 7:
+  cruise lines flag in Panama and the Bahamas**, so a floating city's law is a small distant
+  state's — flags of convenience at their starkest; lens 6: thousands of people with money,
+  for a week, with nowhere else to spend it.
