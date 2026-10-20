@@ -1,0 +1,18 @@
+# Morus alba — the white mulberry. ⭐ Grown for its LEAF, not its fruit:
+# a silk house's mulberry walk is cut, not picked, and a tree in good heart
+# leafs again in a fortnight. Sessile, with the same shallow clade link as
+# every plant (the directory carries the taxonomy).
+class: /platform/idea/species/Species
+data:
+  binomial: Morus alba
+  commonNames: ["mulberry", "white mulberry"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 150
+  circadianBand: aperiodic
+  diet: photosynthesis

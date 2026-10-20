@@ -1,0 +1,12 @@
+# The valley gold — ⭐ the silk house's own race: a hardy two-brood worm
+# that spins a golden cocoon. Its eggs hatch the summer they are laid, so a
+# grower can rear twice a year; its silk is a little coarser than the white.
+class: /trade/sericulture/idea/Strain
+data:
+  key: valley-gold
+  label: valley gold
+  colour: gold
+  broods: 2
+  heritability: 0.4
+  meanShellMg: 380
+  sdShellMg: 40

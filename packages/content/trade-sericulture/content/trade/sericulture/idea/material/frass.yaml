@@ -1,0 +1,17 @@
+# Frass — what a month of worms leaves on the tray: droppings and the
+# stalks of eaten leaf. ⭐ Tagged `compost`, so the platform's `feed` works
+# it into a bed unchanged — the leaf's nitrogen goes back to the ground.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: frass
+  keywords: [frass, droppings]
+  appearance: dark, dry silkworm frass
+  density: 500
+  thermalConductivity: 0.2
+  specificHeat: 1800
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["solid", "compost", "frass", "organic", "once-living"]
+  composition: []
+  biologicalSource: null

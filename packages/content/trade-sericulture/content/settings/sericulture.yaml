@@ -1,0 +1,78 @@
+# sericulture — the trade's dials (the `settings` kind: merge-missing, so a
+# value an operator changed through `config` is never touched).
+#
+# ⚠⚠ **Playtest dials, not design decisions.** Every one has a seeded
+# fallback in the pack's code, so the trade works before this row
+# installs. The DESIGN is the shape of the arithmetic — warmth is the
+# clock, hunger slows and never kills, the disease is seeded and silent,
+# the heavy cocoons you keep raise the next lot by h² × S, and an
+# unstifled cocoon opens in about ten days. None of that is tunable here.
+settings:
+  # ---- the rearing ----
+  # Below this (K) the worms do not develop at all.
+  - key: sericulture.baseK
+    value: "283"
+  # Degree-days from a laid (or wintered) lot to hatch.
+  - key: sericulture.hatchDD
+    value: "150"
+  # Leaf one worm eats over its whole life, kg.
+  - key: sericulture.leafKgPerWorm
+    value: "0.025"
+  # The share of hatched worms that live to spin.
+  - key: sericulture.survival
+    value: "0.85"
+  # Days worms spin once they have somewhere to climb.
+  - key: sericulture.spinDays
+    value: "3"
+  # Days wandering worms look for a brush before spinning where they lie.
+  - key: sericulture.wanderGraceDays
+    value: "1"
+  # ---- pébrine ----
+  # Specks are visible from the fourth age at or above this load.
+  - key: sericulture.pebrine.speckLoad
+    value: "0.4"
+  # A tray at or above this load dies at the start of its fifth age.
+  - key: sericulture.pebrine.collapseAt
+    value: "0.6"
+  # What a lay multiplies the mothers' load by.
+  - key: sericulture.pebrine.amplification
+    value: "1.6"
+  # ---- the cocoon ----
+  # ⭐ Calibrated over a real lit oven (src/__tests__/stifling.test.ts): a
+  # 500 K kitchen range stifles in ~11 minutes and scorches at ~32, a 345 K
+  # stifling oven stifles and never scorches. A cocoon has almost no
+  # thermal mass, so the WINDOW is the difference of the two hold times.
+  - key: sericulture.stifleK
+    value: "333"
+  - key: sericulture.stifleHoldS
+    value: "600"
+  - key: sericulture.scorchK
+    value: "423"
+  - key: sericulture.scorchHoldS
+    value: "1800"
+  # An unstifled cocoon opens this many game days after the spin.
+  - key: sericulture.emergeDays
+    value: "10"
+  # Eggs one kept cocoon is worth, and the most one card holds.
+  - key: sericulture.eggsPerCocoon
+    value: "200"
+  - key: sericulture.maxEggs
+    value: "600"
+  # ---- the reel ----
+  # Cocoons one reeling uses up; game-ms at eight to the thread, rate 1.
+  - key: sericulture.reel.charge
+    value: "40"
+  - key: sericulture.reel.baseMs
+    value: "1800000"
+  # The water must be at least this hot (a lit fire in reach).
+  - key: sericulture.reel.waterK
+    value: "330"
+  # ---- the labour bench (src/__tests__/labour.bench.test.ts) ----
+  # ⭐ A rearing is not long acts, it is ATTENDANCE: the tray must be
+  # visited and fed twice a day for the four weeks the worms eat. The
+  # bench prices each visit at this many minutes of a hand's time — the
+  # user's insight that silk is scarce because the time commitment is.
+  - key: sericulture.bench.visitMinutes
+    value: "15"
+  - key: sericulture.bench.visitsPerDay
+    value: "2"

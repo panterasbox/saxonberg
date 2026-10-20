@@ -1,0 +1,22 @@
+# A stifling oven — ⭐ a low brick oven that holds a GENTLE heat, about the
+# temperature of a cooling bread oven. Cocoons laid on its trays are dead
+# within ten minutes and will never scorch however long they are left,
+# which is the whole of its point: a kitchen range stifles them too, but
+# leaves you twenty minutes before it starts burning the silk.
+class: /platform/thing/Oven
+data:
+  shortDescription: stifling oven
+  keywords: [oven, "stifling oven", kiln]
+  register: indefinite
+  longDescription: >
+    A squat brick oven with a cold-iron door and three slatted shelves
+    inside, built to be fired low and left. The bricks hold a warmth you
+    could rest your hand on.
+  burnTemperatureK: 345
+  bellowsMultiplier: 1
+  lit: false
+  emittedIntensity: 10
+  emittedColorTemperature: 1500
+  mass: 400
+  maxBurnPowerW: 1500
+  fuelCapacityKg: 15

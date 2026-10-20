@@ -117,9 +117,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ 61 → 64: the storage-and-ice build adds `trade-ice` and its venue
     // `hollow-mere`, and the rubber build `trade-rubber` (built in
     // parallel; whoever lands second recounts — the sum, whatever git says).
-    // ⭐ 64 → 65: the underwater build adds `trade-diving` (silk and
-    // cleanliness in flight beside it: whoever lands second recounts).
-    expect(ids).toHaveLength(65);
+    // ⭐ 64 → 66: the silk build adds `trade-sericulture` and the underwater
+    // build `trade-diving` — both branches wrote 65 and git merged the line
+    // CLEAN; the sum is 66 (the hazard above, a sixth time).
+    expect(ids).toHaveLength(66);
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

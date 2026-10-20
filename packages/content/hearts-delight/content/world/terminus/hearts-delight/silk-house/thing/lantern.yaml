@@ -1,0 +1,11 @@
+# The loft's lantern — the room's light: a lit fixture, so the loft needs
+# no authored ambient and no skylit-interior entry.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: horn lantern
+  keywords: [lantern, lamp, light, horn]
+  longDescription: |
+    A horn-paned lantern on a hook in the middle of the loft, turned low so the light is soft — the worms do better out of the sun.
+  on: true
+  emittedIntensity: 600

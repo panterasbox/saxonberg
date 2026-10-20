@@ -1,10 +1,46 @@
 verbs: [reel]
 controller: /trade/fishing/idea/cmd/fishing/ReelController
-description: "Take line in"
+description: "Take line in — or reel silk off cocoons"
 help: |
   `reel` takes line in against whatever is on it. Gain when the fish
   rests; reel against a running fish and the line parts.
+
+  Named at something that reels — a stack of stifled cocoons, at a reel
+  over hot water — it winds a thread off them instead: `reel cocoons
+  --count 6` reels six cocoons together into one thread. Fewer is finer,
+  slower and harder to keep even; more is quicker and coarser.
+examples:
+  - cmd: reel
+    note: Take line in against a fish
+  - cmd: reel cocoons --count 6
+    note: Reel a fine thread off a stack of stifled cocoons
+  - cmd: reel cocoons with the basin
+    note: Name the reel explicitly
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
-args: []
+args:
+  # ⭐ What to reel. Absent, `reel` is the fishing act it always was. ⚠ NOT
+  # greedy: a multi-word target is quotable, and greedy would swallow the
+  # `with <reel>` clause. `requires: any` because the controller narrows on
+  # the Reelable SHAPE, and refuses in the target's own words.
+  - name: target
+    type: object
+    required: false
+    scope: [inventory, reachable]
+    requires: any
+  # ⭐ WHICH REEL — declared, not hunted for (`lint:instrument-args`): bare,
+  # the binder hands over every reachable thing offering `reeling` and the
+  # controller takes the best-rated, so the mill's basin beats a hand reel.
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [on, at, with]
+    default: "reachable:[capability.reeling]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  count:
+    type: number
+    description: "How many cocoons to a thread — fewer is finer"

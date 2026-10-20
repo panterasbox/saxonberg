@@ -25,6 +25,7 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -36,6 +37,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import TextileStock from '../../../thing/TextileStock';
 
 const TOPIC = 'act.deed';
 const BOLT_ROW = '/trade/textiles/thing/bolt';
@@ -83,7 +85,9 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
       return;
     }
     const charge = dial(WeaveController.CHARGE_KEY, WeaveController.CHARGE);
-    if (yarn.getQuantity() < charge) {
+    // ⭐ Like skeins in hand warp together (`TextileStock.quantityInHand`).
+    const inHand = yarn instanceof TextileStock ? yarn.quantityInHand() : yarn.getQuantity();
+    if (inHand < charge) {
       this.declineStep(
         context,
         Mml.compose`There is not enough yarn there to warp a loom.`,
@@ -129,15 +133,25 @@ async function finish(
   const giver = context.commandGiver;
   // ⚠⚠ A module function — the controller is destructed by now.
   const watching = !giver.isDestroyed();
-  const left = Math.max(0, yarn.getQuantity() - charge);
-  if (left === 0) StuffApi.destruct(yarn);
-  else yarn.setQuantity(left);
+  // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
+  // destructed below.
+  const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
+  if (yarn instanceof TextileStock) {
+    yarn.drawInHand(charge);
+  } else {
+    const left = Math.max(0, yarn.getQuantity() - charge);
+    if (left === 0) StuffApi.destruct(yarn);
+    else yarn.setQuantity(left);
+  }
 
   try {
     const bolt = await StuffApi.clone<Stuff>(BOLT_ROW);
     if (MixinApi.isStackable(bolt)) bolt.setQuantity(units);
     if (MixinApi.isConstructed(bolt)) await bolt.setConstructionForm(form);
     if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
+    // ⭐⭐ The cloth is the yarn's fibre, and the weaver's work.
+    carryFibre(fibre, bolt);
+    if (MixinApi.isCrafted(bolt)) bolt.setMaker(giver.getIdentityPath() ?? '');
     if (MixinApi.isContainable(bolt) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(bolt as Stuff & Containable, giver as Stuff & Container);
     }
@@ -151,6 +165,16 @@ async function finish(
       .send();
   } catch (err) {
     console.warn('WeaveController: could not mint a bolt:', err);
+  }
+}
+
+/** The cloth takes the yarn's material and answers to its name. */
+function carryFibre(material: Material | null, to: Stuff): void {
+  if (!material || !MixinApi.isTangible(to)) return;
+  to.setMaterial(material);
+  if (MixinApi.isPerceptible(to)) {
+    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
+    to.setKeywords([...new Set([...to.getKeywords(), ...words])]);
   }
 }
 

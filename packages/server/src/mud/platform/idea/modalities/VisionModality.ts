@@ -86,8 +86,55 @@ export class VisionModality extends Modality {
    * pre-migration contract.
    */
   public override signalAt(loc: Stuff & Container): Light {
-    return this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    const steady = this.steadyLight;
+    if (steady === null) {
+      return this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    }
+    const id = (loc as unknown as Stuff).stuffId;
+    const known = steady.get(id);
+    if (known) return known;
+    const light = this.walkLight(loc, CelestialApi.skyFactorNow(latitudeOf(loc)));
+    steady.set(id, light);
+    return light;
   }
+
+  /**
+   * ⭐⭐ Hold the light steady: until the matching
+   * {@link releaseSteadyLight}, `signalAt` remembers each place's light.
+   * Returns whether THIS call opened the hold — an inner hold rides the
+   * outer, and only the opener releases.
+   *
+   * Every `canSee` walks the light graph from scratch (the place's own
+   * sources, its fixtures, everything carried, and the legs out through
+   * its exits), and a batch that DESCRIBES many things — resolving a
+   * command's candidates, refreshing a live card over a counter — paid
+   * that walk once per thing: quadratic in what the room holds. A browser
+   * looking at a three-hundred-item shop counter pinned the server for
+   * minutes and every command behind it queued (silk's browser walk).
+   *
+   * ⚠ A hold brackets a caller-declared synchronous READ, never a command
+   * or a tick: a command can light a lamp, or carry one into another room,
+   * between two reads, and a memo that outlived that would leave a player
+   * in the dark they had just lit.
+   *
+   * ⚠⚠ A hold/release PAIR, never a callback: a callback run inside this
+   * method would run in this object's call frame, and every gated call the
+   * read made would be attributed to the vision modality — the world-seat
+   * query's module-gated read was refused that way.
+   */
+  public holdSteadyLight(): boolean {
+    if (this.steadyLight !== null) return false;
+    this.steadyLight = new Map();
+    return true;
+  }
+
+  /** End a hold {@link holdSteadyLight} opened. */
+  public releaseSteadyLight(): void {
+    this.steadyLight = null;
+  }
+
+  /** The steady-light memo — live only inside a {@link holdSteadyLight} hold. */
+  private steadyLight: Map<string, Light> | null = null;
 
   /**
    * ⭐⭐ **How bright this place gets**: the same walk with the sky

@@ -474,7 +474,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
-| platform `boil` | the FURNACE — you cannot boil without a heat source | `BurnerMixin` (oven, kiln, forge) |
+| platform `heat` (alias `boil`) on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | platform `cut` (planned by the target or the tool — § One `cut`) | the SHEARS — and the bench is the same class, faster; the ICE SAW | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) · `/trade/ice/thing/IceSaw` |
@@ -552,7 +552,7 @@ which ranks what the binder bound. The binder resolves *identity* (every
 reachable thing offering the kind, held gear first); the controller
 narrows on the one thing no predicate asks (*which is best*). The same
 move retired `findBuildVessel`: bare `stir`/`heat`/`pour`/`muddle`/
-`strain`/`plate`/`knead`/`hammer`/`quench`/`boil` work the build you are
+`strain`/`plate`/`knead`/`hammer`/`quench` work the build you are
 at because the view's `default:` says so, not because the controller
 looked. `hammer the ingot with the sledge on the big anvil` is now a
 sentence; it was not before.
@@ -583,9 +583,9 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `make`, `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
+it: `make`, `heat` (alias `boil`), `pour`, `stir`/`shake`, `repair`, `salvage`,
 `wash` are platform (a pot and a shaker both pour and stir; a furnace
-heats and boils; a basin washes; mending is any trade's); `menu`/`order` are platform
+heats; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
 `garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
 are `trade-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
@@ -1640,12 +1640,10 @@ pieces that attach at the same place and should land together:
   [provenance](./provenance.md) (the authorship ledger this instance-mark
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),
-  [call-security](./call-security.md), [watershed](./watershed.md) (`boil`
-  — an **act**, not an outcome: what boiling *does* is decided by what you
-  boiled, so a build latches `noteHeat` + the method `boiled` while a
-  vessel whose contents declare `purifiedByBoiling` gets the swap. The
-  method vocabulary is open, so a cooking pack gets boiling by authoring
-  `{ requiresHeatK: 373, method: boiled }` and changing no kernel code).
+  [call-security](./call-security.md), [watershed](./watershed.md) (boiling is a
+  temperature: `boil` is an alias of `heat`, a wet recipe is
+  `requiresHeatK` + `medium: water`, and `purifiedByBoiling` fires in the
+  thermal phase engine once contents are held at the boil).
 - **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
   `docs/slates/builds/daves-bar-slate.md`; parent
   `docs/slates/builds/economy-slate.md`.

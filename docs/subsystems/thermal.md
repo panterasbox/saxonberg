@@ -740,7 +740,9 @@ to be pointed at a thing before its phase was ever reconciled.
 
 `reconcileThermal()` drives it now, **immediately after the drift
 that makes a body warm**. The call sits outside the reentry guard so the
-plateau's own `setContentsTemperature` is not swallowed.
+plateau's own `setContentsTemperature` is not swallowed; `reconcilePhase()`
+carries its OWN reentry guard (for every caller — the purification clock
+below reads the trajectory, which reconciles the body).
 
 ⭐⭐ **And a pool freezes because it is COLD** (the climate build,
 2026-10): the call was narrowed to `Meltable` hosts on the belief that
@@ -930,3 +932,34 @@ passes under it.
   (`exchangeWithWater`, the neutral-water gap); the envelope's heat
   budget became `RoomHeatExchange` so a cold store is a sink the room
   feels.
+
+## The bath, and the boil (silk build, 2026-10-18)
+
+- ⭐ **The immersion rung.** `holderK` has a second rung after the shut
+  Coolbox: a body whose immediate holder is a `Bulkable` + `Thermal` +
+  `Container` with interior bulk reads that holder's
+  `getContentsTemperature()`. A bolt in a copper, a wheel in brine, a fish
+  in a keepnet is at the bath's temperature, not the room's air. Any
+  interior bulk counts (there is no cheap phase predicate; a body buried
+  in grain is at the grain's temperature too).
+- ⭐⭐ **The latent-heat plateau for a boiling vessel.**
+  `reconcileBulkPhase` used to flash a vessel's whole interior to steam
+  the instant it reached the boil, so every pot on every fire boiled dry
+  at 100 °C — despite `Material.latentHeatOfVaporization`'s own doc. The
+  heat above the boil now turns liquid to steam at that latent heat and
+  the liquid HOLDS at the boil while it lasts (the boil twin of
+  `reconcileMelt`); a material with no latent heat still flashes.
+- ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, the
+  `boil` verb retired to an alias of `heat`). While a vessel's contents
+  sit on the boil plateau and their material names a `purifiedByBoiling`
+  arrow, `boilHeldSeconds` integrates the time at the boil off the
+  vessel's own trajectory (the cocoon stifle idiom; banked on the bulk
+  payload as `boilHeldS`/`boilCheckedS`, a first read looking back at most
+  `PURIFY_LOOKBACK_S` and never past the trajectory's horizon); at
+  `PURIFY_HOLD_S` (60 s) the material swaps. Fouled water → water, wood
+  tar → pitch (tar gained a latent heat so it plateaus instead of
+  flashing). No clock (a unit test, a clockless spell) means no hold.
+- ⚠ Still open: the Newton model is τ = R·C with no burner POWER, so a
+  large vessel on a range heats slowly (30 L takes ~5 game hours to a
+  simmer); the copper is sized at 12 L for it. A power-limited heat
+  transfer is this subsystem's.

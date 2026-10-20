@@ -1,0 +1,16 @@
+# A copper — ⭐ a wide copper pan you boil CLOTH in. Fill it (`fill copper
+# from <water>`), set it on the fire (`heat copper`), `put` the piece in
+# and leave it at the simmer; `get` it out when it is done. Raw silk
+# degums in one in about two hours. It holds at the boil and boils down
+# slowly, so it wants watching rather than leaving.
+class: /trade/textiles/thing/Copper
+data:
+  shortDescription: copper
+  keywords: [copper, pan, "copper pan", boiler]
+  register: indefinite
+  longDescription: |
+    A wide, deep pan of beaten copper with iron handles, its bottom black from the fire and its inside scoured bright.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 12
+  interiorBulk: true
+  interiorCapacity: 12

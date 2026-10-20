@@ -12,4 +12,8 @@ data:
   longDescription: |
     Knotted red-brown roots, scrubbed and snapped short. They stain the hands of anyone who handles them, which is the entire point of them.
   _materialPath: /trade/farming/idea/material/madder
+  # ⭐ `steep` it in a vat of water and the bath IS the dyestuff — the only
+  # way a dye bath is ever charged (silk W4: no crop was Steepable, so no
+  # bath in the game could be).
+  steepsInto: /trade/farming/idea/material/madder
   mass: 0.8

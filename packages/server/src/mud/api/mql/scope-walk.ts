@@ -217,6 +217,9 @@ export function candidatesForReachable(
   giver: Stuff,
   attention?: number,
 ): ScopeCandidate[] {
+  // ⭐ Its light is walked once per place by the resolution that calls it
+  // (`MqlLogic` runs every resolution as a steady read).
+  //
   // ON-PERSON-FIRST emission order (the former `findReachable`
   // contract, now the seed's): the whole `person` pool, then the
   // surrounding location, then peers. First-match consumers (`.find`

@@ -1,0 +1,41 @@
+# The silk house — ⭐ a rearing house run on paid hands (silk-slate § 6:
+# the hybrid is SCALE). The keeper holds the judgment seat; the hand
+# feeds, mounts and stifles; both are paid out of the house's account by
+# the roster tick, and the house's income is the mill's purchases.
+# `headcount: 2` on the hand's seat advertises a place a player can take.
+class: /platform/idea/Business
+data:
+  name: "the Hearts Delight silk house"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/silk-house/agent/keeper
+  call: rota
+  positions:
+    - key: keeper
+      noun: keeper
+      label: in the loft
+      wageRate: 5
+      purchases: true
+      fulfills: [sericulture]
+    - key: hand
+      noun: hand
+      label: at the trays
+      wageRate: 3
+      purchases: true
+      fulfills: [sericulture]
+      headcount: 2
+  rosterSlots:
+    - positionKey: keeper
+      assignee: /world/terminus/hearts-delight/silk-house/agent/keeper
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
+    - positionKey: hand
+      assignee: /world/terminus/hearts-delight/silk-house/agent/hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
+  banksAt: goodkin
+  offstage: /world/terminus/hearts-delight/silk-house/location/offstage
+  operatingLocations:
+    - /world/terminus/hearts-delight/silk-house/location/floor
+    - /world/terminus/hearts-delight/silk-house/location/walk
+    - /world/terminus/hearts-delight/silk-house/thing/counter

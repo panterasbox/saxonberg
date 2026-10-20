@@ -1,0 +1,13 @@
+# A mulberry sapling — bare-rooted, a year old. ⭐ Planted with the
+# platform's `plant` in a bed of your own; it is three game months to a
+# tree you can cut.
+class: /platform/thing/Seed
+data:
+  shortDescription: mulberry sapling
+  keywords: [sapling, mulberry, seedling, whip, "mulberry sapling"]
+  register: indefinite
+  longDescription: |
+    A bare-rooted mulberry whip as long as your arm, its roots wrapped in damp sacking.
+  mass: 1
+  growsIntoPath: /trade/sericulture/thing/plant/mulberry
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/moraceae/morus/alba

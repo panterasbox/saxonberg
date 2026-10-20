@@ -21,7 +21,7 @@
 
 import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
@@ -32,9 +32,18 @@ const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
 /** An instrument held in the flame is held this long (D14: ≥ 60 s). */
 const FLAME_HOLD_S = 60;
+/** A cloth or a tool boiled in a pot is held this long (D14: ≥ 300 s). */
+const DISINFECT_HOLD_S = 300;
+/**
+ * A pot of water boils at water's boiling point however hot the fire is —
+ * the medium caps the heat (the recipe `medium:` rule).
+ */
+const WATER_BOIL_K = 373;
 
 interface HeatModel extends CommandModel {
   target?: MqlOneResult;
+  /** `… in <pot>` — what a cloth or a tool is boiled in. */
+  pot?: MqlManyResult;
 }
 
 export default class HeatController extends ManualBuildController<HeatModel> {
@@ -43,6 +52,19 @@ export default class HeatController extends ManualBuildController<HeatModel> {
 
     const target: Stuff | null =
       model.target?.stuff ?? null;
+    // ⭐ A cloth or a tool heated IN a pot (`boil bandage in pot` —
+    // cleanliness D14, kept when `boil` became this verb's alias): a WET
+    // heat at the boil, held long enough to disinfect.
+    if (
+      target &&
+      model.pot !== undefined &&
+      !MixinApi.isBuildVessel(target) &&
+      !MixinApi.isBulkable(target) &&
+      MixinApi.isSoilable(target)
+    ) {
+      this.boilInPot(target, model, context);
+      return;
+    }
     // ⭐ An instrument held in the flame (cleanliness D14): the heat it
     // took is stamped on it, and past 433 K for a minute it is sterile.
     if (
@@ -113,6 +135,61 @@ export default class HeatController extends ManualBuildController<HeatModel> {
           .topic(TOPIC)
           .toSelf(Mml.compose`${Mml.thing(target)} takes the heat, glowing with it.`)
           .toPeers(Mml.compose`${Mml.actor(giver)} works ${Mml.thing(target)} in the heat.`)
+          .send();
+      },
+    });
+  }
+
+  /** The pot arm — a cloth or a tool boiled in a pot of water. */
+  private boilInPot(
+    target: Stuff,
+    model: HeatModel,
+    context: CommandContext,
+  ): void {
+    const giver = context.commandGiver;
+    const pot = this.bestInstrument(model.pot, 'pot');
+    if (pot === null) {
+      this.declineStep(
+        context,
+        Mml.compose`Boil ${Mml.thing(target)} in what? It wants a pot of water.`,
+        'no-pot',
+      );
+      return;
+    }
+    const reachableK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+    if (reachableK < WATER_BOIL_K) {
+      this.declineStep(
+        context,
+        reachableK <= 0
+          ? Mml.compose`There's no fire here to boil anything on.`
+          : Mml.compose`The fire isn't hot enough to bring ${Mml.thing(pot)} to a boil.`,
+        reachableK <= 0 ? 'no-heat' : 'insufficient-heat',
+      );
+      return;
+    }
+    this.engageStep(context, {
+      durationMs: this.paceMs(HEAT_MS, pot, ['pot']),
+      effortW: 200,
+      beginSelf: Mml.compose`You drop ${Mml.thing(target)} into ${Mml.thing(pot)} and bring it up to a boil.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} boils ${Mml.thing(target)} in ${Mml.thing(pot)}.`,
+      onComplete: () => {
+        if (target.isDestroyed() || !MixinApi.isSoilable(target)) return;
+        // Re-read at completion — the fire may have died mid-step.
+        const finalK = MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0;
+        if (finalK < WATER_BOIL_K) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`The pot goes off the boil before ${Mml.thing(target)} has been in it long enough.`)
+            .send();
+          return;
+        }
+        // ⭐ The thing's own act (`holdAtHeat`): water boils at its boiling
+        // point however hot the fire is — a WET heat, so spores survive it.
+        target.holdAtHeat(WATER_BOIL_K, DISINFECT_HOLD_S, { wet: true });
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You hold ${Mml.thing(target)} at a rolling boil, then fish it out steaming. Nothing that was living on it is living now.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} fishes ${Mml.thing(target)} out of the pot.`)
           .send();
       },
     });
