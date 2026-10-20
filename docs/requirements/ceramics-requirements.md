@@ -1,22 +1,39 @@
 # Ceramics & moulding — requirements
 
 **Kind:** feature
-**Leads from:** kernel — the mould as an envelope, fired clay as a
-derivation, the freeze-thaw count and breakage are engine facts. The first
-consumers ship in this same build: the Delight valley brickfield and pottery
-(the `/trade/ceramics` pack), and the Rejection foundry.
+**Leads from:** kernel. This build adds new engine facts:
 
-Three slates, one build. Nothing in the world makes brick, tile, firebrick or
-pottery. Twenty-two shipped goods are made of one generic `ceramic` and are
-conjured by counters and props. Every hot furnace in the game is "lined with
-brick" in prose only. The mould system shipped with dairy without a design
-conversation of its own, and the moulding slate then examined it (§ 0a). This
-build ships clay's whole year:
+- firing as a heat history on the piece;
+- clay as a composition;
+- a good's faces and the coats on them;
+- the mould as an envelope;
+- breakage and thermal shock as one brittle-body rule;
+- evaporative cooling;
+- the freeze-thaw count.
 
-- winning, weathering, tempering;
+The first consumers ship in this same build:
+
+- the Delight valley brickfield and pottery (the `/trade/ceramics` pack);
+- the Rejection foundry;
+- the Terminus potter's stall.
+
+Three slates, one build. Today nothing in the world makes brick, tile,
+firebrick or pottery:
+
+- **The ceramic goods are conjured.** Twenty-two shipped goods are made of one
+  generic `ceramic` material and are conjured by counters and props.
+- **Brick is prose only.** Every hot furnace is "lined with brick" in its
+  description, and nothing more.
+- **Moulds had no design conversation.** The mould system shipped with dairy
+  without a design conversation of its own, and the moulding slate then took
+  it apart (§ 0a).
+
+This build ships clay's whole year:
+
+- winning, weathering, kneading;
 - shaping, drying, firing, and grading what came out;
-- pottery's wheel, glaze and breakage;
-- the mould as an envelope, which also gives the game its foundry.
+- the potter's wheel, glaze and breakage;
+- the mould as an envelope, which gives the game its foundry and its bells.
 
 Seeds:
 
@@ -25,13 +42,21 @@ Seeds:
 - [moulding-slate](../slates/builds/moulding-slate.md) (§ 0 rulings, § 0a the
   mechanism)
 
-**Scope rulings (the owner, 2026-10-20):**
+**Scope and order — the owner's rulings, 2026-10-20:**
 
 - **Repair's W7 (building upkeep) stays its own build.** This build supplies
   the brick and its grade, and W7 opts brick in.
 - **The whole moulding slate rides here.**
-- **Sequencing against sugar and potash (both in flight, both touching moulds,
-  materials and firing) is decided after the plan.**
+- **Order: ceramics → W7 → paint.** This build ships *coats on a good's
+  faces*. Paint's coat on goods rides that model, and paint's coat on a
+  building face rides construction's layers through W7. Paint waits on
+  nothing it needs from us.
+- **Sequencing against sugar and potash** (both in flight, both touching
+  moulds, materials and firing) is decided after the plan.
+
+A condensed design conversation on 2026-10-20 audited the shipped models this
+build leans on, then ran the lenses *generatively* for what the slates left
+out. Its outcomes are the M- and S-decisions below.
 
 ---
 
@@ -39,489 +64,655 @@ Seeds:
 
 **Clay, and one fired product.**
 
-- Rejection's quarry hill has a winnable clay band. `dig` works it with a
+- Rejection's quarry hill has a winnable clay band, which `dig` works with a
   spade (`trade-quarrying`; *the ground answers*).
-- The sand pit wins glass sand.
-- Quicklime is burnt in the limekiln.
-- Quarrying ships a `fire-pot` recipe: one lump of clay fired at 1100 K
-  makes an unglazed plant pot, credited to quarrying. The quarrying
-  discipline's own text says *"the masons, potters and lime burners who
-  arrive later"* will read it.
+- The sand pit wins glass sand, and the limekiln burns quicklime.
+- Quarrying's `fire-pot` recipe fires one lump of clay at 1100 K into an
+  unglazed plant pot, credited to quarrying.
 - **The Delight valley has no clay deposit.**
 
 **The verbs this build's acts land on, all shipped:**
 
-- **`shape`** — glass's durative forming step. Its forms (bottle, cylinder)
-  are fixed in code.
-- **`carve`** — carpentry, cutting a part out of a stock.
-- **`fit`** — assembly's one verb, which replaces a part or raises a whole.
-- **`dip`** — chandlery, a solid dipped in a pot.
-- **`knead`** — baking, working a plastic mass by hand in a trough.
-- **`dry`** — puts a thing where the air reaches it. The drying itself is
-  the thing's own moisture clock against the place's air.
-- **`fire`** — a lit chamber matched against recipe rows. `for <hold>` sets
-  the time at heat, and a charge in a mould comes out in the mould's shape.
-  Its header names *"a brick clamp ships a recipe row"* as the intended
-  extension.
-- **`pour`, `put`, `get`, `salvage`, `repair`, `hammer`, `stir`, `measure`,
-  `analyze`, `look`.**
+| verb | owner | what it does today |
+|---|---|---|
+| `shape` | glass | durative; its forms (bottle, cylinder) are fixed in code |
+| `carve` | carpentry | cuts a part out of a stock |
+| `fit` | assembly | replaces a part, or raises a whole |
+| `dip` | chandlery | dips a solid in a pot; paint-slate reserves it as *the* primitive for laying a coat from a bath |
+| `knead` | baking | works a plastic mass by hand |
+| `dry` | platform | puts a thing where the air reaches it |
+| `fire` | platform | runs a lit chamber against recipe rows; see below |
+| `listen` | platform | perception |
+| `name` | platform | naming |
 
-**The clamp.** The charcoal clamp's `char <draught>` is a three-day sealed
-burn whose outcome is read from the draught when it ends. Every unit comes
-out alike: there is no grading by position and no atmosphere.
+`fire` takes `for <hold>`, and a charge loaded in a mould comes out in the
+mould's shape. Also shipped: `pour`, `put`, `get`, `salvage`, `repair`,
+`hammer`, `stir`, `grind`, `measure`, `analyze`, `look`.
 
-**The mould** (mould.md). The container decides the shape.
+**The clamp.** The charcoal clamp's `char <draught>` is a three-day sealed burn,
+read from the draught when it ends. Every unit comes out alike: there is no
+position and no atmosphere.
 
-- Two set processes ship, **freezing** and **draining**, and a weight `put`
-  on a mould presses it.
-- A mould is reusable (it wears per cast) or consumed (supported, but no row
-  uses it).
-- Four consumers: the cheese hoop, the ingot mould, the ice pan and rubber's
-  oven moulds.
-- ⚠ Its own recorded gap: *nothing refuses molten metal into a vessel that
-  cannot take it.*
+**`fire` is a recipe matcher.** It finds the recipe the chamber's charge
+satisfies, applies a yes/no heat gate, destroys the inputs and mints the
+outputs.
 
-**Weather.** The day's low and high can be read for any place, and its only
-reader asks whether yesterday crossed freezing (the maple tap). **Nothing
-counts freeze-thaw cycles.** Rain wets things outdoors, and sky exposure
-decides it.
+**The mould.** The container decides the shape. Freezing and draining ship, a
+weight `put` on a mould presses it, and a mould is reusable or consumed (no row
+is consumed). Its consumers are the hoop, the ingot mould, the ice pan and
+rubber's oven moulds. ⚠ It records its own gap: *nothing refuses molten metal
+into a vessel that cannot take it.*
 
-**The 22 ceramic goods.** Each comes from a `props:` list, a stock line or
-a cooking recipe's output, and none has a grade:
+**Water.** There are two water models:
 
-- **dairy:** setting pan, starter crock, rennet jar, butter crock, jug;
-- **smelting:** crucible, ingot mould;
-- **fuel:** the retort (a 2200 kg brick firebox);
-- **mining:** a porcelain streak plate;
-- **farming:** three plant pots;
-- **apiculture:** the honey jar;
-- **chandlery:** the soft-soap jar and lye flask;
-- **cooking:** the tallow crock and smoke chimney;
-- **generic:** bowl, dish and platter;
-- two described only as stoneware and earthenware (the bakery's starter
-  crock, the infirmary's steeping pot).
+- food's internal water activity;
+- surface wetness from rain.
 
-**The building materials.** A `brick` material exists, and 16 rooms already
-author brick walls. There are **no** fireclay, terracotta, earthenware,
-stoneware, kaolin, gypsum, plaster or mortar rows, and no portable brick or
-tile.
+Turf is the precedent for a thing that dries, gets wetter in rain, and will not
+burn wet.
 
-**Breakage.** Ceramic carries a `brittle` tag that nothing reads. The only
-breakage in the game is a thrown thing shattering on its toughness.
+**Maturation's `imparts`.** A vessel gives aroma to its contents on the clock.
+A charred cask does this through its own char fields.
 
-**Disciplines.** None for pottery, brickmaking, masonry or founding. The
-neighbors are quarrying, smelting, smithing, glasswork, carpentry and
-chandlery.
+**Locks.** A key opens a lock by its **keyway**, an opaque token the key
+carries.
 
-**Supply gaps.** Lead and tin exist as materials, but no ore wins them. Salt
-is made at the salt pan. Vinegar and wine are the shipped acids.
+**Weather.** The day's low and high can be read anywhere, and only the maple tap
+reads them. **Nothing counts freeze-thaw cycles**, and **evaporation carries no
+heat away**.
 
-**Rivers.** The Delight reaches Terminus by road only. The gorge is authored
-*"steep enough that no boat has ever been up it"*, and the barge runs below
-Terminus only.
+**The 22 ceramic goods.** None has a grade. They are:
 
-**In flight (sequencing to be decided after the plan):**
+| trade | goods |
+|---|---|
+| dairy | setting pan, starter crock, rennet jar, butter crock, jug |
+| smelting | crucible, ingot mould |
+| fuel | the retort |
+| mining | the porcelain streak plate |
+| farming | three plant pots |
+| apiculture | the honey jar |
+| chandlery | soft-soap jar, lye flask |
+| cooking | tallow crock, smoke chimney |
+| generic | bowl, dish, platter |
+| *described, no material* | the bakery's stoneware starter crock, the infirmary's earthenware steeping pot |
 
-- **Sugar** stages the boil by concentration rather than solubility. It
-  teaches the drain set to keep its run-off (the cone's molasses), and its
-  sugar cone is a stocked earthenware mould. *"Sugar is pottery's first
-  customer when it ships."*
-- **Potash** makes ash a good and adds an ashery kiln. It changes how a
-  firing carries fractions and grade, takes the `flux` role, and slakes lime
-  in the soap kettle. It names *"ash glazes → the pottery build."*
+**Brick.** A `brick` material exists, and 16 rooms author brick walls. There is
+no fireclay, earthenware, stoneware, kaolin, gypsum or plaster, and no portable
+brick or tile.
+
+**Breakage.** `brittle` is a tag that nothing reads. The only breakage in the
+game is a thrown thing shattering on its toughness. Every location's floor has a
+material.
+
+**The trades around this build.**
+
+- **No discipline exists** for pottery, brickmaking, masonry or founding.
+- **Nothing wins lead or tin**, though both exist as materials.
+- **Salt** comes from the salt pan.
+- **Vinegar and wine** are the shipped acids.
+- **The Delight reaches Terminus by road only**: the gorge has never had a
+  boat.
+
+**In flight:**
+
+- **Sugar** stages its boil by concentration and keeps the drain set's run-off.
+  Its sugar cone is a stocked earthenware mould: *"sugar is pottery's first
+  customer."*
+- **Potash** makes ash a good, adds an ashery kiln, changes how firing carries
+  fractions, and takes `flux`. It names *"ash glazes → the pottery build."*
+- **Paint** (slate, 2026-10-19) puts a coat on construction's layers. It wants
+  coats on goods and leaves them unmodeled.
 
 ⭐ **Therefore what is genuinely new here is:**
 
-- **fired clay as a derivation** (clay × the heat it reached → body,
-  porosity, strength, color), and the 22 rows re-pointed to what they really
-  are;
-- **the freeze-thaw count**;
-- **the clamp's grading by position and the kiln's atmosphere**;
-- **`shape` generalized**: forms as rows, clay at the brick table and the
-  wheel;
-- **green ware's three ruins** (rain, frost, too-fast drying);
-- **furnace linings that wear**, and the firebrick that relines them;
-- **glazes** (a glaze is a glass), **lead leaching**, crazing, thermal shock;
-- **breakage** on a brittle body, and pottery's uses (flame, porosity, the
-  cooling jar);
-- **the mould as an envelope**, with:
-  - impressions;
-  - pours that fail by physics;
-  - survival during the pour;
-  - consumed sand moulds;
-  - pressing from three sources;
-  - shape-and-release;
-  - crystallizing;
-  - dies that record provenance;
-- **three new trades** (brickmaking, pottery, founding) **and masonry**;
-- **two new venues** (the Delight brickfield-and-pottery, the Rejection
-  foundry) **and a Terminus potter's stall**.
+- the six engine facts in the header;
+- the clamp's grading and the kiln's atmosphere;
+- `shape` over parametric forms;
+- green ware's ruins;
+- furnace linings and crucibles that wear;
+- glazes, with lead leaching through `imparts`;
+- impressions, cast keys and the pour's physics;
+- pressing and crystallizing;
+- the bell, and the ring test;
+- the ceramic water filter;
+- four disciplines;
+- two venues and a stall.
 
 ---
 
 ## Goals
 
-- **Clay has a year.** It is won in autumn and weathered by the winter's
-  frost (more freeze-thaw days give a better clay, up to a ceiling). It is
-  kneaded with sand, and with town ash as breeze, in spring. It is shaped and
-  dried in summer and burnt in autumn. ⭐ Physics enforces the year: green
-  brick that freezes wet shatters, so moulding stops before the first frost.
-  No calendar rule does it.
-- **What a fired thing IS derives from its clay and the heat it reached.**
-  That one derivation gives:
-  - terracotta, earthenware, stoneware and refractory body;
-  - porosity (water absorption), strength and color (iron, and the
-    draught's atmosphere).
-  The 22 shipped rows are re-pointed to the body each really is, and none of
-  the five bodies is a hand-authored material.
-- **A brick clamp burns like a charcoal clamp and is read at the end.** Its
-  bricks come out graded by where they sat: over-burnt clinker by the fire
-  channels, hard well-burnt in the middle, soft place bricks at the skin.
-  Each carries the water absorption its firing gave it. W7 reads that
-  absorption next.
-- **Every hot furnace has a lining that wears per firing** and is relined
-  with firebrick won from Rejection's fireclay. ⚠ A lining wears only where
-  firebrick can be bought, and every furnace an NPC runs is relined by its
-  keeper.
-- **A potter's hand shows in the pot.** Competence decides wall thickness,
-  the largest form you can raise and the grade, deterministically and never
-  by a roll. A form beyond you is refused, and the refusal says what lifts
-  it.
-- **Pottery is used, breaks and is mended.**
-  - Bodies decide uses: earthenware with grog survives the cooking fire,
-    stoneware cracks on it; porous ware sweats and cools its water; glazed
-    ware is hygienic.
-  - A dropped or thrown pot breaks by its body's strength against the
-    impact, so a thick beginner's mug survives what a master's thin bowl
-    does not.
-  - Sherds grind back to grog, and the tinker rivets a break.
-- **A glaze is a glass on a pot**, applied by `dip` and matured in a second
-  firing.
-  - Kinds: ash, lead, salt and tin.
-  - Faults: crazing (expansion mismatch), running (over-fired), thermal
-    shock (opening the kiln early).
-  - ⚠ **Lead leaches into acidic contents silently.** Vinegar, wine or
-    fruit kept in a lead-glazed crock become a toxin dose, and no sense
-    reports it.
-- **The mould is an envelope.** The matter decides what setting is, and the
-  mould decides the shape and the conditions:
-  - its conductivity (chill casting);
-  - its permeability or openings (draining);
-  - its absorbency (slip casting in plaster);
-  - its wetness (a damp mould blows);
-  - its melting or ignition point (survival).
-- **Anyone can take an impression of any object** and cast it in anything
-  that will take it. The shape copies and the identity never does: mass from
-  the poured material, function from its response, one piece, seams visible,
-  provenance recorded.
-- **Pours fail by physics.**
-  - A misrun if poured too cool for a thin shape.
-  - Shrinkage porosity without a riser.
-  - A blown cast from a damp mould, which also burns the pourer.
-  - A burnt or melted receiver for **any** vessel whose melting or ignition
-    point is below the pour.
-- **Pressing is one load from three sources:** a weight (shipped), a screw
-  press turned by hand, and a hammer blow on a die. A self-supporting charge
-  leaves the mould at once (shape-and-release).
-- **Crystallizing is a set process.** A solution sets crystals when it holds
-  more than its material dissolves at that temperature, and the run-off
-  (bittern) drains into the vessel beneath as a product.
-- **Three trades and a fourth discipline exist and are learnable:**
-  brickmaking and pottery at the Delight, founding at Rejection, and
-  masonry, which relines furnaces here and is W7's next.
+- **Clay has a year, and physics enforces it.**
+  - Clay is won in autumn and weathered by the winter's frost: more
+    freeze-thaw days make better clay, up to a ceiling.
+  - It is kneaded with sand and breeze in spring, then shaped and dried in
+    summer and burnt in autumn.
+  - Wet green brick that freezes shatters, so moulding stops before the first
+    frost. No calendar rule says so.
+- **The clay you build is the brick you get.**
+  - Clay is a composition: clay mineral (plasticity), iron, lime, sand or grog,
+    breeze, fireclay.
+  - Kneading changes its fractions.
+  - Plasticity, drying shrinkage, cracking, fired color and refractoriness all
+    derive from the composition.
+- **A piece is fired, not replaced.**
+  - Firing ware is a change of **state** on the same piece: my jug, with my
+    handle, my wall and my mark, comes out of the kiln as itself.
+  - Its body derives from the **heat-work it actually received**, read off the
+    thermal model: the peak heat, the time held there, the atmosphere.
+  - The bodies run terracotta → earthenware → stoneware → refractory, and
+    porosity, strength and color follow.
+  - Recipes remain only for true transformations (limestone → lime, gypsum →
+    plaster).
+- **A clamp's bricks are graded by where they sat**, and each carries the water
+  absorption its firing gave it. W7 reads that absorption next.
+- **Hot furnaces wear, and their keepers mend them.**
+  - Every hot furnace's lining wears per firing and is relined with firebrick.
+  - Crucibles wear per melt and are replaced.
+  - A lining wears only where firebrick is sold.
+  - Every NPC-run furnace is relined by its keeper.
+- **A potter's hand shows in the pot, and the pot is theirs.**
+  - Competence decides wall thickness, the largest form you can raise, and the
+    grade. It decides deterministically, never by roll.
+  - Forms are parametric, not a list. The potter names what they made and
+    stamps it with their own mark.
+  - A shelf of a player's pots is a visible record of their improvement.
+- **A good has faces, and a face carries coats.**
+  - A glaze is a coat laid by `dip` and fused by firing.
+  - **The inside coat meets the contents**, so a lead glaze leaches into
+    acidic contents silently.
+  - **A sound coat holds water against a porous body**, so an unglazed jar
+    weeps, its wet outside cools it by evaporation, and its water stays cool.
+  - Coats decide color, gloss and how a surface cleans. Crazing cracks a coat.
+- **Brittle bodies obey one rule.** A brittle body breaks when an impact beats
+  its strength, which depends on the body, the wall and grog, against the floor
+  it lands on. It cracks under **thermal shock** wherever that happens: a flame,
+  a kiln opened hot, boiling water into cold ware, a quench.
+  - **Hidden cracks are heard, not seen.** `ring` a pot, a brick or a bell, and
+    a flaw sounds dull.
+- **The mould is an envelope.** The matter decides what setting is. The mould
+  decides the shape and the conditions, through its conductivity, permeability,
+  absorbency, wetness and melting point. The cavity is shared: a plaster mould
+  takes poured slip or pressed clay alike.
+- **Anyone can take an impression of anything and cast it.**
+  - The shape copies and the identity never does.
+  - A thing whose function **is** its shape keeps that function in the cast:
+    a cast key opens its lock, and a cast seal makes its seal.
+  - A cast of a face is a likeness, never a disguise.
+- **Pours fail by physics:**
+  - misrun;
+  - shrinkage without a riser;
+  - a damp mould that blows;
+  - chill against sand;
+  - a receiver that melts or burns, for **every** vessel.
+- **Pressing is one load from three sources** (a weight, a screw press, a blow
+  on a die). A self-supporting charge releases at once.
+- **Crystallizing is a set process**, and the drained run-off is a product.
+- **The foundry casts bells.** A bell's pitch derives from its size and alloy,
+  and a large bell is cast in a pit dug in the ground.
+- **Porous stoneware filters water** by its pores. This is cleanliness's and
+  watershed's new instrument against contamination.
+- **Four disciplines are learnable and credited:**
+  - brickmaking and pottery at the Delight;
+  - founding at Rejection;
+  - masonry, which relines here and is W7's next.
 
 ## Non-goals
 
-Every non-goal below names where it goes.
+Every item names its destination.
 
-- **Building upkeep.** That covers walls weathering, `maintain`, lime mortar
-  for repointing, the hard-mortar spall, and the bricklayer laying walls. It
-  all goes to **repair W7** (`repair-plan.md` § W7), which opts brick in
-  once this ships. Lime mortar's only buyer is W7, so it ships there
-  (lens 6: *was the demand there first*).
-- **Bricks by barge.** The gorge has no navigable water, so barge freight
-  goes to **[river-slate](../slates/builds/river-slate.md)** and
-  [freight-slate](../slates/builds/freight-slate.md). Bricks and wares go
-  to Terminus by road in this build.
-- **Breakage in transit, and packing in straw.** These go to
-  **freight-slate**, which owns cargo handling.
-- **The per-brick tax and its size effect.** These stay in
-  **brickmaking-slate § 3**, kept, as the lever for when the polity gets a
-  levy design. The statute brick ships here, because the standard needs no
-  tax.
-- **Kintsugi.** It needs a lacquer from a tapped tree, and none exists. It
-  goes to **[taps.md](../subsystems/taps.md)'s deferred list**, as a tap row
-  plus a repair-method row. The tinker's rivets ship here.
-- **Porcelain and kaolin.** These belong to another realm's geography. The
-  streak plate stays a bought import, recorded in **pottery-slate § 9**.
-- **Salt-glaze fumes as harm or nuisance.** These go to **the potash slate's
-  smoke ordinance**. In this build the fumes are smelled, not dosed.
-- **The Scotch kiln and the Hoffmann kiln, the pugmill, the jigger and
-  extrusion.** These are later rungs of the same acts, recorded on
-  **brickmaking-slate § 5** and **pottery-slate § 4**. This build ships the
-  clamp, the pit firing and the updraft kiln.
-- **Coin striking and minting authority.** These go to **banking.md's
-  coinage** and the **[attestation-slate](../slates/builds/attestation-slate.md)**.
-  This build ships the die and the struck blank, with provenance recorded
-  and judged by nobody.
-- **Printing type.** It goes **nowhere, deliberately.** Printing is not
-  modelled.
-- **Forming over a form** (lasts, hat blocks, boiled leather, steam-bent
-  wood). This stays out of the mould system, per **moulding-slate § 2**,
-  and each is its trade's own act.
+**W7, paint and maturation:**
+
+- **Building upkeep → repair W7** (`repair-plan.md` § W7). That covers wall
+  weathering, `maintain`, lime mortar, repointing, the hard-mortar spall and
+  the bricklayer laying walls. W7 opts brick in. Lime mortar's only buyer is
+  W7, so it ships there (lens 6).
+- **Coats beyond ceramics → [paint-slate](../slates/builds/paint-slate.md).**
+  That covers binders that set by oxidation or carbonation, an outside coat
+  weathering sacrificially on the exposure clock, coats on building faces, and
+  the authored **image** (a scene painted on a vase is paint's picture on a
+  ceramic face). Paint's slate gets a note that its coat on goods rides this
+  build's faces.
+- **Moving casks onto faces → maturation.md**, recorded as the target. A
+  charred cask is a char layer on its inside face. So are pitch-lined amphorae
+  and tin-lined copper. Not migrated here.
+
+**Freight, tax and rows that other subsystems own:**
+
+- **Bricks by barge → [river-slate](../slates/builds/river-slate.md)**, plus
+  **[freight-slate](../slates/builds/freight-slate.md)**. Bricks and wares go to
+  Terminus by road here.
+- **Breakage in transit, and packing in straw → freight-slate.**
+- **The per-brick tax → brickmaking-slate § 3** (kept), for when the polity has
+  a levy design.
+- **Drain pipes, brick sewers, flue liners, clay lamps → their owners**, as
+  rows on this build's bodies:
+  - watershed's conduit ladder;
+  - cleanliness's flue;
+  - fire's lamp.
+
+**Out for want of an input or an owner:**
+
+- **Kintsugi → [taps.md](../subsystems/taps.md)'s deferred list.** It needs
+  lacquer from a tapped tree, and none exists. The tinker's rivets ship here.
+- **Porcelain and kaolin → pottery-slate § 9.** The streak plate stays an
+  import.
+- **Salt-glaze fumes as harm → the potash slate's smoke ordinance.** Here they
+  are smelled, not dosed.
+- **A fire code mandating brick, and zoning the brickfield → the
+  [construction-slate](../slates/builds/construction-slate.md) and civics.**
+  Recorded under lens 7. This build gives a polity the brick to mandate.
+- **Ringing the curfew bell on a schedule → civics** (the curfew ordinance).
+  Here the bell can be cast, hung and rung by hand.
+- **Coin striking and minting authority → banking.md's coinage and the
+  [attestation-slate](../slates/builds/attestation-slate.md).** This build
+  ships the die and the struck blank, with provenance recorded.
+
+**Later rungs and elsewhere:**
+
+- **The Scotch and Hoffmann kilns, the pugmill, the jigger, extrusion →
+  brickmaking-slate § 5 and pottery-slate § 4**, as later rungs of the same
+  acts.
+- **Printing type → nowhere, deliberately** (printing is not modelled).
+- **Forming over a form (lasts, hat blocks, steam-bent wood) → each trade's own
+  act**, per moulding-slate § 2.
 
 ---
 
 ## Placement
 
-- **`/trade/ceramics`**, a new capability pack covering brick, tile,
-  firebrick and pottery. They share their whole physics (clay, kneading,
-  drying, firing, kilns), so they are one trade (*trade is mechanism,
-  locality is expression*). It ships the brickmaking and pottery
-  disciplines, the forms, the bodies, the glaze rows, and the clamp and kiln
-  rows.
-- **Founding is `trade-smelting`'s.** The founder pours the smelter's melt,
-  and the furnace, crucible and ingot mould already live there. The
-  discipline, the flasks, moulding sand, the patterns' cast rows and the
-  foundry rows ship in that pack. ⭐ Founding is smelting's second act, not a
-  third metal trade (closes moulding-slate open question 4).
-- **Masonry ships in `/trade/ceramics`** until W7 gathers the building
-  trades into their own pack, as brickmaking-slate § 8 says. In this build
-  it is the discipline for relining a furnace.
-- **The kernel** carries the engine facts every trade reads:
-  - the mould envelope;
-  - impressions, pour failure and survival in transfer;
-  - pressing and shape-and-release;
-  - crystallizing;
-  - the fired-clay derivation;
+- **`/trade/ceramics`** is a new capability pack: brick, tile, firebrick,
+  pottery and the filter. It ships the brickmaking, pottery and **masonry**
+  disciplines; form names, glazes, the clamp and kiln rows, and the venue
+  classes. Masonry lives here until W7 gathers the building trades.
+- **Founding is `trade-smelting`'s.** The founder pours the smelter's melt.
+  Its rows are the discipline, flasks, moulding sand, the bell, and the
+  foundry. This closes moulding-slate question 4.
+- **The kernel carries the engine facts:**
+  - heat-work and the fired body;
+  - clay composition;
+  - faces and coats;
+  - `imparts` with toxins and acidity;
+  - brittle breakage and thermal shock;
+  - evaporative cooling;
   - the freeze-thaw count;
-  - breakage on a brittle body;
-  - lining wear on a furnace;
-  - lead leaching into acidic contents.
-- **Venues are locality rows.**
-  - The Delight brickfield and pottery are in `hearts-delight`.
-  - The foundry and the fireclay and gypsum bands are in `rejection`.
-  - The potter's stall is in `terminus`.
-  ⭐ The test: **a second brickfield, pottery or foundry is rows only, with
-  zero pack code.**
-- **The clay pit is a quarrying working.** The clay *deposit* is the
-  locality's row, and the pit is quarrying's open working. The brickfield
-  owns no ground mechanism (closes moulding-slate open question 9).
-  Quarrying's `fire-pot` recipe moves to pottery and credits pottery.
+  - the mould envelope, impressions, pour failure and survival;
+  - pressing and release;
+  - crystallizing and cure;
+  - lining and crucible wear;
+  - the `ring` verb.
+- **Venues are locality rows.** The brickfield and pottery are in
+  `hearts-delight`. The foundry and the fireclay and gypsum bands are in
+  `rejection`. The stall is in `terminus`. ⭐ The test: **a second brickfield,
+  pottery or foundry is rows only.**
+- **The clay pit is quarrying's working.** The clay deposit is the locality's.
+  Quarrying's `fire-pot` recipe retires (firing a pot is a state change now),
+  and pottery credits pottery. This closes moulding-slate question 9.
 
 ## Collisions
 
-Each item says which existing places and objects this touches, and who
-already lives there.
+**Places.**
 
-- **Heart's Delight** — the farming valley.
-  - It already holds the gate, the bench lane, the barn, the farmstead, the
-    mill and millsite, the sawmill, the dairy, the creamery, the silk house
-    and the public-works yard.
-  - The brickfield is new ground beside them on the valley's alluvial clay.
-    It must not take a field already ploughed, and the clay deposit is
-    authored under new places, never under an existing field.
-  - The creamery's hearth and the silk house's oven are untouched.
+- **Heart's Delight.** The brickfield is new ground on the valley's alluvium,
+  beside the farm, mill, sawmill, dairy, creamery, silk house and the
+  public-works yard. It takes no ploughed field.
 - **Rejection.**
-  - The fireclay band goes **under the coal seam** at the quarry hill, which
-    is where fireclay occurs. A gypsum band is added there too.
-  - The foundry sits **beside the smelter**, sharing its furnace and
-    crucible. ⚠ The smelter's ingot mould and crucible are fixtures
-    (props), and they gain a lining and a body without being moved.
-  - The glasshouse's kiln, the limekiln, the fuel yard's retort and the
-    smelting furnace all gain a lining that wears. ⚠ The NPCs who run them
-    must reline them, or they decay with no remedy (a time bomb).
-- **Terminus market.**
-  - It holds the square, the stalls, the bathhouse and the bakery.
-  - The potter's stall is a new stall there.
-  - ⚠ The general store's plant pots, the honey jars and the chandlery's
-    soft-soap jars and lye flasks are re-pointed to **the pottery's
-    production**, and stop conjuring stock.
-- **The 22 ceramic rows.**
-  - Each is re-pointed to its true body. Every place that props one keeps
-    its fixture.
-  - What changes is what the thing is made of: its porosity, its fitness for
-    flame and food, and whether it can break.
-  - ⚠ A creamery setting pan that now *breaks* needs a replacement path,
-    which is buying one from the potter.
-- **The dorm's starter pot** (Duncan Hall). It stays a prop and becomes
-  terracotta. ⚠ A new player's first pot must not be fragile enough to break
-  from being set down.
-- **The shipped verbs:**
-  - **`shape`** generalizes. ⚠ Glass's `shape bottle` must keep working
-    word for word.
-  - **`knead`** gains clay. It is baking's verb today and becomes shared,
-    because potters knead clay: one act, working a plastic mass with water
-    by hand.
-  - **`dip`** gains glaze.
-  - **`carve`** gains leather-hard trimming and the pattern.
-  - **`fit`** gains a slip-joined handle and a furnace's lining.
-  - **`fire`** gains the clamp, the pit firing and the updraft kiln, and the
-    draught becomes a setting of `fire`.
-  - **`hammer`** gains a blank on a die.
-- **`char` stays charcoal's.** Charring wood is a different act from firing
-  a charge.
-- **`press` is the news ticker's.** The screw press is worked with
-  **`turn`**, a new verb in the device category with no collision.
-- **The impression is `mold`.** `mold <pattern> in <flask>` takes a
-  pattern's shape in sand or plaster; American spelling, alias `impress`.
-- **The repair tinker** gains riveting a broken pot. His rounds are
-  unchanged.
+  - The fireclay band goes **under the coal seam** at the quarry hill, with a
+    gypsum band added there too.
+  - The foundry sits beside the smelter and shares its furnace and crucible.
+  - The glasshouse kiln, the limekiln, the retort and the smelting furnace all
+    gain a wearing lining. ⚠ Their NPC keepers must reline them, or the
+    furnaces become a time bomb.
+- **Terminus market.** The potter's stall is new. ⚠ The general store's plant
+  pots, the honey jars, and the chandlery's soap jars and lye flasks are
+  re-pointed: **bought from the pottery first, with imports as a dearer
+  backstop**. A sick potter must not empty the realm's shelves.
+- **Terminus's curfew bell.** It is a hung bell in the market that anyone can
+  `ring`.
+
+**The 22 rows and the dorm pot.**
+
+- Each row is re-pointed to its true body (S1), and every prop keeps its
+  fixture.
+- ⚠ A setting pan that can now break needs replacing, and the potter is where
+  you buy one.
+- **The dorm's starter pot** becomes terracotta. ⚠ It must never break from
+  being set down or picked up.
+
+**The shipped verbs.**
+
+| verb | how it changes |
+|---|---|
+| `shape` | goes parametric; ⚠ glass's `shape bottle` keeps working word for word |
+| `knead` | gains clay (potters knead; brickmakers tread) |
+| `dip` | lays a glaze coat |
+| `carve` | gains trimming at leather-hard, and the pattern |
+| `fit` | gains a slip-joined handle and a furnace's lining |
+| `fire` | becomes a heat history for ware (recipes stay for transformations); the draught becomes a setting of every firing |
+| `hammer` | gains a blank on a die |
+| `char` | stays charcoal's: charring wood is a different act |
+
+New verbs:
+
+- **`press` is the news ticker's**, so the screw press is worked with **`turn`**.
+- **`impress <pattern|stamp> in/on <medium>`** (alias `mold`) is the one act of
+  pressing a hard shape into a soft medium. It covers a sword into sand, a
+  maker's stamp into a leather-hard jug, and a seal into wax.
+- **`ring <thing>`** strikes a body and hears it. It covers a bell, a pot and a
+  brick. `tap` is forestry's sap verb.
+
+**Other subsystems.**
+
+- **Fire.** `fire`'s recipe path now carries both a state change and
+  transformations. ⚠ Potash is changing the same path.
+- **Maturation's `imparts`** gains a toxin type and an acidity factor.
+- **Cleanliness** learns clay as a dirt kind: the brickfield is mud, and potters
+  are muddy. It also learns that a crazed coat or bare porous body holds dirt
+  and a sound glaze wipes clean.
+- **Locks and keys.** A cast key carries its pattern's keyway.
+- **Belief and disguise.** A face cast confers nothing.
+- **The repair tinker** gains riveting a broken pot.
+- **Forestry's coppice** gains a buyer: clamps and kilns eat wood.
 
 ---
 
 ## Surface decisions
 
-### S1. The body is derived, not authored
+The **M-** decisions are the model audit's: where a shipped model was not sound
+for this build, and what replaces it. The **S-** decisions are surface
+answers.
 
-The five ceramic bodies are not five materials. A fired thing's body is
-computed from **its clay** (ordinary, iron-rich, lime-rich or fireclay)
-**and the peak heat it reached**:
+### M1. Firing ware is a heat history on the piece
 
-- **Porosity** falls as the body vitrifies.
-- **Strength** rises.
-- **Color** comes from the clay's iron and the draught's atmosphere: red
-  when oxidizing, blue-black when reducing, yellow when the clay is lime-rich.
-- **Refractoriness** comes only from fireclay.
+`fire` no longer mints new ware from old. Each piece in a chamber records the
+**heat-work** it receives:
 
-The 22 rows are re-pointed by **which clay and which firing they were
-made of**. The default bodies are:
+- the peak heat it reaches;
+- the time it holds there;
+- the atmosphere.
 
-| body | rows |
-|---|---|
-| terracotta (unglazed, low) | the three plant pots, the dorm starter pot, the setting pan, the clay pot |
-| glazed earthenware | crocks (butter, tallow), jars (honey, rennet, soft-soap), the jug, the lye flask, the bowl, the dish, the platter, the steeping pot |
-| stoneware | the two starter crocks (dairy, bakery) |
-| refractory (fireclay) | the crucible, the ingot mould, the retort, the smoke chimney |
-| porcelain (import) | the streak plate |
+It records these from its own thermal state, the same model that warms a loaf
+in an oven. Its body, porosity, strength and color derive from that record. The
+piece keeps its identity: maker, form, wall, mark and joints. Recipes stay for
+transformations that really destroy what went in.
 
-Lens 1 chose this: one rule taught everywhere (*the heat decides the
-vitrification decides the water*), and the brick obeys the same rule.
+**Heat-work is read the potter's way.** A kiln shows no number. You read:
 
-### S2. The freeze-thaw count is a weather fact
+- **pyrometric cones** slumping through the spyhole;
+- **the glow's color** (incandescence).
 
-A place can be asked how many days since a given moment crossed freezing
-both ways. The clay heap reads it, and so will:
+Competence resolves the detail of those readings and never their access.
 
-- frost tilth on ploughed soil;
-- frost damage to brick and stone (W7, decomposition).
+### M2. The shared thing is the cavity
 
-A mild winter weathers clay worse. A heap brought indoors stops counting.
+The two kinds of moulding are one shape and different matter:
 
-### S3. Kneading clay is `knead`
+- **Casting:** a fluid sets in a container.
+- **Pressing:** a plastic solid is pushed in and released.
 
-Tempering is soaking clay in the temper pit, picking out stones, and working
-in sand (for fat clay) and breeze (town ash) to the moisture window. The act
-is kneading, and potters call it that. Brickmakers tread, which is kneading
-with the feet. One verb serves one act, so baking's `knead` becomes shared.
+A mould's shape is an authored cast row or an impression. How matter gets in
+(pour, press, blow) and how it sets (freeze, drain, dry, cure, release at once)
+are the matter's. A plaster mould casts slip and press-moulds clay with the same
+cavity.
 
-The moisture window is the product rule:
+### M3. Clay is a composition
 
-- too wet slumps;
-- too dry cracks;
-- fat clay without sand cracks drying.
+Clay's fractions are:
 
-### S4. Forming is `shape <material> into <form>`, and forms are rows
+- clay mineral (plasticity);
+- iron oxide (red);
+- lime (yellow, and lime-blowing if it is in nodules);
+- sand or grog (tames cracking, makes a flameproof body);
+- organic breeze (fires the brick from within);
+- the fireclay character (refractory, low iron and flux).
 
-The instrument and the material decide which forms are possible:
+Deposits seed the fractions. Kneading blends them. Every derived property reads
+them.
 
-- the brick mould makes its brick (and the tile mould its tile);
-- the wheel throws round forms;
-- hands coil anything;
-- the blowpipe gathers bottles and cylinders, as shipped.
+### M4. Green ware's water re-wets, as turf's does
 
-At the brick table, `shape` is a **game-day's durative work** at a rate
-competence sets. A master's gang turns out thousands. The output is green
-bricks on a pallet. On the wheel, one `shape` is one pot. Glass's
-`shape bottle` is unchanged.
+Moisture decides the state:
 
-**Competence decides the pot.** Wall thickness (and so weight), the largest
-form you can raise and the grade all follow from it. A form below your band
-comes out heavier, never failed; a form above it is refused, and the refusal
-names the band.
+1. plastic;
+2. leather-hard (the window to trim, join and stamp);
+3. bone-dry (the only state that fires).
 
-### S5. Green ware dries on its own clock, and three things ruin it
-
-`dry` exists, and green ware dries in the air like anything wet. Drying
-passes through **leather-hard** (the window to trim and join) to
-**bone-dry** (the only state that fires).
+That moisture **dries in air and rises in rain**:
 
 - **Rain** on uncovered green ware slumps it.
 - **Frost** on wet green ware shatters it.
-- **Drying too fast** (sun and wind, fat clay) cracks it.
+- **Drying too fast** cracks it. That is derived from the drying rate against
+  plasticity, against sand and grog, and against the evenness of the wall.
 
-The hacks are a **roofed open place**, so shelter is where you put the
-bricks, not a verb. Green ware shrinks a few percent drying, so the brick
-mould is authored oversize.
+Green ware shrinks drying, so the brick mould is authored oversize. The hacks
+are a roofed open place, so where you put the bricks is the shelter. There is no
+cap verb.
 
-### S6. Firing is `fire`, and the draught is a setting of every firing
+### M5. Brittle is a property, and thermal shock is one rule
 
-`fire <kiln|clamp> [draught]`. The draught can be reset while the burn
-runs, exactly as `char` re-sets the charcoal clamp. It decides the
-atmosphere:
+- **Breakage.** A brittle body breaks when an impact's energy beats its
+  strength. Strength derives from its body, wall thickness and grog, and the
+  impact from the fall and **the floor's material**.
+  - A rush-strewn earth floor forgives a dropped mug. A flagstone floor does
+    not.
+  - A thick beginner's mug survives what a master's thin bowl does not.
+  - Breaks come only from dropping, throwing, knocking and heat. **Never from
+    being set down, put away or carried.**
+- **Thermal shock.** A temperature change faster than the body's expansion
+  allows cracks it. The same rule covers:
+  - a dense body on a flame;
+  - a kiln opened hot (dunting);
+  - boiling water poured into cold ware;
+  - a quench.
+- **Hidden cracks.** Dunts, hairlines and casting flaws do not always show.
+  `ring` reveals them: a sound body rings and a flawed one sounds dull. A buyer
+  at the stall can check a pot. Railway wheel-tappers did exactly this.
+
+### M6. A good has faces, and a face carries coats
+
+Every good has an **outside**, and a vessel also has an **inside**. Each face
+carries a layer list, outermost first, of materials and thicknesses. That is
+construction's shape for walls and roofs, so a building face and a pot face are
+one idea.
+
+What a face's outermost layer decides:
+
+| what | how |
+|---|---|
+| **What meets the contents** | The inside coat imparts into what the vessel holds (M7). |
+| **Whether it holds water** | A porous body **weeps** through any face without a sound coat. An unglazed jar's outside stays wet and **evaporation cools it** (M8). A glazed jar holds and stays warm. |
+| **Color, gloss, soundness** | Glaze colors come from metal oxides, using glass's color from iron, copper and cobalt. |
+| **Cleaning** | A crazed coat or bare porous body holds dirt. A sound glaze wipes clean. |
+
+A coat is laid wet by **`dip`** and **fused by firing**. That is M1's state
+change: *a wet glaze*, then *a fused glaze*. Crazing happens when a coat shrinks
+more than its body on cooling. The coat cracks, the vessel weeps a little, and
+dirt lodges.
+
+### M7. Lead leaches through `imparts`
+
+Maturation's vessel-to-contents channel carries a **toxin**, and its rate scales
+with **the contents' acidity**, a new material fact:
+
+- vinegar, wine, fruit juice, whey and pickling brine are acidic;
+- water is not.
+
+Acidic contents held against a lead-glazed inside take up lead with time, and
+eating or drinking them doses the eater through the toxin route.
+
+**No look, smell or taste reveals it.** You learn it from knowledge, an assay,
+or the sickness.
+
+### M8. Evaporation carries heat away
+
+Water leaving a wet surface takes its latent heat with it. This is a kernel
+fact, and its first readers are:
+
+- the weeping jar, cooler than the room;
+- wet clothes and sweat, recorded for exertion and textiles.
+
+### M9. Shape and identity
+
+An impression holds:
+
+- **the pattern's kind** (seats and minted singletons step up to what they
+  extend);
+- **its volume**;
+- **its form and parts**, as description;
+- **whose object it was taken from**.
+
+A cast from it is that kind in the poured material:
+
+- mass from the poured density;
+- function from materials-response;
+- one piece, seams showing.
+
+The look says *"a pewter cast of a sword"*. Name, mark, grade, seat and history
+never copy.
+
+⭐ **Where a thing's function IS its shape, the cast performs it.**
+
+- A key's keyway is part of its shape, so a wax impression of a key cast in
+  brass **opens the lock**.
+- A cast seal makes the seal's impression.
+- A cast die strikes.
+
+The engine records provenance and judges nothing. ⚠ **A cast of a face is a
+likeness, never a disguise.** It confers nothing to belief.
+
+### S1. The fired bodies, and the 22 rows
+
+The bodies are derived (M1, M3), not authored. The 22 rows are re-pointed to the
+clay and firing they were made of:
+
+| body | rows |
+|---|---|
+| terracotta | three plant pots, the dorm starter pot, the setting pan, the clay pot |
+| glazed earthenware | butter crock, tallow crock, honey jar, rennet jar, soft-soap jar, jug, lye flask, bowl, dish, platter, steeping pot |
+| stoneware | the dairy's and the bakery's starter crocks |
+| refractory (fireclay) | crucible, ingot mould, retort, smoke chimney |
+| porcelain (import) | the streak plate |
+
+### S2. The freeze-thaw count is a weather fact
+
+A place can say how many days since a given moment crossed freezing both ways.
+
+- **The clay heap reads it.** A mild winter weathers worse, and a heap indoors
+  stops counting.
+- **Frost tilth and frost damage to brick are its next readers.**
+
+### S3. Kneading clay is `knead`
+
+Work the clay in the temper pit with water, sand (for fat clay) and breeze (town
+ash) to the moisture window:
+
+- too wet slumps;
+- too dry cracks.
+
+The pit needs water.
+
+### S4. `shape <material> into <form>`, with forms that are parametric and named
+
+A form is:
+
+- a **class**: open vessel, closed or necked vessel, flatware, solid block, or
+  cone;
+- a **capacity**;
+- a **proportion**: tall, squat, wide or narrow.
+
+Familiar words are rows that map onto those parameters. *Mug* is an open vessel
+of about a pint with a handle seat. *Brick* is the statute block. An author adds
+a word with a row.
+
+A player can state any capacity and proportion the instrument allows, and then
+`name` what they made. The instrument and the material bound the possible:
+
+- the brick mould makes its brick;
+- the tile mould makes its tile;
+- the wheel throws round forms;
+- hands coil anything;
+- the blowpipe makes bottles and cylinders, as shipped.
+
+At the brick table, `shape` is **a game-day's durative work** at a rate
+competence sets. A master's gang makes thousands, onto a pallet. On the wheel,
+one `shape` makes one pot.
+
+**Competence decides the pot, deterministically:**
+
+- wall thickness, and so weight;
+- the largest form you can raise;
+- the grade.
+
+Below your band a pot comes out heavier, never failed. Above it the form is
+refused, and the refusal names the band.
+
+### S5. The maker's mark
+
+A potter owns a **stamp**, a die they cut. `impress stamp on jug` at
+leather-hard marks the base, and firing records the date. A pot's base reads its
+maker and when it was fired.
+
+⭐ **A player's shelf of their own pots is their improvement, visible**: the
+heavy first mug and the light later one, with no number anywhere.
+
+### S6. `fire` and the draught
+
+`fire <kiln|clamp> [draught]`. The draught can be reset during the burn, as
+`char` re-sets charcoal's. It decides the atmosphere:
 
 - **oxidizing** for red and warm colors;
 - **reducing** for blue brick and celadon.
 
-It also shifts the heat the charge reaches.
+It also shifts the heat reached.
 
-| furnace | what it does | the rung |
-|---|---|---|
-| **The clamp** | A sealed burn of days. It is read at the end, so an unwatched clamp does not stall, and its rain and wind matter outdoors. Each brick's grade comes from **its position**. | brickmaking's first rung |
-| **The pit firing** | The clamp's open cousin. | hand-building's rung |
-| **The updraft kiln** | Fires bisque and glost. | the potter's |
+| furnace | how it fires |
+|---|---|
+| **The clamp** | A sealed burn of days, read at the end. Rain and wind matter. Each brick's heat-work follows **its position**: over-burnt clinker by the fire channels, hard well-burnt in the middle, soft place brick at the skin. The gradient derives from the clamp's size and draught, and a **better setter** (competence) sets fuel channels that narrow it: fewer bad bricks, deterministically. |
+| **The pit firing** | The clamp's open cousin. |
+| **The updraft kiln** | The potter's, for bisque and glost. |
 
-**Opening any kiln before it has cooled** cracks (dunts) ware by the thermal
-gradient against the body. Uneven walls suffer most.
+Burning clamps and kilns **glow at night** and **smell** across the valley.
 
-### S7. Wasters and sherds become grog
+### S7. Wasters, sherds and grog
 
-A cracked, slumped or broken piece is a waster or sherds. Ground back
-(`grind`, shipped), it becomes **grog**, which kneaded into new clay
-strengthens it and makes a flameproof cooking body.
+Cracked, slumped or broken pieces `grind` back to **grog**. Kneaded in, grog
+strengthens a clay and makes a flameproof cooking body.
 
 ### S8. Glazes
 
-**A glaze is a slip of its batch** (silica sand, a flux, clay) stirred into
-a bucket of water with `stir`. It goes on a bisque pot by `dip`, and a glost
-firing at the glaze's maturing heat sets it and the body.
+A glaze is a slip of its batch (silica sand, a flux, clay) `stir`red into a
+bucket, laid by `dip`, and fused in a glost firing (M6).
 
-| glaze | flux | source in this build |
+| glaze | flux | in this build |
 |---|---|---|
-| **ash** | wood ash | the hearth ash that exists (potash makes it a good when it lands) |
-| **lead** | lead | an **import line** at Rejection's store (no ore wins lead) |
-| **salt** | salt thrown into the kiln at peak heat | the salt pan |
+| **ash** | wood ash | hearth ash; potash makes it a good when it lands |
+| **lead** | lead | an **import line** at Rejection's store; no ore wins it |
+| **salt** | salt thrown in at peak heat | the salt pan |
 | **tin** (opaque white) | tin | an **import line** |
 
-⭐ Lead leaches. An acidic content (vinegar, wine, fruit, pickles) held in a
-lead-glazed vessel takes up lead with time. Drinking or eating it doses the
-eater through the shipped toxin route. **No look, smell or taste reveals it**,
-and that is deliberate (*silent like contamination*). Knowledge, an
-assay, or the sickness are how you learn.
+Faults:
 
-Crazing comes from a glaze shrinking more than its body. Crazed ware holds
-dirt, which cleanliness reads.
+- **crazing** (M6);
+- **running** (over-fired);
+- **crawling** (over dust or grease, which cleanliness reads).
 
-### S9. Breakage
+### S9. Uses that follow from the body
 
-A brittle body breaks when **the impact's energy beats its strength**. The
-strength comes from the body, the wall thickness and grog.
+- **Earthenware with grog survives the cooking fire. Stoneware cracks on it**
+  (M5).
+- **Porous ware absorbs** fat and flavor. **Glazed ware and stoneware are
+  hygienic.**
+- **The weeping jar cools its water** (M6, M8).
+- **The ceramic water filter.** A porous stoneware cylinder that water seeps
+  through strains out contamination **by pore size against the contaminant's
+  size**: particles and bacteria, never dissolved salts or poisons. This is
+  Doulton's filter of the cholera years, and an instrument against watershed's
+  contamination by kind.
 
-- **Dropped onto a hard floor:** yes, by height and mass against strength.
-- **Thrown:** as shipped.
-- **Cracked by flame:** a dense body on a direct fire.
-- **Dunted:** from the kiln.
+### S10. Linings and crucibles wear
 
-A broken thing becomes sherds. **Set down or put in a bag: never.** A thing
-breaks only through one of those causes.
-
-The tinker rivets a broken pot whole again (repair's localized damage). The
-mend shows.
-
-### S10. Linings wear, and firebrick relines them
-
-Every furnace that runs above a ceramic threshold has a **lining** that
-wears per firing:
+**Linings.** Every furnace above a ceramic threshold has a lining that wears per
+firing:
 
 - the smelting furnace;
 - the glasshouse kiln;
@@ -529,474 +720,544 @@ wears per firing:
 - the retort;
 - the brickfield's and the potter's kilns.
 
-A thin lining reads in `look` and drops the furnace's reachable heat. A
-burnt-through lining refuses to light until relined. Relining is
-**`fit lining to <furnace>`**: the lining is made of firebricks, and the work
+A thinning lining reads in `look` and lowers the reachable heat. Burnt through,
+it refuses to light. `fit lining to <furnace>` with firebricks relines it and
 credits masonry.
 
-⚠ **Two supply rules.**
+**Crucibles** wear per melt and crack, and the refractory potter makes new ones.
 
-- A furnace's lining wears only where firebrick is sold in its realm.
-- Every NPC-run furnace's keeper buys firebrick and relines.
+⚠ **Supply rules:**
 
-*Never demand an input nobody can deliver.*
+- Wear runs only where firebrick and crucibles are sold in the realm.
+- Every NPC keeper buys and relines.
 
-### S11. The statute brick is a standard
+### S11. Standards
 
-The polity declares a statute brick in its standards: Terminus declares
-9 × 4½ × 2¼ in, as England did in 1571.
+The polity's standards declare a **statute brick**. Terminus declares
+9 × 4½ × 2¼ in. Anyone can `measure size` a brick against it, and the gauger's
+word is of record. The gauger's capacity reading reads any vessel, so a polity
+may also declare a standard measure jar, as amphorae once were. The engine
+records and never forbids.
 
-- **Anyone** can `measure size` a brick against it. Off-standard reads
-  *off standard*.
-- A gauger's word is of record.
-- The engine records the size and never forbids.
+### S12. The mould as an envelope
 
-The cask gauger is the precedent.
-
-### S12. The mould is an envelope
-
-What the mould's own material does:
-
-| property | effect | example |
-|---|---|---|
-| **Conductivity and mass** | decide how fast a melt freezes in it | cast iron chills white and hard in an iron mould, grey and soft in sand |
-| **Absorbency** | drinks a slip's water | a plaster mould casts a cup from slip |
-| **Permeability or openings** | drain it | the hoop, the cone (shipped) |
-| **Wetness** | flashes to steam under a melt | a damp sand mould **blows**: the cast is ruined and the pourer burned |
-| **Melting or ignition point** | decide survival | see S13 |
-
-### S13. Survival belongs to every pour
-
-A receiver whose melting point (or ignition point) is below the pour's
-temperature melts or burns. This applies to every vessel, not only moulds:
-
-- a wooden mould under bronze;
-- a tin cup under molten lead;
-- a basket under anything hot.
-
-This closes mould.md's recorded gap.
-
-### S14. Pours fail by Chvorinov's rule, and competence reads, never rolls
-
-How long a cast takes to freeze grows with its **volume over surface,
-squared**, scaled by the mould's pull.
-
-- **Misrun.** A thin shape poured too near its melting point freezes before
-  it fills, leaving a short, flawed cast. Superheat buys time.
-- **Shrinkage.** The last part to freeze goes porous. A **riser**, a mould
-  feature with more volume per surface, feeds it.
-
-Competence reads the signs: the melt's color is its heat, and the sand's
-dryness and the riser's size can be judged. Competence never decides the
-outcome (*detail, never access*).
-
-### S15. Impressions: `mold <pattern> in <flask>`
-
-Ramming moulding sand (quarry sand with a little clay, a green sand) round
-a pattern in a flask, or laying plaster over it, takes **an impression**.
-The impression holds three things and nothing more:
-
-- **the pattern's kind**: a named sword's kind is *a sword*, and seats and
-  minted singletons step up to what they extend;
-- **its volume**;
-- **its form and parts, as description**.
-
-It also records **whose object it was taken from**. What follows from that:
-
-- **A cast from it** is that kind in the poured material.
-  - Mass is volume × the poured density.
-  - Function comes from materials-response, so a pewter sword bends at the
-    first blow.
-  - An assembly casts as **one piece**.
-  - The look says *"a pewter cast of a sword"* and shows the seams.
-  - Name, maker's mark, grade, seat and history never copy.
-- **A sand mould is consumed**: broken to release the cast, its sand
-  re-tempered and reused.
-- **Lost wax** consumes the wax pattern too, and the wax goes back to the
-  chandler as tallow or wax.
-- **A pattern made oversize** by the metal's shrinkage casts true. The
-  pattern-maker is a carpenter (`carve`).
-
-### S16. Draft and the two-piece mould
-
-A shape that cannot slide out of a one-piece permanent mould needs a
-**two-piece** mould (cope and drag). The two-piece mould is an assembly: two
-halves under a joint that opens freely. It wears at the joint and is repaired
-like any assembly. A sand mould is broken anyway, which is why sand casts
-complex shapes.
-
-### S17. Pressing has three sources, and a self-supporting charge releases at once
-
-The load on a mould comes from one of three sources:
-
-| source | how | used here for |
-|---|---|---|
-| a weight | `put` (shipped) | the cheese press |
-| a **screw press** | `turn press`, worked by hand, with more pressure per turn | a heavier cheese press at the creamery, and pressed roof tiles at the brickfield |
-| a **blow** | `hammer <blank> on <die>` | struck tokens and medals at the foundry |
-
-A press works when its pressure beats the charge's resistance, and for clay
-that resistance is set by moisture.
-
-**Shape-and-release.** A charge with green strength (clay in the temper
-window, butter, pressed tile) leaves the mould at once and sets outside it.
-One brick mould makes thousands. A melt stays in until it sets, as shipped.
-
-### S18. Crystallizing is a set process
-
-A solution in a mould or pan sets crystals when it holds **more than its
-material dissolves at its temperature**. That happens by cooling, or by
-concentrating as water leaves. The run-off goes as bulk into the vessel the
-mould stands over, or onto the floor.
-
-- **This build's consumer** is the salt pan: salt crystals, with bittern
-  drained beneath.
-- **Alum and saltpetre** follow as rows.
-- ⚠ **Convergence with sugar's staged boil and potash's pot cake is a
-  sequencing item for after the plan.** Each of them sets by concentration
-  today.
-
-### S19. Recast, interchangeable, dies
-
-- **Recast.** A cast in a material with a melting point (wax, metal) salvages
-  back to a pool, and fired clay salvages to sherds. Lens 1: the
-  thermoplastic and thermoset distinction falls out of a field the material
-  already carries.
-- **Interchangeable.** Two casts from one impression share a kind and form,
-  so a cast part fits any whole built to it **without re-making the joint**.
-  This is assembly's `interchangeable` joint field, the tinker's drawer of
-  parts, and the historical origin of interchangeable parts.
-- **Dies.** A die is a mould cut in steel that records whose die it is. A
-  blank struck on it carries that provenance. Who may hold a die is the
-  polity's question (tier C), and the engine records it and judges nothing.
-
-### S20. Cure is a set process
-
-Plaster (from gypsum burnt in the limekiln, then mixed with water) sets by
-**cure**, a chemical set with no act. In this build it gives the slip-casting
-mould and the plaster impression. Lime mortar's carbonation is the same set,
-and it ships with W7.
-
-### S21. The works and their people
-
-**The Delight brickfield-and-pottery** is one works with two trades:
-
-| place | what happens there |
+| property | effect |
 |---|---|
-| the clay pit | winning |
-| the weathering ground | winter heaps |
-| the temper pit | kneading |
-| the moulding shed | the brick table, the brick and tile moulds, the screw press |
-| the hacks | drying under a light roof |
-| the clamp ground | the clamp |
-| the potter's shop | the wheel, and the updraft kiln with its ware shelves |
+| **conductivity and mass** | Chill casting: iron in iron sets white and hard; in sand, grey and soft. |
+| **absorbency** | A plaster mould drinks a slip's water. |
+| **permeability or openings** | Drain sets (shipped). |
+| **wetness** | A damp sand mould **blows**: the cast is ruined and the pourer burned. |
+| **melting or ignition point** | Survival (S13). |
 
-- **The brickmaster** is a business. It employs a moulder's gang (rostered
-  seats) and buys breeze (town ash) and sand.
-- **The potter** throws the re-pointed stock and keeps the **Terminus
-  market stall** supplied.
-- Both businesses' NPCs produce through the same chain (shifts that
-  consume clay and fuel). A player who makes ware sells into the same lines
-  by consignment.
+### S13. Every pour obeys its receiver
 
-**The Rejection foundry** sits beside the smelter:
+A receiver whose melting or ignition point is below the pour's temperature
+melts or burns: a wooden mould under bronze, a tin cup under molten lead. This
+applies to **every** vessel and closes mould.md's gap.
 
-- a founder's floor, with flasks, moulding sand and a pattern rack;
-- the smelter's furnace and crucible;
-- **the founder** as a seat.
+### S14. The pour fails by Chvorinov's rule
 
-**Haulage** of bricks and wares to Terminus is by road.
+Freezing time grows with **(volume ÷ surface)²**, scaled by the mould.
+
+- **Misrun.** Poured too near the melting point, a thin shape freezes short.
+  Superheat buys time.
+- **Shrinkage.** The last part to freeze goes porous. A **riser** feeds it.
+
+A competent founder reads the melt's color and the sand's dryness in advance.
+Nothing is rolled.
+
+### S15. Impressions and patterns
+
+`impress <pattern> in <flask>` rams moulding sand (quarry sand with a little
+clay) round a pattern, or lays plaster over it (M9).
+
+- **A sand mould is consumed.** It is broken to release the cast, and its sand
+  is re-tempered.
+- **Lost wax** consumes the wax pattern too, and the wax returns as wax or
+  tallow.
+- **A pattern carved oversize** (carpentry's `carve`) by the metal's shrinkage
+  casts true.
+- **Draft.** A shape that cannot slide out of a one-piece permanent mould needs
+  a **two-piece mould**, which is an assembly. It wears at its joint and is
+  repaired like one.
+
+### S16. Pressing
+
+| load | how |
+|---|---|
+| **a weight** | `put` (shipped) |
+| **a screw press** | **`turn press`**, more pressure per turn. Used for the creamery's heavier cheese press and pressed roof tiles. |
+| **a blow** | **`hammer <blank> on <die>`**: struck tokens carrying the die's provenance |
+
+A press works when its pressure beats the charge's resistance, which for clay is
+its moisture.
+
+**Shape-and-release.** A charge with green strength (tempered clay, butter, a
+pressed tile) leaves the mould at once and sets outside it.
+
+### S17. Crystallizing and cure
+
+- **Crystallizing.** A solution sets crystals when it holds more than its
+  material dissolves at its temperature, whether by cooling or by water
+  leaving. The run-off goes as bulk into the vessel beneath.
+  - The consumer here is the salt pan: salt crystals, with bittern below.
+  - Alum and saltpetre are rows.
+  - ⚠ Convergence with sugar's staged boil and potash's pot cake is a
+    sequencing item.
+- **Cure.** Plaster (gypsum burnt in the limekiln, then mixed with water) sets
+  by **cure**, a chemical set with no act. It gives the slip mould and the
+  plaster impression. Lime mortar's carbonation is the same set, and it ships
+  with W7.
+
+### S18. Recast and interchangeable
+
+- **Recast.** A cast in a material that melts salvages back to a pool. Fired
+  clay salvages to sherds.
+- **Interchangeable.** Casts from one impression fit any whole built to it
+  **without re-making the joint**.
+
+### S19. Bells
+
+A bell is cast bronze, and **its pitch derives from its size and alloy**, given
+in words and named notes.
+
+- **Rung, it carries** (a sound across places). A cracked bell sounds dull (M5).
+- **A small bell** casts in a flask.
+- **A large bell** is cast in a **pit dug in the foundry yard**: a loam mould,
+  so the mould is a place, and the pour is the founder's day.
+- **Terminus's curfew bell** hangs in the market, and anyone can `ring` it.
+
+### S20. The works and their people
+
+**The Delight brickfield-and-pottery** is one works with two trades. Its places:
+
+- the clay pit;
+- the weathering ground;
+- the temper pit, with water;
+- the moulding shed, with the brick and tile moulds and the screw press;
+- the hacks;
+- the clamp ground;
+- the potter's shop, with the wheel and the updraft kiln.
+
+The ground is wet clay and soils you.
+
+**Who works it:**
+
+- **The brickmaster** is a business. It employs a moulder's gang and a
+  **setter** (rostered seats) and buys breeze and sand.
+- **The potter** keeps the Terminus stall and the re-pointed lines.
+- **The businesses' NPCs produce through the same chain**: shifts that consume
+  clay and fuel.
+- **A player sells into the same lines** by consignment.
+
+**The Rejection foundry** sits beside the smelter. It has the founder's floor,
+flasks, moulding sand, a pattern rack, the bell pit, and **the founder** as a
+seat.
+
+**Haulage** to Terminus is by road. A worked-out clay pit floods to the water
+table and stands as a pond.
 
 ---
 
 ## Lens pass
 
-1. **Pedagogy.**
-   - Frost weathering is a count.
-   - The temper window, and drying shrinkage with the oversize mould.
-   - Why moulding stops before frost.
-   - Heat → vitrification → absorption → the next build's upkeep bill.
-   - Oxidizing against reducing.
-   - Leather-hard as a window; moisture mismatch cracking a joint.
-   - A glaze is a glass; expansion mismatch causes crazing.
-   - Acidity × lead × time.
-   - Evaporative cooling.
-   - Chvorinov; chill against sand; the damp mould; survival by melting
-     point.
-   - Solubility against temperature; the pattern-maker's shrinkage rule.
-   - Recastability is a melting point.
+The pass was run twice: once to confirm the slates, and once **generatively**
+for what they left out. Most of the second pass is now in M1–M9 and S1–S20.
+What stays out is in the Non-goals with its destination.
 
-   New Disciplines: **brickmaking, pottery, founding, masonry.** Their
-   neighbors are quarrying, glasswork, smelting, carpentry and chandlery.
+1. **Pedagogy.**
+   - **Concepts this teaches:**
+     - frost weathering;
+     - the temper window;
+     - composition → plasticity, color and refractoriness;
+     - drying shrinkage;
+     - heat-work → vitrification → porosity;
+     - the cone and the glow as instruments;
+     - oxidizing against reducing;
+     - leather-hard as a window;
+     - a glaze is a glass on a face;
+     - expansion mismatch (crazing);
+     - thermal shock;
+     - acidity × lead × time;
+     - evaporative cooling;
+     - filtration by pore size;
+     - Chvorinov;
+     - chill against sand;
+     - solubility;
+     - shape against identity;
+     - pitch from size;
+     - recastability as a melting point.
+   - **Dominant Discipline.** Each trade's dominant skill is a judgment that
+     decides the outcome, never recall:
+     - **brickmaking:** clay and season;
+     - **pottery:** the wall and the firing;
+     - **founding:** the heat and the mould;
+     - **masonry:** the reline.
 2. **Creative expression.**
-   - The ordinary case is rows: a clay deposit, a form, a glaze, a second
-     works, a second foundry.
-   - ⭐ The bespoke case is the **impression**: any shape a player can make
-     once, castable in anything that takes it, with no code and no row.
-   - A potter's hand shows in the pot.
-   - A realm's bricks have its own clay's color.
+   - The floor is rows: a deposit, a form word, a glaze, a second works or
+     foundry.
+   - ⭐ The bespoke case has three answers:
+     - **parametric named forms with the potter's own mark**;
+     - **the impression**: any shape, cast in anything that takes it;
+     - **a clay you composed**: a realm's brick has its own clay's color.
+   - Constant: the physics and the standards. Variable: every form, mark,
+     composition, cast, place and bell.
+   - **Named-work test:**
+
+     | work | verdict |
+     |---|---|
+     | *Andrei Rublev*'s bell | passes (S19) |
+     | the Terracotta Army | passes: press-moulded bodies, `carve`d faces |
+     | the Greek amphora | passes: standard jar, stamped handle |
+     | any wax-key heist | passes (M9) |
+     | Grayson Perry's pots | **routed to paint** (the image) |
+     | *Ghost* | half: the wheel and the mud pass; two hands on one wheel is not modelled |
+
 3. **Immersion and participation.**
-   - **3a (immersion).** The smoking clamp, the capped hacks, a red town or
-     a yellow one, a beginner's heavy mug, a sweating water jar, mould seams
-     on a cast copy, a wooden mould that burns.
-   - **3b (participation).** The economy gains holes shaped like people:
-     - the brickmaster, moulder and gang;
+   - **3a, immersion:**
+     - the glowing clamp at night and its smell;
+     - the muddy brickfield;
+     - a beginner's heavy mug and a dull-ringing cracked pot;
+     - a sweating jar;
+     - seams on a cast copy;
+     - a wooden mould that burns;
+     - the curfew bell carrying across the market.
+   - **3b, participation.** Every role is a vacancy an NPC holds and a player
+     can take:
+     - the brickmaster, moulder, gang and setter;
      - the clamp burner;
      - the potter;
      - the founder and the pattern-maker;
      - the furnace keeper who relines;
      - the tinker who rivets;
      - the stallholder;
-     - the ash-man selling breeze.
-   - ⭐ *Can the polity do something we did not want?* It can ban lead glaze
-     (or fail to) with a measurable public-health effect, declare a statute
-     brick, and license or police dies.
-4. **Values.**
-   - Lead glaze is cheap now and poison later, silently.
-   - Soft brick is cheap now and costs the wall's next owner (W7).
-   - The cast copy deskills: a cast is as good as its mould, and the look
-     says *cast*.
-   - Copying is allowed and identity never copies.
-   - None of these has an answer the engine supplies.
-5. **Continuity.** The same commands carry each line across epochs:
-   - clamp → kiln;
-   - coil → wheel → slip cast;
-   - sand → die casting;
-   - weight → screw press → power press.
+     - the ash-man.
+   - **The polity can do things we did not want.** It can:
+     - ban lead glaze, or fail to;
+     - declare a statute brick or measure;
+     - police dies and keys;
+     - build a **public kiln** (rows only);
+     - mandate brick after a fire (W7 and construction);
+     - zone the brickfield out of town (civics).
+4. **Values.** None of these has an answer the engine supplies:
+   - lead glaze: cheap now, poison later, silently;
+   - soft brick, which charges the wall's next owner;
+   - mend an heirloom crock or replace it;
+   - reclaimed brick against new;
+   - the handmade pot against the slip-cast copy;
+   - the cast key, and the uses copying is put to.
 
-   `shape`, `fire`, `pour`, `mold`, `fit`, `repair` and `turn` all answer
-   unchanged. A machine supplies the load or the pour.
+   The **visible-progress** shelf (S5) is this lens's reward, and it is
+   evidence, never praise.
+5. **Continuity.**
+   - **The same commands across epochs.** Clamp → kiln. Coil → wheel → slip
+     cast → printer. Sand → die → injection. Weight → screw → power press. The
+     same `shape`, `fire`, `pour`, `impress`, `turn`, `fit`, `repair` and
+     `ring` answer each rung.
+   - **Who holds the obsolete half:** the hand-moulder displaced by the brick
+     machine. The wheel survives as studio craft, and the handmade becomes
+     luxury (silk's lesson, embodied hours).
 6. **Economy.**
-   - **Produces:** brick by grade, tile, firebrick, ware by body and grade,
-     casts, sherds and grog.
-   - **Consumes:** clay, fireclay, sand, gypsum, breeze, ash, salt, fuel,
-     and imported lead and tin.
+   - **Produces:** brick by grade, tile, firebrick, crucibles, ware by body
+     and grade, filters, casts, bells, sherds, grog.
+   - **Consumes:**
+     - clay and fireclay;
+     - sand and gypsum;
+     - breeze and ash;
+     - salt;
+     - wood, which gives the coppice a buyer;
+     - straw;
+     - water;
+     - imported lead and tin.
    - **Demand was there first:**
-     - the 22 shipped goods, re-pointed, with breakage making it recur;
-     - every hot furnace's lining, which recurs per firing;
+     - the 22 goods, re-pointed, with breakage making it recur;
+     - furnace linings and crucibles, recurring;
+     - the filter against contamination;
      - W7's brick, next.
-   - ⚠ **Gap recorded:** building brick sells mostly on W7, so until W7 the
-     brickfield's main buyer is the firebrick line.
+   - **Imports** stay the dearer backstop on every re-pointed line.
+   - ⚠ **A gap, recorded:** building brick sells mostly to W7, so until then
+     the brickfield's main buyer is firebrick.
 7. **Governance.**
-   - **The statute brick.** The criterion is the standard, the appeal is
-     the gauger's measure, the tier is C.
-   - **A lead-glaze ban.** Tier C, and the polity's to pass.
-   - **Dies.** The criterion is who holds the die, and the remedy is the
-     polity's (tier C).
-   - The engine records and judges nothing.
+
+   | measure | criterion | appeal | tier |
+   |---|---|---|---|
+   | the statute brick and measure | the standard | the gauger's measure | C |
+   | a lead ban | — | — | C, the polity's to pass |
+   | dies and cast keys | who holds the die | — | C; provenance is recorded and the engine judges nothing |
+   | a public kiln | — | — | civic infrastructure that **makes firing common** |
+
+   ⭐ The public kiln is the one civic case here: the brickmaster loses an
+   advantage.
 
 **Altitude.**
 
-- **Invariant:** a fired thing's properties derive from its clay and the
-  heat it reached; shape copies and identity never does; every pour obeys
-  its receiver's melting point.
-- **Grain:** moulding rates, the weathering ceiling, the clamp's gradient,
-  wall-thickness bands, the lead leach rate, the lining's wear per firing.
-- **Title:** the Delight works, the Rejection foundry, the Terminus stall,
-  Terminus's statute brick.
+- **Invariant:**
+  - a fired piece's properties derive from its composition and its
+    heat-work;
+  - shape copies, and identity never does;
+  - every pour obeys its receiver's melting point;
+  - a brittle body breaks only by a cause.
+- **Grain:**
+  - moulding rates;
+  - the weathering ceiling;
+  - the clamp's gradient;
+  - wall bands;
+  - the lead leach rate;
+  - lining wear;
+  - the filter's pore size.
+- **Title:** the Delight works, the Rejection foundry, the Terminus stall, the
+  statute brick, the curfew bell.
 
 ---
 
 ## The drive
 
-Run on a test world with founder clock jumps. Each numbered step is a
-checkpoint that can fail.
+Run on a test world with founder clock jumps. Each step is a checkpoint that can
+fail.
 
 ### A. The brickmaker's year
 
-1. **Win the clay.** At the Delight clay pit, in autumn, run
-   `dig clay with spade` → you win lumps of clay. Then `look clay` →
-   *fresh, unweathered*.
-2. **Weather it.** Leave the lumps on the weathering ground and jump the
-   clock through winter. `look clay` now says *frost-broken*, its quality
-   in words. A second heap kept indoors reads *unweathered*.
-3. **Knead it.** In spring, at the temper pit, run `knead clay` with sand
-   and breeze → tempered clay at the window. Kneading fat clay with no sand
-   is allowed, and its bricks crack drying in step 6.
+1. **Win the clay.** In autumn, at the Delight clay pit, run `dig clay with
+   spade` to win clay lumps. Then:
+   - `look clay` → *fresh, unweathered*.
+   - `analyze clay` → its composition in words (fat, iron-rich).
+2. **Weather it.** Leave the heap on the weathering ground and jump through
+   winter. `look clay` → *frost-broken*. A heap kept indoors still reads
+   *unweathered*.
+3. **Knead it.** In spring, at the temper pit, run `knead clay` with sand and
+   breeze → tempered clay at the window. Knead a second batch of fat clay with
+   no sand.
 4. **Shape it.** In the moulding shed, run `shape clay into brick` → a
-   durative day's work and a pallet of green bricks. A low-band moulder
-   makes fewer.
+   durative day and a pallet of green bricks. A low-band moulder makes fewer.
+   The player is muddy.
 5. **Rain and frost.**
-   - Leave one green brick in the open yard through a rainy day → it has
-     slumped.
-   - Leave one out wet across a frost → it has shattered.
-6. **Dry them.** Put the rest in the hacks and jump a few weeks →
-   leather-hard, then bone-dry. The fat-clay bricks have cracked.
-7. **Fire the clamp.** At the clamp ground, set the bricks and fuel in the
-   clamp, run `fire clamp`, jump the burn, and get the bricks → three grades
-   by position (over-burnt clinker, hard well-burnt, soft place).
-   `analyze` or `look`:
-   - a well-burnt brick *rings* and absorbs little;
-   - a place brick is soft and absorbs much.
-8. **Reduce the draught.** Fire a second clamp at a reducing draught → blue
+   - One green brick left in the open yard through rain → slumped.
+   - One left wet across a frost → shattered.
+6. **Dry them.** Put the rest in the hacks and jump weeks → leather-hard, then
+   bone-dry. The no-sand batch has cracked.
+7. **Fire the clamp.** Set the bricks and fuel, run `fire clamp`, and jump the
+   burn.
+   - At night the clamp glows from the next place, and its smell carries.
+   - `get bricks` → three grades by position.
+   - `ring` a well-burnt brick → it rings. A place brick sounds dead.
+   - `analyze` → the well-burnt brick absorbs little, the place brick much.
+8. **Reduce the draught.** A second clamp fired at a reducing draught → blue
    bricks.
-9. **Measure.** Run `measure size brick` → its size against Terminus's
-   statute brick. An oversize mould's brick reads *off standard*.
+9. **Measure.** `measure size brick` against Terminus's statute brick. A brick
+   from an oversize mould reads *off standard*.
 
-### B. Firebrick and the furnace
+### B. Firebrick, linings and crucibles
 
-10. **Make firebrick.** Win fireclay at Rejection's quarry hill (under the
-    coal) and make firebricks: knead, shape, dry, fire.
-11. **Watch the lining wear.** Fire the smelting furnace repeatedly →
-    `look furnace` reads the lining thinning, and the reachable heat drops.
-    Burnt through, it refuses to light.
-12. **Reline it.** Run `fit lining to furnace` with firebricks → it is
-    relined, masonry is credited, and the smelt runs.
-13. **Check the keeper.** Jump time with no player → the NPC keeper of the
-    glasshouse kiln has bought firebrick and relined it.
+10. **Make firebrick.** Win fireclay at Rejection's quarry hill, under the coal,
+    and make firebricks.
+11. **Wear a lining.** Fire the smelting furnace repeatedly → `look furnace`
+    reads the lining thinning and the heat dropping. Burnt through, it refuses
+    to light.
+12. **Reline it.** `fit lining to furnace` with firebricks → relined, masonry
+    credited, and the smelt runs.
+13. **Wear a crucible.** Melt repeatedly in one crucible → it reads worn, then
+    cracks. A new refractory crucible from the potter serves.
+14. **The keeper does it.** Jump time with no player present → the glasshouse
+    kiln's NPC keeper has bought firebrick and relined.
 
 ### C. The potter
 
-14. **Throw at your band.** At the wheel, with a novice character, run
-    `shape clay into mug` → a heavy, thick-walled mug. Then
-    `shape clay into large crock` → refused, the refusal naming the band.
-    A practised character's mug is light.
-15. **Trim and join.** At leather-hard, run `carve foot on mug` → trimmed,
-    then `fit handle to jug` → joined.
-    - A handle fitted while much wetter than the body cracks at the joint
+15. **Throw at your band.**
+    - A novice runs `shape clay into mug` → a heavy, thick-walled mug.
+    - `shape clay into jar holding 2 gallons` → refused, and the refusal names
+      the band.
+    - A practiced character's mug is light.
+    - A practiced character runs `shape clay into tall jug holding 3 pints` →
+      that jug. `name jug Mother's jug` names it.
+16. **Trim, join, mark.** At leather-hard:
+    - `carve foot on mug` → trimmed.
+    - `fit handle to jug` → joined. A handle much wetter than the body cracks
       on drying.
-    - A bone-dry pot will not trim.
-16. **Bisque fire.** In the kiln → a porous bisque mug.
-17. **Glaze.** Run `stir` an ash glaze and a lead glaze in buckets, `dip`
-    two bisque crocks, and fire the glost → glazed earthenware crocks.
-    Open the kiln hot on a third firing → dunted (cracked) pots.
-18. **Lead leaches.** Fill the lead-glazed crock with vinegar and jump a
-    week.
+    - `impress stamp on jug` → the potter's mark.
+    - Bone-dry ware will not trim.
+17. **Bisque fire.** Fire in the kiln → porous bisque. Through the spyhole the
+    cones read the heat, and a practiced character reads more detail.
+18. **Glaze.** `stir` an ash glaze and a lead glaze, `dip` two bisque crocks
+    *inside*, and glost-fire them → glazed crocks. Their bases read maker and
+    date.
+    - Open the kiln hot on a third firing → dunted pots, some cracked visibly
+      and one only audibly. `ring` finds it.
+19. **Lead leaches.** Fill the lead-glazed crock with vinegar and jump a week.
     - `look`, `smell` and `taste` say nothing.
-    - Drinking it doses lead (the toxin route reads it).
+    - Drinking it doses lead.
     - The ash-glazed crock's vinegar is clean.
-19. **Stoneware and the flame.** Fire a stoneware crock high → watertight
-    unglazed.
-    - Set it on a cook fire → it cracks.
-    - An earthenware pot with grog on the same fire survives.
-20. **The cooling jar.** Fill an unglazed jar with water in a warm room →
-    it sweats, and its water reads cooler than the air.
-21. **Breakage and mending.**
-    - Drop the practised character's thin bowl on the stone floor → sherds.
-    - Drop the novice's thick mug → it survives.
+20. **Flame and body.** Set a stoneware crock on a cook fire → it cracks. A
+    grogged earthenware pot on the same fire survives. Boiling water poured
+    into a cold glazed mug → it cracks (thermal shock).
+21. **The weeping jar.** Fill an unglazed jar with water in a warm room → it
+    weeps, its outside stays wet, and its water reads cooler than the air. A
+    glazed jar beside it reads at room heat.
+22. **The filter.** Pour contaminated river water through a ceramic filter →
+    the bacterial contamination is gone, and a dissolved contaminant passes.
+23. **Breakage and mending.**
+    - The practiced character's thin bowl dropped on the stone floor → sherds.
+    - The novice's thick mug → survives.
+    - The thin bowl dropped on an earth floor → survives.
     - `grind` the sherds → grog.
     - The tinker rivets a broken bowl → mended, and the mend shows.
-22. **The stall.** At the Terminus potter's stall, `buy` a plant pot → it
-    is the pottery's (its maker, its body), and the general store's
-    plant-pot line is supplied from the pottery.
+24. **The shelf.** `look` at the novice's first mug and the practiced
+    character's latest → the difference reads in words (heft, wall, finish).
+25. **The stall.** At the Terminus potter's stall, `buy` a plant pot → it is
+    the pottery's, with maker and body. The general store's plant-pot line draws
+    from the pottery.
 
-### D. Moulding and founding
+### D. Moulding, founding and bells
 
-23. **Slip cast.** `stir` clay into water to make slip, burn gypsum to
-    plaster, and cure a plaster mould. `pour` slip into the mould → it
-    drinks the water and a cast cup releases.
-24. **Take an impression.** At the foundry, run `mold sword in flask` →
-    a sand mould. Pour the smelter's molten pewter → *"a pewter cast of a
-    sword"*:
-    - it shows seams;
-    - its mass is derived;
-    - it carries no name.
-    `look` shows whose sword the impression was taken from.
-25. **Make it fail.**
-    - Pour too cool into a thin pattern → a misrun.
-    - Pour into a damp flask → it blows, and the pourer is burned.
-    - Pour without a riser → a porous cast; with a riser → a sound one.
-26. **Survival.** Pour bronze into a wooden mould → the mould burns.
-    `pour` molten lead into a tin cup → the cup melts.
-27. **Chill casting.** Cast iron poured into an iron mould → white and hard.
-    The same pour into sand → grey and soft.
-28. **Pressing.**
-    - `turn press` on a cheese → it presses harder than the stone.
+26. **Slip cast.** `stir` slip, fire gypsum to plaster, and let a plaster mould
+    cure. `pour` slip in → the mould drinks it and a cup releases.
+27. **Impression.** At the foundry, `impress sword in flask` → a sand mould.
+    Pour the smelter's molten pewter → *"a pewter cast of a sword"*, with
+    seams, derived mass and no name. `look` names whose sword it was.
+28. **Cast a key.** `impress key in wax`, cast it in brass → the cast key
+    opens the key's lock.
+29. **Make the pour fail.**
+    - Too cool into a thin pattern → misrun.
+    - A damp flask → it blows and burns the pourer.
+    - No riser → porous; a riser → sound.
+30. **Survival and chill.**
+    - Bronze into a wooden mould → it burns.
+    - Lead into a tin cup → the cup melts.
+    - Iron into an iron mould → white and hard; into sand → grey and soft.
+31. **Pressing.**
+    - `turn press` on a cheese → firmer than the stone made it.
     - `turn press` on a tile charge → a pressed tile releases.
-    - `hammer blank on die` → a struck token, carrying the die's
-      provenance.
-29. **Crystallize.** Brine left to concentrate in the salt pan → salt
-    crystals, with bittern in the vessel beneath.
-30. **Recast and fit.**
-    - `salvage` the pewter cast → a pool, recast.
-    - Salvage a fired pot → sherds.
-    - A cast part from one impression `fit`s a whole built to it without a
-      new joint.
-31. **The pattern-maker.** `carve pattern` from wood (carpentry) → an
-    oversize pattern. Its cast in iron comes out true to size.
-32. **The restart.** Restart the server → green bricks, a curing plaster
-    mould, a lining's wear, a lead dose in progress and an impression all
-    survive.
+    - `hammer blank on die` → a struck token carrying the die's provenance.
+32. **Crystallize.** Brine in the salt pan → salt crystals, with bittern
+    beneath.
+33. **Recast and fit.**
+    - `salvage` the pewter cast → a pool, which recasts.
+    - Salvage a pot → sherds.
+    - A part cast from one impression `fit`s a whole without a new joint.
+34. **Patterns and bells.**
+    - `carve pattern` → an oversize pattern that casts true.
+    - Cast a hand bell → `ring bell` sounds its note.
+    - Cast a larger bell in the foundry's pit → a lower note.
+    - `ring` the Terminus curfew bell → it is heard in the next places.
+35. **Restart the server.** All of these survive:
+    - green bricks;
+    - a curing plaster mould;
+    - a lining's wear;
+    - a lead dose in progress;
+    - an impression;
+    - a potter's mark;
+    - a named jug.
 
 ## Acceptance criteria
 
-Each is observable from outside the code.
+All observable from outside the code.
 
-1. A player can win clay at the Delight. Its weathering reads in words from
-   the winter it spent outdoors, and a mild winter gives worse clay.
-2. Green ware is ruined by rain, by frost when wet, and by drying fat clay
-   too fast, each observed on a real piece. Bone-dry ware is the only ware
-   that fires.
-3. A brick clamp yields three grades by position. Each grade's water
-   absorption differs and is readable, and a reducing draught yields blue
-   brick.
-4. A fired thing's body (porosity, strength, color, refractoriness) follows
-   from its clay and its firing. All 22 shipped ceramic goods read as the
-   body the table in S1 gives them.
-5. Furnaces' linings wear per firing, reduce heat, refuse when burnt
-   through, and are relined with firebrick by `fit`. An NPC-run furnace is
-   relined by its keeper without a player.
-6. A potter's wall thickness, largest form and grade follow from
-   competence. An over-band form is refused with the band named, and
-   nothing is rolled.
-7. Leather-hard trimming and slip-joined handles work only in their window.
-   A moisture mismatch cracks the joint.
-8. Glazes go on by `dip` and mature in a glost firing. Crazing, running and
-   dunting can each be produced and seen.
-9. Acidic contents in a lead-glazed vessel dose lead with time, with no
-   sensory tell. The same contents in an ash-glazed vessel do not.
-10. Pottery breaks by impact against strength: dropping on stone, throwing,
-    a dense body on a flame. It never breaks from ordinary handling. Sherds
-    grind to grog, and the tinker mends a break visibly.
-11. An unglazed porous jar of water reads cooler than the room.
-12. The Terminus stall sells the pottery's wares, and the re-pointed stock
-    lines are supplied from the pottery, not conjured.
-13. Anyone can take an impression of any object and cast it. The cast
-    carries the kind, the derived mass, the material's behavior, the seams
-    and the provenance, and never the identity.
-14. Every pour into any vessel obeys the receiver's melting or ignition
-    point.
-15. Misrun, shrinkage, a blown damp mould, and chill against sand each
-    occur from the physics of the pour and can be read in advance by a
-    competent founder.
-16. A screw press and a die each load a mould. A self-supporting charge
+**The brickmaker's year**
+
+1. A player wins clay at the Delight. Its composition and its weathering read
+   in words, and a mild winter weathers it worse.
+2. Green ware is ruined by rain, by frost when wet, and by fat clay drying too
+   fast, each observed on a real piece. Only bone-dry ware fires.
+3. A clamp yields grades by position, each with a readable absorption. A better
+   setter yields fewer bad bricks. A reducing draught yields blue brick.
+
+**Fired bodies, furnaces and the potter**
+
+4. A fired piece keeps its identity through the kiln. Its body follows from its
+   composition and heat-work, and the 22 goods read as S1 gives them.
+5. Linings and crucibles wear, read, lower heat or crack, and are replaced. An
+   NPC-run furnace is relined by its keeper without a player.
+6. Competence decides a pot's wall, its largest form and its grade, without a
+   roll. Forms accept any capacity and proportion in the instrument's range,
+   the potter can name the result, and a mark and a firing date read on the
+   base.
+
+**Glazes and coats**
+
+7. Trimming, joining and stamping work only at leather-hard, and a moisture
+   mismatch cracks a joint.
+8. A glaze is a coat laid by `dip` and fused by firing. Crazing, running,
+   crawling and dunting can each be produced and seen or heard.
+9. Acidic contents against a lead-glazed inside dose lead with time, and no
+   sense reveals it. An ash glaze does not.
+10. An unglazed jar weeps and cools its water below room heat. A glazed one
+    holds.
+
+**Breakage, use and sale**
+
+11. Breakage follows the impact against the body's strength and the floor's
+    material. Thermal shock follows from a fast temperature change. Nothing
+    breaks from ordinary handling, and `ring` reveals hidden cracks.
+12. A ceramic filter removes particulate and bacterial contamination, and not
+    dissolved contamination.
+13. The Terminus stall sells the pottery's wares. Re-pointed lines draw from
+    the pottery first and from imports as a dearer backstop.
+
+**Moulding and founding**
+
+14. Anyone can take an impression of anything and cast it. The cast carries
+    the kind, the derived mass, the material's behavior, the seams and the
+    provenance, never the identity. A cast key opens its lock, and a face cast
+    disguises no one.
+15. Every pour into any vessel obeys the receiver's melting or ignition point.
+16. Misrun, shrinkage, a blown damp mould, and chill against sand each follow
+    from the pour's physics, and a competent founder can read the signs in
+    advance.
+17. A screw press and a die each load a mould, and a self-supporting charge
     releases at once.
-17. Brine crystallizes salt in the salt pan, with bittern drained to the
-    vessel below.
-18. A plaster mould casts slip, and plaster sets by cure with no act.
-19. A metal cast salvages to a pool, and fired clay to sherds. Casts from one
+18. Brine crystallizes with its bittern drained below, and plaster sets by cure
+    and casts slip.
+19. Metal casts salvage to a pool and fired clay to sherds. Casts from one
     impression fit without a new joint.
-20. Brickmaking, pottery, founding and masonry are learnable and credited
-    by their acts. The statute brick measures against Terminus's standard.
-21. Every piece of state above survives a server restart.
+
+**Bells, disciplines, persistence**
+
+20. A bell's note follows its size and alloy, and it carries when rung. A large
+    bell casts in the pit, and the curfew bell can be rung.
+21. Brickmaking, pottery, founding and masonry are learnable and credited by
+    their acts. The statute brick measures against Terminus's standard.
+22. Every piece of state above survives a server restart.
 
 ## Cross-references
 
-- **Seeds:**
-  - [brickmaking-slate](../slates/builds/brickmaking-slate.md)
-  - [pottery-slate](../slates/builds/pottery-slate.md)
-  - [moulding-slate](../slates/builds/moulding-slate.md)
-- **Subsystems:**
-  - [mould.md](../subsystems/mould.md)
-  - [fire.md](../subsystems/fire.md)
-  - [glass.md](../subsystems/glass.md)
-  - [rubber.md](../subsystems/rubber.md) (`fire … for`, the mould decides
-    the shape)
-  - [assembly.md](../subsystems/assembly.md) (`fit`, parts, wear, the
-    gauger)
-  - [ground.md](../subsystems/ground.md) and `trade-quarrying` (`dig`)
-  - [weather.md](../subsystems/weather.md) (the day's range, wetness)
-  - [spoilage.md](../subsystems/spoilage.md) (the water state)
-  - [metabolism.md](../subsystems/metabolism.md) (the toxin route)
-  - [materials-response.md](../subsystems/materials-response.md)
-  - [thermal.md](../subsystems/thermal.md)
-  - [maturation.md](../subsystems/maturation.md) (`chemical`, `evaporative`)
-  - [instrumentation.md](../subsystems/instrumentation.md)
-  - [civics.md](../subsystems/civics.md) (standards)
-  - [employment.md](../subsystems/employment.md)
-  - [retail.md](../subsystems/retail.md)
-  - [cleanliness.md](../subsystems/cleanliness.md) (crazed ware)
-- **Related, in flight:**
-  - `reqs/sugar` (the cone, the staged boil, the drain keeping its run-off)
-  - `reqs/potash` (ash as a good, `fire`'s fractions, `flux`, slaking)
-  - repair W7 (`repair-plan.md` § W7) — the next consumer of brick
+**Seeds:**
+
+- [brickmaking-slate](../slates/builds/brickmaking-slate.md)
+- [pottery-slate](../slates/builds/pottery-slate.md)
+- [moulding-slate](../slates/builds/moulding-slate.md)
+
+**Shaped by:** [paint-slate](../slates/builds/paint-slate.md) (coats; order:
+ceramics → W7 → paint).
+
+**Subsystems:**
+
+| subsystem | what this build draws on |
+|---|---|
+| [mould.md](../subsystems/mould.md) | the shipped mould |
+| [fire.md](../subsystems/fire.md) | the `fire` verb |
+| [glass.md](../subsystems/glass.md) | `shape`, color from metal oxides |
+| [rubber.md](../subsystems/rubber.md) | firing in a mould |
+| [assembly.md](../subsystems/assembly.md) | `fit`, parts, the gauger |
+| [construction.md](../subsystems/construction.md) | layers |
+| [maturation.md](../subsystems/maturation.md) | `imparts`, `chemical` |
+| [credential.md](../subsystems/credential.md) | keyways |
+| [belief.md](../subsystems/belief.md) | disguise |
+| [ground.md](../subsystems/ground.md) | floors |
+| `trade-quarrying` | `dig` |
+| [weather.md](../subsystems/weather.md) | the day's low and high |
+| [spoilage.md](../subsystems/spoilage.md) | water state |
+| [metabolism.md](../subsystems/metabolism.md) | toxins |
+| [materials-response.md](../subsystems/materials-response.md) | how a material responds |
+| [thermal.md](../subsystems/thermal.md) | heat |
+| [watershed.md](../subsystems/watershed.md) | contamination |
+| [cleanliness.md](../subsystems/cleanliness.md) | dirt kinds, cleaning |
+| [instrumentation.md](../subsystems/instrumentation.md) | readings |
+| [civics.md](../subsystems/civics.md) | standards, the curfew |
+| [employment.md](../subsystems/employment.md) | seats, rosters |
+| [retail.md](../subsystems/retail.md) | stalls, stock lines |
+| [forestry.md](../subsystems/forestry.md) | the coppice |
+
+**In flight:**
+
+- `reqs/sugar`: the cone, the staged boil, the drain's run-off.
+- `reqs/potash`: ash, `fire`'s fractions, `flux`, slaking.
+- repair W7, the next consumer of brick.
