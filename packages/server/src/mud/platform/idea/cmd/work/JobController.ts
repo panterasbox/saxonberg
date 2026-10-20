@@ -183,7 +183,7 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
   ):
     | {
-        template: "delivery" | "supply" | "watch" | "clean" | "inspection";
+        template: "delivery" | "supply" | "watch" | "clean";
         itemRef: ConditionData["item"];
         destinationPath: string;
         count: number;
@@ -192,24 +192,6 @@ export default class JobController extends CommandController<JobModel> {
     | { error: string; reason: string } {
     const words = raw.trim().split(/\s+/).filter(Boolean);
     let verb = (words.shift() ?? "").toLowerCase();
-    /*
-     * ⭐ `inspect <works>` (underwater D17) — go and look at it. The works
-     * are named by what you can reach or by their path; the gig holds
-     * when the claimant uses `inspect` on them.
-     */
-    if (verb === "inspect") {
-      const works = this.kindOf(words.join(" "), context);
-      if (works.length === 0) {
-        return { error: `Inspect what? Name the works.`, reason: "no-item" };
-      }
-      return {
-        template: "inspection",
-        itemRef: { kind: "template", path: works },
-        // Inert, like a watch's place: where the gig was posted from.
-        destinationPath: context.location?.getTemplatePath() ?? works,
-        count: 1,
-      };
-    }
     // ⭐ `recover <body> to <place>` is a delivery of ONE thing by who or
     // what it is — a drowned body has no chattel row (underwater D17).
     const recovering = verb === "recover";
@@ -226,8 +208,8 @@ export default class JobController extends CommandController<JobModel> {
           `\`deliver <thing> to <place>\`, ` +
           `\`supply <n> <kind> to <place>\`, ` +
           `\`watch <place> for <n> hours\`, ` +
-          `\`clean <place>\` / \`clean <thing> at <place>\`, ` +
-          `\`inspect <works>\` or \`recover <body> to <place>\`.`,
+          `\`clean <place>\` / \`clean <thing> at <place>\` ` +
+          `or \`recover <body> to <place>\`.`,
         reason: "no-condition",
       };
     }
@@ -575,9 +557,6 @@ export default class JobController extends CommandController<JobModel> {
           ? where
           : `${what} at ${where}`;
       return `  [${short}] clean ${subject} — ${gig.rewardMinor} credits (${mode}${expiry})`;
-    }
-    if (condition?.template === "inspection") {
-      return `  [${short}] inspect ${what} — ${gig.rewardMinor} credits (${mode}${expiry})`;
     }
     return `  [${short}] deliver ${what} to ${where} — ${gig.rewardMinor} credits (${mode}${expiry})`;
   }

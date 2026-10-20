@@ -31,7 +31,7 @@ import { SecurityApi } from "../../../api/security";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { Condition } from "../../../lib/employment/Condition";
-import type { ConditionData, InspectedWorks } from "../../../lib/employment/Condition";
+import type { ConditionData } from "../../../lib/employment/Condition";
 import {
   ContractRecord,
   type ContractParty,
@@ -779,35 +779,6 @@ async function hasValidFulfilledRow(
   );
 }
 
-/**
- * ⭐ An inspection, recorded (underwater D17): `inspect` on the works a
- * gig names writes that gig's engine-sealed `fulfilled` row for the
- * inspector — every claimed `inspection` gig they hold on these works,
- * and every open bounty on them. Payday is still `job complete` at the
- * board. Returns how many gigs it satisfied.
- */
-async function recordInspectionImpl(works: InspectedWorks): Promise<number> {
-  if (!active()) return 0;
-  const inspector = actor();
-  if (!inspector) return 0;
-  const key = inspector.getIdentityPath() ?? "";
-  if (key === "") return 0;
-  const claimed = await ContractRecord.findActiveByClaimant(key);
-  const bounties = (await ContractRecord.findByKind("gig", "open")).filter(
-    (r) => r.claimMode === "open-bounty",
-  );
-  let satisfied = 0;
-  for (const record of [...claimed, ...bounties]) {
-    const condition = conditionOf(record);
-    if (condition?.template !== "inspection") continue;
-    if (!new Condition(condition).inspects(works)) continue;
-    if (await hasValidFulfilledRow(record, key)) continue;
-    await appendEvent(record.contractId, "fulfilled", { actor: key });
-    satisfied++;
-  }
-  return satisfied;
-}
-
 async function fulfillImpl(contractId: string): Promise<FulfillResult> {
   if (!active()) return { ok: false, reason: "no persistence connection" };
   const presenter = actor();
@@ -869,13 +840,6 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     verified = new Condition(condition).watchHolds(record.watchedSec ?? 0);
     if (!verified) {
       return { ok: false, reason: "the watch isn't served out" };
-    }
-  }
-  // ⭐ An inspection holds only by the sealed row `inspect` wrote.
-  if (condition.template === "inspection") {
-    verified = await hasValidFulfilledRow(record, key);
-    if (!verified) {
-      return { ok: false, reason: "the inspection isn't done — go and look" };
     }
   }
   const dest = verified
@@ -1988,12 +1952,6 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async fulfill(contractId: string): Promise<FulfillResult> {
     return fulfillImpl(contractId);
-  }
-
-  /** See {@link ContractApi.recordInspection}. */
-  @CallSecurity(ContractApiCallers)
-  public async recordInspection(works: InspectedWorks): Promise<number> {
-    return recordInspectionImpl(works);
   }
 
   /** See {@link ContractApi.complete}. */

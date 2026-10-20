@@ -1,7 +1,6 @@
 # The intake's mouth — ⭐ an authored room beside the basin's DARK band
 # (underwater D23): the underwater face of the city intake, its screen
-# and its suction, where the city sends a diver to see what is fouling
-# it. A band of the basin's water in its own right — under the river at
+# and its suction — the bespoke case of the column (a room beside it). A band of the basin's water in its own right — under the river at
 # the dark band's depth, cold, and dark without a light — reached only
 # through the column (`upstream` from the dark band).
 class: /system/water/location/Band
@@ -17,7 +16,3 @@ data:
   enclosure: none
   roof: none
   _biomePath: /stuff/idea/biome/water/under
-  # ⭐ The screen is a THING (a works face) — `inspect screen` is the
-  # harbor works' job. A detail of the same name would win the binding.
-  props:
-    - /world/terminus/wharfside/water/thing/intake-screen

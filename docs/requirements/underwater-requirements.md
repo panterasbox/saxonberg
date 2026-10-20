@@ -78,9 +78,10 @@ numbers.
 - **Fighting underwater is about air**: grappling and holding someone under
   dominate, morale breaks for the surface, a drowning person grabs the
   rescuer, and pulling off a mask or a hose is an attack.
-- **Diving pays from three city jobs and a market** — inspect the works,
-  recover a body, lift what was lost — and the fishmonger buys a speared
-  fish.
+- **Diving pays from two city jobs and a market** — recover a body, lift
+  what was lost — and the fishmonger buys a speared fish. (An *inspection*
+  job was cut in review: it is a contract-and-report interaction, not a
+  water one, and gets its own design.)
 - **Diving is a trade** with gear at every rung — stone and belt, the
   lifeline (haul, line signals), the diving bell (trapped air that fouls),
   the hard-hat suit on a crewed pump (the bends, narcosis, dive tables,
@@ -190,7 +191,7 @@ numbers.
 | the shipped bullfrog, trout, carp, eel | the fishery and pets | breathe by rate and apparatus; the bullfrog survives a dip |
 | every verb that makes fire, speaks or swings | everywhere | refused or weakened underwater by its own mechanism |
 | the Wharfside quay's edge | anyone on the bank | steps or a ladder down to the water are the way out of it |
-| the intake's mouth | the city works | an authored room below the quay, beside the column: where the inspection job goes |
+| the intake's mouth | the city works | an authored room below the quay, beside the column: the bespoke case of the column |
 | the fishmonger and the fishery | fishers | the band's fish can be speared and sold |
 | the estuary strand | anyone resting or offline there; tethered beasts | the flood reaches them |
 | `drink` | anyone at water | seawater harms rather than quenches |
@@ -373,10 +374,8 @@ stages.
     the bed. The pump stops: your supply drains, you must be hauled. Come
     up too fast: after surfacing, the bends; the dive tables (bought) give
     the stops; staying in a band is the stop; recompression treats it.
-15. The city posts a job — inspect the intake; a diver takes it, goes down
-    to the intake's mouth (an authored room beside the column), inspects
-    it, comes back and is paid. A tender's wage is paid too.
-15a. The city posts a second job — recover a body (a drowned character's,
+15. *(Cut in review: the inspection job. See the jobs bullet above.)*
+15a. The city posts a job — recover a body (a drowned character's,
      on the bed); a diver brings it up, with what it carried, still its
      owner's.
 15b. A third — the city's lost anchor on the bed, too heavy to carry: a

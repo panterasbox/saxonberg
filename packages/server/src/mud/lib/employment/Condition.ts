@@ -74,22 +74,13 @@ import { AppSettingKeys } from "../config/AppSettings";
  * ⚠ Which means a guard who watched the full term and was robbed blind
  * still gets paid. That is correct, and it is the same reason a delivery
  * pays on arrival rather than on the client being pleased.
- *
- * ## ⭐ `inspection` — the fourth (underwater D17)
- *
- * *"Go down and look at the intake."* What the engine can verify is not
- * that you understood what you saw but that you were THERE and LOOKED:
- * the `inspect` verb, used on the named works, writes the contract's
- * engine-sealed `fulfilled` row on the spot (the trusted-recording
- * pattern `fulfill` already uses). Nothing is delivered; the destination
- * is the works themselves, inert like a watch's.
+
  */
 export const CONDITION_TEMPLATES = [
   "delivery",
   "supply",
   "watch",
   "clean",
-  "inspection",
 ] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
@@ -123,12 +114,6 @@ export type ConditionItemRef =
   | { kind: "identity"; identityPath: string };
 
 /** The serializable condition payload a Contract carries. */
-/** The works an inspection was of, by path (identity, and lineage when it has one). */
-export interface InspectedWorks {
-  identityPath: string;
-  templatePath: string | null;
-}
-
 export interface ConditionData {
   template: ConditionTemplate;
   /** What must be delivered — instance-bound (chattel) or kind-bound. */
@@ -249,21 +234,6 @@ export class Condition {
    * *"a person was at a place, for a while"*, which the existing
    * predicate cannot express however it is squeezed.
    */
-  /**
-   * ⭐ Whether `thing` is what an `inspection` clause names — the works by
-   * their row, or THESE works by identity. The clause itself holds only
-   * by the sealed `fulfilled` row an inspection writes.
-   */
-  public inspects(works: InspectedWorks): boolean {
-    if (this.data.template !== "inspection") return false;
-    const item = this.data.item;
-    if (item.kind === "identity") return works.identityPath === item.identityPath;
-    if (item.kind === "template") {
-      return works.templatePath === item.path || works.identityPath === item.path;
-    }
-    return false;
-  }
-
   public watchHolds(watchedSec: number): boolean {
     if (this.data.template !== "watch") return false;
     return watchedSec >= Math.max(0, this.data.gameHours ?? 0) * 3600;

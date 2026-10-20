@@ -1899,6 +1899,22 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   disturbed by state, answered by ordinary acts; `rest`; whether
   `inhale`/`exhale` survive) is a design conversation still to have.
 
+- **R3 · The inspection job is cut from this build.** The owner: *"this
+  just seems like a totally separate experience from anything water
+  related … if it's a real thing then it shouldn't go on look it should
+  be its own deal. and if it isn't a real thing and is just look by
+  another name, then what exactly is all this infrastructure doing?"*
+  It is a contract-and-report interaction, so it needs its own design (what
+  an inspector delivers, who can judge whether it is true, how it is paid). That design is not water's. Removed: the `inspect` verb +
+  `InspectController`, the kernel `Inspectable` shape, the `inspection`
+  condition template, `ContractApi.recordInspection`, the `job post
+  inspect` phrase, the water pack's `WorksFace` class and rows, the
+  intake screen prop, and the `surveys` brain's intake posting. Kept: the
+  intake-mouth room (the column's one authored neighbor, world content),
+  and the `identity` item ref with `job post recover <body>` (a delivery
+  of THIS body: the existing delivery template). D17's inspection half and
+  C4's `inspect` acceptance are superseded by this note.
+
 ## Drive record
 
 

@@ -2,11 +2,10 @@
  * `surveys` brain (`/trade/diving/behavior/surveys`) — **the harbor works
  * posting the city's work below the waterline** (underwater C4/C5).
  *
- * Whoever holds the harbor-works seat (the Wharfside pilot) keeps three
+ * Whoever holds the harbor-works seat (the Wharfside pilot) keeps two
  * kinds of work on the board, each posted with the same `job post` a
  * player types and paid from the department's account:
  *
- *  - **inspect the intake** — always wanted, one at a time;
  *  - **raise the lost anchor** — while it lies on the bed;
  *  - **recover a body** — a drowned body lying on the basin's bed, by who
  *    it was (a corpse has no chattel; it has its own identity).
@@ -15,7 +14,7 @@
  * about only when it is RESIDENT — a column nobody has been down has
  * nobody drowned in it. Load on use, never a search.
  *
- * config: `{ board, bank, intake, anchor, basin, reward? }` — paths.
+ * config: `{ board, bank, anchor, basin, reward? }` — paths.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -33,7 +32,6 @@ import type ColumnWarren from '@saxonberg/content-water/src/idea/ColumnWarren';
 interface SurveyConfig {
   board?: string;
   bank?: string;
-  intake?: string;
   anchor?: string;
   basin?: string;
   reward?: number;
@@ -65,10 +63,6 @@ export const brain = class {
           (item.kind === 'identity' && item.identityPath === path);
       });
 
-    if (cfg.intake && !posted(cfg.intake)) {
-      await host.forceCommand(`job post inspect ${cfg.intake} for ${reward} --business`);
-      return;
-    }
     if (cfg.anchor && !posted(cfg.anchor) && brain.lyingUnderWater(cfg.anchor)) {
       await host.forceCommand(`job post deliver ${cfg.anchor} to ${cfg.bank} for ${reward * 2} --business`);
       return;

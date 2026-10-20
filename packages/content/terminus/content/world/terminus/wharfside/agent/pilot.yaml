@@ -42,7 +42,6 @@ data:
       config:
         board: /world/terminus/wharfside/thing/harbor-board
         bank: /world/terminus/wharfside/bank
-        intake: /world/terminus/wharfside/thing/city-intake
         anchor: /world/terminus/wharfside/water/thing/lost-anchor
         basin: /world/terminus/wharfside/water/location/basin
         reward: 30

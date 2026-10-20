@@ -625,7 +625,6 @@ const CITATIONS: Record<string, string> = {
   _vaultPaths: "a donation bank's vaults, filtered live to live Containers",
   value: "a setting's value",
   seatIn: "self-seating — mechanism 2, likewise",
-  intake: "the surveys brain's works to post an inspection of — propped by the bank (underwater C4)",
   anchor: "the surveys brain's lost anchor to post a recovery of — propped by the bed it lies on (underwater C4)",
   herdbook: "the book a byre floor's stalls read for the head kept (cleanliness D20) — load on use",
   powerFrom: "the millrace a mill's stones draw their power from — load on use",

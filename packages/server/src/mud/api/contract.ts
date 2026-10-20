@@ -162,17 +162,6 @@ export class ContractApi {
   }
 
   /**
-   * ⭐ An inspection, recorded (underwater D17): the acting character
-   * looked at the works these paths name (by path — the works' identity and
-   * lineage, never the live object), so every `inspection` gig they hold on them (and
-   * every open bounty) gets its engine-sealed `fulfilled` row. Called by
-   * the `inspect` verb, never by hand. Returns how many it satisfied.
-   */
-  public static async recordInspection(identityPath: string, templatePath: string | null): Promise<number> {
-    return logic().recordInspection({ identityPath, templatePath });
-  }
-
-  /**
    * The redeem beat (payday), at the board: settles on **either** live
    * verification **or** a valid post-claim `fulfilled` row whose actor is
    * the completer — so the payout survives later state drift. On
