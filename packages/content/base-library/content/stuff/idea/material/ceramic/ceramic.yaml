@@ -11,6 +11,13 @@ data:
   waterAbsorptionCapacity: 8
   thermalConductivity: 1.5
   specificHeat: 880
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 6.0e-06
+  # ⭐ Honest strength (ceramics D18): unauthored it read 0, and a thrown
+  # saucer always shattered.
+  hardness: 50
+  toughness: 6
   edibility: false
   nutrients: []
   toxicity: []

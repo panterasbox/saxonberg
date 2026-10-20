@@ -1,0 +1,38 @@
+# Tin glaze — a lead glaze made opaque white with tin oxide: delftware,
+# maiolica, faience; a white face to paint on. An import line. It carries
+# the lead it is made of.
+#
+# ⭐ A coat is not a piece: its fuse reads this row's first heat transition —
+# `referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
+# names the glaze itself, so the spec stays valid and changes nothing.
+class: /platform/idea/material/Material
+data:
+  name: tin glaze
+  keywords: [glaze, tin]
+  appearance: an opaque white tin glaze
+  density: 2500
+  specificHeat: 840
+  thermalConductivity: 1.0
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 0
+  hardness: 55
+  toughness: 3
+  thermalExpansion: 6.0e-6
+  laysCoat: true
+  heatTransitions:
+    - key: fuse
+      referenceK: 1250
+      zK: 30
+      fullDoseS: 1800
+      scorchAboveK: 1400
+      scorched: /trade/ceramics/idea/material/glaze/tin
+      ladder:
+        - { atDegree: 1, becomes: /trade/ceramics/idea/material/glaze/tin }
+  leaches:
+    - { toxin: lead-poisoning, mgPerLPerDayPerAcidity: 2 }
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["glaze", "mineral", "vitreous"]
+  composition: []
+  biologicalSource: null

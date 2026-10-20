@@ -1,0 +1,36 @@
+# Ash glaze — wood ash fluxing silica and a little clay, the oldest glaze
+# there is. A stoneware glaze: it wants a hot kiln, runs green-brown where it
+# pools, and gives nothing to what it holds.
+#
+# ⭐ A coat is not a piece: its fuse reads this row's first heat transition —
+# `referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
+# names the glaze itself, so the spec stays valid and changes nothing.
+class: /platform/idea/material/Material
+data:
+  name: ash glaze
+  keywords: [glaze, ash]
+  appearance: a runny green-brown ash glaze
+  density: 2500
+  specificHeat: 840
+  thermalConductivity: 1.0
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 0
+  hardness: 55
+  toughness: 3
+  thermalExpansion: 5.0e-6
+  laysCoat: true
+  heatTransitions:
+    - key: fuse
+      referenceK: 1500
+      zK: 30
+      fullDoseS: 1800
+      scorchAboveK: 1600
+      scorched: /trade/ceramics/idea/material/glaze/ash
+      ladder:
+        - { atDegree: 1, becomes: /trade/ceramics/idea/material/glaze/ash }
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["glaze", "mineral", "vitreous"]
+  composition: []
+  biologicalSource: null

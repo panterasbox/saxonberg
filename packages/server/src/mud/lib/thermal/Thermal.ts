@@ -66,6 +66,7 @@ import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
 import type { Mould } from "../mould/Mould";
 import type { Composition } from "../material/Composition";
 import { Grade } from "../craft/Grade";
+import { Evaporation } from "../material/Evaporation";
 import {
   Piecewise,
   TrajectoryLog,
@@ -328,6 +329,12 @@ export interface Thermal {
   stampFiredBy(identity: string): void;
   /** The Disciplines this body's rungs have earned, handed over once. */
   drainHeatWorkCredits(): string[];
+  /**
+   * ⭐ How far evaporation pulls this body below its air, K (ceramics M8):
+   * `wetness × (T_air − T_wetbulb) × thermal.evaporation.efficiency`. Air
+   * only — `0` immersed, in a fire, in a cold box, or dry.
+   */
+  evaporativeDepressionK(airK: number): number;
   /** A cast continues the heat history of the piece it was poured from. */
   adoptHeatWork(record: Readonly<HeatWorkRecord>): void;
   /**
@@ -604,10 +611,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // in the fire, banked as heat-work. `null` until its material
       // declares a transition — a plate on a shelf never keeps one.
       heatWork: { persistent: true, runtimeState: true },
+      coatsCheckedS: { persistent: true, runtimeState: true },
     };
 
     /** See {@link Thermal.getHeatWork}. */
     public heatWork: HeatWorkRecord | null = null;
+
+    /** Game-second the coats were last looked at for a fuse (runtime). */
+    public coatsCheckedS = 0;
 
     /**
      * Reentry guard for the heat-work pass (the phase pass's precedent):
@@ -994,7 +1005,45 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (scope === null || !scope.envelopeApplies()) {
         return flat(this.lastAmbientK);
       }
-      return scope.temperatureTrajectory(fromS, toS);
+      // ⭐ A wet body in AIR sits below the air by what evaporation carries
+      // off (ceramics M8) — the weeping jar, cooler than its room.
+      const pw = scope.temperatureTrajectory(fromS, toS);
+      const d = this.evaporativeDepressionK(pw.at(toS));
+      if (!(d > 0)) return pw;
+      return new Piecewise(
+        pw.stretches.map((st) => ({ ...st, startValue: st.startValue - d, target: st.target - d })),
+      );
+    }
+
+    /** Does this vessel hold a liquid its porous outside lets through? */
+    private weeps(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self) || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return false;
+      const held = self.getBulkMaterial('interior');
+      if (held === null || !held.hasTag('liquid')) return false;
+      if (!(self.getBulkAmount('interior').rawValue() > 0)) return false;
+      return !self.holdsWater('outside') || !self.holdsWater('inside');
+    }
+
+    public evaporativeDepressionK(airK: number): number {
+      const self = this.thermalHost;
+      if (!MixinApi.isWet(self as unknown as Stuff)) return 0;
+      // Air only: what holds you outranks the room, and water evaporates
+      // nothing off a thing that is in it.
+      if (this.heatSource() !== null || this.holderK() !== null) return 0;
+      const scope = airScopeOf(self);
+      if (scope === null) return 0;
+      let wetness = (self as unknown as { getWetness(): number }).getWetness();
+      // ⭐ A vessel WEEPING through its body keeps its outside wet for as
+      // long as it weeps — the surface is the film, whatever the body's
+      // average saturation (the weeping jar).
+      if (wetness < 1 && this.weeps()) wetness = 1;
+      if (!(wetness > 0.01)) return 0;
+      const air = scope.getAir();
+      const wb = new Evaporation(air.humidityPct, air.windMs, airK).wetBulbK();
+      const gap = airK - wb;
+      if (!(gap > 0)) return 0;
+      return gap * wetness * heatWorkDial(AppSettingKeys.thermalEvaporationEfficiency, 0.8);
     }
 
     public temperatureTrajectory(fromS: number, toS: number): Piecewise {
@@ -1119,6 +1168,30 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // fire and a crucible in a furnace are ONE rule. One lookup that
       // answers no for every material that declares nothing.
       this.reconcileHeatWork();
+      // ⭐ …and a wet coat on it fuses when the body reaches its heat
+      // (ceramics M6) — a glaze laid on bisque, glost-fired.
+      this.reconcileCoats();
+    }
+
+    /**
+     * Fuse the wet coats on a `Faced` body by the peak since the last look.
+     * The window's peak, never the lifetime's: a bisque that was fired hot
+     * once does not fuse the glaze laid on it afterwards without a firing.
+     */
+    private reconcileCoats(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self) || !self.hasWetCoats()) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      const fromS = this.coatsCheckedS > 0 ? this.coatsCheckedS : nowS;
+      let peak = this.stampedTemperatureK;
+      if (nowS > fromS) {
+        for (const smp of this.thermalRing().window(fromS, nowS, this.stampedTemperatureK).samples(8)) {
+          if (smp.value > peak) peak = smp.value;
+        }
+      }
+      this.coatsCheckedS = nowS;
+      self.fuseCoats(peak);
     }
 
     // ---------- the heat history (ceramics M1) ----------
@@ -1435,6 +1508,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       (self as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
       const rung = t.getLadder()[conv.rung];
       restampProse(self as unknown as Stuff, rec, was, mat, rung?.describes ?? "");
+      // ⭐ A vapor in the chamber's air at the rung lays a fused coat on the
+      // outside (ruling B): salt thrown into a kiln at peak heat glazes the
+      // stoneware in it. The coat's material is the transition's to name.
+      const chamber = holder !== null && MixinApi.isBurner(holder) ? holder : null;
+      const piece = self as unknown as Stuff;
+      if (chamber !== null && MixinApi.isFaced(piece)) {
+        const vapors = chamber.getChamberVapors();
+        for (const [vapor, coat] of Object.entries(t.getVapor())) {
+          if (!((vapors[vapor] ?? 0) > 0)) continue;
+          piece.layCoat("outside", coat, 0);
+          piece.fuseCoats(rec.peakK);
+          rec.atmosphere.vapors = [...new Set([...rec.atmosphere.vapors, vapor])];
+        }
+      }
       return "swap";
     }
 
@@ -1559,6 +1646,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
           } catch {
             // keep the cached ambient on any resolution failure
           }
+          // ⭐ The push side reads evaporation too (the Coolbox lesson:
+          // the day the two sides disagree, a wet jar is cool in one and
+          // not the other).
+          ambientK -= this.evaporativeDepressionK(ambientK);
         }
       }
       this.lastAmbientK = ambientK;

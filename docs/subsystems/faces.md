@@ -1,0 +1,134 @@
+# Faces — a good has an outside, a vessel an inside, and a face carries coats
+
+Every good has an **outside**, and a good that holds bulk also has an
+**inside**. Each face carries a list of **coats**, outermost first. Shipped by
+the ceramics build (W1, 2026-10, plan D5–D7, requirements M6–M8), with three
+consumers on day one: the **glaze** on a pot, the **lead leach** from an
+inside coat into the contents, and the **weeping jar** that cools its water.
+
+Source: `packages/server/src/mud/lib/material/Faced.ts` (`FacedMixin`, the
+`Faced` interface, `CoatLayer`, `FaceName`, `CoatState`), composed on
+`lib/stuff/Good`. The bulk reads (the face exchange: leach, weep, memory) live on
+`BulkableMixin`; the cooling read (`evaporativeDepressionK`) on `ThermalMixin`.
+
+## ⭐⭐ One shape for a wall and a pot
+
+A coat is construction's layer: `EnclosureSpec` (`{material, thicknessM}`),
+the shape a wall or a roof is authored in ([construction.md](./construction.md)),
+plus the `state` a firing gave it. So a building's face and a pot's face are
+one idea. ⚠ But `Faced` composes on **`Good`, not `Thing`**: a wall, a floor
+and a fixture take paint through construction's layers. Composing it on
+`Thing` would claim a coat on every floor.
+
+State-free until a coat is laid (`coats: {}`). Every good can answer the claim
+it makes, *"it has an outside, and something may be laid on it"*, which is the
+test for composing on the base.
+
+| method | answers |
+|---|---|
+| `faces()` | `['outside']`, plus `'inside'` when the good holds interior bulk |
+| `getCoats(face)` | the coats on a face, outermost first |
+| `outermost(face)` | the material that meets the world: the top coat's (unless crawled), else the body's |
+| `layCoat(face, material, thicknessM, dirtyAtLay?)` | a WET coat, outermost (`dip` calls it) |
+| `fuseCoats(peakK)` | fuses every wet coat this heat reaches |
+| `holdsWater(face)` | a sound fused coat, or a tight body |
+| `porosity()` | the body's open porosity, `0..1` |
+| `cleansAs()` | how hard it is to get clean, `≥ 1` |
+
+## A coat is laid wet and fused by heat
+
+`dip` lays a coat **wet** from a bath whose material `laysCoat`. The coat is
+**fused** by heat: the coat is not a Stuff and has no heat history of its own,
+so `fuseCoats(peakK)` reads the coat material's **first heat transition**.
+`referenceK` is the heat that fuses it, and `scorchAboveK` the heat past which
+it runs. The host's heat-work reconcile calls it with the hottest the body got
+in the window being integrated. At the fuse a coat becomes:
+
+| state | when |
+|---|---|
+| `fused` | sound: it holds water and wipes clean |
+| `run` | fired past the glaze's `scorchAboveK`: it runs to the foot and pools |
+| `crawled` | laid over dirt (`dirtyAtLay` > `faces.crawlDirt`, 0.3): it pulls back off bare patches, and a crawled coat does not count as the outermost |
+| `crazed` | the coat's `thermalExpansion` exceeds the body's by more than `faces.crazeMismatch` (1.5 × 10⁻⁶ /K): it shrinks more on cooling, cracks, weeps a little and holds dirt |
+
+The glazes are rows: `/trade/ceramics/idea/material/glaze/{lead,ash,salt,tin}`.
+
+| glaze | fuses | runs above | expansion /K | notes |
+|---|---|---|---|---|
+| lead | 1250 K | 1400 K | 7 × 10⁻⁶ | crazes on earthenware; leaches lead |
+| ash | 1500 K | 1600 K | 5 × 10⁻⁶ | a stoneware glaze; gives nothing |
+| tin | 1250 K | 1400 K | 6 × 10⁻⁶ | opaque white; a lead glaze, so it leaches too (more slowly) |
+| salt | 1350 K | — | 5.5 × 10⁻⁶ | never dipped (`laysCoat: false`): vapor in the kiln lays it (ruling B) |
+
+## Holding water, and porosity
+
+`porosity()` is **derived, never authored**: it is the fired body material's
+water absorption (`waterAbsorptionCapacity` / 100) for a `fired` or `porous`
+material. The firing swaps the material (terracotta 15 %, earthenware 8 %,
+stoneware 1.5 %), so porosity follows the heat-work without a field of its own.
+
+`holdsWater(face)` is true for a fused (or run) top coat, or for a body at or
+under `faces.holdsWaterBelow` (0.03). So stoneware holds water bare, terracotta
+weeps, and a glazed crock holds.
+
+## ⭐⭐ The lead leach — the inside face gives to the contents (M7)
+
+A material may `leach` into what is held against it: `leaches:
+[{toxin, mgPerLPerDayPerAcidity}]`. `BulkableMixin`'s face exchange runs on
+an interior slot's read (`getBulkAmount`/`getBulkPayload`, at most once a
+game-minute) and is stamped `faceCheckedS` on the payload. It reads the
+holder's inside `outermost` material, multiplies by the contents' `acidity`
+(new on `Material`, `0..1`) and the days elapsed, and adds the result to
+`payload.dissolvedToxins`. That is metabolism's own per-litre field, so
+drinking it doses the drinker with no new code.
+
+Acidity rows: wine vinegar 0.9, the juices 0.6–0.85, wines 0.6–0.7, whey and
+buttermilk 0.5, ales and lager 0.4, milks 0.15–0.2, sea water 0.05. Water is
+0, which is why lead glaze was trusted for so long.
+
+⚠⚠ **No sense reports it.** `look`, `smell` and `taste` say nothing. You learn
+it from knowledge, from an assay, or from the sickness. It is the honest shape
+of lead glaze, and of the vinegar crock that poisoned a household.
+
+⚠ Not maturation's `imparts`: that is aroma on a batch clock, and the crocks
+the drive fills are `CraftVessel`s with no batch (plan D7). **Casks** (a
+charred inside face) and **pitch-lined amphorae** are the special case,
+recorded in [maturation.md](./maturation.md) for later and not migrated.
+
+## The weeping jar (M8)
+
+The same face exchange: a vessel holding a LIQUID whose `inside` or `outside`
+does not hold water loses `porosity × thermal.evaporation.seepLPerHourPerL` (0.02)
+litres per hour per litre held into its own `wet()`. So its outside stays wet.
+`ThermalMixin.evaporativeDepressionK(airK)` = wetness × (T_air − T_wetbulb) ×
+`thermal.evaporation.efficiency` (0.8) — and a vessel that is WEEPING counts its
+surface fully wet, because the film is there as long as it weeps. It is taken
+off the air on both sides (the trajectory the pull side reads, the ambient the
+push side resolves), so the wet jar and the contents it IS read cooler than the
+room: ≈ 6 K under a 300 K room at half humidity, ≈ 9 K in dry air. A
+glazed jar seeps nothing and reads at room heat. ⚠ **Air only**: a thing
+immersed in water evaporates nothing (underwater's immersed branch wins). One
+wet-bulb formula serves the body and the jar
+(`Evaporation.wetBulbK()`).
+
+Porous ware also **keeps** what it held. Grease lodges in a bare porous face,
+and a share of a fill's aromas (`faces.aromaRetained`, 0.1) stays on the
+inside face and goes into the next fill: the crock that remembers the pickles.
+Glazed ware and stoneware keep nothing, which is what *hygienic* means here.
+
+## Cleaning
+
+`cleansAs()` multiplies how hard a good is to wash ([cleanliness.md](./cleanliness.md)).
+It is 2 with a crazed coat, 1.5 for a bare porous body, and 1 for a sound
+glaze or a tight body.
+
+## Seams
+
+- **Paint** ([paint-slate](../slates/builds/paint-slate.md)) rides `Faced` for
+  goods: a coat on a cart or a sign is a coat on its outside face, weathering
+  by decomposition's exposure clock. Buildings take paint through
+  construction's layers.
+- **Casks and lined vessels**: maturation's char layer, pitch and tin linings
+  are inside-face coats; recorded, not migrated.
+- **Wet clothes and sweat** reading `evaporativeDepressionK`: exertion and
+  textiles' deferred lists.

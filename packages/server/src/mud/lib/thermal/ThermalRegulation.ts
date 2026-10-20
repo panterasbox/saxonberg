@@ -38,6 +38,7 @@ import type { Vitals, VitalSign } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Thermal } from "./Thermal";
 import type { AfflictionRecord } from "../../platform/idea/Condition";
+import { Evaporation } from '../material/Evaporation';
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";
@@ -874,17 +875,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       return D.COLD_SPEND_PER_DEGREE > 0 ? cap / D.COLD_SPEND_PER_DEGREE : 0;
     }
 
-    /** Wet-bulb temperature (K) — the simplified Stull approximation. */
+    /** Wet-bulb temperature (K) — the ONE formula, `Evaporation.wetBulbK`. */
     protected wetBulbK(ambientK: number, humidityPct: number): number {
-      const tC = ambientK - 273.15;
-      const rh = Math.max(1, Math.min(100, humidityPct));
-      const tw =
-        tC * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) +
-        Math.atan(tC + rh) -
-        Math.atan(rh - 1.676331) +
-        0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) -
-        4.686035;
-      return tw + 273.15;
+      return new Evaporation(humidityPct, 0, ambientK).wetBulbK();
     }
 
     protected noteShiver(): void {

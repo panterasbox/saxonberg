@@ -60,9 +60,13 @@
 import Thing from './Thing';
 import { ChattelMixin } from '../chattel/Chattel';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { FacedMixin } from '../material/Faced';
 import type { FieldMeta } from '../mixin';
 
-const GoodBase = ChattelMixin(ConcealableMixin(Thing));
+// ⭐ Faced (ceramics D5): every good has an outside something can be laid
+// on — a glaze on a jug, a coat on a cart. Not on `Thing`: a wall and a
+// floor take paint through construction's layers.
+const GoodBase = FacedMixin(ChattelMixin(ConcealableMixin(Thing)));
 
 export default class Good extends GoodBase {
   static fieldMeta: FieldMeta = {};

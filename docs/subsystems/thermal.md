@@ -224,6 +224,25 @@ comes back green. `doMelt` pools into a vessel standing in the same chamber
 (empty, or holding the same material; never a mould) before it falls to the
 floor.
 
+### ⭐ Evaporation carries heat away (ceramics M8)
+
+A wet body in AIR sits below the air by what evaporation carries off:
+`evaporativeDepressionK(airK)` = wetness × (T_air − T_wetbulb) ×
+`thermal.evaporation.efficiency` (0.8), the wet-bulb from the one formula,
+`Evaporation.wetBulbK()` (ThermalRegulation's sweat reads it too). It is taken
+off the air on BOTH sides — the trajectory the pull side reads (each stretch
+shifted) and the ambient `restamp` resolves — because the day they disagree a
+wet jar is cool in one and not the other. `0` immersed in a bath, in a lit
+fire, in a shut cold box, or dry: air only. A vessel WEEPING a liquid through
+a porous body (see [faces.md](./faces.md)) counts its surface fully wet, which
+is the weeping jar: its water reads ≈ 6 K under a 300 K room at half humidity.
+⭐ Wet clothes and sweat are the next readers (recorded for exertion and
+textiles).
+
+A `Faced` body also fuses its wet coats on the same lazy read
+(`reconcileCoats`): the peak since the last look, never the lifetime's, so a
+glaze laid on a bisque is fused by a glost firing and not by the bisque's past.
+
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 
 The rule under `heatSourceK` was never about heat: **what HOLDS this

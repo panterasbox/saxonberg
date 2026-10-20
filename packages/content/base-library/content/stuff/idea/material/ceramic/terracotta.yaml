@@ -18,6 +18,9 @@ data:
   waterAbsorptionCapacity: 15
   hardness: 50
   toughness: 5
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 5.5e-06
   edibility: false
   nutrients: []
   toxicity: []

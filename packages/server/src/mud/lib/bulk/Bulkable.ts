@@ -51,6 +51,10 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
+import { AppSettingKeys } from '../config/AppSettings';
+import { AppApi } from '../../api/app';
+import { TemplatePaths } from '../paths';
+import { WorldClockApi } from '../../api/worldclock';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -220,6 +224,13 @@ export interface BulkPayload {
    * `BulkPayload`.
    */
   composition?: BlendPart[];
+
+  /**
+   * ⭐ Game-second the vessel's faces last gave to or took from these
+   * contents (ceramics M6/M7): the lead leach, the weep through a porous
+   * body, the flavor a porous face keeps. Integrated on read.
+   */
+  faceCheckedS?: number;
 
   /*
    * ⚠ These three are DATA the craft writes; the reading that uses them
@@ -894,9 +905,128 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public afterPouredOutBy(_by: Stuff, _litres: number): void {}
 
     public getBulkPayload(affordance: BulkAffordance): BulkPayload | null {
+      if (affordance === 'interior') this.reconcileFaceExchange();
       return affordance === 'interior'
         ? this.interiorPayload
         : this.surfacePayload;
+    }
+
+    /** Reentry guard for the face exchange (it reads and writes the slot). */
+    private _faceExchanging = false;
+
+    /**
+     * ⭐⭐ **What a vessel's faces do to what it holds** (ceramics M6–M8),
+     * integrated on read since the payload's `faceCheckedS`:
+     *
+     *  - **the leach** — the inside face's outermost material `leaches`
+     *    a toxin at `mg/L/day × the contents' acidity`, into the
+     *    payload's `dissolvedToxins` (metabolism's own field: drinking it
+     *    doses the drinker with no new code). Nothing looks, smells or
+     *    tastes of it.
+     *  - **the weep** — a porous body whose faces do not hold water loses
+     *    `porosity × thermal.evaporation.seepLPerHourPerL` litres an hour
+     *    per litre into the vessel's OWN wetness, so its outside stays wet
+     *    and evaporation cools it (`ThermalMixin.evaporativeDepressionK`).
+     *  - **the memory** — a porous inside face keeps a share of a fill's
+     *    aromas and gives them to the next (the crock that remembers the
+     *    pickles); a glaze or a stoneware body keeps nothing.
+     *
+     * Inert for a vessel that is not `Faced` or holds nothing; at most once
+     * a game-minute.
+     */
+    private reconcileFaceExchange(): void {
+      if (this._faceExchanging) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
+      const litres = this._interiorAmount.rawValue();
+      const material = this.interiorMaterial
+        ? StuffApi.findByTemplatePath<Material>(this.interiorMaterial) ?? null
+        : null;
+      if (!(litres > 0) || material === null) return;
+      // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
+      // pot of water carries no payload because of this.
+      const insideFace = self.outermost('inside');
+      const leaches = material.getAcidity() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      const porousInside = !self.holdsWater('inside');
+      const weeps = material.hasTag('liquid') && (porousInside || !self.holdsWater('outside'));
+      const remembers =
+        porousInside &&
+        ((this.interiorPayload?.dissolvedAromatics?.length ?? 0) > 0 ||
+          self.absorbedAromas('inside').length > 0);
+      if (!leaches && !weeps && !remembers) return;
+      const nowS = bulkNowSeconds();
+      if (nowS === null) return;
+      const payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
+      const last = payload.faceCheckedS;
+      if (last === undefined) {
+        payload.faceCheckedS = nowS;
+        this.interiorPayload = payload;
+        return;
+      }
+      const dt = nowS - last;
+      if (!(dt >= 60)) return;
+      this._faceExchanging = true;
+      try {
+        const days = dt / 86_400;
+        // The leach.
+        const inside = self.outermost('inside');
+        const acidity = material.getAcidity();
+        if (inside !== null && acidity > 0) {
+          const toxins = [...(payload.dissolvedToxins ?? [])];
+          for (const leach of inside.getLeaches()) {
+            const mg = leach.mgPerLPerDayPerAcidity * acidity * days;
+            if (!(mg > 0)) continue;
+            const at = toxins.findIndex((t) => t.type === leach.toxin);
+            if (at >= 0) toxins[at] = { ...toxins[at]!, amount: toxins[at]!.amount + mg };
+            else toxins.push({ type: leach.toxin, amount: mg } as never);
+          }
+          if (toxins.length > 0) payload.dissolvedToxins = toxins;
+        }
+        // The memory.
+        if (!self.holdsWater('inside')) {
+          const kept = self.absorbedAromas('inside');
+          const fill = [...(payload.dissolvedAromatics ?? [])];
+          const retained = bulkDial(AppSettingKeys.facesAromaRetained, 0.1);
+          const next: Record<string, number> = {};
+          for (const k of kept) next[k.type] = k.amount;
+          for (const a of fill) {
+            next[a.type] = Math.max(next[a.type] ?? 0, a.amount * retained);
+          }
+          const share = Math.min(1, days);
+          for (const k of kept) {
+            const at = fill.findIndex((a) => a.type === k.type);
+            const have = at >= 0 ? fill[at]!.amount : 0;
+            if (have >= k.amount) continue;
+            const amount = have + (k.amount - have) * share;
+            if (at >= 0) fill[at] = { ...fill[at]!, amount };
+            else fill.push({ ...k, amount });
+          }
+          if (fill.length > 0) payload.dissolvedAromatics = fill;
+          self.setAbsorbedAromas('inside', Object.entries(next).map(([type, amount]) => ({ type, amount })) as never);
+        }
+        // The weep.
+        let left = litres;
+        if (
+          material.hasTag('liquid') &&
+          (!self.holdsWater('inside') || !self.holdsWater('outside'))
+        ) {
+          const rate = bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
+          const lost = Math.min(left, self.porosity() * rate * left * (dt / 3600));
+          if (lost > 0) {
+            left -= lost;
+            if (MixinApi.isWet(self)) {
+              const cap = self.waterCapacityKg();
+              const kg = (lost / 1000) * material.getDensity().rawValue();
+              if (cap > 0) self.wet(kg / cap);
+            }
+          }
+        }
+        payload.faceCheckedS = nowS;
+        this.interiorPayload = payload;
+        if (left !== litres) this.interiorAmount = Quantity.of(left, BULK_VOLUME_UNIT);
+      } finally {
+        this._faceExchanging = false;
+      }
     }
 
     public setBulkPayload(
@@ -924,6 +1054,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getBulkAmount(affordance: BulkAffordance): Quantity<'L'> {
+      if (affordance === 'interior') this.reconcileFaceExchange();
       return affordance === 'interior'
         ? this._interiorAmount
         : this._surfaceAmount;
@@ -1056,4 +1187,22 @@ function bulkContentsAugmenter(
   }
   if (lines.length === 0) return text;
   return `${text}\n\n${lines.join(' ')}`;
+}
+
+/** In-session game-seconds, or `null` when no world clock runs. */
+function bulkNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+  return WorldClockApi.getNow().rawValue();
+}
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function bulkDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
 }

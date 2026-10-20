@@ -148,6 +148,16 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   a stew boiled long enough is safe, a salad cut on a dirty board is not.
   Perishable inputs only.
 
+### ⭐ The face decides how hard it is to clean (ceramics W1)
+
+A good's coats are part of the wash ([faces.md](./faces.md)). A **crazed**
+glaze has crack lines that hold dirt, and a **bare porous body**
+(unglazed terracotta) drinks grease in. `Faced.cleansAs()` (2 crazed, 1.5
+bare porous, 1 sound) multiplies the wash's resistance, so the same soap and
+water lift less from them. A sound glaze wipes clean. Grease on a bare porous
+face soaks into the body, and that is why a glazed or stoneware crock is the
+hygienic one.
+
 ## Knowing — how a player tells it needs washing (B57)
 
 - **`look`** — the band and its kinds (*soiled, muddy and greasy*); a body

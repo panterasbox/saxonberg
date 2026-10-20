@@ -685,6 +685,9 @@ export const Mixins = {
   // ⭐ Mixing is one rule (ceramics R1) — "what is put in me becomes one
   // blend, its fractions the inputs' by mass". The vessel names the blend.
   MixingVessel: 'MixingVesselMixin',
+  // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
+  // inside; each carries coats, outermost first". On every Good.
+  Faced: 'FacedMixin',
   // Burner — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
@@ -963,6 +966,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
   MixingVesselMixin: "{} isn't something you mix in",
+  FacedMixin: "{} has no face you could lay a coat on",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the
   // floor is just a lump.

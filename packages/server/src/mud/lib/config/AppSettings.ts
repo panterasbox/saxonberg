@@ -1843,6 +1843,22 @@ export const AppSettingKeys = {
   /** Thermal — the dose-weighted completeness below which a firing was
    * REDUCING (ceramics D3): a rung takes its `reducing` twin. */
   thermalHeatWorkReducingBelow: "thermal.heatWork.reducingBelow",
+  /** Thermal — ⭐ how much of the wet-bulb gap a wet body's evaporation
+   * carries away (ceramics M8): the weeping jar, the wet shirt. */
+  thermalEvaporationEfficiency: "thermal.evaporation.efficiency",
+  /** Thermal — litres per hour per litre held that a porous unglazed
+   * vessel weeps through its body, per unit of porosity (ceramics D6). */
+  thermalEvaporationSeepLPerHourPerL: "thermal.evaporation.seepLPerHourPerL",
+  /** Faces — the thickness a dipped coat is laid at, m (ceramics D5). */
+  facesDipThicknessM: "faces.dipThicknessM",
+  /** Faces — a coat shrinking this much more than its body (1/K) crazes. */
+  facesCrazeMismatch: "faces.crazeMismatch",
+  /** Faces — a face this soiled when a coat is laid crawls at the fuse. */
+  facesCrawlDirt: "faces.crawlDirt",
+  /** Faces — a body at or under this open porosity holds water bare. */
+  facesHoldsWaterBelow: "faces.holdsWaterBelow",
+  /** Faces — the share of a fill's aromas a porous inside face keeps. */
+  facesAromaRetained: "faces.aromaRetained",
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

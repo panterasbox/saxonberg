@@ -11,6 +11,8 @@ data:
   nutrients: ["water", "sugar"]
   toxicity:
     []
+  # ⭐ How acid it is, 0..1 (ceramics M7) — what draws lead from a glaze.
+  acidity: 0.6
   tags: ["liquid", "beverage", "drinkable", "orange-juice", "juice", "mixer"]
   composition: []
   biologicalSource: null

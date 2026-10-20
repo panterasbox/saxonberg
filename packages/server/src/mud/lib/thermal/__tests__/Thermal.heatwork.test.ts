@@ -261,3 +261,43 @@ describe('the atmosphere of a firing', () => {
     expect(b.getMaterial()?.getTemplatePath()).toBe(blue.getTemplatePath());
   });
 });
+
+describe('vapor in the chamber’s air', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    real = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => real);
+  });
+  afterEach(() => WorldClockApi._resetForTesting());
+
+  it('⭐ salt vapor at the rung lays a fused salt-glaze coat on the outside (ruling B)', async () => {
+    const glaze = material('salt glaze', {
+      transitions: [{ key: 'fuse', referenceK: 1300, zK: 30, fullDoseS: 3600, ladder: [{ atDegree: 1, becomes: '/x' }] }],
+    });
+    const salt = material('salt');
+    const stone = material('stoneware');
+    const clay = material('clay', {
+      transitions: [
+        {
+          key: 'stoneware',
+          referenceK: 1350,
+          zK: 30,
+          fullDoseS: 3600,
+          ladder: [{ atDegree: 1, becomes: stone.getTemplatePath()! }],
+          vapor: { [salt.getTemplatePath()!]: glaze.getTemplatePath()! },
+        },
+      ],
+    });
+    const kiln = await litChamber(() => new Oven(), 1450);
+    kiln.addChamberVapor(salt.getTemplatePath()!, 1);
+    const pot = lumpOf(clay);
+    await load(kiln, pot);
+    advance(6 * 3600);
+    pot.getTemperature();
+    expect(pot.getMaterial()?.getTemplatePath()).toBe(stone.getTemplatePath());
+    const coat = pot.getCoats('outside')[0];
+    expect(coat?.material).toBe(glaze.getTemplatePath());
+    expect(coat?.state).toBe('fused');
+  });
+});

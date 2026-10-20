@@ -191,6 +191,23 @@ they consume stays one source of truth across input modalities. None
 of that is built today, but with LLMs it's well within reach, and
 the spec is shaped to make it cheap when someone wants it.
 
+### ⭐ A verb promoted behind a protocol — `dip` (ceramics D14)
+
+When two trades turn out to perform ONE act, the collision ladder's rung 2
+applies: unify behind an interface. `dip` moved from `trade-chandlery` to
+`platform/cmd/crafting/dip.yaml` (alias `melt`) with a dumb
+`DipController`: every bound bath is asked `DipPlanner.dipPlanFor(target,
+req)` (`lib/craft/DipPlanner.ts`, the `Cuttable`/`Kneadable` shape), the
+first plan or refusal wins, and only then does the kernel default run — a
+bath whose material `laysCoat` lays a WET coat on the good's faces
+(`FacedMixin.layCoat`). The chandler's `DipPot` plans its candle (a
+zero-length plan runs inside the command frame, because the craft resolves
+from the actor's reach). Grammar: `dip [<thing>] [inside|outside] [in
+<bath>] [inside|outside]` — the face is a bare optional word that the
+binder's lookahead skips when the next token is the bath's preposition.
+The paint slate's reservation is honoured: `dip` is the coat-from-bath
+primitive; `paint` will be the brush. `knead` (W0) is the same promotion.
+
 ## YAML view — top-level shape
 
 Every YAML declares one `CommandView`. Required keys: `verbs`,

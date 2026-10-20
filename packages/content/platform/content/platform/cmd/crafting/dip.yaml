@@ -1,3 +1,12 @@
+# ⭐⭐ `dip` — ONE act, and the BATH plans it (ceramics D14, the
+# collision ladder's rung 2). Promoted from `trade-chandlery`: a wick into
+# hot fat until a candle builds up, and a bisque crock into a glaze slip
+# until it carries a coat, are one act — put a thing in a bath and draw it
+# out with the bath on it. The controller is dumb: it asks the bound bath
+# (`DipPlanner.dipPlanFor`), and a bath whose material lays a coat
+# (`laysCoat`) is the kernel's default. The paint slate's reservation is
+# honoured: `dip` is the coat-from-bath primitive.
+#
 # ⭐⭐⭐ **`melt` is an ALIAS, not a second verb** — the same call the
 # milling trade's `grind` lost, for the same reason.
 #
@@ -22,8 +31,8 @@
 # wick* — two sentences for one act, so the alias never silently
 # overshoots the word the player typed.
 verbs: [dip, melt]
-controller: /trade/chandlery/idea/cmd/chandlery/DipController
-description: "Dip a candle out of whatever fat is in the pot"
+controller: /platform/idea/cmd/crafting/DipController
+description: "Dip a thing in a bath and draw it out with the bath on it — a candle, a glaze"
 help: |
   `dip` — run a wick down into a pot of melted fat and up again, over and
   over, until a candle has built up on it.
@@ -41,6 +50,11 @@ help: |
   `melt` is the same verb if that is the word that fits what is in your
   hands.
 
+  ⭐ **A glaze is the same act.** `dip crock in bucket` lays a wet coat of
+  whatever slip is in the bucket on the crock; `dip crock inside in bucket`
+  coats only the inside (`outside` likewise), and the coat fuses when the
+  crock is fired. A bath that does not lay a coat — water — says so.
+
   ⚠ Anybody can do this. There is no skill in dipping a wick, and the
   game does not pretend otherwise. The skill in this chain is upstream:
   somebody butchered the animal, somebody rendered the suet, somebody
@@ -51,28 +65,35 @@ validators:
   - /lib/command/validators/requiresEmbodied
 args:
   # ⚠⚠ DECLARED FIRST, and that is load-bearing: positionals bind in
-  # declared order, so with the pot declared ahead of it `dip the cake`
-  # handed the cake to the pot. A later field's PREPOSITION still wins
-  # the lookahead, so `dip in the pot` skips this one. (The milling
-  # trade paid for this lesson with `mill wheat 0.72`.)
-  - name: solid
+  # declared order, so with the bath declared ahead of it `dip the cake`
+  # handed the cake to the bath. A later field's PREPOSITION still wins
+  # the lookahead, so `dip in the pot` skips this one.
+  - name: target
     type: object
     required: false
     scope: "reachable"
-    # ⭐ `any`, deliberately: what may be melted is decided by the
-    # RECIPE's input slot, not by a mixin named here. A pack that ships a
-    # third wax authors a row and this file never learns the word.
+    # ⭐ `any`, deliberately: a chandler dips out of a pot with a CAKE of
+    # wax named (a plain Thing, not a good), and a potter dips a crock
+    # (a Faced good). The BATH decides what it will take.
     requires: any
     validators:
       - /lib/command/validators/canReach
-  # ⭐ Declared so the binder resolves it, though the crafting resolve
-  # claims its own inputs out of reach — naming the pot is courtesy, and
-  # the controller does not read it (`lint:instrument-args` sees a
-  # declared arg rather than a bespoke walk).
-  - name: pot
+  # ⭐ The face — `inside` or `outside` — a bare word after the target.
+  # Optional and non-greedy: the binder's lookahead skips it when the next
+  # word is the bath's preposition, so `dip crock in bucket` binds no face.
+  - name: face
+    type: string
+    required: false
+  # ⭐ Declared so the binder resolves it. Every reachable bulk vessel is a
+  # candidate; the controller asks each, in order, whether it plans a dip.
+  - name: bath
     type: objects
     required: false
-    prepositions: [in, from]
+    prepositions: [in, into, from]
     default: "reachable:[mixin.BulkableMixin]"
     scope: ["reachable"]
     requires: [BulkableMixin]
+  # …and the face said after the bath (`dip crock in bucket inside`).
+  - name: side
+    type: string
+    required: false

@@ -18,3 +18,14 @@ settings:
   # brick, celadon. The clamp's banked draught (≈ 0.53) is reducing.
   - key: thermal.heatWork.reducingBelow
     value: "0.55"
+
+  # ⭐ Evaporation carries heat away (ceramics M8): a wet body's ambient is
+  # pulled toward the air's wet-bulb by this share of the gap times its
+  # wetness. Air only — water evaporates nothing off a thing that is in it.
+  - key: thermal.evaporation.efficiency
+    value: "0.8"
+
+  # A porous unglazed vessel weeps this many litres an hour per litre held,
+  # per unit of porosity, into its own outside — which is why it is wet.
+  - key: thermal.evaporation.seepLPerHourPerL
+    value: "0.02"

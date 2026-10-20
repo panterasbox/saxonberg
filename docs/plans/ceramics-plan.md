@@ -1289,6 +1289,30 @@ left a fork the lens that chose is named.
   (W2/W4 name the potter's pot rows instead), `/trade/fuel/thing/{brands,
   coke}`, `/trade/glass/thing/{melt,amber-melt}`. The batch row (class `Melt`)
   IS the melt now. `blendTemplate` is a FAUCET (a mixing vessel mints it).
+- **B15 (W0) — `handTool: pyrometry` waits for the cones.** A capability
+  nothing offers is a gate nobody passes (`lint:capabilities`); the glow
+  words ship now, the cone rung lands with the cones row (W5/W6). The
+  burner's `heatCeilingFactor`/`onFireStart` hooks likewise land in W5 with
+  their overriders (`lint:unconsumed-seams`).
+- **B16 (W1) — The bath flag is `Material.laysCoat`**, not `coats` (a good's
+  `Faced.getCoats(face)` is the other meaning of the word).
+- **B17 (W1) — One payload stamp, `faceCheckedS`**, for the whole face
+  exchange (leach, weep, aroma memory) — not three stamps; at most once a
+  game-minute, on an interior read.
+- **B18 (W1) — A weeping vessel counts its surface fully wet** for
+  evaporation: the film is there as long as it weeps, whatever the body's
+  average saturation. ≈ 6 K under a 300 K room at half humidity.
+- **B19 (W1) — `ThermalRegulation.wetBulbK` stays as a one-line delegate** to
+  `Evaporation.wetBulbK()` (one formula), so its two call sites — beside
+  underwater's hunks — are untouched.
+- **B20 (W1) — `dip`'s target is `requires: any`** (the chandler's beeswax
+  cake is a plain `Thing`, not `Faced`); the controller refuses `not-faced`
+  in words. Grammar: `dip [<thing>] [inside|outside] [in|into|from <bath>]
+  [inside|outside]`. Tin glaze leaches lead too (a historic tin glaze is a
+  lead glaze made opaque).
+- **B21 (W1) — Coats fuse by the WINDOW's peak** (`reconcileCoats` on every
+  `Faced` body's thermal read), never the lifetime's, so a glaze laid on a
+  bisque fuses at the glost firing and not off the bisque's past.
 
 ## ⭐⭐ Host placement
 
@@ -1641,6 +1665,17 @@ whole set.
 Thermal, HeatTransition folds the cure, fire has no recipe path`
 
 ### W1 — faces, coats and the glaze; the lead leach; the weeping jar
+
+> ✅ **DONE (W1).** `Faced` on `Good` (coats outermost first; wet → fused /
+> crazed / run / crawled by the coat material's own fuse heat, expansion and
+> the face's dirt), `holdsWater`, porosity off the fired material,
+> `cleansAs` read by the wash; the face exchange on `Bulkable` (lead leach by
+> acidity, the weep into the vessel's own wetness, the porous face's aroma
+> memory); evaporative cooling on both ambient sides; the salt-vapor coat at
+> a rung; `dip` promoted behind `DipPlanner` (the chandler's pot plans its
+> candle). Glazes lead/ash/salt/tin, acidity on 30 rows, `thermalExpansion`
+> on the bodies, `faces.md`. Decisions B16–B21. Surprise: the weeping jar
+> only cooled 2 K until its surface counted fully wet (B18).
 
 **Goal.** M6, M7, M8: `Faced` on `Good`; `dip` promoted and laying a wet
 coat; coats fuse and craze at a rung; the inside coat leaches by acidity;

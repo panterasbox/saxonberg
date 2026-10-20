@@ -81,6 +81,14 @@ import type { BoundaryRole } from '../security/BoundaryRole';
  * complete authoring, but the v1 model doesn't enforce). Mole-fraction
  * authoring is a follow-on.
  */
+/** What a face gives its contents (ceramics M7). */
+export interface LeachSpec {
+  /** The toxin type, as metabolism names it (`lead-poisoning`). */
+  toxin: string;
+  /** mg per litre per game-day per unit of the contents' acidity. */
+  mgPerLPerDayPerAcidity: number;
+}
+
 export interface CompositionEntry {
   materialPath: string;
   fraction: number;
@@ -1075,6 +1083,19 @@ export default class Material extends SingletonMixin(
     // ⭐ Measured facts like the boiling point: what a kiln teaches you.
     heatTransitions: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     vaporizesAboveK: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ── Faces and coats (ceramics M6–M8) ──
+    // ⭐ How much it grows per kelvin — a glaze that shrinks more than its
+    // body on cooling crazes; a body that grows too much cracks in a fire.
+    thermalExpansion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ How acid it is, 0..1 (vinegar 0.9, water 0) — what draws lead out
+    // of a glaze. A measured fact.
+    acidity: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐⭐ What a face of this gives the contents it holds, per litre per
+    // day per unit of their acidity. `spoiler: 1` — the lead in a glaze is
+    // the thing nobody tells you.
+    leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // A bath of this lays a coat (a glaze slip) — what `dip` reads.
+    laysCoat: { persistent: true, authorable: true },
   };
 
   public getName(): string { return this.name; }
@@ -1397,6 +1418,48 @@ export default class Material extends SingletonMixin(
   /** Set the transitions; throws on a curve that cannot be evaluated. */
   public setHeatTransitions(value: HeatTransitionSpec[] | null): void {
     this.heatTransitions = value;
+  }
+
+  /** ⭐ Linear thermal expansion, 1/K (`0` = not authored). */
+  protected thermalExpansion = 0;
+  public getThermalExpansion(): number {
+    return this.thermalExpansion;
+  }
+  public setThermalExpansion(value: number): void {
+    this.thermalExpansion = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /** ⭐ Acidity, `0..1` — what draws a leach out of a face. */
+  protected acidity = 0;
+  public getAcidity(): number {
+    return this.acidity;
+  }
+  public setAcidity(value: number): void {
+    this.acidity = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+  }
+
+  /**
+   * ⭐⭐ What a face of this material gives the contents it holds: a toxin,
+   * at `mgPerLPerDayPerAcidity` × the contents' acidity × days (ceramics
+   * M7). Lead glaze leaches lead; ash glaze nothing.
+   */
+  protected leaches: LeachSpec[] = [];
+  public getLeaches(): readonly LeachSpec[] {
+    return this.leaches;
+  }
+  public setLeaches(value: LeachSpec[] | null): void {
+    this.leaches = (Array.isArray(value) ? value : []).filter(
+      (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDayPerAcidity > 0,
+    );
+  }
+
+  /** A bath of this lays a coat — a glaze slip (what `dip` reads). */
+  protected laysCoat = false;
+  public getLaysCoat(): boolean {
+    return this.laysCoat;
+  }
+  public setLaysCoat(value: boolean): void {
+    this.laysCoat = value === true;
   }
 
   /**

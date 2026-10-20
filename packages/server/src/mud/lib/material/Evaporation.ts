@@ -105,6 +105,23 @@ export class Evaporation {
   }
 
   /**
+   * ⭐ The wet-bulb temperature of this air, K — how cold evaporation can
+   * make a wet surface in it (ceramics M8). The simplified Stull
+   * approximation; the ONE formula (ThermalRegulation's sweat reads it too).
+   */
+  public wetBulbK(): number {
+    const tC = (Number.isFinite(this.tempK) ? this.tempK : AIR_TEMP_REF_K) - 273.15;
+    const rh = Math.max(1, Math.min(100, Number.isFinite(this.humidityPct) ? this.humidityPct : 50));
+    const tw =
+      tC * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) +
+      Math.atan(tC + rh) -
+      Math.atan(rh - 1.676331) +
+      0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) -
+      4.686035;
+    return tw + 273.15;
+  }
+
+  /**
    * Whether matter at this moisture would **gain** water in this air
    * rather than lose it — the fork the two-way arm takes. Moisture is the
    * fraction of the material's own water still in it, and air of `h %`

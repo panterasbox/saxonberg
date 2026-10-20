@@ -469,6 +469,13 @@ hurts the person who finishes it and not the person who tastes it.
 `DissolvedToxins` holds the arithmetic (the `Freshness`/`Contamination`
 value-class shape); `toxicityOf` is untouched.
 
+⭐ **A second producer of it: the vessel's own inside face** (ceramics W1,
+M7). A lead-glazed crock leaches lead into what it holds, at the glaze's
+`mgPerLPerDayPerAcidity` × the contents' `acidity` × the days, into this same
+per-litre field (`BulkableMixin.reconcileLeach`; see [faces.md](./faces.md)).
+Vinegar takes it up and water does not, and the ingest doses it with no new
+code. ⚠ Silently: no `look`, `smell` or `taste` reports it.
+
 **`toxinMakers`** — persistent runtime state: who made the doses this
 body is still carrying, per toxin type. Recorded at ingest for the two
 **per-instance** shapes only. ⭐⭐ A Material's own authored toxicity
