@@ -1927,6 +1927,19 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   above you (close < 3 m, well < 8 m, a long way). A water that needs its
   own words gets an authored room (the intake's mouth).
 
+- **R5 · `OpenWater` deleted; the place refuses.** A floor object that
+  bears nobody existed only so the posture verbs had something to refuse
+  through. Now the lit and dark bands set `noDefaultFloor: true`. The kernel
+  `Place` gains `groundRefusal(named?)`: when the place has no floor and the
+  ground is what was named (`ground`/`floor`, or the verb's default), it
+  returns the `noGroundLine()` hook. Sit, lie and kneel ask it before
+  "you don't see any …", and bare `stand` asks it too. `Band` overrides the line
+  (*"There is nothing under you but water"*). Two `WaterPlace` reads that
+  assumed a floor now treat "no floor" as open water: a dense
+  arrival sinks, and the swim gate reads the place's own `stateNow()`, so
+  a band under ice is still swimmable. posture.md and spatial.md are
+  updated.
+
 ## Drive record
 
 

@@ -21,7 +21,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ColumnWarren from '../idea/ColumnWarren';
 import ColumnExit from '../idea/exits/ColumnExit';
 import Band from '../location/Band';
-import OpenWater from '../thing/OpenWater';
 import Pool from '@saxonberg/server/mud/platform/location/Pool';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { Actor } from '@saxonberg/server/mud/lib/creature/Actor';
@@ -65,13 +64,12 @@ function seedContent(): void {
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add(TemplatePaths.waterColumn, '/system/water/idea/ColumnWarren');
   add('/system/water/idea/exits/column', '/system/water/idea/exits/ColumnExit');
-  add('/system/water/thing/open-water', '/system/water/thing/OpenWater', { staticSlots: [SLOT] });
   add(TemplatePaths.defaultFloor, '/platform/thing/Floor', { staticSlots: [SLOT] });
   add(TemplatePaths.waterSurface, '/platform/thing/WaterSurface', { staticSlots: [SLOT] });
   for (const band of ['lit', 'dark']) {
     add(`/system/water/location/band/${band}`, '/system/water/location/Band', {
       shortDescription: `${band} water`,
-      floor: { template: '/system/water/thing/open-water' },
+      noDefaultFloor: true,
       longDescription: `the ${band} water`,
     });
   }
@@ -232,9 +230,12 @@ describe('the column (underwater A2)', () => {
     const warren = await column();
     const lit = (await warren.bandOf(p, 'lit')) as unknown as Band;
     const bed = (await warren.bandOf(p, 'bed')) as unknown as Band;
-    const floor = lit.getFloor() as unknown as OpenWater;
-    expect(floor).toBeInstanceOf(OpenWater);
-    expect(floor.canOccupyReason(diver() as never, 'ground:1')).toBe('There is nothing under you but water.');
+    expect(lit.getFloor()).toBeNull();
+    expect(lit.groundRefusal()).toBe('There is nothing under you but water.');
+    expect(lit.groundRefusal('ground')).toBe('There is nothing under you but water.');
+    // Something else named is the verb's to look for, not the place's to refuse.
+    expect(lit.groundRefusal('chair')).toBeNull();
+    expect(bed.groundRefusal()).toBeNull();
     const ground = bed.getFloor() as unknown as { bears(kg: number): boolean };
     expect(ground.bears(500)).toBe(true);
   });

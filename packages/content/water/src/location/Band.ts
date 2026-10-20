@@ -16,9 +16,10 @@
  *
  *  - **What you are in.** Under the surface: water, at the band's depth,
  *    never at the surface — even standing on the bed.
- *  - **What you stand on.** The lit and dark bands author the non-bearing
- *    `open-water` floor, so `sit` refuses in physics words; the bed is
- *    ground (its row authors no floor, and z < 0 puts it on grade).
+ *  - **What you stand on.** Nothing, in mid-water: the lit and dark bands
+ *    have no floor (`noDefaultFloor`), and the posture verbs ask the place
+ *    why — *nothing under you but water*. The bed is ground (its row
+ *    authors no floor, and z < 0 puts it on grade).
  *  - **What goes down.** A thing that sinks goes to the bed; one that
  *    floats goes up to the surface; a neutral body stays.
  *  - **What you see.** The surface's light through the band's depth of
@@ -241,6 +242,11 @@ export default class Band extends BandBase {
   public getAmbientColorTemperature(): Quantity<'K'> | null {
     const depth = this.getDepthM();
     return Quantity.of(Math.min(20000, 6500 + 1500 * depth), 'K');
+  }
+
+  /** Mid-water has no ground: what is under you is more water. */
+  public override noGroundLine(): string {
+    return 'There is nothing under you but water.';
   }
 
   /** The row's words, then what this water is like here: how far you see, how far up the air is. */

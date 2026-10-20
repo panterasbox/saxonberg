@@ -583,11 +583,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const floor = this.waterFloor();
       if (floor !== null && floor.supportIsSlotted()) {
         if (!(floor.openWaterAreaM2() > 0)) return false;
-      } else {
-        const pick = (this as unknown as Shore).waterFor();
-        if ('key' in pick && (this as unknown as Shore).peekWaterRead(pick.key)?.frozen === true) {
-          return false;
-        }
+      } else if (this.stateNow() === 'frozen') {
+        // No floor that holds anyone (or none at all, mid-water): the
+        // place's own state says whether its water can be swum — a band
+        // under the ice is still water.
+        return false;
       }
       return super.canEngageAxis(direction);
     }
@@ -681,11 +681,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       // in it, and everything it carries, is wet through; whatever was
       // burning is out; an open empty vessel fills with the water.
       if (BiomeApi.mediumFor(thing).immersed) void this.immerseArrival(thing);
-      // Open water (nothing underfoot bears even an empty load): a dense
-      // thing goes straight down. On ice it lies on the ice until the
-      // thaw. Deferred a tick: never move a thing from inside the hook of
-      // its own arrival.
-      if (floor !== null && floor.supportIsSlotted() && !floor.bears(0) && this.sinks(thing)) {
+      // Open water (nothing underfoot bears even an empty load — or, in
+      // mid-water, nothing underfoot at all): a dense thing goes straight
+      // down. On ice it lies on the ice until the thaw. Deferred a tick:
+      // never move a thing from inside the hook of its own arrival.
+      const unborne = floor === null || (floor.supportIsSlotted() && !floor.bears(0));
+      if (unborne && this.sinks(thing)) {
         void Promise.resolve().then(() => this.sink(thing));
       }
     }

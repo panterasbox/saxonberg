@@ -12,4 +12,5 @@ data:
   _biomePath: /stuff/idea/biome/water/under
   enclosure: none
   roof: none
-  floor: { template: /system/water/thing/open-water }
+  # Nothing under you but water: no floor, and the band says so.
+  noDefaultFloor: true

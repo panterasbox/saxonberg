@@ -21,6 +21,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { Postures } from '../../../../lib/slot/Postured';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import Place from '../../../../lib/stuff/Place';
 
 interface StandModel extends CommandModel {
   target?: MqlOneResult;
@@ -112,6 +113,10 @@ export default class StandController extends CommandController<StandModel> {
         .send();
       return;
     }
+
+    // ⭐ Nowhere to stand (mid-water): the place says why.
+    const why = room instanceof Place ? room.groundRefusal() : null;
+    if (why !== null) return this.refuse(context, 'act.deed', why, 'no-ground');
 
     // Slot-less form: just vacate any current posture-bearing slot.
     giver.vacatePostureBearingSlots();

@@ -897,8 +897,8 @@ posture floor is a floor and a puddle needs the slot.
 data:
   floor: { material: /stuff/idea/material/rock/granite, worked: true }
 
-# Not standable at all — the void today; mid-air and mid-water when they
-# exist. ⚠ A different question from `onGrade`, which asks whether the
+# Not standable at all — the void, and the water pack's mid-water bands
+# (mid-air when it exists); the place says why (`noGroundLine`). ⚠ A different question from `onGrade`, which asks whether the
 # ground continues BENEATH a floor that exists.
 data:
   noDefaultFloor: true
