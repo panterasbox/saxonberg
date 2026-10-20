@@ -16,6 +16,8 @@ data:
     - /trade/sugar/thing/kettle-arch
     - { template: /trade/sugar/thing/kettle, count: 2 }
     - /stuff/thing/vessel/pail
+    - /trade/sugar/thing/hogshead
+    - /trade/sugar/thing/curing-pot
     - /stuff/thing/instrument/thermometer
     - { template: /stuff/thing/items/dry-log, count: 10 }
   cast:

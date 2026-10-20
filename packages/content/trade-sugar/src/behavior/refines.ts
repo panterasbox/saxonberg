@@ -1,24 +1,34 @@
 /**
- * refines — the Sugar House refiner's brain (sugar D19).
+ * refines — a sugar boiler's brain (sugar D19), the same at a Terminus
+ * refinery and on an island estate.
  *
- * ⭐ **One act per beat, every act a verb a player could type.** The
- * refiner reads the copper and the arch where he stands and does the next
- * thing a boiler would: water in, a block dissolved, lime, the skim, the
- * fire laid and lit, the copper set on it, and the copper taken off at the
- * strike. A player at the same copper does the same verbs by hand.
+ * ⭐ **One beat, one act; every act a verb a player could type.** The boiler
+ * reads the pan and the fire where they stand and does the next thing a
+ * boiler would — the liquor in, lime, the skim, the fire laid and lit, the
+ * pan set on it, the strike taken off and poured into a mould on its pot.
+ * A player at the same pan does the same verbs by hand. ⚠ No `boil`
+ * anywhere: `heat` sets the pan on the fire and the plateau does the
+ * boiling, and the strike is read off the pan's own liquor.
  *
- * The strike is read off the liquor itself — the copper's material — not
- * by running the reading verb: the brain knows what the pan holds the way
- * the pan does. ⚠ No `boil` anywhere: `heat` sets the copper on the fire
- * and the plateau does the boiling.
+ * ⭐ **The words are the place's** (sugar W6): a refinery dissolves bought
+ * raw sugar in a COPPER over an ARCH and sets LOAVES in CONES; an estate
+ * pours cane juice from the mill's tubs into a KETTLE over the TRAIN and
+ * cures BLOCKS in HOGSHEADS. Same machine, different config.
  *
- * At the strike it sets a cone on a pot and pours the copper into it (W2).
- * What it does NOT do: fetch blocks or lime from elsewhere (it works with
- * what is in the room), nip, pound or decant — those are the drive's hands
- * and a later beat's.
+ * ⭐ **It finishes what it makes** so the house sells something with nobody
+ * about (the NPC always covers): a refinery's loaf is taken out, nipped, a
+ * piece pounded at the quern and the sack carried to the counter; an
+ * estate's block is knocked out of its hogshead and carried to the counter.
+ *
+ * ⭐⭐ **The backstop is the house's own counter.** A refinery's raw sugar
+ * comes off the island when a player has carried some (`restocks` posts that
+ * bounty; it lands on the floor). With none on the floor it buys a block of
+ * the IMPORT off its own counter — and lime likewise — so the house keeps
+ * boiling with nobody sailing. What it does NOT do: decant the molasses.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -28,74 +38,153 @@ import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged'
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import Copper from '../thing/Copper';
 import CuringPot from '../thing/CuringPot';
+import SugarLoaf from '../thing/SugarLoaf';
 
-/** Litres of water a batch starts from — a block's worth, at a working strength. */
+/** Litres of water a refinery batch starts from — a block's worth. */
 const BATCH_WATER = '30L';
-/** The stage a boiler takes the copper off at. */
-const STRIKE_TAG = 'strike';
+/** Moisture above which bagasse will not catch (wet off the rollers). */
+const TOO_WET = 0.5;
 
-/** What the refiner can see of his floor. */
+/** The place's words, and where its counter is (config). */
+interface Words {
+  kettle: string;
+  fire: string;
+  mould: string;
+  pot: string;
+  /** Fuel keywords in order of preference — the first dry one in reach. */
+  fuels: readonly string[];
+  /** Where the liquor comes from: a bought block dissolved, or mill juice. */
+  source: 'block' | 'juice';
+  /** What is finished: a loaf nipped and pounded, or a raw block carried. */
+  finish: 'loaf' | 'block';
+  /** The house's counter (a path), and the way to it and back — directions
+   *  separated by spaces (`south east north`). */
+  counter: string;
+  out: string;
+  back: string;
+}
+
+const TERMINUS: Words = {
+  kettle: 'copper',
+  fire: 'arch',
+  mould: 'cone',
+  pot: 'pot',
+  fuels: ['coal'],
+  source: 'block',
+  finish: 'loaf',
+  counter: '',
+  out: 'south',
+  back: 'north',
+};
+
+/** What the boiler can see of the floor. */
 interface Floor {
   copper: Copper | null;
   onFire: boolean;
-  archLit: boolean;
-  archFuelled: boolean;
+  fireLit: boolean;
+  fireFuelled: boolean;
   liquor: 'empty' | 'water' | 'liquor' | 'struck' | 'spoilt';
   limed: number;
   skimmed: boolean;
+  /** Raw sugar on the floor or in hand. */
   block: boolean;
+  /** A tub of cane juice here (the estate's source). */
+  juice: boolean;
   lime: boolean;
-  fuel: boolean;
-  /** An empty cone stands on a pot, ready to take a strike (W2). */
+  /** The first dry fuel's keyword in reach, or `''`. */
+  fuel: string;
+  /** An empty mould stands on a pot, ready to take a strike. */
   coneReady: boolean;
-  /** An empty cone and an empty pot are both here, apart. */
+  /** An empty mould and an empty pot are both here, apart. */
   coneAndPot: boolean;
+  /** A mould holds a set loaf. */
+  setLoaf: boolean;
+  /** A mould holds a set raw-sugar block (an estate's hogshead). */
+  setBlock: boolean;
+  loaf: boolean;
+  nips: boolean;
+  piece: boolean;
+  quern: boolean;
+  sack: boolean;
+  /** The house's counter has raw sugar / lime to buy (the import). */
+  counterBlock: boolean;
+  counterLime: boolean;
 }
 
 export const brain = class {
   static label = 'refines';
   static kind: TaskKind = 'work';
   static summary =
-    'Runs the copper: water, a block dissolved, tempered, skimmed, the ' +
-    'fire lit, boiled to the strike and taken off.';
+    'Runs the pan: the liquor in, tempered, skimmed, the fire lit, boiled ' +
+    'to the strike, poured into a mould, and the sugar finished and shelved.';
   static discipline = 'sugar-refining';
   static claims: readonly EngagementSlot[] = ['hands', 'body'];
   static presenceGated = false;
   static ambient = false;
 
+  /** The place's words: Terminus's, overridden by the row's config. */
+  static words(config: unknown): Words {
+    const c = (config ?? {}) as Partial<Words>;
+    return { ...TERMINUS, ...c, fuels: c.fuels ?? TERMINUS.fuels };
+  }
+
   static urgency(ctx: BrainContext): Urgency {
-    const floor = brain.read(ctx.host);
+    const w = brain.words(ctx.config);
+    const floor = brain.read(ctx.host, w);
     if (floor === null) return new Urgency('idle');
-    return brain.next(floor) === null
+    return brain.next(floor, w) === null
       ? new Urgency('idle')
-      : new Urgency('wanted', 'turns to the copper');
+      : new Urgency('wanted', `turns to the ${w.kettle}`);
   }
 
   /**
-   * ⭐ The next verb a boiler would type, or `null` when there is nothing
-   * to do (the pan is boiling, or he has nothing to work with). Pure: the
-   * state machine is this one function.
+   * ⭐ The next verbs a boiler would type (an errand is several, one per
+   * line), or `null` when there is nothing to do. Pure: the state machine
+   * is this one function.
    */
-  static next(f: Floor): string | null {
+  static next(f: Floor, w: Words = TERMINUS): string | null {
     if (!f.copper) return null;
+    // The way to the counter and back, a step at a time (`south east north`).
+    const steps = (way: string): string[] => way.split(/\s+/).filter(Boolean).map((d) => `go ${d}`);
+    const errand = (...verbs: string[]): string => [...steps(w.out), ...verbs, ...steps(w.back)].join('\n');
     if (f.liquor === 'struck') {
-      if (f.onFire) return 'get copper';
-      if (f.coneReady) return 'pour copper into cone';
-      return f.coneAndPot ? 'put cone on pot' : null;
+      if (f.onFire) return `get ${w.kettle}`;
+      if (f.coneReady) return `pour ${w.kettle} into ${w.mould}`;
+      if (f.coneAndPot) return `put ${w.mould} on ${w.pot}`;
     }
-    if (f.liquor === 'spoilt') return null;
-    if (f.liquor === 'empty') return 'pour butt into copper --amount ' + BATCH_WATER;
-    if (f.liquor === 'water') return f.block ? 'put block in copper' : null;
+    // Finish what is made before starting more.
+    if (w.finish === 'loaf') {
+      if (f.sack) return errand('put sack in counter');
+      if (f.piece && f.quern) return 'mill piece';
+      if (f.loaf && f.nips) return 'cut loaf with nips';
+      if (f.setLoaf) return `get loaf from ${w.mould}`;
+    } else {
+      if (f.block) return errand('put block in counter');
+      if (f.setBlock) return `get block from ${w.mould}`;
+    }
+    if (f.liquor === 'struck' || f.liquor === 'spoilt') return null;
+    if (f.liquor === 'empty') {
+      if (w.source === 'juice') return f.juice ? `pour tub into ${w.kettle}` : null;
+      return `pour butt into ${w.kettle} --amount ${BATCH_WATER}`;
+    }
+    if (f.liquor === 'water') {
+      if (f.block) return `put block in ${w.kettle}`;
+      // The backstop: no island sugar on the floor — buy the import.
+      return f.counterBlock ? errand('wallet use house', 'buy block') : null;
+    }
     // A liquor: temper and skim it before it goes on.
-    if (f.limed === 0) return f.lime ? 'temper copper with lime' : null;
-    if (!f.skimmed) return 'skim copper into pail';
-    if (!f.archFuelled) return f.fuel ? 'stoke arch with coal' : null;
-    if (!f.archLit) return 'light arch';
-    if (!f.onFire) return 'heat copper';
+    if (f.limed === 0) {
+      if (f.lime) return `temper ${w.kettle} with lime`;
+      return f.counterLime ? errand('wallet use house', 'buy quicklime') : null;
+    }
+    if (!f.skimmed) return `skim ${w.kettle} into pail`;
+    if (!f.fireFuelled) return f.fuel ? `stoke ${w.fire} with ${f.fuel}` : null;
+    if (!f.fireLit) return `light ${w.fire}`;
+    if (!f.onFire) return `heat ${w.kettle}`;
     return null;
   }
 
-  static read(host: Stuff): Floor | null {
+  static read(host: Stuff, w: Words = TERMINUS): Floor | null {
     if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') return null;
     if (!MixinApi.isContainable(host)) return null;
     const room = host.getContainer();
@@ -104,24 +193,30 @@ export const brain = class {
       ...(room as Stuff & Container).getContents(),
       ...(MixinApi.isContainer(host) ? host.getContents() : []),
     ] as Stuff[];
-    const copper = (here.find((s) => s instanceof Copper) as Copper | undefined) ??
-      (here
-        .flatMap((s) => (MixinApi.isPlacing(s) ? ([...s.getPlaced()] as Stuff[]) : []))
-        .find((s) => s instanceof Copper) as Copper | undefined) ??
-      null;
-    const arch = here.find((s) => MixinApi.isBurner(s)) ?? null;
-    const isEmptyCone = (s: Stuff): boolean =>
-      MixinApi.isMould(s) && MixinApi.isBulkable(s) && s.isBulkEmpty('interior') && !s.holdsCast();
-    const cones = here.filter(isEmptyCone);
-    const pots = here.filter((s) => s instanceof CuringPot);
-    const coneReady = cones.some(
-      (c) =>
-        MixinApi.isContainable(c) &&
-        (c.getPlacement()?.host as unknown as Stuff | undefined) instanceof CuringPot,
-    );
-    const freePot = pots.some((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
+    const named = (s: Stuff, word: string): boolean =>
+      MixinApi.isPerceptible(s) && s.hasKeyword(word);
     const hasTag = (s: Stuff, tag: string): boolean =>
       MixinApi.isTangible(s) && (s.getMaterial()?.hasTag(tag) ?? false);
+    const placedOn = (s: Stuff): Stuff | undefined =>
+      MixinApi.isContainable(s) ? (s.getPlacement()?.host as unknown as Stuff | undefined) : undefined;
+
+    const fire = here.find((s) => MixinApi.isBurner(s) && named(s, w.fire)) ??
+      here.find((s) => MixinApi.isBurner(s)) ??
+      null;
+    const coppers = [
+      ...here,
+      ...here.flatMap((s) => (MixinApi.isPlacing(s) ? ([...s.getPlaced()] as Stuff[]) : [])),
+    ].filter((s): s is Copper => s instanceof Copper);
+    // The pan on the fire first, else any — a second kettle is a spare.
+    const copper = coppers.find((c) => fire !== null && placedOn(c) === fire) ?? coppers[0] ?? null;
+
+    const isEmptyMould = (s: Stuff): boolean =>
+      MixinApi.isMould(s) && MixinApi.isBulkable(s) && s.isBulkEmpty('interior') && !s.holdsCast();
+    const cones = here.filter(isEmptyMould);
+    const pots = here.filter((s) => s instanceof CuringPot);
+    const coneReady = cones.some((c) => placedOn(c) instanceof CuringPot);
+    const freePot = pots.some((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
+
     let liquor: Floor['liquor'] = 'empty';
     let limed = 0;
     let skimmed = false;
@@ -131,36 +226,77 @@ export const brain = class {
       limed = payload.limed ?? 0;
       skimmed = payload.skimmed ?? false;
       if (!mat || mat.getSolidsKgPerL() <= 0) liquor = 'water';
-      else if (mat.hasTag(STRIKE_TAG)) liquor = 'struck';
+      else if (mat.hasTag('strike')) liquor = 'struck';
       else if (mat.hasTag('caramel') || mat.hasTag('burnt') || mat.hasTag('blackstrap')) liquor = 'spoilt';
       else liquor = 'liquor';
     }
-    const onFire =
-      !!copper &&
-      !!arch &&
-      (copper.getPlacement()?.host as unknown as Stuff | undefined) === arch;
+
+    const moulded = (pred: (c: Stuff) => boolean): boolean =>
+      here.some(
+        (m) =>
+          MixinApi.isMould(m) &&
+          MixinApi.isContainer(m) &&
+          ((m as unknown as Container).getContents() as Stuff[]).some(pred),
+      );
+    const isSack = (s: Stuff): boolean =>
+      s.getTemplatePath() === '/trade/cooking/thing/sugar-sack' &&
+      MixinApi.isBulkable(s) &&
+      !s.isBulkEmpty('interior');
+    const dryFuel = (word: string): boolean =>
+      here.some(
+        (s) =>
+          named(s, word) &&
+          hasTag(s, 'fuel') &&
+          !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET),
+      );
+    const counter = w.counter ? StuffApi.findByTemplatePath(w.counter) : null;
+    const onCounter = (tag: string): boolean =>
+      !!counter &&
+      MixinApi.isContainer(counter) &&
+      (counter.getContents() as Stuff[]).some((s) => hasTag(s, tag));
+
     return {
       copper,
-      onFire,
-      archLit: !!arch && MixinApi.isBurner(arch) && arch.isLit(),
-      archFuelled: !!arch && MixinApi.isBurner(arch) && arch.fuelRemaining() > 0,
+      onFire: !!copper && fire !== null && placedOn(copper) === fire,
+      fireLit: !!fire && MixinApi.isBurner(fire) && fire.isLit(),
+      fireFuelled: !!fire && MixinApi.isBurner(fire) && fire.fuelRemaining() > 0,
       liquor,
       limed,
       skimmed,
       block: here.some((s) => hasTag(s, 'raw-sugar')),
+      juice: here.some(
+        (s) =>
+          MixinApi.isBulkable(s) &&
+          !s.isBulkEmpty('interior') &&
+          (s.getBulkMaterial('interior')?.hasTag('cane-juice') ?? false),
+      ),
       lime: here.some((s) => hasTag(s, 'liming')),
-      fuel: here.some((s) => hasTag(s, 'fuel')),
+      fuel: w.fuels.find(dryFuel) ?? '',
       coneReady,
       coneAndPot: cones.length > 0 && freePot,
+      setLoaf: moulded((c) => c instanceof SugarLoaf),
+      setBlock: moulded((c) => hasTag(c, 'raw-sugar')),
+      loaf: here.some((s) => s instanceof SugarLoaf),
+      nips: here.some((s) => MixinApi.isTool(s) && s.hasCapability('nipping')),
+      piece: here.some((s) => !(s instanceof SugarLoaf) && hasTag(s, 'loaf-sugar')),
+      quern: here.some((s) => MixinApi.isTool(s) && s.hasCapability('millstone')),
+      sack: here.some(isSack),
+      counterBlock: onCounter('raw-sugar'),
+      counterLime: onCounter('liming'),
     };
   }
 
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (!MixinApi.isCommandGiver(host)) return;
-    const floor = brain.read(host);
+    const w = brain.words(ctx.config);
+    const floor = brain.read(host, w);
     if (floor === null) return;
-    const verb = brain.next(floor);
-    if (verb !== null) await (host as Stuff & CommandGiver).forceCommand(verb);
+    const verbs = brain.next(floor, w);
+    if (verbs === null) return;
+    // An errand is a few verbs in a row (out, the act, back) — one beat's.
+    for (const verb of verbs.split('\n')) {
+      await (host as Stuff & CommandGiver).forceCommand(verb);
+    }
   }
 };

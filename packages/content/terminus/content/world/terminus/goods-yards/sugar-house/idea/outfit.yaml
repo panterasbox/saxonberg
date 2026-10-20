@@ -31,6 +31,14 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
   parLines:
+    # ⭐⭐ (sugar W6) Raw sugar from the island. Nobody sails it yet — the
+    # ship build gives the Hesper a master — so the refiner's keeper posts
+    # the shortfall as a carriage bounty: a player buys blocks at the
+    # estate's counter, sails them home in the hold and lands them on the
+    # receiving bench. With none on the floor the refiner buys the import
+    # off this house's own counter, which keeps the house boiling and caps
+    # what island sugar is worth here.
+    - { category: raw-sugar, unit: count, level: 8, supplier: /world/terminus/waponi-woo/idea/estate, exemplar: /trade/sugar/thing/raw-sugar-block }
     - { category: liming, unit: count, level: 6, supplier: /world/terminus/rejection/idea/provisioning-business, exemplar: /trade/quarrying/thing/quicklime }
   banksAt: goodkin
   operatingLocations:

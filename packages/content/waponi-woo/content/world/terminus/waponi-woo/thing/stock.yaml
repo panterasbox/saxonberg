@@ -18,7 +18,11 @@ data:
     - { itemTemplatePath: /trade/sugar/thing/raw-sugar-block, par: 0 }
     - { itemTemplatePath: /trade/sugar/thing/molasses-cask, par: 0 }
     - { itemTemplatePath: /trade/sugar/thing/crop/cane, par: 0, buys: true }
+    # Lime comes in by ship from the quarries, like everything the island
+    # does not make (the import backstop; burnt-coral lime is a later row).
+    - { itemTemplatePath: /trade/quarrying/thing/quicklime, par: 6 }
   prices:
     /trade/sugar/thing/raw-sugar-block: 9
     /trade/sugar/thing/molasses-cask: 6
     /trade/sugar/thing/crop/cane: 2
+    /trade/quarrying/thing/quicklime: 3

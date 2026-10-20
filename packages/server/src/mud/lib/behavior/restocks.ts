@@ -71,6 +71,7 @@
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
 import { EmploymentApi, type Business, type StockSheetLine } from '../../api/employment';
 import { ContractApi } from '../../api/contract';
 import type { ConditionData } from '../employment/Condition';
@@ -265,12 +266,25 @@ async function businessHere(
   );
 }
 
-/** The room of a supplier's live counter — the first operating location holding a Stock. */
-function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
-  const supplier = StuffApi.findByTemplatePath(supplierPath);
+/**
+ * The room of a supplier's counter — the first operating location holding a
+ * Stock. ⭐ LOADED ON USE (sugar W6): the supplier is an authored reference
+ * (the par line names it), so it is followed, never only looked up — a
+ * supplier across the sea that nobody has visited is not loaded, and a
+ * registry read alone would never order from it at all.
+ */
+async function counterRoomOf(supplierPath: string): Promise<(Stuff & Container) | null> {
+  const supplier = await StuffApi.singleton(supplierPath).catch(() => null);
   if (!supplier || !MixinApi.isBusiness(supplier)) return null;
   for (const locPath of supplier.getOperatingLocations()) {
-    const loc = StuffApi.findByTemplatePath(locPath);
+    // ⚠ Only a PLACE is loaded by its path — the location graph says which
+    // paths are places. An operating location may name the counter itself
+    // (`…/thing/stock`), and a singleton read of a thing whose room is not
+    // loaded would mint a stray counter; the room loads its own as a prop.
+    // `singleton` IS the get-or-create: its first act is the index read.
+    const loc = (await NavigationApi.node(locPath).catch(() => null))
+      ? await StuffApi.singleton(locPath).catch(() => null)
+      : StuffApi.findByTemplatePath(locPath);
     if (!loc || !MixinApi.isContainer(loc)) continue;
     const hasCounter = (loc.getContents() as Stuff[]).some((c) =>
       MixinApi.isConsignmentShelf(c),
@@ -279,7 +293,6 @@ function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
   }
   return null;
 }
-
 
 /** The primary keyword of the live instance of `templatePath` in `room`. */
 function fixtureKeyword(room: Stuff & Container, templatePath: unknown): string | null {
@@ -387,7 +400,7 @@ async function order(
   const pending = await pendingKinds(opts.boardPath, opts.benchPath);
   for (const [supplierPath, lines] of bySupplier) {
     if (budget <= 0) break;
-    const counterRoom = counterRoomOf(supplierPath);
+    const counterRoom = await counterRoomOf(supplierPath);
     if (!counterRoom) continue;
     const fromPath = counterRoom.getTemplatePath() ?? '';
     if (fromPath === '') continue;

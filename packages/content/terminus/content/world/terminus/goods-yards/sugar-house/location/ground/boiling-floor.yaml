@@ -35,6 +35,11 @@ data:
     - /trade/sugar/thing/cone
     - /trade/sugar/thing/curing-pot
     - /trade/haulage/thing/works-board
+    # (sugar W6) Where a hauler lands island sugar, the table the refiner
+    # shelves it on, and the nips he breaks the loaves with.
+    - /trade/haulage/thing/receiving-bench
+    - /stuff/thing/fixture/table
+    - /trade/sugar/thing/sugar-nips
     - { template: /trade/quarrying/thing/coal, count: 8 }
   cast:
     - /world/terminus/goods-yards/sugar-house/agent/refiner

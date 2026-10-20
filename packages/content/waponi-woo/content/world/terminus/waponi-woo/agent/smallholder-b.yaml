@@ -16,6 +16,12 @@ data:
   competence:
     - { discipline: agriculture, asserting: competent }
   behaviors:
+    - brain: /trade/sugar/behavior/cuts
+      trigger: candidate
+      config:
+        to: [east, northeast, north]
+        back: [south, southwest, west]
+        deliver: sell cane
     - brain: /lib/behavior/greets
       trigger: arrival
       config:

@@ -23,6 +23,23 @@ data:
   behaviors:
     - brain: /trade/sugar/behavior/refines
       trigger: candidate
+      config:
+        counter: /world/terminus/goods-yards/sugar-house/thing/stock
+        out: south
+        back: north
+    # ⭐ The keeper's beat (sugar W6): the par sheet read off the floor, the
+    # shortfall posted as a bounty — raw sugar from the island, lime from
+    # Rejection — and what a hauler lands on the bench put on the table.
+    # ⭐ The reward is the import's price for eight blocks (8 × 14): the
+    # import is the CEILING on what island sugar is worth landed here, so
+    # what the run pays is that ceiling less the estate's price.
+    - brain: /lib/behavior/restocks
+      trigger: candidate
+      config:
+        shelf: /stuff/thing/fixture/table
+        board: /trade/haulage/thing/works-board
+        bench: /trade/haulage/thing/receiving-bench
+        reward: 112
     - brain: /lib/behavior/greets
       trigger: arrival
       config:

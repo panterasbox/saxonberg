@@ -15,7 +15,7 @@ data:
   groundSpotY: 3
   areaM2: 8000
   props:
-    - { template: /trade/sugar/thing/plant/cane, count: 6 }
+    - { template: /world/terminus/waponi-woo/thing/standing-cane, count: 6 }
   exits:
     northwest:
       destination: /world/terminus/waponi-woo/location/track

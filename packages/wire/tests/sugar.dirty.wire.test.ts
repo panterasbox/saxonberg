@@ -559,6 +559,25 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     expect(await examine(sailor, 'owner')).toMatch(/Adaeze|owner|ledger/i);
   }, 600_000);
 
+  it('18. ⭐ the estate works with nobody hired by the player: cane cut, crushed, boiled, cured into blocks for its counter', async () => {
+    // Stand on the island through a working week (the NPCs act while it is
+    // loaded): ripe cane is cut and carried, crushed, the juice boiled on
+    // the train, struck into a hogshead, and the cured block shelved.
+    sailor.close();
+    sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
+    let counter = '';
+    for (let i = 0; i < 12 && !/raw sugar|block/i.test(counter); i++) {
+      await advance(12 * HOUR);
+      counter = await examine(sailor, 'kettle');
+      sailor.close();
+      sailor = await goTo(sailorHandle, `${W}/location/store`);
+      counter = await examine(sailor, 'counter');
+      sailor.close();
+      sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
+    }
+    expect(counter, 'the estate never shelved a block of its own sugar').toMatch(/raw sugar|block/i);
+  }, 3_600_000);
+
   it('19. ⭐⭐ cargo in the Hesper\'s hold survives a restart (D13)', async () => {
     const f = await Session.open('founder', { startLocation: HOLD, wizard: true });
     try {
@@ -575,5 +594,40 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
       back.close();
     }
   }, 1_800_000);
+
+  it('20. ⭐⭐ the Sugar House posts a bounty for island sugar; a player sails it home and is paid', async () => {
+    // The refiner's keeper reads the floor on shift and posts the shortfall.
+    const now = await worldClockNow();
+    const day = Math.floor(now / DAY);
+    const weekday = ((day % 7) + 7) % 7;
+    const toMonday9 = (((7 - weekday) % 7 || 7) * DAY) + 9 * HOUR - (now - day * DAY);
+    await advance(weekday < 6 && (now - day * DAY) < 15 * HOUR ? HOUR : toMonday9);
+    sailor = await goTo(sailorHandle, FLOOR);
+    await advance(2 * HOUR);
+    const board = `${await say(sailor, 'job')} ${await sailor.listen(2_000).catch(() => '')}`;
+    const gig = /\[([A-Za-z0-9_-]{4,})\][^\n]*raw sugar/i.exec(board)?.[1] ?? '';
+    expect(gig, `no raw-sugar bounty on the Sugar House board: ${board}`).not.toBe('');
+    await say(sailor, `job claim ${gig}`);
+
+    // Over the sea: buy at the estate, aboard, home over the bar, ashore.
+    sailor.close();
+    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    for (let i = 0; i < 8; i++) await say(sailor, 'buy block');
+    sailor.close();
+    sailor = await goTo(sailorHandle, `${W}/location/landing`);
+    await say(sailor, 'go aboard');
+    await say(sailor, 'course bar');
+    let heard = '';
+    for (let i = 0; i < 12 && !/raise the bar|the bar/i.test(heard); i++) {
+      await advanceWorldClock('6 hours');
+      heard += await sailor.listen(3_000).catch(() => '');
+    }
+    await say(sailor, 'go ashore');
+    sailor.close();
+    sailor = await goTo(sailorHandle, FLOOR);
+    await say(sailor, 'put blocks on bench');
+    const paid = await say(sailor, `job complete ${gig}`);
+    expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
+  }, 3_600_000);
 });
 

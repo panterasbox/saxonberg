@@ -54,6 +54,7 @@ import { Currency, BankingApi, Money } from '../../../api/banking';
 import { ContractApi } from '../../../api/contract';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
+import { NavigationApi } from '../../../api/navigation';
 import { MixinApi } from '../../../api/mixin';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { CommandApi, type CommandContext } from '../../../api/command';
@@ -489,6 +490,30 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     expect(lines).toEqual([]);
     expect(await gigs()).toHaveLength(1);
     expect(BankingApi.balanceOf(barAccount).minor).toBe(200 - REWARD);
+  });
+
+  it('⭐ a supplier nobody has loaded is FOLLOWED, not skipped (sugar W6 — load on use)', async () => {
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
+    const onRail = ginBottle();
+    ContainmentApi.move(onRail as never, shelf as never);
+    await asPrincipal(mara, () => onRail.stampChattel(barBiz as never));
+    const lines = installDispatcher();
+    // The supplier and its room read as not-yet-loaded; the par line still
+    // names them, so the brain loads them through `singleton`.
+    const live = StuffApi.findByTemplatePath.bind(StuffApi);
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((path: string) =>
+      path === DISTRIBUTION || path === CASH_AND_CARRY ? null : live(path)) as never);
+    const loads = vi.spyOn(StuffApi, 'singleton');
+    // The location graph knows the cash-and-carry is a place.
+    vi.spyOn(NavigationApi, 'node').mockImplementation((async (p: string) =>
+      p === CASH_AND_CARRY ? ({ identity: p } as never) : null) as never);
+
+    await restocks.act(brainCtx());
+
+    expect(loads.mock.calls.map((c) => c[0])).toEqual(
+      expect.arrayContaining([DISTRIBUTION, CASH_AND_CARRY]),
+    );
+    expect(lines.some((l) => l.includes(`--from ${CASH_AND_CARRY}`))).toBe(true);
   });
 
   it('⭐⭐⭐ A COLD RAIL still orders — the bar can OPEN', async () => {

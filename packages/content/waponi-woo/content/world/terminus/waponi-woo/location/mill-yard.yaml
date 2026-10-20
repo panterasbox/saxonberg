@@ -9,11 +9,10 @@ data:
   ambientIntensity: 60000
   ambientColorTemperature: 5800
   longDescription: |
-    A beaten yard round a circular stone bed where a great stone wheel rolls on its edge behind a mule, crushing cane. The juice runs off the bed by a channel into tubs; the crushed trash is forked out into heaps to dry. The boiling house is north; the track is back east.
+    A beaten yard round a circular stone bed where a great stone wheel rolls on its edge behind a mule, crushing cane. The juice runs off the bed by a channel into a tub that goes up to the boiling house full; the crushed trash is forked out into heaps to dry. The boiling house is north; the track is back east.
   coords: { x: -1, y: 1, z: 0 }
   props:
     - /trade/sugar/thing/edge-runner
-    - { template: /trade/sugar/thing/juice-tub, count: 2 }
   cast:
     - /world/terminus/waponi-woo/agent/miller
   exits:

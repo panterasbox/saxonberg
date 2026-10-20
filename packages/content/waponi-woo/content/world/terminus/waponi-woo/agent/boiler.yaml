@@ -16,6 +16,23 @@ data:
   competence:
     - { discipline: sugar-refining, asserting: proficient }
   behaviors:
+    # ⭐ The same refiner's brain as Terminus's, in the island's words
+    # (sugar W6): juice from the mill's tub into a kettle over the train,
+    # struck into a hogshead on its pot, the cured block carried to the
+    # estate counter (south, east, north — and back).
+    - brain: /trade/sugar/behavior/refines
+      trigger: candidate
+      config:
+        kettle: kettle
+        fire: train
+        mould: hogshead
+        pot: pot
+        fuels: [bagasse, log]
+        source: juice
+        finish: block
+        counter: /world/terminus/waponi-woo/thing/stock
+        out: south east north
+        back: south west north
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

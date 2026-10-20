@@ -15,6 +15,9 @@ data:
   businessPath: /world/terminus/goods-yards/sugar-house/idea/outfit
   stockLines:
     - { itemTemplatePath: /trade/sugar/thing/raw-sugar-block, par: 6 }
+    # The lime the refiner falls back on when no hauler has brought any
+    # from Rejection — the import backstop, as the raw sugar above.
+    - { itemTemplatePath: /trade/quarrying/thing/quicklime, par: 4 }
     # ⭐ What the house MAKES — no par import: these lines are only ever
     # filled by the refiner's hands (a sack pounded off a loaf, a cask
     # decanted from the pots).
@@ -24,5 +27,6 @@ data:
   # what makes refining it worth a day's fuel and a refiner's.
   prices:
     /trade/sugar/thing/raw-sugar-block: 14
+    /trade/quarrying/thing/quicklime: 3
     /trade/cooking/thing/sugar-sack: 6
     /trade/sugar/thing/molasses-cask: 9

@@ -16,6 +16,10 @@ data:
   competence:
     - { discipline: milling, asserting: competent }
   behaviors:
+    - brain: /trade/sugar/behavior/mills
+      trigger: candidate
+      config:
+        carry: { to: [north], back: [south] }
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

@@ -1659,9 +1659,50 @@ and the smallholders`.
 >   endorses it, L421–422), and D12, the planet radius (the slate is
 >   silent on it).
 > - **Held, destination the harbour build** (ships-and-harbours slate):
->   D14 (the master's `sails` brain and the two-leg run), and AC 12's
->   second half (the island's raw sugar replacing the Sugar House's
->   import). The import stays, and the MR says so.
+>   D14, the master's `sails` brain and the two-leg run.
+>
+> ⭐⭐ **Re-plan 2 (2026-10-19, the owner's call): ship sugar without the
+> voyage. The sea is crossed by PLAYERS.** The realm already lets a player
+> board the Hesper and `course waponi woo`, and the hold now persists, so
+> the run exists with no new sailing code:
+> - **The Sugar House orders island sugar.** A par line raw-sugar × 8,
+>   supplier the estate. The refiner runs the shipped `restocks` beat,
+>   which posts the shortfall as a carriage bounty on the works board,
+>   `--from` the estate's store. The reward is 112 = 8 × the import's 14:
+>   **the import is the CEILING** on what island sugar is worth landed
+>   here. Delivered blocks land on the receiving bench and go on the
+>   floor's table.
+> - **The import stays as the backstop.** With no island sugar on the
+>   floor the refiner buys a block off its own counter (and lime likewise).
+>   The house keeps boiling with nobody sailing (DAU-independence), and
+>   the bounty keeps standing.
+> - ⭐ **Kernel fix in `restocks`: the supplier is LOADED ON USE.**
+>   `counterRoomOf` used a registry read, so a supplier nobody had loaded
+>   (an unbooted island) was never ordered from. It now follows the
+>   authored reference with `singleton`, loading only paths the location
+>   graph says are places, so it never mints a stray counter.
+> - **The estate works** (this closes W5's deferral, because the bounty
+>   needs blocks to buy):
+>   - `refines` is configurable by the place's words: kettle/fire/mould/
+>     pot/fuels, `source: block|juice`, `finish: loaf|block`, counter and
+>     multi-step errand ways. The island's boiler runs it.
+>   - New `cuts`: cut ripe cane, carry it to the mill, or with
+>     `deliver: sell cane` sell it at the counter (smallholders, who need
+>     no shift).
+>   - New `mills`: crush, then carry the tub of juice north.
+>   - The estate counter imports lime.
+>   - The fields carry `standing-cane`, ripe: an island that grew cane
+>     before anyone watched.
+> - **The Terminus refiner finishes what he makes:** loaf out of the
+>   cone, nipped, a piece milled, the sack carried to the counter.
+>   Before this, loose sugar needed a player's hands; the pantry stopped
+>   conjuring it in W2, so the Lounge's mojitos depended on a player.
+> - **When the ship build lands:** the shipping line's master fills the
+>   same bounty. Nothing here is torn out; the import can retire once
+>   someone reliably runs the route.
+> - Drive 18: the estate shelves its own blocks. Drive 20: a player
+>   claims the bounty, buys at the estate, sails home over the bar,
+>   lands the blocks on the bench and is paid.
 
 **Goal.** AC 12; drive steps 19–20. Decisions D12, D13, D14.
 

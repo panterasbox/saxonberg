@@ -1,0 +1,7 @@
+# The estate's standing cane — ripe, because the island was growing cane
+# long before anyone arrived to watch it (the Hanging Wood's mature-maple
+# precedent). Cut it and it is a bundle that inverts on the clock; the
+# ratoon comes back from the root.
+extends: /trade/sugar/thing/plant/cane
+data:
+  growthStage: mature

@@ -12,16 +12,26 @@ const copper = {} as Copper;
 const base = {
   copper,
   onFire: false,
-  archLit: false,
-  archFuelled: false,
+  fireLit: false,
+  fireFuelled: false,
   liquor: 'empty' as const,
   limed: 0,
   skimmed: false,
   block: true,
   lime: true,
-  fuel: true,
+  fuel: 'coal',
+  juice: false,
+  setBlock: false,
+  counterLime: false,
   coneReady: false,
   coneAndPot: true,
+  setLoaf: false,
+  loaf: false,
+  nips: true,
+  piece: false,
+  quern: true,
+  sack: false,
+  counterBlock: false,
 };
 
 describe('refines — one act per beat', () => {
@@ -33,8 +43,8 @@ describe('refines — one act per beat', () => {
       put: (x) => ({ ...x, liquor: 'liquor' }),
       temper: (x) => ({ ...x, limed: 1 }),
       skim: (x) => ({ ...x, skimmed: true }),
-      stoke: (x) => ({ ...x, archFuelled: true }),
-      light: (x) => ({ ...x, archLit: true }),
+      stoke: (x) => ({ ...x, fireFuelled: true }),
+      light: (x) => ({ ...x, fireLit: true }),
       heat: (x) => ({ ...x, onFire: true }),
     };
     for (let i = 0; i < 10; i++) {
@@ -67,5 +77,43 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...base, liquor: 'water', block: false })).toBeNull();
     expect(brain.next({ ...base, liquor: 'liquor', lime: false })).toBeNull();
     expect(brain.next({ ...base, copper: null })).toBeNull();
+  });
+
+  it('⭐ finishes what it makes: loaf out, nipped, a piece milled, the sack to the counter', () => {
+    const idle = { ...base, liquor: 'liquor' as const, limed: 1, skimmed: true, fireFuelled: true, fireLit: true, onFire: true };
+    expect(brain.next({ ...idle, setLoaf: true })).toBe('get loaf from cone');
+    expect(brain.next({ ...idle, loaf: true })).toBe('cut loaf with nips');
+    expect(brain.next({ ...idle, piece: true })).toBe('mill piece');
+    expect(brain.next({ ...idle, sack: true })).toBe('go south\nput sack in counter\ngo north');
+  });
+
+  it('⭐⭐ island sugar first; with none on the floor it buys the import at its own counter', () => {
+    expect(brain.next({ ...base, liquor: 'water', block: true })).toBe('put block in copper');
+    expect(brain.next({ ...base, liquor: 'water', block: false, counterBlock: true })).toBe(
+      'go south\nwallet use house\nbuy block\ngo north',
+    );
+    expect(brain.next({ ...base, liquor: 'water', block: false, counterBlock: false })).toBeNull();
+  });
+
+  it('⭐⭐ the estate runs the same brain with its own words: juice, kettle, train, hogshead, block to the counter', () => {
+    const w = brain.words({
+      kettle: 'kettle', fire: 'train', mould: 'hogshead', fuels: ['bagasse', 'log'],
+      source: 'juice', finish: 'block', out: 'south', back: 'north',
+    });
+    const island = { ...base, block: false };
+    expect(brain.next({ ...island, juice: true }, w)).toBe('pour tub into kettle');
+    expect(brain.next({ ...island, juice: false }, w)).toBeNull();
+    const ready = { ...island, liquor: 'liquor' as const, limed: 1, skimmed: true, fuel: 'bagasse' };
+    expect(brain.next(ready, w)).toBe('stoke train with bagasse');
+    expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true }, w)).toBe('get kettle');
+    expect(brain.next({ ...island, liquor: 'struck' as const, coneReady: true }, w)).toBe('pour kettle into hogshead');
+    expect(brain.next({ ...island, setBlock: true }, w)).toBe('get block from hogshead');
+    expect(brain.next({ ...base, block: true }, w)).toBe('go south\nput block in counter\ngo north');
+  });
+
+  it('out of lime, it buys the import at its own counter', () => {
+    expect(
+      brain.next({ ...base, liquor: 'liquor', lime: false, counterLime: true }),
+    ).toBe('go south\nwallet use house\nbuy quicklime\ngo north');
   });
 });
