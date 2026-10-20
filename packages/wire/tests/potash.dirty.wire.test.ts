@@ -297,18 +297,27 @@ async function waitAway(handle: string, hours: number, visit?: { where: string; 
 async function brashOf(handle: string, species: string, bundles: number): Promise<void> {
   const s = await goTo(handle, RIDE);
   await say(s, 'get axe');
-  const felled = await act(s, `fell ${species}`, 240_000);
-  expect(felled, `fell ${species}: ${felled}`).toMatch(new RegExp(`The ${species} goes over`, 'i'));
-  expect(await count(s, 'here:i', /brash/i), `brash after felling ${species}`).toBeGreaterThanOrEqual(bundles);
+  await act(s, `fell ${species}`, 240_000);
+  // ⭐ The state, not the line: the trunk is down and the brash is on the ground.
+  let brash = 0;
+  for (let i = 0; i < 10 && brash < bundles; i++) {
+    brash = await count(s, 'here:i', /brash/i);
+    if (brash < bundles) await new Promise((r) => setTimeout(r, 2_000));
+  }
+  expect(brash, `brash after felling ${species}`).toBeGreaterThanOrEqual(bundles);
   await say(s, 'drop axe');
   s.close();
   for (let i = 0; i < bundles; i++) {
     const r = await goTo(handle, RIDE);
-    await say(r, 'get brash');
+    // ⚠ One bundle: a bare `get brash` lifts more than one, and a stray
+    // bundle in hand later answers to "ash" — MQL's partial match is a
+    // substring one, and b-r-ASH (the slate's vocabulary hazard, met).
+    await say(r, 'get 1 brash');
     r.close();
     const p = await goTo(handle, ASHERY);
     const fed = await say(p, 'stoke brash into pit');
     expect(fed, `stoke: ${fed}`).toMatch(/You lay a bundle of brash/i);
+    await say(p, 'drop brash').catch(() => '');
     p.close();
   }
 }

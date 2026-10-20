@@ -963,3 +963,12 @@ passes under it.
   large vessel on a range heats slowly (30 L takes ~5 game hours to a
   simmer); the copper is sized at 12 L for it. A power-limited heat
   transfer is this subsystem's.
+
+## Note — the potash build (2026-10-19)
+
+The second consumer of the latent-heat boil plateau: lye authors
+`latentHeatOfVaporization`, so an iron pot of it holds at the boil and
+loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
+keeps a pack-local count of the alkali across the boil-off and casts black
+salts when dry; it converges on the sugar build's solids-keeping plateau and
+is deleted then (`potash-on-sugar`, [potash.md](potash.md)).

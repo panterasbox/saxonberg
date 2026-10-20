@@ -510,3 +510,14 @@ PROTOCOL; it is not a pump. See [pump.md](./pump.md).
   (sulfur burns to sulfur dioxide); a substance's `flammableLimit` flashes
   on a flame (flour dust at the mill house). Incomplete exhaust soots every
   Soilable fixture in its room. See [cleanliness.md](./cleanliness.md).
+
+## History — the potash build (2026-10-19)
+
+A burner's ash carries its **alkali** beside its mass (`ashAlkaliKg`, each
+burnt material's `ashFraction × alkaliShare`) and is minted by one public
+method, `Burner.mintAshHeaps`, in heaps of `fire.ash.heapKg` carrying the
+strength as a composition entry (`fire.ash.alkaliMaterial`). The charcoal
+clamp's burnt-through ash uses it too, sized to the charge. `sweep` rakes
+ANY burner's grate (it used to require a flue). A firing now concentrates
+the constituents it keeps by `1 / massYield` and grades a Graded output by
+its weakest Graded input. See [potash.md](potash.md).

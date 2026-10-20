@@ -254,3 +254,10 @@ stamps, as evidence: *boiled and not handled since — fit to dress a
 wound*); an expert how long ago. ⛔ Never the microbes — `cleanTier()`
 reads contamination, which is silent (spoilage.md), so the reading speaks
 only from the process record. See [cleanliness.md](./cleanliness.md).
+
+## Note — the potash build (2026-10-19)
+
+`density` gained an eye rung: its `handTool` is `flotation`, the kept test
+egg. On a `lye` liquor both rungs speak in words (four bands, a novice
+telling three), never a figure; a ferment still reads its gravity. See
+[potash.md](potash.md).

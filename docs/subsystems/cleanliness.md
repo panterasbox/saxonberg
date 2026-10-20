@@ -200,8 +200,12 @@ Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
   draught** (down to `fire.ash.chokedDraught`), and the fire says *the grate
   is choked with ash*. Raked out as `/trade/fuel/thing/wood-ash`, **made
   from the hearth** — the hearth owner's by the fresh-title rule, so raking
-  a stranger's grate is the taking case. Big ash (a burn's ground) and ash
-  quality are [potash-slate](../slates/tails/potash-slate.md).
+  a stranger's grate is the taking case. ⭐ Since the potash build the ash
+  has a STRENGTH (the burnt material's `alkaliShare`), comes out in heaps of
+  `fire.ash.heapKg`, and any fire's grate is raked — not only a flued one.
+  The hopper derives lye strength from the heaps, leaves spent ash, and the
+  soap kettle slakes lime for a caustic lye: [potash.md](potash.md). Big ash
+  (a burn's ground) is [potash-slate](../slates/tails/potash-slate.md).
 - **The window** — grime is a factor inside `Window.transmissivity()`
   (a filthy pane passes 40 %). ⭐ A sky-lit room's named opening may be a
   one-sided pane IN the room (`/stuff/thing/fixture/window`): the vision
@@ -323,9 +327,9 @@ Each names where it goes; a slate that does not exist yet is the line that opens
   **Cotton** → `textiles` content. The laundress's ruin case uses wool.
 - **Seznick's and the dorm's windows as objects** → content, one row
   each over `Window`, when those homes want the drive's light step.
-- **Washing soda and potash as a trade's product** beyond the one
-  evaporative row → `trade-fuel` content; glycerin's products →
-  `cosmetics-slate`.
+- **Washing soda as a trade's product** → the kelp burn (underwater build);
+  the shipped boiled-lye "soda" row was potash and is retired — potash is
+  [potash.md](potash.md)'s. Glycerin's products → `cosmetics-slate`.
 - **Clean-home-is-immunity** → `disease-slate`; **eyes as anatomy** →
   `physiology-slate`; **the sterile field** → `surgery-specialty-slate`;
   **chlorine, detergent, the machine** → `laundry-slate` / `inquiry-slate`.

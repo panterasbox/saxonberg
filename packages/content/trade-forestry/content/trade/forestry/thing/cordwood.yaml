@@ -18,3 +18,10 @@ data:
   _materialPath: /stuff/idea/material/wood/hazel
   gradeBand: fair
   mass: 3.2
+  # ⭐ SEASONED (the potash drive): cordwood is cut and stacked a year to
+  # dry before anybody sells or stacks it as fuel, and a prop has no
+  # production act to have dried it — so with the sparse default
+  # (`_moisture = 1`, as-harvested) every stacked length read as green and a
+  # hearth refused it "too sodden to catch" (the fire build's charcoal
+  # finding, again). `seed` is the initial runtime state of a minted length.
+  dryness: 0.8
