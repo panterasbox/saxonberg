@@ -85,8 +85,9 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
       return;
     }
     const charge = dial(WeaveController.CHARGE_KEY, WeaveController.CHARGE);
-    const pool = warpPool(yarn);
-    if (pool.reduce((n, s) => n + s.getQuantity(), 0) < charge) {
+    // ⭐ Like skeins in hand warp together (`TextileStock.quantityInHand`).
+    const inHand = yarn instanceof TextileStock ? yarn.quantityInHand() : yarn.getQuantity();
+    if (inHand < charge) {
       this.declineStep(
         context,
         Mml.compose`There is not enough yarn there to warp a loom.`,
@@ -115,7 +116,7 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
       beginSelf: Mml.compose`You warp the loom with ${Mml.thing(yarn)} and begin throwing the shuttle.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets a web on the loom.`,
       onComplete: () => {
-        void finish(context, yarn, pool, charge, form, units, band);
+        void finish(context, yarn, charge, form, units, band);
       },
     });
   }
@@ -124,7 +125,6 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
 async function finish(
   context: CommandContext,
   yarn: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-  pool: Array<Stuff & { getQuantity(): number; setQuantity(n: number): void }>,
   charge: number,
   form: string,
   units: number,
@@ -136,14 +136,12 @@ async function finish(
   // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
   // destructed below.
   const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
-  let need = charge;
-  for (const s of pool) {
-    if (need <= 0) break;
-    if (s.isDestroyed()) continue;
-    const take = Math.min(need, s.getQuantity());
-    need -= take;
-    if (take >= s.getQuantity()) StuffApi.destruct(s);
-    else s.setQuantity(s.getQuantity() - take);
+  if (yarn instanceof TextileStock) {
+    yarn.drawInHand(charge);
+  } else {
+    const left = Math.max(0, yarn.getQuantity() - charge);
+    if (left === 0) StuffApi.destruct(yarn);
+    else yarn.setQuantity(left);
   }
 
   try {
@@ -171,33 +169,6 @@ async function finish(
 }
 
 /** The cloth takes the yarn's material and answers to its name. */
-/**
- * ⭐ What one warp may draw on: the yarn named and every stack beside it in
- * the same hands of the same yarn — the same row, fibre and count. ⚠ Yarn
- * a player spun is titled to them and a titled stack never merges (the
- * chattel rule), so two spins are two stacks of two and a warp wants four:
- * counting only the stack named refused every weave a player could make
- * (silk's drive). `spin` pools its stock the same way.
- */
-function warpPool(
-  yarn: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-): Array<Stuff & { getQuantity(): number; setQuantity(n: number): void }> {
-  const pool = [yarn];
-  const holder = MixinApi.isContainable(yarn) ? yarn.getContainer() : null;
-  if (!holder || !MixinApi.isContainer(holder)) return pool;
-  const row = yarn.getTemplatePath();
-  const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
-  const count = yarn instanceof TextileStock ? yarn.getYarnCount() : null;
-  for (const s of holder.getContents() as Stuff[]) {
-    if (s === yarn || !MixinApi.isStackable(s)) continue;
-    if (s.getTemplatePath() !== row) continue;
-    if (!MixinApi.isTangible(s) || s.getMaterial() !== fibre) continue;
-    if (count !== null && (!(s instanceof TextileStock) || s.getYarnCount() !== count)) continue;
-    pool.push(s);
-  }
-  return pool;
-}
-
 function carryFibre(material: Material | null, to: Stuff): void {
   if (!material || !MixinApi.isTangible(to)) return;
   to.setMaterial(material);

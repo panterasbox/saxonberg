@@ -94,8 +94,10 @@ export default class SpinController extends ManualBuildController<SpinModel> {
       return;
     }
     const charge = dial(SpinController.CHARGE_KEY, SpinController.CHARGE);
-    const pool = spinPool(stock);
-    if (pool.reduce((n, s) => n + s.getQuantity(), 0) < charge) {
+    // ⭐ Like stacks in hand count together — the stock's own answer
+    // (`TextileStock.quantityInHand`): a player's titled skeins never merge.
+    const inHand = stock instanceof TextileStock ? stock.quantityInHand() : stock.getQuantity();
+    if (inHand < charge) {
       this.declineStep(
         context,
         Mml.compose`There is not enough there to fill a spindle.`,
@@ -140,7 +142,7 @@ export default class SpinController extends ManualBuildController<SpinModel> {
           : Mml.compose`You set ${Mml.thing(stock)} to the spindle and begin drawing.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} settles in to spin.`,
       onComplete: () => {
-        void finish(context, stock, pool, charge, wanted, yieldUnits, overreach);
+        void finish(context, stock, charge, wanted, yieldUnits, overreach);
       },
     });
   }
@@ -149,7 +151,6 @@ export default class SpinController extends ManualBuildController<SpinModel> {
 async function finish(
   context: CommandContext,
   stock: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-  pool: Array<Stuff & { getQuantity(): number; setQuantity(n: number): void }>,
   charge: number,
   count: number,
   yieldUnits: number,
@@ -163,14 +164,12 @@ async function finish(
   const fibre = MixinApi.isTangible(stock) ? stock.getMaterial() : null;
   // The stock is consumed WHETHER OR NOT the thread held. That is the
   // waste, and it is the whole of the failure mode.
-  let need = charge;
-  for (const s of pool) {
-    if (need <= 0) break;
-    if (s.isDestroyed()) continue;
-    const take = Math.min(need, s.getQuantity());
-    need -= take;
-    if (take >= s.getQuantity()) StuffApi.destruct(s);
-    else s.setQuantity(s.getQuantity() - take);
+  if (stock instanceof TextileStock) {
+    stock.drawInHand(charge);
+  } else {
+    const left = Math.max(0, stock.getQuantity() - charge);
+    if (left === 0) StuffApi.destruct(stock);
+    else stock.setQuantity(left);
   }
 
   if (yieldUnits <= 0) {
@@ -273,32 +272,6 @@ function bandOf(source: Stuff): string {
  * A new fibre is then a material tag and not an edit here — which is
  * exactly the test a second spinnable was always going to apply.
  */
-/**
- * ⭐ What one spin may draw on: the stack named and every stack beside it
- * in the same hands that would spin the same — the same row, the same
- * fibre, not yet spun. ⚠ A good somebody MADE is titled to them, and a
- * titled stack never merges (the chattel rule), so two skeins a player
- * reeled stay two stacks of one; counting only the stack named refused
- * every silk spin a player could ever make (silk's drive: `too-little`
- * with two skeins in hand). The reel pools its cocoons the same way.
- */
-function spinPool(
-  stock: Stuff & { getQuantity(): number; setQuantity(n: number): void },
-): Array<Stuff & { getQuantity(): number; setQuantity(n: number): void }> {
-  const pool = [stock];
-  const holder = MixinApi.isContainable(stock) ? stock.getContainer() : null;
-  if (!holder || !MixinApi.isContainer(holder)) return pool;
-  const row = stock.getTemplatePath();
-  const fibre = MixinApi.isTangible(stock) ? stock.getMaterial() : null;
-  for (const s of holder.getContents() as Stuff[]) {
-    if (s === stock || !MixinApi.isStackable(s) || !isSpinnable(s)) continue;
-    if (s.getTemplatePath() !== row) continue;
-    if (!MixinApi.isTangible(s) || s.getMaterial() !== fibre) continue;
-    pool.push(s);
-  }
-  return pool;
-}
-
 function isSpinnable(stock: Stuff): boolean {
   if (!MixinApi.isTangible(stock)) return false;
   if (stock.getMaterial()?.hasTag('fibre') !== true) return false;

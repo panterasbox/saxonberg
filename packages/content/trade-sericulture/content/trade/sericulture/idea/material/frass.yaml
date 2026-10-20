@@ -12,6 +12,6 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["solid", "compost", "frass", "organic"]
+  tags: ["solid", "compost", "frass", "organic", "once-living"]
   composition: []
   biologicalSource: null

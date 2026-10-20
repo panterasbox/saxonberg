@@ -27,8 +27,9 @@ data:
   register: indefinite
   longDescription: |
     A quiet room with a bed against the far wall and a window that catches the last of the afternoon. There is space for more than this, if you have it.
-  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots, the one plat that uses it
-  # (36 m²): 900 reads the 25 lux this row was tuned to (B54).
+  # ⚠ A FLUX, read over the room's area — its zone's cell; on a 6 m cell
+  # (36 m²) 900 reads the 25 lux this row was tuned to (B54). The row names
+  # no locality: an archetype is tier-generic (room-archetypes.test D15).
   ambientIntensity: 900
   ambientColorTemperature: 5000
   # ⭐⭐ **The sandbox's door, and it is in your BEDROOM because a
