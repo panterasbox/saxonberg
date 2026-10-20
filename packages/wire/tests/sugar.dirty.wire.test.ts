@@ -275,6 +275,32 @@ async function daylight(): Promise<void> {
   if (hour < 7 || hour >= 17) await toHourOfDay(8);
 }
 
+/**
+ * ⭐⭐ Buy blocks at the estate counter as they come off its curing floor,
+ * waiting through WORKING HOURS in real time. A brain acts on beats, and
+ * beats only happen while the world runs: a twelve-hour clock jump runs
+ * no cutter, no miller, no boiler (the probes saw a whole "week" of jumps
+ * with nothing cut). So each day the sailor stands in the store through a
+ * real-time morning and afternoon (~12 game minutes a real minute), and
+ * the clock is jumped only across the nights — the boil and the cure
+ * reconcile on the clock by themselves. Returns how many were bought.
+ */
+async function buyEstateBlocks(want: number, days: number): Promise<number> {
+  let bought = 0;
+  for (let day = 0; day < days && bought < want; day++) {
+    for (const hour of [7, 13]) {
+      await toHourOfDay(hour);
+      sailor.close();
+      sailor = await goTo(sailorHandle, `${W}/location/store`);
+      for (let minute = 0; minute < 6 && bought < want; minute++) {
+        await new Promise((r) => setTimeout(r, 60_000));
+        while (bought < want && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
+      }
+    }
+  }
+  return bought;
+}
+
 /** Advance to the next `hour`:00. */
 async function toHourOfDay(hour: number): Promise<void> {
   const now = await worldClockNow();
@@ -708,16 +734,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // whether or not it holds any (drive 8 passed this on a bare shelf).
     // She stays ON the island through the wait: its hands work while it is
     // loaded, and a sailor who leaves takes the island's attention with her.
-    sailor = await goTo(sailorHandle, `${W}/location/store`);
-    let bought = '';
-    for (let i = 0; i < 14 && !/you buy/i.test(bought); i++) {
-      await advance(12 * HOUR);
-      await daylight();
-      bought = await say(sailor, 'buy block');
-    }
-    if (!/you buy/i.test(bought)) await books(`${W}/location/store`);
-    expect(bought, 'the estate never shelved a block of its own sugar').toMatch(/you buy/i);
-  }, 3_600_000);
+    const bought = await buyEstateBlocks(1, 6);
+    if (bought < 1) await books(`${W}/location/store`);
+    expect(bought, 'the estate never shelved a block of its own sugar').toBe(1);
+  }, 7_200_000);
 
   it('19. ⭐⭐ cargo in the Hesper\'s hold survives a restart (D13)', async () => {
     sailor.close();
@@ -760,15 +780,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, `${W}/location/store`);
     // The estate sells only what it has boiled; earlier steps bought the
     // shelf out, so a hauler waits for the next blocks off the curing floor.
+    sailor.close();
+    sailor = await goTo(sailorHandle, `${W}/location/store`);
     let bought = 0;
-    for (let day = 0; day < 8 && bought < blocks; day++) {
-      if (day > 0) {
-        sailor.close();
-        await advance(1 * DAY);
-        sailor = await goTo(sailorHandle, `${W}/location/store`);
-      }
-      while (bought < blocks && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
-    }
+    while (bought < blocks && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
+    bought += await buyEstateBlocks(blocks - bought, 6);
     if (bought < blocks) await books(`${W}/location/store`);
     expect(bought, 'the estate never had blocks to sell').toBe(blocks);
     sailor.close();
@@ -788,6 +804,6 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     for (let i = 0; i < blocks; i++) await say(sailor, 'put 1 block on bench');
     const paid = await say(sailor, `job complete ${gig}`);
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
-  }, 3_600_000);
+  }, 9_000_000);
 });
 
