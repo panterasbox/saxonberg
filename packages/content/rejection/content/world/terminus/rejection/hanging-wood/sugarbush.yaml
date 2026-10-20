@@ -35,6 +35,9 @@ data:
     - /world/terminus/rejection/hanging-wood/thing/sugarbush-panel
     - /trade/forestry/thing/sap-pan
     - /trade/forestry/thing/evaporator
+    # (sugar W1) The arch's woodpile — a sugarhouse is built beside its
+    # cordwood; the arch burns nothing if there is nothing to burn.
+    - { template: /stuff/thing/items/dry-log, count: 8 }
   details:
     arch:
       keywords: [arch, evaporator, hearth, fire, "fire-bed", stone, brick]

@@ -63,10 +63,15 @@ const CLAY_WASHES = 0.12;
 export default class SugarLoaf extends PercolatingMixin(Provision) implements Cuttable {
   static markupAugmenters: MarkupAugmenter[] = [loafAugmenter];
 
+  /**
+   * `clay` and `cut` are afforded by the LOAF: nothing else in a curing
+   * house confers `cut`, and nips are a plain Tool (the drive found
+   * "I don't understand 'cut'" beside a loaf and a pair of nips).
+   */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['trade/sugar/cmd/sugar/clay.yaml'],
-    peers: ['trade/sugar/cmd/sugar/clay.yaml'],
+    environment: ['trade/sugar/cmd/sugar/clay.yaml', 'platform/cmd/crafting/cut.yaml'],
+    peers: ['trade/sugar/cmd/sugar/clay.yaml', 'platform/cmd/crafting/cut.yaml'],
   };
 
   /** Game-days the claying water takes to reach the foot (W4). */
