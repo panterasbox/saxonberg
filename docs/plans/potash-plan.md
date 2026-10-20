@@ -1228,6 +1228,13 @@ accepted at the bid; the glasshouse counter says it buys pearl ash;
 
 ### W7 — the drive, and what it finds
 
+🟡 **In progress — the drive is written and has been run five times; the
+final clean run is OWED** (paused 2026-10-19 so the silk build could finish
+its own testing on the shared machine). `docs/subsystems/potash.md` is
+written; the one-paragraph notes in fire, cleanliness, mining, forestry,
+thermal, maturation, instrumentation, glass and retail are in. Every finding
+so far is in the Drive record below, each with its fix commit.
+
 **Files** — `packages/wire/tests/potash.dirty.wire.test.ts`
 (`DIRTY_REASON`: fells the Hanging Wood's standards, burns and sweeps
 the ashery's pit and the fuel yard's clamp, consumes the ashery's lime and
@@ -1516,4 +1523,42 @@ Docs (W7 + sweep)
 ---
 
 ## Drive record
+
+*(W7, 2026-10-19 — `packages/wire/tests/potash.dirty.wire.test.ts`, run
+against a standing world on 2013 and twice via `WIRE_BOOT=1`. ⚠ The last
+two owned boots died: one SIGTERMed during boot (a sibling's preflight /
+`tools/panic` reaches every worktree), one past the 420 s budget under
+contention — rerun with `WIRE_BOOT_TIMEOUT=1200000` on a quiet machine.)*
+
+**Passed on a fresh world so far:** steps 1–3 (two bundles of beech brash →
+**2 heaps, 0.777 kg, "strong ash"**, no number) and step 5 (a wide-open
+clamp of four lengths opened on **one heap of 0.032 kg** — sized to the
+charge, not the old 0.6 kg drift). Steps 4 and 6–16 have run but not yet
+against one clean, uninterrupted world after the fixes below.
+
+**What driving found (fixed unless marked):**
+
+| # | finding | fix |
+|---|---|---|
+| 1 | a bundle of brash was ~22 kg; a second would not lift | ten bundles a standard (~13 kg) — `27d28eab8` |
+| 2 | `sweep` is the broom's verb; the ashery had no broom, and no pail | both propped — `27d28eab8` |
+| 3 | `get ash` reached for the ash-man ("ash man" keyword) | he answers to `ashman` — `27d28eab8` |
+| 4 | a flask of lye off a shelf had no strength: the egg called it water, a pot boiled it to nothing | `UNMEASURED_LYE_KG_PER_L` (soap strength) until sugar's `solidsKgPerL` — `27d28eab8` |
+| 5 | ⚠ PRE-EXISTING: a long clock jump with storms crashed the server — `Vitals.shockCircuitLive` singleton-looked-up a shock source by template path; a storm has several live strikes | any live instance carrying current holds the circuit — `27d28eab8` |
+| 6 | ⚠ PRE-EXISTING, not fixed: `char 0.45` binds the number as the clamp | the drive uses `draught wide` then `char`; recorded in mining.md |
+| 7 | `sweep pit` swept the FLOOR — only a flued burner's grate could be raked | any Burner is raked; only a flued one takes the brush — `73133653b` |
+| 8 | the open ashery soaked its wood; the drive's ash-burner died of exposure in the rain | the lean-to is its own roofed place (hearth, two pots, hopper, butt, ash store, cordwood); waits happen indoors — `73133653b` |
+| 9 | a novice cannot tell weak lye from water by the egg (by design) — the rank checks were vacuous | the drive trains its reader to competent — `73133653b` |
+| 10 | every stacked cordwood read green: "too sodden to catch" even under a roof (the fire build's charcoal finding again) | cordwood seeds `dryness: 0.8` — `5a7990f06` |
+| 11 | MQL's partial match is a SUBSTRING: "ash" ⊂ "br**ash**", so `put "wood ash"` with none held took a brash bundle | recorded, not changed (MQL's designed fallback); the drive takes `get 1 brash` — `5a7990f06` |
+| 12 | the egg-less density refusal names only the hydrometer ("a hydrometer would read it") on a lye an egg would read | ⚠ OPEN — minor wording |
+
+**Still to observe on the clean run:** step 4 (pine weaker), 6–8 (the egg
+ranks: first pass, second pass higher, Kestrel water lower than rain), 9 (two
+cakes, strong heavier — AC 5's fuel half), 10 (pearl ash), 11 (the
+glassblower's sale; lye in the lime slot refused; the batch fires — the
+batch wants 1400 K against a 1200 K kiln, so the bellows may be needed),
+12 (slake → caustic → hard-soap paste), 13–14 (the chandlery sale; the
+ash-man's day — AC 9's living-or-supplement answer), 15 (a wash with pearl
+ash in the Kestrel; washing soda on the shelf).
 
