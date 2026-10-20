@@ -1881,6 +1881,24 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   `crossPicked` is the one place-picked crossing for both verbs.
   Requirements drive step 2 now reads `swim`, then `descend`.
 
+- **R2 · `float` and `equalize` retired as verbs: a verb is for a choice,
+  never for upkeep.** The owner: clearing your ears *"sounds like it
+  should be passive like breathing"*, and floating is *the same action*
+  as lying down to rest, in the water. Now `lie` (and the word `float`)
+  on a water's surface that does not bear you floats you: the body still
+  decides (`RespirationMixin.float`, its refusals in words). The ears
+  clear on their own: each step down clears a fraction on the way by
+  diving band (untrained ¼ … expert all), and the rest clears at
+  0.5 m per real second while you aren't descending; a body out cold or in
+  the drowning response clears nothing. The squeeze stays at 3 m of
+  uncleared pressure, and a burst eardrum at 6 m. The choice left is *how fast you go
+  down*. `EqualizeController`/`FloatController` and their views are
+  deleted; requirements drive step 7 reworded. ⚠ Lines above that name
+  `equalize`/`float` as verbs (D15, D19, A4, the reachability table) are
+  superseded by this note. The general principle (passive upkeep,
+  disturbed by state, answered by ordinary acts; `rest`; whether
+  `inhale`/`exhale` survive) is a design conversation still to have.
+
 ## Drive record
 
 

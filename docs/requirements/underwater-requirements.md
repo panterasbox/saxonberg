@@ -67,8 +67,8 @@ numbers.
   still harm you hours later.
 - **Buoyancy and pressure are felt**: what you carry drags you down or
   fights you up; ballast speeds you down and dropping it always works (and
-  costs it); descending faster than you can equalize hurts and can burst an
-  eardrum.
+  costs it); your ears clear on their own, like breathing, but descending
+  faster than they clear hurts and can burst an eardrum.
 - **Water is a medium**: no fire or lamp burns in it, nobody's voice
   carries (a merfolk's does), sight fades to the water's clarity and red
   goes first, things get wet, objects cool as in water, the water is a
@@ -213,7 +213,7 @@ filtered.
 
 ### Ascent is never gated on skill
 Only on breath and ballast. Competence decides how much you bring up and
-how deep you can equalize, not whether you drown. *Why:* a death-check is
+how fast your ears clear going down, not whether you drown. *Why:* a death-check is
 not a job (the slate's lens 1).
 
 ### No forced ascent, and two clocks
@@ -327,8 +327,9 @@ stages.
    cold); a rescuer within it saves you; past it you die.
 6. Carry an iron ingot down: you sink fast; `ascend` with it fails for
    weight; `drop belt` (or drop the ingot) and you rise.
-7. Descend fast without equalizing: pain, then a burst eardrum (vertigo);
-   descending slower with `equalize` does not hurt.
+7. Descend straight down without pausing: pain, then a burst eardrum
+   (vertigo); descending slower, pausing at each band while your ears clear,
+   does not hurt.
 8. At Hollow Mere in winter, go down through a cut hole: the ice is the
    ceiling; the only way up is the hole.
 8a. A character with no swimming goes off the quay into deep water: they

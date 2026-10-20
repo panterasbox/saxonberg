@@ -118,8 +118,10 @@ export const RESPIRATION_DEFAULTS = {
   DROWNING_RESPONSE_SEC: 60,
   /** Holding something that floats you this hard (N) holds you up. */
   FLOAT_SUPPORT_N: 30,
-  /** Unequalized descent that hurts, meters (raised by diving). */
+  /** Uncleared pressure on the ears that hurts, meters of descent (twice it bursts). */
   SQUEEZE_AT_M: 3,
+  /** How fast the ears clear on their own while you are not going down, m per real second. */
+  EARS_CLEAR_MPS: 0.5,
   /**
    * ⭐ The bends (underwater D27): three tissue compartments, Haldane's
    * half-times in game-seconds, and the load (atm of dissolved gas) each
@@ -177,13 +179,17 @@ const SWIM_TECHNIQUE: Readonly<Record<string, number>> = {
   expert: 0.8,
 };
 
-/** How far a diver can go down before the squeeze, by diving band (× the base). */
-const SQUEEZE_BY_DIVING: Readonly<Record<string, number>> = {
-  untrained: 1,
-  novice: 2,
-  competent: 3,
-  proficient: 4,
-  expert: Infinity,
+/**
+ * ⭐ How much of a step down the ears clear ON THE WAY, by diving band
+ * (underwater review: clearing is passive, like breathing). The rest is
+ * left to clear while you pause — so the choice is how fast you go down.
+ */
+const EARS_CLEARED_ON_THE_WAY: Readonly<Record<string, number>> = {
+  untrained: 0.25,
+  novice: 0.5,
+  competent: 0.75,
+  proficient: 0.9,
+  expert: 1,
 };
 
 /** What `inhale` did. */
@@ -250,9 +256,7 @@ export interface Respiration {
   isFloating(): boolean;
   /** Float on your back — or refuse, in words, when you cannot. */
   float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
-  /** Clear the pressure on your ears (`equalize`). */
-  equalize(): void;
-  /** The unequalized pressure on your ears, meters of descent. */
+  /** The uncleared pressure on your ears, meters of descent. */
   getPressureDebtM(): number;
   /** Dissolved gas per tissue compartment, atm (the bends, D27). */
   getGasLoad(): readonly number[];
@@ -360,11 +364,13 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _floating = false;
     /** When the instinctive drowning response began, game-seconds. */
     private _drowningSinceS: number | null = null;
-    /** The unequalized descent on your ears, meters. */
+    /** The uncleared descent on your ears, meters. */
     private _pressureDebtM = 0;
     /** How deep you were at the last reassess, meters. */
     private _lastDepthM = 0;
-    /** The squeeze stages suffered since the last equalize (0, 1 squeeze, 2 eardrum). */
+    /** When the ears were last reckoned, real seconds (null = never). */
+    private _pressureStampS: number | null = null;
+    /** The squeeze stages suffered since the ears last cleared (0, 1 squeeze, 2 eardrum). */
     private _squeezeStage = 0;
     /**
      * ⭐ Dissolved gas per tissue compartment, atm (underwater D27) —
@@ -1179,33 +1185,40 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { ok: true };
     }
 
-    public equalize(): void {
-      this._pressureDebtM = 0;
-      this._squeezeStage = 0;
-    }
-
     public getPressureDebtM(): number {
       return this._pressureDebtM;
     }
 
     /**
-     * ⭐ Going down without clearing your ears (underwater D15): each meter
-     * of descent since the last `equalize` is pressure on the eardrum. At
-     * the squeeze depth it hurts; at twice it bursts. Coming up eases it;
-     * a trained diver can take more.
+     * ⭐ The pressure on your ears (underwater D15; passive since review).
+     * The ears clear on their own, like breathing: part of each step down
+     * on the way (more, the better you dive), the rest while you are not
+     * going down. Going down faster than they clear leaves pressure on the
+     * eardrum: at the squeeze depth it hurts, at twice it bursts. Coming
+     * up eases it. ⭐ What stops them clearing is the body's own state — a
+     * body out cold or in the drowning response clears nothing.
      */
     private notePressure(medium: { immersed: boolean; atSurface: boolean; depthM: number }): void {
       const depth = medium.immersed && !medium.atSurface ? medium.depthM : 0;
       const delta = depth - this._lastDepthM;
       this._lastDepthM = depth;
-      if (delta < 0) {
-        this._pressureDebtM = Math.max(0, this._pressureDebtM + delta);
-        return;
-      }
-      if (delta === 0) return;
-      this._pressureDebtM += delta;
-      const at = RESPIRATION_DEFAULTS.SQUEEZE_AT_M * (SQUEEZE_BY_DIVING[this._diveBand] ?? 1);
       const host = this as unknown as RespirationHost;
+      const self = this as unknown as Stuff;
+      const clearing = this._drowningSinceS === null &&
+        !(MixinApi.isVitals(self) && self.getConsciousness() !== 'conscious');
+      const nowS = this.respirationNowSeconds();
+      if (clearing && nowS !== null && this._pressureStampS !== null && nowS > this._pressureStampS) {
+        this._pressureDebtM = Math.max(0, this._pressureDebtM - (nowS - this._pressureStampS) * RESPIRATION_DEFAULTS.EARS_CLEAR_MPS);
+      }
+      this._pressureStampS = nowS;
+      if (delta < 0) this._pressureDebtM = Math.max(0, this._pressureDebtM + delta);
+      else if (delta > 0) {
+        const onTheWay = clearing ? (EARS_CLEARED_ON_THE_WAY[this._diveBand] ?? 0) : 0;
+        this._pressureDebtM += delta * (1 - onTheWay);
+      }
+      if (this._pressureDebtM === 0) this._squeezeStage = 0;
+      if (delta <= 0) return;
+      const at = RESPIRATION_DEFAULTS.SQUEEZE_AT_M;
       if (this._pressureDebtM >= 2 * at && this._squeezeStage < 2) {
         this._squeezeStage = 2;
         if (!this.findAffliction(TemplatePaths.respirationBurstEardrum)) {

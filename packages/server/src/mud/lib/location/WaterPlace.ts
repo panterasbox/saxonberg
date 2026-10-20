@@ -241,16 +241,15 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     };
 
     /**
-     * ⭐ What you can do because you are IN a water (underwater D12, D15,
-     * D19): float on it, clear your ears in it, go down and up its column.
-     * The place is the occupant's container, and a container grants inward
-     * on `inventory`. ⛔ Not the shore's: beside a water, `swim` is the way
-     * in, and a dry bank has no up or down (underwater review).
+     * ⭐ What you can do because you are IN a water (underwater D19): go
+     * down and up its column. The place is the occupant's container, and a
+     * container grants inward on `inventory`. ⛔ Not the shore's: beside a
+     * water, `swim` is the way in, and a dry bank has no up or down. Floating
+     * is `lie` on the water, and the ears clear on their own (underwater
+     * review: a verb is for a choice, never for upkeep).
      */
     static commandContributions: CommandContributions = {
       inventory: [
-        'platform/cmd/posture/float.yaml',
-        'platform/cmd/posture/equalize.yaml',
         'platform/cmd/movement/descend.yaml',
         'platform/cmd/movement/ascend.yaml',
       ],

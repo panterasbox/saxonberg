@@ -8,7 +8,7 @@
  *  2. Under water an air voice is bubbles; a body in the drowning
  *     response has no breath to call out with.
  *  3. Going down without clearing your ears hurts, then bursts;
- *     `equalize` between bands prevents both.
+ *     the ears clear on their own, so pausing between bands prevents both.
  *  4. Floating is free for a swimmer and refused, in words, for a body
  *     that cannot swim.
  *  5. An untrained body treading water spends itself, goes into the
@@ -128,29 +128,38 @@ describe('the weight of the water (underwater A4)', () => {
     expect(c.canVocalize()).toEqual({ ok: true });
   });
 
-  it('⭐ down without clearing your ears: the squeeze, then the eardrum; equalize prevents both', async () => {
+  it('⭐ the ears clear on their own: straight down hurts, then bursts; pausing on the way never hurts', async () => {
     const c = body();
     ContainmentApi.move(c, airRoom());
     const medium = vi.spyOn(BiomeApi, 'mediumFor');
     const afflicted = vi.spyOn(c, 'afflict');
+    const hit = (spy: typeof afflicted, path: string) =>
+      spy.mock.calls.some(([r]) => (r as { templatePath: string }).templatePath === path);
+    // No clock between the steps: an untrained diver clears a quarter of
+    // each step on the way, and has no pause to clear the rest.
     medium.mockReturnValue(water(2));
     await c.reassess();
-    medium.mockReturnValue(water(4));
+    medium.mockReturnValue(water(5));
     await c.reassess();
-    expect(afflicted.mock.calls.some(([r]) => (r as { templatePath: string }).templatePath === TemplatePaths.respirationSqueeze)).toBe(true);
-    medium.mockReturnValue(water(7));
+    expect(hit(afflicted, TemplatePaths.respirationSqueeze)).toBe(true);
+    medium.mockReturnValue(water(9));
     await c.reassess();
-    expect(afflicted.mock.calls.some(([r]) => (r as { templatePath: string }).templatePath === TemplatePaths.respirationBurstEardrum)).toBe(true);
+    expect(hit(afflicted, TemplatePaths.respirationBurstEardrum)).toBe(true);
 
+    // The same descent with a pause at each band: the ears clear while
+    // you are not going down, and nothing hurts.
     const careful = body();
     ContainmentApi.move(careful, airRoom());
     const hurt = vi.spyOn(careful, 'afflict');
-    for (const d of [2, 4, 6]) {
+    let realS = 0;
+    vi.spyOn(careful as unknown as { respirationNowSeconds(): number | null }, 'respirationNowSeconds')
+      .mockImplementation(() => realS);
+    for (const d of [2, 4, 6, 8]) {
+      realS += 10;
       medium.mockReturnValue(water(d));
       await careful.reassess();
-      careful.equalize();
     }
-    expect(hurt.mock.calls.some(([r]) => (r as { templatePath: string }).templatePath === TemplatePaths.respirationSqueeze)).toBe(false);
+    expect(hit(hurt, TemplatePaths.respirationSqueeze)).toBe(false);
   });
 
   it('⭐ a body that cannot swim cannot float — refused in its own words', async () => {
