@@ -340,7 +340,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
       let bought = 0;
       for (let i = 0; i < 150 && bought < 120; i++) {
         const r = await say(s, 'buy cocoon');
-        if (refusedFor(r) === null) {
+        // ⚠ Count a cocoon only when one was BOUGHT: drive 26 counted a
+        // reply that was not a refusal and not a sale, the player held 119,
+        // and the hand reel — which wants exactly the last forty — refused.
+        if (refusedFor(r) === null && /You buy a cocoon/i.test(await r.said())) {
           bought += 1;
           continue;
         }
