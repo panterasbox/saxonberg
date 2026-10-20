@@ -819,3 +819,64 @@ quarantine is its first maritime consumer.
 The owner's produce-terminal memory, out of this thread, seeded
 [wholesale-market-slate](./wholesale-market-slate.md) — the fish quay is its
 waterside case.
+
+## 21. Drill-down: the lifeboat, epochs at sea, aether dead zones (2026-10-19)
+
+### The lifeboat **[DECIDED]**
+
+An institution afloat (a singleton): **a boat, a station and a volunteer crew** —
+the RNLI's shape (1824). ⭐ **The station** is a boathouse at the head of a
+**slipway**; launching is the slipway's `launch` straight into the surf — the
+slipway's best consumer. ⭐ **The shout is the guild slate's CALL**: distress is
+reported (the shipping news, a coastguard, a flare seen across the bay), the
+**maroons** are fired, and whoever runs to the boathouse goes — voluntary. **The
+crew** is volunteers under a **coxswain** (a seat); the work is the boat's physics
+(rowing, the helm, freeboard against a breaking sea); ⭐ the **self-righting** hull
+is a hull row's property. ⭐ **It pays off drowning's design** — the most rescuable
+death; getting there in time beats the dying clock. ⭐ **Funded by giving** (a
+charity, never the state) — *giving is the first act of play*, a public good players
+fund directly. ⭐ **Saving a life earns no reward in maritime law; saving property
+earns salvage** — the lifeboat is a vocation of pure duty (lens 4). **Renown**, and
+**medals** as chronicle deeds; a coxswain's rescues are their chronicle.
+
+### Epochs at sea **[DECIDED]**
+
+Three different things, so mixing epochs works with no special case:
+
+1. **Seeing is physics** — a flare is a light with a brightness and a height; sight
+   against range (curvature, fog, the dark) is shipped. **Perception is never gated
+   by epoch.**
+2. ⭐ **Meaning is knowledge** — a red flare means distress by **convention**; a
+   medieval sailor sees a red star and does not know it. The mariners' guild teaches
+   **the signal code**. ⭐ **One act, a rung per epoch** (lens 5): the ensign flown
+   **upside down** (any) · a fire, a beacon, a horn (medieval) · **guns at
+   intervals** (gunpowder) · rockets and flares (industrial) · radio, needing no
+   line of sight (modern). The shipped `hail` and the **signal** sighting channel
+   carry the seeing half. Mixed epochs make **encounters** — smoke on the horizon
+   from a steamer, seen from a galley.
+3. **Means are covenanted** — an expanse's holder may covenant *sail only on this
+   sea*: soft (the engine runs, illegal and recorded), enforced at the sea's ports of
+   entry by the customs post; hard only by a suppression field with a reason. **Mixed
+   is the default; an author narrows it.**
+
+### ⭐ Aether dead zones **[DECIDED]**
+
+*"I wanted it to work everywhere — you should be able to DM your buddy whenever you
+want, it's a social game. But that doesn't exclude temporary or even permanent aether
+dead zones, where being disconnected is the whole point of the experience… provided
+there's a direct route to escaping and getting connected again."* (The implant
+framing itself is soon to be reversed — the aether as a device.)
+
+> **A dead zone is allowed where disconnection is the experience, provided it reaches
+> coverage directly — and a gate proves it** (the same shape as build-4's ceiling
+> gate: a ceiling place must reach air).
+
+- **Legible on entry** — the place says so (*"the hum of the aether thins and
+  dies"*), and it is posted, never hidden.
+- **Chosen and reversible** — you go in and can always walk out; consistent with
+  *never cut players off from their peers*.
+- **Temporary or permanent** — a storm, a dead rock, the deep trench, a deep mine,
+  the Fallow (the covenant slate's honest suppression reason).
+- ⭐ **There the world's own signals are everything** — the flare, the gun, the
+  beacon — and **the in-world lifeboat answers in-world signals**: the aether reaches
+  players, never the coxswain.
