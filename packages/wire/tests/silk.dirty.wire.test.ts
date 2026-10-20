@@ -340,7 +340,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
       let bought = 0;
       for (let i = 0; i < 150 && bought < 120; i++) {
         const r = await say(s, 'buy cocoon');
-        if (refusedFor(r) === null) {
+        // ⚠ Count a cocoon only when one was BOUGHT: drive 26 counted a
+        // reply that was not a refusal and not a sale, the player held 119,
+        // and the hand reel — which wants exactly the last forty — refused.
+        if (refusedFor(r) === null && /You buy a cocoon/i.test(await r.said())) {
           bought += 1;
           continue;
         }
@@ -439,9 +442,13 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
         const m = await at(MILL);
         try {
           console.log('DIAG mill', await names(m, 'here:i'));
-          console.log('DIAG crib', await names(m, 'here:i:crib:i'));
-          console.log('DIAG silks', await names(m, 'here:i:silks:i'));
-          console.log('DIAG reeler', await names(m, 'here:i:reeler:i'));
+          // ⚠ By the most specific names: in drives 26–27 the bare `crib`
+          // query printed the REELER's hands (a student outfit, a skein, the
+          // pupae, ten cocoons) and `reeler` printed nothing — the record
+          // had to be read backwards.
+          console.log('DIAG crib', await names(m, 'here:i:"cocoon crib":i'));
+          console.log('DIAG silks', await names(m, 'here:i:"silk shelf":i'));
+          console.log('DIAG reeler', await names(m, 'here:i:liss:i'));
         } finally {
           m.close();
         }

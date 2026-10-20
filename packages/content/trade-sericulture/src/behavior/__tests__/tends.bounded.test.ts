@@ -51,7 +51,7 @@ class Hand extends MobileMixin(TestActor) {
 let floor: Place;
 let hand: Hand;
 let said: string[];
-let now = 10_000_000;
+const now = 10_000_000;
 
 function mat(path: string, tags: string[]): Material {
   return (

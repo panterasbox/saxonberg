@@ -1,22 +1,16 @@
 # Silk slate — the RGO whose take ends the animal, and what a luxury IS
 
-> **Status: UNBUILT** — designed 2026-10-18. Everything it stands on
-> ships: the polycarp cycle and the coppice panel (the mulberry), the
-> population-as-body precedent (`ColonyMixin`, apiculture), the silent
-> second population (`ContaminableMixin`, spoilage), the climate's
-> temperature (`WeatherApi.temperatureAt`), the fibre-tag spin and the
-> protein-fibre mordant rule (textiles, dyeing), shift wages paid out of a
-> business's own account (employment), and the `stokes` brain shape.
-> **Left:** the mulberry leaf crop · the rearing (a tray as one organism,
-> its ages derived from warmth, hunger soft through the limiting factor)
-> · the ten-day deadline and the stifle-or-keep decision · `reel` (the one
-> new verb) · degumming as a timed preparation · spun silk off the waste ·
-> the egg lot as a good with a provenance and a seeded pébrine load ·
-> selection by the breeder's equation · the labour bench (hours per kilo,
-> linen vs wool vs silk) · the hobby/house/standing labour model · the
-> conditioning house · the leaf market · kermes as the second instance ·
-> the textiles doc's "second cellulose fibre" line (fixed with this slate)
-> **Size:** a build
+> **Status: SHIPPED (MR !395, 2026-10-19)** → [sericulture.md](../../subsystems/sericulture.md).
+> The rearing, the deadline and the stifle, selection, the reel, degumming,
+> the egg lot and its seeded pébrine, the labour bench, kermes, the Hearts
+> Delight silk house and the Wharfside reeler all shipped.
+> **Left:** the conditioning house · the leaf market · status demand and
+> the finite labour pool (markets-slate) · a booted silk house
+> (unobserved-economy-slate) · microscope certification of a lot
+> (optics-slate) · the fibre's own base colour in the dye mix
+> (textiles-slate) · ⚠ the shared `reel` verb is a false unification to
+> undo (`command-taxonomy-slate.md` item 7).
+> **Size:** a tail
 
 *Designed 2026-10-18 in conversation. The owner knew little of the
 subject and deferred to the recommendations; every ruling below was made

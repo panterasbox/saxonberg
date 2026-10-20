@@ -99,8 +99,10 @@ export class VisionModality extends Modality {
   }
 
   /**
-   * ⭐⭐ The light at each place, remembered for the length of `fn` — which
-   * must be a synchronous READ that changes nothing a light depends on.
+   * ⭐⭐ Hold the light steady: until the matching
+   * {@link releaseSteadyLight}, `signalAt` remembers each place's light.
+   * Returns whether THIS call opened the hold — an inner hold rides the
+   * outer, and only the opener releases.
    *
    * Every `canSee` walks the light graph from scratch (the place's own
    * sources, its fixtures, everything carried, and the legs out through
@@ -110,22 +112,28 @@ export class VisionModality extends Modality {
    * looking at a three-hundred-item shop counter pinned the server for
    * minutes and every command behind it queued (silk's browser walk).
    *
-   * ⚠ Scoped to a caller-declared READ, never to a command or a tick: a
-   * command can light a lamp or carry one into another room between two
-   * reads, and a cache that outlived that would leave a player in the
-   * dark they had just lit. Re-entrant: an inner batch rides the outer.
+   * ⚠ A hold brackets a caller-declared synchronous READ, never a command
+   * or a tick: a command can light a lamp, or carry one into another room,
+   * between two reads, and a memo that outlived that would leave a player
+   * in the dark they had just lit.
+   *
+   * ⚠⚠ A hold/release PAIR, never a callback: a callback run inside this
+   * method would run in this object's call frame, and every gated call the
+   * read made would be attributed to the vision modality — the world-seat
+   * query's module-gated read was refused that way.
    */
-  public whileLightIsSteady<T>(fn: () => T): T {
-    if (this.steadyLight !== null) return fn();
+  public holdSteadyLight(): boolean {
+    if (this.steadyLight !== null) return false;
     this.steadyLight = new Map();
-    try {
-      return fn();
-    } finally {
-      this.steadyLight = null;
-    }
+    return true;
   }
 
-  /** The steady-light memo — live only inside {@link whileLightIsSteady}. */
+  /** End a hold {@link holdSteadyLight} opened. */
+  public releaseSteadyLight(): void {
+    this.steadyLight = null;
+  }
+
+  /** The steady-light memo — live only inside a {@link holdSteadyLight} hold. */
   private steadyLight: Map<string, Light> | null = null;
 
   /**

@@ -403,6 +403,13 @@ prose contribution for a prop.
 
 ## `reel` has a second instrument (silk build, 2026-10-18)
 
+> ⚠⚠ **Known debt — to be undone.** At the silk review (MR !395) this
+> proved a false unification: `ReelController` narrows on the target to
+> choose between landing a fish and reeling silk. The undo — this view
+> and controller restored to their pre-silk shape, `Reelable` gone, silk
+> on its own verb in its own pack — is `command-taxonomy-slate.md` § The
+> work, item 7.
+
 `reel` stays ONE view, this pack's. With nothing bound it is the fishing
 act, unchanged. Bound to a target answering the `Reelable` shape
 (`src/lib/Reelable.ts` — the kernel's `WorkPrognosis`/`WorkResult`), the

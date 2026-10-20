@@ -674,3 +674,313 @@ distress, recognition in any port); **the watermen's charter ships as a RUIN**
 — a shuttered Watermen's Hall in the harbor district, its charter readable on
 the wall, teaching the other shape (apprenticeship, licensing, a granted
 monopoly) by archaeology, reopenable when the river has the traffic.
+
+## 18. ⭐⭐ Drill-down: the harbor (2026-10-19)
+
+### The harbormaster's day **[DECIDED]**
+
+A day run **on the tide**. An arrival **hails** the harbor office and is worked
+through **health** (quarantine), **draught against the bar** (in now, or wait for
+the flood), **a pilot** if required, and **a berth or the anchorage** (by length,
+archetype — fish to the fish quay — and the queue). **Dues are derived**: tonnage
+dues from her kind's dimensions, wharfage by cargo landed, at posted rates. **The
+arrivals book** is a register the office keeps; its public face is ⭐ **the
+shipping news** (Lloyd's List, from 1734) — a press publisher posting arrivals,
+departures, ships missing, ships lost — how a town learns a ship is overdue and a
+merchant reads the market. **The seat**: an NPC brain runs the routine; a player
+harbormaster makes the judgment calls on a **posted** criterion, appealed to the
+harbor authority.
+
+### What makes ships contend — authored geometry, derived throughput **[DECIDED]**
+
+*"What's behind these judgments… are you actually going to run into other ships
+if you don't listen?"*
+
+| scarce | the author writes | derived |
+|---|---|---|
+| ⭐ berths | a quay room's **length** | how many ships fit, by their lengths |
+| ⭐ the channel at the tide | the channel's **width** and **depth**; the bar's depth | **one-way traffic** when two beams exceed the width; a deep ship crosses only in the **high-water window** — a throughput per tide; **miss the tide and wait twelve hours** |
+| the anchorage | the roads' **extent** and **bottom** | **swinging room** (length + chain) — the roads hold only so many; **holding ground** (sand and mud hold, rock does not) |
+| quay labor | cranes, stevedore gangs | how fast a hold is worked |
+| pilots | who holds the seat | who gets in first |
+
+**Ignoring the harbormaster costs TIME and MONEY first** — missing the tide; ⭐
+**demurrage** (a charterer pays for each day a ship waits beyond the agreed time —
+a contract clause, and most of harbor anger); perishable cargo spoiling; ⭐ **the
+market moving** (the tea clippers raced because the season's first tea sold at a
+premium). **Danger second, derived, never rolled** — ⭐ **fire** in a crowded
+harbor (rafted wooden ships, one cook fire — *no fires after dark* is the physics
+as a rule); ⭐ **explosion** (Halifax, 1917 — why dangerous cargo anchors apart);
+⭐ **dragging anchors** (wind against holding ground drives a ship into whatever
+is downwind — **the honest source of collisions**). **Impossible moves are refused
+by admission**, never a crash roll: the harbormaster sequences scarce capacity and
+enforces the safety rules whose violation the physics punishes. Ballast dumping
+silts the harbor (the dredger's work).
+
+Sizes in general — exits, bodies, what fits — went to
+[size-slate](./size-slate.md).
+
+## 19. Drill-down: pilots, quarantine, customs (2026-10-19)
+
+### Pilots and the bar **[DECIDED]**
+
+Two pilotages share a word (navigable § 3b) — the sea navigator knows *where
+you are*; ⭐ **the bar or harbor pilot knows where the water is deep this
+month**. The bar's depth moves with the tide, and ⭐ **its channel moves too** —
+storms and floods shift the sand, so the deep line wanders: **the channel's
+position is a seeded field that drifts** with storms and seasons. ⭐ **So charts
+go stale — the point of a pilot**: a chart is a dated claim; **the pilot sells
+fresher claims** (his own soundings; the pilots' **map room**).
+
+⭐ **Grounding, at the bar only, remedied by the tide** (grounding was deferred
+for its coordination; at the bar the tide is the remedy): ground where your
+claims said deep and she **sticks until the flood floats her** — the cost is
+time (a tide, the queue, demurrage, spoiling cargo); ⭐ **unless the sea is
+breaking** — waves break on a bar (the surf design), so a ship aground in a
+heavy swell is **pounded** (hull damage, a leak, possibly lost — the Columbia
+bar, *the graveyard of the Pacific*), derived from sea state against depth,
+never rolled. Lightering and kedging stay deferred.
+
+**The pilot's work**: ⭐ the **pilot cutter** waits outside the bar; an incoming
+ship meets it (an encounter, a budded room) and the pilot boards — ⭐ cutters
+**raced** to be first, the first aboard taking the fee; **the pilot takes the
+conn** (her course follows his claims); the fee by draught and size at posted
+rates; ⭐ **compulsory pilotage** above a size, by the harbormaster's posted
+criterion; **licensing** by the flag state or the mariners' guild; ⚠ **the
+master keeps legal responsibility** — fault is the accountability ledger's,
+lens 4.
+
+### Quarantine **[DECIDED]** — waits on contagious disease
+
+Venice's *quaranta giorni* (1370s); the yellow **Q flag** until **pratique**.
+⭐ **The disease is real, not declared** — conditions and pathogens with
+**incubation** (why quarantine works: hold her past it and the infected show);
+the harbormaster reads what can be read (visible signs, her port of departure
+from the shipping news, a **bill of health** — a document that can be wrong or
+forged); a health officer (a physic seat) examines, competence deciding what is
+spotted; **holding is an anchorage with no landing**; ⭐ the **lazaretto** (an
+island or a hulk) is content; ⭐ the **yellow flag is a Thing** — not flying it
+while sick is a lie the ledger records; ⭐ **breaking quarantine lets the actual
+pathogen ashore**. Lens 4 and 7: crews trapped aboard, the merchant's ruin, the
+town's survival; the criterion posted, with an appeal. ⚠ **Depends on
+person-to-person contagion** — the health-vertical slate's outbreak work;
+quarantine is its first maritime consumer.
+
+### Customs, smuggling, and the border **[DECIDED]**
+
+- **The customs house** — a counter and a seat; a **manifest** (a document);
+  **duty** by goods and value at posted rates; ⭐ flag-differential duties live
+  here; ⭐ **the bonded warehouse** (goods under seal, duty unpaid, until sold or
+  re-exported); **inspection** is a `search` of the hold.
+- **Smuggling is emergent** — concealment's bands and false bulkheads; ⭐ landing
+  **at night in a cove** (authored shore rooms, the tide, the dark — *avoiding
+  the harbormaster's book* is the method); a false manifest the ledger can catch;
+  the revenue cutter; the community's complicity (regard decides who informs).
+  Lens 4: duties were hated and smuggling popular; lens 6: high duties make it pay.
+- ⭐⭐ **Customs is the land-use covenant's BORDER form** — designed in
+  [land-use-covenant-slate](./land-use-covenant-slate.md) § *Goods at the
+  border*: a general **customs post** (a Structure archetype) at any crossing
+  between jurisdictions, scaled by staffing (a harbor customs house · a road post
+  · a remote hut · none); the **bonded store is shipped custody** (`store
+  deposit | withdraw | receipts`); ⭐ **retrieval at any customs house through the
+  TPA network**, priced by mass in mana; ⭐ crossings become **break-of-bulk
+  hubs**; posts only where **jurisdiction-level** covenants differ, at
+  **designated ports of entry**.
+
+## 20. Drill-down: the sailortown (2026-10-19) **[DECIDED]**
+
+- ⭐ **Its economy is the voyage cycle** — a ship comes in and **her crew is paid
+  off** (the articles settle — wages or the lay); **they spend it** (*a sailor
+  ashore is rich for a week*); **the money runs out**; **they sign on again**,
+  often taking **an advance** on their wages for gear — the *advance note*, the same
+  shape as the shipped **Arrival Note**, and how crimps robbed sailors. ⭐ **A
+  fleet's arrival is a boom** — derived: a surge of paid-off demand; the
+  sailortown's calendar is the fleet's.
+- **Its places** — taverns (hospitality); the boarding house (short tenancy; ⚠ its
+  keeper often the crimp); ⭐ **the seamen's mission and sailors' home** (a bed, a
+  reading room, a chapel, and ⭐ **a savings bank** — founded to protect sailors' pay
+  from crimps; banking's custodial accounts); the slop shop (ready-made sea clothes —
+  the oilskins); ⭐ **the pawnbroker** (gear pawned between voyages — credit
+  secured on a good); the shipping office (§ 16); the tattooist.
+- ⭐ **Tattoos are a sailor's chronicle** — a swallow per 5,000 miles, a turtle for
+  crossing the equator, an anchor for the Atlantic: **a deed made visible on the
+  body** (the chronicle's identity ledger, read by presentation) — you can read where
+  a stranger has sailed from their arms, and **wearing a turtle you did not earn is a
+  lie**.
+- **The sea's rites** — ⭐ **crossing the line** (King Neptune's court; a pollywog
+  becomes a shellback) is a chronicle deed at a place on the chart; ⭐ **shanties
+  paced the crew's hauling together** — the cooperative-effort slate, the Chorus's
+  music as work; superstitions are culture, never mechanism.
+- ⚠ **Crimping and shanghaiing** — the accountability ledger, never a mechanic; the
+  waterfront's other trades are content an author may depict. **Lens 7**: the
+  mission and the savings bank are the town's answer to the crimp — a polity may
+  license boarding houses, regulate the advance note, found the sailors' home.
+
+The owner's produce-terminal memory, out of this thread, seeded
+[wholesale-market-slate](./wholesale-market-slate.md) — the fish quay is its
+waterside case.
+
+## 21. Drill-down: the lifeboat, epochs at sea, aether dead zones (2026-10-19)
+
+### The lifeboat **[DECIDED]**
+
+An institution afloat (a singleton): **a boat, a station and a volunteer crew** —
+the RNLI's shape (1824). ⭐ **The station** is a boathouse at the head of a
+**slipway**; launching is the slipway's `launch` straight into the surf — the
+slipway's best consumer. ⭐ **The shout is the guild slate's CALL**: distress is
+reported (the shipping news, a coastguard, a flare seen across the bay), the
+**maroons** are fired, and whoever runs to the boathouse goes — voluntary. **The
+crew** is volunteers under a **coxswain** (a seat); the work is the boat's physics
+(rowing, the helm, freeboard against a breaking sea); ⭐ the **self-righting** hull
+is a hull row's property. ⭐ **It pays off drowning's design** — the most rescuable
+death; getting there in time beats the dying clock. ⭐ **Funded by giving** (a
+charity, never the state) — *giving is the first act of play*, a public good players
+fund directly. ⭐ **Saving a life earns no reward in maritime law; saving property
+earns salvage** — the lifeboat is a vocation of pure duty (lens 4). **Renown**, and
+**medals** as chronicle deeds; a coxswain's rescues are their chronicle.
+
+### Epochs at sea **[DECIDED]**
+
+Three different things, so mixing epochs works with no special case:
+
+1. **Seeing is physics** — a flare is a light with a brightness and a height; sight
+   against range (curvature, fog, the dark) is shipped. **Perception is never gated
+   by epoch.**
+2. ⭐ **Meaning is knowledge** — a red flare means distress by **convention**; a
+   medieval sailor sees a red star and does not know it. The mariners' guild teaches
+   **the signal code**. ⭐ **One act, a rung per epoch** (lens 5): the ensign flown
+   **upside down** (any) · a fire, a beacon, a horn (medieval) · **guns at
+   intervals** (gunpowder) · rockets and flares (industrial) · radio, needing no
+   line of sight (modern). The shipped `hail` and the **signal** sighting channel
+   carry the seeing half. Mixed epochs make **encounters** — smoke on the horizon
+   from a steamer, seen from a galley.
+3. **Means are covenanted** — an expanse's holder may covenant *sail only on this
+   sea*: soft (the engine runs, illegal and recorded), enforced at the sea's ports of
+   entry by the customs post; hard only by a suppression field with a reason. **Mixed
+   is the default; an author narrows it.**
+
+### ⭐ Aether dead zones **[DECIDED]**
+
+*"I wanted it to work everywhere — you should be able to DM your buddy whenever you
+want, it's a social game. But that doesn't exclude temporary or even permanent aether
+dead zones, where being disconnected is the whole point of the experience… provided
+there's a direct route to escaping and getting connected again."* (The implant
+framing itself is soon to be reversed — the aether as a device.)
+
+> **A dead zone is allowed where disconnection is the experience, provided it reaches
+> coverage directly — and a gate proves it** (the same shape as build-4's ceiling
+> gate: a ceiling place must reach air).
+
+- **Legible on entry** — the place says so (*"the hum of the aether thins and
+  dies"*), and it is posted, never hidden.
+- **Chosen and reversible** — you go in and can always walk out; consistent with
+  *never cut players off from their peers*.
+- **Temporary or permanent** — a storm, a dead rock, the deep trench, a deep mine,
+  the Fallow (the covenant slate's honest suppression reason).
+- ⭐ **There the world's own signals are everything** — the flare, the gun, the
+  beacon — and **the in-world lifeboat answers in-world signals**: the aether reaches
+  players, never the coxswain.
+
+## 22. Drill-down: the university's research ship (2026-10-19) **[DECIDED]**
+
+Making the sea known — HMS *Challenger* (1872–76): soundings across every ocean, the
+deep dredged, 4,700 new species, oceanography founded.
+
+- ⭐ **Her work is the shipped instrumentation ladder at sea** — soundings (`measure
+  depth`, the lead, the sounding machine), **sampling the bed** (`sample` — dredge and
+  grab), the water (temperature at depth, salinity, current), **the column's life**
+  (the plankton net; underwater's life findings), position (the noon sight, the
+  bearing). No new verbs.
+- ⭐ **Her cargo is claims** — every reading a dated, signed claim — to **the library's
+  map room** (the most complete chart; the guild's are better curated), to **published
+  charts** (the university publishes — secrecy or safety is its choice, and publishing
+  is its ethic), and to papers (the press and wiki).
+- ⭐ **Chartered, not owned** — a charter is a contract; the university's budget the
+  paymaster; the line keeps the ship. **Two crews** — the ship's company and the
+  scientists, two trades and two cultures aboard.
+- ⭐ **The university only teaches** — **students sail as part of the expedition**; she
+  is the field school; the training ship (seamanship) and the research ship (science)
+  may be one vessel with two faculties aboard.
+- ⭐ **Discovery is real** — an unknown place stays unknown until charted (the location
+  graph's honesty); being first to chart a seamount, a species, a wreck is a chronicle
+  deed. A player scientist's contribution is the readings they take.
+
+### ⭐⭐ The sea is a context, not a discipline
+
+*"Pedagogy of what? 'The sea' isn't one thing… you're teaching a little bit of
+everything — the slice of everything that matters at sea."* **No oceanography
+discipline.** The sea is where many disciplines are practised under one set of
+conditions — physics (waves, pressure, buoyancy, sound in water), chemistry (salinity,
+dissolved oxygen, corrosion), geology (the bed), life by band, navigation (astronomy's
+slice), weather-reading, and every trade aboard. **The research ship is a rotation of
+stations** (the sounding station, the dredge, the laboratory, the navigator's sight),
+**each crediting its own discipline** — advancement already rewards real practice out in
+the world. **The slice is not authored; it falls out of which acts happen at sea. The
+voyage is the curriculum.**
+
+### ⭐⭐ Maritime instruments — the same readings, adapted to the sea's physics
+
+*"Are there maritime versions of those tools made specially for ships, or is it the same
+stuff in the university lab?"* **The reading channels are the same; maritime instruments
+are rows adapted to four conditions, and the adaptation is derivable:**
+
+| the sea's condition | a land instrument | the maritime version |
+|---|---|---|
+| ⭐ the ship moves (sea state) | a balance, level, plumb or land compass reads wrong on a rolling deck | **gimbals** (compass, lamp, barometer); ⭐ **the sextant** — a star against **the horizon itself**, so the roll does not matter |
+| salt and wet | iron rusts, paper soaks | brass and bronze, sealed cases, varnish |
+| pressure at depth | a lowered thermometer reads wrong or breaks | **the reversing thermometer** (flips at depth to lock its reading); the self-sealing water bottle |
+| no fixed ground | no landmark, no baseline | **the log line** (knots on a rope — where *knots* come from); ⭐ **the marine chronometer** (Harrison, 1760s — longitude) |
+
+⭐ **A land instrument still works at sea, only worse** — its error bracket **widens with
+the ship's motion**, derived from the sea state: the shipped instrumentation model
+(*competence resolves detail, never access*; **the instrument sets a ceiling**) — a
+gimballed instrument's ceiling holds in a seaway, a lab instrument's collapses. Lens 1:
+*why every instrument on a ship looks the way it does* is the sea's physics.
+
+## 23. Drill-down: the passenger's voyage, and the cruise ship (2026-10-19) **[DECIDED]**
+
+### The passenger's voyage
+
+- **Passage is a ticket** — a liner sails on a date; a fare by class bought at the line's
+  office; the ticket is a document and the contract of carriage, naming your berth. ⭐ **The
+  class IS the berth** — a cabin aft, a shared berth in steerage forward: the ship's social
+  geography is what you buy.
+- ⭐ **Sleep through it** (§ 8) — the berth's **rest quality** (a cabin's bunk against
+  steerage's hammock and foul air) decides how you wake: **the class you paid for is how
+  rested you arrive**, derived. **Awake**, the ship is a small town for days — fixed
+  mealtimes (the captain's table, the cook's mess), the deck, the saloon — ⭐ **a closed
+  social space with strangers you cannot leave**.
+- ⭐ **Seasickness** — the eyes and the inner ear disagreeing; driven by the expanse's **sea
+  state**; ⭐ **worst forward and high, easiest amidships and low, better on deck with the
+  horizon than below** (steerage, forward and below, is the worst place to be seasick — the
+  class line drawn in nausea); ⭐ **sea legs** come over days and are **lost after time
+  ashore**; ⭐ **susceptibility is seeded** like the taste profile; felt through wellbeing's
+  five channels (no appetite, no focus, less capacity) — **never control**.
+- **Arrival** — on deck as the land comes up; the pilot at the bar; customs; the quay or the
+  boats; the shipping news has already printed her arriving.
+
+### The cruise ship — a city that moves
+
+*"What about the modern cruise ship? That's bigger than some cities, as far as the mass of
+content that could be created for it."*
+
+- ⭐ **Held as a moving `BuildingWarren`** — the cabins are residence's **`DormWarren`**: a
+  cabin **buds when booked and occupied**, keyed to the passenger, and sleeps when they leave
+  (holding: *the floorplan is the initial mint, never the closed set*); the public spaces
+  (atrium, dining rooms, theater, pool deck) are authored rooms in the floorplan.
+  **Whole-ship dormancy refines to whole-WARREN dormancy** — the public decks one unit, each
+  cabin its own; only what is occupied is live, however big she is.
+- ⭐ **The voyage is the destination** — the packet passenger sleeps through it, the cruise
+  passenger stays awake for it: **businesses aboard** (restaurants — the three-star at sea —
+  the theater, the casino, the spa, the shops), **each a venue archetype leasing space from
+  the line** (concessions — ⭐ **player businesses can rent space aboard**, a mall that moves);
+  **the crew is a town's workforce** — the **deck department** sails her, the **hotel
+  department** runs the town; ports of call and shore excursions (the itinerary a timetable).
+- ⭐ **Big ships move less** — a ship much longer than the waves spans several, so she pitches
+  and rolls less: **seasickness falls with her length against the wave length** (real,
+  derived); **stabilizer fins** are a modern part. Epoch: modern, with **the ocean liner**
+  (the *Titanic*, the *Queen Mary*) as its earlier rung — the same model at a different size.
+- **Lenses** — lens 4: crews drawn from poorer countries at low wages, recorded; ⭐ **lens 7:
+  cruise lines flag in Panama and the Bahamas**, so a floating city's law is a small distant
+  state's — flags of convenience at their starkest; lens 6: thousands of people with money,
+  for a week, with nowhere else to spend it.

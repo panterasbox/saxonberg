@@ -37,8 +37,9 @@ data:
   register: indefinite
   longDescription: |
     A bare front room with good light and a rug someone left behind. Nothing else — yet.
-  # ⚠ A FLUX, read over the room's area — its zone's 6 m cell in the Hinkley lots, the one plat that uses it
-  # (36 m²): 1440 reads the 40 lux this row was tuned to (B54).
+  # ⚠ A FLUX, read over the room's area — its zone's cell; on a 6 m cell
+  # (36 m²) 1440 reads the 40 lux this row was tuned to (B54). The row names
+  # no locality: an archetype is tier-generic (room-archetypes.test D15).
   ambientIntensity: 1440
   ambientColorTemperature: 5200
   details:

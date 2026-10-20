@@ -214,6 +214,17 @@ describe('reeling silk', () => {
     expect(novice.threadLine()).toMatch(/thick and thin|uneven/);
   });
 
+  it('every fineness band reads as a sentence — "A <word> thread"', () => {
+    // The browser walk read "A of a middling weight thread": the middle
+    // band did not fit the frame. Every band, every count.
+    for (const n of [3, 6, 9, 14]) {
+      const s = makeStuff(() => new RawSilk());
+      s.setFilamentCount(n);
+      const line = s.threadLine();
+      expect(line, line).toMatch(/^An? [a-z-]+ thread, \d+ cocoons to it, /);
+    }
+  });
+
   it('the cocoon stack affords nothing; the skein is spinnable stock', () => {
     const offered = JSON.stringify(
       (Cocoons as unknown as { commandContributions?: unknown }).commandContributions ?? {},

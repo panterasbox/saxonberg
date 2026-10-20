@@ -156,6 +156,46 @@ describe("the textile chain keeps the fibre", () => {
     expect(bolt.getShortDescription()).toBe("bolt of linen");
   });
 
+  it("⭐⭐ two TITLED stacks of one spin together, and two titled skeins of yarn warp together", async () => {
+    // A good somebody made is titled to them and a titled stack never
+    // merges (the chattel rule): two reeled skeins are two stacks of one,
+    // and \`spin\` wants two. Counting only the stack named refused every
+    // silk spin a player could make (silk's drive: \`too-little\`).
+    const titled = (s: Stuff, id: string): void => {
+      (s as unknown as { _chattelId: string })._chattelId = id;
+    };
+    const a = stock(WOOL, "/trade/textiles/thing/line", 1);
+    titled(a, "ch-a");
+    const b = stock(WOOL, "/trade/textiles/thing/line", 1);
+    titled(b, "ch-b");
+    expect(a.canMergeWith(b)).toBe(false);
+    await spin(a);
+    expect(held((s) => s instanceof TextileStock && (s as TextileStock).getYarnCount() > 0)).toBeDefined();
+    // Both stacks of line were the charge — nothing of either is left.
+    expect(a.isDestroyed() && b.isDestroyed()).toBe(true);
+
+    for (const s of actor.getContents()) StuffApi.destruct(s as unknown as Stuff);
+    const y1 = stock(WOOL, "/trade/textiles/thing/yarn", 2, 12);
+    titled(y1, "ch-y1");
+    const y2 = stock(WOOL, "/trade/textiles/thing/yarn", 2, 12);
+    titled(y2, "ch-y2");
+    await weave(y1);
+    expect(held((s) => s instanceof ClothBolt)).toBeDefined();
+    expect(y1.isDestroyed() && y2.isDestroyed()).toBe(true);
+  });
+
+  it("a warp does not pool yarn of another count", async () => {
+    const titled = (s: Stuff, id: string): void => {
+      (s as unknown as { _chattelId: string })._chattelId = id;
+    };
+    const y1 = stock(WOOL, "/trade/textiles/thing/yarn", 2, 12);
+    titled(y1, "ch-y1");
+    const y2 = stock(WOOL, "/trade/textiles/thing/yarn", 2, 20);
+    titled(y2, "ch-y2");
+    await weave(y1);
+    expect(held((s) => s instanceof ClothBolt)).toBeUndefined();
+  });
+
   it("line (yarnCount 0) keeps its authored words — it is not yarn yet", () => {
     const line = stock(WOOL, "/trade/textiles/thing/line", 2);
     expect(line.getShortDescription()).toBe("fleece");

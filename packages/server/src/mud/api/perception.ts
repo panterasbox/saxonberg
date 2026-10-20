@@ -124,14 +124,22 @@ export class PerceptionApi {
   }
 
   /**
-   * ⭐ Run `fn` — a synchronous READ that describes many things — with the
-   * light at each place computed once rather than once per thing. The
-   * candidate walk of a command's arguments and a live card's refresh use
-   * it; anything that might change a light (light, douse, carry a lamp)
-   * must not run inside it. See `VisionModality.whileLightIsSteady`.
+   * ⭐ Hold the light steady for a synchronous READ that describes many
+   * things — the light at each place is then walked once, not once per
+   * thing. Returns the release; call it in a `finally`:
+   *
+   * ```ts
+   * const release = PerceptionApi.holdLightSteady();
+   * try { … } finally { release(); }
+   * ```
+   *
+   * MQL resolution and a live card's projection use it. Nothing that might
+   * change a light (light, douse, carry a lamp) may run inside a hold. A
+   * pair rather than a callback so the read runs in its CALLER's frame —
+   * see `VisionModality.holdSteadyLight`.
    */
-  public static whileLightIsSteady<T>(fn: () => T): T {
-    return logic().whileLightIsSteady(fn);
+  public static holdLightSteady(): () => void {
+    return logic().holdLightSteady();
   }
 
   /**
