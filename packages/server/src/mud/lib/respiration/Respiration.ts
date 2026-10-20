@@ -333,6 +333,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _storeFilling = true;
     /** The urge to breathe, 0..1 (it may start below 0 when hyperventilated). */
     private _co2Urge = 0;
+
+    /** The store this hold began with, litres (runtime; set when the drain arms). */
+    private _holdStoreL = 0;
     /** Where the next hold's urge starts (hyperventilation lowers it). */
     private _urgeStart = 0;
     /** The last urge crossing spoken (0 = none). */
@@ -864,8 +867,13 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
           const spent = Math.min(store, burn * elapsed);
           this._o2StoreL = store - spent;
           this._storeStampS = nowS;
-          const full = this.fullO2StoreL();
-          if (full > 0) this._co2Urge += spent / full;
+          // ⭐ The urge rises against THIS hold's store, not a full breath's
+          // (found by the drive): cold shock halves the store, and measured
+          // against a full breath the urge never reached its first word —
+          // every dive in a cold river blacked out unwarned. The urge
+          // reaches 1 as the store you went under with runs out.
+          const held = this._holdStoreL > 0 ? this._holdStoreL : this.fullO2StoreL();
+          if (held > 0) this._co2Urge += spent / held;
           this.speakUrge();
           void this.reassess();
           return;
@@ -1421,7 +1429,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // The store as it stands is the hold: whatever you had in your lungs
       // when the water closed over you. A full breath taken first is the
       // free-diver's whole preparation.
-      this.reconcileStore(nowS, this._storeFilling);
+      this._holdStoreL = this.reconcileStore(nowS, this._storeFilling);
       this._storeFilling = false;
       this._co2Urge = Math.max(this._co2Urge, this._urgeStart);
     }

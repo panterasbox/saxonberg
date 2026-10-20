@@ -85,6 +85,16 @@ import { POSTURE_REST_BASE } from '../character/Posed';
 import { CLEAN_TIERS, type CleanTier } from '../cleanliness/Soilable';
 
 /** Alias for readability at the magic arm's call sites. */
+/** Is `thing` on `body` — held, worn, or inside something it carries? */
+function carriedBy(thing: Stuff, body: Stuff): boolean {
+  let at: Stuff | null = MixinApi.isContainable(thing) ? (thing.getContainer() as Stuff | null) : null;
+  for (let i = 0; i < 8 && at !== null; i++) {
+    if (at === body) return true;
+    at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
+  }
+  return MixinApi.isSlottable(thing) && thing.getOccupiedHost() === body;
+}
+
 function magicDial(key: string, fallback: number): number {
   return elecDial(key, fallback);
 }
@@ -2981,7 +2991,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private renewSustained(s: SustainedEffect, nowS: number): boolean {
       // Term-bought: nothing to ask. It ran out.
       if (!s.sustainedBy) return false;
-      const host = StuffApi.findByTemplatePath(s.sustainedBy);
+      // ⚠ The holder's id is its IDENTITY path, which for an item with no
+      // identity of its own is its KIND — and a kind is live many times
+      // over (found by the underwater drive: eight wands of glowlight, the
+      // singleton lookup threw inside the breath engagement and aborted
+      // it). One instance is the host, as it always was; of several, the
+      // one THIS body carries.
+      const self = this as unknown as Stuff;
+      const charged = StuffApi.findAllByTemplatePath(s.sustainedBy).filter((c) => MixinApi.isCharged(c));
+      const host = charged.length === 1 ? charged[0] : charged.find((c) => carriedBy(c, self));
       if (!host || !MixinApi.isCharged(host)) return false;
       // A flat host cannot hold anything up either — the ring goes out
       // rather than running on nothing.

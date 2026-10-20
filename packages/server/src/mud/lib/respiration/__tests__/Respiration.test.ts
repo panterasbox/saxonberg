@@ -543,4 +543,33 @@ describe('RespirationMixin — the crisis core', () => {
       WorldClockApi.setScale(1);
     }
   });
+
+  it('⭐ a cold-shocked hold still warns: the urge passes its first word before the halved store runs out', async () => {
+    const diver = bodyWith({ breathableMedia: ['air'] });
+    diver.setMass(Quantity.of(70, 'kg'));
+    ContainmentApi.move(diver, room('air'));
+    await diver.reassess();
+    // Into COLD water at the surface: the gasp (cold shock) — then a deep
+    // breath, which resets the urge but cannot refill past the gasp's cap.
+    const cold = (atSurface: boolean): MediumRead => ({
+      tag: 'water', substance: 'water', immersed: true, atSurface,
+      temperatureK: 280, depthM: atSurface ? 0 : 3, waterRef: null,
+    });
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold(true));
+    await diver.reassess();
+    await diver.inhale();
+    expect(diver.getBreathUrge()).toBeLessThan(0.5);
+    // Then under.
+    read.mockReturnValue(cold(false));
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeDefined();
+    let warnedBeforeEmpty = false;
+    for (let i = 0; i < 200 && diver.getO2StoreL() > 0; i++) {
+      tick(1);
+      await settle();
+      if (diver.getO2StoreL() > 0 && diver.getBreathUrge() >= 0.5) warnedBeforeEmpty = true;
+    }
+    expect(diver.getO2StoreL()).toBe(0);
+    expect(warnedBeforeEmpty).toBe(true);
+  });
 });

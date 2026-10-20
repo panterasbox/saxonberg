@@ -207,6 +207,10 @@ suite('A · the water place', () => {
     // The work gear waits on the quay: carried, it is weight, and weight is
     // the one thing that refuses the way up (D14).
     for (const g of ['me:i:lifeline', 'me:i:spear', 'me:i:bag']) expectOk(await diver.cmd(`drop ${g}`));
+    // Two strangers on the quay know each other only as "a human" until
+    // they say who they are (the identity rungs) — names, `give`, `dm`.
+    expectOk(await diver.cmd('introduce'));
+    expectOk(await buddy.cmd('introduce'));
     let said = await look(diver, 'look river');
     for (let i = 0; i < 5 && !/Kestrel/.test(said); i++) {
       await diver.listen(1_500);
@@ -236,7 +240,7 @@ suite('A · the water place', () => {
         .toEqual(JSON.stringify(await diver.query('here', { fields: 'ref' })));
       // Each step down is a different place: the bed is not the surface.
       expect(new Set(down).size).toBe(down.length);
-      expect(down[down.length - 1]).toMatch(/bottom|bed/i);
+      expect(down[down.length - 1]).toMatch(/bottom|bed|pitch dark/i);
     } finally {
       await toTheSurface(diver);
       await toTheSurface(buddy);
@@ -244,16 +248,23 @@ suite('A · the water place', () => {
   });
 
   it('10 · in the lit band a voice is bubbles; an emote still reaches', async () => {
+    // The Kestrel is brown and silty: even its lit band is only dim, too
+    // dim to see another diver by. No flame burns below and a spoken
+    // working is bubbles — but a wand needs no voice, and its light
+    // follows its maker.
+    const zap = await diver.cmd('zap me:i:wand');
+    expect(zap.status, squash(await zap.said())).toBe('ok');
+    // From the surface of the basin (step 2 ended there), one stroke down
+    // is the lit band.
     await breathe(diver, buddy);
     expectOk(await diver.cmd('descend'));
-    expectOk(await diver.cmd('descend'));
-    expectOk(await buddy.cmd('descend'));
     expectOk(await buddy.cmd('descend'));
     const said = await say(diver, 'say can you hear me');
     expect(said).toMatch(/bubbles|nobody hears/i);
-    await buddy.drainProse();
+    // ⚠ Listen FIRST: `listen` drops what arrived before it started.
+    const sees = buddy.listen(3_000);
     expectOk(await diver.cmd('smile'));
-    expect(squash(await buddy.listen(2_000))).toMatch(/smile/i);
+    expect(squash(await sees)).toMatch(/smile/i);
     const sit = await diver.cmd('sit');
     expectRefused(sit);
   });
@@ -263,31 +274,30 @@ suite('A · the water place', () => {
     const give = await diver.cmd(`give slate to ${BUDDY}`);
     expect(give.status, squash(await give.said())).toBe('ok');
     expect(await say(buddy, 'read slate')).toMatch(/the anchor is here/);
-    await buddy.drainProse();
+    const hears = buddy.listen(3_000);
     expectOk(await diver.cmd('ring bell'));
-    expect(squash(await buddy.listen(2_000))).toMatch(/bell rings out[^.]*nowhere/i);
+    expect(squash(await hears)).toMatch(/bell rings out[^.]*nowhere/i);
   });
 
   it('3 · the urge to breathe rises in your own body; ascent is never refused for skill', async () => {
-    let felt = '';
-    for (let i = 0; i < 12 && !/want to breathe|chest|tunnels/i.test(felt); i++) {
-      felt += ' ' + squash(await diver.listen(5_000));
+    try {
+      let felt = '';
+      for (let i = 0; i < 12 && !/want to breathe|chest|tunnels/i.test(felt); i++) {
+        felt += ' ' + squash(await diver.listen(5_000));
+      }
+      // ⭐ The warning comes before the dark — one breath, not hyperventilated.
+      expect(felt).toMatch(/You want to breathe/);
+      expect(felt).not.toMatch(/tunnels/);
+    } finally {
+      await toTheSurface(diver);
+      await toTheSurface(buddy);
     }
-    // ⭐ The warning comes before the dark — one breath, not hyperventilated.
-    expect(felt).toMatch(/You want to breathe/);
-    expect(felt).not.toMatch(/tunnels/);
-    await toTheSurface(diver);
-    await toTheSurface(buddy);
     const top = await look(diver);
     expect(top).toMatch(/foot of the quay steps|in the river/i);
     expect(top).not.toMatch(/you are unconscious/i);
   });
 
-  // ⚠ PRE-EXISTING, not this build's: `dm`/`tell` resolve their `online`
-  // target to nobody for any character (found by the climate build; the
-  // drive confirms it with the exact displayed name). `it.fails` holds the
-  // checkpoint until the online scope is fixed, and flips red the day it is.
-  it.fails('10a · a message is aether: it reaches a diver below as it would anywhere', async () => {
+  it('10a · a message is aether: it reaches a diver below as it would anywhere', async () => {
     const dm = await diver.cmd(`dm ${BUDDY} meet at the anchor`);
     expect(dm.status, squash(await dm.said())).toBe('ok');
   });
@@ -305,11 +315,11 @@ suite('C · the line', () => {
     // a swimmer carrying all of it is refused — "carrying too much").
     expectOk(await diver.cmd('get here:i:lifeline'));
     expectOk(await diver.cmd(`heave lifeline to ${BUDDY}`));
-    await diver.drainProse();
+    const feels = diver.listen(6_000);
     expectOk(await buddy.cmd('tug line'));
     expectOk(await buddy.cmd('tug line'));
-    expect(squash(await diver.listen(6_000))).toMatch(/haul me up/);
-    expectOk(await diver.cmd('haul line'));
+    expect(squash(await feels)).toMatch(/haul me up/);
+    expectOk(await diver.cmd('haul lifeline'));
     expect(await look(buddy)).toMatch(/Kestrel|embankment/i);
   });
 });
@@ -318,10 +328,8 @@ suite('C · the city\'s work', () => {
   it('15b · the lost anchor will not come up on a line; three air bags float it, and the line brings it in', async () => {
     expectOk(await diver.cmd('drop me:i:lifeline'));
     expectOk(await diver.cmd('get here:i:bag'));
-    // ⭐ The bed is dark: no flame burns down there, and a spoken working
-    // is bubbles — but a wand needs no voice. The light follows its maker.
-    const zap = await diver.cmd('zap me:i:wand');
-    expect(zap.status, squash(await zap.said())).toBe('ok');
+    // The bed is dark; the wand's light (raised in step 10) still follows
+    // the diver down.
     await breathe(diver);
     await toTheBed(diver);
     expect(await look(diver)).toMatch(/anchor/i);
