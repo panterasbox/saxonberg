@@ -2018,10 +2018,26 @@ export class ContractLogic extends ApiLogic {
     return issueLoanImpl(spec);
   }
 
+  /**
+   * An opening advance being made, by borrower — so a second ask in the
+   * same tick waits on the first instead of racing it (sugar drive,
+   * 2026-10-19: a house whose wages and whose keeper's order all opened
+   * its account at once took THREE advances; "idempotent per borrower"
+   * held only for asks that did not overlap).
+   */
+  private openingInFlight: Map<string, Promise<IssueLoanResult>> = new Map();
+
   /** See {@link ContractApi.openingAdvance}. */
   @CallSecurity(ContractApiCallers)
   public async openingAdvance(businessKey: string): Promise<IssueLoanResult> {
-    return openingAdvanceImpl(businessKey);
+    let pending = this.openingInFlight.get(businessKey);
+    if (!pending) {
+      pending = openingAdvanceImpl(businessKey).finally(() =>
+        this.openingInFlight.delete(businessKey),
+      );
+      this.openingInFlight.set(businessKey, pending);
+    }
+    return pending;
   }
 
   /** See {@link ContractApi.issueNote}. */

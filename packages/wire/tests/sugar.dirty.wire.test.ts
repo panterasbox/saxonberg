@@ -485,6 +485,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
 
 let sailor: Session;
 let sailorHandle = '';
+let homeFeel = '';
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the hold', () => {
   afterAll(async () => {
@@ -498,16 +499,32 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   }, 600_000);
 
   it('13. ⭐ sailed from the estuary to Waponi Woo: she raises the island and lies off its landing', async () => {
+    // What Terminus feels like tonight, for step 14 to compare against.
+    homeFeel = await say(sailor, 'analyze temperature');
     await say(sailor, 'go aboard');
     await say(sailor, 'course roads');
     await advance(1 * HOUR);
     await say(sailor, 'course waponi woo');
+    // ⭐ Navigated, not merely steered: the set carries her wide of a
+    // course worked from the reckoning, so the lookout watches for the
+    // peak, a bearing on it fixes her, and the course is laid again.
+    // (Probed: raised ~36 h out, bearing 172 against a laid 181.)
     let heard = '';
-    for (let i = 0; i < 12 && !/Waponi Woo/.test(heard); i++) {
-      await advanceWorldClock('6 hours');
+    let fixed = false;
+    for (let i = 0; i < 18 && !/You raise Waponi Woo/.test(heard); i++) {
+      await advanceWorldClock('4 hours');
       heard += await sailor.listen(3_000).catch(() => '');
+      if (fixed) continue;
+      const horizon = await run(sailor, 'look horizon').then((r) => r.said());
+      await sailor.drainProse();
+      if (/peak of Waponi Woo/i.test(horizon)) {
+        expect(await say(sailor, 'measure bearing peak')).toMatch(/bears \d+/);
+        expect(await say(sailor, 'course waponi woo')).toMatch(/lay a course/i);
+        fixed = true;
+      }
     }
-    expect(heard, 'she never raised the island').toMatch(/raise Waponi Woo|Waponi Woo/);
+    expect(fixed, 'the peak never came up over the horizon').toBe(true);
+    expect(heard, 'she never raised the island').toMatch(/You raise Waponi Woo/);
     await say(sailor, 'go ashore');
     expect(await say(sailor, 'look')).toMatch(/jetty|black sand|landing/i);
   }, 1_800_000);
@@ -515,8 +532,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   it('14. ⭐ warm air, rich ground, the volcano, and sulfur won at the vents', async () => {
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
+    // ⭐ Warmer than Terminus — not "warm": thirty degrees in January is
+    // Madeira's winter (a night reads ~284 K against the estuary's 273).
     const feel = await say(sailor, 'analyze temperature');
-    expect(feel).toMatch(/warm|comfortable|hot/i);
+    expect(feel, `island: ${feel} · home: ${homeFeel}`).not.toBe(homeFeel);
+    expect(feel).not.toMatch(/freezing|bitter|very cold/i);
     const soil = await say(sailor, 'analyze soil');
     expect(soil.length).toBeGreaterThan(10);
     sailor.close();

@@ -259,6 +259,18 @@ describe("the Arrival Note and the standing facility", () => {
     expect((await ContractApi.treasuryPaper(BankingApi.compactCurrency())).openingAdvancesOwed).toBe(490);
   });
 
+  it("⭐ three asks in the same tick still advance ONCE (sugar drive: a house took three)", async () => {
+    standUpBank(true);
+    const shop = standUpShop();
+    const [account] = await Promise.all([
+      EmploymentApi.operatingAccountOf(shop),
+      EmploymentApi.operatingAccountOf(shop),
+      EmploymentApi.operatingAccountOf(shop),
+    ]);
+    expect(BankingApi.balanceOf(account!).minor).toBe(500);
+    expect(await ContractApi.instrumentsOf(SHOP)).toHaveLength(1);
+  });
+
   it("⭐ a wage the house cannot cover is REFUSED onto the book with the worker as creditor; the next settlement pays arrears first", async () => {
     standUpBank(true);
     withRows({ [AppSettingKeys.treasuryOpeningAdvance]: "0", [AppSettingKeys.reserveLadderLoansRequired]: "1" });

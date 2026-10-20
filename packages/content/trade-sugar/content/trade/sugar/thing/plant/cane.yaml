@@ -1,7 +1,9 @@
 # A stand of sugar cane (sugar D15). ⭐ The warmth is the gate: it stops
 # below 288 K and wants 300, and it takes most of a year to ripen — so at
 # Terminus's 42° the winter kills it before it is ready, and at Waponi
-# Woo's 30° it never stops growing.
+# Woo's 30° it stops only on the coolest winter nights (a January night
+# there reads ~284 K, measured on a standing world) — Madeira's latitude,
+# the first Atlantic sugar island.
 class: /platform/thing/Plant
 data:
   shortDescription: stand of sugar cane

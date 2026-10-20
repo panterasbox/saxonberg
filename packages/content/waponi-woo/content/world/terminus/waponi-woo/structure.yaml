@@ -1,0 +1,27 @@
+# The peak of Waponi Woo — what a ship raises first (sugar W6).
+#
+# ⭐ The island's landmark, on the light-on-Gannet-Rock pattern: a FIXED
+# subject whose range at sea is computed from its height, so a lookout
+# raises the cone a long day's sail out and a bearing taken on it fixes
+# the reckoning. Without it the island could not be seen at all, and a
+# 240-mile run on dead reckoning closes a one-mile node only by luck —
+# the drive sailed straight past it. (The Atlantic's sugar islands were
+# found this way: Tenerife's peak was the sea-mark of the whole run.)
+#
+# The extent is the island's, because the sea finds a landmark through
+# the node's landing. The boiling house keeps its own structure — the
+# longer extent wins — and an open hillside has no walls for membership
+# to change.
+class: /platform/idea/Structure
+data:
+  name: the peak of Waponi Woo
+  extent: /world/terminus/waponi-woo
+  entrance: /world/terminus/waponi-woo/location/landing
+  shortDescription: peak of Waponi Woo
+  register: definite
+  keywords: [peak, cone, volcano, mountain, island, "waponi woo"]
+  longDescription: >-
+    A broken volcanic cone standing up out of the sea, green on its lower
+    slopes and bare black above, a lazy plume of white leaning off the top.
+  landmark: true
+  heightM: 1100
