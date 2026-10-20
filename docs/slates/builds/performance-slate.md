@@ -121,8 +121,8 @@ one score in one palette, so every transition was composed for.)
    ⭐ **A district may publish a house sound** — a key family, a tempo range, an
    instrumentation — so its scores flow into each other. It is **voluntary,
    rewarded only by seamlessness, never enforced**:
-   [the stewardship doctrine](../../stewardship-doctrine.md)'s *zoning governs
-   use, never self-expression*. A composer who ignores it gets a bridge, never a
+   [settlement-model](../../settlement-model.md) § 4's *zoning governs use,
+   never self-expression*. A composer who ignores it gets a bridge, never a
    refusal.
 3. **The shared contract is the situation vocabulary.** Each author decides how
    their score sounds; everyone shares **what it responds to** — a **closed
