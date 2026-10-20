@@ -19,7 +19,7 @@ data:
     - brain: /trade/sugar/behavior/mills
       trigger: candidate
       config:
-        carry: { to: [north], back: [south] }
+        carry: { to: [north], back: [south], into: kettle }
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

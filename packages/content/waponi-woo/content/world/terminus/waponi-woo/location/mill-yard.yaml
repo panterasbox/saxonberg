@@ -13,6 +13,10 @@ data:
   coords: { x: -1, y: 1, z: 0 }
   props:
     - /trade/sugar/thing/edge-runner
+    # ⭐ The tubs the juice runs into: a crush needs an EMPTY one in reach
+    # (`no-glass` otherwise). The miller pours his tub into the kettle up
+    # at the boiling house and brings the same tub back.
+    - { template: /trade/sugar/thing/juice-tub, count: 2 }
   cast:
     - /world/terminus/waponi-woo/agent/miller
   exits:

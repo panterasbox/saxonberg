@@ -668,8 +668,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     const fresh = await examine(sailor, 'cane');
     expect(fresh, `fresh cane: ${fresh}`).toMatch(/fresh-cut/i);
     await act(sailor, 'mill cane');
-    const yard = await say(sailor, 'look');
-    expect(yard, 'no juice or bagasse after the crush').toMatch(/bagasse|juice|tub/i);
+    // ⭐ Juice IN a tub, read by its look — the yard's own prose says
+    // "tub", so matching the room proved nothing (it passed with every
+    // crush refused `no-glass`, drive 8).
+    const tubs = await examine(sailor, 'tub');
+    expect(tubs, 'no juice in a tub after the crush').toMatch(/pale green and cloudy/i);
     await advance(1 * DAY);
     const left = await examine(sailor, 'cane');
     expect(left, `a day-old bundle: ${left}`).toMatch(/turning|inverted/i);

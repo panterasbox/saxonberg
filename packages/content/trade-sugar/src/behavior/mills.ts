@@ -3,8 +3,15 @@
  * brought, while it is still fresh. One bundle a beat through the edge
  * runner (`mill cane` — the `crush-cane` recipe: juice into a tub, the
  * crushed fibre left as bagasse to dry), and the tub of juice carried to
- * the boiling house (config `carry: { to, back }` — directions). Every act a
- * verb a player could type, on shift only.
+ * the boiling house (config `carry: { to, back, into? }` — directions, and
+ * the vessel to empty it into). Every act a verb a player could type, on
+ * shift only.
+ *
+ * ⭐ With `into`, the tub goes up full and comes BACK: the miller pours it
+ * into the boiling-house vessel and carries the same tub home, so the
+ * crush always has a tub to run into. Without it a tub is left full up
+ * there and the yard runs out (the drive: `no-glass` at every bundle — a
+ * crush needs an empty tub, and there is no "the empty one" to name).
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -50,18 +57,21 @@ export const brain = class {
   /** The next verbs, one per line, or `null`. Pure. */
   static next(
     yard: { crush: boolean; tub: boolean },
-    carry: { to: readonly string[]; back: readonly string[] },
+    carry: { to: readonly string[]; back: readonly string[]; into?: string },
   ): string | null {
     if (yard.crush) return 'mill cane';
     if (yard.tub && carry.to.length > 0) {
-      return ['get tub', ...carry.to.map((d) => `go ${d}`), 'drop tub', ...carry.back.map((d) => `go ${d}`)].join('\n');
+      const there = carry.into
+        ? [`pour tub into ${carry.into}`, ...carry.back.map((d) => `go ${d}`), 'drop tub']
+        : ['drop tub', ...carry.back.map((d) => `go ${d}`)];
+      return ['get tub', ...carry.to.map((d) => `go ${d}`), ...there].join('\n');
     }
     return null;
   }
 
-  static carry(config: unknown): { to: readonly string[]; back: readonly string[] } {
-    const c = ((config ?? {}) as { carry?: { to?: string[]; back?: string[] } }).carry ?? {};
-    return { to: c.to ?? [], back: c.back ?? [] };
+  static carry(config: unknown): { to: readonly string[]; back: readonly string[]; into?: string } {
+    const c = ((config ?? {}) as { carry?: { to?: string[]; back?: string[]; into?: string } }).carry ?? {};
+    return { to: c.to ?? [], back: c.back ?? [], ...(c.into ? { into: c.into } : {}) };
   }
 
   static urgency(ctx: BrainContext): Urgency {
