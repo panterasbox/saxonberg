@@ -329,7 +329,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
     r.close();
     const p = await goTo(handle, ASHERY);
     const fed = await say(p, 'stoke brash into pit');
-    expect(fed, `stoke: ${fed}`).toMatch(/You lay a bundle of brash/i);
+    expect(fed, `stoke: ${fed}`).toMatch(/You lay a bundle of .*brash/i);
     await say(p, 'drop brash').catch(() => '');
     p.close();
   }
