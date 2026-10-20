@@ -31,6 +31,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Exit from '../boundary/Exit';
 import type { WaterDraw, WaterRead, WaterSource } from './WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -86,6 +87,12 @@ export interface Shore {
    */
   drawAt(key: string, room: Stuff): { draw: WaterDraw } | { refusal: 'frozen' | 'unread'; line: string };
   waterSlot(via?: MqlMatchVia): SourceSlot;
+  /**
+   * ⭐ The way from here into the water — `swim` with no way named
+   * (underwater review): the exit whose far side IS a water place, or why
+   * there is none, in words.
+   */
+  wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string };
 }
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
@@ -102,10 +109,6 @@ const DRAW_VERBS = [
   // must BE the water — a `Pool`). A riverbank or a deck affords the verb
   // and refuses the way in words; it is never itself swimmable.
   'platform/cmd/movement/swim.yaml',
-  // ⭐ Into the water and up and down it (underwater D19) — the place
-  // decides what down means: beside a water, into it; in one, its column.
-  'platform/cmd/movement/descend.yaml',
-  'platform/cmd/movement/ascend.yaml',
 ];
 
 export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -366,6 +369,24 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const tookMs = Date.now() - startedMs;
         if (tookMs > 2_000) console.warn(`ShoreMixin: reading '${citation}' at ${where} took ${tookMs} ms`);
       }
+    }
+
+    public wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string } {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isExitable(self)) {
+        for (const [, exit] of self.getExits()) {
+          const path = exit.getDestinationTemplatePath?.() ?? null;
+          const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+          if (!dest || !MixinApi.isWaterPlace(dest)) continue;
+          // The water decided it cannot be swum into: say why, rather
+          // than the swim gate's bare "no way to swim <exit>".
+          if (dest.stateNow() === 'frozen') {
+            return { refusal: 'iced-over', line: 'The water is iced over. The only way in is through a hole in the ice.' };
+          }
+          return { exit };
+        }
+      }
+      return { refusal: 'no-water', line: 'There is no water here to go into.' };
     }
 
     /**

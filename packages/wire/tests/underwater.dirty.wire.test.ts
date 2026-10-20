@@ -80,16 +80,15 @@ async function breathe(...ss: Session[]): Promise<void> {
   for (const s of ss) expectOk(await s.cmd('inhale'));
 }
 
-/** Down the column until the water is no deeper; the looks on the way. */
+/** From the quay into the water, then down the column until it is no deeper; the looks on the way. */
 async function toTheBed(s: Session): Promise<string[]> {
-  const looks: string[] = [];
+  // The way in from beside a water is `swim`; `descend` is the column's.
+  const into = await s.cmd('swim');
+  expect(into.status, squash(await into.said())).toBe('ok');
+  const looks: string[] = [await look(s)];
   for (let i = 0; i < 6; i++) {
     const r = await s.cmd('descend');
-    if (r.status !== 'ok') {
-      // The first step must go: from the quay, into the water.
-      if (i === 0) expect(r.status, squash(await r.said())).toBe('ok');
-      break;
-    }
+    if (r.status !== 'ok') break;
     looks.push(await look(s));
   }
   return looks;
@@ -102,7 +101,7 @@ async function toTheSurface(s: Session): Promise<void> {
     if (r.status !== 'ok') {
       // The only refusal that ends a good ascent is being at the top.
       const said = squash(await r.said());
-      expect(said, said).toMatch(/already at the surface|not in the water/i);
+      expect(said, said).toMatch(/already at the surface/i);
       return;
     }
   }
@@ -346,7 +345,7 @@ suite('C · the city\'s work', () => {
     expectOk(await diver.cmd('climb up'));
     expectOk(await diver.cmd('get here:i:spear'));
     await breathe(diver);
-    expectOk(await diver.cmd('descend'));
+    expectOk(await diver.cmd('swim'));
     expectOk(await diver.cmd('descend'));
     const r = await diver.cmd('spear fish');
     const said = squash(await r.said());
@@ -427,7 +426,7 @@ suite('D · 19 · the frog', () => {
 suite('Magic · 20', () => {
   it('20 · under the water a working cannot be spoken', async () => {
     await breathe(diver);
-    expectOk(await diver.cmd('descend'));
+    expectOk(await diver.cmd('swim'));
     expectOk(await diver.cmd('descend'));
     const r = await diver.cmd('cast glowlight');
     const said = squash(await r.said());

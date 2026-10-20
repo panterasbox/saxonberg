@@ -20,8 +20,9 @@ export default class SwimController extends LocomotionControllerBase {
   /**
    * ⭐ `swim` with no target — *swim here* (storage-and-ice D12): let go of
    * the floor and go into the water where you are. The floor decides: one
-   * with open water drops you in, gently; one with none refuses. With a
-   * target it is the shipped crossing.
+   * with open water drops you in, gently; one with none refuses. Beside a
+   * water (a quay, a strand) it is the way in, which the shore names
+   * (underwater review). With a target it is the shipped crossing.
    */
   override async execute(model: LocomotionModel & CommandModel, context: CommandContext): Promise<void> {
     // A way that was TYPED is the crossing even when it names no exit —
@@ -32,6 +33,11 @@ export default class SwimController extends LocomotionControllerBase {
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
+    if (!(floor instanceof WaterSurface) && room !== null && MixinApi.isShore(room) && !MixinApi.isWaterPlace(room)) {
+      const way = room.wayIntoWater();
+      if ('refusal' in way) return this.refuse(context, 'act.deed', way.line, way.refusal);
+      return this.crossPicked(giver as Stuff, way.exit, context);
+    }
     if (!(floor instanceof WaterSurface)) {
       return this.refuse(context, 'act.deed', 'There is no open water here to swim in.', 'no-open-water');
     }

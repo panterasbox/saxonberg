@@ -1867,6 +1867,20 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   - The wand of glowlight is an arcane-library row stocked at Morrow's,
     so terminus now depends on arcane-library (a new pack edge).
 
+### Review round 1 (2026-10-20)
+
+- **R1 · `ascend`/`descend` are the water's, not the shore's.** `ShoreMixin`
+  afforded `swim`, `descend` and `ascend` to every waterside place. On a
+  dry quay `ascend` could only refuse, and `descend` was `swim`'s act
+  (into the water) under a second name. Now: `WaterPlaceMixin` affords
+  `descend`/`ascend` (in the water: down and up the column); the shore
+  affords `swim` alone, and `swim` with no way named beside a water takes
+  you in, picking the way through `Shore.wayIntoWater()` (which owns the
+  iced-over refusal). `jump` moved from `descend` to `swim`, because
+  jumping off a quay is the requirement's way in. The base controller's
+  `crossPicked` is the one place-picked crossing for both verbs.
+  Requirements drive step 2 now reads `swim`, then `descend`.
+
 ## Drive record
 
 

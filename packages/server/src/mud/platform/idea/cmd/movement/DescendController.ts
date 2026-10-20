@@ -1,11 +1,11 @@
 /**
- * DescendController — `descend` (`dive`, `jump`) and `ascend` (`surface`):
+ * DescendController — `descend` (`dive`) and `ascend` (`surface`):
  * ⭐ **up and down the water** (underwater D19).
  *
  * The verb is a sense, not a target: the place decides what down means.
+ * Only a water affords it — beside one, the way in is `swim` (underwater
+ * review: a dry bank has no up, and "down into it" was swim's act twice).
  *
- *  - **Beside the water** (a shore that is not itself a water): down is
- *    into the water — the way out of here whose far side IS a water place.
  *  - **In a water** (the surface, or a band of its column): down is the
  *    column's `down`, swum; up is its `up`. A water with no column has no
  *    down; the surface has no up.
@@ -20,10 +20,7 @@ import { LocomotionControllerBase, type LocomotionModel } from './LocomotionCont
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Exit from '../../../../lib/boundary/Exit';
-import type { WaterPlace } from '../../../../lib/location/WaterPlace';
 import { MixinApi } from '../../../../api/mixin';
-import { StuffApi } from '../../../../api/stuff';
-import { LocomotionApi } from '../../../../api/locomotion';
 
 export default class DescendController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
@@ -47,16 +44,7 @@ export default class DescendController extends LocomotionControllerBase {
     const up = this.goesUp(context);
 
     if (!MixinApi.isWaterPlace(room)) {
-      if (up) return this.refuse(context, 'act.deed', 'You are not in the water.', 'not-in-water');
-      const into = this.wayIntoWater(room as unknown as Stuff & { getExits(): Map<string, Exit> });
-      if (into === null) return this.refuse(context, 'act.deed', 'There is no water here to go into.', 'no-water');
-      // The water decided it cannot be swum into (iced over); say why,
-      // rather than the swim gate's bare "no way to swim <exit>".
-      const water = this.waterBehind(into);
-      if (water !== null && water.stateNow() === 'frozen') {
-        return this.refuse(context, 'act.deed', 'The water is iced over. The only way in is through a hole in the ice.', 'iced-over');
-      }
-      return this.cross(giver, into, context);
+      return this.refuse(context, 'act.deed', 'You are not in the water.', 'not-in-water');
     }
 
     if (!up) {
@@ -82,31 +70,6 @@ export default class DescendController extends LocomotionControllerBase {
         ? this.refuse(context, 'act.deed', 'You are already at the surface.', 'at-surface')
         : this.refuse(context, 'act.deed', 'The water is no deeper here.', 'no-deeper');
     }
-    return this.cross(giver, exit, context);
-  }
-
-  /** The water place an exit leads into, when it is one that is loaded. */
-  private waterBehind(exit: Exit): (Stuff & WaterPlace) | null {
-    const path = exit.getDestinationTemplatePath?.() ?? null;
-    const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
-    return dest && MixinApi.isWaterPlace(dest) ? dest : null;
-  }
-
-  /** The way out of a shore whose far side is a water place, if it has one. */
-  private wayIntoWater(room: Stuff & { getExits(): Map<string, Exit> }): Exit | null {
-    for (const [, exit] of room.getExits()) {
-      const path = exit.getDestinationTemplatePath?.() ?? null;
-      const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
-      if (dest && MixinApi.isWaterPlace(dest)) return exit;
-    }
-    return null;
-  }
-
-  private async cross(giver: Stuff, exit: Exit, context: CommandContext): Promise<void> {
-    if (!MixinApi.isMobile(giver)) return;
-    await LocomotionApi.preloadActorAnatomy(giver);
-    const mode = await LocomotionApi.loadMode('swim');
-    const guard = await giver.traverse(exit, mode.getName());
-    if (!guard.ok) this.emitRejection(guard, mode, {} as LocomotionModel, context);
+    return this.crossPicked(giver, exit, context);
   }
 }

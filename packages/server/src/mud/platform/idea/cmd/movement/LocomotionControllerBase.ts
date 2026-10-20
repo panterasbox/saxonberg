@@ -25,6 +25,7 @@ import type {
   } from '../../../../api/command';
 import type { LocomotionGateFailedNote } from '@saxonberg/types';
 import type { MqlOneResult } from '../../../../api/mql';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Exit from '../../../../lib/boundary/Exit';
 import type { TraversalGuard } from '../../../../lib/boundary/Exit';
 import ExitableVessel from '../../../../lib/boundary/ExitableVessel';
@@ -130,6 +131,19 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // chose the exit and the mode; it reports what the crossing said.
     const guard = await actor.traverse(exit, mode.getName());
     if (!guard.ok) this.emitRejection(guard, mode, model, context);
+  }
+
+  /**
+   * Cross an exit the PLACE picked (no target was typed) under this
+   * verb's mode — `swim` into the water from a shore, `descend` down a
+   * column. The crossing decides; this reports what it said.
+   */
+  protected async crossPicked(actor: Stuff, exit: Exit, context: CommandContext): Promise<void> {
+    if (!MixinApi.isMobile(actor)) return;
+    await LocomotionApi.preloadActorAnatomy(actor);
+    const mode = await LocomotionApi.loadMode(this.modeName(context));
+    const guard = await actor.traverse(exit, mode.getName());
+    if (!guard.ok) this.emitRejection(guard, mode, {} as LocomotionModel, context);
   }
 
   /**

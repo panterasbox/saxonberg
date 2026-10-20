@@ -310,8 +310,10 @@ stages.
 **A — the water place**
 1. At Wharfside, `look` at the water below the quay: it reads as deep
    water you could go into, with the depth in words.
-2. `inhale`, then `descend`: you are in the water at the surface; again:
-   you are in the column; again: you are on the bed. Each room reads its
+2. `inhale`, then `swim` (or `jump`) off the quay: you are in the water at
+   the surface; `descend`: you are in the column; again: you are on the
+   bed. (`descend`/`ascend` are only for someone in the water — a dry
+   quay has no up or down.) Each room reads its
    light (dimming), and a second character who followed is in the same
    room.
 3. Stay on the bed: the urge to breathe rises in your own voice — then
