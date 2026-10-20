@@ -172,7 +172,11 @@ data:
     - { itemTemplatePath: /trade/sericulture/thing/mounting-brush, par: 2 }
     - { itemTemplatePath: /trade/sericulture/thing/seed/mulberry, par: 2 }
     - { itemTemplatePath: /trade/sericulture/thing/hand-reel, par: 2 }
-    - { itemTemplatePath: /trade/textiles/thing/copper, par: 1 }
+    # ⚠ NO copper on this shelf (the silk build had one, par 1): a pan of
+    # beaten copper restocked to par is copper metal from nowhere — the
+    # faucet the metal chain closed (`smelt.test` "no shipped row spawns or
+    # stocks copper"). The dyehouse's copper is a prop; a player's own is
+    # the smith's to make.
     # ⭐⭐ A watch, par 2 — and it is here because two shipped verbs had
     # no instrument a player could own. `wind` and `adjust` are the
     # avenue's verbs and the only `Watch` in the realm was in Gus's
@@ -637,8 +641,6 @@ data:
     /trade/sericulture/thing/mounting-brush: 1
     /trade/sericulture/thing/seed/mulberry: 4
     /trade/sericulture/thing/hand-reel: 6
-    # ⭐ A copper for boiling cloth — beaten copper, dear as a good pot.
-    /trade/textiles/thing/copper: 14
     # ⚠ Dearer than the hive and cheaper than the bees: brass, a spring
     # and a jewel, made by somebody who knew how. It does not keep time
     # properly, which is the point and not a discount.

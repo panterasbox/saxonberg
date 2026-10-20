@@ -20,6 +20,7 @@ data:
   businessPath: /world/terminus/wharfside/mill/idea/outfit
   stockLines:
     - itemTemplatePath: /trade/sericulture/thing/cocoons
-      par: 40
+      # A bolt's worth (see the reeler's `stocks` batch).
+      par: 160
       from: { supplier: /world/terminus/hearts-delight/silk-house/idea/outfit }
   prices: {}

@@ -37,6 +37,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import TextileStock from '../../../thing/TextileStock';
 
 const TOPIC = 'act.deed';
 const BOLT_ROW = '/trade/textiles/thing/bolt';
@@ -84,7 +85,9 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
       return;
     }
     const charge = dial(WeaveController.CHARGE_KEY, WeaveController.CHARGE);
-    if (yarn.getQuantity() < charge) {
+    // ⭐ Like skeins in hand warp together (`TextileStock.quantityInHand`).
+    const inHand = yarn instanceof TextileStock ? yarn.quantityInHand() : yarn.getQuantity();
+    if (inHand < charge) {
       this.declineStep(
         context,
         Mml.compose`There is not enough yarn there to warp a loom.`,
@@ -133,9 +136,13 @@ async function finish(
   // ⚠ Read the fibre BEFORE the input is consumed — an emptied stack is
   // destructed below.
   const fibre = MixinApi.isTangible(yarn) ? yarn.getMaterial() : null;
-  const left = Math.max(0, yarn.getQuantity() - charge);
-  if (left === 0) StuffApi.destruct(yarn);
-  else yarn.setQuantity(left);
+  if (yarn instanceof TextileStock) {
+    yarn.drawInHand(charge);
+  } else {
+    const left = Math.max(0, yarn.getQuantity() - charge);
+    if (left === 0) StuffApi.destruct(yarn);
+    else yarn.setQuantity(left);
+  }
 
   try {
     const bolt = await StuffApi.clone<Stuff>(BOLT_ROW);

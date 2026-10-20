@@ -429,7 +429,7 @@ is just a worse card.
   cellulose fibre … no new lesson"*, which was wrong for silk: silk is a
   **protein** fibre (it takes alum directly, as `trade-dyeing` already
   reads) and the richest lesson in the vertical. Silk →
-  [silk-slate](../slates/builds/silk-slate.md); cotton is its own slate,
+  [silk-slate](../slates/tails/silk-slate.md); cotton is its own slate,
   later.
 - **Synthetics, mills, mass production** — trades ship medieval and
   advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`

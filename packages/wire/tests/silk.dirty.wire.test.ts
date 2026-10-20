@@ -214,7 +214,9 @@ suite('⭐ 1. the silk house — a lit loft, its trays in words', () => {
       expect(loft).toMatch(/silk house loft/i);
       expect(loft, 'a LIT loft — not "something"').not.toMatch(/too dark|pitch/i);
       const here = await names(s, 'here:i');
-      expect(here).toMatch(/rearing tray/i);
+      // The house's own trays, named by what is on them (a house tray when
+      // bare) — never "rearing tray", which is a BOUGHT tray's name.
+      expect(here).toMatch(/house tray|tray of (silkworms|cocoons)/i);
       expect(here).toMatch(/stifling oven/i);
       expect(here).toMatch(/counter/i);
       expect(here, 'the keeper, by name').toMatch(/Ines Vale/);
@@ -227,9 +229,13 @@ suite('⭐ 1. the silk house — a lit loft, its trays in words', () => {
   it('⭐ AC 2 — `look tray` reads the worms in WORDS, with no number in them', async () => {
     const s = await at(LOFT);
     try {
-      const tray = await read(s, 'look second tray');
-      const line = tray.split(/\n/).filter((l) => /worm|egg|tray|nothing/i.test(l)).join(' ');
-      expect(line, 'the tray must say something about its rearing').not.toBe('');
+      // ⭐ By the name on the room's list — a tray is called by what is on
+      // it. ⚠ This read `look second tray` and accepted "nothing living":
+      // the ordinal counts the ROOM's order, not the house's, and it found
+      // a harvested tray while passing (silk's browser walk).
+      const tray = await read(s, 'look silkworms');
+      const line = tray.split(/\n/).filter((l) => /worms|eggs/i.test(l)).join(' ');
+      expect(line, 'the working tray must read its rearing').toMatch(/age|eating|asleep|wandering|spinning|waiting/i);
       expect(line, 'AC 2 — in words, never a number').not.toMatch(/\d/);
     } finally {
       s.close();
@@ -334,7 +340,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
       let bought = 0;
       for (let i = 0; i < 150 && bought < 120; i++) {
         const r = await say(s, 'buy cocoon');
-        if (refusedFor(r) === null) {
+        // ⚠ Count a cocoon only when one was BOUGHT: drive 26 counted a
+        // reply that was not a refusal and not a sale, the player held 119,
+        // and the hand reel — which wants exactly the last forty — refused.
+        if (refusedFor(r) === null && /You buy a cocoon/i.test(await r.said())) {
           bought += 1;
           continue;
         }
@@ -433,9 +442,13 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
         const m = await at(MILL);
         try {
           console.log('DIAG mill', await names(m, 'here:i'));
-          console.log('DIAG crib', await names(m, 'here:i:crib:i'));
-          console.log('DIAG silks', await names(m, 'here:i:silks:i'));
-          console.log('DIAG reeler', await names(m, 'here:i:reeler:i'));
+          // ⚠ By the most specific names: in drives 26–27 the bare `crib`
+          // query printed the REELER's hands (a student outfit, a skein, the
+          // pupae, ten cocoons) and `reeler` printed nothing — the record
+          // had to be read backwards.
+          console.log('DIAG crib', await names(m, 'here:i:"cocoon crib":i'));
+          console.log('DIAG silks', await names(m, 'here:i:"silk shelf":i'));
+          console.log('DIAG reeler', await names(m, 'here:i:liss:i'));
         } finally {
           m.close();
         }

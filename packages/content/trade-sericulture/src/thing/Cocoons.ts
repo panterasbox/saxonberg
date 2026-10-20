@@ -242,7 +242,9 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
     }
     const charge = dial('sericulture.reel.charge', REEL_CHARGE);
     if (this.reelPool().reduce((n, c) => n + c.getQuantity(), 0) < charge) {
-      return refusal('too-few', 'There are not enough cocoons there to keep a thread going.');
+      // ⭐ The refusal says what lifts it (the browser walk bought ten and
+      // was told only "not enough").
+      return refusal('too-few', 'There are not enough cocoons there to keep a thread going — a reeling takes about forty.');
     }
     if (!tool || !tool.hasCapability('reeling')) {
       return refusal('no-reel', 'You want a reel to wind the thread onto.');

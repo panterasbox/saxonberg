@@ -25,7 +25,12 @@ data:
       trigger: candidate
       config:
         counter: /world/terminus/wharfside/mill/thing/crib
-        batch: 40
+        # ⭐ A bolt's worth per trip: a warp is four yarn, a spin is two
+        # skeins, a reeling forty cocoons — 160 cocoons to a bolt. At 40 a
+        # trip the reeler walked to Hearts Delight four times per bolt on
+        # real-time beats and no bolt reached the store inside the drive's
+        # window (drive 26).
+        batch: 160
         ways:
           - to: /world/terminus/hearts-delight/silk-house/location/floor
             go: [north, south, south, south, south, south, south, west, north]

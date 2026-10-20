@@ -11,7 +11,7 @@
 > **Left:** break-glass declared-purpose logging for reads and
 > impersonation (the conspicuous record — `wizard-bar-slate` leans on it
 > from here) · `su` as an agency consumer · the duty text in the wizard
-> grant (the safe harbour's TEXT is
+> grant (the safe harbor's TEXT is
 > [wizard-bar-slate](../tails/wizard-bar-slate.md)'s) · subject notification on
 > record access · the "people who can see everything" appendix. ⚠ The
 > axis re-gating (`provision` / `unprovision` / `lease` / `unlease` /
@@ -94,7 +94,7 @@ duty, audit and disbarment.
 
 The enforcement path already ships: **the PM may revoke any wizard**
 ([balance-slate](./balance-slate.md)). What is missing is the **duty**,
-the **process**, and ⚠ the **safe harbour** — without which nobody sane
+the **process**, and ⚠ the **safe harbor** — without which nobody sane
 accepts the role.
 
 ## ⭐⭐ A wizard is a wizard regardless of position
@@ -294,9 +294,9 @@ persuade in a way descriptions cannot.
    `su` is the most compelling first consumer, which argues for
    co-designing them rather than shipping `su` on a bespoke path that
    later has to be unpicked.
-2. ⚠ **What is the safe harbour?** Without a business-judgment equivalent
+2. ⚠ **What is the safe harbor?** Without a business-judgment equivalent
    the role is unfillable — a wizard who breaks something in good faith
-   must not be treated as one who snooped. → the harbour is
+   must not be treated as one who snooped. → the harbor is
    [wizard-bar-slate](../tails/wizard-bar-slate.md)'s *product* (§ *What the bar
    does*); its text is that slate's Q2.
 3. **Is the duty written into the constitution, or into the wizard grant

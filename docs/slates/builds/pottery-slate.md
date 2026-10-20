@@ -154,7 +154,7 @@ polity that bans lead-glazed food vessels passes a real public-health law
 with a measurable effect.
 
 **Faults, derived**: ⭐ **crazing** (a glaze shrinking more than its body on
-cooling crackles — two materials' thermal expansion; crazed ware harbours
+cooling crackles — two materials' thermal expansion; crazed ware harbors
 dirt, cleanliness's interest), **running** (over-fired), **crawling** (over
 dust or grease).
 
@@ -173,7 +173,7 @@ dust or grease).
 - **The body decides the use, derived**: ⭐ **cooking on the flame** —
   open-bodied earthenware with grog survives a direct fire's shock, dense
   stoneware cracks (the bean pot, the tagine; the wrong pot is lost);
-  **porous ware absorbs** fat and flavour and harbours microbes (cleanliness,
+  **porous ware absorbs** fat and flavour and harbors microbes (cleanliness,
   spoilage) while glazed and stoneware are hygienic; ⭐ **porous jars cool
   water** — an unglazed jar sweats and the evaporation chills its contents
   (the *botijo*, the *zeer*): the shipped wetness evaporation plus the body's

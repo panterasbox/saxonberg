@@ -390,3 +390,84 @@ provisioning or subdivision.
    density. If servicing turns out to be cosmetic, density is an unpriced
    dial and the budget conflict returns.
 
+## ⭐⭐⭐ Goods at the border — customs (designed 2026-10-19)
+
+Out of the harbor session. The owner: *"this customs enforcement sounds like a
+general offering for all this kind of authorial oversight"* — *"someone might
+want to make their content exclusively medieval and we have to deal with things
+entering and exiting their space."* This slate designed the RULE (soft by
+default — the act succeeds and the breach is recorded; hard only as a
+suppression field with a reason in the world; never hidden). It had not designed
+the CROSSING.
+
+> ⭐ **A border post applies a jurisdiction's covenant to goods crossing into
+> it** — declare, inspect, then by the covenant: **duty** (pay to bring it in),
+> **bond** (it waits at the border until you leave), **refuse**, or **admit**.
+> Exports the same way (a realm guarding its artifacts, a guild its charts).
+
+⭐ **Shipped in miniature: the lounge's weapons-check rack** — *"check your steel
+here; take it up again on your way out"* — a bonded store at a border, enforcing
+the lounge's no-combat covenant at its door.
+
+| the covenant | at its border |
+|---|---|
+| a medieval realm — nothing past `medieval` | the modern thing **held in bond** at the gate; smuggled in and used, **a breach on the ledger** (soft); a realm where it genuinely will not work needs a suppression field and a reason |
+| a polity's duties | goods pay at the customs house |
+| a public-health law | quarantine |
+| a ban (lead-glazed food vessels, poisons, banned books) | refused, or seized |
+| the lounge | weapons at the rack |
+
+### The customs post — one archetype, scaled by where it stands
+
+*"We'll need some kind of common customs outpost to put at any crossover point
+between jurisdictions."* ⭐ **A Structure archetype** (inspection, duty
+collection, a bonded store; any layout). ⭐ **Its presence comes from the post,
+not a setting** — *"the presence customs has at a harbor or airport or bus
+station… is going to be heavier than on a remote road"*:
+
+| where | presence |
+|---|---|
+| a harbor, a rail or bus terminus, an airport | a **customs house** — officers, a rummage crew, a bonded warehouse, queues |
+| a busy road crossing | a **post** — an officer or two, a barrier, a small bond store |
+| a remote road | a **hut** — one keeper, part-time, a lockbox; easier to slip past |
+| an unwatched crossing | **no post** — the covenant applies; a breach is recorded only if seen |
+
+How heavy is officers on shift × their competence at search × the time an
+inspection takes; ⭐ **smugglers route through the thin posts** — derived.
+
+### The stash — custody, networked by magic
+
+*"Use some magic here to let people access their stashed gear at any customs
+house."* ⭐ **The bonded store is shipped custody** (the ice build's `store
+deposit | withdraw | receipts` at a keeper's counter — a receipt as proof). ⭐
+**Retrieval at any other customs house goes through the TPA network** — it moves
+things between nodes, runs on mana, and its terminals are **impulse devices**
+(paid per use), so a transfer is **priced by mass at the arcane price list** (a
+sword cheap, a cart of goods dear) — honest by canon.
+
+### ⭐⭐ Borders become break-of-bulk hubs
+
+*"A Mack truck delivering goods to a town that only takes wagons… they're going to
+have to stop at the border, unload their goods from the truck into a wagon… these
+turn into transit centers of their own."* Where cargo must change vehicles a town
+grows (ports; Australia's rail-gauge breaks). The transfer is **haulage's depot**
+with porters and stevedores; ⭐ **the truck's way home is the return leg** (back
+empty, or loaded with the medieval side's exports — the backhaul) **or it waits**,
+garaged for a fee; the hub grows warehouses, the bond, inns, wagons and beasts for
+hire, **money changers** if money differs. ⭐ **Lens 6: a covenant's border is a
+job creator** — the medieval town's carters, wagon-makers and stables have work
+because the trucks cannot come in; lens 4: purity against the cost of the transfer.
+
+### ⭐ Keeping crossings few
+
+*"I don't want hundreds of these things everywhere."*
+
+1. **Posts only where goods regimes differ at the JURISDICTION level** — two
+   jurisdictions' covenants admitting different things (a realm, a large
+   locality). A small covenant **nested** inside a jurisdiction (one medieval wood
+   in a modern realm) gets **no post** — enforced softly, by a breach if seen. So
+   borders are realm and region edges, not parcel edges.
+2. **Designated ports of entry** — a jurisdiction designates the handful of
+   lawful crossings; other physical ways across exist, but **crossing goods there
+   is itself a breach** (smuggling's geography). The count is controlled by
+   designation, not walls.

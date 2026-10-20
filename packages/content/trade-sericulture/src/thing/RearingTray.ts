@@ -53,6 +53,33 @@ export default class RearingTray extends RearingMixin(ThermalMixin(ContainerMixi
 
   static markupAugmenters: MarkupAugmenter[] = [rearingAugmenter];
 
+  /**
+   * ⭐ A tray is NAMED by what is on it (silk's browser walk): a loft's
+   * three trays listed as three identical "rearing tray"s left a player no
+   * way to tell the working one from the two already harvested — and the
+   * ordinal they reached for (`look third tray`) counts the room's order,
+   * not the house's. What is on a tray is what anyone would call it by.
+   */
+  override getShortDescription(): string {
+    const stem = super.getShortDescription();
+    switch (this.getRearingState()) {
+      case 'eggs':
+        return 'tray of silkworm eggs';
+      case 'feeding':
+        return this.isMoulting() ? 'tray of sleeping silkworms' : 'tray of silkworms';
+      case 'wandering':
+        return 'tray of wandering silkworms';
+      case 'spinning':
+        return 'tray of spinning silkworms';
+      case 'collapsed':
+        return 'tray of dead silkworms';
+      default:
+        return this.getContents().some((s) => s.getTemplatePath() === '/trade/sericulture/thing/cocoons')
+          ? 'tray of cocoons'
+          : stem;
+    }
+  }
+
   public canAddContainable(thing: Stuff & Containable): VetoResult {
     if (thing instanceof EggLot) {
       if (this.hasLiveRearing()) {

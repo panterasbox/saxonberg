@@ -94,7 +94,10 @@ export default class SpinController extends ManualBuildController<SpinModel> {
       return;
     }
     const charge = dial(SpinController.CHARGE_KEY, SpinController.CHARGE);
-    if (stock.getQuantity() < charge) {
+    // ⭐ Like stacks in hand count together — the stock's own answer
+    // (`TextileStock.quantityInHand`): a player's titled skeins never merge.
+    const inHand = stock instanceof TextileStock ? stock.quantityInHand() : stock.getQuantity();
+    if (inHand < charge) {
       this.declineStep(
         context,
         Mml.compose`There is not enough there to fill a spindle.`,
@@ -161,9 +164,13 @@ async function finish(
   const fibre = MixinApi.isTangible(stock) ? stock.getMaterial() : null;
   // The stock is consumed WHETHER OR NOT the thread held. That is the
   // waste, and it is the whole of the failure mode.
-  const left = Math.max(0, stock.getQuantity() - charge);
-  if (left === 0) StuffApi.destruct(stock);
-  else stock.setQuantity(left);
+  if (stock instanceof TextileStock) {
+    stock.drawInHand(charge);
+  } else {
+    const left = Math.max(0, stock.getQuantity() - charge);
+    if (left === 0) StuffApi.destruct(stock);
+    else stock.setQuantity(left);
+  }
 
   if (yieldUnits <= 0) {
     if (watching) {

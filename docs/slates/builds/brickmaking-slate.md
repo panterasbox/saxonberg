@@ -162,8 +162,8 @@ furnaces that need it — hauled down to the Delight brickfield.
   — slow carbonation from the air's CO₂ over months: a maturation `chemical`
   set with no act, moulding's *cure*, its second consumer after plaster.
 - ⭐ **Hydraulic lime** (lime burnt with clay, or Roman *pozzolana*) **sets
-  under water** — Roman harbours, Smeaton's Eddystone (1759) — the material
-  the hard-hat diver's footings and harbour works need
+  under water** — Roman harbors, Smeaton's Eddystone (1759) — the material
+  the hard-hat diver's footings and harbor works need
   ([underwater-slate](./underwater-slate.md) § 11). The next rung.
 - **The bricklayer is W7's trade** (*"by that layer's trade"*). ⭐ **Mortar is
   sacrificial** — water and frost leave a wall through its soft lime joints, so

@@ -24,6 +24,8 @@ import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const TextileStockBase = StackableMixin(CraftedMixin(Good));
 
@@ -79,5 +81,56 @@ export default class TextileStock extends TextileStockBase {
     if (this.yarnCount <= 0) return stem;
     const fibre = MixinApi.isTangible(this) ? this.getMaterial()?.getName() : '';
     return fibre ? `skein of ${fibre} yarn` : stem;
+  }
+
+  /**
+   * ⭐⭐ The stock one act may draw on: this stack and every stack beside it
+   * in the same hands that is the same STUFF — the same row, the same
+   * fibre, the same count (0 for line and reeled skeins, the yarn's count
+   * for yarn). This stack first.
+   *
+   * ⚠ A good somebody MADE is titled to them and a titled stack never
+   * merges (the chattel rule), so a player's two reeled skeins are two
+   * stacks of one and two spins are two stacks of yarn; a `spin` (charge
+   * 2) or a warp (charge 4) that counted only the stack named refused every
+   * one a player could make (silk's drive). The object answers it — a
+   * controller reads it (`controllers-are-io`); the reel's `Cocoons` pool
+   * is the same shape.
+   */
+  public likeStacksInHand(): TextileStock[] {
+    const pool: TextileStock[] = [this];
+    const holder = MixinApi.isContainable(this) ? this.getContainer() : null;
+    if (!holder || !MixinApi.isContainer(holder)) return pool;
+    const row = this.getTemplatePath();
+    const fibre = MixinApi.isTangible(this) ? this.getMaterial() : null;
+    for (const s of holder.getContents() as Stuff[]) {
+      if ((s as unknown) === (this as unknown) || !(s instanceof TextileStock)) continue;
+      if (s.getTemplatePath() !== row || s.getYarnCount() !== this.yarnCount) continue;
+      if (s.getMaterial() !== fibre) continue;
+      pool.push(s);
+    }
+    return pool;
+  }
+
+  /** How much {@link likeStacksInHand} holds between them. */
+  public quantityInHand(): number {
+    return this.likeStacksInHand().reduce((n, s) => n + s.getQuantity(), 0);
+  }
+
+  /**
+   * Use `units` of this stock — this stack first, then the like stacks
+   * beside it — destructing any stack it empties. Returns what was drawn.
+   */
+  public drawInHand(units: number): number {
+    let need = Math.max(0, units);
+    for (const s of this.likeStacksInHand()) {
+      if (need <= 0) break;
+      if (s.isDestroyed()) continue;
+      const take = Math.min(need, s.getQuantity());
+      need -= take;
+      if (take >= s.getQuantity()) StuffApi.destruct(s as unknown as Stuff);
+      else s.setQuantity(s.getQuantity() - take);
+    }
+    return Math.max(0, units) - need;
   }
 }
