@@ -2062,3 +2062,41 @@ mid-drain in step 6, the hold in step 19 — `stopOwnedWorld` /
   taps, fire, silk, whiskey) are also owed, and go in the same boot when
   memory allows.
 
+  - Attempt 3: 20/20 red. Causes: the duration format, dark rooms, and
+    founder clones that were denied.
+  - Attempt 4: 6/20 (steps 2, 11, 12, 16, 18, 19). Its failures were
+    then probed one at a time on a standing world (`.wire/*.probe.ts`,
+    gitignored), which turns a 40-minute question into a two-minute one.
+
+### Drive 4's findings, and what each became (2026-10-19/20)
+
+| finding | fix |
+|---|---|
+| copper, kettle, juice tub, curing pot were `closure: open` — a SIEVE on the bulk scale (the lid is `open:`) | `liquidTight`; forestry's sap pan and quarrying's salt pan had the same latent defect |
+| `stoke arch with coal` binds the arch as the fuel; the platform help example taught it | `stoke coal into arch` in the brain, tests, drive and help |
+| `harvest cane` not understood in a field — only a Cultivable bed afforded it | **a `Plant` affords its own harvest** wherever it stands; medicine's `PhysicPlant` (the same fix in a pack) retired into it |
+| the lime order was refused: "fungible goods can't be contracted" | restocks orders a stackable count line by its TAG; `job post` gained `pieces of <category>` (the engine always held a counted category; the phrase did not) |
+| the raw-sugar order was refused: "you can't fund that reward" (112 against a 50 advance) | a par line may carry **`rewardPerUnit`**, and the keeper orders only what the house can fund at that rate (raw sugar 14, the import ceiling; lime 5) |
+| the Sugar House took THREE opening advances | `ContractLogic.openingAdvance` serialized per borrower (the `inFlightClones` precedent); "idempotent per borrower" held only for asks that did not overlap. Pre-existing for any house whose wages settle in one tick |
+| `Train` = `AssembledMixin(Oven)` — refused at first registration, which in a live world was the first LOGIN (test-login 500) | `AssembledMixin(DurableMixin(Oven))` + `train.test.ts`, which fails on the old composition |
+| she never raised Waponi Woo: the island had nothing to be SEEN by, and a course worked from the reckoning misses a one-mile node | **the peak of Waponi Woo** — a landmark Structure (1100 m) on the light-on-Gannet-Rock pattern; the lookout raises it ~36 h out, `measure bearing peak` fixes her, the course is laid again. Homeward, a course laid from the island's fix raises the bar on its own |
+| step 14 expected "warm" | 30° in January is ~284 K at night (Madeira's latitude): warmer than the estuary's 273, not warm. The step compares; the cane and zone rows stop claiming cane never stops growing |
+| step 1: no walk-off seen | the mechanism WORKS ("4 days unpaid, and 108 zorkmids owed. I'm done here."); the drive stepped a day at a time, which skips whole shifts, and read the notice by a glowcap too dim to read by. Twelve-hour steps; the notice read by daylight |
+| a deck in a storm: the sailor is struck by lightning and cannot lay a course | the drive lays it again (the sim working, not a defect) |
+
+⚠⚠ **A finding for the user, not fixed here — W0 surfaces the idle
+economy.** A fresh house gets a 50 opening advance and pays more than
+that in a day's wages, so houses fall into arrears with no player in the
+world (that was true before this build). W0 turns arrears into
+walk-offs: a probe census over ~6 idle game days went from 5 to 13
+vacant seats of 71, 14 houses in arrears — the Sugar House's refiner
+among them. And the island estate has no buyer until a player sails
+there (the voyage is the player's), so it cannot pay its hands either.
+The vacancies read as HELP WANTED, which is the lens-3b hole the design
+wants; whether an idle world should shed staff this fast is a values
+question (the seed `employment.unpaidStandGameDays: 3`, the opening
+advance, NPC demand) and the economy's, not sugar's.
+
+- Gate gap 2: a pack class whose composition the check refuses is
+  caught only when something registers one; no gate registers every
+  pack class.
