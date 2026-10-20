@@ -10,6 +10,7 @@
 
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 
 /** A whole train's share of the fire that reaches its kettles. */
 const WHOLE = 0.8;
@@ -17,7 +18,10 @@ const WHOLE = 0.8;
 const PER_KETTLE = 0.15;
 const KETTLES = 4;
 
-export default class Train extends AssembledMixin(Oven) {
+// ⚠ Durable inside Assembled: an assembly's wear needs somewhere to go
+// (assembly D8). Without it the class refused at first registration —
+// in a live world, the first login (sugar drive, 2026-10-19).
+export default class Train extends AssembledMixin(DurableMixin(Oven)) {
   public override getHeatTransferFraction(): number {
     const kettles = this.getParts().filter((l) => l.part === 'kettle');
     const sound = kettles.reduce((n, l) => n + Math.max(0, l.count - l.failed), 0);

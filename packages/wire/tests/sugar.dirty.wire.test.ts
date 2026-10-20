@@ -234,6 +234,14 @@ async function advance(seconds: number): Promise<void> {
   }
 }
 
+/** Advance to the next `hour`:00. */
+async function toHourOfDay(hour: number): Promise<void> {
+  const now = await worldClockNow();
+  let target = Math.floor(now / DAY) * DAY + hour * HOUR;
+  if (target <= now) target += DAY;
+  await advance(target - now);
+}
+
 /** Advance to the next day-off morning (weekday 6, 07:00) — the refiner is home. */
 async function toSundayMorning(): Promise<void> {
   const now = await worldClockNow();
@@ -298,16 +306,22 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     } finally {
       wiz.close();
     }
-    const watcher = await goTo(boilerHandle, PANTRY);
+    let watcher = await goTo(boilerHandle, PANTRY);
     try {
+      // ⚠ Twelve hours a step, never a day: a jump over a whole shift is
+      // a shift the roster tick never saw start, so it never settles.
       let heard = '';
-      for (let i = 0; i < 6 && !/done here|walks off/i.test(heard); i++) {
+      for (let i = 0; i < 10 && !/done here|walks off/i.test(heard); i++) {
         await advance(12 * HOUR);
         heard += await watcher.listen(3_000).catch(() => '');
-        heard += await say(watcher, 'look');
       }
       expect(heard, 'the hand never walked off').toMatch(/done here|walks off/i);
-      expect(heard, 'no help-wanted notice for the empty seat').toMatch(/help wanted|hiring|wanted/i);
+      // The notice is read by daylight — a carried jar is too dim to read by.
+      await toHourOfDay(10);
+      watcher.close();
+      watcher = await goTo(boilerHandle, PANTRY);
+      const notice = await say(watcher, 'look') + (await watcher.listen(2_000).catch(() => ''));
+      expect(notice, 'no help-wanted notice for the empty seat').toMatch(/help wanted/i);
     } finally {
       watcher.close();
       const wiz2 = await Session.open('founder', { startLocation: PANTRY, wizard: true });
