@@ -3,7 +3,7 @@
 > **Pack:** `trade-sericulture` at `/trade/sericulture` · **Discipline:**
 > `sericulture` · **Verbs:** none of its own (`put`, `get`, `harvest`,
 > `reel`, `spin`, `weave`, `heat`) · **Design:**
-> [silk-slate.md](../slates/builds/silk-slate.md)
+> [silk-slate.md](../slates/tails/silk-slate.md)
 
 A tray of silkworms eats cut mulberry leaf for about a month, ages by the
 warmth of the room it stands in, moults four times, wanders, and spins.
@@ -93,7 +93,12 @@ moves).
 ## The reel — fishing's verb, the instrument decides
 
 `reel` is ONE view, fishing's (the collision ladder's first rung: unify
-behind an interface). With nothing bound it is the fishing act; bound to a
+behind an interface). ⚠⚠ **Known debt, shipped knowingly:** at review
+this proved a FALSE unification — the controller narrows on the target to
+pick the mechanic, which is command-spec's own tell for two verbs. The
+undo (fishing's view restored; silk's own `unwind` in this pack) is
+`command-taxonomy-slate.md` § The work, item 7, deferred to the global
+command sweep. With nothing bound it is the fishing act; bound to a
 target answering `Reelable` (`trade-fishing/src/lib/Reelable.ts`, the
 kernel's `WorkPrognosis`/`WorkResult`), the target plans, the controller
 engages, the target completes and names the Discipline to credit.
@@ -142,6 +147,17 @@ floored at one coin; the floor is markets-slate open Q5's).
 
 ## Deferred
 
+⚠ **The drive's one recorded gap** (silk drives 26–27, 14/17): the
+mill-to-store chain — the reeler's bolt reaching the general store, then
+bought and degummed. The house sells only the crop its hand has set out
+(~170 cocoons in the run), the drive's player buys 120 of it first, and
+the reeler ends with ~50 of the 160 a bolt needs. The economy is right
+(one buyer took the crop); the drive's ORDER sets the player against the
+mill. Fix: run the mill section before the player's buy. The reeler
+already buys a bolt's worth (160) a trip.
+
+The house's brazier and oven burn bounded fuel props — the fuel trade's
+supplied line is the attach point (fuel/markets slate) ·
 Bait from pupae (fishing's closed `BAIT_KINDS`) · `FinishingMixin` on a
 garment, wool scouring, piece-bleaching (textiles-slate) · a booted house
 (unobserved-economy-slate) · microscope certification of a lot
