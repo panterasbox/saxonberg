@@ -421,7 +421,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
       const wiz2 = await Session.open('founder', { startLocation: PANTRY, wizard: true });
       try {
         await wiz2.cmd('config treasury.openingAdvance 50');
-        await wiz2.cmd('config employment.unpaidStandGameDays 3');
+        // ⚠⚠ A LONG stand for the rest of the drive, and why: in an idle
+        // world no house earns its wages (a 50 float against a day's pay),
+        // so with the seed's three days the island's miller walks off before
+        // the estate has boiled its first block, and every later checkpoint
+        // would test the payroll, not the sugar. Step 1 proved the walk-off;
+        // the idle-economy finding is the user's, recorded in the plan's
+        // drive record with its census. Restored to the seed at the end.
+        await wiz2.cmd('config employment.unpaidStandGameDays 60');
       } finally {
         wiz2.close();
       }
@@ -489,6 +496,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     await say(boiler, 'get copper');
     await say(boiler, 'put cone on pot');
     await say(boiler, 'pour copper into cone');
+    // Set the copper down: a boiler with forty-five kilos of copper in
+    // their arms cannot lift a loaf (drive 8: "doesn't budge").
+    await say(boiler, 'drop copper');
     expect(await examine(boiler, 'cone')).toMatch(/strike|filled|set/i);
   }, 1_800_000);
 
@@ -505,18 +515,18 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
   }, 1_800_000);
 
   it('7. ⭐ clayed, the loaf washes white at the head and stays brown at the foot', async () => {
-    await say(boiler, 'get loaf from cone');
-    const unclayed = await examine(boiler, 'loaf');
+    // The loaf is clayed where it stands, in its cone over the pot.
+    const unclayed = await say(boiler, 'look loaf');
     expect(unclayed, 'a fresh loaf should read muscovado').toMatch(/muscovado/i);
-    await say(boiler, 'put loaf in cone');
     boiler.close();
     boiler = await goTo(boilerHandle, CURING);
-    await say(boiler, 'get clay');
+    // One lump: `get clay` takes the whole heap, which nobody can lift.
+    await say(boiler, 'get 1 clay');
     boiler.close();
     boiler = await goTo(boilerHandle, FLOOR);
     await say(boiler, 'clay loaf with clay');
     await advance(11 * DAY);
-    const clayed = await examine(boiler, 'loaf');
+    const clayed = await say(boiler, 'look loaf');
     expect(clayed, `one loaf, three grades: ${clayed}`).toMatch(/white at the head/i);
     expect(clayed).toMatch(/brown at the foot/i);
   }, 1_800_000);
@@ -543,6 +553,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
   }, 1_800_000);
 
   it('12. ⭐ at the sugarbush the arch takes its cordwood and lights hot enough to strike (the sap boil is pinned by unit tests)', async () => {
+    await daylight();
     const sugarer = await goTo(boilerHandle, SUGARBUSH);
     try {
       await say(sugarer, 'get 2 log');
@@ -575,6 +586,9 @@ let homeFeel = '';
 suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the hold', () => {
   afterAll(async () => {
     sailor?.close();
+    const wiz = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+    await wiz?.cmd('config employment.unpaidStandGameDays 3').catch(() => undefined);
+    wiz?.close();
     await stopOwnedWorld();
   });
 
