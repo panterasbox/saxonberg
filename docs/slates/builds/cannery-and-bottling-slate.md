@@ -15,7 +15,9 @@
 > water bath and the pressure retort · the blown can and the leaker · the vessels
 > (jar, bottle, cork and crown, ⭐ the tinplate can) · ⭐ the metal-forming rung
 > (rolling, tinning, the can maker) · bottling's fill + forced carbonation +
-> flat-on-opening + the returnable bottle · the pack as seasonal hiring ·
+> flat-on-opening + the returnable bottle · ⭐ the label as a claim (the
+> static display rung, the lot code, the recall; imported labels at first) ·
+> the pack as seasonal hiring ·
 > Cannery Row as the venue, the fish cannery as the second · the provisioning
 > consumers (ship, voyage, garrison)
 > **Size:** a large build (content-led, with two kernel deltas)
@@ -105,6 +107,34 @@ The most-wanted missing process in the whole gap walk, brought in by the can:
 - **Flat on opening** — the aluminium-can slate's reconcile-on-read design.
 - **The returnable bottle** — a deposit attached by law, the return at any
   counter, and the collector who exists only because a polity priced the bottle.
+
+## 6a. ⭐⭐⭐ The label is a claim about what you cannot see **[DECIDED — added 2026-10-19]**
+
+A sealed can hides its contents from every sense — that is what the seal is
+for. So **the label is the only way anyone knows what is inside**; before
+labels, you opened it or you trusted the seller.
+
+- **An unlabeled can reads as "a can."** Naming it *"a can of apricots"* with
+  no label would be the engine telling you what nobody in the world could know.
+- **The label is evidence, not truth.** It can lie — mislabeling, adulteration,
+  a counterfeit brand: [belief.md](../../subsystems/belief.md)'s *disguise is
+  perceptual*, applied to goods.
+- ⭐ **The brand becomes legible here.** A brand resolves on read
+  ([corpo.md](../../subsystems/corpo.md)); on a sealed good the label is the only
+  place a buyer can see it, and counterfeiting is a forged label.
+- ⭐ **The lot code ties the can to its batch.** When a batch is under-processed
+  and a lid domes, the code on the end is what makes a **recall** possible;
+  without it every can of the season is suspect. The inspector reads the process
+  record; the lot code is how they find which record.
+- **The law lands on the label** — contents, net weight, maker. Weights and
+  measures and food standards act on the label, never on the can.
+- ⭐ **The label is a static display** — the same rung the printed page takes in
+  [paper-and-printing-slate](./paper-and-printing-slate.md). **This build ships
+  the rung** because it is first and needs it; its labels begin as an
+  **imported** printed good (imports are the backstop's ceiling, which our
+  doctrine allows), and the paper and printing build replaces the import with
+  the mill, the press and the jobbing printer. The cannery is the paper mill's
+  first big customer before the mill exists — demand first.
 
 ## 7. ⭐⭐ Why it matters — the economy **[DECIDED — lens 6]**
 
