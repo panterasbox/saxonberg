@@ -173,7 +173,7 @@ material.
 - `shape` over parametric forms;
 - green ware's ruins;
 - furnace linings and crucibles that wear;
-- glazes, with lead leaching through `imparts`;
+- glazes, with lead leaching from the vessel's inside face;
 - impressions, cast keys and the pour's physics;
 - pressing and crystallizing;
 - the bell, and the ring test;
@@ -336,7 +336,7 @@ Every item names its destination.
   - heat-work and the fired body;
   - clay composition;
   - faces and coats;
-  - `imparts` with toxins and acidity;
+  - the inside face leaching into contents, by toxin and acidity;
   - brittle breakage and thermal shock;
   - evaporative cooling;
   - the freeze-thaw count;
@@ -409,7 +409,8 @@ New verbs:
 
 - **Fire.** `fire`'s recipe path now carries both a state change and
   transformations. ⚠ Potash is changing the same path.
-- **Maturation's `imparts`** gains a toxin type and an acidity factor.
+- **Maturation's `imparts`** is the special case of a face giving to its
+  contents. It is unchanged here, and it moves onto faces later (Non-goals).
 - **Cleanliness** learns clay as a dirt kind: the brickfield is mud, and potters
   are muddy. It also learns that a crazed coat or bare porous body holds dirt
   and a sound glaze wipes clean.
@@ -555,10 +556,11 @@ change: *a wet glaze*, then *a fused glaze*. Crazing happens when a coat shrinks
 more than its body on cooling. The coat cracks, the vessel weeps a little, and
 dirt lodges.
 
-### M7. Lead leaches through `imparts`
+### M7. Lead leaches from the inside face into the contents
 
-Maturation's vessel-to-contents channel carries a **toxin**, and its rate scales
-with **the contents' acidity**, a new material fact:
+A vessel's inside face gives to what the vessel holds. A lead coat gives a
+**toxin**, at a rate that scales with **the contents' acidity**, a new material
+fact:
 
 - vinegar, wine, fruit juice, whey and pickling brine are acidic;
 - water is not.
@@ -849,8 +851,9 @@ in words and named notes.
 
 - **Rung, it carries** (a sound across places). A cracked bell sounds dull (M5).
 - **A small bell** casts in a flask.
-- **A large bell** is cast in a **pit dug in the foundry yard**: a loam mould,
-  so the mould is a place, and the pour is the founder's day.
+- **A large bell** is cast in the **bell pit**, a loam mould fixed in the
+  foundry yard. The pour is the founder's day. A pit you climb into, a mould
+  that is a place, is a later build.
 - **Terminus's curfew bell** hangs in the market, and anyone can `ring` it.
 
 ### S20. The works and their people
