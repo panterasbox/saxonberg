@@ -30,9 +30,12 @@ args:
     type: string
     required: true
     greedy: true
+  # ⚠ greedy: `on the slate` / `on the harbor board` are more than one
+  # token (lint:reachability arm G — an article shape).
   - name: surface
     type: object
     required: true
+    greedy: true
     prepositions: [on, onto, in]
     scope: ["inventory", "reachable"]
     requires: [MarkedMixin]

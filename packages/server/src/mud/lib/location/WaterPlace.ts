@@ -641,13 +641,25 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const floor = this.waterFloor();
       if (floor !== null && floor.supportIsSlotted()) {
         if (!(floor.openWaterAreaM2() > 0)) return false;
-      } else if (this.stateNow() === 'frozen') {
+      } else if (this.stateNow() === 'frozen' || this.citedWaterFrozen()) {
         // No floor that holds anyone (or none at all, mid-water): the
-        // place's own state says whether its water can be swum — a band
-        // under the ice is still water.
+        // water's own state says whether it can be swum — a band's state
+        // is 'swimming' (under the ice is still water), a pool's is its
+        // read.
         return false;
       }
       return super.canEngageAxis(direction);
+    }
+
+    /**
+     * The one water this place cites (its shore pick) reads frozen — asked
+     * only AT the surface: under the ice, a band of the same water is
+     * still water to swim in.
+     */
+    private citedWaterFrozen(): boolean {
+      if (this.surfacePlace() !== (this as unknown as Stuff)) return false;
+      const pick = (this as unknown as Shore).waterFor();
+      return 'key' in pick && (this as unknown as Shore).peekWaterRead(pick.key)?.frozen === true;
     }
 
     /**

@@ -99,6 +99,14 @@ describe('write.yaml through the whole binder', () => {
     });
   });
 
+  it('⭐ the thing may take an article: `on the slate`', async () => {
+    expect(await drive('write meet at the anchor on the slate')).toEqual({
+      stage: 'ok',
+      words: 'meet at the anchor',
+      surface: 'slate',
+    });
+  });
+
   it('one word works the same', async () => {
     expect(await drive('write anchor on slate')).toEqual({ stage: 'ok', words: 'anchor', surface: 'slate' });
   });
