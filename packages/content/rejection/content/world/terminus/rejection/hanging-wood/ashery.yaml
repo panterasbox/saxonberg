@@ -18,7 +18,7 @@ data:
   ambientIntensity: 4500
   ambientColorTemperature: 5600
   longDescription: |
-    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A broad pit ringed with blackened stones takes up the middle of it, and a squat brick kiln stands at the far side. A lean-to of rough boards shelters a hearth with an iron pot on it, crusted white round the lip, and beside it a tall hopper on legs with a stone channel under its spigot. A tarred rain butt stands under the eaves.
+    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A broad pit ringed with blackened stones takes up the middle of it, and a squat brick kiln stands at the far side. A lean-to of rough boards shelters a hearth with two iron pots on it, crusted white round the lip, and heaps of grey ash kept dry along its back wall, and beside it a tall hopper on legs with a stone channel under its spigot. A tarred rain butt stands under the eaves.
 
     Everything here smells of wet ash and lye, and there is not a green thing growing within a cart's length of the hearth.
   coords: { x: -1, y: 2, z: 0 }
@@ -39,10 +39,27 @@ data:
     - { template: /trade/forestry/thing/cordwood, as: cordwood-3 }
     - { template: /trade/forestry/thing/cordwood, as: cordwood-4 }
     - /stuff/thing/Hearth
-    - { template: /trade/potash/thing/iron-pot, on: /stuff/thing/Hearth }
+    # ⭐ Two pots on the one hearth (potash D16): a strong lye and a weak one
+    # boiled over the SAME fire is how an ash-burner learns what weak lye
+    # costs in wood (AC 5).
+    - { template: /trade/potash/thing/iron-pot, as: pot-1, on: /stuff/thing/Hearth }
+    - { template: /trade/potash/thing/iron-pot, as: pot-2, on: /stuff/thing/Hearth }
+    # The ashery's store of ash, bought in from hearths and kept dry under
+    # the lean-to — fresh ash for a second pass of the lye.
+    - { template: /trade/fuel/thing/wood-ash, as: ash-1 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-2 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-3 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-4 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-5 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-6 }
     - /trade/chandlery/thing/hopper
     - /trade/potash/thing/rain-butt
     - /trade/potash/thing/test-egg
+    # A pail to carry the rain to the hopper and the lye to the pot.
+    - /stuff/thing/vessel/pail
+    # ⭐ The pit is raked out with a broom — `sweep` is the broom's verb
+    # (found by the drive: an ashery with no broom could not be swept).
+    - /stuff/thing/gear/broom
     - { template: /trade/chandlery/thing/lye-flask, as: flask-1 }
     - { template: /trade/chandlery/thing/lye-flask, as: flask-2 }
   details:

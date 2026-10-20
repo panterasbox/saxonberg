@@ -3059,11 +3059,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * bounded `tetanyUntil` window, checked by the reconcile caller. */
     private shockCircuitLive(s: SustainedShock): boolean {
       if (!s.source) return false;
-      const source = StuffApi.findByTemplatePath(s.source);
-      if (!source || !MixinApi.isEnergized(source)) return false;
+      // ⚠ The source is a TEMPLATE path, and a transient source (a
+      // lightning strike) has many live instances at once in a storm: the
+      // singleton lookup threw `expected singleton, found 4` and took the
+      // server down on a long clock jump (found by the potash drive). Any
+      // live instance still carrying current through this body holds the
+      // circuit.
       const self = this as unknown as Stuff;
-      return (
-        (source as Stuff & Energized).currentThrough(self).rawValue() > 0
+      return StuffApi.findAllByTemplatePath(s.source).some(
+        (source) =>
+          MixinApi.isEnergized(source) &&
+          (source as Stuff & Energized).currentThrough(self).rawValue() > 0,
       );
     }
 

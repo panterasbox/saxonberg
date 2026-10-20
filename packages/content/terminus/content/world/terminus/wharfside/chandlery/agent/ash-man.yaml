@@ -8,7 +8,10 @@ data:
     - /stuff/thing/clothes/field-jacket
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  keywords: ["ash-man", ashman, "ash man"]
+  # ⚠ Never a keyword that starts with `ash` as a word of its own (the
+  # slate's vocabulary rule): "ash man" made `get ash` reach for HIM
+  # (found by the drive). `ashman` is one word.
+  keywords: [ashman, collector]
   shortDescription: ash-man
   register: definite
   longDescription: >-

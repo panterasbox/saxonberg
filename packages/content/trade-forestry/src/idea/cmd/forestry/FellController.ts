@@ -102,9 +102,10 @@ export const BARK_FRACTION_OF_BOLE = 0.08;
  * D18): the crown's twigs and lop, trimmed off where the tree lies. Every
  * felling leaves it — it is not a species fact, as bark is — and it is the
  * richest feed an ash pit has, because twigs carry more ash per kilo than
- * heartwood. Six bundles summing to a fifth of the bole's mass.
+ * heartwood. Ten bundles summing to a fifth of the bole's mass — about
+ * thirteen kilos each off a beech, a load one person carries.
  */
-export const BRASH_BUNDLES_PER_STANDARD = 6;
+export const BRASH_BUNDLES_PER_STANDARD = 10;
 export const BRASH_FRACTION_OF_BOLE = 0.2;
 /** Mass of a whole felled tree, by stage — the carryable case. */
 export const FELLED_TREE_KG: Record<string, number> = { young: 8, established: 30 };

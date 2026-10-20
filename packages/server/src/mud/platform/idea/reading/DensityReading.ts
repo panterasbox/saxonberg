@@ -19,7 +19,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { LyeStrength } from '../../../lib/cleanliness/LyeStrength';
+import { LyeStrength, UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
 
 interface MeasureDensityModel extends CommandModel {
   target: MqlOneResult;
@@ -44,8 +44,10 @@ export default class DensityReading extends Reading {
       await super.analyze(ctx, target, band, handTool, param);
       return;
     }
-    const strength = new LyeStrength(target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0);
     const liquor = target.getBulkMaterial('interior');
+    const strength = new LyeStrength(
+      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? (liquor?.hasTag('lye') ? UNMEASURED_LYE_KG_PER_L : 0),
+    );
     if (!strength.isLye(liquor) && !liquor?.hasTag('water')) {
       await super.analyze(ctx, target, band, handTool, param);
       return;
@@ -63,7 +65,7 @@ export default class DensityReading extends Reading {
     // ⭐ A lye is read in WORDS even under the glass (potash D7, AC 12):
     // its strength is a band a soapmaker acts on, never a figure.
     if (subject && MixinApi.isBulkable(subject) && !subject.isBulkEmpty('interior')) {
-      const strength = new LyeStrength(subject.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0);
+      const strength = new LyeStrength(subject.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L);
       if (strength.isLye(subject.getBulkMaterial('interior'))) {
         this.wordLye(ctx, subject, instrument, strength.glassWords(band));
         return;

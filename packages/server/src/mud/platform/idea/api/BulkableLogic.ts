@@ -39,7 +39,7 @@ import type {
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
 // The `dissolvedSolidsKgPerL` payload field is declared by LyeStrength's merge.
-import type {} from '../../../lib/cleanliness/LyeStrength';
+import { UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
 
 const BULK_FIELD = 'bulk';
 
@@ -607,8 +607,9 @@ export class BulkableLogic extends ApiLogic {
       // block is DELETED (`potash-on-sugar`), since that fold covers it.
       if (!toWasEmpty && material.hasTag('lye')) {
         const held = to.getPayload();
-        const fromK = fromPayload?.dissolvedSolidsKgPerL ?? 0;
-        const toK = held?.dissolvedSolidsKgPerL ?? 0;
+        // A lye nobody measured is taken at soap strength (LyeStrength).
+        const fromK = fromPayload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
+        const toK = held?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
         const total = applied + toAmountBefore;
         if (total > 0 && (fromK > 0 || toK > 0)) {
           to.setPayload({

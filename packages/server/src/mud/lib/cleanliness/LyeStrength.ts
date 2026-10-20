@@ -41,6 +41,15 @@ declare module '../bulk/Bulkable' {
   }
 }
 
+/**
+ * ⭐ What a lye nobody measured is taken to hold, kg/L — soap strength
+ * (found by the drive: a flask off the chandlery's shelf carried no figure,
+ * so the egg called it water and a pot boiled it to nothing). A stocked lye
+ * is made to sell, and it is made to make soap. ⚠ Replaced by the lye
+ * material's own `solidsKgPerL` at `potash-on-sugar`.
+ */
+export const UNMEASURED_LYE_KG_PER_L = 0.04;
+
 /** The four words for a lye's strength. */
 export type LyeBand = 'water' | 'weak' | 'soap-strength' | 'strong';
 

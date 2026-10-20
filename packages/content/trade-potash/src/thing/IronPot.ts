@@ -45,6 +45,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { UNMEASURED_LYE_KG_PER_L } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
 
 /** What a boiled-dry lye leaves. */
 const BLACK_SALTS = '/trade/potash/idea/material/black-salts';
@@ -90,7 +91,7 @@ export default class IronPot extends IronPotBase {
         const payload = this.getBulkPayload('interior');
         if (litres > this.lastSeenL + 1e-9 || this.alkaliKg <= 0) {
           // A pour came in (it blended the strength): re-base the count.
-          this.alkaliKg = (payload?.dissolvedSolidsKgPerL ?? 0) * litres;
+          this.alkaliKg = (payload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L) * litres;
         } else if (litres < this.lastSeenL - 1e-9) {
           // The plateau boiled water off: the alkali stays behind.
           this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: this.alkaliKg / litres });
