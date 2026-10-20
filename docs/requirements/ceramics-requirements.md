@@ -160,6 +160,9 @@ material.
   customer."*
 - **Potash** makes ash a good, adds an ashery kiln, changes how firing carries
   fractions, and takes `flux`. It names *"ash glazes → the pottery build."*
+  ⚠ Its pearl-ash calcining is a new firing *recipe*. Under M1 it becomes a
+  heat transition on black salts, which adds a third item to the sequencing
+  talk.
 - **Paint** (slate, 2026-10-19) puts a coat on construction's layers. It wants
   coats on goods and leaves them unmodeled.
 
@@ -202,8 +205,9 @@ material.
     thermal model: the peak heat, the time held there, the atmosphere.
   - The bodies run terracotta → earthenware → stoneware → refractory, and
     porosity, strength and color follow.
-  - Recipes remain only for true transformations (limestone → lime, gypsum →
-    plaster).
+  - **One rule fires everything.** Limestone becomes quicklime, gypsum
+    becomes plaster, and a glaze fuses under the same rule as clay
+    vitrifying. `fire` has no recipe path.
 - **A clamp's bricks are graded by where they sat**, and each carries the water
   absorption its firing gave it. W7 reads that absorption next.
 - **Hot furnaces wear, and their keepers mend them.**
@@ -346,8 +350,8 @@ Every item names its destination.
   `rejection`. The stall is in `terminus`. ⭐ The test: **a second brickfield,
   pottery or foundry is rows only.**
 - **The clay pit is quarrying's working.** The clay deposit is the locality's.
-  Quarrying's `fire-pot` recipe retires (firing a pot is a state change now),
-  and pottery credits pottery. This closes moulding-slate question 9.
+  Quarrying's `fire-pot` and `burn-lime` firing recipes retire into the
+  materials' own heat transitions (M1), and pottery credits pottery. This closes moulding-slate question 9.
 
 ## Collisions
 
@@ -388,7 +392,7 @@ Every item names its destination.
 | `dip` | lays a glaze coat |
 | `carve` | gains trimming at leather-hard, and the pattern |
 | `fit` | gains a slip-joined handle and a furnace's lining |
-| `fire` | becomes a heat history for ware (recipes stay for transformations); the draught becomes a setting of every firing |
+| `fire` | lights and holds a chamber, and one rule fires what is in it (M1). There is no recipe path, and the draught is a setting of every firing. |
 | `hammer` | gains a blank on a die |
 | `char` | stays charcoal's: charring wood is a different act |
 
@@ -422,19 +426,41 @@ The **M-** decisions are the model audit's: where a shipped model was not sound
 for this build, and what replaces it. The **S-** decisions are surface
 answers.
 
-### M1. Firing ware is a heat history on the piece
+### M1. One rule fires everything: materials change under heat, pieces keep their identity
 
-`fire` no longer mints new ware from old. Each piece in a chamber records the
-**heat-work** it receives:
+The owner's ruling (2026-10-20): *one rule or set of physics that satisfies
+both outputs* — never "do x if it's a recipe, y if it's pottery."
 
-- the peak heat it reaches;
-- the time it holds there;
+**Heat-work.** A hot place delivers heat-work to everything in it. Each piece
+keeps a record from its own thermal state, the same model that warms a loaf in
+an oven:
+
+- the peak heat it reached;
+- the time it held there;
 - the atmosphere.
 
-It records these from its own thermal state, the same model that warms a loaf
-in an oven. Its body, porosity, strength and color derive from that record. The
-piece keeps its identity: maker, form, wall, mark and joints. Recipes stay for
-transformations that really destroy what went in.
+**Materials declare how they change under heat.** Each transition has a
+threshold, and conversion is **partial with heat-work**, so a firing can stop
+part-way:
+
+| material | transition | under-done |
+|---|---|---|
+| **clay** | vitrifies continuously; body, porosity, strength and color are a function of how far it got | a soft, porous body |
+| **limestone** | becomes quicklime above ~1170 K, losing its CO₂, so the same lump comes out at about 56% of its weight. The old "2:1 ratio" was that mass loss. | ⭐ a lump with an unburnt core, as lime-burners really got |
+| **gypsum** | becomes plaster at ~420 K | — |
+| **a glaze** | fuses at its maturing heat (M6) | — |
+| **rubber** | its shipped cure is already data on the feedstock | — |
+| **a mixed glass batch** | turns to glass; the batch is mixed into one blend first, as glassmakers do | — |
+
+**The piece keeps its identity**: maker, form, wall, mark and joints. Its
+material and mass change. A charge in a mould takes the cavity's shape when it
+sets (M2).
+
+**Nothing here is special to `fire`.** Heat-work accrues wherever a thing is
+hot, so a pot caught in a house fire is fired. `fire` lights and holds a
+chamber. The clamp needs no special case either: each brick integrates the heat
+at its own position. Discipline credit comes from the transition or the form's
+trade, never a recipe row. Crafting recipes outside firing are unchanged.
 
 **Heat-work is read the potter's way.** A kiln shows no number. You read:
 
