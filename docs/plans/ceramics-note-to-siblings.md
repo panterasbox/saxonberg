@@ -36,6 +36,9 @@ ours if you land second, delete yours if we did):
 
 1. **`BulkPayload.dissolvedSolidsKgPerL?: number`** — your declaration
    (same comment, same type) in `lib/thermal/Thermal.ts`.
+   ⚠ Ruling R1 also changes nothing you own: your `stir`-driven dissolve
+   recipes keep running on `BuildVessel`s; `StirController` only gains a
+   second arm for a `MixingVessel` target.
 2. **`Material.solidsKgPerL` + `getSolidsKgPerL`/`setSolidsKgPerL`** —
    your accessor pair and semantics (`0` for a non-solution).
 3. **`BulkableLogic.transfer`'s solids fold** (step 5) — your hunk.
@@ -114,12 +117,27 @@ recount the pack test. Nothing of yours changes shape.
    (our rewritten `FireController.test.ts` has the shape).
 3. **Your `openClamp` ash branch** (`CharController.ts`) is deleted by
    ruling A (charcoal is the wood transition; `char` only sets the
-   draught, lights and holds). Its arithmetic survives: the wood
-   transition's `oxidized` rung calls `Burner.mintAshHeaps(kg ×
-   ashFraction, alkali)` when the method exists (a structural probe), so
-   your heaps, your alkali and your unit mass are what a lost burn
-   leaves. If we land first, your port is that one call; if you land
-   first, we call it directly.
+   draught, lights and holds). A lost burn is now ordinary combustion
+   (ruling R3: above `fire.air.flamingCompleteness` the charge ignites
+   and burns by the fire path); the ash a charge leaves inside a burner
+   is minted through `Burner.mintAshHeaps(kg × ashFraction, alkali)` when
+   the method exists (a structural probe), so your heaps, your alkali and
+   your unit mass are what a lost burn leaves. If we land first, your
+   port is that one call; if you land first, we call it directly.
+3a. **Four material rows MOVE from `trade-fuel` to `base-library` at the
+   same paths** (ruling R4 — a base-library wood row's transition names
+   charcoal, so charcoal must be commons): `stuff/idea/material/organic/
+   {charcoal,coke,ash}.yaml` and `bulk/wood-tar.yaml`. No path changes;
+   your `Ash` good keeps naming `organic/ash` by path. ⚠ You EDIT
+   `organic/ash.yaml` (tags) and ADD `organic/spent-ash.yaml` in
+   `trade-fuel`: if we land first, re-apply the tag edit on the moved
+   file and move `spent-ash.yaml` beside it; if you land first, we move
+   all five.
+3b. **Recipes are gone for mixing too** (ruling R1): there is no
+   `compound`/`glass-batch` recipe anywhere — a `MixingVessel` blends
+   what is put in it by mass. Your `flux`/`stabilizer` slot tags survive
+   as `Material.tags` on the materials the batch pot accepts; the glass
+   batch rows are deleted (their slot edits meet a deleted file).
 4. **Tags:** we adopted your vocabulary now — our glaze-flux rows carry
    `flux`, lime goes where `stabilizer` goes, and we never read
    `smelting-flux`. Your `burn-lime.yaml` slot edit meets a deleted file
