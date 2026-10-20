@@ -7,16 +7,9 @@ data:
   shortDescription: under the water
   keywords: [water, depths]
   register: proper
-  longDescription: You hang in the water under the surface, light moving over you.
+  longDescription: >-
+    You hang in the water under the surface. The light comes down through it in moving bands, and the underside of the surface shines over you like a sheet of tin.
   _biomePath: /stuff/idea/biome/water/under
   enclosure: none
   roof: none
   floor: { template: /system/water/thing/open-water }
-  proseBank:
-    look:
-      - "You hang in the water a little way under the surface. The light comes down through it in moving bands, and the underside of the surface shines over you like a sheet of tin."
-      - "Under the surface the noise of the world stops. The light is green and it moves, and the water presses close and cold on every side."
-      - "Motes drift past you in the light, slow as dust in a sunbeam. Above, the surface wrinkles silver; below, the water thickens into green and then into nothing."
-      - "The water holds you up and you hang in it, weightless. Your own hands look pale and strange, and further than they should."
-      - "Light comes down to you in long shafts that swing as the surface moves. Where they end the water is darker, and you cannot see the bottom."
-      - "It is quiet here, and green. Bubbles from your own mouth go up past your face, wobbling, toward the bright skin of the surface."

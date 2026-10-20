@@ -23,9 +23,12 @@
  *    floats goes up to the surface; a neutral body stays.
  *  - **What you see.** The surface's light through the band's depth of
  *    water.
- *  - **What it reads like.** A prose bank drawn by a seed of the surface,
- *    the band and the game hour: two columns read differently, and one
- *    `look` does not change under you within the hour.
+ *  - **What it reads like.** The row's one authored description, then
+ *    what is TRUE of this water here: how far you can see in it (its
+ *    clarity) and how far the surface is above you. Two columns read
+ *    differently because their waters differ, never by a draw (underwater
+ *    review: the prose bank that picked a line by hash and hour is gone).
+ *    A water that needs its own words gets an authored room.
  */
 
 import Location from '@saxonberg/server/mud/platform/location/Location';
@@ -35,13 +38,11 @@ import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin, type WaterPlace, type WaterState } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
-import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { MediumRead } from '@saxonberg/server/mud/api/biome';
@@ -51,12 +52,6 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
 import type { WaterColumn } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-
-/** A band's authored prose: lines drawn by seed, never all at once. */
-export interface BandProse {
-  /** What a `look` reads, one line drawn per game hour. */
-  look?: string[];
-}
 
 type SurfaceStuff = Stuff & Container & WaterPlace & Shore;
 
@@ -70,7 +65,6 @@ export default class Band extends BandBase {
     // intake's mouth beside the basin's dark band).
     surface: { persistent: true, authorable: true },
     band: { persistent: true, authorable: true },
-    proseBank: { persistent: true, authorable: true },
   };
 
   /** The surface place this band lies under — an identity path. */
@@ -78,9 +72,6 @@ export default class Band extends BandBase {
 
   /** Which band of the column this is. */
   public band: ColumnBand = 'lit';
-
-  /** The prose this band is described from. */
-  public proseBank: BandProse = {};
 
   /**
    * Stamp the band at bud: which surface, which band, and the surface's
@@ -252,13 +243,29 @@ export default class Band extends BandBase {
     return Quantity.of(Math.min(20000, 6500 + 1500 * depth), 'K');
   }
 
-  /** One line of the bank, drawn by the surface, the band and the hour. */
+  /** The row's words, then what this water is like here: how far you see, how far up the air is. */
   public getLongDescription(): string {
-    const lines = this.proseBank.look ?? [];
-    if (lines.length === 0) return super.getLongDescription();
-    const hour = Math.floor(nowS() / 3600);
-    const pick = Seeded.mix(hashOf(`${this.surface}#${this.band}`), hour) % lines.length;
-    return lines[pick] ?? super.getLongDescription();
+    const base = super.getLongDescription();
+    const surface = this.getSurface();
+    const read = surface === null ? null : surface.peekWaterRead(surface.getWaterKey());
+    const lines = [base];
+    const clarity = read?.clarityM;
+    if (typeof clarity === 'number' && clarity > 0) {
+      lines.push(
+        clarity < 2
+          ? 'The water is thick and brown with silt; you can see barely an arm\'s length into it.'
+          : clarity < 6
+            ? 'The water is cloudy green, and anything a few strokes off fades into it.'
+            : 'The water is clear, and you can see a long way through it.',
+      );
+    }
+    const depth = this.getDepthM();
+    lines.push(
+      depth < 3 ? 'The surface is close above you.'
+        : depth < 8 ? 'The surface is well above you.'
+          : 'The surface is a long way above you.',
+    );
+    return lines.join(' ');
   }
 }
 
@@ -266,23 +273,4 @@ export default class Band extends BandBase {
 async function columnOf(): Promise<(Stuff & WaterColumn) | null> {
   const c = await StuffApi.singleton<Stuff>(TemplatePaths.waterColumn);
   return MixinApi.isWaterColumn(c) ? c : null;
-}
-
-/** Game-seconds now, or 0 before the clock exists. */
-function nowS(): number {
-  try {
-    return WorldClockApi.getNow().rawValue();
-  } catch {
-    return 0;
-  }
-}
-
-/** A stable 32-bit hash of a string (FNV-1a). */
-function hashOf(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return h >>> 0;
 }

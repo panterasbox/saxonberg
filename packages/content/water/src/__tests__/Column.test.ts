@@ -72,7 +72,7 @@ function seedContent(): void {
     add(`/system/water/location/band/${band}`, '/system/water/location/Band', {
       shortDescription: `${band} water`,
       floor: { template: '/system/water/thing/open-water' },
-      proseBank: { look: [`the ${band} water, one`, `the ${band} water, two`] },
+      longDescription: `the ${band} water`,
     });
   }
   add('/system/water/location/band/bed', '/system/water/location/Band', { shortDescription: 'the bottom' });
@@ -305,11 +305,13 @@ describe('the column (underwater A2)', () => {
     expect(heard!.direction).toBeNull();
   });
 
-  it('a band reads from its prose bank, steady within the hour', async () => {
+  it('a band reads its row, then what is true of the water here — never a draw', async () => {
     const p = await surface();
-    const lit = (await (await column()).bandOf(p, 'lit')) as unknown as Band;
-    const first = lit.getLongDescription();
-    expect(['the lit water, one', 'the lit water, two']).toContain(first);
-    expect(lit.getLongDescription()).toBe(first);
+    const col = await column();
+    const lit = (await col.bandOf(p, 'lit')) as unknown as Band;
+    const said = lit.getLongDescription();
+    expect(said.startsWith('the lit water')).toBe(true);
+    expect(said).toMatch(/surface is (close|well|a long way) above you/);
+    expect(lit.getLongDescription()).toBe(said);
   });
 });

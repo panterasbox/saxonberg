@@ -6,15 +6,9 @@ data:
   shortDescription: deep water
   keywords: [water, depths, dark]
   register: proper
-  longDescription: The water is dark around you, and cold.
+  longDescription: >-
+    The water around you is nearly black, and colder than above. Whatever light there is comes from far overhead, and it does not reach your hands.
   _biomePath: /stuff/idea/biome/water/under
   enclosure: none
   roof: none
   floor: { template: /system/water/thing/open-water }
-  proseBank:
-    look:
-      - "The light is a dim green glow somewhere above you, and the water around you is nearly black. It is colder here, a cold that has been here a long time."
-      - "Down here the water is heavy and dark. The surface is only a faint brightness overhead, and below there is nothing you can see at all."
-      - "The cold of the deep water closes round you. Whatever light there is comes from very far up, and it does not reach your hands."
-      - "You hang in the dark water. Something brushes past you — weed, or nothing — and the silence presses on your ears."
-      - "There is no up or down here but the faint paleness overhead. The water is thick and still and black, and it has a taste of iron."

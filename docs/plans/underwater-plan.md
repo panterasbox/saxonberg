@@ -1915,6 +1915,18 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   of THIS body: the existing delivery template). D17's inspection half and
   C4's `inspect` acceptance are superseded by this note.
 
+- **R4 · `proseBank` is gone.** `Band` carried a field no other class in the codebase has: a list
+  of lines per band row, one picked by a hash of the surface + band + game
+  hour, overriding `getLongDescription`. It modeled nothing: the text
+  changed on the hour while the water had not, and two waters read
+  differently by a hash rather than a cause. It was also a second description system
+  beside `longDescription`/`details`. Now each band row has one authored
+  `longDescription`, and `Band.getLongDescription` appends what is true of
+  the water there: how far you can see (the surface's read `clarityM`:
+  silty brown < 2 m, cloudy green < 6 m, clear) and how far the surface is
+  above you (close < 3 m, well < 8 m, a long way). A water that needs its
+  own words gets an authored room (the intake's mouth).
+
 ## Drive record
 
 
