@@ -345,9 +345,13 @@ export class MagicLogic extends ApiLogic {
     return decoyNameForImpl(signature);
   }
 
-  /** See {@link MagicApi.discharge}. */
-  @CallSecurity(MagicApiCallers)
-  /** See {@link MagicApi.requiresMark}. */
+  /**
+   * See {@link MagicApi.requiresMark}. ⚠ `discharge`'s gate had drifted
+   * up onto this method (it sat between the two), so BOTH gates applied
+   * and the item's own face was always refused — every targetless `zap`
+   * errored — while `discharge` ran ungated. Found by the underwater
+   * drive's wand of glowlight, the first wand fired at nothing.
+   */
   @CallSecurity(ArcaneItemCallers)
   public requiresMark(item: Stuff): boolean {
     if (!MixinApi.isArcane(item)) return false;
@@ -371,6 +375,11 @@ export class MagicLogic extends ApiLogic {
     return transferChargeImpl(actor, shell, committedPt);
   }
 
+  /**
+   * The arcane item's own fire (`Arcane.discharge` is the one caller). Its
+   * gate had drifted up onto `requiresMark` and left this ungated.
+   */
+  @CallSecurity(ArcaneItemCallers)
   public discharge(
     item: Stuff,
     target?: Stuff,

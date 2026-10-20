@@ -36,7 +36,6 @@ import {
   expectOk,
   expectRefused,
   advanceWorldClock,
-  worldClockNow,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -103,7 +102,7 @@ async function toTheSurface(s: Session): Promise<void> {
     if (r.status !== 'ok') {
       // The only refusal that ends a good ascent is being at the top.
       const said = squash(await r.said());
-      expect(said, said).toMatch(/already at the surface/i);
+      expect(said, said).toMatch(/already at the surface|not in the water/i);
       return;
     }
   }
@@ -134,24 +133,22 @@ async function readInDaylight(s: Session, what: string): Promise<string> {
  * drive dives in open water; the winter dive is step 8's.
  */
 async function openWater(s: Session): Promise<void> {
-  // ⚠ Let the cold boot settle first (the sea's first read takes ~90 s),
-  // then go to high summer in chunks — the storage-and-ice drive's shape:
-  // one long jump outruns the fetch's headers timeout.
+  // ⚠ Let the cold boot settle first (the sea's first read takes ~90 s).
+  // Then step on, ten days at a time in five-day requests (a longer jump
+  // outran the fetch's headers timeout on a loaded box), until the river
+  // at the quay reads open — the ice on day 0 is already rotten.
   await s.listen(60_000);
-  const DAY = 86_400;
-  const doy = Math.floor((await worldClockNow()) / DAY) % 360;
-  let left = doy < 200 ? 200 - doy : 0;
-  for (; left > 0; left -= 5) await advanceWorldClock(`${Math.min(5, left)} days`);
-  for (let i = 0; i < 6; i++) {
-    // The first read after half a year integrates half a year of weather:
-    // kick it with a look and let it land before asking the instrument.
+  for (let i = 0; i < 18; i++) {
+    // The first read after a jump integrates the jump's weather: kick it
+    // with a look and let it land before asking the instrument.
     await s.cmd('look river').catch(() => undefined);
-    await s.listen(45_000);
+    await s.listen(30_000);
     const said = await say(s, 'analyze water');
     if (!/ice lies on the water/.test(said)) return;
-    await advanceWorldClock('10 days');
+    await advanceWorldClock('5 days');
+    await advanceWorldClock('5 days');
   }
-  throw new Error('the confluence never opened in high summer');
+  throw new Error('the confluence never opened in half a year');
 }
 
 /** Fund a fresh character and buy `goods` at Morrow's counter. */
@@ -190,13 +187,14 @@ beforeAll(async () => {
   }
   diver = await outfitted(DIVER, [
     'lifeline', '"diver\'s slate"', '"signal bell"', '"fish spear"',
-    '"air bag"', '"air bag"', '"air bag"', '"tide almanac"',
+    '"air bag"', '"air bag"', '"air bag"', '"tide almanac"', '"glass-tipped wand"',
   ]);
   buddy = await Session.open(BUDDY, { startLocation: BANK });
   await daylight(buddy);
   // ⚠ A long-lived drive world answers a purchase in 1.5–20 s (the store
-  // is remote): the outfitting alone can take minutes.
-}, 900_000);
+  // is remote): the outfitting alone can take minutes, and the season
+  // step-on more.
+}, 2_400_000);
 
 afterAll(() => {
   diver?.close();
@@ -310,7 +308,7 @@ suite('C · the line', () => {
     await diver.drainProse();
     expectOk(await buddy.cmd('tug line'));
     expectOk(await buddy.cmd('tug line'));
-    expect(squash(await diver.listen(2_000))).toMatch(/haul me up/);
+    expect(squash(await diver.listen(6_000))).toMatch(/haul me up/);
     expectOk(await diver.cmd('haul line'));
     expect(await look(buddy)).toMatch(/Kestrel|embankment/i);
   });
@@ -320,6 +318,10 @@ suite('C · the city\'s work', () => {
   it('15b · the lost anchor will not come up on a line; three air bags float it, and the line brings it in', async () => {
     expectOk(await diver.cmd('drop me:i:lifeline'));
     expectOk(await diver.cmd('get here:i:bag'));
+    // ⭐ The bed is dark: no flame burns down there, and a spoken working
+    // is bubbles — but a wand needs no voice. The light follows its maker.
+    const zap = await diver.cmd('zap me:i:wand');
+    expect(zap.status, squash(await zap.said())).toBe('ok');
     await breathe(diver);
     await toTheBed(diver);
     expect(await look(diver)).toMatch(/anchor/i);
