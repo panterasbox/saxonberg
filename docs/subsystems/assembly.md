@@ -228,6 +228,18 @@ bears no name now, and the latest mend that took one was this hand's. The
 name a reforger gives goes on the part that lost the old one. Once it
 bears a name the right is spent — there is no field to clear.
 
+⭐ **The rule lives on the thing, under `Named` (ceramics W2).**
+`Named.canBeNamedBy(hand, by?)` is a `@hook` that answers *nobody* by
+default; each rule's holder overrides it and chains the rule of any mixin
+composed inside it (the mixin-super idiom through `Base.prototype`):
+`Crafted` — its MAKER, once, while it bears no name (*name jug Mother's
+jug*); `Assembled` — the reforger, above; `Bonded` — the person an animal
+has chosen ([pets.md](./pets.md)). On a `Tool`, `Crafted` sits INSIDE
+`Named` and `Assembled` outside it, so the chain is what lets the maker's
+rule and the reforge rule both be heard. `NameController` narrows on no
+class to pick a rule: it asks the thing, words the refusal, and runs the
+act (an animal's naming is also its promotion).
+
 ## Wear — routed to the part that answers it
 
 `AssembledMixin.wear(amount?, channel?)` overrides Durable's

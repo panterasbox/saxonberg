@@ -1313,6 +1313,34 @@ left a fork the lens that chose is named.
 - **B21 (W1) — Coats fuse by the WINDOW's peak** (`reconcileCoats` on every
   `Faced` body's thermal read), never the lifetime's, so a glaze laid on a
   bisque fuses at the glost firing and not off the bisque's past.
+- **B22 (W2) — `Tangible` judges, others act.** `TangibleMixin` is in every
+  Thing's base chain, and importing `ContainmentApi`/`BulkableApi`/
+  `MessageApi` there made a module cycle ("TangibleMixin is not a function"
+  in two suites). So `Tangible` owns `impactVerdict`, `sufferImpact` (the
+  break, pieces placed through the new `Containable.leaveBeside(item)`),
+  and `ringSound()`; `BulkableMixin.sufferImpact` spills a vessel's
+  contents before the break; `RingController` tells the sound.
+- **B23 (W2) — Strength is toughness × V × (V/Vref) × `impact.fractureShare`.**
+  A thicker wall must be disproportionately stronger or the drive's
+  novice-mug-survives / master-bowl-breaks pair is impossible; the floor
+  scales the blow by `min(1, floor hardness ÷ body hardness)`.
+- **B24 (W2) — Thermal shock** is a STEP (`setContentsTemperature`: boiling
+  water into a cold mug) or a RATE over ΔT_tol ÷ `impact.shockWallS`, with
+  ΔT_tol = `impact.shockStrain` ÷ α × (1 + 10·porosity) ÷ (1 − 2·grog) ×
+  0.7 if glazed — dunt past 1×, visible crack past 2×; a crack leaks
+  (`holdsWater` false). Judged on every brittle body's thermal read, not
+  only those with heat transitions (born-fired rows have none).
+- **B25 (W2) — The glazes live in base-library** (`/stuff/idea/material/
+  glaze/{lead,ash,salt,tin}`): the re-pointed rows' packs do not depend on
+  trade-ceramics (R4). Sherds are the commons `/stuff/thing/sherds` (class
+  `/platform/thing/Scrap`, `Stackable(Good)` sold by mass); grog's millstone
+  recipe takes anything `fired` (a whole pot is grindable too).
+- **B26 (W2) — `canBeNamedBy(handPath, by?)`** — the bond rule needs the
+  person, not just a path. The maker may name an unnamed thing once;
+  ⚠ W4's `Ware` must compose `NamedMixin` (`CraftVessel` does not), or
+  `name jug …` is refused `not-nameable`.
+- **B27 (W2) — `ring` carries** by `toAudible` at 50 + 10·log₁₀(kg) dB for a
+  sound body (a bell to the next street), 35 dB for a knock.
 
 ## ⭐⭐ Host placement
 
@@ -1752,6 +1780,13 @@ terracotta crazes, ash does not.
 and cools`
 
 ### W2 — brittle bodies, flaws, `ring`, the 22 rows, naming
+
+> ✅ **DONE (W2).** Impact on `Tangible` (drop, throw), flaws, `ring`,
+> `canReceiveAtK`; thermal shock (step and rate) on `Thermal`; a crack
+> leaks; `brokenTemplate` → sherds; naming moved onto the thing; 22 rows
+> re-pointed (the 23rd, the dorm clay pot, was deleted in W0) with glaze
+> coats and honest masses; porcelain and grog. Decisions B22–B27.
+> Surprise: an import cycle through `Tangible` (B22).
 
 **Goal.** M5 and S1: breakage on `Tangible` through `DropController` and
 `ThrowController`; thermal shock judged in the heat-work reconcile; hidden

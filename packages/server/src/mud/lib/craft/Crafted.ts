@@ -141,6 +141,22 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public castDiscipline: string = '';
 
+    /**
+     * ⭐ The maker may give what they made its name — ONCE, while it has
+     * none (ceramics W2: *"name jug Mother's jug"*). A thing nobody stamped
+     * a maker on cannot be named by this rule. Composes with whatever rule
+     * a mixin inside this one answers (the mixin-super idiom).
+     */
+    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (!handPath || this.maker === '' || this.maker !== handPath) return false;
+      const named = this as unknown as { getName?(): string };
+      return typeof named.getName === 'function' && named.getName() === '';
+    }
+
     getMaker(): string {
       return this.maker;
     }

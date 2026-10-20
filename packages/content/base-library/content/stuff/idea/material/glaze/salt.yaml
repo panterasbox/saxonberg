@@ -26,7 +26,7 @@ data:
       zK: 30
       fullDoseS: 1800
       ladder:
-        - { atDegree: 1, becomes: /trade/ceramics/idea/material/glaze/salt }
+        - { atDegree: 1, becomes: /stuff/idea/material/glaze/salt }
   edibility: false
   nutrients: []
   toxicity: []

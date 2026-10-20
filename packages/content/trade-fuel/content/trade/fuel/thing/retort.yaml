@@ -24,7 +24,7 @@ data:
     firebox beneath it, and a pipe off the crown of it bent over into
     whatever will take what comes out. The brick above the door is burnt
     to the colour of a new pot.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/refractory
   mass: 2200
   fixedInPlace: true
   placements: [on]

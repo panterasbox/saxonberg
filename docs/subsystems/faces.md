@@ -51,7 +51,7 @@ in the window being integrated. At the fuse a coat becomes:
 | `crawled` | laid over dirt (`dirtyAtLay` > `faces.crawlDirt`, 0.3): it pulls back off bare patches, and a crawled coat does not count as the outermost |
 | `crazed` | the coat's `thermalExpansion` exceeds the body's by more than `faces.crazeMismatch` (1.5 × 10⁻⁶ /K): it shrinks more on cooling, cracks, weeps a little and holds dirt |
 
-The glazes are rows: `/trade/ceramics/idea/material/glaze/{lead,ash,salt,tin}`.
+The glazes are rows: `/stuff/idea/material/glaze/{lead,ash,salt,tin}` (commons rows in base-library — R4: the crocks that wear them live in packs that do not depend on trade-ceramics).
 
 | glaze | fuses | runs above | expansion /K | notes |
 |---|---|---|---|---|

@@ -1096,6 +1096,9 @@ export default class Material extends SingletonMixin(
     leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     // A bath of this lays a coat (a glaze slip) — what `dip` reads.
     laysCoat: { persistent: true, authorable: true },
+    // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
+    // breaks to sherds; glass keeps its cullet (the cast template).
+    brokenTemplate: { persistent: true, authorable: true },
   };
 
   public getName(): string { return this.name; }
@@ -1451,6 +1454,18 @@ export default class Material extends SingletonMixin(
     this.leaches = (Array.isArray(value) ? value : []).filter(
       (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDayPerAcidity > 0,
     );
+  }
+
+  /**
+   * ⭐ What a piece of this breaks into (ceramics M5): a row path, else the
+   * material's own cast template (glass breaks to its cullet lump).
+   */
+  protected brokenTemplate = '';
+  public getBrokenTemplate(): string {
+    return this.brokenTemplate || this.getCastTemplate();
+  }
+  public setBrokenTemplate(value: string): void {
+    this.brokenTemplate = typeof value === 'string' ? value.trim() : '';
   }
 
   /** A bath of this lays a coat — a glaze slip (what `dip` reads). */

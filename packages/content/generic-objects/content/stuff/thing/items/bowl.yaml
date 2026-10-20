@@ -9,8 +9,15 @@ data:
   register: indefinite
   longDescription: |
     A deep glazed bowl, thick-walled and heavy in the hand, the sort that keeps a stew hot as far as the table.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/earthenware
   category: bowl
   interiorBulk: true
   interiorCapacity: 0.6
   mass: 0.5
+  # ⭐ (ceramics S1, M6) A fused lead glaze — glossy, and (M7) it gives
+  # lead to anything acid kept in it, which nothing about it says.
+  coats:
+    inside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }
+    outside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }

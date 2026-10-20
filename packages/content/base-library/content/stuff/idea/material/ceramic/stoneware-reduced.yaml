@@ -21,3 +21,6 @@ data:
   tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "stoneware", "reduced"]
   composition: []
   biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds

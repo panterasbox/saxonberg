@@ -303,7 +303,7 @@ export interface Assembled {
    * and the latest mend that took a name (`MendRecord.nameLost`) was
    * this hand's — Narsil's rule, the reforger names the re-made blade.
    */
-  canBeNamedBy(handPath: string): boolean;
+  canBeNamedBy(handPath: string, by?: Stuff | null): boolean;
   /** Append a mend to one line's record. */
   recordLineMend(part: string, record: MendRecord): void;
   /**
@@ -1034,7 +1034,13 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       MqlSubscriptionApi.fireFieldChange(this, 'name', before, value);
     }
 
-    canBeNamedBy(handPath: string): boolean {
+    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      // ⭐ Whatever a rule inside this one says (the maker's, ceramics W2) —
+      // or the reforge rule: the hand whose mend took the name (repair D18).
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
       if (!handPath || this.getName()) return false;
       return this.latestNameLoss()?.by === handPath;
     }

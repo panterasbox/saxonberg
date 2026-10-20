@@ -190,6 +190,30 @@ export default class ThrowController extends CommandController<ThrowModel> {
     // The vessel breaks by ITS OWN material — glass, not the draught it
     // carries. Two different materials, and confusing them would make
     // every potion as fragile as its flask.
+    //
+    // ⭐ (ceramics M5) And whether it breaks is the ONE breakage act: the
+    // throw's joules against its own strength and what it struck — a
+    // stoneware jug hurled at a wall breaks; one landing in hay does not.
+    if (plan.profile.breaksOnArrival() && plan.placement !== "miss" && MixinApi.isTangible(item)) {
+      const struck = MixinApi.isTangible(target) ? target.getMaterial() : null;
+      const flawedBefore = item.getFlaws().length;
+      if (item.impactStrengthJ() > plan.profile.energyJ * Math.min(
+        1,
+        Math.max(0, struck?.getHardness().rawValue() ?? 0) /
+          Math.max(1, item.getMaterial()?.getHardness().rawValue() ?? 1),
+      )) {
+        // It survives the arrival (perhaps cracked); it lands by the target.
+        const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
+        if (landing !== null && MixinApi.isContainer(landing)) {
+          ContainmentApi.move(item as never, landing as never);
+        }
+        await item.sufferImpact({ energyJ: plan.profile.energyJ, surface: struck, cause: "throw" });
+        if (item.getFlaws().length > flawedBefore) {
+          MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`It does not break — but it struck hard.`).send();
+        }
+        return;
+      }
+    }
     if (plan.profile.breaksOnArrival() && plan.placement !== "miss") {
       MessageApi.scene(giver)
         .topic(TOPIC)

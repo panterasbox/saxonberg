@@ -1,0 +1,22 @@
+# Grog — fired clay crushed to grit (ceramics S7). Kneaded back into a
+# clay it opens the body: it dries without cracking and stands a sudden
+# heat, which is why a cooking pot is grogged. The wasters of the last
+# firing are the temper of the next.
+class: /platform/idea/material/Material
+data:
+  name: grog
+  keywords: [grog, grit, chamotte]
+  appearance: coarse reddish grit of crushed fired clay
+  density: 1400
+  specificHeat: 850
+  thermalConductivity: 0.5
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 10
+  hardness: 50
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "grog", "mineral", "granular"]
+  composition: []
+  biologicalSource: null

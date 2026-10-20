@@ -1859,6 +1859,24 @@ export const AppSettingKeys = {
   facesHoldsWaterBelow: "faces.holdsWaterBelow",
   /** Faces — the share of a fill's aromas a porous inside face keeps. */
   facesAromaRetained: "faces.aromaRetained",
+  /** Impact — ⭐ the share of a brittle body's toughness × volume that a
+   * blow must exceed to break it, with volume weighted by itself again
+   * (a thicker wall is disproportionately stronger) (ceramics M5). */
+  impactFractureShare: "impact.fractureShare",
+  /** Impact — the reference volume (m³) the wall-thickness weighting is
+   * taken against. */
+  impactReferenceVolumeM3: "impact.referenceVolumeM3",
+  /** Impact — a drop's fall height, m (`drop` delivers m·g·h). */
+  impactDropHeightM: "impact.dropHeightM",
+  /** Impact — the hardness (MPa) at or above which a body RINGS when it is
+   * sound; softer reads dead (a place brick). */
+  impactRingsAboveHardness: "impact.ringsAboveHardness",
+  /** Thermal shock — the strain a body takes before it cracks, as the
+   * product α·ΔT (ceramics D9): ΔT_tolerated = this ÷ α. */
+  impactShockStrain: "impact.shockStrain",
+  /** Thermal shock — the wall's own response time, s: the rate a body
+   * tolerates is ΔT_tolerated ÷ this. */
+  impactShockWallS: "impact.shockWallS",
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

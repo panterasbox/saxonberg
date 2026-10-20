@@ -25,9 +25,9 @@ data:
       zK: 30
       fullDoseS: 1800
       scorchAboveK: 1600
-      scorched: /trade/ceramics/idea/material/glaze/ash
+      scorched: /stuff/idea/material/glaze/ash
       ladder:
-        - { atDegree: 1, becomes: /trade/ceramics/idea/material/glaze/ash }
+        - { atDegree: 1, becomes: /stuff/idea/material/glaze/ash }
   edibility: false
   nutrients: []
   toxicity: []

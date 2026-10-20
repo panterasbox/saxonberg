@@ -10,7 +10,7 @@ data:
   register: indefinite
   longDescription: |
     A deep unglazed pot you would need both arms for, broad enough at the mouth to get a full root ball into without wrecking it.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/terracotta
   interiorBulk: true
   interiorCapacity: 3
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
@@ -38,3 +38,4 @@ data:
     planting:
       keywords: [soil, planting, hole, rim]
       description: A wide drainage hole, and depth enough for a grown plant's roots.
+  mass: 2.5

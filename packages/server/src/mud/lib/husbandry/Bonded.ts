@@ -626,6 +626,22 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * cannot walk has; ⚠ it widens the cat's gate too, honestly: a stray
      * fed at one door three days running has chosen it.
      */
+    /**
+     * ⭐ An animal may be named only by somebody it has CHOSEN (pets), and
+     * only while it has no name — the bond rule, held by the animal now
+     * rather than by the `name` verb (ceramics W2).
+     */
+    public canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (!by || !handPath) return false;
+      const named = this as unknown as { getName?(): string };
+      if (typeof named.getName === 'function' && named.getName() !== '') return false;
+      return this.hasChosen(by);
+    }
+
     public hasChosen(person: Stuff): boolean {
       const self = this as unknown as Stuff;
       if (this.bondWith(person) < NAME_BOND) return false;

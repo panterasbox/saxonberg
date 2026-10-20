@@ -14,5 +14,5 @@ data:
   interiorBulk: true
   interiorCapacity: 10
   closure: liquidTight
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/terracotta
   mass: 3

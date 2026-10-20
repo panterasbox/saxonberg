@@ -105,6 +105,7 @@
  * shadow chain.
  */
 
+import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
@@ -150,6 +151,14 @@ export interface Named {
   addAlternateName(alt: AlternateName): void;
   removeAlternateName(value: string): boolean;
   hasAlternateName(value: string): boolean;
+
+  /**
+   * ⭐ May the hand at `handPath` (the person `by`, when known) give this
+   * its name? The thing that holds a name decides who may write it
+   * (ceramics W2): a maker its made thing once, the reforger the blade it
+   * re-made, the person an animal has chosen. Default: nobody.
+   */
+  canBeNamedBy(handPath: string, by?: Stuff | null): boolean;
 }
 
 export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -279,6 +288,19 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     hasAlternateName(value: string): boolean {
       return this.alternateNames.some((a) => a.value === value);
+    }
+
+    /**
+     * @hook Who may give this its name. Default: nobody — unless a mixin
+     * composed INSIDE this one answers (the mixin-super idiom: `Crafted` sits
+     * under `Named` on a `Tool`, and its maker rule must still be heard).
+     * Override with `super.canBeNamedBy(h, by) || <your rule>`.
+     */
+    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      return typeof inner === 'function' ? inner.call(this, handPath, by) === true : false;
     }
   };
 }

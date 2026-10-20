@@ -200,6 +200,9 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     public holdsWater(face: FaceName): boolean {
+      // ⭐ A crack through the wall leaks whatever is laid on it (M5).
+      const self = this as unknown as Stuff;
+      if (MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'crack')) return false;
       const top = this.getCoats(face)[0];
       if (top !== undefined) {
         if (top.state === 'fused') return true;

@@ -612,6 +612,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // declares a transition — a plate on a shelf never keeps one.
       heatWork: { persistent: true, runtimeState: true },
       coatsCheckedS: { persistent: true, runtimeState: true },
+      shockCheckedS: { persistent: true, runtimeState: true },
     };
 
     /** See {@link Thermal.getHeatWork}. */
@@ -619,6 +620,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Game-second the coats were last looked at for a fuse (runtime). */
     public coatsCheckedS = 0;
+
+    /** Game-second the heating was last judged for a shock (runtime). */
+    public shockCheckedS = 0;
 
     /**
      * Reentry guard for the heat-work pass (the phase pass's precedent):
@@ -770,6 +774,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setContentsTemperature(k: number): void {
       assertFiniteNonNeg(k, "ThermalMixin.setContentsTemperature");
       if (!this._thermalReconciling) this.reconcileThermal();
+      // ⭐ A step is a shock (ceramics D9): boiling water poured into a
+      // cold glazed mug. The plateau's own clamps are a few kelvin.
+      const step = Math.abs(k - this.stampedTemperatureK);
+      if (step > 5) this.shockBody(step, 0);
       this.stampedTemperatureK = k;
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
@@ -1171,6 +1179,80 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ …and a wet coat on it fuses when the body reaches its heat
       // (ceramics M6) — a glaze laid on bisque, glost-fired.
       this.reconcileCoats();
+      // ⭐ …and a brittle body heated or cooled too fast cracks (M5).
+      this.reconcileShock();
+    }
+
+    /**
+     * ⭐ The temperature step a brittle body stands, K (ceramics D9):
+     * `impact.shockStrain ÷ α`, raised by porosity and grog (the cooking
+     * pot), lowered by a glaze. `Infinity` for anything not brittle or with
+     * no authored expansion.
+     */
+    private shockToleranceK(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return Number.POSITIVE_INFINITY;
+      const mat = self.getMaterial();
+      if (mat === null || !mat.hasTag("brittle")) return Number.POSITIVE_INFINITY;
+      const alpha = mat.getThermalExpansion();
+      if (!(alpha > 0)) return Number.POSITIVE_INFINITY;
+      const porosity = MixinApi.isFaced(self) ? self.porosity() : 0;
+      let grog = 0;
+      if (MixinApi.isComposition(self)) {
+        for (const e of self.getAlloying()) {
+          const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+          if (m?.hasTag("grog")) grog += e.fraction;
+        }
+      }
+      const glazed =
+        MixinApi.isFaced(self) &&
+        [...self.getCoats("outside"), ...self.getCoats("inside")].some((c) => c.state === "fused");
+      const strain = heatWorkDial(AppSettingKeys.impactShockStrain, 0.0003);
+      return (
+        (strain / alpha) *
+        (1 + 10 * porosity) /
+        Math.max(0.2, 1 - 2 * Math.min(0.4, grog)) *
+        (glazed ? 0.7 : 1)
+      );
+    }
+
+    /**
+     * A step or a rate too fast for the body: a DUNT, hidden unless a glaze
+     * shows its craze line; twice too fast, a CRACK anyone can see.
+     */
+    private shockBody(stepK: number, rateKPerS: number): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return;
+      const tol = this.shockToleranceK();
+      if (!Number.isFinite(tol)) return;
+      const wallS = heatWorkDial(AppSettingKeys.impactShockWallS, 60);
+      const severity = Math.max(stepK / tol, (rateKPerS * wallS) / tol);
+      if (!(severity > 1)) return;
+      if (severity > 2) {
+        self.addFlaw("crack", true);
+        return;
+      }
+      const glazedOutside =
+        MixinApi.isFaced(self) && self.getCoats("outside").some((c) => c.state === "fused");
+      self.addFlaw("dunt", glazedOutside);
+    }
+
+    /** Judge the heating since the last look, off this body's own curve. */
+    private reconcileShock(): void {
+      const tol = this.shockToleranceK();
+      if (!Number.isFinite(tol)) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      const fromS = this.shockCheckedS > 0 ? this.shockCheckedS : nowS;
+      this.shockCheckedS = nowS;
+      if (!(nowS > fromS)) return;
+      let rate = 0;
+      for (const st of this.thermalRing().window(fromS, nowS, this.stampedTemperatureK).stretches) {
+        if (st.tau > 0 && st.toS > st.fromS) {
+          rate = Math.max(rate, Math.abs(st.target - st.startValue) / st.tau);
+        }
+      }
+      this.shockBody(0, rate);
     }
 
     /**

@@ -518,3 +518,42 @@ out — metal conducts (betrays), rubber insulates. See
 - **Tissue as a construction axis** — tissue stays material-only v1; the
   tissue-vulnerability severity term at `resolveTrauma` is a named seam.
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset` (harm).
+
+## ⭐⭐ Brittle bodies break by a cause (ceramics M5, 2026-10)
+
+Breakage is ONE act on `TangibleMixin`, `sufferImpact({energyJ, surface,
+cause})`, and only a CAUSE calls it: `drop` (m·g·`impact.dropHeightM`),
+`throw` (the delivery profile's joules, when the profile says a vessel would
+shatter), frost on green ware, a blow. ⭐ `put`, `get` and carrying never do —
+nothing breaks from being handled.
+
+- **Strength** `impactStrengthJ()` = toughness × V × (V / `impact.reference
+  VolumeM3`) × `impact.fractureShare`, V = mass ÷ density — a thicker wall
+  is disproportionately stronger, so a novice's heavy mug survives the drop
+  that breaks a master's thin bowl. `Infinity` for a body whose material is
+  not `brittle`-tagged (wood dents; it does not shatter). Each flaw costs a
+  share of it (a crack half, a dunt a third).
+- **The floor's say**: the energy delivered is scaled by `min(1, floor
+  hardness ÷ body hardness)` — strewn earth (5 MPa) takes the blow; a
+  flagstone gives it all back.
+- Below half its strength nothing happens; below its strength, a `crack`
+  flaw (visible past 80 %); past it the body breaks into its material's
+  `brokenTemplate` (fired clay → `/stuff/thing/sherds`, a `Scrap` stack the
+  millstone grinds to grog; glass → its cullet via `castTemplate`) at its own
+  mass, and what it held goes onto the floor.
+- **Flaws** (`flaws: {kind: dunt|crack|casting|check, visible, atS}[]`) are
+  hidden or seen. A crack through the wall leaks (`Faced.holdsWater` false).
+- **`ring <thing>`** (platform, perception) asks the thing: a sound hard body
+  rings clear (hardness ≥ `impact.ringsAboveHardness`, or a metal), a soft one
+  (a place brick) sounds dead, anything flawed gives a buzzing clack — the
+  hidden dunt is heard, not seen. It carries by mass (50 + 10·log₁₀ kg dB).
+- **`canReceiveAtK(k)`** — `holds | melts | burns` against the material's
+  melting and autoignition points (the pour's receiver, ceramics W7).
+
+**Thermal shock** is the same body, judged by `ThermalMixin`: a step
+(`setContentsTemperature` — boiling water into a cold mug) or a heating RATE
+over `ΔT_tol ÷ impact.shockWallS` (a crock set on a cook fire, a kiln opened
+hot) past `ΔT_tol = impact.shockStrain ÷ α × (1 + 10·porosity) ÷ (1 −
+2·grog) × (0.7 if glazed)`. Past it a `dunt` (hidden unless a glaze shows its
+craze line); past twice it a visible `crack`. Porosity and grog are why a
+cooking pot stands a fire a stoneware crock does not.

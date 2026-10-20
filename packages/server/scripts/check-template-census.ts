@@ -211,6 +211,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // `stir` or a `knead`, and a rowless one is a blend that consumes its
     // inputs and mints nothing.
     'blendMaterial', 'blendTemplate',
+    // ⭐ `brokenTemplate` (ceramics W2) — what a brittle body breaks into
+    // (sherds). Resolved live at the break; a rowless one is a dropped
+    // bowl that vanishes.
+    'brokenTemplate',
   ] as const) {
     push(f, data[f]);
   }

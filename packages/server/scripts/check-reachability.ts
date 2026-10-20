@@ -552,6 +552,7 @@ const FAUCETS: Record<string, string> = {
   trapTemplate: "a hazard mints it",
   castTemplate: "what a frozen pool becomes",
   blendTemplate: "a mixing vessel mints its blend (ceramics R1)",
+  brokenTemplate: "a brittle body breaks into it (ceramics W2)",
   barkPath: "a felled standard's bark",
   charcoalTemplate: "what a char mints",
   brandsTemplate: "the brands a char leaves",

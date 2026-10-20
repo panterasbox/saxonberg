@@ -35,6 +35,8 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ChattelApi } from '../../../../api/chattel';
+import { AppApi } from '../../../../api/app';
+import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 
 interface DropModel extends CommandModel {
   targets: MqlManyResult;
@@ -223,6 +225,48 @@ export default class DropController extends CommandController<DropModel> {
         Mml.compose`${Mml.actor(context.commandGiver)} drops ${Mml.thing(operand)}.`
       )
       .send();
+    // ⭐ (ceramics M5) It FALLS — and a brittle thing may break, by its
+    // strength against the fall and the floor it lands on. `put` and `get`
+    // never call this: nothing breaks from being handled.
+    if (context.location !== null) void landDrop(operand, context.location, giver);
     return true;
+  }
+}
+
+/**
+ * The fall: `m·g·h` against the floor's material. A module function — the
+ * controller is one ephemeral clone and the blow is async.
+ */
+async function landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
+  if (!MixinApi.isTangible(item)) return;
+  const floor = (MixinApi.isAdornable(room) ? room.getFloor() : null) as Stuff | null;
+  const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
+  const heightM = dropDial(AppSettingKeys.impactDropHeightM, 1);
+  const out = await item.sufferImpact({
+    energyJ: item.getMass().rawValue() * 9.81 * heightM,
+    surface,
+    cause: 'drop',
+  });
+  if (!out.broke && !out.flawed) return;
+  if (by.isDestroyed()) return;
+  MessageApi.scene(by)
+    .topic('sense.survey')
+    .toSelf(
+      out.broke
+        ? Mml.compose`It hits the floor and breaks.`
+        : Mml.compose`It hits the floor hard.`,
+    )
+    .toPeers(out.broke ? Mml.compose`Something breaks on the floor.` : Mml.compose`Something hits the floor hard.`)
+    .send();
+}
+
+function dropDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
   }
 }

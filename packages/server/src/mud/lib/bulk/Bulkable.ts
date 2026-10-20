@@ -59,6 +59,7 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
+import type { ImpactOutcome, ImpactSpec, Tangible } from '../material/Tangible';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../cleanliness/WaterHardness';
 
@@ -909,6 +910,25 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return affordance === 'interior'
         ? this.interiorPayload
         : this.surfacePayload;
+    }
+
+    /**
+     * ⭐ A vessel that BREAKS spills what it held onto the floor first
+     * (ceramics M5) — the break itself is `TangibleMixin`'s.
+     */
+    public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
+      const self = this as unknown as Stuff & Tangible;
+      if (this.interiorBulk && self.impactVerdict(spec) === 'break') {
+        const litres = this._interiorAmount.rawValue();
+        const from = BulkableApi.slotFor(self, undefined);
+        const floor = BulkableApi.floorSurfaceNear(self);
+        if (litres > 0 && from && floor) {
+          BulkableApi.transfer(from, floor, { kind: 'quantity', litres } as never);
+        }
+      }
+      const sup = (Base.prototype as { sufferImpact?: (s: ImpactSpec) => Promise<ImpactOutcome> }).sufferImpact;
+      if (typeof sup !== 'function') return { broke: false, flawed: false, pieces: null };
+      return sup.call(this, spec);
     }
 
     /** Reentry guard for the face exchange (it reads and writes the slot). */

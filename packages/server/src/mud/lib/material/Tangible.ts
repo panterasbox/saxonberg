@@ -54,6 +54,62 @@ import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MaterialSummary } from '@saxonberg/types';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+
+/** The kinds of flaw a piece of matter can carry (ceramics M5). */
+export type FlawKind = 'dunt' | 'crack' | 'casting' | 'check';
+
+/** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
+export interface Flaw {
+  kind: FlawKind;
+  /** Can an eye find it? A hidden one only `ring` finds. */
+  visible: boolean;
+  /** Game-second it happened. */
+  atS: number;
+}
+
+/** A blow a body takes. */
+export interface ImpactSpec {
+  /** The energy delivered, J. */
+  energyJ: number;
+  /** What it struck — a floor's material, a target's; `null` = itself. */
+  surface: Material | null;
+  /** What dealt it. */
+  cause: 'drop' | 'throw' | 'frost' | 'blow';
+}
+
+/** What a blow did. */
+export interface ImpactOutcome {
+  broke: boolean;
+  flawed: boolean;
+  /** What it broke into (sherds, a cullet lump), when it broke. */
+  pieces: Stuff | null;
+}
+
+/** What a receiver does with a pour at a temperature (ceramics S13). */
+export type PourReception = 'holds' | 'melts' | 'burns';
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function tangibleDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+
+/** How much a flaw costs a body's strength. */
+const FLAW_PENALTY: Readonly<Record<FlawKind, number>> = {
+  dunt: 0.3,
+  crack: 0.5,
+  casting: 0.3,
+  check: 0.15,
+};
 
 /**
  * Build the minimal Material wire summary — identity + display
@@ -114,6 +170,34 @@ export interface Tangible {
    * runtime API.
    */
   setMass(value: Quantity<'kg'>): void;
+
+  /** The flaws in this body, visible and hidden (ceramics M5). */
+  getFlaws(): readonly Flaw[];
+  /** Record a flaw (`atS`: when, if the caller knows — the clock is the caller's). */
+  addFlaw(kind: FlawKind, visible: boolean, atS?: number): void;
+  /**
+   * ⭐ The energy a blow must deliver to break this body, J — its
+   * material's toughness × its volume, a thicker wall disproportionately
+   * stronger, less what its flaws cost. `Infinity` for a body that is not
+   * brittle (it dents, it does not shatter).
+   */
+  impactStrengthJ(): number;
+  /**
+   * ⭐⭐ The ONE breakage act: a blow of `energyJ` against `surface`. A soft
+   * floor absorbs by its own hardness; a flagstone does not. Below half its
+   * strength nothing; below its strength a crack; past it the body breaks
+   * into its material's `brokenTemplate` and what it held spills.
+   */
+  sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome>;
+  /** What a blow would do, without doing it: `none`, a `crack`, or `break`. */
+  impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break';
+  /**
+   * ⭐ Tap it and listen: a sound hard body rings, a soft one is dead, a
+   * flawed one buzzes — and how loud, by its mass. `ring` tells it.
+   */
+  ringSound(): { sound: string; db: number; rings: boolean };
+  /** Can this receive a pour at `k` K? (ceramics S13 — W7 reads it.) */
+  canReceiveAtK(k: number): PourReception;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -133,13 +217,18 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [],
       // OUTWARD to whoever holds it…
-      environment: ['platform/cmd/inventory/throw.yaml'],
+      environment: [
+        'platform/cmd/inventory/throw.yaml',
+        // ⭐ Anything with mass can be tapped and listened to (ceramics M5):
+        // a held mug, a bell on the square, a brick on a stall.
+        'platform/cmd/perception/ring.yaml',
+      ],
       // …and SIDEWAYS to anyone sharing the room with it, because you
       // do not have to be holding a rock for throwing it to be on the
       // table. Whether the throw picks it up first, refuses, or costs a
       // beat is the CONTROLLER's call — availability and permission are
       // different questions, and only the first lives here.
-      peers: ['platform/cmd/inventory/throw.yaml'],
+      peers: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/perception/ring.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound
@@ -152,7 +241,13 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       _materialPath: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg'), authorable: true },
+      // ⭐ The flaws a body carries — a dunt, a crack, a casting fault
+      // (ceramics M5). Authorable so a row can ship a cracked bell.
+      flaws: { persistent: true, authorable: true, runtimeState: true },
     };
+
+    /** See {@link Tangible.getFlaws}. */
+    public flaws: Flaw[] = [];
 
     /**
      * Live-query subscribable fields.
@@ -447,6 +542,111 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           }),
         );
       }
+    }
+
+    // ---------- brittleness, flaws and the ring (ceramics M5) ----------
+
+    public getFlaws(): readonly Flaw[] {
+      return this.flaws;
+    }
+
+    public addFlaw(kind: FlawKind, visible: boolean, atS = 0): void {
+      this.flaws = [...this.flaws, { kind, visible, atS }];
+    }
+
+    public impactStrengthJ(): number {
+      const mat = this.getMaterial();
+      if (mat === null || !mat.hasTag('brittle')) return Number.POSITIVE_INFINITY;
+      const density = mat.getDensity().rawValue();
+      const toughness = mat.getToughness().rawValue();
+      if (!(density > 0) || !(toughness > 0)) return 0;
+      const v = this._mass.rawValue() / density;
+      const vRef = tangibleDial(AppSettingKeys.impactReferenceVolumeM3, 0.0001);
+      const share = tangibleDial(AppSettingKeys.impactFractureShare, 0.0018);
+      let penalty = 0;
+      for (const f of this.flaws) penalty += FLAW_PENALTY[f.kind] ?? 0.2;
+      return toughness * 1e6 * v * (v / vRef) * share * Math.max(0.1, 1 - penalty);
+    }
+
+    public impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break' {
+      const mat = this.getMaterial();
+      if (mat === null || !mat.hasTag('brittle') || !(spec.energyJ > 0)) return 'none';
+      // ⭐ The floor's say: a soft one (earth, boards) takes the blow by its
+      // own hardness; one as hard as the body (flagstone) gives it all back.
+      const own = Math.max(1, mat.getHardness().rawValue());
+      const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
+      const delivered = spec.energyJ * Math.min(1, Math.max(0, floor) / own);
+      const strength = this.impactStrengthJ();
+      if (delivered < strength * 0.5) return 'none';
+      return delivered < strength ? 'crack' : 'break';
+    }
+
+    public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
+      const self = this as unknown as Stuff;
+      const verdict = this.impactVerdict(spec);
+      if (verdict === 'none') return { broke: false, flawed: false, pieces: null };
+      if (verdict === 'crack') {
+        // A crack — on the rim it shows; deep in the wall only `ring` finds it.
+        const mat = this.getMaterial()!;
+        const own = Math.max(1, mat.getHardness().rawValue());
+        const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
+        const delivered = spec.energyJ * Math.min(1, Math.max(0, floor) / own);
+        this.addFlaw('crack', delivered >= this.impactStrengthJ() * 0.8);
+        return { broke: false, flawed: true, pieces: null };
+      }
+      // It breaks: into its material's broken form, where it was. (What a
+      // vessel held is spilled by `BulkableMixin.sufferImpact` first.)
+      const mat = this.getMaterial()!;
+      let pieces: Stuff | null = null;
+      const row = mat.getBrokenTemplate();
+      if (row) {
+        try {
+          pieces = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: [self] });
+          if (MixinApi.isTangible(pieces)) {
+            pieces.setMaterial(mat);
+            pieces.setMass(this._mass);
+          }
+          // ⚠ Placed through `Containable.leaveBeside`, never `ContainmentApi`
+          // here: this file is in every Thing's base chain, and the Api's
+          // import graph reaches back into it.
+          if (MixinApi.isContainable(self)) self.leaveBeside(pieces);
+        } catch {
+          pieces = null;
+        }
+      }
+      await StuffApi.destruct(self);
+      return { broke: true, flawed: false, pieces };
+    }
+
+    public ringSound(): { sound: string; db: number; rings: boolean } {
+      const mat = this.getMaterial();
+      const sounding = mat !== null && (mat.hasTag('brittle') || mat.hasTag('metal'));
+      const rings =
+        sounding &&
+        this.flaws.length === 0 &&
+        (mat!.hasTag('metal') ||
+          mat!.getHardness().rawValue() >= tangibleDial(AppSettingKeys.impactRingsAboveHardness, 55));
+      const sound = !sounding
+        ? 'a dull knock, and nothing after it'
+        : this.flaws.length > 0
+          ? 'a flat, buzzing clack — there is a crack in it somewhere'
+          : rings
+            ? 'a clear ring that hangs in the air'
+            : 'a dead, soft note';
+      // ⭐ How far it carries: a sounding body's note by its mass (a bell's
+      // over the square, a mug's across a table); a dull knock barely at all.
+      const kg = Math.max(0.01, this._mass.rawValue());
+      return { sound, db: rings ? 50 + 10 * Math.log10(kg) : 35, rings };
+    }
+
+    public canReceiveAtK(k: number): PourReception {
+      const mat = this.getMaterial();
+      if (mat === null || !(k > 0)) return 'holds';
+      const melts = mat.getMeltingPoint().rawValue();
+      if (melts > 0 && k >= melts) return 'melts';
+      const burns = mat.getAutoignitionTemperature().rawValue();
+      if (burns > 0 && k >= burns) return 'burns';
+      return 'holds';
     }
   };
 }

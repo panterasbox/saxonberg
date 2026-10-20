@@ -64,6 +64,12 @@ export interface Containable {
   setContainer(container: (Stuff & Container) | null): void;
   getContainer(): (Stuff & Container) | null;
   /**
+   * ⭐ Leave `item` where this thing is — in its container (ceramics M5:
+   * a pot that breaks leaves its sherds where it stood). No-op when this
+   * stands nowhere.
+   */
+  leaveBeside(item: Stuff): void;
+  /**
    * Walk the container chain to the topmost non-null environment.
    * Returns `null` when this Stuff is already at the root (its own
    * `getContainer()` is null) — the caller decides whether "I am
@@ -363,6 +369,12 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the RAW target does not get it. `ResidencyLogic` walks raw by
      * design and carries its own `isDestroyed()` guard for that.
      */
+    public leaveBeside(item: Stuff): void {
+      const where = this.getContainer();
+      if (where === null || !MixinApi.isContainable(item)) return;
+      ContainmentApi.move(item as Stuff & Containable, where);
+    }
+
     getContainer(): (Stuff & Container) | null {
       return this.environment;
     }

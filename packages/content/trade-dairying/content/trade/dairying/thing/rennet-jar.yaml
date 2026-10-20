@@ -17,5 +17,12 @@ data:
   interiorMaterial: /trade/dairying/idea/material/rennet
   interiorAmount: 0.5
   open: true
-  _materialPath: /stuff/idea/material/ceramic/ceramic
-  mass: 0.5
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 0.8
+  # ⭐ (ceramics S1, M6) A fused lead glaze — glossy, and (M7) it gives
+  # lead to anything acid kept in it, which nothing about it says.
+  coats:
+    inside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }
+    outside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }

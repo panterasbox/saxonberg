@@ -32,13 +32,20 @@
  * ⭐ The naming is a **witnessed act**: everyone present learns the name,
  * the `introduce` shape exactly. A name nobody heard given is a private
  * label, and this is not that.
+ *
+ * ⭐⭐ **Who may name is the THING's to say** (ceramics W2): `Named.
+ * canBeNamedBy(hand, by)`, overridden by each rule's holder — `Crafted`
+ * (its maker, once, while it has none: *"name jug Mother's jug"*),
+ * `Assembled` (the hand whose reforge took its name, repair D18) and
+ * `Bonded` (the person it has chosen). This controller narrows on no
+ * class to pick a rule; it only words the refusal by what was refused and
+ * runs the act — and an animal's naming is also its PROMOTION (below).
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Assembled } from '../../../../lib/craft/Assembled';
 import type { Named } from '../../../../lib/description/Named';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -55,19 +62,40 @@ interface NameModel extends CommandModel {
 }
 
 export default class NameController extends CommandController<NameModel> {
-  /**
-   * Name a thing whose name was taken by a reforge — by the hand that
-   * re-made it (repair D9, D18). The thing answers whether this hand may
-   * (`canBeNamedBy`, read off its mend history); the name is `Named`'s.
-   * Anyone else, or a thing nobody re-made, is not something you can name.
-   */
-  private async nameThing(
-    thing: Stuff & Assembled & Named,
-    wanted: string,
-    context: CommandContext,
-  ): Promise<void> {
+  async execute(model: NameModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    if (!thing.canBeNamedBy(actor.getIdentityPath() ?? '')) {
+    const target = model.target?.stuff;
+    const wanted = (model.animalName ?? '').trim();
+    const hand = actor.getIdentityPath() ?? '';
+    // ⚠ The view's arg takes anything (`requires: any`), so the check is
+    // here: a thing that bears no name at all (a pail) is refused in its
+    // own words.
+    if (!target || !MixinApi.isNamed(target)) {
+      this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
+      return;
+    }
+    const animal = MixinApi.isBonded(target);
+    if (animal) {
+      if (!wanted) {
+        this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
+        return;
+      }
+      if (target.getName()) {
+        this.refuse(context, TOPIC, `It already has a name.`, 'already-named');
+        return;
+      }
+      // ⚠ Every gate, one sentence. "It has not chosen you" is the honest
+      // description of any failure — the bond, the following, the earned
+      // home — and the remedy for all of them is the same: spend more time
+      // with it. The animal answers (`Bonded.canBeNamedBy`).
+      if (!target.canBeNamedBy(hand, actor)) {
+        this.refuse(context, TOPIC, `It has not chosen you.`, 'not-chosen');
+        return;
+      }
+      await this.promote(target, wanted, context);
+      return;
+    }
+    if (!target.canBeNamedBy(hand, actor)) {
       this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
       return;
     }
@@ -75,70 +103,37 @@ export default class NameController extends CommandController<NameModel> {
       this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
       return;
     }
+    await this.nameThing(target, wanted, context);
+  }
+
+  /** A made thing takes its name; the host that keeps it is captured. */
+  private async nameThing(
+    thing: Stuff & Named,
+    wanted: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
     thing.setName(wanted);
     try {
       await PersistableApi.captureHostOf(thing);
     } catch (err) {
       console.warn('NameController: capture after naming failed:', err);
     }
+    const it = Mml.thing(thing, { form: 'handle' });
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You give the blade its name: ${wanted}. It will answer to it.`)
-      .toPeers(Mml.compose`${Mml.actor(actor)} names ${Mml.thing(thing)} ${wanted}.`)
+      .toSelf(Mml.compose`You give ${it} its name: ${wanted}. It will answer to it.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} names ${it} ${wanted}.`)
       .send();
   }
 
-  async execute(model: NameModel, context: CommandContext): Promise<void> {
+  /** ⭐⭐ An animal's naming is its promotion — identity and durability together. */
+  private async promote(
+    animal: Stuff & Named,
+    wanted: string,
+    context: CommandContext,
+  ): Promise<void> {
     const actor = context.commandGiver;
-    const animal = model.target?.stuff;
-    const wanted = (model.animalName ?? '').trim();
-
-    // ⭐ A THING may be named once by the hand that reforged its named
-    // part (repair D18, Narsil's rule): both arms are checked HERE, since
-    // the view's arg takes anything (`requires: any` — an alternation of
-    // mixins in the view would delete one of the checks).
-    if (animal && MixinApi.isAssembled(animal)) {
-      // A made thing that bears no name at all (a pail) is refused here,
-      // in the thing's words — not as "not an animal".
-      if (!MixinApi.isNamed(animal)) {
-        this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
-        return;
-      }
-      await this.nameThing(animal, wanted, context);
-      return;
-    }
-    if (!animal || !MixinApi.isBonded(animal) || !MixinApi.isNamed(animal)) {
-      this.refuse(context, TOPIC, `That isn't an animal you can name.`, 'not-nameable');
-      return;
-    }
-    if (!wanted) {
-      this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
-      return;
-    }
-    if (animal.getName()) {
-      this.refuse(
-        context,
-        TOPIC,
-        `It already has a name.`,
-        'already-named',
-      );
-      return;
-    }
-
-    // ⚠ Every gate, one sentence. "It has not chosen you" is the honest
-    // description of any failure — the bond, the following, the earned
-    // home — and the player's remedy for all of them is the same: spend
-    // more time with it. The animal answers (`Bonded.hasChosen`).
-    if (!animal.hasChosen(actor)) {
-      this.refuse(
-        context,
-        TOPIC,
-        `It has not chosen you.`,
-        'not-chosen',
-      );
-      return;
-    }
-
     // ⚠ Partial name defence — a connected player's name may not be
     // taken. The live-`Cast` half wants a name index nobody has built;
     // the naming slate owns the real defence (Defence B).
@@ -146,12 +141,7 @@ export default class NameController extends CommandController<NameModel> {
       (a) => (a.getName() ?? '').toLowerCase() === wanted.toLowerCase(),
     );
     if (clash) {
-      this.refuse(
-        context,
-        TOPIC,
-        `Somebody already goes by that name.`,
-        'name-taken',
-      );
+      this.refuse(context, TOPIC, `Somebody already goes by that name.`, 'name-taken');
       return;
     }
 

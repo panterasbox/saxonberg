@@ -27,9 +27,9 @@ data:
       zK: 30
       fullDoseS: 1800
       scorchAboveK: 1400
-      scorched: /trade/ceramics/idea/material/glaze/lead
+      scorched: /stuff/idea/material/glaze/lead
       ladder:
-        - { atDegree: 1, becomes: /trade/ceramics/idea/material/glaze/lead }
+        - { atDegree: 1, becomes: /stuff/idea/material/glaze/lead }
   # ⭐⭐ Lead leaches from the inside face into acid contents (ceramics M7),
   # and nothing you can see, smell or taste says so.
   leaches:

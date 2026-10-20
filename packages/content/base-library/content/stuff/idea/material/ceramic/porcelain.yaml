@@ -1,0 +1,26 @@
+# Porcelain — a white body of kaolin and feldspar fired until it is glass
+# all through: hard, dense, translucent where thin. ⭐ An IMPORT here
+# (ceramics S1; porcelain and kaolin are pottery-slate § 9): nothing in the
+# realm digs kaolin, so a porcelain streak plate comes from away.
+class: /platform/idea/material/Material
+data:
+  name: porcelain
+  keywords: [porcelain, china, fired]
+  appearance: hard white porcelain, unglazed and faintly rough
+  density: 2400
+  specificHeat: 850
+  thermalConductivity: 1.5
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 0.5
+  hardness: 110
+  toughness: 7
+  thermalExpansion: 4.0e-6
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "porcelain"]
+  composition: []
+  biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds
