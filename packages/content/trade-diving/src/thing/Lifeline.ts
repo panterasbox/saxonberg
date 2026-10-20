@@ -15,21 +15,23 @@
  *    holder feels it. One tug, all is well; two, haul me up; three, give
  *    me more line. The signals are physical: they reach whoever holds the
  *    other end, whatever the medium, and nobody else.
- *  - **`haul line`** — the holder brings whoever is on the end up one
- *    band of the water, then up the quay steps, conscious or not. Weight
- *    is what a haul pays, never a skill check.
+ *  - **`pull line`** — the holder brings whoever is on the end up one
+ *    band of the water, then up the quay steps, conscious or not — hand
+ *    over hand, so the meters take time. Weight is what a pull pays,
+ *    never a skill check.
  *
  * The hose of a hard-hat suit is the same object (`kind: hose`): its
- * free end feeds the helmet, and the same haul brings the diver up.
+ * free end feeds the helmet, and the same pull brings the diver up.
  *
  * ⚠ Who is on the line is RUNTIME — a live ref, dropped on a restart.
  * A line is made fast for a dive; it does not outlive the dive.
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import type { Haulable, HaulOutcome, HaulSense } from '@saxonberg/server/mud/lib/spatial/Haulable';
+import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -55,6 +57,12 @@ const HAUL_LIMIT_KG = 80;
 /** A haul's effort per kg brought up one place, W over a short pull. */
 const HAUL_W_PER_KG = 4;
 
+/** How fast a line comes in hand over hand with nothing heavy on it, m per real second. */
+const PULL_MPS = 0.6;
+
+/** The quay steps at the top: getting a body up them and out, real seconds. */
+const STEPS_S = 5;
+
 /** Tugs this close together are one signal, game-seconds. */
 const SIGNAL_WINDOW_S = 20;
 
@@ -74,7 +82,7 @@ export interface LineSignal {
 /** What a line act did — the line's own words, or why not. */
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-export default class Lifeline extends Tool implements Haulable {
+export default class Lifeline extends Tool implements Pullable {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) heaves and hauls;
@@ -82,9 +90,9 @@ export default class Lifeline extends Tool implements Haulable {
     // line lying on the quay is `peers` to whoever stands there.
     environment: [
       'trade/diving/cmd/diving/heave.yaml',
-      'platform/cmd/inventory/haul.yaml',
+      'platform/cmd/inventory/pull.yaml',
     ],
-    peers: ['platform/cmd/inventory/haul.yaml'],
+    peers: ['platform/cmd/inventory/pull.yaml'],
   };
 
   static fieldMeta: FieldMeta = {
@@ -251,18 +259,18 @@ export default class Lifeline extends Tool implements Haulable {
     return { tugs: Math.min(3, fresh.length), atS: fresh[fresh.length - 1]! };
   }
 
-  /* ─────────────────────────── haul (Haulable) ─────────────────────────── */
+  /* ─────────────────────────── haul (Pullable) ─────────────────────────── */
 
   /**
    * ⭐ Bring whoever is on the end up one band of the water — then out up
    * the steps, conscious or not. The way up is the water's own: the
    * band's `up`, the basin's way up to the quay.
    */
-  public async haulBy(hauler: Stuff, sense: HaulSense | null): Promise<HaulOutcome> {
+  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     if (sense === 'down') {
       return { ok: false, reason: 'pay-out', line: 'You pay out line; the weight on the end takes it down.' };
     }
-    if (this.getHolder() !== hauler) {
+    if (this.getHolder() !== puller) {
       return { ok: false, reason: 'not-holding', line: `You are not holding ${this.getPresentation()}.` };
     }
     const diver = this.getOnEnd();
@@ -270,7 +278,7 @@ export default class Lifeline extends Tool implements Haulable {
       return { ok: false, reason: 'nobody-on-line', line: 'There is nobody on the end of the line.' };
     }
     const where = diver.getContainer();
-    const here = MixinApi.isContainable(hauler) ? hauler.getContainer() : null;
+    const here = MixinApi.isContainable(puller) ? puller.getContainer() : null;
     if (where === null || here === null) {
       return { ok: false, reason: 'nobody-on-line', line: 'The line goes nowhere.' };
     }
@@ -289,7 +297,7 @@ export default class Lifeline extends Tool implements Haulable {
         }
       }
     }
-    // …or straight to the hauler, when they are one way away.
+    // …or straight to the puller, when they are one way away.
     if (next === null && MixinApi.isExitable(here) &&
         here.getObviousNeighbours().some(({ dest }) => dest === where)) {
       next = here as Stuff & Container;
@@ -299,6 +307,7 @@ export default class Lifeline extends Tool implements Haulable {
     }
     // ⭐ A load (not a person) pays its weight in the water, less what air lifts it.
     const isLoad = !diver.isAgent?.();
+    let loadKg = 0;
     if (isLoad) {
       const inWater = MixinApi.isWaterPlace(where);
       const depthM = inWater ? Math.max(0, BiomeApi.mediumFor(diver).depthM) : 0;
@@ -307,15 +316,47 @@ export default class Lifeline extends Tool implements Haulable {
         : [];
       const kg = MixinApi.isTangible(diver) ? diver.getMass().rawValue() : 0;
       const netKg = Math.max(0, kg - lashed.reduce((sum, bag) => sum + bag.liftKg(depthM), 0));
+      loadKg = netKg;
       if (inWater && netKg > HAUL_LIMIT_KG) {
         return {
           ok: false,
           reason: 'too-heavy',
-          line: `You haul until your arms crack; ${diver.getPresentation()} will not come up off the bottom. It wants air under it.`,
+          line: `You pull until your arms crack; ${diver.getPresentation()} will not come up off the bottom. It wants air under it.`,
         };
       }
-      if (MixinApi.isExerting(hauler)) hauler.exert({ durationS: 30, powerW: Math.min(600, 80 + netKg * HAUL_W_PER_KG) });
+      if (MixinApi.isExerting(puller)) puller.exert({ durationS: 30, powerW: Math.min(600, 80 + netKg * HAUL_W_PER_KG) });
     }
+    // ⭐ The meters cost time (underwater review): hand over hand, slower
+    // the more the load weighs in the water, and the steps at the top.
+    const fromM = MixinApi.isWaterPlace(where) ? Math.max(0, BiomeApi.mediumFor(diver).depthM) : 0;
+    const toM = next !== here && MixinApi.isWaterPlace(next) ? Math.max(0, next.mediumFor(diver).depthM) : 0;
+    const speed = PULL_MPS * Math.max(0.3, 1 - loadKg / (2 * HAUL_LIMIT_KG));
+    const realS = Math.max(0, fromM - toM) / speed + (next === here ? STEPS_S : 0);
+    const to = next;
+    return {
+      ok: true,
+      self: Mml.compose`You take the strain on ${Mml.thing(this as unknown as Stuff)} and pull, hand over hand.`,
+      peers: Mml.compose`${Mml.actor(puller)} pulls on a line, hand over hand.`,
+      takes: { realS, finish: () => this.landPull(puller, diver, where, to) },
+    };
+  }
+
+  /**
+   * The pull lands: whoever is on the end comes up into `next` — if the
+   * line is still in the puller's hands and they are still where the pull
+   * began. Anything else and the pull came to nothing.
+   */
+  private async landPull(
+    puller: Stuff,
+    diver: Stuff & Containable,
+    where: Stuff & Container,
+    next: Stuff & Container,
+  ): Promise<PullOutcome> {
+    if (this.getHolder() !== puller || this.getOnEnd() !== diver || diver.getContainer() !== where) {
+      return { ok: false, reason: 'line-slipped', line: 'The line goes slack in your hands; whatever was on it is not where it was.' };
+    }
+    const here = MixinApi.isContainable(puller) ? puller.getContainer() : null;
+    const isLoad = !diver.isAgent?.();
     if (MixinApi.isRespiration(diver)) diver.releaseHold();
     const bags = isLoad && MixinApi.isContainer(where)
       ? where.getContents().filter((c): c is AirBag => c instanceof AirBag && c.getLashedTo() === diver)
@@ -334,7 +375,7 @@ export default class Lifeline extends Tool implements Haulable {
           .topic('act.deed')
           .toSelf(out
             ? Mml.compose`The line drags you up the steps and out of the water.`
-            : Mml.compose`The line hauls you upward through the water.`)
+            : Mml.compose`The line pulls you upward through the water.`)
           .send();
       } catch {
         // decoration
@@ -344,9 +385,9 @@ export default class Lifeline extends Tool implements Haulable {
     return {
       ok: true,
       self: out
-        ? Mml.compose`You haul ${Mml.actor(diver)} up the steps and out of the water.`
-        : Mml.compose`You haul on ${Mml.thing(this as unknown as Stuff)}, hand over hand; the weight on the end comes up.`,
-      peers: Mml.compose`${Mml.actor(hauler)} hauls on a line, hand over hand.`,
+        ? Mml.compose`You pull ${Mml.actor(diver)} up the steps and out of the water.`
+        : Mml.compose`The weight on the end of ${Mml.thing(this as unknown as Stuff)} comes up.`,
+      peers: Mml.compose`${Mml.actor(puller)} brings a line in.`,
     };
   }
 

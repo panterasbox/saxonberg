@@ -1,6 +1,6 @@
 # A bell hoist (underwater C2, D26) — a derrick and drum on the quay that
-# lowers a diving bell one band of the water at a time (`haul bell
-# down`) and raises it (`haul bell up`). A venue's row names its bell.
+# lowers a diving bell one band of the water at a time (`pull bell
+# down`) and raises it (`pull bell up`). A venue's row names its bell.
 class: /trade/diving/thing/Hoist
 data:
   shortDescription: bell hoist

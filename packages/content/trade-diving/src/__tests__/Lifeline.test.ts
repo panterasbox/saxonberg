@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ The lifeline (underwater C1): heave the end to somebody in the
  * water below the quay; they are held up by it; their tug reaches the
- * holder and nobody else; `haul` brings them up and out — and nobody can
+ * holder and nobody else; `pull` brings them up and out — and nobody can
  * tug a line whose end they do not hold.
  */
 
@@ -92,17 +92,23 @@ describe('the lifeline (underwater C1)', () => {
     void tender;
   });
 
-  it('⭐ haul brings the person on the end up and out, and the line comes free', async () => {
+  it('⭐ a pull takes time, then brings the person on the end up and out, and the line comes free', async () => {
     const { quay, tender, swimmer, line } = await scene();
     await line.heaveTo(tender as unknown as Stuff, swimmer as unknown as Stuff);
-    const out = await line.haulBy(tender as unknown as Stuff, null);
+    const where = swimmer.getContainer();
+    const out = await line.pullBy(tender as unknown as Stuff, null);
     expect(out.ok).toBe(true);
+    // Nothing moves until the pull lands: the steps alone take seconds.
+    if (!out.ok || out.takes === undefined) throw new Error('a pull with no time in it');
+    expect(out.takes.realS).toBeGreaterThan(0);
+    expect(swimmer.getContainer()).toBe(where);
+    expect((await out.takes.finish()).ok).toBe(true);
     expect(swimmer.getContainer()).toBe(quay);
     expect(line.getOnEnd()).toBeNull();
   });
 
-  it('a line not held cannot be hauled; one with nobody on it says so', async () => {
+  it('a line not held cannot be pulled; one with nobody on it says so', async () => {
     const { tender, line } = await scene();
-    expect(await line.haulBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'nobody-on-line' });
+    expect(await line.pullBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'nobody-on-line' });
   });
 });

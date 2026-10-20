@@ -6,7 +6,7 @@
  * them up. And a diver who has stopped signalling and gone limp on the
  * line is hauled up too — the tender's whole job is noticing that the
  * line has gone quiet in the wrong way. The tender hauls with the same
- * verb a player types (`haul line`), a band at a time.
+ * verb a player types (`pull line`), a band at a time.
  *
  * config: `{ silenceS?: number }` — how long a limp diver is left before
  * the tender starts hauling (default 20 game-seconds).
@@ -42,7 +42,7 @@ export const brain = class {
     const nowS = WorldClockApi.getNow().rawValue();
     const signal = line.lastSignal();
     if (signal !== null && signal.tugs === 2) {
-      await host.executeCommand('haul line');
+      await host.executeCommand('pull line');
       return;
     }
     const limp = MixinApi.isVitals(diver) && diver.getConsciousness() !== 'conscious';
@@ -53,6 +53,6 @@ export const brain = class {
       return;
     }
     state.limpSinceS ??= nowS;
-    if (nowS - state.limpSinceS >= silence) await host.executeCommand('haul line');
+    if (nowS - state.limpSinceS >= silence) await host.executeCommand('pull line');
   }
 };

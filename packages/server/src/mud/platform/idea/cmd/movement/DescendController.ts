@@ -21,6 +21,8 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Exit from '../../../../lib/boundary/Exit';
 import { MixinApi } from '../../../../api/mixin';
+import { LocomotionApi } from '../../../../api/locomotion';
+import type { Mobile } from '../../../../lib/spatial/Mobile';
 import { BiomeApi } from '../../../../api/biome';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -99,16 +101,22 @@ export default class DescendController extends LocomotionControllerBase {
       const veto = here.canRise(giver);
       if (!veto.ok) return this.refuse(context, 'act.deed', veto.reason, 'too-heavy');
     }
-    if (!(realS > 0) || !MixinApi.isEngaged(giver)) return this.crossPicked(giver, exit, context);
+    if (!(realS > 0) || !MixinApi.isEngaged(giver) || !MixinApi.isMobile(giver)) {
+      return this.crossPicked(giver, exit, context);
+    }
+    // ⚠ Resolved BEFORE engaging: this controller is destructed the moment
+    // `execute` returns, so the completion must not call back into it
+    // (`lint:completion-this`).
+    await LocomotionApi.preloadActorAnatomy(giver);
+    const mode = (await LocomotionApi.loadMode('swim')).getName();
+    const swimmer = giver;
     const scale = WorldClockApi.getScale();
     const step = new ManualBuildStep({
       actor: giver,
       slots: ['hands'],
       durationMs: realS * 1000 * (Number.isFinite(scale) && scale > 0 ? scale : 1),
       onComplete: () => {
-        // Out cold on the way: you got no further.
-        if (MixinApi.isVitals(giver) && giver.getConsciousness() !== 'conscious') return;
-        void this.crossPicked(giver, exit, context);
+        void arrive(swimmer, exit, mode);
       },
     });
     const started = SchedulerApi.start(step);
@@ -120,5 +128,19 @@ export default class DescendController extends LocomotionControllerBase {
       .toSelf(up ? Mml.compose`You kick for the light above.` : Mml.compose`You swim down.`)
       .toPeers(up ? Mml.compose`${Mml.actor(giver)} kicks upward.` : Mml.compose`${Mml.actor(giver)} swims down into the water.`)
       .send();
+  }
+}
+
+/**
+ * The swim lands: the crossing itself, unless the swimmer blacked out on
+ * the way (you got no further). A crossing that refuses at the last says
+ * why in its own words.
+ */
+async function arrive(swimmer: Stuff & Mobile, exit: Exit, mode: string): Promise<void> {
+  if (swimmer.isDestroyed()) return;
+  if (MixinApi.isVitals(swimmer) && swimmer.getConsciousness() !== 'conscious') return;
+  const guard = await swimmer.traverse(exit, mode);
+  if (!guard.ok) {
+    MessageApi.scene(swimmer).topic('act.deed').toSelf(guard.reason ?? 'You can\'t get there.').send();
   }
 }

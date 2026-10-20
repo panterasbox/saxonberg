@@ -1,0 +1,32 @@
+# ⭐ Pull on a line (underwater D19; `haul` until review) — ONE verb over
+# the `Pullable` protocol: a fisher's set pot out of the water, a diver up
+# the column on their lifeline, a diving bell down a band on its hoist.
+# The THING decides what pulling it means and says why not in its own
+# words. ⛔ Not `haul`: that word is logistics' (goods by cart and wagon).
+verbs: [pull]
+controller: /platform/idea/cmd/inventory/PullController
+description: "Pull on a line — a pot out of the water, a diver up, a bell down"
+help: |
+  `pull pot` brings a set pot or net out of the water with whatever the
+  water put in it. `pull line` brings up whoever is on the other end of a
+  lifeline — a diver, conscious or not — a band at a time, hand over
+  hand: the deeper they are, the longer it takes. `pull bell down`
+  lowers a diving bell on its hoist; `pull bell up` raises it.
+
+  With nothing named, `pull` takes up the one thing beside you that is on
+  a line. (`lift` is what you do to a bar.)
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ `requires: any` — a pot, a line and a hoist share no mixin; the
+  # controller narrows by SHAPE (the `Pullable` protocol).
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: any
+  - name: sense
+    type: string
+    required: false

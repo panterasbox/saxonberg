@@ -11,15 +11,15 @@
  * (`drawPerHour: 0`) and is only ever filled by hand: `put trout in
  * keepnet` while it is laid, and the trout lives, because a laid trap
  * with an interior (`interiorBulk: true`) is full of the reach's water
- * and respiration reads the vessel a body is inside. `haul` drains it
+ * and respiration reads the vessel a body is inside. `pull` drains it
  * and hands you what it held. No new machinery: the bowl's immersion
- * read, the trap's lay/haul.
+ * read, the trap's lay/pull.
  *
- * ## Lay, then haul — reconcile at the haul
+ * ## Lay, then pull — reconcile at the pull
  *
  * `lay` moves the trap from your hand into the water (the room), stamps
  * when, where and by whom, fixes it in place and vetoes its eviction: a
- * set trap survives a bounce. `haul` integrates the elapsed game-hours
+ * set trap survives a bounce. `pull` integrates the elapsed game-hours
  * against the reach's record — `Σ min(level, drawPerHour × hours ×
  * level/capacity)` over the roles it takes, capped by what it holds —
  * and hands over that many fish, the fraction decided by one seeded
@@ -35,7 +35,7 @@ import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { HabitatRole } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Species';
-import type { Haulable, HaulOutcome, HaulSense } from '@saxonberg/server/mud/lib/spatial/Haulable';
+import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -55,17 +55,17 @@ const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
 const AGENT_PREFIX = '/trade/fishing/agent/';
 
-export default class Trap extends TrapBase implements Haulable {
+export default class Trap extends TrapBase implements Pullable {
   static commandContributions: CommandContributions = {
     self: [],
     // `peers` = whoever stands where it lies (a set trap in the water);
-    // `environment` = whoever holds it. `lay` needs it held; `haul` needs
+    // `environment` = whoever holds it. `lay` needs it held; `pull` needs
     // it set; both views are offered either way and the controllers
     // narrow on state.
-    // ⭐ `haul` is the KERNEL's verb over the `Haulable` protocol now
-    // (underwater D19): the trap says what hauling it means.
-    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/haul.yaml'],
-    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/haul.yaml'],
+    // ⭐ `pull` is the KERNEL's verb over the `Pullable` protocol now
+    // (underwater D19): the trap says what pulling it means.
+    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/pull.yaml'],
+    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'platform/cmd/inventory/pull.yaml'],
   };
 
   static fieldMeta: FieldMeta = {
@@ -168,19 +168,19 @@ export default class Trap extends TrapBase implements Haulable {
     return super.canEvict(context);
   }
 
-  /* ─────────────────────────── the haul (Haulable) ─────────────────────────── */
+  /* ─────────────────────────── the haul (Pullable) ─────────────────────────── */
 
   /**
-   * ⭐ `haul pot`: what the water put in it since it was set, reconciled
-   * now against the reach's record, into the hauler's hands — the
+   * ⭐ `pull pot`: what the water put in it since it was set, reconciled
+   * now against the reach's record, into the puller's hands — the
    * fraction one seeded unit, nothing saying which was luck. Whatever was
    * already IN it (a keepnet's fish) comes up too; the water it held
    * drains away (fishing B8). A pot only comes up: `sense` is ignored.
    */
-  public async haulBy(hauler: Stuff, sense: HaulSense | null): Promise<HaulOutcome> {
+  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     void sense;
     if (!this.isSet()) return { ok: false, reason: 'not-set', line: 'It is not set.' };
-    if (!MixinApi.isContainer(hauler)) return { ok: false, reason: 'not-haulable', line: "You can't haul that." };
+    if (!MixinApi.isContainer(puller)) return { ok: false, reason: 'not-pullable', line: "You can't pull that." };
     const nowS = WorldClockApi.getNow().rawValue();
     const hours = Math.max(0, nowS - this.getSetAtS()) / 3600;
     const reach = this.getSetReach();
@@ -205,7 +205,7 @@ export default class Trap extends TrapBase implements Haulable {
         }
         const fish = await mintFish(species, organic);
         if (fish === null) continue;
-        ContainmentApi.move(fish as Stuff & Containable, hauler as Stuff & Container);
+        ContainmentApi.move(fish as Stuff & Containable, puller as Stuff & Container);
         took.push(species.name);
       }
     }
@@ -213,31 +213,31 @@ export default class Trap extends TrapBase implements Haulable {
     const held: string[] = [];
     for (const item of [...this.getContents()]) {
       if (!MixinApi.isContainable(item)) continue;
-      ContainmentApi.move(item as Stuff & Containable, hauler as Stuff & Container);
+      ContainmentApi.move(item as Stuff & Containable, puller as Stuff & Container);
       held.push(item.getPresentation());
     }
     if (this.hasInteriorBulk()) this.setBulkAmount('interior', Quantity.of(0, 'L'));
     this.markLifted();
-    ContainmentApi.move(this as unknown as Stuff & Containable, hauler as Stuff & Container);
+    ContainmentApi.move(this as unknown as Stuff & Containable, puller as Stuff & Container);
     const me = this as unknown as Stuff;
     if (took.length === 0 && held.length > 0) {
       return {
         ok: true,
         self: Mml.compose`You haul ${Mml.thing(me)} up and take out what you kept in it: ${held.join(', ')}.`,
-        peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water and takes something out of it.`,
+        peers: Mml.compose`${Mml.actor(puller)} hauls ${Mml.thing(me)} out of the water and takes something out of it.`,
       };
     }
     if (took.length === 0) {
       return {
         ok: true,
         self: Mml.compose`You haul ${Mml.thing(me)} up. Nothing in it.`,
-        peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water, empty.`,
+        peers: Mml.compose`${Mml.actor(puller)} hauls ${Mml.thing(me)} out of the water, empty.`,
       };
     }
     return {
       ok: true,
       self: Mml.compose`You haul ${Mml.thing(me)} up. ${countWords(took)} in it.`,
-      peers: Mml.compose`${Mml.actor(hauler)} hauls ${Mml.thing(me)} out of the water, with something in it.`,
+      peers: Mml.compose`${Mml.actor(puller)} hauls ${Mml.thing(me)} out of the water, with something in it.`,
     };
   }
 }

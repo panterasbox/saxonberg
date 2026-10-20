@@ -1968,6 +1968,27 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
     not raise the breath burn (no `effortW` on the step), and hauling a
     body up a lifeline is still instant.
 
+- **R7 · `exhale` help** describes what it does: empties the lungs, so you
+  sink, at the cost of the air you held.
+- **R8 · `haul` → `pull`, and the pull takes time.** The owner worried
+  about poisoning the well for the cargo and logistics design. `haul`,
+  hauler and haulage are that domain's words, and the kernel already had
+  `HaulableMixin` (a cart you hitch), so a second `Haulable` meaning "a
+  thing on a line" collided by name. Now the verb is `pull` (no `haul`
+  alias). `lib/spatial/Pullable.ts` replaces it (`pullBy`, `PullSense`,
+  `PullOutcome`), `PullController` replaces `HaulController`, and the
+  fishing pot, the lifeline, the hoist, the tender's brain, help texts,
+  fishing.md and both wire drives are updated. ⭐ `PullOutcome` gains
+  `takes: { realS, finish }`. A lifeline pull says its start now and lands
+  after the meters, hand over hand (0.6 m/s, slower with a heavy load, plus
+  5 s for the steps), as a timed step on the puller's hands. `finish`
+  re-checks that the line is still held and the diver still where they were.
+  Pots and the bell stay instant. ⚠ `lint:completion-this` caught a real
+  defect in R6: the timed swim's completion called back into its
+  controller, which is destroyed when `execute` returns, so the swim
+  would have played its line and never arrived. Both completions now run
+  module functions with everything resolved before the engagement.
+
 ## Drive record
 
 

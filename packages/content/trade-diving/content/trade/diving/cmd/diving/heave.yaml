@@ -1,7 +1,7 @@
 # ⭐ Throw a line (underwater C1): the free end of a lifeline you hold, to
 # somebody here or in the water below — the throw that saves a swimmer
 # who is going under. Whoever has it is held up by it while you hold on;
-# `haul line` brings them in.
+# `pull line` brings them in.
 verbs: [heave]
 controller: /trade/diving/idea/cmd/diving/HeaveController
 description: "Throw the end of a line to someone"
@@ -9,7 +9,7 @@ help: |
   `heave line to <person>` throws the free end of a lifeline you are
   holding to someone here, or to someone in the water just below you —
   off a quay, into the river. A person in the water who has the line is
-  held up by it as long as you hold the other end; `haul line` brings
+  held up by it as long as you hold the other end; `pull line` brings
   them in. Before a dive, heaving the line to your diver makes them fast
   to it.
 validators:

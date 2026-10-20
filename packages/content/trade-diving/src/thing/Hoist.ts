@@ -1,13 +1,13 @@
 /**
  * Hoist — ⭐ **the bell's cable and drum** (underwater C2, D26): a derrick
  * on the quay that lowers its bell one band of the water at a time and
- * raises it again. `haul bell down`, `haul bell up` — the kernel's one
- * `haul` verb, over the `Haulable` protocol the hoist speaks for its
+ * raises it again. `pull bell down`, `pull bell up` — the kernel's one
+ * `pull` verb, over the `Pullable` protocol the hoist speaks for its
  * bell. Whoever is inside rides with it.
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import type { Haulable, HaulOutcome, HaulSense } from '@saxonberg/server/mud/lib/spatial/Haulable';
+import type { Pullable, PullOutcome, PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -17,11 +17,11 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-export default class Hoist extends Tool implements Haulable {
+export default class Hoist extends Tool implements Pullable {
   static commandContributions: CommandContributions = {
     self: [],
     // The hoist stands on the quay: whoever is there works it.
-    peers: ['platform/cmd/inventory/haul.yaml'],
+    peers: ['platform/cmd/inventory/pull.yaml'],
     environment: [],
   };
 
@@ -44,7 +44,7 @@ export default class Hoist extends Tool implements Haulable {
    * the place the bell hangs in. Up from the top band is the surface; the
    * bell comes no higher than that on the cable.
    */
-  public async haulBy(hauler: Stuff, sense: HaulSense | null): Promise<HaulOutcome> {
+  public async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     const bell = this.getBell();
     if (bell === null || !MixinApi.isContainable(bell)) {
       return { ok: false, reason: 'no-bell', line: 'There is no bell on the hoist.' };
@@ -83,7 +83,7 @@ export default class Hoist extends Tool implements Haulable {
       self: way === 'down'
         ? Mml.compose`You let the drum of ${Mml.thing(me)} run; the bell goes down into the water.`
         : Mml.compose`You wind ${Mml.thing(me)}; the cable comes in streaming, and the bell rises.`,
-      peers: Mml.compose`${Mml.actor(hauler)} works the hoist, and the cable runs.`,
+      peers: Mml.compose`${Mml.actor(puller)} works the hoist, and the cable runs.`,
     };
   }
 }

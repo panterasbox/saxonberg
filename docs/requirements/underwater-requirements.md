@@ -83,7 +83,7 @@ numbers.
   job was cut in review: it is a contract-and-report interaction, not a
   water one, and gets its own design.)
 - **Diving is a trade** with gear at every rung — stone and belt, the
-  lifeline (haul, line signals), the diving bell (trapped air that fouls),
+  lifeline (pull, line signals), the diving bell (trapped air that fouls),
   the hard-hat suit on a crewed pump (the bends, narcosis, dive tables,
   recompression) — a Discipline, and **paid work**: tender and pump crew,
   and the diver for hire on the city's submerged works.
@@ -290,7 +290,7 @@ weather says nothing true about a meter down.
 4. **Values** — body composition never a number; the tender's attention is
    not measured; sending someone down is recorded on the accountability
    ledger (*you sent him down*), never judged by it.
-5. **Continuity** — `descend` / `ascend` / `haul` / `tug` / `drop belt`
+5. **Continuity** — `descend` / `ascend` / `pull` / `tug` / `drop belt`
    mean the same at every rung; the tank and the suit share one supply
    path; the stop is staying in a band.
 6. **Economy** — demand that existed first: the city's works below the
@@ -321,7 +321,7 @@ stages.
    `ascend` band by band to air and breathe. Ascent is never refused for
    lack of skill.
 4. Hyperventilate (`inhale` repeatedly), descend and stay: you black out
-   **with no warning**. A second character `haul`s or carries you up; at
+   **with no warning**. A second character `pull`s or carries you up; at
    the surface you come round, coughing; later you feel the water in your
    lungs.
 5. Black out alone and stay down: the dying clock runs (longer in the
@@ -365,7 +365,7 @@ stages.
 
 **C — `/trade/diving`**
 12. At Wharfside the dive master sells a stone and belt, a line, and
-    hires; `tug` sends a line signal the tender reads; the tender `haul`s
+    hires; `tug` sends a line signal the tender reads; the tender `pull`s
     the diver up.
 13. The bell is lowered from the quay; inside it you breathe, the water
     rises in it with depth, its air fouls with breathing, and a weighted

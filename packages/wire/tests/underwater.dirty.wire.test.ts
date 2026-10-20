@@ -321,7 +321,7 @@ suite('A · the water place', () => {
 });
 
 suite('C · the line', () => {
-  it('8a · 12 · a line heaved from the quay; tugs read on the holder\'s end; the haul brings the swimmer up the steps', async () => {
+  it('8a · 12 · a line heaved from the quay; tugs read on the holder\'s end; the pull brings the swimmer up the steps', async () => {
     // 8b · the wall refuses; the steps are the way out.
     expectRefused(await diver.cmd('up'));
     const out = await diver.cmd('climb up');
@@ -336,7 +336,11 @@ suite('C · the line', () => {
     expectOk(await buddy.cmd('tug line'));
     expectOk(await buddy.cmd('tug line'));
     expect(squash(await feels)).toMatch(/haul me up/);
-    expectOk(await diver.cmd('haul lifeline'));
+    // ⭐ The pull takes time (hand over hand, then the steps): wait for it.
+    expectOk(await diver.cmd('pull lifeline'));
+    for (let t = 0; t < 60 && !/Kestrel|embankment/i.test(await look(buddy)); t++) {
+      await new Promise((res) => setTimeout(res, 500));
+    }
     expect(await look(buddy)).toMatch(/Kestrel|embankment/i);
   });
 });

@@ -140,7 +140,7 @@ describe('what a line cannot bring up, air can (C5)', () => {
     const end = diver.getContents().find((c) => c instanceof LineEnd) as LineEnd;
     expect(end.lashTo(diver as unknown as Stuff, a as unknown as Stuff).ok).toBe(true);
     expect(line.getOnEnd()).toBe(a);
-    expect(await line.haulBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'too-heavy' });
+    expect(await line.pullBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'too-heavy' });
     expect(a.getContainer()).toBe(bed);
   });
 
@@ -173,7 +173,9 @@ describe('what a line cannot bring up, air can (C5)', () => {
     const end = diver.getContents().find((c) => c instanceof LineEnd) as LineEnd;
     vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({ ...BED, depthM: 0, atSurface: true });
     end.lashTo(diver as unknown as Stuff, a as unknown as Stuff);
-    expect((await line.haulBy(tender as unknown as Stuff, null)).ok).toBe(true);
+    const pulled = await line.pullBy(tender as unknown as Stuff, null);
+    expect(pulled.ok).toBe(true);
+    if (pulled.ok) await pulled.takes?.finish();
     expect(a.getContainer()).toBe(quay);
   });
 

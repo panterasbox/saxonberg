@@ -1,12 +1,12 @@
 # ⭐ Make something fast to a load (underwater C5): the free end of a
-# lifeline, so the tender can haul it up; or an air bag, so its air lifts
+# lifeline, so the tender can pull it up; or an air bag, so its air lifts
 # what no diver can.
 verbs: [lash]
 controller: /trade/diving/idea/cmd/diving/LashController
 description: "Lash a line's end or an air bag to something heavy"
 help: |
   `lash end to <thing>` makes the end of a lifeline you are holding fast
-  to something beside you, so whoever holds the line can `haul` it up.
+  to something beside you, so whoever holds the line can `pull` it up.
   `lash bag to <thing>` lashes an air bag or a sealed air barrel to it:
   if the air lifts more than the load weighs in the water, the two rise
   together to the top. A line alone brings up only what a pair of arms
