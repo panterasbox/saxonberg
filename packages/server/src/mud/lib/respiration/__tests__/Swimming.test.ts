@@ -162,6 +162,22 @@ describe('the weight of the water (underwater A4)', () => {
     expect(hit(hurt, TemplatePaths.respirationSqueeze)).toBe(false);
   });
 
+  it('⭐ the meters to the air cost time: an untrained body is slow, ballast speeds the way down and holds back the way up', async () => {
+    const c = body();
+    ContainmentApi.move(c, airRoom());
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(water(10));
+    const lift = vi.spyOn(c, 'getNetBuoyancyN').mockReturnValue(0);
+    // Untrained, neutral: 0.4 m a second — sixty meters is two and a half minutes.
+    expect(await c.verticalSwimSeconds(60, true)).toBeCloseTo(150);
+    expect(await c.verticalSwimSeconds(0, true)).toBe(0);
+    // Carrying 60 N too much: quicker down, slower up.
+    lift.mockReturnValue(-60);
+    const down = await c.verticalSwimSeconds(10, false);
+    const up = await c.verticalSwimSeconds(10, true);
+    expect(down).toBeLessThan(25);
+    expect(up).toBeGreaterThan(25);
+  });
+
   it('⭐ a body that cannot swim cannot float — refused in its own words', async () => {
     const c = body();
     ContainmentApi.move(c, airRoom());

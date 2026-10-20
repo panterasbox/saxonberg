@@ -178,6 +178,28 @@ describe('the column (underwater A2)', () => {
     expect((await surface(1.2, 3)).bandsNow()).toEqual([]);
   });
 
+  it('⭐ deep water repeats the dark about every atmosphere, to a cap — the depth is in the swim, not the rooms', async () => {
+    // 60 m, light to 10 m: fifty meters of dark in five bands of ten.
+    const sea = await surface(60, 10);
+    expect(sea.bandsNow()).toEqual(['lit', 'dark', 'dark-2', 'dark-3', 'dark-4', 'dark-5', 'bed']);
+    expect(sea.bandDepthM('dark')).toBeCloseTo(15);
+    expect(sea.bandDepthM('dark-5')).toBeCloseTo(55);
+    StuffApi.clearAll();
+    installStore();
+    // A trench is no more rooms — the bands thicken past the cap.
+    const trench = await surface(1000, 10);
+    expect(trench.bandsNow().filter((b) => b.startsWith('dark'))).toHaveLength(5);
+    expect(trench.bandDepthM('dark-5')).toBeCloseTo(10 + 990 * 0.9);
+    StuffApi.clearAll();
+    installStore();
+    // A deep band buds from the dark row, keyed by which one it is.
+    const p = await surface(30, 5);
+    const warren = await column();
+    const third = (await warren.bandOf(p, 'dark-2')) as unknown as Band;
+    expect(third.getBand()).toBe('dark-2');
+    expect(warren.bandAt(SURFACE, 'dark-2')).toBe(third);
+  });
+
   it('⭐ the surface gets its way down, and each band buds keyed and wired up and down', async () => {
     const p = await surface();
     await p.ensureColumnExits();

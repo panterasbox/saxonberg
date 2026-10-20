@@ -80,14 +80,31 @@ async function breathe(...ss: Session[]): Promise<void> {
   for (const s of ss) expectOk(await s.cmd('inhale'));
 }
 
+/**
+ * ⭐ One swim up or down the column. It takes real seconds now (the
+ * meters over your own vertical speed, breath burning the whole way —
+ * underwater review), so wait until you are THERE before the next act.
+ */
+async function stroke(s: Session, verb: 'descend' | 'ascend'): Promise<Awaited<ReturnType<Session['cmd']>>> {
+  const where = async () => JSON.stringify(await s.query('here', { fields: 'ref' }));
+  const before = await where();
+  const r = await s.cmd(verb);
+  if (r.status !== 'ok') return r;
+  for (let t = 0; t < 120; t++) {
+    if ((await where()) !== before) break;
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  return r;
+}
+
 /** From the quay into the water, then down the column until it is no deeper; the looks on the way. */
 async function toTheBed(s: Session): Promise<string[]> {
   // The way in from beside a water is `swim`; `descend` is the column's.
   const into = await s.cmd('swim');
   expect(into.status, squash(await into.said())).toBe('ok');
   const looks: string[] = [await look(s)];
-  for (let i = 0; i < 6; i++) {
-    const r = await s.cmd('descend');
+  for (let i = 0; i < 8; i++) {
+    const r = await stroke(s, 'descend');
     if (r.status !== 'ok') break;
     looks.push(await look(s));
   }
@@ -96,8 +113,8 @@ async function toTheBed(s: Session): Promise<string[]> {
 
 /** Up the column until the surface refuses another ascent. */
 async function toTheSurface(s: Session): Promise<void> {
-  for (let i = 0; i < 6; i++) {
-    const r = await s.cmd('ascend');
+  for (let i = 0; i < 8; i++) {
+    const r = await stroke(s, 'ascend');
     if (r.status !== 'ok') {
       // The only refusal that ends a good ascent is being at the top.
       const said = squash(await r.said());
@@ -256,8 +273,9 @@ suite('A · the water place', () => {
     // From the surface of the basin (step 2 ended there), one stroke down
     // is the lit band.
     await breathe(diver, buddy);
-    expectOk(await diver.cmd('descend'));
-    expectOk(await buddy.cmd('descend'));
+    const [a, b] = await Promise.all([stroke(diver, 'descend'), stroke(buddy, 'descend')]);
+    expectOk(a);
+    expectOk(b);
     const said = await say(diver, 'say can you hear me');
     expect(said).toMatch(/bubbles|nobody hears/i);
     // ⚠ Listen FIRST: `listen` drops what arrived before it started.
@@ -346,7 +364,7 @@ suite('C · the city\'s work', () => {
     expectOk(await diver.cmd('get here:i:spear'));
     await breathe(diver);
     expectOk(await diver.cmd('swim'));
-    expectOk(await diver.cmd('descend'));
+    expectOk(await stroke(diver, 'descend'));
     const r = await diver.cmd('spear fish');
     const said = squash(await r.said());
     expect(said, said).not.toMatch(/don't understand/i);
@@ -427,7 +445,7 @@ suite('Magic · 20', () => {
   it('20 · under the water a working cannot be spoken', async () => {
     await breathe(diver);
     expectOk(await diver.cmd('swim'));
-    expectOk(await diver.cmd('descend'));
+    expectOk(await stroke(diver, 'descend'));
     const r = await diver.cmd('cast glowlight');
     const said = squash(await r.said());
     expectRefused(r);

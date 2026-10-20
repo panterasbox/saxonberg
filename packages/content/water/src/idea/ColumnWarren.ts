@@ -170,7 +170,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
       {
         direction,
         source: on,
-        destinationPath: target === 'surface' ? surfacePath : `${BAND_ROW}${target}`,
+        destinationPath: target === 'surface' ? surfacePath : `${BAND_ROW}${rowOf(target)}`,
         media: ['water'],
       },
       (e) => e.configureColumn(surfacePath, target),
@@ -181,7 +181,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
 
   /** Clone the band row `bandOf` selected — reachable only through it. */
   protected async createMember(): Promise<MemberStuff> {
-    return StuffApi.clone<MemberStuff>(`${BAND_ROW}${this._budBand}`);
+    return StuffApi.clone<MemberStuff>(`${BAND_ROW}${rowOf(this._budBand)}`);
   }
 
   /** Arrivals swim down from the surface; a column never population-buds. */
@@ -221,6 +221,11 @@ export default class ColumnWarren extends ColumnWarrenBase {
       StuffApi.destruct(m);
     }
   }
+}
+
+/** The row a band is cloned from: every dark band is the `dark` row. */
+function rowOf(band: ColumnBand): string {
+  return band.startsWith('dark') ? 'dark' : band;
 }
 
 /** A surface's durable path: its identity, else its row. */

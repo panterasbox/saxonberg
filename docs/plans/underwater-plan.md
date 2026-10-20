@@ -1940,6 +1940,34 @@ Wave-by-wave: what landed, what the build decided, what surprised it.
   a band under ice is still swimmable. posture.md and spatial.md are
   updated.
 
+- **R6 · Depth costs time; deep water repeats the dark, capped.** The
+  owner: the stack *"is space you have to traverse to get to surface from
+  the bottom so it affects survivability"*, and it must not become a
+  100-room stack. Two parts:
+  - **The swim takes real seconds.** `descend`/`ascend` in the water run
+    a timed step on the hands slot (`ManualBuildStep`, the generic durative
+    activity) for `meters / speed`. The speed comes from
+    `Respiration.verticalSwimSeconds`: by swimming band, untrained 0.4 to
+    expert 1.2 m/s, and ±0.5 m/s per 100 N of weight or lift (ballast
+    speeds the way down and slows the way up). The step lands at completion.
+    `stop`, or blacking out on the way, leaves you where you were. Weight
+    refuses the way up before you spend breath on it. Going into the water
+    from a shore stays instant.
+  - **The dark repeats.** `ColumnBand` gains `dark-<n>`. The dark between
+    the light's end and the bed is cut into about one band per
+    `water.column.darkBandM` (10 m, an atmosphere), capped at
+    `water.column.maxDarkBands` (5); past the cap the bands thicken. So a
+    60 m sea is lit + 5 dark + bed, and a 1,000 m trench is still seven
+    rooms with long swims between them. Every dark band clones the `dark`
+    row, keyed `<surface>#dark-<n>`. Waters that ship today are unchanged
+    (the Kestrel is lit/dark/bed).
+  - The drive's `stroke()` helper waits for each arrival. ⚠ Tuning risk: an
+    untrained diver in the cold Kestrel has about 45 s of breath after cold
+    shock, and the 6 m down and back now takes about 30 s. The drive shows
+    whether the numbers hold. ⚠ Not modeled yet: the swim's effort does
+    not raise the breath burn (no `effortW` on the step), and hauling a
+    body up a lifeline is still instant.
+
 ## Drive record
 
 

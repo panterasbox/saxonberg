@@ -16,10 +16,16 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 
-/** One band of a column, top to bottom. */
-export type ColumnBand = 'lit' | 'dark' | 'bed';
+/**
+ * One band of a column, top to bottom. ⭐ The dark repeats in deep water
+ * (underwater review): `dark`, then `dark-2`, `dark-3`… — one about every
+ * atmosphere, to a cap, so a deep water has places to STOP on the way
+ * without becoming a hundred rooms. The meters between them are paid in
+ * the swim, not in rooms.
+ */
+export type ColumnBand = 'lit' | 'dark' | `dark-${number}` | 'bed';
 
-/** The bands in order, surface downward. */
+/** The band KINDS, surface downward — what a band's row is. */
 export const COLUMN_BANDS: readonly ColumnBand[] = ['lit', 'dark', 'bed'];
 
 /** Public shape added by WaterColumnMixin. */

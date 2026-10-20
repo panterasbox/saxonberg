@@ -170,6 +170,19 @@ const WIND_BURN: Readonly<Record<string, number>> = {
   expert: 0.8,
 };
 
+/**
+ * ⭐ How fast a body swims straight up or down, m per real second, by
+ * swimming band (underwater review: the meters between you and the air
+ * cost TIME, and breath burns the whole way). Buoyancy adds or takes away.
+ */
+const VERTICAL_MPS: Readonly<Record<string, number>> = {
+  untrained: 0.4,
+  novice: 0.6,
+  competent: 0.8,
+  proficient: 1.0,
+  expert: 1.2,
+};
+
 /** The tread by swimming band: an untrained body thrashes; an expert barely moves. */
 const SWIM_TECHNIQUE: Readonly<Record<string, number>> = {
   untrained: 3.0,
@@ -256,6 +269,13 @@ export interface Respiration {
   isFloating(): boolean;
   /** Float on your back — or refuse, in words, when you cannot. */
   float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
+  /**
+   * ⭐ How long swimming `meters` straight up (or down) takes this body,
+   * in REAL seconds: its swimming, and its weight in the water — ballast
+   * takes you down faster and holds you back going up; a body that floats
+   * is helped up and slowed down.
+   */
+  verticalSwimSeconds(meters: number, up: boolean): Promise<number>;
   /** The uncleared pressure on your ears, meters of descent. */
   getPressureDebtM(): number;
   /** Dissolved gas per tissue compartment, atm (the bends, D27). */
@@ -1069,6 +1089,17 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         const place = MixinApi.isContainable(self) ? self.getContainer() : null;
         if (place !== null && MixinApi.isWaterPlace(place)) void place.takeUnder(self);
       }
+    }
+
+    public async verticalSwimSeconds(meters: number, up: boolean): Promise<number> {
+      if (!(meters > 0)) return 0;
+      await this.warmWaterBands();
+      const base = VERTICAL_MPS[this._swimBand] ?? VERTICAL_MPS.untrained!;
+      const lift = this.netBuoyancyN(BiomeApi.mediumFor(this as unknown as Stuff));
+      // Every 100 N of lift (or of weight) is worth about half a meter a second.
+      const assist = ((up ? lift : -lift) / 100) * 0.5;
+      const speed = Math.min(base * 2.5, Math.max(0.15, base + assist));
+      return meters / speed;
     }
 
     /** The water's lift on this body now, N (positive floats). */

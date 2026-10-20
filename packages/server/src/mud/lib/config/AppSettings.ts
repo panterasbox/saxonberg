@@ -1864,6 +1864,12 @@ export const AppSettingKeys = {
   waterColumnWadeM: "water.column.wadeM",
   /** Water — the thinnest a band of a column may be, m. */
   waterColumnMinBandM: "water.column.minBandM",
+  /** Water — about how thick one dark band of a column is, m (an
+   * atmosphere, 10): deep water has one place to stop per step. */
+  waterColumnDarkBandM: "water.column.darkBandM",
+  /** Water — the most dark bands one column has; past it they thicken
+   * (a trench is a long swim, not a hundred rooms). */
+  waterColumnMaxDarkBands: "water.column.maxDarkBands",
 
   /* ────────────────────────── atmosphere (what the medium carries) ────────────────────────── */
   /** Atmosphere — the share of a scope's medium that must still be plain

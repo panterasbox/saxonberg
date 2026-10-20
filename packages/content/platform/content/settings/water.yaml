@@ -7,3 +7,7 @@ settings:
     value: "1.5"
   - key: water.column.minBandM
     value: "2"
+  - key: water.column.darkBandM
+    value: "10"
+  - key: water.column.maxDarkBands
+    value: "5"

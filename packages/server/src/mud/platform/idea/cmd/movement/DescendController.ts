@@ -21,6 +21,13 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Exit from '../../../../lib/boundary/Exit';
 import { MixinApi } from '../../../../api/mixin';
+import { BiomeApi } from '../../../../api/biome';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { WorldClockApi } from '../../../../api/worldclock';
+import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+
 
 export default class DescendController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
@@ -70,6 +77,48 @@ export default class DescendController extends LocomotionControllerBase {
         ? this.refuse(context, 'act.deed', 'You are already at the surface.', 'at-surface')
         : this.refuse(context, 'act.deed', 'The water is no deeper here.', 'no-deeper');
     }
-    return this.crossPicked(giver, exit, context);
+    return this.swim(giver, exit, up, context);
+  }
+
+  /**
+   * ⭐ The swim between two depths takes TIME (underwater review): the
+   * meters over the body's own vertical speed, in real seconds, while
+   * breath burns. It occupies your hands (you are stroking), lands at
+   * completion, and `stop` — or blacking out on the way — leaves you
+   * where you were. A step with no meters in it is just the crossing.
+   */
+  private async swim(giver: Stuff, exit: Exit, up: boolean, context: CommandContext): Promise<void> {
+    const dest = await exit.resolveDestination();
+    const fromM = BiomeApi.mediumFor(giver).depthM;
+    const toM = MixinApi.isWaterPlace(dest) ? dest.mediumFor(giver).depthM : fromM;
+    const meters = Math.abs(toM - fromM);
+    const realS = MixinApi.isRespiration(giver) ? await giver.verticalSwimSeconds(meters, up) : 0;
+    // Weight refuses the way up before you spend the breath on it.
+    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (up && here !== null && MixinApi.isWaterPlace(here)) {
+      const veto = here.canRise(giver);
+      if (!veto.ok) return this.refuse(context, 'act.deed', veto.reason, 'too-heavy');
+    }
+    if (!(realS > 0) || !MixinApi.isEngaged(giver)) return this.crossPicked(giver, exit, context);
+    const scale = WorldClockApi.getScale();
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: realS * 1000 * (Number.isFinite(scale) && scale > 0 ? scale : 1),
+      onComplete: () => {
+        // Out cold on the way: you got no further.
+        if (MixinApi.isVitals(giver) && giver.getConsciousness() !== 'conscious') return;
+        void this.crossPicked(giver, exit, context);
+      },
+    });
+    const started = SchedulerApi.start(step);
+    if (!started.ok) {
+      return this.refuse(context, 'act.deed', 'You are busy with your hands.', 'engagement-conflict');
+    }
+    MessageApi.scene(giver)
+      .topic('act.deed')
+      .toSelf(up ? Mml.compose`You kick for the light above.` : Mml.compose`You swim down.`)
+      .toPeers(up ? Mml.compose`${Mml.actor(giver)} kicks upward.` : Mml.compose`${Mml.actor(giver)} swims down into the water.`)
+      .send();
   }
 }

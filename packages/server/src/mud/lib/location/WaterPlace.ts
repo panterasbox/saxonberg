@@ -85,6 +85,12 @@ const DEFAULT_WADE_M = 1.5;
 /** The thinnest a band of a column may be, m. */
 const DEFAULT_MIN_BAND_M = 2;
 
+/** About how thick one dark band is, m — an atmosphere of water. */
+const DEFAULT_DARK_BAND_M = 10;
+
+/** The most dark bands a column has; past it they thicken. */
+const DEFAULT_MAX_DARK_BANDS = 5;
+
 /** What a swimmer's kick is worth against weight, N. */
 const SWIM_THRUST_N = 40;
 
@@ -435,7 +441,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public setColumn(value: ColumnSpec | null): void {
       const out: ColumnNeighbour[] = [];
       for (const n of value?.neighbors ?? []) {
-        if (!n || !COLUMN_BANDS.includes(n.band)) continue;
+        if (!n || !(COLUMN_BANDS.includes(n.band) || /^dark-[2-9]\d*$/.test(n.band))) continue;
         if (typeof n.direction !== 'string' || typeof n.destination !== 'string') continue;
         out.push({
           band: n.band,
@@ -456,7 +462,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const lit = this.clarityM();
       const out: ColumnBand[] = [];
       if (d > wade + minBand) out.push('lit');
-      if (d > lit + minBand) out.push('dark');
+      if (d > lit + minBand) {
+        out.push('dark');
+        const n = this.darkBandCount(d, lit);
+        for (let i = 2; i <= n; i++) out.push(`dark-${i}`);
+      }
       out.push('bed');
       return out;
     }
@@ -467,7 +477,22 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const lit = Math.min(this.clarityM(), d);
       if (band === 'bed') return d;
       if (band === 'lit') return wade + Math.max(0, lit - wade) / 2;
-      return (lit + d) / 2;
+      // ⭐ The dark between the light's end and the bed, cut into equal
+      // bands; this one's middle.
+      const n = this.darkBandCount(d, lit);
+      const i = band === 'dark' ? 1 : Math.min(n, Math.max(1, Number(band.slice('dark-'.length)) || 1));
+      return lit + ((d - lit) / n) * (i - 0.5);
+    }
+
+    /**
+     * ⭐ How many dark bands a water has (underwater review): about one
+     * per `water.column.darkBandM` (an atmosphere, 10 m), never more than
+     * `water.column.maxDarkBands` — past the cap the bands thicken.
+     */
+    private darkBandCount(d: number, lit: number): number {
+      const step = dial(AppSettingKeys.waterColumnDarkBandM, DEFAULT_DARK_BAND_M);
+      const max = Math.max(1, Math.floor(dial(AppSettingKeys.waterColumnMaxDarkBands, DEFAULT_MAX_DARK_BANDS)));
+      return Math.min(max, Math.max(1, Math.round((d - lit) / step)));
     }
 
     /** How deep light reaches in this water, m. */
