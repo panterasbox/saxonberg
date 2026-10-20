@@ -2100,3 +2100,30 @@ advance, NPC demand) and the economy's, not sugar's.
 - Gate gap 2: a pack class whose composition the check refuses is
   caught only when something registers one; no gate registers every
   pack class.
+
+### Drives 5–8 and the estate probes (2026-10-20)
+
+Drive counts: 9/20 → 11 → 11 → 11 (by drive 8, Stage A passes 1–6, 8, 9
+and 11; its remaining reds were handling, fixed after).
+
+| finding | fix |
+|---|---|
+| the D20 restart SIGKILLed the world two seconds into its shutdown capture (preflight's grace); the copper came back empty | preflight takes `PREFLIGHT_GRACE_MS`; the drive's restart gives it a minute |
+| `look` names a liquor by its APPEARANCE, never its material | the stage checks read appearances (thin and brown · thick and golden · clouding with grain · thick as tar) |
+| a burned-out arch left the copper at syrup for twelve hours; a thirty-minute step carried it from syrup to burnt toffee | the boil loops tend the fire and time the strike by thermometer, two minutes a step past 385 K (an untrained hand's thread test cannot tell the stages apart) |
+| the island estate ran 2170 into arrears with every hand on shift: the refusal looked the worker up only if RESIDENT | an NPC hand is loaded on use to decide; a player is only told while here |
+| cane shipped as an ANNUAL — the estate's 24 stands were ~4 blocks, ever | it ratoons (polycarp cycle); ONE bundle a cut, five days round — three 30 kg bundles froze every carrier (`locomotion-gate-failed`) |
+| no roster seat named a STATION: every shift began in the store, cutters in the shop | every estate seat (and the Sugar House's two) names its station |
+| ⚠ a brain's `forceCommand` is unattributable by design, so every MAKER verb (`mill`, `cut`, `order`) found no maker: the miller declined `no-maker` at every bundle | the sugar brains act with `executeCommand` (`prints`' precedent); ⚠ the shipped `cellars` brain had the same defect (the vermouth winery declined fifteen times a run) and is fixed with a test |
+| the crush needs an EMPTY tub (`no-glass`) and W6 had removed the yard's | the tubs are back; the miller pours his tub into the kettle and carries the same tub home (`carry.into`) |
+| drive steps 15 and 18 passed vacuously (room prose said "tub"; the counter's description said "sugar") | 15 reads juice IN a tub; 18 BUYS a block |
+| a twelve-hour clock jump runs no brain at all — a probed "week" cut nothing | steps 18 and 20 wait through real-time working hours, jumping only the nights |
+| the libations annex suite (outside test:near): the Sugar House hand consigns as the house without a purchasing seat; rum and the sack are made at `par: 0` | the seat purchases; the suite names MADE lines |
+
+- After step 1 the drive sets a long unpaid stand (restored at the end):
+  in an idle world no house earns its wages, and the estate's miller
+  walked off before the first block — the idle-economy finding above.
+- **Not yet verified end to end**: the estate's boil-to-block leg (the
+  boiler's `refines` on juice into a hogshead, the cure, the carry to the
+  counter) has not been watched — the probes stopped on the steps above,
+  and on 2026-10-20 the host's memory went to the underwater build.
