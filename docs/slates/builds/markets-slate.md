@@ -310,6 +310,57 @@ game lives or dies on.
   conversation, alongside
   [content-generation-slate](content-generation-slate.md).
 
+## ⭐⭐ Luxury — not a system; rarity is content's, and the tools are the author's (2026-10-19)
+
+Worked in the gap walk with the owner; it answers open question 5's
+*"who wants luxury"* and leaves its labor-pool half open.
+
+**Value is only what someone pays.** *"You can't really impose value on an
+object in our engine — set_value('20 zorkmids') has no meaning if people
+sell it on auction for more or less than that."* No luxury flag, no list
+price.
+
+**Rarity comes from content.** *"If our narratives are based on the common
+experience then luxuries show up rarely in our content, which they should
+because they really are rare … fewer luxury goods in the content gives them
+some intrinsic value."* A realm whose content is mostly about the rich has
+cheap luxuries, as a real place awash in them does; in a balanced realm it
+balances along content lines.
+
+**Access is the test** — an inaccessible luxury is worth zero or infinity,
+which is the same thing. Luxuries leave rich households the ways they really
+do, and most of the routes are modeled or slated:
+
+| route | what carries it |
+|---|---|
+| death | the estate — dormant, escheated, reclaimed ([credit.md](../../subsystems/credit.md)); the estate sale ([auction-slate](./auction-slate.md)) |
+| debt | default and the distress sale |
+| crime | chattel is traceable — *"robbery's problem is disposal, not the taking"* ([settlement-model](../../settlement-model.md) § 9); the fence |
+| gift and story | a bespoke narrative, paid from a real purse |
+
+**⛔ No rule decides what happens next — the author does.** A first draft
+proposed that an authored luxury never restocks and that a robbed NPC is
+re-described without it ("now he drives a Honda"). The owner rejected it as
+an imposition on lens 2: *"what if as a content author I want that NPC to
+always have a nice car … if your content mandates you always have a nice car
+then your content also needs to explain why no one steals it … give this guy
+a lojack and problem solved — it just needed a content pass."* So:
+
+- **Restocking or one-off is the author's dial** — both already authorable.
+  A restocking luxury is simply not rare in that realm.
+- **The world supplies tools, in fiction**, for an author who wants it to
+  stay his: ⭐ **the tracker** (chattel is traceable and `locate`/`scry`
+  ship — a device that lets the owner find his own car is rows on shipped
+  mechanics) · insurance ([insurance-slate](./insurance-slate.md)) · a hired
+  guard · a locked garage · a purse deep enough to buy another.
+- **Consequences stay honest** — a stolen car is traceable, so recovery and
+  disposal are both stories.
+
+**Still open — the labor pool (question 5b).** A luxury somebody *makes*
+stays scarce only if NPC hands are a finite pool: a locality's hireable
+people, bid up past the pool, with a reservation wage from the cost of
+living — so wages follow bread and hour-heavy goods follow wages.
+
 ## How a new player earns — concretely
 
 1. **Public-works gigs** — the town's budget buying oil, ice, firewood,
@@ -379,4 +430,6 @@ house's first wage come later, on revenue this creates.
    infinite cheap hands make every hour-heavy good cheap. Both cut across
    every trade, so they are this slate's; silk's labour bench (hours per
    kilo, linen vs wool vs silk) is the instrument that will show whether
-   prices follow.
+   prices follow. ⭐ **(a) answered 2026-10-19** — see *Luxury* above:
+   rarity is content's and the tools are the author's; **(b) the labor
+   pool stays open.**
