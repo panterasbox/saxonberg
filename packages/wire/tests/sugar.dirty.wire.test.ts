@@ -234,6 +234,20 @@ async function advance(seconds: number): Promise<void> {
   }
 }
 
+/**
+ * Lay a course, again if it was refused: a deck in a storm is struck by
+ * lightning, and a sailor seized by the current lets go of nothing — the
+ * probe met it coming up to the island.
+ */
+async function layCourse(s: Session, node: string): Promise<void> {
+  let said = '';
+  for (let i = 0; i < 6 && !/lay a course/i.test(said); i++) {
+    if (i > 0) await advance(30 * 60);
+    said = await say(s, `course ${node}`);
+  }
+  expect(said, `course ${node}: ${said}`).toMatch(/lay a course/i);
+}
+
 /** Advance to the next `hour`:00. */
 async function toHourOfDay(hour: number): Promise<void> {
   const now = await worldClockNow();
@@ -502,9 +516,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // What Terminus feels like tonight, for step 14 to compare against.
     homeFeel = await say(sailor, 'analyze temperature');
     await say(sailor, 'go aboard');
-    await say(sailor, 'course roads');
+    await layCourse(sailor, 'roads');
     await advance(1 * HOUR);
-    await say(sailor, 'course waponi woo');
+    await layCourse(sailor, 'waponi woo');
     // ⭐ Navigated, not merely steered: the set carries her wide of a
     // course worked from the reckoning, so the lookout watches for the
     // peak, a bearing on it fixes her, and the course is laid again.
@@ -519,7 +533,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
       await sailor.drainProse();
       if (/peak of Waponi Woo/i.test(horizon)) {
         expect(await say(sailor, 'measure bearing peak')).toMatch(/bears \d+/);
-        expect(await say(sailor, 'course waponi woo')).toMatch(/lay a course/i);
+        await layCourse(sailor, 'waponi woo');
         fixed = true;
       }
     }
@@ -633,27 +647,33 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, FLOOR);
     await advance(2 * HOUR);
     const board = `${await say(sailor, 'job')} ${await sailor.listen(2_000).catch(() => '')}`;
-    const gig = /\[([A-Za-z0-9_-]{4,})\][^\n]*raw sugar/i.exec(board)?.[1] ?? '';
+    const posted = /\[([A-Za-z0-9_-]{4,})\][^\n]*raw[- ]sugar[^\n]*?(\d+) credits/i.exec(board);
+    const gig = posted?.[1] ?? '';
     expect(gig, `no raw-sugar bounty on the Sugar House board: ${board}`).not.toBe('');
+    // ⭐ She orders what the till can fund at 14 a block (the import's
+    // price), so the reward says how many: a young house asks for three.
+    const blocks = Math.max(1, Math.round(Number(posted?.[2] ?? 14) / 14));
     await say(sailor, `job claim ${gig}`);
 
     // Over the sea: buy at the estate, aboard, home over the bar, ashore.
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/store`);
-    for (let i = 0; i < 8; i++) await say(sailor, 'buy block');
+    for (let i = 0; i < blocks; i++) await buy(sailor, 'block');
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
     await say(sailor, 'go aboard');
-    await say(sailor, 'course bar');
+    // Laid from a fixed position (the island), the course home holds.
+    await layCourse(sailor, 'bar');
     let heard = '';
-    for (let i = 0; i < 12 && !/raise the bar|the bar/i.test(heard); i++) {
-      await advanceWorldClock('6 hours');
+    for (let i = 0; i < 18 && !/You raise the bar/.test(heard); i++) {
+      await advanceWorldClock('4 hours');
       heard += await sailor.listen(3_000).catch(() => '');
     }
+    expect(heard, 'she never raised the bar').toMatch(/You raise the bar/);
     await say(sailor, 'go ashore');
     sailor.close();
     sailor = await goTo(sailorHandle, FLOOR);
-    await say(sailor, 'put blocks on bench');
+    for (let i = 0; i < blocks; i++) await say(sailor, 'put 1 block on bench');
     const paid = await say(sailor, `job complete ${gig}`);
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
   }, 3_600_000);
