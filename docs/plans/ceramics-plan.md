@@ -95,15 +95,30 @@ sibling.
   water is porosity/weep/seep only. `GreenwareMixin` goes inert at the
   first rung; `SettingPan` (which already composes `WaterActivity`)
   composes `Greenware` over it and the host table says so.
-- **R3 — A sealed clamp cannot flame.** Flaming combustion needs air:
-  `FireLogic.tryAutoigniteImpl` reads the combustible's chamber — a
-  content of a `Burner` ignites only when that burner's `completeness()`
-  is at or above `fire.air.flamingCompleteness` (0.6) — so cordwood in a
-  clamp at draught 0.45 (completeness ≈ 0.53) or in a shut retort chars
-  by the transition and never ignites; at `draught wide` it ignites and
-  burns by the fire path, which IS the collier's lost burn (the
-  transition's `oxidized` rung is therefore gone — one dial, two readers).
-  Pinned by `FireLogic.sealed.test.ts`; fire drive 10 stays green.
+- **R3 — A sealed clamp cannot flame — ONE rule, *a flame needs air*,
+  shared with underwater (revision 4).** `origin/reqs/underwater`
+  (build-4, in review) adds `FireLogic.mediumBurns(stuff)` — *no flame
+  where there is no air* (underwater D29 seam 1): a thing in a medium
+  whose `BiomeApi.mediumProps(tag).supportsCombustion` is false is refused
+  before anything is struck — and `Burner.completeness()` answers 0 when
+  immersed below the surface. ⭐ Our sealed-clamp check is a SECOND ARM of
+  that same gate, never a parallel check: `mediumBurns(stuff)` = the
+  medium supports combustion (their arm) AND, when `stuff`'s immediate
+  container is a `Burner` chamber, that burner's `completeness()` ≥
+  `fire.air.flamingCompleteness` (0.6, our arm). The gate is called from
+  BOTH `igniteImpl` (where underwater calls it — the deliberate strike)
+  and `tryAutoigniteImpl` (the heat-threshold path, which is how a log in
+  a clamp would catch) — so cordwood in a clamp at draught 0.45
+  (completeness ≈ 0.53) or in a shut retort chars by the transition and
+  never ignites; at `draught wide` it ignites and burns by the fire path,
+  which IS the collier's lost burn (the transition's `oxidized` rung is
+  therefore gone — one dial, two readers). **Both orders:** if underwater
+  lands first we EXTEND their `mediumBurns` with the chamber-air arm and
+  add the `tryAutoigniteImpl` call; if we land first we INTRODUCE the gate
+  under that exact name with the chamber-air arm and both call sites, and
+  underwater adds the medium arm. Pinned by `FireLogic.sealed.test.ts`;
+  fire drive 10 stays green; their underwater drive's *no flame in the
+  water* checkpoint stays green under either.
 - **R4 — Commons name only commons.** Every material a base-library row
   names lives in base-library: `organic/{charcoal,coke,ash}.yaml` and
   `bulk/wood-tar.yaml` MOVE from `trade-fuel` to `base-library` at the
@@ -155,8 +170,17 @@ done this way). Precedent for this section's shape:
 
 ### Per shared file — each side's change, and the resolution in BOTH orders
 
+⚠ A THIRD branch shares four kernel files: **`origin/reqs/underwater`**
+(build-4, review round 1, likely to land before us). Its 67-line diff on
+`FireLogic.ts`, `Burner.ts`, `Thermal.ts`, `ThermalRegulation.ts` is in
+the rows marked *underwater* below.
+
 | file / thing | sugar | potash | ceramics (this plan) | we land first → they do | they land first → we do |
 |---|---|---|---|---|---|
+| **underwater** `K/platform/idea/api/FireLogic.ts` | — | — | (underwater: `mediumBurns(stuff)` — the medium's `supportsCombustion` — called from `igniteImpl`) | the SAME function gains a chamber-air arm (a content of a `Burner` needs `completeness()` ≥ `fire.air.flamingCompleteness`) and a second call site in `tryAutoigniteImpl` (R3) | if we land first the function exists under their name with our arm and both call sites; underwater adds the medium arm inside it and its `igniteImpl` reason `no-air` | we extend their function with our arm and add the `tryAutoigniteImpl` call; one function, two arms |
+| **underwater** `K/lib/fire/Burner.ts` | `heatTransferFraction`, `deliveredPowerW()` | `ashAlkaliKg`, `mintAshHeaps` | (underwater: `completeness()` returns 0 when immersed below the surface — three lines at the top of the method) | our `heldTemperatureKFor`, `heatCeilingFactor`, `chamberVapors`, `settleFiring` are separate members; their three lines are at the head of `completeness()`, which we do not edit | union | union |
+| **underwater** `K/lib/thermal/Thermal.ts` | (see the sugar row) | — | (underwater: `immersedTag`, the immersed arm of `mediumConductivity()`, the immersed branch of `restamp()`'s ambient resolve after `holderK`) | our `evaporativeDepressionK()` is read in `ambientTrajectory()`'s flat branch and answers 0 when `immersedTag !== null`; our heat-work reads whatever ambient results (water included); none of our edits touch `restamp()`'s branch ladder or `mediumConductivity()` | underwater's hunks apply unchanged beside ours | we merge; our 0-when-immersed clause reads their field |
+| **underwater** `K/lib/thermal/ThermalRegulation.ts` | — | — | (underwater: `setWorkingOffsetK`/`getWorkingOffsetK`, the medium read replacing `isSwimmable` in `effectiveAmbient`) | we delete `protected wetBulbK` in favour of `Evaporation.wetBulbK()` (W1) — two call sites at l.412/450, neither in their hunks | union | union |
 | `K/lib/thermal/Thermal.ts` | public `heatSource()` replacing private `heatSourceK`; `fireCouplingR()` inside `effectiveR()`; `boilHeldSeconds` → `{heldS, sinceS}` for every plateau material; `boilJoules`; `concentrateIfReached`; `PhaseClock.lastS` + `_phaseCheckedS`; declares `BulkPayload.dissolvedSolidsKgPerL` | — | `heatWork` record + `reconcileHeatWork()` after `reconcilePhase()`; **`heatSource()` public, sugar's exact signature and doc**; `evaporativeDepressionK()` read in `ambientTrajectory()`'s flat branch (never inside `effectiveR`); `poolVesselIn()` in `doMelt`; the crystallize arm in `reconcileBulkPhase` (W8); **declares `BulkPayload.dissolvedSolidsKgPerL?: number` with sugar's exact comment and type, from the same file** | sugar re-applies `fireCouplingR` into our `effectiveR` (an untouched method) and keeps ONE `heatSource()` (identical text → git merges clean); their `concentrateIfReached` and our crystallize arm are siblings in the same `if (bp > 0 && temp >= bp)` block — sugar inserts theirs after ours; the duplicate `dissolvedSolidsKgPerL` declaration merges by identity (TypeScript merges identical declarations; delete one) | we merge their file and re-apply `reconcileHeatWork` (one call site after the phase pass), `evaporativeDepressionK`, `poolVesselIn`; our crystallize arm goes after their `concentrateIfReached`; we delete our duplicate declaration; our heat-work window takes `clock.lastS` |
 | `K/lib/material/Material.ts` | `DrainSetting.drains/drainPerBand`, `ConcentrationArrow`, `solidsKgPerL` + `getSolidsKgPerL/setSolidsKgPerL` + `solidsMassFraction`, `_familyPath`, `boilingPointElevation`, `concentratesTo` | `alkaliShare` after `ashFraction` | `heatTransitions` (replacing `crosslinking` — one field, one fieldMeta line, one get/set pair), `thermalExpansion`, `acidity`, `brokenTemplate`, `leaches`, `formTemplates`, `chillsTo`, `cureSetting`, `vaporizesAboveK`, `filteredTo`, `solubility`, `crystallizesTo`, **`solidsKgPerL` with sugar's exact accessor pair and semantics** (W8) — every one APPENDED at the end of `fieldMeta` and of the class | sugar's `fieldMeta`/method appends union with ours; `solidsKgPerL` is identical text (delete one copy); potash's `alkaliShare` is a different region | we merge, delete our `solidsKgPerL` copy in favour of theirs, keep our appends at the end |
 | `K/lib/mould/Mould.ts` | `drainsInto(): (Stuff & Bulkable) \| null`, `setDrainedKg`, `creditDrainings()`, `bandsBelowFine()` inside `reconcileSetting` | — | `impression`, `receivedPour()`, `pourSuperheatK`, `pourDurationS`, `loadN()`, `pressRelease()`, the cure branch (an early `return` block ABOVE the drain arithmetic), slip absorption (its own branch), Chvorinov/survival/damp in `castInto` before the clone; **`drainsInto()` with sugar's exact signature and body** (W8, the bittern below the pan) | sugar keeps one `drainsInto` (identical); `creditDrainings` lands untouched below our cure branch; `loadKg` → `loadN` rename hits their `reconcileSetting` (`this.loadKg()` one call) — they rename the call | we merge, delete our `drainsInto` copy, rename their `loadKg()` call to `loadN()`, keep our branches in the stated positions |
@@ -206,7 +230,8 @@ done this way). Precedent for this section's shape:
 In a throwaway DETACHED worktree (never a branch two worktrees hold):
 `git worktree add --detach ../probe reqs/ceramics && cd ../probe && git
 merge origin/reqs/sugar && pnpm install && pnpm -C packages/server
-lint:family` — then the same with `origin/reqs/potash`, then both. Read
+lint:family` — then the same with `origin/reqs/potash`, then
+`origin/reqs/underwater`, then all three together. Read
 every conflict against the table above; fix the SHAPE on `reqs/ceramics`
 (never in the probe), re-probe, then `git worktree remove ../probe`. A
 sibling that merged to master in the meantime is simply
@@ -637,8 +662,10 @@ left a fork the lens that chose is named.
   shape to coke with tar and gas. ⚠ **Pyrolysis needs starved air, and
   ONE dial decides which path runs (R3):** below
   `fire.air.flamingCompleteness` (0.6) a combustible in a chamber cannot
-  ignite (`FireLogic.tryAutoigniteImpl` reads its burner's
-  `completeness()`) and the transition accrues; at or above it the
+  ignite (`FireLogic.mediumBurns` — underwater's gate, one shared
+  function, called from `igniteImpl` and `tryAutoigniteImpl` — reads its
+  burner's `completeness()` as its chamber-air arm, R3) and the
+  transition accrues; at or above it the
   transition accrues nothing and the wood IGNITES and burns by fire.md's
   path to its `charMaterialPath` — the collier's lost burn is ordinary
   combustion, and the ash it leaves is minted through the burner
@@ -725,7 +752,11 @@ left a fork the lens that chose is named.
   `Evaporation.wetBulbK()` — a new instance method on the `Evaporation`
   value class; `ThermalRegulation.wetBulbK` is deleted and reads it (one
   formula). It is applied where `ambientTrajectory()` chooses its flat
-  ambient (not in `effectiveR`). `BulkableMixin` gains the seep:
+  ambient (not in `effectiveR`), ⭐ **and only in AIR**: it answers 0
+  whenever the body is immersed — underwater's `immersedTag !== null` /
+  `BiomeApi.mediumFor(host).immersed` branch (revision 4) wins, because
+  water evaporates nothing off a thing that is in it; heat-work reads
+  whatever ambient the body has, water included. `BulkableMixin` gains the seep:
   `reconcileSeep()` on read — a vessel whose holder `isFaced` and whose
   `inside`/`outside` do not `holdsWater` loses `porosity() ×
   thermal.evaporation.seepLPerHourPerL` litres per hour to its own
@@ -1501,7 +1532,9 @@ batch pot.
   transition; the `--draught` option; the hold; no-charge; not-lit — every
   shipped `describe` that authored a recipe now authors a material);
   `FireLogic.sealed.test.ts` (R3: cordwood in a clamp at draught 0.45
-  held at 650 K never ignites and chars; at `draught wide` it ignites);
+  held at 650 K never ignites and chars; at `draught wide` it ignites;
+  the gate is `mediumBurns` and both call sites are asserted — a log
+  under water never ignites either, the arm underwater owns);
   `Mixing.test.ts` (fractions by mass; the glass batch's iron from its
   sand; rubber 3 % sulfur cures, 25 % goes ebonite);
   `trade-rubber` suites; `trade-glass/recipes.test.ts`;
@@ -1545,7 +1578,8 @@ two glaze materials, and a unit-level glazed crock vs unglazed jar.
   `coats: boolean` (a bath material that lays a coat).
 - `K/lib/material/Evaporation.ts`: `wetBulbK()` instance method;
   `ThermalRegulation.ts` reads it (its `protected wetBulbK` deleted).
-- `K/lib/thermal/Thermal.ts`: `evaporativeDepressionK()`, read in
+- `K/lib/thermal/Thermal.ts`: `evaporativeDepressionK()` (0 when
+  immersed — never inside underwater's immersed branch), read in
   `ambientTrajectory()`'s flat branch and in `restamp()` (both sides —
   the Coolbox lesson); `fuseCoats` call at a rung (W0 left the call
   site).
@@ -2264,6 +2298,8 @@ mixin — declare `ContainerMixin` and probe).
 | `interchangeable` as an authored joint flag | assembly tail (the derived skip ships here) |
 | a pit you climb into (the bell mould as a place) | moulding-slate (if the owner wants it) |
 | a working that FLOODS when it reaches the water table (the valley pit standing as a pond is authored, not dynamic) | mining-slate (*a pit that fills, and a pump*) |
+| the clamp's over-burnt CLINKER grade as the paving brick (Dutch *klinkers*) — roads-slate § 4's surface table has no brick today | [roads-slate](../slates/builds/roads-slate.md) (the coordinator edits the slate) |
+| drain tiles under a McAdam road (the brickfield's tile mould, laid for drainage) | [roads-slate](../slates/builds/roads-slate.md) |
 | `hammer` promoted behind a protocol | command-taxonomy-slate |
 | the oven's own warm-up (thermal mass on the furnace) | `fire.md` deferred (unchanged) |
 

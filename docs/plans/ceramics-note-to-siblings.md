@@ -86,6 +86,33 @@ text — git usually does it for you); re-apply `fireCouplingR` into
 rename your `loadKg()` call; add your drainings paragraph to `mould.md`;
 recount the pack test. Nothing of yours changes shape.
 
+## To underwater (build-4)
+
+You share four kernel files with us (`FireLogic.ts`, `Burner.ts`,
+`Thermal.ts`, `ThermalRegulation.ts`) and you will probably land first.
+
+1. **`FireLogic.mediumBurns(stuff)` is the one gate — we add an ARM to
+   it, never a parallel check.** Ours: when `stuff`'s immediate container
+   is a `Burner` chamber, a flame also needs the chamber's air —
+   `completeness() ≥ fire.air.flamingCompleteness` (0.6) — so cordwood in
+   a sealed clamp or a shut retort chars (our heat transition) and never
+   ignites. We also call the gate from `tryAutoigniteImpl` (the
+   heat-threshold path), not only from `igniteImpl`. If you land first we
+   extend your function in place; if we land first the function exists
+   under your name with our arm and both call sites, and you add the
+   medium arm inside it (and your `no-air` reason in `igniteImpl`).
+2. **`Thermal.ts`:** we add `evaporativeDepressionK()` (a wet body cools
+   toward the wet-bulb) read in `ambientTrajectory()`'s flat branch, and
+   it answers **0 whenever your `immersedTag !== null`** — never inside
+   your immersed branch of `restamp()`, which we do not touch. Our
+   heat-work record reads whatever ambient your branch resolves (water
+   included). Nothing of ours edits `mediumConductivity()`.
+3. **`Burner.ts`:** your three lines at the head of `completeness()` stay;
+   our members (`heldTemperatureKFor`, `heatCeilingFactor`,
+   `chamberVapors`, `settleFiring`) are separate. `ThermalRegulation.ts`:
+   we only delete `protected wetBulbK` for `Evaporation.wetBulbK()` (two
+   call sites, neither in your hunks).
+
 ## To potash (build-2)
 
 1. **Your `calcine.yaml` is a dead row the day `fire` loses its recipe
