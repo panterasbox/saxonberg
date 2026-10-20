@@ -880,3 +880,59 @@ framing itself is soon to be reversed — the aether as a device.)
 - ⭐ **There the world's own signals are everything** — the flare, the gun, the
   beacon — and **the in-world lifeboat answers in-world signals**: the aether reaches
   players, never the coxswain.
+
+## 22. Drill-down: the university's research ship (2026-10-19) **[DECIDED]**
+
+Making the sea known — HMS *Challenger* (1872–76): soundings across every ocean, the
+deep dredged, 4,700 new species, oceanography founded.
+
+- ⭐ **Her work is the shipped instrumentation ladder at sea** — soundings (`measure
+  depth`, the lead, the sounding machine), **sampling the bed** (`sample` — dredge and
+  grab), the water (temperature at depth, salinity, current), **the column's life**
+  (the plankton net; underwater's life findings), position (the noon sight, the
+  bearing). No new verbs.
+- ⭐ **Her cargo is claims** — every reading a dated, signed claim — to **the library's
+  map room** (the most complete chart; the guild's are better curated), to **published
+  charts** (the university publishes — secrecy or safety is its choice, and publishing
+  is its ethic), and to papers (the press and wiki).
+- ⭐ **Chartered, not owned** — a charter is a contract; the university's budget the
+  paymaster; the line keeps the ship. **Two crews** — the ship's company and the
+  scientists, two trades and two cultures aboard.
+- ⭐ **The university only teaches** — **students sail as part of the expedition**; she
+  is the field school; the training ship (seamanship) and the research ship (science)
+  may be one vessel with two faculties aboard.
+- ⭐ **Discovery is real** — an unknown place stays unknown until charted (the location
+  graph's honesty); being first to chart a seamount, a species, a wreck is a chronicle
+  deed. A player scientist's contribution is the readings they take.
+
+### ⭐⭐ The sea is a context, not a discipline
+
+*"Pedagogy of what? 'The sea' isn't one thing… you're teaching a little bit of
+everything — the slice of everything that matters at sea."* **No oceanography
+discipline.** The sea is where many disciplines are practised under one set of
+conditions — physics (waves, pressure, buoyancy, sound in water), chemistry (salinity,
+dissolved oxygen, corrosion), geology (the bed), life by band, navigation (astronomy's
+slice), weather-reading, and every trade aboard. **The research ship is a rotation of
+stations** (the sounding station, the dredge, the laboratory, the navigator's sight),
+**each crediting its own discipline** — advancement already rewards real practice out in
+the world. **The slice is not authored; it falls out of which acts happen at sea. The
+voyage is the curriculum.**
+
+### ⭐⭐ Maritime instruments — the same readings, adapted to the sea's physics
+
+*"Are there maritime versions of those tools made specially for ships, or is it the same
+stuff in the university lab?"* **The reading channels are the same; maritime instruments
+are rows adapted to four conditions, and the adaptation is derivable:**
+
+| the sea's condition | a land instrument | the maritime version |
+|---|---|---|
+| ⭐ the ship moves (sea state) | a balance, level, plumb or land compass reads wrong on a rolling deck | **gimbals** (compass, lamp, barometer); ⭐ **the sextant** — a star against **the horizon itself**, so the roll does not matter |
+| salt and wet | iron rusts, paper soaks | brass and bronze, sealed cases, varnish |
+| pressure at depth | a lowered thermometer reads wrong or breaks | **the reversing thermometer** (flips at depth to lock its reading); the self-sealing water bottle |
+| no fixed ground | no landmark, no baseline | **the log line** (knots on a rope — where *knots* come from); ⭐ **the marine chronometer** (Harrison, 1760s — longitude) |
+
+⭐ **A land instrument still works at sea, only worse** — its error bracket **widens with
+the ship's motion**, derived from the sea state: the shipped instrumentation model
+(*competence resolves detail, never access*; **the instrument sets a ceiling**) — a
+gimballed instrument's ceiling holds in a seaway, a lab instrument's collapses. Lens 1:
+*why every instrument on a ship looks the way it does* is the sea's physics.
