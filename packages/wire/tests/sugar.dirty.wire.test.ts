@@ -295,6 +295,28 @@ async function tend(s: Session): Promise<void> {
 }
 
 /**
+ * ⭐ Boil until `done` shows in the copper, watching as an UNTRAINED
+ * boiler must: the thread test only says "thick and sticky" to a hand
+ * with no competence, so the thermometer times it — a quarter-hour at a
+ * time while it is thin, two minutes at a time once it is past 385 K.
+ * The strike-to-caramel window is minutes at a full fire (drive 7 went
+ * from syrup to burnt toffee inside one thirty-minute step).
+ */
+async function watchBoil(s: Session, done: RegExp, hours: number): Promise<string> {
+  let holds = '';
+  for (let spent = 0; spent < hours * 60; ) {
+    await tend(s);
+    const t = await copperTemp(s);
+    const step = Number.isFinite(t) && t >= 385 ? 2 : 15;
+    await advance(step * 60);
+    spent += step;
+    holds = await copperHolds(s);
+    if (done.test(holds) || /burnt toffee|black and acrid/.test(holds)) break;
+  }
+  return holds;
+}
+
+/**
  * The copper's liquor, as a player sees it: `look` says what the liquor
  * LOOKS like (the material's `appearance`), never what it is called —
  * thin and brown (liquor) · thick and golden (syrup) · clouding with
@@ -363,13 +385,20 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
       // a shift the roster tick never saw start, so it never settles.
       let heard = '';
       for (let i = 0; i < 10 && !/done here|walks off/i.test(heard); i++) {
+        if (i >= 4 && /hand: vacant/.test(await books(PANTRY))) break;
         await advance(12 * HOUR);
         // The walk-off is said at the shift's end, which the roster tick
         // reaches after the clock has moved — listen long enough for it.
         heard += await watcher.listen(10_000).catch(() => '');
       }
+      // ⭐ The walk-off is the STATE: the seat is empty. Hearing him say
+      // so needs a listener in his room at the shift's end — he speaks
+      // where he stands (the unit suite and the probe both heard it:
+      // "4 days unpaid, and 108 zorkmids owed. I'm done here.").
       const ledger = await books(PANTRY);
-      expect(heard, `the hand never walked off: ${ledger}`).toMatch(/done here|walks off/i);
+      expect(ledger, 'the hand never walked off').toMatch(/hand: vacant/);
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] heard at the pantry: ${heard.replace(/\s+/g, ' ').trim().slice(0, 300)}`);
       // The notice is read by daylight — a carried jar is too dim to read by.
       await toHourOfDay(10);
       watcher.close();
@@ -437,22 +466,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     await restartWorld();
     boiler = await goTo(boilerHandle, FLOOR);
     expect(await copperHolds(boiler), 'the liquor was lost in the restart').toMatch(/thin and brown|thick and golden|clouding with grain/);
-    await advance(30 * 60);
+    // A few minutes, not half an hour: the strike is close by now.
+    await advance(5 * 60);
     const after = await copperTemp(boiler);
     expect(after, `the plateau did not survive: ${before} → ${after}`).toBeGreaterThanOrEqual(before - 1);
   }, 1_800_000);
 
   it('5. ⭐ treacle on the way, the STRIKE at last; off the fire into a cone on its pot', async () => {
-    let holds = '';
-    for (let i = 0; i < 24 && !/clouding with grain/.test(holds); i++) {
-      await tend(boiler);
-      await advance(30 * 60);
-      holds = await copperHolds(boiler);
-      if (/thick and golden/.test(holds)) {
-        // eslint-disable-next-line no-console -- the drive's own record
-        console.log('  [drive]   the copper reads syrup on the way');
-      }
-    }
+    const holds = await watchBoil(boiler, /clouding with grain/, 12);
     expect(holds, 'the copper never reached the strike').toMatch(/clouding with grain/);
     await say(boiler, 'get copper');
     await say(boiler, 'put cone on pot');
@@ -506,12 +527,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
   it('8. ⭐ the molasses boiled again grains darker; pushed on, it will not grain — blackstrap', async () => {
     await say(boiler, 'pour pot into copper');
     await say(boiler, 'heat copper');
-    let holds = '';
-    for (let i = 0; i < 48 && !/clouding with grain|thick as tar/.test(holds); i++) {
-      await tend(boiler);
-      await advance(30 * 60);
-      holds = await copperHolds(boiler);
-    }
+    const holds = await watchBoil(boiler, /clouding with grain|thick as tar/, 24);
     expect(holds, `the second boil reached neither: ${holds}`).toMatch(/clouding with grain|thick as tar/);
   }, 1_800_000);
 

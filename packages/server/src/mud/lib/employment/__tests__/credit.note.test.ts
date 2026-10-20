@@ -328,6 +328,35 @@ describe("the Arrival Note and the standing facility", () => {
     expect(shop.openingsFor("keeper")).toBe(1);
   });
 
+  it("⭐ a hand nobody is standing near is LOADED to decide — not skipped (sugar drive 7: the island estate)", async () => {
+    standUpBank(true);
+    withRows({
+      [AppSettingKeys.treasuryOpeningAdvance]: "0",
+      [AppSettingKeys.reserveLadderLoansRequired]: "1",
+      [AppSettingKeys.employmentUnpaidStandGameDays]: "3",
+    });
+    const shop = standUpShop();
+    const handKey = "/test/note/shop/agent/far-hand";
+    shop.rosterSlots = [{ positionKey: "keeper", assignee: handKey, schedule: [] }] as never;
+    const hand = makeStuffAtPath(() => new Hand(), handKey);
+    const shift = (since: number) =>
+      Employment.of({ organizationPath: SHOP, positionKey: "keeper", status: "on-shift", hiredAt: 0, onShiftSince: since });
+    hand.employments = [shift(gameNow).serialize()];
+    // Not resident: the index read misses; the load-on-use read finds them.
+    const live = StuffApi.findByTemplatePath.bind(StuffApi);
+    vi.spyOn(StuffApi, "findByTemplatePath").mockImplementation(((p: string) =>
+      p === handKey ? null : live(p)) as never);
+    const load = StuffApi.singleton.bind(StuffApi);
+    const loads = vi.spyOn(StuffApi, "singleton").mockImplementation((async (p: string) =>
+      p === handKey ? hand : load(p)) as never);
+    gameNow += 8 * 3_600;
+    await EmploymentApi.settleShiftWage(shop, handKey, shift(gameNow - 8 * 3_600));
+    gameNow += 3 * GAME_DAY_S;
+    await EmploymentApi.settleShiftWage(shop, handKey, shift(gameNow - 8 * 3_600));
+    expect(loads).toHaveBeenCalledWith(handKey);
+    expect(hand.getEmployment(SHOP)?.status).toBe("quit");
+  });
+
   it("with a working-capital line earned, a short house DRAWS and pays", async () => {
     const bank = standUpBank(true);
     withRows({ [AppSettingKeys.treasuryOpeningAdvance]: "0", [AppSettingKeys.reserveLadderLoansRequired]: "0" });

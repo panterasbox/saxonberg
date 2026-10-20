@@ -1358,7 +1358,17 @@ async function settleShiftWageImpl(
   // `clock off`) come through here.
   if (!paid.ok && paid.reason === 'insufficient-funds') {
     const owed = business.arrearsOwedTo(employeeKey);
-    const worker = StuffApi.findByTemplatePath(employeeKey);
+    // ⭐ LOADED on use, not looked up: a hand on a holding nobody is
+    // standing in is not resident, and a resident-only read skipped their
+    // decision forever — the island estate ran 2170 zorkmids into arrears
+    // with every hand still on shift (sugar drive 7). A player is only
+    // told while they are here; an offline body is never loaded for it.
+    let worker: Stuff | null | undefined;
+    if (PlayerApi.isAvatarIdentityPath(employeeKey)) {
+      worker = StuffApi.findByTemplatePath(employeeKey);
+    } else {
+      worker = await StuffApi.singleton(employeeKey).catch(() => null);
+    }
     if (owed && worker && MixinApi.isEmployed(worker)) {
       await worker.onWageRefused(
         business,
