@@ -16,10 +16,13 @@ the `trade-ceramics` pack (brick, tile, firebrick, pottery, the filter, four
 disciplines), the Delight brickfield-and-pottery, the Rejection foundry in
 `trade-smelting`, and the Terminus potter's stall. Branch `reqs/ceramics`,
 worktree `build-3`. ⚠ Two unmerged siblings touch the same kernel seams —
-§ *Sibling collisions* is written for either merge order and the owner
-decides the order after reading this plan.
+§ *Merge protocol* is written for either landing order, and nobody waits:
+ceramics builds in parallel with both (the owner, revision 2).
 
-**Honest size:** ten waves, roughly 350 files and 18–22k lines (sugar was
+Revised 2026-10-20 (revision 1) after a fresh-reader review and four
+physics rulings from the coordinator, folded in below (§ *Rulings*).
+
+**Honest size:** nine waves, no sibling gate, roughly 350 files and 18–22k lines (sugar was
 227 files / 10k; this build is two of those: a kernel rework of firing plus
 a two-trade venue plus a founding trade). The waves are ordered so the
 kernel substrate lands with a consumer each time and nothing waits on a
@@ -27,81 +30,139 @@ sibling until W8.
 
 ---
 
-## ⭐⭐ Sibling collisions — sugar and potash
+## Rulings folded in (2026-10-20, revision 1)
 
-Both siblings are **code**, not plans: `origin/reqs/sugar` (build-1) has
-W0–W6 landed and eight drives run; `origin/reqs/potash` (build-2) has W0–W6
-landed and three drives. Read 2026-10-20 against merge-base
-`2a4e9af0a` (the silk merge, which is also this branch's base). What
-follows is what each has pushed, per shared file, and how this plan's
-waves are shaped so the merge is cheap in either order. ⭐ Where a sibling
-already built the mechanism this plan needs, this plan **uses it** rather
-than a parallel one: sugar's `dissolvedSolidsKgPerL` / `concentratesTo`
-arrows / `Mould.drainsInto()` / `PercolatingMixin` / public
-`Thermal.heatSource()` / `Burner.deliveredPowerW()`, and potash's
-`Composition` ash good, `Material.alkaliShare`, the `flux`/`stabilizer`/
-`carbonate` tags and the firing's grade carry.
+- **A — Charcoal is the wood transition; no second path.** The clamp's
+  three outcomes are the one rule: starved air (a reducing atmosphere) +
+  full heat-work → charcoal; too much air (oxidizing) at full heat-work →
+  the carbon burns out to ash; insufficient heat-work → brands, which is
+  partial conversion. `CharcoalPit.outcomeFor`/`yieldFor` and
+  `CharController.openClamp` retire; `char` stays the collier's word and
+  only sets the draught, lights and holds. The retort's wood and coal are
+  the same transitions in a chamber that keeps the volatiles. The
+  extraction and fire wire drives lose their `no-firing` expectation (W0).
+- **B — Agents live in the piece's own composition, or in the chamber's
+  atmosphere.** Rubber is COMPOUNDED with sulfur before it is cured (a
+  `stir` recipe into a compounded stock, a `Composition` good — like clay
+  and the glass batch); the transition reads `fractionOf(agent)` off the
+  piece. A chamber's atmosphere carries oxidizing/reducing AND vapors:
+  salt thrown in at peak heat is salt vapor in the kiln's atmosphere, and
+  a stoneware body under it takes a salt-glaze coat. Nothing sums sibling
+  pieces (the shipped `cureOf` agent sum is gone).
+- **C — Whole objects remelt by phase change, and the pool keeps its
+  composition.** A glass bottle in a hot kiln melts (`MeltableMixin` on
+  the glass pack's goods; `doMelt` pools into a bulk vessel standing in
+  the same chamber before it falls to a floor) and the pool sets as a
+  glass lump; `gob` takes any hot glass-tagged `Composition` piece. No
+  rung ever changes a class; `remelt-cullet.yaml` retires with the other
+  firing rows. ⭐ **A molten pool carries its composition** (revision 2,
+  the owner): `BulkPayload.composition?: CompositionEntry[]` — declared
+  from `lib/material/Composition.ts`, folded by volume on every pour like
+  `dissolvedToxins`, seeded by `doMelt` from the melting piece's
+  `getAlloying()`, and stamped back by the set edge (`carryPayload` and
+  the plain `Casting` clone in `reconcileBulkPhase`) onto any
+  `Composition` cast. So a green bottle remelted comes back green
+  (glass.md's colour-as-grade and cullet-one-way-toward-green survive
+  intact), and the smelt's crucible closes the same gap: the liquid run's
+  carbon stamp (`SmeltController.ts:533`) moves onto the run's payload and
+  the ingot takes it off the pool. In W0, with `Meltable` on the glass
+  goods.
+- **D — The pot.** `fire-pot.yaml` retires in W0 (no recipe path can
+  survive W0): a bare clay lump fires to a terracotta lump. The made pot
+  is reachable again at W4 (`shape`); between W0 and W4 — inside one MR,
+  never a shipped state — the extraction drive's clay checkpoint asserts
+  the lump, and W4 extends it to the pot.
 
-### Per shared file
+Owner-confirmed defaults (previously *needs the owner*, now the plan's
+position): D7 the leach on the vessel's inner face / `Bulkable` (casks
+recorded for later); D26 the bell pit a fixed mould thing; both die
+syntaxes (`hammer <blank> on <die>` and `impress die on blank`); the four
+verb promotions stay in THIS MR as early waves; the furnace rooms become
+`PersistentLocale`; `Faced` on `Good`; an unwatched transition credits
+`heatWork.firedBy`. ⭐⭐ **Sequencing (revision 2, the owner): WAIT ON
+NOBODY.** Ceramics builds now, in parallel with sugar and potash; W8 ships
+in this MR on MASTER's code, shaped to sugar's names wherever they
+overlap; the former sibling gate is gone. § *Merge protocol* says what
+each side does in BOTH orders, and `docs/plans/ceramics-note-to-siblings.md`
+says it to the sugar and potash sessions.
 
-| file | sugar has pushed | potash has pushed | this plan | how it is shaped |
-|---|---|---|---|---|
-| `lib/thermal/Thermal.ts` | public `heatSource()` (replacing private `heatSourceK`), `fireCouplingR()` in `effectiveR()`, `boilHeldSeconds` → `{heldS, sinceS}` for every plateau material, `boilJoules`, `concentrateIfReached`, `BulkPayload.dissolvedSolidsKgPerL`, `PhaseClock.lastS` + `_phaseCheckedS` | nothing | the heat-work record + `reconcileHeatWork()` called from `reconcileThermal()` **after** `reconcilePhase()`; `heatSource()` public with **sugar's exact signature**; the evaporative term as its own private `evaporativeDepressionK()` read where `ambientTrajectory()` picks the flat ambient — NOT inside `effectiveR()` | different regions; `heatSource()` is byte-identical so whichever lands second merges as a no-op; the heat-work window reuses `PhaseClock.lastS` when sugar is in, else its own stamp (one line either way) |
-| `lib/material/Material.ts` | `DrainSetting.drains/drainPerBand`, `ConcentrationArrow`, `solidsKgPerL`, `_familyPath`, `boilingPointElevation`, `concentratesTo` (+106 lines mid-file) | `alkaliShare` after `ashFraction` | `heatTransitions` (replaces `crosslinking`), `thermalExpansion`, `acidity`, `brokenTemplate`, `leaches`, `formTemplates`, `chillsTo`, `cureSetting`, `filteredTo`, `solubility`/`crystallizesTo` (W8) | every field appended at the END of `fieldMeta` and every accessor at the END of the class; the `crosslinking` → `heatTransitions` rename is the one edit inside an existing region (one fieldMeta line, one field, one get/set pair) |
-| `lib/mould/Mould.ts` | `drainsInto()`, `setDrainedKg`, `creditDrainings()`, `bandsBelowFine()` inside `reconcileSetting` | nothing | `impression`, `receivedPour()`, the envelope reads, `SetPool.temperatureK`, the cure set, `pressRelease()`, Chvorinov + survival + the damp blow in `castInto` | the cure branch is a separate early `return` block in `reconcileSetting` above the drain arithmetic; slip-cast absorption (W6) is a separate branch, never an edit to `creditDrainings`; `castInto` additions sit before the clone |
-| `platform/idea/cmd/device/FireController.ts` (+ test) | nothing | D12a (fractions ÷ `massYield`), D12b (weakest graded input), tests | **rewritten** — no recipe path; both potash rules survive as the transition's own conversion carry (`alloying` rescaled by `1/massRetained`) and the heat-work grade rule | if potash lands first, our rewrite deletes its hunks and the pearl-ash drive step must pass on a transition (§ below); if we land first, potash's W3 hunks will not apply and its `calcine.yaml` is a dead row until converted — **one row + one `heatTransitions` block** on `black-salts.yaml`, which this plan ships pre-emptively in W0 if potash is on master |
-| `lib/fire/Burner.ts` | `heatTransferFraction`, `deliveredPowerW()` | `ashAlkaliKg`, `mintAshHeaps()`, `rakeGrate` returns heaps | `@hook heldTemperatureKFor(body)` (default `getHeldTemperatureK()`), `@hook heatCeilingFactor()` (default 1), `fire.yaml` stays in `commandContributions` | three regions; a `fieldMeta` append conflict is a union |
-| `platform/idea/api/BulkableLogic.ts` | folds `dissolvedSolidsKgPerL` (step 5) | folds it for `lye` (to be deleted at sugar's merge) | receiver survival (`to.canReceiveAtK`) BEFORE the debit; `mould.receivedPour()` AFTER the thermal coupling | above and below their hunk |
-| `lib/bulk/Bulkable.ts` | declaration merges only (from `Thermal.ts`) | declaration merge only (from `LyeStrength.ts`) | the per-slot leach reconcile (D7) and the seep (D6) as methods on the mixin | no overlap |
-| `lib/material/Crosslinking.ts` | — | — | `git mv` → `HeatTransition.ts`, generalized | no overlap |
-| `lib/mixin.ts`, `api/mixin.ts` | `Percolating` + `isPercolating` | — | `Faced`, `Greenware` + predicates + refusals | appends; union |
-| `lib/config/AppSettings.ts` + `content/settings/*.yaml` | `employmentUnpaidStandGameDays` | `fireAshHeapKg`, `fireAshAlkaliMaterial`, `potash.*` | `ceramics.*` keys in the pack's own `settings/ceramics.yaml`; kernel keys `thermal.evaporation.*`, `impact.*`, `faces.*` in `thermal.yaml`/`fire.yaml` | appends; union |
-| `platform/idea/reading/TemperatureReading.ts` + `temperature.yaml` | — | — (potash edits `DensityReading`) | incandescence words ≥ 800 K; `handTool: pyrometry` | no overlap |
-| `PackLogic.discover.test.ts` | +1 (`trade-sugar`, `waponi-woo`) | +1 (`trade-potash`) | +1 (`trade-ceramics`) | whoever lands second recounts (the silk comment) |
-| root `package.json` / `pnpm-lock.yaml` | +2 packs | +1 pack | +1 pack | union the block; `pnpm install` resolves the lockfile, never hand-merge |
-| `trade-quarrying` | — | `burn-lime.yaml` slot → `carbonate`; `OpenWorking.test.ts` tag list | `Lump` composes `ThermalMixin`; new `src/thing/Clay.ts`; `clay.yaml` re-classed; `fire-pot.yaml` and `burn-lime.yaml` **deleted**; `limekiln.yaml` gains a bill | the deletion wins over potash's edit at merge (take ours) |
-| `trade-fuel` | — | `Ash` class, ash rows, `CharController` ash minting | `Retort` composes `Assembled`+`Durable` (lining); `retort-wood.yaml`/`retort-coal.yaml` **deleted** (volatiles ride the wood/coal transitions); `retort.yaml` gains a bill | different files |
-| `base-library/…/material/wood/*.yaml` | — | `alkaliShare` on nine rows | `heatTransitions` (char + volatiles) on the same nine rows | same rows, different keys — union |
-| `trade-glass` | — | `glass-batch*.yaml` slots `flux`/`stabilizer` | `glass-batch.yaml` becomes a `stir` MIXING recipe (keeps potash's slots), output `/trade/glass/thing/batch`; the batch material transitions to glass; `ShapeController` promoted to platform (`Gather` implements `Shapeable`) | the recipe row conflicts textually if potash lands after; resolve by keeping potash's slot lines inside our row |
-| `trade-chandlery` | — | `Hopper.ts`, `SoapKettle.ts`, materials, `lye.yaml` | `DipController.ts` + `dip.yaml` move to platform; `DipPot` implements `DipPlanner` | different files |
-| `rejection` | `store-counter.yaml` +1 quicklime line (D7) | ashery, lean-to, ash-burner, glasshouse buying lines | `quarry-hill.yaml` fireclay + gypsum bands; foundry rooms; four furnace rooms → `PersistentLocale`; `store-counter.yaml` +firebrick/+crucible/+lead/+tin lines; roster slots for `relines` | `store-counter.yaml` line-union; `glasshouse.yaml` potash adds a counter prop, we add a bill on the kiln row (different files) |
-| `terminus` | pantry, Veshko | `chandlery/thing/counter.yaml` (a `buys` line), general-store tests | market stall rows; `general-store/counter.yaml` + `chandlery/thing/counter.yaml` lines re-pointed with a backstop | line-union |
-| `hearts-delight` | — | — | the brickfield-and-pottery sub-works | no overlap |
-| `packages/wire/tests/*` | `sugar.dirty.wire.test.ts` | `potash.dirty.wire.test.ts` | four `ceramics-*.dirty.wire.test.ts` | separate files |
+---
 
-### What each sibling's drive relies on that M1 changes
+## ⭐⭐ Merge protocol — sugar and potash (nobody waits)
 
-- **Potash** fires `calcine` (a `fire` recipe, black salts → pearl ash at
-  900 K, `massYield 0.8`, grade carried). Under M1 this is
-  `heatTransitions` on `/trade/potash/idea/material/black-salts.yaml`
-  (`referenceK 900`, `massRetained 0.8`, `products.done: …/pearl-ash`
-  material; the cake is an `Ash` good so it keeps its class and its potash
-  fraction rescales by 1/0.8 — potash D12a's exact arithmetic) and the row
-  `thing/pearl-ash.yaml` becomes the cake's post-transition material, not
-  a second thing. The potash wire step reads *"pearl ash has come out"*;
-  under M1 the same cake reads as pearl ash. **W0 ships the transition
-  block on potash's row if potash is on master, else records it as potash's
-  one-line conversion.**
-- **Sugar** fires nothing; it drains (the cone), concentrates (the plateau)
-  and percolates (claying). None of that is touched. W8 (crystallize, the
-  filter) is written ON sugar's mechanisms and is gated on them.
-- **Rubber** (merged) fires `vulcanize` with a `crosslinking` spec. W0
-  rewrites the raw-rubber row's spec as a `heatTransitions` block with the
-  same four product rows and the rubber suite (`Crosslinking.test.ts`,
-  `FireController.test.ts`'s cure describes) is re-pinned on the renamed
-  evaluator; the wire drive `rubber.dirty.wire.test.ts` must still pass
-  (its boot has a mould, an oven and `fire … for`).
+Both siblings are **code**: `origin/reqs/sugar` (build-1) has W0–W6 landed
+and eight drives; `origin/reqs/potash` (build-2) has W0–W6 and three
+drives. Read 2026-10-20 against merge-base `2a4e9af0a` (the silk merge,
+this branch's base too). The owner's ruling (revision 2): **ceramics
+builds now, in parallel; nobody waits on anybody; W8 stays in this MR.**
+The rule that makes that cheap: ⭐ where a sibling has a mechanism we
+need, we adopt its **names, types and signatures verbatim** — the same
+payload field with the same declaration, the same mould method with the
+same signature, the same accessor pair on `Material` — so whichever lands
+second gets a near no-op merge (the `Thermal.heatSource()` move already
+done this way). Precedent for this section's shape:
+`docs/plans/repair-note-to-siblings.md` (on master) and repair's
+*Parallel builds* table. The note addressed to the two sessions is
+`docs/plans/ceramics-note-to-siblings.md`.
 
-### Recommended order (for the owner)
+### Per shared file — each side's change, and the resolution in BOTH orders
 
-**After both** is cheapest for this build: the `FireController` rewrite
-subsumes potash's two hunks; W8 ships inside the MR on sugar's
-`dissolvedSolidsKgPerL` / `drainsInto` / `Percolating`. **Before both** is
-possible: W8 leaves the MR (its own follow-up), potash converts `calcine`
-to a transition at its merge (one row), sugar's `heatSource()` merges as a
-no-op. **Between** (after potash, before sugar) is the worst: W8 still
-leaves, and the `Thermal.ts` three-way merge is ours against sugar's, by
-hand.
+| file / thing | sugar | potash | ceramics (this plan) | we land first → they do | they land first → we do |
+|---|---|---|---|---|---|
+| `K/lib/thermal/Thermal.ts` | public `heatSource()` replacing private `heatSourceK`; `fireCouplingR()` inside `effectiveR()`; `boilHeldSeconds` → `{heldS, sinceS}` for every plateau material; `boilJoules`; `concentrateIfReached`; `PhaseClock.lastS` + `_phaseCheckedS`; declares `BulkPayload.dissolvedSolidsKgPerL` | — | `heatWork` record + `reconcileHeatWork()` after `reconcilePhase()`; **`heatSource()` public, sugar's exact signature and doc**; `evaporativeDepressionK()` read in `ambientTrajectory()`'s flat branch (never inside `effectiveR`); `poolVesselIn()` in `doMelt`; the crystallize arm in `reconcileBulkPhase` (W8); **declares `BulkPayload.dissolvedSolidsKgPerL?: number` with sugar's exact comment and type, from the same file** | sugar re-applies `fireCouplingR` into our `effectiveR` (an untouched method) and keeps ONE `heatSource()` (identical text → git merges clean); their `concentrateIfReached` and our crystallize arm are siblings in the same `if (bp > 0 && temp >= bp)` block — sugar inserts theirs after ours; the duplicate `dissolvedSolidsKgPerL` declaration merges by identity (TypeScript merges identical declarations; delete one) | we merge their file and re-apply `reconcileHeatWork` (one call site after the phase pass), `evaporativeDepressionK`, `poolVesselIn`; our crystallize arm goes after their `concentrateIfReached`; we delete our duplicate declaration; our heat-work window takes `clock.lastS` |
+| `K/lib/material/Material.ts` | `DrainSetting.drains/drainPerBand`, `ConcentrationArrow`, `solidsKgPerL` + `getSolidsKgPerL/setSolidsKgPerL` + `solidsMassFraction`, `_familyPath`, `boilingPointElevation`, `concentratesTo` | `alkaliShare` after `ashFraction` | `heatTransitions` (replacing `crosslinking` — one field, one fieldMeta line, one get/set pair), `thermalExpansion`, `acidity`, `brokenTemplate`, `leaches`, `formTemplates`, `chillsTo`, `cureSetting`, `vaporizesAboveK`, `filteredTo`, `solubility`, `crystallizesTo`, **`solidsKgPerL` with sugar's exact accessor pair and semantics** (W8) — every one APPENDED at the end of `fieldMeta` and of the class | sugar's `fieldMeta`/method appends union with ours; `solidsKgPerL` is identical text (delete one copy); potash's `alkaliShare` is a different region | we merge, delete our `solidsKgPerL` copy in favour of theirs, keep our appends at the end |
+| `K/lib/mould/Mould.ts` | `drainsInto(): (Stuff & Bulkable) \| null`, `setDrainedKg`, `creditDrainings()`, `bandsBelowFine()` inside `reconcileSetting` | — | `impression`, `receivedPour()`, `pourSuperheatK`, `pourDurationS`, `loadN()`, `pressRelease()`, the cure branch (an early `return` block ABOVE the drain arithmetic), slip absorption (its own branch), Chvorinov/survival/damp in `castInto` before the clone; **`drainsInto()` with sugar's exact signature and body** (W8, the bittern below the pan) | sugar keeps one `drainsInto` (identical); `creditDrainings` lands untouched below our cure branch; `loadKg` → `loadN` rename hits their `reconcileSetting` (`this.loadKg()` one call) — they rename the call | we merge, delete our `drainsInto` copy, rename their `loadKg()` call to `loadN()`, keep our branches in the stated positions |
+| `docs/subsystems/mould.md` | the drainings paragraph (sugar D16) | — | rewritten in W7 (envelope, impressions, the pour, pressing, cure) | sugar adds its drainings paragraph under our *The drain set* heading | we rewrite around their paragraph, keeping it verbatim |
+| `K/platform/idea/cmd/device/FireController.ts` + test | — | D12a fractions ÷ `massYield`; D12b weakest graded input; two `describe`s | REWRITTEN (no recipe path; light/hold/draught option/settle) | potash's two hunks do not apply; both rules already live in the transition (fractions ÷ `massRetained`; the heat-work grade rule) — they drop the hunks and re-pin their two `describe`s on a transition fixture | we rewrite over their file; their two `describe`s are re-pinned on a transition fixture as part of our rewrite |
+| `docs/subsystems/fire.md` | — | the pearl-ash firing sentence | the `fire` section rewritten (W0) | potash's sentence is rewritten as *black salts calcine by a transition* | we rewrite; their sentence folds in |
+| `BulkPayload` declarations (`lib/bulk/Bulkable.ts` untouched; merges from other files) | `dissolvedSolidsKgPerL` from `Thermal.ts` | the SAME member from `LyeStrength.ts` (to be deleted at sugar's merge) | `composition?: CompositionEntry[]` from `Composition.ts`; `leachCheckedS`, `seepCheckedS`, `absorbCheckedS` from `Bulkable.ts` itself; `dissolvedSolidsKgPerL` from `Thermal.ts` (sugar's text) | identical declarations merge; potash's `LyeStrength` copy is deleted by whoever lands after sugar | same |
+| `K/platform/idea/api/BulkableLogic.ts` | the `dissolvedSolidsKgPerL` volume fold (step 5) | a `lye`-only fold (deleted at sugar's merge) | receiver survival BEFORE the debit; `mould.receivedPour()` AFTER the thermal coupling; the `composition` fold (W0) beside `dissolvedToxins`; **sugar's solids fold copied verbatim** (W8) | identical fold text merges; potash's lye fold is dropped by whoever lands after sugar | delete our copy of the fold |
+| the `flux` tag | — | `flux` = the potash family; `stabilizer` new on quicklime; limestone's smelting tag → `smelting-flux`; `burn-lime` slot → `carbonate`; `SmeltController.isFlux` reads `smelting-flux` | we read no `flux` tag anywhere; glaze recipes slot `category: flux` for ash/lead/salt/tin fluxes — ⭐ we adopt potash's vocabulary now (`flux` on our glaze-flux rows; `stabilizer` where lime goes) so the rows are right in either order | nothing to do (our rows already speak their tags) | nothing to do |
+| quicklime / lime | sugar D7: a quicklime import line on `rejection/…/store-counter.yaml` | `quicklime.yaml` + `stabilizer`; slaking in the soap kettle | `limestone.yaml` `heatTransitions` → quicklime (0.56), `burn-lime.yaml` DELETED; `store-counter.yaml` +firebrick/+crucible/+lead/+tin lines; W7 gypsum → plaster | sugar's counter line unions by line; potash's `burn-lime` slot edit meets a deleted file — the deletion wins | we delete their edited `burn-lime.yaml`; our counter lines union |
+| `trade-potash/…/black-salts.yaml` + `recipes/calcine.yaml` | — | the calcine `fire` recipe (900 K, `massYield 0.8`, grade carried) | `heatTransitions` on the black-salts material (`referenceK 900`, `massRetained 0.8`, ladder → pearl ash, discipline ashery); `calcine.yaml` deleted; the cake keeps its `Ash` class and its potash fraction rescales by 1/0.8 (their D12a) | potash converts at their merge: delete `calcine.yaml`, add the block (text in the note), re-pin their wire step on the cake's material | we delete `calcine.yaml` and add the block in W0 |
+| the sugar cone row (`trade-sugar/…/thing/cone.yaml`, `_materialPath: ceramic/ceramic`, class `/platform/thing/Mould`) | sugar's row | — | re-point `_materialPath` → `ceramic/earthenware` with an inside glaze coat and class → `/trade/ceramics/thing/Cone` (so a potter can make one) — **only when sugar is on master**; until then the row is untouched | sugar re-points its own row per the note (two keys) | we edit their row in W4's sweep |
+| potash's `Ash` good (`trade-fuel/src/thing/Ash.ts`, `mintAshHeaps`) | — | the `Composition` ash good; `Burner.mintAshHeaps`; the clamp's `openClamp` ash branch | the wood transition's `oxidized` rung mints ash through `Burner.mintAshHeaps` when present (a structural probe on the burner), else the shipped ash-template clone; `openClamp` is DELETED | potash's `openClamp` hunk does not apply; the port is the rung's call (one line, in the note) | we call `mintAshHeaps` directly |
+| `K/lib/fire/Burner.ts` | `heatTransferFraction`, `deliveredPowerW()` | `ashAlkaliKg`, `mintAshHeaps`, heaps from `rakeGrate` | `heldTemperatureKFor`, `heatCeilingFactor`, `chamberVapors`, `settleFiring` | three regions; `fieldMeta` union | same |
+| `trade-fuel` `CharController.ts` / `CharcoalPit.ts` | — | `openClamp` ash minting | REWRITTEN / three templates removed (ruling A) | their hunk does not apply (above) | we rewrite over theirs |
+| `trade-glass` recipes | — | `glass-batch*.yaml` slots `flux`/`stabilizer` | both batch rows become `stir` mixes (slots kept in potash's words); `remelt-cullet.yaml` deleted | their slot edits meet our rows — union by key | we keep their slot lines inside our rows |
+| `base-library/…/material/wood/*.yaml` | — | `alkaliShare` ×9 | `heatTransitions` ×9 | union by key | union by key |
+| `K/lib/mixin.ts`, `K/api/mixin.ts` | `Percolating` + `isPercolating` | — | `Faced`, `Greenware` + predicates + refusals | appends; union | appends; union |
+| `K/lib/config/AppSettings.ts` + settings yaml | `employmentUnpaidStandGameDays` | `fireAshHeapKg`, `fireAshAlkaliMaterial`, `potash.*` | `ceramics.*` (pack yaml), `thermal.evaporation.*`, `faces.*`, `impact.*` | appends; union | appends; union |
+| `PackLogic.discover.test.ts` | +2 | +1 | +1 (66 on our base) | whoever lands second recounts — the sum | same |
+| root `package.json` / `pnpm-lock.yaml` | +2 packs | +1 | +1 | union the block; `pnpm install`, never hand-merge the lockfile | same |
+| `trade-quarrying` | — | `burn-lime.yaml` slot; `OpenWorking.test.ts` tag list | `Lump` + `Thermal`; `Clay.ts`; `clay.yaml` re-classed; `fire-pot.yaml`/`burn-lime.yaml` deleted; `limekiln.yaml` bill | the deletion wins; their test's tag list stands | same |
+| `rejection` | `store-counter.yaml` +1 line | ashery, lean-to, ash-burner, glasshouse counter | fireclay/gypsum bands; foundry; four furnace rooms → `PersistentLocale`; counter lines; `relines` on four keepers; `package.json` + ceramics | line-unions; `glasshouse.yaml` potash adds a counter prop, we add nothing there (the bill is on the kiln ROW) | same |
+| `terminus` | pantry, Veshko | chandlery counter `buys` line; general-store tests | stall rows; general-store + chandlery lines re-pointed; `package.json` + ceramics | line-unions; their test recounts lines | same |
+| `hearts-delight`, `trade-ceramics`, the four wire files | — | — | ours alone | — | — |
+
+### ⭐ What W8 uses, and from whom
+
+- **Crystallize** ships on MASTER's code: the payload field
+  `dissolvedSolidsKgPerL` (sugar's declaration, copied verbatim into
+  `Thermal.ts`), `Material.solidsKgPerL` (sugar's accessor pair, copied),
+  the pour fold (sugar's hunk, copied), and `Mould.drainsInto()` (sugar's
+  signature and body, copied). None of sugar's OTHER machinery
+  (`boilingPointElevation`, `concentratesTo`, `concentrateIfReached`,
+  `Percolating`) is needed or touched. The sun-dried `brine` maturation
+  profile rescales the field as it concentrates (one line in
+  `reconcileEvaporativeWindow`, a function sugar does not edit).
+- **The filter depends on nothing of sugar's.** It is a `Ware` whose
+  porous body SEEPS (W1's `reconcileSeep`) into the vessel beneath
+  through the same `drainsInto()` we ship, swapping the material by
+  `Material.filteredTo` on the way. `PercolatingMixin` is not used.
+- **Potash's `calcine`** becomes a transition block (above); the ash
+  minting converges on `mintAshHeaps` by probe.
+
+### Before the MR merges — the probe (repair's precedent)
+
+In a throwaway DETACHED worktree (never a branch two worktrees hold):
+`git worktree add --detach ../probe reqs/ceramics && cd ../probe && git
+merge origin/reqs/sugar && pnpm install && pnpm -C packages/server
+lint:family` — then the same with `origin/reqs/potash`, then both. Read
+every conflict against the table above; fix the SHAPE on `reqs/ceramics`
+(never in the probe), re-probe, then `git worktree remove ../probe`. A
+sibling that merged to master in the meantime is simply
+`git merge origin/master` into `reqs/ceramics` with the same table.
 
 ### Pre-wave check, for every wave touching a shared file
 
@@ -277,8 +338,8 @@ premise in the requirements it says so inline.
   `K/lib/material/Evaporation.ts` — a value class (`humidityPct, windMs,
   tempK`), `evaporationFactor()`, **no statics**; `AIR_BOIL_CAP_K 373`.
   ⚠ **No evaporative cooling of objects anywhere**; the only wet-bulb
-  arithmetic is `ThermalRegulation.wetBulbK(ambient, humidity)` (private,
-  l.412/450).
+  arithmetic is `ThermalRegulation.wetBulbK(ambient, humidity)`
+  (`protected`, l.878; read at l.412/450).
 - `K/lib/cleanliness/Soilable.ts`: `soil(kind, amount, by?, site?)`, sites
   (`''` = the whole thing), `recordHeat(peakK, heldS)` (l.544, keeps the
   hottest hold), `holdAtHeat`. `K/platform/idea/DirtKind.ts` rows at
@@ -399,9 +460,9 @@ premise in the requirements it says so inline.
   `sourceOf` (l.209). **No local-first-with-import-backstop shape.**
   `C/terminus/…/general-store/counter.yaml` l.151 `honey-jar par 4`;
   `C/terminus/…/wharfside/chandlery/thing/counter.yaml` l.39–40
-  `soft-soap-jar par 4`, `lye-flask par 4`; ⚠ **no plant-pot line exists
-  on any counter** (the requirements' "the general store's plant pots" is
-  a line this build ADDS, not re-points). Market:
+  `soft-soap-jar par 4`, `lye-flask par 4`; `general-store/counter.yaml`
+  l.99–100 `pot/small par 3`, `pot/large par 2` (and prices at l.478–479)
+  — the plant-pot lines AC 13 re-points. Market:
   `C/terminus/…/market/square.yaml` (a `Street`, props `stalls`),
   `stalls.yaml` (`/world/terminus/market/thing/MarketStalls`, `pitches 12`,
   `rentMinor 5`), `thing/stall.yaml` (the rented `Stock` seed, keyed on the
@@ -501,19 +562,46 @@ left a fork the lens that chose is named.
 - **D2 — ⭐⭐ `Crosslinking` generalizes into `HeatTransition`; no second
   path.** `git mv K/lib/material/Crosslinking.ts → HeatTransition.ts`.
   `HeatTransitionSpec {key, referenceK, zK, fullDoseS, massRetained?
-  (default 1), agent?, agentOptimum?, agentOver?, scorchAboveK?,
-  volatiles?: {material, litresPerKg}[], ladder: {atDegree, becomes}[],
-  over?: string, scorched?: string, reducing?: string}`. `degree` is
-  rubber's formula unchanged; the four rubber rows map onto `ladder:
-  [{0, raw-rubber}, {0.6, rubber}]`, `over: ebonite` (agent ≥ `agentOver`),
-  `scorched: burnt-rubber` (peak ≥ `scorchAboveK`). Clay is a continuous
+  (default 1), agent?: {material, optimum, over}, scorchAboveK?,
+  requiresAtmosphereBelow?, oxidizedAbove?, volatiles?: {material,
+  litresPerKg}[], ladder: {atDegree, becomes, reducing?}[], over?: string,
+  scorched?: string, oxidized?: string, vapor?: Record<materialPath,
+  coatMaterialPath>, discipline?}`. `degree` is rubber's formula
+  unchanged. ⭐ **The agent is read off the PIECE's own composition**
+  (ruling B): `agent.material` is a material path and the fraction is
+  `fractionOf(it)` on a `Composition` host — rubber is COMPOUNDED with
+  sulfur first (`stir` raw rubber + sulfur in the works' mixing tub →
+  `compounded-rubber`, a `Composition` good; W0 ships the recipe row, the
+  tub and the material), so nothing sums sibling pieces. The four rubber
+  rows map onto `ladder: [{0, compounded-rubber}, {0.6, rubber}]`, `over:
+  ebonite` (agent ≥ `over`), `scorched: burnt-rubber` (peak ≥
+  `scorchAboveK`). Clay is a continuous
   ladder (`terracotta 0.15 · earthenware 0.4 · stoneware 0.7 ·
   refractory 0.95`, `over: clinker`, `reducing` → the blue/celadon twin of
   each rung by a `reducing:` map on the rung); limestone is `[{0,
   limestone}, {1, quicklime}]`, `massRetained 0.56`, `referenceK 1170`;
   gypsum → plaster at 420 K, `0.85`; a glaze slip fuses at its maturing
-  heat; the glass batch → glass at 1400 K, `0.72`; wood → charcoal at
-  650 K, `0.25`, `volatiles: wood-tar 0.08`; coal → coke, tar + gas. A
+  heat; the glass batch → glass at 1400 K, `0.72`. ⭐ **Wood is the
+  clamp (ruling A):** `wood/*.yaml` author `{referenceK 650, zK 40,
+  fullDoseS …, requiresAtmosphereBelow 0.55, massRetained 0.25, ladder:
+  [{0.35, organic/half-burnt-wood}, {0.8, organic/charcoal}], oxidized:
+  organic/ash (at full dose under an atmosphere above `oxidizedAbove`
+  0.73 the carbon burns out — the collier's lost burn, at the material's
+  `ashFraction`), volatiles: [{wood-tar, 0.08}], discipline: colliery}`;
+  coal the same shape to coke with tar and gas. ⚠ **Pyrolysis needs
+  starved air, and that is what keeps it from double-counting with
+  combustion:** a transition with `requiresAtmosphereBelow` accrues no
+  dose while the atmosphere is above it, and a `Combustible` host that is
+  `Burning` accrues no transition at all (its end-state is the fire
+  path's `charMaterialPath`). So a log on an open hearth above 570 K
+  IGNITES and burns by fire.md's path; a log in a sealed clamp or a shut
+  retort pyrolyzes by this one; a log in an open kiln at full draught
+  burns. ⭐ **Vapors (ruling B):** a chamber's atmosphere carries what
+  vaporized in it — `Material.vaporizesAboveK` (salt 1350 K) makes a
+  content lump of that material vaporize into the chamber's
+  `chamberVapors` (D3) and destructs it; a transition's `vapor:` map lays
+  a fused coat of the named glaze material on the piece's outside face
+  when that vapor is present at the rung (salt → `glaze/salt`). A
   firing that stops part-way leaves `degree < 1` on the record — ⭐ the
   **piece's material swaps only at a rung**, and between rungs the piece
   reads *"burnt to the skin, raw at the heart"* and its mass is
@@ -524,14 +612,28 @@ left a fork the lens that chose is named.
   reducing firing is `atmosphere < ceramics.atmosphere.reducingBelow`
   (0.55, the clamp's banked draught). `ThermalMixin.heatSource()` becomes
   public (sugar's exact signature) so the reconcile can ask the fire its
-  completeness per stretch. `BurnerMixin` gains `@hook
+  completeness per stretch, and its `chamberVapors` (a runtime
+  `Record<materialPath, kg>` on `BurnerMixin`, fed by `Oven`/`BrickClamp`
+  content reconciles for any content whose material `vaporizesAboveK` ≤
+  the held K, cleared at `douse`/burnout; the record carries
+  `atmosphere: {completeness, vapors}`). `BurnerMixin` gains `@hook
   heldTemperatureKFor(body: Stuff): number` (default
   `getHeldTemperatureK()`), which `Thermal.heatSourceK()` asks instead of
   the bare getter — the clamp overrides it by the brick's position (D15).
 - **D4 — ⭐⭐ `fire` lights and holds; it decides nothing about the charge.**
-  `FireController` is rewritten: `fire <burner> [<draught word>] [for
-  <hold>]` → sets the draught (the `draught` verb's five words), refuses
-  `no-charge` / `not-lit`, engages the hold (sealed down), and at completion
+  `FireController` is rewritten: `fire [<burner>] [--draught <word>] [for
+  <hold>]` (alias `burn`). ⭐ Parse rules, so the draught can never
+  swallow the kiln: the `kiln` arg keeps its shipped shape (positional
+  or `in`/`at`, default `reachable:[mixin.BurnerMixin]`, `requires:
+  BurnerMixin`) — `fire kiln`, `burn kiln`, `fire in retort` all bind as
+  today; the draught is a **command option** `--draught wide|open|half|
+  low|banked` (the ladder's rung 3; the shipped `draught <word>` verb
+  stays the in-burn adjustment); the hold is `for <duration>` (greedy
+  after `for`). ⚠ `burn lime` is not a shape this view ever accepted —
+  the charge is what is IN the chamber, never an argument — and the
+  extraction drive types `burn kiln`, which keeps working. The controller
+  sets the draught, refuses `no-charge` / `not-lit`, engages the hold
+  (sealed down), and at completion
   calls `getTemperature()` on every content (so each piece reconciles its
   own heat-work, transitions, routes its volatiles and takes the mould
   seam), wears the lining (D19), credits the discipline **of each
@@ -547,8 +649,15 @@ left a fork the lens that chose is named.
 - **D5 — Faces and coats compose on `Good`.** `K/lib/material/Faced.ts`
   (`FacedMixin`, requires `Tangible`): `coats: Record<'outside'|'inside',
   CoatLayer[]>` outermost first, `CoatLayer = EnclosureSpec & {state:
-  'wet'|'fused'|'crazed'}` (construction's `{material, thicknessM}` reused
-  verbatim); `faces()` answers `['outside']` + `'inside'` iff the host is
+  'wet'|'fused'|'crazed'|'run'|'crawled', dirtyAtLay?: number}`
+  (construction's `{material, thicknessM}` reused verbatim; ⭐ the two
+  faults the requirements name beside crazing are STATES too: `run` is
+  the glaze transition's `over` rung — a coat fired past its
+  `scorchAboveK` runs to the foot, pools, and grades the piece down;
+  `crawled` is laid at the dip when the face's `soilAt(face)` exceeds
+  `faces.crawlDirt` (cleanliness's grease and dust), recorded as
+  `dirtyAtLay`, and becomes `crawled` at the fuse — bare patches, so
+  `holdsWater(face)` is false); `faces()` answers `['outside']` + `'inside'` iff the host is
   `Bulkable` with interior bulk; `outermost(face)` answers the top coat or
   the body's own material; `layCoat(face, material, thicknessM)`,
   `fuseCoats(peakK)` (called by the heat-work reconcile at a rung),
@@ -574,7 +683,8 @@ left a fork the lens that chose is named.
   cooler than the air. A glazed jar seeps nothing.
 - **D7 — The lead leach is a bulk fact, not a maturation one.** The
   requirements say *through `imparts`*; `MaturingMixin.imparts` is aroma on
-  a batch clock and composes only on `Vat`, while the crocks the drive
+  a batch clock and composes only on `Vat` and the chandlery's
+  `SoapKettle`, while the crocks the drive
   fills are `CraftVessel`s with no batch. The honest host of *what the
   inside coat gives the contents* is the slot that holds them:
   `BulkableMixin.reconcileLeach()` (per slot, stamped `leachCheckedS` on
@@ -651,7 +761,10 @@ left a fork the lens that chose is named.
   the burner mints ash so fuel owns `Ash`; `dig` mints clay. `Lump` gains
   `ThermalMixin` so limestone burns under D1.
 - **D13 — Green ware is a kernel mixin: `K/lib/material/Greenware.ts`.**
-  `GreenwareMixin` (requires `WaterActive & Thermal & Tangible & Faced`):
+  `GreenwareMixin` (requires `WaterActive & Thermal & Tangible & Faced` —
+  ⭐ so every composer composes `WaterActivityMixin` itself, Turf's
+  dries-but-does-not-rot shape; `lint:perishable` is satisfied because no
+  clay body tabulates a spoil activation energy):
   `state()` = `plastic` (moisture > `ceramics.green.plasticAbove` 0.22) ·
   `leather-hard` · `bone-dry` (< 0.08); `reconcileGreen()` on read: rain
   (`getWetness()` rising while plastic or leather-hard → `slumped`), frost
@@ -702,7 +815,22 @@ left a fork the lens that chose is named.
     pattern of <thing>` → a `Pattern` good carrying the thing's `Impression`
     scaled by the metal's shrinkage, D22). Carpentry's view and controller
     move to the platform.
-  - `hammer` is NOT promoted: `hammer <blank> on <die>` binds `on` to the
+  - `char` is NOT promoted and stays `trade-fuel`'s word (ruling A): the
+    view keeps its `clamp` and `draught` args; `CharController` becomes
+    *set the draught, `ignite` if cold, engage the three-day hold* and its
+    completion reconciles the contents (the `fire` completion's one
+    method, `Burner.settleFiring(by)`, shared) and narrates by the
+    lengths' rungs — charcoal / brands / ash — crediting `colliery` from
+    the wood transition. `openClamp`, `outcomeFor`, `yieldFor`, the three
+    template fields and the per-basket mint are deleted: the cordwood
+    lengths BECOME charcoal (material `organic/charcoal`, mass × 0.25),
+    which `stoke` already takes by the `fuel` tag; `charcoal.yaml` and
+    `brands.yaml` stay as rows for props and stock lines.
+  - `dip` keeps `verbs: [dip, melt]` in the platform view (the chandlery's
+    alias rides along); the `DipPot` plan still melts a cold cake of
+    tallow first, and the kernel default plan on a bath that holds no
+    liquid refuses *nothing to dip in*.
+  - `hammer` is NOT promoted (both syntaxes are the plan's position): `hammer <blank> on <die>` binds `on` to the
     smithing view's existing `anvil` arg; the smithing forming step's
     completion asks the bound `anvil` whether it `strikes` (a `Mould` with
     `pressKind: blow` — the structural-probe shape, like `receiveVolatiles`)
@@ -726,7 +854,7 @@ left a fork the lens that chose is named.
   (`LightSource`, inherited) and smells (`combustionProducts` of its fuel —
   already the fire build's). The pit firing is a row on the same class.
 - **D16 — ⭐ Forms are parametric; words are rows; the material names its
-  product rows.** `K/lib/craft/Form.ts` value object: `ParsedForm {class:
+  product rows.** `K/lib/craft/FormSpec.ts` value object: `ParsedForm {class:
   open|closed|flat|block|cone, capacityL, proportion: tall|squat|wide|
   narrow, word?}` parsed from the `form` string (`mug`, `tall jug holding
   3 pints`, `jar holding 2 gallons`). A form WORD is a row `<root>/idea/
@@ -749,16 +877,18 @@ left a fork the lens that chose is named.
   (the `fell` precedent) — the craft-mint defect must not reach green ware
   on the hacks.
 - **D17 — The pack's classes.** `C/trade-ceramics/src/thing/`: `Brick` =
-  `GreenwareMixin(StackableMixin(DurableMixin(CraftedMixin(ThermalMixin(
-  Good)))))` — bricks, tiles, firebricks, blocks are rows; `Ware` =
-  `GreenwareMixin(AssembledMixin(DurableMixin(CraftVessel)))` (⭐ `Assembled`
-  so `fit handle to jug` binds — `CraftVessel` composes neither) — mugs, jugs, crocks, jars,
+  `GreenwareMixin(WaterActivityMixin(StackableMixin(DurableMixin(CraftedMixin(
+  ThermalMixin(Good))))))` — bricks, tiles, firebricks, blocks are rows;
+  `Ware` = `GreenwareMixin(WaterActivityMixin(AssembledMixin(DurableMixin(
+  CraftVessel))))` (⭐ `Assembled` so `fit handle to jug` binds —
+  `CraftVessel` composes neither; `WaterActivity` because D13 requires it
+  and `CraftVessel` has none) — mugs, jugs, crocks, jars,
   flasks, bowls, the filter, the crucible row (`/trade/ceramics/thing/
   crucible`, which the smelt's `crucibleIn` finds by mixin exactly as today
-  and which **wears per melt** (D19)); `Cone` = `GreenwareMixin(Mould)`
+  and which **wears per melt** (D19)); `Cone` = `GreenwareMixin(WaterActivityMixin(Mould))`
   (sugar's cone re-points its class to it so a potter can make one; the
-  row stays sugar's); `FlowerPot` = `GreenwareMixin(ThermalMixin(DurableMixin(
-  PlantPot)))`; `Sherds` = `StackableMixin(Good)` (`grind` → grog by a
+  row stays sugar's); `FlowerPot` = `GreenwareMixin(WaterActivityMixin(ThermalMixin(DurableMixin(
+  PlantPot))))`; `Sherds` = `StackableMixin(Good)` (`grind` → grog by a
   millstone recipe row, the `bone-meal` shape); `Stamp` = `MouldMixin(Good)`
   with `pressKind: blow` and an `Impression` (D21); the pack `lib/` holds
   nothing — every mixin it composes is the kernel's. ⚠ `Ware` and `Brick`
@@ -770,7 +900,7 @@ left a fork the lens that chose is named.
   fired bodies, each with `thermalExpansion`, `hardness`, `toughness`,
   `wAC`, `brokenTemplate: /trade/ceramics/thing/sherds`, tags `[ceramic,
   mineral, solid, brittle, fired, …]`) and `porcelain.yaml` (import). Each
-  of the 22 rows gets `_materialPath` → its S1 body and, where glazed,
+  of the 23 rows (the list is in W2) gets `_materialPath` → its S1 body and, where glazed,
   `coats: {inside: [{material: /trade/ceramics/idea/material/glaze/lead|
   ash, thicknessM: 0.0003, state: fused}], outside: [...]}`. The generic
   `ceramic/ceramic.yaml` stays for the 19 location rows and gains honest
@@ -895,8 +1025,13 @@ left a fork the lens that chose is named.
   the threshold); a crack flaw dulls it. The hand bell casts in a flask;
   the large bell in `/trade/smelting/thing/bell-pit` — a **fixed `Mould`
   thing** (`fixedInPlace`, loam, `castTemplate: large-bell`) in the foundry
-  yard; the pour into it is a game-day engaged `pour` (the mould row's
-  `pourDurationS`). ⚠ The requirements say *the mould is a place*; a fixed
+  yard; the pour into it is a game-day engaged `pour`: `MouldMixin` gains an
+  authorable `pourDurationS` (0 = instant, the default) and
+  `K/platform/idea/cmd/bulk/PourController.ts` — the one change — asks
+  `MixinApi.isMould(target) && target.getPourDurationS() > 0` and runs the
+  transfer as the completion of a sealed-down `ManualBuildStep` on the
+  attention slot (the `fire` hold's shape) instead of inline; every other
+  pour is byte-identical. ⚠ The requirements say *the mould is a place*; a fixed
   mould you stand at is what the engine can say today (a Location
   composing `Mould` would need `Bulkable+Thermal` on a place) — recorded
   under *needs the owner*. The Terminus curfew bell is a row propped on
@@ -918,10 +1053,12 @@ left a fork the lens that chose is named.
   `maker` — ⭐ an import is derivably *a good nobody here made*. The
   potter's stall (`C/terminus/…/market/thing/potters-stall.yaml`, a fixed
   `Stock` propped on the square, `from: {supplier: the Delight pottery}`)
-  and the re-pointed lines (general store: a NEW plant-pot line →
-  `/trade/ceramics/thing/plant-pot`; chandlery: `soft-soap-jar` and
-  `lye-flask` → the pottery's `jar` and `flask` rows; apiculture's
-  `honey-jar` → the pottery's `jar`) all name the pottery as supplier with
+  and the re-pointed lines (general store: the two existing plant-pot
+  lines `pot/small` / `pot/large` (counter.yaml l.99–100) → the pottery's
+  `/trade/ceramics/thing/plant-pot-small` / `plant-pot-large` (two form
+  rows, two product rows); chandlery: `soft-soap-jar` and `lye-flask` →
+  the pottery's `jar` and `flask` rows; the general store's `honey-jar`
+  line → the pottery's `jar`) all name the pottery as supplier with
   `importBackstop: 1.5`. The potter NPC's `pots` brain (pack) shapes,
   dries, fires and consigns.
 - **D29 — Four disciplines, credited by acts.** `/trade/ceramics/idea/
@@ -949,23 +1086,27 @@ left a fork the lens that chose is named.
   cone per read), the cone band at the proficient ceiling. The heat-work
   record reads on `look` (*bisque, porous* · *vitrified* · *burnt to the
   skin, raw at the heart*) and `analyze heat-work <piece>` prints the band.
-- **D32 — W8 converges on sugar.** Crystallizing is a third arm of
-  `reconcileBulkPhase`: a bulk whose material authors `solubility:
-  [[K, kgPerL]…]` and whose payload `dissolvedSolidsKgPerL` (sugar's)
-  exceeds `solubilityAt(T)` sets the excess (`castInto` on a Mould, else a
-  crystal lump beside) and keeps the saturated liquor, whose material swaps
-  by `crystallizesTo.residue` (bittern) and drains below through sugar's
-  `drainsInto()`. The sun-dried `brine` evaporative profile is kept and
-  taught to rescale `dissolvedSolidsKgPerL` as it concentrates (one line
-  in `reconcileEvaporativeWindow`). The filter: `/trade/ceramics/thing/
-  water-filter` = `PercolatingMixin(Ware)` (sugar's kernel mixin);
-  `onPercolated` swaps the percolant's material by `Material.filteredTo`
-  and the clean water lands in the vessel below. The water pack's draw
-  picks `fouled-water` (organic/sediment dominant; `filteredTo: water`,
-  `purifiedByBoiling: water`) or a new `tainted-water` (persistent
-  dominant; neither arrow) by the reach's `contamination.byKind` — two rows
-  and one branch in `WatercourseCatalogue`'s draw. The whole wave is gated
-  on sugar being on master or merged into this branch.
+- **D32 — W8 ships on master's code, in sugar's names.** Crystallizing is
+  a third arm of `reconcileBulkPhase`: a bulk whose material authors
+  `solubility: [[K, kgPerL]…]` and whose payload `dissolvedSolidsKgPerL`
+  (⭐ declared by us from `Thermal.ts` with sugar's exact text, seeded
+  from `Material.solidsKgPerL` — sugar's accessor pair, copied — and
+  folded on a pour by sugar's hunk, copied) exceeds `solubilityAt(T)` sets
+  the excess (`castInto` on a Mould, else a crystal lump beside) and keeps
+  the saturated liquor, whose material swaps by `crystallizesTo.residue`
+  (bittern) and drains below through `Mould.drainsInto()` (⭐ ours, with
+  sugar's signature and body). The sun-dried `brine` evaporative profile
+  is kept and taught to rescale the field as it concentrates (one line in
+  `reconcileEvaporativeWindow`, which sugar does not edit). The filter
+  depends on nothing of sugar's: `/trade/ceramics/thing/water-filter` is
+  a `Ware` row whose porous body seeps (W1's `reconcileSeep`) and whose
+  seep, when the filter stands on a vessel (`drainsInto()`), lands there
+  with the material swapped by `Material.filteredTo`. The water pack's
+  draw picks `fouled-water` (organic/sediment dominant; `filteredTo:
+  water`, `purifiedByBoiling: water`) or a new `tainted-water` (persistent
+  dominant; neither arrow) by the reach's `contamination.byKind` — two
+  rows and one branch in `WatercourseCatalogue`'s draw. Nothing in the
+  wave waits on a sibling.
 
 ## ⭐⭐ Host placement
 
@@ -976,7 +1117,11 @@ would need a guard to re-narrow the host set, the host is wrong.
 | new thing | host | what composing it claims | why not the alternative |
 |---|---|---|---|
 | `heatWork` record, `reconcileHeatWork()`, `heatSource()` public, `evaporativeDepressionK()` | `ThermalMixin` | every body with a temperature has a heat history and cools faster when wet — true; inert (one lookup) when its material declares nothing and it is dry | a `HeatWorkMixin` needs a guard to choose hosts; a limestone lump in a bread oven must count |
-| `@hook heldTemperatureKFor(body)`, `@hook heatCeilingFactor()` | `BurnerMixin` | every fire may answer a different heat for a different body (default: the same), and may be ceilinged by its vessel (default: not) | the clamp and the lined furnace override; a lamp inherits the defaults |
+| `@hook heldTemperatureKFor(body)`, `@hook heatCeilingFactor()`, `chamberVapors`, `settleFiring(by)` | `BurnerMixin` | every fire may answer a different heat for a different body (default: the same), may be ceilinged by its vessel (default: not), carries what vaporized in it (empty for a lamp), and can settle what it held | the clamp and the lined furnace override; a lamp inherits the defaults |
+| `MeltableMixin` | kernel `Casting`; glass `GlassBottle`, `Sheet`, `Melt` | a lump or a glass good melts because it is warm (ruling C) | a rung that re-classes was rejected |
+| `BulkPayload.composition` | declared from `lib/material/Composition.ts`; written by `doMelt`, the pour fold, the smelt's run; read by the set edge | molten matter remembers what was dissolved in what melted into it | on the vessel it would be lost at every pour |
+| `pourDurationS` | `MouldMixin` | a mould may take a pour that is a day's work (default instant) | — |
+| `vaporizesAboveK` | `Material` | a material may become a chamber vapor | — |
 | `heatTransitions`, `thermalExpansion`, `acidity`, `brokenTemplate`, `leaches`, `formTemplates`, `chillsTo`, `cureSetting`, `filteredTo`, `solubility`, `crystallizesTo` | `Material` (singleton rows) | a material may say what heat, cold, a knock, an acid or a mould does to it; unauthored = nothing happens | per-instance copies would be the `Freshness on every Thing` shape |
 | `FacedMixin` (`coats`, `faces()`, `outermost`, `layCoat`, `fuseCoats`, `holdsWater`, `cleansAs`) | `lib/stuff/Good` | every good has an outside that something can be laid on; a vessel has an inside | on `Thing` it would claim it of walls and floors, which take paint through construction's layers |
 | `flaws`, `sufferImpact()`, `impactStrengthJ()`, `ring()`, `canReceiveAtK()` | `TangibleMixin` | every piece of matter can be struck, can carry a hidden flaw, can be rung, and can or cannot take a pour's heat — all true, all derived from its material | on a `Brittle` mixin the host set is a tag the material already carries |
@@ -992,7 +1137,7 @@ would need a guard to re-narrow the host set, the host is wrong.
 | `freezeThawDaysAt` | `WeatherApi`/`WeatherLogic` | stateless, like snow | — |
 | `canBeNamedBy(handPath)` | `NamedMixin` (default false); overrides on `Crafted` (its maker, once, while unnamed), `Assembled` (super ∥ the reforge rule), `Bonded` (the bond rule) | the thing that holds a name decides who may write it | `NameController` today narrows on class to pick the rule |
 | `Shapeable`/`ShapePlanner`, `Kneadable`/`KneadPlanner`, `DipPlanner`, `Carvable`, `Impressible`, `Turnable` | `lib/craft/*.ts` protocols (the `Cuttable` shape) | the target or the instrument plans; the kernel controller never names a pack class | — |
-| `ParsedForm`, `Form` row | `lib/craft/Form.ts`, `platform/idea/Form.ts` | a form is five classes × a capacity × a proportion; a word is a row | — |
+| `ParsedForm`, `Form` row | `lib/craft/FormSpec.ts`, `platform/idea/Form.ts` | a form is five classes × a capacity × a proportion; a word is a row | — |
 | `ScrewPress` | `platform/thing/ScrewPress` (`Placing(Good)`) | two consumers (creamery, tile works) in two packs → kernel | — |
 | `Brick`, `Ware`, `Cone`, `FlowerPot`, `Sherds`, `Stamp`, `BrickClamp`, `Wheel`, `BrickTable`, `TemperPit`, `WaterFilter` | `/trade/ceramics/thing/*` | the trade's goods and instruments | — |
 | `Bell`, `Flask`, `Pattern`? (no — `Pattern` is carpentry's), `BellPit` row | `/trade/smelting/thing/*` | founding is smelting's | — |
@@ -1018,10 +1163,9 @@ would need a guard to re-narrow the host set, the host is wrong.
 - Locations: `Locale` for the works' rooms; **`PersistentLocale`** for the
   hacks (green bricks persist), the potter's shop (the kiln's lining), the
   moulding shed, the foundry floor, and the four Rejection furnace rooms
-  (smelter, glasshouse, fuel yard, quarry pit — ⚠ `pit.yaml` is an
-  `OpenWorking`; the limekiln stands IN it, so the limekiln's lining is
-  carried by the pit's own persistable ledger — verify `OpenWorking` is
-  persistable; it is (`Working.ts` banks a per-face ledger)).
+  (smelter, glasshouse, fuel yard; the quarry pit is already
+  `PersistableMixin(OpenWorkingMixin(Locale))` and W5 proves its props'
+  state survives — see W5).
 - Namespace roots: `/trade/ceramics` (new pack); founding rows under
   `/trade/smelting`; the pattern under `/trade/carpentry`; the wax block
   under `/trade/chandlery`; the stall under `/world/terminus/market`; the
@@ -1090,19 +1234,47 @@ terracotta with no row).
 whose output `/trade/glass/thing/batch` (class `Melt`, material
 `/trade/glass/idea/material/batch` with `heatTransitions` → `glass` at
 1400 K, `massRetained 0.72`, `discipline: glasswork`) keeps potash's slot
-tags; `remelt-cullet` becomes a transition on `glass` (cullet is already
-glass: `heatTransitions` on the glass material with `referenceK 1200`,
-ladder `[{1, glass}]` — a melt is the same material hot, so this is the
-no-op rung that makes a cullet lump a workable `Melt`… ⚠ the cullet
-`Casting` must become a `Melt` to be gobbed — the transition's rung names
-`becomesTemplate: /trade/glass/thing/melt` (a rung may re-class a piece
-whose class is only a material's fallback shape; identity is the row's,
-and a `Casting` has none) — **the one place a rung changes a class, and
-only for a `Casting`/`metal-casting` fallback clone**; `burn-lime.yaml`,
-`fire-pot.yaml`, `retort-wood.yaml`, `retort-coal.yaml`,
-`vulcanize.yaml`, `glass-batch-amber.yaml` (→ a second batch material
-with charcoal) are deleted; `calcine.yaml` is deleted iff potash is on
-master (else recorded).
+tags; `glass-batch-amber.yaml` becomes a second `stir` row (same output
+class, material `/trade/glass/idea/material/batch-amber`, the charcoal
+slot kept). ⭐ **Remelt is phase change (ruling C), never a reclass:**
+`remelt-cullet.yaml` is deleted; `MeltableMixin` is composed on the glass
+pack's `GlassBottle`, `Sheet`, `Melt` and on the kernel `Casting` (a lump
+of glass, wax or ice melts because it is warm — the climate build's own
+rule, which `Casting` escaped only because nothing had put one in a
+kiln); `doMelt`'s destination gains one rung before the floor — a
+`Bulkable & Thermal` vessel standing in the SAME chamber that is empty
+or holds this material (the smelt's `crucibleIn` rule, moved into
+`Thermal.ts` as a private `poolVesselIn(scope)`), so a bottle in a kiln
+pools into the glasshouse's pot and never into a floorless chamber's
+void; `gob.yaml`'s `melt` arg becomes `requires: CompositionMixin`,
+default `reachable:[mixin.CompositionMixin]`, and `GobController` takes
+any `glass`-tagged `Composition & Thermal` piece at or above its working
+floor — a fired batch (a `Melt`), a cullet lump the kiln brought up, a
+bottle put in hot (`GlassBottle` is `Composition` through `Tinted`). A
+pool that cools sets as a glass `Casting` by the shipped freeze edge.
+⭐ **The pot (ruling D):** `fire-pot.yaml` is deleted here; a clay lump
+fires to a terracotta lump (`/stuff/thing/clay-pot` stays as the dorm's
+and the farm's row and becomes the `open` form's product in W4); the
+extraction drive's clay checkpoint asserts the lump in W0 and the pot in
+W4. `burn-lime.yaml`, `retort-wood.yaml`, `retort-coal.yaml`,
+`vulcanize.yaml` are deleted; `calcine.yaml` is deleted iff potash is on
+master (else recorded). ⭐ **The `trade-ceramics` pack is BORN here**
+(it is the first wave that writes under `/trade/ceramics`: the three
+disciplines W0 credits), with `pack.yaml`, `package.json`,
+`tsconfig.json`, `vitest.config.ts`, the root dependency, the discover
+count 65 → 66, `pnpm install`, and `idea/Discipline/{brickmaking,pottery,
+masonry}.yaml` (W3 and later waves fill it). ⭐ **The pool keeps its
+composition** (ruling C, revision 2): `BulkPayload.composition?:
+CompositionEntry[]` declared from `K/lib/material/Composition.ts`;
+`doMelt` seeds it from the melting piece's `getAlloying()` (mass-weighted
+into an existing pool); `BulkableLogic.blendPayloads` folds it by volume
+(the `dissolvedToxins` shape, through `Concentration.blend`); the set
+edge stamps it back — `Mould.carryPayload` and the plain `Casting` clone
+in `reconcileBulkPhase` call `setAlloying(payload.composition)` on a
+`Composition` cast; `SmeltController`'s liquid run moves its carbon stamp
+(`setFractionOf(CARBON, …)`, l.533) onto the run's payload so the ingot
+takes it off the pool. A green bottle remelts green; a pig's carbon rides
+the crucible.
 
 **Files.**
 - `K/lib/material/HeatTransition.ts` (← `git mv Crosslinking.ts`): the
@@ -1141,11 +1313,16 @@ master (else recorded).
   `earth/clay.yaml` (the ladder → `/trade/ceramics/idea/material/…`
   bodies — ⚠ base-library cannot name a trade path; so W0 ships the four
   body rows in **base-library** `ceramic/{terracotta,earthenware,
-  stoneware,refractory}.yaml` and the pack's material dir holds only the
+  stoneware,refractory}.yaml` plus the three reducing twins
+  `ceramic/{terracotta-reduced,earthenware-reduced,stoneware-reduced}.yaml`
+  (gray · the blue brick · celadon-gray; refractory has no color twin),
+  named by each rung's `reducing:`; the pack's material dir holds only the
   glazes, slip and the clays — correction to D18's paths, recorded);
   `wood/*.yaml` ×9 (char at 650 K, 0.25, volatiles wood-tar 0.08);
-  `mineral/coal.yaml` (coke, tar + gas); `organic/raw-rubber.yaml`
-  (the cure as a transition); `trade-glass/…/material/batch.yaml`
+  `mineral/coal.yaml` (coke, tar + gas); `organic/compounded-rubber.yaml`
+  (new; the cure as a transition reading its own sulfur fraction) and
+  `raw-rubber.yaml` (loses `crosslinking`); `food/salt.yaml`
+  (`vaporizesAboveK 1350`); `trade-glass/…/material/batch.yaml`
   (new), `glass.yaml` (remelt); `trade-potash/…/black-salts.yaml` (iff
   present).
 - `trade-glass/content/recipes/glass-batch.yaml` → a `stir` row
@@ -1153,6 +1330,43 @@ master (else recorded).
   /trade/glass/thing/batch`); `C/trade-glass/content/trade/glass/thing/
   batch.yaml`.
 - `C/trade-quarrying/src/thing/Lump.ts` composes `ThermalMixin`.
+- `C/trade-fuel/src/idea/cmd/fuel/CharController.ts` rewritten (draught,
+  ignite, hold, settle); `C/trade-fuel/src/thing/CharcoalPit.ts` loses
+  `outcomeFor`/`yieldFor`/the three template fields; `clamp.yaml` loses
+  them; `C/trade-fuel/…/material/organic/half-burnt-wood.yaml` (new; the
+  brands' material); `brands.yaml`/`charcoal.yaml` kept as rows.
+- `K/lib/fire/Burner.ts`: `chamberVapors` (+ fieldMeta `runtimeState`),
+  `settleFiring(by)` (the completion both `fire` and `char` call: reconcile
+  every content, wear the lining (W5), credit); `K/lib/material/
+  Material.ts` `vaporizesAboveK`; `K/platform/thing/Oven.ts` the vapor
+  reconcile over its contents (and `BrickClamp` in W5).
+- `K/lib/thermal/Thermal.ts`: `poolVesselIn(scope)` in `doMelt`; the
+  `Burning`-host and `requiresAtmosphereBelow` skips in
+  `reconcileHeatWork`; `MeltableMixin` composed on `K/platform/thing/
+  Casting.ts`.
+- `C/trade-rubber/content/recipes/compound.yaml` (`stir`: raw rubber +
+  sulfur → `/trade/rubber/thing/compounded-stock`, a `Composition` good
+  of material `organic/compounded-rubber` carrying the transition),
+  `thing/mixing-tub.yaml` propped at the works floor, `vulcanize.yaml`
+  deleted, `rubber.dirty.wire.test.ts` gains the `stir` step before
+  `fire … for`.
+- `K/lib/material/Composition.ts` (the `BulkPayload.composition`
+  declaration); `K/platform/idea/api/BulkableLogic.ts` (the fold);
+  `K/lib/mould/Mould.ts` `carryPayload` (+ `setAlloying`);
+  `K/lib/thermal/Thermal.ts` `doMelt` (seed) and the solidify clone
+  (stamp); `C/trade-smelting/…/SmeltController.ts` l.533 (the carbon onto
+  the payload); tests `Thermal.pool-composition.test.ts` (a green bottle
+  melts, sets, re-reads green; two pools blend by volume) and the smelt's
+  pig test re-pinned.
+- `C/trade-glass/src/thing/{GlassBottle,Sheet,Melt}.ts` compose
+  `MeltableMixin`; `gob.yaml` + `GobController.ts` (the gate above);
+  `remelt-cullet.yaml` deleted.
+- Wire: `extraction.dirty.wire.test.ts` l.312 → `['no-charge',
+  'not-lit']`, and its clay checkpoint asserts a terracotta lump;
+  `fire.dirty.wire.test.ts` drive 10 (`char 0.45` understood AND, after
+  the three-day jump, the lengths read as charcoal) and drive 11 (the
+  condenser fills by the transition's volatiles); `glass.dirty.wire.test.ts`
+  (`stir` before `fire kiln`).
 - Tests: `HeatTransition.test.ts` (← `Crosslinking.test.ts`, re-pinned: the
   four rubber outcomes, lime 56 %, partial conversion, atmosphere);
   `Thermal.heatwork.test.ts` (a body in a lit oven accrues; an unwatched
@@ -1172,8 +1386,15 @@ raw at the heart* with `degree < 1`; the rubber wire drive's boots come
 out of the boot mould; `fire retort` with cordwood fills the condenser
 with tar; `stir` the glass batch then `fire kiln` gives a gobbable melt
 the color of its sand; `analyze temperature kiln` reads *cherry red*
-with no instrument. No recipe row with `requiresHeatK > 0` remains in the
-tree (a one-line grep in `FireController.test.ts` asserts it).
+with no instrument; `char 0.45` on a charged clamp, jumped three days,
+leaves charcoal lengths; at `draught wide` it leaves ash; a six-hour burn
+leaves brands. ⚠ The census assertion is SCOPED: a `FireController.test`
+walks every installed recipe row and asserts none has the shape the old
+`firingsFor` matched — `requiresHeatK > 0` AND every slot `kind: item`
+AND `toolCapabilities: []` — so the ~80 heated recipes other verbs run
+(stills, cooking, smithing, all with tool capabilities or bulk slots)
+are untouched; the six deleted rows (+ `calcine` when present) are the
+whole set.
 
 **Commit.** `build(ceramics W0): one rule fires everything — heat-work on
 Thermal, HeatTransition folds the cure, fire has no recipe path`
@@ -1193,7 +1414,7 @@ two glaze materials, and a unit-level glazed crock vs unglazed jar.
 - `K/lib/material/Material.ts`: `thermalExpansion`, `acidity`, `leaches`,
   `coats: boolean` (a bath material that lays a coat).
 - `K/lib/material/Evaporation.ts`: `wetBulbK()` instance method;
-  `ThermalRegulation.ts` reads it (its private deleted).
+  `ThermalRegulation.ts` reads it (its `protected wetBulbK` deleted).
 - `K/lib/thermal/Thermal.ts`: `evaporativeDepressionK()`, read in
   `ambientTrajectory()`'s flat branch and in `restamp()` (both sides —
   the Coolbox lesson); `fuseCoats` call at a rung (W0 left the call
@@ -1203,15 +1424,29 @@ two glaze materials, and a unit-level glazed crock vs unglazed jar.
   stamp on the payload: `leachCheckedS`, `seepCheckedS`).
 - `K/lib/craft/DipPlanner.ts` (new protocol); `C/platform/…/cmd/crafting/
   dip.yaml` + `K/platform/idea/cmd/crafting/DipController.ts` (moved from
-  chandlery, made dumb; `in`/`inside`/`outside` options); `C/trade-
+  chandlery, made dumb; `in`/`inside`/`outside` options; `verbs: [dip, melt]`; afforded on
+  `FacedMixin.commandContributions` in BOTH `environment` and `peers` — a
+  held mug and a mug on a shelf alike); `C/trade-
   chandlery/src/thing/DipPot.ts` implements `dipPlanFor` (the candle
   plan, verbatim); chandlery's view/controller deleted.
 - `K/lib/cleanliness/Soilable.ts`: `cleansAs()` read — a crazed coat or a
   bare porous body raises `waterLifts` resistance (one multiplier).
+- ⭐ S9's *porous ware absorbs fat and flavor* (two reads, no new
+  state): FAT is cleanliness's — `grease` dirt deposited on a face whose
+  `outermost` does not `holdsWater` is multiplied into the body
+  (`Faced.absorbs(face)` → the `DirtKind.absorbedBy` arm already on the
+  dirt row, so a wash lifts less of it); FLAVOR is the slot's —
+  `BulkableMixin.reconcileAbsorb()` beside the leach: an inside face that
+  does not hold water keeps a share of the last fill's
+  `dissolvedAromatics` (`faces.aromaRetained` 0.1) on the face
+  (`CoatLayer`-less `Faced.absorbed[face]`) and re-imparts it into the
+  next fill at the leach rate — *the crock that remembers the pickles*.
+  Glazed ware and stoneware keep nothing, which is S9's *hygienic*.
 - Rows: `base-library/…/ceramic/{terracotta,earthenware,stoneware,
   refractory}.yaml` gain `thermalExpansion`; `C/trade-ceramics/…/material/
-  glaze/{lead,ash}.yaml` (`coats: true`, `heatTransitions` fuse at 1250 K /
-  1200 K, `leaches: [{toxin: lead-poisoning, mgPerLPerDayPerAcidity: 4}]`
+  glaze/{lead,ash,salt}.yaml` (`coats: true`, `heatTransitions` fuse at
+  1250 K / 1200 K with `scorchAboveK` 1400 / 1350 → the `run` state
+  (D5); `salt` is laid only by vapor, D2), `leaches: [{toxin: lead-poisoning, mgPerLPerDayPerAcidity: 4}]`
   on lead, `thermalExpansion` 7e-6 lead / 5e-6 ash); `food/vinegar.yaml`,
   `wine*.yaml`, `whey.yaml`, `brine.yaml`, fruit juices: `acidity`.
 - Settings: `thermal.yaml` (`thermal.evaporation.efficiency 0.8`,
@@ -1249,7 +1484,7 @@ re-pointed; the dorm pot. Consumers: every ceramic row in the realm.
 **Decisions.** D8 D9 D18; `canBeNamedBy` on `Named` (host placement table).
 
 **Files.**
-- `K/lib/stuff/Tangible.ts`: `flaws` (+ fieldMeta), `impactStrengthJ()`,
+- `K/lib/material/Tangible.ts`: `flaws` (+ fieldMeta), `impactStrengthJ()`,
   `sufferImpact()`, `ring()`, `canReceiveAtK()` (W6 reads it).
 - `K/lib/material/Material.ts`: `brokenTemplate` + `getBrokenTemplate()`
   (falls back to `getCastTemplate()`).
@@ -1263,16 +1498,30 @@ re-pointed; the dorm pot. Consumers: every ceramic row in the realm.
   a material fact, not a class guard).
 - `C/platform/…/cmd/perception/ring.yaml` + `K/platform/idea/cmd/
   perception/RingController.ts` (dumb: `target.ring(giver)`); afforded by
-  `TangibleMixin.commandContributions.peers` (⚠ check `lint:self-
-  contributions`; the person affords it too so `ring` with nothing in
-  reach is refused in words).
+  `TangibleMixin.commandContributions` in BOTH `environment` and `peers`
+  (a held mug, a bell on the square, a brick on a stall; ⚠ check
+  `lint:self-contributions` — the person affords it too so `ring` with
+  nothing in reach is refused in words).
 - `K/lib/description/Named.ts` `canBeNamedBy` default; `Crafted.ts`,
   `Assembled.ts`, `husbandry/Bonded.ts` overrides; `NameController.ts`
   made dumb (`isNamed(t) && t.canBeNamedBy(id)`); `name.yaml` help.
 - `C/trade-ceramics/…/thing/sherds.yaml` + `src/thing/Sherds.ts`;
   `C/trade-ceramics/content/recipes/grog.yaml` (millstone, `category:
   sherd` → `/trade/ceramics/thing/grog`, a `Lump` of material `grog`).
-- The 22 rows: `_materialPath` + `coats:` per S1; `generic-objects/…/
+- ⭐ The 23 rows (the requirements' 22 counts `bowl/dish/platter` as
+  three and lists the dorm pot under S1; the tree has 21 rows naming the
+  material + 2 prose-only): **terracotta** — farming `pot/small`,
+  `pot/large`, `pot/starter`, quarrying `/stuff/thing/clay-pot` (the
+  dorm pot), dairying `setting-pan`; **glazed earthenware** — dairying
+  `butter-crock`, `jug`, `rennet-jar`, cooking `tallow-crock`,
+  apiculture `honey-jar`, chandlery `soft-soap-jar`, `lye-flask`, generic
+  `bowl`, `plated-dish`, `platter`, medicine `steeping-pot` (prose-only
+  today: gains `_materialPath` + an inside coat); **stoneware** —
+  dairying `starter-crock`, baking `starter-crock` (prose-only today:
+  gains `_materialPath`); **refractory** — smelting `crucible` (re-pointed
+  to the pack's row in W5), `ingot-mould`, fuel `retort`, cooking
+  `smoke-chimney`; **porcelain (import)** — mining `streak-plate`. Each
+  gets `_materialPath` + `coats:` per S1; `generic-objects/…/
   ceramic/ceramic.yaml` gains `hardness 50, toughness 6`; the dorm starter
   pot (`/stuff/thing/clay-pot`): terracotta, `mass 1.2` (its drop energy
   12 J under terracotta's strength at that mass).
@@ -1301,21 +1550,24 @@ crack; the 22 rows read their bodies`
 
 **Goal.** M3 M4 S2 S3 S7: `Clay` with a composition; the freeze-thaw
 weather fact; weathering; `knead` promoted and tempering; `Greenware`.
-Consumer: the `trade-ceramics` pack is CREATED here with its materials and
-the Delight's clay row, so a lump dug at Rejection can be weathered,
-kneaded and (W4) shaped. ⚠ The pack's existence is this wave's first
-commit-able fact (`pack.yaml`, `package.json`, root dep, the discover
-count 65 → 66, `pnpm install`).
+Consumer: the pack's materials and the Delight's clay row, so a lump dug
+at Rejection can be weathered, kneaded and (W4) shaped.
 
 **Decisions.** D10 D12 D13 D14 (`knead`).
 
 **Files.**
-- `C/trade-ceramics/{pack.yaml, package.json, tsconfig.json,
-  vitest.config.ts, README.md}` (root `/trade/ceramics`, title holder
-  `/compact/trade`; deps: base-library, generic-objects, platform,
-  trade-quarrying, trade-fuel, trade-milling, trade-shopkeeping,
-  trade-smelting, server, types); root `package.json`;
-  `PackLogic.discover.test.ts` 66.
+- (the pack exists since W0; W3 adds `content/settings/ceramics.yaml`,
+  the materials and the reading.) Pack deps are one direction only:
+  `trade-ceramics` → base-library, generic-objects, platform,
+  trade-quarrying, trade-fuel, trade-milling, trade-shopkeeping; **never
+  trade-smelting** — smelting depends on ceramics (W5, its crucible row
+  `extends:` ceramics'), as do `rejection` (W5, the bills name
+  `/trade/ceramics/thing/firebrick`), `terminus` and `hearts-delight`
+  (W6). `lint:pack-extends` enforces the `extends:` edges; a plain path
+  reference to another pack's row is resolved at use and ordered by the
+  `package.json` dependency graph — a path to a pack that is not
+  installed resolves to nothing, so every cross-pack path in this plan
+  sits in a pack that lists the target.
 - `K/api/weather.ts` + `K/platform/idea/api/WeatherLogic.ts`:
   `freezeThawDaysAt`; `K/lib/biome/Atmospheric.ts`:
   `freezeThawDaysSince(atS)`.
@@ -1374,7 +1626,8 @@ moulder makes a day's bricks.
 arm), D25 (`loadN` only).
 
 **Files.**
-- `K/lib/craft/Form.ts`, `K/platform/idea/Form.ts` (+ `lint:instanceable`
+- `K/lib/craft/FormSpec.ts` (`ParsedForm` — renamed from `Form.ts` so it
+  is not a false lib/platform twin of the row class), `K/platform/idea/Form.ts` (+ `lint:instanceable`
   sees an instanceable Idea under `platform/idea/`); `K/lib/craft/
   Shapeable.ts`, `Carvable.ts`, `Impressible.ts` (protocols).
 - `C/platform/…/cmd/crafting/{shape,carve,impress}.yaml` +
@@ -1450,7 +1703,20 @@ land here), the four Rejection furnaces with bills and keepers.
 - `C/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
   `runIntoCrucible`: `crucible.wear(dial)` + the crack; the crucible row
   moves to `/trade/ceramics/thing/crucible` and `smelter.yaml` props it
-  (the smelting row kept as `extends:` for its prose).
+  (the smelting row kept as `extends:` for its prose — so
+  `trade-smelting/package.json` adds `@saxonberg/content-trade-ceramics`
+  here, and `rejection/package.json` too, because its furnace bills name
+  `/trade/ceramics/thing/firebrick`; `lint:pack-extends` checks the
+  first, the install order the second).
+- ⚠ The limekiln's lining persistence: the limekiln is a prop of
+  `quarry/pit.yaml`, an `OpenWorking` = `PersistableMixin(OpenWorkingMixin(
+  Locale))`, and a persistable room restores *its own record — its
+  fixtures* first (furnishing.md § the order). W5 adds
+  `Oven.lining.persist.test.ts`: wear the limekiln, `PersistableApi.
+  capture(pit)` / `materialize`, assert the line's condition survives. If
+  the pit's capture turns out not to carry prop state, the fallback is a
+  `lime-yard` `PersistentLocale` beside the pit that props the kiln — a
+  row move, no mechanism.
 - `C/trade-ceramics/src/behavior/relines.ts`; `behaviors:` on
   `rejection/agent/{glassblower,smelterman,collier,storekeeper}.yaml`;
   `rejection/…/thing/store-counter.yaml` + firebrick line (`from:
@@ -1460,8 +1726,7 @@ land here), the four Rejection furnaces with bills and keepers.
   `PersistentLocale`.
 - `C/trade-ceramics/…/idea/reading/size.yaml` + `SizeReading.ts`;
   `terminus-city.yaml` three brick standards.
-- Disciplines: `C/trade-ceramics/…/idea/Discipline/{brickmaking,pottery,
-  masonry}.yaml`.
+- Disciplines: shipped in W0; W5 adds nothing here.
 - Settings: `ceramics.clamp.*`, `ceramics.lining.*`, `ceramics.crucible.*`,
   `ceramics.atmosphere.reducingBelow`.
 - Tests: `BrickClamp.test.ts` (three stacks, three rungs, absorption
@@ -1491,7 +1756,13 @@ businesses, the drive wire files for A, B and C. Consumer: the realm.
 **Files.**
 - `C/hearts-delight/content/world/terminus/hearts-delight/brickfield/`:
   `structure.yaml`; `location/{clay-pit (an OpenWorking on a new
-  deposit row …/idea/deposit/valley-alluvium.yaml), weathering-ground,
+  deposit row …/idea/deposit/valley-alluvium.yaml with `waterTable:
+  -1.2` — the shipped working stops at the water table, which is what
+  "worked out" IS here), old-pit (⭐ S20's *a worked-out pit floods and
+  stands as a pond*: a sibling `Shore` row over a `WaterFixture` of
+  standing water, the valley's older pit, authored flooded — the
+  dynamic flood of a working is mining-slate's, recorded in Deferred),
+  weathering-ground,
   temper-pit, moulding-shed (PersistentLocale), hacks (PersistentLocale,
   `roof:` canvas, `enclosure: none`), clamp-ground, potters-shop
   (PersistentLocale), offstage}.yaml`; `thing/{temper-pit, brick-table,
@@ -1501,7 +1772,9 @@ businesses, the drive wire files for A, B and C. Consumer: the realm.
   `parLines` sand/breeze/wood/firebrick-not), pottery.yaml (the potter's
   own outfit)}`; `agent/{brickmaster, moulder-a, moulder-b, setter,
   potter}.yaml` (Cast, archetypes); the valley-gate exit; `pack.yaml`
-  titles; `package.json` + trade-ceramics, trade-quarrying.
+  titles; `hearts-delight/package.json` + trade-ceramics, trade-quarrying;
+  `terminus/package.json` + trade-ceramics (the stall and the counters
+  name `/trade/ceramics/thing/*`).
 - The ground reads `mud` (`DirtKind` is shipped): the brickfield rooms'
   floors are `earth/clay` worked false → the shipped floor soiling.
 - `C/trade-ceramics/src/behavior/{moulds,sets,pots}.ts` (the gang's day;
@@ -1515,8 +1788,8 @@ businesses, the drive wire files for A, B and C. Consumer: the realm.
 - Terminus: `C/terminus/…/market/thing/potters-stall.yaml` (a fixed
   `Stock`, supplier the pottery; lines plant-pot, mug, jug, crock, bowl,
   jar, flask, setting-pan); `square.yaml` props it + the curfew bell row
-  (W7 — place the row then); `general-store/counter.yaml` + plant-pot
-  line; `chandlery/thing/counter.yaml` two lines re-pointed; the general
+  (W7 — place the row then); `general-store/counter.yaml` plant-pot lines
+  (l.99–100) re-pointed; `chandlery/thing/counter.yaml` two lines re-pointed; the general
   store's honey-jar line → the pottery's jar (apiculture's row stays for
   the apiary's props).
 - `K/lib/retail/Stock.ts`: `importBackstop` on `StockFrom`, `reset()`
@@ -1557,9 +1830,10 @@ D29 (founding).
   chill/damp in `castInto`, the impression cast, `undercut` refusal;
   `K/lib/material/Material.ts` `chillsTo`, `cureSetting`,
   `drainSetting.absorbedByMould`; `K/platform/idea/api/BulkableLogic.ts`
-  survival + `receivedPour`; `K/lib/stuff/Tangible.ts` `canReceiveAtK`
+  survival + `receivedPour`; `K/lib/material/Tangible.ts` `canReceiveAtK`
   (W2 declared it); `K/lib/thermal/Thermal.ts` passes `temperatureK` in
-  the freeze-edge `SetPool`.
+  the freeze-edge `SetPool`; `K/platform/idea/cmd/bulk/PourController.ts`
+  the engaged pour (above); `K/lib/mould/Mould.ts` `pourDurationS`.
 - `K/platform/thing/ScrewPress.ts` + `C/platform/…/cmd/device/turn.yaml`
   + `TurnController.ts` + `K/lib/craft/Turnable.ts`; `C/hearts-delight/…/
   creamery/thing/screw-press.yaml`; `C/trade-ceramics/…/thing/tile-press`
@@ -1602,45 +1876,36 @@ D29 (founding).
 of anything, a pour that obeys its receiver and Chvorinov, one load from
 three sources, cure, recast, and the bell that carries`
 
-### ⛔ The sibling gate (before W8)
-
-1. If sugar (and potash) have merged: `git merge origin/master` into
-   `reqs/ceramics`; resolve by the § *Sibling collisions* table; recount
-   the pack test; `pnpm install`; `test:near` + thermal/fire/bulk/mould
-   suites + every touched pack + `lint:family`; re-run the rubber, glass,
-   sugar and potash wire drives (they boot our kernel now) and
-   `ceramics-a…d`.
-2. If sugar has not merged: `git merge origin/reqs/sugar` into our own
-   branch (allowed; landing is the MR's job) — and **open the MR only
-   after sugar is on master**, else our diff carries sugar's build. If
-   sugar stalls, W8 is cut from this MR and preserved as a follow-up
-   (its design stays in this plan's § *Deferred seams* with the wave
-   text intact).
-
-### W8 — crystallizing and the filter (on sugar's mechanisms)
+### W8 — crystallizing and the filter (master's code, sugar's names)
 
 **Goal.** S17 and S9's filter; AC 12 and 18. Consumers: the salt pans
 (bittern below), the ceramic water filter, alum and saltpetre rows.
+⭐ Waits on nobody (D32); its shared-file work is append-only and copies
+sugar's text where the two overlap.
 
 **Decisions.** D32.
 
 **Files.** `K/lib/thermal/Thermal.ts` (the crystallize arm of
-`reconcileBulkPhase`, beside sugar's `concentrateIfReached`);
-`K/lib/material/Material.ts` (`solubility`, `crystallizesTo`,
-`filteredTo`); `K/lib/maturation/Maturing.ts` (one line in
-`reconcileEvaporativeWindow` rescaling `dissolvedSolidsKgPerL`);
-`C/trade-quarrying/…/thing/salt-pan.yaml` → class `/platform/thing/Mould`
-(reusable, `castTemplate: /stuff/thing/salt-crystals`, `drainsInto` the
-tub beneath — a `thing/bittern-tub.yaml` propped under it at the salt
-flat and the salt house); `bulk/salt-water.yaml` (`solubility`,
-`crystallizesTo {product: food/salt, residue: bulk/bittern}`),
-`bulk/bittern.yaml`; `material/{alum,saltpetre}.yaml` rows;
-`C/trade-ceramics/src/thing/WaterFilter.ts` (`PercolatingMixin(Ware)`) +
-`thing/water-filter.yaml` + the `filter` form row; `C/water/…/material/
-{fouled-water (filteredTo), tainted-water}.yaml` + the draw branch in
-`WatercourseCatalogue.ts`; `ceramics-d.dirty.wire.test.ts` gains steps 22
-and 32 (moved from the parts they sit in, because they are gated).
-Tests: `Thermal.crystallize.test.ts`, `WaterFilter.test.ts`,
+`reconcileBulkPhase` inside the existing `if (bp > 0 && temp >= bp)`
+block, and the `dissolvedSolidsKgPerL` declaration — sugar's comment and
+type verbatim); `K/lib/material/Material.ts` (`solubility`,
+`crystallizesTo`, `filteredTo` appended; `solidsKgPerL` + its accessor
+pair copied from sugar); `K/platform/idea/api/BulkableLogic.ts` (sugar's
+solids fold, copied verbatim, beside the `composition` fold);
+`K/lib/mould/Mould.ts` (`drainsInto()` — sugar's signature and body);
+`K/lib/maturation/Maturing.ts` (one line in `reconcileEvaporativeWindow`
+rescaling the field); `C/trade-quarrying/…/thing/salt-pan.yaml` → class
+`/platform/thing/Mould` (reusable, `castTemplate: /stuff/thing/
+salt-crystals`, standing ON a `thing/bittern-tub.yaml` propped under it
+at the salt flat and the salt house); `bulk/salt-water.yaml`
+(`solidsKgPerL 0.035`, `solubility`, `crystallizesTo {product: food/salt,
+residue: bulk/bittern}`), `bulk/bittern.yaml`; `material/{alum,
+saltpetre}.yaml` rows; `C/trade-ceramics/…/thing/water-filter.yaml` (a
+`Ware` row, unglazed stoneware body) + the `filter` form row;
+`C/water/…/material/{fouled-water (filteredTo), tainted-water}.yaml` +
+the draw branch in `WatercourseCatalogue.ts`; drive steps 22 and 32 stay
+in `ceramics-c`/`ceramics-d` where the requirements put them. Tests:
+`Thermal.crystallize.test.ts`, `WaterFilter.test.ts`,
 `WatercourseCatalogue.draw.test.ts`.
 
 **Commit.** `build(ceramics W8): brine sets its salt with the bittern
@@ -1649,10 +1914,12 @@ below; porous stoneware strains the water by its pores`
 ### Then: the drive, the suite, the MR
 
 Run `ceramics-a…d` against the booted world; record each run below;
-`pnpm test` ONCE before the MR; open the MR; the pre-MR check in
-CLAUDE.md § the lint family.
+run the sibling PROBE (§ Merge protocol — each sibling's tip merged onto
+ours in a throwaway detached worktree + `lint:family`); `pnpm test` ONCE
+before the MR; open the MR; the pre-MR check in CLAUDE.md § the lint
+family.
 
-**Total:** nine waves plus a gate — W0 ≈ 3.5k lines (the kernel rework +
+**Total:** nine waves, no gate — W0 ≈ 4k lines (the kernel rework +
 six packs' rows), W1 ≈ 2k, W2 ≈ 2.5k, W3 ≈ 2.5k (the pack is born), W4 ≈
 3.5k (three verb promotions), W5 ≈ 2.5k, W6 ≈ 3k (rows + three wire
 files), W7 ≈ 3k, W8 ≈ 1k. Expect 20k ± 3k lines, ~350 files, and the
@@ -1673,9 +1940,10 @@ the target composes, every tool arg declares a default).
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
 | fire a chamber | `platform/cmd/device/fire.yaml` (rewritten) | `BurnerMixin.commandContributions` (unchanged) | the charge's material `heatTransitions` | every burner row that stands in a room | `kiln: requires BurnerMixin`; `draught` a string of five words; `hold` greedy after `for` |
+| char a clamp | `trade/fuel/cmd/fuel/char.yaml` (unchanged view) | `CharcoalPit.commandContributions` (unchanged) | the wood material's transition; the clamp's draught | the fuel yard's clamp | `clamp: requires [BurnerMixin]` unchanged |
 | read the kiln | `analyze/measure temperature` | the platform `Reading` affordance | `temperature.yaml` `handTool: pyrometry`; the cones row | cones propped at the potter's shop | the cones are a `Tool` with `capabilities: [pyrometry]` |
-| lay a glaze | `platform/cmd/crafting/dip.yaml` | `BulkableMixin`? no — ⚠ `dip` was afforded by `DipPot` only; now afforded by **`FacedMixin.commandContributions.peers`** (every good can be dipped) AND the person's self-contributions so a bare `dip` is refused in words | the bath material's `coats: true`; the glaze rows | glaze buckets propped at the potter's shop | `target: requires FacedMixin`; `bath: requires BulkableMixin`, default `reachable:[mixin.BulkableMixin]` |
-| ring a body | `platform/cmd/perception/ring.yaml` | `TangibleMixin.commandContributions.peers` + self | material tags | — | `target: requires TangibleMixin` |
+| lay a glaze | `platform/cmd/crafting/dip.yaml` (`verbs: [dip, melt]`) | ⚠ `dip` was afforded by `DipPot` only; now afforded by **`FacedMixin.commandContributions`, `environment` AND `peers`** (a held mug, a mug on the stall's shelf) plus the person's self-contributions so a bare `dip` is refused in words | the bath material's `coats: true`; the glaze rows | glaze buckets propped at the potter's shop | `target: requires FacedMixin`; `bath: requires BulkableMixin`, default `reachable:[mixin.BulkableMixin]` |
+| ring a body | `platform/cmd/perception/ring.yaml` | `TangibleMixin.commandContributions`, `environment` + `peers` + self | material tags | — | `target: requires TangibleMixin` |
 | name a pot | `platform/cmd/social/name.yaml` | unchanged (`Avatar` self) | `Named.canBeNamedBy` | — | `target: requires any` (the controller asks `isNamed`) |
 | win clay | quarrying's `dig` (unchanged) | `OpenWorking` | the deposit band's `wins:` → `/trade/quarrying/thing/clay` (class `Clay`) + the clay material's `composition` | the valley clay pit (a new `OpenWorking` row + deposit) and Rejection's existing pit | `dig`'s shipped gate |
 | weather it | none — a read | — | `freezeThawDaysSince` on the heap's place | the weathering ground is sky-open (`roof: none`) | — |
@@ -1767,48 +2035,27 @@ mixin — declare `ContainerMixin` and probe).
 
 ### Needs the owner
 
-1. **D7 — the lead leach is on `Bulkable`, not maturation's `imparts`.**
-   The requirements name `imparts`; the mechanism that reaches the crocks
-   the drive fills (CraftVessels with no batch) is the slot's. Aroma
-   `imparts` is untouched. If the owner wants the word kept, the
-   requirements' M7 sentence should read *the vessel-to-contents channel*
-   without naming maturation.
-2. **D26 — the bell pit is a fixed mould thing, not a place.** S19 says
-   *the mould is a place*. A Location composing `MouldMixin` would need
-   `Bulkable + Thermal + Container` on a place; the honest engine answer
-   today is a `fixedInPlace` mould you stand at in the foundry yard. If
-   the owner wants the place, it is a build of its own (a pit you climb
-   into).
-3. **D14 — `hammer <blank> on <die>` rides smithing's `anvil` arg** and a
-   structural probe on the bound object rather than a promotion of
-   `hammer`. `impress die on blank` is the same act said the universal
-   way and works everywhere. Say if the literal syntax must be the only
-   one.
-4. **W0 re-classes a `Casting` fallback clone at a rung** (cullet →
-   `Melt`) — the one place a transition changes a class, restricted to
-   fallback shapes that carry no identity. Confirm the restriction is
-   acceptable, or the glass remelt stays a `stir`-less special case.
-5. **Four verb promotions in one build** (`shape`, `knead`, `dip`,
-   `carve`) each refactor a shipped pack (glass, baking, chandlery,
-   carpentry). The ladder's rung 2 chose each; the alternative — four
-   second views — fails `lint:verb-collisions`. The owner may want the
-   promotions as their own small MR before this one.
-6. **The furnace rooms become `PersistentLocale`** (smelter, glasshouse,
-   fuel yard; the quarry pit is already a persistable working). Their
-   bounded fuel props then persist as consumed — which is honest, and a
-   change to how those rooms re-seed at boot.
-7. **The sequencing against sugar and potash** (§ Sibling collisions):
-   after-both is cheapest; W8 leaves the MR under any other order.
-8. **`Faced` on `Good`** touches every good's class chain (one field, no
-   behavior until a coat is laid). Confirm this is the host the owner
-   meant by *every good has an outside*.
-9. **No plant-pot line exists on any counter today** — AC 13's
-   *re-pointed* line is a NEW line on the general store. Recorded, not
-   reshaped.
-10. **Heat-work credit with no actor.** A transition that completes in
-    an unwatched reconcile (a clamp opened three days later) credits
-    `heatWork.firedBy` — the one who ran `fire`. A pot that fires in a
-    house fire credits nobody. Confirm.
+1. **Later, not now:** the bell pit as a PLACE you climb into (S19's
+   *the mould is a place*). The plan's position is a fixed mould thing;
+   a Location composing `Mould` is a build of its own. Recorded in
+   Deferred seams.
+
+### Positions taken (owner-confirmed defaults, 2026-10-20)
+
+- D7 — the lead leach is on the vessel's inner face through `Bulkable`;
+  maturation's `imparts` is untouched; casks (a char layer on the inside
+  face) are the special case recorded in `maturation.md` for later.
+- D26 — the bell pit is a fixed mould thing in the foundry yard.
+- D14 — both die syntaxes ship: `hammer <blank> on <die>` through
+  smithing's `anvil` arg and `impress die on blank`.
+- The four verb promotions (`shape`, `knead`, `dip`, `carve`) stay in
+  THIS MR as early waves (W1, W3, W4).
+- The three furnace rooms become `PersistentLocale`; their bounded fuel
+  props persist as consumed.
+- `Faced` composes on `Good`.
+- An unwatched transition credits `heatWork.firedBy`; a pot fired in a
+  house fire credits nobody.
+- Ruling C removed the only class change at a rung; nothing re-classes.
 
 ### Requirements-vs-code disagreements recorded, not reshaped
 
@@ -1875,7 +2122,7 @@ mixin — declare `ContainerMixin` and probe).
 | drain tiles, brick sewers, flue liners, clay lamps | watershed's conduit ladder, cleanliness's flue, fire's lamp — rows on this build's bodies |
 | `interchangeable` as an authored joint flag | assembly tail (the derived skip ships here) |
 | a pit you climb into (the bell mould as a place) | moulding-slate (if the owner wants it) |
-| W8 if cut by sequencing | this plan's W8 text, preserved as a follow-up |
+| a working that FLOODS when it reaches the water table (the valley pit standing as a pond is authored, not dynamic) | mining-slate (*a pit that fills, and a pump*) |
 | `hammer` promoted behind a protocol | command-taxonomy-slate |
 | the oven's own warm-up (thermal mass on the furnace) | `fire.md` deferred (unchanged) |
 
@@ -1884,13 +2131,14 @@ mixin — declare `ContainerMixin` and probe).
 Kernel: `K/lib/thermal/Thermal.ts` · `K/lib/material/HeatTransition.ts`
 (← `Crosslinking.ts`) · `K/lib/material/Material.ts` ·
 `K/lib/material/Faced.ts` · `K/lib/material/Greenware.ts` ·
-`K/lib/material/Evaporation.ts` · `K/lib/stuff/Tangible.ts` ·
+`K/lib/material/Evaporation.ts` · `K/lib/material/Tangible.ts` ·
 `K/lib/stuff/Good.ts` · `K/lib/bulk/Bulkable.ts` ·
 `K/platform/idea/api/BulkableLogic.ts` · `K/lib/mould/Mould.ts` ·
 `K/lib/mould/Impression.ts` · `K/lib/fire/Burner.ts` ·
 `K/platform/thing/Oven.ts` · `K/platform/thing/ScrewPress.ts` ·
 `K/lib/craft/{Shapeable,Kneadable,DipPlanner,Carvable,Impressible,
-Turnable,Form}.ts` · `K/platform/idea/Form.ts` ·
+Turnable,FormSpec}.ts` · `K/platform/idea/Form.ts` · `K/platform/thing/Casting.ts` ·
+`K/platform/idea/cmd/bulk/PourController.ts` ·
 `K/platform/idea/cmd/device/{Fire,Turn}Controller.ts` ·
 `K/platform/idea/cmd/crafting/{Shape,Knead,Dip,Carve,Impress}Controller.ts`
 · `K/platform/idea/cmd/perception/RingController.ts` ·
@@ -1902,7 +2150,8 @@ Turnable,Form}.ts` · `K/platform/idea/Form.ts` ·
 TemperatureReading.ts` · `K/lib/mixin.ts` · `K/api/mixin.ts`.
 
 Packs: `C/trade-ceramics/**` (new) · `C/trade-quarrying/src/thing/
-{Clay,Lump}.ts` · `C/trade-fuel/src/thing/Retort.ts` ·
+{Clay,Lump}.ts` · `C/trade-fuel/src/thing/{Retort,CharcoalPit}.ts` + `CharController.ts` ·
+`C/trade-glass/src/idea/cmd/glass/GobController.ts` ·
 `C/trade-smelting/src/thing/{SmeltingFurnace,Bell,Flask}.ts` +
 `SmeltController.ts` · `C/trade-glass/src/thing/{Gather,Blowpipe}.ts` ·
 `C/trade-baking/src/thing/DoughTrough.ts` ·
