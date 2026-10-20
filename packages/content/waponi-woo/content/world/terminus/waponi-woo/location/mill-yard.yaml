@@ -13,10 +13,12 @@ data:
   coords: { x: -1, y: 1, z: 0 }
   props:
     - /trade/sugar/thing/edge-runner
-    # ⭐ The tubs the juice runs into: a crush needs an EMPTY one in reach
-    # (`no-glass` otherwise). The miller pours his tub into the kettle up
-    # at the boiling house and brings the same tub back.
-    - { template: /trade/sugar/thing/juice-tub, count: 2 }
+    # ⭐ THE tub the juice runs into — one: a crush needs an empty tub in
+    # reach (`no-glass` otherwise), and the miller carries it up full and
+    # brings it home empty. With two, `get tub` could not tell the full one
+    # from the empty one: the miller carried the EMPTY tub up and back for
+    # a day and a half while the juice stood in the yard (probed).
+    - /trade/sugar/thing/juice-tub
   cast:
     - /world/terminus/waponi-woo/agent/miller
   exits:
